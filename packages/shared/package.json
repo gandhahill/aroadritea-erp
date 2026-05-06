@@ -10,12 +10,16 @@
     "./id": "./src/id/index.ts",
     "./date": "./src/date/index.ts",
     "./types": "./src/types/index.ts",
+    "./i18n-keys": "./src/i18n-keys/index.ts",
     "./ports/*": "./src/ports/*.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "vitest": "^3.2.4"
   }
 }

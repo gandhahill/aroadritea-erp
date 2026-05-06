@@ -1,0 +1,227 @@
+/*
+ * Aroadri Tea ERP — Global Stylesheet
+ * Design System: SD §36, ADR-0006, BRAND.md
+ *
+ * Tailwind v4 CSS-first config. All brand tokens defined here.
+ * RULE: No bg-white, text-zinc-*, border-slate-* in apps/*.
+ */
+
+@import "tailwindcss";
+
+/* ================================================================
+   THEME — Brand Tokens (SD §36.2)
+   ================================================================ */
+
+@theme {
+  /* --- Brand Colors (BRAND.md palet) --- */
+  --color-brand-red: #D6262E;
+  --color-brand-red-dark: #A41B22;
+  --color-brand-red-light: #F4D4D6;
+  --color-brand-cream: #FBF6EE;
+  --color-brand-cream-2: #F4ECDF;
+  --color-brand-cream-3: #EDE3D2;
+  --color-brand-ink: #1A1A1A;
+  --color-brand-ink-2: #3A3A3A;
+  --color-brand-ink-3: #6B6B6B;
+  --color-brand-gold: #C8A557;
+  --color-brand-gold-light: #E8D8A8;
+  --color-brand-jade: #5C8D7E;
+  --color-brand-jade-light: #C2DDD5;
+  --color-brand-clay: #B85C38;
+  --color-brand-clay-light: #E8C4B4;
+
+  /* --- Semantic Colors (shadcn CSS var override) --- */
+  --color-background: #FBF6EE;
+  --color-foreground: #1A1A1A;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #1A1A1A;
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #1A1A1A;
+  --color-primary: #D6262E;
+  --color-primary-foreground: #FFFFFF;
+  --color-secondary: #F4ECDF;
+  --color-secondary-foreground: #1A1A1A;
+  --color-muted: #F4ECDF;
+  --color-muted-foreground: #6B6B6B;
+  --color-accent: #F4ECDF;
+  --color-accent-foreground: #1A1A1A;
+  --color-destructive: #D6262E;
+  --color-destructive-foreground: #FFFFFF;
+  --color-success: #5C8D7E;
+  --color-success-foreground: #FFFFFF;
+  --color-warning: #B85C38;
+  --color-warning-foreground: #FFFFFF;
+  --color-border: #EDE3D2;
+  --color-input: #EDE3D2;
+  --color-ring: #D6262E;
+
+  /* --- Typography (SD §36.6) --- */
+  --font-sans: 'Inter', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --font-display: 'Manrope', 'Noto Serif SC', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+
+  /* --- Border Radius (SD §36.2 — slightly softer) --- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+
+  /* --- Shadows — warm sepia tone, not blue-gray (SD §36.2) --- */
+  --shadow-soft: 0 1px 2px rgba(58, 39, 18, 0.06), 0 8px 24px -12px rgba(58, 39, 18, 0.16);
+  --shadow-pop: 0 2px 6px rgba(58, 39, 18, 0.10), 0 18px 48px -16px rgba(58, 39, 18, 0.24);
+  --shadow-glow: 0 0 0 3px rgba(214, 38, 46, 0.15);
+
+  /* --- Spacing scale extras --- */
+  --spacing-18: 4.5rem;
+  --spacing-88: 22rem;
+  --spacing-128: 32rem;
+
+  /* --- Transitions (SD §36.8 — ease-out spring) --- */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 220ms;
+  --duration-slow: 350ms;
+
+  /* --- Animations --- */
+  --animate-pulse-dot: pulse-dot 1.4s ease-in-out infinite;
+}
+
+/* ================================================================
+   BASE STYLES
+   ================================================================ */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-border);
+  }
+
+  html {
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+
+  /* Heading typography — Manrope display font (SD §36.6) */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+    color: var(--color-brand-ink);
+  }
+
+  h1 { font-weight: 700; }
+  h2, h3 { font-weight: 600; }
+
+  /* Focus ring — dual ring: inner cream + outer red (SD §36.8) */
+  :focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-brand-cream),
+      0 0 0 4px var(--color-brand-red);
+  }
+
+  /* Scrollbar — warm tint */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-brand-cream-2);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-brand-cream-3);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-brand-ink-3);
+  }
+}
+
+/* ================================================================
+   COMPONENT UTILITIES
+   ================================================================ */
+
+@layer utilities {
+  /* Card surface — warm, not default white (SD §36.3) */
+  .surface-card {
+    background-color: var(--color-card);
+    border: 1px solid var(--color-brand-cream-2);
+    box-shadow: var(--shadow-soft);
+    border-radius: var(--radius-md);
+  }
+
+  .surface-elevated {
+    background-color: var(--color-card);
+    border: 1px solid var(--color-brand-cream-2);
+    box-shadow: var(--shadow-pop);
+    border-radius: var(--radius-lg);
+  }
+
+  /* Interactive spring transition (SD §36.8) */
+  .interactive {
+    transition:
+      transform var(--duration-normal) var(--ease-spring),
+      box-shadow var(--duration-normal) var(--ease-spring);
+  }
+  .interactive:hover {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-pop);
+  }
+  .interactive:active {
+    transform: scale(0.98);
+  }
+}
+
+/* ================================================================
+   SPINNER — 3 dot pulsing (SD §36.5, BRAND.md)
+   "Mengingatkan butir teh / bubble"
+   ================================================================ */
+
+@keyframes pulse-dot {
+  0%, 80%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.spinner-dot {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.spinner-dot > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-brand-red);
+  animation: var(--animate-pulse-dot);
+}
+/* Staggered delay */
+.spinner-dot > span:nth-child(2) { animation-delay: 0.16s; }
+.spinner-dot > span:nth-child(3) { animation-delay: 0.32s; }
+
+/* Size variants */
+.spinner-dot-sm > span { width: 6px; height: 6px; }
+.spinner-dot-lg > span { width: 12px; height: 12px; gap: 6px; }
+
+/* ================================================================
+   SELECTION
+   ================================================================ */
+
+::selection {
+  background-color: var(--color-brand-red-light);
+  color: var(--color-brand-ink);
+}

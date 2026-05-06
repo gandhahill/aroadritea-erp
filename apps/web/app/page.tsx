@@ -1,8 +1,6 @@
+import { redirect } from 'next/navigation';
+
 export default function HomePage() {
-  return (
-    <main>
-      <h1>Aroadri Tea ERP</h1>
-      <p>System loading...</p>
-    </main>
-  );
+  // ERP root redirects to login or dashboard
+  redirect('/login');
 }

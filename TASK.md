@@ -35,6 +35,9 @@
 | ID | Title | Owner | Completed | Commit / PR | Phase |
 |----|-------|-------|-----------|-------------|-------|
 | T-0001 | Scaffold pnpm workspace + apps/web stub + packages skeleton | Claude Opus 4.6 | 2026-05-06 | (initial commit) | 1 |
+| T-0004 | `packages/shared` full impl (ULID, Money, Date, Types, i18n) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0004): shared utils | 1 |
+| T-0003 | Tailwind v4 + brand tokens + globals.css + login UI | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0003): tailwind brand | 1 |
+| T-0002 | Drizzle ORM config + IAM schema (8 tables, relations) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0002): drizzle iam | 1 |
 
 ---
 

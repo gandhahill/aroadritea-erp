@@ -6,7 +6,11 @@
   "exports": {
     ".": "./index.ts",
     "./client": "./client.ts",
-    "./schema/*": "./schema/*.ts"
+    "./schema/common": "./schema/common.ts",
+    "./schema/auth": "./schema/auth.ts",
+    "./schema/accounting": "./schema/accounting.ts",
+    "./schema/audit": "./schema/audit.ts",
+    "./schema/inventory": "./schema/inventory.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",
