@@ -1,0 +1,110 @@
+{
+  "common": {
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "create": "Create",
+      "search": "Search",
+      "filter": "Filter",
+      "export": "Export",
+      "print": "Print",
+      "confirm": "Confirm",
+      "back": "Back",
+      "submit": "Submit",
+      "reset": "Reset",
+      "close": "Close",
+      "loading": "Loading..."
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "draft": "Draft",
+      "posted": "Posted",
+      "reversed": "Reversed",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "labels": {
+      "name": "Name",
+      "description": "Description",
+      "date": "Date",
+      "amount": "Amount",
+      "total": "Total",
+      "status": "Status",
+      "location": "Location",
+      "createdAt": "Created at",
+      "updatedAt": "Updated at",
+      "createdBy": "Created by"
+    },
+    "errors": {
+      "required": "Required",
+      "notFound": "Not found",
+      "forbidden": "Access denied",
+      "conflict": "Data conflict, please reload",
+      "serverError": "Server error occurred",
+      "validationFailed": "Validation failed"
+    },
+    "pagination": {
+      "page": "Page",
+      "of": "of",
+      "next": "Next",
+      "previous": "Previous",
+      "showing": "Showing"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Sign In",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign In",
+      "invalidCredentials": "Invalid email or password",
+      "suspended": "Your account has been suspended"
+    }
+  },
+  "accounting": {
+    "journal": {
+      "title": "General Journal",
+      "create": "Create Journal Entry",
+      "post": "Post",
+      "reverse": "Reverse",
+      "postingDate": "Posting Date",
+      "debit": "Debit",
+      "credit": "Credit",
+      "totalDebit": "Total Debit",
+      "totalCredit": "Total Credit",
+      "notBalanced": "Journal is not balanced",
+      "periodClosed": "Period is closed"
+    },
+    "coa": {
+      "title": "Chart of Accounts",
+      "code": "Account Code",
+      "name": "Account Name",
+      "type": "Type",
+      "normalBalance": "Normal Balance"
+    },
+    "period": {
+      "title": "Accounting Periods",
+      "open": "Open Period",
+      "close": "Close Period"
+    }
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "accounting": "Accounting",
+    "pos": "Point of Sale",
+    "inventory": "Inventory",
+    "purchasing": "Purchasing",
+    "hr": "HR & Payroll",
+    "reports": "Reports",
+    "settings": "Settings"
+  },
+  "app": {
+    "name": "Aroadri Tea ERP",
+    "company": "PT Gandha Hill Catering Management Indonesia",
+    "tagline": "Enterprise Resource Planning"
+  }
+}

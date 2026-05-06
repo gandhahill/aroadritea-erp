@@ -14,6 +14,7 @@
     "@erp/ui": "workspace:*",
     "@tailwindcss/postcss": "^4.2.4",
     "next": "^15.0.0",
+    "next-intl": "^4.11.0",
     "postcss": "^8.5.14",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -1,0 +1,110 @@
+{
+  "common": {
+    "actions": {
+      "save": "保存",
+      "cancel": "取消",
+      "delete": "删除",
+      "edit": "编辑",
+      "create": "新建",
+      "search": "搜索",
+      "filter": "筛选",
+      "export": "导出",
+      "print": "打印",
+      "confirm": "确认",
+      "back": "返回",
+      "submit": "提交",
+      "reset": "重置",
+      "close": "关闭",
+      "loading": "加载中..."
+    },
+    "status": {
+      "active": "活跃",
+      "inactive": "停用",
+      "draft": "草稿",
+      "posted": "已过账",
+      "reversed": "已冲销",
+      "pending": "待处理",
+      "approved": "已批准",
+      "rejected": "已拒绝"
+    },
+    "labels": {
+      "name": "名称",
+      "description": "说明",
+      "date": "日期",
+      "amount": "金额",
+      "total": "合计",
+      "status": "状态",
+      "location": "位置",
+      "createdAt": "创建时间",
+      "updatedAt": "更新时间",
+      "createdBy": "创建人"
+    },
+    "errors": {
+      "required": "必填",
+      "notFound": "未找到",
+      "forbidden": "拒绝访问",
+      "conflict": "数据冲突，请重新加载",
+      "serverError": "服务器错误",
+      "validationFailed": "验证失败"
+    },
+    "pagination": {
+      "page": "页",
+      "of": "共",
+      "next": "下一页",
+      "previous": "上一页",
+      "showing": "显示"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "登录",
+      "email": "电子邮件",
+      "password": "密码",
+      "submit": "登录",
+      "invalidCredentials": "邮箱或密码错误",
+      "suspended": "您的账户已被暂停"
+    }
+  },
+  "accounting": {
+    "journal": {
+      "title": "日记账",
+      "create": "创建凭证",
+      "post": "过账",
+      "reverse": "冲销",
+      "postingDate": "过账日期",
+      "debit": "借方",
+      "credit": "贷方",
+      "totalDebit": "借方合计",
+      "totalCredit": "贷方合计",
+      "notBalanced": "凭证不平衡",
+      "periodClosed": "期间已关闭"
+    },
+    "coa": {
+      "title": "科目表",
+      "code": "科目代码",
+      "name": "科目名称",
+      "type": "类型",
+      "normalBalance": "余额方向"
+    },
+    "period": {
+      "title": "会计期间",
+      "open": "打开期间",
+      "close": "关闭期间"
+    }
+  },
+  "nav": {
+    "dashboard": "仪表板",
+    "accounting": "会计",
+    "pos": "收银台",
+    "inventory": "库存",
+    "purchasing": "采购",
+    "hr": "人力资源",
+    "reports": "报表",
+    "settings": "设置"
+  },
+  "app": {
+    "name": "Aroadri Tea ERP",
+    "company": "PT Gandha Hill Catering Management Indonesia",
+    "tagline": "企业资源规划"
+  }
+}

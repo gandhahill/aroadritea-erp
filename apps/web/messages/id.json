@@ -1,0 +1,110 @@
+{
+  "common": {
+    "actions": {
+      "save": "Simpan",
+      "cancel": "Batal",
+      "delete": "Hapus",
+      "edit": "Ubah",
+      "create": "Buat Baru",
+      "search": "Cari",
+      "filter": "Filter",
+      "export": "Ekspor",
+      "print": "Cetak",
+      "confirm": "Konfirmasi",
+      "back": "Kembali",
+      "submit": "Kirim",
+      "reset": "Reset",
+      "close": "Tutup",
+      "loading": "Memuat..."
+    },
+    "status": {
+      "active": "Aktif",
+      "inactive": "Nonaktif",
+      "draft": "Draf",
+      "posted": "Terposting",
+      "reversed": "Dibalik",
+      "pending": "Menunggu",
+      "approved": "Disetujui",
+      "rejected": "Ditolak"
+    },
+    "labels": {
+      "name": "Nama",
+      "description": "Deskripsi",
+      "date": "Tanggal",
+      "amount": "Jumlah",
+      "total": "Total",
+      "status": "Status",
+      "location": "Lokasi",
+      "createdAt": "Dibuat pada",
+      "updatedAt": "Diperbarui pada",
+      "createdBy": "Dibuat oleh"
+    },
+    "errors": {
+      "required": "Wajib diisi",
+      "notFound": "Data tidak ditemukan",
+      "forbidden": "Akses ditolak",
+      "conflict": "Data konflik, silakan muat ulang",
+      "serverError": "Terjadi kesalahan server",
+      "validationFailed": "Validasi gagal"
+    },
+    "pagination": {
+      "page": "Halaman",
+      "of": "dari",
+      "next": "Berikutnya",
+      "previous": "Sebelumnya",
+      "showing": "Menampilkan"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Masuk",
+      "email": "Email",
+      "password": "Kata Sandi",
+      "submit": "Masuk",
+      "invalidCredentials": "Email atau kata sandi salah",
+      "suspended": "Akun Anda ditangguhkan"
+    }
+  },
+  "accounting": {
+    "journal": {
+      "title": "Jurnal Umum",
+      "create": "Buat Jurnal",
+      "post": "Posting",
+      "reverse": "Balik",
+      "postingDate": "Tanggal Posting",
+      "debit": "Debit",
+      "credit": "Kredit",
+      "totalDebit": "Total Debit",
+      "totalCredit": "Total Kredit",
+      "notBalanced": "Jurnal tidak seimbang",
+      "periodClosed": "Periode sudah ditutup"
+    },
+    "coa": {
+      "title": "Bagan Akun",
+      "code": "Kode Akun",
+      "name": "Nama Akun",
+      "type": "Jenis",
+      "normalBalance": "Saldo Normal"
+    },
+    "period": {
+      "title": "Periode Akuntansi",
+      "open": "Buka Periode",
+      "close": "Tutup Periode"
+    }
+  },
+  "nav": {
+    "dashboard": "Dasbor",
+    "accounting": "Akuntansi",
+    "pos": "Kasir",
+    "inventory": "Inventaris",
+    "purchasing": "Pembelian",
+    "hr": "SDM",
+    "reports": "Laporan",
+    "settings": "Pengaturan"
+  },
+  "app": {
+    "name": "Aroadri Tea ERP",
+    "company": "PT Gandha Hill Catering Management Indonesia",
+    "tagline": "Enterprise Resource Planning"
+  }
+}

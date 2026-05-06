@@ -38,6 +38,10 @@
 | T-0004 | `packages/shared` full impl (ULID, Money, Date, Types, i18n) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0004): shared utils | 1 |
 | T-0003 | Tailwind v4 + brand tokens + globals.css + login UI | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0003): tailwind brand | 1 |
 | T-0002 | Drizzle ORM config + IAM schema (8 tables, relations) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0002): drizzle iam | 1 |
+| T-0008 | Accounting schema (periods, COA, journal, partners, tax_rates) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0008): accounting schema | 1 |
+| T-0005 | IAM seed (tenant, 4 locations, 7 roles, 40+ permissions) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0005): iam seed | 1 |
+| T-0009 | COA seed (90+ accounts, trilingual, SAK ETAP) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0009): coa seed | 1 |
+| T-0022 | i18n shell (next-intl) + messages id/en/zh + login i18n | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0022): i18n shell | 1 |
 
 ---
 

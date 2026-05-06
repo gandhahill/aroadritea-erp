@@ -18,6 +18,16 @@ export {
   users,
 } from './schema/auth';
 
+// Schema — Accounting
+export {
+  accountingPeriods,
+  accounts,
+  journalEntries,
+  journalLines,
+  partners,
+  taxRates,
+} from './schema/accounting';
+
 // Schema — Common helpers
 export {
   auditCols,
