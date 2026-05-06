@@ -1,0 +1,38 @@
+{
+  "name": "@erp/services",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./accounting": "./src/accounting/index.ts",
+    "./inventory": "./src/inventory/index.ts",
+    "./pos": "./src/pos/index.ts",
+    "./purchasing": "./src/purchasing/index.ts",
+    "./hr": "./src/hr/index.ts",
+    "./payroll": "./src/payroll/index.ts",
+    "./crm": "./src/crm/index.ts",
+    "./kitchen": "./src/kitchen/index.ts",
+    "./reporting": "./src/reporting/index.ts",
+    "./tax": "./src/tax/index.ts",
+    "./cms": "./src/cms/index.ts",
+    "./member": "./src/member/index.ts",
+    "./customfield": "./src/customfield/index.ts",
+    "./workflow": "./src/workflow/index.ts",
+    "./audit": "./src/audit/index.ts",
+    "./auth": "./src/auth/index.ts",
+    "./iam": "./src/iam/index.ts",
+    "./notification": "./src/notification/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@erp/db": "workspace:*",
+    "@erp/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "vitest": "latest"
+  }
+}

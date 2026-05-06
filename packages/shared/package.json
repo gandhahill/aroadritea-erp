@@ -1,0 +1,21 @@
+{
+  "name": "@erp/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./result": "./src/result/index.ts",
+    "./errors": "./src/errors/index.ts",
+    "./money": "./src/money/index.ts",
+    "./id": "./src/id/index.ts",
+    "./date": "./src/date/index.ts",
+    "./types": "./src/types/index.ts",
+    "./ports/*": "./src/ports/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

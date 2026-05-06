@@ -1,0 +1,27 @@
+{
+  "name": "@erp/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./client": "./client.ts",
+    "./schema/*": "./schema/*.ts"
+  },
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "seed": "tsx seed/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@erp/shared": "workspace:*",
+    "drizzle-orm": "^0.36.0",
+    "@neondatabase/serverless": "^0.10.0"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.28.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.5.0"
+  }
+}
