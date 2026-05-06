@@ -61,7 +61,7 @@
 ### 1.1 Tujuan
 Membangun sistem ERP web-based + PWA untuk PT. Gandha Hill Catering Management Indonesia (Aroadri Tea) yang:
 - Menangani 9 modul (lihat SOURCE-OF-TRUTH §20.2): Accounting, Reporting, Tax, POS, Inventory, Purchasing, Kitchen, HR & Payroll, CRM.
-- Berjalan stabil pada 1 vCPU / 1 GB RAM / 60 GB disk.
+- Berjalan stabil pada 1 vCPU / 2 GB RAM / 60 GB disk.
 - Mendukung offline-first POS karena internet toko sering putus.
 - Multi-bahasa Indonesia / Inggris / Mandarin sejak hari pertama.
 - Mengekspos antarmuka MCP agar AI lokal bisa input/edit/audit data.
