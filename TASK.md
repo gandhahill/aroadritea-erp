@@ -24,7 +24,7 @@
 
 | ID | Status | Title | Owner (AI model) | Started | Last Updated | Checkpoint | Phase | Note |
 |----|--------|-------|------------------|---------|--------------|-----------|-------|------|
-| T-0012 | 🟨 IN_PROGRESS | Service `accounting.createJournal` + Zod input + Result type | Antigravity (Opus 4.6) | 2026-05-07 | 2026-05-07 | [checkpoint](docs/checkpoints/T-0012-journal-service.checkpoint.md) | 1 | — |
+| _(none)_ | | | | | | | | |
 
 ---
 
@@ -46,6 +46,7 @@
 | T-0016 | Audit log schema (immutable, indexed, MCP-queryable) | Antigravity | 2026-05-07 | wip(T-0016): audit schema | 1 |
 | T-0006 | Service `auth` (better-auth integration) + login UI | Antigravity (Opus 4.6) | 2026-05-07 | verified: tests pass, typecheck clean | 1 |
 | T-0007 | Service `iam.can()` permission engine + cache + tests | Antigravity (Opus 4.6) | 2026-05-07 | verified: 17 tests pass | 1 |
+| T-0012 | Service `accounting.createJournal` + Zod input + Result type | Antigravity (Opus 4.6) | 2026-05-07 | verified: 27 tests pass, typecheck clean | 1 |
 
 ---
 
