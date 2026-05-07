@@ -24,8 +24,7 @@
 
 | ID | Status | Title | Owner (AI model) | Started | Last Updated | Checkpoint | Phase | Note |
 |----|--------|-------|------------------|---------|--------------|-----------|-------|------|
-| T-0006 | 🟨 IN_PROGRESS | Service `auth` (better-auth integration) + login UI | Antigravity (Opus 4.6) | 2026-05-07 | 2026-05-07 | [checkpoint](docs/checkpoints/T-0006-auth-service.checkpoint.md) | 1 | Combined with T-0007 |
-| T-0007 | 🟨 IN_PROGRESS | Service `iam.can()` permission engine + cache + tests | Antigravity (Opus 4.6) | 2026-05-07 | 2026-05-07 | [checkpoint](docs/checkpoints/T-0006-auth-service.checkpoint.md) | 1 | Combined with T-0006 |
+| T-0012 | 🟨 IN_PROGRESS | Service `accounting.createJournal` + Zod input + Result type | Antigravity (Opus 4.6) | 2026-05-07 | 2026-05-07 | [checkpoint](docs/checkpoints/T-0012-journal-service.checkpoint.md) | 1 | — |
 
 ---
 
@@ -45,6 +44,8 @@
 | T-0022 | i18n shell (next-intl) + messages id/en/zh + login i18n | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0022): i18n shell | 1 |
 | T-0010 | Result pattern + AppError (factories, combinators, 16 tests) | Antigravity | 2026-05-07 | wip(T-0010): result+errors | 1 |
 | T-0016 | Audit log schema (immutable, indexed, MCP-queryable) | Antigravity | 2026-05-07 | wip(T-0016): audit schema | 1 |
+| T-0006 | Service `auth` (better-auth integration) + login UI | Antigravity (Opus 4.6) | 2026-05-07 | verified: tests pass, typecheck clean | 1 |
+| T-0007 | Service `iam.can()` permission engine + cache + tests | Antigravity (Opus 4.6) | 2026-05-07 | verified: 17 tests pass | 1 |
 
 ---
 
