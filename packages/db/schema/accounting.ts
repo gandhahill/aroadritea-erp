@@ -189,6 +189,33 @@ export const taxRates = pgTable(
 );
 
 // ================================================================
+// TAX RULES — SD §19.3.2 (PPN opt-in engine, ADR-0010)
+// ================================================================
+
+export const taxRules = pgTable(
+  'tax_rules',
+  {
+    ...pk,
+    ...tenantCol,
+    scopeKind: text('scope_kind').notNull(),   // 'channel' | 'customer_segment' | 'product_category' | 'global_default'
+    scopeId: text('scope_id'),                 // id of channel/segment/category — NULL for global_default
+    taxCode: text('tax_code').notNull(),        // FK to tax_rates.code
+    isAppliedDefault: boolean('is_applied_default').notNull().default(true),
+    priority: integer('priority').notNull().default(10), // higher = more specific
+    effectiveFrom: date('effective_from').notNull(),
+    effectiveUntil: date('effective_until'),    // NULL = forever
+    ...auditCols,
+  },
+  (t) => [
+    index('tax_rules_scope_idx').on(t.scopeKind, t.scopeId),
+    index('tax_rules_tax_code_idx').on(t.taxCode),
+    index('tax_rules_tenant_idx').on(t.tenantId),
+    check('tax_rules_scope_kind_check',
+      sql`scope_kind IN ('channel', 'customer_segment', 'product_category', 'global_default')`),
+  ],
+);
+
+// ================================================================
 // RELATIONS
 // ================================================================
 
@@ -213,6 +240,11 @@ export const journalLinesRelations = relations(journalLines, ({ one }) => ({
   partner: one(partners, { fields: [journalLines.partnerId], references: [partners.id] }),
 }));
 
-export const taxRatesRelations = relations(taxRates, ({ one }) => ({
+export const taxRatesRelations = relations(taxRates, ({ one, many }) => ({
   postingAccount: one(accounts, { fields: [taxRates.postingAccountId], references: [accounts.id] }),
+  rules: many(taxRules),
+}));
+
+export const taxRulesRelations = relations(taxRules, ({ one }) => ({
+  taxRate: one(taxRates, { fields: [taxRules.taxCode], references: [taxRates.code] }),
 }));

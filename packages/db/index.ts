@@ -27,6 +27,7 @@ export {
   journalLines,
   partners,
   taxRates,
+  taxRules,
 } from './schema/accounting';
 
 // Schema — Audit

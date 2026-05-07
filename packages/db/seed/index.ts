@@ -19,7 +19,7 @@ import {
   users,
   userRoles,
 } from '../schema/auth';
-import { accounts, taxRates } from '../schema/accounting';
+import { accounts, taxRates, taxRules } from '../schema/accounting';
 import {
   DEFAULT_TENANT,
   LOCATIONS_SEED,
@@ -30,6 +30,7 @@ import {
 } from './iam';
 import { COA_SEED } from './coa';
 import { TAX_RATES_SEED } from './tax-rates';
+import { TAX_RULES_SEED } from './tax-rules-seed';
 import { eq } from 'drizzle-orm';
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -185,6 +186,23 @@ async function seed() {
     taxCount++;
   }
   console.log(`✅ ${taxCount} tax rates seeded`);
+
+  // 10. Tax Rules (SD §19.3.2 — PPN opt-in engine)
+  let ruleCount = 0;
+  for (const rule of TAX_RULES_SEED) {
+    await db.insert(taxRules).values({
+      id: generateId(),
+      tenantId,
+      scopeKind: rule.scopeKind,
+      scopeId: rule.scopeId,
+      taxCode: rule.taxCode,
+      isAppliedDefault: rule.isAppliedDefault,
+      priority: rule.priority,
+      effectiveFrom: rule.effectiveFrom,
+    }).onConflictDoNothing();
+    ruleCount++;
+  }
+  console.log(`✅ ${ruleCount} tax rules seeded`);
 
   console.log('\n🎉 Seed complete!');
 }
