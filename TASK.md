@@ -24,7 +24,7 @@
 
 | ID | Status | Title | Owner (AI model) | Started | Last Updated | Checkpoint | Phase | Note |
 |----|--------|-------|------------------|---------|--------------|-----------|-------|------|
-| T-0014 | 🟨 IN_PROGRESS | Service `accounting.reverseJournal` | Antigravity (Opus 4.6) | 2026-05-07 | 2026-05-07 | [checkpoint](docs/checkpoints/T-0014-reverse-journal.checkpoint.md) | 1 | — |
+| T-0015 | 🟨 IN_PROGRESS | Service `accounting.closePeriod` + closing entry generator | Antigravity (Opus 4.6) | 2026-05-07 | 2026-05-07 | [checkpoint](docs/checkpoints/T-0015-close-period.checkpoint.md) | 1 | — |
 
 ---
 
@@ -48,6 +48,7 @@
 | T-0007 | Service `iam.can()` permission engine + cache + tests | Antigravity (Opus 4.6) | 2026-05-07 | verified: 17 tests pass | 1 |
 | T-0012 | Service `accounting.createJournal` + Zod input + Result type | Antigravity (Opus 4.6) | 2026-05-07 | verified: 27 tests pass, typecheck clean | 1 |
 | T-0013 | Service `accounting.postJournal` (balance check, period check, audit) | Antigravity (Opus 4.6) | 2026-05-07 | verified: 17 tests pass, typecheck clean | 1 |
+| T-0014 | Service `accounting.reverseJournal` | Antigravity (Opus 4.6) | 2026-05-07 | verified: 18 tests pass, typecheck clean | 1 |
 
 ---
 

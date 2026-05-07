@@ -4,6 +4,7 @@
 
 export { createJournal, type JournalEntryResult, type JournalLineResult } from './create-journal';
 export { postJournal } from './post-journal';
+export { reverseJournal } from './reverse-journal';
 export {
   CreateJournalInputSchema,
   JournalLineInputSchema,

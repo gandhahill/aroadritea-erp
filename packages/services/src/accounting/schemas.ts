@@ -67,3 +67,29 @@ export const ReverseJournalInputSchema = z.object({
 });
 
 export type ReverseJournalInput = z.infer<typeof ReverseJournalInputSchema>;
+
+// --- Close Period ---
+
+export const ClosePeriodInputSchema = z.object({
+  /** Period code e.g. '2026-05'. */
+  periodCode: z.string().regex(/^\d{4}-\d{2}$/, {
+    message: 'Period code must be YYYY-MM',
+  }),
+  /**
+   * If true, force close even if draft JEs exist (they will remain as drafts).
+   * Default false — will reject if drafts exist.
+   */
+  force: z.boolean().optional().default(false),
+});
+
+export type ClosePeriodInput = z.infer<typeof ClosePeriodInputSchema>;
+
+// --- Get Period Status ---
+
+export const GetPeriodStatusInputSchema = z.object({
+  periodCode: z.string().regex(/^\d{4}-\d{2}$/, {
+    message: 'Period code must be YYYY-MM',
+  }),
+});
+
+export type GetPeriodStatusInput = z.infer<typeof GetPeriodStatusInputSchema>;
