@@ -24,7 +24,7 @@
 
 | ID | Status | Title | Owner (AI model) | Started | Last Updated | Checkpoint | Phase | Note |
 |----|--------|-------|------------------|---------|--------------|-----------|-------|------|
-| T-0020 | 🟨 IN_PROGRESS | Service `reporting.balanceSheet` + `profitLoss` + `trialBalance` | Antigravity (Opus 4.6) | 2026-05-07 | 2026-05-07 22:31 | [checkpoint](docs/checkpoints/T-0020-reporting.checkpoint.md) | 1 | |
+| _(none)_ | | | | | | | | |
 
 ---
 
@@ -53,6 +53,7 @@
 | T-0019 | Service `tax.listRates` + `getRateByCode` + seed 6 tarif | Antigravity (Opus 4.6) | 2026-05-07 | verified: 9 tests pass, typecheck clean | 1 |
 | T-0019b | Schema `tax_rules` + seed default rules (6 rules) | Antigravity (Opus 4.6) | 2026-05-07 | verified: schema added, seed runner updated, typecheck clean | 1 |
 | T-0019c | Service `tax.resolve(context)` + `tax.calculate()` + tests | Antigravity (Opus 4.6) | 2026-05-07 | verified: 27 tests pass (16 calculate + 11 resolve), typecheck clean | 1 |
+| T-0020 | Service `reporting.balanceSheet` + `profitLoss` + `trialBalance` | Antigravity (Opus 4.6) | 2026-05-07 | verified: 18 tests pass, typecheck clean | 1 |
 
 ---
 
