@@ -24,7 +24,7 @@
 
 | ID | Status | Title | Owner (AI model) | Started | Last Updated | Checkpoint | Phase | Note |
 |----|--------|-------|------------------|---------|--------------|-----------|-------|------|
-| _(kosong)_ | | | | | | | | |
+| T-0010 | 🟨 | Result pattern + AppError + shared foundations | Antigravity | 2026-05-07 13:45 | 2026-05-07 13:45 | — | 1 | — |
 
 ---
 
