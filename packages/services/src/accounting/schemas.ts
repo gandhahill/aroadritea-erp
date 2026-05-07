@@ -45,3 +45,25 @@ export const CreateJournalInputSchema = z.object({
 });
 
 export type CreateJournalInput = z.infer<typeof CreateJournalInputSchema>;
+
+// --- Post Journal Entry ---
+
+export const PostJournalInputSchema = z.object({
+  /** ID of the journal entry to post. */
+  journalId: z.string().min(1, { message: 'Journal ID is required' }),
+});
+
+export type PostJournalInput = z.infer<typeof PostJournalInputSchema>;
+
+// --- Reverse Journal Entry ---
+
+export const ReverseJournalInputSchema = z.object({
+  /** ID of the journal entry to reverse. */
+  journalId: z.string().min(1, { message: 'Journal ID is required' }),
+  /** Posting date for the reversal JE. Must be in an open period. */
+  postingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'Posting date must be YYYY-MM-DD',
+  }),
+});
+
+export type ReverseJournalInput = z.infer<typeof ReverseJournalInputSchema>;

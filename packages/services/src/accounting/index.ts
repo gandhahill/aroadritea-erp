@@ -3,5 +3,15 @@
  */
 
 export { createJournal, type JournalEntryResult, type JournalLineResult } from './create-journal';
-export { CreateJournalInputSchema, JournalLineInputSchema, type CreateJournalInput, type JournalLineInput } from './schemas';
+export { postJournal } from './post-journal';
+export {
+  CreateJournalInputSchema,
+  JournalLineInputSchema,
+  PostJournalInputSchema,
+  ReverseJournalInputSchema,
+  type CreateJournalInput,
+  type JournalLineInput,
+  type PostJournalInput,
+  type ReverseJournalInput,
+} from './schemas';
 export { generateJournalNumber } from './number-generator';
