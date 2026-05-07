@@ -61,6 +61,12 @@
       "email": "Email",
       "password": "Password",
       "submit": "Sign In",
+      "submitting": "Signing in...",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "errorInvalid": "Invalid email or password",
+      "errorServer": "Server error, please try again",
+      "errorSuspended": "Your account has been suspended. Contact administrator.",
       "invalidCredentials": "Invalid email or password",
       "suspended": "Your account has been suspended"
     }

@@ -61,6 +61,12 @@
       "email": "电子邮件",
       "password": "密码",
       "submit": "登录",
+      "submitting": "登录中...",
+      "showPassword": "显示密码",
+      "hidePassword": "隐藏密码",
+      "errorInvalid": "邮箱或密码错误",
+      "errorServer": "服务器错误，请重试",
+      "errorSuspended": "您的账户已被暂停。请联系管理员。",
       "invalidCredentials": "邮箱或密码错误",
       "suspended": "您的账户已被暂停"
     }

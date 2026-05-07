@@ -122,3 +122,14 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'tax.view', 'reporting.view',
   ],
 };
+
+// === DEV ADMIN USER (seed only — NEVER in production) ===
+// Password: Admin123! (pre-hashed with argon2id)
+// To regenerate: import { hashPassword } from '@erp/services/auth'; await hashPassword('Admin123!');
+export const DEV_ADMIN_USER = {
+  email: 'admin@aroadritea.com',
+  displayName: 'Admin Dev',
+  locale: 'id' as const,
+  status: 'active' as const,
+  roleCode: 'director', // full access
+};

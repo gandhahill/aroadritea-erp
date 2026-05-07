@@ -24,7 +24,8 @@
 
 | ID | Status | Title | Owner (AI model) | Started | Last Updated | Checkpoint | Phase | Note |
 |----|--------|-------|------------------|---------|--------------|-----------|-------|------|
-| T-0010 | 🟨 | Result pattern + AppError + shared foundations | Antigravity | 2026-05-07 13:45 | 2026-05-07 13:45 | — | 1 | — |
+| T-0006 | 🟨 IN_PROGRESS | Service `auth` (better-auth integration) + login UI | Antigravity (Opus 4.6) | 2026-05-07 | 2026-05-07 | [checkpoint](docs/checkpoints/T-0006-auth-service.checkpoint.md) | 1 | Combined with T-0007 |
+| T-0007 | 🟨 IN_PROGRESS | Service `iam.can()` permission engine + cache + tests | Antigravity (Opus 4.6) | 2026-05-07 | 2026-05-07 | [checkpoint](docs/checkpoints/T-0006-auth-service.checkpoint.md) | 1 | Combined with T-0006 |
 
 ---
 
@@ -42,6 +43,8 @@
 | T-0005 | IAM seed (tenant, 4 locations, 7 roles, 40+ permissions) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0005): iam seed | 1 |
 | T-0009 | COA seed (90+ accounts, trilingual, SAK ETAP) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0009): coa seed | 1 |
 | T-0022 | i18n shell (next-intl) + messages id/en/zh + login i18n | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0022): i18n shell | 1 |
+| T-0010 | Result pattern + AppError (factories, combinators, 16 tests) | Antigravity | 2026-05-07 | wip(T-0010): result+errors | 1 |
+| T-0016 | Audit log schema (immutable, indexed, MCP-queryable) | Antigravity | 2026-05-07 | wip(T-0016): audit schema | 1 |
 
 ---
 

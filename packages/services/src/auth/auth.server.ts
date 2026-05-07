@@ -1,0 +1,70 @@
+/**
+ * Auth server — better-auth configuration with Drizzle adapter.
+ * SD §11.1: Email + password, argon2id, session in DB.
+ *
+ * This module configures better-auth to use our existing IAM schema
+ * (users, sessions tables) via the Drizzle adapter with table mapping.
+ */
+
+import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { db } from '@erp/db';
+import * as authSchema from '@erp/db/schema/auth';
+export const auth = betterAuth({
+  database: drizzleAdapter(db, {
+    provider: 'pg',
+    schema: {
+      user: authSchema.users,
+      session: authSchema.sessions,
+    },
+  }),
+
+  // SD §11.1: Email + password as primary method
+  emailAndPassword: {
+    enabled: true,
+    password: {
+      hash: async (password: string) => {
+        const { hashPassword } = await import('./password');
+        return hashPassword(password);
+      },
+      verify: async ({ hash, password }: { hash: string; password: string }) => {
+        const { verifyPassword } = await import('./password');
+        return verifyPassword(hash, password);
+      },
+    },
+  },
+
+  // Session config — SD §11.1
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24,      // refresh token every 24 hours
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 5, // 5 min client-side cache
+    },
+  },
+
+  // Map our schema fields to what better-auth expects
+  user: {
+    modelName: 'users',
+    fields: {
+      name: 'displayName',
+      email: 'email',
+      emailVerified: 'emailVerified',
+      image: undefined, // We don't use image field
+    },
+  },
+
+  // Cookie configuration — SD §11.1: Secure, HttpOnly, SameSite=Lax
+  advanced: {
+    cookiePrefix: 'aroadri',
+    defaultCookieAttributes: {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+    },
+  },
+});
+
+export type Auth = typeof auth;

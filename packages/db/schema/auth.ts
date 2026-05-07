@@ -68,6 +68,7 @@ export const users = pgTable(
     phone: text('phone'), // encrypted at-rest (UU PDP)
     locale: text('locale').notNull().default('id'), // 'id' | 'en' | 'zh'
     status: text('status').notNull().default('active'), // 'active' | 'suspended'
+    emailVerified: timestamp('email_verified', { withTimezone: true }), // required by better-auth
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
     ...auditCols,
     ...versionCol,
@@ -174,6 +175,31 @@ export const sessions = pgTable(
 );
 
 // ================================================================
+// API TOKENS — for MCP server auth — SD §11.3
+// Token format: aroadri_<env>_<random32>
+// Hash with SHA-256 before storing.
+// ================================================================
+
+export const apiTokens = pgTable(
+  'api_tokens',
+  {
+    ...pk,
+    userId: text('user_id').notNull(),
+    name: text('name').notNull(),           // human-readable label
+    tokenHash: text('token_hash').notNull(), // SHA-256 hash of the token
+    scopeJson: jsonb('scope_json'),          // subset of user permissions; null = all user perms
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('api_tokens_user_idx').on(t.userId),
+    uniqueIndex('api_tokens_hash_idx').on(t.tokenHash),
+  ],
+);
+
+// ================================================================
 // RELATIONS
 // ================================================================
 
@@ -191,6 +217,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   tenant: one(tenants, { fields: [users.tenantId], references: [tenants.id] }),
   userRoles: many(userRoles),
   sessions: many(sessions),
+  apiTokens: many(apiTokens),
 }));
 
 export const rolesRelations = relations(roles, ({ one, many }) => ({
@@ -215,4 +242,8 @@ export const userRolesRelations = relations(userRoles, ({ one }) => ({
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),
+}));
+
+export const apiTokensRelations = relations(apiTokens, ({ one }) => ({
+  user: one(users, { fields: [apiTokens.userId], references: [users.id] }),
 }));

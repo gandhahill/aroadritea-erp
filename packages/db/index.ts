@@ -8,6 +8,7 @@ export type { Database } from './client';
 
 // Schema — IAM
 export {
+  apiTokens,
   locations,
   permissions,
   rolePermissions,
@@ -27,6 +28,9 @@ export {
   partners,
   taxRates,
 } from './schema/accounting';
+
+// Schema — Audit
+export { auditLog } from './schema/audit';
 
 // Schema — Common helpers
 export {

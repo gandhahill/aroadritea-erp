@@ -1,11 +1,61 @@
-import type { Metadata } from 'next';
-import { useTranslations } from 'next-intl';
+'use client';
 
-export const metadata: Metadata = { title: 'Masuk' };
+/**
+ * Login page — wired to better-auth via authClient.
+ * SD §11.1: Email + password authentication.
+ * Uses i18n keys from auth.login.* namespace.
+ */
+
+import { useState, type FormEvent } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { authClient } from '@/lib/auth-client';
 
 export default function LoginPage() {
   const t = useTranslations('auth.login');
   const app = useTranslations('app');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const callbackUrl = searchParams.get('callbackUrl') ?? '/';
+  const suspendedError = searchParams.get('error') === 'suspended';
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const result = await authClient.signIn.email({
+        email,
+        password,
+      });
+
+      if (result.error) {
+        setError(t('errorInvalid'));
+      } else {
+        // Set locale cookie from user preference for i18n
+        if (result.data?.user) {
+          const userLocale = (result.data.user as Record<string, unknown>).locale as string | undefined;
+          if (userLocale) {
+            document.cookie = `aroadri.locale=${userLocale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
+          }
+        }
+        router.push(callbackUrl);
+        router.refresh();
+      }
+    } catch {
+      setError(t('errorServer'));
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-brand-cream">
@@ -15,6 +65,7 @@ export default function LoginPage() {
         aria-hidden="true"
       />
       <div className="relative z-10 w-full max-w-sm px-6">
+        {/* Brand header */}
         <div className="mb-10 flex flex-col items-center gap-3">
           <img src="/logo-primary.png" alt="Aroadri Tea" width={96} height={96} className="h-24 w-24 drop-shadow-lg" />
           <div className="text-center">
@@ -22,25 +73,101 @@ export default function LoginPage() {
             <p className="mt-1 text-sm text-brand-ink-3">{app('tagline')}</p>
           </div>
         </div>
+
+        {/* Login card */}
         <div className="surface-card p-6">
-          <form className="flex flex-col gap-5">
+          {/* Suspended account warning */}
+          {suspendedError && (
+            <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700" role="alert" id="suspended-alert">
+              {t('errorSuspended')}
+            </div>
+          )}
+
+          {/* Error message */}
+          {error && (
+            <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700" role="alert" id="login-error">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            {/* Email field */}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="login-email" className="text-sm font-medium text-brand-ink-2">{t('email')}</label>
-              <input id="login-email" type="email" autoComplete="email" required placeholder="nama@aroadritea.com"
-                className="h-10 w-full rounded-md border border-brand-cream-3 bg-white px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]" />
+              <input
+                id="login-email"
+                type="email"
+                autoComplete="email"
+                required
+                placeholder="nama@aroadritea.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                className="h-10 w-full rounded-md border border-brand-cream-3 bg-white px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)] disabled:opacity-50"
+              />
             </div>
+
+            {/* Password field with toggle */}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="login-password" className="text-sm font-medium text-brand-ink-2">{t('password')}</label>
-              <input id="login-password" type="password" autoComplete="current-password" required placeholder="••••••••"
-                className="h-10 w-full rounded-md border border-brand-cream-3 bg-white px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]" />
+              <div className="relative">
+                <input
+                  id="login-password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  required
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  className="h-10 w-full rounded-md border border-brand-cream-3 bg-white px-3 pr-10 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)] disabled:opacity-50"
+                />
+                <button
+                  type="button"
+                  id="toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-brand-ink-3 hover:text-brand-ink"
+                  aria-label={showPassword ? t('hidePassword') : t('showPassword')}
+                >
+                  {showPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
-            <button type="submit"
-              className="interactive h-10 w-full rounded-md bg-brand-red font-medium text-white hover:bg-brand-red-dark active:scale-[0.98]"
-              style={{ transition: 'all 220ms cubic-bezier(0.16, 1, 0.3, 1)' }}>
-              {t('submit')}
+
+            {/* Submit button */}
+            <button
+              type="submit"
+              id="login-submit"
+              disabled={loading}
+              className="interactive h-10 w-full rounded-md bg-brand-red font-medium text-white hover:bg-brand-red-dark active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ transition: 'all 220ms cubic-bezier(0.16, 1, 0.3, 1)' }}
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  {t('submitting')}
+                </span>
+              ) : (
+                t('submit')
+              )}
             </button>
           </form>
         </div>
+
         <p className="mt-6 text-center text-xs text-brand-ink-3">{app('company')}</p>
       </div>
     </main>

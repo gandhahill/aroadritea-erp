@@ -61,6 +61,12 @@
       "email": "Email",
       "password": "Kata Sandi",
       "submit": "Masuk",
+      "submitting": "Memproses...",
+      "showPassword": "Tampilkan kata sandi",
+      "hidePassword": "Sembunyikan kata sandi",
+      "errorInvalid": "Email atau kata sandi salah",
+      "errorServer": "Terjadi kesalahan server, coba lagi",
+      "errorSuspended": "Akun Anda ditangguhkan. Hubungi administrator.",
       "invalidCredentials": "Email atau kata sandi salah",
       "suspended": "Akun Anda ditangguhkan"
     }

@@ -20,6 +20,8 @@
     "./workflow": "./src/workflow/index.ts",
     "./audit": "./src/audit/index.ts",
     "./auth": "./src/auth/index.ts",
+    "./auth/client": "./src/auth/auth.client.ts",
+    "./auth/password": "./src/auth/password.ts",
     "./iam": "./src/iam/index.ts",
     "./notification": "./src/notification/index.ts"
   },
@@ -29,7 +31,10 @@
   },
   "dependencies": {
     "@erp/db": "workspace:*",
-    "@erp/shared": "workspace:*"
+    "@erp/shared": "workspace:*",
+    "argon2": "^0.44.0",
+    "better-auth": "^1.6.9",
+    "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
     "typescript": "^5.5.0",
