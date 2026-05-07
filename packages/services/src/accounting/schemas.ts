@@ -82,7 +82,7 @@ export const ClosePeriodInputSchema = z.object({
   force: z.boolean().optional().default(false),
 });
 
-export type ClosePeriodInput = z.infer<typeof ClosePeriodInputSchema>;
+export type ClosePeriodInput = z.input<typeof ClosePeriodInputSchema>;
 
 // --- Get Period Status ---
 

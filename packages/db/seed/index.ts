@@ -19,7 +19,7 @@ import {
   users,
   userRoles,
 } from '../schema/auth';
-import { accounts } from '../schema/accounting';
+import { accounts, taxRates } from '../schema/accounting';
 import {
   DEFAULT_TENANT,
   LOCATIONS_SEED,
@@ -29,6 +29,8 @@ import {
   DEV_ADMIN_USER,
 } from './iam';
 import { COA_SEED } from './coa';
+import { TAX_RATES_SEED } from './tax-rates';
+import { eq } from 'drizzle-orm';
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
@@ -156,6 +158,33 @@ async function seed() {
     }).onConflictDoNothing();
   }
   console.log(`✅ ${COA_SEED.length} COA accounts seeded`);
+
+  // 9. Tax Rates (resolve COA codes → account IDs)
+  const coaRows = await db.select({ id: accounts.id, code: accounts.code })
+    .from(accounts)
+    .where(eq(accounts.tenantId, tenantId));
+  const coaMap = new Map(coaRows.map(r => [r.code, r.id]));
+
+  let taxCount = 0;
+  for (const rate of TAX_RATES_SEED) {
+    const postingAccountId = coaMap.get(rate.postingAccountCode);
+    if (!postingAccountId) {
+      console.warn(`⚠️ Tax rate ${rate.code}: posting account ${rate.postingAccountCode} not found in COA, skipping`);
+      continue;
+    }
+    await db.insert(taxRates).values({
+      id: generateId(),
+      code: rate.code,
+      name: rate.name,
+      rateBps: rate.rateBps,
+      calculation: rate.calculation,
+      postingAccountId,
+      isActive: rate.isActive,
+      effectiveFrom: rate.effectiveFrom,
+    }).onConflictDoNothing();
+    taxCount++;
+  }
+  console.log(`✅ ${taxCount} tax rates seeded`);
 
   console.log('\n🎉 Seed complete!');
 }

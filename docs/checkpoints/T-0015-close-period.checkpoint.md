@@ -1,6 +1,6 @@
 # T-0015 — Service `accounting.closePeriod` + closing entry generator
 
-## Status: 🟨 IN_PROGRESS
+## Status: 🟩 DONE
 ## Owner: Antigravity (Opus 4.6)
 ## Started: 2026-05-07
 ## Last Updated: 2026-05-07
@@ -24,12 +24,12 @@ Implement period closing per SD §20.4, §21.1.
 7. Unit tests
 
 ## Plan
-1. [ ] Add schemas to `schemas.ts`
-2. [ ] Create `accounting/close-period.ts`
-3. [ ] Update `accounting/index.ts`
-4. [ ] Create tests
-5. [ ] Typecheck + test
-6. [ ] Update TASK.md + checkpoint
+1. [x] Add schemas to `schemas.ts`
+2. [x] Create `accounting/close-period.ts`
+3. [x] Update `accounting/index.ts`
+4. [x] Create tests
+5. [x] Typecheck + test — 98 tests pass (19 new), typecheck clean
+6. [x] Update TASK.md + checkpoint
 
 ## Files
 - `packages/services/src/accounting/schemas.ts` [MODIFY]
