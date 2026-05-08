@@ -54,6 +54,9 @@
 | T-0019b | Schema `tax_rules` + seed default rules (6 rules) | Antigravity (Opus 4.6) | 2026-05-07 | verified: schema added, seed runner updated, typecheck clean | 1 |
 | T-0019c | Service `tax.resolve(context)` + `tax.calculate()` + tests | Antigravity (Opus 4.6) | 2026-05-07 | verified: 27 tests pass (16 calculate + 11 resolve), typecheck clean | 1 |
 | T-0020 | Service `reporting.balanceSheet` + `profitLoss` + `trialBalance` | Antigravity (Opus 4.6) | 2026-05-07 | verified: 18 tests pass, typecheck clean | 1 |
+| T-0017 | UI `apps/web/(dash)/accounting/coa/` — COA browser tree + sidebar nav | Antigravity (Opus 4.6) | 2026-05-08 | verified: typecheck clean, 152 tests pass | 1 |
+| T-0018 | UI Journals list + detail page (table, search, filters, detail view) | Antigravity (Opus 4.6) | 2026-05-08 | verified: typecheck clean, 152 tests pass | 1 |
+| T-0021 | UI Reporting pages (Trial Balance, Balance Sheet, P&L) | Antigravity (Opus 4.6) | 2026-05-08 | verified: typecheck clean | 1 |
 
 ---
 

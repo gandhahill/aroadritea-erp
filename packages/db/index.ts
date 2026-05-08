@@ -43,3 +43,6 @@ export {
   tenantCol,
   versionCol,
 } from './schema/common';
+
+// Drizzle-ORM operators (re-exported for downstream consumers)
+export { eq, and, or, not, lte, gte, lt, gt, isNull, isNotNull, sql, inArray, desc, asc } from 'drizzle-orm';

@@ -1,11 +1,12 @@
 /**
- * Dashboard layout — session-protected shell.
+ * Dashboard layout — session-protected shell with sidebar.
  * All routes under /(dash)/* require authentication.
  * Middleware handles the redirect, this layout provides the session context.
  */
 
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
+import { Sidebar } from './sidebar';
 
 export default async function DashboardLayout({
   children,
@@ -23,24 +24,36 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      {/* Top bar — minimal for now, will be expanded with sidebar in future tasks */}
-      <header className="flex h-14 items-center justify-between border-b border-brand-cream-3 bg-white px-4">
-        <div className="flex items-center gap-3">
-          <img src="/logo-primary.png" alt="Aroadri Tea" width={32} height={32} className="h-8 w-8" />
-          <span className="font-display text-lg font-semibold text-brand-ink">ERP</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-brand-ink-2">
-            {session.user?.name ?? session.user?.email}
-          </span>
-        </div>
-      </header>
+    <div className="flex min-h-screen">
+      {/* Sidebar navigation */}
+      <Sidebar />
 
-      {/* Main content area */}
-      <main className="flex-1 bg-brand-cream p-6">
-        {children}
-      </main>
+      {/* Main content */}
+      <div className="flex flex-1 flex-col">
+        {/* Top bar */}
+        <header className="flex h-14 items-center justify-end border-b border-brand-cream-3 bg-card px-6">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-brand-red/10 flex items-center justify-center">
+              <span className="text-sm font-semibold text-brand-red">
+                {String(session.user?.name || session.user?.email || 'U').charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-medium text-brand-ink">
+                {String(session.user?.name || 'User')}
+              </p>
+              <p className="text-[11px] text-brand-ink-3">
+                {String(session.user?.email || '')}
+              </p>
+            </div>
+          </div>
+        </header>
+
+        {/* Page content */}
+        <main className="flex-1 bg-brand-cream p-6">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
