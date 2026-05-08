@@ -20,6 +20,9 @@ importers:
       '@erp/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@erp/services':
+        specifier: workspace:*
+        version: link:../../packages/services
       '@erp/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -29,9 +32,18 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: latest
         version: 1.29.0(zod@4.4.3)
+      '@neondatabase/serverless':
+        specifier: ^0.10.0
+        version: 0.10.4
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@neondatabase/serverless@0.10.4)(@types/pg@8.11.6)(kysely@0.28.17)
       hono:
         specifier: ^4.0.0
         version: 4.12.17
+      zod:
+        specifier: ^4.0.0
+        version: 4.4.3
     devDependencies:
       '@types/node':
         specifier: ^22.0.0

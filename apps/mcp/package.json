@@ -12,9 +12,13 @@
   "dependencies": {
     "@erp/db": "workspace:*",
     "@erp/shared": "workspace:*",
+    "@erp/services": "workspace:*",
     "@hono/node-server": "^2.0.1",
     "@modelcontextprotocol/sdk": "latest",
-    "hono": "^4.0.0"
+    "@neondatabase/serverless": "^0.10.0",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.0.0",
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
