@@ -58,8 +58,8 @@
 | T-0018 | UI Journals list + detail page (table, search, filters, detail view) | Antigravity (Opus 4.6) | 2026-05-08 | verified: typecheck clean, 152 tests pass | 1 |
 | T-0021 | UI Reporting pages (Trial Balance, Balance Sheet, P&L) | Antigravity (Opus 4.6) | 2026-05-08 | verified: typecheck clean | 1 |
 | T-0023 | apps/mcp scaffolding + auth token + Phase 1 tools | Claude Opus 4.6 | 2026-05-09 | 3af9f81 | 1 |
-| T-0026 | Worker scaffolding + pg-boss | Claude Opus 4.6 | 2026-05-09 | wip(T-0026): worker scaffolding with pg-boss | 1 |
-| T-0027 | Healthz endpoints for web, site, mcp | Claude Opus 4.6 | 2026-05-09 | wip(T-0027): healthz endpoints for web, site, mcp | 1 |
+| T-0026 | Worker scaffolding + pg-boss (DB-driven cron) | Claude Opus 4.6 | 2026-05-09 | 2410084 | 1 |
+| T-0027 | Healthz endpoints for web, site, mcp | Claude Opus 4.6 | 2026-05-09 | 0594041 | 1 |
 
 ---
 
@@ -103,6 +103,7 @@
 | T-0028 | Docker Compose + Dockerfile multi-stage + Caddyfile | infra | SD §26.3 | M |
 | T-0029 | CI workflow (lint, typecheck, test, build) | infra | SD §26.1 | M |
 | T-0030 | Resilience tests scripts (8 skenario di SD §35.2) | infra | SD §35.2 | L |
+| T-0031 | UI Settings → Scheduled Jobs (CRUD cron schedules) | ui | SD §21.10 | M |
 
 ### Phase 2 — POS + Inventory + BOM + Purchasing
 
