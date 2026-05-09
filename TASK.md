@@ -50,7 +50,10 @@
 | T-0013 | Service `accounting.postJournal` (balance check, period check, audit) | Antigravity (Opus 4.6) | 2026-05-07 | verified: 17 tests pass, typecheck clean |
 | T-0014 | Service `accounting.reverseJournal` | Antigravity (Opus 4.6) | 2026-05-07 | verified: 18 tests pass, typecheck clean |
 | T-0015 | Service `accounting.closePeriod` + getPeriodStatus | Antigravity (Opus 4.6) | 2026-05-07 | verified: 19 tests pass, typecheck clean |
+| T-0010b | Seed permissions modules `accounting`, `iam`, `tax` | Antigravity (Opus 4.6) | 2026-05-07 | verified: permissions seeded in iam.ts |
+| T-0011 | Schema journal_entries + journal_lines | Antigravity (Opus 4.6) | 2026-05-07 | verified: accounting schema lines 81+ |
 | T-0016 | Audit log schema (immutable, indexed, MCP-queryable) | Antigravity | 2026-05-07 | wip(T-0016): audit schema |
+| T-0016b | Service `audit.record` (audit log write) | Claude Opus 4.6 | 2026-05-09 | 33c822f: 292 tests pass, typecheck clean |
 | T-0017 | UI `apps/web/(dash)/accounting/coa/` — COA browser tree + sidebar nav | Antigravity (Opus 4.6) | 2026-05-08 | verified: typecheck clean, 152 tests pass |
 | T-0018 | UI Journals list + detail page (table, search, filters, detail view) | Antigravity (Opus 4.6) | 2026-05-08 | verified: typecheck clean, 152 tests pass |
 | T-0019 | Service `tax.listRates` + `getRateByCode` + seed 6 tarif | Antigravity (Opus 4.6) | 2026-05-07 | verified: 9 tests pass, typecheck clean |
@@ -96,8 +99,6 @@
 
 | ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
-| T-0010b | Seed permissions modules `accounting`, `iam`, `tax` | iam | SD §11 | S |
-| T-0011 | Schema journal_entries + journal_lines | accounting | SD §9.2 | M |
 | T-0016b | Service `audit.record` (audit log write) | audit | SD §15 | M |
 
 ### Phase 2 — POS + Inventory + BOM + Purchasing
