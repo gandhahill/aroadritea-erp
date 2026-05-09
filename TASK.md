@@ -1,36 +1,36 @@
 # TASK.md — Active Implementation Tasks
 
-> **Single source of truth runtime** untuk semua task implementasi yang sedang/akan dikerjakan AI developer.
+> **Single source of truth runtime** for all implementation tasks being worked on (or to be worked on) by AI developers.
 >
-> AI **wajib** update file ini sebelum dan sesudah bekerja. Bila token sesi habis di tengah jalan, AI berikutnya membaca file ini + checkpoint relevan untuk lanjut tepat dari titik berhenti.
+> AI **must** update this file before and after working. If the token limit ends mid-session, the next AI reads this file + relevant checkpoint to continue exactly from the stopping point.
 >
-> Aturan lengkap: `SYSTEM-DESIGN.md §37`.
+> Full rules: `SYSTEM-DESIGN.md §37`.
 
 ---
 
-## Legend Status
+## Status Legend
 
-- 🟦 **PENDING** — sudah di-scope, belum dimulai
-- 🟨 **IN_PROGRESS** — sedang dikerjakan, ada checkpoint aktif
-- 🟩 **DONE** — selesai, ada link commit
-- 🟥 **BLOCKED** — terhenti, ada catatan blocker
-- ⚪ **DEFERRED** — dijadwal ulang, alasan di kolom Note
+- 🟦 **PENDING** — scoped, not yet started
+- 🟨 **IN_PROGRESS** — in progress, active checkpoint exists
+- 🟩 **DONE** — completed, commit link available
+- 🟥 **BLOCKED** — stalled, blocker notes present
+- ⚪ **DEFERRED** — rescheduled, reason in Note column
 
 ---
 
-## Active Tasks (sedang dikerjakan)
+## Active Tasks
 
-> Hanya yang status 🟨 atau 🟥. Pindah ke Done setelah selesai.
+> Only those with 🟨 or 🟥 status. Move to Done when finished.
 
 | ID | Status | Title | Owner (AI model) | Started | Last Updated | Checkpoint | Note |
 |----|--------|-------|------------------|---------|-------------|-----------|------|
-| _(kosong — semua task sudah selesai)_ | | | | | | | |
+| _(empty — all tasks are complete)_ | | | | | | | |
 
 ---
 
-## Done This Sprint (≤ 7 hari)
+## Done This Sprint (≤ 7 days)
 
-> Setelah 7 hari, pindahkan ke `docs/checkpoints/archive/` dan hapus dari sini.
+> After 7 days, move to `docs/checkpoints/archive/` and delete from here.
 
 ### Phase 1 — Foundation + Accounting + Reporting + Tax + MCP + Infra
 
@@ -86,22 +86,22 @@
 
 ---
 
-## Backlog (sudah di-scope, belum dimulai)
+## Backlog (scoped, not yet started)
 
-> Diisi saat scoping awal. AI pilih dari sini saat tidak ada Active Task yang bisa dilanjutkan.
-> Task yang sudah selesai dipindahkan ke Done This Sprint dan **dihapus dari sini**.
+> Filled during initial scoping. AI picks from here when no Active Task can be continued.
+> Completed tasks are moved to Done This Sprint and **removed from here**.
 
 ### Phase 1 — Foundation + Accounting + Reporting + Tax + MCP + Infra
 
-| ID | Title | Module | Spec link | Estimasi |
+| ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
-| T-0010b | Seed permissions modul `accounting`, `iam`, `tax` | iam | SD §11 | S |
+| T-0010b | Seed permissions modules `accounting`, `iam`, `tax` | iam | SD §11 | S |
 | T-0011 | Schema journal_entries + journal_lines | accounting | SD §9.2 | M |
 | T-0016b | Service `audit.record` (audit log write) | audit | SD §15 | M |
 
 ### Phase 2 — POS + Inventory + BOM + Purchasing
 
-| ID | Title | Module | Spec link | Estimasi |
+| ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
 | T-0059 | Service pos.openShift / closeShift (UI wired) | pos | SD §21.4 | M |
 | T-0060 | UI `apps/web/(dash)/pos/` order entry | ui | SD §21.4 | XL |
@@ -112,44 +112,44 @@
 
 ### Phase 3 — Kitchen + KDS + Customer Display
 
-| ID | Title | Module | Spec link | Estimasi |
+| ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
 | T-0080 | Schema naixer_product_codes, naixer_modifier_codes, naixer_qr_format_config | kitchen | SD §33.2 | S |
 | T-0081 | Service kitchen.generateQrPayload (strategy pattern dash/pipe) | kitchen | SD §33.3, ADR-0007 | M |
 | T-0082 | UI Settings → Integrations → Naixer KDS | ui | SD §33.7 | L |
-| T-0083 | Skrip seed-naixer-codes.ts (CSV import) | infra | ADR-0007 | S |
-| T-0084 | KDS Aroadri (status produksi: queued/making/ready) | kitchen | SD §21.7 | L |
+| T-0083 | Script seed-naixer-codes.ts (CSV import) | infra | ADR-0007 | S |
+| T-0084 | KDS Aroadri (production status: queued/making/ready) | kitchen | SD §21.7 | L |
 | T-0085 | Customer-facing display `/display/:location` (SSE) | display | SD §21.4 | M |
 | T-0086 | POS Demo mode UI + IndexedDB sandbox | pos | SD §34, ADR-0008 | L |
 
 ### Phase 4 — HR + Payroll + Attendance
 
-| ID | Title | Module | Spec link | Estimasi |
+| ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
 | T-0100 | Schema employees + contracts + attendance + leaves | hr | SD §9.6 | L |
 | T-0101 | Service attendance check-in (mobile, GPS) | hr | SD §21.8 | L |
-| T-0102 | Service payroll engine (PPh 21 progresif TER) | payroll | SD §19.5, §21.8 | XL |
-| T-0103 | Service payroll.run + slip gaji digital (PDF) | payroll | SD §21.8 | L |
-| T-0104 | Workflow surat peringatan (SP1/SP2/SP3) + attachment | hr | SD §21.8 | M |
+| T-0102 | Service payroll engine (PPh 21 progressive TER) | payroll | SD §19.5, §21.8 | XL |
+| T-0103 | Service payroll.run + digital pay slip (PDF) | payroll | SD §21.8 | L |
+| T-0104 | Warning letter workflow (SP1/SP2/SP3) + attachment | hr | SD §21.8 | M |
 
 ### Phase 5 — Public Website + CMS + Member + CRM + Loyalty
 
-| ID | Title | Module | Spec link | Estimasi |
+| ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
 | T-0120 | Schema cms (pages, posts, banners, faqs, settings, revisions) | cms | SD §31.2, ADR-0003 | M |
 | T-0121 | Service cms (CRUD, publish, ISR webhook) | cms | SD §31.4 | L |
 | T-0122 | apps/site scaffold (Next.js, i18n routing /id /en /zh) | infra | SD §31.1 | M |
-| T-0123 | Halaman publik: beranda, menu, tentang, lokasi, blog, kontak | site | SD §31.1, SoT §22.2 | XL |
+| T-0123 | Public pages: home, menu, about, locations, blog, contact | site | SD §31.1, SoT §22.2 | XL |
 | T-0124 | Schema members + member_otp_codes + member_signup_attempts + member_sessions | member | SD §31.5, ADR-0004 | M |
 | T-0125 | Service member signup (OTP email + Turnstile + rate limit) | member | SD §31.6, ADR-0004 | L |
-| T-0126 | Member portal /id/member/akun (saldo poin, kartu QR, riwayat) | site | SD §31.5, §31.7 | L |
+| T-0126 | Member portal /id/member/akun (point balance, QR card, history) | site | SD §31.5, §31.7 | L |
 | T-0127 | Service crm + complaints + compensation tracking | crm | SD §21.9 | M |
 | T-0128 | Service loyalty (points, tiers, vouchers) | crm | SD §21.9 | L |
-| T-0129 | UI cms admin di `apps/web /(dash)/cms/` (block editor) | ui | SD §31.3 | XL |
+| T-0129 | UI cms admin at `apps/web/(dash)/cms/` (block editor) | ui | SD §31.3 | XL |
 
 ### Phase 6 — MCP Expansion + Custom Field + Workflow Engine
 
-| ID | Title | Module | Spec link | Estimasi |
+| ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
 | T-0150 | Schema custom_field_definitions + custom_field_values | customfield | SD §9.9, §17 | M |
 | T-0151 | Service customfield CRUD + value validation | customfield | SD §17 | M |
@@ -157,33 +157,33 @@
 | T-0153 | Schema workflow_definitions + instances + steps | workflow | SD §9.10, §18 | M |
 | T-0154 | Service workflow engine (rule eval + step execution) | workflow | SD §18 | XL |
 | T-0155 | UI workflow definition editor | ui | SD §18 | L |
-| T-0156 | MCP tools penuh per modul (cms, member, hr, payroll, crm, kitchen) | mcp | SD §16 | XL |
-| T-0157 | Notifikasi outage (uptime monitor + WA/email webhook) | infra | SD §35.1.6 | M |
+| T-0156 | Full MCP tools per module (cms, member, hr, payroll, crm, kitchen) | mcp | SD §16 | XL |
+| T-0157 | Outage notification (uptime monitor + WA/email webhook) | infra | SD §35.1.6 | M |
 
 ---
 
-## Estimasi Effort
+## Effort Estimate
 
-- **S** (Small): ≤ 1 hari kerja AI sesi
-- **M** (Medium): 1–2 hari
-- **L** (Large): 3–5 hari
-- **XL** (Extra Large): > 5 hari, perlu di-split sebelum mulai
+- **S** (Small): ≤ 1 AI session work day
+- **M** (Medium): 1–2 days
+- **L** (Large): 3–5 days
+- **XL** (Extra Large): > 5 days, must be split before starting
 
 ---
 
-## Aturan Update File Ini
+## File Update Rules
 
-1. **Tambah task baru di Backlog**: AI yang menemukan kebutuhan baru (mis. dari diskusi user) tambah entry di section Backlog yang sesuai phase.
-2. **Mulai task**: pindahkan dari Backlog ke Active, isi `Owner`, `Started`, `Last Updated`, buat file checkpoint baru di `docs/checkpoints/<id>-<slug>.checkpoint.md`.
-3. **Update saat bekerja**: setelah menulis 100+ baris code atau menyelesaikan satu sub-step, update `Last Updated` di tabel + isi checkpoint.
-4. **Saat berhenti (token limit)**: WAJIB tulis `Next step` eksplisit di checkpoint. Commit dengan pesan `wip(T-XXXX): <ringkas>`.
-5. **Saat selesai**: pindah ke Done This Sprint, hapus dari Backlog & Active. Hapus checkpoint dari `docs/checkpoints/` setelah ≤ 7 hari (atau pindah ke `archive/`).
-6. **BLOCKED**: tetap di Active dengan 🟥, isi kolom Note dengan blocker + tag siapa yang harus memutuskan.
+1. **Add new task to Backlog**: AI that discovers a new need (e.g., from user discussion) adds entry to the Backlog section of the appropriate phase.
+2. **Start a task**: move from Backlog → Active, fill in `Owner`, `Started`, `Last Updated`, create new checkpoint file at `docs/checkpoints/<id>-<slug>.checkpoint.md`.
+3. **Update while working**: after writing 100+ lines of code or completing one Plan sub-step, update `Last Updated` in the table + fill in checkpoint.
+4. **When stopping (token limit)**: **MANDATORY** write `## Next step` explicit and executable in checkpoint. Commit code with message `wip(T-XXXX): <brief>`.
+5. **When done**: move to Done This Sprint, remove from Backlog & Active. Delete checkpoint from `docs/checkpoints/` after ≤ 7 days (or move to `archive/`).
+6. **BLOCKED**: stay in Active with 🟥, fill Note column with blocker + tag who needs to decide.
 
 ## ID Format
 
-- `T-NNNN` (4 digit, zero-padded), increment global. Hindari skip.
+- `T-NNNN` (4 digits, zero-padded), global increment. Avoid skipping.
 
-## Pembagian Antar AI
+## AI Handoff
 
-- AI yang baru memulai sesi: cek Active → jika ada IN_PROGRESS dengan `Last Updated` > 1 jam idle, boleh ambil alih dengan update `Owner`. Jika < 1 jam, **jangan ambil alih** (asumsi sesi lain masih aktif).
+- AI starting a new session: check Active → if there is IN_PROGRESS with `Last Updated` > 1 hour idle, may take over by updating `Owner`. If < 1 hour, **do not take over** (assume another session is still active).
