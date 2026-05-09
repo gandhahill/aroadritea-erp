@@ -132,3 +132,103 @@ export const ListProductsInputSchema = z.object({
 });
 
 export type ListProductsInput = z.infer<typeof ListProductsInputSchema>;
+
+// ─── Stock Adjustment ─────────────────────────────────────────────────────────
+
+export const AdjustmentReasonSchema = z.enum([
+  'waste',
+  'damage',
+  'count_correction',
+  'opening_balance',
+  'other',
+]);
+
+export type AdjustmentReason = z.infer<typeof AdjustmentReasonSchema>;
+
+export const AdjustmentLineInputSchema = z.object({
+  productId: z.string().min(1),
+  variantId: z.string().optional(),
+  batchNo: z.string().optional(),
+  qtyBefore: z.string().regex(/^\d+(\.\d+)?$/),
+  qtyAfter: z.string().regex(/^\d+(\.\d+)?$/),
+  qtyDelta: z.string().regex(/^-?\d+(\.\d+)?$/),
+  uom: z.string().min(1).max(16),
+  unitCost: z.string().regex(/^\d+$/).optional(),
+  notes: z.string().optional(),
+});
+
+export type AdjustmentLineInput = z.infer<typeof AdjustmentLineInputSchema>;
+
+export const CreateAdjustmentInputSchema = z.object({
+  locationId: z.string().min(1),
+  adjustmentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  reason: AdjustmentReasonSchema,
+  notes: z.string().optional(),
+  lines: z.array(AdjustmentLineInputSchema).min(1),
+});
+
+export type CreateAdjustmentInput = z.infer<typeof CreateAdjustmentInputSchema>;
+
+export const ApproveAdjustmentInputSchema = z.object({
+  adjustmentId: z.string().min(1),
+  version: z.number().int().min(1),
+});
+
+export type ApproveAdjustmentInput = z.infer<typeof ApproveAdjustmentInputSchema>;
+
+export const RejectAdjustmentInputSchema = z.object({
+  adjustmentId: z.string().min(1),
+  version: z.number().int().min(1),
+  reason: z.string().min(1),
+});
+
+export type RejectAdjustmentInput = z.infer<typeof RejectAdjustmentInputSchema>;
+
+// ─── Stock Transfer ────────────────────────────────────────────────────────────
+
+export const TransferLineInputSchema = z.object({
+  productId: z.string().min(1),
+  variantId: z.string().optional(),
+  batchNo: z.string().optional(),
+  qty: z.string().regex(/^\d+(\.\d+)?$/).refine((v) => parseFloat(v) > 0, {
+    message: 'Transfer qty must be greater than 0',
+  }),
+  uom: z.string().min(1).max(16),
+});
+
+export type TransferLineInput = z.infer<typeof TransferLineInputSchema>;
+
+export const CreateTransferInputSchema = z.object({
+  fromLocationId: z.string().min(1),
+  toLocationId: z.string().min(1),
+  transferDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  notes: z.string().optional(),
+  lines: z.array(TransferLineInputSchema).min(1),
+}).refine((data) => data.fromLocationId !== data.toLocationId, {
+  message: 'fromLocationId and toLocationId must be different',
+  path: ['toLocationId'],
+});
+
+export type CreateTransferInput = z.infer<typeof CreateTransferInputSchema>;
+
+export const ShipTransferInputSchema = z.object({
+  transferId: z.string().min(1),
+  version: z.number().int().min(1),
+});
+
+export type ShipTransferInput = z.infer<typeof ShipTransferInputSchema>;
+
+export const ReceiveTransferInputSchema = z.object({
+  transferId: z.string().min(1),
+  version: z.number().int().min(1),
+  lines: z.array(
+    z.object({
+      lineId: z.string().min(1),
+      qtyReceived: z.string().regex(/^\d+(\.\d+)?$/).refine((v) => parseFloat(v) > 0, {
+        message: 'qtyReceived must be greater than 0',
+      }),
+    }),
+  ).optional(),
+});
+
+export type ReceiveTransferInput = z.infer<typeof ReceiveTransferInputSchema>;

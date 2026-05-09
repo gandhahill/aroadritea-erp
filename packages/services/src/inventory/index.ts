@@ -29,6 +29,13 @@ export {
   CreateCategoryInputSchema,
   UpdateCategoryInputSchema,
   ListProductsInputSchema,
+  CreateAdjustmentInputSchema,
+  ApproveAdjustmentInputSchema,
+  RejectAdjustmentInputSchema,
+  CreateTransferInputSchema,
+  ShipTransferInputSchema,
+  ReceiveTransferInputSchema,
+  AdjustmentReasonSchema,
   type CreateProductInput,
   type UpdateProductInput,
   type CreateVariantInput,
@@ -36,4 +43,31 @@ export {
   type CreateCategoryInput,
   type UpdateCategoryInput,
   type ListProductsInput,
+  type AdjustmentReason,
+  type CreateAdjustmentInput,
+  type ApproveAdjustmentInput,
+  type RejectAdjustmentInput,
+  type CreateTransferInput,
+  type ShipTransferInput,
+  type ReceiveTransferInput,
 } from './schemas';
+
+// Adjustment service
+export {
+  createAdjustmentDraft,
+  submitAdjustment,
+  approveAdjustment,
+  rejectAdjustment,
+  type AdjustmentResult,
+  type AdjustmentLineResult,
+} from './adjustment-service';
+
+// Transfer service
+export {
+  createTransferDraft,
+  shipTransfer,
+  receiveTransfer,
+  cancelTransfer,
+  type TransferResult,
+  type TransferLineResult,
+} from './transfer-service';
