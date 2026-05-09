@@ -9,7 +9,7 @@
 >
 > Bila ada konflik: SOURCE-OF-TRUTH menang untuk requirement bisnis; SYSTEM-DESIGN menang untuk implementasi teknis.
 >
-> **Versi**: 1.4 — 2026-05-09
+> **Versi**: 1.5 — 2026-05-09
 > **Owner**: Lintang Maulana Zulfan
 
 ---
@@ -44,6 +44,13 @@
 25a. [§25.2 — Enkripsi Data-at-Rest](#252-enkripsi-data-at-rest-field-level)
 25b. [§25.3 — Ekspor XLSX di Semua Modul](#253-ekspor-xlsx-di-semua-modul)
 25c. [§25.4 — Sistem Dokumentasi Komprehensif](#254-sistem-dokumentasi-komprehensif)
+25d. [§25.5 — Laporan Harian Summary](#255-laporan-harian-summary)
+25e. [§25.6 — Hourly Sales Report](#256-hourly-sales-report)
+25f. [§25.7 — Petty Cash](#257-petty-cash)
+25g. [§25.8 — Reimbursement](#258-reimbursement)
+25h. [§25.9 — Stock Opname & Variance](#259-stock-opname--variance)
+25i. [§25.10 — Journal Attachments (MCP Audit)](#2510-journal-attachments-mcp-audit)
+25j. [§25.11 — Donasi / Rounding Donation](#2511-donasi--rounding-donation)
 26. [CI/CD & Deployment](#26-cicd--deployment)
 27. [Backup, Restore, DR](#27-backup-restore-dr)
 28. [Observability](#28-observability)
@@ -2397,6 +2404,461 @@ Menggunakan modul CMS yang sama (`apps/web/(dash)/cms/`) dengan tipe konten `doc
 - Publish workflow: draft → published.
 - Last updated + author tracking.
 - Revision history (rollback capability).
+
+---
+
+### 25.5 Laporan Harian Summary (SoT §21.3)
+
+#### 25.5.1 Service
+
+```ts
+// packages/services/reporting/daily-summary.ts
+export async function getDailySummary(params: {
+  locationId: string;
+  startDate: Date;
+  endDate: Date;
+  cashierId?: string;
+}): Promise<Result<DailySummary>>
+
+interface DailySummary {
+  period: { start: Date; end: Date };
+  locationId: string;
+  grossSales: Money;
+  discountTotal: Money;
+  netSales: Money;
+  taxTotal: Money;           // PB1 breakdown
+  commissionDelivery: Money; // 20% × (gofood + grabfood + shopeefood gross)
+  netRevenue: Money;
+  refundTotal: Money;
+  refundCount: number;
+  paymentBreakdown: PaymentMethodRow[];
+  shiftSummary: ShiftSummary[];
+  topProducts: ProductSaleRow[];
+}
+```
+
+#### 25.5.2 UI
+
+- Page: `apps/web/(dash)/reporting/daily-summary/page.tsx`
+- Filter bar: tanggal range, lokasi, kasir.
+- Tabel 1: Payment breakdown (method | tx_count | total).
+- Tabel 2: Top 10 products (rank | product | qty | nominal).
+- Grafik: donut chart payment method, bar chart top products.
+- Tombol: Print (PDF), Export (XLSX).
+- Toggle: "Include closed shifts only" (default: true).
+
+#### 25.5.3 MCP Tools
+
+```ts
+export const reportingGetDailySummary = {
+  name: 'reporting.get_daily_summary',
+  description: 'Get daily sales summary with payment method breakdown',
+  inputSchema: z.object({
+    location_id: z.string(),
+    start_date: z.string(), // YYYY-MM-DD
+    end_date: z.string(),   // YYYY-MM-DD
+    cashier_id: z.string().optional(),
+  }),
+  handler: async (args) => {
+    const result = await getDailySummary(args);
+    return formatResult(result);
+  },
+};
+```
+
+---
+
+### 25.6 Hourly Sales Report (SoT §21.4)
+
+#### 25.6.1 Service
+
+```ts
+// packages/services/reporting/hourly-sales.ts
+export async function getHourlySales(params: {
+  locationId: string;
+  startDate: Date;
+  endDate: Date;
+  groupBy: Array<'variant' | 'size' | 'category' | 'channel'>;
+}): Promise<Result<HourlySalesReport>>
+```
+
+`groupBy` determines how product rows are grouped. Multiple groupBy = hierarchical grouping.
+
+#### 25.6.2 Group By Mapping
+
+| groupBy value | Source column | How derived |
+|---|---|---|
+| `variant` | Product variant group (e.g., "Fresh Milk Tea", "Lemon Fresh Tea") | From `product_variants.variant_group` |
+| `size` | Regular / Large | From `product_variants.size` |
+| `category` | product category | From `products.category_id` |
+| `channel` | sales_orders.channel | Direct |
+
+#### 25.6.3 UI
+
+- Page: `apps/web/(dash)/reporting/hourly-sales/page.tsx`
+- Filter bar: tanggal, lokasi, group by (multi-select chips).
+- Tabel: rows = (hour × group value), cols = product details.
+- Heatmap: CSS grid dengan background color berdasarkan nominal (intensity scale).
+- Peak hour badge: highlight jam dengan penjualan tertinggi.
+- Export: XLSX.
+
+---
+
+### 25.7 Petty Cash (SoT §21.5)
+
+#### 25.7.1 Schema
+
+```ts
+// packages/db/schema/accounting.ts (extend)
+
+// petty_cash_accounts: satu per lokasi
+export const pettyCashAccounts = pgTable('petty_cash_accounts', {
+  id: text('id').primaryKey(),
+  tenantId: text('tenant_id').references(() => tenants.id),
+  locationId: text('location_id').references(() => locations.id).unique(),
+  balance: bigint('balance').notNull().default(0), // dalam rupiah
+  maxLimit: bigint('max_limit').notNull(), // plafond
+  lastReplenishAt: timestamptz('last_replenish_at'),
+  createdAt: timestamptz('created_at').defaultNow(),
+});
+
+// petty_cash_transactions
+export const pettyCashTransactions = pgTable('petty_cash_transactions', {
+  id: text('id').primaryKey(),
+  accountId: text('account_id').references(() => pettyCashAccounts.id),
+  kind: text('kind').checkIn(['topup', 'expense']),
+  amount: bigint('amount').notNull(), // selalu positif
+  description: text('description').notNull(),
+  createdBy: text('created_by').references(() => users.id),
+  createdAt: timestamptz('created_at').defaultNow(),
+});
+```
+
+#### 25.7.2 Service
+
+```ts
+// packages/services/accounting/petty-cash.ts
+export async function getPettyCashBalance(locationId: string): Promise<Result<PettyCashAccount>>
+export async function listPettyCashTransactions(locationId: string, pagination: Pagination): Result<PettyCashTransaction[]>
+export async function requestReplenish(locationId: string, amount: Money): Result<void> // creates workflow instance
+export async function recordExpense(locationId: string, amount: Money, description: string): Result<void>
+```
+
+- Warning threshold: `balance < maxLimit * 0.2` → notifikasi ke kepala toko + director.
+- Replenish request → workflow instance (§18) → approval director → update balance.
+
+#### 25.7.3 UI
+
+- Page: `apps/web/(dash)/accounting/petty-cash/`
+- Tabel saldo per lokasi + history transaksi.
+- Form request replenish (popup modal).
+- Warning banner merah jika saldo < 20%.
+
+---
+
+### 25.8 Reimbursement (SoT §21.6)
+
+#### 25.8.1 Schema
+
+```ts
+// packages/db/schema/accounting.ts
+export const reimbursementRequests = pgTable('reimbursement_requests', {
+  id: text('id').primaryKey(),
+  tenantId: text('tenant_id').references(() => tenants.id),
+  requesterId: text('requester_id').references(() => users.id),
+  locationId: text('location_id').references(() => locations.id),
+  amount: bigint('amount').notNull(),
+  category: text('category').checkIn(['operational', 'supplies', 'emergency', 'other']),
+  description: text('description').notNull(),
+  attachmentUrl: text('attachment_url'), // R2/S3 URL
+  attachmentName: text('attachment_name'),
+  status: text('status').checkIn(['draft', 'submitted', 'approved', 'disbursed', 'rejected']),
+  approvedBy: text('approved_by').references(() => users.id),
+  approvedAt: timestamptz('approved_at'),
+  disbursedAt: timestamptz('disbursed_at'),
+  rejectionReason: text('rejection_reason'),
+  createdAt: timestamptz('created_at').defaultNow(),
+});
+```
+
+#### 25.8.2 Service
+
+```ts
+// packages/services/accounting/reimbursement.ts
+export async function createReimbursement(params: ReimbursementInput): Result<ReimbursementRequest>
+export async function submitReimbursement(id: string): Result<void>
+export async function approveReimbursement(id: string, approverId: string): Result<void>
+export async function disburseReimbursement(id: string): Result<void>
+export async function rejectReimbursement(id: string, reason: string): Result<void>
+// Worker: auto-escalate after 48h no action
+export async function escalateOldReimbursements(): Promise<void>
+```
+
+- `submitReimbursement`: mengubah status → `submitted`, kirim notifikasi ke director.
+- `approveReimbursement`: hanya user dengan permission `accounting.reimbursement.approve` dapat approve.
+- Worker cron: daily, check `status='submitted' AND createdAt < NOW() - 48h` → escalate notification.
+
+#### 25.8.3 UI
+
+- Page: `apps/web/(dash)/accounting/reimbursement/`
+- Form pengajuan dengan upload lampiran (drag & drop image/receipt).
+- Tabel daftar pengajuan: filter status, tanggal, kategori.
+- Detail view: image preview lampiran, history status, approve/reject buttons.
+
+---
+
+### 25.9 Stock Opname & Variance (SoT §21.7)
+
+#### 25.9.1 Schema
+
+```ts
+// packages/db/schema/inventory.ts
+
+export const stockOpnameSessions = pgTable('stock_opname_sessions', {
+  id: text('id').primaryKey(),
+  tenantId: text('tenant_id').references(() => tenants.id),
+  locationId: text('location_id').references(() => locations.id),
+  periodStart: date('period_start').notNull(),
+  periodEnd: date('period_end').notNull(),
+  status: text('status').checkIn(['draft', 'in_progress', 'completed', 'approved', 'cancelled']),
+  physicalCountBy: text('physical_count_by').references(() => users.id),
+  approvedBy: text('approved_by').references(() => users.id),
+  approvedAt: timestamptz('approved_at'),
+  createdAt: timestamptz('created_at').defaultNow(),
+  // Threshold setting
+  varianceThresholdCents: bigint('variance_threshold_cents').notNull().default(5000000), // Rp 50.000 default
+});
+
+export const stockOpnameLines = pgTable('stock_opname_lines', {
+  id: text('id').primaryKey(),
+  sessionId: text('session_id').references(() => stockOpnameSessions.id),
+  productId: text('product_id').references(() => products.id),
+  systemQty: numeric('system_qty', { precision: 14, scale: 3 }).notNull(),
+  totalIn: numeric('total_in', { precision: 14, scale: 3 }).notNull().default(0),  // sum masuk dari movements
+  totalOut: numeric('total_out', { precision: 14, scale: 3 }).notNull().default(0), // sum keluar
+  physicalQty: numeric('physical_qty', { precision: 14, scale: 3 }), // nullable: filled during opname
+  variance: numeric('variance', { precision: 14, scale: 3 }), // physical - system (nullable)
+  reason: text('reason'), // required if variance != 0
+  reasonDetail: text('reason_detail'),
+  varianceApprovedBy: text('variance_approved_by').references(() => users.id),
+  varianceApprovedAt: timestamptz('variance_approved_at'),
+});
+
+export const stockMovementManual = pgTable('stock_movement_manual', {
+  // For Sheet 2: manual daily input
+  id: text('id').primaryKey(),
+  tenantId: text('tenant_id').references(() => tenants.id),
+  occurredAt: date('occurred_at').notNull(),
+  productId: text('product_id').references(() => products.id),
+  qtyIn: numeric('qty_in', { precision: 14, scale: 3 }).notNull().default(0),
+  qtyOut: numeric('qty_out', { precision: 14, scale: 3 }).notNull().default(0),
+  description: text('description'),
+  enteredBy: text('entered_by').references(() => users.id),
+  createdAt: timestamptz('created_at').defaultNow(),
+});
+```
+
+#### 25.9.2 Imported from Excel (Sheet 1 — Master)
+
+```ts
+// packages/services/inventory/import-master.ts
+interface ImportMasterRow {
+  KODE: string;       // SKU / kode barang
+  KATEGORI: string;  // kategori (Teh, Cup, Gula, etc.)
+  NAMA_BARANG: string;
+  SATUAN: string;    // Bungkus / Pcs / Kaleng / Botol / Gen
+  STOK_AWAL: number;
+  GAMBAR_URL?: string;
+  LINK_URL?: string;
+}
+
+export async function importMasterFromExcel(rows: ImportMasterRow[]): Promise<Result<ImportResult>>
+// Creates products where not exist; updates where code matches.
+// Maps kategori to product_category via keyword matching (case-insensitive).
+```
+
+#### 25.9.3 Stock Opname Session Flow
+
+1. **Create session** → `stock_opname_sessions` (draft)
+2. **Generate lines** → `stock_opname_lines` dengan `system_qty` = current stock level, `total_in/out` = calculated from `stock_movement_manual` + `stock_movements` dalam periode.
+3. **Physical count** → kepala toko input `physical_qty` per line (can be partial, save progress).
+4. **Calculate variance** → `variance = physical_qty - (system_qty + total_in - total_out)`.
+5. **Reason logging** → user harus isi `reason` jika `variance != 0`.
+6. **Approval** → jika `ABS(variance) * unit_cost > variance_threshold` → wait for director approval. Else: auto-approved.
+7. **Post adjustment** → approved variance → `stock_movements` adjustment (kind='opname') + optional JE for losses.
+
+#### 25.9.4 Variance Dashboard
+
+- Page: `apps/web/(dash)/inventory/variance/`
+- Grafik: line chart variansi bulanan per kategori.
+- Tabel: top 20 produk dengan variansi tertinggi.
+- Export XLSX.
+- Filter: periode, lokasi, kategori.
+
+#### 25.9.5 MCP Tools
+
+```ts
+export const inventoryStockOpname = {
+  name: 'inventory.stock_opname',
+  description: 'Run stock opname for a location and period',
+  inputSchema: z.object({
+    location_id: z.string(),
+    period_start: z.string(), // YYYY-MM-DD
+    period_end: z.string(),
+  }),
+};
+
+export const inventoryGetVarianceReport = {
+  name: 'inventory.get_variance_report',
+  description: 'Get stock variance analysis report',
+};
+```
+
+---
+
+### 25.10 Journal Attachments (MCP Audit) (SoT §21.9)
+
+#### 25.10.1 Schema
+
+```ts
+// packages/db/schema/accounting.ts
+export const journalAttachments = pgTable('journal_attachments', {
+  id: text('id').primaryKey(),
+  journalEntryId: text('journal_entry_id').references(() => journalEntries.id),
+  fileKey: text('file_key').notNull(),   // R2/S3 key
+  fileName: text('file_name').notNull(),  // original name
+  fileSize: integer('file_size').notNull(),
+  mimeType: text('mime_type').notNull(),
+  uploadedBy: text('uploaded_by').references(() => users.id),
+  uploadedAt: timestamptz('uploaded_at').defaultNow(),
+});
+```
+
+#### 25.10.2 Service
+
+```ts
+// packages/services/accounting/journal-attachments.ts
+export async function uploadJournalAttachment(params: {
+  journalEntryId: string;
+  file: File; // multipart
+  uploadedBy: string;
+}): Promise<Result<JournalAttachment>>
+
+export async function listJournalAttachments(journalEntryId: string): Promise<Result<JournalAttachment[]>>
+
+export async function downloadAttachment(fileKey: string, userId: string): Promise<Result<string>> // presigned URL
+```
+
+#### 25.10.3 API
+
+```
+POST /api/files/upload
+  Content-Type: multipart/form-data
+  Body: file + (optional) prefix
+  Response: { url, file_key, file_name, file_size }
+```
+
+Files stored at `attachments/journal/{journal_entry_id}/{filename}` in R2 bucket.
+
+#### 25.10.4 MCP Tools
+
+```ts
+export const accountingGetJournalWithAttachments = {
+  name: 'accounting.get_journal_with_attachments',
+  description: 'Get journal entry with all attached files and metadata',
+  inputSchema: z.object({
+    journal_id: z.string(),
+  }),
+};
+
+export const accountingUploadAttachment = {
+  name: 'accounting.upload_attachment',
+  description: 'Upload proof document attachment to a journal entry',
+};
+
+export const accountingDownloadAttachment = {
+  name: 'accounting.download_attachment',
+  description: 'Get a presigned download URL for a journal attachment',
+};
+```
+
+- `get_journal_with_attachments` → returns `{ journal, lines, attachments: [{ id, file_name, uploaded_by, uploaded_at }] }` (file_content/base64 embedded for small files).
+- Every upload/download → `audit_log` with `action='journal_attachment_upload'` / `journal_attachment_download`.
+
+---
+
+### 25.11 Donasi / Rounding Donation (SoT §21.10)
+
+#### 25.11.1 Schema
+
+```ts
+// packages/db/schema/pos.ts — extend payments table
+// payments already has: add nullable column
+payments.donationAmount  // bigint, nullable — amount donated (not given as change)
+payments.roundingOption   // text: 'donate' | 'round_up' | 'no_donation'
+```
+
+#### 25.11.2 COA
+
+Donation account: `Donation Fund / Trust Fund` (akun passiva sementara, bukan revenue).
+
+```
+Donation Receivable (Asset/Trust) | Cash (Asset)  ← saat donation
+```
+
+Saat donasi di-close (donasi dikirim ke pihak ketiga): `Donation Payable | Donation Receivable`.
+
+#### 25.11.3 Service
+
+```ts
+// packages/services/pos/donation.ts
+interface DonationChoice {
+  type: 'donate' | 'round_up' | 'no_donation';
+  amount?: Money; // nominal donasi (calculated or custom)
+}
+
+// Applied during payment processing
+export function calculateDonation(changeAmount: Money): DonationChoice
+// change < 500 → suggest donate/round; change >= 500 → no suggestion
+
+export function recordDonation(saleId: string, choice: DonationChoice): Result<void>
+// Updates payment record + optional JE for trust fund
+```
+
+#### 25.11.4 UI (POS Flow)
+
+```
+Step: Payment cash
+1. Cashier selects "Cash Rp XX"
+2. System calculates change: Rp 4.230
+3. If change < 500:
+   Modal appears: "Sisa kembalian Rp 4.230"
+   Buttons:
+     ✓ Bulatkan ke atas (+Rp 70) → kembalian Rp 4.300
+     ✓ Donasikan Rp 4.230 → tidak ada kembalian
+     ✓ Kembalikan Rp 4.230
+4. Selected choice → recorded in payment
+```
+
+#### 25.11.5 Laporan Donasi
+
+- Page: `apps/web/(dash)/reporting/donations/`
+- Filter: tanggal, lokasi.
+- Tabel: tanggal | jumlah donasi | jumlah transaksi donasi | rata-rata.
+- Total donasi periode + export XLSX.
+
+#### 25.11.6 MCP Tool
+
+```ts
+export const reportingDonations = {
+  name: 'reporting.get_donations',
+  description: 'Get donation summary report for a period',
+  inputSchema: z.object({
+    start_date: z.string(),
+    end_date: z.string(),
+    location_id: z.string().optional(),
+  }),
+};
 
 ---
 

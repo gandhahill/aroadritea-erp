@@ -884,7 +884,171 @@ Sistem **wajib** menyediakan halaman dokumentasi komprehensif untuk semua fitur 
 
 > **Implikasi teknis**: dokumentasi disimpan di database (tabel `cms_docs`) agar dapat di-manage tanpa edit kode. Alternatif: static MDX files dalam repository (lebih simple, tapi perlu redeploy untuk update). **Direkomendasikan: CMS-driven** (`cms_docs`) dengan markdown editor untuk fleksibilitas.
 
-### 21.3 PIC & Komunikasi
+### 21.3 Laporan Harian (Summary & Metode Pembayaran)
+
+Setiap akhir shift/hari, kasir dan kepala toko memerlukan **laporan ringkasan penjualan harian** yang memuat:
+
+| Komponen | Detail |
+|---|---|
+| **Periode** | Tanggal mulai – selesai (1 hari atau rentang自定义) |
+| **Total Penjualan** | Gross, net (setelah diskon), pajak |
+| **Rincian per Metode Bayar** | Tunai, QRIS, Flazz, Debit, Kredit, GoFood, GrabFood, ShopeeFood |
+| **Komisi Delivery** | 20% × gross dari GoFood/GrabFood/ShopeeFood (otomatis di-hitung) |
+| **Net Revenue** | Pendapatan bersih setelah komisi delivery |
+| **Refund Total** | Jumlah dan jumlah transaksi refund |
+| **Shift Info** | Shift yang dibuka/ditutup, kasir, variance kas |
+| **Top Products** | Produk 10 terlaris |
+
+**Spesifikasi UI:**
+- Page: `apps/web/(dash)/reporting/daily-summary/`
+- Filter: tanggal, lokasi, kasir (opsional).
+- Tabel rincian metode bayar (kolom: metode, jumlah transaksi, total nominal).
+- Grafik donut untuk breakdown metode bayar.
+- **Cetak / Export**: PDF + XLSX.
+
+### 21.4 Laporan Penjualan Per Jam (Hourly Sales)
+
+Laporan ini ditujukan untuk analisis pola penjualan dan perencanaan staffing:
+
+| Komponen | Detail |
+|---|---|
+| **Periode** | Tanggal, rentang tanggal, atau weekly |
+| **Breakdown per Jam** | 10:00–11:00, 11:00–12:00, dst. — 10:00–22:00 (12 slot) |
+| **Rincian Produk Terjual** | Per jam: nama produk, qty, nominal |
+| **Pengelompokan (Group By)** | User memilih grouping: |
+| | • **Varian** (Fresh Milk Tea / Fresh Tea / Lemon Fresh Tea / Snow Cap) |
+| | • **Ukuran** (Regular / Large) |
+| | • **Kategori** (Teh / Dessert / Topping / Packaging) |
+| | • **Channel** (Walk-in / GoFood / GrabFood / ShopeeFood) |
+| | • **Kombinasi** (Varian + Ukuran, dll.) |
+| **Summary** | Total per jam, peak hour (jam tersibuk), AOV per jam |
+
+**Spesifikasi UI:**
+- Page: `apps/web/(dash)/reporting/hourly-sales/`
+- Filter: tanggal, lokasi, group by (multi-select dropdown).
+- Tabel: jam | group (e.g., Fresh Milk Tea) | item | qty | nominal.
+- Heatmap visual: jam (x-axis) vs kategori produk (y-axis), warna = nominal.
+- Export XLSX.
+
+### 21.5 Petty Cash — Fitur Kasir & Kepala Toko
+
+Setiap kasir perlu dapat **melihat saldo petty cash** yang tersedia di lokasinya:
+
+| Fitur | Detail |
+|---|---|
+| **Lihat Saldo** | Kasir & kepala toko dapat melihat saldo petty cash saat ini per lokasi. Tabel: lokasi, saldo petty cash, batas maximum, replenish date. |
+| **Top-up Petty Cash** | Kepala toko bisa request replenish. Workflow: request → approval director → top-up → dokumentasi. |
+| **History Petty Cash** | Daftar semua transaksi petty cash (top-up, penggunaan kecil) dengan tanggal, jumlah, keterangan, penanggung jawab. |
+| **Warning** | Jika saldo < 20% dari batas, tampilkan warning di dashboard kepala toko. |
+
+**Implementasi:**
+- Tabel: `petty_cash_accounts (location_id, balance, max_limit, last_replenish_at)`.
+- Tabel: `petty_cash_transactions (location_id, amount, kind: 'topup'|'expense', description, created_by)`.
+- Role permission: `pettycash.read`, `pettycash.topup` (director).
+
+### 21.6 Reimbursement & Pengajuan Dana
+
+Mekanisme reimbursement untuk pengeluaran di luar petty cash:
+
+| Fitur | Detail |
+|---|---|
+| **Pengajuan** | Karyawan/kepala toko bisa ajukan dana (receipt/foto bukti). Field: jumlah, keterangan, kategori (operasional/supplies/emergency), tanggal, lokasi, lampiran foto (upload ke R2). |
+| **Approval** | Semua pengajuan → approval direktur. |
+| **Status Tracking** | Draft → Submitted → Approved → Disbursed → Rejected. |
+| **Pengingat** | Jika belum di-approve 48 jam, auto-escalation notification ke director. |
+| **Pelaporan** | Laporan reimbursement per bulan (jumlah, kategori, approval time). |
+
+**Schema:**
+```
+reimbursement_requests (id, requester_id, location_id, amount, category, description, attachment_url, status, approved_by, approved_at, disbursed_at)
+```
+**Workflow:** standard DB-driven workflow (§18 SD).
+
+### 21.7 Stock Opname & Variansi (Anti-Loss Mechanism)
+
+> **Pain point eksplisit**: "nyetok tisu 3, pas stock opname tinggal 2 dan gatau ke mana". Solution: perbandingan stok awal vs akhir + reason logging + audit trail.
+
+Sistem harus menyediakan mekanisme stock opname lengkap:
+
+#### 21.7.1 Template Stock Opname (Referensi Template Aktual)
+
+Template aktual yang harus didukung sistem ada di `../_STOCK OPNAME - MEI 2026.xlsx`. Struktur template 3 sheet:
+
+**Sheet 1 — Master Data Produk:**
+```
+KODE | KATEGORI | NAMA BARANG | GAMBAR | LINK | Satuan | Stok Awal
+```
+Kolom wajib per produk: kode unik (e.g., `W-BOT`, `TPUTIH`, `GULA12`), kategori (Teh/Cup/Gula/Creamer/Bakery/Packaging/Topping/Operating Supplies/Alat kebersihan), nama barang, foto (URL Drive), link produk, satuan (Bungkus/Pcs/Kaleng/Botol/Gen/Pack), stok awal (numeric).
+
+**Sheet 2 — Log Pergerakan Harian (Stock Movement):**
+```
+TANGGAL | KODE BARANG | NAMA BARANG | JENIS | KUANTITAS | KELUAR | MASUK
+```
+Kolom: tanggal (DD MON YYYY), kode barang, nama barang, jenis (kategori/item), kuantitas, keluar (qty keluar), masuk (qty masuk). Untuk produk teh: keluar per transaksi (1 cup pakai X gram); untuk cup: keluar = jumlah transaksi × 1 cup per order.
+
+**Sheet 3 — Stock Opname Summary:**
+```
+Kode Barang | Kategori | Nama Barang | Stok Sistem | Total Masuk | Total Keluar | Stok Fisik | Selisih
+```
+Kolom: kode barang, kategori (Teh/Cup/Gula/Creamer/Bakery/Packaging/Alat kebersihan), nama barang, stok sistem (dari DB), total masuk (dari Sheet 2), total keluar (dari Sheet 2), stok fisik (input manual saat stock opname), selisih (fisik - sistem). Baris dengan selisih ≠ 0 ditandai merah.
+
+#### 21.7.2 Fitur Sistem
+
+| Fitur | Detail |
+|---|---|
+| **Import Master** | Import dari Excel (Sheet 1: kode, kategori, nama, satuan, stok awal). Format harus match template. |
+| **Input Pergerakan Manual** | Sheet 2: kasir/kepala toko input harian (tanggal, kode barang, qty masuk/keluar, jenis). |
+| **Stock Opname Periodik** | Buat stock opname session: tentukan tanggal, lokasi. Sistem generate Sheet 3 otomatis (stok sistem + gerakan periode). Kasir input stok fisik. Sistem hitung selisih. |
+| **Reason Logging** | Jika ada selisih, user **wajib isi alasan**: "Rusak", "Kadaluarsa", "Hilang", "Dicuri", "Pemakaian internal", "Salah hitung", "Lainnya". Field alasan wajib tersimpan di audit log. |
+| **Approval Variance** | Selisih > threshold (dapat di-set per kategori) → harus di-approve director. |
+| **Auto-JE untuk Loss** | Selisih yang di-approved sebagai "Hilang/Dicuri/Rusak" → generate write-off JE (debit: loss expense, credit: inventory). |
+| **Dashboard Variansi** | Halaman `inventory/variance/` menampilkan grafik variansi per produk, tren bulanan, top produk dengan variansi tertinggi. |
+| **Comparison Report** | Laporan perbandingan: "Stok Awal vs Stok Akhir" per periode, breakdown alasan selisih. |
+
+**Threshold default:**
+- Item murah (kurang dari Rp 10.000/unit): selisih maksimal Rp 50.000 per bulan tanpa approval director (disimpan di log).
+- Item mahal atau selisih > Rp 50.000: wajib approval.
+
+> **Implikasi schema**: tabel `stock_opname_sessions (id, location_id, period_start, period_end, status, physical_count_by, approved_by)`, `stock_opname_lines (session_id, product_id, system_qty, physical_qty, variance, reason, variance_approved_by)`.
+
+### 21.9 Upload Bukti Transaksi & Audit MCP
+
+Setiap entri jurnal akuntansi **wajib** bisa dilampiri bukti transaksi (scan/foto kwitansi, struk, faktur, dll.):
+
+| Fitur | Detail |
+|---|---|
+| **Lampiran per Jurnal** | Saat membuat manual JE, kasir/akuntan bisa upload lampiran (maks 10 MB per file, format: JPG/PNG/PDF). |
+| **Storage** | Files di-upload ke R2/S3 object storage, tidak di-database. URL disimpan di tabel `journal_attachment (journal_entry_id, file_url, file_name, uploaded_by, uploaded_at)`. |
+| **View/Download** | User dengan permission `accounting.journal.read` bisa view/download lampiran. |
+| **Audit Trail** | Setiap upload/download tercatat di `audit_log`. |
+| **MCP Queryable** | MCP tool `accounting.get_journal_with_attachments(id)` mengembalikan jurnal + semua lampiran. |
+
+**Implementasi:**
+- Upload via API: `POST /api/files/upload` → return `{ url, file_key }`.
+- Tabel: `journal_attachments (id, journal_entry_id, file_key, file_name, file_size, mime_type, uploaded_by, uploaded_at)`.
+- MCP tool: `accounting.get_attachments(journal_id)`, `accounting.upload_attachment(journal_id, file)`.
+
+### 21.10 Donasi (Rounding Donation)
+
+> **Pain point eksplisit**: "biasanya kalo cash dan uangnya tidak bulat tidak ada kembalian". Solution: sisakan kembalian sebagai donasi.
+
+Fitur donasi memungkinkan pelanggan membulatkan kembalian atau menyisihkan sejumlah uang:
+
+| Fitur | Detail |
+|---|---|
+| **Rounding Donation** | Saat payment cash, jika kembalian < Rp 500, opsi: "Bulatkan ke atas" atau "Donasikan kembalian". Jika customer pilih donasi, kembalian di-round ke atas (e.g., kembalian Rp 230 → Rp 300, selisih Rp 70 = donasi). |
+| **Nominal Donation** | Customer bisa pilih donasi sejumlah nominal tetap (Rp 1.000, Rp 2.000, Rp 5.000) atau custom. |
+| **Opsi di UI POS** | Saat payment cash: muncul modal "Sisa kembalian Rp X. Ingin donasikan?" dengan tombol: "Ya, donasi Rp Y", "Bulatkan", "Tidak, kembalian penuh". |
+| **Tracking Donation** | Total donasi per transaksi tersimpan di `payments.donation_amount`. |
+| **Akuntansi** | Donation tidak jadi revenue; masuk ke akun "Donation Receivable" atau "Trust Fund" per periode. |
+| **Laporan** | Laporan donasi per periode: total donasi, jumlah transaksi donasi, rata-rata donasi. |
+| **Recipient** | Saat ini donasi ditabungkan (belum ada pihak ketiga) → disimpan sebagai "tabungan donasi" sampai ditentukan recipient-nya. |
+
+> **Catatan**: opsi ini membuat transaksi cash menjadi "non-cash" untuk selisih kembalian. Tidak mempengaruhi COGS atau revenue — hanya mengubah account donasi.
+
+---
+
+### 21.8 PIC & Komunikasi
 - **PIC dari sisi perusahaan**: **user sendiri** (Lintang Maulana Zulfan).
 - **Kanal komunikasi proyek**: **WhatsApp**.
 
@@ -1315,7 +1479,7 @@ Foto-foto referensi yang ada di kuesioner (PDF asli):
 | 1.0 | 2026-05-05 | Lintang Maulana Zulfan | Versi awal, diturunkan dari kuesioner v1.0 (30 April 2026) |
 | 1.1 | 2026-05-05 | Lintang Maulana Zulfan | Tambah §22 (Public Website + CMS + Membership), §23 (Brand), update §17.4 (subdomain split), update §20.3 (CMS masuk Phase 5), tambah istilah glosarium |
 | 1.2 | 2026-05-05 | Lintang Maulana Zulfan | Upgrade RAM 1→2 GB; perluas §14.4 (dua format Naixer QR + master mapping); tambah §24 (POS Demo Mode), §25 (Resilience & Auto-Recovery); tambah istilah glosarium (Outbox, RTO, RPO, dll.) |
-| 1.4 | 2026-05-09 | Lintang Maulana Zulfan | Tambah §18.2 (Keamanan Level Militar), §21.2a (Ekspor XLSX Semua Modul), §21.2b (Halaman Dokumentasi Komprehensif) |
+| 1.4 | 2026-05-09 | Lintang Maulana Zulfan | Tambah §18.2 (Keamanan Level Militar), §21.2a (Ekspor XLSX), §21.2b (Dokumentasi), §21.3 (Laporan Harian), §21.4 (Hourly Sales), §21.5 (Petty Cash), §21.6 (Reimbursement), §21.7 (Stock Opname & Variansi + Template Akomodasi), §21.9 (Upload Bukti+Jurnal MCP), §21.10 (Donasi/Rounding) |
 
 ---
 

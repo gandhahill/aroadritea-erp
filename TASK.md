@@ -108,12 +108,35 @@
 | T-0062 | POS offline sync endpoint `/api/sync/pos` (idempotency) | pos | SD §10.3, §14 | M |
 | T-0064 | Service purchasing.createPO + workflow approval | purchasing | SD §21.6 | L |
 | T-0065 | Service purchasing.createGRN + JE generator | purchasing | SD §21.6 | M |
+| T-0067 | Schema petty_cash_accounts + petty_cash_transactions | accounting | SD §25.7 | S |
+| T-0068 | Service petty cash (balance, transactions, replenish) | accounting | SD §25.7 | M |
+| T-0069 | UI petty cash (balance view + history + replenish form) | ui | SD §25.7 | M |
+| T-0070 | Schema reimbursement_requests | accounting | SD §25.8 | S |
+| T-0071 | Service reimbursement (CRUD + workflow + escalation) | accounting | SD §25.8 | M |
+| T-0072 | UI reimbursement (form + list + approve/reject) | ui | SD §25.8 | M |
+| T-0073 | Schema stock_opname_sessions + stock_opname_lines + stock_movement_manual | inventory | SD §25.9 | M |
+| T-0074 | Service import master Excel (Sheet 1 template) + movement log (Sheet 2) | inventory | SD §25.9.2 | M |
+| T-0075 | Service stock opname session flow (generate → count → variance → approve) | inventory | SD §25.9.3 | L |
+| T-0076 | UI stock opname (session create + input fisik + approve variance) | ui | SD §25.9 | L |
+| T-0077 | UI inventory variance dashboard + report | ui | SD §25.9.4 | M |
+| T-0078 | Schema journal_attachments | accounting | SD §25.10 | S |
+| T-0079 | Service journal attachments (upload + download) + MCP tools | accounting | SD §25.10 | M |
+| T-0080 | UI journal attachments (upload + view + download) | ui | SD §25.10 | S |
+| T-0081a | Service pos.payment + donation/rounding flow | pos | SD §25.11 | M |
+| T-0081b | UI POS payment modal + donation choice | ui | SD §25.11 | S |
+| T-0085b | Service reporting.dailySummary + payment breakdown | reporting | SD §25.5 | M |
+| T-0085c | UI reporting/daily-summary (table + charts + export XLSX) | ui | SD §25.5.2 | L |
+| T-0085d | MCP tool reporting.get_daily_summary | mcp | SD §25.5.3 | S |
+| T-0085e | Service reporting.hourlySales + groupBy logic | reporting | SD §25.6 | L |
+| T-0085f | UI reporting/hourly-sales (heatmap + table + export XLSX) | ui | SD §25.6.3 | L |
+| T-0085g | MCP tool reporting.get_hourly_sales | mcp | SD §25.6 | S |
+| T-0085h | Service + UI reporting.donations + export XLSX | reporting | SD §25.11.5 | M |
 
 ### Phase 3 — Kitchen + KDS + Customer Display
 
 | ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
-| T-0080 | Schema naixer_product_codes, naixer_modifier_codes, naixer_qr_format_config | kitchen | SD §33.2 | S |
+| T-0086 | Schema naixer_product_codes, naixer_modifier_codes, naixer_qr_format_config | kitchen | SD §33.2 | S |
 | T-0081 | Service kitchen.generateQrPayload (strategy pattern dash/pipe) | kitchen | SD §33.3, ADR-0007 | M |
 | T-0082 | UI Settings → Integrations → Naixer KDS | ui | SD §33.7 | L |
 | T-0083 | Script seed-naixer-codes.ts (CSV import) | infra | ADR-0007 | S |
