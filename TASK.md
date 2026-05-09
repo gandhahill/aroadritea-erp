@@ -62,6 +62,10 @@
 | T-0027 | Healthz endpoints for web, site, mcp | Claude Opus 4.6 | 2026-05-09 | 0594041 | 1 |
 | T-0028 | Docker Compose + Dockerfile + Caddyfile + CI/CD | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean | 1 |
 | T-0029 | CI workflow (lint, typecheck, test, build) | Antigravity (Opus 4.6) | 2026-05-09 | included in T-0028 | 1 |
+| T-0024 | MCP tools accounting (6 tools) | Claude Opus 4.6 | 2026-05-09 | included in T-0023 | 1 |
+| T-0025 | MCP tools reporting (5 tools) | Claude Opus 4.6 | 2026-05-09 | included in T-0023 | 1 |
+| T-0030 | Resilience tests scripts (4/8 Phase 1 scenarios) | Antigravity (Opus 4.6) | 2026-05-09 | verified: scripts created | 1 |
+| T-0031 | UI Settings → Scheduled Jobs (list, toggle, edit cron) | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean | 1 |
 
 ---
 

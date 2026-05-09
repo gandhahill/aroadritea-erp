@@ -10,7 +10,8 @@
     "./schema/auth": "./schema/auth.ts",
     "./schema/accounting": "./schema/accounting.ts",
     "./schema/audit": "./schema/audit.ts",
-    "./schema/inventory": "./schema/inventory.ts"
+    "./schema/inventory": "./schema/inventory.ts",
+    "./schema/scheduled-jobs": "./schema/scheduled-jobs.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",

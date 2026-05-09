@@ -21,6 +21,7 @@ Repository ini punya **dua** dokumen sumber kebenaran yang **wajib** dibaca sebe
 
 📌 **`SOURCE-OF-TRUTH.md`** — sumber kebenaran **bisnis** (apa yang dibangun & mengapa).
 📌 **`SYSTEM-DESIGN.md`** — sumber kebenaran **teknis** (bagaimana dibangun: stack, skema DB, pola arsitektur, konvensi).
+📌 **`skills/`** — Direktori referensi. **Kalau butuh skill / panduan spesifik, wajib baca file-file di folder `skills/`.**
 
 Aturan konflik:
 - Pertanyaan kebutuhan bisnis → SOURCE-OF-TRUTH menang.
