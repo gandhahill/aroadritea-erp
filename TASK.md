@@ -82,6 +82,7 @@
 | T-0056 | Schema sales_orders + lines + payments + refunds + shifts | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean |
 | T-0057 | Service pos.createSale + shift services | Claude Opus 4.6 | 2026-05-09 | 5226328: 263 tests pass |
 | T-0058 | Service pos.refund | Claude | 2026-05-09 | 2ac4c2e: 282 tests pass |
+| T-0059+60 | POS UI: shift open/close + order entry + payment modal | Claude Opus 4.6 | 2026-05-09 | typecheck clean |
 | T-0063 | Schema purchase_orders + GRN + purchase_invoices | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean |
 
 ---
@@ -103,8 +104,6 @@
 
 | ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
-| T-0059 | Service pos.openShift / closeShift (UI wired) | pos | SD §21.4 | M |
-| T-0060 | UI `apps/web/(dash)/pos/` order entry | ui | SD §21.4 | XL |
 | T-0061 | PWA setup (Serwist) + service worker + IndexedDB outbox | pos | SD §14, §35.1.1 | L |
 | T-0062 | POS offline sync endpoint `/api/sync/pos` (idempotency) | pos | SD §10.3, §14 | M |
 | T-0064 | Service purchasing.createPO + workflow approval | purchasing | SD §21.6 | L |

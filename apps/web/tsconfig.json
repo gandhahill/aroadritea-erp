@@ -16,9 +16,13 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"],
+      "@erp/db": ["../../packages/db/index.ts"],
+      "@erp/db/*": ["../../packages/db/*"],
+      "@erp/shared": ["../../packages/shared/src/index.ts"],
+      "@erp/shared/*": ["../../packages/shared/src/*"],
+      "@erp/services": ["../../packages/services/index.ts"],
+      "@erp/services/*": ["../../packages/services/src/*"]
     },
     "allowJs": true,
     "incremental": true

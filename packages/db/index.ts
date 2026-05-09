@@ -89,4 +89,4 @@ export {
 } from './schema/common';
 
 // Drizzle-ORM operators (re-exported for downstream consumers)
-export { eq, and, or, not, lte, gte, lt, gt, isNull, isNotNull, sql, inArray, desc, asc } from 'drizzle-orm';
+export { eq, and, or, not, lte, gte, lt, gt, isNull, isNotNull, sql, inArray, desc, asc, ilike } from 'drizzle-orm';
