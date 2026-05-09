@@ -1,0 +1,128 @@
+# Deploy Workflow — Aroadri Tea ERP
+# SD §26.2: Staging auto (develop), Production manual (main)
+# Strategy: rolling restart on single VPS (accept ~30s downtime)
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main, develop]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}
+
+jobs:
+  # ── Deploy to Staging ──────────────────────────────────────────────────
+  staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'develop'
+    environment: staging
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/erp
+            export VERSION=${{ github.event.workflow_run.head_sha }}
+
+            # Pull latest images
+            docker compose -f docker/docker-compose.yml pull
+
+            # Run migrations (single instance, no race condition — SD §26.4)
+            docker compose -f docker/docker-compose.yml run --rm worker \
+              node dist/migrate.js
+
+            # Rolling restart
+            docker compose -f docker/docker-compose.yml up -d --remove-orphans
+
+            # Wait for health checks
+            sleep 10
+            docker compose -f docker/docker-compose.yml ps
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # Check all containers are healthy
+            UNHEALTHY=$(docker ps --filter health=unhealthy --format '{{.Names}}')
+            if [ -n "$UNHEALTHY" ]; then
+              echo "❌ Unhealthy containers: $UNHEALTHY"
+              docker compose -f /opt/erp/docker/docker-compose.yml logs --tail=50 $UNHEALTHY
+              exit 1
+            fi
+            echo "✅ All containers healthy"
+
+  # ── Deploy to Production ───────────────────────────────────────────────
+  production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
+    environment:
+      name: production
+      # SD §26.2: manual approval required
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/erp
+            export VERSION=${{ github.event.workflow_run.head_sha }}
+
+            # Pull latest images
+            docker compose -f docker/docker-compose.yml pull
+
+            # Run migrations
+            docker compose -f docker/docker-compose.yml run --rm worker \
+              node dist/migrate.js
+
+            # Rolling restart
+            docker compose -f docker/docker-compose.yml up -d --remove-orphans
+
+            # Wait for health checks
+            sleep 15
+            docker compose -f docker/docker-compose.yml ps
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            UNHEALTHY=$(docker ps --filter health=unhealthy --format '{{.Names}}')
+            if [ -n "$UNHEALTHY" ]; then
+              echo "❌ Unhealthy containers: $UNHEALTHY"
+              docker compose -f /opt/erp/docker/docker-compose.yml logs --tail=50 $UNHEALTHY
+              exit 1
+            fi
+            echo "✅ All containers healthy"

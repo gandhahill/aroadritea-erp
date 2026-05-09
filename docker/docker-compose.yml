@@ -1,0 +1,111 @@
+# Docker Compose — Aroadri Tea ERP
+# SD §26.3 — Single VPS deployment (1 vCPU / 2 GB RAM / 60 GB disk)
+# DB is managed (Neon) — no local DB container
+
+services:
+  # ── Reverse Proxy ──────────────────────────────────────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    deploy:
+      resources:
+        limits:
+          memory: 96M     # SD §4.3
+    networks:
+      - erp
+
+  # ── Public Website ─────────────────────────────────────────────────────────
+  site:
+    image: ghcr.io/aroadritea/site:${VERSION:-latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.site
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    expose:
+      - "3000"
+    deploy:
+      resources:
+        limits:
+          memory: 384M   # SD §4.3
+    depends_on:
+      - caddy
+    networks:
+      - erp
+
+  # ── ERP Web App ────────────────────────────────────────────────────────────
+  web:
+    image: ghcr.io/aroadritea/web:${VERSION:-latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.web
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      - PORT=3001
+      - HOSTNAME=0.0.0.0
+    expose:
+      - "3001"
+    deploy:
+      resources:
+        limits:
+          memory: 640M   # SD §4.3
+    depends_on:
+      - caddy
+    networks:
+      - erp
+
+  # ── MCP Server ─────────────────────────────────────────────────────────────
+  mcp:
+    image: ghcr.io/aroadritea/mcp:${VERSION:-latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.mcp
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      - PORT=3002
+    expose:
+      - "3002"
+    deploy:
+      resources:
+        limits:
+          memory: 192M   # SD §4.3
+    depends_on:
+      - caddy
+    networks:
+      - erp
+
+  # ── Background Worker ──────────────────────────────────────────────────────
+  worker:
+    image: ghcr.io/aroadritea/worker:${VERSION:-latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.worker
+    restart: unless-stopped
+    env_file: ../.env
+    deploy:
+      resources:
+        limits:
+          memory: 256M   # SD §4.3
+    networks:
+      - erp
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  erp:
+    driver: bridge

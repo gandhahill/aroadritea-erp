@@ -60,6 +60,8 @@
 | T-0023 | apps/mcp scaffolding + auth token + Phase 1 tools | Claude Opus 4.6 | 2026-05-09 | 3af9f81 | 1 |
 | T-0026 | Worker scaffolding + pg-boss (DB-driven cron) | Claude Opus 4.6 | 2026-05-09 | 2410084 | 1 |
 | T-0027 | Healthz endpoints for web, site, mcp | Claude Opus 4.6 | 2026-05-09 | 0594041 | 1 |
+| T-0028 | Docker Compose + Dockerfile + Caddyfile + CI/CD | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean | 1 |
+| T-0029 | CI workflow (lint, typecheck, test, build) | Antigravity (Opus 4.6) | 2026-05-09 | included in T-0028 | 1 |
 
 ---
 
