@@ -22,12 +22,9 @@
 
 > Hanya yang status 🟨 atau 🟥. Pindah ke Done setelah selesai.
 
-| ID | Status | Title | Owner (AI model) | Started | Last Updated | Checkpoint | Phase | Note |
-|----|--------|-------|------------------|---------|--------------|-----------|-------|------|
-| T-0054 | 🟩 DONE | Service inventory.adjust (workflow approval) | Claude (current) | 2026-05-09 | 2026-05-09 | verified: typecheck clean, 213 tests pass | 2 | wip(T-0054): inventory adjust+transfer |
-| T-0055 | 🟩 DONE | Service inventory.transfer (2-step) | Claude (current) | 2026-05-09 | 2026-05-09 | included in T-0054 | 2 | included in T-0054 |
-| T-0057 | 🟩 DONE | Service pos.createSale + shift services | Claude Opus 4.6 | 2026-05-09 | 2026-05-09 | 5226328: 263 tests pass | 2 | feat(pos): createSale + shift services with BOM deduction and JE |
-| T-0058 | 🟩 DONE | Service pos.refund | Claude (current) | 2026-05-09 | 2026-05-09 | 282 tests pass, refund-sale.ts complete | 2 | feat(pos): refundSale service with BOM restore + JE reversal |
+| ID | Status | Title | Owner (AI model) | Started | Last Updated | Checkpoint | Note |
+|----|--------|-------|------------------|---------|-------------|-----------|------|
+| _(kosong — semua task sudah selesai)_ | | | | | | | |
 
 ---
 
@@ -35,109 +32,81 @@
 
 > Setelah 7 hari, pindahkan ke `docs/checkpoints/archive/` dan hapus dari sini.
 
-| ID | Title | Owner | Completed | Commit / PR | Phase |
-|----|-------|-------|-----------|-------------|-------|
-| T-0001 | Scaffold pnpm workspace + apps/web stub + packages skeleton | Claude Opus 4.6 | 2026-05-06 | (initial commit) | 1 |
-| T-0004 | `packages/shared` full impl (ULID, Money, Date, Types, i18n) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0004): shared utils | 1 |
-| T-0003 | Tailwind v4 + brand tokens + globals.css + login UI | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0003): tailwind brand | 1 |
-| T-0002 | Drizzle ORM config + IAM schema (8 tables, relations) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0002): drizzle iam | 1 |
-| T-0008 | Accounting schema (periods, COA, journal, partners, tax_rates) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0008): accounting schema | 1 |
-| T-0005 | IAM seed (tenant, 4 locations, 7 roles, 40+ permissions) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0005): iam seed | 1 |
-| T-0009 | COA seed (90+ accounts, trilingual, SAK ETAP) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0009): coa seed | 1 |
-| T-0022 | i18n shell (next-intl) + messages id/en/zh + login i18n | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0022): i18n shell | 1 |
-| T-0010 | Result pattern + AppError (factories, combinators, 16 tests) | Antigravity | 2026-05-07 | wip(T-0010): result+errors | 1 |
-| T-0016 | Audit log schema (immutable, indexed, MCP-queryable) | Antigravity | 2026-05-07 | wip(T-0016): audit schema | 1 |
-| T-0006 | Service `auth` (better-auth integration) + login UI | Antigravity (Opus 4.6) | 2026-05-07 | verified: tests pass, typecheck clean | 1 |
-| T-0007 | Service `iam.can()` permission engine + cache + tests | Antigravity (Opus 4.6) | 2026-05-07 | verified: 17 tests pass | 1 |
-| T-0012 | Service `accounting.createJournal` + Zod input + Result type | Antigravity (Opus 4.6) | 2026-05-07 | verified: 27 tests pass, typecheck clean | 1 |
-| T-0013 | Service `accounting.postJournal` (balance check, period check, audit) | Antigravity (Opus 4.6) | 2026-05-07 | verified: 17 tests pass, typecheck clean | 1 |
-| T-0014 | Service `accounting.reverseJournal` | Antigravity (Opus 4.6) | 2026-05-07 | verified: 18 tests pass, typecheck clean | 1 |
-| T-0015 | Service `accounting.closePeriod` + getPeriodStatus | Antigravity (Opus 4.6) | 2026-05-07 | verified: 19 tests pass, typecheck clean | 1 |
-| T-0019 | Service `tax.listRates` + `getRateByCode` + seed 6 tarif | Antigravity (Opus 4.6) | 2026-05-07 | verified: 9 tests pass, typecheck clean | 1 |
-| T-0019b | Schema `tax_rules` + seed default rules (6 rules) | Antigravity (Opus 4.6) | 2026-05-07 | verified: schema added, seed runner updated, typecheck clean | 1 |
-| T-0019c | Service `tax.resolve(context)` + `tax.calculate()` + tests | Antigravity (Opus 4.6) | 2026-05-07 | verified: 27 tests pass (16 calculate + 11 resolve), typecheck clean | 1 |
-| T-0020 | Service `reporting.balanceSheet` + `profitLoss` + `trialBalance` | Antigravity (Opus 4.6) | 2026-05-07 | verified: 18 tests pass, typecheck clean | 1 |
-| T-0017 | UI `apps/web/(dash)/accounting/coa/` — COA browser tree + sidebar nav | Antigravity (Opus 4.6) | 2026-05-08 | verified: typecheck clean, 152 tests pass | 1 |
-| T-0018 | UI Journals list + detail page (table, search, filters, detail view) | Antigravity (Opus 4.6) | 2026-05-08 | verified: typecheck clean, 152 tests pass | 1 |
-| T-0021 | UI Reporting pages (Trial Balance, Balance Sheet, P&L) | Antigravity (Opus 4.6) | 2026-05-08 | verified: typecheck clean | 1 |
-| T-0023 | apps/mcp scaffolding + auth token + Phase 1 tools | Claude Opus 4.6 | 2026-05-09 | 3af9f81 | 1 |
-| T-0026 | Worker scaffolding + pg-boss (DB-driven cron) | Claude Opus 4.6 | 2026-05-09 | 2410084 | 1 |
-| T-0027 | Healthz endpoints for web, site, mcp | Claude Opus 4.6 | 2026-05-09 | 0594041 | 1 |
-| T-0028 | Docker Compose + Dockerfile + Caddyfile + CI/CD | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean | 1 |
-| T-0029 | CI workflow (lint, typecheck, test, build) | Antigravity (Opus 4.6) | 2026-05-09 | included in T-0028 | 1 |
-| T-0024 | MCP tools accounting (6 tools) | Claude Opus 4.6 | 2026-05-09 | included in T-0023 | 1 |
-| T-0025 | MCP tools reporting (5 tools) | Claude Opus 4.6 | 2026-05-09 | included in T-0023 | 1 |
-| T-0030 | Resilience tests scripts (4/8 Phase 1 scenarios) | Antigravity (Opus 4.6) | 2026-05-09 | verified: scripts created | 1 |
-| T-0031 | UI Settings → Scheduled Jobs (list, toggle, edit cron) | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean | 1 |
-| T-0050 | Schema products, product_variants, product_modifiers, categories | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean | 2 |
-| T-0051 | Schema stock_locations, stock_movements, stock_levels | Antigravity (Opus 4.6) | 2026-05-09 | included in T-0050 | 2 |
-| T-0052 | Schema BOM + bom_lines + bom_substitutes | Antigravity (Opus 4.6) | 2026-05-09 | included in T-0050 | 2 |
-| T-0056 | Schema sales_orders + lines + payments + refunds + shifts | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean | 2 |
-| T-0063 | Schema purchase_orders + GRN + purchase_invoices | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean | 2 |
-| T-0053 | Service inventory CRUD products + variants + categories | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean | 2 |
+### Phase 1 — Foundation + Accounting + Reporting + Tax + MCP + Infra
+
+| ID | Title | Owner | Completed | Commit |
+|----|-------|-------|-----------|--------|
+| T-0001 | Scaffold pnpm workspace + apps/web stub + packages skeleton | Claude Opus 4.6 | 2026-05-06 | (initial commit) |
+| T-0002 | Drizzle ORM config + IAM schema (8 tables, relations) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0002): drizzle iam |
+| T-0003 | Tailwind v4 + brand tokens + globals.css + login UI | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0003): tailwind brand |
+| T-0004 | `packages/shared` full impl (ULID, Money, Date, Types, i18n) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0004): shared utils |
+| T-0005 | IAM seed (tenant, 4 locations, 7 roles, 40+ permissions) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0005): iam seed |
+| T-0006 | Service `auth` (better-auth integration) + login UI | Antigravity (Opus 4.6) | 2026-05-07 | verified: tests pass, typecheck clean |
+| T-0007 | Service `iam.can()` permission engine + cache + tests | Antigravity (Opus 4.6) | 2026-05-07 | verified: 17 tests pass |
+| T-0008 | Accounting schema (periods, COA, journal, partners, tax_rates) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0008): accounting schema |
+| T-0009 | COA seed (90+ accounts, trilingual, SAK ETAP) | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0009): coa seed |
+| T-0010 | Result pattern + AppError (factories, combinators, 16 tests) | Antigravity | 2026-05-07 | wip(T-0010): result+errors |
+| T-0012 | Service `accounting.createJournal` + Zod input + Result type | Antigravity (Opus 4.6) | 2026-05-07 | verified: 27 tests pass, typecheck clean |
+| T-0013 | Service `accounting.postJournal` (balance check, period check, audit) | Antigravity (Opus 4.6) | 2026-05-07 | verified: 17 tests pass, typecheck clean |
+| T-0014 | Service `accounting.reverseJournal` | Antigravity (Opus 4.6) | 2026-05-07 | verified: 18 tests pass, typecheck clean |
+| T-0015 | Service `accounting.closePeriod` + getPeriodStatus | Antigravity (Opus 4.6) | 2026-05-07 | verified: 19 tests pass, typecheck clean |
+| T-0016 | Audit log schema (immutable, indexed, MCP-queryable) | Antigravity | 2026-05-07 | wip(T-0016): audit schema |
+| T-0017 | UI `apps/web/(dash)/accounting/coa/` — COA browser tree + sidebar nav | Antigravity (Opus 4.6) | 2026-05-08 | verified: typecheck clean, 152 tests pass |
+| T-0018 | UI Journals list + detail page (table, search, filters, detail view) | Antigravity (Opus 4.6) | 2026-05-08 | verified: typecheck clean, 152 tests pass |
+| T-0019 | Service `tax.listRates` + `getRateByCode` + seed 6 tarif | Antigravity (Opus 4.6) | 2026-05-07 | verified: 9 tests pass, typecheck clean |
+| T-0019b | Schema `tax_rules` + seed default rules (6 rules) | Antigravity (Opus 4.6) | 2026-05-07 | verified: schema added, seed runner updated, typecheck clean |
+| T-0019c | Service `tax.resolve(context)` + `tax.calculate()` + tests | Antigravity (Opus 4.6) | 2026-05-07 | verified: 27 tests pass, typecheck clean |
+| T-0020 | Service `reporting.balanceSheet` + `profitLoss` + `trialBalance` | Antigravity (Opus 4.6) | 2026-05-07 | verified: 18 tests pass, typecheck clean |
+| T-0021 | UI Reporting pages (Trial Balance, Balance Sheet, P&L) | Antigravity (Opus 4.6) | 2026-05-08 | verified: typecheck clean |
+| T-0022 | i18n shell (next-intl) + messages id/en/zh + login i18n | Antigravity (Opus 4.6) | 2026-05-06 | wip(T-0022): i18n shell |
+| T-0023 | apps/mcp scaffolding + auth token + Phase 1 tools | Claude Opus 4.6 | 2026-05-09 | 3af9f81 |
+| T-0024 | MCP tools accounting (6 tools) | Claude Opus 4.6 | 2026-05-09 | included in T-0023 |
+| T-0025 | MCP tools reporting (5 tools) | Claude Opus 4.6 | 2026-05-09 | included in T-0023 |
+| T-0026 | Worker scaffolding + pg-boss (DB-driven cron) | Claude Opus 4.6 | 2026-05-09 | 2410084 |
+| T-0027 | Healthz endpoints for web, site, mcp | Claude Opus 4.6 | 2026-05-09 | 0594041 |
+| T-0028 | Docker Compose + Dockerfile + Caddyfile + CI/CD | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean |
+| T-0029 | CI workflow (lint, typecheck, test, build) | Antigravity (Opus 4.6) | 2026-05-09 | included in T-0028 |
+| T-0030 | Resilience tests scripts (4/8 Phase 1 scenarios) | Antigravity (Opus 4.6) | 2026-05-09 | verified: scripts created |
+| T-0031 | UI Settings → Scheduled Jobs (list, toggle, edit cron) | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean |
+
+### Phase 2 — POS + Inventory + BOM + Purchasing
+
+| ID | Title | Owner | Completed | Commit |
+|----|-------|-------|-----------|--------|
+| T-0050 | Schema products, product_variants, product_modifiers, categories | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean |
+| T-0051 | Schema stock_locations, stock_movements, stock_levels | Antigravity (Opus 4.6) | 2026-05-09 | included in T-0050 |
+| T-0052 | Schema BOM + bom_lines + bom_substitutes | Antigravity (Opus 4.6) | 2026-05-09 | included in T-0050 |
+| T-0053 | Service inventory CRUD products + variants + categories | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean |
+| T-0054 | Service inventory.adjust (workflow approval) | Claude | 2026-05-09 | wip(T-0054): inventory adjust+transfer |
+| T-0055 | Service inventory.transfer (2-step) | Claude | 2026-05-09 | included in T-0054 |
+| T-0056 | Schema sales_orders + lines + payments + refunds + shifts | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean |
+| T-0057 | Service pos.createSale + shift services | Claude Opus 4.6 | 2026-05-09 | 5226328: 263 tests pass |
+| T-0058 | Service pos.refund | Claude | 2026-05-09 | 2ac4c2e: 282 tests pass |
+| T-0063 | Schema purchase_orders + GRN + purchase_invoices | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean |
 
 ---
 
 ## Backlog (sudah di-scope, belum dimulai)
 
-> Diisi saat scoping awal Phase 1. AI dapat memilih dari sini saat tidak ada Active Task yang dapat dilanjutkan.
+> Diisi saat scoping awal. AI pilih dari sini saat tidak ada Active Task yang bisa dilanjutkan.
+> Task yang sudah selesai dipindahkan ke Done This Sprint dan **dihapus dari sini**.
 
-### Phase 1 — Foundation + Accounting + Reporting + Tax
+### Phase 1 — Foundation + Accounting + Reporting + Tax + MCP + Infra
 
 | ID | Title | Module | Spec link | Estimasi |
 |----|-------|--------|-----------|----------|
-| T-0001 | Scaffold pnpm workspace + apps/web stub + packages skeleton | infra | SD §6 | M |
-| T-0002 | Setup Drizzle ORM + connection ke Neon Postgres | db | SD §5, §8 | S |
-| T-0003 | Tailwind config + token brand + globals.css map shadcn vars | ui | SD §36, ADR-0006 | M |
-| T-0004 | `packages/shared/{result,errors,money,id,date,types}` | shared | SD §7 | M |
-| T-0005 | Schema IAM: users, roles, permissions, role_permissions, user_roles, sessions | iam | SD §9.1, §11 | M |
-| T-0006 | Service `auth` (better-auth integration) + login UI | auth | SD §11 | L |
-| T-0007 | Service `iam.can()` permission engine + cache + tests | iam | SD §11 | M |
-| T-0008 | Schema accounting_periods, accounts (COA) | accounting | SD §9.2 | S |
-| T-0009 | Seed COA dari SOURCE-OF-TRUTH Lampiran A | accounting | SoT App. A | S |
-| T-0010 | Seed permissions modul `accounting`, `iam`, `tax` | iam | SD §11 | S |
+| T-0010b | Seed permissions modul `accounting`, `iam`, `tax` | iam | SD §11 | S |
 | T-0011 | Schema journal_entries + journal_lines | accounting | SD §9.2 | M |
-| T-0012 | Service `accounting.createJournal` + Zod input + Result type | accounting | SD §20 | M |
-| T-0013 | Service `accounting.postJournal` (balance check, period check, audit) | accounting | SD §20 | L |
-| T-0014 | Service `accounting.reverseJournal` | accounting | SD §20 | M |
-| T-0015 | Service `accounting.closePeriod` + closing entry generator | accounting | SD §20.4 | L |
-| T-0016 | Schema audit_log + trigger + service `audit.record` | audit | SD §15 | M |
-| T-0017 | UI `apps/web/(dash)/accounting/coa/` (browser COA tree) | ui | SD §21.1 | M |
-| T-0018 | UI `apps/web/(dash)/accounting/journals/` (list + create + post) | ui | SD §21.1 | L |
-| T-0019 | Service `tax.listRates` + seed tarif PB1, PPN_OUT, PPN_IN, PPH21, PPH23, PPH25 | tax | SD §19.1 | S |
-| T-0019b | Schema `tax_rules` + seed default rules (PB1 untuk retail channel, PPN_IN global) | tax | SD §19.3, ADR-0010 | S |
-| T-0019c | Service `tax.resolve(context)` + `tax.calculate()` + tests | tax | SD §19.3.3 | M |
-| T-0020 | Service `reporting.balanceSheet` + `profitLoss` + `trialBalance` | reporting | SD §21.2 | L |
-| T-0021 | UI `apps/web/(dash)/reporting/` (Neraca + L/R + Trial Balance) | ui | SD §21.2 | L |
-| T-0022 | i18n shell (next-intl) + messages dasar id/en/zh untuk modul accounting | i18n | SD §13 | M |
-| T-0023 | apps/mcp scaffolding + auth token + tool `iam.whoami` | mcp | SD §16 | M |
-| T-0024 | MCP tools accounting (createJournal, postJournal, listAccounts, closePeriod) | mcp | SD §16.4 | M |
-| T-0025 | MCP tools reporting (balanceSheet, profitLoss, generalLedger) | mcp | SD §16.4 | M |
-| T-0026 | apps/worker scaffolding + cron job structure (pg-boss) | infra | SD §35.1.4 | M |
-| T-0027 | `/healthz` endpoint di apps/web + apps/site + apps/mcp | infra | SD §35.1.2 | S |
-| T-0028 | Docker Compose + Dockerfile multi-stage + Caddyfile | infra | SD §26.3 | M |
-| T-0029 | CI workflow (lint, typecheck, test, build) | infra | SD §26.1 | M |
-| T-0030 | Resilience tests scripts (8 skenario di SD §35.2) | infra | SD §35.2 | L |
-| T-0031 | UI Settings → Scheduled Jobs (CRUD cron schedules) | ui | SD §21.10 | M |
+| T-0016b | Service `audit.record` (audit log write) | audit | SD §15 | M |
 
 ### Phase 2 — POS + Inventory + BOM + Purchasing
 
 | ID | Title | Module | Spec link | Estimasi |
 |----|-------|--------|-----------|----------|
-| T-0050 | Schema products, product_variants, product_modifiers, categories | inventory | SD §9.3 | M |
-| T-0051 | Schema stock_locations, stock_movements, stock_levels | inventory | SD §9.3 | M |
-| T-0052 | Schema BOM + bom_lines + bom_substitutes | inventory | SD §9.3 | M |
-| T-0053 | Service inventory CRUD products + variants | inventory | SD §21.5 | L |
-| T-0054 | Service inventory.adjust (workflow approval) | inventory | SD §21.5 | M |
-| T-0055 | Service inventory.transfer (2-step) | inventory | SD §21.5 | M |
-| T-0056 | Schema sales_orders + lines + payments + refunds + shifts | pos | SD §9.5 | L |
-| T-0057 | Service pos.createSale (online) + JE generator | pos | SD §21.4 | L |
-| T-0058 | Service pos.refund | pos | SD §21.4 | M |
-| T-0059 | Service pos.openShift / closeShift | pos | SD §21.4 | M |
+| T-0059 | Service pos.openShift / closeShift (UI wired) | pos | SD §21.4 | M |
 | T-0060 | UI `apps/web/(dash)/pos/` order entry | ui | SD §21.4 | XL |
 | T-0061 | PWA setup (Serwist) + service worker + IndexedDB outbox | pos | SD §14, §35.1.1 | L |
 | T-0062 | POS offline sync endpoint `/api/sync/pos` (idempotency) | pos | SD §10.3, §14 | M |
-| T-0063 | Schema purchase_orders + GRN + purchase_invoices | purchasing | SD §9.4 | M |
 | T-0064 | Service purchasing.createPO + workflow approval | purchasing | SD §21.6 | L |
 | T-0065 | Service purchasing.createGRN + JE generator | purchasing | SD §21.6 | M |
 
@@ -194,6 +163,7 @@
 ---
 
 ## Estimasi Effort
+
 - **S** (Small): ≤ 1 hari kerja AI sesi
 - **M** (Medium): 1–2 hari
 - **L** (Large): 3–5 hari
@@ -207,11 +177,13 @@
 2. **Mulai task**: pindahkan dari Backlog ke Active, isi `Owner`, `Started`, `Last Updated`, buat file checkpoint baru di `docs/checkpoints/<id>-<slug>.checkpoint.md`.
 3. **Update saat bekerja**: setelah menulis 100+ baris code atau menyelesaikan satu sub-step, update `Last Updated` di tabel + isi checkpoint.
 4. **Saat berhenti (token limit)**: WAJIB tulis `Next step` eksplisit di checkpoint. Commit dengan pesan `wip(T-XXXX): <ringkas>`.
-5. **Saat selesai**: pindah ke Done, isi Commit. Hapus checkpoint dari `docs/checkpoints/` setelah ≤ 7 hari (atau pindah ke `archive/`).
+5. **Saat selesai**: pindah ke Done This Sprint, hapus dari Backlog & Active. Hapus checkpoint dari `docs/checkpoints/` setelah ≤ 7 hari (atau pindah ke `archive/`).
 6. **BLOCKED**: tetap di Active dengan 🟥, isi kolom Note dengan blocker + tag siapa yang harus memutuskan.
 
 ## ID Format
+
 - `T-NNNN` (4 digit, zero-padded), increment global. Hindari skip.
 
 ## Pembagian Antar AI
+
 - AI yang baru memulai sesi: cek Active → jika ada IN_PROGRESS dengan `Last Updated` > 1 jam idle, boleh ambil alih dengan update `Owner`. Jika < 1 jam, **jangan ambil alih** (asumsi sesi lain masih aktif).
