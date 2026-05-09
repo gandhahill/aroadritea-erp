@@ -1,62 +1,62 @@
-# CLAUDE.md — Panduan untuk Claude Code
+# CLAUDE.md — Guide for Claude Code
 
-Dokumen ini menjelaskan cara Claude Code (dan AI assistant lain) bekerja di repository ERP Aroadri Tea. **Wajib dibaca sebelum membuat perubahan kode atau saran arsitektur.**
+This document explains how Claude Code (and other AI assistants) work in the Aroadri Tea ERP repository. **Must be read before writing any code or making architectural recommendations.**
 
 ---
 
-## 1. Konteks Singkat
+## 1. Project Context
 
-Repository ini adalah **sistem ERP custom** untuk **PT. Gandha Hill Catering Management Indonesia** (merek **Aroadri Tea**) — sebuah kedai bubble tea & dessert bergaya Tiongkok dengan toko di Yogyakarta dan kantor di Yogyakarta + Jakarta.
+This repository is a **custom ERP system** for **PT. Gandha Hill Catering Management Indonesia** (brand **Aroadri Tea**) — a Chinese-style bubble tea & dessert shop with locations in Yogyakarta and offices in Yogyakarta + Jakarta.
 
 - **PIC + developer**: Lintang Maulana Zulfan (`lintangmaulanazulfan@gmail.com`)
-- **Bahasa kerja**: Bahasa Indonesia (untuk komunikasi & dokumentasi). Komentar kode boleh Bahasa Inggris.
-- **Komunikasi tim luas**: WhatsApp.
-- **Komunikasi dengan AI / harness**: melalui Claude Code (file ini) dan **MCP server** yang akan dibangun (lihat §6).
+- **Working language**: Bahasa Indonesia (for communication & documentation). Code comments may be in English.
+- **Team communication**: WhatsApp.
+- **AI/harness communication**: via Claude Code (this file) and the **MCP server** to be built (see §6).
 
 ---
 
-## 2. Dua Source of Truth
+## 2. Two Sources of Truth
 
-Repository ini punya **dua** dokumen sumber kebenaran yang **wajib** dibaca sebelum mengubah apa pun:
+This repository has **two** source-of-truth documents that are **mandatory to read** before making any changes:
 
-📌 **`SOURCE-OF-TRUTH.md`** — sumber kebenaran **bisnis** (apa yang dibangun & mengapa).
-📌 **`SYSTEM-DESIGN.md`** — sumber kebenaran **teknis** (bagaimana dibangun: stack, skema DB, pola arsitektur, konvensi).
-📌 **`skills/`** — Direktori referensi. **Kalau butuh skill / panduan spesifik, wajib baca file-file di folder `skills/`.**
+📌 **`SOURCE-OF-TRUTH.md`** — source of truth for **business** (what is being built & why).
+📌 **`SYSTEM-DESIGN.md`** — source of truth for **technical** (how it is built: stack, DB schema, architectural patterns, conventions).
+📌 **`skills/`** — Reference directory. **If you need a specific skill or guide, you must read the relevant files in the `skills/` folder.**
 
-Aturan konflik:
-- Pertanyaan kebutuhan bisnis → SOURCE-OF-TRUTH menang.
-- Pertanyaan implementasi teknis → SYSTEM-DESIGN menang.
+Conflict rules:
+- Business requirements questions → SOURCE-OF-TRUTH wins.
+- Technical implementation questions → SYSTEM-DESIGN wins.
 
-Sebelum:
-- Menambah/mengubah skema database → baca **SYSTEM-DESIGN §8–§9**
-- Menambah modul atau fitur → baca **SOURCE-OF-TRUTH** modul terkait + **SYSTEM-DESIGN §21**
-- Mengubah peran / izin → baca **SYSTEM-DESIGN §11**
-- Menambah field / atribut → cek apakah perlu kolom riil atau custom field engine (**SYSTEM-DESIGN §17**)
-- Mengubah aturan akuntansi / pajak → baca **SYSTEM-DESIGN §19–§20**
-- Menulis MCP tool → baca **SYSTEM-DESIGN §16**
-- Menulis kode offline POS → baca **SYSTEM-DESIGN §14**
+Before:
+- Adding/changing DB schema → read **SYSTEM-DESIGN §8–§9**
+- Adding a module or feature → read **SOURCE-OF-TRUTH** relevant section + **SYSTEM-DESIGN §21**
+- Changing roles/permissions → read **SYSTEM-DESIGN §11**
+- Adding a field/attribute → check if it needs a real DB column or the custom field engine (**SYSTEM-DESIGN §17**)
+- Changing accounting/tax rules → read **SYSTEM-DESIGN §19–§20**
+- Writing an MCP tool → read **SYSTEM-DESIGN §16**
+- Writing offline POS code → read **SYSTEM-DESIGN §14**
 
-Bila ada kebutuhan baru yang belum ada, **update dokumen relevan dulu** (SoT untuk bisnis, SD untuk teknis), baru tulis kodenya.
+If there is a new requirement that does not yet exist, **update the relevant document first** (SoT for business, SD for technical), then write the code.
 
-Sumber mentah (kuesioner asli) ada di `../ERP-Questionaire.pdf`. Gunakan hanya sebagai rujukan terakhir bila kedua SoT silent.
+Raw source (original questionnaire) is at `../ERP-Questionaire.pdf`. Use only as a last resort when both SoTs are silent.
 
 ---
 
-## 3. Status Repository
+## 3. Repository Status
 
-Saat dokumen ini ditulis (2026-05-05), repository **belum berisi kode** — masih tahap perancangan. Yang sudah ada:
+When this document was written (2026-05-05), the repository **did not contain code** — still in the design phase. What existed:
 
 ```
 ERP/
-├── CLAUDE.md             ← file ini (panduan harian AI)
-├── SOURCE-OF-TRUTH.md    ← spesifikasi kebutuhan bisnis (v1.3)
-├── SYSTEM-DESIGN.md      ← rancangan sistem teknis untuk AI developer (v1.3)
-├── TASK.md               ← register task aktif & backlog (runtime, AI WAJIB update)
+├── CLAUDE.md             ← this file (daily AI guide)
+├── SOURCE-OF-TRUTH.md    ← business requirements specification (v1.3)
+├── SYSTEM-DESIGN.md      ← technical system design for AI developer (v1.3)
+├── TASK.md               ← active task register & backlog (runtime, AI MUST update)
 ├── brand-assets/
-│   └── BRAND.md          ← logo, palet, tipografi, larangan visual, panduan UI
+│   └── BRAND.md          ← logo, palette, typography, visual restrictions, UI guide
 └── docs/
     ├── adr/              ← Architecture Decision Records
-    │   ├── README.md     ← index ADR (10 ADR diputuskan)
+    │   ├── README.md     ← ADR index (10 ADRs decided)
     │   ├── 0001-stack-choice.md
     │   ├── 0002-monorepo-and-app-split.md
     │   ├── 0003-public-website-cms-architecture.md
@@ -67,173 +67,173 @@ ERP/
     │   ├── 0008-pos-demo-mode-client-side.md
     │   ├── 0009-resilience-and-auto-recovery.md
     │   └── 0010-ppn-engine-opt-in.md
-    ├── checkpoints/      ← state per task IN_PROGRESS
-    │   ├── README.md     ← cara pakai
+    ├── checkpoints/      ← state per IN_PROGRESS task
+    │   ├── README.md     ← usage guide
     │   ├── TEMPLATE.checkpoint.md
-    │   └── archive/      ← checkpoint lebih dari 7 hari
-    └── runbook/          ← (akan diisi: server outage, restore backup, dll.)
+    │   └── archive/      ← checkpoints older than 7 days
+    └── runbook/          ← (to be filled: server outage, backup restore, etc.)
 ```
 
-Begitu kode mulai ditulis, ikuti struktur di **SYSTEM-DESIGN.md §6** (Repository Layout).
+Once code starts being written, follow the structure in **SYSTEM-DESIGN.md §6** (Repository Layout).
 
-### 3.1 Daftar ADR yang Sudah Diputuskan
+### 3.1 Decided ADR List
 
-| # | Judul | Status | Pesan |
-|---|-------|--------|-------|
-| [0001](docs/adr/0001-stack-choice.md) | Pilihan Stack Teknologi | Accepted | Next.js 15 + Drizzle + Postgres managed; **tidak boleh** Prisma/Bun/Odoo |
-| [0002](docs/adr/0002-monorepo-and-app-split.md) | Monorepo + App Split | Accepted | 4 app: `site` (publik), `web` (ERP), `mcp`, `worker` |
-| [0003](docs/adr/0003-public-website-cms-architecture.md) | Public Website + CMS | Accepted | Custom CMS internal + JAMstack ISR + Cloudflare CDN |
-| [0004](docs/adr/0004-member-registration-and-auth.md) | Member Registration & Auth | Accepted | Email + OTP + Turnstile; sesi terpisah dari ERP staff |
-| [0005](docs/adr/0005-build-vs-modify-existing-erp.md) | Build vs Modify ERP Open Source | Accepted | Bangun custom — Odoo/ERPNext tidak masuk constraint RAM 2 GB |
-| [0006](docs/adr/0006-design-system-anti-generic.md) | Design System Anti-Generic UI | Accepted | Token brand + override shadcn/ui; lint rule larang `bg-white`, `text-zinc-*`, `border-slate-*` |
-| [0007](docs/adr/0007-naixer-qr-integration.md) | Naixer KDS Integration via QR | Accepted | QR-only (tanpa API); strategy pluggable dash/pipe; mapping master di DB |
-| [0008](docs/adr/0008-pos-demo-mode-client-side.md) | POS Demo / Training Mode | Accepted | Sandbox client-side IndexedDB; tidak pernah sync ke server; QR demo prefix `DEMO-` |
-| [0009](docs/adr/0009-resilience-and-auto-recovery.md) | Resilience & Auto-Recovery | Accepted | PWA offline POS + Docker auto-restart + healthcheck + idempotency; RTO 2m, RPO 0 untuk POS |
-| [0010](docs/adr/0010-ppn-engine-opt-in.md) | PPN Engine — Opt-In | Accepted | PB1 default, PPN keluaran off untuk retail; engine siap B2B kelak via `tax_rules` |
+| # | Title | Status | Message |
+|---|-------|--------|---------|
+| [0001](docs/adr/0001-stack-choice.md) | Technology Stack Choice | Accepted | Next.js 15 + Drizzle + managed Postgres; **no** Prisma/Bun/Odoo |
+| [0002](docs/adr/0002-monorepo-and-app-split.md) | Monorepo + App Split | Accepted | 4 apps: `site` (public), `web` (ERP), `mcp`, `worker` |
+| [0003](docs/adr/0003-public-website-cms-architecture.md) | Public Website + CMS | Accepted | Internal custom CMS + JAMstack ISR + Cloudflare CDN |
+| [0004](docs/adr/0004-member-registration-and-auth.md) | Member Registration & Auth | Accepted | Email + OTP + Turnstile; sessions separate from ERP staff |
+| [0005](docs/adr/0005-build-vs-modify-existing-erp.md) | Build vs Modify ERP Open Source | Accepted | Build custom — Odoo/ERPNext do not fit the 2 GB RAM constraint |
+| [0006](docs/adr/0006-design-system-anti-generic.md) | Anti-Generic UI Design System | Accepted | Brand tokens + shadcn/ui override; lint rule bans `bg-white`, `text-zinc-*`, `border-slate-*` |
+| [0007](docs/adr/0007-naixer-qr-integration.md) | Naixer KDS Integration via QR | Accepted | QR-only (no API); pluggable dash/pipe strategy; mapping master in DB |
+| [0008](docs/adr/0008-pos-demo-mode-client-side.md) | POS Demo / Training Mode | Accepted | Client-side IndexedDB sandbox; never syncs to server; demo QR prefix `DEMO-` |
+| [0009](docs/adr/0009-resilience-and-auto-recovery.md) | Resilience & Auto-Recovery | Accepted | PWA offline POS + Docker auto-restart + healthcheck + idempotency; RTO 2m, RPO 0 for POS |
+| [0010](docs/adr/0010-ppn-engine-opt-in.md) | PPN Engine — Opt-In | Accepted | PB1 default, output PPN off for retail; engine ready for B2B via `tax_rules` |
 
-Bila keputusan baru mempengaruhi >1 modul, ubah skema, atau menambah dependency utama → **wajib** tulis ADR baru di `docs/adr/`. Format: lihat `docs/adr/README.md`.
-
----
-
-## 4. Ringkasan Arsitektur
-
-Detail lengkap di **`SYSTEM-DESIGN.md`**. Ringkasan operasional:
-
-- **Stack**: TypeScript + Next.js 15 (App Router) + Hono (MCP) + Drizzle ORM + PostgreSQL managed (Neon/Supabase) + Tailwind + shadcn/ui (di-override brand) + better-auth + next-intl + Serwist (PWA).
-- **Bentuk**: modular monolith dalam pnpm workspace dengan 4 app: `site` (publik, aroadritea.com), `web` (ERP, erp.aroadritea.com), `mcp` (Hono), `worker` (cron + queue).
-- **Tiga lapisan**: `apps/*` (transport) → `packages/services/*` (business logic, Result-typed) → `packages/db` (Drizzle schema).
-- **DB managed** terpisah dari VPS (offload RAM); VPS hanya menjalankan compute (Next.js × 2 + MCP + worker + Caddy).
-
-**Constraint keras**:
-- Server VPS **1 vCPU / 2 GB RAM / 60 GB disk** (upgrade dari 1 GB pada 2026-05-05) — Odoo/ERPNext/Frappe (≥ 4 GB) **tetap tidak masuk**.
-- POS wajib **PWA + offline mode + idempotent sync** (lihat SD §14, §35).
-- Multibahasa **ID/EN/ZH** sejak hari pertama (lihat SD §13).
-- **MCP server** wajib (lihat SD §16).
-- Multi-cabang via **dimensi `location_id`** (lihat SD §12).
-- Custom field & permission **database-driven**, tidak hardcode (lihat SD §17, §11).
-- **UI distinctive — bukan default shadcn** (lihat SD §36, ADR-0006).
-- **Naixer KDS** integrasi via **QR-only**, bukan API (lihat SD §33, ADR-0007).
-- **POS Demo mode** wajib (sandbox client-side, tidak sync ke server) — lihat SD §34, ADR-0008.
-- **Resilience**: RTO ≤ 2 menit, RPO 0 untuk POS (lihat SD §35, ADR-0009).
+When a new decision affects >1 module, changes a schema, or adds a major dependency → **must** write a new ADR in `docs/adr/`. Format: see `docs/adr/README.md`.
 
 ---
 
-## 5. Konvensi Kode (Diset Lebih Awal)
+## 4. Architecture Summary
 
-### 5.1 Bahasa & Komentar
-- **Identifier kode**: Bahasa Inggris (camelCase / PascalCase / snake_case sesuai konvensi bahasa).
-- **Komentar kode**: Bahasa Inggris ringkas. Hanya tulis komentar bila *why* tidak jelas dari kode.
-- **String UI**: melalui i18n key (jangan hardcode Bahasa Indonesia di JSX/template).
-- **Pesan commit**: Bahasa Inggris, conventional commits (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`).
+Full detail in **`SYSTEM-DESIGN.md`**. Operational summary:
 
-### 5.2 Multibahasa (i18n)
-- Semua label, tombol, judul kolom, pesan validasi → **wajib pakai key i18n**.
-- Data master (produk, kategori, modifier) menyimpan kolom `name_id`, `name_en`, `name_zh` (atau pola JSON `{ id, en, zh }`).
-- Format mata uang: IDR (tanpa desimal), thousand separator titik, decimal koma untuk locale ID; locale EN/ZH ikut konvensi mereka.
-- Format tanggal: `YYYY-MM-DD` di database; tampilan UI per locale.
+- **Stack**: TypeScript + Next.js 15 (App Router) + Hono (MCP) + Drizzle ORM + managed PostgreSQL (Neon/Supabase) + Tailwind + shadcn/ui (brand-overridden) + better-auth + next-intl + Serwist (PWA).
+- **Shape**: modular monolith in a pnpm workspace with 4 apps: `site` (public, aroadritea.com), `web` (ERP, erp.aroadritea.com), `mcp` (Hono), `worker` (cron + queue).
+- **Three layers**: `apps/*` (transport) → `packages/services/*` (business logic, Result-typed) → `packages/db` (Drizzle schema).
+- **Managed DB** separate from VPS (offloads RAM); VPS only runs compute (Next.js × 2 + MCP + worker + Caddy).
 
-### 5.3 Skema Database
-- Setiap tabel transaksional **wajib** punya kolom audit:
-  - `id` (UUID atau ULID)
+**Hard constraints**:
+- VPS server **1 vCPU / 2 GB RAM / 60 GB disk** (upgraded from 1 GB on 2026-05-05) — Odoo/ERPNext/Frappe (≥ 4 GB) **remain excluded**.
+- POS **must** be **PWA + offline mode + idempotent sync** (see SD §14, §35).
+- Multilingual **ID/EN/ZH** from day one (see SD §13).
+- **MCP server** required (see SD §16).
+- Multi-branch via **`location_id` dimension** (see SD §12).
+- Custom fields & permissions **database-driven**, not hardcoded (see SD §17, §11).
+- **Distinctive UI** — not default shadcn (see SD §36, ADR-0006).
+- **Naixer KDS** integration via **QR-only**, not API (see SD §33, ADR-0007).
+- **POS Demo mode** required (client-side sandbox, no server sync) — see SD §34, ADR-0008.
+- **Resilience**: RTO ≤ 2 minutes, RPO 0 for POS (see SD §35, ADR-0009).
+
+---
+
+## 5. Code Conventions (Pre-established)
+
+### 5.1 Language & Comments
+- **Code identifiers**: English (camelCase / PascalCase / snake_case per language convention).
+- **Code comments**: Concise English. Only write a comment when the *why* is not obvious from the code.
+- **UI strings**: via i18n key (do not hardcode Bahasa Indonesia in JSX/templates).
+- **Commit messages**: English, conventional commits (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`).
+
+### 5.2 Multilingual (i18n)
+- All labels, buttons, column headers, validation messages → **must use i18n key**.
+- Master data (products, categories, modifiers) stores `name_id`, `name_en`, `name_zh` columns (or JSON pattern `{ id, en, zh }`).
+- Currency format: IDR (no decimals), thousand separator dot, decimal comma for locale ID; EN/ZH locales follow their own conventions.
+- Date format: `YYYY-MM-DD` in database; UI display per locale.
+
+### 5.3 Database Schema
+- Every transactional table **must** have audit columns:
+  - `id` (UUID or ULID)
   - `created_at`, `updated_at`, `deleted_at` (soft delete)
   - `created_by_user_id`, `updated_by_user_id`
-  - `location_id` (kecuali tabel master global)
-  - `tenant_id` bila multi-tenant disiapkan untuk franchise
-- **Audit trail terpisah** di tabel `audit_log` (entity_type, entity_id, action, before_json, after_json, user_id, timestamp).
+  - `location_id` (except for global master tables)
+  - `tenant_id` if multi-tenant is prepared for franchise
+- **Audit trail** separate in `audit_log` table (entity_type, entity_id, action, before_json, after_json, user_id, timestamp).
 
-### 5.4 Akuntansi (Aturan Khusus)
-- Setiap entry jurnal: **debit total = kredit total** (validasi server-side wajib).
-- Setiap entry jurnal **harus** punya: `posting_date`, `location_id`, `currency=IDR`, `period_id`.
-- COA mengikuti **Lampiran A SOURCE-OF-TRUTH.md**, di-seed saat go-live. Jangan tambah akun ad-hoc dari kode — selalu via UI/migrasi yang tercatat.
-- Periode akuntansi yang sudah ditutup **tidak boleh** menerima posting baru.
+### 5.4 Accounting (Special Rules)
+- Every journal entry: **total debit = total credit** (server-side validation required).
+- Every journal entry **must** have: `posting_date`, `location_id`, `currency=IDR`, `period_id`.
+- COA follows **Appendix A of SOURCE-OF-TRUTH.md**, seeded at go-live. Do not add ad-hoc accounts from code — always via UI/migration that is tracked.
+- Closed accounting periods **must not** accept new postings.
 
-### 5.5 Keamanan
-- **Tidak pernah** commit secret (kunci API, password DB, JWT secret) ke repo. Pakai `.env` + `.env.example`.
-- Password user: hash dengan **argon2id** atau **bcrypt cost ≥ 12**.
-- Data pribadi karyawan & pelanggan (KTP, NPWP, telp) → **enkripsi at-rest** (sesuai UU PDP).
-- HTTPS only di production. Cookie session: `Secure`, `HttpOnly`, `SameSite=Lax`.
+### 5.5 Security
+- **Never** commit secrets (API keys, DB passwords, JWT secrets) to repo. Use `.env` + `.env.example`.
+- User passwords: hash with **argon2id** or **bcrypt cost ≥ 12**.
+- Personal data of employees & customers (KTP, NPWP, phone) → **encryption at rest** (per UU PDP law).
+- HTTPS only in production. Session cookie: `Secure`, `HttpOnly`, `SameSite=Lax`.
 
-### 5.6 Pajak — Aturan Tetap
-- **PB1/PBJT 10%, inclusive**: tarif disimpan di tabel `tax_rate`, jangan hardcode.
-- **PPN keluaran/masukan**: di-track per dokumen, tidak hanya summary.
-- Format export untuk **Coretax**: CSV/Excel sesuai layout Coretax (versi terkini per tanggal commit).
+### 5.6 Tax — Standing Rules
+- **PB1/PBJT 10%, inclusive**: rate stored in `tax_rate` table, do not hardcode.
+- **Output/Input PPN**: tracked per document, not just summary.
+- Export format for **Coretax**: CSV/Excel per Coretax layout (current version at commit date).
 
-### 5.7 Larangan
-- ❌ Hardcode role check di middleware (`if user.role === 'admin'`) — pakai permission lookup ke DB.
-- ❌ Hardcode menu produk / harga / tarif pajak di kode.
-- ❌ Tambah library besar (>5 MB bundle / >100 MB node_modules) tanpa diskusi — server kecil.
-- ❌ Mock database di test integrasi — pakai DB real (atau Testcontainers).
-- ❌ Console.log di production code path.
+### 5.7 Prohibitions
+- ❌ Hardcode role check in middleware (`if user.role === 'admin'`) — use permission lookup in DB.
+- ❌ Hardcode product menu / prices / tax rates in code.
+- ❌ Add large libraries (>5 MB bundle / >100 MB node_modules) without discussion — small server.
+- ❌ Mock database in integration tests — use real DB (or Testcontainers).
+- ❌ Console.log in production code path.
 - ❌ Skip pre-commit hook (`--no-verify`).
-- ❌ Pakai class Tailwind generic shadcn (`bg-white`, `text-zinc-*`, `border-slate-*`) di `apps/*` — wajib pakai token `brand.*`. Lihat ADR-0006.
-- ❌ Generate UI dengan default shadcn raw — selalu via `packages/ui/` yang sudah di-override brand.
-- ❌ Pakai Date.now() / setInterval untuk waktu DB — pakai `now()` SQL dan timer server.
-- ❌ Pakai `number` untuk uang — pakai `Money` (bigint).
-- ❌ Mulai task tanpa entry di `TASK.md` + checkpoint.
-- ❌ Exit sesi tanpa update checkpoint dengan `Next step` eksplisit.
+- ❌ Use generic Tailwind shadcn classes (`bg-white`, `text-zinc-*`, `border-slate-*`) in `apps/*` — must use `brand.*` tokens. See ADR-0006.
+- ❌ Generate UI with raw default shadcn — always via `packages/ui/` that has been brand-overridden.
+- ❌ Use Date.now() / setInterval for DB time — use `now()` SQL and server-side timers.
+- ❌ Use `number` for money — use `Money` (bigint).
+- ❌ Start a task without entry in `TASK.md` + checkpoint.
+- ❌ Exit a session without updating checkpoint with explicit `Next step`.
 
 ---
 
-## 5.8 Workflow TASK.md (Wajib untuk AI Multi-Sesi)
+## 5.8 TASK.md Workflow (Mandatory for Multi-Session AI)
 
-Karena AI memiliki token limit, sesi dapat terputus di tengah implementasi. Untuk kontinuitas:
+Because AI has token limits, sessions can be interrupted mid-implementation. For continuity:
 
-1. **`TASK.md` di root repo** = single source of truth runtime untuk semua task.
-2. **`docs/checkpoints/<id>-<slug>.checkpoint.md`** = catatan rinci per task aktif.
+1. **`TASK.md` at repo root** = single source of truth for all tasks.
+2. **`docs/checkpoints/<id>-<slug>.checkpoint.md`** = detailed notes per active task.
 3. **Template**: `docs/checkpoints/TEMPLATE.checkpoint.md`.
-4. **Spesifikasi**: `SYSTEM-DESIGN.md §37`.
+4. **Specification**: `SYSTEM-DESIGN.md §37`.
 
-### Aturan ringkas (lihat detail di SD §37):
+### Quick rules (see SD §37 for full detail):
 
-**Sebelum mulai bekerja**:
-- Baca `TASK.md`. Cari 🟨 IN_PROGRESS yang owner-nya idle > 1 jam → boleh ambil alih. Bila < 1 jam, jangan ambil alih.
-- Bila tidak ada Active yang dapat dilanjutkan → pilih dari Backlog sesuai phase.
-- Pindahkan task dari Backlog → Active, isi Owner, Started, Last Updated, buat checkpoint baru.
+**Before starting work**:
+- Read `TASK.md`. Find 🟨 IN_PROGRESS with owner idle > 1 hour → may take over. If < 1 hour, do not take over.
+- If no active task to continue → pick from Backlog per phase.
+- Move task from Backlog → Active, fill in Owner, Started, Last Updated, create new checkpoint.
 
-**Saat bekerja**:
-- Update checkpoint setiap 100+ baris code atau setiap sub-step Plan diselesaikan.
-- Update field `Last Updated` di TASK.md.
+**While working**:
+- Update checkpoint every 100+ lines of code or each Plan sub-step completed.
+- Update `Last Updated` field in TASK.md.
 
-**Saat berhenti (token limit / sesi habis)**:
-- WAJIB tulis `## Next step` **eksplisit dan dapat dieksekusi** di checkpoint.
-- Format Next step yang baik: `"Edit X.ts baris N, tambahkan function Y dengan signature ..., lalu jalankan pnpm test ..."`.
-- Commit code yang sudah ditulis (meski belum lengkap) dengan pesan `wip(T-XXXX): <ringkas>`.
+**When stopping (token limit / session ends)**:
+- **MANDATORY** write `## Next step` **explicit and executable** in checkpoint.
+- Good next step format: `"Edit X.ts line N, add function Y with signature ..., then run pnpm test ..."`.
+- Commit code already written (even if incomplete) with message `wip(T-XXXX): <brief>`.
 
-**Saat AI baru lanjutkan**:
-- Baca `TASK.md` → cari 🟨 dengan `Last Updated` paling baru.
-- Baca checkpoint penuh. Lanjutkan dari `Next step`.
-- **Jangan menebak**. Bila `Next step` tidak jelas → tanya user.
-- Update Owner di TASK.md ke AI baru.
+**When new AI resumes**:
+- Read `TASK.md` → find 🟨 with most recent `Last Updated`.
+- Read full checkpoint. Continue from `Next step`.
+- **Do not guess**. If `Next step` is unclear → ask user.
+- Update Owner in TASK.md to new AI.
 
-**Saat selesai**:
-- Update `TASK.md`: pindah ke Done, isi Commit.
+**When done**:
+- Update `TASK.md`: move to Done, fill in Commit.
 - Update checkpoint: status 🟩 DONE.
-- Setelah 7 hari → arsipkan checkpoint ke `docs/checkpoints/archive/`.
+- After 7 days → archive checkpoint to `docs/checkpoints/archive/`.
 
 ---
 
-## 6. MCP Server (Fitur Diferensiasi)
+## 6. MCP Server (Differentiation Feature)
 
-ERP ini **wajib** mengekspos antarmuka **Model Context Protocol** sehingga AI lokal (Gemini CLI, Claude Code, Google Antigravity, dll.) dapat:
+This ERP **must** expose a **Model Context Protocol** interface so local AIs (Gemini CLI, Claude Code, Google Antigravity, etc.) can:
 
-- **Read**: query produk, stok, jurnal, audit log, employee, payroll.
+- **Read**: query products, stock, journals, audit log, employees, payroll.
 - **Write**: create purchase order, update inventory adjustment, create employee record, log complaint.
 - **Audit**: read audit log + diff before/after.
 
-Authentikasi MCP: per-user token dengan scope = scope user di UI. Jangan beri MCP "super-user". Tools MCP **harus melewati permission engine yang sama** dengan UI.
+MCP authentication: per-user token with scope = user's UI scope. Do not give MCP "super-user". MCP tools **must** go through the same permission engine as the UI.
 
-Saat membangun fitur baru, **selalu pertimbangkan** MCP tool yang setara — agar AI bisa otomatisasi.
+When building a new feature, **always consider** a corresponding MCP tool — so AI can automate it.
 
 ---
 
-## 7. Struktur Direktori (Akan Diisi)
+## 7. Directory Structure (To Be Filled)
 
-> Kosong saat ini. Setelah scaffold awal, dokumentasikan layout di sini. Contoh placeholder:
+> Currently empty. After the initial scaffold, document the layout here. Example placeholder:
 >
 > ```
 > ERP/
 > ├── apps/
-> │   ├── web/         # Next.js / SvelteKit / dst — UI utama
+> │   ├── web/         # Next.js / SvelteKit / etc — main UI
 > │   └── mcp-server/  # MCP server endpoint
 > ├── packages/
 > │   ├── db/          # ORM schema + migrations
@@ -247,79 +247,79 @@ Saat membangun fitur baru, **selalu pertimbangkan** MCP tool yang setara — aga
 
 ---
 
-## 8. Workflow Pengembangan
+## 8. Development Workflow
 
-1. **Sebelum mulai**: baca isu / diskusi WhatsApp + SOURCE-OF-TRUTH.md bagian relevan.
+1. **Before starting**: read issues / WhatsApp discussions + relevant section of SOURCE-OF-TRUTH.md.
 2. **Branch**: `feat/...`, `fix/...`, `refactor/...`, `docs/...`.
-3. **Commit kecil & sering**, pesan jelas (lihat §5.1).
-4. **Test**: tulis test untuk logic akuntansi & pajak (jangan kompromi). Untuk UI ringan boleh minimal.
-5. **Review diri sendiri**: jalankan lint + typecheck + test sebelum commit.
-6. **Update dokumen** kalau perubahan menyentuh kebutuhan bisnis.
-7. **Push**, deploy ke staging, verifikasi manual di toko (sebelum push ke prod).
+3. **Commit small & often**, clear messages (see §5.1).
+4. **Test**: write tests for accounting & tax logic (do not compromise). For light UI, minimal is acceptable.
+5. **Self-review**: run lint + typecheck + test before commit.
+6. **Update documents** if changes touch business requirements.
+7. **Push**, deploy to staging, verify manually at the store (before push to prod).
 
 ---
 
-## 9. Pengingat Operasional
+## 9. Operational Reminders
 
-- **PB1/PBJT inclusive** — *jangan* tambahkan pajak di atas harga jual yang ditampilkan.
-- **Komisi delivery 20%** — pendapatan bersih GoFood/GrabFood/ShopeeFood = 80% × harga.
-- **Stock opname**: bulanan global, mingguan untuk teh + lemon.
-- **Tanggal payroll**: **tanggal 8** setiap bulan.
-- **Jam toko**: 10:00–22:00 WIB.
-- **Bahasa default UI** untuk staf operasional: **Bahasa Indonesia**. Direksi: bisa switch ke **Mandarin** atau **Inggris**.
-- **Backup**: harian, retensi mingguan, off-site.
-
----
-
-## 10. Pertanyaan Terbuka
-
-Pertanyaan teknis terbuka ada di **`SYSTEM-DESIGN.md` §30** (Open Decisions / ADR Pointers).
-
-Pertanyaan bisnis terbuka:
-- [ ] Visi 1/3/5 tahun → mempengaruhi keputusan multi-tenant / franchise sejak awal atau tidak.
-- [ ] Diferensiasi vs Chagee / Molly Tea (untuk strategi branding di sistem).
-- [ ] Deskripsi tugas detail per peran (data baca/tulis spesifik) — saat ini hanya outline kasar.
-- [ ] Daftar lengkap supplier + syarat pembayaran (akan diinput user sendiri ke sistem nanti).
-- [ ] Daftar lengkap aset tetap dengan nilai perolehan, tanggal, masa manfaat (ada di file Excel terpisah, perlu import).
-- [ ] Daftar resep / BOM (akan diinput user setelah modul siap).
-- [ ] Apakah Plaza Malioboro outlet kedua sudah operasional atau dalam persiapan? (Status di kuesioner: Aktif, perlu dikonfirmasi)
-- [ ] Konfirmasi konsultan pajak: penjualan retail F&B dikenakan PPN selain PB1 atau tidak?
+- **PB1/PBJT inclusive** — *do not* add tax on top of the displayed selling price.
+- **Delivery commission 20%** — net revenue GoFood/GrabFood/ShopeeFood = 80% × price.
+- **Stock opname**: monthly global, weekly for tea + lemon.
+- **Payroll date**: **8th** of every month.
+- **Store hours**: 10:00–22:00 WIB.
+- **Default UI language** for operational staff: **Bahasa Indonesia**. Directors: can switch to **Mandarin** or **English**.
+- **Backup**: daily, weekly retention, off-site.
 
 ---
 
-## 11. Memori AI (untuk Sesi Claude Code)
+## 10. Open Questions
 
-Repository ini sudah memiliki memori pengguna di `~/.claude/projects/D--KERJA-Aroadri-Tea-ERP/memory/`. Beberapa fakta penting yang sudah tersimpan:
+Open technical questions are in **`SYSTEM-DESIGN.md` §30** (Open Decisions / ADR Pointers).
 
-- User adalah developer + PIC tunggal proyek, kerja solo.
-- Bahasa kerja Indonesia, koordinasi WhatsApp.
-- Server constraint: **1 vCPU / 2 GB RAM / 60 GB disk** (upgrade dari 1 GB pada 2026-05-05).
-- Modul priority: Accounting → Reporting → Tax → POS → Inventory → Purchasing → Kitchen → HR → CRM.
-- Sumber dokumen mentah ada di `D:/KERJA/Aroadri Tea/`.
-- Naixer KDS integrasi via QR-only (Format B dash default; Format A pipe sebagai fallback). Vendor code list tidak menunggu — user input via UI.
-- POS wajib offline + demo mode client-side.
-- DB managed: **Neon** (Supabase fallback). Auth: **better-auth**.
-- PPN engine **opt-in** — PB1 default untuk retail F&B; PPN keluaran siap diaktifkan kelak untuk B2B via tabel `tax_rules` (lihat ADR-0010).
-
-Bila informasi tersebut berubah (mis. anggaran naik, tim bertambah, server diupgrade lagi), **update memori** sekaligus dokumen ini.
+Open business questions:
+- [ ] 1/3/5 year vision → does it affect multi-tenant / franchise decisions from the start or not?
+- [ ] Differentiation vs Chagee / Molly Tea (for system branding strategy).
+- [ ] Detailed role descriptions (specific read/write data) — currently only a rough outline.
+- [ ] Complete supplier list + payment terms (will be entered by user into the system later).
+- [ ] Complete fixed asset list with acquisition value, date, useful life (in separate Excel file, needs import).
+- [ ] Complete recipe / BOM list (will be entered by user after module is ready).
+- [ ] Is Plaza Malioboro second outlet operational or still in preparation? (Status in questionnaire: Active, needs confirmation)
+- [ ] Tax consultant confirmation: are retail F&B sales subject to PPN in addition to PB1 or not?
 
 ---
 
-## 12. Cek Cepat Sebelum Mulai (Pre-Flight Checklist AI)
+## 11. AI Memory (for Claude Code Sessions)
 
-Sebelum AI menulis kode pertama:
+This repository already has user memory at `~/.claude/projects/D--KERJA-Aroadri-Tea-ERP/memory/`. Some key facts already stored:
 
-- [ ] Sudah baca `SOURCE-OF-TRUTH.md` bagian relevan?
-- [ ] Sudah baca `SYSTEM-DESIGN.md` bagian relevan?
-- [ ] Sudah baca semua ADR yang relevan (lihat §3.1)?
-- [ ] Sudah cek `TASK.md` untuk Active Tasks?
-- [ ] Bila ada IN_PROGRESS dengan owner idle > 1 jam → siap ambil alih?
-- [ ] Bila task baru → sudah pindahkan dari Backlog ke Active + buat checkpoint?
-- [ ] Tahu modul mana yang disentuh, file mana yang akan diubah?
-- [ ] Tidak ada keputusan yang harus dijatuhkan yang belum ada di Open Decisions (SD §30)?
+- User is developer + sole project PIC; works solo.
+- Working language: Bahasa Indonesia, WhatsApp coordination.
+- Server constraint: **1 vCPU / 2 GB RAM / 60 GB disk** (upgraded from 1 GB on 2026-05-05).
+- Module priority: Accounting → Reporting → Tax → POS → Inventory → Purchasing → Kitchen → HR → CRM.
+- Raw source documents at `D:/KERJA/Aroadri Tea/`.
+- Naixer KDS integration via QR-only (Format B dash default; Format A pipe as fallback). Vendor code list does not wait — user input via UI.
+- POS required offline + demo mode client-side.
+- Managed DB: **Neon** (Supabase fallback). Auth: **better-auth**.
+- PPN engine **opt-in** — PB1 default for retail F&B; output PPN ready to be activated later for B2B via `tax_rules` table (see ADR-0010).
 
-Bila ada yang belum jelas — **berhenti dan tanya user**.
+If any of this information changes (e.g., budget increases, team grows, server upgraded again), **update the memory** and this document simultaneously.
 
 ---
 
-*Dokumen ini disiapkan 2026-05-05. Versi 1.3 (RAM 2 GB, ADR 0006-0010, TASK.md workflow, decisions resolved).*
+## 12. Pre-Flight Checklist (Before AI Writes Code)
+
+Before AI writes the first code:
+
+- [ ] Read relevant section of `SOURCE-OF-TRUTH.md`?
+- [ ] Read relevant section of `SYSTEM-DESIGN.md`?
+- [ ] Read all relevant ADRs (see §3.1)?
+- [ ] Checked `TASK.md` for Active Tasks?
+- [ ] If IN_PROGRESS with owner idle > 1 hour → ready to take over?
+- [ ] If new task → already moved from Backlog to Active + checkpoint created?
+- [ ] Know which module is touched, which files will be changed?
+- [ ] No decisions to be made that are not yet in Open Decisions (SD §30)?
+
+If anything is unclear — **stop and ask the user**.
+
+---
+
+*This document was prepared 2026-05-05. Version 1.3 (2 GB RAM, ADR 0006-0010, TASK.md workflow, decisions resolved).*
