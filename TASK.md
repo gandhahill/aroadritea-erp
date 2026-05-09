@@ -58,6 +58,8 @@
 | T-0018 | UI Journals list + detail page (table, search, filters, detail view) | Antigravity (Opus 4.6) | 2026-05-08 | verified: typecheck clean, 152 tests pass | 1 |
 | T-0021 | UI Reporting pages (Trial Balance, Balance Sheet, P&L) | Antigravity (Opus 4.6) | 2026-05-08 | verified: typecheck clean | 1 |
 | T-0023 | apps/mcp scaffolding + auth token + Phase 1 tools | Claude Opus 4.6 | 2026-05-09 | 3af9f81 | 1 |
+| T-0026 | Worker scaffolding + pg-boss | Claude Opus 4.6 | 2026-05-09 | wip(T-0026): worker scaffolding with pg-boss | 1 |
+| T-0027 | Healthz endpoints for web, site, mcp | Claude Opus 4.6 | 2026-05-09 | wip(T-0027): healthz endpoints for web, site, mcp | 1 |
 
 ---
 

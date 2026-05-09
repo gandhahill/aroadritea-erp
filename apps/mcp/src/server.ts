@@ -184,7 +184,11 @@ server.setRequestHandler(
   async () => ({ result: { version: SERVER_INFO.version } }),
 );
 
-// --- Start ---
+// --- Start HTTP health server ---
+import { server as httpServer } from './http-server';
+void httpServer;
+
+// --- Start stdio MCP server ---
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
