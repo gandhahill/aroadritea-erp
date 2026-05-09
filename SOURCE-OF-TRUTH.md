@@ -31,6 +31,8 @@
 19. [Regulasi & Kepatuhan](#19-regulasi--kepatuhan)
 20. [Roadmap, Prioritas Modul, Timeline](#20-roadmap-prioritas-modul-timeline)
 21. [Pain Points & Fitur Khusus](#21-pain-points--fitur-khusus)
+21a. [§21.2a — Ekspor Excel (XLSX)](#212a--ekspor-excel-xlsx)
+21b. [§21.2b — Halaman Dokumentasi](#212b--halaman-dokumentasi--petunjuk-penggunaan)
 22. [Public Website, CMS, Membership Online](#22-public-website-cms-membership-online)
 23. [Brand & Visual Identity](#23-brand--visual-identity)
 24. [POS Demo / Training Mode](#24-pos-demo--training-mode)
@@ -659,6 +661,23 @@ Daftar lengkap belum diberikan; sistem **wajib** menyediakan **per-role widget v
 ### 18.1 Kepatuhan Data
 - **UU PDP** (Perlindungan Data Pribadi) berlaku — wajib **enkripsi data pribadi** saat at-rest dan in-transit.
 
+### 18.2 Keamanan Level Militar (ditambahkan 2026-05-09)
+User mensyaratkan **keamanan setingkat militer** (non-2FA) dengan komponen berikut:
+
+| Aspek | Persyaratan |
+|---|---|
+| **Enkripsi Data-at-Rest** | Semua data sensitif (KTP, NPWP, nomor HP, email, kata sandi, session token) dienkripsi menggunakan AES-256-GCM sebelum disimpan di database. Enkripsi dilakukan di level aplikasi (bukan rely pada DB encryption saja). |
+| **Enkripsi Data-in-Transit** | HTTPS/TLS 1.3 wajib untuk semua koneksi. HSTS header dengan max-age ≥ 1 tahun. Tidak ada fallback ke HTTP. |
+| **Brute Force Protection** | Rate limiting login attempt: maksimal 5 percobaan gagal dalam 15 menit per IP + per akun. Setelah exceed → blokir sementara 15 menit + notifikasi ke user via email. Percobaan gagal dicatat di audit log. |
+| **CAPTCHA / Anti-Bot** | Cloudflare Turnstile (atau hCaptcha fallback) di halaman: login, signup member, form publik. |
+| **Audit Trail Imutable** | Setiap mutasi data tercatat di `audit_log` append-only. Tidak ada delete/update terhadap audit log. |
+| **Security Audit & Penetration Testing** | Dilakukan minimal **setiap 6 bulan** oleh pihak ketiga independen. Laporan audit disimpan dan ditindaklanjuti dalam 30 hari. |
+| **Incident Response Plan** | Prosedur handling jika terjadi breach: isolat sistem, investigate, notify affected users (sesuai UU PDP max 3×24 jam), remediate. |
+| **Security Headers** | CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy di semua halaman ERP. |
+| **Secrets Management** | API keys, DB credentials, JWT secrets tidak pernah di-commit. Menggunakan environment variables atau secret manager (Vault / Cloudflare Secrets). Rotation minimal 90 hari. |
+
+> **Catatan**: 2FA **tidak wajib** per request user (2026-05-09). Namun sistem **wajib menyediakan opsi 2FA** bagi user yang ingin mengaktifkannya secara sukarela.
+
 ### 18.2 Backup
 - **Frekuensi**: **harian** (otomatis)
 - **Retensi**: **mingguan** (rolling 7 hari)
@@ -770,6 +789,100 @@ Daftar lengkap belum diberikan; sistem **wajib** menyediakan **per-role widget v
 5. **Skalabilitas + fleksibilitas kustomisasi tanpa edit source code** → custom fields, permission DB-driven, workflow DB-driven.
 6. **Tutorial in-app** yang dapat dipanggil kapan saja (onboarding + reference).
 7. **Login end-to-end** (secure stack).
+8. **Ekspor Excel (XLSX) di Semua Modul** — setiap modul yang menangani data harus menyediakan tombol/tindakan ekspor ke format XLSX. Lihat §21.2a.
+9. **Halaman Dokumentasi & Petunjuk Penggunaan** — halaman komprehensif yang mencakup tutorial detail untuk semua use case, navigasi daftar isi, dan fitur search. Lihat §21.2b.
+
+#### §21.2a — Ekspor Excel (XLSX) di Semua Modul
+
+Setiap modul yang mengelola data **wajib** menyediakan fitur ekspor ke format XLSX. Ketentuan:
+
+| Modul | Data yang Diekspor |
+|---|---|
+| Accounting | Chart of Accounts, Jurnal Umum, Buku Besar, Neraca Saldo |
+| Reporting | Trial Balance, Balance Sheet, Profit & Loss, Cash Flow, Laporan Penjualan per Produk/Kasir/Channel |
+| Tax | Daftar Tarif Pajak, Rekap PPN Masukan/Keluaran, Ringkasan PB1 |
+| POS | Riwayat Transaksi, Shift Harian, Refund |
+| Inventory | Daftar Produk, Stok per Lokasi, Pergerakan Stok, BOM |
+| Purchasing | Purchase Orders, Goods Receipt Notes, Supplier |
+| HR | Daftar Karyawan, Kontrak, Absensi |
+| Payroll | Slip Gaji, Rekap Payroll per Bulan |
+| CRM | Daftar Member, Riwayat Poin, Komplain |
+
+**Spesifikasi Teknis Ekspor XLSX:**
+- Library: **ExcelJS** (sudah di-stack — lihat SYSTEM-DESIGN §5).
+- Format file: `.xlsx` (Excel 2007+).
+- Styling: header baris berwarna (brand-red #D6262E), freeze pane di baris pertama, auto-column width, number format IDR untuk kolom uang.
+- Bahasa: sesuai locale user saat ini (ID/EN/ZH).
+- Filter: user dapat memfilter data sebelum ekspor (tanggal, lokasi, kategori, dll).
+- Paginasi: ekspor seluruh data yang ter-filter, tidak hanya halaman saat ini.
+- Ukuran maksimal: 100.000 baris per file. Jika lebih → pisah ke beberapa file dengan indicator part (part 1 of 3).
+
+**Spesifikasi UI Ekspor:**
+- Tombol ekspor di setiap halaman daftar/tabel.
+- Pilihan format: XLSX (default), CSV (opsional).
+- Opsi pilih kolom yang di-export.
+- Progress indicator untuk export besar (> 10.000 baris).
+
+#### §21.2b — Halaman Dokumentasi & Petunjuk Penggunaan
+
+Sistem **wajib** menyediakan halaman dokumentasi komprehensif untuk semua fitur ERP. Ketentuan:
+
+**Struktur Halaman (`apps/web/(dash)/docs/`):**
+
+| Fitur | Lokasi | Deskripsi |
+|---|---|---|
+| Landing dokumentasi | `/docs` | Halaman utama dengan TOC di kiri, search bar, versi ERP |
+| Modul Accounting | `/docs/accounting/*` | Penggunaan COA, cara posting jurnal, menutup periode |
+| Modul Reporting | `/docs/reporting/*` | Cara membaca laporan, filter, export |
+| Modul Tax | `/docs/tax/*` | Setup pajak, generate laporan Coretax |
+| Modul POS | `/docs/pos/*` | Cara transaksi, refund, shift open/close, demo mode |
+| Modul Inventory | `/docs/inventory/*` | Setup produk, BOM, stock opname |
+| Modul Purchasing | `/docs/purchasing/*` | PO workflow, GRN, retur |
+| Modul HR | `/docs/hr/*` | Onboarding karyawan, absensi |
+| Modul Payroll | `/docs/payroll/*` | Setup komponen, jalankan payroll |
+| Modul CRM | `/docs/crm/*` | Manajemen member, komplain |
+| Panduan Umum | `/docs/guides/*` | Login, navigasi, keyboard shortcut, FAQ |
+| Glosarium | `/docs/glossary` | Istilah teknis ERP dalam ID/EN/ZH |
+| Changelog | `/docs/changelog` | Riwayat update sistem |
+
+**Fitur Halaman Dokumentasi:**
+
+1. **Navigasi Daftar Isi (TOC) di Kiri**
+   - Sidebar tetap (sticky) saat scroll.
+   - Hierarki: Modul → Section → Sub-section (3 level).
+   - Indikator aktif (highlight) saat scroll ke section.
+   - Collapse/expand per modul.
+
+2. **Fitur Search**
+   - Search bar di bagian atas (cmd+K / ctrl+K shortcut).
+   - Full-text search pada seluruh konten dokumentasi.
+   - Hasil search menampilkan snippet + highlight kata kunci.
+   - Keyboard navigation (↑↓ untuk navigasi hasil, Enter untuk pilih).
+
+3. **Konten Dokumentasi**
+   - Format: Markdown dengan custom components.
+   - Setiap panduan mencakup:
+     - **Tujuan**: apa yang dicapai.
+     - **Prasyarat**: permission/role yang diperlukan.
+     - **Langkah-langkah**: step-by-step dengan screenshot/ilustrasi.
+     - **Tips & Troubleshooting**: gotcha umum.
+     - **Video tutorial** (opsional, embed YouTube/Loom).
+   - Multi-bahasa: konten tersedia dalam ID/EN/ZH (switcher di header).
+   - Breadcrumb di atas: `Docs / Accounting / Posting Jurnal Manual`.
+
+4. **Petunjuk Use Case Komprehensif**
+   - **Onboarding Kasir Baru**: langkah dari login → transaksi pertama → refund → demo mode.
+   - **Setup Produk Baru**: dari login → tambah produk → varian → modifier → BOM.
+   - **Tutup Bulan**: posting jurnal penyesuaian → generate laporan → tutup periode.
+   - **Export Laporan ke Coretax**: filter data → export → format yang dibutuhkan DJP.
+   - **Training Demo Mode**: cara mengaktifkan, simulasi transaksi, reset.
+
+5. **Konsistensi dengan Sistem**
+   - Jika ada perubahan UI di modul, dokumentasi terkait harus di-update.
+   - Link ke modul terkait (cross-link antar halaman docs).
+   - Last updated timestamp per halaman.
+
+> **Implikasi teknis**: dokumentasi disimpan di database (tabel `cms_docs`) agar dapat di-manage tanpa edit kode. Alternatif: static MDX files dalam repository (lebih simple, tapi perlu redeploy untuk update). **Direkomendasikan: CMS-driven** (`cms_docs`) dengan markdown editor untuk fleksibilitas.
 
 ### 21.3 PIC & Komunikasi
 - **PIC dari sisi perusahaan**: **user sendiri** (Lintang Maulana Zulfan).
@@ -1202,7 +1315,7 @@ Foto-foto referensi yang ada di kuesioner (PDF asli):
 | 1.0 | 2026-05-05 | Lintang Maulana Zulfan | Versi awal, diturunkan dari kuesioner v1.0 (30 April 2026) |
 | 1.1 | 2026-05-05 | Lintang Maulana Zulfan | Tambah §22 (Public Website + CMS + Membership), §23 (Brand), update §17.4 (subdomain split), update §20.3 (CMS masuk Phase 5), tambah istilah glosarium |
 | 1.2 | 2026-05-05 | Lintang Maulana Zulfan | Upgrade RAM 1→2 GB; perluas §14.4 (dua format Naixer QR + master mapping); tambah §24 (POS Demo Mode), §25 (Resilience & Auto-Recovery); tambah istilah glosarium (Outbox, RTO, RPO, dll.) |
-| 1.3 | 2026-05-05 | Lintang Maulana Zulfan | Resolusi 4 Open Decisions: DB Neon, Auth better-auth, PPN engine opt-in (§11.3 baru), Naixer vendor list non-blocker. ADR-0010 ditambahkan. |
+| 1.4 | 2026-05-09 | Lintang Maulana Zulfan | Tambah §18.2 (Keamanan Level Militar), §21.2a (Ekspor XLSX Semua Modul), §21.2b (Halaman Dokumentasi Komprehensif) |
 
 ---
 

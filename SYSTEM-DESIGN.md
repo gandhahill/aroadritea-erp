@@ -9,7 +9,7 @@
 >
 > Bila ada konflik: SOURCE-OF-TRUTH menang untuk requirement bisnis; SYSTEM-DESIGN menang untuk implementasi teknis.
 >
-> **Versi**: 1.3 — 2026-05-05
+> **Versi**: 1.4 — 2026-05-09
 > **Owner**: Lintang Maulana Zulfan
 
 ---
@@ -40,7 +40,10 @@
 22. [Error Handling & Logging](#22-error-handling--logging)
 23. [Testing Strategy](#23-testing-strategy)
 24. [Performance & Memory Discipline](#24-performance--memory-discipline)
-25. [Security Checklist](#25-security-checklist)
+25. [Security Checklist — Military Level](#25-security-checklist)
+25a. [§25.2 — Enkripsi Data-at-Rest](#252-enkripsi-data-at-rest-field-level)
+25b. [§25.3 — Ekspor XLSX di Semua Modul](#253-ekspor-xlsx-di-semua-modul)
+25c. [§25.4 — Sistem Dokumentasi Komprehensif](#254-sistem-dokumentasi-komprehensif)
 26. [CI/CD & Deployment](#26-cicd--deployment)
 27. [Backup, Restore, DR](#27-backup-restore-dr)
 28. [Observability](#28-observability)
@@ -1931,6 +1934,7 @@ Lihat tabel definitive di §4.3. Ringkas:
 
 ## 25. Security Checklist
 
+### 25.1 Mandatory Baseline (existing)
 - [ ] Semua route protected by default; allowlist publik di middleware.
 - [ ] Password hash argon2id, salt unik.
 - [ ] Session cookie `__Host-` + `Secure` + `HttpOnly` + `SameSite=Lax`.
@@ -1946,6 +1950,453 @@ Lihat tabel definitive di §4.3. Ringkas:
 - [ ] Backup terenkripsi sebelum diunggah off-site.
 - [ ] Secret di `.env`; tidak commit `.env`. `.env.example` lengkap dengan placeholder.
 - [ ] Dependency audit otomatis (npm audit / Renovate) di CI.
+
+### 25.2 Military-Level Security (SoT §18.2 — added 2026-05-09)
+
+> "Keamanan level militer" per user: semua aspek di bawah kecuali 2FA mandatory (opsional untuk user individual).
+
+#### 25.2.1 Enkripsi Data-at-Rest (Field-Level)
+
+**Semua kolom berikut dienkripsi AES-256-GCM di level aplikasi:**
+- `users.phone`
+- `users.email` (selain untuk login lookup)
+- `partners.phone`, `partners.npwp`, `partners.ktp`
+- `partners.email` (customer/supplier)
+- `employees.ktp`, `employees.npwp`, `employees.bpjs_kesehatan`, `employees.bpjs_tenagakerja`
+- `members.phone`, `members.email`, `members.dob`
+- `sessions.token` (hash, bukan plain)
+- `sessions.refresh_token` (hash)
+- Kolom `reference_document` di audit_log yang mungkin mengandung PII
+
+**Implementasi:**
+```ts
+// packages/shared/crypto/field-encrypt.ts
+// Menggunakan Node.js crypto (built-in, tidak perlu library tambahan)
+import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
+
+const ALGORITHM = 'aes-256-gcm';
+const KEY = Buffer.from(env.ENCRYPTION_KEY!, 'hex'); // 32 bytes hex = 64 chars
+
+export function encrypt(plaintext: string): string {
+  const iv = randomBytes(12); // 96-bit IV untuk GCM
+  const cipher = createCipheriv(ALGORITHM, KEY, iv);
+  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return `${iv.toString('base64')}:${tag.toString('base64')}:${encrypted.toString('base64')}`;
+}
+
+export function decrypt(ciphertext: string): string {
+  const [ivB64, tagB64, dataB64] = ciphertext.split(':');
+  const iv = Buffer.from(ivB64, 'base64');
+  const tag = Buffer.from(tagB64, 'base64');
+  const encrypted = Buffer.from(dataB64, 'base64');
+  const decipher = createDecipheriv(ALGORITHM, KEY, iv);
+  decipher.setAuthTag(tag);
+  return decipher.update(encrypted) + decipher.final('utf8');
+}
+```
+
+**Rules:**
+- Master key (`ENCRYPTION_KEY`) disimpan di environment variable, bukan di repo.
+- Rotation: key rotation setiap 90 hari. Proses: encrypt ulang semua data dengan key baru. Simpan key lama untuk decrypt data lama.
+- Init vector (IV) selalu fresh per enkripsi (tidak reuse).
+- Auth tag disimpan bersama ciphertext (append-only).
+- Dokumen (CV, KTP scan, kontrak) disimpan di object storage (R2/S3) dengan encrypted at-rest, bukan di database BLOB.
+
+#### 25.2.2 Enkripsi Data-in-Transit
+
+- TLS 1.3 wajib. TLS 1.1/1.2 dinepakan (Caddy config: `minimum_protocol TLS 1.3`).
+- HSTS header: `max-age=31536000; includeSubDomains; preload`
+- Tidak ada HTTP fallback untuk subdomain ERP/MCP (Caddy strict).
+- Certificate otomatis via Let's Encrypt (via Caddy).
+
+#### 25.2.3 Brute Force Protection
+
+**Rate limiting login:**
+- Maksimal **5 percobaan gagal** per IP dalam **15 menit** → blokir sementara 15 menit.
+- Maksimal **5 percobaan gagal** per akun dalam **15 menit** → blokir sementara 15 menit + kirim email notification.
+- Percobaan gagal > 20× dalam 1 jam → dianggap attack, blokir 24 jam + audit log + notifikasi admin.
+- Tabel: `login_attempts (user_id?, ip_address, succeeded, attempted_at)` — retensi 90 hari.
+
+**Login attempt rate limit:**
+```ts
+// packages/services/auth/rate-limit-login.ts
+// Di middleware / rate limit middleware
+const WINDOW_MS = 15 * 60 * 1000; // 15 menit
+const MAX_ATTEMPTS_PER_IP = 5;
+const MAX_ATTEMPTS_PER_USER = 5;
+
+async function checkLoginRateLimit(ip: string, userId?: string) {
+  const windowStart = Date.now() - WINDOW_MS;
+  const [ipAttempts, userAttempts] = await Promise.all([
+    db.query.loginAttempts.findMany({
+      where: and(eq(loginAttempts.ipAddress, ip), gt(loginAttempts.attemptedAt, windowStart)),
+      orderBy: desc(loginAttempts.attemptedAt),
+      limit: MAX_ATTEMPTS_PER_IP
+    }),
+    userId ? db.query.loginAttempts.findMany({
+      where: and(eq(loginAttempts.userId, userId), gt(loginAttempts.attemptedAt, windowStart)),
+      orderBy: desc(loginAttempts.attemptedAt),
+      limit: MAX_ATTEMPTS_PER_USER
+    }) : [[]]
+  ]);
+  if (ipAttempts.length >= MAX_ATTEMPTS_PER_IP) throw new AppError('RATE_LIMITED', 'auth.tooManyAttempts.ip');
+  if (userId && userAttempts.length >= MAX_ATTEMPTS_PER_USER) throw new AppError('RATE_LIMITED', 'auth.tooManyAttempts.user');
+}
+```
+
+**Email notification saat akun diblokir:**
+```ts
+// Kirim email ke user: "Percobaan login gagal terdeteksi. Jika bukan Anda, segera ubah password."
+// Template: auth/account-locked-notification.{id|en|zh}.json
+```
+
+#### 25.2.4 CAPTCHA / Anti-Bot
+
+**Halaman yang wajib punya CAPTCHA:**
+- `/login` — setiap percobaan atau setelah 2× gagal
+- `/member/daftar` (signup member)
+- `/kontak` (form publik)
+- `/api/member/signup` (endpoint)
+- `/api/member/request-otp` (endpoint)
+
+**Implementasi:**
+- **Primary**: Cloudflare Turnstile (invisible, non-intrusive).
+- **Fallback**: hCaptcha (bila Turnstile tidak tersedia).
+- Validasi di server: verify token Turnstile/hCaptcha sebelum proses.
+- Error message saat CAPTCHA gagal: i18n key `auth.captchaFailed`.
+
+```ts
+// packages/services/auth/verify-captcha.ts
+import { env } from '~/env';
+// Cloudflare Turnstile verify
+async function verifyTurnstile(token: string, ip: string): Promise<boolean> {
+  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    body: new URLSearchParams({ secret: env.TURNSTILE_SECRET_KEY!, response: token, remoteip: ip }),
+  });
+  const data = await res.json();
+  return data.success === true;
+}
+```
+
+#### 25.2.5 Security Headers (HTTP)
+
+Semua halaman ERP wajib kirim header ini:
+```
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://challenges.cloudflare.com; frame-ancestors 'none'
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+```
+
+Implementasi: Caddy `header` directive atau Next.js `headers()` di `layout.tsx`.
+
+#### 25.2.6 Security Audit & Penetration Testing
+
+- Schedule: **minimal setiap 6 bulan** oleh pihak ketiga independen.
+- Scope: OWASP Top 10, SQL injection, XSS, CSRF, IDOR, privilege escalation, API abuse.
+- Findings ditindaklanjuti dalam **30 hari**.
+- Laporan audit disimpan di `docs/security/audit-<tanggal>.pdf` (restricted access, owner only).
+- Tambah ke CI: automated scanning dengan [OWASP ZAP](https://www.zaproxy.org/) (free, open source) untuk basic scan per PR.
+
+#### 25.2.7 Incident Response Plan
+
+| Fase | Tindakan | Waktu |
+|---|---|---|
+| **Detect** | Monitoring alert (server down, brute force, anomaly) | 0–5 menit |
+| **Isolate** | Matikan komponen yang terkompromi, revoke semua token/session affected | < 15 menit |
+| **Investigate** | Analisis audit log,identifikasi scope breach, root cause | < 2 jam |
+| **Notify** | Notify affected users (UU PDP: max 3×24 jam dari discovery) | < 72 jam |
+| **Remediate** | Patch vulnerability, reset credentials, harden config | < 7 hari |
+| **Post-mortem** | Document, lessons learned, update security checklist | < 30 hari |
+
+**Contact escalation:**
+- Primary: Lintang Maulana Zulfan (lintangmaulanazulfan@gmail.com)
+- Backup: kontak developer ketiga (dokumentasikan di runbook)
+
+#### 25.2.8 Secrets Management
+
+- Semua secret (DB password, JWT secret, API keys, encryption key) di `ENV`.
+- Tidak pernah di-commit ke repo (`.env` di `.gitignore`).
+- `.env.example` memiliki semua key dengan placeholder `CHANGE_ME`.
+- Rotation: password/secret apapun berputar otomatis setiap **90 hari** via worker job + alert ke admin.
+- API keys untuk third-party: gunakan Cloudflare Secrets atau Vault (self-hosted) bila budget tersedia.
+
+#### 25.2.9 Audit Log Imutability
+
+- Tabel `audit_log` di schema terpisah (`audit` schema, bukan `public`).
+- Trigger PostgreSQL: **tidak ada** `UPDATE` atau `DELETE` pada `audit_log` yang diijinkan.
+- Policy: `DENY DELETE, UPDATE ON audit_log TO app_user;` (hanya postgres superuser yang bisa, dan aplikasi tidak pakai superuser).
+- Index: `(entity_type, entity_id, occurred_at DESC)` untuk query cepat.
+
+#### 25.2.10 Dependency Security
+
+```yaml
+# .github/workflows/ci.yml — tambahan step
+- name: Security audit
+  run: pnpm audit --audit-level=moderate
+- name: OWASP dependency check
+  run: npxowasp-dependency-check --project ERP --scan .
+```
+
+### 25.3 Ekspor XLSX di Semua Modul (SoT §21.2a)
+
+Setiap modul yang mengelola data **wajib** menyediakan fitur ekspor ke XLSX.
+
+#### 25.3.1 Daftar Modul & Data Ekspor
+
+| Modul | Data yang Diekspor |
+|---|---|
+| `accounting` | Chart of Accounts, Jurnal Umum, Buku Besar, Neraca Saldo |
+| `reporting` | Trial Balance, Balance Sheet, Profit & Loss, Cash Flow, Laporan Penjualan |
+| `tax` | Daftar Tarif Pajak, Rekap PPN Masukan/Keluaran, Ringkasan PB1 |
+| `pos` | Riwayat Transaksi, Shift Harian, Refund |
+| `inventory` | Daftar Produk, Stok per Lokasi, Pergerakan Stok, BOM |
+| `purchasing` | Purchase Orders, Goods Receipt Notes, Supplier |
+| `hr` | Daftar Karyawan, Kontrak, Absensi |
+| `payroll` | Slip Gaji, Rekap Payroll per Bulan |
+| `crm` | Daftar Member, Riwayat Poin, Komplain |
+
+#### 25.3.2 Spesifikasi Teknis
+
+**Library**: ExcelJS (v4+, sudah di-stack — lihat §5).
+
+```ts
+// packages/services/export/xlsx-export.ts
+import ExcelJS from 'exceljs';
+import { formatRupiah } from '@erp/shared';
+
+interface ExportConfig<T> {
+  title: string;
+  columns: Array<{ key: keyof T | string; header: string; format?: 'currency' | 'date' | 'text'; width?: number }>;
+  data: T[];
+  locale: 'id' | 'en' | 'zh';
+}
+
+async function exportToXlsx<T>(config: ExportConfig<T>): Promise<Buffer> {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet(config.title);
+  // ...
+}
+```
+
+**Styling:**
+- Header baris: background `D6262E` (brand-red), font white, bold.
+- Freeze pane: baris pertama (`A2` freeze).
+- Auto-column width: hitung dari longest value per kolom (max 50 chars, min 8).
+- Number format:
+  - Kolom uang: `Rp #,##0` (locale ID) atau `$ #,##0` (locale EN) atau `¥ #,##0` (locale ZH).
+  - Kolom tanggal: `yyyy-mm-dd`.
+- Alternating row: stripe `F5F5F5` untuk readability.
+
+**Paginasi:**
+- Ekspor seluruh data yang ter-filter (bukan hanya halaman saat ini).
+- Maksimum: **100.000 baris** per file. Jika lebih → pisah ke beberapa file + indicator "1 of 3".
+
+**Memory management:**
+- Untuk export besar (> 10.000 baris): streaming write (`workbook.xlsx.writeBuffer()` dalam chunk).
+- Worker-side export untuk file > 10.000 rows (bukan di request handler).
+
+#### 25.3.3 UI Ekspor
+
+**Per halaman daftar/tabel:**
+```
+┌──────────────────────────────────────┐
+│ [Filter...] [🔍 Search] [⬇ Export ▾] │  ← Export dropdown: XLSX, CSV (optional)
+└──────────────────────────────────────┘
+```
+
+Dropdown `Export ▾`:
+- `XLSX — Excel` (default)
+- `CSV — teks` (opsional)
+
+Opsi tambahan di modal export:
+- `□ Pilih kolom` → checklist kolom yang di-export.
+- `□ Sertakan timestamp` → kapan file di-export.
+- `□ Sertakan filter` →备注 di file apa filter yang digunakan.
+
+**Progress indicator:**
+- File ≤ 10.000 rows: download langsung.
+- File > 10.000 rows: tampilkan toast "Sedang menyiapkan file..." + progress bar. User terima email/link download setelah selesai.
+
+#### 25.3.4 MCP Tools
+
+```ts
+// tools/export-xlsx.ts
+export const exportModuleXlsx = {
+  name: 'export.module_xlsx',
+  description: 'Export data from any module to XLSX',
+  inputSchema: z.object({
+    module: z.enum(['accounting', 'reporting', 'tax', 'pos', 'inventory', 'purchasing', 'hr', 'payroll', 'crm']),
+    report_type: z.string(),
+    filters: z.record(z.unknown()),
+    locale: z.enum(['id', 'en', 'zh']).default('id'),
+  }),
+  handler: async (args) => {
+    const { module, report_type, filters, locale } = args;
+    const data = await exportService[module][report_type](filters);
+    const buffer = await exportToXlsx({ ...config, data, locale });
+    return { download_url: await uploadToR2(buffer, `exports/${module}/${report_type}.xlsx`) };
+  },
+};
+```
+
+---
+
+### 25.4 Sistem Dokumentasi Komprehensif (SoT §21.2b)
+
+Sistem **wajib** menyediakan halaman dokumentasi komprehensif untuk semua fitur ERP.
+
+#### 25.4.1 Lokasi Halaman
+
+```
+apps/web/(dash)/docs/
+├── page.tsx                    # Landing: TOC + search + versi ERP
+├── layout.tsx                 # Shell: sidebar TOC + breadcrumb
+├── accounting/
+│   ├── coa.md
+│   ├── posting-jurnal.md
+│   └── menutup-periode.md
+├── reporting/
+│   ├── trial-balance.md
+│   ├── balance-sheet.md
+│   ├── profit-loss.md
+│   └── export-coretax.md
+├── tax/
+│   ├── setup-pajak.md
+│   └── export-laporan.md
+├── pos/
+│   ├── transaksi.md
+│   ├── refund.md
+│   ├── shift.md
+│   └── demo-mode.md
+├── inventory/
+│   ├── setup-produk.md
+│   ├── bom.md
+│   └── stock-opname.md
+├── purchasing/
+│   ├── po-workflow.md
+│   ├── grn.md
+│   └── retur.md
+├── hr/
+│   ├── onboarding-karyawan.md
+│   └── absensi.md
+├── payroll/
+│   ├── setup-komponen.md
+│   └── jalankan-payroll.md
+├── crm/
+│   ├── member.md
+│   └── komplain.md
+├── guides/
+│   ├── login.md
+│   ├── navigasi.md
+│   ├── keyboard-shortcut.md
+│   ├── faq.md
+│   └── onboarding-kasir.md    # UC: kasir baru
+├── glossary.md
+└── changelog.md
+```
+
+#### 25.4.2 Storage Backend
+
+**Direkomendasikan: CMS-driven** (`cms_docs` table) dengan markdown editor untuk fleksibilitas.
+
+```ts
+// packages/db/schema/cms-docs.ts
+export const cmsDocs = pgTable('cms_docs', {
+  id: text('id').primaryKey(),
+  slug: text('slug').notNull().unique(), // e.g., 'accounting/posting-jurnal'
+  module: text('module').notNull(),     // 'accounting', 'guides', dll.
+  title: jsonb('title').notNull(),       // LocaleString
+  content: text('content').notNull(),   // Markdown
+  authorId: text('author_id').references(() => users.id),
+  publishedAt: timestamptz('published_at'),
+  updatedAt: timestamptz('updated_at').defaultNow(),
+});
+```
+
+Alternatif: **static MDX files** dalam repository (lebih simple untuk Phase 1, tapi perlu redeploy untuk update konten).
+
+#### 25.4.3 Spesifikasi UI Halaman Dokumentasi
+
+**Layout:**
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│ 🏠 Docs    [Search... (⌘K)]                    [ID ▾] v1.3     │  ← Header docs
+├──────────────┬───────────────────────────────────────────────────┤
+│              │                                                   │
+│  ▾ Guides    │  # Posting Jurnal Manual                         │
+│    Login     │                                                   │
+│    Navigasi  │  ## Tujuan                                       │
+│    FAQ       │  Mencatat transaksi akuntansi yang tidak ...     │
+│  ▸ Accounting│                                                  │
+│  ▸ Reporting │  ## Prasyarat                                    │
+│  ▸ Tax       │  • Permission: `accounting.journal.create`       │
+│  ▸ POS       │  • Peran: Akuntan, Direktur                      │
+│  ▸ Inventory │                                                  │
+│  ▸ Purchasing│  ## Langkah-langkah                              │
+│  ▸ HR        │  1. Buka **Akuntansi → Jurnal Umum**             │
+│  ▸ Payroll   │  2. Klik **+ Jurnal Baru**                       │
+│  ▸ CRM       │  3. Isi form...                                 │
+│              │                                                   │
+│  ─────────   │  ## Tips & Troubleshooting                     │
+│  Glossary    │  • Pesan error "Period closed" → buka periode   │
+│  Changelog   │                                                   │
+│              │  [← Sebelumnya]              [Selanjutnya →]     │
+└──────────────┴───────────────────────────────────────────────────┘
+```
+
+**Fitur:**
+1. **TOC Sidebar (kiri)**:
+   - Sticky saat scroll.
+   - Hierarki 3 level (modul → section → sub-section).
+   - Aktif highlight saat scroll ke section.
+   - Collapse/expand per modul.
+   - Keyboard: `j/k` untuk next/prev item.
+
+2. **Search Bar (`⌘K` / `Ctrl+K`)**:
+   - Full-text search (Fuse.js atau pg full-text search).
+   - Keyboard navigation (↑↓ untuk hasil, Enter untuk pilih).
+   - Highlight kata kunci di snippet hasil.
+   - Category filter (by module).
+
+3. **Konten Markdown**:
+   - Header: `#`, `##`, `###`.
+   - Code block dengan syntax highlighting.
+   - Tabel, list, blockquote.
+   - Image/ilustrasi (dari object storage).
+   - Video embed (YouTube/Loom via iframe).
+
+4. **Breadcrumb**: `Docs / Accounting / Posting Jurnal Manual`.
+
+5. **Navigasi Halaman**: `← Sebelumnya` / `Selanjutnya →` di bawah konten.
+
+6. **Multi-bahasa**: Switcher di header (`ID` / `EN` / `ZH`) → konten di-load sesuai locale.
+
+7. **Last updated**: tampil di bawah setiap halaman.
+
+#### 25.4.4 Use Case Guide yang Wajib Ada
+
+| Use Case | Lokasi | Deskripsi |
+|---|---|---|
+| Onboarding Kasir Baru | `guides/onboarding-kasir.md` | Langkah dari login → transaksi pertama → refund → demo mode |
+| Setup Produk Baru | `inventory/setup-produk.md` | Dari login → tambah produk → varian → modifier → BOM |
+| Tutup Bulan | `accounting/menutup-periode.md` | Posting penyesuaian → generate laporan → tutup periode |
+| Export Coretax | `tax/export-coretax.md` | Filter data → export → format Coretax |
+| Training Demo Mode | `pos/demo-mode.md` | Aktivasi → simulasi transaksi → reset |
+| Setup Karyawan Baru | `hr/onboarding-karyawan.md` | Input data → kontrak → absensi |
+
+#### 25.4.5 CMS Admin untuk Dokumentasi
+
+Menggunakan modul CMS yang sama (`apps/web/(dash)/cms/`) dengan tipe konten `doc`:
+- Editor markdown (minimal: bold, italic, heading, list, table, code, image).
+- Preview langsung.
+- Publish workflow: draft → published.
+- Last updated + author tracking.
+- Revision history (rollback capability).
 
 ---
 
