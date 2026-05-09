@@ -27,6 +27,7 @@
 | T-0054 | 🟩 DONE | Service inventory.adjust (workflow approval) | Claude (current) | 2026-05-09 | 2026-05-09 | verified: typecheck clean, 213 tests pass | 2 | wip(T-0054): inventory adjust+transfer |
 | T-0055 | 🟩 DONE | Service inventory.transfer (2-step) | Claude (current) | 2026-05-09 | 2026-05-09 | included in T-0054 | 2 | included in T-0054 |
 | T-0057 | 🟩 DONE | Service pos.createSale + shift services | Claude Opus 4.6 | 2026-05-09 | 2026-05-09 | 5226328: 263 tests pass | 2 | feat(pos): createSale + shift services with BOM deduction and JE |
+| T-0058 | 🟩 DONE | Service pos.refund | Claude (current) | 2026-05-09 | 2026-05-09 | 282 tests pass, refund-sale.ts complete | 2 | feat(pos): refundSale service with BOM restore + JE reversal |
 
 ---
 
