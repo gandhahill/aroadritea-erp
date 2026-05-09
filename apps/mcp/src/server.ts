@@ -73,7 +73,7 @@ const server = new Server(SERVER_INFO, {
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   const tools = allTools.map((tool) => {
-    const schema = tool.schema;
+    const schema = tool.schema as z.ZodObject<Record<string, z.ZodTypeAny>>;
     const shape = schema.shape;
     const properties: Record<string, unknown> = {};
     const required: string[] = [];
