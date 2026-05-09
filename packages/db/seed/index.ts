@@ -20,6 +20,7 @@ import {
   userRoles,
 } from '../schema/auth';
 import { accounts, taxRates, taxRules } from '../schema/accounting';
+import { scheduledJobs } from '../schema/scheduled-jobs';
 import {
   DEFAULT_TENANT,
   LOCATIONS_SEED,
@@ -31,6 +32,7 @@ import {
 import { COA_SEED } from './coa';
 import { TAX_RATES_SEED } from './tax-rates';
 import { TAX_RULES_SEED } from './tax-rules-seed';
+import { SCHEDULED_JOBS_SEED } from './scheduled-jobs-seed';
 import { eq } from 'drizzle-orm';
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -203,6 +205,22 @@ async function seed() {
     ruleCount++;
   }
   console.log(`✅ ${ruleCount} tax rules seeded`);
+
+  // 11. Scheduled Jobs
+  for (const job of SCHEDULED_JOBS_SEED) {
+    await db.insert(scheduledJobs).values({
+      id: generateId(),
+      tenantId,
+      name: job.name,
+      label: job.label,
+      description: job.description,
+      cronExpression: job.cronExpression,
+      timezone: job.timezone,
+      jobData: job.jobData,
+      enabled: true,
+    }).onConflictDoNothing();
+  }
+  console.log(`✅ ${SCHEDULED_JOBS_SEED.length} scheduled jobs seeded`);
 
   console.log('\n🎉 Seed complete!');
 }

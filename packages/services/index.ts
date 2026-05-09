@@ -21,3 +21,4 @@ export * from './src/pos/index.js';
 export * from './src/purchasing/index.js';
 export * from './src/workflow/index.js';
 export * from './src/cms/index.js';
+export * from './src/scheduled-jobs/index.js';

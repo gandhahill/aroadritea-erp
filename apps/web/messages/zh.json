@@ -98,6 +98,43 @@
       "close": "关闭期间"
     }
   },
+  "scheduledJobs": {
+    "title": "定时任务",
+    "backup": {
+      "label": "数据库备份",
+      "description": "每日数据库备份到离线存储（S3/R2）"
+    },
+    "payrollBatch": {
+      "label": "月度工资处理",
+      "description": "每月8日计算并处理工资"
+    },
+    "stockLowAlert": {
+      "label": "低库存警报",
+      "description": "每周一早上检查库存水平"
+    },
+    "isrRevalidate": {
+      "label": "缓存重新验证",
+      "description": "每天早上重新验证公共页面缓存"
+    },
+    "fields": {
+      "name": "任务名称",
+      "label": "标签",
+      "description": "说明",
+      "cronExpression": "Cron 计划",
+      "timezone": "时区",
+      "enabled": "启用",
+      "lastRunAt": "上次运行",
+      "lastRunStatus": "上次状态",
+      "nextRunAt": "下次运行"
+    },
+    "status": {
+      "success": "成功",
+      "failed": "失败"
+    },
+    "create": "添加计划",
+    "edit": "编辑计划",
+    "notFound": "计划未找到"
+  },
   "nav": {
     "dashboard": "仪表板",
     "accounting": "会计",

@@ -1,8 +1,14 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist"
+    "baseUrl": ".",
+    "outDir": "./dist",
+    "paths": {
+      "@erp/db": ["../db/index.ts"],
+      "@erp/db/*": ["../db/*"],
+      "@erp/shared": ["../shared/src/index.ts"],
+      "@erp/shared/*": ["../shared/src/*"]
+    }
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]

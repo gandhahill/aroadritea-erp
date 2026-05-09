@@ -98,6 +98,43 @@
       "close": "Tutup Periode"
     }
   },
+  "scheduledJobs": {
+    "title": "Jadwal Otomatis",
+    "backup": {
+      "label": "Cadangan Database",
+      "description": "Backup database harian ke penyimpanan off-site (S3/R2)"
+    },
+    "payrollBatch": {
+      "label": "Proses Gaji Bulanan",
+      "description": "Hitung dan proses gaji setiap tanggal 8"
+    },
+    "stockLowAlert": {
+      "label": "Peringatan Stok Rendah",
+      "description": "Cek stok mingguan setiap Senin pagi"
+    },
+    "isrRevalidate": {
+      "label": "Revalidasi Cache Situs",
+      "description": "Invalidasi cache halaman publik setiap pagi"
+    },
+    "fields": {
+      "name": "Nama Job",
+      "label": "Label",
+      "description": "Deskripsi",
+      "cronExpression": "Jadwal Cron",
+      "timezone": "Zona Waktu",
+      "enabled": "Aktif",
+      "lastRunAt": "Terakhir Dijalankan",
+      "lastRunStatus": "Status Terakhir",
+      "nextRunAt": "Jadwal Berikutnya"
+    },
+    "status": {
+      "success": "Berhasil",
+      "failed": "Gagal"
+    },
+    "create": "Tambah Jadwal",
+    "edit": "Ubah Jadwal",
+    "notFound": "Jadwal tidak ditemukan"
+  },
   "nav": {
     "dashboard": "Dasbor",
     "accounting": "Akuntansi",

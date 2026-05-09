@@ -98,6 +98,43 @@
       "close": "Close Period"
     }
   },
+  "scheduledJobs": {
+    "title": "Scheduled Jobs",
+    "backup": {
+      "label": "Database Backup",
+      "description": "Daily database backup to off-site storage (S3/R2)"
+    },
+    "payrollBatch": {
+      "label": "Monthly Payroll Processing",
+      "description": "Calculate and process payroll on the 8th of each month"
+    },
+    "stockLowAlert": {
+      "label": "Low Stock Alert",
+      "description": "Weekly stock level check every Monday morning"
+    },
+    "isrRevalidate": {
+      "label": "Cache Revalidation",
+      "description": "Revalidate public page cache each morning"
+    },
+    "fields": {
+      "name": "Job Name",
+      "label": "Label",
+      "description": "Description",
+      "cronExpression": "Cron Schedule",
+      "timezone": "Timezone",
+      "enabled": "Active",
+      "lastRunAt": "Last Run",
+      "lastRunStatus": "Last Status",
+      "nextRunAt": "Next Run"
+    },
+    "status": {
+      "success": "Success",
+      "failed": "Failed"
+    },
+    "create": "Add Schedule",
+    "edit": "Edit Schedule",
+    "notFound": "Schedule not found"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "accounting": "Accounting",

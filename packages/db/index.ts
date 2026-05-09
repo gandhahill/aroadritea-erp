@@ -33,6 +33,9 @@ export {
 // Schema — Audit
 export { auditLog } from './schema/audit';
 
+// Schema — Scheduled Jobs
+export { scheduledJobs } from './schema/scheduled-jobs';
+
 // Schema — Common helpers
 export {
   auditCols,

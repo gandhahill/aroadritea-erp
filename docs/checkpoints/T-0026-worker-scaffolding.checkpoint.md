@@ -9,30 +9,17 @@
 
 ## Goal
 
-Scaffold `apps/worker` dengan pg-boss queue, job handlers, dan Docker setup.
+Scaffold `apps/worker` dengan pg-boss queue dan DB-driven cron schedules.
 - Spec teknis: SYSTEM-DESIGN §35.1.4, §27, §4
-- Job handlers: backup, payroll-batch, stock-low-alert, isr-revalidate
+- **Design change**: schedules stored in DB (`scheduled_jobs` table), worker syncs with pg-boss on startup + every 60s. Admin manages via Settings UI — no code change or redeploy needed.
 
-**Kriteria selesai (Definition of Done):**
-- [x] pg-boss initialized with Neon PostgreSQL connection
-- [x] Job handlers: backup.ts, payroll-batch.ts, stock-low-alert.ts, isr-revalidate.ts
-- [x] Scheduler (cron) wiring for periodic jobs
-- [x] Docker configuration (Dockerfile)
-- [x] TypeScript typecheck passes
-- [x] Docker build succeeds
+## Design
 
-## Plan
-
-1. [x] Install pg-boss in apps/worker
-2. [x] Create worker app structure: src/index.ts, src/boss.ts, src/jobs/
-3. [x] Implement backup.ts job (pg_dump pattern, no-op placeholder for S3)
-4. [x] Implement payroll-batch.ts job (placeholder, Phase 4)
-5. [x] Implement stock-low-alert.ts job (placeholder, Phase 2)
-6. [x] Implement isr-revalidate.ts job (placeholder, Phase 5)
-7. [x] Wire up scheduler in index.ts with boss.work() pattern
-8. [x] Create Dockerfile for worker
-9. [x] Typecheck passes
-10. [x] Build succeeds
+- `scheduled_jobs` table stores: name, label, description, cronExpression, timezone, jobData, enabled, lastRunAt, lastRunStatus
+- Worker reads enabled jobs from DB, syncs with pg-boss
+- Scheduler polls DB every 60 seconds to pick up admin changes
+- Handler map in worker: job name → JS function (backup, payroll-batch, stock-low-alert, isr-revalidate)
+- Labels stored as i18n keys (e.g., `scheduledJobs.backup.label`), rendered by UI
 
 ## Decisions
 
@@ -42,54 +29,52 @@ Scaffold `apps/worker` dengan pg-boss queue, job handlers, dan Docker setup.
 - `schema: 'pgboss'` for pg-boss schema isolation
 - `max: 2` for connection pool size (RAM-constrained server)
 - `retryBackoff: true`, `retryLimit: 3`, `retryDelay: 300` for resilience
+- Cron expressions stored in UTC, converted to WIB for UI display
+- Labels stored as i18n keys (not hardcoded strings) per CLAUDE.md §5.2
 
 ## Done so far
 
-- `apps/worker/package.json` — added pg-boss, pg, drizzle-orm, neon, types
-- `apps/worker/src/boss.ts` — pg-boss initialization with Neon connection
-- `apps/worker/src/jobs/backup.ts` — placeholder backup job (S3 upload Phase 1+)
-- `apps/worker/src/jobs/payroll-batch.ts` — placeholder (Phase 4)
-- `apps/worker/src/jobs/stock-low-alert.ts` — placeholder (Phase 2)
-- `apps/worker/src/jobs/isr-revalidate.ts` — placeholder (Phase 5)
-- `apps/worker/src/jobs/index.ts` — barrel export
-- `apps/worker/src/index.ts` — main entry: boss.start(), cron schedules, graceful shutdown
-- `apps/worker/Dockerfile` — multi-stage build with dumb-init
-- `apps/worker/tsconfig.json` — existing, no changes needed
+- `packages/db/schema/scheduled-jobs.ts` — DB schema with indexes
+- `packages/db/seed/scheduled-jobs-seed.ts` — 4 default jobs (backup, payroll-batch, stock-low-alert, isr-revalidate)
+- `packages/db/seed/index.ts` — updated to seed scheduled_jobs
+- `packages/db/index.ts` — exports `scheduledJobs`
+- `packages/services/src/scheduled-jobs/index.ts` — CRUD service (list, get, create, update, updateJobRunStatus)
+- `packages/services/index.ts` — re-exports scheduled-jobs service
+- `packages/services/tsconfig.json` — added paths for @erp/db and @erp/shared
+- `apps/worker/src/scheduler.ts` — DB-to-pg-boss sync (startup + 60s polling)
+- `apps/worker/src/index.ts` — simplified: just boss.start() + startScheduler()
+- `apps/worker/src/boss.ts` — pg-boss initialization
+- `apps/worker/src/jobs/` — 4 placeholder job handlers
+- `apps/worker/Dockerfile` — multi-stage build
+- `apps/worker/tsconfig.json` — added paths for cross-package imports
+- `apps/web/messages/id.json` — added scheduledJobs i18n keys
+- `apps/web/messages/en.json` — added scheduledJobs i18n keys
+- `apps/web/messages/zh.json` — added scheduledJobs i18n keys
 
 ## Open issues / Questions
 
 - `docker-compose.yml` not created yet — T-0028 will add full Docker Compose
 - pg-boss schema migration runs automatically on first `boss.start()` — no separate migration script needed
 - Job retry dead-letter handling deferred to Phase 6 (T-0157 notification)
+- Settings UI for managing schedules not implemented yet — placeholder for future work
 
 ## Next step
 
-Task done. Typecheck and build both pass. Next task: T-0027 (healthz endpoints) — in progress.
+DB-driven cron scaffolding done. Typecheck passes. Remaining: T-0028 (Docker Compose + Caddyfile).
 
 ## Test status
 
-- **Typecheck**: ✅ passes (`pnpm --filter @erp/worker typecheck`)
-- **Build**: ✅ succeeds (`pnpm --filter @erp/worker build`)
+- **Typecheck**: ✅ worker, services, web all pass
+- **Build**: ✅ worker build succeeds
 
 ## Files Touched
 
-| Path | Action | Note |
-|------|--------|------|
-| `apps/worker/package.json` | modified | added pg-boss, pg, neon, drizzle-orm |
-| `apps/worker/tsconfig.json` | read | existing, compatible |
-| `apps/worker/src/boss.ts` | created | pg-boss initialization |
-| `apps/worker/src/jobs/backup.ts` | created | placeholder |
-| `apps/worker/src/jobs/payroll-batch.ts` | created | placeholder |
-| `apps/worker/src/jobs/stock-low-alert.ts` | created | placeholder |
-| `apps/worker/src/jobs/isr-revalidate.ts` | created | placeholder |
-| `apps/worker/src/jobs/index.ts` | created | barrel |
-| `apps/worker/src/index.ts` | modified | full implementation |
-| `apps/worker/Dockerfile` | created | multi-stage |
+See above in "Done so far".
 
 ## Commits So Far
 
 | SHA | Message | Date |
 |-----|---------|------|
-| (pending) | wip(T-0026): worker scaffolding with pg-boss | 2026-05-09 |
+| (pending) | wip(T-0026): worker scaffolding with pg-boss + DB-driven cron | 2026-05-09 |
 
 ---
