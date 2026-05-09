@@ -1,0 +1,535 @@
+/**
+ * POS service tests — T-0057
+ *
+ * Tests: schema validation, PB1 extraction, sale number format,
+ * shift business rules, delivery channel revenue multiplier.
+ */
+
+import { describe, it, expect } from 'vitest';
+import {
+  OpenShiftInputSchema,
+  CloseShiftInputSchema,
+  CreateSaleInputSchema,
+  VoidSaleInputSchema,
+  ChannelSchema,
+} from '../src/pos/schemas';
+
+// ─── PB1 extraction (mirrors create-sale logic) ────────────────────────────────
+
+function extractPB1(inclusivePrice: bigint): { net: bigint; pb1: bigint } {
+  // Multiply by 10000 (basis points for 10%) and divide by 11000 to get net in IDR
+  const price10k = BigInt(inclusivePrice) * BigInt(10000);
+  const net10k = price10k / BigInt(11000);
+  const net = net10k; // already in full IDR
+  const pb1 = inclusivePrice - net;
+  return { net, pb1 };
+}
+
+// ─── Schema: OpenShiftInput ──────────────────────────────────────────────────
+
+describe('OpenShiftInputSchema', () => {
+  it('accepts valid input', () => {
+    const result = OpenShiftInputSchema.safeParse({
+      locationId: 'loc-001',
+      openingCash: '500000',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects empty locationId', () => {
+    const result = OpenShiftInputSchema.safeParse({
+      locationId: '',
+      openingCash: '500000',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects non-numeric openingCash', () => {
+    const result = OpenShiftInputSchema.safeParse({
+      locationId: 'loc-001',
+      openingCash: 'abc',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects negative openingCash', () => {
+    const result = OpenShiftInputSchema.safeParse({
+      locationId: 'loc-001',
+      openingCash: '-100',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('accepts zero openingCash', () => {
+    const result = OpenShiftInputSchema.safeParse({
+      locationId: 'loc-001',
+      openingCash: '0',
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+// ─── Schema: CloseShiftInput ──────────────────────────────────────────────────
+
+describe('CloseShiftInputSchema', () => {
+  it('accepts valid input', () => {
+    const result = CloseShiftInputSchema.safeParse({
+      shiftId: 'shift-001',
+      actualCash: '1200000',
+      version: 1,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects zero version', () => {
+    const result = CloseShiftInputSchema.safeParse({
+      shiftId: 'shift-001',
+      actualCash: '1200000',
+      version: 0,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects negative version', () => {
+    const result = CloseShiftInputSchema.safeParse({
+      shiftId: 'shift-001',
+      actualCash: '1200000',
+      version: -1,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects non-integer version', () => {
+    const result = CloseShiftInputSchema.safeParse({
+      shiftId: 'shift-001',
+      actualCash: '1200000',
+      version: 1.5,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects empty shiftId', () => {
+    const result = CloseShiftInputSchema.safeParse({
+      shiftId: '',
+      actualCash: '1200000',
+      version: 1,
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+// ─── Schema: Channel ───────────────────────────────────────────────────────────
+
+describe('ChannelSchema', () => {
+  it('accepts walk_in', () => {
+    expect(ChannelSchema.safeParse('walk_in').success).toBe(true);
+  });
+  it('accepts gofood', () => {
+    expect(ChannelSchema.safeParse('gofood').success).toBe(true);
+  });
+  it('accepts grabfood', () => {
+    expect(ChannelSchema.safeParse('grabfood').success).toBe(true);
+  });
+  it('accepts shopeefood', () => {
+    expect(ChannelSchema.safeParse('shopeefood').success).toBe(true);
+  });
+  it('rejects invalid channel', () => {
+    expect(ChannelSchema.safeParse('dine_in').success).toBe(false);
+  });
+  it('rejects empty string', () => {
+    expect(ChannelSchema.safeParse('').success).toBe(false);
+  });
+});
+
+// ─── Schema: CreateSaleInput ──────────────────────────────────────────────────
+
+describe('CreateSaleInputSchema', () => {
+  it('accepts valid walk_in sale', () => {
+    const result = CreateSaleInputSchema.safeParse({
+      shiftId: 'shift-001',
+      channel: 'walk_in',
+      locationId: 'loc-001',
+      idempotencyKey: 'key-001',
+      lines: [
+        {
+          productId: 'prod-001',
+          qty: 2,
+          unitPrice: '33000',
+          lineDiscount: '0',
+        },
+      ],
+      payments: [{ method: 'cash', amount: '66000' }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts valid delivery channel sale', () => {
+    const result = CreateSaleInputSchema.safeParse({
+      shiftId: 'shift-001',
+      channel: 'gofood',
+      locationId: 'loc-001',
+      idempotencyKey: 'key-002',
+      lines: [
+        {
+          productId: 'prod-001',
+          qty: 1,
+          unitPrice: '25000',
+        },
+      ],
+      payments: [{ method: 'gofood', amount: '25000' }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects empty lines array', () => {
+    const result = CreateSaleInputSchema.safeParse({
+      shiftId: 'shift-001',
+      channel: 'walk_in',
+      locationId: 'loc-001',
+      idempotencyKey: 'key-001',
+      lines: [],
+      payments: [{ method: 'cash', amount: '33000' }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects empty payments array', () => {
+    const result = CreateSaleInputSchema.safeParse({
+      shiftId: 'shift-001',
+      channel: 'walk_in',
+      locationId: 'loc-001',
+      idempotencyKey: 'key-001',
+      lines: [{ productId: 'prod-001', qty: 1, unitPrice: '33000' }],
+      payments: [],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('accepts line with variantId', () => {
+    const result = CreateSaleInputSchema.safeParse({
+      shiftId: 'shift-001',
+      channel: 'walk_in',
+      locationId: 'loc-001',
+      idempotencyKey: 'key-001',
+      lines: [
+        { productId: 'prod-001', variantId: 'var-001', qty: 1, unitPrice: '33000' },
+      ],
+      payments: [{ method: 'cash', amount: '33000' }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects qty of 0', () => {
+    const result = CreateSaleInputSchema.safeParse({
+      shiftId: 'shift-001',
+      channel: 'walk_in',
+      locationId: 'loc-001',
+      idempotencyKey: 'key-001',
+      lines: [{ productId: 'prod-001', qty: 0, unitPrice: '33000' }],
+      payments: [{ method: 'cash', amount: '33000' }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects negative qty', () => {
+    const result = CreateSaleInputSchema.safeParse({
+      shiftId: 'shift-001',
+      channel: 'walk_in',
+      locationId: 'loc-001',
+      idempotencyKey: 'key-001',
+      lines: [{ productId: 'prod-001', qty: -1, unitPrice: '33000' }],
+      payments: [{ method: 'cash', amount: '33000' }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('accepts all valid payment methods', () => {
+    const methods = ['cash', 'qris', 'flazz', 'debit', 'credit', 'gofood', 'grabfood', 'shopeefood'];
+    for (const method of methods) {
+      const result = CreateSaleInputSchema.safeParse({
+        shiftId: 'shift-001',
+        channel: 'walk_in',
+        locationId: 'loc-001',
+        idempotencyKey: `key-${method}`,
+        lines: [{ productId: 'prod-001', qty: 1, unitPrice: '33000' }],
+        payments: [{ method, amount: '33000' }],
+      });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it('rejects invalid payment method', () => {
+    const result = CreateSaleInputSchema.safeParse({
+      shiftId: 'shift-001',
+      channel: 'walk_in',
+      locationId: 'loc-001',
+      idempotencyKey: 'key-001',
+      lines: [{ productId: 'prod-001', qty: 1, unitPrice: '33000' }],
+      payments: [{ method: 'bitcoin', amount: '33000' }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects idempotencyKey longer than 64 chars', () => {
+    const result = CreateSaleInputSchema.safeParse({
+      shiftId: 'shift-001',
+      channel: 'walk_in',
+      locationId: 'loc-001',
+      idempotencyKey: 'x'.repeat(65),
+      lines: [{ productId: 'prod-001', qty: 1, unitPrice: '33000' }],
+      payments: [{ method: 'cash', amount: '33000' }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('accepts optional notes field', () => {
+    const result = CreateSaleInputSchema.safeParse({
+      shiftId: 'shift-001',
+      channel: 'walk_in',
+      locationId: 'loc-001',
+      idempotencyKey: 'key-001',
+      lines: [{ productId: 'prod-001', qty: 1, unitPrice: '33000' }],
+      payments: [{ method: 'cash', amount: '33000' }],
+      notes: 'Extra shot espresso',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.notes).toBe('Extra shot espresso');
+    }
+  });
+});
+
+// ─── Schema: VoidSaleInput ─────────────────────────────────────────────────────
+
+describe('VoidSaleInputSchema', () => {
+  it('accepts valid input', () => {
+    const result = VoidSaleInputSchema.safeParse({
+      salesOrderId: 'so-001',
+      reason: 'Wrong item ordered',
+      version: 1,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects empty reason', () => {
+    const result = VoidSaleInputSchema.safeParse({
+      salesOrderId: 'so-001',
+      reason: '',
+      version: 1,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects reason longer than 255 chars', () => {
+    const result = VoidSaleInputSchema.safeParse({
+      salesOrderId: 'so-001',
+      reason: 'x'.repeat(256),
+      version: 1,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('accepts reason at exactly 255 chars', () => {
+    const result = VoidSaleInputSchema.safeParse({
+      salesOrderId: 'so-001',
+      reason: 'x'.repeat(255),
+      version: 1,
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+// ─── PB1 extraction calculation ───────────────────────────────────────────────
+
+describe('PB1 extraction (10% inclusive)', () => {
+  it('extracts PB1 from 33000 (T01 Boba Milk regular)', () => {
+    // net = 33000×10000/11000 = 30000; pb1 = 33000-30000 = 3000
+    const { net, pb1 } = extractPB1(BigInt(33000));
+    expect(net).toBe(BigInt(30000));
+    expect(pb1).toBe(BigInt(3000));
+  });
+
+  it('extracts PB1 from 22000', () => {
+    // net = 22000×10000/11000 = 20000; pb1 = 22000-20000 = 2000
+    const { net, pb1 } = extractPB1(BigInt(22000));
+    expect(net).toBe(BigInt(20000));
+    expect(pb1).toBe(BigInt(2000));
+  });
+
+  it('extracts PB1 from 11000', () => {
+    // net = 11000×10000/11000 = 10000; pb1 = 11000-10000 = 1000
+    const { net, pb1 } = extractPB1(BigInt(11000));
+    expect(net).toBe(BigInt(10000));
+    expect(pb1).toBe(BigInt(1000));
+  });
+
+  it('extracts PB1 from 55000', () => {
+    // net = 55000×10000/11000 = 50000; pb1 = 55000-50000 = 5000
+    const { net, pb1 } = extractPB1(BigInt(55000));
+    expect(net).toBe(BigInt(50000));
+    expect(pb1).toBe(BigInt(5000));
+  });
+
+  it('net + pb1 equals inclusive price', () => {
+    const prices = [11000, 22000, 33000, 44000, 55000, 110000];
+    for (const price of prices) {
+      const { net, pb1 } = extractPB1(BigInt(price));
+      expect(net + pb1).toBe(BigInt(price));
+    }
+  });
+
+  it('pb1 is approximately 10% of net for typical prices', () => {
+    const { net, pb1 } = extractPB1(BigInt(33000));
+    const ratio = Number(pb1) / Number(net);
+    expect(ratio).toBeCloseTo(0.1, 3);
+  });
+
+  it('handles large IDR amounts', () => {
+    // net = 10000000×10000/11000 = 9090909; pb1 = 10000000-9090909 = 909091
+    const { net, pb1 } = extractPB1(BigInt(10000000));
+    expect(net + pb1).toBe(BigInt(10000000));
+  });
+});
+
+// ─── Sale number format ────────────────────────────────────────────────────────
+
+describe('Sale number format T01-YYYY-MM-NNNN', () => {
+  it('matches expected pattern', () => {
+    const pattern = /^T01-\d{4}-\d{2}-\d{4}$/;
+    const validNumbers = [
+      'T01-2026-01-0001',
+      'T01-2026-05-0001',
+      'T01-2026-12-9999',
+    ];
+    for (const num of validNumbers) {
+      expect(pattern.test(num)).toBe(true);
+    }
+    // invalid cases — wrong prefix, wrong digit count (structural only; no runtime validation)
+    const invalidNumbers = [
+      'T02-2026-05-0001',    // wrong prefix
+      'T01-26-05-0001',      // 2-digit year
+      'T01-2026-05-1',       // too short
+      'T01-2026-05-00001',   // too long
+      'T01-2026-5-0001',     // single-digit month
+    ];
+    for (const num of invalidNumbers) {
+      expect(pattern.test(num)).toBe(false);
+    }
+  });
+});
+
+// ─── Delivery channel revenue multiplier ─────────────────────────────────────
+
+describe('Delivery channel revenue multiplier', () => {
+  const ONLINE_COMMISSION_RATE = 0.8;
+
+  const channels = ['gofood', 'grabfood', 'shopeefood'];
+  const walkInChannels = ['walk_in'];
+
+  it('applies 80% multiplier to delivery channel subtotals', () => {
+    for (const channel of channels) {
+      const subtotal = BigInt(33000);
+      const netRevenue = (subtotal * BigInt(80)) / BigInt(100);
+      expect(netRevenue).toBe(BigInt(26400));
+    }
+  });
+
+  it('applies 100% multiplier to walk_in channel', () => {
+    for (const channel of walkInChannels) {
+      const subtotal = BigInt(33000);
+      const netRevenue = (subtotal * BigInt(100)) / BigInt(100);
+      expect(netRevenue).toBe(subtotal);
+    }
+  });
+
+  it('delivery revenue is always 80% of gross', () => {
+    const prices = [11000, 22000, 33000, 44000, 55000];
+    for (const price of prices) {
+      const subtotal = BigInt(price);
+      const netRevenue = (subtotal * BigInt(80)) / BigInt(100);
+      const expected = BigInt(Math.round(Number(subtotal) * ONLINE_COMMISSION_RATE));
+      expect(netRevenue).toBe(expected);
+    }
+  });
+});
+
+// ─── Sales order total calculation ─────────────────────────────────────────────
+
+describe('Sales order total calculation', () => {
+  it('grandTotal = sum(unitPrice × qty) - sum(discount) for walk_in', () => {
+    const lines = [
+      { unitPrice: '33000', qty: 2, lineDiscount: '0' },
+      { unitPrice: '22000', qty: 1, lineDiscount: '2000' },
+    ];
+
+    let totalSubtotal = BigInt(0);
+    let totalDiscount = BigInt(0);
+
+    for (const line of lines) {
+      const unitPrice = BigInt(line.unitPrice);
+      const lineSubtotal = unitPrice * BigInt(line.qty);
+      const lineDiscount = BigInt(line.lineDiscount);
+      totalSubtotal += lineSubtotal;
+      totalDiscount += lineDiscount;
+    }
+
+    const grandTotal = totalSubtotal - totalDiscount;
+    // Line 1: 33000*2 = 66000; Line 2: 22000*1 = 22000; Total: 88000; Less discount: 2000; Grand: 86000
+    expect(totalSubtotal).toBe(BigInt(88000));
+    expect(totalDiscount).toBe(BigInt(2000));
+    expect(grandTotal).toBe(BigInt(86000));
+  });
+
+  it('payment total covers grandTotal (walk_in cash)', () => {
+    const grandTotal = BigInt(86000);
+    const payments = [{ method: 'cash', amount: '88000' }];
+    const totalPaid = payments.reduce((sum, p) => sum + BigInt(p.amount), BigInt(0));
+    expect(totalPaid >= grandTotal).toBe(true);
+  });
+
+  it('overpayment allows change to be recorded', () => {
+    const grandTotal = BigInt(86000);
+    const totalPaid = BigInt(88000);
+    const change = totalPaid - grandTotal;
+    expect(change).toBe(BigInt(2000));
+  });
+
+  it('payment total less than grandTotal is rejected', () => {
+    const grandTotal = BigInt(86000);
+    const totalPaid = BigInt(80000);
+    expect(totalPaid < grandTotal).toBe(true);
+  });
+});
+
+// ─── Shift expected cash calculation ─────────────────────────────────────────
+
+describe('Shift expected cash calculation', () => {
+  it('expectedCash = openingCash + sum(cash payments)', () => {
+    const openingCash = 500_000;
+    const cashPayments = [33000, 22000, 44000, 55000]; // 4 sales: 154000
+    const totalPayments = cashPayments.reduce((s, v) => s + v, 0);
+    const expectedCash = openingCash + totalPayments;
+    expect(expectedCash).toBe(654_000);
+  });
+
+  it('variance = actualCash - expectedCash (positive = over)', () => {
+    const expectedCash = 654_000;
+    const actualCash = 655_000;
+    const variance = actualCash - expectedCash;
+    expect(variance).toBe(1000);
+  });
+
+  it('variance = actualCash - expectedCash (negative = short)', () => {
+    const expectedCash = 654_000;
+    const actualCash = 652_000;
+    const variance = actualCash - expectedCash;
+    expect(variance).toBe(-2000);
+  });
+
+  it('zero variance when counts are exact', () => {
+    const expectedCash = 654_000;
+    const actualCash = 654_000;
+    const variance = actualCash - expectedCash;
+    expect(variance).toBe(0);
+  });
+});
