@@ -33,6 +33,47 @@ export {
 // Schema — Audit
 export { auditLog } from './schema/audit';
 
+// Schema — Inventory (SD §9.3)
+export {
+  productCategories,
+  products,
+  productVariants,
+  productModifierGroups,
+  productModifierOptions,
+  productModifierLinks,
+  boms,
+  bomLines,
+  bomSubstitutes,
+  stockLocations,
+  stockMovements,
+  stockLevels,
+  stockAdjustments,
+  stockAdjustmentLines,
+  stockTransfers,
+  stockTransferLines,
+} from './schema/inventory';
+
+// Schema — POS / Sales (SD §9.5)
+export {
+  shifts,
+  salesOrders,
+  salesOrderLines,
+  payments,
+  refunds,
+  refundLines,
+  idempotencyRecords,
+} from './schema/pos';
+
+// Schema — Purchasing (SD §9.4)
+export {
+  purchaseOrders,
+  purchaseOrderLines,
+  goodsReceiptNotes,
+  grnLines,
+  purchaseInvoices,
+  purchaseInvoiceLines,
+} from './schema/purchasing';
+
 // Schema — Scheduled Jobs
 export { scheduledJobs } from './schema/scheduled-jobs';
 

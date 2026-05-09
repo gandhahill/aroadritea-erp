@@ -66,6 +66,12 @@
 | T-0025 | MCP tools reporting (5 tools) | Claude Opus 4.6 | 2026-05-09 | included in T-0023 | 1 |
 | T-0030 | Resilience tests scripts (4/8 Phase 1 scenarios) | Antigravity (Opus 4.6) | 2026-05-09 | verified: scripts created | 1 |
 | T-0031 | UI Settings → Scheduled Jobs (list, toggle, edit cron) | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean | 1 |
+| T-0050 | Schema products, product_variants, product_modifiers, categories | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean | 2 |
+| T-0051 | Schema stock_locations, stock_movements, stock_levels | Antigravity (Opus 4.6) | 2026-05-09 | included in T-0050 | 2 |
+| T-0052 | Schema BOM + bom_lines + bom_substitutes | Antigravity (Opus 4.6) | 2026-05-09 | included in T-0050 | 2 |
+| T-0056 | Schema sales_orders + lines + payments + refunds + shifts | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean | 2 |
+| T-0063 | Schema purchase_orders + GRN + purchase_invoices | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean | 2 |
+| T-0053 | Service inventory CRUD products + variants + categories | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean | 2 |
 
 ---
 

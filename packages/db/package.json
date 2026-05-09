@@ -11,6 +11,8 @@
     "./schema/accounting": "./schema/accounting.ts",
     "./schema/audit": "./schema/audit.ts",
     "./schema/inventory": "./schema/inventory.ts",
+    "./schema/pos": "./schema/pos.ts",
+    "./schema/purchasing": "./schema/purchasing.ts",
     "./schema/scheduled-jobs": "./schema/scheduled-jobs.ts"
   },
   "scripts": {
