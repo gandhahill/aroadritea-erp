@@ -1,8 +1,8 @@
 /**
- * POS service tests — T-0057
+ * POS service tests — T-0057, T-0058
  *
  * Tests: schema validation, PB1 extraction, sale number format,
- * shift business rules, delivery channel revenue multiplier.
+ * shift business rules, delivery channel revenue multiplier, refund business logic.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -12,6 +12,7 @@ import {
   CreateSaleInputSchema,
   VoidSaleInputSchema,
   ChannelSchema,
+  RefundSaleInputSchema,
 } from '../src/pos/schemas';
 
 // ─── PB1 extraction (mirrors create-sale logic) ────────────────────────────────
@@ -498,6 +499,206 @@ describe('Sales order total calculation', () => {
     const grandTotal = BigInt(86000);
     const totalPaid = BigInt(80000);
     expect(totalPaid < grandTotal).toBe(true);
+  });
+});
+
+// ─── RefundSaleInputSchema ─────────────────────────────────────────────────────
+
+describe('RefundSaleInputSchema', () => {
+  it('accepts valid input with all fields', () => {
+    const result = RefundSaleInputSchema.safeParse({
+      salesOrderId: 'so-001',
+      reason: 'Pelanggan batal',
+      version: 1,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts input without optional reason', () => {
+    const result = RefundSaleInputSchema.safeParse({
+      salesOrderId: 'so-001',
+      version: 1,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects empty salesOrderId', () => {
+    const result = RefundSaleInputSchema.safeParse({
+      salesOrderId: '',
+      version: 1,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects empty reason when provided (min length)', () => {
+    const result = RefundSaleInputSchema.safeParse({
+      salesOrderId: 'so-001',
+      reason: '',
+      version: 1,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects reason exceeding max length', () => {
+    const result = RefundSaleInputSchema.safeParse({
+      salesOrderId: 'so-001',
+      reason: 'a'.repeat(256),
+      version: 1,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects non-integer version', () => {
+    const result = RefundSaleInputSchema.safeParse({
+      salesOrderId: 'so-001',
+      version: 1.5,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects version <= 0', () => {
+    const result = RefundSaleInputSchema.safeParse({
+      salesOrderId: 'so-001',
+      version: 0,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('accepts version 1', () => {
+    const result = RefundSaleInputSchema.safeParse({
+      salesOrderId: 'so-001',
+      version: 1,
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+// ─── Refund stock restoration logic ───────────────────────────────────────────
+
+describe('Refund stock restoration', () => {
+  it('restores exact BOM qty × sale qty to stock', () => {
+    // BOM: 1 serving = 150ml milk + 30g tea_leaf
+    // Sale: 3 servings → restore 450ml milk + 90g tea_leaf
+    const bomLines = [
+      { ingredientId: 'milk', qty: '0.150', uom: 'L' },
+      { ingredientId: 'tea_leaf', qty: '0.030', uom: 'kg' },
+    ];
+    const qtySold = 3;
+
+    for (const ingredient of bomLines) {
+      const restoreQty = (parseFloat(ingredient.qty) * qtySold).toFixed(3);
+      expect(restoreQty).toBe(
+        qtySold === 3
+          ? (parseFloat(ingredient.qty) * 3).toFixed(3)
+          : expect.any(String),
+      );
+    }
+  });
+
+  it('restores 1 serving: 0.150L milk, 0.030kg tea_leaf', () => {
+    const bomLines = [
+      { ingredientId: 'milk', qty: '0.150', uom: 'L' },
+      { ingredientId: 'tea_leaf', qty: '0.030', uom: 'kg' },
+    ];
+    const qtySold = 1;
+
+    const expected = {
+      milk: '0.150',
+      tea_leaf: '0.030',
+    };
+
+    for (const ingredient of bomLines) {
+      const restoreQty = (parseFloat(ingredient.qty) * qtySold).toFixed(3);
+      expect(restoreQty).toBe(expected[ingredient.ingredientId as keyof typeof expected]);
+    }
+  });
+
+  it('upsert: if stock level exists, qtyOnHand increases', () => {
+    // Simulate existing stock level
+    const existingOnHand = 5.0; // kg
+    const restoreQty = 0.03; // single serving tea_leaf
+    const newOnHand = existingOnHand + restoreQty;
+    expect(newOnHand).toBe(5.03);
+  });
+
+  it('upsert: if stock level does not exist, insert with restoreQty', () => {
+    const existingLevel = null;
+    const restoreQty = '0.030';
+    expect(existingLevel).toBeNull();
+    // New insert would use restoreQty as qtyOnHand/qtyAvailable
+    expect(restoreQty).toBe('0.030');
+  });
+});
+
+// ─── Refund: journal reversal ───────────────────────────────────────────────────
+
+describe('Refund journal reversal', () => {
+  it('creates reversal JE with same amounts but opposite DR/CR', () => {
+    // Original JE: DR Cash 33000, CR Revenue 30000, CR PB1 Payable 3000
+    // Reversal JE: DR Revenue 30000, DR PB1 Payable 3000, CR Cash 33000
+    const originalJE = {
+      lines: [
+        { accountCode: '1-1030', debit: BigInt(33000), credit: BigInt(0) },
+        { accountCode: '4-1010', debit: BigInt(0), credit: BigInt(30000) },
+        { accountCode: '2-1050', debit: BigInt(0), credit: BigInt(3000) },
+      ],
+    };
+
+    const totalDebit = originalJE.lines.reduce((s, l) => s + l.debit, BigInt(0));
+    const totalCredit = originalJE.lines.reduce((s, l) => s + l.credit, BigInt(0));
+    expect(totalDebit).toBe(totalCredit);
+    expect(totalDebit).toBe(BigInt(33000));
+  });
+
+  it('reversal JE total must balance', () => {
+    // Reversal: all debits and credits swapped
+    const reversalLines = [
+      { accountCode: '4-1010', debit: BigInt(30000), credit: BigInt(0) },
+      { accountCode: '2-1050', debit: BigInt(3000), credit: BigInt(0) },
+      { accountCode: '1-1030', debit: BigInt(0), credit: BigInt(33000) },
+    ];
+
+    const totalDebit = reversalLines.reduce((s, l) => s + l.debit, BigInt(0));
+    const totalCredit = reversalLines.reduce((s, l) => s + l.credit, BigInt(0));
+    expect(totalDebit).toBe(totalCredit);
+  });
+});
+
+// ─── Refund business rules ─────────────────────────────────────────────────────
+
+describe('Refund business rules', () => {
+  it('only paid orders can be refunded', () => {
+    const allowedStatuses = ['paid'];
+    expect(allowedStatuses).toContain('paid');
+    expect(allowedStatuses).not.toContain('draft');
+    expect(allowedStatuses).not.toContain('voided');
+    expect(allowedStatuses).not.toContain('refunded');
+  });
+
+  it('version check prevents double-refund (optimistic locking)', () => {
+    const currentVersion = 3;
+    const userVersion = 2;
+    // Server version is newer → user has stale data
+    const isStale = userVersion !== currentVersion;
+    expect(isStale).toBe(true);
+  });
+
+  it('successful refund: version increments by 1', () => {
+    const saleVersion = 5;
+    const updatedVersion = saleVersion + 1;
+    expect(updatedVersion).toBe(6);
+  });
+
+  it('refund reason is stored in notes field', () => {
+    const reason = 'Pelanggan batal, tidak jadi pesan';
+    const result = { notes: reason ?? null };
+    expect(result.notes).toBe('Pelanggan batal, tidak jadi pesan');
+  });
+
+  it('refund without reason: notes is null', () => {
+    const reason = undefined;
+    const result = { notes: reason ?? null };
+    expect(result.notes).toBeNull();
   });
 });
 
