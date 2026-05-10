@@ -99,8 +99,9 @@ export {
   stockMovementManual,
 } from './schema/stock-opname';
 
-// Schema — Kitchen / Naixer KDS (SD §33.2)
+// Schema — Kitchen / KDS (SD §21.7, §33.2)
 export {
+  kdsOrderItems,
   naixerProductCodes,
   naixerModifierCodes,
   naixerQrFormatConfig,

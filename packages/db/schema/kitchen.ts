@@ -1,7 +1,8 @@
 /**
- * Kitchen schema — SD §33.2 (Naixer KDS Integration)
+ * Kitchen schema — SD §21.7 + §33.2 (KDS + Naixer Integration)
  *
  * Tables:
+ * - kds_order_items         — production status tracking per order line
  * - naixer_product_codes    — maps ERP products to Naixer vendor codes
  * - naixer_modifier_codes   — maps ERP modifiers to Naixer spec codes
  * - naixer_qr_format_config — per-location QR format strategy (dash/pipe)
@@ -14,9 +15,47 @@ import {
   jsonb,
   pgTable,
   text,
+  timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
-import { pk, tenantCol, auditCols } from './common';
+import { pk, tenantCol, locationCol, auditCols } from './common';
+
+// ─── KDS Order Items (SD §21.7) ─────────────────────────────────────────────
+
+export const kdsOrderItems = pgTable(
+  'kds_order_items',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    salesOrderId: text('sales_order_id').notNull(), // FK sales_orders
+    salesOrderLineId: text('sales_order_line_id').notNull(), // FK sales_order_lines
+
+    // 'queued' | 'making' | 'ready' | 'served' | 'cancelled'
+    status: text('status').notNull().default('queued'),
+
+    pickupNumber: integer('pickup_number').notNull(),
+
+    productSummary: text('product_summary').notNull(),
+    qrPayload: text('qr_payload'),
+
+    queuedAt: timestamp('queued_at', { withTimezone: true }).notNull().defaultNow(),
+    makingAt: timestamp('making_at', { withTimezone: true }),
+    readyAt: timestamp('ready_at', { withTimezone: true }),
+    servedAt: timestamp('served_at', { withTimezone: true }),
+
+    preparedBy: text('prepared_by'), // FK users — who marked making/ready
+
+    ...auditCols,
+  },
+  (t) => [
+    index('kds_order_items_location_status_idx').on(t.locationId, t.status),
+    index('kds_order_items_order_idx').on(t.salesOrderId),
+    uniqueIndex('kds_order_items_line_idx').on(t.salesOrderLineId),
+    index('kds_order_items_queued_at_idx').on(t.queuedAt),
+  ],
+);
 
 // ─── Naixer Product Codes ────────────────────────────────────────────────────
 

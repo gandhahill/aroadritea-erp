@@ -16,3 +16,19 @@ export type {
   ModifierCodeRow,
   ParseResult,
 } from './parse-naixer-csv';
+export {
+  queueOrderItems,
+  updateKdsStatus,
+  listKdsItems,
+  getKdsStats,
+  cancelOrderItems,
+  isValidTransition,
+} from './kds-service';
+export type {
+  KdsStatus,
+  QueueOrderItemsInput,
+  UpdateKdsStatusInput,
+  ListKdsItemsInput,
+  KdsItemResult,
+  KdsStatsResult,
+} from './kds-service';

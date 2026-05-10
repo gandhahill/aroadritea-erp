@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0083 | Script seed-naixer-codes.ts (CSV import) | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟨 IN_PROGRESS | ADR-0007 |
+| T-0084 | KDS Aroadri (production status: queued/making/ready) | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟨 IN_PROGRESS | SD §21.7 |
 
 ---
 
@@ -122,6 +122,7 @@
 |----|-------|-------|-----------|--------|------|
 | T-0086 | Schema naixer_product_codes + naixer_modifier_codes + naixer_qr_format_config | Claude Opus 4.6 | 2026-05-11 | 85654de | 3 tables + seed |
 | T-0081 | Service kitchen.generateQrPayload (strategy pattern dash/pipe) | Claude Opus 4.6 | 2026-05-11 | 90996f4 | 31 tests, strategy pattern |
+| T-0083 | Script seed-naixer-codes.ts (CSV import) | Claude Opus 4.6 | 2026-05-11 | 6fe303c | 22 tests, dry-run support |
 
 ---
 
