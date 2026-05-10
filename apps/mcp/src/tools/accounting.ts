@@ -234,6 +234,48 @@ export const ClosePeriodSchema = z.object({
   force: z.boolean().optional().default(false),
 });
 
+// --- Journal Attachments ---
+
+export const GetJournalWithAttachmentsSchema = z.object({
+  journal_id: z.string(),
+});
+
+export const ListJournalAttachmentsSchema = z.object({
+  journal_entry_id: z.string(),
+});
+
+export async function getJournalWithAttachmentsHandler(
+  input: z.infer<typeof GetJournalWithAttachmentsSchema>,
+  ctx: McpContext,
+) {
+  const permitted = await checkPermission(ctx, 'accounting.view');
+  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: accounting.view');
+
+  const result = await accounting.getJournalWithAttachments(input.journal_id, {
+    userId: ctx.userId,
+    tenantId: ctx.tenantId,
+    locationId: 'system',
+  });
+
+  return serializeResult(result);
+}
+
+export async function listJournalAttachmentsHandler(
+  input: z.infer<typeof ListJournalAttachmentsSchema>,
+  ctx: McpContext,
+) {
+  const permitted = await checkPermission(ctx, 'accounting.view');
+  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: accounting.view');
+
+  const result = await accounting.listJournalAttachments(input.journal_entry_id, {
+    userId: ctx.userId,
+    tenantId: ctx.tenantId,
+    locationId: 'system',
+  });
+
+  return serializeResult(result);
+}
+
 export const accountingTools = [
   { name: 'accounting.list_accounts', schema: ListAccountsSchema, handler: listAccountsHandler },
   { name: 'accounting.create_journal', schema: CreateJournalSchema, handler: createJournalHandler },
@@ -241,4 +283,6 @@ export const accountingTools = [
   { name: 'accounting.reverse_journal', schema: ReverseJournalSchema, handler: reverseJournalHandler },
   { name: 'accounting.get_period_status', schema: GetPeriodStatusSchema, handler: getPeriodStatusHandler },
   { name: 'accounting.close_period', schema: ClosePeriodSchema, handler: closePeriodHandler },
+  { name: 'accounting.get_journal_with_attachments', schema: GetJournalWithAttachmentsSchema, handler: getJournalWithAttachmentsHandler },
+  { name: 'accounting.list_journal_attachments', schema: ListJournalAttachmentsSchema, handler: listJournalAttachmentsHandler },
 ] as const;

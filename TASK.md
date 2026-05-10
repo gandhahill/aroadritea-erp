@@ -104,6 +104,7 @@
 | T-0068 | Service petty cash (balance, transactions, replenish) | Claude Opus 4.6 | 2026-05-10 | wip(T-0068): petty cash service | Typecheck clean, 5 functions |
 | T-0070 | Schema reimbursement_requests | Claude Opus 4.6 | 2026-05-10 | wip(T-0070): reimbursement schema | Typecheck clean |
 | T-0071 | Service reimbursement (CRUD + workflow + escalation) | Claude Opus 4.6 | 2026-05-10 | wip(T-0071): reimbursement service | Typecheck clean, 7 functions |
+| T-0079 | Service journal attachments + MCP tools | Claude Opus 4.6 | 2026-05-10 | wip(T-0079): journal attachments | Typecheck clean, 4 service + 2 MCP tools |
 
 ---
 
@@ -131,7 +132,7 @@
 | ~~T-0071~~ | ~~Service reimbursement (CRUD + workflow + escalation)~~ | ~~accounting~~ | ~~SD §25.8~~ | ~~M~~ | _(moved to Active)_ |
 | T-0072 | UI reimbursement (form + list + approve/reject) | ui | SD §25.8 | M |
 | T-0077 | UI inventory variance dashboard + report | ui | SD §25.9.4 | M |
-| T-0079 | Service journal attachments (upload + download) + MCP tools | accounting | SD §25.10 | M |
+| ~~T-0079~~ | ~~Service journal attachments (upload + download) + MCP tools~~ | ~~accounting~~ | ~~SD §25.10~~ | ~~M~~ | _(moved to Active)_ |
 | T-0080 | UI journal attachments (upload + view + download) | ui | SD §25.10 | S |
 | T-0081a | Service pos.payment + donation/rounding flow | pos | SD §25.11 | M |
 | T-0081b | UI POS payment modal + donation choice | ui | SD §25.11 | S |

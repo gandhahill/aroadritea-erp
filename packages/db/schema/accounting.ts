@@ -301,6 +301,28 @@ export const reimbursementRequests = pgTable(
 );
 
 // ================================================================
+// JOURNAL ATTACHMENTS — SD §25.10
+// ================================================================
+
+export const journalAttachments = pgTable(
+  'journal_attachments',
+  {
+    ...pk,
+    journalEntryId: text('journal_entry_id').notNull(),
+    fileKey: text('file_key').notNull(),
+    fileName: text('file_name').notNull(),
+    fileSize: integer('file_size').notNull(),
+    mimeType: text('mime_type').notNull(),
+    uploadedBy: text('uploaded_by'),
+    uploadedAt: timestamp('uploaded_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('journal_attach_je_idx').on(t.journalEntryId),
+    index('journal_attach_uploaded_idx').on(t.uploadedAt),
+  ],
+);
+
+// ================================================================
 // RELATIONS
 // ================================================================
 
@@ -316,6 +338,7 @@ export const accountsRelations = relations(accounts, ({ one, many }) => ({
 export const journalEntriesRelations = relations(journalEntries, ({ one, many }) => ({
   period: one(accountingPeriods, { fields: [journalEntries.periodId], references: [accountingPeriods.id] }),
   lines: many(journalLines),
+  attachments: many(journalAttachments),
   reversedBy: one(journalEntries, { fields: [journalEntries.reversedByJeId], references: [journalEntries.id], relationName: 'reversal' }),
 }));
 
@@ -346,4 +369,9 @@ export const pettyCashTransactionsRelations = relations(pettyCashTransactions, (
 export const reimbursementRequestsRelations = relations(reimbursementRequests, ({ one }) => ({
   requester: one(users, { fields: [reimbursementRequests.requesterId], references: [users.id], relationName: 'requester' }),
   approver: one(users, { fields: [reimbursementRequests.approvedBy], references: [users.id], relationName: 'approver' }),
+}));
+
+export const journalAttachmentsRelations = relations(journalAttachments, ({ one }) => ({
+  journalEntry: one(journalEntries, { fields: [journalAttachments.journalEntryId], references: [journalEntries.id] }),
+  uploader: one(users, { fields: [journalAttachments.uploadedBy], references: [users.id] }),
 }));

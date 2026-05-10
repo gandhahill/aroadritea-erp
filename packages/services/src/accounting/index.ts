@@ -58,3 +58,15 @@ export {
   type ReimbursementResult,
   type ReimbursementListResult,
 } from './reimbursement';
+export {
+  createJournalAttachment,
+  listJournalAttachments,
+  deleteJournalAttachment,
+  getJournalWithAttachments,
+  type JournalAttachmentResult,
+  type JournalWithAttachmentsResult,
+} from './journal-attachments';
+export {
+  CreateJournalAttachmentSchema,
+  type CreateJournalAttachmentInput,
+} from './schemas';

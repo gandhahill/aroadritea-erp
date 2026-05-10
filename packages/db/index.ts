@@ -26,6 +26,7 @@ export {
   journalEntries,
   journalLines,
   partners,
+  journalAttachments,
   pettyCashAccounts,
   pettyCashTransactions,
   reimbursementRequests,

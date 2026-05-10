@@ -165,3 +165,15 @@ export const ListReimbursementsSchema = z.object({
 });
 
 export type ListReimbursementsInput = z.infer<typeof ListReimbursementsSchema>;
+
+// --- Journal Attachment — Create Record ---
+
+export const CreateJournalAttachmentSchema = z.object({
+  journalEntryId: z.string().min(1, { message: 'Journal entry ID is required' }),
+  fileKey: z.string().min(1, { message: 'File key is required' }),
+  fileName: z.string().min(1, { message: 'File name is required' }),
+  fileSize: z.number().int().positive({ message: 'File size must be positive' }),
+  mimeType: z.string().min(1, { message: 'MIME type is required' }),
+});
+
+export type CreateJournalAttachmentInput = z.infer<typeof CreateJournalAttachmentSchema>;

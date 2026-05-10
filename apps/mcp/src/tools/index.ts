@@ -16,6 +16,8 @@ export {
   ReverseJournalSchema,
   GetPeriodStatusSchema,
   ClosePeriodSchema,
+  GetJournalWithAttachmentsSchema,
+  ListJournalAttachmentsSchema,
 } from './accounting';
 
 export {
