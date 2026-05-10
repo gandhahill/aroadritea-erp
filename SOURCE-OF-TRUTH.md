@@ -419,7 +419,7 @@ Mengacu jawaban Q22 + tampilan KDS Naixer:
 - Tunjangan (termasuk THR)
 - Lembur
 - Bonus / komisi
-- Potongan (BPJS, pajak PPh 21, pinjaman)
+- Potongan (BPJS, pajak PPh 21, **potongan keterlambatan**, **potongan absen tanpa alasan**)
 
 ### 12.3 Aturan Penggajian
 - **Tanggal payroll**: **8 setiap bulan**
@@ -429,9 +429,107 @@ Mengacu jawaban Q22 + tampilan KDS Naixer:
 ### 12.4 Kehadiran & Cuti
 - **Sistem absensi saat ini**: **belum ada** → ERP **wajib menyediakan modul absensi** (mobile-friendly, GPS check-in, atau scan QR di lokasi)
 - **Shift kerja**:
-  - Shift pagi: pagi → sore
-  - Shift sore/malam: sore → malam
-- **Jam operasional toko**: **10:00 – 22:00 WIB**
+  - Shift pagi: **09:30 – 17:30 WIB**
+  - Shift siang: **14:30 – 22:30 WIB**
+- **Jam operasional toko**: **09:30 – 22:00 WIB** (Mall Malioboro 10:00–22:00)
+
+### 12.5 Aturan Keterlambatan & Absensi (SOP Aroadri Tea 2026-04-06)
+
+> Sumber: dokumen SOP internal tertanggal 06 April 2026. Wajib dipatuhi seluruh karyawan.
+
+| Aturan | Detail |
+|---|---|
+| **Toleransi** | Maksimal **15 menit** dari jam shift |
+| **Jatah telat** | **3× per bulan** per karyawan |
+| **Denda telat** | Rp 50.000 per kejadian, setelah jatah 3× habis |
+| **Kabari WA** | Wajib kabari grup WhatsApp maksimal **10 menit sebelum** shift dimulai |
+| **Absen tanpa kabar** | Potong gaji **Rp 100.000** per kejadian |
+
+**Mekanisme di payroll:**
+- Absensi module mencatat setiap check-in → flag "telat" jika lewat jam shift + toleransi 15 menit.
+- Jika dalam 1 bulan kalender sudah 3× flag "telat" → sistem otomatis mencatat komponen payroll `DEDUCTION_LATE` Rp 50.000 per kejadian berikutnya.
+- Jika absen (tidak check-in sama sekali + tidak ada cuti/izin) → komponen `DEDUCTION_ABSENCE` Rp 100.000.
+
+### 12.6 Waktu Istirahat (SOP)
+
+| Shift | Waktu Break |
+|---|---|
+| Shift pagi (09:30–17:30) | **13:30 – 15:30 WIB** (1 jam) |
+| Shift siang (14:30–22:30) | **16:00–17:00 WIB** atau **setelah 20:30 WIB** |
+
+**Pengecualian** (tidak boleh ambil istirahat pukul 18:00–20:30):
+- Shalat (Islam)
+- Sakit bawaan (maag)
+- Kondisi khusus karyawan perempuan saat menstruasi
+
+### 12.7 Cuti
+
+- Jatah: **1 hari per minggu**.
+- Swap dengan karyawan lain: boleh, dengan konfirmasi atasan.
+- **Tidak boleh** combine jatah Libur di minggu yang sama tanpa alasan darurat.
+- Approval: **direktur**.
+
+### 12.8 Prosedur Membuka Toko (SOP — Shift Pagi)
+
+1. Seduh teh sesuai kebutuhan.
+2. Buat creamer jika diperlukan.
+3. Bersihkan meja, kursi, lantai toko.
+4. Siram tanaman (dalam & luar ruangan).
+5. Rapikan & bersihkan area bar, pintu kaca.
+6. Bersihkan mesin sesuai petunjuk.
+7. Pastikan stock teh sudah diseduh & eggtart dipanggang jika diperlukan.
+8. **Input mutasi SO** jika ada penggunaan barang di pagi hari.
+
+### 12.9 Prosedur Menutup Toko (SOP — Shift Malam)
+
+1. Tutup toko tepat **22:00 WIB**.
+2. Mulai close order + larutan pembersih ~**21:50 WIB**.
+3. Bersihkan mesin, wadah teh, pan oven.
+4. Bersihkan lantai dengan cairan pembersih.
+5. Rapikan meja, kursi, area kerja, area bar.
+6. Pencatatan & laporan keuangan harian.
+
+**Jadwal periodik:**
+| Pekerjaan | Frekuensi |
+|---|---|
+| Area kaca & lantai | Setiap hari |
+| Selokan dapur & bar | Setiap **2 hari** |
+| Mesin penyeduh teh + selang | Setiap **Minggu malam** |
+| Deep clean mesin (single tube + jejak hitam lantai) | Setiap **Minggu malam** |
+| Lanjutan deep clean + kaca seluruh toko | Setiap **Senin pagi** |
+
+### 12.10 Standar Produksi (SOP)
+
+**Wajib gunakan alat ukur** (gelas ukur / takaran / timbangan) untuk: teh, es batu, lemon, egg tart, ice sugar syrup, air putih. **Dilarang** memperkirakan secara perasaan.
+
+**Urutan produksi per varian** (detail lengkap di SYSTEM-DESIGN §21.8.4):
+- Milk Tea (dingin): shaker → scan mesin → blend es → shake → gelas saji
+- Lemon Tea: lemon + es → smash → shaker mesin → syrup → shake → gelas saji
+- Fresh Tea: shaker mesin → air putih + syrup + es → shake → gelas saji
+- Hot (Milk Tea & Fresh Tea): shaker mesin → blend → stemer → steam 65°C → gelas saji
+
+**Produk error**: wajib perbaikan, cari tahu kesalahan, buat ulang. **Dilarang** menyajikan produk tidak sesuai standar ke pelanggan.
+
+### 12.11 Ketentuan Area & Kebersihan (SOP)
+
+**Area bar**: hanya peralatan bikin minuman + kain lap. **Dilarang**: HP, tumbler pribadi, benda tidak berkaitan.
+
+**Area kerja**: kering, bebas genangan air. **Tidak boleh makan** di area bar (hanya dapur/luar). Wajib bersihkan area bar segera setelah selesai bikin minuman.
+
+**Tampilan karyawan**: wajib pakai apron, jaga kebersihan diri.
+
+### 12.12 Stock Alert (SOP)
+
+| Item | Threshold | Aksi |
+|---|---|---|
+| Teh (semua varian) | < 300 ml (10:00–20:00) | Wajib buat teh baru (Osmanthus, Glutinous, Bamboo, Roasted Yellow Tea) |
+| Creamer | < 1.000 ml | Wajib buat creamer baru |
+| Setelah 20:00 | Stock teh habis | Buat **setengah porsi** saja |
+
+### 12.13 Free Tester
+
+- Wajib sediakan **2 varian gratis** (milk tea + lemon tea) setiap hari **10:30–21:30 WIB**.
+- Min. **1 orang jaga** saat jam operasional.
 - **Staf per shift**: 2–3 orang
 - **Jenis cuti**: sakit, izin (**tanpa kuota tahunan** saat ini)
 - **Approval cuti**: **Direktur**
@@ -1479,7 +1577,8 @@ Foto-foto referensi yang ada di kuesioner (PDF asli):
 | 1.0 | 2026-05-05 | Lintang Maulana Zulfan | Versi awal, diturunkan dari kuesioner v1.0 (30 April 2026) |
 | 1.1 | 2026-05-05 | Lintang Maulana Zulfan | Tambah §22 (Public Website + CMS + Membership), §23 (Brand), update §17.4 (subdomain split), update §20.3 (CMS masuk Phase 5), tambah istilah glosarium |
 | 1.2 | 2026-05-05 | Lintang Maulana Zulfan | Upgrade RAM 1→2 GB; perluas §14.4 (dua format Naixer QR + master mapping); tambah §24 (POS Demo Mode), §25 (Resilience & Auto-Recovery); tambah istilah glosarium (Outbox, RTO, RPO, dll.) |
-| 1.4 | 2026-05-09 | Lintang Maulana Zulfan | Tambah §18.2 (Keamanan Level Militar), §21.2a (Ekspor XLSX), §21.2b (Dokumentasi), §21.3 (Laporan Harian), §21.4 (Hourly Sales), §21.5 (Petty Cash), §21.6 (Reimbursement), §21.7 (Stock Opname & Variansi + Template Akomodasi), §21.9 (Upload Bukti+Jurnal MCP), §21.10 (Donasi/Rounding) |
+| 1.4 | 2026-05-09 | Lintang Maulana Zulfan | Tambah §18.2 (Keamanan Level Militar), §21.2a (Ekspor XLSX), §21.2b (Dokumentasi), §21.3 (Laporan Harian), §21.4 (Hourly Sales), §21.5 (Petty Cash), §21.6 (Reimbursement), §21.7 (Stock Opname & Variansi), §21.9 (Upload Bukti+Jurnal MCP), §21.10 (Donasi/Rounding) |
+| 1.5 | 2026-05-10 | Lintang Maulana Zulfan | Update §12 (HR & Payroll): SOP jam kerja, shift, istirahat, keterlambatan (Rp 50/100k), absensi + komponen payroll; §12.8–§12.13 SOP lengkap (buka/tutup toko, produksi, area, stock alert) |
 
 ---
 

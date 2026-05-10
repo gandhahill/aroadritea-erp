@@ -9,7 +9,7 @@
 >
 > Bila ada konflik: SOURCE-OF-TRUTH menang untuk requirement bisnis; SYSTEM-DESIGN menang untuk implementasi teknis.
 >
-> **Versi**: 1.5 — 2026-05-09
+> **Versi**: 1.6 — 2026-05-10
 > **Owner**: Lintang Maulana Zulfan
 
 ---
@@ -1815,7 +1815,7 @@ draft → submitted → (workflow approval) → approved → partial → receive
 
 ---
 
-### 21.8 HR & Payroll (Phase 4)
+### 21.8 HR & Payroll (Phase 4) + SOP Operational (SoT §12, Lampiran SOP 2026-04-06)
 
 #### Data
 Lihat §9.6.
@@ -1823,10 +1823,16 @@ Lihat §9.6.
 #### Attendance
 - Mobile-friendly check-in: GPS verifikasi lokasi (toleransi 100 m), atau scan QR di lokasi.
 - Shift-based: kaitkan check-in dengan `shift_definitions`.
+- **SOP aturan keterlambatan** (SOP Aroadri Tea 2026-04-06):
+  - Toleransi: maksimal 15 menit dari jam shift.
+  - Jatah telat: **3× per bulan** per karyawan.
+  - Setelah jatah habis: **potong gaji Rp 50.000** per keterlambatan.
+  - Karyawan wajib kabari grup WA maksimal **10 menit sebelum** shift dimulai.
+  - Tanpa kabar + tanpa alasan: **potong Rp 100.000**.
 
 #### Payroll Run
 1. Akhir bulan: pilih period.
-2. Hitung gaji per karyawan: gaji pokok + tunjangan + lembur + bonus − BPJS − PPh 21 − pinjaman.
+2. Hitung gaji per karyawan: gaji pokok + tunjangan + lembur + bonus − BPJS − PPh 21 − potongan (terlambat, absen).
 3. Generate `payrolls` (header) + `payroll_lines` (per karyawan, per komponen).
 4. Approval direktur.
 5. Mark paid → JE Salaries Expense (DR), Cash/Bank (CR), BPJS Payable (CR), PPh 21 Payable (CR).
@@ -1838,6 +1844,137 @@ Lihat §9.6.
 #### Cuti & Surat Peringatan
 - Pengajuan cuti via portal karyawan → approval direktur (workflow).
 - SP1/SP2/SP3 di tabel `disciplinary_actions` dengan attachment.
+- **Aturan cuti SOP**: 1 hari per minggu; swap dengan konfirmasi atasan; tidak boleh combine tanpa alasan darurat.
+
+#### SOP Operational Rules (from SOP Aroadri Tea 2026-04-06)
+
+##### 21.8.1 Store Hours & Shifts
+
+| Item | Value |
+|---|---|
+| Mall hours | 10:00 – 22:00 WIB |
+| Store operational hours | 09:30 – 22:00 WIB |
+| Shift pagi | 09:30 – 17:30 WIB |
+| Shift siang | 14:30 – 22:30 WIB |
+| Break pagi | 13:30 – 15:30 WIB |
+| Break siang | 16:00 – 17:00 WIB **atau** setelah 20:30 WIB |
+| Break exception (tidak boleh 18:00–20:30) | Shalat, maag, karyawan perempuan saat menstruasi |
+
+##### 21.8.2 Store Operational Rules
+
+| Rule | Detail |
+|---|---|
+| **Free tester** | Wajib sediakan 2 varian (milk tea + lemon tea) setiap hari 10:30–21:30 WIB |
+| **Minimum staff** | Min. 1 orang jaga saat jam operasional |
+| **Leave policy** | Karyawan tidak boleh tinggal > 5 menit tanpa pengganti |
+| **Tea stock alert** | Jika stock < 300 ml antara 10:00–20:00 WIB → wajib buat teh baru (Osmanthus, Glutinous, Bamboo, Roasted Yellow Tea) |
+| **Creamer alert** | Jika stock < 1.000 ml → wajib buat creamer baru |
+| **Late-night exception** | Setelah 20:00 WIB jika stock habis → buat setengah porsi saja |
+
+##### 21.8.3 Opening & Closing Procedures
+
+**Opening (shift pagi):**
+1. Seduh teh sesuai kebutuhan.
+2. Buat creamer jika diperlukan.
+3. Bersihkan meja, kursi, lantai.
+4. Siram tanaman dalam/luar ruangan.
+5. Bersihkan & rapikan area bar, pintu kaca.
+6. Bersihkan mesin sesuai petunjuk.
+7. Pastikan stock teh sudah diseduh & eggtart dipanggang jika diperlukan.
+8. Input mutasi SO jika ada penggunaan barang pagi.
+
+**Closing (shift malam):**
+1. Tutup toko tepat waktu 22:00 WIB.
+2. Mulai close order + larutan pembersih ~21:50 WIB (bisa berubah sesuai kondisi).
+3. Bersihkan mesin, wadah teh, pan oven.
+4. Bersihkan lantai dengan cairan pembersih.
+5. Rapikan meja, kursi, area kerja, area bar.
+6. Pencatatan & laporan keuangan harian.
+7. **Minggu malam**: deep clean mesin (single tube) + bersihkan jejak hitam di lantai.
+8. **Senin pagi**: lanjutkan pembersihan + clean meja/kursi/kaca seluruh toko dengan pembersih.
+
+**Periodic cleaning schedule:**
+- Area kaca & lantai: setiap hari.
+- Selokan dapur & bar: setiap 2 hari.
+- Mesin penyeduh teh + selang: **setiap hari Minggu malam**.
+- Deep clean seluruh mesin: **setiap hari Minggu malam**.
+
+##### 21.8.4 Production Standards (Product Making)
+
+**Wajib menggunakan alat ukur** (gelas ukur/takaran/timbangan) untuk:
+- Teh, es batu, lemon, egg tart, ice sugar syrup, air putih.
+- **Dilarang** memperkirakan secara manual.
+
+**Urutan produksi Milk Tea:**
+1. Letak gelas shaker di bawah saluran mesin.
+2. Scan/pilih menu → tunggu produksi selesai.
+3. Ambil → masukkan 2-3 es batu → blend sesuai ketentuan.
+4. Tambah es batu sesuai ukuran pesanan.
+5. Shake → tuang ke gelas saji.
+6. Tutup → siap disajikan.
+
+**Urutan produksi Lemon Tea:**
+1. Masukkan lemon ke shaker → tambahkan 2-3 es batu → smash.
+2. Letak shaker di bawah mesin → scan/pilih menu.
+3. Tuang ice sugar syrup sesuai instruksi (gelas ukur).
+4. Tambah es batu sesuai ukuran pesanan.
+5. Shake → tuang ke gelas saji → tutup → siap.
+
+**Urutan produksi Fresh Tea:**
+1. Letak shaker di bawah mesin → scan/pilih menu.
+2. Tuang air putih + ice sugar syrup + 2-3 es batu (jika blend).
+3. Tambah es batu sesuai kebutuhan pesanan.
+4. Opsional shake.
+5. Tuang ke gelas saji → tutup → siap.
+
+**Urutan produksi Hot (Milk Tea & Fresh Tea):**
+1. Shaker di bawah mesin → scan/pilih.
+2. Fresh tea: tambahkan air putih + ice sugar syrup + 2-3 es batu → blend.
+3. Milk tea: langsung blend dengan 2-3 es batu.
+4. Tambah 4-5 es batu.
+5. Pindahkan ke stemer → steam 65°C.
+6. Tuangkan ke gelas saji → tutup → siap.
+
+**Error product:** wajib perbaikan, cari tahu letak kesalahan, buat ulang. **Dilarang** menyajikan produk tidak sesuai standar.
+
+##### 21.8.5 Area Cleanliness Rules
+
+**Area meja kerja (bar):** hanya boleh berisi:
+- Peralatan pembuatan minuman, kain lap.
+- **Dilarang**: HP, tumbler pribadi, gelas non kerja.
+
+**Area bar:** hanya peralatan:
+- Gelas shaker, gelas ukur, timbangan, gula.
+- **Dilarang**: HP, tumbler, benda tidak berkaitan pekerjaan.
+- Wajib kering, bebas genangan air.
+- **Tidak boleh makan** di area bar (hanya di dapur/luar).
+- Setelah selesai bikin minuman → **wajib langsung bersihkan** area bar.
+
+##### 21.8.6 Employee Appearance & Conduct
+
+- Wajib gunakan **apron** saat bekerja.
+- Wajib jaga kebersihan diri.
+- Tidak boleh fokus tugas pribadi dan abaikan tim.
+- **Ramah, cepat, profesional** dalam pelayanan.
+- Wajib saling bantu saat toko ramai.
+- **Dilarang** mengabaikan pelanggan.
+- Setiap pesanan wajib diproses teliti & sesuai standar.
+- Setelah pakai peralatan → bersihkan & kembalikan ke tempat semula.
+
+##### 21.8.7 Knowledge Requirements
+
+Setiap karyawan **wajib**:
+1. Bisa operasional seluruh mesin.
+2. Mengetahui seluruh jenis teh yang tersedia.
+3. Bisa jelaskan ke pelanggan bingung memilih jenis teh.
+4. tahu stock teh & creamer thresholds.
+
+##### 21.8.8 SOP Enforcement
+
+- Seluruh karyawan wajib tanda tangan persetujuan SOP saat onboarding.
+- Potongan gaji otomatis via payroll (late fine Rp 50.000, absence fine Rp 100.000).
+- Dokumentasi SOP di `/docs/hr/sop-operasional` (bagian §25.4 documentation system).
+- SOP dapat berubah sewaktu-waktu; karyawan dianggap tahu setelah diinformasikan owner.
 
 ---
 

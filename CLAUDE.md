@@ -198,6 +198,7 @@ Because AI has token limits, sessions can be interrupted mid-implementation. For
 - **MANDATORY** write `## Next step` **explicit and executable** in checkpoint.
 - Good next step format: `"Edit X.ts line N, add function Y with signature ..., then run pnpm test ..."`.
 - Commit code already written (even if incomplete) with message `wip(T-XXXX): <brief>`.
+- **Push to GitHub**: always immediately push your commits to GitHub so that the work is backed up.
 
 **When new AI resumes**:
 - Read `TASK.md` → find 🟨 with most recent `Last Updated`.
@@ -251,7 +252,7 @@ When building a new feature, **always consider** a corresponding MCP tool — so
 
 1. **Before starting**: read issues / WhatsApp discussions + relevant section of SOURCE-OF-TRUTH.md.
 2. **Branch**: `feat/...`, `fix/...`, `refactor/...`, `docs/...`.
-3. **Commit small & often**, clear messages (see §5.1).
+3. **Commit small & often**, clear messages (see §5.1). **Always push your commits directly to GitHub.**
 4. **Test**: write tests for accounting & tax logic (do not compromise). For light UI, minimal is acceptable.
 5. **Self-review**: run lint + typecheck + test before commit.
 6. **Update documents** if changes touch business requirements.
