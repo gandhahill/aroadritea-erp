@@ -228,6 +228,14 @@
       "gofood": "GoFood",
       "grabfood": "GrabFood",
       "shopeefood": "ShopeeFood"
+    },
+    "offline": {
+      "offlineMessage": "Offline — {count} transactions pending sync",
+      "pendingMessage": "{count} transactions pending sync",
+      "syncing": "Syncing...",
+      "retryNow": "Retry Now",
+      "syncSuccess": "All transactions synced",
+      "syncFailed": "Sync failed. Will retry automatically."
     }
   },
   "app": {

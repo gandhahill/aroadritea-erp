@@ -1,14 +1,17 @@
 /**
- * POS Layout — SD §21.4
+ * POS Layout — SD §21.4, §14, §35.1.1
  *
  * POS shell with shift status bar at the top.
  * Uses a separate client-side POS context for cart state.
+ * Wrapped in OfflineSyncProvider for PWA offline support.
  */
 
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { ShiftStatusBar } from './shift-status-bar';
 import { PosCartProvider } from './pos-cart-context';
+import { OfflineSyncProvider } from './lib/offline-sync-context';
+import { OfflineBanner } from './components/offline-banner';
 
 export const metadata = { title: 'Point of Sale' };
 
@@ -29,16 +32,21 @@ export default async function PosLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-brand-cream">
-      {/* Shift status bar — always visible at top */}
-      <ShiftStatusBar locationId={locationId} tenantId={tenantId} />
+    <OfflineSyncProvider>
+      {/* Yellow banner shows only when offline or pending orders exist */}
+      <OfflineBanner />
 
-      {/* Order entry area */}
-      <PosCartProvider locationId={locationId} tenantId={tenantId}>
-        <div className="flex flex-1">
-          {children}
-        </div>
-      </PosCartProvider>
-    </div>
+      <div className="flex min-h-screen flex-col bg-brand-cream">
+        {/* Shift status bar — always visible at top */}
+        <ShiftStatusBar locationId={locationId} tenantId={tenantId} />
+
+        {/* Order entry area */}
+        <PosCartProvider locationId={locationId} tenantId={tenantId}>
+          <div className="flex flex-1">
+            {children}
+          </div>
+        </PosCartProvider>
+      </div>
+    </OfflineSyncProvider>
   );
 }

@@ -1,11 +1,24 @@
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
+import withSerwistInit from '@serwist/next';
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
+/**
+ * @serwist/next requires InjectManifestOptions: swSrc, swDest, injectionPoint.
+ * In dev mode (NODE_ENV=development) the service worker is disabled
+ * so cashiers can use hot-reload without SW interference.
+ * SD §35.1.1: Pre-cache POS routes at build time.
+ */
+const withSerwist = withSerwistInit({
+  swSrc: 'service-worker/index.ts',
+  swDest: 'public/sw.js',
+  injectionPoint: 'self.__SW_MANIFEST',
+});
+
 const nextConfig: NextConfig = {
-  transpilePackages: ['@erp/shared', '@erp/ui', '@erp/db'],
+  transpilePackages: ['@erp/shared', '@erp/ui', '@erp/db', '@erp/offline'],
   output: 'standalone',
 };
 
-export default withNextIntl(nextConfig);
+export default withNextIntl(withSerwist(nextConfig));

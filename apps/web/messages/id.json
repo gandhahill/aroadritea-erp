@@ -228,6 +228,14 @@
       "gofood": "GoFood",
       "grabfood": "GrabFood",
       "shopeefood": "ShopeeFood"
+    },
+    "offline": {
+      "offlineMessage": "Offline — {count} transaksi belum tersinkron",
+      "pendingMessage": "{count} transaksi pending sinkronisasi",
+      "syncing": "Menyinkronkan...",
+      "retryNow": "Coba Sekarang",
+      "syncSuccess": "Semua transaksi sudah tersinkron",
+      "syncFailed": "Sinkronisasi gagal. Akan dicoba lagi otomatis."
     }
   },
   "app": {

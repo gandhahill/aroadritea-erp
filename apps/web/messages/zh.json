@@ -228,6 +228,14 @@
       "gofood": "GoFood",
       "grabfood": "GrabFood",
       "shopeefood": "ShopeeFood"
+    },
+    "offline": {
+      "offlineMessage": "离线 — {count} 笔交易尚未同步",
+      "pendingMessage": "{count} 笔交易待同步",
+      "syncing": "同步中...",
+      "retryNow": "立即重试",
+      "syncSuccess": "所有交易已同步",
+      "syncFailed": "同步失败，将自动重试。"
     }
   },
   "app": {

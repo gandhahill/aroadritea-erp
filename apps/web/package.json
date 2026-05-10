@@ -9,18 +9,22 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@erp/offline": "workspace:*",
     "@erp/db": "workspace:*",
     "@erp/services": "workspace:*",
     "@erp/shared": "workspace:*",
     "@erp/ui": "workspace:*",
+    "@serwist/next": "^9.5.11",
     "@tailwindcss/postcss": "^4.2.4",
     "argon2": "^0.44.0",
     "better-auth": "^1.6.9",
+    "idb": "^8.0.3",
     "next": "^15.0.0",
     "next-intl": "^4.11.0",
     "postcss": "^8.5.14",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "serwist": "^9.5.11",
     "tailwindcss": "^4.2.4"
   },
   "devDependencies": {

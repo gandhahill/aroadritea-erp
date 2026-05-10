@@ -3,6 +3,7 @@ import { Inter, Manrope, Noto_Sans_SC, Noto_Serif_SC } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import './globals.css';
+import RegisterPWA from './register-pwa';
 
 const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-sans' });
 const manrope = Manrope({ subsets: ['latin'], display: 'swap', variable: '--font-display' });
@@ -13,6 +14,16 @@ export const metadata: Metadata = {
   title: { default: 'Aroadri Tea ERP', template: '%s — Aroadri Tea ERP' },
   description: 'Enterprise Resource Planning — PT Gandha Hill Catering Management Indonesia',
   robots: { index: false, follow: false },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Aroadri POS',
+  },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/icons/icon-192.png',
+  },
 };
 
 export const viewport: Viewport = {
@@ -32,6 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <body className="min-h-screen bg-background text-foreground antialiased">
         <NextIntlClientProvider messages={messages}>
+          <RegisterPWA />
           {children}
         </NextIntlClientProvider>
       </body>

@@ -5,7 +5,8 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "esnext"
+      "esnext",
+      "webworker"
     ],
     "jsx": "preserve",
     "module": "ESNext",
@@ -22,7 +23,9 @@
       "@erp/shared": ["../../packages/shared/src/index.ts"],
       "@erp/shared/*": ["../../packages/shared/src/*"],
       "@erp/services": ["../../packages/services/index.ts"],
-      "@erp/services/*": ["../../packages/services/src/*"]
+      "@erp/services/*": ["../../packages/services/src/*"],
+      "@erp/offline": ["../../packages/offline/src/index.ts"],
+      "@erp/offline/*": ["../../packages/offline/src/*"]
     },
     "allowJs": true,
     "incremental": true

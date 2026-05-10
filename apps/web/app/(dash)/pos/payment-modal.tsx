@@ -10,6 +10,7 @@
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { usePosCart } from './pos-cart-context';
+import { useOfflineSync } from './lib/offline-sync-context';
 import { createSaleAction } from './actions';
 
 const PAYMENT_METHODS = [
@@ -31,6 +32,7 @@ interface PaymentModalProps {
 export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   const t = useTranslations('pos');
   const { state, totalPaid, grandTotal: cartTotal, clearCart } = usePosCart();
+  const { isOnline, enqueueOrder } = useOfflineSync();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -97,14 +99,28 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
     };
 
     startTransition(async () => {
-      const result = await createSaleAction(input as Parameters<typeof createSaleAction>[0]);
-      if (result.ok) {
-        clearCart();
-        onClose();
-        // Show success toast (could use a toast library here)
-      } else {
-        setError(result.error?.message ?? t('paymentFailed'));
+      // Online: use server action directly
+      if (isOnline) {
+        const result = await createSaleAction(input as Parameters<typeof createSaleAction>[0]);
+        if (result.ok) {
+          clearCart();
+          onClose();
+        } else {
+          setError(result.error?.message ?? t('paymentFailed'));
+        }
+        return;
       }
+
+      // Offline: enqueue to IndexedDB outbox immediately
+      const clientOrderUuid = input.idempotencyKey;
+      await enqueueOrder({
+        clientOrderUuid,
+        createdAtClient: new Date().toISOString(),
+        payload: input,
+      });
+
+      clearCart();
+      onClose();
     });
   }
 
