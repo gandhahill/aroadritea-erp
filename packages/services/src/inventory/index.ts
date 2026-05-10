@@ -83,3 +83,14 @@ export {
   type OpnameResult,
   type OpnameLineResult,
 } from './opname-service';
+
+// Import service (Excel Sheet 1 + Sheet 2)
+export {
+  importMasterFromExcel,
+  importMovementsFromExcel,
+  type Sheet1MasterRow,
+  type Sheet2MovementRow,
+  type ImportResult,
+  type MovementImportResult,
+  type ImportError,
+} from './import-service';
