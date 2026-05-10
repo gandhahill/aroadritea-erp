@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0064 | Service purchasing.createPO + workflow approval | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟨 IN_PROGRESS | SD §21.6 |
+| T-0086 | Schema naixer_product_codes + naixer_modifier_codes + naixer_qr_format_config | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟨 IN_PROGRESS | SD §33.2 |
 
 ---
 
@@ -113,6 +113,8 @@
 | T-0085e | Service reporting.hourlySales + groupBy logic | Claude Opus 4.6 | 2026-05-11 | feat(T-0085e): hourly sales service | 3 files, 8 tests |
 | T-0085f | UI reporting/hourly-sales (heatmap + table + export XLSX) | Claude Opus 4.6 | 2026-05-11 | feat(T-0085f): hourly sales UI | 4 files, typecheck clean |
 | T-0085g | MCP tool reporting.get_hourly_sales | Claude Opus 4.6 | 2026-05-11 | feat(T-0085g): MCP get_hourly_sales tool | 1 file |
+| T-0064 | Service purchasing.createPO + workflow approval | Claude Opus 4.6 | 2026-05-11 | ac09649: 351 tests pass, typecheck clean | 6 files |
+| T-0065 | Service purchasing.createGRN + confirmGRN + JE generator | Claude Opus 4.6 | 2026-05-11 | 2a585d8: 385 tests pass, typecheck clean | 5 files |
 
 ---
 
@@ -131,9 +133,7 @@
 
 | ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
-| T-0064 | Service purchasing.createPO + workflow approval | purchasing | SD §21.6 | L |
-| T-0065 | Service purchasing.createGRN + JE generator | purchasing | SD §21.6 | M |
-| T-0085g | MCP tool reporting.get_hourly_sales | mcp | SD §25.6 | S |
+| _(empty — all Phase 2 tasks completed)_ | | | | |
 
 ### Phase 3 — Kitchen + KDS + Customer Display
 

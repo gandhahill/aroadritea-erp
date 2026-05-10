@@ -99,5 +99,12 @@ export {
   stockMovementManual,
 } from './schema/stock-opname';
 
+// Schema — Kitchen / Naixer KDS (SD §33.2)
+export {
+  naixerProductCodes,
+  naixerModifierCodes,
+  naixerQrFormatConfig,
+} from './schema/kitchen';
+
 // Drizzle-ORM operators (re-exported for downstream consumers)
 export { eq, and, or, not, lte, gte, lt, gt, isNull, isNotNull, sql, inArray, desc, asc, ilike } from 'drizzle-orm';
