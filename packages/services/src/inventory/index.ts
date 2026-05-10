@@ -71,3 +71,15 @@ export {
   type TransferResult,
   type TransferLineResult,
 } from './transfer-service';
+
+// Opname service
+export {
+  createOpnameDraft,
+  recordCount,
+  submitOpname,
+  approveOpname,
+  cancelOpname,
+  getOpname,
+  type OpnameResult,
+  type OpnameLineResult,
+} from './opname-service';

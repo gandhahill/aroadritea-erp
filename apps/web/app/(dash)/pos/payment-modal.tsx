@@ -39,12 +39,18 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   const totalBig = BigInt(grandTotal);
   const paidBig = totalPaid;
   const remaining = totalBig - paidBig > BigInt(0) ? totalBig - paidBig : BigInt(0);
-  const isFullyPaid = paidBig >= totalBig;
-  const excess = paidBig > totalBig ? paidBig - totalBig : BigInt(0);
 
   const [selectedMethod, setSelectedMethod] = useState<string>('cash');
   const [inputAmount, setInputAmount] = useState('');
   const [splitPayments, setSplitPayments] = useState<{ method: string; amount: string }[]>([]);
+
+  // Cash tendered so far in this modal (numeric input + split list)
+  const currentInputBig = BigInt(Number(inputAmount) > 0 ? inputAmount : '0');
+  const splitTotal = splitPayments.reduce((s, p) => s + BigInt(Number(p.amount) > 0 ? p.amount : '0'), BigInt(0));
+  const allPaidBig = paidBig + splitTotal + currentInputBig;
+  const excess = allPaidBig > totalBig ? allPaidBig - totalBig : BigInt(0);
+  const isFullyPaid = allPaidBig >= totalBig;
+  const canConfirm = remaining > BigInt(0) ? false : isFullyPaid;
 
   function handleAddSplit() {
     if (!inputAmount || Number(inputAmount) <= 0) return;
@@ -57,12 +63,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   }
 
   async function handleConfirm() {
-    if (remaining > BigInt(0) && splitPayments.length === 0) {
-      setError(t('paymentExcess'));
-      return;
-    }
-
-    // Build payments array — include existing paid payments + new split payments + cash if input
+    // Build payments array — existing payments from cart + split list
     const payments = [
       ...state.payments.map(p => ({
         method: p.method,
@@ -72,13 +73,13 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
       ...splitPayments.map(p => ({ method: p.method, amount: p.amount })),
     ];
 
-    // Add cash payment if input amount provided
-    if (inputAmount && Number(inputAmount) > 0 && isFullyPaid) {
+    // Add cash payment only if customer handed cash and it covers the total
+    if (inputAmount && Number(inputAmount) > 0 && currentInputBig + paidBig + splitTotal >= totalBig) {
       payments.push({ method: selectedMethod, amount: inputAmount });
     }
 
-    // Build createSale input
-    const lines = state.lines.map((l, i) => ({
+    // Build order lines from cart
+    const lines = state.lines.map((l) => ({
       productId: l.productId,
       variantId: l.variantId ?? undefined,
       qty: l.qty,
@@ -99,7 +100,9 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
     };
 
     startTransition(async () => {
-      // Online: use server action directly
+      setError(null);
+
+      // Online: call server action directly
       if (isOnline) {
         const result = await createSaleAction(input as Parameters<typeof createSaleAction>[0]);
         if (result.ok) {
@@ -172,7 +175,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
             </div>
           </div>
 
-          {/* Cash amount input */}
+          {/* Cash amount input — shown for cash method when not yet fully paid */}
           {selectedMethod === 'cash' && !isFullyPaid && (
             <div>
               <p className="mb-2 text-xs font-medium uppercase tracking-widest text-brand-ink-3">
@@ -208,6 +211,14 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
             </div>
           )}
 
+          {/* Cash change indicator — shown when fully paid via cash */}
+          {isFullyPaid && excess > BigInt(0) && selectedMethod === 'cash' && (
+            <div className="flex items-center justify-between rounded-lg border border-brand-jade/20 bg-brand-jade/5 px-4 py-2.5">
+              <span className="text-sm font-medium text-brand-ink-2">{t('change')}</span>
+              <span className="text-base font-semibold text-brand-jade">{formatRupiah(excess.toString())}</span>
+            </div>
+          )}
+
           {/* Split payment list */}
           {splitPayments.length > 0 && (
             <div>
@@ -235,7 +246,8 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
               </ul>
               <button
                 onClick={handleAddSplit}
-                className="mt-2 flex h-9 items-center gap-2 rounded-lg border border-dashed border-brand-cream-3 px-3 text-xs font-medium text-brand-ink-3 hover:border-brand-red/30 hover:text-brand-red"
+                disabled={!inputAmount || Number(inputAmount) <= 0}
+                className="mt-2 flex h-9 items-center gap-2 rounded-lg border border-dashed border-brand-cream-3 px-3 text-xs font-medium text-brand-ink-3 hover:border-brand-red/30 hover:text-brand-red disabled:cursor-not-allowed disabled:opacity-40"
               >
                 + {t('addPayment')}
               </button>
@@ -254,7 +266,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
         <div className="border-t border-brand-cream-3 p-5">
           <button
             onClick={handleConfirm}
-            disabled={isPending || remaining > BigInt(0) && splitPayments.length === 0}
+            disabled={isPending || !canConfirm}
             className="h-12 w-full rounded-xl bg-brand-red text-sm font-semibold text-white hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
             style={{ transition: 'all 220ms cubic-bezier(0.16, 1, 0.3, 1)' }}
           >

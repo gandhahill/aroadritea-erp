@@ -88,5 +88,12 @@ export {
   versionCol,
 } from './schema/common';
 
+// Schema — Stock Opname (SD §25.9)
+export {
+  stockOpnameSessions,
+  stockOpnameLines,
+  stockMovementManual,
+} from './schema/stock-opname';
+
 // Drizzle-ORM operators (re-exported for downstream consumers)
 export { eq, and, or, not, lte, gte, lt, gt, isNull, isNotNull, sql, inArray, desc, asc, ilike } from 'drizzle-orm';

@@ -85,7 +85,13 @@
 | T-0056 | Schema sales_orders + lines + payments + refunds + shifts | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean |
 | T-0057 | Service pos.createSale + shift services | Claude Opus 4.6 | 2026-05-09 | 5226328: 263 tests pass |
 | T-0058 | Service pos.refund | Claude | 2026-05-09 | 2ac4c2e: 282 tests pass |
-| T-0059+60 | POS UI: shift open/close + order entry + payment modal | Claude Opus 4.6 | 2026-05-09 | typecheck clean |
+| T-0059+60 | POS UI: shift open/close + order entry + payment modal | Claude Opus 4.6 | 2026-05-10 | typecheck clean |
+
+### Phase 2.5 — Stock Opname
+
+| ID | Title | Owner | Completed | Commit | Note |
+|----|-------|-------|-----------|--------|------|
+| T-0073 | Schema stock_opname_sessions + stock_opname_lines + stock_movement_manual | Claude Opus 4.6 | — | — | IN PROGRESS |
 | T-0061 | PWA setup (Serwist) + service worker + IndexedDB outbox | Claude Opus 4.6 | 2026-05-10 | 1d70ba0: typecheck clean |
 | T-0062 | POS offline sync endpoint `/api/sync/pos` (idempotency) | Claude Opus 4.6 | 2026-05-10 | included in T-0061 |
 
