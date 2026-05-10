@@ -78,32 +78,32 @@
 | T-0051 | Schema stock_locations, stock_movements, stock_levels | Antigravity (Opus 4.6) | 2026-05-09 | included in T-0050 |
 | T-0052 | Schema BOM + bom_lines + bom_substitutes | Antigravity (Opus 4.6) | 2026-05-09 | included in T-0050 |
 | T-0053 | Service inventory CRUD products + variants + categories | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean |
-| T-0054 | Service inventory.adjust (workflow approval) | Claude Opus 4.6 | 2026-05-09 | wip(T-0054): inventory adjust+transfer | Workflow: createDraft → submit → approve → reject |
+| T-0054 | Service inventory.adjust (workflow approval) | Claude Opus 4.6 | 2026-05-09 | wip(T-0054): inventory adjust+transfer | createDraft → submit → approve → reject |
 | T-0055 | Service inventory.transfer (2-step) | Claude Opus 4.6 | 2026-05-09 | included in T-0054 | Ship → receive workflow |
-| T-0056 | Schema sales_orders + lines + payments + refunds + shifts | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean |
-| T-0057 | Service pos.createSale + shift services | Claude Opus 4.6 | 2026-05-09 | 5226328: 263 tests pass |
-| T-0058 | Service pos.refund | Claude Opus 4.6 | 2026-05-09 | 2ac4c2e: 282 tests pass |
+| T-0056 | Schema sales_orders + lines + payments + refunds + shifts | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean | |
+| T-0057 | Service pos.createSale + shift services | Claude Opus 4.6 | 2026-05-09 | 5226328: 263 tests pass | |
+| T-0058 | Service pos.refund | Claude Opus 4.6 | 2026-05-09 | 2ac4c2e: 282 tests pass | |
 | T-0059+60 | POS UI: shift open/close + order entry + payment modal | Claude Opus 4.6 | 2026-05-10 | typecheck clean | Payment flow logic fixed |
-| T-0061 | PWA setup (Serwist) + service worker + IndexedDB outbox | Claude Opus 4.6 | 2026-05-10 | 1d70ba0: typecheck clean |
-| T-0062 | POS offline sync endpoint `/api/sync/pos` (idempotency) | Claude Opus 4.6 | 2026-05-10 | included in T-0061 |
+| T-0061 | PWA setup (Serwist) + service worker + IndexedDB outbox | Claude Opus 4.6 | 2026-05-10 | 1d70ba0: typecheck clean | |
+| T-0062 | POS offline sync endpoint `/api/sync/pos` (idempotency) | Claude Opus 4.6 | 2026-05-10 | included in T-0061 | |
 
 ### Phase 2.5 — Stock Opname
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
-| T-0073 | Schema stock_opname_sessions + stock_opname_lines + stock_movement_manual | Claude Opus 4.6 | 2026-05-10 | fe2f2c8 | 3 tables |
-| T-0074 | Service import master Excel (Sheet 1) + movement log (Sheet 2) | Claude Opus 4.6 | 2026-05-10 | eb3e8ed | Upsert by SKU + category keyword map |
-| T-0075 | Service stock opname session flow (generate → count → variance → approve) | Claude Opus 4.6 | 2026-05-10 | fe2f2c8 | Workflow service + approveOpname JE |
-| T-0076 | UI stock opname (session create + input fisik + approve variance) | Claude Opus 4.6 | 2026-05-10 | 68e4782 | List + create + detail + line table with optimistic save |
-| T-0085b | Service reporting.dailySummary + payment breakdown + top products | Claude Opus 4.6 | 2026-05-10 | a3035f6 | Typecheck clean |
-| T-0085c | UI reporting/daily-summary (table + charts + export XLSX) | Antigravity (Opus 4.6) | 2026-05-10 | c1fad34 | Typecheck clean, 292 tests pass |
-| T-0085d | MCP tool reporting.get_daily_summary | Antigravity (Opus 4.6) | 2026-05-10 | aeb78dd | Typecheck clean |
-| T-0067 | Schema petty_cash_accounts + petty_cash_transactions | Claude Opus 4.6 | 2026-05-10 | wip(T-0067): petty cash schema | Typecheck clean |
-| T-0068 | Service petty cash (balance, transactions, replenish) | Claude Opus 4.6 | 2026-05-10 | wip(T-0068): petty cash service | Typecheck clean, 5 functions |
-| T-0070 | Schema reimbursement_requests | Claude Opus 4.6 | 2026-05-10 | wip(T-0070): reimbursement schema | Typecheck clean |
-| T-0071 | Service reimbursement (CRUD + workflow + escalation) | Claude Opus 4.6 | 2026-05-10 | wip(T-0071): reimbursement service | Typecheck clean, 7 functions |
-| T-0079 | Service journal attachments + MCP tools | Claude Opus 4.6 | 2026-05-10 | wip(T-0079): journal attachments | Typecheck clean, 4 service + 2 MCP tools |
-| T-0069 | UI petty cash (balance view + history) | Claude Opus 4.6 | 2026-05-10 | feat(T-0069): petty cash UI | Typecheck clean, 3 files + sidebar + i18n |
+| T-0073 | Schema stock_opname_sessions + stock_opname_lines + stock_movement_manual | Claude Opus 4.6 | 2026-05-10 | fe2f2c8 | |
+| T-0074 | Service import master Excel (Sheet 1) + movement log (Sheet 2) | Claude Opus 4.6 | 2026-05-10 | eb3e8ed | |
+| T-0075 | Service stock opname session flow (generate → count → variance → approve) | Claude Opus 4.6 | 2026-05-10 | fe2f2c8 | |
+| T-0076 | UI stock opname (session create + input fisik + approve variance) | Claude Opus 4.6 | 2026-05-10 | 68e4782 | |
+| T-0079 | Service journal attachments (upload + download) + MCP tools | Claude Opus 4.6 | 2026-05-10 | wip(T-0079): journal attachments | 4 service + 2 MCP tools |
+| T-0069 | UI petty cash (balance view + history) | Claude Opus 4.6 | 2026-05-10 | feat(T-0069): petty cash UI | 3 files + sidebar + i18n |
+| T-0067 | Schema petty_cash_accounts + petty_cash_transactions | Claude Opus 4.6 | 2026-05-10 | wip(T-0067): petty cash schema | |
+| T-0068 | Service petty cash (balance, transactions, replenish) | Claude Opus 4.6 | 2026-05-10 | wip(T-0068): petty cash service | 5 functions |
+| T-0070 | Schema reimbursement_requests | Claude Opus 4.6 | 2026-05-10 | wip(T-0070): reimbursement schema | |
+| T-0071 | Service reimbursement (CRUD + workflow + escalation) | Claude Opus 4.6 | 2026-05-10 | wip(T-0071): reimbursement service | 7 functions |
+| T-0085b | Service reporting.dailySummary + payment breakdown + top products | Claude Opus 4.6 | 2026-05-10 | a3035f6 | |
+| T-0085c | UI reporting/daily-summary (table + charts + export XLSX) | Antigravity (Opus 4.6) | 2026-05-10 | c1fad34 | 292 tests pass |
+| T-0085d | MCP tool reporting.get_daily_summary | Antigravity (Opus 4.6) | 2026-05-10 | aeb78dd | |
 
 ---
 
