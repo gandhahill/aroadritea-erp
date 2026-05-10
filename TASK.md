@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0086 | Schema naixer_product_codes + naixer_modifier_codes + naixer_qr_format_config | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟨 IN_PROGRESS | SD §33.2 |
+| T-0081 | Service kitchen.generateQrPayload (strategy pattern dash/pipe) | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟨 IN_PROGRESS | SD §33.3, ADR-0007 |
 
 ---
 
@@ -116,6 +116,12 @@
 | T-0064 | Service purchasing.createPO + workflow approval | Claude Opus 4.6 | 2026-05-11 | ac09649: 351 tests pass, typecheck clean | 6 files |
 | T-0065 | Service purchasing.createGRN + confirmGRN + JE generator | Claude Opus 4.6 | 2026-05-11 | 2a585d8: 385 tests pass, typecheck clean | 5 files |
 
+### Phase 3 — Kitchen + KDS + Customer Display
+
+| ID | Title | Owner | Completed | Commit | Note |
+|----|-------|-------|-----------|--------|------|
+| T-0086 | Schema naixer_product_codes + naixer_modifier_codes + naixer_qr_format_config | Claude Opus 4.6 | 2026-05-11 | 85654de | 3 tables + seed |
+
 ---
 
 ## Backlog (scoped, not yet started)
@@ -139,7 +145,6 @@
 
 | ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
-| T-0086 | Schema naixer_product_codes, naixer_modifier_codes, naixer_qr_format_config | kitchen | SD §33.2 | S |
 | T-0081 | Service kitchen.generateQrPayload (strategy pattern dash/pipe) | kitchen | SD §33.3, ADR-0007 | M |
 | T-0082 | UI Settings → Integrations → Naixer KDS | ui | SD §33.7 | L |
 | T-0083 | Script seed-naixer-codes.ts (CSV import) | infra | ADR-0007 | S |

@@ -142,6 +142,7 @@ export const salesOrderLines = pgTable(
 
     // KDS integration (SD §33)
     kdsQrToken: text('kds_qr_token'),
+    kdsQrPayload: text('kds_qr_payload'),
 
     notes: text('notes'),
 
