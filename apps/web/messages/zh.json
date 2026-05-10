@@ -153,6 +153,16 @@
     "edit": "编辑计划",
     "notFound": "计划未找到"
   },
+  "inventory": {
+    "opname": {
+      "title": "库存盘点",
+      "subtitle": "管理库存盘点会话和库存调整。",
+      "variance": {
+        "title": "库存差异",
+        "subtitle": "每个会话和产品的库存盘点差异报告。"
+      }
+    }
+  },
   "nav": {
     "dashboard": "仪表板",
     "accounting": "会计",

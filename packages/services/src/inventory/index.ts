@@ -84,6 +84,15 @@ export {
   type OpnameLineResult,
 } from './opname-service';
 
+// Variance report
+export {
+  getVarianceReport,
+  type VarianceReportParams,
+  type VarianceReportResult,
+  type VarianceSessionRow,
+  type VarianceProductRow,
+} from './variance-service';
+
 // Import service (Excel Sheet 1 + Sheet 2)
 export {
   importMasterFromExcel,

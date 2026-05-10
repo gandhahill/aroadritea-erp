@@ -153,6 +153,16 @@
     "edit": "Edit Schedule",
     "notFound": "Schedule not found"
   },
+  "inventory": {
+    "opname": {
+      "title": "Stock Opname",
+      "subtitle": "Manage stock opname sessions and inventory adjustments.",
+      "variance": {
+        "title": "Inventory Variance",
+        "subtitle": "Stock opname variance report per session and product."
+      }
+    }
+  },
   "nav": {
     "dashboard": "Dashboard",
     "accounting": "Accounting",

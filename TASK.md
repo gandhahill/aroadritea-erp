@@ -22,7 +22,9 @@
 
 > Only those with 🟨 or 🟥 status. Move to Done when finished.
 
-_(no active tasks — all done or in backlog)_
+| ID | Title | Owner | Started | Last Updated | Status | Note |
+|----|-------|-------|---------|-------------|--------|------|
+| T-0077 | UI inventory variance dashboard + report | Claude Opus 4.6 | 2026-05-10 | 2026-05-10 | 🟨 IN_PROGRESS | checkpoint: docs/checkpoints/T-0077-inventory-variance.checkpoint.md |
 
 ---
 

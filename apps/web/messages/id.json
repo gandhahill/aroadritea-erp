@@ -156,6 +156,16 @@
     "edit": "Ubah Jadwal",
     "notFound": "Jadwal tidak ditemukan"
   },
+  "inventory": {
+    "opname": {
+      "title": "Stock Opname",
+      "subtitle": "Kelola sesi stock opname dan penyesuaian inventaris.",
+      "variance": {
+        "title": "Varians Persediaan",
+        "subtitle": "Laporan selisih stock opname per sesi dan produk."
+      }
+    }
+  },
   "nav": {
     "dashboard": "Dasbor",
     "accounting": "Akuntansi",
