@@ -110,6 +110,7 @@
 | T-0085d | MCP tool reporting.get_daily_summary | Antigravity (Opus 4.6) | 2026-05-10 | aeb78dd | |
 | T-0081a | Service pos.payment + donation/rounding flow | Claude Opus 4.6 | 2026-05-10 | 01afcc7 | donation.ts + JE + UI |
 | T-0085h | Donation report — service + UI + MCP tool | Claude Opus 4.6 | 2026-05-10 | c3a40d1 | 9 files |
+| T-0085e | Service reporting.hourlySales + groupBy logic | Claude Opus 4.6 | 2026-05-11 | feat(T-0085e): hourly sales service | 3 files, 8 tests |
 
 ---
 
@@ -130,7 +131,6 @@
 |----|-------|--------|-----------|----------|
 | T-0064 | Service purchasing.createPO + workflow approval | purchasing | SD §21.6 | L |
 | T-0065 | Service purchasing.createGRN + JE generator | purchasing | SD §21.6 | M |
-| T-0085e | Service reporting.hourlySales + groupBy logic | reporting | SD §25.6 | L |
 | T-0085f | UI reporting/hourly-sales (heatmap + table + export XLSX) | ui | SD §25.6.3 | L |
 | T-0085g | MCP tool reporting.get_hourly_sales | mcp | SD §25.6 | S |
 
