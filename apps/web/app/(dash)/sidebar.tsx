@@ -30,6 +30,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Chart of Accounts', href: '/accounting/coa', icon: <></> },
       { label: 'Journal Entries', href: '/accounting/journals', icon: <></> },
       { label: 'Periods', href: '/accounting/periods', icon: <></> },
+      { label: 'Petty Cash', href: '/accounting/petty-cash', icon: <></> },
     ],
   },
   {

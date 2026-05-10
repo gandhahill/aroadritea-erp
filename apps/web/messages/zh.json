@@ -96,6 +96,24 @@
       "title": "会计期间",
       "open": "打开期间",
       "close": "关闭期间"
+    },
+    "pettyCash": {
+      "title": "零用金",
+      "subtitle": "按门店监控零用金余额和交易记录。",
+      "balance": "余额",
+      "plafond": "限额",
+      "lowBalance": "余额不足",
+      "lastReplenish": "上次补充",
+      "history": "交易记录",
+      "all": "全部",
+      "topup": "补充",
+      "expense": "支出",
+      "date": "日期",
+      "type": "类型",
+      "description": "说明",
+      "amount": "金额",
+      "noTransactions": "暂无交易记录。",
+      "noAccounts": "暂无零用金账户。请联系管理员创建。"
     }
   },
   "scheduledJobs": {

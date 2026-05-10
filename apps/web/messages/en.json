@@ -96,6 +96,24 @@
       "title": "Accounting Periods",
       "open": "Open Period",
       "close": "Close Period"
+    },
+    "pettyCash": {
+      "title": "Petty Cash",
+      "subtitle": "Monitor petty cash balance per location and transaction history.",
+      "balance": "Balance",
+      "plafond": "Limit",
+      "lowBalance": "Low Balance",
+      "lastReplenish": "Last replenishment",
+      "history": "Transaction History",
+      "all": "All",
+      "topup": "Top Up",
+      "expense": "Expense",
+      "date": "Date",
+      "type": "Type",
+      "description": "Description",
+      "amount": "Amount",
+      "noTransactions": "No transactions yet.",
+      "noAccounts": "No petty cash accounts. Contact admin to create one."
     }
   },
   "scheduledJobs": {

@@ -99,6 +99,24 @@
       "title": "Periode Akuntansi",
       "open": "Buka Periode",
       "close": "Tutup Periode"
+    },
+    "pettyCash": {
+      "title": "Kas Kecil",
+      "subtitle": "Pantau saldo kas kecil per lokasi dan riwayat transaksi.",
+      "balance": "Saldo",
+      "plafond": "Plafond",
+      "lowBalance": "Saldo Rendah",
+      "lastReplenish": "Isi ulang terakhir",
+      "history": "Riwayat Transaksi",
+      "all": "Semua",
+      "topup": "Isi Ulang",
+      "expense": "Pengeluaran",
+      "date": "Tanggal",
+      "type": "Jenis",
+      "description": "Keterangan",
+      "amount": "Jumlah",
+      "noTransactions": "Belum ada transaksi.",
+      "noAccounts": "Belum ada kas kecil. Hubungi admin untuk membuat akun kas kecil."
     }
   },
   "scheduledJobs": {

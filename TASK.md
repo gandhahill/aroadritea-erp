@@ -24,7 +24,7 @@
 
 | ID | Status | Title | Owner (AI model) | Started | Last Updated | Checkpoint | Note |
 |----|--------|-------|------------------|---------|-------------|-----------|------|
-| _(none currently active)_ | | | | | | | |
+| _(none)_ | | | | | | | |
 
 ---
 
@@ -105,6 +105,7 @@
 | T-0070 | Schema reimbursement_requests | Claude Opus 4.6 | 2026-05-10 | wip(T-0070): reimbursement schema | Typecheck clean |
 | T-0071 | Service reimbursement (CRUD + workflow + escalation) | Claude Opus 4.6 | 2026-05-10 | wip(T-0071): reimbursement service | Typecheck clean, 7 functions |
 | T-0079 | Service journal attachments + MCP tools | Claude Opus 4.6 | 2026-05-10 | wip(T-0079): journal attachments | Typecheck clean, 4 service + 2 MCP tools |
+| T-0069 | UI petty cash (balance view + history) | Claude Opus 4.6 | 2026-05-10 | feat(T-0069): petty cash UI | Typecheck clean, 3 files + sidebar + i18n |
 
 ---
 
@@ -127,7 +128,7 @@
 | T-0065 | Service purchasing.createGRN + JE generator | purchasing | SD §21.6 | M |
 | ~~T-0067~~ | ~~Schema petty_cash_accounts + petty_cash_transactions~~ | ~~accounting~~ | ~~SD §25.7~~ | ~~S~~ | _(moved to Active)_ |
 | ~~T-0068~~ | ~~Service petty cash (balance, transactions, replenish)~~ | ~~accounting~~ | ~~SD §25.7~~ | ~~M~~ | _(moved to Active)_ |
-| T-0069 | UI petty cash (balance view + history + replenish form) | ui | SD §25.7 | M |
+| ~~T-0069~~ | ~~UI petty cash (balance view + history + replenish form)~~ | ~~ui~~ | ~~SD §25.7~~ | ~~M~~ | _(moved to Active)_ |
 | ~~T-0070~~ | ~~Schema reimbursement_requests~~ | ~~accounting~~ | ~~SD §25.8~~ | ~~S~~ | _(moved to Active)_ |
 | ~~T-0071~~ | ~~Service reimbursement (CRUD + workflow + escalation)~~ | ~~accounting~~ | ~~SD §25.8~~ | ~~M~~ | _(moved to Active)_ |
 | T-0072 | UI reimbursement (form + list + approve/reject) | ui | SD §25.8 | M |
