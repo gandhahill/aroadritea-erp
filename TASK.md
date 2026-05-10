@@ -123,7 +123,6 @@
 | T-0070 | Schema reimbursement_requests | accounting | SD §25.8 | S |
 | T-0071 | Service reimbursement (CRUD + workflow + escalation) | accounting | SD §25.8 | M |
 | T-0072 | UI reimbursement (form + list + approve/reject) | ui | SD §25.8 | M |
-| T-0076 | UI stock opname (session create + input fisik + approve variance) | ui | SD §25.9 | L |
 | T-0077 | UI inventory variance dashboard + report | ui | SD §25.9.4 | M |
 | T-0078 | Schema journal_attachments | accounting | SD §25.10 | S |
 | T-0079 | Service journal attachments (upload + download) + MCP tools | accounting | SD §25.10 | M |
