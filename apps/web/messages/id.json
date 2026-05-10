@@ -21,11 +21,14 @@
       "active": "Aktif",
       "inactive": "Nonaktif",
       "draft": "Draf",
+      "in_progress": "Sedang Berlangsung",
+      "submitted": "Diajukan",
+      "approved": "Disetujui",
+      "rejected": "Ditolak",
       "posted": "Terposting",
       "reversed": "Dibalik",
       "pending": "Menunggu",
-      "approved": "Disetujui",
-      "rejected": "Ditolak"
+      "cancelled": "Dibatalkan"
     },
     "labels": {
       "name": "Nama",
@@ -242,5 +245,53 @@
     "name": "Aroadri Tea ERP",
     "company": "PT Gandha Hill Catering Management Indonesia",
     "tagline": "Enterprise Resource Planning"
+  },
+  "opname": {
+    "title": "Stock Opname",
+    "createSession": "Buat Sesi Opname",
+    "sessionDate": "Tanggal Sesi",
+    "periodCode": "Kode Periode",
+    "workflow": {
+      "step1": "Buat Sesi",
+      "step2": "Hitung Fisik",
+      "step3": "Ajukan",
+      "step4": "Setujui"
+    },
+    "status": {
+      "draft": "Draf",
+      "in_progress": "Sedang Berlangsung",
+      "submitted": "Diajukan",
+      "approved": "Disetujui",
+      "cancelled": "Dibatalkan"
+    },
+    "lines": {
+      "systemQty": "Stok Sistem",
+      "countedQty": "Dihitung",
+      "variance": "Selisih",
+      "varianceValue": "Nilai Selisih",
+      "lineNo": "No."
+    },
+    "actions": {
+      "recordCount": "Input Hitung",
+      "submitOpname": "Ajukan Opname",
+      "approveOpname": "Setujui",
+      "cancelOpname": "Batalkan",
+      "saveProgress": "Simpan Progres",
+      "saveAll": "Simpan Semua"
+    },
+    "messages": {
+      "sessionCreated": "Sesi opname berhasil dibuat",
+      "countRecorded": "Hitung berhasil disimpan",
+      "submitted": "Opname berhasil diajukan",
+      "approved": "Opname berhasil disetujui",
+      "cancelled": "Opname berhasil dibatalkan",
+      "noLines": "Belum ada baris produk",
+      "allCounted": "Semua baris sudah dihitung",
+      "pendingCount": "{n} baris belum dihitung"
+    },
+    "errors": {
+      "allLinesMustBeCounted": "Semua baris harus dihitung sebelum diajukan",
+      "approvalRestricted": "Hanya director yang dapat menyetujui"
+    }
   }
 }

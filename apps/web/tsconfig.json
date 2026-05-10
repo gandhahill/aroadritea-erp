@@ -25,7 +25,9 @@
       "@erp/services": ["../../packages/services/index.ts"],
       "@erp/services/*": ["../../packages/services/src/*"],
       "@erp/offline": ["../../packages/offline/src/index.ts"],
-      "@erp/offline/*": ["../../packages/offline/src/*"]
+      "@erp/offline/*": ["../../packages/offline/src/*"],
+      "drizzle-orm": ["../../node_modules/drizzle-orm"],
+      "drizzle-orm/*": ["../../node_modules/drizzle-orm/*"]
     },
     "allowJs": true,
     "incremental": true
