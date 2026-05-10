@@ -97,6 +97,7 @@ const NAV_ITEMS: NavItem[] = [
     ),
     children: [
       { label: 'Scheduled Jobs', href: '/settings/scheduled-jobs', icon: <></> },
+      { label: 'Naixer KDS', href: '/settings/integrations/naixer', icon: <></> },
     ],
   },
 ];
