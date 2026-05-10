@@ -9,8 +9,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@erp/offline": "workspace:*",
     "@erp/db": "workspace:*",
+    "@erp/offline": "workspace:*",
     "@erp/services": "workspace:*",
     "@erp/shared": "workspace:*",
     "@erp/ui": "workspace:*",
@@ -25,7 +25,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "serwist": "^9.5.11",
-    "tailwindcss": "^4.2.4"
+    "tailwindcss": "^4.2.4",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

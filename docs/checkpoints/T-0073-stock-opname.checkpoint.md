@@ -62,4 +62,4 @@
 
 ## Next Steps
 
-**Immediate next**: T-0074 — Service Excel import master data (Sheet 1 template) + movement log (Sheet 2) via `stock_movement_manual`
+**Immediate next**: T-0076 — UI stock opname (session create + physical count input + approve variance)
