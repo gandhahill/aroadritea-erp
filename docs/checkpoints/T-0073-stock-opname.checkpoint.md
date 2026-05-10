@@ -1,137 +1,65 @@
 # T-0073 + T-0075 Checkpoint — Stock Opname Schema + Service
 
 **Task**: Stock opname schema + service workflow
-**Status**: 🟨 IN_PROGRESS
-**Started**: 2026-05-10
-**Owner**: Claude Opus 4.6
+**Status**: ✅ DONE
+**Commit**: fe2f2c8
+**Date**: 2026-05-10
 
 ---
 
-## Scope
+## Files Created
 
-- T-0073: Schema `stock_opname_sessions`, `stock_opname_lines`, `stock_movement_manual`
-- T-0075: Service `stockOpname.create`, `submit`, `approve` (variance JE)
-
-**Note**: T-0074 (Excel import) dan T-0076 (UI) termasuk Phase 2.5 tapi akan dibuat setelah schema + service.
-
----
-
-## Step 1 — Schema (T-0073)
-
-Files to create:
 - `packages/db/schema/stock-opname.ts` — 3 tables
-- `packages/db/migrations/XXXX_create_stock_opname.sql` — Drizzle migration
+- `packages/services/src/inventory/opname-service.ts` — full workflow service
+- `packages/services/src/inventory/number-generator.ts` — added `generateOpnameNumber`
+- `packages/db/index.ts` — added stock-opname exports
+- `packages/services/src/inventory/index.ts` — added opname service exports
 
-**Tables**:
-
-### `stock_opname_sessions`
-| Field | Tipe | Catatan |
-|-------|------|--------|
-| id | text PK (ULID) | |
-| tenant_id | text | |
-| location_id | text FK | |
-| number | text UNIQUE | `SO-2026-05-0001` |
-| sessionDate | date | tanggal stok opname |
-| periodCode | text | linked accounting period for JE |
-| status | text CHECK | `'draft' \| 'in_progress' \| 'submitted' \| 'approved' \| 'cancelled'` |
-| preparedBy | text FK users | |
-| preparedAt | timestamp | |
-| submittedBy | text FK users | |
-| submittedAt | timestamp | |
-| approvedBy | text FK users | |
-| approvedAt | timestamp | |
-| notes | text | |
-| version | int DEFAULT 1 | |
-| created_at, updated_at, deleted_at, created_by, updated_by | | |
-
-### `stock_opname_lines`
-| Field | Tipe | Catatan |
-|-------|------|--------|
-| id | text PK (ULID) | |
-| sessionId | text FK | |
-| lineNo | int | |
-| productId | text FK | |
-| variantId | text FK nullable | |
-| uom | text | |
-| systemQty | numeric(14,3) | qty_on_hand dari stock_levels (snapshot saat generate) |
-| countedQty | numeric(14,3) nullable | input fisik dari penghitung |
-| varianceQty | numeric(14,3) nullable | countedQty - systemQty |
-| varianceValue | bigint nullable | varianceQty × avgUnitCost (untuk JE) |
-| isCounted | boolean DEFAULT false | sudah diinput belum |
-| notes | text | |
-| created_at, updated_at, deleted_at, created_by, updated_by | | |
-
-### `stock_movement_manual`
-For T-0074 (Excel import), track manual movements that come from imported Excel.
-This table allows importing stock movements from Sheet 2 of the template without
-going through the opname workflow. It acts as a staging table.
-
-| Field | Tipe | Catatan |
-|-------|------|--------|
-| id | text PK (ULID) | |
-| tenant_id | text | |
-| location_id | text FK | |
-| movementDate | date | |
-| productId | text FK | |
-| variantId | text FK nullable | |
-| qtyDelta | numeric(14,3) | can be positive or negative |
-| uom | text | |
-| reason | text | 'manual_import' |
-| reference | text | source document or notes |
-| created_at, deleted_at, created_by | | |
+**Files Modified**:
+- `apps/web/app/(dash)/pos/payment-modal.tsx` — fix payment flow logic
+- `TASK.md` — T-0059+60 marked done, T-0073+75 added to Phase 2.5
 
 ---
 
-## Step 2 — Migration
+## What Was Built
 
-File: `packages/db/migrations/0001_create_stock_opname.sql`
+### Schema (T-0073)
 
-Create the 3 tables with proper indexes.
+**`stock_opname_sessions`**: header with number (SO-YYYY-MM-NNNN), sessionDate, periodCode, status (draft|in_progress|submitted|approved|cancelled), preparedBy/submittedBy/approvedBy timestamps, version.
 
----
+**`stock_opname_lines`**: per-product snapshot lines with systemQty (from stock_levels at create time), countedQty (physical input), isCounted flag, varianceQty, varianceValue (bigint = |variance| × avgUnitCost).
 
-## Step 3 — Number Generator
+**`stock_movement_manual`**: staging table for T-0074 (Excel import Sheet 2), with `processed` flag and `processedAt`.
 
-File: `packages/services/src/inventory/number-generator.ts`
-Add `generateOpnameNumber(tenantId, locationId, sessionDate)` → `SO-YYYY-MM-NNNN`
+### Service (T-0075)
 
----
+**`createOpnameDraft`**: permission check, period validation, snapshot all active product stock levels as lines, generate number SO-YYYY-MM-NNNN, audit log.
 
-## Step 4 — Service
+**`recordCount`**: update countedQty + isCounted on lines, transition draft→in_progress.
 
-File: `packages/services/src/inventory/opname-service.ts`
+**`submitOpname`**: all lines must be counted, calculate varianceQty + varianceValue per line using avgUnitCost from stock_levels.
 
-Workflow (SD §25.9.3):
+**`approveOpname`**: director role check, for each line with variance≠0: upsert stock_levels + create stock_movement (reason=adjustment, refType=stock_opname), create balancing JE (shortage=DR 6-1110/CR 1-1210, surplus=DR 1-1210/CR 4-2020), audit log.
 
-1. **createOpnameSession(input, ctx)** → `draft`
-   - Generate number
-   - Snapshot `systemQty` from `stock_levels` for all active tracked products at location
-   - Creates lines with systemQty = current qty_on_hand, countedQty = null
+**`cancelOpname`**: allowed from draft/in_progress only.
 
-2. **recordCount(sessionId, lines[], ctx)** → `in_progress`
-   - Updates countedQty + isCounted on each line
-   - Calculates varianceQty = countedQty - systemQty
+**`getOpname`**: load session + lines.
 
-3. **submitOpname(sessionId, ctx)** → `submitted`
-   - All lines must be isCounted = true
-   - Calculate varianceValue per line = varianceQty × avgUnitCost
-   - Status → submitted
+### Key Design Decisions
 
-4. **approveOpname(sessionId, ctx)** → `approved`
-   - Requires director role (isDirector)
-   - For each line with varianceQty ≠ 0:
-     - Create `stock_movement` with reason='adjustment' and reference=(opname session)
-     - Update `stock_levels` qty_on_hand = countedQty
-   - Create balancing JE:
-     - If total variance negative (shortage): DR Beban Operasional (6-1110), CR Inventory (1-1210)
-     - If total variance positive (surplus): DR Inventory, CR Pendapatan Lainnya (4-2020)
-     - Amount = |totalVarianceValue|
-   - Audit log
-
-5. **cancelOpname(sessionId, ctx)** → `cancelled` (only if draft/in_progress)
+- VarianceJE uses `referenceType: 'manual'` (only valid enum value)
+- `upsertStockLevel` helper avoids `onConflictDoUpdate` (not in all DB drivers)
+- `generateId()` on every audit log insert (required by schema)
 
 ---
 
-## Next step
+## TypeScript
 
-Start with Step 1: Create `packages/db/schema/stock-opname.ts`
+- `pnpm tsc -p packages/services/tsconfig.json --noEmit` — clean
+- `pnpm tsc -p apps/web/tsconfig.json --noEmit` — clean
+
+---
+
+## Next Steps
+
+**Immediate next**: T-0074 — Service Excel import master data (Sheet 1 template) + movement log (Sheet 2) via `stock_movement_manual`
