@@ -86,7 +86,18 @@
       "totalDebit": "Total Debit",
       "totalCredit": "Total Kredit",
       "notBalanced": "Jurnal tidak seimbang",
-      "periodClosed": "Periode sudah ditutup"
+      "periodClosed": "Periode sudah ditutup",
+      "attachments": {
+        "title": "Lampiran",
+        "subtitle": "Bukti transaksi atau dokumen pendukung.",
+        "upload": "Unggah Lampiran",
+        "uploadInfo": "Upload file via R2/S3 presigned URL. API endpoint akan diaktifkan setelah penyimpanan objek dikonfigurasi. Hubungi administrator.",
+        "download": "Unduh",
+        "delete": "Hapus",
+        "deleting": "Menghapus...",
+        "empty": "Belum ada lampiran.",
+        "confirmDelete": "Hapus lampiran ini?"
+      }
     },
     "coa": {
       "title": "Bagan Akun",

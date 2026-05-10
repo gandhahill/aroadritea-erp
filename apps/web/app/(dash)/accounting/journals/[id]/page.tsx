@@ -7,6 +7,8 @@ import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
 import { redirect, notFound } from 'next/navigation';
 import { fetchJournalDetail } from '../actions';
+import { fetchJournalAttachments } from '../attachments/actions';
+import { JournalAttachmentsList } from './attachments-list';
 
 export const metadata: Metadata = {
   title: 'Journal Entry Detail',
@@ -31,6 +33,10 @@ export default async function JournalDetailPage({
     posted:   { bg: 'bg-brand-jade-light', text: 'text-brand-jade', dot: 'bg-brand-jade' },
     reversed: { bg: 'bg-brand-clay-light', text: 'text-brand-clay', dot: 'bg-brand-clay' },
   };
+  const [attachments, attachmentsError] = await fetchJournalAttachments(id).then(
+    (r) => [r.data ?? [], r.error ?? null] as [unknown[], string | null],
+  );
+
   const style = statusStyles[journal.status] ?? statusStyles.draft;
 
   return (
@@ -122,6 +128,23 @@ export default async function JournalDetailPage({
           </tfoot>
         </table>
       </div>
+
+      {/* Attachments */}
+      {!attachmentsError && (
+        <div className="surface-card p-6">
+          <JournalAttachmentsList
+            journalEntryId={id}
+            initialAttachments={attachments as Array<{
+              id: string;
+              fileName: string;
+              fileSize: number;
+              mimeType: string;
+              uploadedBy: string | null;
+              uploadedAt: string;
+            }>}
+          />
+        </div>
+      )}
 
       {/* Audit info */}
       <div className="flex items-center gap-6 text-xs text-brand-ink-3">

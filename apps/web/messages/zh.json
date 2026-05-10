@@ -83,7 +83,18 @@
       "totalDebit": "借方合计",
       "totalCredit": "贷方合计",
       "notBalanced": "凭证不平衡",
-      "periodClosed": "期间已关闭"
+      "periodClosed": "期间已关闭",
+      "attachments": {
+        "title": "附件",
+        "subtitle": "支持文件和交易凭证。",
+        "upload": "上传附件",
+        "uploadInfo": "通过R2/S3预签名URL上传文件。对象存储配置后，API端点将激活。请联系管理员。",
+        "download": "下载",
+        "delete": "删除",
+        "deleting": "删除中...",
+        "empty": "暂无附件。",
+        "confirmDelete": "删除此附件？"
+      }
     },
     "coa": {
       "title": "科目表",

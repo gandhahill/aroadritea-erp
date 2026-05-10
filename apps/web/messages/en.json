@@ -83,7 +83,18 @@
       "totalDebit": "Total Debit",
       "totalCredit": "Total Credit",
       "notBalanced": "Journal is not balanced",
-      "periodClosed": "Period is closed"
+      "periodClosed": "Period is closed",
+      "attachments": {
+        "title": "Attachments",
+        "subtitle": "Supporting documents and transaction evidence.",
+        "upload": "Upload Attachment",
+        "uploadInfo": "File upload via R2/S3 presigned URL. API endpoint will be activated after object storage is configured. Contact administrator.",
+        "download": "Download",
+        "delete": "Delete",
+        "deleting": "Deleting...",
+        "empty": "No attachments yet.",
+        "confirmDelete": "Delete this attachment?"
+      }
     },
     "coa": {
       "title": "Chart of Accounts",
