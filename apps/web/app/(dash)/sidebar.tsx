@@ -31,6 +31,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Journal Entries', href: '/accounting/journals', icon: <></> },
       { label: 'Periods', href: '/accounting/periods', icon: <></> },
       { label: 'Petty Cash', href: '/accounting/petty-cash', icon: <></> },
+      { label: 'Reimbursement', href: '/accounting/reimbursement', icon: <></> },
     ],
   },
   {
