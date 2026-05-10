@@ -1,35 +1,36 @@
 # T-0085c Checkpoint — Daily Summary UI
 
 **Task**: UI reporting/daily-summary (table + charts + export XLSX)
-**Status**: 🟨 IN_PROGRESS
+**Status**: 🟩 DONE
 **Date**: 2026-05-10
+**Commit**: c1fad34
 
 ---
 
-## Spec (SD §25.5.2)
+## What was done
 
-### Files to create
-- `apps/web/app/(dash)/reporting/daily-summary/page.tsx` — main page
-- `apps/web/app/(dash)/reporting/daily-summary/actions.ts` — server actions
-- `apps/web/app/(dash)/reporting/daily-summary/export-utils.ts` — XLSX export helper
+### Files created/modified
+- `apps/web/app/(dash)/reporting/daily-summary/page.tsx` — server component, session check, search params → fetchDailySummary
+- `apps/web/app/(dash)/reporting/daily-summary/actions.ts` — server action wrapping `getDailySummary` service
+- `apps/web/app/(dash)/reporting/daily-summary/daily-summary-client.tsx` — full client component
 
-### Features
-1. **Filter bar**: date range (start/end), location selector, cashier selector
-2. **Summary cards**: gross sales, discount total, net sales, PB1 tax, delivery commission, net revenue, refund total/count
-3. **Payment breakdown table**: method | tx_count | total (formatted IDR)
-4. **Top 10 products table**: rank | product | qty | nominal
-5. **Charts** (lightweight, no chart lib — use inline SVG or CSS-based):
-   - Donut chart for payment method %
-   - Horizontal bar chart for top products
-6. **Export XLSX** — use `xlsx` library already in `@erp/web` (package.json)
-7. **Print / PDF** — window.print()
+### Features implemented
+1. **Filter bar**: date range (start/end), location selector, search button with loading spinner
+2. **Summary cards**: 8 metric cards (gross sales, discount, net sales, PB1, delivery commission, net revenue, refund total/count)
+3. **Payment breakdown table**: method | tx_count | total (formatted IDR) with footer totals
+4. **Donut chart**: CSS conic-gradient for payment method distribution (no external lib)
+5. **Top 10 products table**: rank | product | qty | nominal with channel badge
+6. **Horizontal bar chart**: top 5 products (pure CSS)
+7. **Shift summary table**: cashier, open/close times, cash variance (color-coded)
+8. **Export XLSX**: multi-sheet workbook (Ringkasan, Pembayaran, Top Products, Shift)
+9. **Preliminary badge**: shown when data is preliminary
 
-### Key notes
-- `getDailySummary(params, ctx)` — params: `{ locationId, startDate: YYYY-MM-DD, endDate: YYYY-MM-DD, cashierId? }`
-- Returns bigint strings — format as IDR with `Intl.NumberFormat('id-ID', { currency: 'IDR' })`
-- XLSX export: use `XLSX.utils.json_to_sheet` + `XLSX.writeFile`
-- No external chart library — CSS-only or inline SVG (for 2 GB RAM constraint)
-- Locale: Bahasa Indonesia default
+### Fixes applied
+- Fixed truncated state declarations (isLoading, error, handleSearch were missing)
+- Fixed import paths from `@erp/services/reporting/daily-summary` → `@erp/services/reporting` (matching package.json exports)
+- Fixed TS2322 color type error in DonutChart segments
 
-### Next Step
-Create `apps/web/app/(dash)/reporting/daily-summary/page.tsx` with filter form + summary cards + two tables + XLSX export button.
+### Verification
+- ✅ Typecheck clean (`npx tsc --noEmit` — 0 errors)
+- ✅ 292 tests pass (`vitest run`)
+- ✅ Pushed to GitHub

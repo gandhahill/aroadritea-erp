@@ -13,8 +13,8 @@ import { z } from 'zod';
 import { db } from '@erp/db';
 import { accounts, journalEntries, journalLines } from '@erp/db/schema/accounting';
 import { eq, and, gte, lte } from 'drizzle-orm';
-import { balanceSheet, trialBalance, profitLoss } from '@erp/services/reporting';
-import type { BalanceSheetInput, TrialBalanceInput, ProfitLossInput } from '@erp/services/reporting';
+import { balanceSheet, trialBalance, profitLoss, getDailySummary } from '@erp/services/reporting';
+import type { BalanceSheetInput, TrialBalanceInput, ProfitLossInput, DailySummaryParams } from '@erp/services/reporting';
 import { can } from '@erp/services/iam';
 import { mcpError, mcpSuccess, serializeResult } from '../helpers';
 import type { McpContext } from '../context';
@@ -57,6 +57,13 @@ export const TrialBalanceSchema = z.object({
   locale: z.enum(['id', 'en', 'zh']).optional().default('id'),
 });
 
+export const DailySummarySchema = z.object({
+  location_id: z.string(),
+  start_date: z.string(),
+  end_date: z.string(),
+  cashier_id: z.string().optional(),
+});
+
 // --- Tool list ---
 
 export const reportingTools = [
@@ -65,6 +72,7 @@ export const reportingTools = [
   { name: 'reporting.cash_flow', schema: CashFlowSchema, handler: cashFlowHandler },
   { name: 'reporting.general_ledger', schema: GeneralLedgerSchema, handler: generalLedgerHandler },
   { name: 'reporting.trial_balance', schema: TrialBalanceSchema, handler: trialBalanceHandler },
+  { name: 'reporting.get_daily_summary', schema: DailySummarySchema, handler: dailySummaryHandler, description: 'Get daily sales summary (gross/net sales, payment breakdown, top products, shift summary). SD §25.5.' },
 ] as const;
 
 // --- Handlers ---
@@ -192,6 +200,25 @@ async function trialBalanceHandler(input: z.infer<typeof TrialBalanceSchema>, ct
     userId: ctx.userId,
     tenantId: ctx.tenantId,
     locationId: input.location_id ?? 'system',
+  });
+
+  return serializeResult(result);
+}
+
+async function dailySummaryHandler(input: z.infer<typeof DailySummarySchema>, ctx: McpContext) {
+  const permitted = await checkPermission(ctx, 'reporting.view');
+  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: reporting.view');
+
+  const params: DailySummaryParams = {
+    locationId: input.location_id,
+    startDate: input.start_date,
+    endDate: input.end_date,
+    cashierId: input.cashier_id,
+  };
+  const result = await getDailySummary(params, {
+    userId: ctx.userId,
+    tenantId: ctx.tenantId,
+    locationId: input.location_id,
   });
 
   return serializeResult(result);
