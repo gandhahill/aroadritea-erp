@@ -86,7 +86,8 @@
 | T-0057 | Service pos.createSale + shift services | Claude Opus 4.6 | 2026-05-09 | 5226328: 263 tests pass |
 | T-0058 | Service pos.refund | Claude | 2026-05-09 | 2ac4c2e: 282 tests pass |
 | T-0059+60 | POS UI: shift open/close + order entry + payment modal | Claude Opus 4.6 | 2026-05-09 | typecheck clean |
-| T-0063 | Schema purchase_orders + GRN + purchase_invoices | Antigravity (Opus 4.6) | 2026-05-09 | verified: typecheck clean |
+| T-0061 | PWA setup (Serwist) + service worker + IndexedDB outbox | Claude Opus 4.6 | 2026-05-10 | 1d70ba0: typecheck clean |
+| T-0062 | POS offline sync endpoint `/api/sync/pos` (idempotency) | Claude Opus 4.6 | 2026-05-10 | included in T-0061 |
 
 ---
 
@@ -99,14 +100,12 @@
 
 | ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
-| T-0016b | Service `audit.record` (audit log write) | audit | SD §15 | M |
+| _(empty — all Phase 1 tasks completed)_ | | | | |
 
 ### Phase 2 — POS + Inventory + BOM + Purchasing
 
 | ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
-| T-0061 | PWA setup (Serwist) + service worker + IndexedDB outbox | pos | SD §14, §35.1.1 | L |
-| T-0062 | POS offline sync endpoint `/api/sync/pos` (idempotency) | pos | SD §10.3, §14 | M |
 | T-0064 | Service purchasing.createPO + workflow approval | purchasing | SD §21.6 | L |
 | T-0065 | Service purchasing.createGRN + JE generator | purchasing | SD §21.6 | M |
 | T-0067 | Schema petty_cash_accounts + petty_cash_transactions | accounting | SD §25.7 | S |
