@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0085h | Service + UI reporting.donations + export XLSX + MCP tool | Claude Opus 4.6 | 2026-05-10 | 2026-05-10 | 🟨 IN_PROGRESS | checkpoint: docs/checkpoints/T-0085h-reporting-donations.checkpoint.md |
+| — | (none) | — | — | — | — | — |
 
 ---
 
@@ -108,7 +108,8 @@
 | T-0085b | Service reporting.dailySummary + payment breakdown + top products | Claude Opus 4.6 | 2026-05-10 | a3035f6 | |
 | T-0085c | UI reporting/daily-summary (table + charts + export XLSX) | Antigravity (Opus 4.6) | 2026-05-10 | c1fad34 | 292 tests pass |
 | T-0085d | MCP tool reporting.get_daily_summary | Antigravity (Opus 4.6) | 2026-05-10 | aeb78dd | |
-| T-0081a | Service pos.payment + donation/rounding flow | Claude Opus 4.6 | 2026-05-10 | feat(T-0081a) | donation.ts + JE + UI |
+| T-0081a | Service pos.payment + donation/rounding flow | Claude Opus 4.6 | 2026-05-10 | 01afcc7 | donation.ts + JE + UI |
+| T-0085h | Donation report — service + UI + MCP tool | Claude Opus 4.6 | 2026-05-10 | c3a40d1 | 9 files |
 
 ---
 
