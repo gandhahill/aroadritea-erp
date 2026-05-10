@@ -11,3 +11,11 @@ export {
   CancelPOInputSchema,
 } from './schemas';
 export type { CreatePOInput, POLineInput } from './schemas';
+export { createGRN, confirmGRN } from './grn-service';
+export type { GRNResult, GRNLineResult, GRNConfirmResult } from './grn-service';
+export {
+  CreateGRNInputSchema,
+  GRNLineInputSchema,
+  ConfirmGRNInputSchema,
+} from './grn-schemas';
+export type { CreateGRNInput, GRNLineInput, ConfirmGRNInput } from './grn-schemas';

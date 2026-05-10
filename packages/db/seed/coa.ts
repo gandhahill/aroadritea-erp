@@ -72,6 +72,7 @@ export const COA_SEED: AccountSeed[] = [
   { code: '2-2010', name: n('Kewajiban Jangka Panjang', 'Long Term Liabilities', '长期负债'), type: 'liability', subtype: 'long_term_liability', normalBalance: 'credit', isPostable: true },
   { code: '2-2020', name: n('Pinjaman Bank BCA', 'Bank BCA Loan', 'BCA银行贷款'), type: 'liability', subtype: 'long_term_liability', normalBalance: 'credit', isPostable: true },
   { code: '2-1110', name: n('PPN Keluaran', 'PPN Outcome (Vat Out)', '销项增值税'), type: 'liability', subtype: 'current_liability', normalBalance: 'credit', isPostable: true },
+  { code: '2-1120', name: n('Barang Diterima Belum Ditagih', 'Goods Received Not Invoiced', '已收未开票'), type: 'liability', subtype: 'current_liability', normalBalance: 'credit', isPostable: true },
   { code: '2-2050', name: n('Donasi Tabungan Amal', 'Donation Trust Payable', '慈善信托负债'), type: 'liability', subtype: 'current_liability', normalBalance: 'credit', isPostable: true }, // SD §25.11
 
   // === MODAL / EKUITAS ===
