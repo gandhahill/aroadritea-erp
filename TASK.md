@@ -91,7 +91,9 @@
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
-| T-0073 | Schema stock_opname_sessions + stock_opname_lines + stock_movement_manual | Claude Opus 4.6 | — | — | IN PROGRESS |
+| T-0073 | Schema stock_opname_sessions + stock_opname_lines + stock_movement_manual | Claude Opus 4.6 | 2026-05-10 | fe2f2c8 | Schema + checkpoint DONE |
+| T-0075 | Service stock opname session flow (generate → count → variance → approve) | Claude Opus 4.6 | 2026-05-10 | fe2f2c8 | Workflow service + approveOpname JE |
+| T-0085b | Service reporting.dailySummary + payment breakdown + top products | Claude Opus 4.6 | 2026-05-10 | a3035f6 | Typecheck clean |
 | T-0061 | PWA setup (Serwist) + service worker + IndexedDB outbox | Claude Opus 4.6 | 2026-05-10 | 1d70ba0: typecheck clean |
 | T-0062 | POS offline sync endpoint `/api/sync/pos` (idempotency) | Claude Opus 4.6 | 2026-05-10 | included in T-0061 |
 
@@ -120,9 +122,7 @@
 | T-0070 | Schema reimbursement_requests | accounting | SD §25.8 | S |
 | T-0071 | Service reimbursement (CRUD + workflow + escalation) | accounting | SD §25.8 | M |
 | T-0072 | UI reimbursement (form + list + approve/reject) | ui | SD §25.8 | M |
-| T-0073 | Schema stock_opname_sessions + stock_opname_lines + stock_movement_manual | inventory | SD §25.9 | M |
 | T-0074 | Service import master Excel (Sheet 1 template) + movement log (Sheet 2) | inventory | SD §25.9.2 | M |
-| T-0075 | Service stock opname session flow (generate → count → variance → approve) | inventory | SD §25.9.3 | L |
 | T-0076 | UI stock opname (session create + input fisik + approve variance) | ui | SD §25.9 | L |
 | T-0077 | UI inventory variance dashboard + report | ui | SD §25.9.4 | M |
 | T-0078 | Schema journal_attachments | accounting | SD §25.10 | S |
@@ -130,7 +130,6 @@
 | T-0080 | UI journal attachments (upload + view + download) | ui | SD §25.10 | S |
 | T-0081a | Service pos.payment + donation/rounding flow | pos | SD §25.11 | M |
 | T-0081b | UI POS payment modal + donation choice | ui | SD §25.11 | S |
-| T-0085b | Service reporting.dailySummary + payment breakdown | reporting | SD §25.5 | M |
 | T-0085c | UI reporting/daily-summary (table + charts + export XLSX) | ui | SD §25.5.2 | L |
 | T-0085d | MCP tool reporting.get_daily_summary | mcp | SD §25.5.3 | S |
 | T-0085e | Service reporting.hourlySales + groupBy logic | reporting | SD §25.6 | L |
