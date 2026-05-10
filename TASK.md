@@ -22,9 +22,7 @@
 
 > Only those with 🟨 or 🟥 status. Move to Done when finished.
 
-| ID | Title | Owner | Started | Last Updated | Status | Note |
-|----|-------|-------|---------|-------------|--------|------|
-| T-0077 | UI inventory variance dashboard + report | Claude Opus 4.6 | 2026-05-10 | 2026-05-10 | 🟨 IN_PROGRESS | checkpoint: docs/checkpoints/T-0077-inventory-variance.checkpoint.md |
+_(no active tasks — all done or in backlog)_
 
 ---
 
@@ -97,6 +95,7 @@
 | T-0074 | Service import master Excel (Sheet 1) + movement log (Sheet 2) | Claude Opus 4.6 | 2026-05-10 | eb3e8ed | |
 | T-0075 | Service stock opname session flow (generate → count → variance → approve) | Claude Opus 4.6 | 2026-05-10 | fe2f2c8 | |
 | T-0076 | UI stock opname (session create + input fisik + approve variance) | Claude Opus 4.6 | 2026-05-10 | 68e4782 | |
+| T-0077 | UI inventory variance dashboard + report (service + UI + XLSX export) | Claude Opus 4.6 | 2026-05-10 | 4dab99f | 6 files |
 | T-0079 | Service journal attachments (upload + download) + MCP tools | Claude Opus 4.6 | 2026-05-10 | wip(T-0079): journal attachments | 4 service + 2 MCP tools |
 | T-0069 | UI petty cash (balance view + history) | Claude Opus 4.6 | 2026-05-10 | feat(T-0069): petty cash UI | 3 files + sidebar + i18n |
 | T-0067 | Schema petty_cash_accounts + petty_cash_transactions | Claude Opus 4.6 | 2026-05-10 | wip(T-0067): petty cash schema | |
@@ -126,7 +125,6 @@
 |----|-------|--------|-----------|----------|
 | T-0064 | Service purchasing.createPO + workflow approval | purchasing | SD §21.6 | L |
 | T-0065 | Service purchasing.createGRN + JE generator | purchasing | SD §21.6 | M |
-| T-0077 | UI inventory variance dashboard + report | ui | SD §25.9.4 | M |
 | T-0080 | UI journal attachments (upload + view + download) | ui | SD §25.10 | S |
 | T-0081a | Service pos.payment + donation/rounding flow | pos | SD §25.11 | M |
 | T-0081b | UI POS payment modal + donation choice | ui | SD §25.11 | S |
