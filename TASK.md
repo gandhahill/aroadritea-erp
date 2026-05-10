@@ -93,6 +93,7 @@
 |----|-------|-------|-----------|--------|------|
 | T-0073 | Schema stock_opname_sessions + stock_opname_lines + stock_movement_manual | Claude Opus 4.6 | 2026-05-10 | fe2f2c8 | Schema + checkpoint DONE |
 | T-0075 | Service stock opname session flow (generate → count → variance → approve) | Claude Opus 4.6 | 2026-05-10 | fe2f2c8 | Workflow service + approveOpname JE |
+| T-0074 | Service import master Excel (Sheet 1) + movement log (Sheet 2) | Claude Opus 4.6 | 2026-05-10 | eb3e8ed | Upsert by SKU + category keyword map |
 | T-0085b | Service reporting.dailySummary + payment breakdown + top products | Claude Opus 4.6 | 2026-05-10 | a3035f6 | Typecheck clean |
 | T-0061 | PWA setup (Serwist) + service worker + IndexedDB outbox | Claude Opus 4.6 | 2026-05-10 | 1d70ba0: typecheck clean |
 | T-0062 | POS offline sync endpoint `/api/sync/pos` (idempotency) | Claude Opus 4.6 | 2026-05-10 | included in T-0061 |
@@ -122,7 +123,6 @@
 | T-0070 | Schema reimbursement_requests | accounting | SD §25.8 | S |
 | T-0071 | Service reimbursement (CRUD + workflow + escalation) | accounting | SD §25.8 | M |
 | T-0072 | UI reimbursement (form + list + approve/reject) | ui | SD §25.8 | M |
-| T-0074 | Service import master Excel (Sheet 1 template) + movement log (Sheet 2) | inventory | SD §25.9.2 | M |
 | T-0076 | UI stock opname (session create + input fisik + approve variance) | ui | SD §25.9 | L |
 | T-0077 | UI inventory variance dashboard + report | ui | SD §25.9.4 | M |
 | T-0078 | Schema journal_attachments | accounting | SD §25.10 | S |
