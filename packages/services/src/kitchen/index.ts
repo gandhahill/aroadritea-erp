@@ -32,3 +32,18 @@ export type {
   KdsItemResult,
   KdsStatsResult,
 } from './kds-service';
+export {
+  getDisplayQueue,
+  groupDisplayItems,
+  formatSseEvent,
+  createQueueUpdateEvent,
+  createItemChangeEvent,
+} from './display-service';
+export type {
+  DisplayItem,
+  DisplayQueue,
+  DisplayEvent,
+  DisplayEventType,
+  DisplayItemChange,
+  RawDisplayRow,
+} from './display-service';
