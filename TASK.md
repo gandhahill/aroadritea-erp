@@ -22,9 +22,7 @@
 
 > Only those with 🟨 or 🟥 status. Move to Done when finished.
 
-| ID | Status | Title | Owner (AI model) | Started | Last Updated | Checkpoint | Note |
-|----|--------|-------|------------------|---------|-------------|-----------|------|
-| _(none)_ | | | | | | | |
+*(no active tasks — all done or in backlog)*
 
 ---
 
@@ -131,7 +129,7 @@
 | ~~T-0069~~ | ~~UI petty cash (balance view + history + replenish form)~~ | ~~ui~~ | ~~SD §25.7~~ | ~~M~~ | _(moved to Active)_ |
 | ~~T-0070~~ | ~~Schema reimbursement_requests~~ | ~~accounting~~ | ~~SD §25.8~~ | ~~S~~ | _(moved to Active)_ |
 | ~~T-0071~~ | ~~Service reimbursement (CRUD + workflow + escalation)~~ | ~~accounting~~ | ~~SD §25.8~~ | ~~M~~ | _(moved to Active)_ |
-| T-0072 | UI reimbursement (form + list + approve/reject) | ui | SD §25.8 | M |
+| ~~T-0072~~ | ~~UI reimbursement (form + list + approve/reject)~~ | ~~ui~~ | ~~SD §25.8~~ | ~~M~~ | _(done — 01f1bc6)_ |
 | T-0077 | UI inventory variance dashboard + report | ui | SD §25.9.4 | M |
 | ~~T-0079~~ | ~~Service journal attachments (upload + download) + MCP tools~~ | ~~accounting~~ | ~~SD §25.10~~ | ~~M~~ | _(moved to Active)_ |
 | T-0080 | UI journal attachments (upload + view + download) | ui | SD §25.10 | S |
