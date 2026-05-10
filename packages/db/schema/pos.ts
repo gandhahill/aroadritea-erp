@@ -171,6 +171,10 @@ export const payments = pgTable(
 
     occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull().defaultNow(),
 
+    // SD §25.11 — donation / rounding
+    donationAmount: bigint('donation_amount', { mode: 'bigint' }), // nullable; amount donated instead of change
+    roundingOption: text('rounding_option'), // 'donate' | 'round_up' | 'no_donation'
+
     ...auditCols,
   },
   (t) => [

@@ -22,7 +22,9 @@
 
 > Only those with 🟨 or 🟥 status. Move to Done when finished.
 
-_(no active tasks — all done or in backlog)_
+| ID | Title | Owner | Started | Last Updated | Status | Note |
+|----|-------|-------|---------|-------------|--------|------|
+| — | (none) | — | — | — | — | — |
 
 ---
 
@@ -106,6 +108,7 @@ _(no active tasks — all done or in backlog)_
 | T-0085b | Service reporting.dailySummary + payment breakdown + top products | Claude Opus 4.6 | 2026-05-10 | a3035f6 | |
 | T-0085c | UI reporting/daily-summary (table + charts + export XLSX) | Antigravity (Opus 4.6) | 2026-05-10 | c1fad34 | 292 tests pass |
 | T-0085d | MCP tool reporting.get_daily_summary | Antigravity (Opus 4.6) | 2026-05-10 | aeb78dd | |
+| T-0081a | Service pos.payment + donation/rounding flow | Claude Opus 4.6 | 2026-05-10 | feat(T-0081a) | donation.ts + JE + UI |
 
 ---
 

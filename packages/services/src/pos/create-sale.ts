@@ -46,6 +46,7 @@ import { generateId } from '@erp/shared/id';
 import type { AuditContext } from '@erp/shared/types';
 import { requirePermission } from '../iam';
 import { createJournal } from '../accounting/create-journal';
+import { calculateDonation, type RoundingOption } from './donation';
 import type { SaleResult, SaleLineResult, PaymentResult } from './schemas';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -53,6 +54,8 @@ import type { SaleResult, SaleLineResult, PaymentResult } from './schemas';
 const PB1_RATE_BPS = 1000; // 10% — SD §19.2 (inclusive)
 const PB1_ACCOUNT_CODE = '2-1050'; // PB1/PBJT Payable
 const REVENUE_ACCOUNT_CODE = '4-1010'; // Penjualan
+const CASH_ACCOUNT_CODE = '1-1030'; // Kas di Bank
+const DONATION_TRUST_ACCOUNT_CODE = '2-2050'; // Donation Trust Payable (SD §25.11.2)
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -334,6 +337,14 @@ export async function createSale(
       );
     }
 
+    // 7b. SD §25.11 — Calculate donation / rounding for cash payments
+    // The change amount = totalPaid - totalGrand (overpay amount)
+    const changeAmount = totalPaid - totalGrand;
+    const cashPayment = data.payments.find((p) => p.method === 'cash');
+    const roundingOption = (cashPayment?.roundingOption ?? 'no_donation') as RoundingOption;
+
+    const donationResult = calculateDonation(changeAmount, roundingOption);
+
     // 8. Generate order number + ID
     const saleId = generateId();
     const saleNumber = await generateSaleNumber(ctx.tenantId, data.locationId);
@@ -418,6 +429,13 @@ export async function createSale(
       amount: BigInt(p.amount),
       reference: p.reference ?? null,
       occurredAt: new Date(),
+      // SD §25.11 — donation on cash payment
+      donationAmount: p.method === 'cash' && donationResult.donatedAmount > BigInt(0)
+        ? donationResult.donatedAmount
+        : null,
+      roundingOption: p.method === 'cash' && roundingOption !== 'no_donation'
+        ? roundingOption
+        : null,
       createdBy: ctx.userId,
       updatedBy: ctx.userId,
     }));
@@ -432,39 +450,65 @@ export async function createSale(
     const netPB1 = totalTax; // PB1 on gross
     // Note: for delivery, netPB1 is on gross too (platform collects gross, remits PB1)
 
+    // SD §25.11 — JE for cash + donation: record trust separately
+    // Cash received = totalGrand + donationAmount (customer overpaid change, donated it)
+    const totalCashReceived = totalGrand + donationResult.donatedAmount;
+    const hasDonation = donationResult.donatedAmount > BigInt(0);
+
+    const jeLines: Array<{
+      accountId: string;
+      locationId: string;
+      description: string;
+      debit: string;
+      credit: string;
+    }> = [];
+
+    // DR Cash — total cash received (sale + any donation)
+    jeLines.push({
+      accountId: CASH_ACCOUNT_CODE,
+      locationId: data.locationId,
+      description: `${data.channel} payment${hasDonation ? ' + donasi' : ''}`,
+      debit: totalCashReceived.toString(),
+      credit: '0',
+    });
+
+    // SD §25.11 — CR Donation Trust Payable (liability held until remitted)
+    if (hasDonation) {
+      jeLines.push({
+        accountId: DONATION_TRUST_ACCOUNT_CODE,
+        locationId: data.locationId,
+        description: `Donasi dari penjualan ${saleNumber}`,
+        debit: '0',
+        credit: donationResult.donatedAmount.toString(),
+      });
+    }
+
+    // CR Revenue — net (after PB1)
+    jeLines.push({
+      accountId: REVENUE_ACCOUNT_CODE,
+      locationId: data.locationId,
+      description: `Sales ${saleNumber}`,
+      debit: '0',
+      credit: netRevenue.toString(),
+    });
+
+    // CR PB1 Payable
+    jeLines.push({
+      accountId: PB1_ACCOUNT_CODE,
+      locationId: data.locationId,
+      description: `PB1 ${saleNumber}`,
+      debit: '0',
+      credit: netPB1.toString(),
+    });
+
     const jeResult = await createJournal(
       {
         postingDate,
         locationId: data.locationId,
-        description: `POS ${saleNumber} — ${data.channel}${isDeliveryChannel ? ' (80% net)' : ''}`,
+        description: `POS ${saleNumber} — ${data.channel}${isDeliveryChannel ? ' (80% net)' : ''}${hasDonation ? ' + donasi' : ''}`,
         referenceType: 'sales',
         referenceId: saleId,
-        lines: [
-          // DR Cash/Bank — total received
-          {
-            accountId: '1-1030', // Kas di Bank
-            locationId: data.locationId,
-            description: `${data.channel} payment`,
-            debit: totalGrand.toString(),
-            credit: '0',
-          },
-          // CR Revenue — net (after PB1)
-          {
-            accountId: REVENUE_ACCOUNT_CODE,
-            locationId: data.locationId,
-            description: `Sales ${saleNumber}`,
-            debit: '0',
-            credit: netRevenue.toString(),
-          },
-          // CR PB1 Payable
-          {
-            accountId: PB1_ACCOUNT_CODE,
-            locationId: data.locationId,
-            description: `PB1 ${saleNumber}`,
-            debit: '0',
-            credit: netPB1.toString(),
-          },
-        ],
+        lines: jeLines,
       },
       ctx,
     );
@@ -543,6 +587,8 @@ export async function createSale(
         method: pr.method,
         amount: pr.amount.toString(),
         reference: pr.reference,
+        donationAmount: pr.donationAmount ? pr.donationAmount.toString() : null,
+        roundingOption: pr.roundingOption,
       })),
       journalEntryId,
     };

@@ -271,6 +271,7 @@
       "grabfood": "GrabFood",
       "shopeefood": "ShopeeFood"
     },
+    "donationChoice": "Donasi Kembalian",
     "offline": {
       "offlineMessage": "Offline — {count} transaksi belum tersinkron",
       "pendingMessage": "{count} transaksi pending sinkronisasi",

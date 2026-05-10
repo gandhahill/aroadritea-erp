@@ -263,11 +263,12 @@
       "qris": "QRIS",
       "flazz": "Flazz",
       "debit": "借记卡",
-      "credit": "信用卡",
+      "credit": "信���卡",
       "gofood": "GoFood",
       "grabfood": "GrabFood",
       "shopeefood": "ShopeeFood"
     },
+    "donationChoice": "捐赠找零",
     "offline": {
       "offlineMessage": "离线 — {count} 笔交易尚未同步",
       "pendingMessage": "{count} 笔交易待同步",

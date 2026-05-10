@@ -51,7 +51,14 @@ const PaymentInputSchema = z.object({
   method: z.enum(['cash', 'qris', 'flazz', 'debit', 'credit', 'gofood', 'grabfood', 'shopeefood']),
   amount: z.string().regex(/^\d+$/), // bigint rupiah
   reference: z.string().optional(),
+  /** SD §25.11 — donation amount (donated instead of given as change). */
+  donationAmount: z.string().regex(/^\d+$/).optional(),
+  /** SD §25.11 — 'donate' | 'round_up' | 'no_donation' */
+  roundingOption: z.enum(['donate', 'round_up', 'no_donation']).optional(),
 });
+
+export const RoundingOptionSchema = z.enum(['donate', 'round_up', 'no_donation']);
+export type RoundingOption = z.infer<typeof RoundingOptionSchema>;
 
 export const CreateSaleInputSchema = z.object({
   shiftId: z.string().min(1),
@@ -132,6 +139,8 @@ export interface PaymentResult {
   method: string;
   amount: string;
   reference: string | null;
+  donationAmount: string | null; // SD §25.11
+  roundingOption: string | null; // SD §25.11
 }
 
 export interface ShiftResult {

@@ -1,12 +1,24 @@
 /**
- * POS services barrel — T-0057 + T-0058
+ * POS services barrel — T-0057 + T-0058 + T-0081a
  */
 
 export { createSale, voidSale } from './create-sale';
 export { refundSale } from './refund-sale';
 export { openShift, closeShift, getOpenShift } from './shift-service';
+
+// SD §25.11 — Donation / Rounding
+export {
+  calculateDonation,
+  getDonationOptions,
+  type DonationChoice,
+  type DonationResult,
+  type RoundingOption,
+} from './donation';
+
+// Schemas
 export {
   ChannelSchema,
+  RoundingOptionSchema,
   OpenShiftInputSchema,
   CloseShiftInputSchema,
   CreateSaleInputSchema,

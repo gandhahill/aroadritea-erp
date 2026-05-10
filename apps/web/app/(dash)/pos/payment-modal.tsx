@@ -7,11 +7,12 @@
 
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useMemo, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { usePosCart } from './pos-cart-context';
 import { useOfflineSync } from './lib/offline-sync-context';
 import { createSaleAction } from './actions';
+import { getDonationOptions, type RoundingOption } from '@erp/services/pos';
 
 const PAYMENT_METHODS = [
   { id: 'cash', icon: '💵' },
@@ -44,6 +45,8 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   const [inputAmount, setInputAmount] = useState('');
   const [splitPayments, setSplitPayments] = useState<{ method: string; amount: string }[]>([]);
 
+  const [donationChoice, setDonationChoice] = useState<RoundingOption>('no_donation');
+
   // Cash tendered so far in this modal (numeric input + split list)
   const currentInputBig = BigInt(Number(inputAmount) > 0 ? inputAmount : '0');
   const splitTotal = splitPayments.reduce((s, p) => s + BigInt(Number(p.amount) > 0 ? p.amount : '0'), BigInt(0));
@@ -51,6 +54,12 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   const excess = allPaidBig > totalBig ? allPaidBig - totalBig : BigInt(0);
   const isFullyPaid = allPaidBig >= totalBig;
   const canConfirm = remaining > BigInt(0) ? false : isFullyPaid;
+
+  // SD §25.11 — Donation options when cash change exists
+  const donationOptions = useMemo(() => {
+    if (excess <= BigInt(0) || selectedMethod !== 'cash') return [];
+    return getDonationOptions(excess);
+  }, [excess, selectedMethod]);
 
   function handleAddSplit() {
     if (!inputAmount || Number(inputAmount) <= 0) return;
@@ -63,6 +72,11 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   }
 
   async function handleConfirm() {
+    // SD §25.11 — resolve donation for the cash payment
+    const donationResult = excess > BigInt(0) && donationChoice !== 'no_donation'
+      ? getDonationOptions(excess).find(o => o.choice.type === donationChoice)
+      : undefined;
+
     // Build payments array — existing payments from cart + split list
     const payments = [
       ...state.payments.map(p => ({
@@ -75,7 +89,14 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
 
     // Add cash payment only if customer handed cash and it covers the total
     if (inputAmount && Number(inputAmount) > 0 && currentInputBig + paidBig + splitTotal >= totalBig) {
-      payments.push({ method: selectedMethod, amount: inputAmount });
+      payments.push({
+        method: selectedMethod,
+        amount: inputAmount,
+        ...(selectedMethod === 'cash' && donationResult && donationResult.donatedAmount > BigInt(0) ? {
+          donationAmount: donationResult.donatedAmount.toString(),
+          roundingOption: donationChoice,
+        } : {}),
+      });
     }
 
     // Build order lines from cart
@@ -216,6 +237,37 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
             <div className="flex items-center justify-between rounded-lg border border-brand-jade/20 bg-brand-jade/5 px-4 py-2.5">
               <span className="text-sm font-medium text-brand-ink-2">{t('change')}</span>
               <span className="text-base font-semibold text-brand-jade">{formatRupiah(excess.toString())}</span>
+            </div>
+          )}
+
+          {/* SD §25.11 — Donation choice (only for cash with change) */}
+          {isFullyPaid && donationOptions.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-medium uppercase tracking-widest text-brand-ink-3">
+                {t('donationChoice')}
+              </p>
+              <div className="space-y-1.5">
+                {donationOptions.map((opt) => (
+                  <button
+                    key={opt.choice.type}
+                    onClick={() => setDonationChoice(opt.choice.type)}
+                    className={`flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left transition-all ${
+                      donationChoice === opt.choice.type
+                        ? 'border-brand-red bg-brand-red/5'
+                        : 'border-brand-cream-3 hover:border-brand-red/30'
+                    }`}
+                  >
+                    <span className={`text-sm font-medium ${donationChoice === opt.choice.type ? 'text-brand-red' : 'text-brand-ink-2'}`}>
+                      {opt.choice.description}
+                    </span>
+                    {opt.donatedAmount > BigInt(0) && (
+                      <span className="text-xs font-medium text-brand-ink-3">
+                        {formatRupiah(opt.donatedAmount.toString())}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
