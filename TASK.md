@@ -22,7 +22,9 @@
 
 > Only those with 🟨 or 🟥 status. Move to Done when finished.
 
-| — | (none) | — | — | — | — | — |
+| ID | Title | Owner | Started | Last Updated | Status | Note |
+|----|-------|-------|---------|-------------|--------|------|
+| T-0064 | Service purchasing.createPO + workflow approval | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟨 IN_PROGRESS | SD §21.6 |
 
 ---
 
