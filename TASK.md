@@ -22,9 +22,7 @@
 
 > Only those with 🟨 or 🟥 status. Move to Done when finished.
 
-| ID | Title | Owner | Started | Last Updated | Status | Note |
-|----|-------|-------|---------|-------------|--------|------|
-| T-0085g | MCP tool reporting.get_hourly_sales | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟨 IN_PROGRESS | SD §25.6 |
+| — | (none) | — | — | — | — | — |
 
 ---
 
@@ -112,6 +110,7 @@
 | T-0085h | Donation report — service + UI + MCP tool | Claude Opus 4.6 | 2026-05-10 | c3a40d1 | 9 files |
 | T-0085e | Service reporting.hourlySales + groupBy logic | Claude Opus 4.6 | 2026-05-11 | feat(T-0085e): hourly sales service | 3 files, 8 tests |
 | T-0085f | UI reporting/hourly-sales (heatmap + table + export XLSX) | Claude Opus 4.6 | 2026-05-11 | feat(T-0085f): hourly sales UI | 4 files, typecheck clean |
+| T-0085g | MCP tool reporting.get_hourly_sales | Claude Opus 4.6 | 2026-05-11 | feat(T-0085g): MCP get_hourly_sales tool | 1 file |
 
 ---
 

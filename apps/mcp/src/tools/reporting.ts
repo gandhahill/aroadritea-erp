@@ -13,8 +13,8 @@ import { z } from 'zod';
 import { db } from '@erp/db';
 import { accounts, journalEntries, journalLines } from '@erp/db/schema/accounting';
 import { eq, and, gte, lte } from 'drizzle-orm';
-import { balanceSheet, trialBalance, profitLoss, getDailySummary, getDonationReport } from '@erp/services/reporting';
-import type { BalanceSheetInput, TrialBalanceInput, ProfitLossInput, DailySummaryParams, DonationReportParams } from '@erp/services/reporting';
+import { balanceSheet, trialBalance, profitLoss, getDailySummary, getDonationReport, getHourlySales } from '@erp/services/reporting';
+import type { BalanceSheetInput, TrialBalanceInput, ProfitLossInput, DailySummaryParams, DonationReportParams, HourlySalesParams } from '@erp/services/reporting';
 import { can } from '@erp/services/iam';
 import { mcpError, mcpSuccess, serializeResult } from '../helpers';
 import type { McpContext } from '../context';
@@ -70,6 +70,13 @@ export const DonationReportSchema = z.object({
   location_id: z.string().optional(),
 });
 
+export const HourlySalesSchema = z.object({
+  start_date: z.string(),
+  end_date: z.string(),
+  location_id: z.string().optional(),
+  group_by: z.enum(['channel', 'day']).optional().default('channel'),
+});
+
 // --- Tool list ---
 
 export const reportingTools = [
@@ -80,6 +87,7 @@ export const reportingTools = [
   { name: 'reporting.trial_balance', schema: TrialBalanceSchema, handler: trialBalanceHandler },
   { name: 'reporting.get_daily_summary', schema: DailySummarySchema, handler: dailySummaryHandler, description: 'Get daily sales summary (gross/net sales, payment breakdown, top products, shift summary). SD §25.5.' },
   { name: 'reporting.get_donations', schema: DonationReportSchema, handler: donationReportHandler, description: 'Get donation summary report for a period (daily breakdown: date, amount, tx count, average). SD §25.11.6.' },
+  { name: 'reporting.get_hourly_sales', schema: HourlySalesSchema, handler: hourlySalesHandler, description: 'Get hourly sales breakdown by channel or day (10–22 WIB). SD §25.6.' },
 ] as const;
 
 // --- Handlers ---
@@ -241,6 +249,25 @@ async function donationReportHandler(input: z.infer<typeof DonationReportSchema>
     locationId: input.location_id,
   };
   const result = await getDonationReport(params, {
+    userId: ctx.userId,
+    tenantId: ctx.tenantId,
+    locationId: input.location_id ?? 'system',
+  });
+
+  return serializeResult(result);
+}
+
+async function hourlySalesHandler(input: z.infer<typeof HourlySalesSchema>, ctx: McpContext) {
+  const permitted = await checkPermission(ctx, 'reporting.view');
+  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: reporting.view');
+
+  const params: HourlySalesParams = {
+    startDate: input.start_date,
+    endDate: input.end_date,
+    locationId: input.location_id ?? 'system',
+    groupBy: input.group_by,
+  };
+  const result = await getHourlySales(params, {
     userId: ctx.userId,
     tenantId: ctx.tenantId,
     locationId: input.location_id ?? 'system',
