@@ -15,7 +15,8 @@
     "test": "pnpm -r test",
     "db:generate": "pnpm --filter @erp/db generate",
     "db:migrate": "pnpm --filter @erp/db migrate",
-    "db:seed": "pnpm --filter @erp/db seed"
+    "db:seed": "pnpm --filter @erp/db seed",
+    "seed:naixer": "tsx scripts/seed-naixer-codes.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",

@@ -13,7 +13,8 @@
     "./schema/inventory": "./schema/inventory.ts",
     "./schema/pos": "./schema/pos.ts",
     "./schema/purchasing": "./schema/purchasing.ts",
-    "./schema/scheduled-jobs": "./schema/scheduled-jobs.ts"
+    "./schema/scheduled-jobs": "./schema/scheduled-jobs.ts",
+    "./schema/kitchen": "./schema/kitchen.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",

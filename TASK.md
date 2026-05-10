@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0081 | Service kitchen.generateQrPayload (strategy pattern dash/pipe) | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟨 IN_PROGRESS | SD §33.3, ADR-0007 |
+| T-0083 | Script seed-naixer-codes.ts (CSV import) | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟨 IN_PROGRESS | ADR-0007 |
 
 ---
 
@@ -121,6 +121,7 @@
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
 | T-0086 | Schema naixer_product_codes + naixer_modifier_codes + naixer_qr_format_config | Claude Opus 4.6 | 2026-05-11 | 85654de | 3 tables + seed |
+| T-0081 | Service kitchen.generateQrPayload (strategy pattern dash/pipe) | Claude Opus 4.6 | 2026-05-11 | 90996f4 | 31 tests, strategy pattern |
 
 ---
 
@@ -145,9 +146,7 @@
 
 | ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
-| T-0081 | Service kitchen.generateQrPayload (strategy pattern dash/pipe) | kitchen | SD §33.3, ADR-0007 | M |
 | T-0082 | UI Settings → Integrations → Naixer KDS | ui | SD §33.7 | L |
-| T-0083 | Script seed-naixer-codes.ts (CSV import) | infra | ADR-0007 | S |
 | T-0084 | KDS Aroadri (production status: queued/making/ready) | kitchen | SD §21.7 | L |
 | T-0085 | Customer-facing display `/display/:location` (SSE) | display | SD §21.4 | M |
 | T-0086 | POS Demo mode UI + IndexedDB sandbox | pos | SD §34, ADR-0008 | L |
