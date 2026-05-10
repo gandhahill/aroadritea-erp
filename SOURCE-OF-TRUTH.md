@@ -374,7 +374,7 @@ Mengacu jawaban Q22 + tampilan KDS Naixer:
 | **PPh Pasal 21** (karyawan) | ✅ Iya |
 | **PPh Pasal 23** (jasa) | ✅ Iya |
 | **PPh Pasal 25/29** (badan) | ✅ Iya |
-| **PPh Final UMKM 0,5%** | ❌ Tidak |
+| **PPh Final UMKM 0,5%** | ✅ Iya (peraturan PP 5/2022, omzet ≤ Rp 500 juta/tahun) |
 | **PB1 / PBJT** (pajak restoran 10%) | ✅ Iya, inclusive |
 
 ### 11.2 Tools & Integrasi
@@ -384,6 +384,21 @@ Mengacu jawaban Q22 + tampilan KDS Naixer:
 - **Omzet > Rp 4,8 M / tahun**: belum diketahui (operasional baru mulai 2026); status PKP sudah aktif
 
 > **Implikasi**: ERP wajib export **rekap PPN keluaran/masukan** dan **PB1/PBJT** dalam format yang mudah re-input ke Coretax (CSV/Excel sesuai struktur Coretax). Tidak perlu API DJP saat ini.
+
+### 11.2b PPh Final UMKM 0,5% (PP 5/2022)
+
+Peraturan terbaru:WP final hanya untuk omzet ≤ Rp 500 juta per tahun. Dasar hukum: PP 5/2022 (perubahan PP 23/2018) + PMK 6/2024.
+
+| Aturan | Detail |
+|---|---|
+| **Omset threshold** | ≤ Rp 500.000.000 per tahun |
+| **Tarif** | 0,5% dari omzet (final, tidak dapat dikreditkan) |
+| **Sudah termasuk PPh Pasal 21, 22, 23, 25, 26** | WP tidak perlu hitung PPh lain untuk transaksi ini |
+| **Penghitungan** | Per masa pajak (bulanan), berdasarkan brutto omzet |
+| **Pembayaran** | Disetor sendiri oleh WP setiap bulan |
+| **Laporan** | Masuk ke SPT Masa PPh Final UMKM |
+
+> **Status saat ini** (2026-05-10): Aroadri Tea baru beroperasi sejak 2024, omzet aktualbelum diketahui apakah sudah melebihi Rp 500 juta/tahun. Sistem **wajib** menyediakan engine PPh Final 0,5% (tax rules + calculation + export) agar siap ketika omzet sudah tercatat dan memenuhi threshold. Toggle via `tax_rules` seperti PPN opt-in. Konfirmasi akuntan/tax consultant diperlukan untuk status kepatuhan aktual.
 
 ### 11.3 PPN Penjualan — Opt-In (Decided 2026-05-05)
 
