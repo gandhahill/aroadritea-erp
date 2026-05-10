@@ -24,7 +24,7 @@
 
 | ID | Status | Title | Owner (AI model) | Started | Last Updated | Checkpoint | Note |
 |----|--------|-------|------------------|---------|-------------|-----------|------|
-| _(empty — all tasks are complete)_ | | | | | | | |
+| T-0085c | 🟨 IN_PROGRESS | UI reporting/daily-summary (table + charts + export XLSX) | Claude Opus 4.6 | 2026-05-10 | 2026-05-10 | docs/checkpoints/T-0085c-daily-summary-ui.checkpoint.md | xlsx lib already added |
 
 ---
 
@@ -129,7 +129,7 @@
 | T-0080 | UI journal attachments (upload + view + download) | ui | SD §25.10 | S |
 | T-0081a | Service pos.payment + donation/rounding flow | pos | SD §25.11 | M |
 | T-0081b | UI POS payment modal + donation choice | ui | SD §25.11 | S |
-| T-0085c | UI reporting/daily-summary (table + charts + export XLSX) | ui | SD §25.5.2 | L |
+| T-0085c | UI reporting/daily-summary (table + charts + export XLSX) | ui | SD §25.5.2 | L | ← IN PROGRESS |
 | T-0085d | MCP tool reporting.get_daily_summary | mcp | SD §25.5.3 | S |
 | T-0085e | Service reporting.hourlySales + groupBy logic | reporting | SD §25.6 | L |
 | T-0085f | UI reporting/hourly-sales (heatmap + table + export XLSX) | ui | SD §25.6.3 | L |
