@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| — | (none) | — | — | — | — | — |
+| T-0085h | Service + UI reporting.donations + export XLSX + MCP tool | Claude Opus 4.6 | 2026-05-10 | 2026-05-10 | 🟨 IN_PROGRESS | checkpoint: docs/checkpoints/T-0085h-reporting-donations.checkpoint.md |
 
 ---
 
@@ -129,12 +129,9 @@
 |----|-------|--------|-----------|----------|
 | T-0064 | Service purchasing.createPO + workflow approval | purchasing | SD §21.6 | L |
 | T-0065 | Service purchasing.createGRN + JE generator | purchasing | SD §21.6 | M |
-| T-0081a | Service pos.payment + donation/rounding flow | pos | SD §25.11 | M |
-| T-0081b | UI POS payment modal + donation choice | ui | SD §25.11 | S |
 | T-0085e | Service reporting.hourlySales + groupBy logic | reporting | SD §25.6 | L |
 | T-0085f | UI reporting/hourly-sales (heatmap + table + export XLSX) | ui | SD §25.6.3 | L |
 | T-0085g | MCP tool reporting.get_hourly_sales | mcp | SD §25.6 | S |
-| T-0085h | Service + UI reporting.donations + export XLSX | reporting | SD §25.11.5 | M |
 
 ### Phase 3 — Kitchen + KDS + Customer Display
 

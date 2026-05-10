@@ -33,3 +33,10 @@ export {
   type ShiftSummaryRow,
   type ProductSaleRow,
 } from './daily-summary';
+
+export {
+  getDonationReport,
+  type DonationReportParams,
+  type DonationReportResult,
+  type DonationDayRow,
+} from './donations';

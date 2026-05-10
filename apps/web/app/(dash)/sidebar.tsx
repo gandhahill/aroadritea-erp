@@ -46,6 +46,8 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Trial Balance', href: '/reporting/trial-balance', icon: <></> },
       { label: 'Balance Sheet', href: '/reporting/balance-sheet', icon: <></> },
       { label: 'Profit & Loss', href: '/reporting/profit-loss', icon: <></> },
+      { label: 'Ringkasan Harian', href: '/reporting/daily-summary', icon: <></> },
+      { label: 'Laporan Donasi', href: '/reporting/donations', icon: <></> },
     ],
   },
   {
