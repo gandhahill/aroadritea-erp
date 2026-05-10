@@ -26,6 +26,9 @@ export {
   journalEntries,
   journalLines,
   partners,
+  pettyCashAccounts,
+  pettyCashTransactions,
+  reimbursementRequests,
   taxRates,
   taxRules,
 } from './schema/accounting';

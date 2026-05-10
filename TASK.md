@@ -24,7 +24,7 @@
 
 | ID | Status | Title | Owner (AI model) | Started | Last Updated | Checkpoint | Note |
 |----|--------|-------|------------------|---------|-------------|-----------|------|
-| T-0085d | 🟨 IN_PROGRESS | MCP tool reporting.get_daily_summary | Antigravity (Opus 4.6) | 2026-05-10 | 2026-05-10 | docs/checkpoints/T-0085d-mcp-daily-summary.checkpoint.md | |
+| _(none currently active)_ | | | | | | | |
 
 ---
 
@@ -99,6 +99,11 @@
 | T-0076 | UI stock opname (session create + input fisik + approve variance) | Claude Opus 4.6 | 2026-05-10 | 68e4782 | List + create + detail + line table with optimistic save |
 | T-0085b | Service reporting.dailySummary + payment breakdown + top products | Claude Opus 4.6 | 2026-05-10 | a3035f6 | Typecheck clean |
 | T-0085c | UI reporting/daily-summary (table + charts + export XLSX) | Antigravity (Opus 4.6) | 2026-05-10 | c1fad34 | Typecheck clean, 292 tests pass |
+| T-0085d | MCP tool reporting.get_daily_summary | Antigravity (Opus 4.6) | 2026-05-10 | aeb78dd | Typecheck clean |
+| T-0067 | Schema petty_cash_accounts + petty_cash_transactions | Claude Opus 4.6 | 2026-05-10 | wip(T-0067): petty cash schema | Typecheck clean |
+| T-0068 | Service petty cash (balance, transactions, replenish) | Claude Opus 4.6 | 2026-05-10 | wip(T-0068): petty cash service | Typecheck clean, 5 functions |
+| T-0070 | Schema reimbursement_requests | Claude Opus 4.6 | 2026-05-10 | wip(T-0070): reimbursement schema | Typecheck clean |
+| T-0071 | Service reimbursement (CRUD + workflow + escalation) | Claude Opus 4.6 | 2026-05-10 | wip(T-0071): reimbursement service | Typecheck clean, 7 functions |
 
 ---
 
@@ -119,18 +124,17 @@
 |----|-------|--------|-----------|----------|
 | T-0064 | Service purchasing.createPO + workflow approval | purchasing | SD §21.6 | L |
 | T-0065 | Service purchasing.createGRN + JE generator | purchasing | SD §21.6 | M |
-| T-0067 | Schema petty_cash_accounts + petty_cash_transactions | accounting | SD §25.7 | S |
-| T-0068 | Service petty cash (balance, transactions, replenish) | accounting | SD §25.7 | M |
+| ~~T-0067~~ | ~~Schema petty_cash_accounts + petty_cash_transactions~~ | ~~accounting~~ | ~~SD §25.7~~ | ~~S~~ | _(moved to Active)_ |
+| ~~T-0068~~ | ~~Service petty cash (balance, transactions, replenish)~~ | ~~accounting~~ | ~~SD §25.7~~ | ~~M~~ | _(moved to Active)_ |
 | T-0069 | UI petty cash (balance view + history + replenish form) | ui | SD §25.7 | M |
-| T-0070 | Schema reimbursement_requests | accounting | SD §25.8 | S |
-| T-0071 | Service reimbursement (CRUD + workflow + escalation) | accounting | SD §25.8 | M |
+| ~~T-0070~~ | ~~Schema reimbursement_requests~~ | ~~accounting~~ | ~~SD §25.8~~ | ~~S~~ | _(moved to Active)_ |
+| ~~T-0071~~ | ~~Service reimbursement (CRUD + workflow + escalation)~~ | ~~accounting~~ | ~~SD §25.8~~ | ~~M~~ | _(moved to Active)_ |
 | T-0072 | UI reimbursement (form + list + approve/reject) | ui | SD §25.8 | M |
 | T-0077 | UI inventory variance dashboard + report | ui | SD §25.9.4 | M |
 | T-0079 | Service journal attachments (upload + download) + MCP tools | accounting | SD §25.10 | M |
 | T-0080 | UI journal attachments (upload + view + download) | ui | SD §25.10 | S |
 | T-0081a | Service pos.payment + donation/rounding flow | pos | SD §25.11 | M |
 | T-0081b | UI POS payment modal + donation choice | ui | SD §25.11 | S |
-| T-0085d | MCP tool reporting.get_daily_summary | mcp | SD §25.5.3 | S |
 | T-0085e | Service reporting.hourlySales + groupBy logic | reporting | SD §25.6 | L |
 | T-0085f | UI reporting/hourly-sales (heatmap + table + export XLSX) | ui | SD §25.6.3 | L |
 | T-0085g | MCP tool reporting.get_hourly_sales | mcp | SD §25.6 | S |

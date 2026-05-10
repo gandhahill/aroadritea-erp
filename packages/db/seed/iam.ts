@@ -49,6 +49,14 @@ export const PERMISSIONS_SEED = [
   { code: 'accounting.period.close', module: 'accounting' },
   { code: 'accounting.coa.manage', module: 'accounting' },
   { code: 'accounting.reports', module: 'accounting' },
+  { code: 'accounting.petty_cash.view', module: 'accounting' },
+  { code: 'accounting.petty_cash.expense', module: 'accounting' },
+  { code: 'accounting.petty_cash.replenish', module: 'accounting' },
+  { code: 'accounting.petty_cash.manage', module: 'accounting' },
+  { code: 'accounting.reimbursement.create', module: 'accounting' },
+  { code: 'accounting.reimbursement.approve', module: 'accounting' },
+  { code: 'accounting.reimbursement.disburse', module: 'accounting' },
+  { code: 'accounting.reimbursement.view', module: 'accounting' },
   // Tax
   { code: 'tax.view', module: 'tax' },
   { code: 'tax.manage_rates', module: 'tax' },
@@ -97,7 +105,9 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
   director: PERMISSIONS_SEED.map((p) => p.code), // all permissions
   vice_director: PERMISSIONS_SEED.map((p) => p.code), // all permissions (delegated from director)
   management: [
-    'accounting.view', 'accounting.reports', 'tax.view', 'tax.export',
+    'accounting.view', 'accounting.reports',
+    'accounting.petty_cash.view', 'accounting.petty_cash.expense', 'accounting.petty_cash.replenish',
+    'accounting.reimbursement.view', 'accounting.reimbursement.create',
     'pos.transact', 'pos.void', 'pos.refund', 'pos.demo.use', 'pos.shift.open', 'pos.shift.close',
     'inventory.view', 'inventory.adjust', 'inventory.transfer',
     'purchasing.view', 'purchasing.po.create', 'purchasing.grn.create',
@@ -107,11 +117,15 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
   accountant: [
     'accounting.view', 'accounting.journal.create', 'accounting.journal.post', 'accounting.journal.reverse',
     'accounting.period.open', 'accounting.period.close', 'accounting.coa.manage', 'accounting.reports',
+    'accounting.petty_cash.view', 'accounting.petty_cash.expense', 'accounting.petty_cash.replenish', 'accounting.petty_cash.manage',
+    'accounting.reimbursement.view', 'accounting.reimbursement.create', 'accounting.reimbursement.approve', 'accounting.reimbursement.disburse',
     'tax.view', 'tax.export', 'reporting.view', 'reporting.export', 'audit.view',
   ],
   store_manager: [
     'pos.transact', 'pos.void', 'pos.refund', 'pos.demo.use', 'pos.shift.open', 'pos.shift.close',
     'inventory.view', 'inventory.adjust',
+    'accounting.petty_cash.view', 'accounting.petty_cash.expense',
+    'accounting.reimbursement.view', 'accounting.reimbursement.create',
     'kitchen.view', 'reporting.view',
   ],
   cashier: [

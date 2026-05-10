@@ -216,6 +216,91 @@ export const taxRules = pgTable(
 );
 
 // ================================================================
+// PETTY CASH ACCOUNTS — SD §25.7
+// ================================================================
+
+export const pettyCashAccounts = pgTable(
+  'petty_cash_accounts',
+  {
+    ...pk,
+    ...tenantCol,
+    locationId: text('location_id').notNull(),
+    balance: bigint('balance', { mode: 'bigint' }).notNull().default(0n),
+    maxLimit: bigint('max_limit', { mode: 'bigint' }).notNull(),
+    lastReplenishAt: timestamp('last_replenish_at', { withTimezone: true }),
+    ...auditCols,
+  },
+  (t) => [
+    uniqueIndex('petty_cash_acct_tenant_location_idx').on(t.tenantId, t.locationId),
+    index('petty_cash_acct_tenant_idx').on(t.tenantId),
+  ],
+);
+
+// ================================================================
+// PETTY CASH TRANSACTIONS — SD §25.7
+// ================================================================
+
+export const pettyCashTransactions = pgTable(
+  'petty_cash_transactions',
+  {
+    ...pk,
+    accountId: text('account_id').notNull(),
+    kind: text('kind').notNull(),                 // 'topup' | 'expense'
+    amount: bigint('amount', { mode: 'bigint' }).notNull(),
+    description: text('description').notNull(),
+    referenceType: text('reference_type'),        // 'replenish_request' | 'manual'
+    referenceId: text('reference_id'),
+    ...auditCols,
+  },
+  (t) => [
+    index('petty_cash_tx_account_idx').on(t.accountId),
+    index('petty_cash_tx_kind_idx').on(t.kind),
+    index('petty_cash_tx_created_idx').on(t.createdAt),
+    check('petty_cash_tx_kind_check',
+      sql`kind IN ('topup', 'expense')`),
+    check('petty_cash_tx_amount_positive',
+      sql`amount > 0`),
+  ],
+);
+
+// ================================================================
+// REIMBURSEMENT REQUESTS — SD §25.8
+// ================================================================
+
+export const reimbursementRequests = pgTable(
+  'reimbursement_requests',
+  {
+    ...pk,
+    ...tenantCol,
+    requesterId: text('requester_id').notNull(),
+    locationId: text('location_id').notNull(),
+    amount: bigint('amount', { mode: 'bigint' }).notNull(),
+    category: text('category').notNull(),         // 'operational' | 'supplies' | 'emergency' | 'other'
+    description: text('description').notNull(),
+    attachmentUrl: text('attachment_url'),
+    attachmentName: text('attachment_name'),
+    status: text('status').notNull().default('draft'), // 'draft' | 'submitted' | 'approved' | 'disbursed' | 'rejected'
+    approvedBy: text('approved_by'),
+    approvedAt: timestamp('approved_at', { withTimezone: true }),
+    disbursedAt: timestamp('disbursed_at', { withTimezone: true }),
+    rejectionReason: text('rejection_reason'),
+    ...auditCols,
+  },
+  (t) => [
+    index('reimb_tenant_status_idx').on(t.tenantId, t.status),
+    index('reimb_requester_idx').on(t.requesterId),
+    index('reimb_location_idx').on(t.locationId),
+    index('reimb_created_idx').on(t.createdAt),
+    check('reimb_category_check',
+      sql`category IN ('operational', 'supplies', 'emergency', 'other')`),
+    check('reimb_status_check',
+      sql`status IN ('draft', 'submitted', 'approved', 'disbursed', 'rejected')`),
+    check('reimb_amount_positive',
+      sql`amount > 0`),
+  ],
+);
+
+// ================================================================
 // RELATIONS
 // ================================================================
 
@@ -247,4 +332,18 @@ export const taxRatesRelations = relations(taxRates, ({ one, many }) => ({
 
 export const taxRulesRelations = relations(taxRules, ({ one }) => ({
   taxRate: one(taxRates, { fields: [taxRules.taxCode], references: [taxRates.code] }),
+}));
+
+export const pettyCashAccountsRelations = relations(pettyCashAccounts, ({ many }) => ({
+  transactions: many(pettyCashTransactions),
+}));
+
+export const pettyCashTransactionsRelations = relations(pettyCashTransactions, ({ one }) => ({
+  account: one(pettyCashAccounts, { fields: [pettyCashTransactions.accountId], references: [pettyCashAccounts.id] }),
+  createdByUser: one(users, { fields: [pettyCashTransactions.createdBy], references: [users.id] }),
+}));
+
+export const reimbursementRequestsRelations = relations(reimbursementRequests, ({ one }) => ({
+  requester: one(users, { fields: [reimbursementRequests.requesterId], references: [users.id], relationName: 'requester' }),
+  approver: one(users, { fields: [reimbursementRequests.approvedBy], references: [users.id], relationName: 'approver' }),
 }));

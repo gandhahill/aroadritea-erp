@@ -21,3 +21,40 @@ export {
   type GetPeriodStatusInput,
 } from './schemas';
 export { generateJournalNumber } from './number-generator';
+export {
+  getPettyCashBalance,
+  listPettyCashTransactions,
+  recordPettyCashExpense,
+  replenishPettyCash,
+  createPettyCashAccount,
+  type PettyCashAccountResult,
+  type PettyCashTransactionResult,
+  type PettyCashTransactionListResult,
+} from './petty-cash';
+export {
+  RecordPettyCashExpenseSchema,
+  ReplenishPettyCashSchema,
+  ListPettyCashTransactionsSchema,
+  CreatePettyCashAccountSchema,
+  type RecordPettyCashExpenseInput,
+  type ReplenishPettyCashInput,
+  type ListPettyCashTransactionsInput,
+  type CreatePettyCashAccountInput,
+  CreateReimbursementSchema,
+  RejectReimbursementSchema,
+  ListReimbursementsSchema,
+  type CreateReimbursementInput,
+  type RejectReimbursementInput,
+  type ListReimbursementsInput,
+} from './schemas';
+export {
+  createReimbursement,
+  submitReimbursement,
+  approveReimbursement,
+  disburseReimbursement,
+  rejectReimbursement,
+  listReimbursements,
+  getStaleReimbursements,
+  type ReimbursementResult,
+  type ReimbursementListResult,
+} from './reimbursement';

@@ -93,3 +93,75 @@ export const GetPeriodStatusInputSchema = z.object({
 });
 
 export type GetPeriodStatusInput = z.infer<typeof GetPeriodStatusInputSchema>;
+
+// --- Petty Cash — Record Expense ---
+
+export const RecordPettyCashExpenseSchema = z.object({
+  locationId: z.string().min(1, { message: 'Location ID is required' }),
+  amount: z.string().regex(/^[1-9]\d*$/, { message: 'Amount must be a positive integer string' }),
+  description: z.string().min(1, { message: 'Description is required' }),
+});
+
+export type RecordPettyCashExpenseInput = z.infer<typeof RecordPettyCashExpenseSchema>;
+
+// --- Petty Cash — Replenish (Topup) ---
+
+export const ReplenishPettyCashSchema = z.object({
+  locationId: z.string().min(1, { message: 'Location ID is required' }),
+  amount: z.string().regex(/^[1-9]\d*$/, { message: 'Amount must be a positive integer string' }),
+  description: z.string().optional().default('Replenish petty cash'),
+});
+
+export type ReplenishPettyCashInput = z.infer<typeof ReplenishPettyCashSchema>;
+
+// --- Petty Cash — List Transactions ---
+
+export const ListPettyCashTransactionsSchema = z.object({
+  locationId: z.string().min(1, { message: 'Location ID is required' }),
+  limit: z.number().int().min(1).max(100).optional().default(50),
+  offset: z.number().int().min(0).optional().default(0),
+});
+
+export type ListPettyCashTransactionsInput = z.infer<typeof ListPettyCashTransactionsSchema>;
+
+// --- Petty Cash — Create Account ---
+
+export const CreatePettyCashAccountSchema = z.object({
+  locationId: z.string().min(1, { message: 'Location ID is required' }),
+  maxLimit: z.string().regex(/^[1-9]\d*$/, { message: 'Max limit must be a positive integer string' }),
+});
+
+export type CreatePettyCashAccountInput = z.infer<typeof CreatePettyCashAccountSchema>;
+
+// --- Reimbursement — Create ---
+
+export const CreateReimbursementSchema = z.object({
+  locationId: z.string().min(1, { message: 'Location ID is required' }),
+  amount: z.string().regex(/^[1-9]\d*$/, { message: 'Amount must be a positive integer string' }),
+  category: z.enum(['operational', 'supplies', 'emergency', 'other']),
+  description: z.string().min(1, { message: 'Description is required' }),
+  attachmentUrl: z.string().url().optional(),
+  attachmentName: z.string().optional(),
+});
+
+export type CreateReimbursementInput = z.infer<typeof CreateReimbursementSchema>;
+
+// --- Reimbursement — Reject ---
+
+export const RejectReimbursementSchema = z.object({
+  id: z.string().min(1, { message: 'Reimbursement ID is required' }),
+  reason: z.string().min(1, { message: 'Rejection reason is required' }),
+});
+
+export type RejectReimbursementInput = z.infer<typeof RejectReimbursementSchema>;
+
+// --- Reimbursement — List ---
+
+export const ListReimbursementsSchema = z.object({
+  locationId: z.string().optional(),
+  status: z.enum(['draft', 'submitted', 'approved', 'disbursed', 'rejected']).optional(),
+  limit: z.number().int().min(1).max(100).optional().default(50),
+  offset: z.number().int().min(0).optional().default(0),
+});
+
+export type ListReimbursementsInput = z.infer<typeof ListReimbursementsSchema>;
