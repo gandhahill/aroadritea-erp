@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| — | (none) | — | — | — | — | — |
+| T-0085g | MCP tool reporting.get_hourly_sales | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟨 IN_PROGRESS | SD §25.6 |
 
 ---
 
@@ -111,6 +111,7 @@
 | T-0081a | Service pos.payment + donation/rounding flow | Claude Opus 4.6 | 2026-05-10 | 01afcc7 | donation.ts + JE + UI |
 | T-0085h | Donation report — service + UI + MCP tool | Claude Opus 4.6 | 2026-05-10 | c3a40d1 | 9 files |
 | T-0085e | Service reporting.hourlySales + groupBy logic | Claude Opus 4.6 | 2026-05-11 | feat(T-0085e): hourly sales service | 3 files, 8 tests |
+| T-0085f | UI reporting/hourly-sales (heatmap + table + export XLSX) | Claude Opus 4.6 | 2026-05-11 | feat(T-0085f): hourly sales UI | 4 files, typecheck clean |
 
 ---
 
@@ -131,7 +132,6 @@
 |----|-------|--------|-----------|----------|
 | T-0064 | Service purchasing.createPO + workflow approval | purchasing | SD §21.6 | L |
 | T-0065 | Service purchasing.createGRN + JE generator | purchasing | SD §21.6 | M |
-| T-0085f | UI reporting/hourly-sales (heatmap + table + export XLSX) | ui | SD §25.6.3 | L |
 | T-0085g | MCP tool reporting.get_hourly_sales | mcp | SD §25.6 | S |
 
 ### Phase 3 — Kitchen + KDS + Customer Display
