@@ -1,0 +1,72 @@
+/**
+ * HR service schemas — SD §9.6, §21.8
+ *
+ * Permission: hr.employee.read (per SD §11)
+ */
+
+import { z } from 'zod';
+
+const LocaleStringSchema = z.object({
+  id: z.string().min(1),
+  en: z.string().min(1),
+  zh: z.string().min(1),
+});
+
+// ─── List Employees ─────────────────────────────────────────────────────────
+
+export const ListEmployeesInputSchema = z.object({
+  status: z.enum(['probation', 'active', 'on_leave', 'terminated']).optional(),
+  department: z.string().optional(),
+  locationId: z.string().optional(),
+  search: z.string().optional(),
+  limit: z.number().int().min(1).max(200).optional().default(50),
+  offset: z.number().int().min(0).optional().default(0),
+});
+
+export type ListEmployeesInput = z.infer<typeof ListEmployeesInputSchema>;
+
+// ─── Create Employee ────────────────────────────────────────────────────────
+
+export const CreateEmployeeInputSchema = z.object({
+  nik: z.string().min(1).max(32),
+  name: z.string().min(1).max(128),
+  email: z.string().email(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  position: z.string().min(1).max(64),
+  department: z.string().optional(),
+  hireDate: z.string().datetime(), // ISO date string
+  probationEndDate: z.string().datetime().optional(),
+  contractType: z.enum(['pkwt', 'pkwtt']),
+  workSchedule: z.enum(['fulltime', 'parttime', 'shift']).optional().default('fulltime'),
+  npwp: z.string().optional(),
+  bpjsKesehatan: z.string().optional(),
+  bpjsTenagakerja: z.string().optional(),
+  emergencyContactName: z.string().optional(),
+  emergencyContactPhone: z.string().optional(),
+});
+
+export type CreateEmployeeInput = z.infer<typeof CreateEmployeeInputSchema>;
+
+// ─── Update Employee ───────────────────────────────────────────────────────
+
+export const UpdateEmployeeInputSchema = z.object({
+  employeeId: z.string().min(1),
+  name: z.string().min(1).max(128).optional(),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  position: z.string().min(1).max(64).optional(),
+  department: z.string().optional(),
+  status: z.enum(['probation', 'active', 'on_leave', 'terminated']).optional(),
+  contractType: z.enum(['pkwt', 'pkwtt']).optional(),
+  workSchedule: z.enum(['fulltime', 'parttime', 'shift']).optional(),
+  npwp: z.string().optional(),
+  bpjsKesehatan: z.string().optional(),
+  bpjsTenagakerja: z.string().optional(),
+  emergencyContactName: z.string().optional(),
+  emergencyContactPhone: z.string().optional(),
+  version: z.number().int().min(1),
+});
+
+export type UpdateEmployeeInput = z.infer<typeof UpdateEmployeeInputSchema>;
