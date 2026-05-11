@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0082 | UI Settings → Integrations → Naixer KDS | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟨 IN_PROGRESS | SD §33.7 |
+| T-0087 | POS Demo mode UI + IndexedDB sandbox | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟩 DONE | 36d028a |
 
 ---
 
@@ -125,6 +125,8 @@
 | T-0083 | Script seed-naixer-codes.ts (CSV import) | Claude Opus 4.6 | 2026-05-11 | 6fe303c | 22 tests, dry-run support |
 | T-0084 | KDS Aroadri (production status: queued/making/ready) | Claude Opus 4.6 | 2026-05-11 | dadf8b4 | 26 tests, schema + service |
 | T-0085i | Customer-facing display service (SSE) | Claude Opus 4.6 | 2026-05-11 | deb48bc | 11 tests, SSE + grouping |
+| T-0082 | UI Settings → Integrations → Naixer KDS | Claude Opus 4.6 | 2026-05-11 | 88b8456 | CRUD + format config |
+| T-0087 | POS Demo mode UI + IndexedDB sandbox | Claude Opus 4.6 | 2026-05-11 | 36d028a | 19 files, typecheck clean |
 
 ---
 
@@ -149,7 +151,7 @@
 
 | ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
-| T-0087 | POS Demo mode UI + IndexedDB sandbox | pos | SD §34, ADR-0008 | L |
+| _(empty — all Phase 3 tasks completed)_ | | | | |
 
 ### Phase 4 — HR + Payroll + Attendance
 
