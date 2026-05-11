@@ -59,6 +59,10 @@ const NAV_ITEMS: NavItem[] = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3m-3 6.75h3m-3 0h3M9.75 9h3m0 0h3M4.5 9h3m0 0h3M4.5 15h3m0 0h3m0 0h3M9 9h3m0 0h3m0 0h3M9 15h3m0 0h3M9 12h3m0 0h3m0 0h3M9 18h3m0 0h3m0 0h3" />
       </svg>
     ),
+    children: [
+      { label: 'Kasir POS', href: '/pos', icon: <></> },
+      { label: 'Mode Demo', href: '/pos/demo', icon: <></> },
+    ],
   },
   {
     label: 'Inventory',

@@ -10,6 +10,10 @@
  * - Background sync: POST /api/sync/pos via syncOrder() via message from client
  * - Fallback page: /~offline (custom offline page)
  *
+ * ⚠️ ADR-0008: Do NOT sync from `aroadri-pos-demo` IndexedDB.
+ * The sync engine lives client-side (packages/offline/sync.ts) and only
+ * targets `aroadri-pos` (production). The SW only handles navigation/documents.
+ *
  * Usage: `SerwistProvider` from `@serwist/next/react` handles registration.
  */
 
