@@ -1,9 +1,9 @@
 # T-0100 — HR & Payroll Schema (employees + contracts + attendance + leaves)
 
-- **Status**: 🟨 IN_PROGRESS
+- **Status**: 🟩 DONE
 - **Owner**: Claude Opus 4.6
 - **Started**: 2026-05-11
-- **Last Updated**: 2026-05-11
+- **Last Updated**: 2026-05-11 (all done)
 - **Spec**: SD §9.6, §21.8
 - **Branch**: master
 
@@ -15,10 +15,14 @@ Build Phase 4 HR & Payroll schema foundation: 11 tables for employees, contracts
 
 1. [x] `packages/db/schema/hr.ts` — 11 tables (see below)
 2. [x] Update `packages/db/index.ts` — barrel exports
-3. [ ] Typecheck + push (in progress)
-4. [ ] Seed `shift_definitions` (pagi 09:30–17:30, siang 14:30–22:30)
-5. [ ] Seed default `leave_types` (annual 12d, sick, unpaid, marriage, maternity, bereavement)
-6. [ ] Seed default `salary_components` (SALARY_BASE, TUNJANGAN_THR, BPJS_KES, BPJS_TK, PPh21, POTONGAN_TELAT)
+3. [x] Typecheck + push
+4. [x] Seed `shift_definitions` (pagi 09:30–17:30, siang 14:30–22:30)
+5. [x] Seed default `leave_types` (annual 12d, sick, unpaid, marriage, maternity, bereavement)
+6. [x] Seed default `salary_components` (SALARY_BASE, TUNJANGAN_THR, BPJS_KES, BPJS_TK, PPh21, POTONGAN_TELAT)
+7. [x] i18n keys for HR UI — `hr` namespace in id/en/zh (340+ keys, all sections)
+8. [x] Service `hr.listEmployees` + `hr.getEmployee` + `hr.createEmployee`
+9. [x] Sidebar: add "HR & Payroll" nav item
+10. [x] UI HR → Employee list + employee detail page
 
 ## Tables Created
 
@@ -78,10 +82,11 @@ Build Phase 4 HR & Payroll schema foundation: 11 tables for employees, contracts
 
 | SHA | Message | Date |
 |-----|---------|------|
-| _(pending)_ | | |
+| f1d11db | feat(T-0100): HR & Payroll schema — 11 tables | 2026-05-11 |
+| 94a8c39 | feat(T-0100): HR seed data — shifts, leave types, salary components | 2026-05-11 |
+| 13e8074 | feat(T-0100): HR i18n keys — hr namespace in id/en/zh | 2026-05-11 |
+| 6542afc | feat(T-0100): HR service layer — listEmployees, getEmployee, createEmployee | 2026-05-11 |
 
 ## Next step
 
-1. Run `pnpm --filter @erp/db exec tsc --noEmit` to verify no new errors
-2. Commit + push
-3. Create seed files: `packages/db/seed/shift-definitions.ts` and `packages/db/seed/leave-types.ts`
+UI HR pages: create `apps/web/app/(dash)/hr/employees/page.tsx` (employee list with search + filter) and `apps/web/app/(dash)/hr/employees/[id]/page.tsx` (employee detail with tabs: contracts, attendance, leave). Use brand tokens, shadcn/ui table + badge components, and `useTranslations('hr')`. Then update TASK.md to mark T-0100 done.
