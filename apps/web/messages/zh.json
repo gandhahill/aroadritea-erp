@@ -276,6 +276,26 @@
       "retryNow": "立即重试",
       "syncSuccess": "所有交易已同步",
       "syncFailed": "同步失败，将自动重试。"
+    },
+    "demo": {
+      "bannerLabel": "演示模式 — 交易不进入系统",
+      "staleData": "主数据已过期",
+      "refreshMaster": "刷新数据",
+      "pendingOrders": "待处理交易",
+      "receiptPreview": "演示收据预览",
+      "notRealTransaction": "演示交易 — 非真实交易",
+      "thankYou": "谢谢惠顾",
+      "notForSale": "此收据无效",
+      "resetDemo": "重置演示",
+      "resetDemoDesc": "仅清除演示订单历史，保留主数据。",
+      "exitDemoMode": "退出演示模式",
+      "exitDemoModeDesc": "清除所有演示数据，返回正式收银台。",
+      "demoSettings": "演示设置",
+      "loadingSnapshot": "正在加载演示模式...",
+      "snapshotFailed": "主数据加载失败",
+      "retrySnapshot": "重试",
+      "noMasterData": "主数据未就绪",
+      "openProductionPOS": "打开正式收银台"
     }
   },
   "app": {

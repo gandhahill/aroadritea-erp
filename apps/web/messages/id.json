@@ -279,6 +279,26 @@
       "retryNow": "Coba Sekarang",
       "syncSuccess": "Semua transaksi sudah tersinkron",
       "syncFailed": "Sinkronisasi gagal. Akan dicoba lagi otomatis."
+    },
+    "demo": {
+      "bannerLabel": "MODE DEMO — Transaksi tidak masuk sistem",
+      "staleData": "Data master basi",
+      "refreshMaster": "Refresh Data",
+      "pendingOrders": "transaksi pending",
+      "receiptPreview": "Preview Struk Demo",
+      "notRealTransaction": "TRANSAKSI DEMO — BUKAN TRANSAKSI NYATA",
+      "thankYou": "Terima kasih",
+      "notForSale": "Struk ini tidak berlaku",
+      "resetDemo": "Reset Demo",
+      "resetDemoDesc": "Hapus riwayat pesanan demo saja. Data master tetap.",
+      "exitDemoMode": "Keluar Mode Demo",
+      "exitDemoModeDesc": "Hapus semua data demo + kembali ke POS produksi.",
+      "demoSettings": "Pengaturan Demo",
+      "loadingSnapshot": "Memuat Mode Demo...",
+      "snapshotFailed": "Gagal Memuat Data Master",
+      "retrySnapshot": "Coba Lagi",
+      "noMasterData": "Data Master Belum Tersedia",
+      "openProductionPOS": "Buka POS Produksi"
     }
   },
   "app": {

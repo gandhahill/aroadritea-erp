@@ -276,6 +276,26 @@
       "retryNow": "Retry Now",
       "syncSuccess": "All transactions synced",
       "syncFailed": "Sync failed. Will retry automatically."
+    },
+    "demo": {
+      "bannerLabel": "DEMO MODE — Transactions not in system",
+      "staleData": "Master data stale",
+      "refreshMaster": "Refresh Data",
+      "pendingOrders": "pending transactions",
+      "receiptPreview": "Demo Receipt Preview",
+      "notRealTransaction": "DEMO TRANSACTION — NOT REAL",
+      "thankYou": "Thank you",
+      "notForSale": "This receipt is not valid",
+      "resetDemo": "Reset Demo",
+      "resetDemoDesc": "Clear demo order history only. Master data kept.",
+      "exitDemoMode": "Exit Demo Mode",
+      "exitDemoModeDesc": "Clear all demo data + return to production POS.",
+      "demoSettings": "Demo Settings",
+      "loadingSnapshot": "Loading Demo Mode...",
+      "snapshotFailed": "Failed to Load Master Data",
+      "retrySnapshot": "Try Again",
+      "noMasterData": "Master Data Not Available",
+      "openProductionPOS": "Open Production POS"
     }
   },
   "app": {
