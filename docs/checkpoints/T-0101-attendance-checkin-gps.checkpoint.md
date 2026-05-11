@@ -1,6 +1,6 @@
 # T-0101 — Attendance Check-In Service (mobile + GPS)
 
-- **Status**: 🟨 IN_PROGRESS
+- **Status**: 🟩 DONE
 - **Owner**: Claude Opus 4.6
 - **Started**: 2026-05-11
 - **Last Updated**: 2026-05-11
@@ -20,7 +20,7 @@ Build attendance check-in/check-out service for mobile (PWA) use:
 1. [x] Service `attendance.checkIn(employeeId, shiftDefinitionId, method, gpsData)`
 2. [x] Service `attendance.checkOut(attendanceId, gpsData)`
 3. [x] Attendance list page (employee + date range filter)
-4. [ ] Mobile PWA check-in button with GPS + QR scan
+4. [x] Mobile PWA check-in button with GPS + QR scan
 
 ## Attendance SOP (SD §21.8)
 
@@ -40,4 +40,4 @@ Build attendance check-in/check-out service for mobile (PWA) use:
 
 ## Next step
 
-Read SD §21.8 §Attendance SOP for exact late threshold, grace period, and late deduction formula. Then implement `attendance.checkIn` service.
+T-0101 done. Next: T-0102 (payroll engine — PPh 21 progressive TER calculation). Update TASK.md first.
