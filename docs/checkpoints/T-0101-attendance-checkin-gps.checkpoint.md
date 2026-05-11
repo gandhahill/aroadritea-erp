@@ -17,10 +17,10 @@ Build attendance check-in/check-out service for mobile (PWA) use:
 
 ## Plan
 
-1. [ ] Service `attendance.checkIn(employeeId, shiftDefinitionId, method, gpsData)`
-2. [ ] Service `attendance.checkOut(attendanceId, gpsData)`
-3. [ ] Attendance list page (employee + date range filter)
-4. [ ] UI attendance check-in button (mobile PWA, location permission)
+1. [x] Service `attendance.checkIn(employeeId, shiftDefinitionId, method, gpsData)`
+2. [x] Service `attendance.checkOut(attendanceId, gpsData)`
+3. [x] Attendance list page (employee + date range filter)
+4. [ ] Mobile PWA check-in button with GPS + QR scan
 
 ## Attendance SOP (SD §21.8)
 
