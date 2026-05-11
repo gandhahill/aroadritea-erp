@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0087 | POS Demo mode UI + IndexedDB sandbox | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟩 DONE | 36d028a |
+| T-0087 | POS Demo mode UI + IndexedDB sandbox | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟩 DONE | cdc1f1f |
 
 ---
 
