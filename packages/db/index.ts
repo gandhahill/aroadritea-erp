@@ -107,5 +107,20 @@ export {
   naixerQrFormatConfig,
 } from './schema/kitchen';
 
+// Schema — HR & Payroll (SD §9.6, §21.8)
+export {
+  employees,
+  employmentContracts,
+  shiftDefinitions,
+  attendance,
+  leaveTypes,
+  leaveBalances,
+  leaveRequests,
+  salaryComponents,
+  payrolls,
+  payrollLines,
+  disciplinaryActions,
+} from './schema/hr';
+
 // Drizzle-ORM operators (re-exported for downstream consumers)
 export { eq, and, or, not, lte, gte, lt, gt, isNull, isNotNull, sql, inArray, desc, asc, ilike } from 'drizzle-orm';
