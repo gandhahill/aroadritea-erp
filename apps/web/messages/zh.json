@@ -240,6 +240,8 @@
     "modifierTopping": "加料",
     "orderPlaced": "订单已创建",
     "cashier": "收银员",
+    "kasirPos": "收银台",
+    "modeDemo": "演示模式",
     "refunded": "已退款",
     "void": "作废",
     "voidReason": "作废原因",

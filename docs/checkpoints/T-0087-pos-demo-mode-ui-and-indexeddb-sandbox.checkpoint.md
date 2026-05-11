@@ -84,10 +84,11 @@ Build POS Demo Mode — client-side IndexedDB sandbox yang terpisah total dari p
 
 ## Open Issues
 
-- ⚠️ Need to add "Mode Demo" button to production POS sidebar nav (see ADR-0008 §Aktivasi: "Tombol 'Mode Demo' di menu kasir")
+- ✅ ~~Need to add "Mode Demo" button to production POS sidebar nav~~ (ADR-0008 §Aktivasi)
+- ✅ ~~Browser title `[DEMO]`~~ — already set in layout metadata: `{ title: '[DEMO] Point of Sale' }`
+- ✅ ~~Service worker filter: do NOT sync from `aroadri-pos-demo`~~ — documented in SW comment
 - ⚠️ `pos.demo.print` permission not yet wired to UI (print with watermark feature)
-- ⚠️ Browser title `[DEMO]` not set yet (should use `document.title` in demo layout)
-- ⚠️ Service worker filter: do NOT sync from `aroadri-pos-demo` (ensure sync.ts is IndexedDB-name-aware)
+- ⚠️ i18n: "Mode Demo" label in sidebar uses hardcoded text (no `t()` key yet)
 
 ## Next step
 

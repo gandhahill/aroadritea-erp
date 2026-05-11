@@ -240,6 +240,8 @@
     "modifierTopping": "Topping",
     "orderPlaced": "Order Placed",
     "cashier": "Cashier",
+    "kasirPos": "POS",
+    "modeDemo": "Demo Mode",
     "refunded": "Refunded",
     "void": "Void",
     "voidReason": "Void Reason",

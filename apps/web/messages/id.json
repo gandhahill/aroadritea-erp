@@ -243,6 +243,8 @@
     "modifierTopping": "Topping",
     "orderPlaced": "Pesanan Dibuat",
     "cashier": "Kasir",
+    "kasirPos": "Kasir POS",
+    "modeDemo": "Mode Demo",
     "refunded": "Direfund",
     "void": "Batalkan",
     "voidReason": "Alasan Pembatalan",
