@@ -26,6 +26,7 @@
 |----|-------|-------|---------|-------------|--------|------|
 | T-0087 | POS Demo mode UI + IndexedDB sandbox | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟩 DONE | cdc1f1f |
 | T-0100 | Schema employees + contracts + attendance + leaves | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟩 DONE | e0f6a35 |
+| T-0101 | Service attendance check-in (mobile, GPS) | Claude Opus 4.6 | 2026-05-11 | 2026-05-11 | 🟨 IN_PROGRESS | SD §21.8 |
 
 ---
 
@@ -159,7 +160,7 @@
 | ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
 | T-0100 | Schema employees + contracts + attendance + leaves | hr | SD §9.6 | L | 🟩 done (e0f6a35) |
-| T-0101 | Service attendance check-in (mobile, GPS) | hr | SD §21.8 | L |
+| T-0101 | Service attendance check-in (mobile, GPS) | hr | SD §21.8 | L | 🟨 IN_PROGRESS |
 | T-0102 | Service payroll engine (PPh 21 progressive TER) | payroll | SD §19.5, §21.8 | XL |
 | T-0103 | Service payroll.run + digital pay slip (PDF) | payroll | SD §21.8 | L |
 | T-0104 | Warning letter workflow (SP1/SP2/SP3) + attachment | hr | SD §21.8 | M |
