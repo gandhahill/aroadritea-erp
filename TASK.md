@@ -161,8 +161,8 @@
 |----|-------|--------|-----------|----------|
 | T-0100 | Schema employees + contracts + attendance + leaves | hr | SD §9.6 | L | 🟩 done (e0f6a35) |
 | T-0101 | Service attendance check-in (mobile, GPS) | hr | SD §21.8 | L | 🟨 IN_PROGRESS |
-| T-0102 | Service payroll engine (PPh 21 progressive TER) | payroll | SD §19.5, §21.8 | XL | 🟨 IN_PROGRESS |
-| T-0103 | Service payroll.run + digital pay slip (PDF) | payroll | SD §21.8 | L |
+| T-0102 | Service payroll engine (PPh 21 progressive TER) | payroll | SD §19.5, §21.8 | XL | 🟩 DONE | ec839a7 |
+| T-0103 | Service payroll.run + digital pay slip (PDF) | payroll | SD §21.8 | L | 🟨 IN_PROGRESS |
 | T-0104 | Warning letter workflow (SP1/SP2/SP3) + attachment | hr | SD §21.8 | M |
 
 ### Phase 5 — Public Website + CMS + Member + CRM + Loyalty
