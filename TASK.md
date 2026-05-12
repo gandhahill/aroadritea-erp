@@ -180,8 +180,8 @@
 | T-0122 | apps/site scaffold (Next.js, i18n routing /id /en /zh) | infra | SD §31.1 | M | 🟩 done (8e121f5) |
 | T-0123 | Public pages: home, menu, about, locations placeholders | site | SD §31.1, SoT §22.2 | XL | 🟩 done (d174a45) | CMS-driven content deferred to T-0121 |
 | T-0129 | UI cms admin at `apps/web/(dash)/cms/` (basic CRUD form) | ui | SD §31.3 | L | 🟩 done (2aa4f35) | Block editor deferred — basic CRUD form covers T-0129 |
-| T-0124 | Schema members + member_otp_codes + member_signup_attempts + member_sessions | member | SD §31.5, ADR-0004 | M |
-| T-0125 | Service member signup (OTP email + Turnstile + rate limit) | member | SD §31.6, ADR-0004 | L |
+| T-0124 | Schema members + member_otp_codes + member_signup_attempts + member_sessions | member | SD §31.5, ADR-0004 | M | 🟩 done (7eca03b) |
+| T-0125 | Service member signup (OTP email + Turnstile + rate limit) | member | SD §31.6, ADR-0004 | L | 🟩 done (7eca03b) |
 | T-0126 | Member portal /id/member/akun (point balance, QR card, history) | site | SD §31.5, §31.7 | L |
 | T-0127 | Service crm + complaints + compensation tracking | crm | SD §21.9 | M |
 | T-0128 | Service loyalty (points, tiers, vouchers) | crm | SD §21.9 | L |
