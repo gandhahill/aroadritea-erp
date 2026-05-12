@@ -163,7 +163,7 @@
 | T-0101 | Service attendance check-in (mobile, GPS) | hr | SD §21.8 | L | 🟩 done (e9eebc1) |
 | T-0102 | Payroll engine (PPh 21 progressive TER + runPayroll) | payroll | SD §19.5, §21.8 | L | 🟩 done (ec839a7) |
 | T-0103 | Payroll approval + mark-paid + MCP tools + UI | payroll | SD §21.8 | L | 🟩 done (959e9fe) | Digital pay slip PDF deferred |
-| T-0104 | Warning letter workflow (SP1/SP2/SP3) + attachment | hr | SD §21.8 | M | 🟦 |
+| T-0104 | Warning letter workflow (SP1/SP2/SP3) + attachment | hr | SD §21.8 | M | 🟩 done (645f553) |
 
 ### Phase 5 — Public Website + CMS + Member + CRM + Loyalty
 
