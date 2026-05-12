@@ -1,0 +1,25 @@
+{
+  "common": {
+    "brand": "Aroadri Tea",
+    "tagline": "Chinese-style Bubble Tea & Dessert"
+  },
+  "nav": {
+    "home": "Home",
+    "menu": "Menu",
+    "about": "About",
+    "locations": "Locations",
+    "blog": "Blog",
+    "contact": "Contact"
+  },
+  "home": {
+    "heroTitle": "Modern Chinese Classic Beverages & Desserts",
+    "heroSubtitle": "Experience authentic Chinese flavors in every sip",
+    "ctaOrder": "Order Now",
+    "ctaMenu": "View Menu",
+    "popularTitle": "Popular",
+    "popularSubtitle": "Our customers' favorites"
+  },
+  "footer": {
+    "copyright": "© 2026 {brand}. All rights reserved."
+  }
+}
