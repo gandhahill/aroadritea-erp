@@ -132,5 +132,15 @@ export {
   cmsRevisions,
 } from './schema/cms';
 
+// Schema — Member / Loyalty (SD §31.5)
+export {
+  memberSignupAttempts,
+  memberOtpCodes,
+  memberSessions,
+  memberLoyalty,
+  memberVouchers,
+  memberPointsTransactions,
+} from './schema/member';
+
 // Drizzle-ORM operators (re-exported for downstream consumers)
 export { eq, and, or, not, lte, gte, lt, gt, isNull, isNotNull, sql, inArray, desc, asc, ilike } from 'drizzle-orm';

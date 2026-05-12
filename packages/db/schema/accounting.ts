@@ -153,7 +153,11 @@ export const partners = pgTable(
     email: text('email'),
     phone: text('phone'),                     // encrypted at-rest (UU PDP)
     address: text('address'),
+    birthDate: timestamp('birth_date', { withTimezone: true }),
+    city: text('city'),
     isPkp: boolean('is_pkp').notNull().default(false),
+    isMember: boolean('is_member').notNull().default(false),
+    loyaltyTier: text('loyalty_tier').default('bronze'),
     paymentTermsDays: integer('payment_terms_days').default(0),
     isActive: boolean('is_active').notNull().default(true),
     ...auditCols,
