@@ -1,0 +1,135 @@
+/**
+ * CMS Posts — List page (SD §31.3)
+ */
+import type { Metadata } from 'next';
+import { getSession } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import { fetchCmsPosts } from '../actions';
+
+export const metadata: Metadata = { title: 'Posts — CMS' };
+
+const STATUS_COLORS: Record<string, string> = {
+  draft: 'bg-brand-cream-2 text-brand-ink-3',
+  review: 'bg-brand-gold/10 text-brand-gold',
+  published: 'bg-brand-jade/10 text-brand-jade',
+  archived: 'bg-brand-ink/5 text-brand-ink-3',
+};
+
+const KIND_LABELS: Record<string, string> = {
+  news: 'Berita',
+  promo: 'Promo',
+  recipe: 'Resep',
+  event: 'Event',
+};
+
+export default async function CmsPostsPage() {
+  const session = await getSession();
+  if (!session) redirect('/login');
+
+  const posts = await fetchCmsPosts();
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-brand-ink">Posts</h1>
+          <p className="mt-1 text-sm text-brand-ink-3">
+            Kelola berita, promo, resep, dan event.
+          </p>
+        </div>
+        <Link
+          href="/cms/posts/new"
+          className="inline-flex items-center gap-2 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Buat Post
+        </Link>
+      </div>
+
+      {/* Posts table */}
+      <div className="rounded-lg border border-brand-cream-3 bg-card">
+        {posts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <svg className="h-12 w-12 text-brand-cream-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+            </svg>
+            <p className="mt-3 text-sm font-medium text-brand-ink-2">Belum ada post</p>
+            <p className="mt-1 text-xs text-brand-ink-3">Buat post pertama untuk blog atau promo.</p>
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-brand-cream-3 text-left">
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">Judul</th>
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">Kategori</th>
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">Slug</th>
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">Status</th>
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">Tags</th>
+                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">Diperbarui</th>
+                <th className="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-brand-cream-3">
+              {posts.map((post: Record<string, unknown>) => {
+                const title = (post.title as Record<string, string>)?.id ?? (post.title as Record<string, string>)?.en ?? '—';
+                return (
+                  <tr key={post.id as string} className="hover:bg-brand-cream-1/50">
+                    <td className="px-4 py-3">
+                      <span className="text-sm font-medium text-brand-ink">{title}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="rounded bg-brand-cream-2 px-2 py-0.5 text-xs font-medium text-brand-ink-2">
+                        {KIND_LABELS[(post.kind as string) ?? 'news'] ?? (post.kind as string)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <code className="rounded bg-brand-cream-2 px-1.5 py-0.5 text-xs font-mono text-brand-ink-2">
+                        /blog/{(post.slug as string) ?? '—'}
+                      </code>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[(post.status as string) ?? 'draft']}`}>
+                        {(post.status as string)?.charAt(0).toUpperCase() + ((post.status as string) ?? '').slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {((post.tags as string[]) ?? []).slice(0, 2).map(tag => (
+                          <span key={tag} className="rounded bg-brand-cream-1 px-1.5 py-0.5 text-xs text-brand-ink-3">
+                            {tag}
+                          </span>
+                        ))}
+                        {((post.tags as string[]) ?? []).length > 2 && (
+                          <span className="text-xs text-brand-ink-3">+{((post.tags as string[]) ?? []).length - 2}</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm text-brand-ink-3">
+                        {post.updatedAt ? new Date(post.updatedAt as string).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/cms/posts/${post.id as string}`}
+                        className="rounded-md p-1.5 text-brand-ink-3 hover:bg-brand-cream-2 hover:text-brand-ink"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                        </svg>
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}

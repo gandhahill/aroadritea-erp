@@ -122,5 +122,15 @@ export {
   disciplinaryActions,
 } from './schema/hr';
 
+// Schema — CMS (SD §31.2)
+export {
+  cmsPages,
+  cmsPosts,
+  cmsBanners,
+  cmsFaqs,
+  cmsSettings,
+  cmsRevisions,
+} from './schema/cms';
+
 // Drizzle-ORM operators (re-exported for downstream consumers)
 export { eq, and, or, not, lte, gte, lt, gt, isNull, isNotNull, sql, inArray, desc, asc, ilike } from 'drizzle-orm';

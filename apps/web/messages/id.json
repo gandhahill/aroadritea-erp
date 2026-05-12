@@ -470,5 +470,47 @@
       "required": "Wajib diisi",
       "selectOption": "Pilih salah satu"
     }
+  },
+  "cms": {
+    "title": "Kelola Konten Situs",
+    "pages": {
+      "title": "Halaman",
+      "subtitle": "Kelola halaman statis situs web.",
+      "create": "Buat Halaman",
+      "empty": "Belum ada halaman. Buat halaman pertama.",
+      "delete": "Hapus Halaman",
+      "publish": "Publikasi",
+      "unpublish": "Batalkan Publikasi",
+      "slug": "Slug URL",
+      "type": "Tipe",
+      "types": {
+        "page": "Halaman",
+        "landing": "Landing Page",
+        "legal": "Hukum"
+      }
+    },
+    "posts": {
+      "title": "Post",
+      "subtitle": "Kelola berita, promo, resep, dan event.",
+      "create": "Buat Post",
+      "empty": "Belum ada post. Buat post pertama.",
+      "delete": "Hapus Post",
+      "publish": "Publikasi",
+      "unpublish": "Batalkan Publikasi",
+      "slug": "Slug URL",
+      "kind": "Kategori",
+      "kinds": {
+        "news": "Berita",
+        "promo": "Promo",
+        "recipe": "Resep",
+        "event": "Event"
+      }
+    },
+    "errors": {
+      "saveFailed": "Gagal menyimpan",
+      "deleteFailed": "Gagal menghapus",
+      "publishFailed": "Gagal mempublikasikan",
+      "notFound": "Halaman tidak ditemukan"
+    }
   }
 }

@@ -414,5 +414,47 @@
       "required": "Required field",
       "selectOption": "Select an option"
     }
+  },
+  "cms": {
+    "title": "Site Content Management",
+    "pages": {
+      "title": "Pages",
+      "subtitle": "Manage static pages for your website.",
+      "create": "Create Page",
+      "empty": "No pages yet. Create your first page.",
+      "delete": "Delete Page",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "slug": "URL Slug",
+      "type": "Type",
+      "types": {
+        "page": "Page",
+        "landing": "Landing Page",
+        "legal": "Legal"
+      }
+    },
+    "posts": {
+      "title": "Posts",
+      "subtitle": "Manage news, promos, recipes, and events.",
+      "create": "Create Post",
+      "empty": "No posts yet. Create your first post.",
+      "delete": "Delete Post",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "slug": "URL Slug",
+      "kind": "Category",
+      "kinds": {
+        "news": "News",
+        "promo": "Promo",
+        "recipe": "Recipe",
+        "event": "Event"
+      }
+    },
+    "errors": {
+      "saveFailed": "Failed to save",
+      "deleteFailed": "Failed to delete",
+      "publishFailed": "Failed to publish",
+      "notFound": "Page not found"
+    }
   }
 }

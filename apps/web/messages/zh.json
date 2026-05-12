@@ -414,5 +414,47 @@
       "required": "必填项",
       "selectOption": "请选择"
     }
+  },
+  "cms": {
+    "title": "网站内容管理",
+    "pages": {
+      "title": "页面",
+      "subtitle": "管理网站的静态页面。",
+      "create": "创建页面",
+      "empty": "暂无页面。创建第一个页面。",
+      "delete": "删除页面",
+      "publish": "发布",
+      "unpublish": "取消发布",
+      "slug": "URL别名",
+      "type": "类型",
+      "types": {
+        "page": "页面",
+        "landing": "着陆页",
+        "legal": "法律"
+      }
+    },
+    "posts": {
+      "title": "文章",
+      "subtitle": "管理新闻、促销、食谱和活动。",
+      "create": "创建文章",
+      "empty": "暂无文章。创建第一篇文章。",
+      "delete": "删除文章",
+      "publish": "发布",
+      "unpublish": "取消发布",
+      "slug": "URL别名",
+      "kind": "分类",
+      "kinds": {
+        "news": "新闻",
+        "promo": "促销",
+        "recipe": "食谱",
+        "event": "活动"
+      }
+    },
+    "errors": {
+      "saveFailed": "保存失败",
+      "deleteFailed": "删除失败",
+      "publishFailed": "发布失败",
+      "notFound": "页面未找到"
+    }
   }
 }
