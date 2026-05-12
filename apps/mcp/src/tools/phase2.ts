@@ -256,6 +256,85 @@ export const payrollTools = [
   },
 ] as const;
 
+// --- Disciplinary Actions (HR) ---
+
+export const DisciplinaryCreateSchema = z.object({
+  employee_id: z.string(),
+  level: z.enum(['SP1', 'SP2', 'SP3']),
+  reason: z.string().min(10),
+  incident_date: z.string().datetime(),
+  attachment_url: z.string().url().optional(),
+});
+
+export const DisciplinaryAcknowledgeSchema = z.object({
+  disciplinary_id: z.string(),
+});
+
+export const DisciplinaryListSchema = z.object({
+  employee_id: z.string().optional(),
+  level: z.enum(['SP1', 'SP2', 'SP3']).optional(),
+  status: z.enum(['issued', 'acknowledged', 'escalated']).optional(),
+  limit: z.number().min(1).max(100).default(50),
+});
+
+export const disciplinaryTools = [
+  {
+    name: 'hr.create_disciplinary_action',
+    schema: DisciplinaryCreateSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = DisciplinaryCreateSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const { employee_id, level, reason, incident_date, attachment_url } = parsed.data;
+
+      const permitted = await checkPermission(ctx, 'hr.disciplinary.write', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.disciplinary.write');
+
+      const { createDisciplinaryAction } = await import('@erp/services/hr');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const result = await createDisciplinaryAction(
+        { employeeId: employee_id, level, reason, incidentDate: incident_date, attachmentUrl: attachment_url },
+        auditCtx,
+      );
+      if (!result.ok) return mcpError('DISCIPLINARY_CREATE_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
+  },
+  {
+    name: 'hr.list_disciplinary_actions',
+    schema: DisciplinaryListSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = DisciplinaryListSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const permitted = await checkPermission(ctx, 'hr.disciplinary.read', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.disciplinary.read');
+
+      const { listDisciplinaryActions } = await import('@erp/services/hr');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const result = await listDisciplinaryActions(parsed.data, auditCtx);
+      if (!result.ok) return mcpError('DISCIPLINARY_LIST_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
+  },
+  {
+    name: 'hr.acknowledge_disciplinary_action',
+    schema: DisciplinaryAcknowledgeSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = DisciplinaryAcknowledgeSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const permitted = await checkPermission(ctx, 'hr.disciplinary.write', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.disciplinary.write');
+
+      const { acknowledgeDisciplinaryAction } = await import('@erp/services/hr');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const result = await acknowledgeDisciplinaryAction({ disciplinaryId: parsed.data.disciplinary_id }, auditCtx);
+      if (!result.ok) return mcpError('DISCIPLINARY_ACK_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
+  },
+] as const;
+
 // --- CRM ---
 
 export const CRMCreateMemberSchema = z.object({

@@ -1,0 +1,235 @@
+/**
+ * Disciplinary Actions Service — SD §21.8 §Cuti & Surat Peringatan
+ *
+ * SP1 / SP2 / SP3 workflow:
+ * 1. createDisciplinaryAction — HR/director creates SP1/SP2/SP3
+ * 2. acknowledgeDisciplinaryAction — employee acknowledges receipt
+ * 3. Escalate (SP3 automatically or manual)
+ * 4. attachDocument — store attachment URL
+ *
+ * Permission: hr.disciplinary.write (create/acknowledge)
+ * Permission: hr.disciplinary.read (list/view)
+ */
+
+import { eq, and, desc } from 'drizzle-orm';
+import { db } from '@erp/db';
+import { disciplinaryActions } from '@erp/db/schema/hr';
+import { type Result, ok, err, tryCatch } from '@erp/shared/result';
+import { AppError } from '@erp/shared/errors';
+import type { AuditContext } from '@erp/shared/types';
+import { requirePermission } from '../iam';
+import { generateId } from '@erp/shared/id';
+import { z } from 'zod';
+
+// ─── Schema ─────────────────────────────────────────────────────────────────
+
+export const CreateDisciplinaryInputSchema = z.object({
+  employeeId: z.string().min(1),
+  level: z.enum(['SP1', 'SP2', 'SP3']),
+  reason: z.string().min(10, 'Alasan minimal 10 karakter'),
+  incidentDate: z.string().datetime(),
+  attachmentUrl: z.string().url().optional().or(z.literal('')),
+});
+
+export const AcknowledgeDisciplinaryInputSchema = z.object({
+  disciplinaryId: z.string().min(1),
+});
+
+export const ListDisciplinaryInputSchema = z.object({
+  employeeId: z.string().optional(),
+  level: z.enum(['SP1', 'SP2', 'SP3']).optional(),
+  status: z.enum(['issued', 'acknowledged', 'escalated']).optional(),
+  locationId: z.string().optional(),
+  limit: z.number().min(1).max(100).default(50),
+});
+
+export const AttachDocumentInputSchema = z.object({
+  disciplinaryId: z.string().min(1),
+  attachmentUrl: z.string().url('URL lampiran tidak valid'),
+});
+
+export type CreateDisciplinaryInput = z.infer<typeof CreateDisciplinaryInputSchema>;
+export type AcknowledgeDisciplinaryInput = z.infer<typeof AcknowledgeDisciplinaryInputSchema>;
+export type ListDisciplinaryInput = z.infer<typeof ListDisciplinaryInputSchema>;
+export type AttachDocumentInput = z.infer<typeof AttachDocumentInputSchema>;
+
+// ─── Service: createDisciplinaryAction ──────────────────────────────────────
+
+export async function createDisciplinaryAction(
+  input: CreateDisciplinaryInput,
+  ctx: AuditContext,
+): Promise<Result<{ id: string; employeeId: string; level: string; status: string }>> {
+  const permCheck = await requirePermission(ctx.userId, 'hr.disciplinary.write', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  const parsed = CreateDisciplinaryInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return err(AppError.validation('hr.disciplinary.validationFailed', { issues: parsed.error.issues }));
+  }
+  const data = parsed.data;
+
+  return tryCatch(async () => {
+    const id = generateId();
+    await db.insert(disciplinaryActions).values({
+      id,
+      tenantId: ctx.tenantId,
+      locationId: ctx.locationId,
+      employeeId: data.employeeId,
+      level: data.level,
+      reason: data.reason,
+      incidentDate: new Date(data.incidentDate),
+      attachmentUrl: data.attachmentUrl || null,
+      status: 'issued',
+      issuedBy: ctx.userId,
+      createdBy: ctx.userId,
+      updatedBy: ctx.userId,
+    });
+
+    return ok({ id, employeeId: data.employeeId, level: data.level, status: 'issued' });
+  }, (e) => {
+    if (e instanceof AppError) return e;
+    return AppError.internal('hr.disciplinary.createFailed', e);
+  });
+}
+
+// ─── Service: acknowledgeDisciplinaryAction ──────────────────────────────────
+
+export async function acknowledgeDisciplinaryAction(
+  input: AcknowledgeDisciplinaryInput,
+  ctx: AuditContext,
+): Promise<Result<{ id: string; status: string }>> {
+  const permCheck = await requirePermission(ctx.userId, 'hr.disciplinary.write', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  const parsed = AcknowledgeDisciplinaryInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return err(AppError.validation('hr.disciplinary.validationFailed', { issues: parsed.error.issues }));
+  }
+  const data = parsed.data;
+
+  return tryCatch(async () => {
+    const [action] = await db
+      .select()
+      .from(disciplinaryActions)
+      .where(
+        and(
+          eq(disciplinaryActions.tenantId, ctx.tenantId),
+          eq(disciplinaryActions.id, data.disciplinaryId),
+        ),
+      )
+      .limit(1);
+
+    if (!action) {
+      throw AppError.notFound('hr.disciplinary.notFound', { id: data.disciplinaryId });
+    }
+
+    await db
+      .update(disciplinaryActions)
+      .set({
+        status: 'acknowledged',
+        acknowledgedBy: ctx.userId,
+        acknowledgedAt: new Date(),
+        updatedBy: ctx.userId,
+      })
+      .where(eq(disciplinaryActions.id, data.disciplinaryId));
+
+    return ok({ id: data.disciplinaryId, status: 'acknowledged' });
+  }, (e) => {
+    if (e instanceof AppError) return e;
+    return AppError.internal('hr.disciplinary.acknowledgeFailed', e);
+  });
+}
+
+// ─── Service: listDisciplinaryActions ──────────────────────────────────────
+
+export async function listDisciplinaryActions(
+  input: ListDisciplinaryInput,
+  ctx: AuditContext,
+): Promise<Result<Array<{
+  id: string;
+  employeeId: string;
+  level: string;
+  reason: string;
+  incidentDate: Date;
+  status: string;
+  issuedBy: string;
+  attachmentUrl: string | null;
+}>>> {
+  const permCheck = await requirePermission(ctx.userId, 'hr.disciplinary.read', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  try {
+    const conditions = [eq(disciplinaryActions.tenantId, ctx.tenantId)];
+    if (input.employeeId) conditions.push(eq(disciplinaryActions.employeeId, input.employeeId));
+    if (input.level) conditions.push(eq(disciplinaryActions.level, input.level));
+    if (input.status) conditions.push(eq(disciplinaryActions.status, input.status));
+
+    const rows = await db
+      .select({
+        id: disciplinaryActions.id,
+        employeeId: disciplinaryActions.employeeId,
+        level: disciplinaryActions.level,
+        reason: disciplinaryActions.reason,
+        incidentDate: disciplinaryActions.incidentDate,
+        status: disciplinaryActions.status,
+        issuedBy: disciplinaryActions.issuedBy,
+        attachmentUrl: disciplinaryActions.attachmentUrl,
+      })
+      .from(disciplinaryActions)
+      .where(and(...conditions))
+      .orderBy(desc(disciplinaryActions.createdAt))
+      .limit(input.limit);
+
+    return ok(rows);
+  } catch (e) {
+    return err(AppError.internal('hr.disciplinary.listFailed', e));
+  }
+}
+
+// ─── Service: attachDocument ─────────────────────────────────────────────────
+
+export async function attachDocument(
+  input: AttachDocumentInput,
+  ctx: AuditContext,
+): Promise<Result<{ id: string; attachmentUrl: string }>> {
+  const permCheck = await requirePermission(ctx.userId, 'hr.disciplinary.write', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  return tryCatch(async () => {
+    const [action] = await db
+      .select({ id: disciplinaryActions.id })
+      .from(disciplinaryActions)
+      .where(
+        and(
+          eq(disciplinaryActions.tenantId, ctx.tenantId),
+          eq(disciplinaryActions.id, input.disciplinaryId),
+        ),
+      )
+      .limit(1);
+
+    if (!action) {
+      throw AppError.notFound('hr.disciplinary.notFound', { id: input.disciplinaryId });
+    }
+
+    await db
+      .update(disciplinaryActions)
+      .set({
+        attachmentUrl: input.attachmentUrl,
+        updatedBy: ctx.userId,
+      })
+      .where(eq(disciplinaryActions.id, input.disciplinaryId));
+
+    return ok({ id: input.disciplinaryId, attachmentUrl: input.attachmentUrl });
+  }, (e) => {
+    if (e instanceof AppError) return e;
+    return AppError.internal('hr.disciplinary.attachFailed', e);
+  });
+}

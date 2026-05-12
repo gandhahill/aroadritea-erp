@@ -10,3 +10,4 @@ export * from './list-employees.js';
 export * from './get-employee.js';
 export * from './create-employee.js';
 export * from './attendance-service.js';
+export * from './disciplinary-service.js';
