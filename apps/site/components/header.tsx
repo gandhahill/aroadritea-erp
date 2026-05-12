@@ -10,7 +10,12 @@ import { usePathname } from 'next/navigation';
 import { type SiteLocale, localeFlags } from '../i18n';
 import { siteLocales } from '../i18n';
 
-const NAV_LINKS = ['home', 'menu', 'about', 'locations'] as const;
+const NAV_LINKS = [
+  { key: 'home', href: (locale: string) => `/${locale}` },
+  { key: 'menu', href: (locale: string) => `/${locale}/menu` },
+  { key: 'about', href: (locale: string) => `/${locale}/tentang` },
+  { key: 'locations', href: (locale: string) => `/${locale}/lokasi` },
+] as const;
 
 interface Props {
   locale: SiteLocale;
@@ -38,10 +43,10 @@ export function PublicHeader({ locale }: Props) {
 
         {/* Nav */}
         <nav className="hidden items-center gap-6 md:flex">
-          {NAV_LINKS.map((key) => (
+          {NAV_LINKS.map(({ key, href }) => (
             <a
               key={key}
-              href={`/${locale}/${key}`}
+              href={href(locale)}
               className="text-sm font-medium text-brand-ink transition-colors hover:text-brand-red"
             >
               {t(key)}
