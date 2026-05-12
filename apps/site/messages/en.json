@@ -12,12 +12,21 @@
     "contact": "Contact"
   },
   "home": {
-    "heroTitle": "Modern Chinese Classic Beverages & Desserts",
+    "heroTitle": "Modern Chinese Beverages & Desserts",
     "heroSubtitle": "Experience authentic Chinese flavors in every sip",
     "ctaOrder": "Order Now",
     "ctaMenu": "View Menu",
     "popularTitle": "Popular",
     "popularSubtitle": "Our customers' favorites"
+  },
+  "menu": {
+    "title": "Our Menu"
+  },
+  "about": {
+    "title": "About Us"
+  },
+  "locations": {
+    "title": "Store Locations"
   },
   "footer": {
     "copyright": "© 2026 {brand}. All rights reserved."

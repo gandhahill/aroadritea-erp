@@ -1,7 +1,7 @@
 {
   "common": {
     "brand": "Aroadri Tea",
-    "tagline": "中式珍珠奶茶与甜品"
+    "tagline": "中式珍珠奶茶 & 甜品"
   },
   "nav": {
     "home": "首页",
@@ -12,12 +12,21 @@
     "contact": "联系我们"
   },
   "home": {
-    "heroTitle": "现代中式饮品与甜品",
-    "heroSubtitle": "每一口都是传统与现代的完美融合",
+    "heroTitle": "现代中式饮品 & 甜品",
+    "heroSubtitle": "每一口都是传统与现代完美融合",
     "ctaOrder": "立即下单",
     "ctaMenu": "查看菜单",
     "popularTitle": "热门推荐",
     "popularSubtitle": "顾客最爱的选择"
+  },
+  "menu": {
+    "title": "我们的菜单"
+  },
+  "about": {
+    "title": "关于我们"
+  },
+  "locations": {
+    "title": "分店地址"
   },
   "footer": {
     "copyright": "© 2026 {brand} 版权所有。"

@@ -13,13 +13,22 @@
   },
   "home": {
     "heroTitle": "Minuman & Dessert Klasik China Modern",
-    "heroSubtitle": "Rasakan autensitas rasa traditionil China dalam setiap tegukan",
+    "heroSubtitle": "Rasakan autensitas tradisi China dalam setiap tegukan",
     "ctaOrder": "Pesan Sekarang",
     "ctaMenu": "Lihat Menu",
     "popularTitle": "Populer",
     "popularSubtitle": "Pilihan favorit pelanggan kami"
   },
+  "menu": {
+    "title": "Menu"
+  },
+  "about": {
+    "title": "Tentang Kami"
+  },
+  "locations": {
+    "title": "Lokasi Toko"
+  },
   "footer": {
-    "copyright": "© 2026 {year} {brand}. Hak cipta dilindungi."
+    "copyright": "© 2026 {brand}. Hak cipta dilindungi."
   }
 }
