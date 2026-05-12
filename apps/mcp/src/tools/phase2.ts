@@ -4,7 +4,8 @@
  */
 
 import { z } from 'zod';
-import { mcpSuccess } from '../helpers';
+import { can } from '@erp/services/iam';
+import { mcpSuccess, mcpError } from '../helpers';
 import type { McpContext } from '../context';
 
 const NOT_IMPLEMENTED = (module: string) =>
@@ -158,22 +159,100 @@ export const hrTools = [
 
 export const PayrollRunSchema = z.object({
   period_code: z.string(),
+  period_start: z.string().datetime(),
+  period_end: z.string().datetime(),
+  location_id: z.string(),
 });
 
 export const PayrollApproveSchema = z.object({
   payroll_id: z.string(),
+  description: z.string().optional(),
 });
+
+export const PayrollMarkPaidSchema = z.object({
+  payroll_id: z.string(),
+});
+
+async function checkPermission(ctx: McpContext, permission: string, locationId?: string) {
+  return can(ctx.userId, permission, locationId ? { locationId } : {});
+}
 
 export const payrollTools = [
   {
     name: 'payroll.run',
     schema: PayrollRunSchema,
-    handler: async (_input: unknown, _ctx: McpContext) => NOT_IMPLEMENTED('payroll.run'),
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = PayrollRunSchema.safeParse(input);
+      if (!parsed.success) {
+        return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      }
+      const { period_code, period_start, period_end, location_id } = parsed.data;
+
+      const permitted = await checkPermission(ctx, 'hr.payroll.write', location_id);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.payroll.write');
+
+      const { runPayroll } = await import('@erp/services/payroll');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: location_id };
+      const result = await runPayroll(
+        { periodCode: period_code, periodStart: period_start, periodEnd: period_end, locationId: location_id },
+        auditCtx,
+      );
+      if (!result.ok) return mcpError('PAYROLL_RUN_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
   },
   {
     name: 'payroll.approve',
     schema: PayrollApproveSchema,
-    handler: async (_input: unknown, _ctx: McpContext) => NOT_IMPLEMENTED('payroll.approve'),
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = PayrollApproveSchema.safeParse(input);
+      if (!parsed.success) {
+        return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      }
+      const { payroll_id, description } = parsed.data;
+
+      // Load payroll to find location_id for permission check
+      const { db } = await import('@erp/db');
+      const { payrolls } = await import('@erp/db/schema/hr');
+      const { eq } = await import('drizzle-orm');
+      const [payroll] = await db.select({ locationId: payrolls.locationId }).from(payrolls).where(eq(payrolls.id, payroll_id)).limit(1);
+      if (!payroll) return mcpError('NOT_FOUND', `Payroll ${payroll_id} not found`);
+
+      const permitted = await checkPermission(ctx, 'hr.payroll.approve', payroll.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.payroll.approve');
+
+      const { approvePayroll } = await import('@erp/services/payroll');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: payroll.locationId };
+      const result = await approvePayroll({ payrollId: payroll_id, description }, auditCtx);
+      if (!result.ok) return mcpError('PAYROLL_APPROVE_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
+  },
+  {
+    name: 'payroll.mark_paid',
+    schema: PayrollMarkPaidSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = PayrollMarkPaidSchema.safeParse(input);
+      if (!parsed.success) {
+        return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      }
+      const { payroll_id } = parsed.data;
+
+      const { db } = await import('@erp/db');
+      const { payrolls } = await import('@erp/db/schema/hr');
+      const { eq } = await import('drizzle-orm');
+      const [payroll] = await db.select({ locationId: payrolls.locationId }).from(payrolls).where(eq(payrolls.id, payroll_id)).limit(1);
+      if (!payroll) return mcpError('NOT_FOUND', `Payroll ${payroll_id} not found`);
+
+      const permitted = await checkPermission(ctx, 'hr.payroll.write', payroll.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.payroll.write');
+
+      const { markPayrollPaid } = await import('@erp/services/payroll');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: payroll.locationId };
+      const result = await markPayrollPaid({ payrollId: payroll_id }, auditCtx);
+      if (!result.ok) return mcpError('PAYROLL_MARK_PAID_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
   },
 ] as const;
 

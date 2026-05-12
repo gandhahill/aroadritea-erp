@@ -6,3 +6,5 @@
 
 export * from './payroll-engine.js';
 export * from './run-payroll.js';
+export * from './approve-payroll.js';
+export { type RunPayrollInput, type RunPayrollResult } from './run-payroll.js';

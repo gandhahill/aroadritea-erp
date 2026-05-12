@@ -14,6 +14,7 @@
     "./schema/pos": "./schema/pos.ts",
     "./schema/purchasing": "./schema/purchasing.ts",
     "./schema/scheduled-jobs": "./schema/scheduled-jobs.ts",
+    "./schema/hr": "./schema/hr.ts",
     "./schema/kitchen": "./schema/kitchen.ts"
   },
   "scripts": {
