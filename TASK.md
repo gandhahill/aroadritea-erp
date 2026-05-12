@@ -171,8 +171,8 @@
 |----|-------|--------|-----------|----------|
 | T-0120 | Schema cms (pages, posts, banners, faqs, settings, revisions) | cms | SD §31.2, ADR-0003 | M |
 | T-0121 | Service cms (CRUD, publish, ISR webhook) | cms | SD §31.4 | L |
-| T-0122 | apps/site scaffold (Next.js, i18n routing /id /en /zh) | infra | SD §31.1 | M |
-| T-0123 | Public pages: home, menu, about, locations, blog, contact | site | SD §31.1, SoT §22.2 | XL |
+| T-0122 | apps/site scaffold (Next.js, i18n routing /id /en /zh) | infra | SD §31.1 | M | 🟩 done (8e121f5) | |
+| T-0123 | Public pages: home, menu, about, locations placeholders | site | SD §31.1, SoT §22.2 | XL | 🟩 done (d174a45) | CMS-driven content deferred to T-0121 |
 | T-0124 | Schema members + member_otp_codes + member_signup_attempts + member_sessions | member | SD §31.5, ADR-0004 | M |
 | T-0125 | Service member signup (OTP email + Turnstile + rate limit) | member | SD §31.6, ADR-0004 | L |
 | T-0126 | Member portal /id/member/akun (point balance, QR card, history) | site | SD §31.5, §31.7 | L |
