@@ -1,11 +1,10 @@
 /**
- * Disciplinary Actions Service — SD §21.8 §Cuti & Surat Peringatan
+ * Disciplinary Actions Service — SD §21.8 §Surat Peringatan
  *
  * SP1 / SP2 / SP3 workflow:
  * 1. createDisciplinaryAction — HR/director creates SP1/SP2/SP3
  * 2. acknowledgeDisciplinaryAction — employee acknowledges receipt
- * 3. Escalate (SP3 automatically or manual)
- * 4. attachDocument — store attachment URL
+ * 3. attachDocument — store attachment URL
  *
  * Permission: hr.disciplinary.write (create/acknowledge)
  * Permission: hr.disciplinary.read (list/view)
@@ -14,7 +13,7 @@
 import { eq, and, desc } from 'drizzle-orm';
 import { db } from '@erp/db';
 import { disciplinaryActions } from '@erp/db/schema/hr';
-import { type Result, ok, err, tryCatch } from '@erp/shared/result';
+import { type Result, ok, err } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
 import type { AuditContext } from '@erp/shared/types';
 import { requirePermission } from '../iam';
@@ -39,7 +38,6 @@ export const ListDisciplinaryInputSchema = z.object({
   employeeId: z.string().optional(),
   level: z.enum(['SP1', 'SP2', 'SP3']).optional(),
   status: z.enum(['issued', 'acknowledged', 'escalated']).optional(),
-  locationId: z.string().optional(),
   limit: z.number().min(1).max(100).default(50),
 });
 
@@ -53,7 +51,7 @@ export type AcknowledgeDisciplinaryInput = z.infer<typeof AcknowledgeDisciplinar
 export type ListDisciplinaryInput = z.infer<typeof ListDisciplinaryInputSchema>;
 export type AttachDocumentInput = z.infer<typeof AttachDocumentInputSchema>;
 
-// ─── Service: createDisciplinaryAction ──────────────────────────────────────
+// ─── createDisciplinaryAction ──────────────────────────────────────────────
 
 export async function createDisciplinaryAction(
   input: CreateDisciplinaryInput,
@@ -70,7 +68,7 @@ export async function createDisciplinaryAction(
   }
   const data = parsed.data;
 
-  return tryCatch(async () => {
+  try {
     const id = generateId();
     await db.insert(disciplinaryActions).values({
       id,
@@ -88,13 +86,13 @@ export async function createDisciplinaryAction(
     });
 
     return ok({ id, employeeId: data.employeeId, level: data.level, status: 'issued' });
-  }, (e) => {
-    if (e instanceof AppError) return e;
-    return AppError.internal('hr.disciplinary.createFailed', e);
-  });
+  } catch (e) {
+    if (e instanceof AppError) return err(e);
+    return err(AppError.internal('hr.disciplinary.createFailed', e));
+  }
 }
 
-// ─── Service: acknowledgeDisciplinaryAction ──────────────────────────────────
+// ─── acknowledgeDisciplinaryAction ─────────────────────────────────────────
 
 export async function acknowledgeDisciplinaryAction(
   input: AcknowledgeDisciplinaryInput,
@@ -111,7 +109,7 @@ export async function acknowledgeDisciplinaryAction(
   }
   const data = parsed.data;
 
-  return tryCatch(async () => {
+  try {
     const [action] = await db
       .select()
       .from(disciplinaryActions)
@@ -124,7 +122,7 @@ export async function acknowledgeDisciplinaryAction(
       .limit(1);
 
     if (!action) {
-      throw AppError.notFound('hr.disciplinary.notFound', { id: data.disciplinaryId });
+      return err(AppError.notFound('hr.disciplinary.notFound', { id: data.disciplinaryId }));
     }
 
     await db
@@ -138,13 +136,13 @@ export async function acknowledgeDisciplinaryAction(
       .where(eq(disciplinaryActions.id, data.disciplinaryId));
 
     return ok({ id: data.disciplinaryId, status: 'acknowledged' });
-  }, (e) => {
-    if (e instanceof AppError) return e;
-    return AppError.internal('hr.disciplinary.acknowledgeFailed', e);
-  });
+  } catch (e) {
+    if (e instanceof AppError) return err(e);
+    return err(AppError.internal('hr.disciplinary.acknowledgeFailed', e));
+  }
 }
 
-// ─── Service: listDisciplinaryActions ──────────────────────────────────────
+// ─── listDisciplinaryActions ───────────────────────────────────────────────
 
 export async function listDisciplinaryActions(
   input: ListDisciplinaryInput,
@@ -192,7 +190,7 @@ export async function listDisciplinaryActions(
   }
 }
 
-// ─── Service: attachDocument ─────────────────────────────────────────────────
+// ─── attachDocument ───────────────────────────────────────────────────────
 
 export async function attachDocument(
   input: AttachDocumentInput,
@@ -203,7 +201,7 @@ export async function attachDocument(
   });
   if (!permCheck.ok) return permCheck;
 
-  return tryCatch(async () => {
+  try {
     const [action] = await db
       .select({ id: disciplinaryActions.id })
       .from(disciplinaryActions)
@@ -216,7 +214,7 @@ export async function attachDocument(
       .limit(1);
 
     if (!action) {
-      throw AppError.notFound('hr.disciplinary.notFound', { id: input.disciplinaryId });
+      return err(AppError.notFound('hr.disciplinary.notFound', { id: input.disciplinaryId }));
     }
 
     await db
@@ -228,8 +226,8 @@ export async function attachDocument(
       .where(eq(disciplinaryActions.id, input.disciplinaryId));
 
     return ok({ id: input.disciplinaryId, attachmentUrl: input.attachmentUrl });
-  }, (e) => {
-    if (e instanceof AppError) return e;
-    return AppError.internal('hr.disciplinary.attachFailed', e);
-  });
+  } catch (e) {
+    if (e instanceof AppError) return err(e);
+    return err(AppError.internal('hr.disciplinary.attachFailed', e));
+  }
 }

@@ -109,6 +109,7 @@ export function Sidebar() {
         { label: 'Attendance', href: '/hr/attendance', icon: <></> },
         { label: 'Leave', href: '/hr/leave', icon: <></> },
         { label: 'Payroll', href: '/hr/payroll', icon: <></> },
+        { label: 'Surat Peringatan', href: '/hr/disciplinary', icon: <></> },
       ],
     },
     {
