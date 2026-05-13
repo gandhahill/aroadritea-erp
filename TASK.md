@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0155 | UI workflow definition editor | Claude Opus 4.6 | 2026-05-13 | 2026-05-13 | 🟨 IN_PROGRESS | |
+| T-0157 | Outage notification (uptime monitor + WA/email webhook) | Claude Opus 4.6 | 2026-05-13 | 2026-05-13 | 🟦 PENDING | |
 
 ---
 
@@ -182,7 +182,6 @@
 
 | ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
-| T-0155 | UI workflow definition editor | ui | SD §18 | L |
 | T-0157 | Outage notification (uptime monitor + WA/email webhook) | infra | SD §35.1.6 | M |
 
 ---
