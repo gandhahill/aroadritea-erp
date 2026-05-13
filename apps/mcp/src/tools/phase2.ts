@@ -219,16 +219,18 @@ export const purchasingTools = [
 
 export const POSListSalesSchema = z.object({
   location_id: z.string(),
-  from: z.string(),
-  to: z.string(),
+  from: z.string().optional(),
+  to: z.string().optional(),
   channel: z.enum(['walk_in', 'gofood', 'grabfood', 'shopeefood']).optional(),
+  limit: z.number().min(1).max(200).optional().default(50),
+  offset: z.number().min(0).optional().default(0),
 });
 
 export const POSRefundSchema = z.object({
   sales_order_id: z.string(),
-  reason: z.string(),
+  reason: z.string().min(5),
   lines: z
-    .array(z.object({ line_id: z.string(), qty: z.number() }))
+    .array(z.object({ line_id: z.string(), qty: z.number().int().positive() }))
     .optional(),
 });
 
@@ -236,39 +238,151 @@ export const posTools = [
   {
     name: 'pos.list_sales',
     schema: POSListSalesSchema,
-    handler: async (_input: unknown, _ctx: McpContext) => NOT_IMPLEMENTED('pos.list_sales'),
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = POSListSalesSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const { location_id, from, to, channel, limit, offset } = parsed.data;
+
+      const permitted = await checkPermission(ctx, 'pos.transact', location_id);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: pos.transact');
+
+      const { db } = await import('@erp/db');
+      const { salesOrders } = await import('@erp/db/schema/pos');
+      const { and, eq, gte, lte, desc, sql } = await import('drizzle-orm');
+
+      const conditions = [eq(salesOrders.tenantId, ctx.tenantId), eq(salesOrders.locationId, location_id)];
+      if (from) conditions.push(gte(salesOrders.createdAt, new Date(from)));
+      if (to) conditions.push(lte(salesOrders.createdAt, new Date(to)));
+      if (channel) conditions.push(eq(salesOrders.channel, channel));
+
+      const rows = await db
+        .select()
+        .from(salesOrders)
+        .where(and(...conditions))
+        .orderBy(desc(salesOrders.createdAt))
+        .limit(limit + 1);
+
+      const hasMore = rows.length > limit;
+      const items = hasMore ? rows.slice(0, -1) : rows;
+      return mcpSuccess({ items, hasMore, nextOffset: hasMore ? String(offset + limit) : undefined });
+    },
   },
   {
     name: 'pos.refund',
     schema: POSRefundSchema,
-    handler: async (_input: unknown, _ctx: McpContext) => NOT_IMPLEMENTED('pos.refund'),
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = POSRefundSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const { sales_order_id, reason, lines } = parsed.data;
+
+      const { db } = await import('@erp/db');
+      const { salesOrders } = await import('@erp/db/schema/pos');
+      const { eq } = await import('drizzle-orm');
+      const [sale] = await db.select({ locationId: salesOrders.locationId }).from(salesOrders).where(eq(salesOrders.id, sales_order_id)).limit(1);
+      if (!sale) return mcpError('NOT_FOUND', `Sale ${sales_order_id} not found`);
+
+      const permitted = await checkPermission(ctx, 'pos.transact', sale.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: pos.transact');
+
+      const { refundSale } = await import('@erp/services/pos');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: sale.locationId };
+      const result = await refundSale(
+        { salesOrderId: sales_order_id, reason, refundLines: lines?.map(l => ({ lineId: l.line_id, qty: l.qty })) },
+        auditCtx,
+      );
+      if (!result.ok) return mcpError('POS_REFUND_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
   },
 ] as const;
 
 // --- HR ---
 
 export const HRCreateEmployeeSchema = z.object({
-  display_name: z.string(),
+  nik: z.string().min(1).max(32),
+  name: z.string().min(1).max(128),
   email: z.string().email(),
   phone: z.string().optional(),
-  locale: z.enum(['id', 'en', 'zh']).optional().default('id'),
+  address: z.string().optional(),
+  position: z.string().min(1).max(64),
+  department: z.string().optional(),
+  hire_date: z.string().datetime(), // ISO date
+  probation_end_date: z.string().datetime().optional(),
+  contract_type: z.enum(['pkwt', 'pkwtt']),
+  npwp: z.string().optional(),
+  bpjs_kesehatan: z.string().optional(),
+  bpjs_tenagakerja: z.string().optional(),
+  emergency_contact_name: z.string().optional(),
+  emergency_contact_phone: z.string().optional(),
 });
 
 export const HRListEmployeesSchema = z.object({
-  status: z.enum(['active', 'suspended']).optional(),
+  status: z.enum(['probation', 'active', 'on_leave', 'terminated']).optional(),
+  department: z.string().optional(),
   location_id: z.string().optional(),
+  search: z.string().optional(),
+  limit: z.number().int().min(1).max(200).optional().default(50),
+  offset: z.number().int().min(0).optional().default(0),
 });
 
 export const hrTools = [
   {
     name: 'hr.create_employee',
     schema: HRCreateEmployeeSchema,
-    handler: async (_input: unknown, _ctx: McpContext) => NOT_IMPLEMENTED('hr.create_employee'),
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = HRCreateEmployeeSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const data = parsed.data;
+
+      const permitted = await checkPermission(ctx, 'hr.employee.write', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.employee.write');
+
+      const { createEmployee } = await import('@erp/services/hr');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const result = await createEmployee(
+        {
+          nik: data.nik,
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          address: data.address,
+          position: data.position,
+          department: data.department,
+          hireDate: data.hire_date,
+          probationEndDate: data.probation_end_date,
+          contractType: data.contract_type,
+          workSchedule: 'fulltime' as const,
+          npwp: data.npwp,
+          bpjsKesehatan: data.bpjs_kesehatan,
+          bpjsTenagakerja: data.bpjs_tenagakerja,
+          emergencyContactName: data.emergency_contact_name,
+          emergencyContactPhone: data.emergency_contact_phone,
+        },
+        auditCtx,
+      );
+      if (!result.ok) return mcpError('HR_CREATE_EMPLOYEE_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
   },
   {
     name: 'hr.list_employees',
     schema: HRListEmployeesSchema,
-    handler: async (_input: unknown, _ctx: McpContext) => NOT_IMPLEMENTED('hr.list_employees'),
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = HRListEmployeesSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const permitted = await checkPermission(ctx, 'hr.employee.read', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.employee.read');
+
+      const { listEmployees } = await import('@erp/services/hr');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const result = await listEmployees(
+        { status: parsed.data.status, department: parsed.data.department, locationId: parsed.data.location_id, search: parsed.data.search, limit: parsed.data.limit, offset: parsed.data.offset },
+        auditCtx,
+      );
+      if (!result.ok) return mcpError('HR_LIST_EMPLOYEES_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
   },
 ] as const;
 
@@ -665,6 +779,37 @@ export const auditTools = [
   {
     name: 'audit.search',
     schema: AuditSearchSchema,
-    handler: async (_input: unknown, _ctx: McpContext) => NOT_IMPLEMENTED('audit.search'),
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = AuditSearchSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const { entity_type, entity_id, actor, from, to, limit, cursor } = parsed.data;
+
+      const permitted = await checkPermission(ctx, 'audit.read', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: audit.read');
+
+      const { db } = await import('@erp/db');
+      const { auditLog } = await import('@erp/db/schema/audit');
+      const { and, eq, gte, lte, desc, sql } = await import('drizzle-orm');
+
+      const conditions = [eq(auditLog.tenantId, ctx.tenantId)];
+      if (entity_type) conditions.push(eq(auditLog.entityType, entity_type));
+      if (entity_id) conditions.push(eq(auditLog.entityId, entity_id));
+      if (actor) conditions.push(eq(auditLog.userId, actor));
+      if (from) conditions.push(gte(auditLog.createdAt, new Date(from)));
+      if (to) conditions.push(lte(auditLog.createdAt, new Date(to)));
+
+      const pageLimit = (limit ?? 50) + 1;
+      const rows = await db
+        .select()
+        .from(auditLog)
+        .where(and(...conditions))
+        .orderBy(desc(auditLog.createdAt))
+        .limit(pageLimit);
+
+      const hasMore = rows.length > (limit ?? 50);
+      const items = hasMore ? rows.slice(0, -1) : rows;
+      const nextCursor = hasMore && items.length > 0 ? (items[items.length - 1]?.id as string) : undefined;
+      return mcpSuccess({ items, nextCursor: nextCursor ?? undefined });
+    },
   },
 ] as const;
