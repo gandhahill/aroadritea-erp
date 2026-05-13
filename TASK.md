@@ -190,11 +190,11 @@
 
 | ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
-| T-0150 | Schema custom_field_definitions + custom_field_values | customfield | SD §9.9, §17 | M |
-| T-0151 | Service customfield CRUD + value validation | customfield | SD §17 | M |
+| T-0150 | Schema custom_field_definitions + custom_field_values | customfield | SD §9.9, §17 | M | 🟩 done (9e22eb9) |
+| T-0151 | Service customfield CRUD + value validation | customfield | SD §17 | M | 🟩 done (9e22eb9) |
 | T-0152 | UI Settings → Custom Fields | ui | SD §17.3 | L |
-| T-0153 | Schema workflow_definitions + instances + steps | workflow | SD §9.10, §18 | M |
-| T-0154 | Service workflow engine (rule eval + step execution) | workflow | SD §18 | XL |
+| T-0153 | Schema workflow_definitions + instances + steps | workflow | SD §9.10, §18 | M | 🟩 done (9e22eb9) |
+| T-0154 | Service workflow engine (rule eval + step execution) | workflow | SD §18 | XL | 🟩 done (9e22eb9) |
 | T-0155 | UI workflow definition editor | ui | SD §18 | L |
 | T-0156 | Full MCP tools per module (cms, member, hr, payroll, crm, kitchen) | mcp | SD §16 | XL |
 | T-0157 | Outage notification (uptime monitor + WA/email webhook) | infra | SD §35.1.6 | M |
