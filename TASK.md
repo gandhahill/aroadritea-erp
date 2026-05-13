@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0157 | Outage notification (uptime monitor + WA/email webhook) | Claude Opus 4.6 | 2026-05-13 | 2026-05-13 | 🟦 PENDING | |
+| _(no active tasks — all scoped work is in Backlog)_ |
 
 ---
 
@@ -182,7 +182,7 @@
 
 | ID | Title | Module | Spec link | Estimate |
 |----|-------|--------|-----------|----------|
-| T-0157 | Outage notification (uptime monitor + WA/email webhook) | infra | SD §35.1.6 | M |
+| T-0157 | Outage notification (uptime monitor + WA/email webhook) | infra | SD §35.1.6 | M | 🟩 DONE | 80cbb15 | Worker job, notification schema, Twilio + SMTP |
 
 ---
 
