@@ -116,6 +116,7 @@
 | T-0085f | UI reporting/hourly-sales (heatmap + table + export XLSX) | Claude Opus 4.6 | 2026-05-11 | feat(T-0085f) | 4 files, typecheck clean |
 | T-0085g | MCP tool reporting.get_hourly_sales | Claude Opus 4.6 | 2026-05-11 | feat(T-0085g) | |
 | T-0085h | Donation report — service + UI + MCP tool | Claude Opus 4.6 | 2026-05-10 | c3a40d1 | |
+| T-0085j | Omzet Harian PB1-exclusive export (SD §25.5b, SoT §21.3b) | Claude Opus 4.6 | 2026-05-13 | e07bc00 | Schema, service, UI, XLSX, MCP tool |
 
 ### Phase 3 — Kitchen + KDS + Customer Display
 
@@ -172,17 +173,7 @@
 > Filled during initial scoping. AI picks from here when no Active Task can be continued.
 > Completed tasks are moved to Done This Sprint and **removed from here**.
 
-### Phase 1b — Reporting Expansion
-
-| ID | Title | Module | Spec link | Estimate |
-|----|-------|--------|-----------|----------|
-| T-0085j | Omzet Harian export Excel (PB1-exclusive + koreksi fiskal) | reporting | SD §25.5b, SoT §21.3b | M |
-
-### Phase 6 — MCP Expansion + Custom Field + Workflow Engine
-
-| ID | Title | Module | Spec link | Estimate |
-|----|-------|--------|-----------|----------|
-| T-0157 | Outage notification (uptime monitor + WA/email webhook) | infra | SD §35.1.6 | M | 🟩 DONE | 80cbb15 | Worker job, notification schema, Twilio + SMTP |
+_(no items — all backlog tasks completed)_
 
 ---
 
