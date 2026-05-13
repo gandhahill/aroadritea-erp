@@ -167,6 +167,7 @@
 | T-0155 | UI workflow definition editor | Claude Opus 4.6 | 2026-05-13 | 2f432bd | Condition builder, steps editor, JSON preview tab |
 | T-0156 | Full MCP tools per module (cms, member, hr, payroll, crm, kitchen) | Claude Opus 4.6 | 2026-05-13 | 4a8ec8b | All tool handlers implemented (POS, HR, Audit done) |
 | T-0157 | Production readiness config, security, Naixer print settings, HestiaCP README | Codex | 2026-05-13 | pending commit | UI-configurable POS/Naixer settings, login language selector, security hardening, HestiaCP docs |
+| T-0158 | Expand README step-by-step deployment guide | Codex | 2026-05-13 | pending commit | README now covers local setup, HestiaCP deploy, update, rollback, troubleshooting |
 
 ---
 
