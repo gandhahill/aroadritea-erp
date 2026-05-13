@@ -30,5 +30,18 @@
   },
   "footer": {
     "copyright": "© 2026 {brand}. Hak cipta dilindungi."
+  },
+  "member": {
+    "title": "Akun Saya",
+    "logout": "Keluar",
+    "memberId": "ID Member",
+    "availablePoints": "Poin Tersedia",
+    "lifetimePoints": "Total Poin Sepanjang Waktu",
+    "pointsHistory": "Riwayat Poin",
+    "noHistory": "Belum ada riwayat poin.",
+    "vouchers": "Voucher Saya",
+    "noVouchers": "Belum ada voucher.",
+    "memberCard": "Kartu Member",
+    "scanAtStore": "Pindai saat pembayaran"
   }
 }

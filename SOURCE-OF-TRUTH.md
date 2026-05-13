@@ -1019,6 +1019,75 @@ Setiap akhir shift/hari, kasir dan kepala toko memerlukan **laporan ringkasan pe
 - Grafik donut untuk breakdown metode bayar.
 - **Cetak / Export**: PDF + XLSX.
 
+#### §21.3b — Ekspor Excel Omzet Harian (Khusus Pajak / Coretax)
+
+> Fitur ini diminta user pada 2026-05-12. Dipicu oleh kebutuhan pelaporan pajak harian ke Coretax (DJPh online) yang memerlukan **omzet neto setelah PB1 10% dipisahkan**, dengan kemungkinan **penyesuaian manual** jika ada perbedaan antara omzet akuntansi dan omzet fiskal (mis. koreksi harga, retur yang belum dicatat, transaksi batal, dll.).
+
+**Tujuan:**
+- Menyediakan file Excel yang langsung bisa digunakan untuk **isian SPT Masa PPh Final UMKM (PP 5/2022)** atau **rekon Coretax**.
+- Kolom omzet di-export **sudah dikurangi PB1 10%** (karena PB1 bersifat *inclusive*, omzet fiskal harus di-backward dari gross).
+- User bisa **edit penyesuaian manual** langsung di file Excel sebelum submit.
+
+**Rumus Perhitungan:**
+```
+PB1_rate = 10%
+PB1_exclusive_omzet  = gross_sales ÷ (1 + PB1_rate/100)
+                    = gross_sales ÷ 1.10
+PB1_tax_amount      = gross_sales − PB1_exclusive_omzet
+Net taxable omzet   = PB1_exclusive_omzet + adjustments
+```
+Di mana `adjustments` = penyesuaian manual user (bisa negatif/positif), contoh:
+- Penyesuaian harga karena retur yang belum dicatat (−)
+- Koreksi transaksi batal (+)
+- Potongan harga spesial yang belum tercatat (−)
+
+**Spesifikasi Excel:**
+
+| Kolom | Deskripsi | Contoh |
+|---|---|---|
+| A | Tanggal | 2026-05-12 |
+| B | Lokasi | Malioboro |
+| C | Gross Sales (IDR) | 5.500.000 |
+| D | PB1 10% (IDR) | 500.000 |
+| E | **Omzet Neto (IDR)** = C − D | 5.000.000 |
+| F | **Penyesuaian (IDR)** | −50.000 |
+| G | **Omzet Fiskal (IDR)** = E + F | 4.950.000 |
+| H | Keterangan penyesuaian | Retur 2x milk tea |
+
+**Perbedaan Omzet Akuntansi vs Omzet Fiskal:**
+- **Omzet Akuntansi** = `PB1_exclusive_omzet` dari sistem (otomatis).
+- **Omzet Fiskal** = `PB1_exclusive_omzet` + `adjustments` (user-inputtable).
+- Kolom F dan H adalah **editable oleh user** sebelum ekspor — sistem menyimpan nilai terakhir sebagai *draft* per lokasi per tanggal.
+- Draft penyesuaian disimpan di tabel `daily_revenue_adjustments (location_id, date, adjustment_amount, adjustment_note, created_by, updated_at)` agar tidak hilang saat refresh.
+
+**Spesifikasi UI:**
+- Page: `apps/web/(dash)/reporting/omzet-harian/`
+- Filter: tanggal (default: hari ini), lokasi.
+- Tabel dengan kolom A–H di atas.
+- Edit inline untuk kolom F (Penyesuaian) dan H (Keterangan) — double-click untuk edit.
+- Tombol: **Simpan Penyesuaian**, **Export Excel (XLSX)**.
+- Warning banner jika ada penyesuaian ≠ 0: "⚠️ Omzet fiskal berbeda dari omzet akuntansi sebesar Rp X."
+
+**Spesifikasi Teknis:**
+- Library: ExcelJS (sudah di-stack).
+- File name: `omzet-harian-{YYYY-MM-DD}-{location}.xlsx`.
+- Styling: header baris berwarna brand-red (#D6262E), freeze pane di A1, number format IDR tanpa desimal.
+- Sheet name: "Omzet Harian".
+
+**Spesifikasi MCP Tool:**
+```ts
+reporting.get_daily_omzet_export
+input: { location_id, date, locale }
+output: { gross_sales, pb1_amount, net_omzet, adjustment_amount, adjustment_note, fiscal_omzet, last_modified }
+```
+Tool ini membaca data dari `getDailySummary` + penyesuaian dari `daily_revenue_adjustments`.
+
+**Catatan Penting (UU Perpajakan):**
+- PB1/PBJT 10% bersifat *inclusive* — harga yang dibayar pelanggan SUDAH termasuk PB1.
+- Untuk pelaporan pajak, omzet yang menjadi dasar pengenaan PPh Final 0,5% (PP 5/2022) adalah omzet **setelah dikurangi PB1**.
+- Koreksi fiskal (penyesuaian) harus didukung bukti dokumen yang benar.
+- Konsultasi dengan akuntan/tax consultant diperlukan untuk kasus-kasus khusus.
+
 ### 21.4 Laporan Penjualan Per Jam (Hourly Sales)
 
 Laporan ini ditujukan untuk analisis pola penjualan dan perencanaan staffing:
@@ -1594,6 +1663,7 @@ Foto-foto referensi yang ada di kuesioner (PDF asli):
 | 1.2 | 2026-05-05 | Lintang Maulana Zulfan | Upgrade RAM 1→2 GB; perluas §14.4 (dua format Naixer QR + master mapping); tambah §24 (POS Demo Mode), §25 (Resilience & Auto-Recovery); tambah istilah glosarium (Outbox, RTO, RPO, dll.) |
 | 1.4 | 2026-05-09 | Lintang Maulana Zulfan | Tambah §18.2 (Keamanan Level Militar), §21.2a (Ekspor XLSX), §21.2b (Dokumentasi), §21.3 (Laporan Harian), §21.4 (Hourly Sales), §21.5 (Petty Cash), §21.6 (Reimbursement), §21.7 (Stock Opname & Variansi), §21.9 (Upload Bukti+Jurnal MCP), §21.10 (Donasi/Rounding) |
 | 1.5 | 2026-05-10 | Lintang Maulana Zulfan | Update §12 (HR & Payroll): SOP jam kerja, shift, istirahat, keterlambatan (Rp 50/100k), absensi + komponen payroll; §12.8–§12.13 SOP lengkap (buka/tutup toko, produksi, area, stock alert) |
+| 1.6 | 2026-05-12 | Lintang Maulana Zulfan | Tambah §21.3b (Ekspor Excel Omzet Harian): omzet neto setelah PB1 10% dipisahkan, penyesuaian manual untuk beda akuntansi vs fiskal, draft per lokasi/tanggal, rumus PB1_exclusive = gross ÷ 1.10 |
 
 ---
 

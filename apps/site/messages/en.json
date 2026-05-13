@@ -30,5 +30,18 @@
   },
   "footer": {
     "copyright": "© 2026 {brand}. All rights reserved."
+  },
+  "member": {
+    "title": "My Account",
+    "logout": "Logout",
+    "memberId": "Member ID",
+    "availablePoints": "Available Points",
+    "lifetimePoints": "Lifetime Points",
+    "pointsHistory": "Points History",
+    "noHistory": "No points history yet.",
+    "vouchers": "My Vouchers",
+    "noVouchers": "No vouchers yet.",
+    "memberCard": "Member Card",
+    "scanAtStore": "Scan at checkout"
   }
 }

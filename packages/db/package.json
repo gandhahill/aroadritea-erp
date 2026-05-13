@@ -15,7 +15,9 @@
     "./schema/purchasing": "./schema/purchasing.ts",
     "./schema/scheduled-jobs": "./schema/scheduled-jobs.ts",
     "./schema/hr": "./schema/hr.ts",
-    "./schema/kitchen": "./schema/kitchen.ts"
+    "./schema/kitchen": "./schema/kitchen.ts",
+    "./schema/cms": "./schema/cms.ts",
+    "./schema/member": "./schema/member.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",

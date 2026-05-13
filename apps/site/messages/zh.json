@@ -30,5 +30,18 @@
   },
   "footer": {
     "copyright": "© 2026 {brand} 版权所有。"
+  },
+  "member": {
+    "title": "我的账户",
+    "logout": "退出",
+    "memberId": "会员ID",
+    "availablePoints": "可用积分",
+    "lifetimePoints": "累计积分",
+    "pointsHistory": "积分记录",
+    "noHistory": "暂无积分记录。",
+    "vouchers": "我的优惠券",
+    "noVouchers": "暂无优惠券。",
+    "memberCard": "会员卡",
+    "scanAtStore": "结账时扫描"
   }
 }

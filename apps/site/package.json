@@ -9,6 +9,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@erp/db": "workspace:*",
+    "@erp/services": "workspace:*",
     "@erp/shared": "workspace:*",
     "@erp/ui-public": "workspace:*",
     "next": "^15.0.0",

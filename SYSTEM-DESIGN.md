@@ -1,4 +1,4 @@
-# SYSTEM DESIGN — Sistem ERP Aroadri Tea
+﻿# SYSTEM DESIGN — Sistem ERP Aroadri Tea
 
 > **Audiens dokumen ini adalah AI developer** (Claude Code, Gemini CLI, Antigravity, Codex, dll.) yang akan menulis kode untuk repository ini. Dokumen ditulis eksplisit, deterministik, dan minim ambiguitas. Setiap aturan dirumuskan agar AI dapat mengeksekusi tanpa harus menebak.
 >
@@ -9,7 +9,7 @@
 >
 > Bila ada konflik: SOURCE-OF-TRUTH menang untuk requirement bisnis; SYSTEM-DESIGN menang untuk implementasi teknis.
 >
-> **Versi**: 1.6 — 2026-05-10
+> **Versi**: 1.7 — 2026-05-12
 > **Owner**: Lintang Maulana Zulfan
 
 ---
@@ -45,6 +45,7 @@
 25b. [§25.3 — Ekspor XLSX di Semua Modul](#253-ekspor-xlsx-di-semua-modul)
 25c. [§25.4 — Sistem Dokumentasi Komprehensif](#254-sistem-dokumentasi-komprehensif)
 25d. [§25.5 — Laporan Harian Summary](#255-laporan-harian-summary)
+25.5b. [Â§25.5b â€” Omzet Harian Export (PB1 + Koreksi Fiskal)](#255b-omzet-harian-export--pb1-exclusive--koreksi-fiskal-sot-213b)
 25e. [§25.6 — Hourly Sales Report](#256-hourly-sales-report)
 25f. [§25.7 — Petty Cash](#257-petty-cash)
 25g. [§25.8 — Reimbursement](#258-reimbursement)
@@ -2603,6 +2604,165 @@ export const reportingGetDailySummary = {
 };
 ```
 
+#### 25.5b Omzet Harian Export — PB1 Exclusive + Koreksi Fiskal (SoT §21.3b)
+
+> User-requested 2026-05-12: file Excel untuk pelaporan pajak Coretax / SPT PPh Final UMKM, dengan omzet yang sudah dikurangi PB1 10% dan kolom koreksi manual untuk beda omzet akuntansi vs fiskal.
+
+#### 25.5b.1 Schema
+
+```sql
+-- packages/db/schema/reporting/daily-revenue-adjustments.sql
+CREATE TABLE daily_revenue_adjustments (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  location_id UUID NOT NULL REFERENCES locations(id),
+  date        DATE NOT NULL,           -- YYYY-MM-DD, WIB date
+  adjustment_amount BIGINT NOT NULL DEFAULT 0, -- sen/IDR; can be negative
+  adjustment_note    TEXT,
+  created_by  UUID REFERENCES users(id),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (location_id, date)
+);
+-- Index for fast lookup by location+date
+CREATE INDEX idx_dra_location_date ON daily_revenue_adjustments(location_id, date);
+```
+
+**Reasoning**: stored as `BIGINT` (sen/IDR) to maintain Money type consistency. `adjustment_amount` can be negative (koreksi pengurang) or positive (koreksi penambah).
+
+#### 25.5b.2 Calculation Formula
+
+```ts
+// packages/services/reporting/daily-omzet.ts
+
+const PB1_RATE = 0.10; // 10%
+
+/**
+ * Strip PB1 (inclusive) from gross to get net taxable omzet.
+ * Formula: net = gross / (1 + PB1_RATE)
+ * Example: gross = 5.500.000 → net = 5.500.000 / 1.10 = 5.000.000
+ */
+function stripPB1(grossSales: bigint): bigint {
+  return grossSales / 110n * 100n; // integer-safe: multiply by 100 then divide by 110
+  // Better (no overflow): gross * 100 / 110
+  return (gross * 100n) / 110n;
+}
+
+function computePB1(grossSales: bigint): bigint {
+  return grossSales - stripPB1(grossSales);
+}
+
+interface OmzetHarianResult {
+  date: string;
+  locationId: string;
+  locationName: string;
+  grossSales: string;          // bigint string
+  pb1Amount: string;           // bigint string (gross - net)
+  netOmzet: string;            // bigint string (PB1-exclusive)
+  adjustmentAmount: string;    // bigint string (from daily_revenue_adjustments)
+  adjustmentNote: string | null;
+  fiscalOmzet: string;         // bigint string (netOmzet + adjustment)
+  lastModified: string | null; // ISO timestamp of last adjustment
+}
+```
+
+> **Integer-safe calculation note**: `gross * 100 / 110` avoids floating-point errors. This yields floor division which matches standard PB1 back-calculation for whole-IDR amounts.
+
+#### 25.5b.3 Service API
+
+```ts
+// packages/services/reporting/daily-omzet.ts
+
+export async function getOmzetHarian(
+  params: { locationId: string; date: string }, // YYYY-MM-DD
+  ctx: AuditContext,
+): Promise<Result<OmzetHarianResult>>
+
+export async function saveOmzetAdjustment(
+  params: {
+    locationId: string;
+    date: string;
+    adjustmentAmount: string; // bigint string, can be negative
+    adjustmentNote?: string;
+  },
+  ctx: AuditContext,
+): Promise<Result<void>>
+
+export async function exportOmzetHarianXlsx(
+  params: { locationId: string; date: string; locale?: 'id' | 'en' | 'zh' },
+  ctx: AuditContext,
+): Promise<Result<{ buffer: ArrayBuffer; filename: string }>>
+```
+
+#### 25.5b.4 UI
+
+- **Route**: `apps/web/(dash)/reporting/omzet-harian/page.tsx`
+- **Layout**: Single-column centered, max-width 800px.
+- **Filter bar**: tanggal (default: today), lokasi (dropdown).
+- **Read-only fields** (A–E): tanggal, lokasi, gross sales, PB1 10%, omzet neto.
+- **Editable fields** (F–H): penyesuaian amount (inline number input), keterangan (text area). Double-click to edit. Auto-save on blur or Enter.
+- **Fiscal total badge** (G): prominently displayed with warning icon if adjustment ≠ 0.
+- **Warning banner**: yellow box if `adjustmentAmount ≠ 0` — "⚠️ Omzet fiskal berbeda dari omzet akuntansi sebesar Rp X."
+- **Buttons**: "Simpan Penyesuaian", "Export Excel".
+- **Permission**: `accounting.view` | `reporting.view`.
+
+#### 25.5b.5 XLSX Export Columns
+
+| Col | Header (ID) | Header (EN) | Header (ZH) | Format |
+|-----|-------------|-------------|-------------|--------|
+| A | Tanggal | Date | 日期 | date `YYYY-MM-DD` |
+| B | Lokasi | Location | 地点 | text |
+| C | Gross Sales (IDR) | Gross Sales (IDR) | 总销售额 | number, `Rp #,##0` |
+| D | PB1 10% (IDR) | PB1 10% (IDR) | PB1 10% (印尼盾) | number, `Rp #,##0` |
+| E | Omzet Neto (IDR) | Net Revenue (IDR) | 净收入 | number, `Rp #,##0` |
+| F | Penyesuaian (IDR) | Adjustment (IDR) | 调整金额 | number, `#,##0` (can be negative, red) |
+| G | Omzet Fiskal (IDR) | Fiscal Omzet (IDR) | 财政应税收入 | number, `Rp #,##0` (formula: E+F) |
+| H | Keterangan | Note | 备注 | text |
+
+- Row 1: bold header, background `#D6262E` (brand-red), white text.
+- Freeze pane: row 1.
+- Column C–G: number format `Rp #,##0` (Indonesian locale, no decimals).
+- Column F: conditional red color for negative values.
+- Column G: formula `=E2+F2` for Excel formula recalculation.
+- File name: `omzet-harian-{YYYY-MM-DD}-{location-slug}.xlsx`.
+
+#### 25.5b.6 MCP Tool
+
+```ts
+// apps/mcp/src/tools/reporting-omzet.ts
+export const reportingGetOmzetHarian = {
+  name: 'reporting.get_omzet_harian',
+  description: 'Get daily PB1-exclusive omzet with fiscal adjustment. Returns gross, PB1 amount, net omzet, adjustment, fiscal omzet, and last modified timestamp. SoT §21.3b / SD §25.5b.',
+  inputSchema: z.object({
+    location_id: z.string(),
+    date: z.string(), // YYYY-MM-DD
+    locale: z.enum(['id', 'en', 'zh']).optional().default('id'),
+  }),
+  handler: async (input, ctx) => {
+    const permitted = await checkPermission(ctx, 'reporting.view');
+    if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: reporting.view');
+    const result = await getOmzetHarian({ locationId: input.location_id, date: input.date }, {
+      userId: ctx.userId, tenantId: ctx.tenantId, locationId: input.location_id,
+    });
+    return serializeResult(result);
+  },
+};
+```
+
+#### 25.5b.7 Security & Audit
+
+- Every `saveOmzetAdjustment` call writes to `audit_log` (entity_type: `daily_revenue_adjustment`).
+- `adjustment_note` stored in plaintext; no PII needed.
+- Only users with `accounting.view` | `reporting.view` can read/write.
+- All timestamps in UTC; date field in WIB.
+
+#### 25.5b.8 Tax Compliance Notes (for developer and user reference)
+
+- PB1/PBJT 10% is **inclusive** — `gross_price = net_price + PB1`.
+- For SPT PPh Final UMKM (PP 5/2022), omzet base = **omzet neto (E)** = gross ÷ 1.10.
+- Fiscal adjustment (F) must be supported by supporting documents (receipts, correction memos).
+- For Coretax input: use **Omzet Fiskal (G)** as the gross revenue figure.
+- Consult tax consultant for cases involving: partial exemptions, mix-use sales, B2B transactions with PPN.
+
 ---
 
 ### 25.6 Hourly Sales Report (SoT §21.4)
@@ -3977,6 +4137,7 @@ Format: `T-NNNN` (4 digit, pad zero), di-increment global. Sumber:  baris terakh
 | 1.1 | 2026-05-05 | Lintang Maulana Zulfan | Tambah §31 (Public Website + CMS + Member Portal) dan §32 (Domain & Routing); split `apps/site` dari `apps/web`; tambah skema CMS, member, OTP; update arsitektur dan dependency rule |
 | 1.2 | 2026-05-05 | Lintang Maulana Zulfan | Upgrade RAM 1→2 GB, update §3 + §4.3 + §24.1; tambah §33 Naixer QR Integration, §34 POS Demo Mode, §35 Resilience & Auto-Recovery, §36 Design System (anti-generic), §37 TASK.md Workflow; tabel constraints diperluas |
 | 1.3 | 2026-05-05 | Lintang Maulana Zulfan | Resolusi 4 Open Decisions: confirm Neon + better-auth di §5; expand §19.3 (PPN opt-in dengan `tax_rules`); tambah skema `tax_rules` di §9.2; update §30 (8 dari 19 keputusan resolved) |
+| 1.7 | 2026-05-12 | Lintang Maulana Zulfan | Tambah §25.5b (Omzet Harian Export — PB1 10% exclusive + koreksi fiskal manual): schema `daily_revenue_adjustments`, rumus PB1-exclusive gross÷1.10, UI inline edit, XLSX export 8 kolom, MCP tool `reporting.get_omzet_harian` |
 
 ---
 
