@@ -148,5 +148,18 @@ export {
   complaintCompensations,
 } from './schema/crm';
 
+// Schema — Custom Fields (SD §9.9, §17)
+export {
+  customFieldDefinitions,
+  customFieldValues,
+} from './schema/customfield';
+
+// Schema — Workflow / Approval (SD §9.10, §18)
+export {
+  workflowDefinitions,
+  workflowInstances,
+  workflowSteps,
+} from './schema/workflow';
+
 // Drizzle-ORM operators (re-exported for downstream consumers)
 export { eq, and, or, not, lte, gte, lt, gt, isNull, isNotNull, sql, inArray, desc, asc, ilike } from 'drizzle-orm';
