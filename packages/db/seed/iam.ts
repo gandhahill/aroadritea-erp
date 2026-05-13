@@ -91,6 +91,12 @@ export const PERMISSIONS_SEED = [
   // CRM
   { code: 'crm.view', module: 'crm' },
   { code: 'crm.manage_members', module: 'crm' },
+  { code: 'crm.logComplaint', module: 'crm' },
+  { code: 'crm.listComplaints', module: 'crm' },
+  { code: 'crm.resolveComplaint', module: 'crm' },
+  { code: 'crm.awardCompensation', module: 'crm' },
+  // Member (public-facing — no session required)
+  { code: 'member.signup', module: 'member' },
   // Kitchen
   { code: 'kitchen.view', module: 'kitchen' },
   // Reporting
@@ -115,6 +121,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'purchasing.view', 'purchasing.po.create', 'purchasing.grn.create',
     'hr.view', 'hr.manage_attendance', 'hr.disciplinary.read', 'hr.disciplinary.write',
     'kitchen.view', 'reporting.view', 'reporting.export', 'audit.view',
+    'crm.view', 'crm.logComplaint', 'crm.listComplaints', 'crm.resolveComplaint',
   ],
   accountant: [
     'accounting.view', 'accounting.journal.create', 'accounting.journal.post', 'accounting.journal.reverse',

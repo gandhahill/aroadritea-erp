@@ -47,6 +47,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { requirePermission } from '../iam';
 import { createJournal } from '../accounting/create-journal';
 import { calculateDonation, type RoundingOption } from './donation';
+import { earnLoyaltyPoints } from '../crm';
 import type { SaleResult, SaleLineResult, PaymentResult } from './schemas';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -557,6 +558,14 @@ export async function createSale(
       },
       metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
     });
+
+    // 15b. Loyalty points — earn for member customers
+    // Points calculated on net (after discounts), in cents (× 100)
+    if (data.customerId && totalGrand > BigInt(0)) {
+      earnLoyaltyPoints(data.customerId, totalGrand * BigInt(100), saleId, ctx).catch(() => {
+        // Non-fatal: do not fail the sale if loyalty earning fails
+      });
+    }
 
     // 16. Build result
     const result: SaleResult = {

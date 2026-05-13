@@ -142,5 +142,11 @@ export {
   memberPointsTransactions,
 } from './schema/member';
 
+// Schema — CRM (SD §21.9, §9.7)
+export {
+  complaints,
+  complaintCompensations,
+} from './schema/crm';
+
 // Drizzle-ORM operators (re-exported for downstream consumers)
 export { eq, and, or, not, lte, gte, lt, gt, isNull, isNotNull, sql, inArray, desc, asc, ilike } from 'drizzle-orm';
