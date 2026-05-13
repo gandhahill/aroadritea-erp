@@ -456,5 +456,41 @@
       "publishFailed": "发布失败",
       "notFound": "页面未找到"
     }
+  },
+  "settings": {
+    "title": "设置",
+    "customFields": {
+      "title": "自定义字段",
+      "subtitle": "为每个模块添加和管理自定义列。",
+      "createField": "添加字段",
+      "editField": "编辑字段",
+      "deleteField": "删除字段",
+      "entityType": "模块",
+      "fieldKey": "字段键",
+      "fieldName": "显示名称",
+      "dataType": "数据类型",
+      "required": "必填",
+      "enumOptions": "枚举选项",
+      "validationRegex": "正则验证",
+      "displayOrder": "排序顺序",
+      "empty": "暂无自定义字段。",
+      "dataTypes": {
+        "string": "文本",
+        "number": "数字",
+        "boolean": "是/否",
+        "date": "日期",
+        "enum": "选项(枚举)",
+        "reference": "引用"
+      },
+      "entityTypes": {
+        "product": "产品",
+        "partner": "伙伴/客户",
+        "employee": "员工",
+        "purchase_order": "采购订单",
+        "sales_order": "销售订单",
+        "journal_entry": "日记账"
+      },
+      "confirmDelete": "删除字段 \"{name}\"？已存储的数据将保留。"
+    }
   }
 }

@@ -456,5 +456,41 @@
       "publishFailed": "Failed to publish",
       "notFound": "Page not found"
     }
+  },
+  "settings": {
+    "title": "Settings",
+    "customFields": {
+      "title": "Custom Fields",
+      "subtitle": "Add and manage custom columns per module.",
+      "createField": "Add Field",
+      "editField": "Edit Field",
+      "deleteField": "Delete Field",
+      "entityType": "Module",
+      "fieldKey": "Field Key",
+      "fieldName": "Display Name",
+      "dataType": "Data Type",
+      "required": "Required",
+      "enumOptions": "Enum Options",
+      "validationRegex": "Regex Validation",
+      "displayOrder": "Sort Order",
+      "empty": "No custom fields yet.",
+      "dataTypes": {
+        "string": "Text",
+        "number": "Number",
+        "boolean": "Yes/No",
+        "date": "Date",
+        "enum": "Choice (Enum)",
+        "reference": "Reference"
+      },
+      "entityTypes": {
+        "product": "Product",
+        "partner": "Partner/Customer",
+        "employee": "Employee",
+        "purchase_order": "Purchase Order",
+        "sales_order": "Sales Order",
+        "journal_entry": "Journal"
+      },
+      "confirmDelete": "Delete field \"{name}\"? Stored data will remain."
+    }
   }
 }

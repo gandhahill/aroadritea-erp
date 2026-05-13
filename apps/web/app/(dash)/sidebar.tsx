@@ -137,6 +137,7 @@ export function Sidebar() {
       children: [
         { label: 'Scheduled Jobs', href: '/settings/scheduled-jobs', icon: <></> },
         { label: 'Naixer KDS', href: '/settings/integrations/naixer', icon: <></> },
+        { label: 'Custom Fields', href: '/settings/custom-fields', icon: <></> },
       ],
     },
   ];
