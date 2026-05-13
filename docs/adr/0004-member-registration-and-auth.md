@@ -29,7 +29,7 @@ Kebutuhan tambahan:
 - Library auth: better-auth dapat dikonfigurasi untuk **dua adapter session** dalam satu codebase, **atau** kita gunakan dua instance (satu di `apps/site`, satu di `apps/web`) yang share schema partners.
 
 ### 3. Verifikasi via OTP
-- **Phase 1**: OTP via **email** (provider: Resend atau SES).
+- **Phase 1**: OTP via **email** memakai SMTP mailbox HestiaCP (lihat ADR-0011).
 - **Phase 2**: OTP via **WhatsApp** (jika integrasi WhatsApp Business API tersedia).
 - Format OTP: 6 digit numeric, expiry 10 menit, max 5 percobaan.
 - Tabel `member_otp_codes` menyimpan hash code (bukan plain text), `expires_at`, `attempts`, `consumed_at`.
@@ -108,7 +108,7 @@ Kebutuhan tambahan:
 - **Domain aman**: cookie member tidak terlihat dari ERP, dan sebaliknya.
 
 ### Negatif / Trade-off
-- **Email deliverability**: gmail/Yahoo terkadang masuk spam. Mitigasi: SPF, DKIM, DMARC dikonfigurasi sejak awal; pakai Resend/SES dengan reputasi domain baik.
+- **Email deliverability**: gmail/Yahoo terkadang masuk spam. Mitigasi: SPF, DKIM, DMARC dikonfigurasi sejak awal di HestiaCP/DNS; jika reputasi domain buruk, pertimbangkan ADR baru untuk provider khusus.
 - **OTP via email** bukan pengalaman terbaik (vs SMS/WA). Mitigasi: Phase 2 tambah WA OTP.
 - **Tidak ada SSO sosial**: sebagian user akan friction. Mitigasi: pertimbangkan tambah Google login Phase 2 jika ada permintaan.
 - **Two auth stacks** (staff vs member): kompleksitas kode bertambah. Mitigasi: keduanya panggil `packages/services/auth` dengan adapter berbeda.
@@ -184,7 +184,7 @@ CREATE INDEX ON member_sessions (partner_id);
 - SYSTEM-DESIGN.md §31.5–§31.7
 
 ## Tindak Lanjut
-- [ ] Pilih provider email transactional (Resend vs Amazon SES) — perlu test deliverability ke Gmail Indonesia.
+- [x] Pilih provider email transactional: SMTP mailbox bawaan HestiaCP (ADR-0011).
 - [ ] Buat halaman "Kebijakan Privasi" dengan kuasa hukum (atau template UU PDP yang dapat dikonfirmasi).
 - [ ] Worker job untuk anonimisasi akun yang request hapus (eksekusi setelah 30 hari).
 - [ ] Tambahkan ADR baru bila Phase 2 menambah WA OTP / Google login.

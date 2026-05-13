@@ -230,8 +230,13 @@ MCP_SERVER_URL="https://mcp.erp.aroadritea.com"
 ```env
 NEXT_PUBLIC_TURNSTILE_SITE_KEY="..."
 TURNSTILE_SECRET_KEY="..."
-RESEND_API_KEY="..."
-MEMBER_OTP_FROM_EMAIL="Aroadri Tea <member@aroadritea.com>"
+SMTP_HOST="mail.aroadritea.com"
+SMTP_PORT="587"
+SMTP_SECURE="false"
+SMTP_USER="noreply@aroadritea.com"
+SMTP_PASS="<password-mailbox-hestiacp>"
+SMTP_FROM="noreply@aroadritea.com"
+SMTP_FROM_NAME="Aroadri Tea"
 ```
 
 4. Generate secret kuat untuk `BETTER_AUTH_SECRET`.
@@ -242,7 +247,27 @@ openssl rand -hex 32
 
 Jangan commit `.env`.
 
-### 6.4 Jalankan Migration Dan Seed
+### 6.4 Buat Mailbox HestiaCP Untuk Email Otomatis
+
+Email otomatis seperti OTP member dan notifikasi outage memakai mailbox bawaan HestiaCP via SMTP.
+
+1. Buka panel HestiaCP.
+2. Masuk ke menu `Mail`.
+3. Tambahkan mail domain `aroadritea.com` jika belum ada.
+4. Buat mailbox khusus, misalnya `noreply@aroadritea.com`.
+5. Simpan password mailbox ke `.env` sebagai `SMTP_PASS`.
+6. Gunakan SMTP berikut:
+   - Host: `mail.aroadritea.com`
+   - Port: `587`
+   - Secure: `false` untuk STARTTLS
+   - User: alamat mailbox lengkap, contoh `noreply@aroadritea.com`
+7. Pastikan DNS email domain aktif:
+   - MX mengarah ke mail server HestiaCP.
+   - SPF mengizinkan server HestiaCP mengirim email.
+   - DKIM aktif dari HestiaCP.
+   - DMARC minimal `p=none` saat awal, lalu naikkan setelah deliverability stabil.
+
+### 6.5 Jalankan Migration Dan Seed
 
 ```bash
 cd /opt/aroadri-erp
@@ -252,7 +277,7 @@ pnpm db:seed
 
 Untuk deploy berikutnya, jalankan `pnpm db:migrate` sebelum restart container. Jalankan `pnpm db:seed` hanya bila ada seed idempotent baru yang perlu masuk.
 
-### 6.5 Jalankan Container
+### 6.6 Jalankan Container
 
 Rekomendasi production adalah memakai image yang sudah dibuild CI/GitHub Container Registry. Jika image belum tersedia, compose dapat build di VPS, tetapi pastikan swap aktif.
 
@@ -278,7 +303,7 @@ docker compose -f docker/docker-compose.hestiacp.yml ps
 docker compose -f docker/docker-compose.hestiacp.yml logs -f --tail=100
 ```
 
-### 6.6 Atur Domain Di HestiaCP
+### 6.7 Atur Domain Di HestiaCP
 
 1. Buka panel HestiaCP.
 2. Tambahkan domain:
@@ -299,7 +324,7 @@ docker compose -f docker/docker-compose.hestiacp.yml logs -f --tail=100
 
 Container sengaja bind ke `127.0.0.1`, jadi port 3000-3002 tidak terbuka publik.
 
-### 6.7 Firewall
+### 6.8 Firewall
 
 Pastikan hanya port publik yang diperlukan terbuka.
 

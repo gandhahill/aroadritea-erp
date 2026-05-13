@@ -3310,7 +3310,7 @@ Bila kebutuhan ambigu, AI **wajib** berhenti dan tanyakan ke user (Lintang) di k
 | 4 | Apakah Naixer KDS punya API? | ✅ Treat as opaque box, integrasi via QR-only (ADR-0007) |
 | 5 | Multi-tenant aktif sekarang atau later? | ✅ Disiapkan kolom `tenant_id`, default `'default'` |
 | 6 | PWA library: Serwist vs next-pwa | ✅ Serwist (decided di SD §5) |
-| 7 | Email transactional provider (slip gaji + OTP member) | ⏳ Resend (default) atau SES — pilih saat Phase 4/5 setelah test deliverability ke Gmail Indonesia |
+| 7 | Email transactional provider (slip gaji + OTP member) | ✅ SMTP mailbox bawaan HestiaCP (`SMTP_*` env), lihat ADR-0011 |
 | 8 | File storage: R2 vs S3 vs Backblaze B2 | ⏳ R2 (default) — pilih saat Phase 5 (CMS images, kartu member) |
 | 9 | PPN penjualan retail dipungut atau hanya PB1? | ✅ **PB1 saja, PPN engine opt-in untuk akomodasi B2B kelak** (decided 2026-05-05, lihat ADR-0010) |
 | 10 | Layout final laporan keuangan (template SAK ETAP) | ⏳ Template Aroadri di-design saat Phase 1 (T-0021) |
@@ -3488,7 +3488,7 @@ Session DB-backed untuk member portal. Cookie `__Host-member-session` di domain 
    - Validasi payload (Zod)
    - Cek email/HP belum terdaftar
    - Generate OTP, simpan di member_otp_codes
-   - Kirim OTP via email (Resend / SES)
+   - Kirim OTP via email melalui SMTP mailbox HestiaCP
    - Insert member_signup_attempts (outcome='otp_sent')
    - Response: redirect ke /id/member/verifikasi-otp?token=<short-lived>
 
@@ -4162,7 +4162,7 @@ Target sistem adalah fleksibel untuk operasional Aroadri Tea tanpa harus menguba
 - Bila menemukan nilai hardcoded baru di service/app, pindahkan ke DB atau env sebelum fitur dianggap production-ready.
 - Referensi operasional lengkap ada di `docs/CONFIGURATION.md`.
 
-Contoh yang sudah menjadi konfigurasi UI/DB: POS mengambil kode pajak PB1, akun kas/settlement, akun pendapatan, akun donasi, channel delivery net settlement, basis point settlement, dan lebar struk dari tabel `pos_settings`. Tarif pajak tetap dari `tax_rates`; mapping Naixer dan ukuran label dari tabel konfigurasi Naixer. Member registration memakai Turnstile dan Resend via environment karena keduanya secret/provider eksternal, dengan fallback development yang tidak aktif di production.
+Contoh yang sudah menjadi konfigurasi UI/DB: POS mengambil kode pajak PB1, akun kas/settlement, akun pendapatan, akun donasi, channel delivery net settlement, basis point settlement, dan lebar struk dari tabel `pos_settings`. Tarif pajak tetap dari `tax_rates`; mapping Naixer dan ukuran label dari tabel konfigurasi Naixer. Member registration memakai Turnstile dan SMTP HestiaCP via environment karena credential keduanya rahasia, dengan fallback development yang tidak aktif di production.
 
 ---
 
@@ -4176,6 +4176,7 @@ Contoh yang sudah menjadi konfigurasi UI/DB: POS mengambil kode pajak PB1, akun 
 | 1.3 | 2026-05-05 | Lintang Maulana Zulfan | Resolusi 4 Open Decisions: confirm Neon + better-auth di §5; expand §19.3 (PPN opt-in dengan `tax_rules`); tambah skema `tax_rules` di §9.2; update §30 (8 dari 19 keputusan resolved) |
 | 1.7 | 2026-05-12 | Lintang Maulana Zulfan | Tambah §25.5b (Omzet Harian Export — PB1 10% exclusive + koreksi fiskal manual): schema `daily_revenue_adjustments`, rumus PB1-exclusive gross÷1.10, UI inline edit, XLSX export 8 kolom, MCP tool `reporting.get_omzet_harian` |
 | 1.8 | 2026-05-13 | Codex | Tambah §38 dan `docs/CONFIGURATION.md`: kebijakan konfigurasi production/kustomisasi tanpa edit source, env wajib, POS posting, pajak, Turnstile, dan OTP email |
+| 1.9 | 2026-05-13 | Codex | Email otomatis diputuskan memakai SMTP mailbox HestiaCP (`SMTP_*`) sesuai ADR-0011 |
 
 ---
 

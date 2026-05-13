@@ -25,10 +25,22 @@ Dokumen ini menjadi referensi operasional untuk hal yang boleh berubah antar tok
 |---|---|
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Site key Cloudflare Turnstile untuk form daftar member. |
 | `TURNSTILE_SECRET_KEY` | Secret Turnstile untuk verifikasi server-side. Jika kosong di production, signup ditolak. |
-| `RESEND_API_KEY` | API key Resend untuk kirim OTP email. Jika kosong di production, signup ditolak. |
-| `MEMBER_OTP_FROM_EMAIL` | Sender email OTP, contoh `Aroadri Tea <member@aroadritea.com>`. |
 
 Di development tanpa `TURNSTILE_SECRET_KEY`, token `dev-token` boleh dipakai. Di production fallback dev ini tidak aktif.
+
+## Email Otomatis via HestiaCP
+
+Email otomatis memakai SMTP mailbox bawaan HestiaCP, bukan Resend/SES. Credential SMTP tetap di `.env` karena rahasia.
+
+| Variable | Contoh | Fungsi |
+|---|---|---|
+| `SMTP_HOST` | `mail.aroadritea.com` | Host SMTP HestiaCP. |
+| `SMTP_PORT` | `587` | Port SMTP. Gunakan `587` STARTTLS atau `465` SMTPS. |
+| `SMTP_SECURE` | `false` | `true` hanya untuk port 465. |
+| `SMTP_USER` | `noreply@aroadritea.com` | Mailbox HestiaCP untuk kirim email otomatis. |
+| `SMTP_PASS` | `(secret)` | Password mailbox HestiaCP. |
+| `SMTP_FROM` | `noreply@aroadritea.com` | Sender email. |
+| `SMTP_FROM_NAME` | `Aroadri Tea` | Nama sender yang tampil di inbox. |
 
 ## Health Monitoring
 

@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { db } from '@erp/db';
 import { partners } from '@erp/db/schema/accounting';
 import {
@@ -54,7 +54,7 @@ export const VerifyOtpInputSchema = z.object({
     .regex(/^\d{6}$/),
 });
 
-export const ResendOtpInputSchema = z.object({
+export const RetryOtpInputSchema = z.object({
   token: z.string().min(1),
 });
 
@@ -69,7 +69,7 @@ export const CompleteSignupInputSchema = z.object({
 
 export type SignupInput = z.infer<typeof SignupInputSchema>;
 export type VerifyOtpInput = z.infer<typeof VerifyOtpInputSchema>;
-export type ResendOtpInput = z.infer<typeof ResendOtpInputSchema>;
+export type RetryOtpInput = z.infer<typeof RetryOtpInputSchema>;
 export type CompleteSignupInput = z.infer<typeof CompleteSignupInputSchema>;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -111,10 +111,15 @@ async function verifyTurnstile(token: string, ipAddress?: string): Promise<boole
 }
 
 async function sendSignupOtp(email: string, code: string): Promise<Result<void>> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.MEMBER_OTP_FROM_EMAIL;
+  const smtpHost = process.env.SMTP_HOST;
+  const configuredPort = Number.parseInt(process.env.SMTP_PORT ?? '587', 10);
+  const smtpPort = Number.isFinite(configuredPort) ? configuredPort : 587;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+  const smtpFrom = process.env.SMTP_FROM ?? smtpUser;
+  const smtpFromName = process.env.SMTP_FROM_NAME ?? 'Aroadri Tea';
 
-  if (!apiKey || !from) {
+  if (!smtpHost || !smtpUser || !smtpPass || !smtpFrom) {
     if (process.env.NODE_ENV === 'production') {
       return err(AppError.internal('member.signup.otpProviderNotConfigured'));
     }
@@ -122,24 +127,34 @@ async function sendSignupOtp(email: string, code: string): Promise<Result<void>>
     return ok(undefined);
   }
 
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from,
+  try {
+    const nodemailer = await import('nodemailer');
+    const secure =
+      process.env.SMTP_SECURE !== undefined ? process.env.SMTP_SECURE === 'true' : smtpPort === 465;
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure,
+      requireTLS: smtpPort === 587,
+      auth: { user: smtpUser, pass: smtpPass },
+    });
+
+    await transporter.sendMail({
+      from: smtpFrom.includes('<') ? smtpFrom : `${smtpFromName} <${smtpFrom}>`,
       to: email,
       subject: 'Kode OTP Aroadri Tea',
       text: `Kode OTP Aroadri Tea Anda: ${code}. Kode berlaku ${OTP_EXPIRY_MINUTES} menit.`,
-    }),
-  });
+      html: `<p>Kode OTP Aroadri Tea Anda:</p><p style="font-size:24px;font-weight:700;letter-spacing:4px">${code}</p><p>Kode berlaku ${OTP_EXPIRY_MINUTES} menit.</p>`,
+    });
 
-  if (!response.ok) {
-    return err(AppError.internal('member.signup.otpSendFailed', { status: response.status }));
+    return ok(undefined);
+  } catch (error) {
+    return err(
+      AppError.internal('member.signup.otpSendFailed', {
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
   }
-  return ok(undefined);
 }
 
 // ─── Signup ─────────────────────────────────────────────────────────────────

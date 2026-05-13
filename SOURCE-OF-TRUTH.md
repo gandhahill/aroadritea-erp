@@ -1299,7 +1299,7 @@ Sistem **internal** (bukan WordPress / Sanity / Strapi eksternal) yang menjadi b
 
 #### 22.4.1 Alur
 1. Pengunjung di `aroadritea.com/member/daftar` mengisi form: nama, email, nomor HP (WA), tanggal lahir, kota.
-2. Verifikasi nomor HP via OTP WhatsApp **atau** OTP email (Phase 1: pakai email; OTP WhatsApp Phase 2 bila integrasi WA Business API ada).
+2. Verifikasi nomor HP via OTP WhatsApp **atau** OTP email (Phase 1: pakai email otomatis dari mailbox HestiaCP; OTP WhatsApp Phase 2 bila integrasi WA Business API ada).
 3. Setelah verifikasi → akun member dibuat di ERP (tabel `partners` kind=customer is_member=true + tabel `members`).
 4. Member menerima **kartu digital** (QR code) yang dapat ditampilkan di toko untuk akumulasi poin.
 5. Member dapat login ke `aroadritea.com/member/akun` untuk:

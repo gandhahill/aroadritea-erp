@@ -56,7 +56,7 @@ ERP/
 │   └── BRAND.md          ← logo, palette, typography, visual restrictions, UI guide
 └── docs/
     ├── adr/              ← Architecture Decision Records
-    │   ├── README.md     ← ADR index (10 ADRs decided)
+    │   ├── README.md     ← ADR index (11 ADRs decided)
     │   ├── 0001-stack-choice.md
     │   ├── 0002-monorepo-and-app-split.md
     │   ├── 0003-public-website-cms-architecture.md
@@ -66,7 +66,8 @@ ERP/
     │   ├── 0007-naixer-qr-integration.md
     │   ├── 0008-pos-demo-mode-client-side.md
     │   ├── 0009-resilience-and-auto-recovery.md
-    │   └── 0010-ppn-engine-opt-in.md
+    │   ├── 0010-ppn-engine-opt-in.md
+    │   └── 0011-hestiacp-smtp-transactional-email.md
     ├── checkpoints/      ← state per IN_PROGRESS task
     │   ├── README.md     ← usage guide
     │   ├── TEMPLATE.checkpoint.md
@@ -90,6 +91,7 @@ Once code starts being written, follow the structure in **SYSTEM-DESIGN.md §6**
 | [0008](docs/adr/0008-pos-demo-mode-client-side.md) | POS Demo / Training Mode | Accepted | Client-side IndexedDB sandbox; never syncs to server; demo QR prefix `DEMO-` |
 | [0009](docs/adr/0009-resilience-and-auto-recovery.md) | Resilience & Auto-Recovery | Accepted | PWA offline POS + Docker auto-restart + healthcheck + idempotency; RTO 2m, RPO 0 for POS |
 | [0010](docs/adr/0010-ppn-engine-opt-in.md) | PPN Engine — Opt-In | Accepted | PB1 default, output PPN off for retail; engine ready for B2B via `tax_rules` |
+| [0011](docs/adr/0011-hestiacp-smtp-transactional-email.md) | HestiaCP SMTP Transactional Email | Accepted | Email otomatis via mailbox HestiaCP SMTP; no Resend/SES by default |
 
 When a new decision affects >1 module, changes a schema, or adds a major dependency → **must** write a new ADR in `docs/adr/`. Format: see `docs/adr/README.md`.
 
@@ -301,6 +303,7 @@ This repository already has user memory at `~/.Codex/projects/D--KERJA-Aroadri-T
 - POS required offline + demo mode client-side.
 - Managed DB: **Neon** (Supabase fallback). Auth: **better-auth**.
 - PPN engine **opt-in** — PB1 default for retail F&B; output PPN ready to be activated later for B2B via `tax_rules` table (see ADR-0010).
+- Email otomatis memakai mailbox bawaan HestiaCP via SMTP env `SMTP_*` (lihat ADR-0011).
 
 If any of this information changes (e.g., budget increases, team grows, server upgraded again), **update the memory** and this document simultaneously.
 
@@ -323,4 +326,4 @@ If anything is unclear — **stop and ask the user**.
 
 ---
 
-*This document was prepared 2026-05-05. Version 1.3 (2 GB RAM, ADR 0006-0010, TASK.md workflow, decisions resolved).*
+*This document was prepared 2026-05-05. Version 1.4 (2 GB RAM, ADR 0006-0011, TASK.md workflow, decisions resolved).*

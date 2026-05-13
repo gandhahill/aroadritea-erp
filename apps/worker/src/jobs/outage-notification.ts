@@ -122,10 +122,12 @@ async function sendEmail(
   msg: OutageMessage,
 ): Promise<{ sent: boolean; error?: string }> {
   const smtpHost = process.env.SMTP_HOST;
-  const smtpPort = Number.parseInt(process.env.SMTP_PORT ?? '587');
+  const configuredPort = Number.parseInt(process.env.SMTP_PORT ?? '587', 10);
+  const smtpPort = Number.isFinite(configuredPort) ? configuredPort : 587;
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
   const fromAddr = process.env.SMTP_FROM ?? 'noreply@aroadritea.com';
+  const fromName = process.env.SMTP_FROM_NAME ?? 'Aroadri ERP';
 
   if (!smtpHost || !smtpUser || !smtpPass) {
     return { sent: false, error: 'SMTP env vars not configured' };
@@ -134,15 +136,18 @@ async function sendEmail(
   try {
     // Dynamic import to avoid requiring nodemailer in production if not used
     const nodemailer = await import('nodemailer');
+    const secure =
+      process.env.SMTP_SECURE !== undefined ? process.env.SMTP_SECURE === 'true' : smtpPort === 465;
     const transporter = nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
-      secure: smtpPort === 465,
+      secure,
+      requireTLS: smtpPort === 587,
       auth: { user: smtpUser, pass: smtpPass },
     });
 
     await transporter.sendMail({
-      from: `Aroadri ERP <${fromAddr}>`,
+      from: fromAddr.includes('<') ? fromAddr : `${fromName} <${fromAddr}>`,
       to,
       subject: msg.subject,
       text: msg.body,

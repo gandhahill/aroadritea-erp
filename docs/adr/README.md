@@ -64,6 +64,7 @@ Opsi lain yang dievaluasi + alasan ditolak.
 | [0008](0008-pos-demo-mode-client-side.md) | POS Demo / Training Mode (IndexedDB Sandbox) | Accepted | 2026-05-05 | Sandbox client-side; tidak pernah sync ke server; QR demo prefix `DEMO-` |
 | [0009](0009-resilience-and-auto-recovery.md) | Resilience & Auto-Recovery | Accepted | 2026-05-05 | PWA offline POS + Docker auto-restart + healthcheck + idempotency; RTO 2m, RPO 0 untuk POS |
 | [0010](0010-ppn-engine-opt-in.md) | PPN Engine — Opt-In | Accepted | 2026-05-05 | PB1 default, PPN keluaran default off untuk retail F&B; engine siap aktivasi B2B kelak via `tax_rules` |
+| [0011](0011-hestiacp-smtp-transactional-email.md) | HestiaCP SMTP Untuk Email Transaksional | Accepted | 2026-05-13 | Email otomatis via mailbox HestiaCP SMTP; bukan Resend/SES sebagai default |
 
 > Tabel di atas wajib diperbarui setiap kali ADR baru dibuat atau status berubah. Index ini di-render di `CLAUDE.md` sebagai daftar pengingat.
 
