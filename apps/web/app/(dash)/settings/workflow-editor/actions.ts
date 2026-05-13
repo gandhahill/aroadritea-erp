@@ -5,7 +5,7 @@
 
 'use server';
 
-import { db, eq, and, desc } from '@erp/db';
+import { and, db, desc, eq } from '@erp/db';
 import { workflowDefinitions } from '@erp/db/schema/workflow';
 import type { AuditContext } from '@erp/shared/types';
 
@@ -76,7 +76,10 @@ export async function serverCreateWorkflowDefinition(
     const orders = input.stepsJson.map((s) => s.stepOrder).sort((a, b) => a - b);
     for (let i = 0; i < orders.length; i++) {
       if (orders[i] !== i + 1) {
-        return { success: false, error: `Step orders must be 1, 2, 3... (got ${orders.join(', ')})` };
+        return {
+          success: false,
+          error: `Step orders must be 1, 2, 3... (got ${orders.join(', ')})`,
+        };
       }
     }
 
@@ -124,7 +127,10 @@ export async function serverUpdateWorkflowDefinition(
       const orders = input.stepsJson.map((s) => s.stepOrder).sort((a, b) => a - b);
       for (let i = 0; i < orders.length; i++) {
         if (orders[i] !== i + 1) {
-          return { success: false, error: `Step orders must be 1, 2, 3... (got ${orders.join(', ')})` };
+          return {
+            success: false,
+            error: `Step orders must be 1, 2, 3... (got ${orders.join(', ')})`,
+          };
         }
       }
     }
@@ -144,7 +150,8 @@ export async function serverUpdateWorkflowDefinition(
         description: input.description !== undefined ? input.description : undefined,
         isActive: input.isActive ?? undefined,
         priority: input.priority ?? undefined,
-        conditionJson: input.conditionJson !== undefined ? input.conditionJson as never : undefined,
+        conditionJson:
+          input.conditionJson !== undefined ? (input.conditionJson as never) : undefined,
         stepsJson: input.stepsJson as never,
         updatedBy: ctx.userId,
       })

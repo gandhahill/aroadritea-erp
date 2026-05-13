@@ -6,6 +6,7 @@
  */
 
 import { relations } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import {
   bigint,
   boolean,
@@ -19,9 +20,8 @@ import {
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
-import { auditCols, pk, tenantCol, versionCol } from './common';
 import { users } from './auth';
+import { auditCols, pk, tenantCol, versionCol } from './common';
 
 // ================================================================
 // ACCOUNTING PERIODS — SD §9.2
@@ -32,7 +32,7 @@ export const accountingPeriods = pgTable(
   {
     ...pk,
     ...tenantCol,
-    code: text('code').notNull(),            // '2026-05'
+    code: text('code').notNull(), // '2026-05'
     startDate: date('start_date').notNull(),
     endDate: date('end_date').notNull(),
     status: text('status').notNull().default('open'), // 'open' | 'closing' | 'closed'
@@ -55,11 +55,11 @@ export const accounts = pgTable(
   {
     ...pk,
     ...tenantCol,
-    code: text('code').notNull(),             // '1-1010', '4-1000'
-    name: jsonb('name').notNull(),            // LocaleString { id, en, zh }
-    type: text('type').notNull(),             // 'asset' | 'liability' | 'equity' | 'income' | 'cogs' | 'expense'
-    subtype: text('subtype').notNull(),       // 'current_asset', 'fixed_asset', 'contra_asset', etc.
-    parentId: text('parent_id'),             // self-referencing hierarchy
+    code: text('code').notNull(), // '1-1010', '4-1000'
+    name: jsonb('name').notNull(), // LocaleString { id, en, zh }
+    type: text('type').notNull(), // 'asset' | 'liability' | 'equity' | 'income' | 'cogs' | 'expense'
+    subtype: text('subtype').notNull(), // 'current_asset', 'fixed_asset', 'contra_asset', etc.
+    parentId: text('parent_id'), // self-referencing hierarchy
     normalBalance: text('normal_balance').notNull(), // 'debit' | 'credit'
     isPostable: boolean('is_postable').notNull().default(true),
     taxCode: text('tax_code'),
@@ -86,9 +86,9 @@ export const journalEntries = pgTable(
     locationId: text('location_id').notNull(),
     periodId: text('period_id').notNull(),
     postingDate: date('posting_date').notNull(),
-    number: text('number').notNull(),          // 'JE-2026-05-0001'
+    number: text('number').notNull(), // 'JE-2026-05-0001'
     description: text('description').notNull(),
-    referenceType: text('reference_type'),     // 'sales' | 'purchase' | 'payroll' | 'manual'
+    referenceType: text('reference_type'), // 'sales' | 'purchase' | 'payroll' | 'manual'
     referenceId: text('reference_id'),
     status: text('status').notNull().default('draft'), // 'draft' | 'posted' | 'reversed'
     postedAt: timestamp('posted_at', { withTimezone: true }),
@@ -123,8 +123,8 @@ export const journalLines = pgTable(
     accountId: text('account_id').notNull(),
     locationId: text('location_id').notNull(),
     description: text('description'),
-    debit: bigint('debit', { mode: 'bigint' }).notNull().default(BigInt(0)),
-    credit: bigint('credit', { mode: 'bigint' }).notNull().default(BigInt(0)),
+    debit: bigint('debit', { mode: 'bigint' }).notNull().default(sql`0`),
+    credit: bigint('credit', { mode: 'bigint' }).notNull().default(sql`0`),
     taxCode: text('tax_code'),
     partnerId: text('partner_id'),
   },
@@ -132,8 +132,10 @@ export const journalLines = pgTable(
     index('jl_journal_entry_idx').on(t.journalEntryId),
     index('jl_account_idx').on(t.accountId),
     index('jl_partner_idx').on(t.partnerId),
-    check('jl_debit_credit_exclusive',
-      sql`(debit > 0 AND credit = 0) OR (debit = 0 AND credit > 0)`),
+    check(
+      'jl_debit_credit_exclusive',
+      sql`(debit > 0 AND credit = 0) OR (debit = 0 AND credit > 0)`,
+    ),
   ],
 );
 
@@ -146,12 +148,12 @@ export const partners = pgTable(
   {
     ...pk,
     ...tenantCol,
-    kind: text('kind').notNull(),              // 'customer' | 'supplier' | 'employee' | 'other'
+    kind: text('kind').notNull(), // 'customer' | 'supplier' | 'employee' | 'other'
     name: text('name').notNull(),
-    nameLocalized: jsonb('name_localized'),    // LocaleString (optional)
+    nameLocalized: jsonb('name_localized'), // LocaleString (optional)
     npwp: text('npwp'),
     email: text('email'),
-    phone: text('phone'),                     // encrypted at-rest (UU PDP)
+    phone: text('phone'), // encrypted at-rest (UU PDP)
     address: text('address'),
     birthDate: timestamp('birth_date', { withTimezone: true }),
     city: text('city'),
@@ -177,19 +179,17 @@ export const taxRates = pgTable(
   'tax_rates',
   {
     ...pk,
-    code: text('code').notNull(),              // 'PB1', 'PPN_OUT', 'PPN_IN', 'PPH21', 'PPH23'
-    name: jsonb('name').notNull(),             // LocaleString
-    rateBps: integer('rate_bps').notNull(),    // basis points: 10% = 1000
+    code: text('code').notNull(), // 'PB1', 'PPN_OUT', 'PPN_IN', 'PPH21', 'PPH23'
+    name: jsonb('name').notNull(), // LocaleString
+    rateBps: integer('rate_bps').notNull(), // basis points: 10% = 1000
     calculation: text('calculation').notNull(), // 'inclusive' | 'exclusive'
     postingAccountId: text('posting_account_id').notNull(),
     isActive: boolean('is_active').notNull().default(true),
     effectiveFrom: date('effective_from').notNull(),
-    effectiveUntil: date('effective_until'),   // NULL = forever
+    effectiveUntil: date('effective_until'), // NULL = forever
     ...auditCols,
   },
-  (t) => [
-    uniqueIndex('tax_rates_code_idx').on(t.code),
-  ],
+  (t) => [uniqueIndex('tax_rates_code_idx').on(t.code)],
 );
 
 // ================================================================
@@ -201,21 +201,23 @@ export const taxRules = pgTable(
   {
     ...pk,
     ...tenantCol,
-    scopeKind: text('scope_kind').notNull(),   // 'channel' | 'customer_segment' | 'product_category' | 'global_default'
-    scopeId: text('scope_id'),                 // id of channel/segment/category — NULL for global_default
-    taxCode: text('tax_code').notNull(),        // FK to tax_rates.code
+    scopeKind: text('scope_kind').notNull(), // 'channel' | 'customer_segment' | 'product_category' | 'global_default'
+    scopeId: text('scope_id'), // id of channel/segment/category — NULL for global_default
+    taxCode: text('tax_code').notNull(), // FK to tax_rates.code
     isAppliedDefault: boolean('is_applied_default').notNull().default(true),
     priority: integer('priority').notNull().default(10), // higher = more specific
     effectiveFrom: date('effective_from').notNull(),
-    effectiveUntil: date('effective_until'),    // NULL = forever
+    effectiveUntil: date('effective_until'), // NULL = forever
     ...auditCols,
   },
   (t) => [
     index('tax_rules_scope_idx').on(t.scopeKind, t.scopeId),
     index('tax_rules_tax_code_idx').on(t.taxCode),
     index('tax_rules_tenant_idx').on(t.tenantId),
-    check('tax_rules_scope_kind_check',
-      sql`scope_kind IN ('channel', 'customer_segment', 'product_category', 'global_default')`),
+    check(
+      'tax_rules_scope_kind_check',
+      sql`scope_kind IN ('channel', 'customer_segment', 'product_category', 'global_default')`,
+    ),
   ],
 );
 
@@ -229,7 +231,7 @@ export const pettyCashAccounts = pgTable(
     ...pk,
     ...tenantCol,
     locationId: text('location_id').notNull(),
-    balance: bigint('balance', { mode: 'bigint' }).notNull().default(BigInt(0)),
+    balance: bigint('balance', { mode: 'bigint' }).notNull().default(sql`0`),
     maxLimit: bigint('max_limit', { mode: 'bigint' }).notNull(),
     lastReplenishAt: timestamp('last_replenish_at', { withTimezone: true }),
     ...auditCols,
@@ -249,10 +251,10 @@ export const pettyCashTransactions = pgTable(
   {
     ...pk,
     accountId: text('account_id').notNull(),
-    kind: text('kind').notNull(),                 // 'topup' | 'expense'
+    kind: text('kind').notNull(), // 'topup' | 'expense'
     amount: bigint('amount', { mode: 'bigint' }).notNull(),
     description: text('description').notNull(),
-    referenceType: text('reference_type'),        // 'replenish_request' | 'manual'
+    referenceType: text('reference_type'), // 'replenish_request' | 'manual'
     referenceId: text('reference_id'),
     ...auditCols,
   },
@@ -260,10 +262,8 @@ export const pettyCashTransactions = pgTable(
     index('petty_cash_tx_account_idx').on(t.accountId),
     index('petty_cash_tx_kind_idx').on(t.kind),
     index('petty_cash_tx_created_idx').on(t.createdAt),
-    check('petty_cash_tx_kind_check',
-      sql`kind IN ('topup', 'expense')`),
-    check('petty_cash_tx_amount_positive',
-      sql`amount > 0`),
+    check('petty_cash_tx_kind_check', sql`kind IN ('topup', 'expense')`),
+    check('petty_cash_tx_amount_positive', sql`amount > 0`),
   ],
 );
 
@@ -279,7 +279,7 @@ export const reimbursementRequests = pgTable(
     requesterId: text('requester_id').notNull(),
     locationId: text('location_id').notNull(),
     amount: bigint('amount', { mode: 'bigint' }).notNull(),
-    category: text('category').notNull(),         // 'operational' | 'supplies' | 'emergency' | 'other'
+    category: text('category').notNull(), // 'operational' | 'supplies' | 'emergency' | 'other'
     description: text('description').notNull(),
     attachmentUrl: text('attachment_url'),
     attachmentName: text('attachment_name'),
@@ -295,12 +295,15 @@ export const reimbursementRequests = pgTable(
     index('reimb_requester_idx').on(t.requesterId),
     index('reimb_location_idx').on(t.locationId),
     index('reimb_created_idx').on(t.createdAt),
-    check('reimb_category_check',
-      sql`category IN ('operational', 'supplies', 'emergency', 'other')`),
-    check('reimb_status_check',
-      sql`status IN ('draft', 'submitted', 'approved', 'disbursed', 'rejected')`),
-    check('reimb_amount_positive',
-      sql`amount > 0`),
+    check(
+      'reimb_category_check',
+      sql`category IN ('operational', 'supplies', 'emergency', 'other')`,
+    ),
+    check(
+      'reimb_status_check',
+      sql`status IN ('draft', 'submitted', 'approved', 'disbursed', 'rejected')`,
+    ),
+    check('reimb_amount_positive', sql`amount > 0`),
   ],
 );
 
@@ -335,19 +338,33 @@ export const accountingPeriodsRelations = relations(accountingPeriods, ({ one })
 }));
 
 export const accountsRelations = relations(accounts, ({ one, many }) => ({
-  parent: one(accounts, { fields: [accounts.parentId], references: [accounts.id], relationName: 'parent_child' }),
+  parent: one(accounts, {
+    fields: [accounts.parentId],
+    references: [accounts.id],
+    relationName: 'parent_child',
+  }),
   children: many(accounts, { relationName: 'parent_child' }),
 }));
 
 export const journalEntriesRelations = relations(journalEntries, ({ one, many }) => ({
-  period: one(accountingPeriods, { fields: [journalEntries.periodId], references: [accountingPeriods.id] }),
+  period: one(accountingPeriods, {
+    fields: [journalEntries.periodId],
+    references: [accountingPeriods.id],
+  }),
   lines: many(journalLines),
   attachments: many(journalAttachments),
-  reversedBy: one(journalEntries, { fields: [journalEntries.reversedByJeId], references: [journalEntries.id], relationName: 'reversal' }),
+  reversedBy: one(journalEntries, {
+    fields: [journalEntries.reversedByJeId],
+    references: [journalEntries.id],
+    relationName: 'reversal',
+  }),
 }));
 
 export const journalLinesRelations = relations(journalLines, ({ one }) => ({
-  journalEntry: one(journalEntries, { fields: [journalLines.journalEntryId], references: [journalEntries.id] }),
+  journalEntry: one(journalEntries, {
+    fields: [journalLines.journalEntryId],
+    references: [journalEntries.id],
+  }),
   account: one(accounts, { fields: [journalLines.accountId], references: [accounts.id] }),
   partner: one(partners, { fields: [journalLines.partnerId], references: [partners.id] }),
 }));
@@ -366,16 +383,30 @@ export const pettyCashAccountsRelations = relations(pettyCashAccounts, ({ many }
 }));
 
 export const pettyCashTransactionsRelations = relations(pettyCashTransactions, ({ one }) => ({
-  account: one(pettyCashAccounts, { fields: [pettyCashTransactions.accountId], references: [pettyCashAccounts.id] }),
+  account: one(pettyCashAccounts, {
+    fields: [pettyCashTransactions.accountId],
+    references: [pettyCashAccounts.id],
+  }),
   createdByUser: one(users, { fields: [pettyCashTransactions.createdBy], references: [users.id] }),
 }));
 
 export const reimbursementRequestsRelations = relations(reimbursementRequests, ({ one }) => ({
-  requester: one(users, { fields: [reimbursementRequests.requesterId], references: [users.id], relationName: 'requester' }),
-  approver: one(users, { fields: [reimbursementRequests.approvedBy], references: [users.id], relationName: 'approver' }),
+  requester: one(users, {
+    fields: [reimbursementRequests.requesterId],
+    references: [users.id],
+    relationName: 'requester',
+  }),
+  approver: one(users, {
+    fields: [reimbursementRequests.approvedBy],
+    references: [users.id],
+    relationName: 'approver',
+  }),
 }));
 
 export const journalAttachmentsRelations = relations(journalAttachments, ({ one }) => ({
-  journalEntry: one(journalEntries, { fields: [journalAttachments.journalEntryId], references: [journalEntries.id] }),
+  journalEntry: one(journalEntries, {
+    fields: [journalAttachments.journalEntryId],
+    references: [journalEntries.id],
+  }),
   uploader: one(users, { fields: [journalAttachments.uploadedBy], references: [users.id] }),
 }));

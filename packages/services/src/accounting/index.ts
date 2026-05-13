@@ -5,7 +5,12 @@
 export { createJournal, type JournalEntryResult, type JournalLineResult } from './create-journal';
 export { postJournal } from './post-journal';
 export { reverseJournal } from './reverse-journal';
-export { closePeriod, getPeriodStatus, type ClosePeriodResult, type PeriodStatusResult } from './close-period';
+export {
+  closePeriod,
+  getPeriodStatus,
+  type ClosePeriodResult,
+  type PeriodStatusResult,
+} from './close-period';
 export {
   CreateJournalInputSchema,
   JournalLineInputSchema,

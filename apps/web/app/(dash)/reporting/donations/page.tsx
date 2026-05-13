@@ -1,5 +1,5 @@
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchDonationReport } from './actions';
 import { DonationsClient } from './donations-client';

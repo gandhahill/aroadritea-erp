@@ -12,20 +12,20 @@
  * Permission: inventory.stock.write  (Sheet 2)
  */
 
-import { eq, and, ilike, sql } from 'drizzle-orm';
 import { db } from '@erp/db';
+import { auditLog } from '@erp/db/schema/audit';
 import {
-  products,
   productCategories,
   productVariants,
+  products,
   stockLevels,
   stockLocations,
 } from '@erp/db/schema/inventory';
 import { stockMovementManual } from '@erp/db/schema/stock-opname';
-import { auditLog } from '@erp/db/schema/audit';
-import { type Result, ok } from '@erp/shared/result';
 import { generateId } from '@erp/shared/id';
+import { type Result, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq, ilike, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // ─── Input Types ──────────────────────────────────────────────────────────────
@@ -35,16 +35,16 @@ import { requirePermission } from '../iam';
  * Columns from the opname Excel template Sheet 1.
  */
 export interface Sheet1MasterRow {
-  KODE: string;          // SKU / kode barang
-  KATEGORI: string;      // kategori (Teh, Cup, Gula, etc.)
-  NAMA_BARANG: string;    // nama produk Bahasa Indonesia
-  SATUAN: string;         // Bungkus / Pcs / Kaleng / Botol / Gen
-  STOK_AWAL: number;      // qty numeric
-  HARGA_JUAL: number;     // sell price in rupiah (no decimals)
-  HARGA_MODAL: number;    // cost price in rupiah (no decimals)
+  KODE: string; // SKU / kode barang
+  KATEGORI: string; // kategori (Teh, Cup, Gula, etc.)
+  NAMA_BARANG: string; // nama produk Bahasa Indonesia
+  SATUAN: string; // Bungkus / Pcs / Kaleng / Botol / Gen
+  STOK_AWAL: number; // qty numeric
+  HARGA_JUAL: number; // sell price in rupiah (no decimals)
+  HARGA_MODAL: number; // cost price in rupiah (no decimals)
   GAMBAR_URL?: string;
   LINK_URL?: string;
-  JENIS?: string;        // finished_good | raw_material | merchandise | consumable | service
+  JENIS?: string; // finished_good | raw_material | merchandise | consumable | service
 }
 
 /**
@@ -52,13 +52,13 @@ export interface Sheet1MasterRow {
  * Columns from the opname Excel template Sheet 2.
  */
 export interface Sheet2MovementRow {
-  TANGGAL: string;        // YYYY-MM-DD
-  KODE: string;           // SKU
-  VARIANT_SKU?: string;   // optional variant SKU
+  TANGGAL: string; // YYYY-MM-DD
+  KODE: string; // SKU
+  VARIANT_SKU?: string; // optional variant SKU
   NO_BATCH?: string;
-  QTY_IN: number;          // positive increase
-  QTY_OUT: number;        // positive decrease
-  KETERANGAN?: string;   // notes / reason
+  QTY_IN: number; // positive increase
+  QTY_OUT: number; // positive decrease
+  KETERANGAN?: string; // notes / reason
 }
 
 // ─── Return Types ─────────────────────────────────────────────────────────────
@@ -179,12 +179,7 @@ async function matchCategoryCode(
     const found = await db
       .select({ code: productCategories.code, id: productCategories.id })
       .from(productCategories)
-      .where(
-        and(
-          eq(productCategories.tenantId, tenantId),
-          eq(productCategories.code, mappedCode),
-        ),
-      )
+      .where(and(eq(productCategories.tenantId, tenantId), eq(productCategories.code, mappedCode)))
       .limit(1)
       .then((r) => r[0]);
 
@@ -215,7 +210,11 @@ async function createCategoryFromImport(
   rawCategory: string,
   userId: string,
 ): Promise<{ code: string; id: string }> {
-  const slug = rawCategory.trim().toUpperCase().replace(/[^A-Z0-9]/g, '-').slice(0, 16);
+  const slug = rawCategory
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '-')
+    .slice(0, 16);
   const count = await db
     .select({ c: sql<number>`count(*)` })
     .from(productCategories)
@@ -366,9 +365,7 @@ export async function importMasterFromExcel(
         const activeLocations = await db
           .select({ id: stockLocations.id })
           .from(stockLocations)
-          .where(
-            and(eq(stockLocations.tenantId, tenantId), eq(stockLocations.isActive, true)),
-          )
+          .where(and(eq(stockLocations.tenantId, tenantId), eq(stockLocations.isActive, true)))
           .limit(100);
 
         for (const loc of activeLocations) {

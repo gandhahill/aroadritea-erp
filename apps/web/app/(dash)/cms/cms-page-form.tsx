@@ -4,9 +4,9 @@
  */
 'use client';
 
-import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { createCmsPage, updateCmsPage, publishCmsPage, deleteCmsPage } from './actions';
+import { useState, useTransition } from 'react';
+import { createCmsPage, deleteCmsPage, publishCmsPage, updateCmsPage } from './actions';
 
 interface Props {
   page?: Record<string, unknown> | null;
@@ -57,7 +57,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
       content: contentVals,
       metaTitle: metaTitleVals,
       metaDescription: metaDescVals,
-      displayOrder: parseInt(formData.displayOrder, 10) || 0,
+      displayOrder: Number.parseInt(formData.displayOrder, 10) || 0,
       isInNavbar: formData.isInNavbar,
     };
 
@@ -103,7 +103,10 @@ export function CmsPageForm({ page, isNew = false }: Props) {
   async function handlePublish() {
     setError(null);
     startTransition(async () => {
-      const result = await publishCmsPage(page!.id as string, status === 'published' ? 'draft' : 'publish');
+      const result = await publishCmsPage(
+        page!.id as string,
+        status === 'published' ? 'draft' : 'publish',
+      );
       if (!result.success) {
         setError(result.error ?? 'Gagal mempublikasikan');
         return;
@@ -125,9 +128,13 @@ export function CmsPageForm({ page, isNew = false }: Props) {
               <code className="rounded bg-brand-cream-2 px-2 py-0.5 text-xs font-mono text-brand-ink-2">
                 /{page?.slug as string}
               </code>
-              <span className={`rounded px-2 py-0.5 text-xs font-medium ${
-                status === 'published' ? 'bg-brand-jade/10 text-brand-jade' : 'bg-brand-cream-2 text-brand-ink-3'
-              }`}>
+              <span
+                className={`rounded px-2 py-0.5 text-xs font-medium ${
+                  status === 'published'
+                    ? 'bg-brand-jade/10 text-brand-jade'
+                    : 'bg-brand-cream-2 text-brand-ink-3'
+                }`}
+              >
                 {status}
               </span>
             </div>
@@ -166,7 +173,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
             <label className="mb-1 block text-sm font-medium text-brand-ink">Judul</label>
             <div className="flex gap-1 border-b border-brand-cream-3">
-              {LOCALE_TABS.map(tab => (
+              {LOCALE_TABS.map((tab) => (
                 <button
                   key={tab.code}
                   onClick={() => setActiveLocale(tab.code)}
@@ -183,7 +190,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
             <input
               type="text"
               value={titleVals[activeLocale] ?? ''}
-              onChange={e => setTitleVals(v => ({ ...v, [activeLocale]: e.target.value }))}
+              onChange={(e) => setTitleVals((v) => ({ ...v, [activeLocale]: e.target.value }))}
               className="mt-3 w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
               placeholder={`Judul halaman (${activeLocale.toUpperCase()})`}
             />
@@ -193,12 +200,12 @@ export function CmsPageForm({ page, isNew = false }: Props) {
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
             <label className="mb-2 block text-sm font-medium text-brand-ink">Konten</label>
             <div className="space-y-2">
-              {LOCALE_TABS.map(tab => (
+              {LOCALE_TABS.map((tab) => (
                 <div key={tab.code}>
                   <p className="mb-1 text-xs font-medium text-brand-ink-3">{tab.label}</p>
                   <textarea
                     value={contentVals[tab.code] ?? ''}
-                    onChange={e => setContentVals(v => ({ ...v, [tab.code]: e.target.value }))}
+                    onChange={(e) => setContentVals((v) => ({ ...v, [tab.code]: e.target.value }))}
                     rows={6}
                     className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                     placeholder={`Konten halaman (${tab.code.toUpperCase()})`}
@@ -212,20 +219,26 @@ export function CmsPageForm({ page, isNew = false }: Props) {
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
             <h3 className="mb-3 text-sm font-semibold text-brand-ink">SEO</h3>
             <div className="space-y-3">
-              {LOCALE_TABS.map(tab => (
+              {LOCALE_TABS.map((tab) => (
                 <div key={tab.code}>
-                  <p className="mb-1 text-xs font-medium text-brand-ink-3">Meta Title — {tab.label}</p>
+                  <p className="mb-1 text-xs font-medium text-brand-ink-3">
+                    Meta Title — {tab.label}
+                  </p>
                   <input
                     type="text"
                     value={metaTitleVals[tab.code] ?? ''}
-                    onChange={e => setMetaTitleVals(v => ({ ...v, [tab.code]: e.target.value }))}
+                    onChange={(e) =>
+                      setMetaTitleVals((v) => ({ ...v, [tab.code]: e.target.value }))
+                    }
                     className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                     placeholder="Meta title untuk SEO"
                   />
-                  <p className="mb-1 mt-2 text-xs font-medium text-brand-ink-3">Meta Description — {tab.label}</p>
+                  <p className="mb-1 mt-2 text-xs font-medium text-brand-ink-3">
+                    Meta Description — {tab.label}
+                  </p>
                   <textarea
                     value={metaDescVals[tab.code] ?? ''}
-                    onChange={e => setMetaDescVals(v => ({ ...v, [tab.code]: e.target.value }))}
+                    onChange={(e) => setMetaDescVals((v) => ({ ...v, [tab.code]: e.target.value }))}
                     rows={2}
                     className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                     placeholder="Meta description untuk SEO"
@@ -246,19 +259,23 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                 <input
                   type="text"
                   value={formData.slug}
-                  onChange={e => setFormData(v => ({ ...v, slug: e.target.value }))}
+                  onChange={(e) => setFormData((v) => ({ ...v, slug: e.target.value }))}
                   className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                   placeholder="url-slug"
                   disabled={!isNew}
                 />
-                {isNew && <p className="mt-1 text-xs text-brand-ink-3">Slug tidak dapat diubah setelah dibuat.</p>}
+                {isNew && (
+                  <p className="mt-1 text-xs text-brand-ink-3">
+                    Slug tidak dapat diubah setelah dibuat.
+                  </p>
+                )}
               </div>
 
               <div>
                 <label className="mb-1 block text-xs font-medium text-brand-ink-3">Tipe</label>
                 <select
                   value={formData.type}
-                  onChange={e => setFormData(v => ({ ...v, type: e.target.value }))}
+                  onChange={(e) => setFormData((v) => ({ ...v, type: e.target.value }))}
                   className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                 >
                   <option value="page">Halaman</option>
@@ -268,11 +285,13 @@ export function CmsPageForm({ page, isNew = false }: Props) {
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-brand-ink-3">Urutan Tampilan</label>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">
+                  Urutan Tampilan
+                </label>
                 <input
                   type="number"
                   value={formData.displayOrder}
-                  onChange={e => setFormData(v => ({ ...v, displayOrder: e.target.value }))}
+                  onChange={(e) => setFormData((v) => ({ ...v, displayOrder: e.target.value }))}
                   className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                 />
               </div>
@@ -281,7 +300,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                 <input
                   type="checkbox"
                   checked={formData.isInNavbar}
-                  onChange={e => setFormData(v => ({ ...v, isInNavbar: e.target.checked }))}
+                  onChange={(e) => setFormData((v) => ({ ...v, isInNavbar: e.target.checked }))}
                   className="h-4 w-4 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
                 />
                 <span className="text-sm text-brand-ink">Tampilkan di Navbar</span>

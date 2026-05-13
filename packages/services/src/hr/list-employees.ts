@@ -5,14 +5,14 @@
  * Permission: hr.employee.read
  */
 
-import { eq, and, ilike, sql, desc } from 'drizzle-orm';
 import { db } from '@erp/db';
 import { employees, employmentContracts } from '@erp/db/schema/hr';
-import { type Result, err, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
+import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, desc, eq, ilike, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
-import { ListEmployeesInputSchema, type ListEmployeesInput } from './schemas';
+import { type ListEmployeesInput, ListEmployeesInputSchema } from './schemas';
 
 export interface EmployeeListItem {
   id: string;
@@ -45,7 +45,9 @@ export async function listEmployees(
 
   const parsed = ListEmployeesInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('hr.employee.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('hr.employee.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const data = parsed.data;
 
@@ -133,7 +135,9 @@ export async function listEmployees(
         hireDate: r.hireDate!,
         contractType: r.contractType,
         currentContractId: r.currentContractId,
-        currentBaseSalary: r.currentContractId ? contractSalaries.get(r.currentContractId) ?? null : null,
+        currentBaseSalary: r.currentContractId
+          ? (contractSalaries.get(r.currentContractId) ?? null)
+          : null,
         locationId: r.locationId,
         createdAt: r.createdAt!,
         updatedAt: r.updatedAt!,

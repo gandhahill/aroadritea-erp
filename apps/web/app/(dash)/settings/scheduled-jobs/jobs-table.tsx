@@ -107,8 +107,18 @@ function CronEditor({
         title="Click to edit schedule"
       >
         {cronExpression}
-        <svg className="h-3 w-3 text-brand-ink-3 opacity-0 transition-opacity group-hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Z" />
+        <svg
+          className="h-3 w-3 text-brand-ink-3 opacity-0 transition-opacity group-hover:opacity-100"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Z"
+          />
         </svg>
       </button>
     );
@@ -124,7 +134,10 @@ function CronEditor({
         autoFocus
         onKeyDown={(e) => {
           if (e.key === 'Enter') handleSave();
-          if (e.key === 'Escape') { setEditing(false); setValue(cronExpression); }
+          if (e.key === 'Escape') {
+            setEditing(false);
+            setValue(cronExpression);
+          }
         }}
       />
       <button
@@ -137,7 +150,10 @@ function CronEditor({
       </button>
       <button
         type="button"
-        onClick={() => { setEditing(false); setValue(cronExpression); }}
+        onClick={() => {
+          setEditing(false);
+          setValue(cronExpression);
+        }}
         className="rounded px-2 py-1 text-[11px] font-medium text-brand-ink-3 transition-colors hover:bg-brand-cream-2"
       >
         Cancel
@@ -154,9 +170,7 @@ export function ScheduledJobsTable({ jobs: initialJobs }: Props) {
   const handleToggle = (jobId: string, currentEnabled: boolean) => {
     setError(null);
     // Optimistic update
-    setJobs((prev) =>
-      prev.map((j) => (j.id === jobId ? { ...j, enabled: !currentEnabled } : j)),
-    );
+    setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, enabled: !currentEnabled } : j)));
 
     startTransition(async () => {
       const result = await toggleScheduledJob('default', jobId, !currentEnabled);
@@ -176,21 +190,33 @@ export function ScheduledJobsTable({ jobs: initialJobs }: Props) {
     if (!result.success) {
       setError(result.error ?? 'Failed to update schedule');
     } else {
-      setJobs((prev) =>
-        prev.map((j) => (j.id === jobId ? { ...j, cronExpression: cron } : j)),
-      );
+      setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, cronExpression: cron } : j)));
     }
   };
 
   if (jobs.length === 0) {
     return (
       <div className="rounded-lg border border-brand-cream-3 bg-card px-6 py-12 text-center">
-        <svg className="mx-auto h-10 w-10 text-brand-ink-3/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        <svg
+          className="mx-auto h-10 w-10 text-brand-ink-3/40"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+          />
         </svg>
         <p className="mt-3 text-sm font-medium text-brand-ink-2">No scheduled jobs</p>
         <p className="mt-1 text-xs text-brand-ink-3">
-          Scheduled jobs are created via database seed. Run <code className="rounded bg-brand-cream-2 px-1 py-0.5 text-[10px] font-mono">pnpm db:seed</code> to populate.
+          Scheduled jobs are created via database seed. Run{' '}
+          <code className="rounded bg-brand-cream-2 px-1 py-0.5 text-[10px] font-mono">
+            pnpm db:seed
+          </code>{' '}
+          to populate.
         </p>
       </div>
     );
@@ -249,10 +275,14 @@ export function ScheduledJobsTable({ jobs: initialJobs }: Props) {
                   <div>
                     <p className="text-sm font-medium text-brand-ink">{job.label}</p>
                     <p className="mt-0.5 text-[11px] text-brand-ink-3">
-                      <code className="rounded bg-brand-cream-2 px-1 py-0.5 font-mono">{job.name}</code>
+                      <code className="rounded bg-brand-cream-2 px-1 py-0.5 font-mono">
+                        {job.name}
+                      </code>
                     </p>
                     {job.description && (
-                      <p className="mt-1 text-xs text-brand-ink-3 line-clamp-1">{job.description}</p>
+                      <p className="mt-1 text-xs text-brand-ink-3 line-clamp-1">
+                        {job.description}
+                      </p>
                     )}
                   </div>
                 </td>
@@ -276,7 +306,10 @@ export function ScheduledJobsTable({ jobs: initialJobs }: Props) {
                 <td className="px-4 py-3">
                   <StatusBadge status={job.lastRunStatus} />
                   {job.lastRunStatus === 'failed' && job.lastRunError && (
-                    <p className="mt-1 max-w-[200px] truncate text-[10px] text-brand-red/70" title={job.lastRunError}>
+                    <p
+                      className="mt-1 max-w-[200px] truncate text-[10px] text-brand-red/70"
+                      title={job.lastRunError}
+                    >
                       {job.lastRunError}
                     </p>
                   )}

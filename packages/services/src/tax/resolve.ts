@@ -11,13 +11,13 @@
  * Permission: accounting.view
  */
 
-import { eq, and, lte, or, isNull, sql } from 'drizzle-orm';
 import { db } from '@erp/db';
 import { taxRules } from '@erp/db/schema/accounting';
 import { taxRates } from '@erp/db/schema/accounting';
-import { type Result, ok, err, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq, isNull, lte, or, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // --- Types ---
@@ -72,10 +72,7 @@ export async function resolve(
           and(
             eq(taxRules.tenantId, ctx.tenantId),
             lte(taxRules.effectiveFrom, today),
-            or(
-              isNull(taxRules.effectiveUntil),
-              sql`${taxRules.effectiveUntil} >= ${today}`,
-            ),
+            or(isNull(taxRules.effectiveUntil), sql`${taxRules.effectiveUntil} >= ${today}`),
           ),
         );
 
@@ -98,7 +95,7 @@ export async function resolve(
       });
 
       // Step 3: For each tax_code, pick highest priority with is_applied_default=true
-      const bestByCode = new Map<string, typeof matchingRules[number]>();
+      const bestByCode = new Map<string, (typeof matchingRules)[number]>();
       for (const rule of matchingRules) {
         if (!rule.isAppliedDefault) continue;
         const existing = bestByCode.get(rule.taxCode);
@@ -118,7 +115,10 @@ export async function resolve(
         .from(taxRates)
         .where(
           and(
-            sql`${taxRates.code} IN (${sql.join(taxCodes.map(c => sql`${c}`), sql`, `)})`,
+            sql`${taxRates.code} IN (${sql.join(
+              taxCodes.map((c) => sql`${c}`),
+              sql`, `,
+            )})`,
             eq(taxRates.isActive, true),
           ),
         );

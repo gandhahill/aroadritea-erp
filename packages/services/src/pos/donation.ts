@@ -18,8 +18,8 @@
  *   2-2050 Donation Trust Payable (liability/passiva sementara)
  */
 
-import { type Result, ok, err } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
+import { type Result, err, ok } from '@erp/shared/result';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -63,10 +63,7 @@ const ROUNDING_THRESHOLD = 100n;
  *
  * Only meaningful for change > 0.
  */
-export function calculateDonation(
-  changeAmount: bigint,
-  option: RoundingOption,
-): DonationResult {
+export function calculateDonation(changeAmount: bigint, option: RoundingOption): DonationResult {
   if (changeAmount <= BigInt(0)) {
     return {
       choice: { type: option, amount: BigInt(0), description: 'Tidak ada kembalian' },

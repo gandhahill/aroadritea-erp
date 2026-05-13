@@ -24,7 +24,9 @@ export async function payrollBatchHandler(data: PayrollJobData): Promise<void> {
     // 5. Record audit log
     console.info('[payroll] Payroll batch completed (placeholder — Phase 4)', { periodId });
   } catch (err) {
-    console.error('[payroll] Payroll batch failed', { error: err instanceof Error ? err.message : String(err) });
+    console.error('[payroll] Payroll batch failed', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     throw err;
   }
 }

@@ -2,11 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "jsx": "preserve",
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -16,38 +12,17 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@erp/db": [
-        "../../packages/db/index.ts"
-      ],
-      "@erp/db/*": [
-        "../../packages/db/*"
-      ],
-      "@erp/services": [
-        "../../packages/services/src/index.ts"
-      ],
-      "@erp/services/*": [
-        "../../packages/services/src/*"
-      ],
-      "@erp/shared": [
-        "../../packages/shared/src/index.ts"
-      ],
-      "@erp/shared/*": [
-        "../../packages/shared/src/*"
-      ]
+      "@/*": ["./*"],
+      "@erp/db": ["../../packages/db/index.ts"],
+      "@erp/db/*": ["../../packages/db/*"],
+      "@erp/services": ["../../packages/services/src/index.ts"],
+      "@erp/services/*": ["../../packages/services/src/*"],
+      "@erp/shared": ["../../packages/shared/src/index.ts"],
+      "@erp/shared/*": ["../../packages/shared/src/*"]
     },
     "allowJs": true,
     "incremental": true
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }

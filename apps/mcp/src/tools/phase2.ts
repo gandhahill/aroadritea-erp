@@ -3,10 +3,10 @@
  * These are Phase 2+ tools — stubs that return informative "not implemented" messages.
  */
 
-import { z } from 'zod';
 import { can } from '@erp/services/iam';
-import { mcpSuccess, mcpError } from '../helpers';
+import { z } from 'zod';
 import type { McpContext } from '../context';
+import { mcpError, mcpSuccess } from '../helpers';
 
 const NOT_IMPLEMENTED = (module: string) =>
   mcpSuccess({
@@ -45,9 +45,19 @@ export const inventoryTools = [
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: inventory.view');
 
       const { listProducts } = await import('@erp/services/inventory');
-      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const auditCtx = {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      };
       const result = await listProducts(
-        { isActive: true, limit: 50, offset: 0, search: parsed.data.query, categoryId: parsed.data.category },
+        {
+          isActive: true,
+          limit: 50,
+          offset: 0,
+          search: parsed.data.query,
+          categoryId: parsed.data.category,
+        },
         auditCtx,
       );
       if (!result.ok) return mcpError('INVENTORY_LIST_FAILED', JSON.stringify(result.error));
@@ -71,8 +81,22 @@ export const inventoryTools = [
       const { eq, and } = await import('drizzle-orm');
 
       const query = locId
-        ? db.select().from(stockLevels).where(and(eq(stockLevels.tenantId, ctx.tenantId), eq(stockLevels.productId, product_id), eq(stockLevels.locationId, locId)))
-        : db.select().from(stockLevels).where(and(eq(stockLevels.tenantId, ctx.tenantId), eq(stockLevels.productId, product_id)));
+        ? db
+            .select()
+            .from(stockLevels)
+            .where(
+              and(
+                eq(stockLevels.tenantId, ctx.tenantId),
+                eq(stockLevels.productId, product_id),
+                eq(stockLevels.locationId, locId),
+              ),
+            )
+        : db
+            .select()
+            .from(stockLevels)
+            .where(
+              and(eq(stockLevels.tenantId, ctx.tenantId), eq(stockLevels.productId, product_id)),
+            );
 
       const rows = await query;
       return mcpSuccess({ items: rows });
@@ -95,14 +119,30 @@ export const inventoryTools = [
       // 1. Create draft adjustment
       const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
       const draftResult = await createAdjustmentDraft(
-        { locationId: location_id, adjustmentDate: today, reason: reason as never, notes: note, lines: [{ productId: product_id, qtyBefore: '0', qtyAfter: String(Math.max(0, qty_delta)), qtyDelta: String(qty_delta), uom: 'pcs' }] },
+        {
+          locationId: location_id,
+          adjustmentDate: today,
+          reason: reason as never,
+          notes: note,
+          lines: [
+            {
+              productId: product_id,
+              qtyBefore: '0',
+              qtyAfter: String(Math.max(0, qty_delta)),
+              qtyDelta: String(qty_delta),
+              uom: 'pcs',
+            },
+          ],
+        },
         auditCtx,
       );
-      if (!draftResult.ok) return mcpError('INVENTORY_ADJUST_DRAFT_FAILED', JSON.stringify(draftResult.error));
+      if (!draftResult.ok)
+        return mcpError('INVENTORY_ADJUST_DRAFT_FAILED', JSON.stringify(draftResult.error));
 
       // 2. Auto-submit (single-step approval for MCP)
       const submitResult = await submitAdjustment(draftResult.value.id, auditCtx);
-      if (!submitResult.ok) return mcpError('INVENTORY_ADJUST_SUBMIT_FAILED', JSON.stringify(submitResult.error));
+      if (!submitResult.ok)
+        return mcpError('INVENTORY_ADJUST_SUBMIT_FAILED', JSON.stringify(submitResult.error));
 
       return mcpSuccess(submitResult.value);
     },
@@ -153,7 +193,15 @@ export const purchasingTools = [
       const { createPO } = await import('@erp/services/purchasing');
       const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: location_id };
       const result = await createPO(
-        { supplierId: supplier_id, locationId: location_id, lines: lines.map(l => ({ productId: l.product_id, qty: l.qty, unitPrice: l.unit_price })) },
+        {
+          supplierId: supplier_id,
+          locationId: location_id,
+          lines: lines.map((l) => ({
+            productId: l.product_id,
+            qty: l.qty,
+            unitPrice: l.unit_price,
+          })),
+        },
         auditCtx,
       );
       if (!result.ok) return mcpError('PURCHASING_CREATE_PO_FAILED', JSON.stringify(result.error));
@@ -172,7 +220,11 @@ export const purchasingTools = [
       const { db } = await import('@erp/db');
       const { purchaseOrders } = await import('@erp/db/schema/purchasing');
       const { eq } = await import('drizzle-orm');
-      const [po] = await db.select({ locationId: purchaseOrders.locationId }).from(purchaseOrders).where(eq(purchaseOrders.id, po_id)).limit(1);
+      const [po] = await db
+        .select({ locationId: purchaseOrders.locationId })
+        .from(purchaseOrders)
+        .where(eq(purchaseOrders.id, po_id))
+        .limit(1);
       if (!po) return mcpError('NOT_FOUND', `Purchase order ${po_id} not found`);
 
       const permitted = await checkPermission(ctx, 'purchasing.po.approve', po.locationId);
@@ -197,7 +249,11 @@ export const purchasingTools = [
       const { db } = await import('@erp/db');
       const { purchaseOrders } = await import('@erp/db/schema/purchasing');
       const { eq } = await import('drizzle-orm');
-      const [po] = await db.select({ locationId: purchaseOrders.locationId }).from(purchaseOrders).where(eq(purchaseOrders.id, po_id)).limit(1);
+      const [po] = await db
+        .select({ locationId: purchaseOrders.locationId })
+        .from(purchaseOrders)
+        .where(eq(purchaseOrders.id, po_id))
+        .limit(1);
       if (!po) return mcpError('NOT_FOUND', `Purchase order ${po_id} not found`);
 
       const permitted = await checkPermission(ctx, 'purchasing.grn.create', po.locationId);
@@ -206,7 +262,14 @@ export const purchasingTools = [
       const { createGRN } = await import('@erp/services/purchasing');
       const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: po.locationId };
       const result = await createGRN(
-        { purchaseOrderId: po_id, lines: lines.map(l => ({ poLineId: l.po_line_id, qtyReceived: l.qty_received, notes: l.notes })) },
+        {
+          purchaseOrderId: po_id,
+          lines: lines.map((l) => ({
+            poLineId: l.po_line_id,
+            qtyReceived: l.qty_received,
+            notes: l.notes,
+          })),
+        },
         auditCtx,
       );
       if (!result.ok) return mcpError('PURCHASING_CREATE_GRN_FAILED', JSON.stringify(result.error));
@@ -229,9 +292,7 @@ export const POSListSalesSchema = z.object({
 export const POSRefundSchema = z.object({
   sales_order_id: z.string(),
   reason: z.string().min(5),
-  lines: z
-    .array(z.object({ line_id: z.string(), qty: z.number().int().positive() }))
-    .optional(),
+  lines: z.array(z.object({ line_id: z.string(), qty: z.number().int().positive() })).optional(),
 });
 
 export const posTools = [
@@ -250,7 +311,10 @@ export const posTools = [
       const { salesOrders } = await import('@erp/db/schema/pos');
       const { and, eq, gte, lte, desc, sql } = await import('drizzle-orm');
 
-      const conditions = [eq(salesOrders.tenantId, ctx.tenantId), eq(salesOrders.locationId, location_id)];
+      const conditions = [
+        eq(salesOrders.tenantId, ctx.tenantId),
+        eq(salesOrders.locationId, location_id),
+      ];
       if (from) conditions.push(gte(salesOrders.createdAt, new Date(from)));
       if (to) conditions.push(lte(salesOrders.createdAt, new Date(to)));
       if (channel) conditions.push(eq(salesOrders.channel, channel));
@@ -264,7 +328,11 @@ export const posTools = [
 
       const hasMore = rows.length > limit;
       const items = hasMore ? rows.slice(0, -1) : rows;
-      return mcpSuccess({ items, hasMore, nextOffset: hasMore ? String(offset + limit) : undefined });
+      return mcpSuccess({
+        items,
+        hasMore,
+        nextOffset: hasMore ? String(offset + limit) : undefined,
+      });
     },
   },
   {
@@ -278,7 +346,11 @@ export const posTools = [
       const { db } = await import('@erp/db');
       const { salesOrders } = await import('@erp/db/schema/pos');
       const { eq } = await import('drizzle-orm');
-      const [sale] = await db.select({ locationId: salesOrders.locationId }).from(salesOrders).where(eq(salesOrders.id, sales_order_id)).limit(1);
+      const [sale] = await db
+        .select({ locationId: salesOrders.locationId })
+        .from(salesOrders)
+        .where(eq(salesOrders.id, sales_order_id))
+        .limit(1);
       if (!sale) return mcpError('NOT_FOUND', `Sale ${sales_order_id} not found`);
 
       const permitted = await checkPermission(ctx, 'pos.transact', sale.locationId);
@@ -287,7 +359,11 @@ export const posTools = [
       const { refundSale } = await import('@erp/services/pos');
       const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: sale.locationId };
       const result = await refundSale(
-        { salesOrderId: sales_order_id, reason, refundLines: lines?.map(l => ({ lineId: l.line_id, qty: l.qty })) },
+        {
+          salesOrderId: sales_order_id,
+          reason,
+          refundLines: lines?.map((l) => ({ lineId: l.line_id, qty: l.qty })),
+        },
         auditCtx,
       );
       if (!result.ok) return mcpError('POS_REFUND_FAILED', JSON.stringify(result.error));
@@ -338,7 +414,11 @@ export const hrTools = [
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.employee.write');
 
       const { createEmployee } = await import('@erp/services/hr');
-      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const auditCtx = {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      };
       const result = await createEmployee(
         {
           nik: data.nik,
@@ -375,9 +455,20 @@ export const hrTools = [
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.employee.read');
 
       const { listEmployees } = await import('@erp/services/hr');
-      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const auditCtx = {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      };
       const result = await listEmployees(
-        { status: parsed.data.status, department: parsed.data.department, locationId: parsed.data.location_id, search: parsed.data.search, limit: parsed.data.limit, offset: parsed.data.offset },
+        {
+          status: parsed.data.status,
+          department: parsed.data.department,
+          locationId: parsed.data.location_id,
+          search: parsed.data.search,
+          limit: parsed.data.limit,
+          offset: parsed.data.offset,
+        },
         auditCtx,
       );
       if (!result.ok) return mcpError('HR_LIST_EMPLOYEES_FAILED', JSON.stringify(result.error));
@@ -425,7 +516,12 @@ export const payrollTools = [
       const { runPayroll } = await import('@erp/services/payroll');
       const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: location_id };
       const result = await runPayroll(
-        { periodCode: period_code, periodStart: period_start, periodEnd: period_end, locationId: location_id },
+        {
+          periodCode: period_code,
+          periodStart: period_start,
+          periodEnd: period_end,
+          locationId: location_id,
+        },
         auditCtx,
       );
       if (!result.ok) return mcpError('PAYROLL_RUN_FAILED', JSON.stringify(result.error));
@@ -446,14 +542,22 @@ export const payrollTools = [
       const { db } = await import('@erp/db');
       const { payrolls } = await import('@erp/db/schema/hr');
       const { eq } = await import('drizzle-orm');
-      const [payroll] = await db.select({ locationId: payrolls.locationId }).from(payrolls).where(eq(payrolls.id, payroll_id)).limit(1);
+      const [payroll] = await db
+        .select({ locationId: payrolls.locationId })
+        .from(payrolls)
+        .where(eq(payrolls.id, payroll_id))
+        .limit(1);
       if (!payroll) return mcpError('NOT_FOUND', `Payroll ${payroll_id} not found`);
 
       const permitted = await checkPermission(ctx, 'hr.payroll.approve', payroll.locationId);
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.payroll.approve');
 
       const { approvePayroll } = await import('@erp/services/payroll');
-      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: payroll.locationId };
+      const auditCtx = {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: payroll.locationId,
+      };
       const result = await approvePayroll({ payrollId: payroll_id, description }, auditCtx);
       if (!result.ok) return mcpError('PAYROLL_APPROVE_FAILED', JSON.stringify(result.error));
       return mcpSuccess(result.value);
@@ -472,14 +576,22 @@ export const payrollTools = [
       const { db } = await import('@erp/db');
       const { payrolls } = await import('@erp/db/schema/hr');
       const { eq } = await import('drizzle-orm');
-      const [payroll] = await db.select({ locationId: payrolls.locationId }).from(payrolls).where(eq(payrolls.id, payroll_id)).limit(1);
+      const [payroll] = await db
+        .select({ locationId: payrolls.locationId })
+        .from(payrolls)
+        .where(eq(payrolls.id, payroll_id))
+        .limit(1);
       if (!payroll) return mcpError('NOT_FOUND', `Payroll ${payroll_id} not found`);
 
       const permitted = await checkPermission(ctx, 'hr.payroll.write', payroll.locationId);
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.payroll.write');
 
       const { markPayrollPaid } = await import('@erp/services/payroll');
-      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: payroll.locationId };
+      const auditCtx = {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: payroll.locationId,
+      };
       const result = await markPayrollPaid({ payrollId: payroll_id }, auditCtx);
       if (!result.ok) return mcpError('PAYROLL_MARK_PAID_FAILED', JSON.stringify(result.error));
       return mcpSuccess(result.value);
@@ -521,9 +633,19 @@ export const disciplinaryTools = [
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.disciplinary.write');
 
       const { createDisciplinaryAction } = await import('@erp/services/hr');
-      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const auditCtx = {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      };
       const result = await createDisciplinaryAction(
-        { employeeId: employee_id, level, reason, incidentDate: incident_date, attachmentUrl: attachment_url },
+        {
+          employeeId: employee_id,
+          level,
+          reason,
+          incidentDate: incident_date,
+          attachmentUrl: attachment_url,
+        },
         auditCtx,
       );
       if (!result.ok) return mcpError('DISCIPLINARY_CREATE_FAILED', JSON.stringify(result.error));
@@ -541,7 +663,11 @@ export const disciplinaryTools = [
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.disciplinary.read');
 
       const { listDisciplinaryActions } = await import('@erp/services/hr');
-      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const auditCtx = {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      };
       const result = await listDisciplinaryActions(parsed.data, auditCtx);
       if (!result.ok) return mcpError('DISCIPLINARY_LIST_FAILED', JSON.stringify(result.error));
       return mcpSuccess(result.value);
@@ -558,8 +684,15 @@ export const disciplinaryTools = [
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.disciplinary.write');
 
       const { acknowledgeDisciplinaryAction } = await import('@erp/services/hr');
-      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
-      const result = await acknowledgeDisciplinaryAction({ disciplinaryId: parsed.data.disciplinary_id }, auditCtx);
+      const auditCtx = {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      };
+      const result = await acknowledgeDisciplinaryAction(
+        { disciplinaryId: parsed.data.disciplinary_id },
+        auditCtx,
+      );
       if (!result.ok) return mcpError('DISCIPLINARY_ACK_FAILED', JSON.stringify(result.error));
       return mcpSuccess(result.value);
     },
@@ -614,9 +747,21 @@ export const crmTools = [
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: crm.manage_members');
 
       const { createPartner } = await import('@erp/services/crm');
-      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const auditCtx = {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      };
       const result = await createPartner(
-        { name: display_name, phone, email, kind: 'customer', isMember: true, birthDate: date_of_birth, city },
+        {
+          name: display_name,
+          phone,
+          email,
+          kind: 'customer',
+          isMember: true,
+          birthDate: date_of_birth,
+          city,
+        },
         auditCtx,
       );
       if (!result.ok) return mcpError('CRM_CREATE_MEMBER_FAILED', JSON.stringify(result.error));
@@ -629,15 +774,39 @@ export const crmTools = [
     handler: async (input: unknown, ctx: McpContext) => {
       const parsed = CRMLogComplaintSchema.safeParse(input);
       if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
-      const { member_id, customer_name, customer_phone, order_id, order_number, occurred_at, category, description, priority } = parsed.data;
+      const {
+        member_id,
+        customer_name,
+        customer_phone,
+        order_id,
+        order_number,
+        occurred_at,
+        category,
+        description,
+        priority,
+      } = parsed.data;
 
       const permitted = await checkPermission(ctx, 'crm.logComplaint', ctx.locationId);
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: crm.logComplaint');
 
       const { logComplaint } = await import('@erp/services/crm');
-      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const auditCtx = {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      };
       const result = await logComplaint(
-        { memberId: member_id, customerName: customer_name, customerPhone: customer_phone, orderId: order_id, orderNumber: order_number, occurredAt: occurred_at, category, description, priority },
+        {
+          memberId: member_id,
+          customerName: customer_name,
+          customerPhone: customer_phone,
+          orderId: order_id,
+          orderNumber: order_number,
+          occurredAt: occurred_at,
+          category,
+          description,
+          priority,
+        },
         auditCtx,
       );
       if (!result.ok) return mcpError('CRM_LOG_COMPLAINT_FAILED', JSON.stringify(result.error));
@@ -655,9 +824,18 @@ export const crmTools = [
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: crm.listComplaints');
 
       const { listComplaints } = await import('@erp/services/crm');
-      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const auditCtx = {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      };
       const result = await listComplaints(
-        { status: parsed.data.status, from: parsed.data.from, to: parsed.data.to, limit: parsed.data.limit },
+        {
+          status: parsed.data.status,
+          from: parsed.data.from,
+          to: parsed.data.to,
+          limit: parsed.data.limit,
+        },
         auditCtx,
       );
       if (!result.ok) return mcpError('CRM_LIST_COMPLAINTS_FAILED', JSON.stringify(result.error));
@@ -676,8 +854,15 @@ export const crmTools = [
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: crm.resolveComplaint');
 
       const { resolveComplaint } = await import('@erp/services/crm');
-      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
-      const result = await resolveComplaint({ complaintId: complaint_id, status, resolutionNotes: resolution_notes }, auditCtx);
+      const auditCtx = {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      };
+      const result = await resolveComplaint(
+        { complaintId: complaint_id, status, resolutionNotes: resolution_notes },
+        auditCtx,
+      );
       if (!result.ok) return mcpError('CRM_RESOLVE_COMPLAINT_FAILED', JSON.stringify(result.error));
       return mcpSuccess({ status });
     },
@@ -749,7 +934,11 @@ export const memberTools = [
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: crm.manage_members');
 
       const { redeemPoints } = await import('@erp/services/member');
-      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const auditCtx = {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      };
       const result = await redeemPoints(
         member_id,
         points_to_redeem,
@@ -808,7 +997,8 @@ export const auditTools = [
 
       const hasMore = rows.length > (limit ?? 50);
       const items = hasMore ? rows.slice(0, -1) : rows;
-      const nextCursor = hasMore && items.length > 0 ? (items[items.length - 1]?.id as string) : undefined;
+      const nextCursor =
+        hasMore && items.length > 0 ? (items[items.length - 1]?.id as string) : undefined;
       return mcpSuccess({ items, nextCursor: nextCursor ?? undefined });
     },
   },

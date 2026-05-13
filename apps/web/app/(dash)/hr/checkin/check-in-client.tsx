@@ -10,9 +10,9 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { checkIn } from '@erp/services';
-import type { GpsData } from '@erp/services';
+import type { GpsData } from '@erp/services/hr';
+import { useCallback, useEffect, useState } from 'react';
+import { serverCheckIn } from './actions';
 
 interface Props {
   userId: string;
@@ -52,7 +52,11 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId }: Prop
   // Request GPS on mount
   const requestGps = useCallback(() => {
     if (!navigator.geolocation) {
-      setGps((s) => ({ ...s, status: 'error', error: 'Geolocation not supported by this browser.' }));
+      setGps((s) => ({
+        ...s,
+        status: 'error',
+        error: 'Geolocation not supported by this browser.',
+      }));
       return;
     }
 
@@ -66,10 +70,7 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId }: Prop
           accuracy_m: pos.coords.accuracy,
           source: 'geolocation_api',
         };
-        const status: GpsStatus =
-          pos.coords.accuracy > 200
-            ? 'low_accuracy'
-            : 'granted';
+        const status: GpsStatus = pos.coords.accuracy > 200 ? 'low_accuracy' : 'granted';
         setGps((s) => ({ ...s, status, data }));
       },
       (err) => {
@@ -99,17 +100,28 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId }: Prop
 
   const handleCheckIn = async () => {
     if (!employeeId) {
-      setResult({ ok: false, message: 'Employee ID not found. Please log in with your employee account.' });
+      setResult({
+        ok: false,
+        message: 'Employee ID not found. Please log in with your employee account.',
+      });
       return;
     }
 
     setSubmitting(true);
     setResult(null);
 
-    const ctx = { userId, tenantId, locationId, userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined };
-    const gpsData = method === 'gps' && gps.data ? { ...gps.data, source: gps.data.source ?? 'geolocation_api' } : undefined;
+    const ctx = {
+      userId,
+      tenantId,
+      locationId,
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+    };
+    const gpsData =
+      method === 'gps' && gps.data
+        ? { ...gps.data, source: gps.data.source ?? 'geolocation_api' }
+        : undefined;
 
-    const res = await checkIn(
+    const res = await serverCheckIn(
       {
         employeeId,
         shiftDefinitionId: selectedShift || undefined,
@@ -140,7 +152,7 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId }: Prop
   ];
 
   const canCheckIn =
-    (method === 'qr_scan' || (gps.status === 'granted' || gps.status === 'low_accuracy')) &&
+    (method === 'qr_scan' || gps.status === 'granted' || gps.status === 'low_accuracy') &&
     !submitting &&
     !!employeeId;
 
@@ -151,10 +163,19 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId }: Prop
         <div className="text-center">
           <h1 className="text-2xl font-bold text-brand-ink">Check In</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            {currentTime.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {currentTime.toLocaleDateString('id-ID', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
           </p>
           <p className="mt-0.5 font-mono text-3xl font-bold text-brand-ember-5">
-            {currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            {currentTime.toLocaleTimeString('id-ID', {
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+            })}
           </p>
         </div>
 
@@ -162,33 +183,39 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId }: Prop
         <div className="rounded-xl border border-brand-cream-3 bg-card p-4">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium text-brand-ink">Location</span>
-            <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${
-              gps.status === 'granted' ? 'bg-brand-jade/10 text-brand-jade' :
-              gps.status === 'low_accuracy' ? 'bg-brand-gold/10 text-brand-gold' :
-              gps.status === 'requesting' ? 'bg-brand-cream-2 text-brand-ink-2' :
-              'bg-rose-50 text-rose-500'
-            }`}>
-              {gps.status === 'granted' ? '● Accurate' :
-               gps.status === 'low_accuracy' ? '● Low accuracy' :
-               gps.status === 'requesting' ? '○ Getting location...' :
-               gps.status === 'denied' ? '✕ Denied' :
-               gps.status === 'error' ? '✕ Error' :
-               '○ Not started'}
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${
+                gps.status === 'granted'
+                  ? 'bg-brand-jade/10 text-brand-jade'
+                  : gps.status === 'low_accuracy'
+                    ? 'bg-brand-gold/10 text-brand-gold'
+                    : gps.status === 'requesting'
+                      ? 'bg-brand-cream-2 text-brand-ink-2'
+                      : 'bg-rose-50 text-rose-500'
+              }`}
+            >
+              {gps.status === 'granted'
+                ? '● Accurate'
+                : gps.status === 'low_accuracy'
+                  ? '● Low accuracy'
+                  : gps.status === 'requesting'
+                    ? '○ Getting location...'
+                    : gps.status === 'denied'
+                      ? '✕ Denied'
+                      : gps.status === 'error'
+                        ? '✕ Error'
+                        : '○ Not started'}
             </span>
           </div>
           {gps.data && (
             <p className="font-mono text-xs text-brand-ink-3">
-              {gps.data.lat.toFixed(6)}, {gps.data.lng.toFixed(6)} · ±{Math.round(gps.data.accuracy_m)}m
+              {gps.data.lat.toFixed(6)}, {gps.data.lng.toFixed(6)} · ±
+              {Math.round(gps.data.accuracy_m)}m
             </p>
           )}
-          {gps.error && (
-            <p className="text-xs text-rose-500">{gps.error}</p>
-          )}
+          {gps.error && <p className="text-xs text-rose-500">{gps.error}</p>}
           {gps.status === 'denied' && (
-            <button
-              onClick={requestGps}
-              className="mt-2 text-xs text-brand-ember-5 underline"
-            >
+            <button onClick={requestGps} className="mt-2 text-xs text-brand-ember-5 underline">
               Request permission again
             </button>
           )}
@@ -241,9 +268,13 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId }: Prop
 
         {/* Result message */}
         {result && (
-          <div className={`rounded-lg border px-4 py-3 text-center text-sm font-medium ${
-            result.ok ? 'border-brand-jade/30 bg-brand-jade/10 text-brand-jade' : 'border-rose-200 bg-rose-50 text-rose-600'
-          }`}>
+          <div
+            className={`rounded-lg border px-4 py-3 text-center text-sm font-medium ${
+              result.ok
+                ? 'border-brand-jade/30 bg-brand-jade/10 text-brand-jade'
+                : 'border-rose-200 bg-rose-50 text-rose-600'
+            }`}
+          >
             {result.message}
           </div>
         )}

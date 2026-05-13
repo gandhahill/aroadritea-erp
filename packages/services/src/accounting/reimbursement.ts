@@ -5,22 +5,22 @@
  * Auto-escalation after 48h handled by worker cron.
  */
 
-import { eq, and, desc, lt } from 'drizzle-orm';
 import { db } from '@erp/db';
 import { reimbursementRequests } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
-import { type Result, ok, err, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, desc, eq, lt } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 import {
-  CreateReimbursementSchema,
-  RejectReimbursementSchema,
-  ListReimbursementsSchema,
   type CreateReimbursementInput,
-  type RejectReimbursementInput,
+  CreateReimbursementSchema,
   type ListReimbursementsInput,
+  ListReimbursementsSchema,
+  type RejectReimbursementInput,
+  RejectReimbursementSchema,
 } from './schemas';
 
 // --- Return types ---
@@ -87,7 +87,11 @@ export async function createReimbursement(
 ): Promise<Result<ReimbursementResult>> {
   const parsed = CreateReimbursementSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('accounting.reimbursement.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('accounting.reimbursement.validationFailed', {
+        issues: parsed.error.issues,
+      }),
+    );
   }
   const data = parsed.data;
 
@@ -183,7 +187,11 @@ export async function rejectReimbursement(
 ): Promise<Result<ReimbursementResult>> {
   const parsed = RejectReimbursementSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('accounting.reimbursement.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('accounting.reimbursement.validationFailed', {
+        issues: parsed.error.issues,
+      }),
+    );
   }
   const { id, reason } = parsed.data;
 
@@ -195,12 +203,7 @@ export async function rejectReimbursement(
   const rows = await db
     .select()
     .from(reimbursementRequests)
-    .where(
-      and(
-        eq(reimbursementRequests.id, id),
-        eq(reimbursementRequests.tenantId, ctx.tenantId),
-      ),
-    )
+    .where(and(eq(reimbursementRequests.id, id), eq(reimbursementRequests.tenantId, ctx.tenantId)))
     .limit(1);
 
   const req = rows[0];
@@ -261,7 +264,11 @@ export async function listReimbursements(
 ): Promise<Result<ReimbursementListResult>> {
   const parsed = ListReimbursementsSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('accounting.reimbursement.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('accounting.reimbursement.validationFailed', {
+        issues: parsed.error.issues,
+      }),
+    );
   }
   const { locationId, status, limit, offset } = parsed.data;
 
@@ -299,7 +306,7 @@ export async function listReimbursements(
  */
 export async function getStaleReimbursements(
   tenantId: string,
-): Promise<typeof reimbursementRequests.$inferSelect[]> {
+): Promise<(typeof reimbursementRequests.$inferSelect)[]> {
   const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
   return db
     .select()
@@ -329,12 +336,7 @@ async function transitionStatus(
   const rows = await db
     .select()
     .from(reimbursementRequests)
-    .where(
-      and(
-        eq(reimbursementRequests.id, id),
-        eq(reimbursementRequests.tenantId, ctx.tenantId),
-      ),
-    )
+    .where(and(eq(reimbursementRequests.id, id), eq(reimbursementRequests.tenantId, ctx.tenantId)))
     .limit(1);
 
   const req = rows[0];
@@ -373,8 +375,12 @@ async function transitionStatus(
         .where(eq(reimbursementRequests.id, id))
         .returning();
 
-      const action = targetStatus === 'submitted' ? 'submit' :
-                     targetStatus === 'approved' ? 'approve' : 'update';
+      const action =
+        targetStatus === 'submitted'
+          ? 'submit'
+          : targetStatus === 'approved'
+            ? 'approve'
+            : 'update';
 
       await db.insert(auditLog).values({
         id: generateId(),

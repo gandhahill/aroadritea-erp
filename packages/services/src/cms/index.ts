@@ -1,22 +1,22 @@
+import { db } from '@erp/db';
+import {
+  cmsBanners,
+  cmsFaqs,
+  cmsPages,
+  cmsPosts,
+  cmsRevisions,
+  cmsSettings,
+} from '@erp/db/schema/cms';
+import { AppError } from '@erp/shared/errors';
+import { type Result, err, ok } from '@erp/shared/result';
+import type { AuditContext } from '@erp/shared/types';
 /**
  * CMS Service — SD §31.4
  *
  * CRUD + publish workflow for pages, posts, banners, FAQs, settings.
  * ISR revalidation handled by callers (API routes).
  */
-import { and, eq, desc } from 'drizzle-orm';
-import { db } from '@erp/db';
-import {
-  cmsPages,
-  cmsPosts,
-  cmsBanners,
-  cmsFaqs,
-  cmsSettings,
-  cmsRevisions,
-} from '@erp/db/schema/cms';
-import { type Result, ok, err } from '@erp/shared/result';
-import { AppError } from '@erp/shared/errors';
-import type { AuditContext } from '@erp/shared/types';
+import { and, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 // ─── Shared schemas ──────────────────────────────────────────────────────────
@@ -39,7 +39,10 @@ export const PublishPostSchema = z.object({
 
 export const CreatePageSchema = z.object({
   tenantId: z.string().default('default'),
-  slug: z.string().min(1).regex(/^[a-z0-9-]+$/, 'Slug must be lowercase letters, numbers, and hyphens'),
+  slug: z
+    .string()
+    .min(1)
+    .regex(/^[a-z0-9-]+$/, 'Slug must be lowercase letters, numbers, and hyphens'),
   type: z.enum(['page', 'landing', 'legal']).default('page'),
   title: ContentLocalizedSchema,
   content: ContentLocalizedSchema,
@@ -58,7 +61,10 @@ export const UpdatePageSchema = CreatePageSchema.partial().extend({
 export const CreatePostSchema = z.object({
   tenantId: z.string().default('default'),
   kind: z.enum(['news', 'promo', 'recipe', 'event']).default('news'),
-  slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .min(1)
+    .regex(/^[a-z0-9-]+$/),
   title: ContentLocalizedSchema,
   content: ContentLocalizedSchema,
   excerpt: ContentLocalizedSchema.optional(),
@@ -170,7 +176,10 @@ export async function updatePage(
   }
   const { id, ...data } = parsed.data;
   try {
-    await db.update(cmsPages).set({ ...data, updatedBy: ctx.userId }).where(eq(cmsPages.id, id));
+    await db
+      .update(cmsPages)
+      .set({ ...data, updatedBy: ctx.userId })
+      .where(eq(cmsPages.id, id));
     return ok({ id });
   } catch (e) {
     return err(AppError.internal('cms.page.updateFailed', e));
@@ -280,7 +289,10 @@ export async function updatePost(
   }
   const { id, ...data } = parsed.data;
   try {
-    await db.update(cmsPosts).set({ ...data, updatedBy: ctx.userId }).where(eq(cmsPosts.id, id));
+    await db
+      .update(cmsPosts)
+      .set({ ...data, updatedBy: ctx.userId })
+      .where(eq(cmsPosts.id, id));
     return ok({ id });
   } catch (e) {
     return err(AppError.internal('cms.post.updateFailed', e));

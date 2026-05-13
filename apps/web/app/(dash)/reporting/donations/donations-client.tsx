@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
-import { fetchDonationReport } from './actions';
 import type { DonationReportResult } from '@erp/services/reporting';
+import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
+import { fetchDonationReport } from './actions';
 
 interface Props {
   initialData: { data?: DonationReportResult; error?: string };
@@ -48,12 +48,7 @@ export function DonationsClient({
     const { rows, totalDonation, totalTransactions, overallAverage } = result.data;
 
     const header = ['Tanggal', 'Jumlah Donasi', 'Jumlah Transaksi', 'Rata-rata'];
-    const csvRows = rows.map((r) => [
-      r.date,
-      r.donationTotal,
-      r.txCount.toString(),
-      r.average,
-    ]);
+    const csvRows = rows.map((r) => [r.date, r.donationTotal, r.txCount.toString(), r.average]);
     csvRows.push(['TOTAL', totalDonation, totalTransactions.toString(), overallAverage]);
 
     const csv = [header, ...csvRows].map((r) => r.join('\t')).join('\n');
@@ -78,8 +73,18 @@ export function DonationsClient({
             onClick={handleExportXlsx}
             className="flex items-center gap-2 rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-2"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
             Export XLSX
           </button>
@@ -155,18 +160,26 @@ export function DonationsClient({
               {data.rows.map((row) => (
                 <tr key={row.date} className="border-b border-brand-cream-3 last:border-b-0">
                   <td className="px-4 py-3 text-brand-ink">{row.date}</td>
-                  <td className="px-4 py-3 text-right font-medium text-brand-ink">{formatRupiah(row.donationTotal)}</td>
+                  <td className="px-4 py-3 text-right font-medium text-brand-ink">
+                    {formatRupiah(row.donationTotal)}
+                  </td>
                   <td className="px-4 py-3 text-right text-brand-ink-2">{row.txCount}</td>
-                  <td className="px-4 py-3 text-right text-brand-ink-2">{formatRupiah(row.average)}</td>
+                  <td className="px-4 py-3 text-right text-brand-ink-2">
+                    {formatRupiah(row.average)}
+                  </td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="border-t border-brand-cream-3 bg-brand-cream-2 font-semibold">
                 <td className="px-4 py-3 text-brand-ink">TOTAL</td>
-                <td className="px-4 py-3 text-right text-brand-ink">{formatRupiah(data.totalDonation)}</td>
+                <td className="px-4 py-3 text-right text-brand-ink">
+                  {formatRupiah(data.totalDonation)}
+                </td>
                 <td className="px-4 py-3 text-right text-brand-ink-2">{data.totalTransactions}</td>
-                <td className="px-4 py-3 text-right text-brand-ink-2">{formatRupiah(data.overallAverage)}</td>
+                <td className="px-4 py-3 text-right text-brand-ink-2">
+                  {formatRupiah(data.overallAverage)}
+                </td>
               </tr>
             </tfoot>
           </table>
@@ -195,5 +208,9 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
 function formatRupiah(value: string): string {
   const num = Number(value);
   if (isNaN(num)) return 'Rp 0';
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(num);
 }

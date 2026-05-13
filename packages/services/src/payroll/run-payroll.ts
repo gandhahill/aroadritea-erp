@@ -10,23 +10,23 @@
  * Permission: hr.payroll.write
  */
 
-import { eq, and, sql } from 'drizzle-orm';
 import { db } from '@erp/db';
 import {
+  attendance,
   employees,
   employmentContracts,
-  attendance,
-  salaryComponents,
-  payrolls,
   payrollLines,
+  payrolls,
+  salaryComponents,
 } from '@erp/db/schema/hr';
-import { type Result, ok, err, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
-import type { AuditContext } from '@erp/shared/types';
-import { requirePermission } from '../iam';
 import { generateId } from '@erp/shared/id';
-import { calculatePayroll, type PayrollEmployeeContext } from './payroll-engine.js';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
+import type { AuditContext } from '@erp/shared/types';
+import { and, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
+import { requirePermission } from '../iam';
+import { type PayrollEmployeeContext, calculatePayroll } from './payroll-engine';
 
 export const RunPayrollInputSchema = z.object({
   periodCode: z.string().regex(/^\d{4}-\d{2}$/, 'Format: YYYY-MM'),
@@ -105,7 +105,9 @@ export async function runPayroll(
       }
 
       // 3. Fetch active contracts
-      const contractIds = empRows.map((e) => e.currentContractId).filter((id): id is string => id !== null);
+      const contractIds = empRows
+        .map((e) => e.currentContractId)
+        .filter((id): id is string => id !== null);
       let contractMap: Map<string, bigint> = new Map();
       if (contractIds.length > 0) {
         const contracts = await db
@@ -158,20 +160,33 @@ export async function runPayroll(
         )
         .groupBy(attendance.employeeId);
 
-      const attMap = new Map(attRows.map((a) => [a.employeeId, {
-        lateMinutes: a.lateMinutes,
-        absentDays: a.absentDays,
-      }]));
+      const attMap = new Map(
+        attRows.map((a) => [
+          a.employeeId,
+          {
+            lateMinutes: a.lateMinutes,
+            absentDays: a.absentDays,
+          },
+        ]),
+      );
 
       // 6. Calculate payroll for each employee
       let totalEarnings = 0n;
       let totalDeductions = 0n;
       let totalNet = 0n;
       const allLines: Array<{
-        id: string; tenantId: string; payrollId: string; employeeId: string;
-        salaryComponentId: string; amount: bigint; baseAmount: bigint;
-        percentageApplied: string | null; componentKind: string; notes: string;
-        createdBy: string; updatedBy: string;
+        id: string;
+        tenantId: string;
+        payrollId: string;
+        employeeId: string;
+        salaryComponentId: string;
+        amount: bigint;
+        baseAmount: bigint;
+        percentageApplied: string | null;
+        componentKind: string;
+        notes: string;
+        createdBy: string;
+        updatedBy: string;
       }> = [];
 
       for (const emp of empRows) {
@@ -206,7 +221,10 @@ export async function runPayroll(
             salaryComponentId: comp?.id ?? '',
             amount: line.amount,
             baseAmount: line.baseAmount,
-            percentageApplied: line.percentageApplied != null ? String(line.percentageApplied) : null as string | null,
+            percentageApplied:
+              line.percentageApplied != null
+                ? String(line.percentageApplied)
+                : (null as string | null),
             componentKind: line.componentKind,
             notes: line.notes,
             createdBy: ctx.userId,

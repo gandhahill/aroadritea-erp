@@ -7,19 +7,19 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+import { db } from '@erp/db';
+import { eq } from '@erp/db';
+import { stockOpnameSessions } from '@erp/db/schema/stock-opname';
 import {
-  createOpnameDraft,
-  recordCount,
-  submitOpname,
   approveOpname,
   cancelOpname,
+  createOpnameDraft,
   getOpname,
+  recordCount,
+  submitOpname,
 } from '@erp/services/inventory/opname-service';
-import { type AuditContext } from '@erp/shared/types';
-import { db } from '@erp/db';
-import { stockOpnameSessions } from '@erp/db/schema/stock-opname';
-import { eq } from '@erp/db';
+import type { AuditContext } from '@erp/shared/types';
+import { redirect } from 'next/navigation';
 
 function buildCtx(session: Awaited<ReturnType<typeof getSession>>): AuditContext {
   const user = session?.user as Record<string, unknown> | null;
@@ -87,10 +87,7 @@ export async function recordCountAction(params: {
   const ctx = buildCtx(session);
   await resolveLocationId(params.sessionId, ctx);
 
-  const result = await recordCount(
-    { sessionId: params.sessionId, counts: params.lines },
-    ctx,
-  );
+  const result = await recordCount({ sessionId: params.sessionId, counts: params.lines }, ctx);
   if (!result.ok) return { error: result.error.message };
   return { data: result.value };
 }

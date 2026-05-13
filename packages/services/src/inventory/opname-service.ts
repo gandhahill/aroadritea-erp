@@ -18,30 +18,26 @@
  *   inventory.opname.approve — approve (director only)
  */
 
-import { eq, and, inArray } from 'drizzle-orm';
 import { db } from '@erp/db';
-import {
-  stockMovements,
-  stockLevels,
-  products,
-} from '@erp/db/schema/inventory';
-import { stockOpnameSessions, stockOpnameLines } from '@erp/db/schema/stock-opname';
 import { accountingPeriods } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
 import { roles, userRoles } from '@erp/db/schema/auth';
-import { type Result, ok, err } from '@erp/shared/result';
+import { products, stockLevels, stockMovements } from '@erp/db/schema/inventory';
+import { stockOpnameLines, stockOpnameSessions } from '@erp/db/schema/stock-opname';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { requirePermission } from '../iam';
+import { and, eq, inArray } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
+import { requirePermission } from '../iam';
 import { generateOpnameNumber } from './number-generator';
 
 // ─── Default COA accounts for variance JE ─────────────────────────────────
 
 const DEFAULT_INVENTORY_ACCOUNT = '1-1210'; // Persediaan Barang Dagangan
-const EXPENSE_ACCOUNT = '6-1110';            // Beban Operasional Lainnya (shortage)
-const INCOME_ACCOUNT = '4-2020';           // Pendapatan Lainnya (surplus)
+const EXPENSE_ACCOUNT = '6-1110'; // Beban Operasional Lainnya (shortage)
+const INCOME_ACCOUNT = '4-2020'; // Pendapatan Lainnya (surplus)
 
 // ─── Return types ─────────────────────────────────────────────────────────────
 
@@ -272,7 +268,13 @@ export async function createOpnameDraft(
     entityId: id,
     action: 'create',
     before: null,
-    after: { id, number, sessionDate: input.sessionDate, periodCode: input.periodCode, linesCount: lines.length },
+    after: {
+      id,
+      number,
+      sessionDate: input.sessionDate,
+      periodCode: input.periodCode,
+      linesCount: lines.length,
+    },
     userId: ctx.userId,
     tenantId: ctx.tenantId,
   });
@@ -444,7 +446,10 @@ export async function submitOpname(
   const productCosts = await db
     .select({ id: products.id, avgUnitCost: stockLevels.avgUnitCost })
     .from(products)
-    .leftJoin(stockLevels, and(eq(stockLevels.productId, products.id), eq(stockLevels.locationId, ctx.locationId)))
+    .leftJoin(
+      stockLevels,
+      and(eq(stockLevels.productId, products.id), eq(stockLevels.locationId, ctx.locationId)),
+    )
     .where(inArray(products.id, productIds));
 
   const costMap = new Map<string, bigint>();
@@ -455,14 +460,14 @@ export async function submitOpname(
   // Calculate variance and update each line
   await Promise.all(
     lines.map(async (line) => {
-      const counted = parseFloat(line.countedQty ?? '0');
-      const system = parseFloat(line.systemQty);
+      const counted = Number.parseFloat(line.countedQty ?? '0');
+      const system = Number.parseFloat(line.systemQty);
       const varianceQtyNum = counted - system;
       const varianceQtyStr = varianceQtyNum.toFixed(3);
 
       const avgCost = costMap.get(line.productId) ?? BigInt(0);
       const varianceQtyAbs = Math.abs(varianceQtyNum);
-      const varianceValueBig = avgCost * BigInt(Math.round(varianceQtyAbs * 1000)) / BigInt(1000);
+      const varianceValueBig = (avgCost * BigInt(Math.round(varianceQtyAbs * 1000))) / BigInt(1000);
 
       await db
         .update(stockOpnameLines)
@@ -521,10 +526,7 @@ export async function approveOpname(
     .select()
     .from(stockOpnameSessions)
     .where(
-      and(
-        eq(stockOpnameSessions.id, sessionId),
-        eq(stockOpnameSessions.tenantId, ctx.tenantId),
-      ),
+      and(eq(stockOpnameSessions.id, sessionId), eq(stockOpnameSessions.tenantId, ctx.tenantId)),
     )
     .then((r) => r[0]);
 
@@ -550,7 +552,7 @@ export async function approveOpname(
   // 1. Execute stock movements + update stock_levels for lines with variance ≠ 0
   await Promise.all(
     lines.map(async (line) => {
-      const varianceNum = parseFloat(line.varianceQty ?? '0');
+      const varianceNum = Number.parseFloat(line.varianceQty ?? '0');
       if (Math.abs(varianceNum) < 0.001) return; // no variance, skip
 
       // Upsert stock_levels
@@ -756,10 +758,7 @@ export async function getOpname(
     .select()
     .from(stockOpnameSessions)
     .where(
-      and(
-        eq(stockOpnameSessions.id, sessionId),
-        eq(stockOpnameSessions.tenantId, ctx.tenantId),
-      ),
+      and(eq(stockOpnameSessions.id, sessionId), eq(stockOpnameSessions.tenantId, ctx.tenantId)),
     )
     .then((r) => r[0]);
 

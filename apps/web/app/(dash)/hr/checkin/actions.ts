@@ -4,9 +4,9 @@
 
 'use server';
 
-import { checkIn } from '@erp/services';
+import { checkIn } from '@erp/services/hr';
+import type { CheckInInput } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
-import type { CheckInInput } from '@erp/services';
 
 export async function serverCheckIn(input: CheckInInput, ctx: AuditContext) {
   return checkIn(input, ctx);

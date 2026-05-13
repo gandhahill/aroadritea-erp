@@ -4,11 +4,11 @@
  * Lists attendance records with employee + date filters.
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
-import { db, eq, desc, sql } from '@erp/db';
+import { db, desc, eq, sql } from '@erp/db';
 import { attendance, employees, shiftDefinitions } from '@erp/db/schema/hr';
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { AttendanceListClient } from './attendance-list-client';
 
 export const metadata: Metadata = { title: 'Attendance' };
@@ -21,12 +21,12 @@ export default async function AttendancePage({
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const tenantId = (session.user as Record<string, unknown>)?.tenantId as string ?? 'default';
+  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
   const params = await searchParams;
   const employeeId = params.employeeId ?? '';
   const dateFrom = params.dateFrom ?? '';
   const dateTo = params.dateTo ?? '';
-  const page = Math.max(1, parseInt(params.page ?? '1', 10));
+  const page = Math.max(1, Number.parseInt(params.page ?? '1', 10));
   const limit = 20;
   const offset = (page - 1) * limit;
 
@@ -99,9 +99,7 @@ export default async function AttendancePage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-brand-ink">Attendance</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            Check-in/out records — {total} entries
-          </p>
+          <p className="mt-1 text-sm text-brand-ink-3">Check-in/out records — {total} entries</p>
         </div>
       </div>
 

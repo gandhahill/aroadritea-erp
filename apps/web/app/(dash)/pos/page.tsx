@@ -7,13 +7,13 @@
 
 'use client';
 
-import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { usePosCart } from './pos-cart-context';
-import { ProductSearch } from './product-search';
+import { useState } from 'react';
+import { ChannelSelector } from './channel-selector';
 import { OrderCart } from './order-cart';
 import { PaymentModal } from './payment-modal';
-import { ChannelSelector } from './channel-selector';
+import { usePosCart } from './pos-cart-context';
+import { ProductSearch } from './product-search';
 
 export default function PosPage() {
   const t = useTranslations('pos');
@@ -55,12 +55,16 @@ export default function PosPage() {
           <div className="mb-3 space-y-1.5">
             <div className="flex justify-between text-sm">
               <span className="text-brand-ink-3">{t('grandTotal')}</span>
-              <span className="font-semibold text-brand-ink">{formatRupiah(grandTotal.toString())}</span>
+              <span className="font-semibold text-brand-ink">
+                {formatRupiah(grandTotal.toString())}
+              </span>
             </div>
             {remainingBalance > BigInt(0) && (
               <div className="flex justify-between text-sm">
                 <span className="text-brand-ink-3">{t('remainingBalance')}</span>
-                <span className="font-medium text-brand-red">{formatRupiah(remainingBalance.toString())}</span>
+                <span className="font-medium text-brand-red">
+                  {formatRupiah(remainingBalance.toString())}
+                </span>
               </div>
             )}
           </div>
@@ -78,10 +82,7 @@ export default function PosPage() {
 
       {/* Payment modal */}
       {showPayment && (
-        <PaymentModal
-          grandTotal={grandTotal.toString()}
-          onClose={() => setShowPayment(false)}
-        />
+        <PaymentModal grandTotal={grandTotal.toString()} onClose={() => setShowPayment(false)} />
       )}
     </div>
   );
@@ -90,5 +91,9 @@ export default function PosPage() {
 function formatRupiah(value: string | bigint): string {
   const num = Number(value);
   if (isNaN(num)) return 'Rp 0';
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(num);
 }

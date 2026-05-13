@@ -20,7 +20,8 @@
     "popularSubtitle": "顾客最爱的选择"
   },
   "menu": {
-    "title": "我们的菜单"
+    "title": "我们的菜单",
+    "empty": "菜单暂未可用。"
   },
   "about": {
     "title": "关于我们"

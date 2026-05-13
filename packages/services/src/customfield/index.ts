@@ -6,21 +6,18 @@
  * No EAV for core business data — this is for metadata only.
  */
 
-import { eq, and, sql, like, or } from 'drizzle-orm';
 import { db } from '@erp/db';
-import {
-  customFieldDefinitions,
-  customFieldValues,
-} from '@erp/db/schema/customfield';
-import { type Result, ok, err } from '@erp/shared/result';
+import { customFieldDefinitions, customFieldValues } from '@erp/db/schema/customfield';
 import { AppError } from '@erp/shared/errors';
-import { type AuditContext } from '@erp/shared/types';
+import { type Result, err, ok } from '@erp/shared/result';
+import type { AuditContext } from '@erp/shared/types';
+import { and, eq, like, or, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // ─── Data type enum ──────────────────────────────────────────────────────────
 
 export const DATA_TYPES = ['string', 'number', 'boolean', 'date', 'enum', 'reference'] as const;
-export type DataType = typeof DATA_TYPES[number];
+export type DataType = (typeof DATA_TYPES)[number];
 
 // ─── Input schemas (inline Zod-lite) ─────────────────────────────────────
 
@@ -29,17 +26,27 @@ function parseValue(value: unknown, dataType: DataType): { valid: boolean; error
 
   switch (dataType) {
     case 'string':
-      return typeof value === 'string' ? { valid: true } : { valid: false, error: 'Expected string' };
+      return typeof value === 'string'
+        ? { valid: true }
+        : { valid: false, error: 'Expected string' };
     case 'number':
-      return typeof value === 'number' ? { valid: true } : { valid: false, error: 'Expected number' };
+      return typeof value === 'number'
+        ? { valid: true }
+        : { valid: false, error: 'Expected number' };
     case 'boolean':
-      return typeof value === 'boolean' ? { valid: true } : { valid: false, error: 'Expected boolean' };
+      return typeof value === 'boolean'
+        ? { valid: true }
+        : { valid: false, error: 'Expected boolean' };
     case 'date':
-      return !isNaN(Date.parse(String(value))) ? { valid: true } : { valid: false, error: 'Expected ISO date string' };
+      return !isNaN(Date.parse(String(value)))
+        ? { valid: true }
+        : { valid: false, error: 'Expected ISO date string' };
     case 'enum':
       return { valid: true }; // validated against enumOptions at service level
     case 'reference':
-      return typeof value === 'string' ? { valid: true } : { valid: false, error: 'Expected reference string ID' };
+      return typeof value === 'string'
+        ? { valid: true }
+        : { valid: false, error: 'Expected reference string ID' };
     default:
       return { valid: false, error: `Unknown data type: ${dataType}` };
   }
@@ -92,7 +99,12 @@ export async function createDefinition(
       .limit(1);
 
     if (existing[0]) {
-      return err(AppError.conflict('customfield.duplicateKey', { key: input.key, entityType: input.entityType }));
+      return err(
+        AppError.conflict('customfield.duplicateKey', {
+          key: input.key,
+          entityType: input.entityType,
+        }),
+      );
     }
 
     const id = crypto.randomUUID();
@@ -171,13 +183,15 @@ export async function updateDefinition(
       .where(eq(customFieldDefinitions.id, input.id))
       .limit(1);
 
-    if (!existing[0]) return err(AppError.notFound('customfield.definitionNotFound', { id: input.id }));
+    if (!existing[0])
+      return err(AppError.notFound('customfield.definitionNotFound', { id: input.id }));
 
     await db
       .update(customFieldDefinitions)
       .set({
         name: input.name ? (input.name as never) : existing[0].name,
-        enumOptions: input.enumOptions !== undefined ? (input.enumOptions as never) : existing[0].enumOptions,
+        enumOptions:
+          input.enumOptions !== undefined ? (input.enumOptions as never) : existing[0].enumOptions,
         isRequired: input.isRequired ?? existing[0].isRequired,
         validationRegex: input.validationRegex ?? existing[0].validationRegex,
         isIndexed: input.isIndexed ?? existing[0].isIndexed,
@@ -195,10 +209,7 @@ export async function updateDefinition(
 /**
  * Delete a custom field definition (also deletes all values).
  */
-export async function deleteDefinition(
-  id: string,
-  ctx: AuditContext,
-): Promise<Result<void>> {
+export async function deleteDefinition(id: string, ctx: AuditContext): Promise<Result<void>> {
   const permCheck = await requirePermission(ctx.userId, 'settings.manage', {
     locationId: ctx.locationId,
   });
@@ -206,13 +217,9 @@ export async function deleteDefinition(
 
   try {
     // Delete values first (no FK cascade in all DBs)
-    await db
-      .delete(customFieldValues)
-      .where(eq(customFieldValues.definitionId, id));
+    await db.delete(customFieldValues).where(eq(customFieldValues.definitionId, id));
 
-    await db
-      .delete(customFieldDefinitions)
-      .where(eq(customFieldDefinitions.id, id));
+    await db.delete(customFieldDefinitions).where(eq(customFieldDefinitions.id, id));
 
     return ok(undefined);
   } catch (e) {
@@ -247,7 +254,8 @@ export async function setValue(
       .limit(1)
       .then((r) => r[0]);
 
-    if (!def) return err(AppError.notFound('customfield.definitionNotFound', { id: input.definitionId }));
+    if (!def)
+      return err(AppError.notFound('customfield.definitionNotFound', { id: input.definitionId }));
 
     const dataType = def.dataType as DataType;
     const validation = parseValue(input.value, dataType);
@@ -259,10 +267,12 @@ export async function setValue(
     if (dataType === 'enum' && def.enumOptions && input.value !== null) {
       const validValues = (def.enumOptions as Array<{ value: string }>).map((o) => o.value);
       if (!validValues.includes(String(input.value))) {
-        return err(AppError.validation('customfield.invalidEnumValue', {
-          value: input.value,
-          allowed: validValues,
-        }));
+        return err(
+          AppError.validation('customfield.invalidEnumValue', {
+            value: input.value,
+            allowed: validValues,
+          }),
+        );
       }
     }
 
@@ -271,9 +281,13 @@ export async function setValue(
       try {
         const re = new RegExp(def.validationRegex as string);
         if (!re.test(String(input.value))) {
-          return err(AppError.validation('customfield.regexMismatch', { pattern: def.validationRegex }));
+          return err(
+            AppError.validation('customfield.regexMismatch', { pattern: def.validationRegex }),
+          );
         }
-      } catch { /* invalid regex in definition — skip */ }
+      } catch {
+        /* invalid regex in definition — skip */
+      }
     }
 
     // Upsert
@@ -317,10 +331,7 @@ export async function setValue(
 /**
  * Get a single custom field value.
  */
-export async function getValue(
-  entityId: string,
-  definitionId: string,
-): Promise<Result<unknown>> {
+export async function getValue(entityId: string, definitionId: string): Promise<Result<unknown>> {
   try {
     const rows = await db
       .select({ value: customFieldValues.value })
@@ -369,7 +380,10 @@ export async function getValuesByEntity(
       .where(
         and(
           eq(customFieldValues.entityId, entityId),
-          sql`${customFieldValues.definitionId} IN (${sql.join(defIds.map((id) => sql`${id}`), sql`, `)})`,
+          sql`${customFieldValues.definitionId} IN (${sql.join(
+            defIds.map((id) => sql`${id}`),
+            sql`, `,
+          )})`,
         ),
       );
 
@@ -406,7 +420,8 @@ export async function search(
       .limit(1)
       .then((r) => r[0]);
 
-    if (!def) return err(AppError.notFound('customfield.definitionNotFound', { id: input.definitionId }));
+    if (!def)
+      return err(AppError.notFound('customfield.definitionNotFound', { id: input.definitionId }));
 
     // Build WHERE clause based on operator
     let whereClause;

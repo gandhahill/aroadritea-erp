@@ -7,9 +7,9 @@
 
 import { db } from '@erp/db';
 import { kdsOrderItems } from '@erp/db/schema/kitchen';
-import { eq, and, inArray, asc } from 'drizzle-orm';
-import { type Result, ok, err } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
+import { type Result, err, ok } from '@erp/shared/result';
+import { and, asc, eq, inArray } from 'drizzle-orm';
 import type { KdsStatus } from './kds-service';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -102,13 +102,9 @@ export function groupDisplayItems(rows: RawDisplayRow[]): {
 
 // ─── Service ────────────────────────────────────────────────────────────────
 
-export async function getDisplayQueue(
-  locationId: string,
-): Promise<Result<DisplayQueue>> {
+export async function getDisplayQueue(locationId: string): Promise<Result<DisplayQueue>> {
   if (!locationId) {
-    return err(
-      AppError.validation('display.errors.location_required'),
-    );
+    return err(AppError.validation('display.errors.location_required'));
   }
 
   const rows = await db
@@ -145,10 +141,7 @@ export function formatSseEvent(event: DisplayEvent): string {
   return `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`;
 }
 
-export function createQueueUpdateEvent(
-  locationId: string,
-  queue: DisplayQueue,
-): DisplayEvent {
+export function createQueueUpdateEvent(locationId: string, queue: DisplayQueue): DisplayEvent {
   return {
     type: 'queue_update',
     locationId,
@@ -157,10 +150,7 @@ export function createQueueUpdateEvent(
   };
 }
 
-export function createItemChangeEvent(
-  locationId: string,
-  change: DisplayItemChange,
-): DisplayEvent {
+export function createItemChangeEvent(locationId: string, change: DisplayItemChange): DisplayEvent {
   return {
     type: 'item_status_change',
     locationId,

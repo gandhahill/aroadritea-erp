@@ -28,53 +28,167 @@
  * - Online channel (gofood/grabfood/shopeefood): revenue = 80% × price (net of commission)
  */
 
-import { eq, and, inArray, sql } from 'drizzle-orm';
 import { db } from '@erp/db';
 import {
-  salesOrders,
-  salesOrderLines,
-  payments,
-  shifts,
-  idempotencyRecords,
-} from '@erp/db/schema/pos';
-import { products, boms, bomLines, stockMovements, stockLevels } from '@erp/db/schema/inventory';
-import { journalEntries, journalLines, accountingPeriods, accounts } from '@erp/db/schema/accounting';
+  accountingPeriods,
+  accounts,
+  journalEntries,
+  journalLines,
+  taxRates,
+} from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
-import { type Result, ok, err } from '@erp/shared/result';
+import { bomLines, boms, products, stockLevels, stockMovements } from '@erp/db/schema/inventory';
+import {
+  idempotencyRecords,
+  payments,
+  salesOrderLines,
+  salesOrders,
+  shifts,
+} from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { requirePermission } from '../iam';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
-import { calculateDonation, type RoundingOption } from './donation';
 import { earnLoyaltyPoints } from '../crm';
-import type { SaleResult, SaleLineResult, PaymentResult } from './schemas';
+import { requirePermission } from '../iam';
+import { type RoundingOption, calculateDonation } from './donation';
+import type { PaymentResult, SaleLineResult, SaleResult } from './schemas';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const PB1_RATE_BPS = 1000; // 10% — SD §19.2 (inclusive)
-const PB1_ACCOUNT_CODE = '2-1050'; // PB1/PBJT Payable
-const REVENUE_ACCOUNT_CODE = '4-1010'; // Penjualan
-const CASH_ACCOUNT_CODE = '1-1030'; // Kas di Bank
-const DONATION_TRUST_ACCOUNT_CODE = '2-2050'; // Donation Trust Payable (SD §25.11.2)
+const DEFAULT_PB1_TAX_CODE = 'PB1';
+const DEFAULT_CASH_ACCOUNT_CODE = '1-1030';
+const DEFAULT_REVENUE_ACCOUNT_CODE = '4-1010';
+const DEFAULT_DONATION_TRUST_ACCOUNT_CODE = '2-2050';
+const DEFAULT_DELIVERY_CHANNELS = ['gofood', 'grabfood', 'shopeefood'] as const;
+const DEFAULT_DELIVERY_NET_BPS = 8000;
+
+interface PosPostingConfig {
+  taxCode: string;
+  taxRateBps: number;
+  taxAccountId: string;
+  cashAccountId: string;
+  revenueAccountId: string;
+  donationTrustAccountId: string;
+  deliveryChannels: Set<string>;
+  deliveryNetBps: bigint;
+}
+
+function envOrDefault(name: string, fallback: string): string {
+  const value = process.env[name]?.trim();
+  return value ? value : fallback;
+}
+
+function parseDeliveryChannels(): Set<string> {
+  const raw = envOrDefault('POS_DELIVERY_CHANNELS', DEFAULT_DELIVERY_CHANNELS.join(','));
+  return new Set(
+    raw
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean),
+  );
+}
+
+function parseDeliveryNetBps(): bigint {
+  const value = Number.parseInt(
+    envOrDefault('POS_DELIVERY_NET_BPS', String(DEFAULT_DELIVERY_NET_BPS)),
+    10,
+  );
+  if (!Number.isFinite(value) || value <= 0 || value > 10000) {
+    return BigInt(DEFAULT_DELIVERY_NET_BPS);
+  }
+  return BigInt(value);
+}
+
+async function resolveAccountIdByCode(tenantId: string, code: string): Promise<Result<string>> {
+  const account = await db
+    .select({ id: accounts.id, isActive: accounts.isActive, isPostable: accounts.isPostable })
+    .from(accounts)
+    .where(and(eq(accounts.tenantId, tenantId), eq(accounts.code, code)))
+    .then((rows) => rows[0]);
+
+  if (!account) return err(AppError.notFound('pos.createSale.accountNotFound', { code }));
+  if (!account.isActive || !account.isPostable) {
+    return err(AppError.businessRule('pos.createSale.accountNotPostable', { code }));
+  }
+  return ok(account.id);
+}
+
+async function resolvePosPostingConfig(
+  tenantId: string,
+  postingDate: string,
+): Promise<Result<PosPostingConfig>> {
+  const taxCode = envOrDefault('POS_PB1_TAX_CODE', DEFAULT_PB1_TAX_CODE);
+  const [taxRate] = await db
+    .select({
+      code: taxRates.code,
+      rateBps: taxRates.rateBps,
+      calculation: taxRates.calculation,
+      postingAccountId: taxRates.postingAccountId,
+    })
+    .from(taxRates)
+    .where(
+      and(
+        eq(taxRates.code, taxCode),
+        eq(taxRates.isActive, true),
+        sql`${taxRates.effectiveFrom} <= ${postingDate}`,
+        sql`(${taxRates.effectiveUntil} IS NULL OR ${taxRates.effectiveUntil} >= ${postingDate})`,
+      ),
+    )
+    .limit(1);
+
+  if (!taxRate) return err(AppError.notFound('pos.createSale.taxRateNotFound', { taxCode }));
+  if (taxRate.calculation !== 'inclusive') {
+    return err(AppError.businessRule('pos.createSale.taxRateMustBeInclusive', { taxCode }));
+  }
+
+  const cashAccount = await resolveAccountIdByCode(
+    tenantId,
+    envOrDefault('POS_CASH_ACCOUNT_CODE', DEFAULT_CASH_ACCOUNT_CODE),
+  );
+  if (!cashAccount.ok) return cashAccount;
+
+  const revenueAccount = await resolveAccountIdByCode(
+    tenantId,
+    envOrDefault('POS_REVENUE_ACCOUNT_CODE', DEFAULT_REVENUE_ACCOUNT_CODE),
+  );
+  if (!revenueAccount.ok) return revenueAccount;
+
+  const donationTrustAccount = await resolveAccountIdByCode(
+    tenantId,
+    envOrDefault('POS_DONATION_TRUST_ACCOUNT_CODE', DEFAULT_DONATION_TRUST_ACCOUNT_CODE),
+  );
+  if (!donationTrustAccount.ok) return donationTrustAccount;
+
+  return ok({
+    taxCode: taxRate.code,
+    taxRateBps: taxRate.rateBps,
+    taxAccountId: taxRate.postingAccountId,
+    cashAccountId: cashAccount.value,
+    revenueAccountId: revenueAccount.value,
+    donationTrustAccountId: donationTrustAccount.value,
+    deliveryChannels: parseDeliveryChannels(),
+    deliveryNetBps: parseDeliveryNetBps(),
+  });
+}
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-/** Extract PB1 from inclusive price and return net + tax. */
-function extractPB1(inclusivePrice: bigint): { net: bigint; pb1: bigint } {
-  // net = inclusive × 10000 / 11000 (basis points, integer-safe)
-  // pb1 = inclusive - net
+/** Extract inclusive tax from a gross price and return net + tax. */
+function extractInclusiveTax(
+  inclusivePrice: bigint,
+  rateBps: number,
+): { net: bigint; tax: bigint } {
   const price10k = BigInt(inclusivePrice) * BigInt(10000);
-  const net = price10k / BigInt(11000);
-  const pb1 = inclusivePrice - net;
-  return { net, pb1 };
+  const net = price10k / BigInt(10000 + rateBps);
+  const tax = inclusivePrice - net;
+  return { net, tax };
 }
 
 /** Generate sales order number T01-YYYY-MM-NNNN (SD §9.5). */
-async function generateSaleNumber(
-  tenantId: string,
-  locationId: string,
-): Promise<string> {
+async function generateSaleNumber(tenantId: string, locationId: string): Promise<string> {
   const now = new Date();
   const prefix = `T01-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-`;
 
@@ -119,7 +233,7 @@ async function getBOMIngredients(
 
   return lines.map((l) => ({
     ingredientId: l.ingredientId,
-    qty: (parseFloat(l.qty) * qtySold).toFixed(3),
+    qty: (Number.parseFloat(l.qty) * qtySold).toFixed(3),
     uom: l.uom,
   }));
 }
@@ -146,7 +260,7 @@ async function deductIngredients(
         .then((r) => r[0]);
 
       if (existing) {
-        const newOnHand = parseFloat(existing.qtyOnHand) - parseFloat(ing.qty);
+        const newOnHand = Number.parseFloat(existing.qtyOnHand) - Number.parseFloat(ing.qty);
         await db
           .update(stockLevels)
           .set({
@@ -186,10 +300,7 @@ async function deductIngredients(
 
 // ─── Create Sale ──────────────────────────────────────────────────────────────
 
-export async function createSale(
-  input: unknown,
-  ctx: AuditContext,
-): Promise<Result<SaleResult>> {
+export async function createSale(input: unknown, ctx: AuditContext): Promise<Result<SaleResult>> {
   // 1. Permission check
   const permCheck = await requirePermission(ctx.userId, 'pos.transact', {
     locationId: ctx.locationId,
@@ -259,27 +370,33 @@ export async function createSale(
         kind: products.kind,
       })
       .from(products)
-      .where(
-        and(
-          eq(products.tenantId, ctx.tenantId),
-          inArray(products.id, productIds),
-        ),
-      );
+      .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, productIds)));
     const productMap = new Map(foundProducts.map((p) => [p.id, p]));
 
     for (const line of data.lines) {
       const p = productMap.get(line.productId);
       if (!p) {
-        return err(AppError.notFound('pos.createSale.productNotFound', { productId: line.productId }));
+        return err(
+          AppError.notFound('pos.createSale.productNotFound', { productId: line.productId }),
+        );
       }
       if (!p.isActive) {
-        return err(AppError.businessRule('pos.createSale.productInactive', { productId: line.productId }));
+        return err(
+          AppError.businessRule('pos.createSale.productInactive', { productId: line.productId }),
+        );
       }
       if (!p.isSellable) {
-        return err(AppError.businessRule('pos.createSale.productNotSellable', { productId: line.productId }));
+        return err(
+          AppError.businessRule('pos.createSale.productNotSellable', { productId: line.productId }),
+        );
       }
       // Skip BOM deduction for service items
     }
+
+    const postingDate = new Date().toISOString().slice(0, 10);
+    const postingConfigResult = await resolvePosPostingConfig(ctx.tenantId, postingDate);
+    if (!postingConfigResult.ok) return postingConfigResult;
+    const postingConfig = postingConfigResult.value;
 
     // 6. Calculate totals
     let totalSubtotal = BigInt(0);
@@ -304,8 +421,8 @@ export async function createSale(
       const unitPrice = BigInt(line.unitPrice);
       const lineSubtotal = unitPrice * BigInt(Math.round(line.qty));
       const lineDiscount = BigInt(line.lineDiscount ?? '0');
-      const { net, pb1 } = extractPB1(unitPrice);
-      const lineTax = pb1 * BigInt(Math.round(line.qty));
+      const { tax } = extractInclusiveTax(unitPrice, postingConfig.taxRateBps);
+      const lineTax = tax * BigInt(Math.round(line.qty));
       const lineTotal = lineSubtotal; // unitPrice already includes PB1
 
       totalSubtotal += lineSubtotal;
@@ -349,7 +466,6 @@ export async function createSale(
     // 8. Generate order number + ID
     const saleId = generateId();
     const saleNumber = await generateSaleNumber(ctx.tenantId, data.locationId);
-    const postingDate = new Date().toISOString().slice(0, 10);
 
     // 9. BOM ingredient deduction (for all non-service lines)
     for (const line of data.lines) {
@@ -363,12 +479,7 @@ export async function createSale(
         line.qty,
       );
 
-      const deductResult = await deductIngredients(
-        ctx.tenantId,
-        data.locationId,
-        ingredients,
-        ctx,
-      );
+      const deductResult = await deductIngredients(ctx.tenantId, data.locationId, ingredients, ctx);
       if (!deductResult.ok) {
         // Log but don't fail — stock deduction is best-effort for POS
         // (stock levels may not have been initialized for raw materials)
@@ -431,29 +542,29 @@ export async function createSale(
       reference: p.reference ?? null,
       occurredAt: new Date(),
       // SD §25.11 — donation on cash payment
-      donationAmount: p.method === 'cash' && donationResult.donatedAmount > BigInt(0)
-        ? donationResult.donatedAmount
-        : null,
-      roundingOption: p.method === 'cash' && roundingOption !== 'no_donation'
-        ? roundingOption
-        : null,
+      donationAmount:
+        p.method === 'cash' && donationResult.donatedAmount > BigInt(0)
+          ? donationResult.donatedAmount
+          : null,
+      roundingOption:
+        p.method === 'cash' && roundingOption !== 'no_donation' ? roundingOption : null,
       createdBy: ctx.userId,
       updatedBy: ctx.userId,
     }));
     await db.insert(payments).values(paymentRecords);
 
     // 13. Create journal entry
-    // For online delivery: revenue = 80% × subtotal (net of commission)
-    const isDeliveryChannel = ['gofood', 'grabfood', 'shopeefood'].includes(data.channel);
-    const revenueMultiplier = isDeliveryChannel ? BigInt(80) : BigInt(100);
-
-    const netRevenue = (totalSubtotal * revenueMultiplier) / BigInt(100);
+    // Delivery settlement is configurable via POS_DELIVERY_* env.
+    const isDeliveryChannel = postingConfig.deliveryChannels.has(data.channel);
+    const revenueMultiplier = isDeliveryChannel ? postingConfig.deliveryNetBps : BigInt(10000);
+    const taxableRevenue = totalSubtotal - totalTax - totalDiscount;
+    const netRevenue = (taxableRevenue * revenueMultiplier) / BigInt(10000);
     const netPB1 = totalTax; // PB1 on gross
     // Note: for delivery, netPB1 is on gross too (platform collects gross, remits PB1)
 
     // SD §25.11 — JE for cash + donation: record trust separately
-    // Cash received = totalGrand + donationAmount (customer overpaid change, donated it)
-    const totalCashReceived = totalGrand + donationResult.donatedAmount;
+    // Cash/settlement received = net revenue + tax + donation.
+    const totalCashReceived = netRevenue + netPB1 + donationResult.donatedAmount;
     const hasDonation = donationResult.donatedAmount > BigInt(0);
 
     const jeLines: Array<{
@@ -466,7 +577,7 @@ export async function createSale(
 
     // DR Cash — total cash received (sale + any donation)
     jeLines.push({
-      accountId: CASH_ACCOUNT_CODE,
+      accountId: postingConfig.cashAccountId,
       locationId: data.locationId,
       description: `${data.channel} payment${hasDonation ? ' + donasi' : ''}`,
       debit: totalCashReceived.toString(),
@@ -476,7 +587,7 @@ export async function createSale(
     // SD §25.11 — CR Donation Trust Payable (liability held until remitted)
     if (hasDonation) {
       jeLines.push({
-        accountId: DONATION_TRUST_ACCOUNT_CODE,
+        accountId: postingConfig.donationTrustAccountId,
         locationId: data.locationId,
         description: `Donasi dari penjualan ${saleNumber}`,
         debit: '0',
@@ -486,7 +597,7 @@ export async function createSale(
 
     // CR Revenue — net (after PB1)
     jeLines.push({
-      accountId: REVENUE_ACCOUNT_CODE,
+      accountId: postingConfig.revenueAccountId,
       locationId: data.locationId,
       description: `Sales ${saleNumber}`,
       debit: '0',
@@ -495,7 +606,7 @@ export async function createSale(
 
     // CR PB1 Payable
     jeLines.push({
-      accountId: PB1_ACCOUNT_CODE,
+      accountId: postingConfig.taxAccountId,
       locationId: data.locationId,
       description: `PB1 ${saleNumber}`,
       debit: '0',
@@ -518,10 +629,9 @@ export async function createSale(
     if (jeResult.ok) {
       journalEntryId = jeResult.value.id;
       // Update sales_order with JE reference
-      await db
-        .update(salesOrders)
-        .set({ journalEntryId })
-        .where(eq(salesOrders.id, saleId));
+      await db.update(salesOrders).set({ journalEntryId }).where(eq(salesOrders.id, saleId));
+    } else {
+      return err(jeResult.error);
     }
 
     // 14. Idempotency record
@@ -610,10 +720,7 @@ export async function createSale(
 
 // ─── Void Sale (cancel before payment) ────────────────────────────────────────
 
-export async function voidSale(
-  input: unknown,
-  ctx: AuditContext,
-): Promise<Result<SaleResult>> {
+export async function voidSale(input: unknown, ctx: AuditContext): Promise<Result<SaleResult>> {
   const permCheck = await requirePermission(ctx.userId, 'pos.void', {
     locationId: ctx.locationId,
   });
@@ -633,21 +740,14 @@ export async function voidSale(
     const sale = await db
       .select()
       .from(salesOrders)
-      .where(
-        and(
-          eq(salesOrders.tenantId, ctx.tenantId),
-          eq(salesOrders.id, data.salesOrderId),
-        ),
-      )
+      .where(and(eq(salesOrders.tenantId, ctx.tenantId), eq(salesOrders.id, data.salesOrderId)))
       .then((r) => r[0]);
 
     if (!sale) {
       return err(AppError.notFound('pos.void.notFound', { salesOrderId: data.salesOrderId }));
     }
     if (sale.status !== 'open') {
-      return err(
-        AppError.businessRule('pos.void.notOpen', { currentStatus: sale.status }),
-      );
+      return err(AppError.businessRule('pos.void.notOpen', { currentStatus: sale.status }));
     }
     if (sale.version !== data.version) {
       return err(AppError.conflict('pos.void.versionMismatch'));
@@ -661,12 +761,7 @@ export async function voidSale(
         updatedBy: ctx.userId,
         version: sale.version + 1,
       })
-      .where(
-        and(
-          eq(salesOrders.id, data.salesOrderId),
-          eq(salesOrders.version, sale.version),
-        ),
-      );
+      .where(and(eq(salesOrders.id, data.salesOrderId), eq(salesOrders.version, sale.version)));
 
     const lines = await db
       .select()

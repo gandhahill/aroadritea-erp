@@ -20,22 +20,18 @@
  * - Audit log for both the original status change and the new reversal
  */
 
-import { eq, and } from 'drizzle-orm';
 import { db } from '@erp/db';
-import {
-  journalEntries,
-  journalLines,
-  accountingPeriods,
-} from '@erp/db/schema/accounting';
+import { accountingPeriods, journalEntries, journalLines } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
-import { type Result, ok, err, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
-import { ReverseJournalInputSchema, type ReverseJournalInput } from './schemas';
 import type { JournalEntryResult, JournalLineResult } from './create-journal';
 import { generateJournalNumber } from './number-generator';
+import { type ReverseJournalInput, ReverseJournalInputSchema } from './schemas';
 
 // --- Service function ---
 
@@ -65,12 +61,7 @@ export async function reverseJournal(
   const originalJe = await db
     .select()
     .from(journalEntries)
-    .where(
-      and(
-        eq(journalEntries.id, journalId),
-        eq(journalEntries.tenantId, ctx.tenantId),
-      ),
-    )
+    .where(and(eq(journalEntries.id, journalId), eq(journalEntries.tenantId, ctx.tenantId)))
     .then((rows) => rows[0]);
 
   if (!originalJe) {
@@ -89,9 +80,10 @@ export async function reverseJournal(
       AppError.businessRule('accounting.journal.cannotReverse', {
         journalId,
         currentStatus: originalJe.status,
-        reason: originalJe.status === 'draft'
-          ? 'Cannot reverse a draft JE. Delete it instead.'
-          : 'This JE has already been reversed.',
+        reason:
+          originalJe.status === 'draft'
+            ? 'Cannot reverse a draft JE. Delete it instead.'
+            : 'This JE has already been reversed.',
       }),
     );
   }
@@ -133,9 +125,7 @@ export async function reverseJournal(
     .where(eq(journalLines.journalEntryId, journalId));
 
   if (originalLines.length === 0) {
-    return err(
-      AppError.internal('accounting.journal.noLines', { journalId }),
-    );
+    return err(AppError.internal('accounting.journal.noLines', { journalId }));
   }
 
   // 7. Generate reversal JE ID and number
@@ -151,8 +141,8 @@ export async function reverseJournal(
     accountId: line.accountId,
     locationId: line.locationId,
     description: line.description,
-    debit: line.credit,   // swap: original credit → reversal debit
-    credit: line.debit,   // swap: original debit → reversal credit
+    debit: line.credit, // swap: original credit → reversal debit
+    credit: line.debit, // swap: original debit → reversal credit
     taxCode: line.taxCode,
     partnerId: line.partnerId,
   }));
@@ -175,7 +165,7 @@ export async function reverseJournal(
         postedAt: now,
         postedBy: ctx.userId,
         reversedByJeId: null,
-        totalDebit: originalJe.totalCredit,  // swapped totals
+        totalDebit: originalJe.totalCredit, // swapped totals
         totalCredit: originalJe.totalDebit,
         createdBy: ctx.userId,
         updatedBy: ctx.userId,
@@ -195,10 +185,7 @@ export async function reverseJournal(
           version: originalJe.version + 1,
         })
         .where(
-          and(
-            eq(journalEntries.id, journalId),
-            eq(journalEntries.version, originalJe.version),
-          ),
+          and(eq(journalEntries.id, journalId), eq(journalEntries.version, originalJe.version)),
         );
 
       // 9d. Audit log — reversal creation
@@ -258,17 +245,19 @@ export async function reverseJournal(
         status: 'posted',
         totalDebit: originalJe.totalCredit,
         totalCredit: originalJe.totalDebit,
-        lines: reversedLineValues.map((lv): JournalLineResult => ({
-          id: lv.id,
-          lineNo: lv.lineNo,
-          accountId: lv.accountId,
-          locationId: lv.locationId,
-          description: lv.description,
-          debit: lv.debit,
-          credit: lv.credit,
-          taxCode: lv.taxCode,
-          partnerId: lv.partnerId,
-        })),
+        lines: reversedLineValues.map(
+          (lv): JournalLineResult => ({
+            id: lv.id,
+            lineNo: lv.lineNo,
+            accountId: lv.accountId,
+            locationId: lv.locationId,
+            description: lv.description,
+            debit: lv.debit,
+            credit: lv.credit,
+            taxCode: lv.taxCode,
+            partnerId: lv.partnerId,
+          }),
+        ),
       };
 
       return result;

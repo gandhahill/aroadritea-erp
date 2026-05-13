@@ -31,7 +31,7 @@ import {
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
-import { pk, tenantCol, locationCol, auditCols, versionCol } from './common';
+import { auditCols, locationCol, pk, tenantCol, versionCol } from './common';
 
 // ─── Employees ──────────────────────────────────────────────────────────────────
 
@@ -215,9 +215,7 @@ export const leaveTypes = pgTable(
 
     ...auditCols,
   },
-  (table) => [
-    uniqueIndex('leave_types_tenant_code_idx').on(table.tenantId, table.code),
-  ],
+  (table) => [uniqueIndex('leave_types_tenant_code_idx').on(table.tenantId, table.code)],
 );
 
 // ─── Leave Balances ───────────────────────────────────────────────────────────
@@ -315,9 +313,7 @@ export const salaryComponents = pgTable(
 
     ...auditCols,
   },
-  (table) => [
-    uniqueIndex('salary_components_tenant_code_idx').on(table.tenantId, table.code),
-  ],
+  (table) => [uniqueIndex('salary_components_tenant_code_idx').on(table.tenantId, table.code)],
 );
 
 // ─── Payrolls ────────────────────────────────────────────────────────────────

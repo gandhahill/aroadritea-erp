@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { AppError } from '../src/errors';
-import { ok, err, unwrap, map, flatMap, tryCatch, tryCatchSync } from '../src/result';
+import { err, flatMap, map, ok, tryCatch, tryCatchSync, unwrap } from '../src/result';
 import type { Result } from '../src/result';
 
 describe('AppError', () => {
@@ -79,7 +79,9 @@ describe('Result', () => {
   });
 
   it('tryCatch catches async errors', async () => {
-    const r = await tryCatch(async () => { throw new Error('boom'); });
+    const r = await tryCatch(async () => {
+      throw new Error('boom');
+    });
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.error.code).toBe('INTERNAL');
   });
@@ -90,7 +92,9 @@ describe('Result', () => {
   });
 
   it('tryCatchSync catches sync errors', () => {
-    const r = tryCatchSync(() => { throw new Error('boom'); });
+    const r = tryCatchSync(() => {
+      throw new Error('boom');
+    });
     expect(r.ok).toBe(false);
   });
 
@@ -101,7 +105,9 @@ describe('Result', () => {
 
   it('tryCatch uses custom error mapper', async () => {
     const r = await tryCatch(
-      async () => { throw new Error('db down'); },
+      async () => {
+        throw new Error('db down');
+      },
       () => AppError.external('db.connectionFailed'),
     );
     expect(!r.ok && r.error.code).toBe('EXTERNAL_DEPENDENCY');

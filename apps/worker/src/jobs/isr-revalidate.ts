@@ -13,7 +13,12 @@ export interface IsrRevalidateJobData {
 
 export async function isrRevalidateHandler(data: IsrRevalidateJobData): Promise<void> {
   const { path, tag, tenantId, fullRevalidate } = data;
-  console.info(`[isr-revalidate] Starting ISR revalidation`, { path, tag, tenantId, fullRevalidate });
+  console.info(`[isr-revalidate] Starting ISR revalidation`, {
+    path,
+    tag,
+    tenantId,
+    fullRevalidate,
+  });
 
   try {
     // TODO (Phase 5 — T-0121): implement ISR revalidation
@@ -22,9 +27,14 @@ export async function isrRevalidateHandler(data: IsrRevalidateJobData): Promise<
     // - Per-page: POST to /api/revalidate with secret
     // - By tag: Next.js revalidateTag(tag)
     // - Full: iterate all public paths from CMS
-    console.info('[isr-revalidate] ISR revalidation completed (placeholder — Phase 5)', { path, tag });
+    console.info('[isr-revalidate] ISR revalidation completed (placeholder — Phase 5)', {
+      path,
+      tag,
+    });
   } catch (err) {
-    console.error('[isr-revalidate] ISR revalidation failed', { error: err instanceof Error ? err.message : String(err) });
+    console.error('[isr-revalidate] ISR revalidation failed', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     throw err;
   }
 }

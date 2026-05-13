@@ -17,7 +17,9 @@ export async function backupHandler(data: BackupJobData): Promise<void> {
     // aws s3 cp backup_*.gpg s3://$BACKUP_BUCKET/ --storage-class STANDARD_IA
     console.info('[backup] Backup job completed (placeholder — S3 upload not implemented)');
   } catch (err) {
-    console.error('[backup] Backup failed', { error: err instanceof Error ? err.message : String(err) });
+    console.error('[backup] Backup failed', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     throw err;
   }
 }

@@ -4,8 +4,8 @@
  * Filter bar + summary cards + payment breakdown + top products + XLSX export.
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchDailySummary } from './actions';
 import { DailySummaryClient } from './daily-summary-client';

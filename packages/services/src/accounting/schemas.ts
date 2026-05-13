@@ -128,7 +128,9 @@ export type ListPettyCashTransactionsInput = z.infer<typeof ListPettyCashTransac
 
 export const CreatePettyCashAccountSchema = z.object({
   locationId: z.string().min(1, { message: 'Location ID is required' }),
-  maxLimit: z.string().regex(/^[1-9]\d*$/, { message: 'Max limit must be a positive integer string' }),
+  maxLimit: z
+    .string()
+    .regex(/^[1-9]\d*$/, { message: 'Max limit must be a positive integer string' }),
 });
 
 export type CreatePettyCashAccountInput = z.infer<typeof CreatePettyCashAccountSchema>;

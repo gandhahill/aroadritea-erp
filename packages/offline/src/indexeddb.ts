@@ -16,7 +16,7 @@
  * The outbox table `pending_orders` is the critical piece for RPO = 0.
  */
 
-import { openDB, type IDBPDatabase } from 'idb';
+import { type IDBPDatabase, openDB } from 'idb';
 
 // ─── Database constants ────────────────────────────────────────────────────────
 

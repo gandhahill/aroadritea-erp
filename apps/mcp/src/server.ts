@@ -5,26 +5,23 @@
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
-import { z } from 'zod';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import type { z } from 'zod';
 import { verifyToken } from './auth';
 import type { McpContext } from './context';
 import { mcpError } from './helpers';
 import {
-  iamTools,
   accountingTools,
-  taxTools,
-  reportingTools,
-  inventoryTools,
-  purchasingTools,
-  posTools,
-  hrTools,
-  payrollTools,
-  crmTools,
   auditTools,
+  crmTools,
+  hrTools,
+  iamTools,
+  inventoryTools,
+  payrollTools,
+  posTools,
+  purchasingTools,
+  reportingTools,
+  taxTools,
 } from './tools/index';
 
 const SERVER_INFO = {
@@ -56,9 +53,7 @@ const allTools: ToolEntry[] = [
 ];
 
 // Tool map for O(1) lookup
-const toolMap = new Map<string, (typeof allTools)[number]>(
-  allTools.map((t) => [t.name, t]),
-);
+const toolMap = new Map<string, (typeof allTools)[number]>(allTools.map((t) => [t.name, t]));
 
 const server = new Server(SERVER_INFO, {
   capabilities: { tools: {} },
@@ -137,7 +132,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const token = process.env.MCP_TOKEN;
   if (!token) {
     return {
-      content: [{ type: 'text', text: '[UNAUTHENTICATED] MCP_TOKEN env var not set. Set it to your API token.' }],
+      content: [
+        {
+          type: 'text',
+          text: '[UNAUTHENTICATED] MCP_TOKEN env var not set. Set it to your API token.',
+        },
+      ],
       isError: true,
     };
   }
@@ -159,9 +159,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   // Validate input
   const parsed = tool.schema.safeParse(input);
   if (!parsed.success) {
-    const errors = parsed.error.issues.map((e) =>
-      `${e.path.join('.')}: ${e.message}`,
-    ).join('; ');
+    const errors = parsed.error.issues.map((e) => `${e.path.join('.')}: ${e.message}`).join('; ');
     return {
       content: [{ type: 'text', text: `[VALIDATION_ERROR] ${errors}` }],
       isError: true,

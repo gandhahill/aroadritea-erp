@@ -10,17 +10,23 @@
  * - accounting.close_period
  */
 
-import { z } from 'zod';
 import { db } from '@erp/db';
 import { accounts, journalEntries } from '@erp/db/schema/accounting';
 import { locations } from '@erp/db/schema/auth';
-import { eq, and } from 'drizzle-orm';
 import { isActive } from '@erp/db/schema/common';
-import { can, type PermissionContext } from '@erp/services/iam';
 import * as accounting from '@erp/services/accounting';
-import type { CreateJournalInput, PostJournalInput, ReverseJournalInput, ClosePeriodInput, GetPeriodStatusInput } from '@erp/services/accounting';
-import { mcpError, serializeResult } from '../helpers';
+import type {
+  ClosePeriodInput,
+  CreateJournalInput,
+  GetPeriodStatusInput,
+  PostJournalInput,
+  ReverseJournalInput,
+} from '@erp/services/accounting';
+import { type PermissionContext, can } from '@erp/services/iam';
+import { and, eq } from 'drizzle-orm';
+import { z } from 'zod';
 import type { McpContext } from '../context';
+import { mcpError, serializeResult } from '../helpers';
 
 // --- Permission ---
 
@@ -41,7 +47,10 @@ export async function listAccountsHandler(
   const conditions = [eq(accounts.tenantId, ctx.tenantId), isActive];
   if (input.type) conditions.push(eq(accounts.type, input.type));
 
-  const rows = await db.select().from(accounts).where(and(...conditions));
+  const rows = await db
+    .select()
+    .from(accounts)
+    .where(and(...conditions));
 
   const locale = input.locale ?? (ctx.locale as 'id' | 'en' | 'zh');
   let filtered = rows;
@@ -56,15 +65,26 @@ export async function listAccountsHandler(
   }
 
   return {
-    content: [{ type: 'text' as const, text: JSON.stringify(filtered.map((a) => ({
-      id: a.id,
-      code: a.code,
-      name: (a.name as Record<string, string>)[locale] ?? (a.name as Record<string, string>)['id'],
-      type: a.type,
-      subtype: a.subtype,
-      normal_balance: a.normalBalance,
-      is_postable: a.isPostable,
-    })), null, 2) }],
+    content: [
+      {
+        type: 'text' as const,
+        text: JSON.stringify(
+          filtered.map((a) => ({
+            id: a.id,
+            code: a.code,
+            name:
+              (a.name as Record<string, string>)[locale] ??
+              (a.name as Record<string, string>)['id'],
+            type: a.type,
+            subtype: a.subtype,
+            normal_balance: a.normalBalance,
+            is_postable: a.isPostable,
+          })),
+          null,
+          2,
+        ),
+      },
+    ],
     isError: false,
   };
 }
@@ -221,7 +241,9 @@ export const PostJournalSchema = z.object({
 
 export const ReverseJournalSchema = z.object({
   journal_id: z.string(),
-  posting_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Posting date must be YYYY-MM-DD' }),
+  posting_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Posting date must be YYYY-MM-DD' }),
   reason: z.string().optional(),
 });
 
@@ -280,9 +302,25 @@ export const accountingTools = [
   { name: 'accounting.list_accounts', schema: ListAccountsSchema, handler: listAccountsHandler },
   { name: 'accounting.create_journal', schema: CreateJournalSchema, handler: createJournalHandler },
   { name: 'accounting.post_journal', schema: PostJournalSchema, handler: postJournalHandler },
-  { name: 'accounting.reverse_journal', schema: ReverseJournalSchema, handler: reverseJournalHandler },
-  { name: 'accounting.get_period_status', schema: GetPeriodStatusSchema, handler: getPeriodStatusHandler },
+  {
+    name: 'accounting.reverse_journal',
+    schema: ReverseJournalSchema,
+    handler: reverseJournalHandler,
+  },
+  {
+    name: 'accounting.get_period_status',
+    schema: GetPeriodStatusSchema,
+    handler: getPeriodStatusHandler,
+  },
   { name: 'accounting.close_period', schema: ClosePeriodSchema, handler: closePeriodHandler },
-  { name: 'accounting.get_journal_with_attachments', schema: GetJournalWithAttachmentsSchema, handler: getJournalWithAttachmentsHandler },
-  { name: 'accounting.list_journal_attachments', schema: ListJournalAttachmentsSchema, handler: listJournalAttachmentsHandler },
+  {
+    name: 'accounting.get_journal_with_attachments',
+    schema: GetJournalWithAttachmentsSchema,
+    handler: getJournalWithAttachmentsHandler,
+  },
+  {
+    name: 'accounting.list_journal_attachments',
+    schema: ListJournalAttachmentsSchema,
+    handler: listJournalAttachmentsHandler,
+  },
 ] as const;

@@ -11,16 +11,16 @@
 
 import { db } from '@erp/db';
 import {
-  naixerProductCodes,
   naixerModifierCodes,
+  naixerProductCodes,
   naixerQrFormatConfig,
 } from '@erp/db/schema/kitchen';
-import { eq, and } from 'drizzle-orm';
-import { type Result, ok, err } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
-import { type AuditContext } from '@erp/shared/types';
+import { type Result, err, ok } from '@erp/shared/result';
+import type { AuditContext } from '@erp/shared/types';
+import { and, eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
-import { getStrategy, wrapDemo, type NaixerQRPayload } from './qr-strategy';
+import { type NaixerQRPayload, getStrategy, wrapDemo } from './qr-strategy';
 
 // ─── Input types ────────────────────────────────────────────────────────────
 
@@ -68,9 +68,11 @@ export async function generateQrPayload(
     .limit(1);
 
   if (!config) {
-    return err(AppError.notFound('kitchen.errors.qr_config_not_found', {
-      locationId: input.locationId,
-    }));
+    return err(
+      AppError.notFound('kitchen.errors.qr_config_not_found', {
+        locationId: input.locationId,
+      }),
+    );
   }
 
   // 2. Lookup product code
@@ -86,12 +88,7 @@ export async function generateQrPayload(
     [productCodeRow] = await db
       .select()
       .from(naixerProductCodes)
-      .where(
-        and(
-          ...productConditions,
-          eq(naixerProductCodes.variantId, input.variantId),
-        ),
-      )
+      .where(and(...productConditions, eq(naixerProductCodes.variantId, input.variantId)))
       .limit(1);
   }
 
@@ -107,10 +104,12 @@ export async function generateQrPayload(
   }
 
   if (!productCodeRow) {
-    return err(AppError.notFound('kitchen.errors.product_code_not_found', {
-      productId: input.productId,
-      variantId: input.variantId,
-    }));
+    return err(
+      AppError.notFound('kitchen.errors.product_code_not_found', {
+        productId: input.productId,
+        variantId: input.variantId,
+      }),
+    );
   }
 
   // 3. Lookup modifier codes

@@ -3,13 +3,13 @@
  */
 
 // Production (online + offline sync)
-export * from './indexeddb.js';
-export * from './sync.js';
+export * from './indexeddb';
+export * from './sync';
 
 // Demo mode (client-side sandbox, never syncs to server)
-export * from './demo-db.js';
-export * from './demo-store.js';
-export * from './demo-master.js';
+export * from './demo-db';
+export * from './demo-store';
+export * from './demo-master';
 
 // Re-exports
 export type {
@@ -20,11 +20,11 @@ export type {
   DbTaxRate,
   DbShift,
   DbPendingOrder,
-} from './indexeddb.js';
+} from './indexeddb';
 export type {
   DemoCartLine,
   DemoCartPayment,
   DemoCartState,
   DemoOrder,
-} from './demo-store.js';
-export type { SnapshotResult } from './demo-master.js';
+} from './demo-store';
+export type { SnapshotResult } from './demo-master';

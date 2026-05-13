@@ -4,7 +4,7 @@
  * Exports: payroll-engine (pure), runPayroll service
  */
 
-export * from './payroll-engine.js';
-export * from './run-payroll.js';
-export * from './approve-payroll.js';
-export { type RunPayrollInput, type RunPayrollResult } from './run-payroll.js';
+export * from './payroll-engine';
+export * from './run-payroll';
+export * from './approve-payroll';
+export type { RunPayrollInput, RunPayrollResult } from './run-payroll';

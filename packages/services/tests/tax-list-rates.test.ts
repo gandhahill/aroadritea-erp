@@ -2,7 +2,7 @@
  * Tests for tax.listRates + tax.getRateByCode — T-0019
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // --- DB Mock ---
 let selectCallIndex = 0;
@@ -33,9 +33,9 @@ vi.mock('../src/iam', () => ({
   }),
 }));
 
-// --- Import after mocks ---
-import { listRates, getRateByCode } from '../src/tax/list-rates';
 import type { AuditContext } from '@erp/shared/types';
+// --- Import after mocks ---
+import { getRateByCode, listRates } from '../src/tax/list-rates';
 
 function makeCtx(): AuditContext {
   return { userId: 'user-001', tenantId: 'default', locationId: 'loc-mli', ipAddress: '127.0.0.1' };
@@ -69,7 +69,9 @@ describe('listRates', () => {
   });
 
   it('should return all active tax rates', async () => {
-    selectResults = [[makeTaxRate(), makeTaxRate({ id: 'tax-ppn', code: 'PPN_OUT', rateBps: 1100 })]];
+    selectResults = [
+      [makeTaxRate(), makeTaxRate({ id: 'tax-ppn', code: 'PPN_OUT', rateBps: 1100 })],
+    ];
     const result = await listRates({}, makeCtx());
     expect(result.ok).toBe(true);
     if (result.ok) {

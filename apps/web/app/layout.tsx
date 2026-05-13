@@ -1,14 +1,24 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Manrope, Noto_Sans_SC, Noto_Serif_SC } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
+import { Inter, Manrope, Noto_Sans_SC, Noto_Serif_SC } from 'next/font/google';
 import './globals.css';
 import RegisterPWA from './register-pwa';
 
 const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-sans' });
 const manrope = Manrope({ subsets: ['latin'], display: 'swap', variable: '--font-display' });
-const notoSansSC = Noto_Sans_SC({ subsets: ['latin'], weight: ['400', '500', '700'], display: 'swap', variable: '--font-noto-sans-sc' });
-const notoSerifSC = Noto_Serif_SC({ subsets: ['latin'], weight: ['400', '600', '700'], display: 'swap', variable: '--font-noto-serif-sc' });
+const notoSansSC = Noto_Sans_SC({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  display: 'swap',
+  variable: '--font-noto-sans-sc',
+});
+const notoSerifSC = Noto_Serif_SC({
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  display: 'swap',
+  variable: '--font-noto-serif-sc',
+});
 
 export const metadata: Metadata = {
   title: { default: 'Aroadri Tea ERP', template: '%s — Aroadri Tea ERP' },

@@ -11,13 +11,13 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { buildDemoQrPayload, getNextDemoOrderNumber } from '@erp/offline';
+import type { DemoOrder } from '@erp/offline';
 import { useTranslations } from 'next-intl';
+import { useMemo, useState } from 'react';
+import { DemoReceiptPreview } from './components/demo-receipt-preview';
 import { useDemoCart } from './demo-cart-context';
 import { useDemoMode } from './demo-mode-context';
-import { getNextDemoOrderNumber, buildDemoQrPayload } from '@erp/offline';
-import { DemoReceiptPreview } from './components/demo-receipt-preview';
-import type { DemoOrder } from '@erp/offline';
 
 const PAYMENT_METHODS = [
   { id: 'cash', icon: '💵' },
@@ -63,12 +63,12 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
 
   function handleAddSplit() {
     if (!inputAmount || Number(inputAmount) <= 0) return;
-    setSplitPayments(prev => [...prev, { method: selectedMethod, amount: inputAmount }]);
+    setSplitPayments((prev) => [...prev, { method: selectedMethod, amount: inputAmount }]);
     setInputAmount('');
   }
 
   function handleRemoveSplit(idx: number) {
-    setSplitPayments(prev => prev.filter((_, i) => i !== idx));
+    setSplitPayments((prev) => prev.filter((_, i) => i !== idx));
   }
 
   async function handleConfirm() {
@@ -79,12 +79,12 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
         (sum, l) => sum + BigInt(l.unitPrice) * BigInt(l.qty),
         BigInt(0),
       );
-      const taxTotal = subtotal * BigInt(10) / BigInt(110);
+      const taxTotal = (subtotal * BigInt(10)) / BigInt(110);
 
       // Build payments from cart + split list + current input
       const payments: typeof state.payments = [
         ...state.payments,
-        ...splitPayments.map(p => ({ id: crypto.randomUUID(), ...p })),
+        ...splitPayments.map((p) => ({ id: crypto.randomUUID(), ...p })),
         ...(inputAmount && Number(inputAmount) > 0 && allPaidBig >= totalBig
           ? [{ id: crypto.randomUUID(), method: selectedMethod, amount: inputAmount }]
           : []),
@@ -131,8 +131,18 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
         {/* Header */}
         <div className="flex items-center justify-between border-b border-brand-cream-3 px-5 py-4">
           <h2 className="text-base font-semibold text-brand-ink">{t('payment')}</h2>
-          <button onClick={onClose} className="text-brand-ink-3 hover:text-brand-ink" aria-label="close">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <button
+            onClick={onClose}
+            className="text-brand-ink-3 hover:text-brand-ink"
+            aria-label="close"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -152,7 +162,7 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
               {t('paymentMethod')}
             </p>
             <div className="grid grid-cols-4 gap-2">
-              {PAYMENT_METHODS.map(m => (
+              {PAYMENT_METHODS.map((m) => (
                 <button
                   key={m.id}
                   onClick={() => setSelectedMethod(m.id)}
@@ -177,12 +187,14 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
               </p>
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-brand-ink-3">Rp</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-brand-ink-3">
+                    Rp
+                  </span>
                   <input
                     type="text"
                     inputMode="numeric"
                     value={inputAmount}
-                    onChange={e => setInputAmount(e.target.value.replace(/\D/g, ''))}
+                    onChange={(e) => setInputAmount(e.target.value.replace(/\D/g, ''))}
                     placeholder={formatRupiah((totalBig - paidBig - splitTotal).toString())}
                     className="h-12 w-full rounded-lg border border-brand-cream-3 bg-white py-2 pl-8 pr-3 text-base font-semibold text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
                   />
@@ -197,7 +209,9 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
               {excess > BigInt(0) && (
                 <div className="mt-1.5 flex items-center gap-2">
                   <span className="text-xs text-brand-jade">{t('change')}:</span>
-                  <span className="text-sm font-semibold text-brand-jade">{formatRupiah(excess.toString())}</span>
+                  <span className="text-sm font-semibold text-brand-jade">
+                    {formatRupiah(excess.toString())}
+                  </span>
                 </div>
               )}
             </div>
@@ -207,7 +221,9 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
           {isFullyPaid && excess > BigInt(0) && selectedMethod === 'cash' && (
             <div className="flex items-center justify-between rounded-lg border border-brand-jade/20 bg-brand-jade/5 px-4 py-2.5">
               <span className="text-sm font-medium text-brand-ink-2">{t('change')}</span>
-              <span className="text-base font-semibold text-brand-jade">{formatRupiah(excess.toString())}</span>
+              <span className="text-base font-semibold text-brand-jade">
+                {formatRupiah(excess.toString())}
+              </span>
             </div>
           )}
 
@@ -219,14 +235,35 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
               </p>
               <ul className="space-y-2">
                 {splitPayments.map((p, i) => (
-                  <li key={i} className="flex items-center justify-between rounded-lg border border-brand-cream-3 bg-brand-cream-2 px-3 py-2">
+                  <li
+                    key={i}
+                    className="flex items-center justify-between rounded-lg border border-brand-cream-3 bg-brand-cream-2 px-3 py-2"
+                  >
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-brand-ink-3">{t(`paymentMethods.${p.method}` as never)}</span>
-                      <span className="text-sm font-medium text-brand-ink">{formatRupiah(p.amount)}</span>
+                      <span className="text-xs text-brand-ink-3">
+                        {t(`paymentMethods.${p.method}` as never)}
+                      </span>
+                      <span className="text-sm font-medium text-brand-ink">
+                        {formatRupiah(p.amount)}
+                      </span>
                     </div>
-                    <button onClick={() => handleRemoveSplit(i)} className="text-brand-ink-3 hover:text-red-500" aria-label="remove">
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    <button
+                      onClick={() => handleRemoveSplit(i)}
+                      className="text-brand-ink-3 hover:text-red-500"
+                      aria-label="remove"
+                    >
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </li>
@@ -268,5 +305,9 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
 function formatRupiah(value: string): string {
   const num = Number(value);
   if (isNaN(num)) return 'Rp 0';
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(num);
 }

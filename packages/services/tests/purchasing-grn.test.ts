@@ -4,11 +4,11 @@
  * Schema validation + pure computation tests.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
+  ConfirmGRNInputSchema,
   CreateGRNInputSchema,
   GRNLineInputSchema,
-  ConfirmGRNInputSchema,
 } from '../src/purchasing/grn-schemas';
 
 // ─── GRNLineInputSchema ─────────────────────────────────────────────────────
@@ -247,7 +247,7 @@ describe('GRN Number format', () => {
 
 describe('GRN qty remaining computation', () => {
   function computeRemaining(qtyOrdered: string, qtyReceived: string): number {
-    return parseFloat(qtyOrdered) - parseFloat(qtyReceived);
+    return Number.parseFloat(qtyOrdered) - Number.parseFloat(qtyReceived);
   }
 
   it('full remaining when nothing received', () => {
@@ -274,7 +274,7 @@ describe('PO status after GRN confirmation', () => {
     poLines: Array<{ qtyOrdered: string; qtyReceived: string }>,
   ): 'partial' | 'received' {
     const allFullyReceived = poLines.every(
-      (l) => parseFloat(l.qtyReceived) >= parseFloat(l.qtyOrdered) - 0.001,
+      (l) => Number.parseFloat(l.qtyReceived) >= Number.parseFloat(l.qtyOrdered) - 0.001,
     );
     return allFullyReceived ? 'received' : 'partial';
   }
@@ -296,16 +296,12 @@ describe('PO status after GRN confirmation', () => {
   });
 
   it('received with floating point tolerance', () => {
-    const lines = [
-      { qtyOrdered: '10.500', qtyReceived: '10.500' },
-    ];
+    const lines = [{ qtyOrdered: '10.500', qtyReceived: '10.500' }];
     expect(determinePOStatus(lines)).toBe('received');
   });
 
   it('partial when no lines received', () => {
-    const lines = [
-      { qtyOrdered: '100', qtyReceived: '0' },
-    ];
+    const lines = [{ qtyOrdered: '100', qtyReceived: '0' }];
     expect(determinePOStatus(lines)).toBe('partial');
   });
 
@@ -321,28 +317,22 @@ describe('PO status after GRN confirmation', () => {
 // ─── GRN JE computation ────────────────────────────────────────────────────
 
 describe('GRN JE total value computation', () => {
-  function computeTotalValue(
-    lines: Array<{ qtyReceived: string; unitPrice: bigint }>,
-  ): bigint {
+  function computeTotalValue(lines: Array<{ qtyReceived: string; unitPrice: bigint }>): bigint {
     let total = 0n;
     for (const line of lines) {
-      const qty = BigInt(Math.round(parseFloat(line.qtyReceived) * 1000));
+      const qty = BigInt(Math.round(Number.parseFloat(line.qtyReceived) * 1000));
       total += (qty * line.unitPrice) / 1000n;
     }
     return total;
   }
 
   it('single line integer qty', () => {
-    const result = computeTotalValue([
-      { qtyReceived: '10', unitPrice: 25000n },
-    ]);
+    const result = computeTotalValue([{ qtyReceived: '10', unitPrice: 25000n }]);
     expect(result).toBe(250000n);
   });
 
   it('single line decimal qty', () => {
-    const result = computeTotalValue([
-      { qtyReceived: '10.500', unitPrice: 25000n },
-    ]);
+    const result = computeTotalValue([{ qtyReceived: '10.500', unitPrice: 25000n }]);
     expect(result).toBe(262500n);
   });
 
@@ -355,9 +345,7 @@ describe('GRN JE total value computation', () => {
   });
 
   it('zero qty produces zero', () => {
-    const result = computeTotalValue([
-      { qtyReceived: '0', unitPrice: 25000n },
-    ]);
+    const result = computeTotalValue([{ qtyReceived: '0', unitPrice: 25000n }]);
     expect(result).toBe(0n);
   });
 });

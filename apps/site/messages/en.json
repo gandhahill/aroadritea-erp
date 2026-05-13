@@ -20,7 +20,8 @@
     "popularSubtitle": "Our customers' favorites"
   },
   "menu": {
-    "title": "Our Menu"
+    "title": "Our Menu",
+    "empty": "Menu is not available yet."
   },
   "about": {
     "title": "About Us"

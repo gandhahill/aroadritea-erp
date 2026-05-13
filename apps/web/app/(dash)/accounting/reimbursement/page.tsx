@@ -1,7 +1,7 @@
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { fetchReimbursements, fetchLocations } from './actions';
+import { fetchLocations, fetchReimbursements } from './actions';
 import { ReimbursementClient } from './reimbursement-view';
 
 export const metadata: Metadata = {
@@ -12,8 +12,8 @@ export default async function ReimbursementPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const userId = (session.user as Record<string, unknown>)?.id as string ?? '';
-  const tenantId = (session.user as Record<string, unknown>)?.tenantId as string ?? 'default';
+  const userId = ((session.user as Record<string, unknown>)?.id as string) ?? '';
+  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
 
   const [items, locations] = await Promise.all([
     fetchReimbursements(tenantId),

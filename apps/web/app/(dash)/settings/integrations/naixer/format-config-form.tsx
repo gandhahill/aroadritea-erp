@@ -4,13 +4,9 @@
 
 'use client';
 
-import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  updateFormatConfig,
-  previewQrPayload,
-  type FormatConfigItem,
-} from './actions';
+import { useState, useTransition } from 'react';
+import { type FormatConfigItem, previewQrPayload, updateFormatConfig } from './actions';
 
 interface Props {
   configs: FormatConfigItem[];
@@ -40,12 +36,7 @@ export function FormatConfigForm({ configs }: Props) {
   }
 
   async function handlePreview(format: string, includeOrderId: boolean) {
-    const result = await previewQrPayload(
-      'T003',
-      ['C01', 'S02', 'W01'],
-      format,
-      includeOrderId,
-    );
+    const result = await previewQrPayload('T003', ['C01', 'S02', 'W01'], format, includeOrderId);
     setPreview(result.payload);
   }
 
@@ -66,10 +57,7 @@ export function FormatConfigForm({ configs }: Props) {
       )}
 
       {configs.map((config) => (
-        <div
-          key={config.id}
-          className="rounded-lg border border-brand-cream-3 p-4"
-        >
+        <div key={config.id} className="rounded-lg border border-brand-cream-3 p-4">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="font-medium text-brand-ink">{config.locationName}</h3>
             <span
@@ -86,23 +74,15 @@ export function FormatConfigForm({ configs }: Props) {
           <div className="grid grid-cols-3 gap-4">
             {/* Format */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                QR Format
-              </label>
+              <label className="mb-1 block text-xs font-medium text-brand-ink-2">QR Format</label>
               <select
                 value={config.format}
-                onChange={(e) =>
-                  handleUpdate(config.id, { format: e.target.value })
-                }
+                onChange={(e) => handleUpdate(config.id, { format: e.target.value })}
                 disabled={isPending}
                 className="w-full rounded border border-brand-cream-3 bg-white px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none disabled:opacity-50"
               >
-                <option value="dash">
-                  Format B — Dash (default)
-                </option>
-                <option value="pipe">
-                  Format A — Pipe (vendor)
-                </option>
+                <option value="dash">Format B — Dash (default)</option>
+                <option value="pipe">Format A — Pipe (vendor)</option>
               </select>
             </div>
 
@@ -158,9 +138,7 @@ export function FormatConfigForm({ configs }: Props) {
           <div className="mt-3 flex items-center gap-3 border-t border-brand-cream-3 pt-3">
             <button
               type="button"
-              onClick={() =>
-                handlePreview(config.format, config.includeOrderId)
-              }
+              onClick={() => handlePreview(config.format, config.includeOrderId)}
               disabled={isPending}
               className="rounded border border-brand-red px-3 py-1 text-xs font-medium text-brand-red hover:bg-brand-red/5 disabled:opacity-50"
             >

@@ -1,8 +1,8 @@
 'use server';
 
-import { runPayroll, approvePayroll, markPayrollPaid } from '@erp/services';
-import type { AuditContext } from '@erp/shared/types';
+import { approvePayroll, markPayrollPaid, runPayroll } from '@erp/services/payroll';
 import type { ApprovePayrollInput, MarkPaidInput } from '@erp/services/payroll';
+import type { AuditContext } from '@erp/shared/types';
 
 export async function runPayrollAction(input: {
   periodCode: string;

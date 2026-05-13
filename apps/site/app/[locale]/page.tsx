@@ -38,7 +38,9 @@ export default async function HomePage({ params }: Props) {
         <div className="mt-8 grid grid-cols-3 gap-4">
           {['Brown Sugar', 'Taro Milk', 'Matcha Latte'].map((name) => (
             <div key={name} className="rounded-xl bg-white p-4 text-center shadow-sm">
-              <div className="mx-auto mb-2 flex h-24 w-24 items-center justify-center rounded-full bg-brand-cream-3 text-2xl">🧋</div>
+              <div className="mx-auto mb-2 flex h-24 w-24 items-center justify-center rounded-full bg-brand-cream-3 text-2xl">
+                🧋
+              </div>
               <p className="font-medium text-brand-ink">{name}</p>
             </div>
           ))}

@@ -5,19 +5,19 @@
  * Permission: hr.employee.read
  */
 
-import { eq, and, desc, sql } from 'drizzle-orm';
 import { db } from '@erp/db';
 import {
+  attendance,
   employees,
   employmentContracts,
-  attendance,
   leaveBalances,
-  leaveTypes,
   leaveRequests,
+  leaveTypes,
 } from '@erp/db/schema/hr';
-import { type Result, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
+import { type Result, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 export interface EmployeeContract {
@@ -167,7 +167,11 @@ export async function getEmployee(
       const leaveBalances_: LeaveBalanceRow[] = balanceRows.map((r) => ({
         leaveTypeId: r.leaveTypeId,
         leaveTypeCode: r.leaveTypeCode ?? '',
-        leaveTypeName: (r.leaveTypeName ?? { id: '', en: '', zh: '' }) as { id: string; en: string; zh: string },
+        leaveTypeName: (r.leaveTypeName ?? { id: '', en: '', zh: '' }) as {
+          id: string;
+          en: string;
+          zh: string;
+        },
         year: r.year,
         totalDays: String(r.totalDays),
         usedDays: String(r.usedDays),
@@ -197,7 +201,11 @@ export async function getEmployee(
       const recentLeaveRequests: LeaveRequestRow[] = leaveReqRows.map((r) => ({
         id: r.id,
         leaveTypeCode: r.leaveTypeCode ?? '',
-        leaveTypeName: (r.leaveTypeName ?? { id: '', en: '', zh: '' }) as { id: string; en: string; zh: string },
+        leaveTypeName: (r.leaveTypeName ?? { id: '', en: '', zh: '' }) as {
+          id: string;
+          en: string;
+          zh: string;
+        },
         startDate: r.startDate!,
         endDate: r.endDate!,
         totalDays: String(r.totalDays),

@@ -5,22 +5,22 @@
  * Permission: inventory.product.update (variants are sub-resource of products)
  */
 
-import { eq, and } from 'drizzle-orm';
 import { db } from '@erp/db';
-import { products, productVariants } from '@erp/db/schema/inventory';
 import { auditLog } from '@erp/db/schema/audit';
-import { type Result, err, tryCatch } from '@erp/shared/result';
+import { productVariants, products } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
-import {
-  CreateVariantInputSchema,
-  UpdateVariantInputSchema,
-  type CreateVariantInput,
-  type UpdateVariantInput,
-} from './schemas';
 import type { VariantResult } from './list-products';
+import {
+  type CreateVariantInput,
+  CreateVariantInputSchema,
+  type UpdateVariantInput,
+  UpdateVariantInputSchema,
+} from './schemas';
 
 // --- Create variant ---
 
@@ -35,7 +35,9 @@ export async function createVariant(
 
   const parsed = CreateVariantInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('inventory.variant.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('inventory.variant.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const data = parsed.data;
 
@@ -47,7 +49,9 @@ export async function createVariant(
     .limit(1);
 
   if (!product) {
-    return err(AppError.notFound('inventory.variant.productNotFound', { productId: data.productId }));
+    return err(
+      AppError.notFound('inventory.variant.productNotFound', { productId: data.productId }),
+    );
   }
 
   // Check SKU uniqueness
@@ -122,7 +126,9 @@ export async function updateVariant(
 
   const parsed = UpdateVariantInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('inventory.variant.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('inventory.variant.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const data = parsed.data;
 
@@ -139,10 +145,12 @@ export async function updateVariant(
 
   // Optimistic concurrency
   if (existing.version !== data.version) {
-    return err(AppError.conflict('inventory.variant.versionMismatch', {
-      expected: data.version,
-      actual: existing.version,
-    }));
+    return err(
+      AppError.conflict('inventory.variant.versionMismatch', {
+        expected: data.version,
+        actual: existing.version,
+      }),
+    );
   }
 
   const updates: Record<string, unknown> = {

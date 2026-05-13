@@ -12,7 +12,7 @@
  * Query order in markPayrollPaid:
  *   slot[0] = payrolls.where → payroll row
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 let _selIdx = 0;
 let _selResults: unknown[][] = [];
@@ -78,9 +78,7 @@ vi.mock('@erp/db', () => ({
 }));
 
 vi.mock('../src/accounting/create-journal', () => ({
-  createJournal: vi.fn(() =>
-    Promise.resolve({ ok: true, value: { id: 'je-1' } }),
-  ),
+  createJournal: vi.fn(() => Promise.resolve({ ok: true, value: { id: 'je-1' } })),
 }));
 
 // Mock permission engine at the source so the entire IAM chain is bypassed
@@ -91,14 +89,15 @@ vi.mock('../src/iam/permission-engine', () => ({
 
 // Mock requirePermission directly to bypass the entire IAM chain
 vi.mock('../src/iam', () => ({
-  requirePermission: vi.fn(() =>
-    Promise.resolve({ ok: true, value: undefined }),
-  ),
+  requirePermission: vi.fn(() => Promise.resolve({ ok: true, value: undefined })),
 }));
 
 vi.mock('@erp/shared/errors', () => ({
   AppError: class AppError extends Error {
-    constructor(public code: string, public details?: Record<string, unknown>) {
+    constructor(
+      public code: string,
+      public details?: Record<string, unknown>,
+    ) {
       super(code);
     }
     static notFound(code: string, details?: Record<string, unknown>) {
@@ -122,6 +121,7 @@ vi.mock('@erp/shared/errors', () => ({
   },
 }));
 
+import type { AuditContext } from '@erp/shared/types';
 import { approvePayroll, markPayrollPaid } from '../src/payroll/approve-payroll.js';
 
 // ─── Fixtures ───────────────────────────────────────────────────────────────
@@ -129,7 +129,7 @@ import { approvePayroll, markPayrollPaid } from '../src/payroll/approve-payroll.
 const FIXED_TS = new Date('2026-05-31T00:00:00Z');
 
 function ctxt() {
-  return { userId: 'user-1', tenantId: 'tenant-1', locationId: 'loc-1' } as import('@erp/shared/types').AuditContext;
+  return { userId: 'user-1', tenantId: 'tenant-1', locationId: 'loc-1' } as AuditContext;
 }
 
 function payrollRow(overrides: Record<string, unknown> = {}) {
@@ -228,7 +228,12 @@ describe('approvePayroll — JE creation', () => {
   it('passes referenceType=payroll and referenceId to createJournal', async () => {
     _selResults = [
       [payrollRow()],
-      [lineRow('BASE', 'earning', 14_000_000), lineRow('PPh21', 'deduction', 500_000), lineRow('KES', 'deduction', 140_000), lineRow('TK', 'deduction', 280_000)],
+      [
+        lineRow('BASE', 'earning', 14_000_000),
+        lineRow('PPh21', 'deduction', 500_000),
+        lineRow('KES', 'deduction', 140_000),
+        lineRow('TK', 'deduction', 280_000),
+      ],
       ACCTS,
     ];
     const result = await approvePayroll({ payrollId: 'p1' }, ctxt());
@@ -242,11 +247,7 @@ describe('approvePayroll — JE creation', () => {
   });
 
   it('omits PPh21 credit line when zero deduction', async () => {
-    _selResults = [
-      [payrollRow()],
-      [lineRow('BASE', 'earning', 14_000_000)],
-      [ACCTS[0], ACCTS[4]],
-    ];
+    _selResults = [[payrollRow()], [lineRow('BASE', 'earning', 14_000_000)], [ACCTS[0], ACCTS[4]]];
     await approvePayroll({ payrollId: 'p1' }, ctxt());
     const { createJournal } = await import('../src/accounting/create-journal');
     const call = createJournal.mock.calls[0]![0] as { lines: Record<string, unknown>[] };

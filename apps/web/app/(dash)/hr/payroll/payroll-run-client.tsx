@@ -4,8 +4,8 @@
 
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { runPayrollAction } from './actions';
 
 interface PayrollRunRow {
@@ -27,14 +27,22 @@ interface Props {
 }
 
 function formatMoney(v: string): string {
-  const num = parseInt(v, 10);
+  const num = Number.parseInt(v, 10);
   if (isNaN(num)) return '—';
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(num);
 }
 
 function formatDate(iso: string): string {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+  return new Date(iso).toLocaleDateString('id-ID', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 const STATUS_COLOR: Record<string, { bg: string; text: string; label: string }> = {
@@ -58,7 +66,7 @@ export function PayrollRunClient({ locations, existingPayrolls, defaultLocationI
 
   const periodStart = `${periodCode}-01`;
   const periodEnd = (() => {
-    const [y, m] = periodCode.split('-').map((s) => parseInt(s, 10));
+    const [y, m] = periodCode.split('-').map((s) => Number.parseInt(s, 10));
     const last = new Date(y ?? 2000, (m ?? 1) - 1, 0).getDate();
     return `${periodCode}-${String(last).padStart(2, '0')}`;
   })();
@@ -82,7 +90,9 @@ export function PayrollRunClient({ locations, existingPayrolls, defaultLocationI
     setSubmitting(false);
 
     if (result.ok) {
-      setSuccess(`Payroll for ${periodCode} created. ${result.value.totalEmployees} employees, total ${formatMoney(String(result.value.totalNet))}.`);
+      setSuccess(
+        `Payroll for ${periodCode} created. ${result.value.totalEmployees} employees, total ${formatMoney(String(result.value.totalNet))}.`,
+      );
       router.refresh();
     } else {
       setError(result.error?.message ?? 'Failed to run payroll.');
@@ -116,7 +126,9 @@ export function PayrollRunClient({ locations, existingPayrolls, defaultLocationI
             >
               <option value="">Select location</option>
               {locations.map((l) => (
-                <option key={l.value} value={l.value}>{l.label}</option>
+                <option key={l.value} value={l.value}>
+                  {l.label}
+                </option>
               ))}
             </select>
           </div>
@@ -164,25 +176,43 @@ export function PayrollRunClient({ locations, existingPayrolls, defaultLocationI
               </thead>
               <tbody className="divide-y divide-brand-cream-2">
                 {existingPayrolls.map((p) => {
-                  const s = STATUS_COLOR[p.status] ?? { bg: 'bg-brand-cream-2', text: 'text-brand-ink-2', label: p.status };
+                  const s = STATUS_COLOR[p.status] ?? {
+                    bg: 'bg-brand-cream-2',
+                    text: 'text-brand-ink-2',
+                    label: p.status,
+                  };
                   return (
                     <tr key={p.id} className="hover:bg-brand-cream-1/50">
                       <td className="px-4 py-3 font-medium text-brand-ink">{p.periodCode}</td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${s.bg} ${s.text}`}>
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${s.bg} ${s.text}`}
+                        >
                           {s.label}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right text-brand-ink">{p.totalEmployees}</td>
-                      <td className="px-4 py-3 text-right font-semibold text-brand-ember-5">{formatMoney(p.totalNet)}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-brand-ember-5">
+                        {formatMoney(p.totalNet)}
+                      </td>
                       <td className="px-4 py-3 text-right">
                         <a
                           href={`/hr/payroll/${p.id}`}
                           className="inline-flex items-center gap-1 text-sm font-medium text-brand-ember-5 hover:text-brand-ember-6"
                         >
                           Detail
-                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                          <svg
+                            className="h-3.5 w-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                            />
                           </svg>
                         </a>
                       </td>

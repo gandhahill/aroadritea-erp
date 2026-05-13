@@ -45,11 +45,7 @@ export function parsePostingDate(dateStr: string): Date {
  * Check if a given date falls within a period defined by [start, end] (inclusive).
  * Comparison uses 'YYYY-MM-DD' strings in WIB.
  */
-export function isDateInPeriod(
-  date: Date,
-  periodStart: string,
-  periodEnd: string,
-): boolean {
+export function isDateInPeriod(date: Date, periodStart: string, periodEnd: string): boolean {
   const dateStr = formatDateWIB(date);
   return dateStr >= periodStart && dateStr <= periodEnd;
 }
@@ -70,7 +66,7 @@ export function getMonthBounds(year: number, month: number): { start: string; en
  * Format a Date for display in WIB locale.
  * @param locale - 'id', 'en', or 'zh'
  */
-export function formatDisplayDate(date: Date, locale: string = 'id'): string {
+export function formatDisplayDate(date: Date, locale = 'id'): string {
   const localeMap: Record<string, string> = {
     id: 'id-ID',
     en: 'en-US',

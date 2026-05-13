@@ -6,13 +6,13 @@
  * Permission: system.manage_scheduled_jobs (admin only).
  */
 
-import { eq, and, desc } from 'drizzle-orm';
 import { db, sql } from '@erp/db';
 import { scheduledJobs } from '@erp/db/schema/scheduled-jobs';
-import { type Result, ok, err } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, desc, eq } from 'drizzle-orm';
 
 // --- Zod schemas ---
 
@@ -120,7 +120,9 @@ export async function createScheduledJob(
 ): Promise<Result<ScheduledJobResult, AppError>> {
   const parsed = CreateScheduledJobSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('scheduledJobs.create.invalidInput', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('scheduledJobs.create.invalidInput', { issues: parsed.error.issues }),
+    );
   }
 
   const data = parsed.data;
@@ -160,7 +162,9 @@ export async function updateScheduledJob(
 ): Promise<Result<ScheduledJobResult, AppError>> {
   const parsed = UpdateScheduledJobSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('scheduledJobs.update.invalidInput', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('scheduledJobs.update.invalidInput', { issues: parsed.error.issues }),
+    );
   }
 
   const data = parsed.data;

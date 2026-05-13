@@ -9,16 +9,30 @@
  * - reporting.trial_balance
  */
 
-import { z } from 'zod';
 import { db } from '@erp/db';
 import { accounts, journalEntries, journalLines } from '@erp/db/schema/accounting';
-import { eq, and, gte, lte } from 'drizzle-orm';
-import { balanceSheet, trialBalance, profitLoss, getDailySummary, getDonationReport, getHourlySales } from '@erp/services/reporting';
-import type { BalanceSheetInput, TrialBalanceInput, ProfitLossInput, DailySummaryParams, DonationReportParams, HourlySalesParams } from '@erp/services/reporting';
 import { can } from '@erp/services/iam';
-import { mcpError, mcpSuccess, serializeResult } from '../helpers';
+import {
+  balanceSheet,
+  getDailySummary,
+  getDonationReport,
+  getHourlySales,
+  profitLoss,
+  trialBalance,
+} from '@erp/services/reporting';
+import type {
+  BalanceSheetInput,
+  DailySummaryParams,
+  DonationReportParams,
+  HourlySalesParams,
+  ProfitLossInput,
+  TrialBalanceInput,
+} from '@erp/services/reporting';
+import { and, eq, gte, lte } from 'drizzle-orm';
+import { z } from 'zod';
 import type { McpContext } from '../context';
-import { getOmzetHarianHandler, GetOmzetHarianSchema } from './reporting-omzet';
+import { mcpError, mcpSuccess, serializeResult } from '../helpers';
+import { GetOmzetHarianSchema, getOmzetHarianHandler } from './reporting-omzet';
 
 async function checkPermission(ctx: McpContext, permission: string) {
   return can(ctx.userId, permission);
@@ -86,10 +100,33 @@ export const reportingTools = [
   { name: 'reporting.cash_flow', schema: CashFlowSchema, handler: cashFlowHandler },
   { name: 'reporting.general_ledger', schema: GeneralLedgerSchema, handler: generalLedgerHandler },
   { name: 'reporting.trial_balance', schema: TrialBalanceSchema, handler: trialBalanceHandler },
-  { name: 'reporting.get_daily_summary', schema: DailySummarySchema, handler: dailySummaryHandler, description: 'Get daily sales summary (gross/net sales, payment breakdown, top products, shift summary). SD §25.5.' },
-  { name: 'reporting.get_donations', schema: DonationReportSchema, handler: donationReportHandler, description: 'Get donation summary report for a period (daily breakdown: date, amount, tx count, average). SD §25.11.6.' },
-  { name: 'reporting.get_hourly_sales', schema: HourlySalesSchema, handler: hourlySalesHandler, description: 'Get hourly sales breakdown by channel or day (10–22 WIB). SD §25.6.' },
-  { name: 'reporting.get_omzet_harian', schema: GetOmzetHarianSchema, handler: getOmzetHarianHandler, description: 'Get daily PB1-exclusive omzet with fiscal adjustment. Returns gross, PB1 amount, net omzet, adjustment, fiscal omzet. SoT §21.3b / SD §25.5b.' },
+  {
+    name: 'reporting.get_daily_summary',
+    schema: DailySummarySchema,
+    handler: dailySummaryHandler,
+    description:
+      'Get daily sales summary (gross/net sales, payment breakdown, top products, shift summary). SD §25.5.',
+  },
+  {
+    name: 'reporting.get_donations',
+    schema: DonationReportSchema,
+    handler: donationReportHandler,
+    description:
+      'Get donation summary report for a period (daily breakdown: date, amount, tx count, average). SD §25.11.6.',
+  },
+  {
+    name: 'reporting.get_hourly_sales',
+    schema: HourlySalesSchema,
+    handler: hourlySalesHandler,
+    description: 'Get hourly sales breakdown by channel or day (10–22 WIB). SD §25.6.',
+  },
+  {
+    name: 'reporting.get_omzet_harian',
+    schema: GetOmzetHarianSchema,
+    handler: getOmzetHarianHandler,
+    description:
+      'Get daily PB1-exclusive omzet with fiscal adjustment. Returns gross, PB1 amount, net omzet, adjustment, fiscal omzet. SoT §21.3b / SD §25.5b.',
+  },
 ] as const;
 
 // --- Handlers ---
@@ -182,7 +219,9 @@ async function generalLedgerHandler(input: z.infer<typeof GeneralLedgerSchema>, 
     )
     .orderBy(journalEntries.postingDate);
 
-  const accountName = (account.name as Record<string, string>)[locale] ?? (account.name as Record<string, string>)['id'];
+  const accountName =
+    (account.name as Record<string, string>)[locale] ??
+    (account.name as Record<string, string>)['id'];
 
   return mcpSuccess({
     account: {

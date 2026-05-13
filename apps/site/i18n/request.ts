@@ -4,10 +4,16 @@
  * Provides locale detection + message loading for the public site.
  */
 import { getRequestConfig } from 'next-intl/server';
-import { siteLocales, defaultSiteLocale } from '../i18n';
+import { type SiteLocale, defaultSiteLocale, siteLocales } from '../i18n';
 
-export default getRequestConfig(async ({ locale }) => {
+export default getRequestConfig(async ({ requestLocale }) => {
+  const requestedLocale = await requestLocale;
+  const locale = siteLocales.includes(requestedLocale as SiteLocale)
+    ? (requestedLocale as SiteLocale)
+    : defaultSiteLocale;
+
   return {
+    locale,
     messages: (await import(`../messages/${locale}.json`)).default,
   };
 });

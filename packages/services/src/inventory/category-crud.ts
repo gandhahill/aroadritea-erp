@@ -5,20 +5,20 @@
  * Permission: inventory.category.create / .update / .read
  */
 
-import { eq, and } from 'drizzle-orm';
 import { db } from '@erp/db';
-import { productCategories } from '@erp/db/schema/inventory';
 import { auditLog } from '@erp/db/schema/audit';
-import { type Result, err, tryCatch } from '@erp/shared/result';
+import { productCategories } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 import {
-  CreateCategoryInputSchema,
-  UpdateCategoryInputSchema,
   type CreateCategoryInput,
+  CreateCategoryInputSchema,
   type UpdateCategoryInput,
+  UpdateCategoryInputSchema,
 } from './schemas';
 
 // --- Types ---
@@ -49,7 +49,9 @@ export async function createCategory(
 
   const parsed = CreateCategoryInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('inventory.category.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('inventory.category.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const data = parsed.data;
 
@@ -69,11 +71,15 @@ export async function createCategory(
     const [parent] = await db
       .select({ id: productCategories.id })
       .from(productCategories)
-      .where(and(eq(productCategories.tenantId, ctx.tenantId), eq(productCategories.id, data.parentId)))
+      .where(
+        and(eq(productCategories.tenantId, ctx.tenantId), eq(productCategories.id, data.parentId)),
+      )
       .limit(1);
 
     if (!parent) {
-      return err(AppError.notFound('inventory.category.parentNotFound', { parentId: data.parentId }));
+      return err(
+        AppError.notFound('inventory.category.parentNotFound', { parentId: data.parentId }),
+      );
     }
   }
 
@@ -131,7 +137,9 @@ export async function updateCategory(
 
   const parsed = UpdateCategoryInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('inventory.category.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('inventory.category.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const data = parsed.data;
 
@@ -139,7 +147,9 @@ export async function updateCategory(
   const [existing] = await db
     .select()
     .from(productCategories)
-    .where(and(eq(productCategories.tenantId, ctx.tenantId), eq(productCategories.id, data.categoryId)))
+    .where(
+      and(eq(productCategories.tenantId, ctx.tenantId), eq(productCategories.id, data.categoryId)),
+    )
     .limit(1);
 
   if (!existing) {
@@ -198,9 +208,7 @@ export async function updateCategory(
 
 // --- List categories (flat list + tree builder) ---
 
-export async function listCategories(
-  ctx: AuditContext,
-): Promise<Result<CategoryResult[]>> {
+export async function listCategories(ctx: AuditContext): Promise<Result<CategoryResult[]>> {
   const permCheck = await requirePermission(ctx.userId, 'inventory.category.read', {
     locationId: ctx.locationId,
   });

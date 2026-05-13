@@ -5,9 +5,9 @@
  * Permission: hr.employee.read, hr.employee.write (per SD §11)
  */
 
-export * from './schemas.js';
-export * from './list-employees.js';
-export * from './get-employee.js';
-export * from './create-employee.js';
-export * from './attendance-service.js';
-export * from './disciplinary-service.js';
+export * from './schemas';
+export * from './list-employees';
+export * from './get-employee';
+export * from './create-employee';
+export * from './attendance-service';
+export * from './disciplinary-service';

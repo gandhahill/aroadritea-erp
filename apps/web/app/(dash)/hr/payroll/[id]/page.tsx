@@ -5,20 +5,24 @@
  * Accessible to directors/managers. Status determines which buttons are shown.
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 import { db, eq } from '@erp/db';
-import { payrolls, payrollLines, salaryComponents, employees } from '@erp/db/schema/hr';
 import { locations } from '@erp/db/schema/auth';
+import { employees, payrollLines, payrolls, salaryComponents } from '@erp/db/schema/hr';
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { approvePayrollAction, markPayrollPaidAction } from '../actions';
 
 export const metadata: Metadata = { title: 'Payroll Detail' };
 
 function fmtMoney(v: bigint | string): string {
-  const num = typeof v === 'string' ? parseInt(v, 10) : Number(v);
+  const num = typeof v === 'string' ? Number.parseInt(v, 10) : Number(v);
   if (isNaN(num)) return '—';
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(num);
 }
 
 interface Props {
@@ -58,17 +62,16 @@ export default async function PayrollDetailPage({ params }: Props) {
   const userId = String(user.id ?? 'system');
 
   // Load payroll
-  const [payroll] = await db
-    .select()
-    .from(payrolls)
-    .where(eq(payrolls.id, id))
-    .limit(1);
+  const [payroll] = await db.select().from(payrolls).where(eq(payrolls.id, id)).limit(1);
 
   if (!payroll) {
     return (
       <div className="rounded-xl border border-brand-cream-3 bg-card p-8 text-center">
         <p className="text-brand-ink-3">Payroll not found.</p>
-        <a href="/hr/payroll" className="mt-4 inline-block text-sm text-brand-ember-5 hover:text-brand-ember-6">
+        <a
+          href="/hr/payroll"
+          className="mt-4 inline-block text-sm text-brand-ember-5 hover:text-brand-ember-6"
+        >
           ← Back to Payroll
         </a>
       </div>
@@ -98,11 +101,14 @@ export default async function PayrollDetailPage({ params }: Props) {
     .orderBy(employees.name, salaryComponents.code);
 
   // Group by employee
-  const byEmployee = new Map<string, {
-    name: string;
-    lines: Array<{ code: string; name: string; kind: string; amount: bigint }>;
-    subtotal: bigint;
-  }>();
+  const byEmployee = new Map<
+    string,
+    {
+      name: string;
+      lines: Array<{ code: string; name: string; kind: string; amount: bigint }>;
+      subtotal: bigint;
+    }
+  >();
 
   for (const row of lines) {
     const empId = row.line.employeeId;
@@ -134,7 +140,9 @@ export default async function PayrollDetailPage({ params }: Props) {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-brand-ink">Payroll Detail</h1>
-            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColor(status)}`}>
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColor(status)}`}
+            >
               {statusLabel(status)}
             </span>
           </div>
@@ -142,7 +150,10 @@ export default async function PayrollDetailPage({ params }: Props) {
             {String(loc?.name ?? payroll.locationId)} &middot; {String(payroll.periodCode)}
           </p>
         </div>
-        <a href="/hr/payroll" className="inline-flex items-center gap-1.5 text-sm text-brand-ember-5 hover:text-brand-ember-6">
+        <a
+          href="/hr/payroll"
+          className="inline-flex items-center gap-1.5 text-sm text-brand-ember-5 hover:text-brand-ember-6"
+        >
           ← Back
         </a>
       </div>
@@ -155,9 +166,16 @@ export default async function PayrollDetailPage({ params }: Props) {
           { label: 'Total Deductions', value: fmtMoney(payroll.totalDeductions) },
           { label: 'Total Net', value: fmtMoney(payroll.totalNet), highlight: true },
         ].map((s) => (
-          <div key={s.label} className={`rounded-xl border border-brand-cream-3 bg-card p-4 ${s.highlight ? 'border-brand-ember-5/30' : ''}`}>
+          <div
+            key={s.label}
+            className={`rounded-xl border border-brand-cream-3 bg-card p-4 ${s.highlight ? 'border-brand-ember-5/30' : ''}`}
+          >
             <p className="text-xs font-medium text-brand-ink-3">{s.label}</p>
-            <p className={`mt-1 text-lg font-semibold ${s.highlight ? 'text-brand-ember-5' : 'text-brand-ink'}`}>{s.value}</p>
+            <p
+              className={`mt-1 text-lg font-semibold ${s.highlight ? 'text-brand-ember-5' : 'text-brand-ink'}`}
+            >
+              {s.value}
+            </p>
           </div>
         ))}
       </div>
@@ -165,15 +183,17 @@ export default async function PayrollDetailPage({ params }: Props) {
       {/* Actions */}
       {(canApprove || canMarkPaid) && (
         <div className="rounded-xl border border-brand-gold/30 bg-brand-gold/5 p-4">
-          <form action={async (formData) => {
-            'use server';
-            const action = formData.get('action') as string;
-            if (action === 'approve') {
-              await approvePayrollAction({ payrollId: id }, ctx);
-            } else if (action === 'paid') {
-              await markPayrollPaidAction({ payrollId: id }, ctx);
-            }
-          }}>
+          <form
+            action={async (formData) => {
+              'use server';
+              const action = formData.get('action') as string;
+              if (action === 'approve') {
+                await approvePayrollAction({ payrollId: id }, ctx);
+              } else if (action === 'paid') {
+                await markPayrollPaidAction({ payrollId: id }, ctx);
+              }
+            }}
+          >
             <input type="hidden" name="action" value={canApprove ? 'approve' : 'paid'} />
             <div className="flex items-center gap-4">
               {canApprove && (
@@ -193,7 +213,9 @@ export default async function PayrollDetailPage({ params }: Props) {
                 </button>
               )}
               <p className="text-sm text-brand-ink-3">
-                {canApprove ? 'Director approval will generate journal entries.' : 'Mark as paid after cash disbursement.'}
+                {canApprove
+                  ? 'Director approval will generate journal entries.'
+                  : 'Mark as paid after cash disbursement.'}
               </p>
             </div>
           </form>
@@ -203,17 +225,26 @@ export default async function PayrollDetailPage({ params }: Props) {
       {/* Lines by Employee */}
       <div className="space-y-4">
         {Array.from(byEmployee.entries()).map(([empId, emp]) => (
-          <div key={empId} className="rounded-xl border border-brand-cream-3 bg-card overflow-hidden">
+          <div
+            key={empId}
+            className="rounded-xl border border-brand-cream-3 bg-card overflow-hidden"
+          >
             <div className="flex items-center justify-between border-b border-brand-cream-3 bg-brand-cream-1 px-5 py-3">
               <h3 className="text-sm font-semibold text-brand-ink">{emp.name}</h3>
-              <span className="text-sm font-semibold text-brand-ember-5">{fmtMoney(emp.subtotal)}</span>
+              <span className="text-sm font-semibold text-brand-ember-5">
+                {fmtMoney(emp.subtotal)}
+              </span>
             </div>
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-brand-cream-2">
-                  <th className="px-5 py-2 text-left text-xs font-medium text-brand-ink-3">Component</th>
+                  <th className="px-5 py-2 text-left text-xs font-medium text-brand-ink-3">
+                    Component
+                  </th>
                   <th className="px-5 py-2 text-left text-xs font-medium text-brand-ink-3">Type</th>
-                  <th className="px-5 py-2 text-right text-xs font-medium text-brand-ink-3">Amount</th>
+                  <th className="px-5 py-2 text-right text-xs font-medium text-brand-ink-3">
+                    Amount
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-cream-2">
@@ -221,12 +252,17 @@ export default async function PayrollDetailPage({ params }: Props) {
                   <tr key={line.code}>
                     <td className="px-5 py-2.5 text-brand-ink">{line.name}</td>
                     <td className="px-5 py-2.5">
-                      <span className={`text-xs font-medium ${line.kind === 'earning' ? 'text-brand-jade' : 'text-brand-rose-4'}`}>
+                      <span
+                        className={`text-xs font-medium ${line.kind === 'earning' ? 'text-brand-jade' : 'text-brand-rose-4'}`}
+                      >
                         {line.kind === 'earning' ? 'Earning' : 'Deduction'}
                       </span>
                     </td>
-                    <td className={`px-5 py-2.5 text-right font-mono ${line.kind === 'earning' ? 'text-brand-ink' : 'text-brand-rose-4'}`}>
-                      {line.kind === 'earning' ? '' : '-'}{fmtMoney(line.amount)}
+                    <td
+                      className={`px-5 py-2.5 text-right font-mono ${line.kind === 'earning' ? 'text-brand-ink' : 'text-brand-rose-4'}`}
+                    >
+                      {line.kind === 'earning' ? '' : '-'}
+                      {fmtMoney(line.amount)}
                     </td>
                   </tr>
                 ))}
@@ -240,7 +276,10 @@ export default async function PayrollDetailPage({ params }: Props) {
       {payroll.journalEntryId && (
         <div className="text-sm text-brand-ink-3">
           Journal Entry:{' '}
-          <a href={`/accounting/journals/${payroll.journalEntryId}`} className="text-brand-ember-5 hover:text-brand-ember-6">
+          <a
+            href={`/accounting/journals/${payroll.journalEntryId}`}
+            className="text-brand-ember-5 hover:text-brand-ember-6"
+          >
             {payroll.journalEntryId}
           </a>
         </div>

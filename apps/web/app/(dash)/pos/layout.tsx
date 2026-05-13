@@ -6,12 +6,12 @@
  * Wrapped in OfflineSyncProvider for PWA offline support.
  */
 
-import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
-import { ShiftStatusBar } from './shift-status-bar';
-import { PosCartProvider } from './pos-cart-context';
-import { OfflineSyncProvider } from './lib/offline-sync-context';
+import { redirect } from 'next/navigation';
 import { OfflineBanner } from './components/offline-banner';
+import { OfflineSyncProvider } from './lib/offline-sync-context';
+import { PosCartProvider } from './pos-cart-context';
+import { ShiftStatusBar } from './shift-status-bar';
 
 export const metadata = { title: 'Point of Sale' };
 
@@ -42,9 +42,7 @@ export default async function PosLayout({ children }: { children: React.ReactNod
 
         {/* Order entry area */}
         <PosCartProvider locationId={locationId} tenantId={tenantId}>
-          <div className="flex flex-1">
-            {children}
-          </div>
+          <div className="flex flex-1">{children}</div>
         </PosCartProvider>
       </div>
     </OfflineSyncProvider>

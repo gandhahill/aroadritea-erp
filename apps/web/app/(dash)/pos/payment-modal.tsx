@@ -7,12 +7,12 @@
 
 'use client';
 
-import { useState, useMemo, useTransition } from 'react';
+import { type RoundingOption, getDonationOptions } from '@erp/services/pos';
 import { useTranslations } from 'next-intl';
-import { usePosCart } from './pos-cart-context';
-import { useOfflineSync } from './lib/offline-sync-context';
+import { useMemo, useState, useTransition } from 'react';
 import { createSaleAction } from './actions';
-import { getDonationOptions, type RoundingOption } from '@erp/services/pos';
+import { useOfflineSync } from './lib/offline-sync-context';
+import { usePosCart } from './pos-cart-context';
 
 const PAYMENT_METHODS = [
   { id: 'cash', icon: '💵' },
@@ -49,7 +49,10 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
 
   // Cash tendered so far in this modal (numeric input + split list)
   const currentInputBig = BigInt(Number(inputAmount) > 0 ? inputAmount : '0');
-  const splitTotal = splitPayments.reduce((s, p) => s + BigInt(Number(p.amount) > 0 ? p.amount : '0'), BigInt(0));
+  const splitTotal = splitPayments.reduce(
+    (s, p) => s + BigInt(Number(p.amount) > 0 ? p.amount : '0'),
+    BigInt(0),
+  );
   const allPaidBig = paidBig + splitTotal + currentInputBig;
   const excess = allPaidBig > totalBig ? allPaidBig - totalBig : BigInt(0);
   const isFullyPaid = allPaidBig >= totalBig;
@@ -63,39 +66,46 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
 
   function handleAddSplit() {
     if (!inputAmount || Number(inputAmount) <= 0) return;
-    setSplitPayments(prev => [...prev, { method: selectedMethod, amount: inputAmount }]);
+    setSplitPayments((prev) => [...prev, { method: selectedMethod, amount: inputAmount }]);
     setInputAmount('');
   }
 
   function handleRemoveSplit(idx: number) {
-    setSplitPayments(prev => prev.filter((_, i) => i !== idx));
+    setSplitPayments((prev) => prev.filter((_, i) => i !== idx));
   }
 
   async function handleConfirm() {
     // SD §25.11 — resolve donation for the cash payment
-    const donationResult = excess > BigInt(0) && donationChoice !== 'no_donation'
-      ? getDonationOptions(excess).find(o => o.choice.type === donationChoice)
-      : undefined;
+    const donationResult =
+      excess > BigInt(0) && donationChoice !== 'no_donation'
+        ? getDonationOptions(excess).find((o) => o.choice.type === donationChoice)
+        : undefined;
 
     // Build payments array — existing payments from cart + split list
     const payments = [
-      ...state.payments.map(p => ({
+      ...state.payments.map((p) => ({
         method: p.method,
         amount: p.amount,
         reference: p.reference,
       })),
-      ...splitPayments.map(p => ({ method: p.method, amount: p.amount })),
+      ...splitPayments.map((p) => ({ method: p.method, amount: p.amount })),
     ];
 
     // Add cash payment only if customer handed cash and it covers the total
-    if (inputAmount && Number(inputAmount) > 0 && currentInputBig + paidBig + splitTotal >= totalBig) {
+    if (
+      inputAmount &&
+      Number(inputAmount) > 0 &&
+      currentInputBig + paidBig + splitTotal >= totalBig
+    ) {
       payments.push({
         method: selectedMethod,
         amount: inputAmount,
-        ...(selectedMethod === 'cash' && donationResult && donationResult.donatedAmount > BigInt(0) ? {
-          donationAmount: donationResult.donatedAmount.toString(),
-          roundingOption: donationChoice,
-        } : {}),
+        ...(selectedMethod === 'cash' && donationResult && donationResult.donatedAmount > BigInt(0)
+          ? {
+              donationAmount: donationResult.donatedAmount.toString(),
+              roundingOption: donationChoice,
+            }
+          : {}),
       });
     }
 
@@ -158,8 +168,18 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-brand-cream-3 px-5 py-4">
           <h2 className="text-base font-semibold text-brand-ink">{t('payment')}</h2>
-          <button onClick={onClose} className="text-brand-ink-3 hover:text-brand-ink" aria-label="close">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <button
+            onClick={onClose}
+            className="text-brand-ink-3 hover:text-brand-ink"
+            aria-label="close"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -179,7 +199,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
               {t('paymentMethod')}
             </p>
             <div className="grid grid-cols-4 gap-2">
-              {PAYMENT_METHODS.map(m => (
+              {PAYMENT_METHODS.map((m) => (
                 <button
                   key={m.id}
                   onClick={() => setSelectedMethod(m.id)}
@@ -204,12 +224,14 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
               </p>
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-brand-ink-3">Rp</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-brand-ink-3">
+                    Rp
+                  </span>
                   <input
                     type="text"
                     inputMode="numeric"
                     value={inputAmount}
-                    onChange={e => setInputAmount(e.target.value.replace(/\D/g, ''))}
+                    onChange={(e) => setInputAmount(e.target.value.replace(/\D/g, ''))}
                     placeholder={formatRupiah(remaining.toString())}
                     className="h-12 w-full rounded-lg border border-brand-cream-3 bg-white py-2 pl-8 pr-3 text-base font-semibold text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
                   />
@@ -226,7 +248,9 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
               {excess > BigInt(0) && (
                 <div className="mt-1.5 flex items-center gap-2">
                   <span className="text-xs text-brand-jade">{t('change')}:</span>
-                  <span className="text-sm font-semibold text-brand-jade">{formatRupiah(excess.toString())}</span>
+                  <span className="text-sm font-semibold text-brand-jade">
+                    {formatRupiah(excess.toString())}
+                  </span>
                 </div>
               )}
             </div>
@@ -236,7 +260,9 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
           {isFullyPaid && excess > BigInt(0) && selectedMethod === 'cash' && (
             <div className="flex items-center justify-between rounded-lg border border-brand-jade/20 bg-brand-jade/5 px-4 py-2.5">
               <span className="text-sm font-medium text-brand-ink-2">{t('change')}</span>
-              <span className="text-base font-semibold text-brand-jade">{formatRupiah(excess.toString())}</span>
+              <span className="text-base font-semibold text-brand-jade">
+                {formatRupiah(excess.toString())}
+              </span>
             </div>
           )}
 
@@ -257,7 +283,9 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
                         : 'border-brand-cream-3 hover:border-brand-red/30'
                     }`}
                   >
-                    <span className={`text-sm font-medium ${donationChoice === opt.choice.type ? 'text-brand-red' : 'text-brand-ink-2'}`}>
+                    <span
+                      className={`text-sm font-medium ${donationChoice === opt.choice.type ? 'text-brand-red' : 'text-brand-ink-2'}`}
+                    >
                       {opt.choice.description}
                     </span>
                     {opt.donatedAmount > BigInt(0) && (
@@ -279,18 +307,35 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
               </p>
               <ul className="space-y-2">
                 {splitPayments.map((p, i) => (
-                  <li key={i} className="flex items-center justify-between rounded-lg border border-brand-cream-3 bg-brand-cream-2 px-3 py-2">
+                  <li
+                    key={i}
+                    className="flex items-center justify-between rounded-lg border border-brand-cream-3 bg-brand-cream-2 px-3 py-2"
+                  >
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-brand-ink-3">{t(`paymentMethods.${p.method}` as never)}</span>
-                      <span className="text-sm font-medium text-brand-ink">{formatRupiah(p.amount)}</span>
+                      <span className="text-xs text-brand-ink-3">
+                        {t(`paymentMethods.${p.method}` as never)}
+                      </span>
+                      <span className="text-sm font-medium text-brand-ink">
+                        {formatRupiah(p.amount)}
+                      </span>
                     </div>
                     <button
                       onClick={() => handleRemoveSplit(i)}
                       className="text-brand-ink-3 hover:text-red-500"
                       aria-label="remove"
                     >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </li>
@@ -333,5 +378,9 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
 function formatRupiah(value: string | bigint): string {
   const num = Number(value);
   if (isNaN(num)) return 'Rp 0';
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(num);
 }

@@ -19,27 +19,27 @@
  * Permission: inventory.transfer (create + ship + receive)
  */
 
-import { eq, and, inArray } from 'drizzle-orm';
 import { db } from '@erp/db';
-import {
-  stockTransfers,
-  stockTransferLines,
-  stockMovements,
-  stockLevels,
-  products,
-} from '@erp/db/schema/inventory';
 import { auditLog } from '@erp/db/schema/audit';
-import { type Result, ok, err } from '@erp/shared/result';
+import {
+  products,
+  stockLevels,
+  stockMovements,
+  stockTransferLines,
+  stockTransfers,
+} from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq, inArray } from 'drizzle-orm';
 import { requirePermission } from '../iam';
+import { generateTransferNumber } from './number-generator';
 import {
   CreateTransferInputSchema,
-  ShipTransferInputSchema,
   ReceiveTransferInputSchema,
+  ShipTransferInputSchema,
 } from './schemas';
-import { generateTransferNumber } from './number-generator';
 
 // ─── Return types ─────────────────────────────────────────────────────────────
 
@@ -140,12 +140,7 @@ export async function createTransferDraft(
   const foundProducts = await db
     .select({ id: products.id, isActive: products.isActive })
     .from(products)
-    .where(
-      and(
-        eq(products.tenantId, ctx.tenantId),
-        inArray(products.id, productIds),
-      ),
-    );
+    .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, productIds)));
   const productMap = new Map(foundProducts.map((p) => [p.id, p]));
 
   for (const line of data.lines) {
@@ -263,12 +258,7 @@ export async function shipTransfer(
     const trf = await db
       .select()
       .from(stockTransfers)
-      .where(
-        and(
-          eq(stockTransfers.tenantId, ctx.tenantId),
-          eq(stockTransfers.id, data.transferId),
-        ),
-      )
+      .where(and(eq(stockTransfers.tenantId, ctx.tenantId), eq(stockTransfers.id, data.transferId)))
       .then((r) => r[0]);
 
     if (!trf) {
@@ -357,8 +347,8 @@ export async function shipTransfer(
         .then((r) => r[0]);
 
       if (existing) {
-        const currentOnHand = parseFloat(existing.qtyOnHand);
-        const sent = parseFloat(line.qtySent);
+        const currentOnHand = Number.parseFloat(existing.qtyOnHand);
+        const sent = Number.parseFloat(line.qtySent);
         await db
           .update(stockLevels)
           .set({
@@ -381,12 +371,7 @@ export async function shipTransfer(
         updatedBy: ctx.userId,
         version: trf.version + 1,
       })
-      .where(
-        and(
-          eq(stockTransfers.id, data.transferId),
-          eq(stockTransfers.version, trf.version),
-        ),
-      );
+      .where(and(eq(stockTransfers.id, data.transferId), eq(stockTransfers.version, trf.version)));
 
     await db.insert(auditLog).values({
       id: generateId(),
@@ -449,12 +434,7 @@ export async function receiveTransfer(
     const trf = await db
       .select()
       .from(stockTransfers)
-      .where(
-        and(
-          eq(stockTransfers.tenantId, ctx.tenantId),
-          eq(stockTransfers.id, data.transferId),
-        ),
-      )
+      .where(and(eq(stockTransfers.tenantId, ctx.tenantId), eq(stockTransfers.id, data.transferId)))
       .then((r) => r[0]);
 
     if (!trf) {
@@ -475,9 +455,7 @@ export async function receiveTransfer(
     const now = new Date();
 
     // Map line updates by lineId
-    const lineUpdateMap = new Map(
-      (data.lines ?? []).map((l) => [l.lineId, l.qtyReceived]),
-    );
+    const lineUpdateMap = new Map((data.lines ?? []).map((l) => [l.lineId, l.qtyReceived]));
 
     // Update destination stock_levels for received quantities
     for (const line of lines) {
@@ -506,8 +484,8 @@ export async function receiveTransfer(
         .then((r) => r[0]);
 
       if (existing) {
-        const currentOnHand = parseFloat(existing.qtyOnHand);
-        const received = parseFloat(qtyReceived);
+        const currentOnHand = Number.parseFloat(existing.qtyOnHand);
+        const received = Number.parseFloat(qtyReceived);
         await db
           .update(stockLevels)
           .set({
@@ -603,12 +581,7 @@ export async function cancelTransfer(
     const trf = await db
       .select()
       .from(stockTransfers)
-      .where(
-        and(
-          eq(stockTransfers.tenantId, ctx.tenantId),
-          eq(stockTransfers.id, transferId),
-        ),
-      )
+      .where(and(eq(stockTransfers.tenantId, ctx.tenantId), eq(stockTransfers.id, transferId)))
       .then((r) => r[0]);
 
     if (!trf) {

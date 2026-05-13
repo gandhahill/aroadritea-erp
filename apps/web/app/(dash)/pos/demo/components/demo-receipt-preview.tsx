@@ -7,9 +7,9 @@
 
 'use client';
 
+import type { DemoOrder } from '@erp/offline';
 import { useTranslations } from 'next-intl';
 import { useDemoMode } from '../demo-mode-context';
-import type { DemoOrder } from '@erp/offline';
 
 interface DemoReceiptPreviewProps {
   order: DemoOrder;
@@ -28,8 +28,18 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-brand-cream-3 px-5 py-4">
           <h2 className="text-base font-semibold text-brand-ink">{t('demo.receiptPreview')}</h2>
-          <button onClick={onClose} className="text-brand-ink-3 hover:text-brand-ink" aria-label="close">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <button
+            onClick={onClose}
+            className="text-brand-ink-3 hover:text-brand-ink"
+            aria-label="close"
+          >
+            <svg
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -40,9 +50,7 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
           <div className="relative">
             {/* Demo stamp overlay */}
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center select-none">
-              <div
-                className="rotate-[-25deg] border-[3px] border-brand-red/20 px-8 py-3"
-              >
+              <div className="rotate-[-25deg] border-[3px] border-brand-red/20 px-8 py-3">
                 <span className="text-4xl font-black tracking-widest text-brand-red/15 uppercase">
                   DEMO
                 </span>
@@ -79,7 +87,9 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
                 {order.lines.map((line) => (
                   <div key={line.id} className="flex justify-between text-xs">
                     <div className="flex-1">
-                      <span className="text-brand-ink">{line.qty}× {line.productName}</span>
+                      <span className="text-brand-ink">
+                        {line.qty}× {line.productName}
+                      </span>
                       {line.variantName && (
                         <span className="ml-1 text-brand-ink-3">({line.variantName})</span>
                       )}
@@ -108,7 +118,11 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
                 {order.payments.length > 0 && (
                   <div className="mt-1 flex justify-between text-xs text-brand-ink-3">
                     <span>{t('totalPaid')}</span>
-                    <span>{formatRupiah(order.payments.reduce((s, p) => s + BigInt(p.amount), BigInt(0)).toString())}</span>
+                    <span>
+                      {formatRupiah(
+                        order.payments.reduce((s, p) => s + BigInt(p.amount), BigInt(0)).toString(),
+                      )}
+                    </span>
                   </div>
                 )}
               </div>
@@ -141,5 +155,9 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
 function formatRupiah(value: string | bigint): string {
   const num = Number(value);
   if (isNaN(num)) return 'Rp 0';
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(num);
 }

@@ -1,6 +1,10 @@
 'use server';
 
-import { listDisciplinaryActions, createDisciplinaryAction, acknowledgeDisciplinaryAction } from '@erp/services';
+import {
+  acknowledgeDisciplinaryAction,
+  createDisciplinaryAction,
+  listDisciplinaryActions,
+} from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
 
 export async function listDisciplinaryActionsAction(input: {
@@ -16,7 +20,9 @@ export async function listDisciplinaryActionsAction(input: {
   return listDisciplinaryActions({ limit: 50, ...input }, ctx);
 }
 
-export async function createDisciplinaryActionAction(input: Parameters<typeof createDisciplinaryAction>[0]) {
+export async function createDisciplinaryActionAction(
+  input: Parameters<typeof createDisciplinaryAction>[0],
+) {
   const ctx: AuditContext = {
     userId: 'system',
     tenantId: 'default',
@@ -25,7 +31,9 @@ export async function createDisciplinaryActionAction(input: Parameters<typeof cr
   return createDisciplinaryAction(input, ctx);
 }
 
-export async function acknowledgeDisciplinaryActionAction(input: Parameters<typeof acknowledgeDisciplinaryAction>[0]) {
+export async function acknowledgeDisciplinaryActionAction(
+  input: Parameters<typeof acknowledgeDisciplinaryAction>[0],
+) {
   const ctx: AuditContext = {
     userId: 'system',
     tenantId: 'default',

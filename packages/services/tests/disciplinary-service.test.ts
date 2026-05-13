@@ -3,7 +3,7 @@
  *
  * Service: disciplinary-actions (SP1/SP2/SP3 workflow)
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 let _selIdx = 0;
 let _selResults: unknown[][] = [];
@@ -53,22 +53,34 @@ vi.mock('../src/iam/permission-engine', () => ({
 
 vi.mock('@erp/shared/errors', () => ({
   AppError: class AppError extends Error {
-    constructor(public code: string, public details?: Record<string, unknown>) { super(code); }
-    static notFound(code: string, details?: Record<string, unknown>) { return new this(code, details); }
-    static internal(code: string, e?: unknown) { return new this(code, { error: String(e) }); }
-    static validation(code: string, details?: Record<string, unknown>) { return new this(code, details); }
+    constructor(
+      public code: string,
+      public details?: Record<string, unknown>,
+    ) {
+      super(code);
+    }
+    static notFound(code: string, details?: Record<string, unknown>) {
+      return new this(code, details);
+    }
+    static internal(code: string, e?: unknown) {
+      return new this(code, { error: String(e) });
+    }
+    static validation(code: string, details?: Record<string, unknown>) {
+      return new this(code, details);
+    }
   },
 }));
 
+import type { AuditContext } from '@erp/shared/types';
 import {
-  createDisciplinaryAction,
   acknowledgeDisciplinaryAction,
-  listDisciplinaryActions,
   attachDocument,
+  createDisciplinaryAction,
+  listDisciplinaryActions,
 } from '../src/hr/disciplinary-service.js';
 
 function ctxt() {
-  return { userId: 'user-1', tenantId: 'tenant-1', locationId: 'loc-1' } as import('@erp/shared/types').AuditContext;
+  return { userId: 'user-1', tenantId: 'tenant-1', locationId: 'loc-1' } as AuditContext;
 }
 
 function disRow(overrides: Record<string, unknown> = {}) {
@@ -99,12 +111,15 @@ beforeEach(() => {
 
 describe('createDisciplinaryAction', () => {
   it('inserts a disciplinary record with status issued', async () => {
-    const result = await createDisciplinaryAction({
-      employeeId: 'emp-1',
-      level: 'SP1',
-      reason: 'Terlambat 3x tanpa izin',
-      incidentDate: new Date().toISOString(),
-    }, ctxt());
+    const result = await createDisciplinaryAction(
+      {
+        employeeId: 'emp-1',
+        level: 'SP1',
+        reason: 'Terlambat 3x tanpa izin',
+        incidentDate: new Date().toISOString(),
+      },
+      ctxt(),
+    );
     expect(result.ok).toBe(true);
     expect(_insertData.length).toBe(1);
     const row = _insertData[0] as Record<string, unknown>;
@@ -115,36 +130,45 @@ describe('createDisciplinaryAction', () => {
   });
 
   it('sets attachmentUrl when provided', async () => {
-    await createDisciplinaryAction({
-      employeeId: 'emp-1',
-      level: 'SP2',
-      reason: 'Tidak datang tanpa kabar 2 hari',
-      incidentDate: new Date().toISOString(),
-      attachmentUrl: 'https://storage.example.com/sp2.pdf',
-    }, ctxt());
+    await createDisciplinaryAction(
+      {
+        employeeId: 'emp-1',
+        level: 'SP2',
+        reason: 'Tidak datang tanpa kabar 2 hari',
+        incidentDate: new Date().toISOString(),
+        attachmentUrl: 'https://storage.example.com/sp2.pdf',
+      },
+      ctxt(),
+    );
     expect(_insertData.length).toBe(1);
     const row = _insertData[0] as Record<string, unknown>;
     expect(row.attachmentUrl).toBe('https://storage.example.com/sp2.pdf');
   });
 
   it('creates SP3', async () => {
-    await createDisciplinaryAction({
-      employeeId: 'emp-1',
-      level: 'SP3',
-      reason: 'Melakukan pencurian bahan baku',
-      incidentDate: new Date().toISOString(),
-    }, ctxt());
+    await createDisciplinaryAction(
+      {
+        employeeId: 'emp-1',
+        level: 'SP3',
+        reason: 'Melakukan pencurian bahan baku',
+        incidentDate: new Date().toISOString(),
+      },
+      ctxt(),
+    );
     const row = _insertData[0] as Record<string, unknown>;
     expect(row.level).toBe('SP3');
   });
 
   it('validation fails for reason < 10 chars', async () => {
-    const result = await createDisciplinaryAction({
-      employeeId: 'emp-1',
-      level: 'SP1',
-      reason: 'pendek',
-      incidentDate: new Date().toISOString(),
-    }, ctxt());
+    const result = await createDisciplinaryAction(
+      {
+        employeeId: 'emp-1',
+        level: 'SP1',
+        reason: 'pendek',
+        incidentDate: new Date().toISOString(),
+      },
+      ctxt(),
+    );
     expect(result.ok).toBe(false);
   });
 });
@@ -196,10 +220,13 @@ describe('listDisciplinaryActions', () => {
 describe('attachDocument', () => {
   it('updates attachmentUrl on existing action', async () => {
     _selResults = [[disRow()]];
-    const result = await attachDocument({
-      disciplinaryId: 'da-1',
-      attachmentUrl: 'https://storage.example.com/sp1.pdf',
-    }, ctxt());
+    const result = await attachDocument(
+      {
+        disciplinaryId: 'da-1',
+        attachmentUrl: 'https://storage.example.com/sp1.pdf',
+      },
+      ctxt(),
+    );
     expect(result.ok).toBe(true);
     expect(_updates.length).toBe(1);
     const updateData = _updates[0] as Record<string, unknown>;
@@ -208,18 +235,24 @@ describe('attachDocument', () => {
 
   it('not found → error', async () => {
     _selResults = [[]];
-    const result = await attachDocument({
-      disciplinaryId: 'x',
-      attachmentUrl: 'https://storage.example.com/doc.pdf',
-    }, ctxt());
+    const result = await attachDocument(
+      {
+        disciplinaryId: 'x',
+        attachmentUrl: 'https://storage.example.com/doc.pdf',
+      },
+      ctxt(),
+    );
     expect(result.ok).toBe(false);
   });
 
   it('invalid URL → validation error', async () => {
-    const result = await attachDocument({
-      disciplinaryId: 'da-1',
-      attachmentUrl: 'not-a-url',
-    }, ctxt());
+    const result = await attachDocument(
+      {
+        disciplinaryId: 'da-1',
+        attachmentUrl: 'not-a-url',
+      },
+      ctxt(),
+    );
     expect(result.ok).toBe(false);
   });
 });

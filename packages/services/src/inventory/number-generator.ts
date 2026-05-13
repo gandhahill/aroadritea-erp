@@ -11,15 +11,12 @@
 import { db } from '@erp/db';
 import { stockAdjustments, stockTransfers } from '@erp/db/schema/inventory';
 import { stockOpnameSessions } from '@erp/db/schema/stock-opname';
-import { eq, and, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 /**
  * Generate the next stock adjustment number.
  */
-export async function generateAdjustmentNumber(
-  tenantId: string,
-  date: string,
-): Promise<string> {
+export async function generateAdjustmentNumber(tenantId: string, date: string): Promise<string> {
   const prefix = `ADJ-${date.substring(0, 7)}-`;
   const result = await db
     .select({ count: sql<number>`count(*)` })
@@ -37,10 +34,7 @@ export async function generateAdjustmentNumber(
 /**
  * Generate the next stock opname session number.
  */
-export async function generateOpnameNumber(
-  tenantId: string,
-  sessionDate: string,
-): Promise<string> {
+export async function generateOpnameNumber(tenantId: string, sessionDate: string): Promise<string> {
   const prefix = `SO-${sessionDate.substring(0, 7)}-`;
   const result = await db
     .select({ count: sql<number>`count(*)` })
@@ -58,10 +52,7 @@ export async function generateOpnameNumber(
 /**
  * Generate the next stock transfer number.
  */
-export async function generateTransferNumber(
-  tenantId: string,
-  date: string,
-): Promise<string> {
+export async function generateTransferNumber(tenantId: string, date: string): Promise<string> {
   const prefix = `TRF-${date.substring(0, 7)}-`;
   const result = await db
     .select({ count: sql<number>`count(*)` })

@@ -10,8 +10,8 @@
  * Master snapshot timestamp is tracked so we can warn when data is stale (>24h).
  */
 
-import { openDB, type IDBPDatabase } from 'idb';
-import type { DbProduct, DbVariant, DbModifier, DbPromotion, DbTaxRate } from './indexeddb.js';
+import { type IDBPDatabase, openDB } from 'idb';
+import type { DbModifier, DbProduct, DbPromotion, DbTaxRate, DbVariant } from './indexeddb';
 
 // ─── Database constants ────────────────────────────────────────────────────────
 
@@ -108,7 +108,7 @@ export async function isMasterStale(): Promise<boolean> {
 export async function getNextDemoOrderNumber(): Promise<string> {
   const counterKey = DEMO_META_KEYS.DEMO_ORDER_COUNTER;
   const currentStr = await getDemoMeta(counterKey);
-  const current = currentStr ? parseInt(currentStr, 10) : 0;
+  const current = currentStr ? Number.parseInt(currentStr, 10) : 0;
   const next = current + 1;
   await setDemoMeta(counterKey, String(next));
   return `DEMO-${String(next).padStart(5, '0')}`;

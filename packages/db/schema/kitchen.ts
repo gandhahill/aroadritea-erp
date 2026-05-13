@@ -18,7 +18,7 @@ import {
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
-import { pk, tenantCol, locationCol, auditCols } from './common';
+import { auditCols, locationCol, pk, tenantCol } from './common';
 
 // ─── KDS Order Items (SD §21.7) ─────────────────────────────────────────────
 
@@ -75,11 +75,7 @@ export const naixerProductCodes = pgTable(
     ...auditCols,
   },
   (t) => [
-    uniqueIndex('naixer_product_codes_unique_idx').on(
-      t.tenantId,
-      t.productId,
-      t.variantId,
-    ),
+    uniqueIndex('naixer_product_codes_unique_idx').on(t.tenantId, t.productId, t.variantId),
     index('naixer_product_codes_product_idx').on(t.productId),
   ],
 );
@@ -106,10 +102,7 @@ export const naixerModifierCodes = pgTable(
     ...auditCols,
   },
   (t) => [
-    uniqueIndex('naixer_modifier_codes_unique_idx').on(
-      t.tenantId,
-      t.modifierOptionId,
-    ),
+    uniqueIndex('naixer_modifier_codes_unique_idx').on(t.tenantId, t.modifierOptionId),
     index('naixer_modifier_codes_kind_idx').on(t.modifierKind),
   ],
 );
@@ -135,7 +128,5 @@ export const naixerQrFormatConfig = pgTable(
 
     ...auditCols,
   },
-  (t) => [
-    uniqueIndex('naixer_qr_format_config_location_idx').on(t.locationId),
-  ],
+  (t) => [uniqueIndex('naixer_qr_format_config_location_idx').on(t.locationId)],
 );

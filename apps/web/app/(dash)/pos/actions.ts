@@ -7,17 +7,17 @@
 
 'use server';
 
-import { db, eq, and, or } from '@erp/db';
-import { ilike } from '@erp/db';
 import { getSession } from '@/lib/auth';
-import { shifts, salesOrders } from '@erp/db/schema/pos';
-import { products, productVariants, productCategories } from '@erp/db/schema/inventory';
-import { createSale, openShift, closeShift, refundSale, voidSale } from '@erp/services';
+import { and, db, eq, or } from '@erp/db';
+import { ilike } from '@erp/db';
+import { productCategories, productVariants, products } from '@erp/db/schema/inventory';
+import { salesOrders, shifts } from '@erp/db/schema/pos';
+import { closeShift, createSale, openShift, refundSale, voidSale } from '@erp/services/pos';
 import { getOpenShift } from '@erp/services/pos';
 import type {
-  OpenShiftInput,
   CloseShiftInput,
   CreateSaleInput,
+  OpenShiftInput,
   RefundSaleInput,
   VoidSaleInput,
 } from '@erp/services/pos/schemas';
@@ -134,15 +134,17 @@ export async function fetchProducts(params: {
     .from(products)
     .where(and(...conditions))
     .orderBy(products.name)
-    .then((rows) => rows.map((r) => ({
-      id: r.id,
-      sku: r.sku,
-      name: r.name,
-      categoryId: r.categoryId,
-      defaultSellPrice: r.defaultSellPrice,
-      imageUrl: r.imageUrl,
-      kind: r.kind,
-    })));
+    .then((rows) =>
+      rows.map((r) => ({
+        id: r.id,
+        sku: r.sku,
+        name: r.name,
+        categoryId: r.categoryId,
+        defaultSellPrice: r.defaultSellPrice,
+        imageUrl: r.imageUrl,
+        kind: r.kind,
+      })),
+    );
 
   // Fetch variants for all products in one query
   const productIds = productRows.map((p) => p.id);
@@ -159,14 +161,16 @@ export async function fetchProducts(params: {
         .from(productVariants)
         .where(and(eq(productVariants.tenantId, ctx.tenantId)))
         .orderBy(productVariants.sortOrder)
-        .then((rows) => rows.map((r) => ({
-          id: r.id,
-          productId: r.productId,
-          name: r.name,
-          sku: r.sku,
-          sellPrice: r.sellPrice,
-          attributes: r.attributes,
-        })))
+        .then((rows) =>
+          rows.map((r) => ({
+            id: r.id,
+            productId: r.productId,
+            name: r.name,
+            sku: r.sku,
+            sellPrice: r.sellPrice,
+            attributes: r.attributes,
+          })),
+        )
     : [];
 
   const categoryIds = [...new Set(productRows.map((p) => p.categoryId))];
@@ -179,7 +183,9 @@ export async function fetchProducts(params: {
     : [];
 
   type NameRecord = { id?: string; en?: string; zh?: string };
-  const categoryMap = new Map<string, NameRecord>(categoryRows.map(c => [c.id, c.name as NameRecord]));
+  const categoryMap = new Map<string, NameRecord>(
+    categoryRows.map((c) => [c.id, c.name as NameRecord]),
+  );
   const variantsByProduct = new Map<string, VariantItem[]>();
   for (const v of variantRows) {
     if (!variantsByProduct.has(v.productId)) variantsByProduct.set(v.productId, []);
@@ -193,7 +199,7 @@ export async function fetchProducts(params: {
     });
   }
 
-  return productRows.map(p => {
+  return productRows.map((p) => {
     const pName = p.name as NameRecord;
     const catName = categoryMap.get(p.categoryId);
     const cName = catName as NameRecord;
@@ -219,7 +225,7 @@ export async function fetchCategories(): Promise<{ id: string; name: string }[]>
     .where(eq(productCategories.tenantId, ctx.tenantId))
     .orderBy(productCategories.sortOrder);
   type NameRecord = { id?: string; en?: string; zh?: string };
-  return rows.map(r => {
+  return rows.map((r) => {
     const n = r.name as NameRecord;
     return { id: r.id, name: n?.id ?? n?.en ?? r.id };
   });
@@ -267,7 +273,7 @@ export async function fetchRecentSales(params: {
     .orderBy(salesOrders.placedAt)
     .limit(limit);
 
-  return rows.map(r => ({
+  return rows.map((r) => ({
     id: r.id,
     number: r.number,
     status: r.status,

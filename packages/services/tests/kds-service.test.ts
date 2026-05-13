@@ -4,11 +4,8 @@
  * Tests status transitions (pure logic) and type contracts.
  */
 
-import { describe, it, expect } from 'vitest';
-import {
-  isValidTransition,
-  type KdsStatus,
-} from '../src/kitchen/kds-service';
+import { describe, expect, it } from 'vitest';
+import { type KdsStatus, isValidTransition } from '../src/kitchen/kds-service';
 
 // ─── Status transition validation ───────────────────────────────────────────
 
@@ -119,13 +116,7 @@ describe('lifecycle paths', () => {
 // ─── Transition table completeness ──────────────────────────────────────────
 
 describe('transition table completeness', () => {
-  const ALL_STATUSES: KdsStatus[] = [
-    'queued',
-    'making',
-    'ready',
-    'served',
-    'cancelled',
-  ];
+  const ALL_STATUSES: KdsStatus[] = ['queued', 'making', 'ready', 'served', 'cancelled'];
 
   it('every status pair returns a boolean (no undefined/null)', () => {
     for (const from of ALL_STATUSES) {
@@ -137,37 +128,27 @@ describe('transition table completeness', () => {
   });
 
   it('queued has exactly 2 valid targets', () => {
-    const validTargets = ALL_STATUSES.filter((to) =>
-      isValidTransition('queued', to),
-    );
+    const validTargets = ALL_STATUSES.filter((to) => isValidTransition('queued', to));
     expect(validTargets).toEqual(['making', 'cancelled']);
   });
 
   it('making has exactly 3 valid targets', () => {
-    const validTargets = ALL_STATUSES.filter((to) =>
-      isValidTransition('making', to),
-    );
+    const validTargets = ALL_STATUSES.filter((to) => isValidTransition('making', to));
     expect(validTargets).toEqual(['queued', 'ready', 'cancelled']);
   });
 
   it('ready has exactly 2 valid targets', () => {
-    const validTargets = ALL_STATUSES.filter((to) =>
-      isValidTransition('ready', to),
-    );
+    const validTargets = ALL_STATUSES.filter((to) => isValidTransition('ready', to));
     expect(validTargets).toEqual(['served', 'cancelled']);
   });
 
   it('served has 0 valid targets', () => {
-    const validTargets = ALL_STATUSES.filter((to) =>
-      isValidTransition('served', to),
-    );
+    const validTargets = ALL_STATUSES.filter((to) => isValidTransition('served', to));
     expect(validTargets).toHaveLength(0);
   });
 
   it('cancelled has 0 valid targets', () => {
-    const validTargets = ALL_STATUSES.filter((to) =>
-      isValidTransition('cancelled', to),
-    );
+    const validTargets = ALL_STATUSES.filter((to) => isValidTransition('cancelled', to));
     expect(validTargets).toHaveLength(0);
   });
 });

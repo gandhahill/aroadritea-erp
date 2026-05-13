@@ -8,11 +8,11 @@
 
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
-import { fetchOpenShift, openShiftAction, closeShiftAction } from './actions';
-import { usePosCart } from './pos-cart-context';
+import { useEffect, useState, useTransition } from 'react';
+import { closeShiftAction, fetchOpenShift, openShiftAction } from './actions';
 import type { ShiftStatusItem } from './actions';
+import { usePosCart } from './pos-cart-context';
 
 interface ShiftStatusBarProps {
   locationId: string;
@@ -76,7 +76,9 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
       <div className="flex h-12 items-center justify-between border-b border-brand-cream-3 bg-white px-4">
         {/* Shift status */}
         <div className="flex items-center gap-3">
-          <span className={`inline-flex h-2 w-2 rounded-full ${isOpen ? 'bg-brand-jade' : 'bg-brand-ink-3'}`} />
+          <span
+            className={`inline-flex h-2 w-2 rounded-full ${isOpen ? 'bg-brand-jade' : 'bg-brand-ink-3'}`}
+          />
           <span className="text-sm font-medium text-brand-ink">
             {isOpen ? t('shiftOpen') : t('noShiftOpen')}
           </span>
@@ -116,7 +118,10 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
             <h2 className="mb-5 text-lg font-bold text-brand-ink">{t('openShift')}</h2>
             <form onSubmit={handleOpenShift} className="flex flex-col gap-4">
               <div>
-                <label htmlFor="openingCash" className="mb-1.5 block text-sm font-medium text-brand-ink-2">
+                <label
+                  htmlFor="openingCash"
+                  className="mb-1.5 block text-sm font-medium text-brand-ink-2"
+                >
                   {t('openingCash')}
                 </label>
                 <input
@@ -130,10 +135,18 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                 />
               </div>
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => setShowOpenModal(false)} className="h-10 rounded-md border border-brand-cream-3 bg-white px-4 text-sm font-medium text-brand-ink hover:bg-brand-cream-2">
+                <button
+                  type="button"
+                  onClick={() => setShowOpenModal(false)}
+                  className="h-10 rounded-md border border-brand-cream-3 bg-white px-4 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
+                >
                   {t('cancel')}
                 </button>
-                <button type="submit" disabled={isPending} className="h-10 rounded-md bg-brand-red px-4 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50">
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="h-10 rounded-md bg-brand-red px-4 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
+                >
                   {isPending ? t('loading') : t('confirm')}
                 </button>
               </div>
@@ -149,7 +162,10 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
             <h2 className="mb-5 text-lg font-bold text-brand-ink">{t('closeShift')}</h2>
             <form onSubmit={handleCloseShift} className="flex flex-col gap-4">
               <div>
-                <label htmlFor="expectedCash" className="mb-1.5 block text-sm font-medium text-brand-ink-2">
+                <label
+                  htmlFor="expectedCash"
+                  className="mb-1.5 block text-sm font-medium text-brand-ink-2"
+                >
                   {t('expectedCash')}
                 </label>
                 <input
@@ -161,7 +177,10 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                 />
               </div>
               <div>
-                <label htmlFor="actualCash" className="mb-1.5 block text-sm font-medium text-brand-ink-2">
+                <label
+                  htmlFor="actualCash"
+                  className="mb-1.5 block text-sm font-medium text-brand-ink-2"
+                >
                   {t('actualCash')}
                 </label>
                 <input
@@ -175,10 +194,18 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                 />
               </div>
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => setShowCloseModal(false)} className="h-10 rounded-md border border-brand-cream-3 bg-white px-4 text-sm font-medium text-brand-ink hover:bg-brand-cream-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCloseModal(false)}
+                  className="h-10 rounded-md border border-brand-cream-3 bg-white px-4 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
+                >
                   {t('close')}
                 </button>
-                <button type="submit" disabled={isPending} className="h-10 rounded-md bg-brand-red px-4 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50">
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="h-10 rounded-md bg-brand-red px-4 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
+                >
                   {isPending ? t('loading') : t('confirm')}
                 </button>
               </div>
@@ -195,9 +222,19 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="relative w-full max-w-sm rounded-xl" onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-3 top-3 text-brand-ink-3 hover:text-brand-ink" aria-label="close">
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <div className="relative w-full max-w-sm rounded-xl" onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={onClose}
+          className="absolute right-3 top-3 text-brand-ink-3 hover:text-brand-ink"
+          aria-label="close"
+        >
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -210,5 +247,9 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
 function formatRupiah(value: string | bigint): string {
   const num = Number(value);
   if (isNaN(num)) return 'Rp 0';
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(num);
 }

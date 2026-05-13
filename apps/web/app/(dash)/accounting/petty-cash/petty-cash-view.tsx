@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { PettyCashAccountItem, PettyCashTransactionItem } from './actions';
 
 function formatRupiah(amount: string): string {
@@ -49,9 +49,8 @@ export function PettyCashView({ accounts, transactions }: Props) {
       {/* Balance cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {accounts.map((acct) => {
-          const pct = Number(acct.maxLimit) > 0
-            ? (Number(acct.balance) / Number(acct.maxLimit)) * 100
-            : 0;
+          const pct =
+            Number(acct.maxLimit) > 0 ? (Number(acct.balance) / Number(acct.maxLimit)) * 100 : 0;
           const isSelected = acct.id === selectedAccountId;
 
           return (
@@ -63,18 +62,14 @@ export function PettyCashView({ accounts, transactions }: Props) {
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-brand-ink-2">
-                  {acct.locationName}
-                </span>
+                <span className="text-sm font-medium text-brand-ink-2">{acct.locationName}</span>
                 {acct.isLowBalance && (
                   <span className="rounded-full bg-brand-clay-light px-2 py-0.5 text-xs font-medium text-brand-clay">
                     Saldo Rendah
                   </span>
                 )}
               </div>
-              <p className="mt-2 text-2xl font-bold text-brand-ink">
-                {formatRupiah(acct.balance)}
-              </p>
+              <p className="mt-2 text-2xl font-bold text-brand-ink">{formatRupiah(acct.balance)}</p>
               <div className="mt-3">
                 <div className="flex items-center justify-between text-xs text-brand-ink-3">
                   <span>Plafond: {formatRupiah(acct.maxLimit)}</span>
@@ -117,7 +112,8 @@ export function PettyCashView({ accounts, transactions }: Props) {
             <div className="flex gap-2">
               {(['all', 'topup', 'expense'] as const).map((kind) => {
                 const isActive = kind === 'all' ? !filterKind : filterKind === kind;
-                const label = kind === 'all' ? 'Semua' : kind === 'topup' ? 'Isi Ulang' : 'Pengeluaran';
+                const label =
+                  kind === 'all' ? 'Semua' : kind === 'topup' ? 'Isi Ulang' : 'Pengeluaran';
                 return (
                   <button
                     key={kind}
@@ -148,9 +144,7 @@ export function PettyCashView({ accounts, transactions }: Props) {
               <tbody className="divide-y divide-brand-cream-2">
                 {txList.map((tx) => (
                   <tr key={tx.id} className="hover:bg-brand-cream/50">
-                    <td className="px-4 py-3 text-brand-ink-2">
-                      {formatDate(tx.createdAt)}
-                    </td>
+                    <td className="px-4 py-3 text-brand-ink-2">{formatDate(tx.createdAt)}</td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -163,10 +157,13 @@ export function PettyCashView({ accounts, transactions }: Props) {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-brand-ink">{tx.description}</td>
-                    <td className={`px-4 py-3 text-right font-medium ${
-                      tx.kind === 'topup' ? 'text-brand-jade' : 'text-brand-clay'
-                    }`}>
-                      {tx.kind === 'topup' ? '+' : '-'}{formatRupiah(tx.amount)}
+                    <td
+                      className={`px-4 py-3 text-right font-medium ${
+                        tx.kind === 'topup' ? 'text-brand-jade' : 'text-brand-clay'
+                      }`}
+                    >
+                      {tx.kind === 'topup' ? '+' : '-'}
+                      {formatRupiah(tx.amount)}
                     </td>
                   </tr>
                 ))}

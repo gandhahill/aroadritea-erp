@@ -23,7 +23,9 @@ export default async function AboutPage({ params }: Props) {
     <div className="mx-auto max-w-3xl px-4 py-16 text-center">
       <h1 className="text-3xl font-bold text-brand-ink">Tentang Aroadri Tea</h1>
       <p className="mt-4 text-lg leading-relaxed text-brand-ink-2">
-        Aroadri Tea menghadirkan pengalaman <strong>teh bubble dan dessert</strong> ala tradisi China dalam suasana modern. Setiap minuman dibuat dengan bahan berkualitas dan penuh dedikasi.
+        Aroadri Tea menghadirkan pengalaman <strong>teh bubble dan dessert</strong> ala tradisi
+        China dalam suasana modern. Setiap minuman dibuat dengan bahan berkualitas dan penuh
+        dedikasi.
       </p>
       <div className="mt-12 grid grid-cols-3 gap-6 text-center">
         {PILLARS.map((p) => (

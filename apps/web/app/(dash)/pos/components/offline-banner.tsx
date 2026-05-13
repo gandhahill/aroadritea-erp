@@ -28,16 +28,16 @@ export function OfflineBanner() {
       : 'bg-amber-100 text-amber-800';
 
   return (
-    <div className={`flex items-center justify-center gap-3 px-4 py-2 text-sm font-medium ${bgClass}`}>
+    <div
+      className={`flex items-center justify-center gap-3 px-4 py-2 text-sm font-medium ${bgClass}`}
+    >
       {isOffline ? (
         <span>{t('offlineMessage', { count: pendingCount })}</span>
       ) : (
         <span>{t('pendingMessage', { count: pendingCount })}</span>
       )}
 
-      {isSyncing && (
-        <span className="text-xs opacity-80">{t('syncing')}</span>
-      )}
+      {isSyncing && <span className="text-xs opacity-80">{t('syncing')}</span>}
 
       {!isSyncing && pendingCount > 0 && (
         <button

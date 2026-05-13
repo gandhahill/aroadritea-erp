@@ -5,15 +5,15 @@
  * Permission: hr.employee.write
  */
 
-import { eq } from 'drizzle-orm';
 import { db } from '@erp/db';
 import { employees } from '@erp/db/schema/hr';
-import { type Result, err, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
-import type { AuditContext } from '@erp/shared/types';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, tryCatch } from '@erp/shared/result';
+import type { AuditContext } from '@erp/shared/types';
+import { eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
-import { CreateEmployeeInputSchema, type CreateEmployeeInput } from './schemas';
+import { type CreateEmployeeInput, CreateEmployeeInputSchema } from './schemas';
 
 export async function createEmployee(
   input: CreateEmployeeInput,
@@ -26,7 +26,9 @@ export async function createEmployee(
 
   const parsed = CreateEmployeeInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('hr.employee.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('hr.employee.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const data = parsed.data;
 

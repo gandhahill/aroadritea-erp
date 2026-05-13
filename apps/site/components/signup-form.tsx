@@ -3,8 +3,9 @@
  */
 'use client';
 
-import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import Script from 'next/script';
+import { useState, useTransition } from 'react';
 import { signupAction } from '../actions/member';
 
 interface Props {
@@ -15,6 +16,8 @@ export function SignupForm({ locale }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const allowDevCaptcha = process.env.NODE_ENV !== 'production';
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -47,42 +50,106 @@ export function SignupForm({ locale }: Props) {
         )}
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-brand-ink">Nama Lengkap</label>
-          <input name="name" type="text" required className="w-full rounded-md border border-brand-cream-3 bg-white px-3 py-2 text-brand-ink" placeholder="Nama lengkap" />
+          <label htmlFor="member-name" className="mb-1 block text-sm font-medium text-brand-ink">
+            Nama Lengkap
+          </label>
+          <input
+            id="member-name"
+            name="name"
+            type="text"
+            required
+            className="w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-brand-ink"
+            placeholder="Nama lengkap"
+          />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-brand-ink">Email</label>
-          <input name="email" type="email" required className="w-full rounded-md border border-brand-cream-3 bg-white px-3 py-2 text-brand-ink" placeholder="email@contoh.com" />
+          <label htmlFor="member-email" className="mb-1 block text-sm font-medium text-brand-ink">
+            Email
+          </label>
+          <input
+            id="member-email"
+            name="email"
+            type="email"
+            required
+            className="w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-brand-ink"
+            placeholder="email@contoh.com"
+          />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-brand-ink">No. HP</label>
-          <input name="phone" type="tel" required className="w-full rounded-md border border-brand-cream-3 bg-white px-3 py-2 text-brand-ink" placeholder="08xxxxxxxxxx" />
+          <label htmlFor="member-phone" className="mb-1 block text-sm font-medium text-brand-ink">
+            No. HP
+          </label>
+          <input
+            id="member-phone"
+            name="phone"
+            type="tel"
+            required
+            className="w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-brand-ink"
+            placeholder="08xxxxxxxxxx"
+          />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-brand-ink">Kota</label>
-          <input name="city" type="text" className="w-full rounded-md border border-brand-cream-3 bg-white px-3 py-2 text-brand-ink" placeholder="Yogyakarta" />
+          <label htmlFor="member-city" className="mb-1 block text-sm font-medium text-brand-ink">
+            Kota
+          </label>
+          <input
+            id="member-city"
+            name="city"
+            type="text"
+            className="w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-brand-ink"
+            placeholder="Yogyakarta"
+          />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-brand-ink">Kata Sandi</label>
-          <input name="passwordHash" type="password" required minLength={8} className="w-full rounded-md border border-brand-cream-3 bg-white px-3 py-2 text-brand-ink" placeholder="Min. 8 karakter" />
-          <p className="mt-1 text-xs text-brand-ink-3">Hash bcrypt/argon2 dari kata sandi Anda.</p>
+          <label
+            htmlFor="member-password"
+            className="mb-1 block text-sm font-medium text-brand-ink"
+          >
+            Kata Sandi
+          </label>
+          <input
+            id="member-password"
+            name="password"
+            type="password"
+            required
+            minLength={8}
+            className="w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-brand-ink"
+            placeholder="Min. 8 karakter"
+          />
         </div>
 
         <label className="flex items-start gap-2">
-          <input name="consentGiven" type="checkbox" required className="mt-1 h-4 w-4 rounded border-brand-cream-3 text-brand-red" />
+          <input
+            name="consentGiven"
+            type="checkbox"
+            required
+            className="mt-1 h-4 w-4 rounded border-brand-cream-3 text-brand-red"
+          />
           <span className="text-sm text-brand-ink-2">
             Saya menyetujui{' '}
-            <a href={`/${locale}/syarat-dan-ketentuan`} className="text-brand-red underline">Syarat & Ketentuan</a>
-            {' '}dan{' '}
-            <a href={`/${locale}/kebijakan-privasi`} className="text-brand-red underline">Kebijakan Privasi</a>.
+            <a href={`/${locale}/syarat-dan-ketentuan`} className="text-brand-red underline">
+              Syarat & Ketentuan
+            </a>{' '}
+            dan{' '}
+            <a href={`/${locale}/kebijakan-privasi`} className="text-brand-red underline">
+              Kebijakan Privasi
+            </a>
+            .
           </span>
         </label>
 
-        <input name="turnstileToken" type="hidden" value="dev-token" />
+        {turnstileSiteKey ? (
+          <>
+            <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+            <div className="cf-turnstile" data-sitekey={turnstileSiteKey} />
+          </>
+        ) : allowDevCaptcha ? (
+          <input name="turnstileToken" type="hidden" value="dev-token" />
+        ) : null}
 
         <button
           type="submit"

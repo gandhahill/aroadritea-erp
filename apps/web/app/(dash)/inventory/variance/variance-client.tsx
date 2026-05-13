@@ -7,16 +7,16 @@
 
 'use client';
 
-import { useState } from 'react';
-import { fetchVarianceReport } from './actions';
 import type { VarianceReportResult } from '@erp/services/inventory';
+import { useState } from 'react';
 import * as XLSX from 'xlsx';
+import { fetchVarianceReport } from './actions';
 
 // ─── Formatters ────────────────────────────────────────────────────────────────
 
 function formatIDR(v: string | number | bigint | null | undefined): string {
   if (!v) return '—';
-  const num = typeof v === 'string' ? parseInt(v, 10) : Number(v);
+  const num = typeof v === 'string' ? Number.parseInt(v, 10) : Number(v);
   if (isNaN(num)) return '—';
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -53,9 +53,7 @@ async function exportXLSX(report: VarianceReportResult) {
   const summaryRows = [
     ['Laporan Varians Persediaan'],
     ['Periode', `${report.params.startDate} s/d ${report.params.endDate}`],
-    report.params.locationId
-      ? ['Lokasi', report.params.locationId]
-      : ['Lokasi', 'Semua'],
+    report.params.locationId ? ['Lokasi', report.params.locationId] : ['Lokasi', 'Semua'],
     [],
     ['Ringkasan'],
     ['Total Sesi Opname', String(report.summary.totalSessions)],
@@ -96,23 +94,20 @@ async function exportXLSX(report: VarianceReportResult) {
     'Varians Nilai': formatIDR(p.totalVarianceValueAbs),
     'Tingkat Varians': formatVarianceRate(p.varianceRate),
     'Sesi Terbesar': p.worstSession,
-    'Tanggal': p.worstSessionDate,
+    Tanggal: p.worstSessionDate,
   }));
   const productWs = XLSX.utils.json_to_sheet(productRows);
   XLSX.utils.book_append_sheet(wb, productWs, 'Produk');
 
-  XLSX.writeFile(
-    wb,
-    `varians-persediaan-${report.params.startDate}-${report.params.endDate}.xlsx`,
-  );
+  XLSX.writeFile(wb, `varians-persediaan-${report.params.startDate}-${report.params.endDate}.xlsx`);
 }
 
 // ─── Chart components ─────────────────────────────────────────────────────────
 
 /** Variance distribution donut: surplus vs shortage vs zero. */
 function VarianceDonut({ surplus, shortage }: { surplus: string; shortage: string }) {
-  const sur = parseInt(surplus, 10);
-  const short = parseInt(shortage, 10);
+  const sur = Number.parseInt(surplus, 10);
+  const short = Number.parseInt(shortage, 10);
   const total = sur + short;
 
   if (total === 0) {
@@ -153,11 +148,17 @@ function VarianceDonut({ surplus, shortage }: { surplus: string; shortage: strin
 }
 
 /** Horizontal bar chart for top variance products. */
-function VarianceBarChart({ items }: {
+function VarianceBarChart({
+  items,
+}: {
   items: Array<{ label: string; value: number; color?: string }>;
 }) {
   if (!items.length) {
-    return <div className="flex h-32 items-center justify-center text-sm text-brand-ink-3">Tidak ada data</div>;
+    return (
+      <div className="flex h-32 items-center justify-center text-sm text-brand-ink-3">
+        Tidak ada data
+      </div>
+    );
   }
   const max = Math.max(...items.map((i) => i.value), 1);
 
@@ -249,8 +250,18 @@ export function VarianceClient({
             onClick={() => report && exportXLSX(report)}
             className="inline-flex items-center gap-2 rounded-lg bg-brand-jade px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+              />
             </svg>
             Export XLSX
           </button>
@@ -260,7 +271,9 @@ export function VarianceClient({
       {/* Filter bar */}
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4 shadow-sm">
         <div className="space-y-1">
-          <label htmlFor="startDate" className="text-xs font-medium text-brand-ink-3">Tanggal Mulai</label>
+          <label htmlFor="startDate" className="text-xs font-medium text-brand-ink-3">
+            Tanggal Mulai
+          </label>
           <input
             id="startDate"
             type="date"
@@ -270,7 +283,9 @@ export function VarianceClient({
           />
         </div>
         <div className="space-y-1">
-          <label htmlFor="endDate" className="text-xs font-medium text-brand-ink-3">Tanggal Selesai</label>
+          <label htmlFor="endDate" className="text-xs font-medium text-brand-ink-3">
+            Tanggal Selesai
+          </label>
           <input
             id="endDate"
             type="date"
@@ -280,7 +295,9 @@ export function VarianceClient({
           />
         </div>
         <div className="space-y-1">
-          <label htmlFor="locationId" className="text-xs font-medium text-brand-ink-3">Lokasi</label>
+          <label htmlFor="locationId" className="text-xs font-medium text-brand-ink-3">
+            Lokasi
+          </label>
           <select
             id="locationId"
             value={locationId}
@@ -289,7 +306,9 @@ export function VarianceClient({
           >
             <option value="">Semua Lokasi</option>
             {locations.map((loc) => (
-              <option key={loc.id} value={loc.id}>{loc.name}</option>
+              <option key={loc.id} value={loc.id}>
+                {loc.name}
+              </option>
             ))}
           </select>
         </div>
@@ -301,12 +320,25 @@ export function VarianceClient({
           {isLoading ? (
             <>
               <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
               </svg>
               Memuat...
             </>
-          ) : 'Tampilkan'}
+          ) : (
+            'Tampilkan'
+          )}
         </button>
       </div>
 
@@ -320,11 +352,23 @@ export function VarianceClient({
       {/* Empty state */}
       {!report && !error && (
         <div className="flex flex-col items-center justify-center rounded-xl border border-brand-cream-3 bg-card py-16 text-center">
-          <svg className="h-12 w-12 text-brand-cream-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+          <svg
+            className="h-12 w-12 text-brand-cream-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
+            />
           </svg>
           <h3 className="mt-3 text-base font-semibold text-brand-ink">Pilih tanggal dan lokasi</h3>
-          <p className="mt-1 text-sm text-brand-ink-3">Klik "Tampilkan" untuk melihat laporan varians.</p>
+          <p className="mt-1 text-sm text-brand-ink-3">
+            Klik "Tampilkan" untuk melihat laporan varians.
+          </p>
         </div>
       )}
 
@@ -354,8 +398,16 @@ export function VarianceClient({
             <MetricCard
               label="Net Revenue Lost"
               value={formatIDR(report.summary.totalShortageValue)}
-              color={parseInt(report.summary.totalShortageValue, 10) > 0 ? 'text-rose-500' : 'text-brand-jade'}
-              sub={parseInt(report.summary.totalSurplusValue, 10) > 0 ? `${formatIDR(report.summary.totalSurplusValue)} surplus` : 'Tidak ada surplus'}
+              color={
+                Number.parseInt(report.summary.totalShortageValue, 10) > 0
+                  ? 'text-rose-500'
+                  : 'text-brand-jade'
+              }
+              sub={
+                Number.parseInt(report.summary.totalSurplusValue, 10) > 0
+                  ? `${formatIDR(report.summary.totalSurplusValue)} surplus`
+                  : 'Tidak ada surplus'
+              }
             />
           </div>
 
@@ -374,11 +426,14 @@ export function VarianceClient({
 
             {/* Top variance products bar chart */}
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-              <h3 className="mb-4 text-sm font-semibold text-brand-ink">Top 5 Produk dengan Varians Terbesar</h3>
+              <h3 className="mb-4 text-sm font-semibold text-brand-ink">
+                Top 5 Produk dengan Varians Terbesar
+              </h3>
               <VarianceBarChart
                 items={report.products.slice(0, 5).map((p, idx) => ({
-                  label: p.productName.length > 24 ? p.productName.slice(0, 24) + '…' : p.productName,
-                  value: parseInt(p.totalVarianceValueAbs, 10),
+                  label:
+                    p.productName.length > 24 ? p.productName.slice(0, 24) + '…' : p.productName,
+                  value: Number.parseInt(p.totalVarianceValueAbs, 10),
                   color: '#c2410c',
                 }))}
               />
@@ -420,44 +475,75 @@ export function VarianceClient({
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">No. Sesi</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">Tanggal</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">Periode</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">Lokasi</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">Baris</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">dgn. Varians</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">Net Qty</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">Nilai Varians</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
+                        No. Sesi
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
+                        Tanggal
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
+                        Periode
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
+                        Lokasi
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
+                        Baris
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
+                        dgn. Varians
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
+                        Net Qty
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
+                        Nilai Varians
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-brand-cream-2">
                     {report.sessions.map((s) => {
-                      const hasVariance = parseInt(s.totalVarianceValue, 10) > 0;
+                      const hasVariance = Number.parseInt(s.totalVarianceValue, 10) > 0;
                       const netQty = s.netVarianceQty;
                       return (
                         <tr key={s.sessionId} className="hover:bg-brand-cream-1/50">
-                          <td className="px-4 py-3 font-medium text-brand-ink">{s.sessionNumber}</td>
-                          <td className="px-4 py-3 text-brand-ink-2">{formatDate(s.sessionDate)}</td>
+                          <td className="px-4 py-3 font-medium text-brand-ink">
+                            {s.sessionNumber}
+                          </td>
+                          <td className="px-4 py-3 text-brand-ink-2">
+                            {formatDate(s.sessionDate)}
+                          </td>
                           <td className="px-4 py-3 text-brand-ink-2">{s.periodCode}</td>
                           <td className="px-4 py-3 text-brand-ink-2">{s.locationName}</td>
                           <td className="px-4 py-3 text-center text-brand-ink">{s.totalLines}</td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                              s.linesWithVariance > 0
-                                ? 'bg-brand-ember-5/10 text-brand-ember-5'
-                                : 'bg-brand-jade/10 text-brand-jade'
-                            }`}>
+                            <span
+                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                                s.linesWithVariance > 0
+                                  ? 'bg-brand-ember-5/10 text-brand-ember-5'
+                                  : 'bg-brand-jade/10 text-brand-jade'
+                              }`}
+                            >
                               {s.linesWithVariance}
                             </span>
                           </td>
-                          <td className={`px-4 py-3 text-right font-medium ${
-                            netQty > 0 ? 'text-brand-jade' : netQty < 0 ? 'text-rose-500' : 'text-brand-ink'
-                          }`}>
-                            {netQty > 0 ? '+' : ''}{formatQty(netQty)}
+                          <td
+                            className={`px-4 py-3 text-right font-medium ${
+                              netQty > 0
+                                ? 'text-brand-jade'
+                                : netQty < 0
+                                  ? 'text-rose-500'
+                                  : 'text-brand-ink'
+                            }`}
+                          >
+                            {netQty > 0 ? '+' : ''}
+                            {formatQty(netQty)}
                           </td>
-                          <td className={`px-4 py-3 text-right font-medium ${
-                            hasVariance ? 'text-brand-ember-5' : 'text-brand-ink'
-                          }`}>
+                          <td
+                            className={`px-4 py-3 text-right font-medium ${
+                              hasVariance ? 'text-brand-ember-5' : 'text-brand-ink'
+                            }`}
+                          >
                             {formatIDR(s.totalVarianceValue)}
                           </td>
                         </tr>
@@ -480,19 +566,33 @@ export function VarianceClient({
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">Produk</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">Sesi</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">Qty Sistem</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">Qty Hitung</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">Net Varians</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">Nilai</th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">Tingkat</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
+                        Produk
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
+                        Sesi
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
+                        Qty Sistem
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
+                        Qty Hitung
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
+                        Net Varians
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
+                        Nilai
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
+                        Tingkat
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-brand-cream-2">
                     {report.products.map((p) => {
                       const netQty = p.totalVarianceQty;
-                      const valNum = parseInt(p.totalVarianceValueAbs, 10);
+                      const valNum = Number.parseInt(p.totalVarianceValueAbs, 10);
                       return (
                         <tr key={p.productId} className="hover:bg-brand-cream-1/50">
                           <td className="px-4 py-3">
@@ -504,25 +604,40 @@ export function VarianceClient({
                             )}
                           </td>
                           <td className="px-4 py-3 text-center text-brand-ink">{p.sessions}</td>
-                          <td className="px-4 py-3 text-right text-brand-ink">{formatQty(p.totalSystemQty)}</td>
-                          <td className="px-4 py-3 text-right text-brand-ink">{formatQty(p.totalCountedQty)}</td>
-                          <td className={`px-4 py-3 text-right font-medium ${
-                            netQty > 0 ? 'text-brand-jade' : netQty < 0 ? 'text-rose-500' : 'text-brand-ink'
-                          }`}>
-                            {netQty > 0 ? '+' : ''}{formatQty(netQty)} {p.uom}
+                          <td className="px-4 py-3 text-right text-brand-ink">
+                            {formatQty(p.totalSystemQty)}
                           </td>
-                          <td className={`px-4 py-3 text-right font-medium ${
-                            valNum > 0 ? 'text-brand-ember-5' : 'text-brand-ink'
-                          }`}>
+                          <td className="px-4 py-3 text-right text-brand-ink">
+                            {formatQty(p.totalCountedQty)}
+                          </td>
+                          <td
+                            className={`px-4 py-3 text-right font-medium ${
+                              netQty > 0
+                                ? 'text-brand-jade'
+                                : netQty < 0
+                                  ? 'text-rose-500'
+                                  : 'text-brand-ink'
+                            }`}
+                          >
+                            {netQty > 0 ? '+' : ''}
+                            {formatQty(netQty)} {p.uom}
+                          </td>
+                          <td
+                            className={`px-4 py-3 text-right font-medium ${
+                              valNum > 0 ? 'text-brand-ember-5' : 'text-brand-ink'
+                            }`}
+                          >
                             {formatIDR(p.totalVarianceValueAbs)}
                           </td>
                           <td className="px-4 py-3 text-center">
                             {p.varianceRate > 0 ? (
-                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                                p.varianceRate > 10
-                                  ? 'bg-rose-100 text-rose-700'
-                                  : 'bg-brand-gold/10 text-brand-gold'
-                              }`}>
+                              <span
+                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                                  p.varianceRate > 10
+                                    ? 'bg-rose-100 text-rose-700'
+                                    : 'bg-brand-gold/10 text-brand-gold'
+                                }`}
+                              >
                                 {formatVarianceRate(p.varianceRate)}
                               </span>
                             ) : (

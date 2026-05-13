@@ -24,14 +24,7 @@ export interface ParseResult<T> {
   errors: Array<{ line: number; message: string }>;
 }
 
-const VALID_MODIFIER_KINDS = new Set([
-  'size',
-  'ice',
-  'sugar',
-  'topping',
-  'cup',
-  'other',
-]);
+const VALID_MODIFIER_KINDS = new Set(['size', 'ice', 'sugar', 'topping', 'cup', 'other']);
 
 // ─── CSV helpers ────────────────────────────────────────────────────────────
 
@@ -40,9 +33,7 @@ function splitCsvLine(line: string): string[] {
 }
 
 function normalizeHeaders(headerLine: string): string[] {
-  return splitCsvLine(headerLine).map((h) =>
-    h.toLowerCase().replace(/[^a-z0-9_]/g, '_'),
-  );
+  return splitCsvLine(headerLine).map((h) => h.toLowerCase().replace(/[^a-z0-9_]/g, '_'));
 }
 
 // ─── Product codes ──────────────────────────────────────────────────────────
@@ -52,13 +43,14 @@ const PRODUCT_REQUIRED_HEADERS = ['product_id', 'naixer_code'];
 export function parseProductCodesCsv(csv: string): ParseResult<ProductCodeRow> {
   const lines = csv.split(/\r?\n/).filter((l) => l.trim() !== '');
   if (lines.length < 2) {
-    return { rows: [], errors: [{ line: 1, message: 'CSV must have a header row and at least one data row' }] };
+    return {
+      rows: [],
+      errors: [{ line: 1, message: 'CSV must have a header row and at least one data row' }],
+    };
   }
 
   const headers = normalizeHeaders(lines[0]!);
-  const missingHeaders = PRODUCT_REQUIRED_HEADERS.filter(
-    (h) => !headers.includes(h),
-  );
+  const missingHeaders = PRODUCT_REQUIRED_HEADERS.filter((h) => !headers.includes(h));
   if (missingHeaders.length > 0) {
     return {
       rows: [],
@@ -78,8 +70,7 @@ export function parseProductCodesCsv(csv: string): ParseResult<ProductCodeRow> {
     const cells = splitCsvLine(lines[i]!);
 
     const productId = cells[productIdIdx] ?? '';
-    const variantId =
-      variantIdIdx >= 0 ? (cells[variantIdIdx] || null) : null;
+    const variantId = variantIdIdx >= 0 ? cells[variantIdIdx] || null : null;
     const naixerCode = cells[naixerCodeIdx] ?? '';
 
     if (!productId) {
@@ -99,24 +90,19 @@ export function parseProductCodesCsv(csv: string): ParseResult<ProductCodeRow> {
 
 // ─── Modifier codes ─────────────────────────────────────────────────────────
 
-const MODIFIER_REQUIRED_HEADERS = [
-  'modifier_kind',
-  'modifier_option_id',
-  'naixer_code',
-];
+const MODIFIER_REQUIRED_HEADERS = ['modifier_kind', 'modifier_option_id', 'naixer_code'];
 
-export function parseModifierCodesCsv(
-  csv: string,
-): ParseResult<ModifierCodeRow> {
+export function parseModifierCodesCsv(csv: string): ParseResult<ModifierCodeRow> {
   const lines = csv.split(/\r?\n/).filter((l) => l.trim() !== '');
   if (lines.length < 2) {
-    return { rows: [], errors: [{ line: 1, message: 'CSV must have a header row and at least one data row' }] };
+    return {
+      rows: [],
+      errors: [{ line: 1, message: 'CSV must have a header row and at least one data row' }],
+    };
   }
 
   const headers = normalizeHeaders(lines[0]!);
-  const missingHeaders = MODIFIER_REQUIRED_HEADERS.filter(
-    (h) => !headers.includes(h),
-  );
+  const missingHeaders = MODIFIER_REQUIRED_HEADERS.filter((h) => !headers.includes(h));
   if (missingHeaders.length > 0) {
     return {
       rows: [],
@@ -139,8 +125,7 @@ export function parseModifierCodesCsv(
     const modifierKind = cells[kindIdx] ?? '';
     const modifierOptionId = cells[optionIdIdx] ?? '';
     const naixerCode = cells[naixerCodeIdx] ?? '';
-    const displayOrderRaw =
-      displayOrderIdx >= 0 ? (cells[displayOrderIdx] ?? '0') : '0';
+    const displayOrderRaw = displayOrderIdx >= 0 ? (cells[displayOrderIdx] ?? '0') : '0';
 
     if (!modifierKind) {
       errors.push({ line: lineNum, message: 'modifier_kind is required' });

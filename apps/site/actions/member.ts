@@ -4,19 +4,19 @@
  */
 'use server';
 
-import { cookies } from 'next/headers';
 import {
-  initiateSignup,
-  verifySignupOtp,
   completeSignup,
-  validateMemberSession,
   destroyMemberSession,
   getMemberLoyalty,
-  getPointsHistory,
   getMemberVouchers,
+  getPointsHistory,
+  initiateSignup,
+  validateMemberSession,
+  verifySignupOtp,
 } from '@erp/services/member';
-import { type AuditContext } from '@erp/shared/types';
+import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 
 const MEMBER_SESSION_COOKIE = '__Host-member-session';
 
@@ -26,12 +26,14 @@ export async function signupAction(formData: FormData) {
   const name = String(formData.get('name') ?? '');
   const birthDate = String(formData.get('birthDate') ?? '');
   const city = String(formData.get('city') ?? '');
-  const passwordHash = String(formData.get('passwordHash') ?? '');
-  const turnstileToken = String(formData.get('turnstileToken') ?? '');
+  const password = String(formData.get('password') ?? '');
+  const turnstileToken = String(
+    formData.get('turnstileToken') ?? formData.get('cf-turnstile-response') ?? '',
+  );
   const consent = formData.get('consentGiven') === 'on';
 
   const result = await initiateSignup(
-    { email, phone, name, birthDate, city, passwordHash, consentGiven: consent, turnstileToken },
+    { email, phone, name, birthDate, city, password, consentGiven: consent, turnstileToken },
     undefined, // ip from headers
     undefined, // userAgent
   );
@@ -50,11 +52,10 @@ export async function completeSignupAction(formData: FormData, token: string) {
   const name = String(formData.get('name') ?? '');
   const birthDate = String(formData.get('birthDate') ?? '');
   const city = String(formData.get('city') ?? '');
-  const passwordHash = String(formData.get('passwordHash') ?? '');
   const consent = formData.get('consentGiven') === 'on';
 
   const result = await completeSignup(
-    { token, name, birthDate, city, passwordHash, consentGiven: consent },
+    { token, name, birthDate, city, consentGiven: consent },
     undefined,
     undefined,
     { userId: 'member', tenantId: 'default', locationId: 'default' },
@@ -66,7 +67,7 @@ export async function completeSignupAction(formData: FormData, token: string) {
   const cookieStore = await cookies();
   cookieStore.set(MEMBER_SESSION_COOKIE, result.value.sessionToken, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -85,7 +86,9 @@ export async function getMemberAccount() {
 
   const loyaltyResult = await getMemberLoyalty(sessionResult.value.memberId);
   const pointsHistoryResult = await getPointsHistory(sessionResult.value.memberId);
-  const vouchersResult = await getMemberVouchers(sessionResult.value.memberId, { unusedOnly: true });
+  const vouchersResult = await getMemberVouchers(sessionResult.value.memberId, {
+    unusedOnly: true,
+  });
 
   return {
     memberId: sessionResult.value.memberId,

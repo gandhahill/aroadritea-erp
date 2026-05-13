@@ -5,15 +5,15 @@
 
 'use server';
 
-import { db, eq, and, desc } from '@erp/db';
+import { and, db, desc, eq } from '@erp/db';
+import { locations } from '@erp/db/schema/auth';
 import {
-  naixerProductCodes,
   naixerModifierCodes,
+  naixerProductCodes,
   naixerQrFormatConfig,
 } from '@erp/db/schema/kitchen';
-import { locations } from '@erp/db/schema/auth';
-import { generateId } from '@erp/shared/id';
 import { dashStrategy, pipeStrategy } from '@erp/services/kitchen';
+import { generateId } from '@erp/shared/id';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

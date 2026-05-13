@@ -9,16 +9,16 @@
  * markPayrollPaid: updates status to paid after cash disbursement.
  */
 
-import { eq, and, inArray } from 'drizzle-orm';
 import { db } from '@erp/db';
-import { payrolls, payrollLines, salaryComponents } from '@erp/db/schema/hr';
 import { accounts } from '@erp/db/schema/accounting';
-import { createJournal } from '../accounting/create-journal';
-import { type Result, ok, err } from '@erp/shared/result';
+import { payrollLines, payrolls, salaryComponents } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
+import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { requirePermission } from '../iam';
+import { and, eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
+import { createJournal } from '../accounting/create-journal';
+import { requirePermission } from '../iam';
 
 export const ApprovePayrollInputSchema = z.object({
   payrollId: z.string().min(1),
@@ -50,150 +50,146 @@ export async function approvePayroll(
   const data = parsed.data;
 
   try {
-      const [payroll] = await db
-        .select()
-        .from(payrolls)
-        .where(
-          and(
-            eq(payrolls.tenantId, ctx.tenantId),
-            eq(payrolls.id, data.payrollId),
-          ),
-        )
-        .limit(1);
+    const [payroll] = await db
+      .select()
+      .from(payrolls)
+      .where(and(eq(payrolls.tenantId, ctx.tenantId), eq(payrolls.id, data.payrollId)))
+      .limit(1);
 
-      if (!payroll) {
-        throw AppError.notFound('hr.payroll.notFound', { payrollId: data.payrollId });
+    if (!payroll) {
+      throw AppError.notFound('hr.payroll.notFound', { payrollId: data.payrollId });
+    }
+    if (payroll.status !== 'draft' && payroll.status !== 'pending_approval') {
+      throw AppError.conflict('hr.payroll.cannotApprove', { status: payroll.status });
+    }
+
+    // Load payroll lines joined with salary components (to get componentCode)
+    const lines = await db
+      .select({
+        line: payrollLines,
+        componentCode: salaryComponents.code,
+        componentKind: salaryComponents.kind,
+      })
+      .from(payrollLines)
+      .innerJoin(salaryComponents, eq(payrollLines.salaryComponentId, salaryComponents.id))
+      .where(eq(payrollLines.payrollId, data.payrollId));
+
+    // Aggregate earnings and deductions
+    let totalEarnings = 0n;
+    let totalPPh21 = 0n;
+    let totalBpjsKes = 0n;
+    let totalBpjsTk = 0n;
+
+    for (const row of lines) {
+      if (row.componentKind === 'earning') {
+        totalEarnings += row.line.amount;
       }
-      if (payroll.status !== 'draft' && payroll.status !== 'pending_approval') {
-        throw AppError.conflict('hr.payroll.cannotApprove', { status: payroll.status });
-      }
+      if (row.componentCode === 'PPh21') totalPPh21 = row.line.amount;
+      if (row.componentCode === 'BPJS_KES') totalBpjsKes = row.line.amount;
+      if (row.componentCode === 'BPJS_TK') totalBpjsTk = row.line.amount;
+    }
 
-      // Load payroll lines joined with salary components (to get componentCode)
-      const lines = await db
-        .select({
-          line: payrollLines,
-          componentCode: salaryComponents.code,
-          componentKind: salaryComponents.kind,
-        })
-        .from(payrollLines)
-        .innerJoin(salaryComponents, eq(payrollLines.salaryComponentId, salaryComponents.id))
-        .where(eq(payrollLines.payrollId, data.payrollId));
+    // Look up account IDs by code (SD §21.8)
+    const accountCodes = ['BS-6201', 'LS-2201', 'LS-2202', 'LS-2203', 'AS-1101'];
+    const acctRows = await db
+      .select({ id: accounts.id, code: accounts.code })
+      .from(accounts)
+      .where(and(eq(accounts.tenantId, ctx.tenantId), inArray(accounts.code, accountCodes)));
 
-      // Aggregate earnings and deductions
-      let totalEarnings = 0n;
-      let totalPPh21 = 0n;
-      let totalBpjsKes = 0n;
-      let totalBpjsTk = 0n;
+    const acctMap = new Map(acctRows.map((r) => [r.code, r.id]));
 
-      for (const row of lines) {
-        if (row.componentKind === 'earning') {
-          totalEarnings += row.line.amount;
-        }
-        if (row.componentCode === 'PPh21') totalPPh21 = row.line.amount;
-        if (row.componentCode === 'BPJS_KES') totalBpjsKes = row.line.amount;
-        if (row.componentCode === 'BPJS_TK') totalBpjsTk = row.line.amount;
-      }
+    const getAccountId = (code: string): string => {
+      const id = acctMap.get(code);
+      if (!id) throw AppError.internal('hr.payroll.missingAccount', { code });
+      return id as string;
+    };
 
-      // Look up account IDs by code (SD §21.8)
-      const accountCodes = ['BS-6201', 'LS-2201', 'LS-2202', 'LS-2203', 'AS-1101'];
-      const acctRows = await db
-        .select({ id: accounts.id, code: accounts.code })
-        .from(accounts)
-        .where(
-          and(
-            eq(accounts.tenantId, ctx.tenantId),
-            inArray(accounts.code, accountCodes),
-          ),
-        );
+    // Posting date: periodEnd in YYYY-MM-DD
+    const periodEndStr: string = payroll.periodEnd
+      ? new Date(payroll.periodEnd).toISOString().split('T')[0]!
+      : new Date().toISOString().split('T')[0]!;
 
-      const acctMap = new Map(acctRows.map((r) => [r.code, r.id]));
-
-      const getAccountId = (code: string): string => {
-        const id = acctMap.get(code);
-        if (!id) throw AppError.internal('hr.payroll.missingAccount', { code });
-        return id as string;
-      };
-
-      // Posting date: periodEnd in YYYY-MM-DD
-      const periodEndStr: string = payroll.periodEnd
-        ? new Date(payroll.periodEnd).toISOString().split('T')[0]!
-        : new Date().toISOString().split('T')[0]!;
-
-      const journalResult = await createJournal(
-        {
-          postingDate: periodEndStr,
-          locationId: payroll.locationId,
-          description: data.description ?? `Payroll ${payroll.periodCode}`,
-          referenceType: 'payroll',
-          referenceId: data.payrollId,
-          lines: [
-            {
-              accountId: getAccountId('BS-6201'),
-              locationId: payroll.locationId,
-              debit: String(payroll.totalEarnings),
-              credit: '0',
-              description: 'Beban Gaji & Upah',
-            },
-            ...(totalPPh21 > 0n
-              ? [{
+    const journalResult = await createJournal(
+      {
+        postingDate: periodEndStr,
+        locationId: payroll.locationId,
+        description: data.description ?? `Payroll ${payroll.periodCode}`,
+        referenceType: 'payroll',
+        referenceId: data.payrollId,
+        lines: [
+          {
+            accountId: getAccountId('BS-6201'),
+            locationId: payroll.locationId,
+            debit: String(payroll.totalEarnings),
+            credit: '0',
+            description: 'Beban Gaji & Upah',
+          },
+          ...(totalPPh21 > 0n
+            ? [
+                {
                   accountId: getAccountId('LS-2201'),
                   locationId: payroll.locationId,
                   debit: '0',
                   credit: String(totalPPh21),
                   description: 'PPh 21 Terutang',
-                }]
-              : []),
-            ...(totalBpjsKes > 0n
-              ? [{
+                },
+              ]
+            : []),
+          ...(totalBpjsKes > 0n
+            ? [
+                {
                   accountId: getAccountId('LS-2202'),
                   locationId: payroll.locationId,
                   debit: '0',
                   credit: String(totalBpjsKes),
                   description: 'Utang BPJS Kesehatan',
-                }]
-              : []),
-            ...(totalBpjsTk > 0n
-              ? [{
+                },
+              ]
+            : []),
+          ...(totalBpjsTk > 0n
+            ? [
+                {
                   accountId: getAccountId('LS-2203'),
                   locationId: payroll.locationId,
                   debit: '0',
                   credit: String(totalBpjsTk),
                   description: 'Utang BPJS TK',
-                }]
-              : []),
-            {
-              accountId: getAccountId('AS-1101'),
-              locationId: payroll.locationId,
-              debit: '0',
-              credit: String(payroll.totalNet),
-              description: 'Pembayaran Gaji',
-            },
-          ],
-        },
-        ctx,
-      );
+                },
+              ]
+            : []),
+          {
+            accountId: getAccountId('AS-1101'),
+            locationId: payroll.locationId,
+            debit: '0',
+            credit: String(payroll.totalNet),
+            description: 'Pembayaran Gaji',
+          },
+        ],
+      },
+      ctx,
+    );
 
-      if (!journalResult.ok) {
-        throw AppError.internal('hr.payroll.jeFailed', { error: journalResult.error });
-      }
-
-      // Update payroll status
-      await db
-        .update(payrolls)
-        .set({
-          status: 'approved',
-          approvedBy: ctx.userId,
-          approvedAt: new Date(),
-          journalEntryId: journalResult.value.id,
-          updatedBy: ctx.userId,
-        })
-        .where(eq(payrolls.id, data.payrollId));
-
-      return ok({ payrollId: data.payrollId, journalEntryId: journalResult.value.id });
-    } catch (e) {
-      if (e instanceof AppError) return err(e);
-      return err(AppError.internal('hr.payroll.approveFailed', e));
+    if (!journalResult.ok) {
+      throw AppError.internal('hr.payroll.jeFailed', { error: journalResult.error });
     }
+
+    // Update payroll status
+    await db
+      .update(payrolls)
+      .set({
+        status: 'approved',
+        approvedBy: ctx.userId,
+        approvedAt: new Date(),
+        journalEntryId: journalResult.value.id,
+        updatedBy: ctx.userId,
+      })
+      .where(eq(payrolls.id, data.payrollId));
+
+    return ok({ payrollId: data.payrollId, journalEntryId: journalResult.value.id });
+  } catch (e) {
+    if (e instanceof AppError) return err(e);
+    return err(AppError.internal('hr.payroll.approveFailed', e));
+  }
 }
 
 // ─── Mark Paid ─────────────────────────────────────────────────────────────
@@ -208,25 +204,25 @@ export async function markPayrollPaid(
   if (!permCheck.ok) return permCheck;
 
   try {
-      const [payroll] = await db
-        .select()
-        .from(payrolls)
-        .where(and(eq(payrolls.id, input.payrollId), eq(payrolls.tenantId, ctx.tenantId)))
-        .limit(1);
+    const [payroll] = await db
+      .select()
+      .from(payrolls)
+      .where(and(eq(payrolls.id, input.payrollId), eq(payrolls.tenantId, ctx.tenantId)))
+      .limit(1);
 
-      if (!payroll) throw AppError.notFound('hr.payroll.notFound', { payrollId: input.payrollId });
-      if (payroll.status !== 'approved') {
-        throw AppError.conflict('hr.payroll.cannotMarkPaid', { status: payroll.status });
-      }
-
-      await db
-        .update(payrolls)
-        .set({ status: 'paid', updatedBy: ctx.userId })
-        .where(eq(payrolls.id, input.payrollId));
-
-      return ok({ payrollId: input.payrollId });
-    } catch (e) {
-      if (e instanceof AppError) return err(e);
-      return err(AppError.internal('hr.payroll.markPaidFailed', e));
+    if (!payroll) throw AppError.notFound('hr.payroll.notFound', { payrollId: input.payrollId });
+    if (payroll.status !== 'approved') {
+      throw AppError.conflict('hr.payroll.cannotMarkPaid', { status: payroll.status });
     }
+
+    await db
+      .update(payrolls)
+      .set({ status: 'paid', updatedBy: ctx.userId })
+      .where(eq(payrolls.id, input.payrollId));
+
+    return ok({ payrollId: input.payrollId });
+  } catch (e) {
+    if (e instanceof AppError) return err(e);
+    return err(AppError.internal('hr.payroll.markPaidFailed', e));
+  }
 }

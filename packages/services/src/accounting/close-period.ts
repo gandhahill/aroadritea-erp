@@ -21,23 +21,20 @@
  * Permission: accounting.period.close
  */
 
-import { eq, and, sql } from 'drizzle-orm';
 import { db } from '@erp/db';
-import {
-  accountingPeriods,
-  journalEntries,
-} from '@erp/db/schema/accounting';
+import { accountingPeriods, journalEntries } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
-import { type Result, ok, err, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 import {
-  ClosePeriodInputSchema,
-  GetPeriodStatusInputSchema,
   type ClosePeriodInput,
+  ClosePeriodInputSchema,
   type GetPeriodStatusInput,
+  GetPeriodStatusInputSchema,
 } from './schemas';
 
 // --- Return types ---
@@ -76,9 +73,11 @@ export async function getPeriodStatus(
   // Validate
   const parsed = GetPeriodStatusInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('accounting.period.validationFailed', {
-      issues: parsed.error.issues,
-    }));
+    return err(
+      AppError.validation('accounting.period.validationFailed', {
+        issues: parsed.error.issues,
+      }),
+    );
   }
 
   // Permission check
@@ -98,9 +97,11 @@ export async function getPeriodStatus(
     .then((rows) => rows[0]);
 
   if (!period) {
-    return err(AppError.notFound('accounting.period.notFound', {
-      periodCode: parsed.data.periodCode,
-    }));
+    return err(
+      AppError.notFound('accounting.period.notFound', {
+        periodCode: parsed.data.periodCode,
+      }),
+    );
   }
 
   // Count draft and posted JEs in this period
@@ -156,9 +157,11 @@ export async function closePeriod(
   // 1. Validate input
   const parsed = ClosePeriodInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('accounting.period.validationFailed', {
-      issues: parsed.error.issues,
-    }));
+    return err(
+      AppError.validation('accounting.period.validationFailed', {
+        issues: parsed.error.issues,
+      }),
+    );
   }
   const { periodCode, force } = parsed.data;
 
@@ -171,10 +174,7 @@ export async function closePeriod(
     .select()
     .from(accountingPeriods)
     .where(
-      and(
-        eq(accountingPeriods.tenantId, ctx.tenantId),
-        eq(accountingPeriods.code, periodCode),
-      ),
+      and(eq(accountingPeriods.tenantId, ctx.tenantId), eq(accountingPeriods.code, periodCode)),
     )
     .then((rows) => rows[0]);
 
@@ -192,10 +192,12 @@ export async function closePeriod(
     newStatus = 'closed';
   } else {
     // Already closed
-    return err(AppError.businessRule('accounting.period.alreadyClosed', {
-      periodCode,
-      status: previousStatus,
-    }));
+    return err(
+      AppError.businessRule('accounting.period.alreadyClosed', {
+        periodCode,
+        status: previousStatus,
+      }),
+    );
   }
 
   // 5. If transitioning to 'closing', check for draft JEs
@@ -213,10 +215,12 @@ export async function closePeriod(
       .then((rows) => Number(rows[0]?.count ?? 0));
 
     if (draftCount > 0) {
-      return err(AppError.businessRule('accounting.period.hasDraftJournals', {
-        periodCode,
-        draftCount,
-      }));
+      return err(
+        AppError.businessRule('accounting.period.hasDraftJournals', {
+          periodCode,
+          draftCount,
+        }),
+      );
     }
   }
 

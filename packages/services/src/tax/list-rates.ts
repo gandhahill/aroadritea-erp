@@ -7,12 +7,12 @@
  * Permission: accounting.view (read-only)
  */
 
-import { eq, and, sql, lte, or, isNull } from 'drizzle-orm';
 import { db } from '@erp/db';
 import { taxRates } from '@erp/db/schema/accounting';
-import { type Result, ok, err, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq, isNull, lte, or, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // --- Return type ---
@@ -74,18 +74,20 @@ export async function listRates(
         .from(taxRates)
         .where(conditions.length > 0 ? and(...conditions) : undefined);
 
-      return rows.map((row): TaxRateResult => ({
-        id: row.id,
-        code: row.code,
-        name: row.name as Record<string, string>,
-        rateBps: row.rateBps,
-        ratePercent: row.rateBps / 100,
-        calculation: row.calculation,
-        postingAccountId: row.postingAccountId,
-        isActive: row.isActive,
-        effectiveFrom: row.effectiveFrom,
-        effectiveUntil: row.effectiveUntil,
-      }));
+      return rows.map(
+        (row): TaxRateResult => ({
+          id: row.id,
+          code: row.code,
+          name: row.name as Record<string, string>,
+          rateBps: row.rateBps,
+          ratePercent: row.rateBps / 100,
+          calculation: row.calculation,
+          postingAccountId: row.postingAccountId,
+          isActive: row.isActive,
+          effectiveFrom: row.effectiveFrom,
+          effectiveUntil: row.effectiveUntil,
+        }),
+      );
     },
     (e) => AppError.internal('tax.listRates.failed', e),
   );

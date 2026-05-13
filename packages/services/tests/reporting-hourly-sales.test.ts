@@ -2,7 +2,7 @@
  * Unit tests for hourly-sales.ts service (SD §25.6)
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ── Mock db — use vi.hoisted so it's available in the vi.mock factory ───────────
 const mockDbSelect = vi.hoisted(() => vi.fn());
@@ -13,10 +13,14 @@ vi.mock('../src/iam', () => ({
 }));
 
 // ── DB mock ──────────────────────────────────────────────────────────────────────
-vi.mock('@erp/db', (): typeof import('@erp/db') => ({
-  db: { select: mockDbSelect },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as any));
+vi.mock(
+  '@erp/db',
+  (): typeof import('@erp/db') =>
+    ({
+      db: { select: mockDbSelect },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as any,
+);
 
 // ── Import after mocks ──────────────────────────────────────────────────────────
 import { getHourlySales } from '../src/reporting/hourly-sales';
@@ -34,7 +38,9 @@ const BASE_CTX = {
 // WIB = UTC+7, store hours 10–22 WIB = UTC hours 3–15.
 function sale(
   id: string,
-  utcYear: number, utcMonth: number, utcDay: number,
+  utcYear: number,
+  utcMonth: number,
+  utcDay: number,
   utcHour: number,
   subtotal: string,
   channel: string,
@@ -49,13 +55,11 @@ function sale(
 
 // Helper: configure the mock to return given rows
 function withResult(rows: unknown[]) {
-  mockDbSelect.mockImplementationOnce(
-    () => ({
-      from: () => ({
-        where: () => Promise.resolve(rows),
-      }),
+  mockDbSelect.mockImplementationOnce(() => ({
+    from: () => ({
+      where: () => Promise.resolve(rows),
     }),
-  );
+  }));
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────────────

@@ -6,14 +6,10 @@
 import { createAuthClient } from 'better-auth/react';
 
 export const authClient = createAuthClient({
-  baseURL: typeof window !== 'undefined'
-    ? window.location.origin
-    : (process.env.BETTER_AUTH_URL ?? 'http://localhost:3000'),
+  baseURL:
+    typeof window !== 'undefined'
+      ? window.location.origin
+      : (process.env.BETTER_AUTH_URL ?? 'http://localhost:3000'),
 }) as ReturnType<typeof createAuthClient>;
 
-export const {
-  signIn,
-  signUp,
-  signOut,
-  useSession,
-} = authClient;
+export const { signIn, signUp, signOut, useSession } = authClient;

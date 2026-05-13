@@ -7,21 +7,14 @@
 
 'use server';
 
-import { listEmployees } from '@erp/services';
-import { getEmployee } from '@erp/services';
-import type { ListEmployeesInput } from '@erp/services';
+import { getEmployee, listEmployees } from '@erp/services/hr';
+import type { ListEmployeesInput } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
 
-export async function serverListEmployees(
-  input: ListEmployeesInput,
-  ctx: AuditContext,
-) {
+export async function serverListEmployees(input: ListEmployeesInput, ctx: AuditContext) {
   return listEmployees(input, ctx);
 }
 
-export async function serverGetEmployee(
-  employeeId: string,
-  ctx: AuditContext,
-) {
+export async function serverGetEmployee(employeeId: string, ctx: AuditContext) {
   return getEmployee(employeeId, ctx);
 }

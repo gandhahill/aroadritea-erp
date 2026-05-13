@@ -94,9 +94,7 @@ export const roles = pgTable(
     ...auditCols,
     ...versionCol,
   },
-  (t) => [
-    uniqueIndex('roles_tenant_code_idx').on(t.tenantId, t.code),
-  ],
+  (t) => [uniqueIndex('roles_tenant_code_idx').on(t.tenantId, t.code)],
 );
 
 // ================================================================
@@ -146,10 +144,7 @@ export const userRoles = pgTable(
     roleId: text('role_id').notNull(),
     locationId: text('location_id'), // NULL = global; if set, role only applies at this location
   },
-  (t) => [
-    primaryKey({ columns: [t.userId, t.roleId] }),
-    index('user_roles_user_idx').on(t.userId),
-  ],
+  (t) => [primaryKey({ columns: [t.userId, t.roleId] }), index('user_roles_user_idx').on(t.userId)],
 );
 
 // ================================================================
@@ -185,9 +180,9 @@ export const apiTokens = pgTable(
   {
     ...pk,
     userId: text('user_id').notNull(),
-    name: text('name').notNull(),           // human-readable label
+    name: text('name').notNull(), // human-readable label
     tokenHash: text('token_hash').notNull(), // SHA-256 hash of the token
-    scopeJson: jsonb('scope_json'),          // subset of user permissions; null = all user perms
+    scopeJson: jsonb('scope_json'), // subset of user permissions; null = all user perms
     expiresAt: timestamp('expires_at', { withTimezone: true }),
     lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
     revokedAt: timestamp('revoked_at', { withTimezone: true }),
@@ -232,7 +227,10 @@ export const permissionsRelations = relations(permissions, ({ many }) => ({
 
 export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => ({
   role: one(roles, { fields: [rolePermissions.roleId], references: [roles.id] }),
-  permission: one(permissions, { fields: [rolePermissions.permissionId], references: [permissions.id] }),
+  permission: one(permissions, {
+    fields: [rolePermissions.permissionId],
+    references: [permissions.id],
+  }),
 }));
 
 export const userRolesRelations = relations(userRoles, ({ one }) => ({

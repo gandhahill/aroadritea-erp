@@ -7,14 +7,14 @@
 
 import { db } from '@erp/db';
 import { kdsOrderItems } from '@erp/db/schema/kitchen';
-import { salesOrders, salesOrderLines } from '@erp/db/schema/pos';
-import { eq, and, desc, sql } from 'drizzle-orm';
-import { type Result, ok, err } from '@erp/shared/result';
+import { salesOrderLines, salesOrders } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
-import { type AuditContext } from '@erp/shared/types';
-import { requirePermission } from '../iam';
+import { type Result, err, ok } from '@erp/shared/result';
+import type { AuditContext } from '@erp/shared/types';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { auditRecord } from '../audit';
+import { requirePermission } from '../iam';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -69,10 +69,7 @@ const VALID_TRANSITIONS: Record<KdsStatus, KdsStatus[]> = {
   cancelled: [],
 };
 
-export function isValidTransition(
-  from: KdsStatus,
-  to: KdsStatus,
-): boolean {
+export function isValidTransition(from: KdsStatus, to: KdsStatus): boolean {
   return VALID_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
@@ -218,10 +215,7 @@ export async function updateKdsStatus(
     updateFields.servedAt = now;
   }
 
-  await db
-    .update(kdsOrderItems)
-    .set(updateFields)
-    .where(eq(kdsOrderItems.id, input.kdsItemId));
+  await db.update(kdsOrderItems).set(updateFields).where(eq(kdsOrderItems.id, input.kdsItemId));
 
   await auditRecord({
     action: 'update',
@@ -241,14 +235,10 @@ export async function updateKdsStatus(
     productSummary: item.productSummary,
     qrPayload: item.qrPayload,
     queuedAt: item.queuedAt,
-    makingAt:
-      input.newStatus === 'making' ? now : item.makingAt,
-    readyAt:
-      input.newStatus === 'ready' ? now : item.readyAt,
-    servedAt:
-      input.newStatus === 'served' ? now : item.servedAt,
-    preparedBy:
-      input.newStatus === 'making' ? ctx.userId : item.preparedBy,
+    makingAt: input.newStatus === 'making' ? now : item.makingAt,
+    readyAt: input.newStatus === 'ready' ? now : item.readyAt,
+    servedAt: input.newStatus === 'served' ? now : item.servedAt,
+    preparedBy: input.newStatus === 'making' ? ctx.userId : item.preparedBy,
   });
 }
 
@@ -378,9 +368,7 @@ export async function cancelOrderItems(
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function buildProductSummary(
-  line: typeof salesOrderLines.$inferSelect,
-): string {
+function buildProductSummary(line: typeof salesOrderLines.$inferSelect): string {
   const parts: string[] = [`Product: ${line.productId}`];
   if (line.modifierJson) {
     const mods = line.modifierJson as {

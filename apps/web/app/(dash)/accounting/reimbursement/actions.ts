@@ -1,6 +1,6 @@
 'use server';
 
-import { db, eq, and, desc } from '@erp/db';
+import { and, db, desc, eq } from '@erp/db';
 import { reimbursementRequests } from '@erp/db/schema/accounting';
 import { locations, users } from '@erp/db/schema/auth';
 import type { LocaleString } from '@erp/shared/types';
@@ -63,9 +63,7 @@ export async function fetchReimbursements(
 
   const userIds = [
     ...new Set(
-      rows
-        .flatMap((r) => [r.requesterId, r.approvedBy])
-        .filter((id): id is string => id !== null),
+      rows.flatMap((r) => [r.requesterId, r.approvedBy]).filter((id): id is string => id !== null),
     ),
   ];
   const userRows =
@@ -79,9 +77,7 @@ export async function fetchReimbursements(
     locIds.length > 0
       ? await db.select({ id: locations.id, name: locations.name }).from(locations)
       : [];
-  const locMap = new Map(
-    locRows.map((l) => [l.id, l.name as LocaleString]),
-  );
+  const locMap = new Map(locRows.map((l) => [l.id, l.name as LocaleString]));
 
   return rows.map((r) => ({
     id: r.id,
@@ -158,12 +154,7 @@ export async function submitReimbursement(
     const rows = await db
       .select()
       .from(reimbursementRequests)
-      .where(
-        and(
-          eq(reimbursementRequests.id, id),
-          eq(reimbursementRequests.tenantId, tenantId),
-        ),
-      )
+      .where(and(eq(reimbursementRequests.id, id), eq(reimbursementRequests.tenantId, tenantId)))
       .limit(1);
     if (!rows[0]) return { success: false, error: 'Pengajuan tidak ditemukan.' };
     if (rows[0].status !== 'draft') {
@@ -188,12 +179,7 @@ export async function approveReimbursement(
     const rows = await db
       .select()
       .from(reimbursementRequests)
-      .where(
-        and(
-          eq(reimbursementRequests.id, id),
-          eq(reimbursementRequests.tenantId, tenantId),
-        ),
-      )
+      .where(and(eq(reimbursementRequests.id, id), eq(reimbursementRequests.tenantId, tenantId)))
       .limit(1);
     if (!rows[0]) return { success: false, error: 'Pengajuan tidak ditemukan.' };
     if (rows[0].status !== 'submitted') {
@@ -225,12 +211,7 @@ export async function rejectReimbursement(
     const rows = await db
       .select()
       .from(reimbursementRequests)
-      .where(
-        and(
-          eq(reimbursementRequests.id, id),
-          eq(reimbursementRequests.tenantId, tenantId),
-        ),
-      )
+      .where(and(eq(reimbursementRequests.id, id), eq(reimbursementRequests.tenantId, tenantId)))
       .limit(1);
     if (!rows[0]) return { success: false, error: 'Pengajuan tidak ditemukan.' };
     if (rows[0].status !== 'submitted') {
@@ -260,12 +241,7 @@ export async function disburseReimbursement(
     const rows = await db
       .select()
       .from(reimbursementRequests)
-      .where(
-        and(
-          eq(reimbursementRequests.id, id),
-          eq(reimbursementRequests.tenantId, tenantId),
-        ),
-      )
+      .where(and(eq(reimbursementRequests.id, id), eq(reimbursementRequests.tenantId, tenantId)))
       .limit(1);
     if (!rows[0]) return { success: false, error: 'Pengajuan tidak ditemukan.' };
     if (rows[0].status !== 'approved') {

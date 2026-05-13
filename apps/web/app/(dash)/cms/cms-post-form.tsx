@@ -3,9 +3,9 @@
  */
 'use client';
 
-import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { createCmsPost, updateCmsPost, publishCmsPost, deleteCmsPost } from './actions';
+import { useState, useTransition } from 'react';
+import { createCmsPost, deleteCmsPost, publishCmsPost, updateCmsPost } from './actions';
 
 interface Props {
   post?: Record<string, unknown> | null;
@@ -63,8 +63,11 @@ export function CmsPostForm({ post, isNew = false }: Props) {
       content: contentVals,
       excerpt: excerptVals,
       coverImageUrl: formData.coverImageUrl || undefined,
-      tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
-      displayOrder: parseInt(formData.displayOrder, 10) || 0,
+      tags: formData.tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean),
+      displayOrder: Number.parseInt(formData.displayOrder, 10) || 0,
     };
 
     startTransition(async () => {
@@ -109,7 +112,10 @@ export function CmsPostForm({ post, isNew = false }: Props) {
   async function handlePublish() {
     setError(null);
     startTransition(async () => {
-      const result = await publishCmsPost(post!.id as string, status === 'published' ? 'draft' : 'publish');
+      const result = await publishCmsPost(
+        post!.id as string,
+        status === 'published' ? 'draft' : 'publish',
+      );
       if (!result.success) {
         setError(result.error ?? 'Gagal');
         return;
@@ -130,9 +136,13 @@ export function CmsPostForm({ post, isNew = false }: Props) {
               <code className="rounded bg-brand-cream-2 px-2 py-0.5 text-xs font-mono text-brand-ink-2">
                 /blog/{post?.slug as string}
               </code>
-              <span className={`rounded px-2 py-0.5 text-xs font-medium ${
-                status === 'published' ? 'bg-brand-jade/10 text-brand-jade' : 'bg-brand-cream-2 text-brand-ink-3'
-              }`}>
+              <span
+                className={`rounded px-2 py-0.5 text-xs font-medium ${
+                  status === 'published'
+                    ? 'bg-brand-jade/10 text-brand-jade'
+                    : 'bg-brand-cream-2 text-brand-ink-3'
+                }`}
+              >
                 {status}
               </span>
             </div>
@@ -169,7 +179,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
             <label className="mb-1 block text-sm font-medium text-brand-ink">Judul</label>
             <div className="flex gap-1 border-b border-brand-cream-3">
-              {LOCALE_TABS.map(tab => (
+              {LOCALE_TABS.map((tab) => (
                 <button
                   key={tab.code}
                   onClick={() => setActiveLocale(tab.code)}
@@ -186,7 +196,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
             <input
               type="text"
               value={titleVals[activeLocale] ?? ''}
-              onChange={e => setTitleVals(v => ({ ...v, [activeLocale]: e.target.value }))}
+              onChange={(e) => setTitleVals((v) => ({ ...v, [activeLocale]: e.target.value }))}
               className="mt-3 w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
               placeholder={`Judul post (${activeLocale.toUpperCase()})`}
             />
@@ -195,12 +205,12 @@ export function CmsPostForm({ post, isNew = false }: Props) {
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
             <label className="mb-1 block text-sm font-medium text-brand-ink">Konten</label>
             <div className="space-y-2">
-              {LOCALE_TABS.map(tab => (
+              {LOCALE_TABS.map((tab) => (
                 <div key={tab.code}>
                   <p className="mb-1 text-xs font-medium text-brand-ink-3">{tab.label}</p>
                   <textarea
                     value={contentVals[tab.code] ?? ''}
-                    onChange={e => setContentVals(v => ({ ...v, [tab.code]: e.target.value }))}
+                    onChange={(e) => setContentVals((v) => ({ ...v, [tab.code]: e.target.value }))}
                     rows={8}
                     className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                     placeholder={`Konten post (${tab.code.toUpperCase()})`}
@@ -211,14 +221,16 @@ export function CmsPostForm({ post, isNew = false }: Props) {
           </div>
 
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
-            <label className="mb-1 block text-sm font-medium text-brand-ink">Cuplikan / Excerpt</label>
+            <label className="mb-1 block text-sm font-medium text-brand-ink">
+              Cuplikan / Excerpt
+            </label>
             <div className="space-y-2">
-              {LOCALE_TABS.map(tab => (
+              {LOCALE_TABS.map((tab) => (
                 <div key={tab.code}>
                   <p className="mb-1 text-xs font-medium text-brand-ink-3">{tab.label}</p>
                   <textarea
                     value={excerptVals[tab.code] ?? ''}
-                    onChange={e => setExcerptVals(v => ({ ...v, [tab.code]: e.target.value }))}
+                    onChange={(e) => setExcerptVals((v) => ({ ...v, [tab.code]: e.target.value }))}
                     rows={2}
                     className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                     placeholder={`Cuplikan singkat (${tab.code.toUpperCase()})`}
@@ -238,7 +250,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
                 <input
                   type="text"
                   value={formData.slug}
-                  onChange={e => setFormData(v => ({ ...v, slug: e.target.value }))}
+                  onChange={(e) => setFormData((v) => ({ ...v, slug: e.target.value }))}
                   className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                   placeholder="url-slug"
                   disabled={!isNew}
@@ -250,42 +262,50 @@ export function CmsPostForm({ post, isNew = false }: Props) {
                 <label className="mb-1 block text-xs font-medium text-brand-ink-3">Kategori</label>
                 <select
                   value={formData.kind}
-                  onChange={e => setFormData(v => ({ ...v, kind: e.target.value }))}
+                  onChange={(e) => setFormData((v) => ({ ...v, kind: e.target.value }))}
                   className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                 >
-                  {KIND_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  {KIND_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-brand-ink-3">Tags (pisah koma)</label>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">
+                  Tags (pisah koma)
+                </label>
                 <input
                   type="text"
                   value={formData.tags}
-                  onChange={e => setFormData(v => ({ ...v, tags: e.target.value }))}
+                  onChange={(e) => setFormData((v) => ({ ...v, tags: e.target.value }))}
                   className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                   placeholder="teh, promo, baru"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-brand-ink-3">Urutan Tampilan</label>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">
+                  Urutan Tampilan
+                </label>
                 <input
                   type="number"
                   value={formData.displayOrder}
-                  onChange={e => setFormData(v => ({ ...v, displayOrder: e.target.value }))}
+                  onChange={(e) => setFormData((v) => ({ ...v, displayOrder: e.target.value }))}
                   className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-brand-ink-3">Gambar Cover URL</label>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">
+                  Gambar Cover URL
+                </label>
                 <input
                   type="url"
                   value={formData.coverImageUrl}
-                  onChange={e => setFormData(v => ({ ...v, coverImageUrl: e.target.value }))}
+                  onChange={(e) => setFormData((v) => ({ ...v, coverImageUrl: e.target.value }))}
                   className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                   placeholder="https://..."
                 />

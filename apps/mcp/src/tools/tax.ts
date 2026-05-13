@@ -6,14 +6,14 @@
  * - tax.export_coretax
  */
 
-import { z } from 'zod';
 import { db } from '@erp/db';
 import { taxRates, taxRules } from '@erp/db/schema/accounting';
-import { eq, and, isNull } from 'drizzle-orm';
-import { listRates } from '@erp/services/tax';
 import { can } from '@erp/services/iam';
-import { mcpError, mcpSuccess, serializeResult } from '../helpers';
+import { listRates } from '@erp/services/tax';
+import { and, eq, isNull } from 'drizzle-orm';
+import { z } from 'zod';
 import type { McpContext } from '../context';
+import { mcpError, mcpSuccess, serializeResult } from '../helpers';
 
 async function checkPermission(ctx: McpContext, permission: string) {
   return can(ctx.userId, permission);
@@ -45,7 +45,10 @@ async function listRatesHandler(input: z.infer<typeof ListRatesSchema>, ctx: Mcp
   if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: tax.view');
 
   const locale = input.locale ?? (ctx.locale as 'id' | 'en' | 'zh');
-  const rates = await listRates({ activeOnly: input.active_only }, { userId: ctx.userId, tenantId: ctx.tenantId, locationId: 'system' });
+  const rates = await listRates(
+    { activeOnly: input.active_only },
+    { userId: ctx.userId, tenantId: ctx.tenantId, locationId: 'system' },
+  );
 
   if (!rates.ok) return serializeResult(rates);
 

@@ -8,18 +8,18 @@
  */
 
 import {
+  bigint,
   boolean,
   date,
   index,
   integer,
-  bigint,
   numeric,
   pgTable,
   text,
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
-import { pk, tenantCol, locationCol, auditCols, versionCol } from './common';
+import { auditCols, locationCol, pk, tenantCol, versionCol } from './common';
 
 // ─── Stock Opname Sessions ───────────────────────────────────────────────────
 

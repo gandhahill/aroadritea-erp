@@ -1,8 +1,10 @@
+import { fileURLToPath } from 'node:url';
+import withSerwistInit from '@serwist/next';
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
-import withSerwistInit from '@serwist/next';
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
+const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 
 /**
  * @serwist/next requires InjectManifestOptions: swSrc, swDest, injectionPoint.
@@ -19,6 +21,7 @@ const withSerwist = withSerwistInit({
 const nextConfig: NextConfig = {
   transpilePackages: ['@erp/shared', '@erp/ui', '@erp/db', '@erp/offline'],
   output: 'standalone',
+  outputFileTracingRoot: repoRoot,
 };
 
 export default withNextIntl(withSerwist(nextConfig));

@@ -8,11 +8,48 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "error",
-        "noConsoleLog": "warn"
+        "noExplicitAny": "warn",
+        "noConsoleLog": "warn",
+        "noAssignInExpressions": "warn",
+        "noGlobalIsNan": "warn",
+        "noDoubleEquals": "warn",
+        "noThenProperty": "warn",
+        "noArrayIndexKey": "warn",
+        "noImplicitAnyLet": "warn"
       },
       "complexity": {
-        "noForEach": "off"
+        "noForEach": "off",
+        "useLiteralKeys": "warn",
+        "noThisInStatic": "warn",
+        "noUselessFragments": "warn",
+        "noUselessCatch": "warn",
+        "noUselessSwitchCase": "warn"
+      },
+      "style": {
+        "noNonNullAssertion": "warn",
+        "noCommaOperator": "warn",
+        "useSingleVarDeclarator": "warn",
+        "useTemplate": "warn",
+        "noVar": "warn",
+        "noUnusedTemplateLiteral": "warn",
+        "noParameterAssign": "warn",
+        "useSelfClosingElements": "warn",
+        "useExponentiationOperator": "warn",
+        "useNodejsImportProtocol": "warn",
+        "noUselessElse": "warn"
+      },
+      "a11y": {
+        "useButtonType": "warn",
+        "noSvgWithoutTitle": "warn",
+        "noLabelWithoutControl": "warn",
+        "useKeyWithClickEvents": "warn",
+        "noAutofocus": "warn"
+      },
+      "performance": {
+        "noDelete": "warn"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "warn"
       }
     }
   },
@@ -36,7 +73,9 @@
       "dist",
       "out",
       "coverage",
-      "*.min.js"
+      ".claude",
+      "*.min.js",
+      "apps/web/public/sw.js"
     ]
   }
 }

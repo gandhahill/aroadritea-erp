@@ -23,7 +23,10 @@ export const CreatePOInputSchema = z.object({
   supplierId: z.string().min(1, 'supplier is required'),
   locationId: z.string().min(1, 'location is required'),
   orderDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD format'),
-  expectedDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD format').optional(),
+  expectedDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD format')
+    .optional(),
   lines: z.array(POLineInputSchema).min(1, 'at least one line is required'),
   notes: z.string().optional(),
 });

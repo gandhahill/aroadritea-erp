@@ -7,17 +7,17 @@
  * Permission: inventory.product.update
  */
 
-import { eq, and } from 'drizzle-orm';
 import { db } from '@erp/db';
-import { products, productCategories } from '@erp/db/schema/inventory';
 import { auditLog } from '@erp/db/schema/audit';
-import { type Result, err, tryCatch } from '@erp/shared/result';
+import { productCategories, products } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
-import { UpdateProductInputSchema, type UpdateProductInput } from './schemas';
 import type { ProductResult } from './create-product';
+import { type UpdateProductInput, UpdateProductInputSchema } from './schemas';
 
 export async function updateProduct(
   input: UpdateProductInput,
@@ -75,10 +75,16 @@ export async function updateProduct(
       .then((rows) => rows[0]);
 
     if (!category) {
-      return err(AppError.notFound('inventory.product.categoryNotFound', { categoryId: data.categoryId }));
+      return err(
+        AppError.notFound('inventory.product.categoryNotFound', { categoryId: data.categoryId }),
+      );
     }
     if (!category.isActive) {
-      return err(AppError.businessRule('inventory.product.categoryInactive', { categoryId: data.categoryId }));
+      return err(
+        AppError.businessRule('inventory.product.categoryInactive', {
+          categoryId: data.categoryId,
+        }),
+      );
     }
   }
 
@@ -114,12 +120,7 @@ export async function updateProduct(
       const [updated] = await db
         .update(products)
         .set(updates)
-        .where(
-          and(
-            eq(products.id, data.productId),
-            eq(products.version, data.version),
-          ),
-        )
+        .where(and(eq(products.id, data.productId), eq(products.version, data.version)))
         .returning();
 
       if (!updated) {

@@ -9,12 +9,12 @@
  * Permission: accounting.view | reporting.view
  */
 
-import { eq, and, gte, lte, isNotNull } from 'drizzle-orm';
 import { db } from '@erp/db';
-import { salesOrders, payments } from '@erp/db/schema/pos';
-import { type Result, ok } from '@erp/shared/result';
+import { payments, salesOrders } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
+import { type Result, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq, gte, isNotNull, lte } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -22,14 +22,14 @@ import { requirePermission } from '../iam';
 export interface DonationReportParams {
   locationId?: string;
   startDate: string; // YYYY-MM-DD
-  endDate: string;   // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
 }
 
 export interface DonationDayRow {
-  date: string;           // YYYY-MM-DD
-  donationTotal: string;  // bigint string
+  date: string; // YYYY-MM-DD
+  donationTotal: string; // bigint string
   txCount: number;
-  average: string;        // bigint string (rounded)
+  average: string; // bigint string (rounded)
 }
 
 export interface DonationReportResult {
@@ -96,11 +96,7 @@ export async function getDonationReport(
       roundingOption: payments.roundingOption,
     })
     .from(payments)
-    .where(
-      and(
-        isNotNull(payments.donationAmount),
-      ),
-    );
+    .where(and(isNotNull(payments.donationAmount)));
 
   // Filter to only payments from our sales set with non-zero donation
   const relevantDonations = donationPayments.filter(
@@ -115,9 +111,7 @@ export async function getDonationReport(
     if (!saleTime) continue;
 
     // Convert to WIB date
-    const wibDate = new Date(saleTime.getTime() + 7 * 60 * 60 * 1000)
-      .toISOString()
-      .slice(0, 10);
+    const wibDate = new Date(saleTime.getTime() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
     const existing = dateMap.get(wibDate) ?? { total: 0n, count: 0 };
     existing.total += dp.donationAmount!;
@@ -139,14 +133,9 @@ export async function getDonationReport(
   });
 
   // Period totals
-  const totalDonation = relevantDonations.reduce(
-    (sum, d) => sum + (d.donationAmount ?? 0n),
-    0n,
-  );
+  const totalDonation = relevantDonations.reduce((sum, d) => sum + (d.donationAmount ?? 0n), 0n);
   const totalTransactions = relevantDonations.length;
-  const overallAverage = totalTransactions > 0
-    ? totalDonation / BigInt(totalTransactions)
-    : 0n;
+  const overallAverage = totalTransactions > 0 ? totalDonation / BigInt(totalTransactions) : 0n;
 
   return ok({
     period: { start: params.startDate, end: params.endDate },

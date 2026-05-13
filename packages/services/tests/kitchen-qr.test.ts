@@ -4,15 +4,15 @@
  * Tests: strategy encoding/decoding, demo prefix, format selection.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  dashStrategy,
-  pipeStrategy,
-  getStrategy,
-  wrapDemo,
-  isDemo,
-  unwrapDemo,
   type NaixerQRPayload,
+  dashStrategy,
+  getStrategy,
+  isDemo,
+  pipeStrategy,
+  unwrapDemo,
+  wrapDemo,
 } from '../src/kitchen/qr-strategy';
 
 // ─── Dash Strategy (Format B) ───────────────────────────────────────────────
@@ -194,9 +194,7 @@ describe('demo mode', () => {
   });
 
   it('demo wrapping works with pipe format', () => {
-    expect(wrapDemo('ORD0001|P0003|A001,M002', true)).toBe(
-      'DEMO-ORD0001|P0003|A001,M002',
-    );
+    expect(wrapDemo('ORD0001|P0003|A001,M002', true)).toBe('DEMO-ORD0001|P0003|A001,M002');
   });
 });
 
@@ -257,9 +255,7 @@ describe('edge cases', () => {
       productCode: 'PRODUCT001',
       specCodes: ['MODIFIER001', 'MODIFIER002'],
     };
-    expect(dashStrategy.encode(payload)).toBe(
-      'PRODUCT001-MODIFIER001-MODIFIER002',
-    );
+    expect(dashStrategy.encode(payload)).toBe('PRODUCT001-MODIFIER001-MODIFIER002');
   });
 
   it('spec order is preserved', () => {

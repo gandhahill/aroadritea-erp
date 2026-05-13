@@ -64,6 +64,7 @@
 35. [Resilience & Auto-Recovery](#35-resilience--auto-recovery)
 36. [Design System (Anti-Generic UI)](#36-design-system-anti-generic-ui)
 37. [TASK.md Workflow untuk AI Multi-Sesi](#37-taskmd-workflow-untuk-ai-multi-sesi)
+38. [Konfigurasi & Kustomisasi Tanpa Edit Source](#38-konfigurasi--kustomisasi-tanpa-edit-source)
 
 ---
 
@@ -4129,6 +4130,20 @@ Format: `T-NNNN` (4 digit, pad zero), di-increment global. Sumber:  baris terakh
 
 ---
 
+## 38. Konfigurasi & Kustomisasi Tanpa Edit Source
+
+Target sistem adalah fleksibel untuk operasional Aroadri Tea tanpa harus mengubah source code setiap ada perubahan bisnis. Aturan implementasi:
+
+- Konfigurasi bisnis yang berubah rutin harus disimpan di database dan dikelola lewat admin UI/seed: pajak, COA, scheduled jobs, workflow, custom field, CMS, lokasi, katalog, role, permission, dan mapping integrasi.
+- Environment variable hanya untuk secret, URL deployment, provider eksternal, dan default bootstrap yang jarang berubah.
+- Source code hanya boleh memuat default aman untuk development dan kontrak validasi. Nilai production harus bisa dioverride.
+- Bila menemukan nilai hardcoded baru di service/app, pindahkan ke DB atau env sebelum fitur dianggap production-ready.
+- Referensi operasional lengkap ada di `docs/CONFIGURATION.md`.
+
+Contoh yang sudah menjadi konfigurasi: POS mengambil kode pajak PB1 dari `POS_PB1_TAX_CODE`, tarifnya dari `tax_rates`, dan akun posting dari kode akun di environment yang di-resolve ke `accounts.id`. Member registration memakai Turnstile dan Resend via environment, dengan fallback development yang tidak aktif di production.
+
+---
+
 ## Catatan Versi
 
 | Versi | Tanggal | Penulis | Perubahan |
@@ -4138,6 +4153,7 @@ Format: `T-NNNN` (4 digit, pad zero), di-increment global. Sumber:  baris terakh
 | 1.2 | 2026-05-05 | Lintang Maulana Zulfan | Upgrade RAM 1→2 GB, update §3 + §4.3 + §24.1; tambah §33 Naixer QR Integration, §34 POS Demo Mode, §35 Resilience & Auto-Recovery, §36 Design System (anti-generic), §37 TASK.md Workflow; tabel constraints diperluas |
 | 1.3 | 2026-05-05 | Lintang Maulana Zulfan | Resolusi 4 Open Decisions: confirm Neon + better-auth di §5; expand §19.3 (PPN opt-in dengan `tax_rules`); tambah skema `tax_rules` di §9.2; update §30 (8 dari 19 keputusan resolved) |
 | 1.7 | 2026-05-12 | Lintang Maulana Zulfan | Tambah §25.5b (Omzet Harian Export — PB1 10% exclusive + koreksi fiskal manual): schema `daily_revenue_adjustments`, rumus PB1-exclusive gross÷1.10, UI inline edit, XLSX export 8 kolom, MCP tool `reporting.get_omzet_harian` |
+| 1.8 | 2026-05-13 | Codex | Tambah §38 dan `docs/CONFIGURATION.md`: kebijakan konfigurasi production/kustomisasi tanpa edit source, env wajib, POS posting, pajak, Turnstile, dan OTP email |
 
 ---
 

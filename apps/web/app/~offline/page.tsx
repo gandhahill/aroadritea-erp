@@ -51,8 +51,10 @@ export default function OfflinePage() {
           <div className="icon">📡</div>
           <h1>Offline Mode</h1>
           <p>
-            Koneksi internet terputus.<br />
-            Pesanan tetap bisa diterima dan akan tersinkron<br />
+            Koneksi internet terputus.
+            <br />
+            Pesanan tetap bisa diterima dan akan tersinkron
+            <br />
             secara otomatis saat koneksi kembali.
           </p>
           <div className="pending">

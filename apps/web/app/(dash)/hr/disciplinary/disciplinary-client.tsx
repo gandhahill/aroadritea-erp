@@ -8,9 +8,9 @@
 
 import { useState, useTransition } from 'react';
 import {
-  listDisciplinaryActionsAction,
-  createDisciplinaryActionAction,
   acknowledgeDisciplinaryActionAction,
+  createDisciplinaryActionAction,
+  listDisciplinaryActionsAction,
 } from './actions';
 
 const LEVEL_LABEL: Record<string, { short: string; color: string; desc: string }> = {
@@ -132,11 +132,15 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
       {/* Create Form */}
       {showForm && (
         <div className="rounded-xl border border-brand-cream-3 bg-card p-6">
-          <h2 className="mb-4 text-base font-semibold text-brand-ink">Buat Surat Peringatan Baru</h2>
+          <h2 className="mb-4 text-base font-semibold text-brand-ink">
+            Buat Surat Peringatan Baru
+          </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">Karyawan *</label>
+                <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">
+                  Karyawan *
+                </label>
                 <select
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value)}
@@ -145,12 +149,16 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                 >
                   <option value="">Pilih Karyawan</option>
                   {employees.map((e) => (
-                    <option key={e.value} value={e.value}>{e.label}</option>
+                    <option key={e.value} value={e.value}>
+                      {e.label}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">Tingkat *</label>
+                <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">
+                  Tingkat *
+                </label>
                 <select
                   value={level}
                   onChange={(e) => setLevel(e.target.value as 'SP1' | 'SP2' | 'SP3')}
@@ -162,7 +170,9 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                 </select>
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">Tanggal Kejadian *</label>
+                <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">
+                  Tanggal Kejadian *
+                </label>
                 <input
                   type="date"
                   value={incidentDate}
@@ -172,7 +182,9 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">Lampiran URL</label>
+                <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">
+                  Lampiran URL
+                </label>
                 <input
                   type="url"
                   value={attachmentUrl}
@@ -254,28 +266,44 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
       ) : (
         <div className="space-y-3">
           {actions.map((action) => {
-            const lvl = LEVEL_LABEL[action.level] ?? { short: 'SP1', color: 'bg-brand-gold/10 text-brand-gold', desc: '' };
-            const status = STATUS_LABEL[action.status] ?? { label: 'issued', color: 'bg-brand-gold/10 text-brand-gold' };
+            const lvl = LEVEL_LABEL[action.level] ?? {
+              short: 'SP1',
+              color: 'bg-brand-gold/10 text-brand-gold',
+              desc: '',
+            };
+            const status = STATUS_LABEL[action.status] ?? {
+              label: 'issued',
+              color: 'bg-brand-gold/10 text-brand-gold',
+            };
             return (
               <div key={action.id} className="rounded-xl border border-brand-cream-3 bg-card p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${lvl.color}`}>
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${lvl.color}`}
+                      >
                         {lvl.short}
                       </span>
-                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${status.color}`}>
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${status.color}`}
+                      >
                         {status.label}
                       </span>
                     </div>
                     <p className="mt-2 text-sm font-medium text-brand-ink">{lvl.desc}</p>
                     <p className="mt-1 text-sm text-brand-ink-3">{action.reason}</p>
                     <p className="mt-1.5 text-xs text-brand-ink-3">
-                      Incident: {formatDate(action.incidentDate)} &middot; ID: {action.id.substring(0, 8)}...
+                      Incident: {formatDate(action.incidentDate)} &middot; ID:{' '}
+                      {action.id.substring(0, 8)}...
                     </p>
                     {action.attachmentUrl && (
-                      <a href={action.attachmentUrl} target="_blank" rel="noopener noreferrer"
-                        className="mt-1.5 inline-block text-xs text-brand-ember-5 hover:text-brand-ember-6">
+                      <a
+                        href={action.attachmentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1.5 inline-block text-xs text-brand-ember-5 hover:text-brand-ember-6"
+                      >
                         📎 Lampiran
                       </a>
                     )}

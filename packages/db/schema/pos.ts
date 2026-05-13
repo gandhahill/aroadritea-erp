@@ -11,6 +11,7 @@
  * - idempotency_records — offline sync dedup (SD §35.1.1)
  */
 
+import { sql } from 'drizzle-orm';
 import {
   bigint,
   index,
@@ -22,7 +23,7 @@ import {
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
-import { pk, tenantCol, locationCol, auditCols, versionCol } from './common';
+import { auditCols, locationCol, pk, tenantCol, versionCol } from './common';
 
 // ─── Shifts ───────────────────────────────────────────────────────────────────
 
@@ -81,11 +82,11 @@ export const salesOrders = pgTable(
     placedAt: timestamp('placed_at', { withTimezone: true }).notNull().defaultNow(),
 
     // Totals (bigint rupiah — SD §7.8)
-    subtotal: bigint('subtotal', { mode: 'bigint' }).notNull().default(BigInt(0)),
-    discountTotal: bigint('discount_total', { mode: 'bigint' }).notNull().default(BigInt(0)),
-    taxTotal: bigint('tax_total', { mode: 'bigint' }).notNull().default(BigInt(0)),
+    subtotal: bigint('subtotal', { mode: 'bigint' }).notNull().default(sql`0`),
+    discountTotal: bigint('discount_total', { mode: 'bigint' }).notNull().default(sql`0`),
+    taxTotal: bigint('tax_total', { mode: 'bigint' }).notNull().default(sql`0`),
     // PB1 inclusive — back-out from subtotal for reporting
-    grandTotal: bigint('grand_total', { mode: 'bigint' }).notNull().default(BigInt(0)),
+    grandTotal: bigint('grand_total', { mode: 'bigint' }).notNull().default(sql`0`),
 
     // Customer (optional — member)
     customerId: text('customer_id'), // FK partners
@@ -129,8 +130,8 @@ export const salesOrderLines = pgTable(
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(), // inclusive PB1
 
     lineSubtotal: bigint('line_subtotal', { mode: 'bigint' }).notNull(), // qty × unit_price
-    lineDiscount: bigint('line_discount', { mode: 'bigint' }).notNull().default(BigInt(0)),
-    lineTax: bigint('line_tax', { mode: 'bigint' }).notNull().default(BigInt(0)),
+    lineDiscount: bigint('line_discount', { mode: 'bigint' }).notNull().default(sql`0`),
+    lineTax: bigint('line_tax', { mode: 'bigint' }).notNull().default(sql`0`),
     lineTotal: bigint('line_total', { mode: 'bigint' }).notNull(),
 
     // Modifier snapshot — frozen at order time
@@ -236,9 +237,7 @@ export const refundLines = pgTable(
 
     ...auditCols,
   },
-  (t) => [
-    index('refund_lines_refund_idx').on(t.refundId),
-  ],
+  (t) => [index('refund_lines_refund_idx').on(t.refundId)],
 );
 
 // ─── Idempotency Records (SD §35.1.1) ────────────────────────────────────────

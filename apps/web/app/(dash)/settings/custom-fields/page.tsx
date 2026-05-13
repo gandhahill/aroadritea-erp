@@ -3,8 +3,8 @@
  * View, create, and manage custom field definitions per entity type.
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchCustomFields } from './actions';
 import { CustomFieldsClient } from './custom-fields-client';
@@ -17,8 +17,8 @@ export default async function CustomFieldsPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const tenantId = (session.user as Record<string, unknown>)?.tenantId as string ?? 'default';
-  const userId = (session.user as Record<string, unknown>)?.id as string ?? '';
+  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
+  const userId = ((session.user as Record<string, unknown>)?.id as string) ?? '';
   const fields = await fetchCustomFields(tenantId);
 
   const ctx = { userId, tenantId, locationId: '' };

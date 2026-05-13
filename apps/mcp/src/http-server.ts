@@ -8,7 +8,7 @@ import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 
 const APP_VERSION = process.env.npm_package_version ?? '0.1.0';
-const PORT = parseInt(process.env.MCP_HTTP_PORT ?? '3002', 10);
+const PORT = Number.parseInt(process.env.MCP_HTTP_PORT ?? '3002', 10);
 
 const app = new Hono();
 

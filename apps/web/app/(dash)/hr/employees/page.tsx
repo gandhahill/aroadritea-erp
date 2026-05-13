@@ -4,11 +4,11 @@
  * Paginated employee list with search, status filter, department filter.
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
-import { db, eq, sql, desc } from '@erp/db';
+import { db, desc, eq, sql } from '@erp/db';
 import { employees } from '@erp/db/schema/hr';
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { EmployeeListClient } from './employee-list-client';
 
 export const metadata: Metadata = { title: 'Employees' };
@@ -35,11 +35,11 @@ export default async function EmployeesPage({
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const tenantId = (session.user as Record<string, unknown>)?.tenantId as string ?? 'default';
+  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
   const params = await searchParams;
   const q = params.q ?? '';
   const status = params.status ?? '';
-  const page = Math.max(1, parseInt(params.page ?? '1', 10));
+  const page = Math.max(1, Number.parseInt(params.page ?? '1', 10));
   const limit = 20;
   const offset = (page - 1) * limit;
 
@@ -101,7 +101,13 @@ export default async function EmployeesPage({
             href="/hr/employees/new"
             className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
             Add Employee
@@ -115,8 +121,16 @@ export default async function EmployeesPage({
           ...r,
           hireDate: r.hireDate?.toISOString() ?? '',
           statusLabel: STATUS_LABEL[r.status] ?? r.status,
-          statusColor: STATUS_COLOR[r.status] ?? { bg: 'bg-brand-cream-2', text: 'text-brand-ink-2' },
-          contractLabel: r.contractType === 'pkwt' ? 'PKWT' : r.contractType === 'pkwtt' ? 'PKWTT' : r.contractType,
+          statusColor: STATUS_COLOR[r.status] ?? {
+            bg: 'bg-brand-cream-2',
+            text: 'text-brand-ink-2',
+          },
+          contractLabel:
+            r.contractType === 'pkwt'
+              ? 'PKWT'
+              : r.contractType === 'pkwtt'
+                ? 'PKWTT'
+                : r.contractType,
         }))}
         total={total ?? 0}
         page={page}

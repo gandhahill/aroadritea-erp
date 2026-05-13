@@ -12,10 +12,10 @@
  */
 
 import {
-  getPendingOrders,
-  markOrderSynced,
-  markOrderRetry,
   type DbPendingOrder,
+  getPendingOrders,
+  markOrderRetry,
+  markOrderSynced,
 } from './indexeddb';
 
 // ─── Config ───────────────────────────────────────────────────────────────────

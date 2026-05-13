@@ -7,25 +7,18 @@
  */
 
 import { db } from '@erp/db';
-import {
-  purchaseOrders,
-  purchaseOrderLines,
-} from '@erp/db/schema/purchasing';
-import { accounts, accountingPeriods } from '@erp/db/schema/accounting';
+import { accountingPeriods, accounts } from '@erp/db/schema/accounting';
 import { roles, userRoles } from '@erp/db/schema/auth';
 import { products } from '@erp/db/schema/inventory';
-import { eq, and } from 'drizzle-orm';
-import { type Result, ok, err } from '@erp/shared/result';
+import { purchaseOrderLines, purchaseOrders } from '@erp/db/schema/purchasing';
 import { AppError } from '@erp/shared/errors';
-import { type AuditContext } from '@erp/shared/types';
-import { requirePermission } from '../iam';
-import { auditRecord } from '../audit';
+import { type Result, err, ok } from '@erp/shared/result';
+import type { AuditContext } from '@erp/shared/types';
+import { and, eq } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
-import {
-  SubmitPOInputSchema,
-  ApprovePOInputSchema,
-  CancelPOInputSchema,
-} from './schemas';
+import { auditRecord } from '../audit';
+import { requirePermission } from '../iam';
+import { ApprovePOInputSchema, CancelPOInputSchema, SubmitPOInputSchema } from './schemas';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -34,10 +27,7 @@ const DEFAULT_INVENTORY_ACCOUNT_CODE = '1-1210'; // Persediaan Barang Dagangan
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-async function resolveAccountId(
-  tenantId: string,
-  code: string,
-): Promise<string | null> {
+async function resolveAccountId(tenantId: string, code: string): Promise<string | null> {
   const [row] = await db
     .select({ id: accounts.id })
     .from(accounts)
@@ -99,20 +89,17 @@ export async function submitPO(
 
   const parsed = SubmitPOInputSchema.safeParse(rawInput);
   if (!parsed.success) {
-    return err(AppError.validation('purchasing.errors.invalid_input', {
-      detail: parsed.error.message,
-    }));
+    return err(
+      AppError.validation('purchasing.errors.invalid_input', {
+        detail: parsed.error.message,
+      }),
+    );
   }
 
   const [po] = await db
     .select()
     .from(purchaseOrders)
-    .where(
-      and(
-        eq(purchaseOrders.tenantId, ctx.tenantId),
-        eq(purchaseOrders.id, parsed.data.poId),
-      ),
-    )
+    .where(and(eq(purchaseOrders.tenantId, ctx.tenantId), eq(purchaseOrders.id, parsed.data.poId)))
     .limit(1);
 
   if (!po) {
@@ -120,9 +107,11 @@ export async function submitPO(
   }
 
   if (po.status !== 'draft') {
-    return err(AppError.businessRule('purchasing.errors.not_draft', {
-      currentStatus: po.status,
-    }));
+    return err(
+      AppError.businessRule('purchasing.errors.not_draft', {
+        currentStatus: po.status,
+      }),
+    );
   }
 
   await db
@@ -134,12 +123,7 @@ export async function submitPO(
       updatedBy: ctx.userId,
       version: po.version + 1,
     })
-    .where(
-      and(
-        eq(purchaseOrders.id, po.id),
-        eq(purchaseOrders.version, po.version),
-      ),
-    );
+    .where(and(eq(purchaseOrders.id, po.id), eq(purchaseOrders.version, po.version)));
 
   await auditRecord({
     action: 'submit',
@@ -170,9 +154,11 @@ export async function approvePO(
 
   const parsed = ApprovePOInputSchema.safeParse(rawInput);
   if (!parsed.success) {
-    return err(AppError.validation('purchasing.errors.invalid_input', {
-      detail: parsed.error.message,
-    }));
+    return err(
+      AppError.validation('purchasing.errors.invalid_input', {
+        detail: parsed.error.message,
+      }),
+    );
   }
 
   const director = await isDirector(ctx);
@@ -183,12 +169,7 @@ export async function approvePO(
   const [po] = await db
     .select()
     .from(purchaseOrders)
-    .where(
-      and(
-        eq(purchaseOrders.tenantId, ctx.tenantId),
-        eq(purchaseOrders.id, parsed.data.poId),
-      ),
-    )
+    .where(and(eq(purchaseOrders.tenantId, ctx.tenantId), eq(purchaseOrders.id, parsed.data.poId)))
     .limit(1);
 
   if (!po) {
@@ -196,9 +177,11 @@ export async function approvePO(
   }
 
   if (po.status !== 'submitted') {
-    return err(AppError.businessRule('purchasing.errors.not_submitted', {
-      currentStatus: po.status,
-    }));
+    return err(
+      AppError.businessRule('purchasing.errors.not_submitted', {
+        currentStatus: po.status,
+      }),
+    );
   }
 
   // Load PO lines for journal entry
@@ -218,23 +201,24 @@ export async function approvePO(
     .select()
     .from(accountingPeriods)
     .where(
-      and(
-        eq(accountingPeriods.tenantId, ctx.tenantId),
-        eq(accountingPeriods.code, periodCode),
-      ),
+      and(eq(accountingPeriods.tenantId, ctx.tenantId), eq(accountingPeriods.code, periodCode)),
     )
     .limit(1);
 
   if (!period) {
-    return err(AppError.businessRule('accounting.journal.periodNotFound', {
-      periodCode,
-    }));
+    return err(
+      AppError.businessRule('accounting.journal.periodNotFound', {
+        periodCode,
+      }),
+    );
   }
   if (period.status !== 'open') {
-    return err(AppError.businessRule('accounting.journal.periodClosed', {
-      periodCode,
-      periodStatus: period.status,
-    }));
+    return err(
+      AppError.businessRule('accounting.journal.periodClosed', {
+        periodCode,
+        periodStatus: period.status,
+      }),
+    );
   }
 
   // Resolve AP account ID
@@ -297,12 +281,7 @@ export async function approvePO(
       updatedBy: ctx.userId,
       version: po.version + 1,
     })
-    .where(
-      and(
-        eq(purchaseOrders.id, po.id),
-        eq(purchaseOrders.version, po.version),
-      ),
-    );
+    .where(and(eq(purchaseOrders.id, po.id), eq(purchaseOrders.version, po.version)));
 
   await auditRecord({
     action: 'approve',
@@ -339,20 +318,17 @@ export async function cancelPO(
 
   const parsed = CancelPOInputSchema.safeParse(rawInput);
   if (!parsed.success) {
-    return err(AppError.validation('purchasing.errors.invalid_input', {
-      detail: parsed.error.message,
-    }));
+    return err(
+      AppError.validation('purchasing.errors.invalid_input', {
+        detail: parsed.error.message,
+      }),
+    );
   }
 
   const [po] = await db
     .select()
     .from(purchaseOrders)
-    .where(
-      and(
-        eq(purchaseOrders.tenantId, ctx.tenantId),
-        eq(purchaseOrders.id, parsed.data.poId),
-      ),
-    )
+    .where(and(eq(purchaseOrders.tenantId, ctx.tenantId), eq(purchaseOrders.id, parsed.data.poId)))
     .limit(1);
 
   if (!po) {
@@ -361,9 +337,11 @@ export async function cancelPO(
 
   const NON_CANCELLABLE = new Set(['closed', 'cancelled', 'received']);
   if (NON_CANCELLABLE.has(po.status)) {
-    return err(AppError.businessRule('purchasing.errors.cannot_cancel', {
-      currentStatus: po.status,
-    }));
+    return err(
+      AppError.businessRule('purchasing.errors.cannot_cancel', {
+        currentStatus: po.status,
+      }),
+    );
   }
 
   // Approved POs: only creator or director can cancel
@@ -385,12 +363,7 @@ export async function cancelPO(
       updatedBy: ctx.userId,
       version: po.version + 1,
     })
-    .where(
-      and(
-        eq(purchaseOrders.id, po.id),
-        eq(purchaseOrders.version, po.version),
-      ),
-    );
+    .where(and(eq(purchaseOrders.id, po.id), eq(purchaseOrders.version, po.version)));
 
   await auditRecord({
     action: 'cancel',

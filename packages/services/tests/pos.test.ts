@@ -5,14 +5,14 @@
  * shift business rules, delivery channel revenue multiplier, refund business logic.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  OpenShiftInputSchema,
+  ChannelSchema,
   CloseShiftInputSchema,
   CreateSaleInputSchema,
-  VoidSaleInputSchema,
-  ChannelSchema,
+  OpenShiftInputSchema,
   RefundSaleInputSchema,
+  VoidSaleInputSchema,
 } from '../src/pos/schemas';
 
 // ─── PB1 extraction (mirrors create-sale logic) ────────────────────────────────
@@ -212,9 +212,7 @@ describe('CreateSaleInputSchema', () => {
       channel: 'walk_in',
       locationId: 'loc-001',
       idempotencyKey: 'key-001',
-      lines: [
-        { productId: 'prod-001', variantId: 'var-001', qty: 1, unitPrice: '33000' },
-      ],
+      lines: [{ productId: 'prod-001', variantId: 'var-001', qty: 1, unitPrice: '33000' }],
       payments: [{ method: 'cash', amount: '33000' }],
     });
     expect(result.success).toBe(true);
@@ -245,7 +243,16 @@ describe('CreateSaleInputSchema', () => {
   });
 
   it('accepts all valid payment methods', () => {
-    const methods = ['cash', 'qris', 'flazz', 'debit', 'credit', 'gofood', 'grabfood', 'shopeefood'];
+    const methods = [
+      'cash',
+      'qris',
+      'flazz',
+      'debit',
+      'credit',
+      'gofood',
+      'grabfood',
+      'shopeefood',
+    ];
     for (const method of methods) {
       const result = CreateSaleInputSchema.safeParse({
         shiftId: 'shift-001',
@@ -397,21 +404,17 @@ describe('PB1 extraction (10% inclusive)', () => {
 describe('Sale number format T01-YYYY-MM-NNNN', () => {
   it('matches expected pattern', () => {
     const pattern = /^T01-\d{4}-\d{2}-\d{4}$/;
-    const validNumbers = [
-      'T01-2026-01-0001',
-      'T01-2026-05-0001',
-      'T01-2026-12-9999',
-    ];
+    const validNumbers = ['T01-2026-01-0001', 'T01-2026-05-0001', 'T01-2026-12-9999'];
     for (const num of validNumbers) {
       expect(pattern.test(num)).toBe(true);
     }
     // invalid cases — wrong prefix, wrong digit count (structural only; no runtime validation)
     const invalidNumbers = [
-      'T02-2026-05-0001',    // wrong prefix
-      'T01-26-05-0001',      // 2-digit year
-      'T01-2026-05-1',       // too short
-      'T01-2026-05-00001',   // too long
-      'T01-2026-5-0001',     // single-digit month
+      'T02-2026-05-0001', // wrong prefix
+      'T01-26-05-0001', // 2-digit year
+      'T01-2026-05-1', // too short
+      'T01-2026-05-00001', // too long
+      'T01-2026-5-0001', // single-digit month
     ];
     for (const num of invalidNumbers) {
       expect(pattern.test(num)).toBe(false);
@@ -586,11 +589,9 @@ describe('Refund stock restoration', () => {
     const qtySold = 3;
 
     for (const ingredient of bomLines) {
-      const restoreQty = (parseFloat(ingredient.qty) * qtySold).toFixed(3);
+      const restoreQty = (Number.parseFloat(ingredient.qty) * qtySold).toFixed(3);
       expect(restoreQty).toBe(
-        qtySold === 3
-          ? (parseFloat(ingredient.qty) * 3).toFixed(3)
-          : expect.any(String),
+        qtySold === 3 ? (Number.parseFloat(ingredient.qty) * 3).toFixed(3) : expect.any(String),
       );
     }
   });
@@ -608,7 +609,7 @@ describe('Refund stock restoration', () => {
     };
 
     for (const ingredient of bomLines) {
-      const restoreQty = (parseFloat(ingredient.qty) * qtySold).toFixed(3);
+      const restoreQty = (Number.parseFloat(ingredient.qty) * qtySold).toFixed(3);
       expect(restoreQty).toBe(expected[ingredient.ingredientId as keyof typeof expected]);
     }
   });

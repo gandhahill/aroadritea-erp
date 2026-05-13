@@ -63,7 +63,12 @@ export async function fetchBalanceSheet(tenantId: string, asOf: string, location
   };
 }
 
-export async function fetchProfitLoss(tenantId: string, from: string, to: string, locationId?: string) {
+export async function fetchProfitLoss(
+  tenantId: string,
+  from: string,
+  to: string,
+  locationId?: string,
+) {
   const result = await plService({ from, to, locationId }, makeCtx(tenantId));
   if (!result.ok) return null;
 

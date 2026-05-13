@@ -8,21 +8,16 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { hasNoMasterData } from '@erp/offline';
 import { useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
 import { useDemoMode } from './demo-mode-context';
 import { DemoPosClient } from './demo-pos-client';
-import { hasNoMasterData } from '@erp/offline';
 
 export default function DemoPosPage() {
   const t = useTranslations('pos');
-  const {
-    isDemoMode,
-    activateDemo,
-    snapshotLoading,
-    snapshotError,
-    refreshSnapshot,
-  } = useDemoMode();
+  const { isDemoMode, activateDemo, snapshotLoading, snapshotError, refreshSnapshot } =
+    useDemoMode();
 
   const [initializing, setInitializing] = useState(true);
   const [noMasterData, setNoMasterData] = useState(false);
@@ -57,14 +52,25 @@ export default function DemoPosPage() {
     return (
       <div className="flex flex-1 flex-col items-center justify-center p-6">
         <div className="mb-4 rounded-full bg-red-100 p-4">
-          <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+          <svg
+            className="h-8 w-8 text-red-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+            />
           </svg>
         </div>
         <h2 className="mb-2 text-lg font-semibold text-brand-ink">{t('demo.snapshotFailed')}</h2>
         <p className="mb-1 text-sm text-red-600">{snapshotError}</p>
         <p className="mb-6 text-center text-xs text-brand-ink-3">
-          Pastikan Anda sudah pernah menggunakan POS produksi.<br />
+          Pastikan Anda sudah pernah menggunakan POS produksi.
+          <br />
           Data master (produk, harga, modifier) harus tersimpan di IndexedDB browser.
         </p>
         <button
@@ -82,13 +88,24 @@ export default function DemoPosPage() {
     return (
       <div className="flex flex-1 flex-col items-center justify-center p-6">
         <div className="mb-4 rounded-full bg-yellow-100 p-4">
-          <svg className="h-8 w-8 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+          <svg
+            className="h-8 w-8 text-yellow-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
+            />
           </svg>
         </div>
         <h2 className="mb-2 text-lg font-semibold text-brand-ink">{t('demo.noMasterData')}</h2>
         <p className="mb-6 text-center text-sm text-brand-ink-3">
-          Data master POS belum tersedia.<br />
+          Data master POS belum tersedia.
+          <br />
           Buka POS produksi terlebih dahulu untuk memuat data, lalu kembali ke mode demo.
         </p>
         <a

@@ -1,8 +1,8 @@
+import { getSession } from '@/lib/auth';
 /**
  * CMS Post — Edit (SD §31.3)
  */
 import type { Metadata } from 'next';
-import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { fetchCmsPost } from '../../actions';
 import { CmsPostForm } from '../../cms-post-form';

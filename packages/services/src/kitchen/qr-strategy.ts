@@ -85,7 +85,5 @@ export function isDemo(payload: string): boolean {
 }
 
 export function unwrapDemo(payload: string): string {
-  return payload.startsWith(DEMO_PREFIX)
-    ? payload.substring(DEMO_PREFIX.length)
-    : payload;
+  return payload.startsWith(DEMO_PREFIX) ? payload.substring(DEMO_PREFIX.length) : payload;
 }

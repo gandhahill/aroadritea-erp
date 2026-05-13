@@ -6,34 +6,34 @@
  * Order: tenants → locations → roles → permissions → role_permissions → users → user_roles → COA
  */
 
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
-import * as argon2 from 'argon2';
 import { generateId } from '@erp/shared/id';
+import { neon } from '@neondatabase/serverless';
+import * as argon2 from 'argon2';
+import { eq } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/neon-http';
+import { accounts, taxRates, taxRules } from '../schema/accounting';
 import {
-  tenants,
   locations,
-  roles,
   permissions,
   rolePermissions,
-  users,
+  roles,
+  tenants,
   userRoles,
+  users,
 } from '../schema/auth';
-import { accounts, taxRates, taxRules } from '../schema/accounting';
 import { scheduledJobs } from '../schema/scheduled-jobs';
+import { COA_SEED } from './coa';
 import {
   DEFAULT_TENANT,
-  LOCATIONS_SEED,
-  ROLES_SEED,
-  PERMISSIONS_SEED,
-  ROLE_PERMISSION_MAP,
   DEV_ADMIN_USER,
+  LOCATIONS_SEED,
+  PERMISSIONS_SEED,
+  ROLES_SEED,
+  ROLE_PERMISSION_MAP,
 } from './iam';
-import { COA_SEED } from './coa';
+import { SCHEDULED_JOBS_SEED } from './scheduled-jobs-seed';
 import { TAX_RATES_SEED } from './tax-rates';
 import { TAX_RULES_SEED } from './tax-rules-seed';
-import { SCHEDULED_JOBS_SEED } from './scheduled-jobs-seed';
-import { eq } from 'drizzle-orm';
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
@@ -49,11 +49,14 @@ async function seed() {
 
   // 1. Tenant
   const tenantId = DEFAULT_TENANT.id;
-  await db.insert(tenants).values({
-    id: tenantId,
-    name: DEFAULT_TENANT.name,
-    localeDefault: DEFAULT_TENANT.localeDefault,
-  }).onConflictDoNothing();
+  await db
+    .insert(tenants)
+    .values({
+      id: tenantId,
+      name: DEFAULT_TENANT.name,
+      localeDefault: DEFAULT_TENANT.localeDefault,
+    })
+    .onConflictDoNothing();
   console.log('✅ Tenant seeded');
 
   // 2. Locations
@@ -61,14 +64,17 @@ async function seed() {
   for (const loc of LOCATIONS_SEED) {
     const id = generateId();
     locationIds.set(loc.code, id);
-    await db.insert(locations).values({
-      id,
-      tenantId,
-      code: loc.code,
-      name: loc.name,
-      type: loc.type,
-      address: loc.address,
-    }).onConflictDoNothing();
+    await db
+      .insert(locations)
+      .values({
+        id,
+        tenantId,
+        code: loc.code,
+        name: loc.name,
+        type: loc.type,
+        address: loc.address,
+      })
+      .onConflictDoNothing();
   }
   console.log(`✅ ${LOCATIONS_SEED.length} locations seeded`);
 
@@ -77,12 +83,15 @@ async function seed() {
   for (const role of ROLES_SEED) {
     const id = generateId();
     roleIds.set(role.code, id);
-    await db.insert(roles).values({
-      id,
-      tenantId,
-      code: role.code,
-      name: role.name,
-    }).onConflictDoNothing();
+    await db
+      .insert(roles)
+      .values({
+        id,
+        tenantId,
+        code: role.code,
+        name: role.name,
+      })
+      .onConflictDoNothing();
   }
   console.log(`✅ ${ROLES_SEED.length} roles seeded`);
 
@@ -91,11 +100,14 @@ async function seed() {
   for (const perm of PERMISSIONS_SEED) {
     const id = generateId();
     permIds.set(perm.code, id);
-    await db.insert(permissions).values({
-      id,
-      code: perm.code,
-      module: perm.module,
-    }).onConflictDoNothing();
+    await db
+      .insert(permissions)
+      .values({
+        id,
+        code: perm.code,
+        module: perm.module,
+      })
+      .onConflictDoNothing();
   }
   console.log(`✅ ${PERMISSIONS_SEED.length} permissions seeded`);
 
@@ -107,10 +119,13 @@ async function seed() {
     for (const permCode of permCodes) {
       const permId = permIds.get(permCode);
       if (!permId) continue;
-      await db.insert(rolePermissions).values({
-        roleId,
-        permissionId: permId,
-      }).onConflictDoNothing();
+      await db
+        .insert(rolePermissions)
+        .values({
+          roleId,
+          permissionId: permId,
+        })
+        .onConflictDoNothing();
       rpCount++;
     }
   }
@@ -124,67 +139,82 @@ async function seed() {
     timeCost: 2,
     parallelism: 1,
   });
-  await db.insert(users).values({
-    id: adminId,
-    tenantId,
-    email: DEV_ADMIN_USER.email,
-    passwordHash,
-    displayName: DEV_ADMIN_USER.displayName,
-    locale: DEV_ADMIN_USER.locale,
-    status: DEV_ADMIN_USER.status,
-    emailVerified: new Date(),
-  }).onConflictDoNothing();
+  await db
+    .insert(users)
+    .values({
+      id: adminId,
+      tenantId,
+      email: DEV_ADMIN_USER.email,
+      passwordHash,
+      displayName: DEV_ADMIN_USER.displayName,
+      locale: DEV_ADMIN_USER.locale,
+      status: DEV_ADMIN_USER.status,
+      emailVerified: new Date(),
+    })
+    .onConflictDoNothing();
   console.log(`✅ Admin user seeded (${DEV_ADMIN_USER.email})`);
 
   // 7. Assign director role to admin (global scope)
   const directorRoleId = roleIds.get(DEV_ADMIN_USER.roleCode);
   if (directorRoleId) {
-    await db.insert(userRoles).values({
-      userId: adminId,
-      roleId: directorRoleId,
-      locationId: null,
-    }).onConflictDoNothing();
+    await db
+      .insert(userRoles)
+      .values({
+        userId: adminId,
+        roleId: directorRoleId,
+        locationId: null,
+      })
+      .onConflictDoNothing();
     console.log('✅ Admin assigned director role (global)');
   }
 
   // 8. COA (Chart of Accounts)
   for (const acct of COA_SEED) {
-    await db.insert(accounts).values({
-      id: generateId(),
-      tenantId,
-      code: acct.code,
-      name: acct.name,
-      type: acct.type,
-      subtype: acct.subtype,
-      normalBalance: acct.normalBalance,
-      isPostable: acct.isPostable,
-    }).onConflictDoNothing();
+    await db
+      .insert(accounts)
+      .values({
+        id: generateId(),
+        tenantId,
+        code: acct.code,
+        name: acct.name,
+        type: acct.type,
+        subtype: acct.subtype,
+        normalBalance: acct.normalBalance,
+        isPostable: acct.isPostable,
+      })
+      .onConflictDoNothing();
   }
   console.log(`✅ ${COA_SEED.length} COA accounts seeded`);
 
   // 9. Tax Rates (resolve COA codes → account IDs)
-  const coaRows = await db.select({ id: accounts.id, code: accounts.code })
+  const coaRows = await db
+    .select({ id: accounts.id, code: accounts.code })
     .from(accounts)
     .where(eq(accounts.tenantId, tenantId));
-  const coaMap = new Map(coaRows.map(r => [r.code, r.id]));
+  const coaMap = new Map(coaRows.map((r) => [r.code, r.id]));
 
   let taxCount = 0;
   for (const rate of TAX_RATES_SEED) {
     const postingAccountId = coaMap.get(rate.postingAccountCode);
     if (!postingAccountId) {
-      console.warn(`⚠️ Tax rate ${rate.code}: posting account ${rate.postingAccountCode} not found in COA, skipping`);
+      console.warn(
+        `⚠️ Tax rate ${rate.code}: posting account ${rate.postingAccountCode} not found in COA, skipping`,
+      );
       continue;
     }
-    await db.insert(taxRates).values({
-      id: generateId(),
-      code: rate.code,
-      name: rate.name,
-      rateBps: rate.rateBps,
-      calculation: rate.calculation,
-      postingAccountId,
-      isActive: rate.isActive,
-      effectiveFrom: rate.effectiveFrom,
-    }).onConflictDoNothing();
+    await db
+      .insert(taxRates)
+      .values({
+        id: generateId(),
+        code: rate.code,
+        name: rate.name,
+        rateBps: rate.rateBps,
+        calculation: rate.calculation,
+        postingAccountId,
+        isActive: rate.isActive,
+        effectiveFrom: rate.effectiveFrom,
+      })
+      .onConflictDoNothing();
     taxCount++;
   }
   console.log(`✅ ${taxCount} tax rates seeded`);
@@ -192,33 +222,39 @@ async function seed() {
   // 10. Tax Rules (SD §19.3.2 — PPN opt-in engine)
   let ruleCount = 0;
   for (const rule of TAX_RULES_SEED) {
-    await db.insert(taxRules).values({
-      id: generateId(),
-      tenantId,
-      scopeKind: rule.scopeKind,
-      scopeId: rule.scopeId,
-      taxCode: rule.taxCode,
-      isAppliedDefault: rule.isAppliedDefault,
-      priority: rule.priority,
-      effectiveFrom: rule.effectiveFrom,
-    }).onConflictDoNothing();
+    await db
+      .insert(taxRules)
+      .values({
+        id: generateId(),
+        tenantId,
+        scopeKind: rule.scopeKind,
+        scopeId: rule.scopeId,
+        taxCode: rule.taxCode,
+        isAppliedDefault: rule.isAppliedDefault,
+        priority: rule.priority,
+        effectiveFrom: rule.effectiveFrom,
+      })
+      .onConflictDoNothing();
     ruleCount++;
   }
   console.log(`✅ ${ruleCount} tax rules seeded`);
 
   // 11. Scheduled Jobs
   for (const job of SCHEDULED_JOBS_SEED) {
-    await db.insert(scheduledJobs).values({
-      id: generateId(),
-      tenantId,
-      name: job.name,
-      label: job.label,
-      description: job.description,
-      cronExpression: job.cronExpression,
-      timezone: job.timezone,
-      jobData: job.jobData,
-      enabled: true,
-    }).onConflictDoNothing();
+    await db
+      .insert(scheduledJobs)
+      .values({
+        id: generateId(),
+        tenantId,
+        name: job.name,
+        label: job.label,
+        description: job.description,
+        cronExpression: job.cronExpression,
+        timezone: job.timezone,
+        jobData: job.jobData,
+        enabled: true,
+      })
+      .onConflictDoNothing();
   }
   console.log(`✅ ${SCHEDULED_JOBS_SEED.length} scheduled jobs seeded`);
 

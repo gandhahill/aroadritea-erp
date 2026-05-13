@@ -11,16 +11,16 @@
  * - Permission: inventory.product.create
  */
 
-import { eq, and } from 'drizzle-orm';
 import { db } from '@erp/db';
-import { products, productCategories } from '@erp/db/schema/inventory';
 import { auditLog } from '@erp/db/schema/audit';
-import { type Result, ok, err, tryCatch } from '@erp/shared/result';
+import { productCategories, products } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
-import { CreateProductInputSchema, type CreateProductInput } from './schemas';
+import { type CreateProductInput, CreateProductInputSchema } from './schemas';
 
 // --- Return type ---
 
@@ -81,18 +81,19 @@ export async function createProduct(
     .select({ id: productCategories.id, isActive: productCategories.isActive })
     .from(productCategories)
     .where(
-      and(
-        eq(productCategories.tenantId, ctx.tenantId),
-        eq(productCategories.id, data.categoryId),
-      ),
+      and(eq(productCategories.tenantId, ctx.tenantId), eq(productCategories.id, data.categoryId)),
     )
     .then((rows) => rows[0]);
 
   if (!category) {
-    return err(AppError.notFound('inventory.product.categoryNotFound', { categoryId: data.categoryId }));
+    return err(
+      AppError.notFound('inventory.product.categoryNotFound', { categoryId: data.categoryId }),
+    );
   }
   if (!category.isActive) {
-    return err(AppError.businessRule('inventory.product.categoryInactive', { categoryId: data.categoryId }));
+    return err(
+      AppError.businessRule('inventory.product.categoryInactive', { categoryId: data.categoryId }),
+    );
   }
 
   // 5. Generate ID and insert

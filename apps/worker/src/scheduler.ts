@@ -4,23 +4,23 @@
  * syncs with pg-boss at startup and periodically.
  */
 
-import { eq } from 'drizzle-orm';
 import { db } from '@erp/db';
 import { scheduledJobs } from '@erp/db/schema/scheduled-jobs';
+import { eq } from 'drizzle-orm';
 import { boss } from './boss';
 import {
   backupHandler,
-  payrollBatchHandler,
-  stockLowAlertHandler,
   isrRevalidateHandler,
   outageMonitorHandler,
+  payrollBatchHandler,
+  stockLowAlertHandler,
 } from './jobs/index';
 import type {
   BackupJobData,
-  PayrollJobData,
-  StockAlertJobData,
   IsrRevalidateJobData,
   OutageMonitorJobData,
+  PayrollJobData,
+  StockAlertJobData,
 } from './jobs/index';
 
 // --- Handler map ---
@@ -46,10 +46,7 @@ const scheduled = new Map<string, string>(); // name → cron expression
  * Called on startup and periodically (every 60 seconds).
  */
 export async function syncSchedules(): Promise<void> {
-  const jobs = await db
-    .select()
-    .from(scheduledJobs)
-    .where(eq(scheduledJobs.enabled, true));
+  const jobs = await db.select().from(scheduledJobs).where(eq(scheduledJobs.enabled, true));
 
   const dbJobNames = new Set(jobs.map((j) => j.name));
 
@@ -61,7 +58,9 @@ export async function syncSchedules(): Promise<void> {
         scheduled.delete(name);
         console.info(`[scheduler] Unscheduled job: ${name}`);
       } catch (err) {
-        console.error(`[scheduler] Failed to unschedule ${name}`, { error: err instanceof Error ? err.message : String(err) });
+        console.error(`[scheduler] Failed to unschedule ${name}`, {
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
     }
   }
@@ -79,7 +78,11 @@ export async function syncSchedules(): Promise<void> {
     if (currentCron !== job.cronExpression) {
       // Unschedule first (ignore error if not scheduled)
       if (scheduled.has(job.name)) {
-        try { await boss.unschedule(job.name); } catch { /* ignore */ }
+        try {
+          await boss.unschedule(job.name);
+        } catch {
+          /* ignore */
+        }
       }
 
       // Register handler (pg-boss needs handler registered before scheduling)
@@ -121,7 +124,9 @@ export async function startScheduler(): Promise<void> {
     try {
       await syncSchedules();
     } catch (err) {
-      console.error('[scheduler] Periodic sync failed', { error: err instanceof Error ? err.message : String(err) });
+      console.error('[scheduler] Periodic sync failed', {
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   }, 60_000);
 }

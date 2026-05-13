@@ -7,13 +7,13 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 import {
-  getVarianceReport,
   type VarianceReportParams,
   type VarianceReportResult,
+  getVarianceReport,
 } from '@erp/services/inventory';
-import { type AuditContext } from '@erp/shared/types';
+import type { AuditContext } from '@erp/shared/types';
+import { redirect } from 'next/navigation';
 
 function buildCtx(session: Awaited<ReturnType<typeof getSession>>): AuditContext {
   const user = session?.user as Record<string, unknown> | null;

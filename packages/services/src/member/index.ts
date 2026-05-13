@@ -1,25 +1,26 @@
+import { createHash, randomBytes } from 'crypto';
+import { db } from '@erp/db';
+import { partners } from '@erp/db/schema/accounting';
+import {
+  memberCredentials,
+  memberLoyalty,
+  memberOtpCodes,
+  memberPointsTransactions,
+  memberSessions,
+  memberSignupAttempts,
+  memberVouchers,
+} from '@erp/db/schema/member';
+import { AppError } from '@erp/shared/errors';
+import { type Result, err, ok } from '@erp/shared/result';
+import type { AuditContext } from '@erp/shared/types';
 /**
  * Member Service — SD §31.5, §31.6
  *
  * Member registration, OTP authentication, session management, loyalty.
  * All reads are server-side (site app); writes go through this service.
  */
-import { and, eq, desc, gte, sql, count, asc } from 'drizzle-orm';
-import { db } from '@erp/db';
-import {
-  memberSignupAttempts,
-  memberOtpCodes,
-  memberSessions,
-  memberLoyalty,
-  memberVouchers,
-  memberPointsTransactions,
-} from '@erp/db/schema/member';
-import { partners } from '@erp/db/schema/accounting';
-import { type Result, ok, err } from '@erp/shared/result';
-import { AppError } from '@erp/shared/errors';
-import type { AuditContext } from '@erp/shared/types';
+import { and, asc, count, desc, eq, gte, sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { createHash, randomBytes } from 'crypto';
 
 // ─── Rate limiting constants ───────────────────────────────────────────────
 
@@ -32,18 +33,25 @@ const TOKEN_EXPIRY_MINUTES = 30;
 
 export const SignupInputSchema = z.object({
   email: z.string().email().max(254),
-  phone: z.string().min(10).max(20).regex(/^\+?[0-9]+$/, 'Invalid phone number'),
+  phone: z
+    .string()
+    .min(10)
+    .max(20)
+    .regex(/^\+?[0-9]+$/, 'Invalid phone number'),
   name: z.string().min(2).max(100),
   birthDate: z.string().optional(), // YYYY-MM-DD
   city: z.string().optional(),
-  passwordHash: z.string().min(8), // bcrypt/argon2 hash, not plain text
-  consentGiven: z.boolean().refine(v => v === true, 'Consent is required'),
+  password: z.string().min(8).max(128),
+  consentGiven: z.boolean().refine((v) => v === true, 'Consent is required'),
   turnstileToken: z.string().min(1), // Cloudflare Turnstile token
 });
 
 export const VerifyOtpInputSchema = z.object({
   token: z.string().min(1), // short-lived token from signup step
-  code: z.string().length(6).regex(/^\d{6}$/),
+  code: z
+    .string()
+    .length(6)
+    .regex(/^\d{6}$/),
 });
 
 export const ResendOtpInputSchema = z.object({
@@ -55,8 +63,8 @@ export const CompleteSignupInputSchema = z.object({
   name: z.string().min(2).max(100),
   birthDate: z.string().optional(),
   city: z.string().optional(),
-  passwordHash: z.string().min(8),
-  consentGiven: z.boolean().refine(v => v === true, 'Consent is required'),
+  password: z.string().min(8).max(128).optional(),
+  consentGiven: z.boolean().refine((v) => v === true, 'Consent is required'),
 });
 
 export type SignupInput = z.infer<typeof SignupInputSchema>;
@@ -83,6 +91,57 @@ function minutesFromNow(minutes: number): Date {
   return new Date(Date.now() + minutes * 60 * 1000);
 }
 
+async function verifyTurnstile(token: string, ipAddress?: string): Promise<boolean> {
+  const secret = process.env.TURNSTILE_SECRET_KEY;
+  if (!secret) return process.env.NODE_ENV !== 'production' && token === 'dev-token';
+
+  const formData = new FormData();
+  formData.set('secret', secret);
+  formData.set('response', token);
+  if (ipAddress) formData.set('remoteip', ipAddress);
+
+  const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    body: formData,
+  });
+  if (!response.ok) return false;
+
+  const payload = (await response.json()) as { success?: boolean };
+  return payload.success === true;
+}
+
+async function sendSignupOtp(email: string, code: string): Promise<Result<void>> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.MEMBER_OTP_FROM_EMAIL;
+
+  if (!apiKey || !from) {
+    if (process.env.NODE_ENV === 'production') {
+      return err(AppError.internal('member.signup.otpProviderNotConfigured'));
+    }
+    console.info(`[member] Development OTP for ${email}: ${code}`);
+    return ok(undefined);
+  }
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to: email,
+      subject: 'Kode OTP Aroadri Tea',
+      text: `Kode OTP Aroadri Tea Anda: ${code}. Kode berlaku ${OTP_EXPIRY_MINUTES} menit.`,
+    }),
+  });
+
+  if (!response.ok) {
+    return err(AppError.internal('member.signup.otpSendFailed', { status: response.status }));
+  }
+  return ok(undefined);
+}
+
 // ─── Signup ─────────────────────────────────────────────────────────────────
 
 /**
@@ -96,12 +155,23 @@ export async function initiateSignup(
 ): Promise<Result<{ token: string }>> {
   const parsed = SignupInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('member.signup.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('member.signup.validationFailed', { issues: parsed.error.issues }),
+    );
   }
 
-  // TODO: Verify Turnstile token (server-side verify via Cloudflare API)
-  // const turnstileValid = await verifyTurnstile(input.turnstileToken, ipAddress);
-  // if (!turnstileValid) return err(AppError.forbidden('member.signup.captchaFailed'));
+  const turnstileValid = await verifyTurnstile(input.turnstileToken, ipAddress);
+  if (!turnstileValid) {
+    await db.insert(memberSignupAttempts).values({
+      id: crypto.randomUUID(),
+      email: input.email,
+      phone: input.phone,
+      ipAddress,
+      userAgent,
+      outcome: 'failed_captcha',
+    });
+    return err(AppError.forbidden('member.signup.captchaFailed'));
+  }
 
   // Rate limit per IP
   const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
@@ -145,6 +215,8 @@ export async function initiateSignup(
   const codeHash = hashOtp(code);
   const expiresAt = minutesFromNow(OTP_EXPIRY_MINUTES);
   const tokenExpiresAt = minutesFromNow(TOKEN_EXPIRY_MINUTES);
+  const { hashPassword } = await import('../auth/password');
+  const passwordHash = await hashPassword(input.password);
 
   // Store signup payload in encrypted JSON (for later account creation)
   const payloadJson = JSON.stringify({
@@ -152,13 +224,13 @@ export async function initiateSignup(
     phone: input.phone,
     birthDate: input.birthDate,
     city: input.city,
-    passwordHash: input.passwordHash,
+    passwordHash,
   });
 
   await db.insert(memberOtpCodes).values({
     id: crypto.randomUUID(),
     purpose: 'signup',
-    channel: input.phone.startsWith('+62') || input.phone.startsWith('62') ? 'wa' : 'email',
+    channel: 'email',
     recipient: input.email,
     codeHash,
     expiresAt,
@@ -168,8 +240,8 @@ export async function initiateSignup(
     payloadJson,
   });
 
-  // TODO: Send OTP via email (Resend/SES) or WhatsApp
-  // await sendOtpEmail(input.email, code);
+  const sendResult = await sendSignupOtp(input.email, code);
+  if (!sendResult.ok) return sendResult;
 
   await db.insert(memberSignupAttempts).values({
     id: crypto.randomUUID(),
@@ -180,7 +252,7 @@ export async function initiateSignup(
     outcome: 'otp_sent',
   });
 
-  // DEV mode: return OTP in response so testers can verify without email
+  // Development mode: return OTP in response so testers can verify without email.
   const devCode = process.env.NODE_ENV === 'development' ? code : undefined;
   return ok({ token: devCode ? `${token}:${code}` : token });
 }
@@ -196,7 +268,9 @@ export async function verifySignupOtp(
 ): Promise<Result<{ verified: boolean }>> {
   const parsed = VerifyOtpInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('member.verifyOtp.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('member.verifyOtp.validationFailed', { issues: parsed.error.issues }),
+    );
   }
 
   // Parse token and dev-only code
@@ -245,7 +319,10 @@ export async function verifySignupOtp(
   }
 
   // Mark OTP as consumed
-  await db.update(memberOtpCodes).set({ consumedAt: new Date() }).where(eq(memberOtpCodes.id, otpRecord.id));
+  await db
+    .update(memberOtpCodes)
+    .set({ consumedAt: new Date() })
+    .where(eq(memberOtpCodes.id, otpRecord.id));
   return ok({ verified: true });
 }
 
@@ -261,7 +338,11 @@ export async function completeSignup(
 ): Promise<Result<{ memberId: string; sessionToken: string }>> {
   const parsed = CompleteSignupInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('member.completeSignup.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('member.completeSignup.validationFailed', {
+        issues: parsed.error.issues,
+      }),
+    );
   }
 
   let token = input.token;
@@ -286,13 +367,22 @@ export async function completeSignup(
   let storedPayload: Record<string, string> = {};
   try {
     if (otpRecord.payloadJson) storedPayload = JSON.parse(otpRecord.payloadJson as string);
-  } catch { /* use form data as fallback */ }
+  } catch {
+    /* use form data as fallback */
+  }
 
   const name = input.name || storedPayload.name || email;
   const phone = storedPayload.phone ?? '';
-  const passwordHash = input.passwordHash || storedPayload.passwordHash || '';
+  const { hashPassword } = await import('../auth/password');
+  const passwordHash = input.password
+    ? await hashPassword(input.password)
+    : storedPayload.passwordHash || '';
   const birthDate = input.birthDate || storedPayload.birthDate;
   const city = input.city || storedPayload.city;
+
+  if (!passwordHash) {
+    return err(AppError.validation('member.completeSignup.passwordMissing'));
+  }
 
   // Create partner record
   let memberId: string;
@@ -325,6 +415,35 @@ export async function completeSignup(
     return err(AppError.internal('member.completeSignup.createFailed', e));
   }
 
+  try {
+    const existingCredential = await db
+      .select({ id: memberCredentials.id })
+      .from(memberCredentials)
+      .where(eq(memberCredentials.memberId, memberId))
+      .limit(1);
+
+    if (existingCredential[0]) {
+      await db
+        .update(memberCredentials)
+        .set({
+          passwordHash,
+          passwordUpdatedAt: new Date(),
+          updatedBy: ctx?.userId ?? 'system',
+        })
+        .where(eq(memberCredentials.id, existingCredential[0].id));
+    } else {
+      await db.insert(memberCredentials).values({
+        id: crypto.randomUUID(),
+        memberId,
+        passwordHash,
+        createdBy: ctx?.userId ?? 'system',
+        updatedBy: ctx?.userId ?? 'system',
+      });
+    }
+  } catch (e) {
+    return err(AppError.internal('member.completeSignup.credentialFailed', e));
+  }
+
   // Create member session
   const sessionToken = randomBytes(48).toString('hex');
   const tokenHash = createHash('sha256').update(sessionToken).digest('hex');
@@ -347,7 +466,9 @@ export async function completeSignup(
       createdBy: ctx?.userId ?? 'system',
       updatedBy: ctx?.userId ?? 'system',
     });
-  } catch { /* loyalty may already exist */ }
+  } catch {
+    /* loyalty may already exist */
+  }
 
   // Mark signup as verified
   const recentAttempt = await db
@@ -380,10 +501,9 @@ export async function validateMemberSession(
     const sessions = await db
       .select({ id: memberSessions.id, memberId: memberSessions.memberId })
       .from(memberSessions)
-      .where(and(
-        eq(memberSessions.tokenHash, tokenHash),
-        gte(memberSessions.expiresAt, new Date()),
-      ))
+      .where(
+        and(eq(memberSessions.tokenHash, tokenHash), gte(memberSessions.expiresAt, new Date())),
+      )
       .limit(1);
 
     if (!sessions[0]) return ok(null);
@@ -454,7 +574,11 @@ export async function earnPoints(
         createdBy: ctx.userId,
         updatedBy: ctx.userId,
       });
-      loyaltyRows = await db.select().from(memberLoyalty).where(eq(memberLoyalty.memberId, memberId)).limit(1);
+      loyaltyRows = await db
+        .select()
+        .from(memberLoyalty)
+        .where(eq(memberLoyalty.memberId, memberId))
+        .limit(1);
     }
 
     const record = loyaltyRows[0];
@@ -465,7 +589,12 @@ export async function earnPoints(
 
     await db
       .update(memberLoyalty)
-      .set({ points: newPoints, lifetimePoints: newLifetime, lastEarnedAt: new Date(), updatedBy: ctx.userId })
+      .set({
+        points: newPoints,
+        lifetimePoints: newLifetime,
+        lastEarnedAt: new Date(),
+        updatedBy: ctx.userId,
+      })
       .where(eq(memberLoyalty.memberId, memberId));
 
     await db.insert(memberPointsTransactions).values({
@@ -537,7 +666,11 @@ export async function redeemPoints(
       balanceAfter: newBalance,
       referenceType: 'voucher_redeem',
       referenceId: voucherCode,
-      description: { id: `Tukar ${pointsToRedeem} poin untuk voucher`, en: `Redeem ${pointsToRedeem} points for voucher`, zh: `兑换${pointsToRedeem}积分` },
+      description: {
+        id: `Tukar ${pointsToRedeem} poin untuk voucher`,
+        en: `Redeem ${pointsToRedeem} points for voucher`,
+        zh: `兑换${pointsToRedeem}积分`,
+      },
       createdBy: ctx.userId,
       updatedBy: ctx.userId,
     });
@@ -579,10 +712,10 @@ export async function getMemberVouchers(
     const now = new Date();
     let filtered = rows;
     if (options?.activeOnly) {
-      filtered = filtered.filter(v => v.isActive && v.validFrom <= now && v.validUntil >= now);
+      filtered = filtered.filter((v) => v.isActive && v.validFrom <= now && v.validUntil >= now);
     }
     if (options?.unusedOnly) {
-      filtered = filtered.filter(v => v.isActive && !v.usedAt && v.validUntil >= now);
+      filtered = filtered.filter((v) => v.isActive && !v.usedAt && v.validUntil >= now);
     }
     return ok(filtered);
   } catch (e) {

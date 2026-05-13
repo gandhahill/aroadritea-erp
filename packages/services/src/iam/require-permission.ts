@@ -4,9 +4,9 @@
  * SD §11.2.2
  */
 
-import { type Result, ok, err } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
-import { can, type PermissionContext } from './permission-engine';
+import { type Result, err, ok } from '@erp/shared/result';
+import { type PermissionContext, can } from './permission-engine';
 
 /**
  * Check permission and return a Result.

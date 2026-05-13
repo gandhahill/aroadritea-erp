@@ -6,7 +6,7 @@
 
 'use server';
 
-import { db, eq, desc } from '@erp/db';
+import { db, desc, eq } from '@erp/db';
 import { scheduledJobs } from '@erp/db/schema/scheduled-jobs';
 
 export interface ScheduledJobItem {
@@ -65,9 +65,7 @@ export async function toggleScheduledJob(
         enabled,
         updatedAt: new Date(),
       })
-      .where(
-        eq(scheduledJobs.id, jobId),
-      )
+      .where(eq(scheduledJobs.id, jobId))
       .returning({ id: scheduledJobs.id });
 
     if (result.length === 0) {
@@ -104,9 +102,7 @@ export async function updateJobSchedule(
         cronExpression: cronExpression.trim(),
         updatedAt: new Date(),
       })
-      .where(
-        eq(scheduledJobs.id, jobId),
-      )
+      .where(eq(scheduledJobs.id, jobId))
       .returning({ id: scheduledJobs.id });
 
     if (result.length === 0) {

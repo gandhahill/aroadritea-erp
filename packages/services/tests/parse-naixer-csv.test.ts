@@ -2,11 +2,8 @@
  * Tests for Naixer CSV parsing — T-0083
  */
 
-import { describe, it, expect } from 'vitest';
-import {
-  parseProductCodesCsv,
-  parseModifierCodesCsv,
-} from '../src/kitchen/parse-naixer-csv';
+import { describe, expect, it } from 'vitest';
+import { parseModifierCodesCsv, parseProductCodesCsv } from '../src/kitchen/parse-naixer-csv';
 
 // ─── Product codes CSV ──────────────────────────────────────────────────────
 
@@ -100,7 +97,7 @@ abc-123,`;
   });
 
   it('handles CRLF line endings', () => {
-    const csv = "product_id,naixer_code\r\nabc-123,T003\r\ndef-456,T004";
+    const csv = 'product_id,naixer_code\r\nabc-123,T003\r\ndef-456,T004';
     const result = parseProductCodesCsv(csv);
     expect(result.errors).toHaveLength(0);
     expect(result.rows).toHaveLength(2);

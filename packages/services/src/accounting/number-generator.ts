@@ -10,7 +10,7 @@
 
 import { db } from '@erp/db';
 import { journalEntries } from '@erp/db/schema/accounting';
-import { eq, and, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 /**
  * Generate the next journal entry number for a given tenant + posting date.

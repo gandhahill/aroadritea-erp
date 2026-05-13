@@ -1,5 +1,5 @@
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchPettyCashAccounts, fetchPettyCashTransactions } from './actions';
 import { PettyCashView } from './petty-cash-view';
@@ -12,7 +12,7 @@ export default async function PettyCashPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const tenantId = (session.user as Record<string, unknown>)?.tenantId as string ?? 'default';
+  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
   const accounts = await fetchPettyCashAccounts(tenantId);
 
   const transactions: Record<string, Awaited<ReturnType<typeof fetchPettyCashTransactions>>> = {};

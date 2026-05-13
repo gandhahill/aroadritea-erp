@@ -11,16 +11,16 @@
 
 'use client';
 
-import { useState, useTransition } from 'react';
+import type { ChannelHourRow, DayHourRow, HourlySalesResult } from '@erp/services/reporting';
 import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
 import { fetchHourlySales } from './actions';
-import type { HourlySalesResult, ChannelHourRow, DayHourRow } from '@erp/services/reporting';
 
 // ─── Formatters ────────────────────────────────────────────────────────────────
 
 function formatIDR(v: string | number | bigint | null | undefined): string {
   if (!v) return '—';
-  const num = typeof v === 'string' ? parseInt(v, 10) : Number(v);
+  const num = typeof v === 'string' ? Number.parseInt(v, 10) : Number(v);
   if (isNaN(num)) return '—';
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -49,11 +49,11 @@ const CHANNEL_COLORS: Record<string, string> = {
 };
 
 const HEATMAP_COLORS: [string, string][] = [
-  ['#FDE8E8', '#C0392B'],  // very low → red
-  ['#FEF3C7', '#D97706'],  // low → orange
-  ['#FEF9C3', '#CA8A04'],  // medium-low → yellow
-  ['#D1FAE5', '#059669'],  // medium → green
-  ['#A7F3D0', '#047857'],  // high → dark green
+  ['#FDE8E8', '#C0392B'], // very low → red
+  ['#FEF3C7', '#D97706'], // low → orange
+  ['#FEF9C3', '#CA8A04'], // medium-low → yellow
+  ['#D1FAE5', '#059669'], // medium → green
+  ['#A7F3D0', '#047857'], // high → dark green
 ];
 
 function heatColor(value: number, max: number): string {
@@ -134,9 +134,13 @@ function Heatmap({ data }: { data: HourlySalesResult }) {
       <table className="w-full text-xs">
         <thead>
           <tr className="border-b border-brand-cream-3">
-            <th className="sticky left-0 bg-white px-3 py-2 text-left font-medium text-brand-ink-2">Channel</th>
+            <th className="sticky left-0 bg-white px-3 py-2 text-left font-medium text-brand-ink-2">
+              Channel
+            </th>
             {STORE_HOURS.map((h) => (
-              <th key={h} className="px-1.5 py-2 text-center font-medium text-brand-ink-2">{h}</th>
+              <th key={h} className="px-1.5 py-2 text-center font-medium text-brand-ink-2">
+                {h}
+              </th>
             ))}
             <th className="px-3 py-2 text-right font-medium text-brand-ink-2">Total</th>
           </tr>
@@ -144,7 +148,8 @@ function Heatmap({ data }: { data: HourlySalesResult }) {
         <tbody>
           {data.channelRows.map((row) => {
             const channelTotal = Object.values(row.hourBreakdown).reduce(
-              (sum, c) => sum + BigInt(c.grossSales), 0n,
+              (sum, c) => sum + BigInt(c.grossSales),
+              0n,
             );
             return (
               <tr key={row.channel} className="border-b border-brand-cream-3 last:border-b-0">
@@ -164,7 +169,9 @@ function Heatmap({ data }: { data: HourlySalesResult }) {
                       title={`${formatIDR(gross)} / ${tx} tx`}
                     >
                       <span className="block font-medium text-brand-ink">{tx > 0 ? tx : '—'}</span>
-                      <span className="block text-[10px] text-brand-ink-3">{tx > 0 ? formatIDR(gross).replace('Rp', '').trim() : ''}</span>
+                      <span className="block text-[10px] text-brand-ink-3">
+                        {tx > 0 ? formatIDR(gross).replace('Rp', '').trim() : ''}
+                      </span>
                     </td>
                   );
                 })}
@@ -185,7 +192,9 @@ function Heatmap({ data }: { data: HourlySalesResult }) {
                 </td>
               );
             })}
-            <td className="px-3 py-2 text-right text-brand-ink">{formatIDR(data.totalGrossSales)}</td>
+            <td className="px-3 py-2 text-right text-brand-ink">
+              {formatIDR(data.totalGrossSales)}
+            </td>
           </tr>
         </tbody>
       </table>
@@ -208,7 +217,9 @@ function DayTable({ data }: { data: HourlySalesResult }) {
           <tr className="border-b border-brand-cream-3 bg-brand-cream-2">
             <th className="px-4 py-2.5 text-left font-medium text-brand-ink-2">Tanggal</th>
             {STORE_HOURS.map((h) => (
-              <th key={h} className="px-1.5 py-2.5 text-center font-medium text-brand-ink-2">{h}</th>
+              <th key={h} className="px-1.5 py-2.5 text-center font-medium text-brand-ink-2">
+                {h}
+              </th>
             ))}
             <th className="px-3 py-2.5 text-right font-medium text-brand-ink-2">Total Tx</th>
             <th className="px-3 py-2.5 text-right font-medium text-brand-ink-2">Total Penjualan</th>
@@ -218,12 +229,17 @@ function DayTable({ data }: { data: HourlySalesResult }) {
           {data.dayRows.map((row) => {
             const dayTotalTx = Object.values(row.hourBreakdown).reduce((s, c) => s + c.txCount, 0);
             const dayTotalGross = Object.values(row.hourBreakdown).reduce(
-              (s, c) => s + BigInt(c.grossSales), 0n,
+              (s, c) => s + BigInt(c.grossSales),
+              0n,
             );
             return (
               <tr key={row.date} className="border-b border-brand-cream-3 last:border-b-0">
                 <td className="px-4 py-2.5 font-medium text-brand-ink">
-                  {new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(row.date + 'T00:00:00+07:00'))}
+                  {new Intl.DateTimeFormat('id-ID', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                  }).format(new Date(row.date + 'T00:00:00+07:00'))}
                 </td>
                 {STORE_HOURS.map((h) => {
                   const cell = row.hourBreakdown[h]!;
@@ -234,7 +250,9 @@ function DayTable({ data }: { data: HourlySalesResult }) {
                   );
                 })}
                 <td className="px-3 py-2.5 text-right font-medium text-brand-ink">{dayTotalTx}</td>
-                <td className="px-3 py-2.5 text-right font-medium text-brand-ink">{formatIDR(dayTotalGross.toString())}</td>
+                <td className="px-3 py-2.5 text-right font-medium text-brand-ink">
+                  {formatIDR(dayTotalGross.toString())}
+                </td>
               </tr>
             );
           })}
@@ -270,11 +288,19 @@ function buildXlsxData(data: HourlySalesResult): unknown[][] {
     rows.push(['Tanggal', ...STORE_HOURS.map((h) => `${h}:00`), 'Total Tx', 'Total Penjualan']);
     for (const row of data.dayRows) {
       const dayTotalTx = Object.values(row.hourBreakdown).reduce((s, c) => s + c.txCount, 0);
-      const dayTotalGross = Object.values(row.hourBreakdown).reduce((s, c) => s + BigInt(c.grossSales), 0n);
-      rows.push([row.date, ...STORE_HOURS.map((h) => {
-        const c = row.hourBreakdown[h];
-        return c && c.txCount > 0 ? c.txCount : '—';
-      }), dayTotalTx, formatIDR(dayTotalGross.toString())]);
+      const dayTotalGross = Object.values(row.hourBreakdown).reduce(
+        (s, c) => s + BigInt(c.grossSales),
+        0n,
+      );
+      rows.push([
+        row.date,
+        ...STORE_HOURS.map((h) => {
+          const c = row.hourBreakdown[h];
+          return c && c.txCount > 0 ? c.txCount : '—';
+        }),
+        dayTotalTx,
+        formatIDR(dayTotalGross.toString()),
+      ]);
     }
   }
 
@@ -285,7 +311,10 @@ function handleExportXlsx(data: HourlySalesResult) {
   const rows = buildXlsxData(data);
   // Build a simple TSV format (similar to the donations export)
   const header = rows[0]!.join('\t');
-  const bodyRows = rows.slice(1).map((r) => r.join('\t')).join('\n');
+  const bodyRows = rows
+    .slice(1)
+    .map((r) => r.join('\t'))
+    .join('\n');
   const csv = '﻿' + header + '\n' + bodyRows;
   const blob = new Blob([csv], { type: 'text/tab-separated-values;charset=utf-8' });
   const url = URL.createObjectURL(blob);
@@ -353,8 +382,18 @@ export function HourlySalesClient({
             onClick={() => handleExportXlsx(data)}
             className="flex items-center gap-2 rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-2"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
             Export XLSX
           </button>
@@ -430,7 +469,9 @@ export function HourlySalesClient({
           {groupBy === 'channel' && data.channelRows && (
             <>
               <div>
-                <h2 className="mb-2 text-sm font-semibold text-brand-ink-2">Heatmap — Penjualan Per Jam (10:00–22:00 WIB)</h2>
+                <h2 className="mb-2 text-sm font-semibold text-brand-ink-2">
+                  Heatmap — Penjualan Per Jam (10:00–22:00 WIB)
+                </h2>
                 <Heatmap data={data} />
               </div>
             </>

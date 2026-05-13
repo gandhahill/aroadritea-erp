@@ -7,7 +7,7 @@
  * NOTE: Integration tests with real DB via T-0030 (resilience tests).
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // --- Sequenced DB Mock ---
 // The createJournal function makes these DB calls in order:
@@ -58,10 +58,10 @@ vi.mock('../src/iam', () => ({
   }),
 }));
 
+import type { AuditContext } from '@erp/shared/types';
 // --- Import after mocks ---
 import { createJournal } from '../src/accounting/create-journal';
 import { CreateJournalInputSchema } from '../src/accounting/schemas';
-import type { AuditContext } from '@erp/shared/types';
 
 // --- Test data factories ---
 

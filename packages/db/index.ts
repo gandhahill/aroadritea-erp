@@ -162,4 +162,20 @@ export {
 } from './schema/workflow';
 
 // Drizzle-ORM operators (re-exported for downstream consumers)
-export { eq, and, or, not, lte, gte, lt, gt, isNull, isNotNull, sql, inArray, desc, asc, ilike } from 'drizzle-orm';
+export {
+  eq,
+  and,
+  or,
+  not,
+  lte,
+  gte,
+  lt,
+  gt,
+  isNull,
+  isNotNull,
+  sql,
+  inArray,
+  desc,
+  asc,
+  ilike,
+} from 'drizzle-orm';

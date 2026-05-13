@@ -5,7 +5,13 @@
 // Product CRUD
 export { createProduct, type ProductResult } from './create-product';
 export { updateProduct } from './update-product';
-export { listProducts, getProduct, type ProductListItem, type ProductDetailResult, type VariantResult } from './list-products';
+export {
+  listProducts,
+  getProduct,
+  type ProductListItem,
+  type ProductDetailResult,
+  type VariantResult,
+} from './list-products';
 
 // Variant CRUD
 export { createVariant, updateVariant } from './variant-crud';

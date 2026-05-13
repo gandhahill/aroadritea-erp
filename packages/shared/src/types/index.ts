@@ -33,16 +33,7 @@ export type SortParam = {
   direction: SortDirection;
 };
 
-export type FilterOperator =
-  | 'eq'
-  | 'neq'
-  | 'gt'
-  | 'gte'
-  | 'lt'
-  | 'lte'
-  | 'like'
-  | 'in'
-  | 'between';
+export type FilterOperator = 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'in' | 'between';
 
 export type FilterParam = {
   field: string;
@@ -69,7 +60,12 @@ export type PeriodStatus = 'open' | 'closing' | 'closed';
 export type JournalStatus = 'draft' | 'posted' | 'reversed';
 export type LocationType = 'store' | 'office' | 'warehouse';
 export type PartnerKind = 'customer' | 'supplier' | 'employee' | 'other';
-export type ProductKind = 'finished_good' | 'raw_material' | 'merchandise' | 'consumable' | 'service';
+export type ProductKind =
+  | 'finished_good'
+  | 'raw_material'
+  | 'merchandise'
+  | 'consumable'
+  | 'service';
 export type TaxCalculation = 'inclusive' | 'exclusive';
 export type NormalBalance = 'debit' | 'credit';
 export type AccountType = 'asset' | 'liability' | 'equity' | 'income' | 'cogs' | 'expense';

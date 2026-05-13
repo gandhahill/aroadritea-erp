@@ -49,7 +49,7 @@ export const isActive = sql`deleted_at IS NULL`;
 
 // --- Status columns ---
 
-export const statusCol = (defaultValue: string = 'active') => ({
+export const statusCol = (defaultValue = 'active') => ({
   status: text('status').notNull().default(defaultValue),
 });
 
@@ -58,6 +58,3 @@ export const statusCol = (defaultValue: string = 'active') => ({
 export const isActiveFlag = {
   isActive: boolean('is_active').notNull().default(true),
 };
-
-
-

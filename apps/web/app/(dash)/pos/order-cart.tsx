@@ -7,7 +7,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { usePosCart, type CartLine } from './pos-cart-context';
+import { type CartLine, usePosCart } from './pos-cart-context';
 
 export function OrderCart() {
   const t = useTranslations('pos');
@@ -16,8 +16,18 @@ export function OrderCart() {
   if (state.lines.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3">
-        <svg className="h-14 w-14 text-brand-ink-3/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+        <svg
+          className="h-14 w-14 text-brand-ink-3/30"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
+          />
         </svg>
         <p className="text-sm font-medium text-brand-ink-3">{t('emptyCart')}</p>
         <p className="text-xs text-brand-ink-3/60">{t('addFirstProduct')}</p>
@@ -32,9 +42,9 @@ export function OrderCart() {
           key={line.id}
           line={line}
           lineNo={idx + 1}
-          onQtyChange={qty => updateLineQty(line.id, qty)}
+          onQtyChange={(qty) => updateLineQty(line.id, qty)}
           onRemove={() => removeLine(line.id)}
-          onNotesChange={notes => updateLineNotes(line.id, notes)}
+          onNotesChange={(notes) => updateLineNotes(line.id, notes)}
         />
       ))}
     </ul>
@@ -59,7 +69,7 @@ function CartLineItem({
   const lineTotal = BigInt(line.unitPrice) * BigInt(line.qty);
   const lineDiscount = BigInt(line.lineDiscount ?? '0');
   const lineAfterDiscount = lineTotal - lineDiscount;
-  const lineTax = lineAfterDiscount * BigInt(10) / BigInt(110);
+  const lineTax = (lineAfterDiscount * BigInt(10)) / BigInt(110);
   const lineGrand = lineAfterDiscount - lineTax;
 
   return (
@@ -71,9 +81,7 @@ function CartLineItem({
             <span className="text-xs text-brand-ink-3">{lineNo}.</span>
             <p className="text-sm font-medium text-brand-ink">{line.productName}</p>
           </div>
-          {line.variantName && (
-            <p className="text-xs text-brand-ink-3">{line.variantName}</p>
-          )}
+          {line.variantName && <p className="text-xs text-brand-ink-3">{line.variantName}</p>}
         </div>
 
         {/* Line total */}
@@ -105,9 +113,7 @@ function CartLineItem({
             </button>
           </div>
 
-          <span className="text-xs text-brand-ink-3">
-            @ {formatRupiah(line.unitPrice)}
-          </span>
+          <span className="text-xs text-brand-ink-3">@ {formatRupiah(line.unitPrice)}</span>
         </div>
 
         {/* Remove button */}
@@ -116,7 +122,13 @@ function CartLineItem({
           className="flex h-8 w-8 items-center justify-center rounded-md text-brand-ink-3 hover:bg-red-50 hover:text-red-500"
           aria-label={t('removeLine')}
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -126,7 +138,7 @@ function CartLineItem({
       <input
         type="text"
         value={line.notes ?? ''}
-        onChange={e => onNotesChange(e.target.value)}
+        onChange={(e) => onNotesChange(e.target.value)}
         placeholder={t('orderNotes')}
         maxLength={255}
         className="h-7 w-full rounded border border-brand-cream-3 bg-brand-cream-2 px-2 text-xs text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
@@ -138,5 +150,9 @@ function CartLineItem({
 function formatRupiah(value: string | bigint): string {
   const num = Number(value);
   if (isNaN(num)) return 'Rp 0';
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(num);
 }

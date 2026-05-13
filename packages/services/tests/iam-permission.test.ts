@@ -6,7 +6,7 @@
  * Integration tests with real DB will come with T-0030 (resilience tests).
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@erp/db', () => ({
   db: {
@@ -136,9 +136,7 @@ describe('Location-scoped permission resolution', () => {
   it('should allow location-scoped permission at correct location', () => {
     const perms: SimulatedPerms = {
       global: new Set(),
-      byLocation: new Map([
-        ['loc-mli', new Set(['pos.transact', 'pos.void'])],
-      ]),
+      byLocation: new Map([['loc-mli', new Set(['pos.transact', 'pos.void'])]]),
     };
     expect(canSimulated(perms, 'pos.transact', { locationId: 'loc-mli' })).toBe(true);
   });
@@ -146,9 +144,7 @@ describe('Location-scoped permission resolution', () => {
   it('should deny location-scoped permission at wrong location', () => {
     const perms: SimulatedPerms = {
       global: new Set(),
-      byLocation: new Map([
-        ['loc-mli', new Set(['pos.transact'])],
-      ]),
+      byLocation: new Map([['loc-mli', new Set(['pos.transact'])]]),
     };
     expect(canSimulated(perms, 'pos.transact', { locationId: 'loc-plz' })).toBe(false);
   });
@@ -156,9 +152,7 @@ describe('Location-scoped permission resolution', () => {
   it('should allow location-scoped permission without context (any location)', () => {
     const perms: SimulatedPerms = {
       global: new Set(),
-      byLocation: new Map([
-        ['loc-mli', new Set(['pos.transact'])],
-      ]),
+      byLocation: new Map([['loc-mli', new Set(['pos.transact'])]]),
     };
     // Without locationId context, should check all locations
     expect(canSimulated(perms, 'pos.transact')).toBe(true);
@@ -167,9 +161,7 @@ describe('Location-scoped permission resolution', () => {
   it('should deny permission not in any scope', () => {
     const perms: SimulatedPerms = {
       global: new Set(['accounting.view']),
-      byLocation: new Map([
-        ['loc-mli', new Set(['pos.transact'])],
-      ]),
+      byLocation: new Map([['loc-mli', new Set(['pos.transact'])]]),
     };
     expect(canSimulated(perms, 'hr.payroll.run')).toBe(false);
     expect(canSimulated(perms, 'hr.payroll.run', { locationId: 'loc-mli' })).toBe(false);

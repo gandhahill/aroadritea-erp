@@ -10,6 +10,7 @@
  * - purchase_invoice_lines
  */
 
+import { sql } from 'drizzle-orm';
 import {
   bigint,
   date,
@@ -20,7 +21,7 @@ import {
   text,
   timestamp,
 } from 'drizzle-orm/pg-core';
-import { pk, tenantCol, locationCol, auditCols, versionCol } from './common';
+import { auditCols, locationCol, pk, tenantCol, versionCol } from './common';
 
 // ─── Purchase Orders ──────────────────────────────────────────────────────────
 
@@ -42,9 +43,9 @@ export const purchaseOrders = pgTable(
     // 'draft' | 'submitted' | 'approved' | 'partial' | 'received' | 'closed' | 'cancelled'
 
     // Totals (bigint rupiah)
-    subtotal: bigint('subtotal', { mode: 'bigint' }).notNull().default(BigInt(0)),
-    taxTotal: bigint('tax_total', { mode: 'bigint' }).notNull().default(BigInt(0)),
-    grandTotal: bigint('grand_total', { mode: 'bigint' }).notNull().default(BigInt(0)),
+    subtotal: bigint('subtotal', { mode: 'bigint' }).notNull().default(sql`0`),
+    taxTotal: bigint('tax_total', { mode: 'bigint' }).notNull().default(sql`0`),
+    grandTotal: bigint('grand_total', { mode: 'bigint' }).notNull().default(sql`0`),
 
     notes: text('notes'),
 
@@ -87,7 +88,7 @@ export const purchaseOrderLines = pgTable(
 
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
     lineSubtotal: bigint('line_subtotal', { mode: 'bigint' }).notNull(),
-    lineTax: bigint('line_tax', { mode: 'bigint' }).notNull().default(BigInt(0)),
+    lineTax: bigint('line_tax', { mode: 'bigint' }).notNull().default(sql`0`),
     lineTotal: bigint('line_total', { mode: 'bigint' }).notNull(),
 
     taxCode: text('tax_code'), // FK tax_rates.code
@@ -179,13 +180,13 @@ export const purchaseInvoices = pgTable(
     dueDate: date('due_date').notNull(),
 
     subtotal: bigint('subtotal', { mode: 'bigint' }).notNull(),
-    taxTotal: bigint('tax_total', { mode: 'bigint' }).notNull().default(BigInt(0)),
+    taxTotal: bigint('tax_total', { mode: 'bigint' }).notNull().default(sql`0`),
     grandTotal: bigint('grand_total', { mode: 'bigint' }).notNull(),
 
     status: text('status').notNull().default('draft'),
     // 'draft' | 'verified' | 'paid' | 'cancelled'
 
-    paidAmount: bigint('paid_amount', { mode: 'bigint' }).notNull().default(BigInt(0)),
+    paidAmount: bigint('paid_amount', { mode: 'bigint' }).notNull().default(sql`0`),
     paidAt: timestamp('paid_at', { withTimezone: true }),
 
     // Reference to generated journal entry (AP journal)
@@ -218,7 +219,7 @@ export const purchaseInvoiceLines = pgTable(
 
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
     lineSubtotal: bigint('line_subtotal', { mode: 'bigint' }).notNull(),
-    lineTax: bigint('line_tax', { mode: 'bigint' }).notNull().default(BigInt(0)),
+    lineTax: bigint('line_tax', { mode: 'bigint' }).notNull().default(sql`0`),
     lineTotal: bigint('line_total', { mode: 'bigint' }).notNull(),
 
     taxCode: text('tax_code'),

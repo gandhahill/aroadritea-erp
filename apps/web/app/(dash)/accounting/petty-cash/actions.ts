@@ -1,6 +1,6 @@
 'use server';
 
-import { db, eq, and, desc } from '@erp/db';
+import { and, db, desc, eq } from '@erp/db';
 import { pettyCashAccounts, pettyCashTransactions } from '@erp/db/schema/accounting';
 import { locations } from '@erp/db/schema/auth';
 import type { LocaleString } from '@erp/shared/types';
@@ -37,9 +37,10 @@ export async function fetchPettyCashAccounts(tenantId: string): Promise<PettyCas
     .where(eq(pettyCashAccounts.tenantId, tenantId));
 
   const locationIds = rows.map((r) => r.locationId);
-  const locRows = locationIds.length > 0
-    ? await db.select({ id: locations.id, name: locations.name }).from(locations)
-    : [];
+  const locRows =
+    locationIds.length > 0
+      ? await db.select({ id: locations.id, name: locations.name }).from(locations)
+      : [];
   const locMap = new Map(locRows.map((l) => [l.id, l.name as LocaleString]));
 
   return rows.map((r) => {

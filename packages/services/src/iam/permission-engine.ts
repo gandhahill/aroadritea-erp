@@ -8,13 +8,9 @@
  * - 60-second in-memory cache per user (SD §11.2.2)
  */
 
-import { eq } from 'drizzle-orm';
 import { db } from '@erp/db';
-import {
-  userRoles,
-  rolePermissions,
-  permissions,
-} from '@erp/db/schema/auth';
+import { permissions, rolePermissions, userRoles } from '@erp/db/schema/auth';
+import { eq } from 'drizzle-orm';
 
 // --- Types ---
 

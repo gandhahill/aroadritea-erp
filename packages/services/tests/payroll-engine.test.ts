@@ -4,8 +4,12 @@
  * Tests PPh 21 TER progressive calculation + BPJS caps + late penalty.
  */
 
-import { describe, it, expect } from 'vitest';
-import { calculatePayroll, type PayrollEmployeeContext, type PayrollResult } from '../src/payroll/payroll-engine.js';
+import { describe, expect, it } from 'vitest';
+import {
+  type PayrollEmployeeContext,
+  type PayrollResult,
+  calculatePayroll,
+} from '../src/payroll/payroll-engine.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -149,7 +153,8 @@ describe('Net salary calculation', () => {
       dependentsCount: 0,
     });
     // 5M - (25K pph21 + 50K bpjs_kes + 100K bpjs_tk) = 4,825,000
-    const expectedNet = 5_000_000n - result.pph21Amount - result.bpjsKesEmployee - result.bpjsTkEmployee;
+    const expectedNet =
+      5_000_000n - result.pph21Amount - result.bpjsKesEmployee - result.bpjsTkEmployee;
     expect(result.netSalary).toBe(expectedNet);
   });
 

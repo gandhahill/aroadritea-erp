@@ -9,14 +9,14 @@
  * JSON preview tab.
  */
 
-import { useState, useTransition } from 'react';
-import { useTranslations } from 'next-intl';
 import type { AuditContext } from '@erp/shared/types';
-import type { WorkflowDefinitionItem, WorkflowStepInput, ConditionInput } from './actions';
+import { useTranslations } from 'next-intl';
+import { useState, useTransition } from 'react';
+import type { ConditionInput, WorkflowDefinitionItem, WorkflowStepInput } from './actions';
 import {
   serverCreateWorkflowDefinition,
-  serverUpdateWorkflowDefinition,
   serverDeleteWorkflowDefinition,
+  serverUpdateWorkflowDefinition,
 } from './actions';
 
 const ENTITY_TYPES = [
@@ -38,13 +38,7 @@ const OPERATORS = [
   { value: 'contains', label: 'contains' },
 ] as const;
 
-const APPROVER_ROLES = [
-  'store_manager',
-  'director',
-  'owner',
-  'hr_manager',
-  'finance',
-] as const;
+const APPROVER_ROLES = ['store_manager', 'director', 'owner', 'hr_manager', 'finance'] as const;
 
 interface Props {
   initialDefinitions: WorkflowDefinitionItem[];
@@ -93,13 +87,14 @@ function buildJsonPreview(form: FormState): string {
     entityType: form.entityType,
     isActive: true,
     priority: form.priority,
-    conditionJson: form.conditions.length > 0
-      ? form.conditions.map((c) => ({
-          field: c.field,
-          op: c.op,
-          value: isNaN(Number(c.value)) ? c.value : Number(c.value),
-        }))
-      : null,
+    conditionJson:
+      form.conditions.length > 0
+        ? form.conditions.map((c) => ({
+            field: c.field,
+            op: c.op,
+            value: isNaN(Number(c.value)) ? c.value : Number(c.value),
+          }))
+        : null,
     stepsJson: form.steps.map((s) => ({
       stepOrder: s.stepOrder,
       approverRole: s.approverRole,
@@ -266,20 +261,40 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
           },
           ctx,
         );
-        if (!result.success) { setFormError(result.error ?? 'Update failed'); return; }
+        if (!result.success) {
+          setFormError(result.error ?? 'Update failed');
+          return;
+        }
         setDefinitions((prev) =>
           prev.map((d) =>
             d.id === editingId
-              ? { ...d, name, description: form.description || null, priority: form.priority, conditionJson: conditionJson.length > 0 ? conditionJson as never : null, stepsJson: stepsJson as never }
+              ? {
+                  ...d,
+                  name,
+                  description: form.description || null,
+                  priority: form.priority,
+                  conditionJson: conditionJson.length > 0 ? (conditionJson as never) : null,
+                  stepsJson: stepsJson as never,
+                }
               : d,
           ),
         );
       } else {
         const result = await serverCreateWorkflowDefinition(
-          { name, description: form.description, entityType: form.entityType, priority: form.priority, conditionJson: conditionJson.length > 0 ? conditionJson : undefined, stepsJson },
+          {
+            name,
+            description: form.description,
+            entityType: form.entityType,
+            priority: form.priority,
+            conditionJson: conditionJson.length > 0 ? conditionJson : undefined,
+            stepsJson,
+          },
           ctx,
         );
-        if (!result.success) { setFormError(result.error ?? 'Create failed'); return; }
+        if (!result.success) {
+          setFormError(result.error ?? 'Create failed');
+          return;
+        }
         const newDef: WorkflowDefinitionItem = {
           id: result.id!,
           name,
@@ -287,7 +302,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
           entityType: form.entityType,
           isActive: true,
           priority: form.priority,
-          conditionJson: conditionJson.length > 0 ? conditionJson as never : null,
+          conditionJson: conditionJson.length > 0 ? (conditionJson as never) : null,
           stepsJson: stepsJson as never,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -321,7 +336,13 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
           onClick={openCreate}
           className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-red/90"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
           {t('createDefinition')}
@@ -331,8 +352,18 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
       {/* Info banner */}
       <div className="rounded-lg border border-brand-gold/20 bg-brand-gold/5 px-4 py-3">
         <div className="flex items-start gap-3">
-          <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+          <svg
+            className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-gold"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
+            />
           </svg>
           <div>
             <p className="text-sm font-medium text-brand-ink">{t('howItWorks')}</p>
@@ -344,11 +375,24 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
       {/* Definitions list */}
       {definitions.length === 0 ? (
         <div className="rounded-lg border border-dashed border-brand-cream-3 py-16 text-center">
-          <svg className="mx-auto h-10 w-10 text-brand-ink-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-2.15 1.586a2.251 2.251 0 00-1.028-.961A2.25 2.25 0 0014.25 2.25H12a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h.5" />
+          <svg
+            className="mx-auto h-10 w-10 text-brand-ink-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-2.15 1.586a2.251 2.251 0 00-1.028-.961A2.25 2.25 0 0014.25 2.25H12a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h.5"
+            />
           </svg>
           <p className="mt-3 text-sm text-brand-ink-3">{t('empty')}</p>
-          <button onClick={openCreate} className="mt-4 text-sm font-medium text-brand-red hover:underline">
+          <button
+            onClick={openCreate}
+            className="mt-4 text-sm font-medium text-brand-red hover:underline"
+          >
             {t('createDefinition')}
           </button>
         </div>
@@ -358,7 +402,10 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
             const nameObj = def.name as Record<string, string>;
             const stepCount = (def.stepsJson ?? []).length;
             return (
-              <div key={def.id} className="rounded-lg border border-brand-cream-3 bg-white p-4 hover:border-brand-red/30">
+              <div
+                key={def.id}
+                className="rounded-lg border border-brand-cream-3 bg-white p-4 hover:border-brand-red/30"
+              >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
@@ -366,16 +413,24 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                         {nameObj.id || nameObj.en || Object.values(nameObj)[0] || def.entityType}
                       </h3>
                       {!def.isActive && (
-                        <span className="rounded-full bg-brand-cream-2 px-2 py-0.5 text-xs text-brand-ink-3">Inactive</span>
+                        <span className="rounded-full bg-brand-cream-2 px-2 py-0.5 text-xs text-brand-ink-3">
+                          Inactive
+                        </span>
                       )}
                     </div>
-                    <p className="mt-0.5 text-sm text-brand-ink-3 truncate">{def.description || '—'}</p>
+                    <p className="mt-0.5 text-sm text-brand-ink-3 truncate">
+                      {def.description || '—'}
+                    </p>
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-brand-ink-2">
-                      <span className="rounded bg-brand-cream-2 px-2 py-0.5 font-mono">{def.entityType}</span>
+                      <span className="rounded bg-brand-cream-2 px-2 py-0.5 font-mono">
+                        {def.entityType}
+                      </span>
                       <span className="text-brand-ink-3">Priority: {def.priority}</span>
                       <span className="text-brand-ink-3">Steps: {stepCount}</span>
                       {(def.conditionJson ?? []).length > 0 && (
-                        <span className="text-brand-ink-3">Conditions: {def.conditionJson!.length}</span>
+                        <span className="text-brand-ink-3">
+                          Conditions: {def.conditionJson!.length}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -385,8 +440,18 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                       className="rounded p-2 text-brand-ink-2 hover:bg-brand-cream-2 hover:text-brand-red"
                       title="Edit"
                     >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                        />
                       </svg>
                     </button>
                     <button
@@ -394,8 +459,18 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                       className="rounded p-2 text-brand-ink-3 hover:bg-red-50 hover:text-red-500"
                       title="Delete"
                     >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -416,7 +491,13 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                 {editingId ? t('editDefinition') : t('createDefinition')}
               </h2>
               <button onClick={closeModal} className="text-brand-ink-3 hover:text-brand-ink">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -452,55 +533,104 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                   {/* Names */}
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-brand-ink">Nama (ID) <span className="text-brand-red">*</span></label>
-                      <input type="text" value={form.name_id} onChange={(e) => updateForm((p) => ({ ...p, name_id: e.target.value }))} required
-                        className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red" />
+                      <label className="mb-1 block text-sm font-medium text-brand-ink">
+                        Nama (ID) <span className="text-brand-red">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={form.name_id}
+                        onChange={(e) => updateForm((p) => ({ ...p, name_id: e.target.value }))}
+                        required
+                        className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+                      />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-brand-ink">Name (EN)</label>
-                      <input type="text" value={form.name_en} onChange={(e) => updateForm((p) => ({ ...p, name_en: e.target.value }))}
-                        className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red" />
+                      <label className="mb-1 block text-sm font-medium text-brand-ink">
+                        Name (EN)
+                      </label>
+                      <input
+                        type="text"
+                        value={form.name_en}
+                        onChange={(e) => updateForm((p) => ({ ...p, name_en: e.target.value }))}
+                        className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+                      />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-brand-ink">名称 (ZH)</label>
-                      <input type="text" value={form.name_zh} onChange={(e) => updateForm((p) => ({ ...p, name_zh: e.target.value }))}
-                        className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red" />
+                      <label className="mb-1 block text-sm font-medium text-brand-ink">
+                        名称 (ZH)
+                      </label>
+                      <input
+                        type="text"
+                        value={form.name_zh}
+                        onChange={(e) => updateForm((p) => ({ ...p, name_zh: e.target.value }))}
+                        className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+                      />
                     </div>
                   </div>
 
                   {/* Entity type + priority */}
                   <div className="flex gap-4">
                     <div className="flex-1">
-                      <label className="mb-1 block text-sm font-medium text-brand-ink">{t('entityType')} <span className="text-brand-red">*</span></label>
-                      <select value={form.entityType}
-                        onChange={(e) => { if (!editingId) updateForm((p) => ({ ...p, entityType: e.target.value })); }}
+                      <label className="mb-1 block text-sm font-medium text-brand-ink">
+                        {t('entityType')} <span className="text-brand-red">*</span>
+                      </label>
+                      <select
+                        value={form.entityType}
+                        onChange={(e) => {
+                          if (!editingId) updateForm((p) => ({ ...p, entityType: e.target.value }));
+                        }}
                         disabled={!!editingId}
-                        className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red disabled:cursor-not-allowed disabled:opacity-50">
-                        {ENTITY_TYPES.map((et) => <option key={et.value} value={et.value}>{et.label}</option>)}
+                        className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {ENTITY_TYPES.map((et) => (
+                          <option key={et.value} value={et.value}>
+                            {et.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div className="w-28">
-                      <label className="mb-1 block text-sm font-medium text-brand-ink">{t('priority')}</label>
-                      <input type="number" value={form.priority}
-                        onChange={(e) => updateForm((p) => ({ ...p, priority: parseInt(e.target.value) || 0 }))}
-                        className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red" />
+                      <label className="mb-1 block text-sm font-medium text-brand-ink">
+                        {t('priority')}
+                      </label>
+                      <input
+                        type="number"
+                        value={form.priority}
+                        onChange={(e) =>
+                          updateForm((p) => ({
+                            ...p,
+                            priority: Number.parseInt(e.target.value) || 0,
+                          }))
+                        }
+                        className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+                      />
                     </div>
                   </div>
 
                   {/* Description */}
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-brand-ink">{t('description')}</label>
-                    <input type="text" value={form.description}
+                    <label className="mb-1 block text-sm font-medium text-brand-ink">
+                      {t('description')}
+                    </label>
+                    <input
+                      type="text"
+                      value={form.description}
                       onChange={(e) => updateForm((p) => ({ ...p, description: e.target.value }))}
-                      className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red" />
+                      className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+                    />
                   </div>
 
                   {/* Conditions */}
                   <div>
                     <div className="mb-2 flex items-center justify-between">
-                      <label className="text-sm font-medium text-brand-ink">{t('conditions')}</label>
-                      <button type="button" onClick={addCondition}
-                        className="text-xs font-medium text-brand-red hover:underline">
+                      <label className="text-sm font-medium text-brand-ink">
+                        {t('conditions')}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={addCondition}
+                        className="text-xs font-medium text-brand-red hover:underline"
+                      >
                         + {t('addCondition')}
                       </button>
                     </div>
@@ -512,21 +642,48 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                       <div className="space-y-2">
                         {form.conditions.map((cond, idx) => (
                           <div key={idx} className="flex items-center gap-2">
-                            <input type="text" value={cond.field} placeholder="field (e.g. grandTotal)"
+                            <input
+                              type="text"
+                              value={cond.field}
+                              placeholder="field (e.g. grandTotal)"
                               onChange={(e) => updateCondition(idx, { field: e.target.value })}
-                              className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red" />
-                            <select value={cond.op}
+                              className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+                            />
+                            <select
+                              value={cond.op}
                               onChange={(e) => updateCondition(idx, { op: e.target.value })}
-                              className="w-20 rounded-lg border border-brand-cream-3 px-2 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red">
-                              {OPERATORS.map((op) => <option key={op.value} value={op.value}>{op.label}</option>)}
+                              className="w-20 rounded-lg border border-brand-cream-3 px-2 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+                            >
+                              {OPERATORS.map((op) => (
+                                <option key={op.value} value={op.value}>
+                                  {op.label}
+                                </option>
+                              ))}
                             </select>
-                            <input type="text" value={cond.value} placeholder="value"
+                            <input
+                              type="text"
+                              value={cond.value}
+                              placeholder="value"
                               onChange={(e) => updateCondition(idx, { value: e.target.value })}
-                              className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red" />
-                            <button type="button" onClick={() => removeCondition(idx)}
-                              className="rounded p-1 text-brand-ink-3 hover:bg-red-50 hover:text-red-500">
-                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                              className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeCondition(idx)}
+                              className="rounded p-1 text-brand-ink-3 hover:bg-red-50 hover:text-red-500"
+                            >
+                              <svg
+                                className="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
                               </svg>
                             </button>
                           </div>
@@ -539,8 +696,11 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                   <div>
                     <div className="mb-2 flex items-center justify-between">
                       <label className="text-sm font-medium text-brand-ink">{t('steps')}</label>
-                      <button type="button" onClick={addStep}
-                        className="text-xs font-medium text-brand-red hover:underline">
+                      <button
+                        type="button"
+                        onClick={addStep}
+                        className="text-xs font-medium text-brand-red hover:underline"
+                      >
                         + {t('addStep')}
                       </button>
                     </div>
@@ -551,16 +711,35 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                             {idx + 1}
                           </span>
                           <span className="text-sm text-brand-ink-2">Approver role:</span>
-                          <select value={step.approverRole}
+                          <select
+                            value={step.approverRole}
                             onChange={(e) => updateStep(idx, e.target.value)}
-                            className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red">
-                            {APPROVER_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                            className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+                          >
+                            {APPROVER_ROLES.map((r) => (
+                              <option key={r} value={r}>
+                                {r}
+                              </option>
+                            ))}
                           </select>
                           {form.steps.length > 1 && (
-                            <button type="button" onClick={() => removeStep(idx)}
-                              className="rounded p-1 text-brand-ink-3 hover:bg-red-50 hover:text-red-500">
-                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            <button
+                              type="button"
+                              onClick={() => removeStep(idx)}
+                              className="rounded p-1 text-brand-ink-3 hover:bg-red-50 hover:text-red-500"
+                            >
+                              <svg
+                                className="h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
                               </svg>
                             </button>
                           )}
@@ -577,12 +756,18 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
 
                   {/* Modal actions */}
                   <div className="flex justify-end gap-3 border-t border-brand-cream-3 pt-4">
-                    <button type="button" onClick={closeModal}
-                      className="rounded-lg border border-brand-cream-3 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2">
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className="rounded-lg border border-brand-cream-3 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
+                    >
                       Batal
                     </button>
-                    <button type="submit" disabled={isPending}
-                      className="rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50">
+                    <button
+                      type="submit"
+                      disabled={isPending}
+                      className="rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50"
+                    >
                       {isPending ? 'Menyimpan...' : 'Simpan'}
                     </button>
                   </div>
@@ -590,10 +775,15 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
               ) : (
                 /* JSON preview tab */
                 <div className="px-6 py-5">
-                  <pre className="max-h-96 overflow-auto rounded-lg border border-brand-cream-3 bg-brand-cream-2 p-4 text-xs font-mono text-brand-ink whitespace-pre">{jsonPreview}</pre>
+                  <pre className="max-h-96 overflow-auto rounded-lg border border-brand-cream-3 bg-brand-cream-2 p-4 text-xs font-mono text-brand-ink whitespace-pre">
+                    {jsonPreview}
+                  </pre>
                   <div className="mt-4 flex justify-end gap-3 border-t border-brand-cream-3 pt-4">
-                    <button type="button" onClick={closeModal}
-                      className="rounded-lg border border-brand-cream-3 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2">
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className="rounded-lg border border-brand-cream-3 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
+                    >
                       Batal
                     </button>
                   </div>
@@ -610,8 +800,18 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
           <div className="w-full max-w-sm rounded-xl border border-brand-cream-3 bg-white p-6 shadow-2xl">
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50">
-                <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                <svg
+                  className="h-5 w-5 text-red-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                  />
                 </svg>
               </div>
               <div>
@@ -620,12 +820,17 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
               </div>
             </div>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setConfirmDeleteId(null)}
-                className="rounded-lg border border-brand-cream-3 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="rounded-lg border border-brand-cream-3 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
+              >
                 Batal
               </button>
-              <button onClick={() => handleDelete(confirmDeleteId)} disabled={isPending}
-                className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50">
+              <button
+                onClick={() => handleDelete(confirmDeleteId)}
+                disabled={isPending}
+                className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50"
+              >
                 Hapus
               </button>
             </div>

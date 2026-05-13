@@ -7,9 +7,9 @@
  */
 
 import { createHash } from 'node:crypto';
-import { eq, and, isNull, or, gt } from 'drizzle-orm';
 import { db } from '@erp/db';
 import { apiTokens } from '@erp/db/schema/auth';
+import { and, eq, gt, isNull, or } from 'drizzle-orm';
 
 export interface TokenUser {
   userId: string;
@@ -34,10 +34,7 @@ export async function verifyToken(rawToken: string): Promise<TokenUser | null> {
     where: and(
       eq(apiTokens.tokenHash, tokenHash),
       isNull(apiTokens.revokedAt),
-      or(
-        isNull(apiTokens.expiresAt),
-        gt(apiTokens.expiresAt, now),
-      ),
+      or(isNull(apiTokens.expiresAt), gt(apiTokens.expiresAt, now)),
     ),
     with: {
       user: true,
@@ -49,9 +46,7 @@ export async function verifyToken(rawToken: string): Promise<TokenUser | null> {
   }
 
   // Update last_used_at (fire-and-forget)
-  await db.update(apiTokens)
-    .set({ lastUsedAt: now })
-    .where(eq(apiTokens.id, row.id));
+  await db.update(apiTokens).set({ lastUsedAt: now }).where(eq(apiTokens.id, row.id));
 
   return {
     userId: row.user.id,

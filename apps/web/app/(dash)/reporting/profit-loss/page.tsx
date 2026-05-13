@@ -2,8 +2,8 @@
  * Profit & Loss Page — SD §21.2
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchProfitLoss } from '../actions';
 
@@ -20,7 +20,7 @@ export default async function ProfitLossPage({
   if (!session) redirect('/login');
 
   const params = await searchParams;
-  const tenantId = (session.user as Record<string, unknown>)?.tenantId as string ?? 'default';
+  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
   const today = new Date().toISOString().slice(0, 10);
   const monthStart = today.slice(0, 7) + '-01';
   const from = params.from ?? monthStart;
@@ -33,7 +33,8 @@ export default async function ProfitLossPage({
         <div>
           <h1 className="text-2xl font-bold text-brand-ink">Profit & Loss</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Laba Rugi: <span className="font-medium text-brand-ink">{from}</span> — <span className="font-medium text-brand-ink">{to}</span>
+            Laba Rugi: <span className="font-medium text-brand-ink">{from}</span> —{' '}
+            <span className="font-medium text-brand-ink">{to}</span>
           </p>
         </div>
       </div>
@@ -61,8 +62,12 @@ export default async function ProfitLossPage({
           {/* Gross Profit */}
           <div className="surface-card p-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-brand-ink">Gross Profit / Laba Kotor</span>
-              <span className={`font-mono text-base font-bold tabular-nums ${parseInt(data.grossProfit) >= 0 ? 'text-brand-jade' : 'text-brand-clay'}`}>
+              <span className="text-sm font-semibold text-brand-ink">
+                Gross Profit / Laba Kotor
+              </span>
+              <span
+                className={`font-mono text-base font-bold tabular-nums ${Number.parseInt(data.grossProfit) >= 0 ? 'text-brand-jade' : 'text-brand-clay'}`}
+              >
                 {fmtRp(data.grossProfit)}
               </span>
             </div>
@@ -84,7 +89,9 @@ export default async function ProfitLossPage({
                 <h3 className="text-base font-bold text-brand-ink">Net Income</h3>
                 <p className="text-xs text-brand-ink-3">Laba / Rugi Bersih</p>
               </div>
-              <span className={`font-mono text-xl font-bold tabular-nums ${parseInt(data.netIncome) >= 0 ? 'text-brand-jade' : 'text-brand-clay'}`}>
+              <span
+                className={`font-mono text-xl font-bold tabular-nums ${Number.parseInt(data.netIncome) >= 0 ? 'text-brand-jade' : 'text-brand-clay'}`}
+              >
                 {fmtRp(data.netIncome)}
               </span>
             </div>
@@ -119,19 +126,30 @@ function PLSection({ title, subtitle, lines, total, colorClass }: PLSectionProps
           <div className="px-4 py-6 text-center text-xs text-brand-ink-3">No entries</div>
         ) : (
           lines.map((line) => (
-            <div key={line.accountCode} className="flex items-center justify-between px-4 py-2.5 hover:bg-brand-cream/50 transition-colors">
+            <div
+              key={line.accountCode}
+              className="flex items-center justify-between px-4 py-2.5 hover:bg-brand-cream/50 transition-colors"
+            >
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs text-brand-ink-3 tabular-nums">{line.accountCode}</span>
-                <span className="text-sm text-brand-ink">{line.accountName.id ?? line.accountName.en}</span>
+                <span className="font-mono text-xs text-brand-ink-3 tabular-nums">
+                  {line.accountCode}
+                </span>
+                <span className="text-sm text-brand-ink">
+                  {line.accountName.id ?? line.accountName.en}
+                </span>
               </div>
-              <span className={`font-mono text-sm tabular-nums ${colorClass}`}>{fmtRp(line.balance)}</span>
+              <span className={`font-mono text-sm tabular-nums ${colorClass}`}>
+                {fmtRp(line.balance)}
+              </span>
             </div>
           ))
         )}
       </div>
       <div className="border-t-2 border-brand-cream-3 px-4 py-3 flex items-center justify-between bg-brand-cream/30">
         <span className="text-sm font-semibold text-brand-ink">Total {title}</span>
-        <span className={`font-mono text-sm font-bold tabular-nums ${colorClass}`}>{fmtRp(total)}</span>
+        <span className={`font-mono text-sm font-bold tabular-nums ${colorClass}`}>
+          {fmtRp(total)}
+        </span>
       </div>
     </div>
   );
@@ -140,7 +158,7 @@ function PLSection({ title, subtitle, lines, total, colorClass }: PLSectionProps
 // --- Helpers ---
 
 function fmtRp(val: string): string {
-  const n = parseInt(val, 10);
+  const n = Number.parseInt(val, 10);
   if (isNaN(n) || n === 0) return '—';
   const sign = n < 0 ? '-' : '';
   return sign + 'Rp ' + Math.abs(n).toLocaleString('id-ID');

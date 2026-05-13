@@ -6,7 +6,7 @@
 
 import { db } from '@erp/db';
 import { purchaseOrders } from '@erp/db/schema/purchasing';
-import { eq, and, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 /**
  * Generate the next PO number for a given tenant + location + month.

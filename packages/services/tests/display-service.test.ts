@@ -4,14 +4,14 @@
  * Tests: grouping logic, SSE formatting, event creation.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  groupDisplayItems,
-  formatSseEvent,
-  createQueueUpdateEvent,
-  createItemChangeEvent,
-  type RawDisplayRow,
   type DisplayQueue,
+  type RawDisplayRow,
+  createItemChangeEvent,
+  createQueueUpdateEvent,
+  formatSseEvent,
+  groupDisplayItems,
 } from '../src/kitchen/display-service';
 
 // ─── Test helpers ───────────────────────────────────────────────────────────

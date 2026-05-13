@@ -11,7 +11,10 @@ export const GRNLineInputSchema = z.object({
   qtyReceived: z.string().regex(/^\d+(\.\d{1,3})?$/, 'qty must be positive decimal'),
   uom: z.string().min(1, 'uom is required'),
   batchNo: z.string().optional(),
-  expiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD format').optional(),
+  expiryDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD format')
+    .optional(),
   notes: z.string().optional(),
 });
 

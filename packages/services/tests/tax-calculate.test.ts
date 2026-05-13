@@ -2,8 +2,8 @@
  * Tests for tax.calculateTax + tax.calculateLineTaxes — T-0019c
  */
 
-import { describe, it, expect } from 'vitest';
-import { calculateTax, calculateLineTaxes } from '../src/tax/calculate';
+import { describe, expect, it } from 'vitest';
+import { calculateLineTaxes, calculateTax } from '../src/tax/calculate';
 
 describe('calculateTax', () => {
   // ---------------------------------------------------------------

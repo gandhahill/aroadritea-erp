@@ -8,18 +8,18 @@
  */
 
 import { db } from '@erp/db';
-import { purchaseOrders, purchaseOrderLines } from '@erp/db/schema/purchasing';
 import { partners, taxRates } from '@erp/db/schema/accounting';
 import { products } from '@erp/db/schema/inventory';
-import { eq, inArray } from 'drizzle-orm';
-import { type Result, ok, err } from '@erp/shared/result';
+import { purchaseOrderLines, purchaseOrders } from '@erp/db/schema/purchasing';
 import { AppError } from '@erp/shared/errors';
-import { type AuditContext } from '@erp/shared/types';
-import { requirePermission } from '../iam';
 import { generateId } from '@erp/shared/id';
-import { generatePONumber } from './number-generator';
-import { CreatePOInputSchema, type CreatePOInput, type POLineInput } from './schemas';
+import { type Result, err, ok } from '@erp/shared/result';
+import type { AuditContext } from '@erp/shared/types';
+import { eq, inArray } from 'drizzle-orm';
 import { auditRecord } from '../audit';
+import { requirePermission } from '../iam';
+import { generatePONumber } from './number-generator';
+import { type CreatePOInput, CreatePOInputSchema, type POLineInput } from './schemas';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -64,7 +64,8 @@ async function computeLineTax(
   lineInput: POLineInput,
   lineSubtotal: bigint,
 ): Promise<{ taxCode: string | null; lineTax: bigint; rateBps: number; calculation: string }> {
-  if (!lineInput.taxCode) return { taxCode: null, lineTax: 0n, rateBps: 0, calculation: 'exclusive' };
+  if (!lineInput.taxCode)
+    return { taxCode: null, lineTax: 0n, rateBps: 0, calculation: 'exclusive' };
 
   const [rateRow] = await db
     .select({
@@ -75,7 +76,8 @@ async function computeLineTax(
     .where(eq(taxRates.code, lineInput.taxCode))
     .limit(1);
 
-  if (!rateRow) return { taxCode: lineInput.taxCode, lineTax: 0n, rateBps: 0, calculation: 'exclusive' };
+  if (!rateRow)
+    return { taxCode: lineInput.taxCode, lineTax: 0n, rateBps: 0, calculation: 'exclusive' };
 
   const rate = rateRow.rateBps;
   let lineTax: bigint;
@@ -99,10 +101,7 @@ async function computeLineTax(
 
 // ─── Service ───────────────────────────────────────────────────────────────────
 
-export async function createPO(
-  rawInput: unknown,
-  ctx: AuditContext,
-): Promise<Result<POCreated>> {
+export async function createPO(rawInput: unknown, ctx: AuditContext): Promise<Result<POCreated>> {
   // 1. Permission check
   const permCheck = await requirePermission(ctx.userId, 'purchasing.po.create', {
     locationId: ctx.locationId,
@@ -112,9 +111,11 @@ export async function createPO(
   // 2. Parse input
   const parsed = CreatePOInputSchema.safeParse(rawInput);
   if (!parsed.success) {
-    return err(AppError.validation('purchasing.errors.invalid_input', {
-      detail: parsed.error.message,
-    }));
+    return err(
+      AppError.validation('purchasing.errors.invalid_input', {
+        detail: parsed.error.message,
+      }),
+    );
   }
   const input = parsed.data;
 
@@ -139,7 +140,9 @@ export async function createPO(
   if (productRows.length !== productIds.length) {
     const found = new Set(productRows.map((p) => p.id));
     const missing = productIds.filter((id) => !found.has(id));
-    return err(AppError.validation('purchasing.errors.product_not_found', { detail: missing.join(', ') }));
+    return err(
+      AppError.validation('purchasing.errors.product_not_found', { detail: missing.join(', ') }),
+    );
   }
 
   // 5. Generate PO number
@@ -166,7 +169,7 @@ export async function createPO(
 
   for (let i = 0; i < input.lines.length; i++) {
     const line = input.lines[i]!;
-    const qtyNum = BigInt(Math.round(parseFloat(line.qtyOrdered) * 1000));
+    const qtyNum = BigInt(Math.round(Number.parseFloat(line.qtyOrdered) * 1000));
     const unitPriceNum = BigInt(line.unitPrice);
     const lineSubtotal = (qtyNum * unitPriceNum) / 1000n;
 
@@ -279,4 +282,3 @@ export async function createPO(
     })),
   });
 }
-

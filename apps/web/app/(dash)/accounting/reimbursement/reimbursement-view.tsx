@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useMemo, useTransition } from 'react';
-import type { ReimbursementItem, LocationItem } from './actions';
+import { useMemo, useState, useTransition } from 'react';
+import type { LocationItem, ReimbursementItem } from './actions';
 import {
-  createReimbursement,
-  submitReimbursement,
   approveReimbursement,
-  rejectReimbursement,
+  createReimbursement,
   disburseReimbursement,
   fetchReimbursements,
+  rejectReimbursement,
+  submitReimbursement,
 } from './actions';
 
 function formatRupiah(amount: string): string {
@@ -82,10 +82,19 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
     e.preventDefault();
     setError('');
 
-    const amountNum = parseFloat(amount.replace(/[^\d]/g, ''));
-    if (!locationId) { setError('Pilih lokasi.'); return; }
-    if (!amountNum || amountNum <= 0) { setError('Masukkan jumlah yang valid.'); return; }
-    if (!description.trim()) { setError('Masukkan keterangan.'); return; }
+    const amountNum = Number.parseFloat(amount.replace(/[^\d]/g, ''));
+    if (!locationId) {
+      setError('Pilih lokasi.');
+      return;
+    }
+    if (!amountNum || amountNum <= 0) {
+      setError('Masukkan jumlah yang valid.');
+      return;
+    }
+    if (!description.trim()) {
+      setError('Masukkan keterangan.');
+      return;
+    }
 
     startTransition(async () => {
       const result = await createReimbursement(
@@ -103,7 +112,7 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/[^\d]/g, '');
-    setAmount(raw ? parseInt(raw).toLocaleString('id-ID') : '');
+    setAmount(raw ? Number.parseInt(raw).toLocaleString('id-ID') : '');
   };
 
   return (
@@ -113,7 +122,12 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
           <h2 className="text-lg font-semibold text-brand-ink">Pengajuan Reimbursement</h2>
           <button onClick={onClose} className="text-brand-ink-3 hover:text-brand-ink">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -128,7 +142,9 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
             >
               <option value="">Pilih lokasi...</option>
               {locations.map((loc) => (
-                <option key={loc.id} value={loc.id}>{loc.name}</option>
+                <option key={loc.id} value={loc.id}>
+                  {loc.name}
+                </option>
               ))}
             </select>
           </div>
@@ -152,7 +168,9 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
               className="mt-1 w-full rounded-md border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
             >
               {CATEGORY_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
               ))}
             </select>
           </div>
@@ -169,7 +187,9 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
           </div>
 
           {error && (
-            <p className="rounded-md bg-brand-clay-light px-3 py-2 text-xs text-brand-clay">{error}</p>
+            <p className="rounded-md bg-brand-clay-light px-3 py-2 text-xs text-brand-clay">
+              {error}
+            </p>
           )}
 
           <div className="flex justify-end gap-2 pt-1">
@@ -246,7 +266,12 @@ interface ReimbursementProps {
   userId: string;
 }
 
-export function ReimbursementClient({ initialItems, locations, tenantId, userId }: ReimbursementProps) {
+export function ReimbursementClient({
+  initialItems,
+  locations,
+  tenantId,
+  userId,
+}: ReimbursementProps) {
   const [items, setItems] = useState<ReimbursementItem[]>(initialItems);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -281,7 +306,14 @@ interface ReimbursementViewInnerProps {
   isRefreshing: boolean;
 }
 
-function ReimbursementViewInner({ items, locations, tenantId, userId, onRefresh, isRefreshing }: ReimbursementViewInnerProps) {
+function ReimbursementViewInner({
+  items,
+  locations,
+  tenantId,
+  userId,
+  onRefresh,
+  isRefreshing,
+}: ReimbursementViewInnerProps) {
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -309,7 +341,10 @@ function ReimbursementViewInner({ items, locations, tenantId, userId, onRefresh,
     return { pending, approved, totalAmount };
   }, [items]);
 
-  const handleAction = (action: () => Promise<{ success: boolean; error?: string }>, successMsg: string) => {
+  const handleAction = (
+    action: () => Promise<{ success: boolean; error?: string }>,
+    successMsg: string,
+  ) => {
     setActionError('');
     setActionSuccess('');
     startTransition(async () => {
@@ -436,7 +471,11 @@ function ReimbursementViewInner({ items, locations, tenantId, userId, onRefresh,
           </thead>
           <tbody className="divide-y divide-brand-cream-2">
             {filtered.map((r) => {
-              const style = STATUS_STYLES[r.status] ?? { bg: 'bg-brand-cream-2', text: 'text-brand-ink-2', label: 'Draf' };
+              const style = STATUS_STYLES[r.status] ?? {
+                bg: 'bg-brand-cream-2',
+                text: 'text-brand-ink-2',
+                label: 'Draf',
+              };
               return (
                 <tr
                   key={r.id}
@@ -528,9 +567,15 @@ function ReimbursementViewInner({ items, locations, tenantId, userId, onRefresh,
               <span className="text-xs font-medium text-brand-ink-3">Status</span>
               <p className="mt-1">
                 {(() => {
-                  const style = STATUS_STYLES[selected.status] ?? { bg: 'bg-brand-cream-2', text: 'text-brand-ink-2', label: 'Draf' };
+                  const style = STATUS_STYLES[selected.status] ?? {
+                    bg: 'bg-brand-cream-2',
+                    text: 'text-brand-ink-2',
+                    label: 'Draf',
+                  };
                   return (
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${style.bg} ${style.text}`}>
+                    <span
+                      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${style.bg} ${style.text}`}
+                    >
                       {style.label}
                     </span>
                   );

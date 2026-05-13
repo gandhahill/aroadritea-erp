@@ -5,8 +5,8 @@
  * Shows GPS location, shift, employee selection, then big CHECK IN button.
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { CheckInClient } from './check-in-client';
 

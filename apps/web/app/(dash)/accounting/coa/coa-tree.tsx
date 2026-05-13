@@ -6,17 +6,17 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { COANode } from './actions';
 
 // --- Type badge config ---
 const TYPE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  asset:     { bg: 'bg-brand-jade-light', text: 'text-brand-jade', border: 'border-brand-jade/20' },
+  asset: { bg: 'bg-brand-jade-light', text: 'text-brand-jade', border: 'border-brand-jade/20' },
   liability: { bg: 'bg-brand-clay-light', text: 'text-brand-clay', border: 'border-brand-clay/20' },
-  equity:    { bg: 'bg-brand-gold-light', text: 'text-brand-gold', border: 'border-brand-gold/20' },
-  income:    { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200' },
-  cogs:      { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200' },
-  expense:   { bg: 'bg-rose-100', text: 'text-rose-700', border: 'border-rose-200' },
+  equity: { bg: 'bg-brand-gold-light', text: 'text-brand-gold', border: 'border-brand-gold/20' },
+  income: { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200' },
+  cogs: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200' },
+  expense: { bg: 'bg-rose-100', text: 'text-rose-700', border: 'border-rose-200' },
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -80,8 +80,18 @@ export function COATreeView({ tree }: COATreeViewProps) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {/* Search */}
           <div className="relative flex-1 max-w-md">
-            <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-ink-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1 0 5.65 5.65a7.5 7.5 0 0 0 10.99 10.99z" />
+            <svg
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-ink-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1 0 5.65 5.65a7.5 7.5 0 0 0 10.99 10.99z"
+              />
             </svg>
             <input
               id="coa-search"
@@ -147,8 +157,18 @@ export function COATreeView({ tree }: COATreeViewProps) {
         {/* Tree nodes */}
         {filteredTree.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-brand-ink-3">
-            <svg className="mb-3 h-12 w-12 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+            <svg
+              className="mb-3 h-12 w-12 opacity-40"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+              />
             </svg>
             <p className="text-sm font-medium">No accounts found</p>
             <p className="mt-1 text-xs">Try adjusting your search or filter.</p>
@@ -183,7 +203,11 @@ interface TreeNodeProps {
 function TreeNode({ node, depth, expandedIds, onToggle }: TreeNodeProps) {
   const hasChildren = node.children.length > 0;
   const isExpanded = expandedIds.has(node.id);
-  const colors = TYPE_COLORS[node.type] ?? { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200' };
+  const colors = TYPE_COLORS[node.type] ?? {
+    bg: 'bg-gray-100',
+    text: 'text-gray-600',
+    border: 'border-gray-200',
+  };
 
   return (
     <>
@@ -226,7 +250,9 @@ function TreeNode({ node, depth, expandedIds, onToggle }: TreeNodeProps) {
 
         {/* Type */}
         <div className="col-span-2">
-          <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${colors.bg} ${colors.text} ${colors.border}`}>
+          <span
+            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${colors.bg} ${colors.text} ${colors.border}`}
+          >
             {TYPE_LABELS[node.type] ?? node.type}
           </span>
         </div>
@@ -238,7 +264,9 @@ function TreeNode({ node, depth, expandedIds, onToggle }: TreeNodeProps) {
 
         {/* Normal balance */}
         <div className="col-span-1 text-center">
-          <span className={`text-xs font-medium ${node.normalBalance === 'debit' ? 'text-brand-jade' : 'text-brand-clay'}`}>
+          <span
+            className={`text-xs font-medium ${node.normalBalance === 'debit' ? 'text-brand-jade' : 'text-brand-clay'}`}
+          >
             {node.normalBalance === 'debit' ? 'DR' : 'CR'}
           </span>
         </div>
@@ -248,13 +276,21 @@ function TreeNode({ node, depth, expandedIds, onToggle }: TreeNodeProps) {
           {node.isPostable ? (
             <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-jade-light text-brand-jade">
               <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
               </svg>
             </span>
           ) : (
             <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-cream-3 text-brand-ink-3">
               <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
               </svg>
             </span>
           )}
@@ -296,19 +332,15 @@ function TreeNode({ node, depth, expandedIds, onToggle }: TreeNodeProps) {
 
 // --- Filter helper ---
 
-function filterTree(
-  nodes: COANode[],
-  query: string,
-  typeFilter: string | null,
-): COANode[] {
+function filterTree(nodes: COANode[], query: string, typeFilter: string | null): COANode[] {
   return nodes
     .map((node) => {
       const filteredChildren = filterTree(node.children, query, typeFilter);
 
-      const matchesQuery = !query || (
+      const matchesQuery =
+        !query ||
         node.code.toLowerCase().includes(query) ||
-        Object.values(node.name).some((v) => v.toLowerCase().includes(query))
-      );
+        Object.values(node.name).some((v) => v.toLowerCase().includes(query));
 
       const matchesType = !typeFilter || node.type === typeFilter;
 

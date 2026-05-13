@@ -5,8 +5,13 @@
 
 'use server';
 
-import { db, eq, and, desc } from '@erp/db';
-import { journalEntries, journalLines, accounts, accountingPeriods } from '@erp/db/schema/accounting';
+import { and, db, desc, eq } from '@erp/db';
+import {
+  accountingPeriods,
+  accounts,
+  journalEntries,
+  journalLines,
+} from '@erp/db/schema/accounting';
 
 export interface JournalListItem {
   id: string;
@@ -78,16 +83,14 @@ export async function fetchJournalList(tenantId: string): Promise<JournalListIte
 /**
  * Fetch a single journal entry with all its lines.
  */
-export async function fetchJournalDetail(tenantId: string, journalId: string): Promise<JournalDetail | null> {
+export async function fetchJournalDetail(
+  tenantId: string,
+  journalId: string,
+): Promise<JournalDetail | null> {
   const [entry] = await db
     .select()
     .from(journalEntries)
-    .where(
-      and(
-        eq(journalEntries.tenantId, tenantId),
-        eq(journalEntries.id, journalId),
-      ),
-    )
+    .where(and(eq(journalEntries.tenantId, tenantId), eq(journalEntries.id, journalId)))
     .limit(1);
 
   if (!entry) return null;
@@ -106,12 +109,13 @@ export async function fetchJournalDetail(tenantId: string, journalId: string): P
 
   // Fetch account details for display
   const accountIds = [...new Set(lines.map((l) => l.accountId))];
-  const acctRows = accountIds.length > 0
-    ? await db
-        .select({ id: accounts.id, code: accounts.code, name: accounts.name })
-        .from(accounts)
-        .where(eq(accounts.tenantId, tenantId))
-    : [];
+  const acctRows =
+    accountIds.length > 0
+      ? await db
+          .select({ id: accounts.id, code: accounts.code, name: accounts.name })
+          .from(accounts)
+          .where(eq(accounts.tenantId, tenantId))
+      : [];
 
   const acctMap = new Map(acctRows.map((a) => [a.id, a]));
 

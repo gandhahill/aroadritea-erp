@@ -3,8 +3,8 @@
  * PB1-exclusive daily revenue with manual fiscal adjustment + XLSX export.
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { serverGetOmzetHarian } from './actions';
 import { OmzetHarianClient } from './omzet-harian-client';
@@ -27,14 +27,12 @@ export default async function OmzetHarianPage({
   const locationId = params.location ?? '';
 
   const ctx = {
-    userId: (session.user as Record<string, unknown>)?.id as string ?? '',
-    tenantId: (session.user as Record<string, unknown>)?.tenantId as string ?? 'default',
+    userId: ((session.user as Record<string, unknown>)?.id as string) ?? '',
+    tenantId: ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default',
     locationId: locationId,
   };
 
-  const result = locationId
-    ? await serverGetOmzetHarian({ locationId, date }, ctx)
-    : null;
+  const result = locationId ? await serverGetOmzetHarian({ locationId, date }, ctx) : null;
 
   return (
     <OmzetHarianClient

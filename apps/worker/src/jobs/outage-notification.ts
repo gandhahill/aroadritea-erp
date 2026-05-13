@@ -9,7 +9,7 @@
  * For persistent state, use the `outage_notifications` table's `incident_resolved_at` column.
  */
 
-import { db, eq, and, gte, desc } from '@erp/db';
+import { and, db, desc, eq, gte } from '@erp/db';
 import { notificationChannels, outageNotifications } from '@erp/db/schema/notification';
 
 export interface OutageMonitorJobData {
@@ -40,7 +40,9 @@ function getTargets(): HealthTarget[] {
 
 // ─── Health check ────────────────────────────────────────────────────────────
 
-async function checkHealth(target: HealthTarget): Promise<{ ok: boolean; statusCode: number; latencyMs: number; error?: string }> {
+async function checkHealth(
+  target: HealthTarget,
+): Promise<{ ok: boolean; statusCode: number; latencyMs: number; error?: string }> {
   const start = Date.now();
   try {
     const controller = new AbortController();
@@ -58,11 +60,21 @@ async function checkHealth(target: HealthTarget): Promise<{ ok: boolean; statusC
     if (res.ok) {
       return { ok: true, statusCode: res.status, latencyMs };
     } else {
-      return { ok: false, statusCode: res.status, latencyMs, error: `HTTP ${res.status} ${res.statusText}` };
+      return {
+        ok: false,
+        statusCode: res.status,
+        latencyMs,
+        error: `HTTP ${res.status} ${res.statusText}`,
+      };
     }
   } catch (err) {
     const latencyMs = Date.now() - start;
-    return { ok: false, statusCode: 0, latencyMs, error: err instanceof Error ? err.message : String(err) };
+    return {
+      ok: false,
+      statusCode: 0,
+      latencyMs,
+      error: err instanceof Error ? err.message : String(err),
+    };
   }
 }
 
@@ -73,7 +85,12 @@ interface OutageMessage {
   body: string;
 }
 
-function buildAlertMessage(service: string, url: string, since: Date, lastError: string): OutageMessage {
+function buildAlertMessage(
+  service: string,
+  url: string,
+  since: Date,
+  lastError: string,
+): OutageMessage {
   const ts = new Date().toISOString();
   const duration = formatDuration(Date.now() - since.getTime());
   return {
@@ -101,9 +118,12 @@ function formatDuration(ms: number): string {
 
 // ─── Email sender (nodemailer) ───────────────────────────────────────────────
 
-async function sendEmail(to: string, msg: OutageMessage): Promise<{ sent: boolean; error?: string }> {
+async function sendEmail(
+  to: string,
+  msg: OutageMessage,
+): Promise<{ sent: boolean; error?: string }> {
   const smtpHost = process.env.SMTP_HOST;
-  const smtpPort = parseInt(process.env.SMTP_PORT ?? '587');
+  const smtpPort = Number.parseInt(process.env.SMTP_PORT ?? '587');
   const smtpUser = process.env.SMTP_USER;
   const smtpPass = process.env.SMTP_PASS;
   const fromAddr = process.env.SMTP_FROM ?? 'noreply@aroadritea.com';
@@ -179,9 +199,9 @@ async function sendWhatsApp(to: string, body: string): Promise<{ sent: boolean; 
 
 // In-memory failure tracking per service (resets on worker restart)
 const failureCount = new Map<string, number>(); // serviceName → consecutive failure count
-const firstFailure = new Map<string, Date>();   // serviceName → first failure timestamp
+const firstFailure = new Map<string, Date>(); // serviceName → first failure timestamp
 const lastNotifiedAt = new Map<string, Date>(); // serviceName → last alert timestamp
-const wasDown = new Set<string>();              // services that were in alert state
+const wasDown = new Set<string>(); // services that were in alert state
 
 const ALERT_COOLDOWN_MS = 30 * 60 * 1000; // Don't re-alert within 30 min
 
@@ -197,16 +217,20 @@ export async function outageMonitorHandler(data: OutageMonitorJobData): Promise<
   let channels: Array<{ id: string; channelType: string; target: string }> = [];
   try {
     channels = await db
-      .select({ id: notificationChannels.id, channelType: notificationChannels.channelType, target: notificationChannels.target })
+      .select({
+        id: notificationChannels.id,
+        channelType: notificationChannels.channelType,
+        target: notificationChannels.target,
+      })
       .from(notificationChannels)
       .where(
-        and(
-          eq(notificationChannels.tenantId, tenantId),
-          eq(notificationChannels.isActive, true),
-        ),
+        and(eq(notificationChannels.tenantId, tenantId), eq(notificationChannels.isActive, true)),
       );
   } catch (err) {
-    console.warn('[outage-monitor] Could not fetch notification channels, continuing without alerts', { error: err instanceof Error ? err.message : String(err) });
+    console.warn(
+      '[outage-monitor] Could not fetch notification channels, continuing without alerts',
+      { error: err instanceof Error ? err.message : String(err) },
+    );
   }
 
   // 2. Check each service
@@ -231,12 +255,20 @@ export async function outageMonitorHandler(data: OutageMonitorJobData): Promise<
       if (count >= failureThreshold) {
         const since = firstFailure.get(target.name) ?? new Date();
         const lastAlert = lastNotifiedAt.get(target.name);
-        const cooldownElapsed = !lastAlert || (Date.now() - lastAlert.getTime()) > ALERT_COOLDOWN_MS;
+        const cooldownElapsed = !lastAlert || Date.now() - lastAlert.getTime() > ALERT_COOLDOWN_MS;
 
         if (!wasDown.has(target.name) || cooldownElapsed) {
-          console.error(`[outage-monitor] ALERT: ${target.name} down since ${since.toISOString()}`, { url: target.url });
+          console.error(
+            `[outage-monitor] ALERT: ${target.name} down since ${since.toISOString()}`,
+            { url: target.url },
+          );
 
-          const msg = buildAlertMessage(target.name, target.url, since, result.error ?? 'Unknown error');
+          const msg = buildAlertMessage(
+            target.name,
+            target.url,
+            since,
+            result.error ?? 'Unknown error',
+          );
           await sendAlerts(channels, target.name, target.url, since, msg, 'down');
 
           wasDown.add(target.name);
@@ -261,7 +293,14 @@ export async function outageMonitorHandler(data: OutageMonitorJobData): Promise<
         });
 
         const msg = buildRecoveryMessage(target.name, target.url, durationMs);
-        await sendAlerts(channels, target.name, target.url, downSince ?? new Date(), msg, 'recovery');
+        await sendAlerts(
+          channels,
+          target.name,
+          target.url,
+          downSince ?? new Date(),
+          msg,
+          'recovery',
+        );
 
         wasDown.delete(target.name);
       }
@@ -315,7 +354,10 @@ async function sendAlerts(
         updatedBy: 'system',
       });
 
-      console.info(`[outage-monitor] Notification ${sent ? 'sent' : 'FAILED'} via ${channel.channelType} to ${channel.target}`, { deliveryError });
+      console.info(
+        `[outage-monitor] Notification ${sent ? 'sent' : 'FAILED'} via ${channel.channelType} to ${channel.target}`,
+        { deliveryError },
+      );
     } catch (err) {
       console.error(`[outage-monitor] Failed to send ${channel.channelType} notification`, {
         error: err instanceof Error ? err.message : String(err),

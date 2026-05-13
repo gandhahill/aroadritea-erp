@@ -4,10 +4,17 @@
 
 'use server';
 
-import { getOmzetHarian, saveOmzetAdjustment, exportOmzetHarianXlsx } from '@erp/services/reporting';
+import {
+  exportOmzetHarianXlsx,
+  getOmzetHarian,
+  saveOmzetAdjustment,
+} from '@erp/services/reporting';
 import type { AuditContext } from '@erp/shared/types';
 
-export async function serverGetOmzetHarian(params: { locationId: string; date: string }, ctx: AuditContext) {
+export async function serverGetOmzetHarian(
+  params: { locationId: string; date: string },
+  ctx: AuditContext,
+) {
   return getOmzetHarian(params, ctx);
 }
 

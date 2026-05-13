@@ -20,9 +20,9 @@
 
 export interface PayrollEmployeeContext {
   employeeId: string;
-  baseSalary: bigint;          // SALARY_BASE monthly (IDR)
-  isBpjsBase: boolean;         // is this employee subject to BPJS?
-  isTaxable: boolean;          // is this employee subject to PPh 21?
+  baseSalary: bigint; // SALARY_BASE monthly (IDR)
+  isBpjsBase: boolean; // is this employee subject to BPJS?
+  isTaxable: boolean; // is this employee subject to PPh 21?
   dependentsCount: 0 | 1 | 2 | 3; // PTKP tier
   /** Additional taxable earnings this period (bonus, THR, lembur) */
   additionalEarnings: PayrollEarning[];
@@ -33,8 +33,8 @@ export interface PayrollEmployeeContext {
 }
 
 export interface PayrollEarning {
-  code: string;          // component code
-  amount: bigint;        // IDR amount
+  code: string; // component code
+  amount: bigint; // IDR amount
   isTaxable: boolean;
   isBpjsBase: boolean;
 }
@@ -42,8 +42,8 @@ export interface PayrollEarning {
 export interface PayrollLine {
   componentCode: string;
   componentKind: 'earning' | 'deduction';
-  amount: bigint;        // IDR (positive always)
-  baseAmount: bigint;    // base used for formula calc
+  amount: bigint; // IDR (positive always)
+  baseAmount: bigint; // base used for formula calc
   percentageApplied: number | null;
   notes: string;
 }
@@ -90,16 +90,16 @@ const ABSENT_PENALTY = 100_000n;
 // ─── PPh 21 Progressive Brackets ───────────────────────────────────────────
 
 interface TaxBracket {
-  maxPkp: bigint;    // exclusive upper bound (n for 0 < x < n)
-  rate: number;      // e.g. 0.05 for 5%
+  maxPkp: bigint; // exclusive upper bound (n for 0 < x < n)
+  rate: number; // e.g. 0.05 for 5%
 }
 
 /** UU PPh 21 §17 progressive brackets */
 const TAX_BRACKETS_ANNUAL: TaxBracket[] = [
-  { maxPkp: 60_000_000n,       rate: 0.05 },
-  { maxPkp: 250_000_000n,      rate: 0.15 },
-  { maxPkp: 500_000_000n,      rate: 0.25 },
-  { maxPkp: 5_000_000_000n,    rate: 0.30 },
+  { maxPkp: 60_000_000n, rate: 0.05 },
+  { maxPkp: 250_000_000n, rate: 0.15 },
+  { maxPkp: 500_000_000n, rate: 0.25 },
+  { maxPkp: 5_000_000_000n, rate: 0.3 },
   { maxPkp: BigInt(Number.MAX_SAFE_INTEGER), rate: 0.35 },
 ];
 
@@ -112,7 +112,7 @@ function calcAnnualPPh21(pkp: bigint): bigint {
     const bracketSize = bracket.maxPkp - prevMax;
     const taxableInBracket = remaining < bracketSize ? remaining : bracketSize;
     if (taxableInBracket <= 0n) break;
-    totalTax += taxableInBracket * BigInt(Math.round(bracket.rate * 100)) / 100n;
+    totalTax += (taxableInBracket * BigInt(Math.round(bracket.rate * 100))) / 100n;
     remaining -= taxableInBracket;
     prevMax = bracket.maxPkp;
     if (prevMax >= pkp) break;
@@ -178,7 +178,8 @@ export function calculatePayroll(ctx: PayrollEmployeeContext): PayrollResult {
       componentKind: 'deduction',
       amount: pph21Amount,
       baseAmount: grossMonthly,
-      percentageApplied: grossMonthly > 0 ? Number((pph21Amount * 100n) / grossMonthly) / 100 : null,
+      percentageApplied:
+        grossMonthly > 0 ? Number((pph21Amount * 100n) / grossMonthly) / 100 : null,
       notes: 'PPh 21 TER monthly (progressive)',
     });
   }
@@ -187,7 +188,7 @@ export function calculatePayroll(ctx: PayrollEmployeeContext): PayrollResult {
   let bpjsKesEmployee = 0n;
   let bpjsTkEmp = 0n;
   if (ctx.isBpjsBase) {
-    const bpjsKesRaw = bpjsKesBase * BigInt(Math.round(BPJS_KES_EMPLOYEE_RATE * 100)) / 100n;
+    const bpjsKesRaw = (bpjsKesBase * BigInt(Math.round(BPJS_KES_EMPLOYEE_RATE * 100))) / 100n;
     bpjsKesEmployee = bpjsKesRaw > BPJS_KES_CEILING ? BPJS_KES_CEILING : bpjsKesRaw;
     lines.push({
       componentCode: 'BPJS_KES',
@@ -199,7 +200,7 @@ export function calculatePayroll(ctx: PayrollEmployeeContext): PayrollResult {
     });
 
     // 5. BPJS TK (employee portion: 2%, capped at ceiling)
-    const bpjsTkRaw = bpjsTkBase * BigInt(Math.round(BPJS_TK_EMPLOYEE_RATE * 100)) / 100n;
+    const bpjsTkRaw = (bpjsTkBase * BigInt(Math.round(BPJS_TK_EMPLOYEE_RATE * 100))) / 100n;
     bpjsTkEmp = bpjsTkRaw > BPJS_TK_CEILING ? BPJS_TK_CEILING : bpjsTkRaw;
     lines.push({
       componentCode: 'BPJS_TK',
@@ -213,7 +214,10 @@ export function calculatePayroll(ctx: PayrollEmployeeContext): PayrollResult {
 
   // 6. Late penalty (after FREE_LATES_PER_MONTH)
   let latePenalty = 0n;
-  const penalizableLates = Math.max(0, ctx.lateMinutes > 0 ? ctx.lateMinutes - FREE_LATES_PER_MONTH : 0);
+  const penalizableLates = Math.max(
+    0,
+    ctx.lateMinutes > 0 ? ctx.lateMinutes - FREE_LATES_PER_MONTH : 0,
+  );
   if (penalizableLates > 0 || ctx.lateMinutes > 0) {
     // Count late days (each late day = 1 penalty if over free limit)
     const lateDays = Math.ceil(ctx.lateMinutes / 60); // rough: 1 penalty per hour of lateness
@@ -245,8 +249,7 @@ export function calculatePayroll(ctx: PayrollEmployeeContext): PayrollResult {
     });
   }
 
-  const totalDeductions =
-    pph21Amount + bpjsKesEmployee + bpjsTkEmp + latePenalty + absentPenalty;
+  const totalDeductions = pph21Amount + bpjsKesEmployee + bpjsTkEmp + latePenalty + absentPenalty;
   const netSalary = grossMonthly - totalDeductions;
 
   return {

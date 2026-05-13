@@ -314,42 +314,42 @@
     "sessionDate": "Tanggal Sesi",
     "periodCode": "Kode Periode",
     "settings": {
-    "title": "Pengaturan",
-    "customFields": {
-      "title": "Bidang Kustom",
-      "subtitle": "Tambah dan kelola kolom kustom per modul.",
-      "createField": "Tambah Bidang",
-      "editField": "Ubah Bidang",
-      "deleteField": "Hapus Bidang",
-      "entityType": "Modul",
-      "fieldKey": "Kunci Bidang",
-      "fieldName": "Nama Tampilan",
-      "dataType": "Tipe Data",
-      "required": "Wajib Diisi",
-      "enumOptions": "Opsi Enum",
-      "validationRegex": "Validasi Regex",
-      "displayOrder": "Urutan Tampilan",
-      "empty": "Belum ada bidang kustom.",
-      "dataTypes": {
-        "string": "Teks",
-        "number": "Angka",
-        "boolean": "Ya/Tidak",
-        "date": "Tanggal",
-        "enum": "Pilihan (Enum)",
-        "reference": "Referensi"
-      },
-      "entityTypes": {
-        "product": "Produk",
-        "partner": "Mitra/Pelanggan",
-        "employee": "Karyawan",
-        "purchase_order": "Purchase Order",
-        "sales_order": "Order Penjualan",
-        "journal_entry": "Jurnal"
-      },
-      "confirmDelete": "Yakin hapus bidang \"{name}\"? Data yang tersimpan akan tetap ada."
-    }
-  },
-  "workflow": {
+      "title": "Pengaturan",
+      "customFields": {
+        "title": "Bidang Kustom",
+        "subtitle": "Tambah dan kelola kolom kustom per modul.",
+        "createField": "Tambah Bidang",
+        "editField": "Ubah Bidang",
+        "deleteField": "Hapus Bidang",
+        "entityType": "Modul",
+        "fieldKey": "Kunci Bidang",
+        "fieldName": "Nama Tampilan",
+        "dataType": "Tipe Data",
+        "required": "Wajib Diisi",
+        "enumOptions": "Opsi Enum",
+        "validationRegex": "Validasi Regex",
+        "displayOrder": "Urutan Tampilan",
+        "empty": "Belum ada bidang kustom.",
+        "dataTypes": {
+          "string": "Teks",
+          "number": "Angka",
+          "boolean": "Ya/Tidak",
+          "date": "Tanggal",
+          "enum": "Pilihan (Enum)",
+          "reference": "Referensi"
+        },
+        "entityTypes": {
+          "product": "Produk",
+          "partner": "Mitra/Pelanggan",
+          "employee": "Karyawan",
+          "purchase_order": "Purchase Order",
+          "sales_order": "Order Penjualan",
+          "journal_entry": "Jurnal"
+        },
+        "confirmDelete": "Yakin hapus bidang \"{name}\"? Data yang tersimpan akan tetap ada."
+      }
+    },
+    "workflow": {
       "step1": "Buat Sesi",
       "step2": "Hitung Fisik",
       "step3": "Ajukan",

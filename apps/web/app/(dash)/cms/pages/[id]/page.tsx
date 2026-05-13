@@ -1,8 +1,8 @@
+import { getSession } from '@/lib/auth';
 /**
  * CMS Page — Edit (SD §31.3)
  */
 import type { Metadata } from 'next';
-import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { fetchCmsPage } from '../../actions';
 import { CmsPageForm } from '../../cms-page-form';

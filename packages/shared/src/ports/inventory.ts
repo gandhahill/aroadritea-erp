@@ -6,27 +6,16 @@
  * not on `packages/services/inventory` directly. Wiring happens in apps/*.
  */
 
-import type { Result } from '../result';
 import type { Money } from '../money';
+import type { Result } from '../result';
 
 export interface InventoryPort {
   /** Deduct stock for a product at a location. */
-  deduct(
-    productId: string,
-    qty: number,
-    locationId: string,
-    reason: string,
-  ): Promise<Result<void>>;
+  deduct(productId: string, qty: number, locationId: string, reason: string): Promise<Result<void>>;
 
   /** Check available stock for a product at a location. */
-  getAvailableQty(
-    productId: string,
-    locationId: string,
-  ): Promise<Result<number>>;
+  getAvailableQty(productId: string, locationId: string): Promise<Result<number>>;
 
   /** Get the cost price (COGS) for a product. */
-  getCostPrice(
-    productId: string,
-    locationId: string,
-  ): Promise<Result<Money>>;
+  getCostPrice(productId: string, locationId: string): Promise<Result<Money>>;
 }

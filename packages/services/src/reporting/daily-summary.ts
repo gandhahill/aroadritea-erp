@@ -11,17 +11,12 @@
  * Permission: accounting.view | reporting.view
  */
 
-import { eq, and, gte, lte, sql, inArray } from 'drizzle-orm';
 import { db } from '@erp/db';
-import {
-  salesOrders,
-  salesOrderLines,
-  payments,
-  shifts,
-} from '@erp/db/schema/pos';
-import { type Result, ok } from '@erp/shared/result';
+import { payments, salesOrderLines, salesOrders, shifts } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
+import { type Result, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -29,7 +24,7 @@ import { requirePermission } from '../iam';
 export interface DailySummaryParams {
   locationId: string;
   startDate: string; // YYYY-MM-DD
-  endDate: string;    // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
   cashierId?: string;
 }
 
@@ -65,12 +60,12 @@ export interface ProductSaleRow {
 export interface DailySummaryResult {
   period: { start: string; end: string };
   locationId: string;
-  grossSales: string;           // bigint string (before discounts)
+  grossSales: string; // bigint string (before discounts)
   discountTotal: string;
   netSales: string;
-  taxTotal: string;             // PB1 collected (inclusive → back-out)
-  commissionDelivery: string;    // 20% × delivery channel gross
-  netRevenue: string;           // netSales − commissionDelivery
+  taxTotal: string; // PB1 collected (inclusive → back-out)
+  commissionDelivery: string; // 20% × delivery channel gross
+  netRevenue: string; // netSales − commissionDelivery
   refundTotal: string;
   refundCount: number;
   paymentBreakdown: PaymentMethodRow[];

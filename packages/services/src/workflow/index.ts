@@ -7,16 +7,12 @@
  * - Auto-advance to next step on approval
  */
 
-import { eq, and, desc, sql } from 'drizzle-orm';
 import { db } from '@erp/db';
-import {
-  workflowDefinitions,
-  workflowInstances,
-  workflowSteps,
-} from '@erp/db/schema/workflow';
-import { type Result, ok, err } from '@erp/shared/result';
+import { workflowDefinitions, workflowInstances, workflowSteps } from '@erp/db/schema/workflow';
 import { AppError } from '@erp/shared/errors';
-import { type AuditContext } from '@erp/shared/types';
+import { type Result, err, ok } from '@erp/shared/result';
+import type { AuditContext } from '@erp/shared/types';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // ─── Condition evaluation ────────────────────────────────────────────────────
@@ -133,7 +129,8 @@ export async function createInstance(
       .limit(1)
       .then((r) => r[0]);
 
-    if (!def) return err(AppError.notFound('workflow.definitionNotFound', { id: input.definitionId }));
+    if (!def)
+      return err(AppError.notFound('workflow.definitionNotFound', { id: input.definitionId }));
 
     const steps = def.stepsJson as StepsJson;
     if (!steps || steps.length === 0) {
@@ -229,7 +226,8 @@ async function resolveStep(
       .limit(1)
       .then((r) => r[0]);
 
-    if (!instance) return err(AppError.notFound('workflow.instanceNotFound', { id: input.instanceId }));
+    if (!instance)
+      return err(AppError.notFound('workflow.instanceNotFound', { id: input.instanceId }));
     if (instance.status !== 'pending') {
       return err(AppError.businessRule('workflow.instanceNotPending', { status: instance.status }));
     }
@@ -241,10 +239,7 @@ async function resolveStep(
       .select()
       .from(workflowSteps)
       .where(
-        and(
-          eq(workflowSteps.instanceId, input.instanceId),
-          eq(workflowSteps.stepOrder, stepOrder),
-        ),
+        and(eq(workflowSteps.instanceId, input.instanceId), eq(workflowSteps.stepOrder, stepOrder)),
       )
       .limit(1)
       .then((r) => r[0]);
@@ -273,10 +268,7 @@ async function resolveStep(
         .select()
         .from(workflowSteps)
         .where(
-          and(
-            eq(workflowSteps.instanceId, input.instanceId),
-            eq(workflowSteps.status, 'pending'),
-          ),
+          and(eq(workflowSteps.instanceId, input.instanceId), eq(workflowSteps.status, 'pending')),
         )
         .orderBy(workflowSteps.stepOrder)
         .limit(1);
@@ -324,10 +316,7 @@ async function resolveStep(
         .update(workflowSteps)
         .set({ status: 'skipped', updatedBy: ctx.userId })
         .where(
-          and(
-            eq(workflowSteps.instanceId, input.instanceId),
-            eq(workflowSteps.status, 'pending'),
-          ),
+          and(eq(workflowSteps.instanceId, input.instanceId), eq(workflowSteps.status, 'pending')),
         );
 
       await db
@@ -352,10 +341,7 @@ async function resolveStep(
 /**
  * Cancel a pending workflow instance (e.g. user cancels their own request).
  */
-export async function cancelInstance(
-  instanceId: string,
-  ctx: AuditContext,
-): Promise<Result<void>> {
+export async function cancelInstance(instanceId: string, ctx: AuditContext): Promise<Result<void>> {
   try {
     const instance = await db
       .select()
@@ -409,7 +395,10 @@ export async function getInstance(
       .where(eq(workflowSteps.instanceId, instanceId))
       .orderBy(workflowSteps.stepOrder);
 
-    return ok({ instance: instance as Record<string, unknown>, steps: steps as Record<string, unknown>[] });
+    return ok({
+      instance: instance as Record<string, unknown>,
+      steps: steps as Record<string, unknown>[],
+    });
   } catch (e) {
     return err(AppError.internal('workflow.getInstance.failed', e));
   }

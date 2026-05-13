@@ -44,7 +44,8 @@ export const CreateProductInputSchema = z.object({
   name: LocaleStringSchema,
   description: LocaleStringSchema.optional(),
   categoryId: z.string().min(1),
-  kind: z.enum(['finished_good', 'raw_material', 'merchandise', 'consumable', 'service'])
+  kind: z
+    .enum(['finished_good', 'raw_material', 'merchandise', 'consumable', 'service'])
     .optional()
     .default('finished_good'),
   uom: z.string().min(1).max(16).optional().default('pcs'),
@@ -71,7 +72,9 @@ export const UpdateProductInputSchema = z.object({
   name: LocaleStringSchema.optional(),
   description: LocaleStringSchema.nullable().optional(),
   categoryId: z.string().optional(),
-  kind: z.enum(['finished_good', 'raw_material', 'merchandise', 'consumable', 'service']).optional(),
+  kind: z
+    .enum(['finished_good', 'raw_material', 'merchandise', 'consumable', 'service'])
+    .optional(),
   uom: z.string().min(1).max(16).optional(),
   isSellable: z.boolean().optional(),
   isPurchasable: z.boolean().optional(),
@@ -122,7 +125,9 @@ export type UpdateVariantInput = z.infer<typeof UpdateVariantInputSchema>;
 
 export const ListProductsInputSchema = z.object({
   categoryId: z.string().optional(),
-  kind: z.enum(['finished_good', 'raw_material', 'merchandise', 'consumable', 'service']).optional(),
+  kind: z
+    .enum(['finished_good', 'raw_material', 'merchandise', 'consumable', 'service'])
+    .optional(),
   search: z.string().optional(),
   isActive: z.boolean().optional().default(true),
   isSellable: z.boolean().optional(),
@@ -190,24 +195,29 @@ export const TransferLineInputSchema = z.object({
   productId: z.string().min(1),
   variantId: z.string().optional(),
   batchNo: z.string().optional(),
-  qty: z.string().regex(/^\d+(\.\d+)?$/).refine((v) => parseFloat(v) > 0, {
-    message: 'Transfer qty must be greater than 0',
-  }),
+  qty: z
+    .string()
+    .regex(/^\d+(\.\d+)?$/)
+    .refine((v) => Number.parseFloat(v) > 0, {
+      message: 'Transfer qty must be greater than 0',
+    }),
   uom: z.string().min(1).max(16),
 });
 
 export type TransferLineInput = z.infer<typeof TransferLineInputSchema>;
 
-export const CreateTransferInputSchema = z.object({
-  fromLocationId: z.string().min(1),
-  toLocationId: z.string().min(1),
-  transferDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  notes: z.string().optional(),
-  lines: z.array(TransferLineInputSchema).min(1),
-}).refine((data) => data.fromLocationId !== data.toLocationId, {
-  message: 'fromLocationId and toLocationId must be different',
-  path: ['toLocationId'],
-});
+export const CreateTransferInputSchema = z
+  .object({
+    fromLocationId: z.string().min(1),
+    toLocationId: z.string().min(1),
+    transferDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    notes: z.string().optional(),
+    lines: z.array(TransferLineInputSchema).min(1),
+  })
+  .refine((data) => data.fromLocationId !== data.toLocationId, {
+    message: 'fromLocationId and toLocationId must be different',
+    path: ['toLocationId'],
+  });
 
 export type CreateTransferInput = z.infer<typeof CreateTransferInputSchema>;
 
@@ -221,14 +231,19 @@ export type ShipTransferInput = z.infer<typeof ShipTransferInputSchema>;
 export const ReceiveTransferInputSchema = z.object({
   transferId: z.string().min(1),
   version: z.number().int().min(1),
-  lines: z.array(
-    z.object({
-      lineId: z.string().min(1),
-      qtyReceived: z.string().regex(/^\d+(\.\d+)?$/).refine((v) => parseFloat(v) > 0, {
-        message: 'qtyReceived must be greater than 0',
+  lines: z
+    .array(
+      z.object({
+        lineId: z.string().min(1),
+        qtyReceived: z
+          .string()
+          .regex(/^\d+(\.\d+)?$/)
+          .refine((v) => Number.parseFloat(v) > 0, {
+            message: 'qtyReceived must be greater than 0',
+          }),
       }),
-    }),
-  ).optional(),
+    )
+    .optional(),
 });
 
 export type ReceiveTransferInput = z.infer<typeof ReceiveTransferInputSchema>;

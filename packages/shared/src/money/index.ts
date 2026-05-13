@@ -74,7 +74,7 @@ export const equals = (a: Money, b: Money): boolean => a === b;
  * @returns tax amount in rupiah (rounded)
  */
 export const extractInclusiveTax = (inclusivePrice: Money, rateBps: number): Money =>
-  BigInt(Math.round(Number(inclusivePrice) * rateBps / (10_000 + rateBps)));
+  BigInt(Math.round((Number(inclusivePrice) * rateBps) / (10_000 + rateBps)));
 
 /**
  * Calculate tax on top of a base price (exclusive).
@@ -84,4 +84,4 @@ export const extractInclusiveTax = (inclusivePrice: Money, rateBps: number): Mon
  * @returns tax amount in rupiah (rounded)
  */
 export const calculateExclusiveTax = (basePrice: Money, rateBps: number): Money =>
-  BigInt(Math.round(Number(basePrice) * rateBps / 10_000));
+  BigInt(Math.round((Number(basePrice) * rateBps) / 10_000));

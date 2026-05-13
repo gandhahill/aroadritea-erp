@@ -7,12 +7,12 @@
  * Permission: accounting.view
  */
 
-import { eq, and, lte, sql } from 'drizzle-orm';
 import { db } from '@erp/db';
 import { accounts, journalEntries, journalLines } from '@erp/db/schema/accounting';
-import { type Result, ok, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
+import { type Result, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq, lte, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // --- Types ---
@@ -78,12 +78,7 @@ export async function trialBalance(
         })
         .from(journalLines)
         .innerJoin(journalEntries, eq(journalLines.journalEntryId, journalEntries.id))
-        .where(
-          and(
-            ...jeConditions,
-            ...lineConditions,
-          ),
-        )
+        .where(and(...jeConditions, ...lineConditions))
         .groupBy(journalLines.accountId);
 
       // Fetch account details
@@ -114,9 +109,8 @@ export async function trialBalance(
         grandTotalDebit += totalDebit;
         grandTotalCredit += totalCredit;
 
-        const balance = acct.normalBalance === 'debit'
-          ? totalDebit - totalCredit
-          : totalCredit - totalDebit;
+        const balance =
+          acct.normalBalance === 'debit' ? totalDebit - totalCredit : totalCredit - totalDebit;
 
         lines.push({
           accountId: acct.id,

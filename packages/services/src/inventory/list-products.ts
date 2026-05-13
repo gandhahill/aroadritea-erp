@@ -5,15 +5,15 @@
  * Permission: inventory.product.read
  */
 
-import { eq, and, ilike, sql, desc } from 'drizzle-orm';
 import { db } from '@erp/db';
-import { products, productCategories, productVariants } from '@erp/db/schema/inventory';
-import { type Result, ok, err, tryCatch } from '@erp/shared/result';
+import { productCategories, productVariants, products } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, desc, eq, ilike, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
-import { ListProductsInputSchema, type ListProductsInput } from './schemas';
 import type { ProductResult } from './create-product';
+import { type ListProductsInput, ListProductsInputSchema } from './schemas';
 
 // --- Extended types for list results ---
 
@@ -62,7 +62,9 @@ export async function listProducts(
 
   const parsed = ListProductsInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('inventory.product.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('inventory.product.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const data = parsed.data;
 
@@ -170,7 +172,11 @@ export async function listProducts(
         isActive: r.isActive,
         version: r.version,
         categoryCode: r.categoryCode ?? '',
-        categoryName: (r.categoryName ?? { id: '', en: '', zh: '' }) as { id: string; en: string; zh: string },
+        categoryName: (r.categoryName ?? { id: '', en: '', zh: '' }) as {
+          id: string;
+          en: string;
+          zh: string;
+        },
         variantCount: variantCounts.get(r.id) ?? 0,
       }));
 
@@ -224,9 +230,7 @@ export async function getProduct(
         })
         .from(products)
         .leftJoin(productCategories, eq(products.categoryId, productCategories.id))
-        .where(
-          and(eq(products.tenantId, ctx.tenantId), eq(products.id, productId)),
-        )
+        .where(and(eq(products.tenantId, ctx.tenantId), eq(products.id, productId)))
         .limit(1);
 
       if (!row) {
@@ -263,7 +267,11 @@ export async function getProduct(
         isActive: row.isActive,
         version: row.version,
         categoryCode: row.categoryCode ?? '',
-        categoryName: (row.categoryName ?? { id: '', en: '', zh: '' }) as { id: string; en: string; zh: string },
+        categoryName: (row.categoryName ?? { id: '', en: '', zh: '' }) as {
+          id: string;
+          en: string;
+          zh: string;
+        },
         createdAt: row.createdAt!,
         updatedAt: row.updatedAt!,
         variants: variants.map((v) => ({

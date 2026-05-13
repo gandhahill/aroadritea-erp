@@ -9,15 +9,9 @@
 
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  type ReactNode,
-} from 'react';
 import type { DemoCartLine, DemoCartPayment, DemoCartState } from '@erp/offline';
 import { calcDemoTotals } from '@erp/offline';
+import { type ReactNode, createContext, useCallback, useContext, useState } from 'react';
 
 interface DemoCartContextValue {
   state: DemoCartState;
@@ -51,51 +45,51 @@ export function DemoCartProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DemoCartState>(defaultState);
 
   const setChannel = useCallback((c: DemoCartState['channel']) => {
-    setState(s => ({ ...s, channel: c }));
+    setState((s) => ({ ...s, channel: c }));
   }, []);
 
   const addLine = useCallback((line: Omit<DemoCartLine, 'id'>) => {
-    setState(s => ({
+    setState((s) => ({
       ...s,
       lines: [...s.lines, { ...line, id: crypto.randomUUID() }],
     }));
   }, []);
 
   const updateLineQty = useCallback((lineId: string, qty: number) => {
-    setState(s => ({
+    setState((s) => ({
       ...s,
-      lines: s.lines.map(l => l.id === lineId ? { ...l, qty } : l),
+      lines: s.lines.map((l) => (l.id === lineId ? { ...l, qty } : l)),
     }));
   }, []);
 
   const removeLine = useCallback((lineId: string) => {
-    setState(s => ({ ...s, lines: s.lines.filter(l => l.id !== lineId) }));
+    setState((s) => ({ ...s, lines: s.lines.filter((l) => l.id !== lineId) }));
   }, []);
 
   const updateLineNotes = useCallback((lineId: string, notes: string) => {
-    setState(s => ({
+    setState((s) => ({
       ...s,
-      lines: s.lines.map(l => l.id === lineId ? { ...l, notes } : l),
+      lines: s.lines.map((l) => (l.id === lineId ? { ...l, notes } : l)),
     }));
   }, []);
 
   const addPayment = useCallback((payment: Omit<DemoCartPayment, 'id'>) => {
-    setState(s => ({
+    setState((s) => ({
       ...s,
       payments: [...s.payments, { ...payment, id: crypto.randomUUID() }],
     }));
   }, []);
 
   const removePayment = useCallback((id: string) => {
-    setState(s => ({ ...s, payments: s.payments.filter(p => p.id !== id) }));
+    setState((s) => ({ ...s, payments: s.payments.filter((p) => p.id !== id) }));
   }, []);
 
   const setNotes = useCallback((n: string) => {
-    setState(s => ({ ...s, notes: n }));
+    setState((s) => ({ ...s, notes: n }));
   }, []);
 
   const clearCart = useCallback(() => {
-    setState(s => ({ ...s, lines: [], payments: [], notes: '' }));
+    setState((s) => ({ ...s, lines: [], payments: [], notes: '' }));
   }, []);
 
   const { subtotal, taxTotal, totalPaid, remainingBalance, grandTotal, excess } =

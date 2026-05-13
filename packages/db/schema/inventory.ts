@@ -16,7 +16,9 @@
  * - stock_transfers     — inter-location transfer header
  */
 
+import { sql } from 'drizzle-orm';
 import {
+  bigint,
   boolean,
   date,
   index,
@@ -27,9 +29,8 @@ import {
   text,
   timestamp,
   uniqueIndex,
-  bigint,
 } from 'drizzle-orm/pg-core';
-import { pk, tenantCol, locationCol, auditCols, versionCol, isActiveFlag } from './common';
+import { auditCols, isActiveFlag, locationCol, pk, tenantCol, versionCol } from './common';
 
 // ─── Product Categories ───────────────────────────────────────────────────────
 
@@ -41,7 +42,7 @@ export const productCategories = pgTable(
 
     code: text('code').notNull(),
     name: jsonb('name').notNull().$type<{ id: string; en: string; zh: string }>(),
-    parentId: text('parent_id'),  // self-referencing hierarchy
+    parentId: text('parent_id'), // self-referencing hierarchy
     sortOrder: integer('sort_order').notNull().default(0),
 
     ...isActiveFlag,
@@ -83,11 +84,11 @@ export const products = pgTable(
     shelfLifeDays: integer('shelf_life_days'),
 
     // Default pricing (bigint rupiah — SD §7.8)
-    defaultSellPrice: bigint('default_sell_price', { mode: 'bigint' }).notNull().default(BigInt(0)),
-    defaultCostPrice: bigint('default_cost_price', { mode: 'bigint' }).notNull().default(BigInt(0)),
+    defaultSellPrice: bigint('default_sell_price', { mode: 'bigint' }).notNull().default(sql`0`),
+    defaultCostPrice: bigint('default_cost_price', { mode: 'bigint' }).notNull().default(sql`0`),
 
     // Accounting integration
-    cogsAccountId: text('cogs_account_id'),     // FK accounts
+    cogsAccountId: text('cogs_account_id'), // FK accounts
     revenueAccountId: text('revenue_account_id'), // FK accounts
     inventoryAccountId: text('inventory_account_id'), // FK accounts
 
@@ -124,8 +125,8 @@ export const productVariants = pgTable(
     name: jsonb('name').notNull().$type<{ id: string; en: string; zh: string }>(),
 
     // Variant-specific pricing override (0 = use product default)
-    sellPrice: bigint('sell_price', { mode: 'bigint' }).notNull().default(BigInt(0)),
-    costPrice: bigint('cost_price', { mode: 'bigint' }).notNull().default(BigInt(0)),
+    sellPrice: bigint('sell_price', { mode: 'bigint' }).notNull().default(sql`0`),
+    costPrice: bigint('cost_price', { mode: 'bigint' }).notNull().default(sql`0`),
 
     // Variant dimensions — flexible JSON for size/temperature/etc.
     attributes: jsonb('attributes').$type<Record<string, string>>().notNull().default({}),
@@ -165,9 +166,7 @@ export const productModifierGroups = pgTable(
     ...isActiveFlag,
     ...auditCols,
   },
-  (t) => [
-    index('product_modifier_groups_tenant_idx').on(t.tenantId),
-  ],
+  (t) => [index('product_modifier_groups_tenant_idx').on(t.tenantId)],
 );
 
 export const productModifierOptions = pgTable(
@@ -182,7 +181,7 @@ export const productModifierOptions = pgTable(
     // e.g., "0% Sugar", "50% Sugar", "Normal Sugar"
 
     // Additional cost for this modifier (0 = no extra charge)
-    extraPrice: bigint('extra_price', { mode: 'bigint' }).notNull().default(BigInt(0)),
+    extraPrice: bigint('extra_price', { mode: 'bigint' }).notNull().default(sql`0`),
 
     // If topping is also a product (for BOM deduction)
     linkedProductId: text('linked_product_id'), // FK products
@@ -193,9 +192,7 @@ export const productModifierOptions = pgTable(
     ...isActiveFlag,
     ...auditCols,
   },
-  (t) => [
-    index('product_modifier_options_group_idx').on(t.groupId),
-  ],
+  (t) => [index('product_modifier_options_group_idx').on(t.groupId)],
 );
 
 // Link modifiers to products (many-to-many)
@@ -232,10 +229,7 @@ export const boms = pgTable(
     ...versionCol,
     ...auditCols,
   },
-  (t) => [
-    index('boms_product_idx').on(t.productId),
-    index('boms_tenant_idx').on(t.tenantId),
-  ],
+  (t) => [index('boms_product_idx').on(t.productId), index('boms_tenant_idx').on(t.tenantId)],
 );
 
 export const bomLines = pgTable(
@@ -270,15 +264,15 @@ export const bomSubstitutes = pgTable(
     substituteProductId: text('substitute_product_id').notNull(), // FK products
 
     // Conversion ratio (e.g., 1.0 = same qty, 1.2 = 20% more needed)
-    conversionRatio: numeric('conversion_ratio', { precision: 8, scale: 4 }).notNull().default('1.0000'),
+    conversionRatio: numeric('conversion_ratio', { precision: 8, scale: 4 })
+      .notNull()
+      .default('1.0000'),
 
     priority: integer('priority').notNull().default(1), // lower = preferred
 
     ...auditCols,
   },
-  (t) => [
-    index('bom_substitutes_bom_line_idx').on(t.bomLineId),
-  ],
+  (t) => [index('bom_substitutes_bom_line_idx').on(t.bomLineId)],
 );
 
 // ─── Stock Locations (sub-locations within a branch) ──────────────────────────
@@ -386,7 +380,11 @@ export const stockLevels = pgTable(
   },
   (t) => [
     uniqueIndex('stock_levels_unique_idx').on(
-      t.tenantId, t.locationId, t.productId, t.variantId, t.batchNo,
+      t.tenantId,
+      t.locationId,
+      t.productId,
+      t.variantId,
+      t.batchNo,
     ),
     index('stock_levels_product_idx').on(t.productId),
     index('stock_levels_low_stock_idx').on(t.tenantId, t.productId),

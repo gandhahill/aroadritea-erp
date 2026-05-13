@@ -11,24 +11,24 @@
  */
 
 import {
-  getProducts,
-  getVariants,
-  getModifiers,
-  getActivePromotions,
-  getTaxRates,
-} from './indexeddb.js';
-import {
-  upsertDemoProducts,
-  upsertDemoVariants,
+  DEMO_META_KEYS,
+  getDemoMeta,
+  getMasterSnapshotAgeMs,
+  isMasterStale,
+  setDemoMeta,
   upsertDemoModifiers,
+  upsertDemoProducts,
   upsertDemoPromotions,
   upsertDemoTaxRates,
-  setDemoMeta,
-  getDemoMeta,
-  DEMO_META_KEYS,
-  isMasterStale,
-  getMasterSnapshotAgeMs,
-} from './demo-db.js';
+  upsertDemoVariants,
+} from './demo-db';
+import {
+  getActivePromotions,
+  getModifiers,
+  getProducts,
+  getTaxRates,
+  getVariants,
+} from './indexeddb';
 
 /** Result of a snapshot operation. */
 export interface SnapshotResult {

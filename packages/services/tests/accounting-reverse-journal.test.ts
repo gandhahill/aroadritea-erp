@@ -5,7 +5,7 @@
  * and business rules per SD §20.6, §21.1.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // --- Sequenced DB Mock ---
 // reverseJournal makes these DB calls in order:
@@ -59,10 +59,10 @@ vi.mock('../src/iam', () => ({
   }),
 }));
 
+import type { AuditContext } from '@erp/shared/types';
 // --- Import after mocks ---
 import { reverseJournal } from '../src/accounting/reverse-journal';
 import { ReverseJournalInputSchema } from '../src/accounting/schemas';
-import type { AuditContext } from '@erp/shared/types';
 
 // --- Test data factories ---
 
@@ -194,12 +194,18 @@ describe('ReverseJournalInputSchema (Zod)', () => {
   });
 
   it('should reject empty journalId', () => {
-    const result = ReverseJournalInputSchema.safeParse({ journalId: '', postingDate: '2026-06-01' });
+    const result = ReverseJournalInputSchema.safeParse({
+      journalId: '',
+      postingDate: '2026-06-01',
+    });
     expect(result.success).toBe(false);
   });
 
   it('should reject invalid posting date format', () => {
-    const result = ReverseJournalInputSchema.safeParse({ journalId: 'je-001', postingDate: '01-06-2026' });
+    const result = ReverseJournalInputSchema.safeParse({
+      journalId: 'je-001',
+      postingDate: '01-06-2026',
+    });
     expect(result.success).toBe(false);
   });
 
@@ -311,12 +317,12 @@ describe('reverseJournal service', () => {
 
       // Verify amounts are swapped:
       // Original line 1: debit=100000, credit=0 → reversal: debit=0, credit=100000
-      const line1 = result.value.lines.find(l => l.accountId === 'acc-cash');
+      const line1 = result.value.lines.find((l) => l.accountId === 'acc-cash');
       expect(line1?.debit).toBe(0n);
       expect(line1?.credit).toBe(100000n);
 
       // Original line 2: debit=0, credit=100000 → reversal: debit=100000, credit=0
-      const line2 = result.value.lines.find(l => l.accountId === 'acc-sales');
+      const line2 = result.value.lines.find((l) => l.accountId === 'acc-sales');
       expect(line2?.debit).toBe(100000n);
       expect(line2?.credit).toBe(0n);
     }
@@ -387,7 +393,7 @@ describe('reverseJournal service', () => {
       expect(result.value.lines).toHaveLength(3);
 
       // Tax line should be reversed too
-      const taxLine = result.value.lines.find(l => l.taxCode === 'PB1');
+      const taxLine = result.value.lines.find((l) => l.taxCode === 'PB1');
       expect(taxLine?.debit).toBe(3000n);
       expect(taxLine?.credit).toBe(0n);
     }

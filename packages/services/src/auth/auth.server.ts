@@ -6,10 +6,10 @@
  * (users, sessions tables) via the Drizzle adapter with table mapping.
  */
 
-import { betterAuth } from 'better-auth';
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { db } from '@erp/db';
 import * as authSchema from '@erp/db/schema/auth';
+import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'pg',
@@ -37,7 +37,7 @@ export const auth = betterAuth({
   // Session config — SD §11.1
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
-    updateAge: 60 * 60 * 24,      // refresh token every 24 hours
+    updateAge: 60 * 60 * 24, // refresh token every 24 hours
     cookieCache: {
       enabled: true,
       maxAge: 60 * 5, // 5 min client-side cache

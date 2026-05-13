@@ -7,7 +7,7 @@
  */
 
 import { boolean, index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
-import { pk, tenantCol, auditCols } from './common';
+import { auditCols, pk, tenantCol } from './common';
 
 // ─── notification_channels ─────────────────────────────────────────────────────
 
@@ -16,37 +16,39 @@ import { pk, tenantCol, auditCols } from './common';
  * Used by outage monitor and stock alerts.
  * SD §35.1.6
  */
-export const notificationChannels = pgTable('notification_channels', {
-  ...pk,
-  ...tenantCol,
+export const notificationChannels = pgTable(
+  'notification_channels',
+  {
+    ...pk,
+    ...tenantCol,
 
-  // Human label for this channel
-  label: text('label').notNull(),
+    // Human label for this channel
+    label: text('label').notNull(),
 
-  // Channel type
-  channelType: text('channel_type').notNull(), // 'whatsapp' | 'email' | 'telegram'
+    // Channel type
+    channelType: text('channel_type').notNull(), // 'whatsapp' | 'email' | 'telegram'
 
-  // Delivery target
-  //   whatsapp: phone number with country code (e.g. +6281234567890)
-  //   email: RFC 5322 address
-  //   telegram: chat ID or bot token
-  target: text('target').notNull(),
+    // Delivery target
+    //   whatsapp: phone number with country code (e.g. +6281234567890)
+    //   email: RFC 5322 address
+    //   telegram: chat ID or bot token
+    target: text('target').notNull(),
 
-  // Channel configuration (JSON, optional)
-  //   whatsapp: { waBusinessId } — WA Business API config
-  //   telegram: { botToken } — Telegram Bot API config
-  config: jsonb('config'),
+    // Channel configuration (JSON, optional)
+    //   whatsapp: { waBusinessId } — WA Business API config
+    //   telegram: { botToken } — Telegram Bot API config
+    config: jsonb('config'),
 
-  // Is this channel active?
-  isActive: boolean('is_active').notNull().default(true),
+    // Is this channel active?
+    isActive: boolean('is_active').notNull().default(true),
 
-  // Who receives notifications from this channel
-  purpose: text('purpose').notNull().default('all'), // 'outage' | 'stock_alert' | 'all'
+    // Who receives notifications from this channel
+    purpose: text('purpose').notNull().default('all'), // 'outage' | 'stock_alert' | 'all'
 
-  ...auditCols,
-}, (t) => [
-  index('nc_tenant_active_idx').on(t.tenantId, t.isActive, t.purpose),
-]);
+    ...auditCols,
+  },
+  (t) => [index('nc_tenant_active_idx').on(t.tenantId, t.isActive, t.purpose)],
+);
 
 // ─── outage_notifications ─────────────────────────────────────────────────────
 
@@ -55,30 +57,34 @@ export const notificationChannels = pgTable('notification_channels', {
  * Immutable append-only log.
  * SD §35.1.6
  */
-export const outageNotifications = pgTable('outage_notifications', {
-  ...pk,
-  ...tenantCol,
+export const outageNotifications = pgTable(
+  'outage_notifications',
+  {
+    ...pk,
+    ...tenantCol,
 
-  // Which service/endpoint failed
-  serviceName: text('service_name').notNull(), // 'web' | 'mcp' | 'worker'
-  url: text('url').notNull(),
+    // Which service/endpoint failed
+    serviceName: text('service_name').notNull(), // 'web' | 'mcp' | 'worker'
+    url: text('url').notNull(),
 
-  // Incident window
-  incidentStartedAt: timestamp('incident_started_at', { withTimezone: true }).notNull(),
-  incidentResolvedAt: timestamp('incident_resolved_at', { withTimezone: true }),
+    // Incident window
+    incidentStartedAt: timestamp('incident_started_at', { withTimezone: true }).notNull(),
+    incidentResolvedAt: timestamp('incident_resolved_at', { withTimezone: true }),
 
-  // Notification record
-  sentAt: timestamp('sent_at', { withTimezone: true }).notNull(),
-  channelType: text('channel_type').notNull(),  // 'whatsapp' | 'email'
-  recipientTarget: text('recipient_target').notNull(),
+    // Notification record
+    sentAt: timestamp('sent_at', { withTimezone: true }).notNull(),
+    channelType: text('channel_type').notNull(), // 'whatsapp' | 'email'
+    recipientTarget: text('recipient_target').notNull(),
 
-  // Message content snapshot
-  messageText: text('message_text').notNull(),
-  deliveryStatus: text('delivery_status').notNull().default('sent'), // 'sent' | 'delivered' | 'failed'
-  deliveryError: text('delivery_error'),
+    // Message content snapshot
+    messageText: text('message_text').notNull(),
+    deliveryStatus: text('delivery_status').notNull().default('sent'), // 'sent' | 'delivered' | 'failed'
+    deliveryError: text('delivery_error'),
 
-  ...auditCols,
-}, (t) => [
-  index('on_tenant_idx').on(t.tenantId, t.sentAt),
-  index('on_service_idx').on(t.serviceName, t.sentAt),
-]);
+    ...auditCols,
+  },
+  (t) => [
+    index('on_tenant_idx').on(t.tenantId, t.sentAt),
+    index('on_service_idx').on(t.serviceName, t.sentAt),
+  ],
+);

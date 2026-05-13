@@ -21,18 +21,15 @@
 
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
-import { and, eq } from 'drizzle-orm';
-import { generateId } from '@erp/shared/id';
-import {
-  naixerProductCodes,
-  naixerModifierCodes,
-} from '@erp/db/schema/kitchen';
 import { tenants } from '@erp/db/schema/auth';
+import { naixerModifierCodes, naixerProductCodes } from '@erp/db/schema/kitchen';
+import { generateId } from '@erp/shared/id';
+import { neon } from '@neondatabase/serverless';
+import { and, eq } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/neon-http';
 import {
-  parseProductCodesCsv,
   parseModifierCodesCsv,
+  parseProductCodesCsv,
 } from '../packages/services/src/kitchen/parse-naixer-csv';
 
 // ─── CLI argument parsing ───────────────────────────────────────────────────
@@ -236,9 +233,7 @@ async function importModifiers(csv: string): Promise<void> {
     }
   }
 
-  console.log(
-    `\n✅ Modifier codes: ${inserted} inserted, ${updated} updated`,
-  );
+  console.log(`\n✅ Modifier codes: ${inserted} inserted, ${updated} updated`);
 }
 
 // ─── Main ───────────────────────────────────────────────────────────────────

@@ -3,8 +3,8 @@
  * Create, edit, and manage approval workflow definitions.
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchWorkflowDefinitions } from './actions';
 import { WorkflowEditorClient } from './workflow-editor-client';
@@ -17,8 +17,8 @@ export default async function WorkflowEditorPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const tenantId = (session.user as Record<string, unknown>)?.tenantId as string ?? 'default';
-  const userId = (session.user as Record<string, unknown>)?.id as string ?? '';
+  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
+  const userId = ((session.user as Record<string, unknown>)?.id as string) ?? '';
   const definitions = await fetchWorkflowDefinitions(tenantId);
 
   const ctx = { userId, tenantId, locationId: '' };

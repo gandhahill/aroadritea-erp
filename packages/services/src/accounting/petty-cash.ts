@@ -5,24 +5,24 @@
  * Warning threshold: balance < maxLimit * 0.2.
  */
 
-import { eq, and, desc } from 'drizzle-orm';
 import { db } from '@erp/db';
 import { pettyCashAccounts, pettyCashTransactions } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
-import { type Result, ok, err, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, desc, eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 import {
-  RecordPettyCashExpenseSchema,
-  ReplenishPettyCashSchema,
-  ListPettyCashTransactionsSchema,
-  CreatePettyCashAccountSchema,
-  type RecordPettyCashExpenseInput,
-  type ReplenishPettyCashInput,
-  type ListPettyCashTransactionsInput,
   type CreatePettyCashAccountInput,
+  CreatePettyCashAccountSchema,
+  type ListPettyCashTransactionsInput,
+  ListPettyCashTransactionsSchema,
+  type RecordPettyCashExpenseInput,
+  RecordPettyCashExpenseSchema,
+  type ReplenishPettyCashInput,
+  ReplenishPettyCashSchema,
 } from './schemas';
 
 // --- Return types ---
@@ -69,7 +69,9 @@ function toAccountResult(row: typeof pettyCashAccounts.$inferSelect): PettyCashA
   };
 }
 
-function toTransactionResult(row: typeof pettyCashTransactions.$inferSelect): PettyCashTransactionResult {
+function toTransactionResult(
+  row: typeof pettyCashTransactions.$inferSelect,
+): PettyCashTransactionResult {
   return {
     id: row.id,
     accountId: row.accountId,
@@ -110,9 +112,7 @@ export async function getPettyCashBalance(
 
   const row = rows[0];
   if (!row) {
-    return err(
-      AppError.notFound('accounting.pettyCash.accountNotFound', { locationId }),
-    );
+    return err(AppError.notFound('accounting.pettyCash.accountNotFound', { locationId }));
   }
 
   return ok(toAccountResult(row));
@@ -127,7 +127,9 @@ export async function listPettyCashTransactions(
 ): Promise<Result<PettyCashTransactionListResult>> {
   const parsed = ListPettyCashTransactionsSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('accounting.pettyCash.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('accounting.pettyCash.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const { locationId, limit, offset } = parsed.data;
 
@@ -149,9 +151,7 @@ export async function listPettyCashTransactions(
 
   const acctRow = account[0];
   if (!acctRow) {
-    return err(
-      AppError.notFound('accounting.pettyCash.accountNotFound', { locationId }),
-    );
+    return err(AppError.notFound('accounting.pettyCash.accountNotFound', { locationId }));
   }
 
   const accountId = acctRow.id;
@@ -185,7 +185,9 @@ export async function recordPettyCashExpense(
 ): Promise<Result<PettyCashTransactionResult>> {
   const parsed = RecordPettyCashExpenseSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('accounting.pettyCash.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('accounting.pettyCash.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const { locationId, amount: amountStr, description } = parsed.data;
 
@@ -209,9 +211,7 @@ export async function recordPettyCashExpense(
 
   const acct = account[0];
   if (!acct) {
-    return err(
-      AppError.notFound('accounting.pettyCash.accountNotFound', { locationId }),
-    );
+    return err(AppError.notFound('accounting.pettyCash.accountNotFound', { locationId }));
   }
 
   if (acct.balance < amount) {
@@ -290,7 +290,9 @@ export async function replenishPettyCash(
 ): Promise<Result<PettyCashTransactionResult>> {
   const parsed = ReplenishPettyCashSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('accounting.pettyCash.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('accounting.pettyCash.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const { locationId, amount: amountStr, description } = parsed.data;
 
@@ -314,9 +316,7 @@ export async function replenishPettyCash(
 
   const acct = account[0];
   if (!acct) {
-    return err(
-      AppError.notFound('accounting.pettyCash.accountNotFound', { locationId }),
-    );
+    return err(AppError.notFound('accounting.pettyCash.accountNotFound', { locationId }));
   }
 
   const newBalance = acct.balance + amount;
@@ -399,7 +399,9 @@ export async function createPettyCashAccount(
 ): Promise<Result<PettyCashAccountResult>> {
   const parsed = CreatePettyCashAccountSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('accounting.pettyCash.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('accounting.pettyCash.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const { locationId, maxLimit: maxLimitStr } = parsed.data;
 
@@ -420,9 +422,7 @@ export async function createPettyCashAccount(
     .limit(1);
 
   if (existing.length > 0) {
-    return err(
-      AppError.conflict('accounting.pettyCash.accountAlreadyExists', { locationId }),
-    );
+    return err(AppError.conflict('accounting.pettyCash.accountAlreadyExists', { locationId }));
   }
 
   return tryCatch(

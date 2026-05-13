@@ -5,7 +5,7 @@
  * Uses mock DB that returns pre-configured journal line aggregates.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // --- DB Mock ---
 let queryCallIndex = 0;
@@ -41,11 +41,11 @@ vi.mock('../src/iam', () => ({
   }),
 }));
 
-// --- Import after mocks ---
-import { trialBalance } from '../src/reporting/trial-balance';
+import type { AuditContext } from '@erp/shared/types';
 import { balanceSheet } from '../src/reporting/balance-sheet';
 import { profitLoss } from '../src/reporting/profit-loss';
-import type { AuditContext } from '@erp/shared/types';
+// --- Import after mocks ---
+import { trialBalance } from '../src/reporting/trial-balance';
 
 function makeCtx(): AuditContext {
   return { userId: 'user-001', tenantId: 'default', locationId: 'loc-mli', ipAddress: '127.0.0.1' };
@@ -53,14 +53,62 @@ function makeCtx(): AuditContext {
 
 // --- Account fixtures ---
 const ACCOUNTS = [
-  { id: 'acc-cash', code: '1-1010', name: { id: 'Kas', en: 'Cash', zh: '现金' }, type: 'asset', normalBalance: 'debit' },
-  { id: 'acc-ar', code: '1-1020', name: { id: 'Piutang', en: 'AR', zh: '应收账款' }, type: 'asset', normalBalance: 'debit' },
-  { id: 'acc-ap', code: '2-1010', name: { id: 'Utang', en: 'AP', zh: '应付账款' }, type: 'liability', normalBalance: 'credit' },
-  { id: 'acc-equity', code: '3-1010', name: { id: 'Modal', en: 'Equity', zh: '权益' }, type: 'equity', normalBalance: 'credit' },
-  { id: 'acc-sales', code: '4-1000', name: { id: 'Penjualan', en: 'Sales', zh: '销售' }, type: 'income', normalBalance: 'credit' },
-  { id: 'acc-cogs', code: '5-1000', name: { id: 'HPP', en: 'COGS', zh: '销售成本' }, type: 'cogs', normalBalance: 'debit' },
-  { id: 'acc-rent', code: '6-1010', name: { id: 'Sewa', en: 'Rent', zh: '租金' }, type: 'expense', normalBalance: 'debit' },
-  { id: 'acc-salary', code: '6-1020', name: { id: 'Gaji', en: 'Salary', zh: '工资' }, type: 'expense', normalBalance: 'debit' },
+  {
+    id: 'acc-cash',
+    code: '1-1010',
+    name: { id: 'Kas', en: 'Cash', zh: '现金' },
+    type: 'asset',
+    normalBalance: 'debit',
+  },
+  {
+    id: 'acc-ar',
+    code: '1-1020',
+    name: { id: 'Piutang', en: 'AR', zh: '应收账款' },
+    type: 'asset',
+    normalBalance: 'debit',
+  },
+  {
+    id: 'acc-ap',
+    code: '2-1010',
+    name: { id: 'Utang', en: 'AP', zh: '应付账款' },
+    type: 'liability',
+    normalBalance: 'credit',
+  },
+  {
+    id: 'acc-equity',
+    code: '3-1010',
+    name: { id: 'Modal', en: 'Equity', zh: '权益' },
+    type: 'equity',
+    normalBalance: 'credit',
+  },
+  {
+    id: 'acc-sales',
+    code: '4-1000',
+    name: { id: 'Penjualan', en: 'Sales', zh: '销售' },
+    type: 'income',
+    normalBalance: 'credit',
+  },
+  {
+    id: 'acc-cogs',
+    code: '5-1000',
+    name: { id: 'HPP', en: 'COGS', zh: '销售成本' },
+    type: 'cogs',
+    normalBalance: 'debit',
+  },
+  {
+    id: 'acc-rent',
+    code: '6-1010',
+    name: { id: 'Sewa', en: 'Rent', zh: '租金' },
+    type: 'expense',
+    normalBalance: 'debit',
+  },
+  {
+    id: 'acc-salary',
+    code: '6-1020',
+    name: { id: 'Gaji', en: 'Salary', zh: '工资' },
+    type: 'expense',
+    normalBalance: 'debit',
+  },
 ];
 
 function resetMocks() {
@@ -95,14 +143,14 @@ describe('trialBalance', () => {
     if (result.ok) {
       expect(result.value.lines).toHaveLength(2);
 
-      const cashLine = result.value.lines.find(l => l.accountCode === '1-1010');
+      const cashLine = result.value.lines.find((l) => l.accountCode === '1-1010');
       expect(cashLine).toBeDefined();
       expect(cashLine!.totalDebit).toBe(100000n);
       expect(cashLine!.totalCredit).toBe(20000n);
       // Cash is debit-normal: balance = debit - credit = 80000
       expect(cashLine!.balance).toBe(80000n);
 
-      const salesLine = result.value.lines.find(l => l.accountCode === '4-1000');
+      const salesLine = result.value.lines.find((l) => l.accountCode === '4-1000');
       expect(salesLine).toBeDefined();
       // Sales is credit-normal: balance = credit - debit = 80000
       expect(salesLine!.balance).toBe(80000n);
@@ -169,7 +217,7 @@ describe('trialBalance', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      const codes = result.value.lines.map(l => l.accountCode);
+      const codes = result.value.lines.map((l) => l.accountCode);
       expect(codes).toEqual(['1-1010', '2-1010', '6-1020']);
     }
   });
@@ -396,7 +444,7 @@ describe('profitLoss', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      const codes = result.value.expenses.lines.map(l => l.accountCode);
+      const codes = result.value.expenses.lines.map((l) => l.accountCode);
       expect(codes).toEqual(['6-1010', '6-1020']);
     }
   });

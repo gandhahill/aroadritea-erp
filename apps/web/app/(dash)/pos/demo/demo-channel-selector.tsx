@@ -5,8 +5,8 @@
 
 'use client';
 
-import { useDemoCart } from './demo-cart-context';
 import { useTranslations } from 'next-intl';
+import { useDemoCart } from './demo-cart-context';
 
 const CHANNELS = [
   { id: 'walk_in', icon: '🏠' },
@@ -21,7 +21,7 @@ export function DemoChannelSelector() {
 
   return (
     <div className="flex gap-2">
-      {CHANNELS.map(ch => (
+      {CHANNELS.map((ch) => (
         <button
           key={ch.id}
           onClick={() => setChannel(ch.id)}

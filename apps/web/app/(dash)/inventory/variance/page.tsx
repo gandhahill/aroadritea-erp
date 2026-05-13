@@ -4,11 +4,11 @@
  * Server component that fetches locations for the filter dropdown.
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 import { db, locations } from '@erp/db';
-import { eq, asc } from '@erp/db';
+import { asc, eq } from '@erp/db';
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { VarianceClient } from './variance-client';
 
 export const metadata: Metadata = { title: 'Varians Persediaan' };
@@ -17,7 +17,7 @@ export default async function VariancePage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const tenantId = (session.user as Record<string, unknown>)?.tenantId as string ?? 'default';
+  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
 
   // Fetch locations for filter dropdown
   const locationRows = await db
@@ -41,7 +41,7 @@ export default async function VariancePage() {
   const defaultEndDate = now.toISOString().split('T')[0]!;
 
   // Current user's location as default filter
-  const userLocationId = (session.user as Record<string, unknown>)?.locationId as string ?? '';
+  const userLocationId = ((session.user as Record<string, unknown>)?.locationId as string) ?? '';
 
   return (
     <VarianceClient

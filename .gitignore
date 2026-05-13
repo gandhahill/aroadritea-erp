@@ -7,6 +7,8 @@ node_modules/
 dist/
 out/
 build/
+apps/web/public/sw.js
+_tmp_*
 
 # Environment
 .env

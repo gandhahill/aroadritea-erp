@@ -20,37 +20,37 @@
  *             inventory.adjust.approve (approve + execute)
  */
 
-import { eq, and, inArray } from 'drizzle-orm';
 import { db } from '@erp/db';
-import {
-  stockAdjustments,
-  stockAdjustmentLines,
-  stockMovements,
-  stockLevels,
-  products,
-} from '@erp/db/schema/inventory';
 import { accountingPeriods } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
 import { roles, userRoles } from '@erp/db/schema/auth';
-import { type Result, ok, err } from '@erp/shared/result';
+import {
+  products,
+  stockAdjustmentLines,
+  stockAdjustments,
+  stockLevels,
+  stockMovements,
+} from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { requirePermission } from '../iam';
-import {
-  CreateAdjustmentInputSchema,
-  ApproveAdjustmentInputSchema,
-  RejectAdjustmentInputSchema,
-  type AdjustmentReason,
-} from './schemas';
-import { generateAdjustmentNumber } from './number-generator';
+import { and, eq, inArray } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
+import { requirePermission } from '../iam';
+import { generateAdjustmentNumber } from './number-generator';
+import {
+  type AdjustmentReason,
+  ApproveAdjustmentInputSchema,
+  CreateAdjustmentInputSchema,
+  RejectAdjustmentInputSchema,
+} from './schemas';
 
 // ─── Default COA accounts ─────────────────────────────────────────────────────
 
 const DEFAULT_INVENTORY_ACCOUNT = '1-1210'; // Persediaan Barang Dagangan
-const EXPENSE_ACCOUNT = '6-1110';            // Beban Operasional Lainnya (loss)
-const INCOME_ACCOUNT = '4-2020';             // Pendapatan Lainnya (gain)
+const EXPENSE_ACCOUNT = '6-1110'; // Beban Operasional Lainnya (loss)
+const INCOME_ACCOUNT = '4-2020'; // Pendapatan Lainnya (gain)
 
 // ─── Return types ─────────────────────────────────────────────────────────────
 
@@ -97,10 +97,7 @@ async function isDirector(ctx: AuditContext): Promise<boolean> {
 }
 
 /** Resolve the inventory account ID for a product. Falls back to DEFAULT_INVENTORY_ACCOUNT. */
-async function resolveInventoryAccount(
-  tenantId: string,
-  productId: string,
-): Promise<string> {
+async function resolveInventoryAccount(tenantId: string, productId: string): Promise<string> {
   const row = await db
     .select({ inventoryAccountId: products.inventoryAccountId })
     .from(products)
@@ -115,7 +112,16 @@ async function resolveInventoryAccount(
 function buildLineResult(
   l: Pick<
     typeof stockAdjustmentLines.$inferSelect,
-    'id' | 'productId' | 'variantId' | 'batchNo' | 'qtyBefore' | 'qtyAfter' | 'qtyDelta' | 'uom' | 'unitCost' | 'notes'
+    | 'id'
+    | 'productId'
+    | 'variantId'
+    | 'batchNo'
+    | 'qtyBefore'
+    | 'qtyAfter'
+    | 'qtyDelta'
+    | 'uom'
+    | 'unitCost'
+    | 'notes'
   >,
 ): AdjustmentLineResult {
   return {
@@ -164,12 +170,7 @@ export async function createAdjustmentDraft(
   const foundProducts = await db
     .select({ id: products.id, isActive: products.isActive })
     .from(products)
-    .where(
-      and(
-        eq(products.tenantId, ctx.tenantId),
-        inArray(products.id, productIds),
-      ),
-    );
+    .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, productIds)));
   const productMap = new Map(foundProducts.map((p) => [p.id, p]));
 
   for (const line of data.lines) {
@@ -274,10 +275,7 @@ export async function submitAdjustment(
       .select()
       .from(stockAdjustments)
       .where(
-        and(
-          eq(stockAdjustments.tenantId, ctx.tenantId),
-          eq(stockAdjustments.id, adjustmentId),
-        ),
+        and(eq(stockAdjustments.tenantId, ctx.tenantId), eq(stockAdjustments.id, adjustmentId)),
       )
       .then((r) => r[0]);
 
@@ -295,12 +293,7 @@ export async function submitAdjustment(
     await db
       .update(stockAdjustments)
       .set({ status: 'submitted', updatedBy: ctx.userId, version: adj.version + 1 })
-      .where(
-        and(
-          eq(stockAdjustments.id, adjustmentId),
-          eq(stockAdjustments.version, adj.version),
-        ),
-      );
+      .where(and(eq(stockAdjustments.id, adjustmentId), eq(stockAdjustments.version, adj.version)));
 
     const lines = await db
       .select()
@@ -389,7 +382,9 @@ export async function approveAdjustment(
       .then((r) => r[0]);
 
     if (!adj) {
-      return err(AppError.notFound('inventory.adjust.notFound', { adjustmentId: data.adjustmentId }));
+      return err(
+        AppError.notFound('inventory.adjust.notFound', { adjustmentId: data.adjustmentId }),
+      );
     }
     if (adj.status !== 'submitted') {
       return err(
@@ -416,10 +411,7 @@ export async function approveAdjustment(
       .select()
       .from(accountingPeriods)
       .where(
-        and(
-          eq(accountingPeriods.tenantId, ctx.tenantId),
-          eq(accountingPeriods.code, periodMonth),
-        ),
+        and(eq(accountingPeriods.tenantId, ctx.tenantId), eq(accountingPeriods.code, periodMonth)),
       )
       .then((r) => r[0]);
 
@@ -439,7 +431,7 @@ export async function approveAdjustment(
 
     // 6. Compute net monetary value (qty_delta × unit_cost in rupiah)
     const netDelta = lines.reduce((sum, line) => {
-      const delta = parseFloat(line.qtyDelta);
+      const delta = Number.parseFloat(line.qtyDelta);
       const cost = line.unitCost ? Number(line.unitCost) : 0; // unitCost is bigint IDR
       return sum + delta * cost;
     }, 0);
@@ -485,7 +477,7 @@ export async function approveAdjustment(
         )
         .then((r) => r[0]);
 
-      const newQty = parseFloat(line.qtyAfter);
+      const newQty = Number.parseFloat(line.qtyAfter);
       if (existing) {
         await db
           .update(stockLevels)
@@ -595,10 +587,7 @@ export async function approveAdjustment(
         version: adj.version + 1,
       })
       .where(
-        and(
-          eq(stockAdjustments.id, data.adjustmentId),
-          eq(stockAdjustments.version, adj.version),
-        ),
+        and(eq(stockAdjustments.id, data.adjustmentId), eq(stockAdjustments.version, adj.version)),
       );
 
     // 11. Audit
@@ -679,7 +668,9 @@ export async function rejectAdjustment(
       .then((r) => r[0]);
 
     if (!adj) {
-      return err(AppError.notFound('inventory.adjust.notFound', { adjustmentId: data.adjustmentId }));
+      return err(
+        AppError.notFound('inventory.adjust.notFound', { adjustmentId: data.adjustmentId }),
+      );
     }
     if (adj.status !== 'submitted') {
       return err(
@@ -701,10 +692,7 @@ export async function rejectAdjustment(
         version: adj.version + 1,
       })
       .where(
-        and(
-          eq(stockAdjustments.id, data.adjustmentId),
-          eq(stockAdjustments.version, adj.version),
-        ),
+        and(eq(stockAdjustments.id, data.adjustmentId), eq(stockAdjustments.version, adj.version)),
       );
 
     const lines = await db

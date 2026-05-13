@@ -4,13 +4,13 @@
 
 'use client';
 
-import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
 import {
-  createModifierCode,
-  updateModifierCode,
-  deleteModifierCode,
   type ModifierCodeItem,
+  createModifierCode,
+  deleteModifierCode,
+  updateModifierCode,
 } from './actions';
 
 interface Props {
@@ -55,7 +55,7 @@ export function ModifierCodesTable({ codes, tenantId }: Props) {
       modifierKind: newKind,
       modifierOptionId: newOptionId.trim(),
       naixerCode: newNaixerCode.trim(),
-      displayOrder: parseInt(newOrder, 10) || 0,
+      displayOrder: Number.parseInt(newOrder, 10) || 0,
     });
     if (!result.success) {
       setError(result.error ?? 'Failed to create');
@@ -93,32 +93,17 @@ export function ModifierCodesTable({ codes, tenantId }: Props) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-brand-cream-3 bg-brand-cream">
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
-              Kind
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
-              Modifier Option ID
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
-              Naixer Code
-            </th>
-            <th className="px-4 py-3 text-center font-medium text-brand-ink-2">
-              Order
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
-              Status
-            </th>
-            <th className="px-4 py-3 text-right font-medium text-brand-ink-2">
-              Actions
-            </th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Kind</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Modifier Option ID</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Naixer Code</th>
+            <th className="px-4 py-3 text-center font-medium text-brand-ink-2">Order</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Status</th>
+            <th className="px-4 py-3 text-right font-medium text-brand-ink-2">Actions</th>
           </tr>
         </thead>
         <tbody>
           {codes.map((code) => (
-            <tr
-              key={code.id}
-              className="border-b border-brand-cream-3 last:border-0"
-            >
+            <tr key={code.id} className="border-b border-brand-cream-3 last:border-0">
               <td className="px-4 py-3">
                 <KindBadge kind={code.modifierKind} />
               </td>
@@ -166,10 +151,7 @@ export function ModifierCodesTable({ codes, tenantId }: Props) {
           ))}
           {codes.length === 0 && !showAddForm && (
             <tr>
-              <td
-                colSpan={6}
-                className="px-4 py-8 text-center text-sm text-brand-ink-3"
-              >
+              <td colSpan={6} className="px-4 py-8 text-center text-sm text-brand-ink-3">
                 No modifier code mappings yet. Add one below.
               </td>
             </tr>
@@ -181,9 +163,7 @@ export function ModifierCodesTable({ codes, tenantId }: Props) {
         <div className="border-t border-brand-cream-3 bg-brand-cream px-4 py-3">
           <div className="flex items-end gap-3">
             <div className="w-28">
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                Kind
-              </label>
+              <label className="mb-1 block text-xs font-medium text-brand-ink-2">Kind</label>
               <select
                 value={newKind}
                 onChange={(e) => setNewKind(e.target.value)}
@@ -209,9 +189,7 @@ export function ModifierCodesTable({ codes, tenantId }: Props) {
               />
             </div>
             <div className="w-28">
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                Naixer Code
-              </label>
+              <label className="mb-1 block text-xs font-medium text-brand-ink-2">Naixer Code</label>
               <input
                 type="text"
                 value={newNaixerCode}
@@ -221,9 +199,7 @@ export function ModifierCodesTable({ codes, tenantId }: Props) {
               />
             </div>
             <div className="w-20">
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                Order
-              </label>
+              <label className="mb-1 block text-xs font-medium text-brand-ink-2">Order</label>
               <input
                 type="number"
                 value={newOrder}

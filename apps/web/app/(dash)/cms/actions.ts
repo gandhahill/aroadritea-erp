@@ -4,14 +4,25 @@
  */
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { getSession } from '@/lib/auth';
 import {
-  listPages, getPage, createPage, updatePage, publishPage, deletePage,
-  listPosts, getPost, createPost, updatePost, publishPost, deletePost,
-  listBanners, listFaqs,
+  createPage,
+  createPost,
+  deletePage,
+  deletePost,
+  getPage,
+  getPost,
+  listBanners,
+  listFaqs,
+  listPages,
+  listPosts,
+  publishPage,
+  publishPost,
+  updatePage,
+  updatePost,
 } from '@erp/services/cms';
-import { type AuditContext } from '@erp/shared/types';
+import type { AuditContext } from '@erp/shared/types';
+import { revalidatePath } from 'next/cache';
 
 type ActionResult = { success: boolean; error?: string };
 
@@ -54,7 +65,10 @@ export async function createCmsPage(data: Record<string, unknown>): Promise<Acti
   return { success: true };
 }
 
-export async function updateCmsPage(id: string, data: Record<string, unknown>): Promise<ActionResult> {
+export async function updateCmsPage(
+  id: string,
+  data: Record<string, unknown>,
+): Promise<ActionResult> {
   const session = await getSession();
   if (!session) return { success: false, error: 'Unauthorized' };
   const ctx = buildCtx(session);
@@ -64,7 +78,10 @@ export async function updateCmsPage(id: string, data: Record<string, unknown>): 
   return { success: true };
 }
 
-export async function publishCmsPage(id: string, action: 'publish' | 'draft' | 'archive'): Promise<ActionResult> {
+export async function publishCmsPage(
+  id: string,
+  action: 'publish' | 'draft' | 'archive',
+): Promise<ActionResult> {
   const session = await getSession();
   if (!session) return { success: false, error: 'Unauthorized' };
   const ctx = buildCtx(session);
@@ -114,7 +131,10 @@ export async function createCmsPost(data: Record<string, unknown>): Promise<Acti
   return { success: true };
 }
 
-export async function updateCmsPost(id: string, data: Record<string, unknown>): Promise<ActionResult> {
+export async function updateCmsPost(
+  id: string,
+  data: Record<string, unknown>,
+): Promise<ActionResult> {
   const session = await getSession();
   if (!session) return { success: false, error: 'Unauthorized' };
   const ctx = buildCtx(session);
@@ -124,7 +144,10 @@ export async function updateCmsPost(id: string, data: Record<string, unknown>): 
   return { success: true };
 }
 
-export async function publishCmsPost(id: string, action: 'publish' | 'draft' | 'archive'): Promise<ActionResult> {
+export async function publishCmsPost(
+  id: string,
+  action: 'publish' | 'draft' | 'archive',
+): Promise<ActionResult> {
   const session = await getSession();
   if (!session) return { success: false, error: 'Unauthorized' };
   const ctx = buildCtx(session);

@@ -3,17 +3,13 @@
  * Manage product/modifier code mappings and QR format config.
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import {
-  fetchProductCodes,
-  fetchModifierCodes,
-  fetchFormatConfigs,
-} from './actions';
-import { ProductCodesTable } from './product-codes-table';
-import { ModifierCodesTable } from './modifier-codes-table';
+import { fetchFormatConfigs, fetchModifierCodes, fetchProductCodes } from './actions';
 import { FormatConfigForm } from './format-config-form';
+import { ModifierCodesTable } from './modifier-codes-table';
+import { ProductCodesTable } from './product-codes-table';
 
 export const metadata: Metadata = {
   title: 'Naixer KDS — Integrations — Settings',
@@ -23,8 +19,7 @@ export default async function NaixerKdsPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const tenantId =
-    (session.user as Record<string, unknown>)?.tenantId as string ?? 'default';
+  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
 
   const [productCodes, modifierCodes, formatConfigs] = await Promise.all([
     fetchProductCodes(tenantId),
@@ -37,12 +32,10 @@ export default async function NaixerKdsPage() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">
-            Naixer KDS Integration
-          </h1>
+          <h1 className="text-2xl font-bold text-brand-ink">Naixer KDS Integration</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Manage product code mappings, modifier code mappings, and QR format
-            configuration for the Naixer tea machine.
+            Manage product code mappings, modifier code mappings, and QR format configuration for
+            the Naixer tea machine.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -72,13 +65,10 @@ export default async function NaixerKdsPage() {
             />
           </svg>
           <div>
-            <p className="text-sm font-medium text-brand-ink">
-              QR Code Integration
-            </p>
+            <p className="text-sm font-medium text-brand-ink">QR Code Integration</p>
             <p className="mt-0.5 text-xs text-brand-ink-2">
-              Each product and modifier must be mapped to a Naixer vendor code.
-              The QR code on cup labels is generated using these mappings.
-              Format B (dash) is the default: e.g.{' '}
+              Each product and modifier must be mapped to a Naixer vendor code. The QR code on cup
+              labels is generated using these mappings. Format B (dash) is the default: e.g.{' '}
               <code className="rounded bg-brand-cream-2 px-1 py-0.5 text-[11px] font-mono">
                 T003-C01-S02-W01
               </code>
@@ -89,25 +79,19 @@ export default async function NaixerKdsPage() {
 
       {/* Format Config */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-brand-ink">
-          QR Format Configuration
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-brand-ink">QR Format Configuration</h2>
         <FormatConfigForm configs={formatConfigs} />
       </section>
 
       {/* Product Codes */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-brand-ink">
-          Product Code Mappings
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-brand-ink">Product Code Mappings</h2>
         <ProductCodesTable codes={productCodes} tenantId={tenantId} />
       </section>
 
       {/* Modifier Codes */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-brand-ink">
-          Modifier Code Mappings
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-brand-ink">Modifier Code Mappings</h2>
         <ModifierCodesTable codes={modifierCodes} tenantId={tenantId} />
       </section>
     </div>

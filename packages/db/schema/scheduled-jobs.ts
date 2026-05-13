@@ -5,7 +5,7 @@
  */
 
 import { boolean, index, jsonb, pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
-import { pk, tenantCol, auditCols } from './common';
+import { auditCols, pk, tenantCol } from './common';
 
 export const scheduledJobs = pgTable(
   'scheduled_jobs',

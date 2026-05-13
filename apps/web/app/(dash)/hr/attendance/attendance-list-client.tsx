@@ -4,9 +4,9 @@
 
 'use client';
 
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
-import Link from 'next/link';
 
 interface AttendanceRow {
   id: string;
@@ -85,12 +85,21 @@ export function AttendanceListClient({
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-brand-cream-3 bg-card p-4">
         <select
           value={initialEmployeeId}
-          onChange={(e) => applyFilter({ employeeId: e.target.value, dateFrom: initialDateFrom, dateTo: initialDateTo, page: 1 })}
+          onChange={(e) =>
+            applyFilter({
+              employeeId: e.target.value,
+              dateFrom: initialDateFrom,
+              dateTo: initialDateTo,
+              page: 1,
+            })
+          }
           className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
         >
           <option value="">All Employees</option>
           {employees.map((e) => (
-            <option key={e.value} value={e.value}>{e.label}</option>
+            <option key={e.value} value={e.value}>
+              {e.label}
+            </option>
           ))}
         </select>
 
@@ -99,14 +108,28 @@ export function AttendanceListClient({
           <input
             type="date"
             value={initialDateFrom}
-            onChange={(e) => applyFilter({ employeeId: initialEmployeeId, dateFrom: e.target.value, dateTo: initialDateTo, page: 1 })}
+            onChange={(e) =>
+              applyFilter({
+                employeeId: initialEmployeeId,
+                dateFrom: e.target.value,
+                dateTo: initialDateTo,
+                page: 1,
+              })
+            }
             className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
           />
           <span>To</span>
           <input
             type="date"
             value={initialDateTo}
-            onChange={(e) => applyFilter({ employeeId: initialEmployeeId, dateFrom: initialDateFrom, dateTo: e.target.value, page: 1 })}
+            onChange={(e) =>
+              applyFilter({
+                employeeId: initialEmployeeId,
+                dateFrom: initialDateFrom,
+                dateTo: e.target.value,
+                page: 1,
+              })
+            }
             className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
           />
         </div>
@@ -115,8 +138,18 @@ export function AttendanceListClient({
       {/* Table */}
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-brand-cream-3 bg-card py-16 text-center">
-          <svg className="h-12 w-12 text-brand-cream-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          <svg
+            className="h-12 w-12 text-brand-cream-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+            />
           </svg>
           <h3 className="mt-3 text-base font-semibold text-brand-ink">No attendance records</h3>
           <p className="mt-1 text-sm text-brand-ink-3">Check-in records will appear here.</p>
@@ -141,7 +174,9 @@ export function AttendanceListClient({
                   <td className="px-4 py-3 font-medium text-brand-ink">{row.employeeName}</td>
                   <td className="px-4 py-3 text-brand-ink-2">{row.shiftCode ?? '—'}</td>
                   <td className="px-4 py-3 text-brand-ink-2">{formatDateTime(row.checkInAt)}</td>
-                  <td className="px-4 py-3 text-brand-ink-2">{formatDateTime(row.checkOutAt ?? '')}</td>
+                  <td className="px-4 py-3 text-brand-ink-2">
+                    {formatDateTime(row.checkOutAt ?? '')}
+                  </td>
                   <td className="px-4 py-3 text-brand-ink-2 capitalize">
                     {row.checkInMethod === 'gps' ? 'GPS' : 'QR'}
                   </td>
@@ -165,7 +200,9 @@ export function AttendanceListClient({
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-brand-ink-3">Page {page} of {totalPages} — {total} results</p>
+          <p className="text-sm text-brand-ink-3">
+            Page {page} of {totalPages} — {total} results
+          </p>
           <div className="flex items-center gap-2">
             <button
               onClick={() => applyFilter({ page: page - 1 })}

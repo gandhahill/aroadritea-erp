@@ -26,7 +26,7 @@ export function ChannelSelector() {
         {t('channel')}
       </span>
       <div className="flex gap-1.5">
-        {CHANNELS.map(ch => (
+        {CHANNELS.map((ch) => (
           <button
             key={ch.id}
             onClick={() => setChannel(ch.id)}

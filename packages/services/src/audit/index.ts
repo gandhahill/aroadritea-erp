@@ -14,8 +14,8 @@
 
 import { db } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
-import { type AuditContext } from '@erp/shared/types';
 import { generateId } from '@erp/shared/id';
+import type { AuditContext } from '@erp/shared/types';
 
 // ─── Input types ────────────────────────────────────────────────────────────────
 
@@ -116,7 +116,9 @@ const KNOWN_ENTITY_TYPES = new Set([
 ]);
 
 /** Validate that before/after snapshots have primitive values only (no BigInt, Date, etc.). */
-function sanitizeRecord(data: Record<string, unknown> | null | undefined): Record<string, unknown> | null {
+function sanitizeRecord(
+  data: Record<string, unknown> | null | undefined,
+): Record<string, unknown> | null {
   if (data === null || data === undefined) return null;
   const sanitized: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(data)) {

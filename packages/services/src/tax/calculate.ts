@@ -8,8 +8,8 @@
  * No permission check needed — these are pure math helpers.
  */
 
-import { type Result, ok, err } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
+import { type Result, err, ok } from '@erp/shared/result';
 
 // --- Types ---
 
@@ -70,7 +70,11 @@ export function calculateTax(input: TaxCalculationInput): Result<TaxCalculationR
     return err(AppError.validation('tax.calculate.negativeRate', { rateBps: input.rateBps }));
   }
   if (input.grossAmount < 0n) {
-    return err(AppError.validation('tax.calculate.negativeAmount', { grossAmount: input.grossAmount.toString() }));
+    return err(
+      AppError.validation('tax.calculate.negativeAmount', {
+        grossAmount: input.grossAmount.toString(),
+      }),
+    );
   }
 
   if (input.rateBps === 0) {

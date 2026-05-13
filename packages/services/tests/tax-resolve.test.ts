@@ -4,7 +4,7 @@
  * Tests the tax resolution engine per SD §19.3.3.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // --- DB Mock ---
 
@@ -34,9 +34,9 @@ vi.mock('../src/iam', () => ({
   }),
 }));
 
+import type { AuditContext } from '@erp/shared/types';
 // --- Import after mocks ---
 import { resolve } from '../src/tax/resolve';
-import type { AuditContext } from '@erp/shared/types';
 
 function makeCtx(): AuditContext {
   return { userId: 'user-001', tenantId: 'default', locationId: 'loc-mli', ipAddress: '127.0.0.1' };
@@ -112,10 +112,7 @@ describe('tax.resolve', () => {
   });
 
   it('should resolve PB1 for gofood channel', async () => {
-    queryResults = [
-      [makeRule({ scopeId: 'gofood' })],
-      [makeRate()],
-    ];
+    queryResults = [[makeRule({ scopeId: 'gofood' })], [makeRate()]];
 
     const result = await resolve(
       { channel: 'gofood', documentKind: 'sales', effectiveDate: '2026-05-07' },
@@ -132,7 +129,14 @@ describe('tax.resolve', () => {
   it('should resolve global_default PPN_IN for purchases', async () => {
     queryResults = [
       [makeRule({ scopeKind: 'global_default', scopeId: null, taxCode: 'PPN_IN', priority: 10 })],
-      [makeRate({ code: 'PPN_IN', rateBps: 1100, calculation: 'exclusive', postingAccountId: 'acc-ppn-in' })],
+      [
+        makeRate({
+          code: 'PPN_IN',
+          rateBps: 1100,
+          calculation: 'exclusive',
+          postingAccountId: 'acc-ppn-in',
+        }),
+      ],
     ];
 
     const result = await resolve(
@@ -151,7 +155,14 @@ describe('tax.resolve', () => {
 
   it('should NOT include rules where is_applied_default=false', async () => {
     queryResults = [
-      [makeRule({ taxCode: 'PPN_OUT', isAppliedDefault: false, scopeKind: 'global_default', scopeId: null })],
+      [
+        makeRule({
+          taxCode: 'PPN_OUT',
+          isAppliedDefault: false,
+          scopeKind: 'global_default',
+          scopeId: null,
+        }),
+      ],
       [], // no rates lookup needed since no codes matched
     ];
 
@@ -169,8 +180,20 @@ describe('tax.resolve', () => {
   it('should pick highest priority rule when multiple match for same tax_code', async () => {
     queryResults = [
       [
-        makeRule({ id: 'r1', scopeKind: 'global_default', scopeId: null, taxCode: 'PB1', priority: 10 }),
-        makeRule({ id: 'r2', scopeKind: 'channel', scopeId: 'walk_in', taxCode: 'PB1', priority: 100 }),
+        makeRule({
+          id: 'r1',
+          scopeKind: 'global_default',
+          scopeId: null,
+          taxCode: 'PB1',
+          priority: 10,
+        }),
+        makeRule({
+          id: 'r2',
+          scopeKind: 'channel',
+          scopeId: 'walk_in',
+          taxCode: 'PB1',
+          priority: 100,
+        }),
       ],
       [makeRate()],
     ];
@@ -195,7 +218,12 @@ describe('tax.resolve', () => {
       ],
       [
         makeRate(),
-        makeRate({ code: 'PPN_IN', rateBps: 1100, calculation: 'exclusive', postingAccountId: 'acc-ppn-in' }),
+        makeRate({
+          code: 'PPN_IN',
+          rateBps: 1100,
+          calculation: 'exclusive',
+          postingAccountId: 'acc-ppn-in',
+        }),
       ],
     ];
 
@@ -247,14 +275,9 @@ describe('tax.resolve', () => {
   });
 
   it('should not match channel rules when no channel provided', async () => {
-    queryResults = [
-      [makeRule({ scopeKind: 'channel', scopeId: 'walk_in' })],
-    ];
+    queryResults = [[makeRule({ scopeKind: 'channel', scopeId: 'walk_in' })]];
 
-    const result = await resolve(
-      { documentKind: 'sales', effectiveDate: '2026-05-07' },
-      makeCtx(),
-    );
+    const result = await resolve({ documentKind: 'sales', effectiveDate: '2026-05-07' }, makeCtx());
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -264,10 +287,7 @@ describe('tax.resolve', () => {
 
   it('should reject without permission', async () => {
     mockPermissionResult = false;
-    const result = await resolve(
-      { channel: 'walk_in', documentKind: 'sales' },
-      makeCtx(),
-    );
+    const result = await resolve({ channel: 'walk_in', documentKind: 'sales' }, makeCtx());
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('FORBIDDEN');
   });

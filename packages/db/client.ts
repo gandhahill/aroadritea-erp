@@ -5,9 +5,24 @@
 
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
-import * as authSchema from './schema/auth';
 import * as accountingSchema from './schema/accounting';
 import * as auditSchema from './schema/audit';
+import * as authSchema from './schema/auth';
+import * as cmsSchema from './schema/cms';
+import * as commonSchema from './schema/common';
+import * as crmSchema from './schema/crm';
+import * as customFieldSchema from './schema/customfield';
+import * as hrSchema from './schema/hr';
+import * as inventorySchema from './schema/inventory';
+import * as kitchenSchema from './schema/kitchen';
+import * as memberSchema from './schema/member';
+import * as notificationSchema from './schema/notification';
+import * as posSchema from './schema/pos';
+import * as purchasingSchema from './schema/purchasing';
+import * as dailyRevenueAdjustmentSchema from './schema/reporting/daily-revenue-adjustments';
+import * as scheduledJobsSchema from './schema/scheduled-jobs';
+import * as stockOpnameSchema from './schema/stock-opname';
+import * as workflowSchema from './schema/workflow';
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
@@ -21,6 +36,21 @@ export const db = drizzle(sql, {
     ...authSchema,
     ...accountingSchema,
     ...auditSchema,
+    ...cmsSchema,
+    ...commonSchema,
+    ...crmSchema,
+    ...customFieldSchema,
+    ...hrSchema,
+    ...inventorySchema,
+    ...kitchenSchema,
+    ...memberSchema,
+    ...notificationSchema,
+    ...posSchema,
+    ...purchasingSchema,
+    ...dailyRevenueAdjustmentSchema,
+    ...scheduledJobsSchema,
+    ...stockOpnameSchema,
+    ...workflowSchema,
   },
 });
 

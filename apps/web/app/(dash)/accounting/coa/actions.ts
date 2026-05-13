@@ -6,8 +6,8 @@
 'use server';
 
 import { db } from '@erp/db';
+import { and, eq, isNull } from '@erp/db';
 import { accounts } from '@erp/db/schema/accounting';
-import { eq, and, isNull } from '@erp/db';
 
 export interface COANode {
   id: string;
@@ -39,16 +39,13 @@ export async function fetchCOATree(tenantId: string): Promise<COANode[]> {
       parentId: accounts.parentId,
     })
     .from(accounts)
-    .where(
-      and(
-        eq(accounts.tenantId, tenantId),
-        isNull(accounts.deletedAt),
-      ),
-    )
-    .then((r) => r.map((row) => ({
-      ...row,
-      name: row.name as Record<string, string>,
-    })));
+    .where(and(eq(accounts.tenantId, tenantId), isNull(accounts.deletedAt)))
+    .then((r) =>
+      r.map((row) => ({
+        ...row,
+        name: row.name as Record<string, string>,
+      })),
+    );
 
   // Build tree structure
   const nodeMap = new Map<string, COANode>();

@@ -14,21 +14,15 @@
 'use client';
 
 import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  type ReactNode,
-} from 'react';
-import {
-  snapshotMasterData,
-  isMasterStale,
-  getMasterSnapshotAgeHuman,
-  wipeDemoDb,
-  getNextDemoOrderNumber,
   type SnapshotResult,
+  getMasterSnapshotAgeHuman,
+  getNextDemoOrderNumber,
+  isMasterStale,
+  snapshotMasterData,
+  wipeDemoDb,
 } from '@erp/offline';
-import type { DemoOrder, DemoCartState } from '@erp/offline';
+import type { DemoCartState, DemoOrder } from '@erp/offline';
+import { type ReactNode, createContext, useCallback, useContext, useState } from 'react';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -48,9 +42,10 @@ interface DemoModeActions {
   clearDemoOrders: () => void;
 }
 
-type DemoModeContextValue = DemoModeState & DemoModeActions & {
-  demoOrderHistory: DemoOrder[];
-};
+type DemoModeContextValue = DemoModeState &
+  DemoModeActions & {
+    demoOrderHistory: DemoOrder[];
+  };
 
 // ─── Context ────────────────────────────────────────────────────────────────────
 
@@ -70,11 +65,11 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
   const [demoOrderHistory, setDemoOrderHistory] = useState<DemoOrder[]>([]);
 
   const activateDemo = useCallback(async () => {
-    setState(s => ({ ...s, snapshotLoading: true, snapshotError: null }));
+    setState((s) => ({ ...s, snapshotLoading: true, snapshotError: null }));
     try {
       const result: SnapshotResult = await snapshotMasterData();
       if (!result.success) {
-        setState(s => ({
+        setState((s) => ({
           ...s,
           snapshotLoading: false,
           snapshotError: result.errors.join('; '),
@@ -82,10 +77,7 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const [age, stale] = await Promise.all([
-        getMasterSnapshotAgeHuman(),
-        isMasterStale(),
-      ]);
+      const [age, stale] = await Promise.all([getMasterSnapshotAgeHuman(), isMasterStale()]);
 
       setState({
         isDemoMode: true,
@@ -95,7 +87,7 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
         snapshotError: null,
       });
     } catch (err) {
-      setState(s => ({
+      setState((s) => ({
         ...s,
         snapshotLoading: false,
         snapshotError: err instanceof Error ? err.message : 'Snapshot failed',
@@ -116,21 +108,18 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshSnapshot = useCallback(async () => {
-    setState(s => ({ ...s, snapshotLoading: true, snapshotError: null }));
+    setState((s) => ({ ...s, snapshotLoading: true, snapshotError: null }));
     try {
       await snapshotMasterData();
-      const [age, stale] = await Promise.all([
-        getMasterSnapshotAgeHuman(),
-        isMasterStale(),
-      ]);
-      setState(s => ({
+      const [age, stale] = await Promise.all([getMasterSnapshotAgeHuman(), isMasterStale()]);
+      setState((s) => ({
         ...s,
         snapshotLoading: false,
         masterSnapshotAge: age,
         isMasterStale: stale,
       }));
     } catch (err) {
-      setState(s => ({
+      setState((s) => ({
         ...s,
         snapshotLoading: false,
         snapshotError: err instanceof Error ? err.message : 'Refresh failed',
@@ -139,7 +128,7 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addDemoOrder = useCallback((order: DemoOrder) => {
-    setDemoOrderHistory(prev => [order, ...prev]);
+    setDemoOrderHistory((prev) => [order, ...prev]);
   }, []);
 
   const clearDemoOrders = useCallback(() => {

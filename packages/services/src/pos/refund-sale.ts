@@ -21,27 +21,24 @@
  * - Reversal JE must be in an open accounting period
  */
 
-import { eq, and, sql } from 'drizzle-orm';
 import { db } from '@erp/db';
-import { salesOrders, salesOrderLines, payments } from '@erp/db/schema/pos';
 import { journalEntries } from '@erp/db/schema/accounting';
-import { stockLevels, stockMovements, boms, bomLines } from '@erp/db/schema/inventory';
 import { auditLog } from '@erp/db/schema/audit';
-import { type Result, ok, err } from '@erp/shared/result';
+import { bomLines, boms, stockLevels, stockMovements } from '@erp/db/schema/inventory';
+import { payments, salesOrderLines, salesOrders } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { requirePermission } from '../iam';
+import { and, eq, sql } from 'drizzle-orm';
 import { reverseJournal } from '../accounting/reverse-journal';
+import { requirePermission } from '../iam';
 import { RefundSaleInputSchema } from './schemas';
 import type { SaleResult } from './schemas';
 
 // ─── Refund Sale ──────────────────────────────────────────────────────────────
 
-export async function refundSale(
-  input: unknown,
-  ctx: AuditContext,
-): Promise<Result<SaleResult>> {
+export async function refundSale(input: unknown, ctx: AuditContext): Promise<Result<SaleResult>> {
   const permCheck = await requirePermission(ctx.userId, 'pos.refund', {
     locationId: ctx.locationId,
   });
@@ -62,21 +59,14 @@ export async function refundSale(
     const sale = await db
       .select()
       .from(salesOrders)
-      .where(
-        and(
-          eq(salesOrders.tenantId, ctx.tenantId),
-          eq(salesOrders.id, data.salesOrderId),
-        ),
-      )
+      .where(and(eq(salesOrders.tenantId, ctx.tenantId), eq(salesOrders.id, data.salesOrderId)))
       .then((r) => r[0]);
 
     if (!sale) {
       return err(AppError.notFound('pos.refund.notFound', { salesOrderId: data.salesOrderId }));
     }
     if (sale.status !== 'paid') {
-      return err(
-        AppError.businessRule('pos.refund.notPaid', { currentStatus: sale.status }),
-      );
+      return err(AppError.businessRule('pos.refund.notPaid', { currentStatus: sale.status }));
     }
     if (sale.version !== data.version) {
       return err(AppError.conflict('pos.refund.versionMismatch'));
@@ -120,9 +110,7 @@ export async function refundSale(
           and(
             eq(boms.tenantId, ctx.tenantId),
             eq(boms.productId, line.productId),
-            line.variantId
-              ? eq(boms.variantId, line.variantId)
-              : sql`boms.variant_id IS NULL`,
+            line.variantId ? eq(boms.variantId, line.variantId) : sql`boms.variant_id IS NULL`,
             eq(boms.isActive, true),
           ),
         )
@@ -139,10 +127,10 @@ export async function refundSale(
         .from(bomLines)
         .where(eq(bomLines.bomId, bom.id));
 
-      const qtySold = parseFloat(line.qty);
+      const qtySold = Number.parseFloat(line.qty);
 
       for (const ingredient of bomLineRows) {
-        const restoreQty = (parseFloat(ingredient.qty) * qtySold).toFixed(3);
+        const restoreQty = (Number.parseFloat(ingredient.qty) * qtySold).toFixed(3);
 
         // Upsert stock_levels: add back
         const existingLevel = await db
@@ -158,7 +146,8 @@ export async function refundSale(
           .then((r) => r[0]);
 
         if (existingLevel) {
-          const newOnHand = parseFloat(existingLevel.qtyOnHand) + parseFloat(restoreQty);
+          const newOnHand =
+            Number.parseFloat(existingLevel.qtyOnHand) + Number.parseFloat(restoreQty);
           await db
             .update(stockLevels)
             .set({
@@ -219,12 +208,7 @@ export async function refundSale(
         updatedBy: ctx.userId,
         version: sale.version + 1,
       })
-      .where(
-        and(
-          eq(salesOrders.id, data.salesOrderId),
-          eq(salesOrders.version, sale.version),
-        ),
-      );
+      .where(and(eq(salesOrders.id, data.salesOrderId), eq(salesOrders.version, sale.version)));
 
     // 5. Audit log
     await db.insert(auditLog).values({

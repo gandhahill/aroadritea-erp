@@ -20,7 +20,8 @@
     "popularSubtitle": "Pilihan favorit pelanggan kami"
   },
   "menu": {
-    "title": "Menu"
+    "title": "Menu",
+    "empty": "Menu belum tersedia."
   },
   "about": {
     "title": "Tentang Kami"

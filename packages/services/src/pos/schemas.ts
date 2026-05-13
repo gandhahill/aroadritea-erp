@@ -10,12 +10,7 @@ import { z } from 'zod';
 
 // ─── Channel ───────────────────────────────────────────────────────────────────
 
-export const ChannelSchema = z.enum([
-  'walk_in',
-  'gofood',
-  'grabfood',
-  'shopeefood',
-]);
+export const ChannelSchema = z.enum(['walk_in', 'gofood', 'grabfood', 'shopeefood']);
 export type Channel = z.infer<typeof ChannelSchema>;
 
 // ─── Shift ────────────────────────────────────────────────────────────────────

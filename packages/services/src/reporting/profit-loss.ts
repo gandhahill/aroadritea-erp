@@ -7,12 +7,12 @@
  * Permission: accounting.view
  */
 
-import { eq, and, gte, lte, sql } from 'drizzle-orm';
 import { db } from '@erp/db';
 import { accounts, journalEntries, journalLines } from '@erp/db/schema/accounting';
-import { type Result, ok, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
+import { type Result, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq, gte, lte, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // --- Types ---
@@ -84,12 +84,7 @@ export async function profitLoss(
         })
         .from(journalLines)
         .innerJoin(journalEntries, eq(journalLines.journalEntryId, journalEntries.id))
-        .where(
-          and(
-            ...jeConditions,
-            ...lineConditions,
-          ),
-        )
+        .where(and(...jeConditions, ...lineConditions))
         .groupBy(journalLines.accountId);
 
       // Fetch account details (only P&L types)
@@ -120,9 +115,8 @@ export async function profitLoss(
 
         // Balance: for income (credit-normal) = credit - debit
         //          for cogs/expense (debit-normal) = debit - credit
-        const balance = acct.normalBalance === 'credit'
-          ? totalCredit - totalDebit
-          : totalDebit - totalCredit;
+        const balance =
+          acct.normalBalance === 'credit' ? totalCredit - totalDebit : totalDebit - totalCredit;
 
         allLines.push({
           accountCode: acct.code,

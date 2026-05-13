@@ -10,15 +10,15 @@
  * Permission: hr.disciplinary.read (list/view)
  */
 
-import { eq, and, desc } from 'drizzle-orm';
 import { db } from '@erp/db';
 import { disciplinaryActions } from '@erp/db/schema/hr';
-import { type Result, ok, err } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
-import type { AuditContext } from '@erp/shared/types';
-import { requirePermission } from '../iam';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok } from '@erp/shared/result';
+import type { AuditContext } from '@erp/shared/types';
+import { and, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { requirePermission } from '../iam';
 
 // ─── Schema ─────────────────────────────────────────────────────────────────
 
@@ -64,7 +64,9 @@ export async function createDisciplinaryAction(
 
   const parsed = CreateDisciplinaryInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('hr.disciplinary.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('hr.disciplinary.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const data = parsed.data;
 
@@ -105,7 +107,9 @@ export async function acknowledgeDisciplinaryAction(
 
   const parsed = AcknowledgeDisciplinaryInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('hr.disciplinary.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('hr.disciplinary.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const data = parsed.data;
 
@@ -147,16 +151,20 @@ export async function acknowledgeDisciplinaryAction(
 export async function listDisciplinaryActions(
   input: ListDisciplinaryInput,
   ctx: AuditContext,
-): Promise<Result<Array<{
-  id: string;
-  employeeId: string;
-  level: string;
-  reason: string;
-  incidentDate: Date;
-  status: string;
-  issuedBy: string;
-  attachmentUrl: string | null;
-}>>> {
+): Promise<
+  Result<
+    Array<{
+      id: string;
+      employeeId: string;
+      level: string;
+      reason: string;
+      incidentDate: Date;
+      status: string;
+      issuedBy: string;
+      attachmentUrl: string | null;
+    }>
+  >
+> {
   const permCheck = await requirePermission(ctx.userId, 'hr.disciplinary.read', {
     locationId: ctx.locationId,
   });

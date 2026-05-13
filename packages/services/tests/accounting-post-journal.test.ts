@@ -5,7 +5,7 @@
  * and business rules per SD §20, §21.1.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // --- Sequenced DB Mock ---
 // postJournal makes these DB calls in order:
@@ -58,10 +58,10 @@ vi.mock('../src/iam', () => ({
   }),
 }));
 
+import type { AuditContext } from '@erp/shared/types';
 // --- Import after mocks ---
 import { postJournal } from '../src/accounting/post-journal';
 import { PostJournalInputSchema } from '../src/accounting/schemas';
-import type { AuditContext } from '@erp/shared/types';
 
 // --- Test data factories ---
 

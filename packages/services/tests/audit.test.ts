@@ -6,7 +6,7 @@
  * DB integration via db.insert is tested implicitly (sanity only).
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { auditInput, auditMetadata } from '../src/audit';
 
 // ─── sanitizeRecord (tested indirectly via auditInput contract) ───────────────
@@ -58,9 +58,21 @@ describe('auditInput helper', () => {
 
   it('accepts all known actions', () => {
     const actions = [
-      'create', 'update', 'delete', 'post', 'reverse', 'void',
-      'refund', 'login', 'logout', 'approve', 'reject',
-      'cancel', 'submit', 'open', 'close',
+      'create',
+      'update',
+      'delete',
+      'post',
+      'reverse',
+      'void',
+      'refund',
+      'login',
+      'logout',
+      'approve',
+      'reject',
+      'cancel',
+      'submit',
+      'open',
+      'close',
     ] as const;
     for (const action of actions) {
       const input = auditInput({ action, entityType: 'test', entityId: 'x' });
@@ -107,7 +119,9 @@ describe('auditMetadata helper', () => {
 
   it('includes ipAddress when present', () => {
     const meta = auditMetadata({
-      userId: 'u1', tenantId: 't1', locationId: 'l1',
+      userId: 'u1',
+      tenantId: 't1',
+      locationId: 'l1',
       ipAddress: '10.0.0.1',
     });
     expect(meta).toEqual({ ip: '10.0.0.1' });
@@ -115,7 +129,9 @@ describe('auditMetadata helper', () => {
 
   it('includes userAgent when present', () => {
     const meta = auditMetadata({
-      userId: 'u1', tenantId: 't1', locationId: 'l1',
+      userId: 'u1',
+      tenantId: 't1',
+      locationId: 'l1',
       userAgent: 'Mozilla/5.0',
     });
     expect(meta).toEqual({ userAgent: 'Mozilla/5.0' });
@@ -123,7 +139,9 @@ describe('auditMetadata helper', () => {
 
   it('includes both when present', () => {
     const meta = auditMetadata({
-      userId: 'u1', tenantId: 't1', locationId: 'l1',
+      userId: 'u1',
+      tenantId: 't1',
+      locationId: 'l1',
       ipAddress: '192.168.1.100',
       userAgent: 'AroadriPOS/1.0',
     });

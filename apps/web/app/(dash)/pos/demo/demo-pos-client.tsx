@@ -14,16 +14,16 @@
 
 'use client';
 
-import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { DemoChannelSelector } from './demo-channel-selector';
-import { DemoProductSearch } from './demo-product-search';
-import { DemoOrderCart } from './demo-order-cart';
-import { DemoPaymentModal } from './demo-payment-modal';
+import { useState } from 'react';
 import { DemoModeBanner } from './components/demo-mode-banner';
 import { DemoResetModal } from './components/demo-reset-modal';
 import { useDemoCart } from './demo-cart-context';
+import { DemoChannelSelector } from './demo-channel-selector';
 import { useDemoMode } from './demo-mode-context';
+import { DemoOrderCart } from './demo-order-cart';
+import { DemoPaymentModal } from './demo-payment-modal';
+import { DemoProductSearch } from './demo-product-search';
 
 export function DemoPosClient() {
   const t = useTranslations('pos');
@@ -63,9 +63,7 @@ export function DemoPosClient() {
               </div>
               <div className="flex items-center gap-2">
                 {state.lines.length > 0 && (
-                  <span className="text-xs text-brand-ink-3">
-                    {state.lines.length} items
-                  </span>
+                  <span className="text-xs text-brand-ink-3">{state.lines.length} items</span>
                 )}
                 {/* Demo settings button */}
                 <button
@@ -73,9 +71,23 @@ export function DemoPosClient() {
                   className="flex h-8 items-center gap-1 rounded-lg border border-brand-cream-3 px-2 text-xs text-brand-ink-3 hover:border-red-300 hover:bg-red-50 hover:text-red-600"
                   title={t('demo.demoSettings')}
                 >
-                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 0 1 .12-1.45l.773-.774a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  <svg
+                    className="h-3.5 w-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 0 1 .12-1.45l.773-.774a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                    />
                   </svg>
                 </button>
               </div>
@@ -127,9 +139,7 @@ export function DemoPosClient() {
       )}
 
       {/* Reset/exit modal */}
-      {showReset && (
-        <DemoResetModal onClose={() => setShowReset(false)} />
-      )}
+      {showReset && <DemoResetModal onClose={() => setShowReset(false)} />}
     </>
   );
 }
@@ -137,5 +147,9 @@ export function DemoPosClient() {
 function formatRupiah(value: string): string {
   const num = Number(value);
   if (isNaN(num)) return 'Rp 0';
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(num);
 }

@@ -5,7 +5,7 @@
  * and business rules per SD §20.4, §21.1.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // --- Sequenced DB Mock ---
 let selectCallIndex = 0;
@@ -52,10 +52,10 @@ vi.mock('../src/iam', () => ({
   }),
 }));
 
+import type { AuditContext } from '@erp/shared/types';
 // --- Import after mocks ---
 import { closePeriod, getPeriodStatus } from '../src/accounting/close-period';
 import { ClosePeriodInputSchema, GetPeriodStatusInputSchema } from '../src/accounting/schemas';
-import type { AuditContext } from '@erp/shared/types';
 
 // --- Test data ---
 
@@ -103,7 +103,9 @@ describe('ClosePeriodInputSchema (Zod)', () => {
   });
 
   it('should accept with force flag', () => {
-    expect(ClosePeriodInputSchema.safeParse({ periodCode: '2026-12', force: true }).success).toBe(true);
+    expect(ClosePeriodInputSchema.safeParse({ periodCode: '2026-12', force: true }).success).toBe(
+      true,
+    );
   });
 
   it('should default force to false', () => {
@@ -140,9 +142,9 @@ describe('getPeriodStatus service', () => {
 
   it('should return period status with JE counts', async () => {
     selectResults = [
-      [makePeriod()],    // period lookup
-      [{ count: 3 }],   // draft count
-      [{ count: 10 }],  // posted count
+      [makePeriod()], // period lookup
+      [{ count: 3 }], // draft count
+      [{ count: 10 }], // posted count
     ];
 
     const result = await getPeriodStatus({ periodCode: '2026-05' }, makeCtx());
@@ -185,8 +187,8 @@ describe('closePeriod service', () => {
 
   it('should transition open → closing when no drafts', async () => {
     selectResults = [
-      [makePeriod({ status: 'open' })],  // period lookup
-      [{ count: 0 }],                     // draft JE count
+      [makePeriod({ status: 'open' })], // period lookup
+      [{ count: 0 }], // draft JE count
     ];
 
     const result = await closePeriod({ periodCode: '2026-05' }, makeCtx());
@@ -202,7 +204,7 @@ describe('closePeriod service', () => {
   it('should reject open → closing when drafts exist and force=false', async () => {
     selectResults = [
       [makePeriod({ status: 'open' })],
-      [{ count: 5 }],  // 5 draft JEs
+      [{ count: 5 }], // 5 draft JEs
     ];
 
     const result = await closePeriod({ periodCode: '2026-05' }, makeCtx());
@@ -231,9 +233,7 @@ describe('closePeriod service', () => {
   // --- closing → closed ---
 
   it('should transition closing → closed', async () => {
-    selectResults = [
-      [makePeriod({ status: 'closing' })],
-    ];
+    selectResults = [[makePeriod({ status: 'closing' })]];
 
     const result = await closePeriod({ periodCode: '2026-05' }, makeCtx());
     expect(result.ok).toBe(true);
@@ -248,9 +248,7 @@ describe('closePeriod service', () => {
   // --- already closed ---
 
   it('should reject when already closed', async () => {
-    selectResults = [
-      [makePeriod({ status: 'closed' })],
-    ];
+    selectResults = [[makePeriod({ status: 'closed' })]];
 
     const result = await closePeriod({ periodCode: '2026-05' }, makeCtx());
     expect(result.ok).toBe(false);
@@ -282,10 +280,7 @@ describe('closePeriod service', () => {
   // --- audit ---
 
   it('should write audit log for open→closing', async () => {
-    selectResults = [
-      [makePeriod({ status: 'open' })],
-      [{ count: 0 }],
-    ];
+    selectResults = [[makePeriod({ status: 'open' })], [{ count: 0 }]];
 
     const result = await closePeriod({ periodCode: '2026-05' }, makeCtx());
     expect(result.ok).toBe(true);
@@ -297,9 +292,7 @@ describe('closePeriod service', () => {
   });
 
   it('should write audit log for closing→closed', async () => {
-    selectResults = [
-      [makePeriod({ status: 'closing' })],
-    ];
+    selectResults = [[makePeriod({ status: 'closing' })]];
 
     const result = await closePeriod({ periodCode: '2026-05' }, makeCtx());
     expect(result.ok).toBe(true);

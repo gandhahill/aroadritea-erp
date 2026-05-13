@@ -5,23 +5,16 @@
  * Actual file upload/download (R2/S3 presigned URLs) handled at API layer.
  */
 
-import { eq, and } from 'drizzle-orm';
 import { db } from '@erp/db';
-import {
-  journalEntries,
-  journalLines,
-  journalAttachments,
-} from '@erp/db/schema/accounting';
+import { journalAttachments, journalEntries, journalLines } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
-import { type Result, ok, err, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
-import {
-  CreateJournalAttachmentSchema,
-  type CreateJournalAttachmentInput,
-} from './schemas';
+import { type CreateJournalAttachmentInput, CreateJournalAttachmentSchema } from './schemas';
 
 // --- Return types ---
 
@@ -83,7 +76,11 @@ export async function createJournalAttachment(
 ): Promise<Result<JournalAttachmentResult>> {
   const parsed = CreateJournalAttachmentSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('accounting.attachment.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('accounting.attachment.validationFailed', {
+        issues: parsed.error.issues,
+      }),
+    );
   }
   const data = parsed.data;
 
@@ -96,15 +93,14 @@ export async function createJournalAttachment(
     .select({ id: journalEntries.id })
     .from(journalEntries)
     .where(
-      and(
-        eq(journalEntries.id, data.journalEntryId),
-        eq(journalEntries.tenantId, ctx.tenantId),
-      ),
+      and(eq(journalEntries.id, data.journalEntryId), eq(journalEntries.tenantId, ctx.tenantId)),
     )
     .limit(1);
 
   if (!je[0]) {
-    return err(AppError.notFound('accounting.journal.notFound', { journalId: data.journalEntryId }));
+    return err(
+      AppError.notFound('accounting.journal.notFound', { journalId: data.journalEntryId }),
+    );
   }
 
   return tryCatch(
@@ -165,12 +161,7 @@ export async function listJournalAttachments(
   const je = await db
     .select({ id: journalEntries.id })
     .from(journalEntries)
-    .where(
-      and(
-        eq(journalEntries.id, journalEntryId),
-        eq(journalEntries.tenantId, ctx.tenantId),
-      ),
-    )
+    .where(and(eq(journalEntries.id, journalEntryId), eq(journalEntries.tenantId, ctx.tenantId)))
     .limit(1);
 
   if (!je[0]) {
@@ -210,9 +201,7 @@ export async function deleteJournalAttachment(
 
   return tryCatch(
     async () => {
-      await db
-        .delete(journalAttachments)
-        .where(eq(journalAttachments.id, attachmentId));
+      await db.delete(journalAttachments).where(eq(journalAttachments.id, attachmentId));
 
       await db.insert(auditLog).values({
         id: generateId(),
@@ -254,12 +243,7 @@ export async function getJournalWithAttachments(
   const jeRows = await db
     .select()
     .from(journalEntries)
-    .where(
-      and(
-        eq(journalEntries.id, journalId),
-        eq(journalEntries.tenantId, ctx.tenantId),
-      ),
-    )
+    .where(and(eq(journalEntries.id, journalId), eq(journalEntries.tenantId, ctx.tenantId)))
     .limit(1);
 
   const je = jeRows[0];
@@ -268,14 +252,8 @@ export async function getJournalWithAttachments(
   }
 
   const [lines, attachments] = await Promise.all([
-    db
-      .select()
-      .from(journalLines)
-      .where(eq(journalLines.journalEntryId, journalId)),
-    db
-      .select()
-      .from(journalAttachments)
-      .where(eq(journalAttachments.journalEntryId, journalId)),
+    db.select().from(journalLines).where(eq(journalLines.journalEntryId, journalId)),
+    db.select().from(journalAttachments).where(eq(journalAttachments.journalEntryId, journalId)),
   ]);
 
   return ok({

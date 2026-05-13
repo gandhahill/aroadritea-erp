@@ -7,16 +7,16 @@
  * - Tier upgrade logic (bronze → silver → gold)
  */
 
-import { eq, and, desc, gte, asc } from 'drizzle-orm';
 import { db } from '@erp/db';
-import { complaints, complaintCompensations } from '@erp/db/schema/crm';
-import { memberLoyalty, memberVouchers, memberPointsTransactions } from '@erp/db/schema/member';
 import { partners } from '@erp/db/schema/accounting';
-import { type Result, ok, err } from '@erp/shared/result';
+import { complaintCompensations, complaints } from '@erp/db/schema/crm';
+import { memberLoyalty, memberPointsTransactions, memberVouchers } from '@erp/db/schema/member';
 import { AppError } from '@erp/shared/errors';
-import { createJournal } from '../accounting/create-journal';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, asc, desc, eq, gte } from 'drizzle-orm';
+import { createJournal } from '../accounting/create-journal';
 import { requirePermission } from '../iam';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -179,7 +179,8 @@ export async function resolveComplaint(
       .where(eq(complaints.id, input.complaintId))
       .then((r) => r[0]);
 
-    if (!existing) return err(AppError.notFound('crm.complaintNotFound', { id: input.complaintId }));
+    if (!existing)
+      return err(AppError.notFound('crm.complaintNotFound', { id: input.complaintId }));
 
     await db
       .update(complaints)
@@ -227,7 +228,8 @@ export async function awardCompensation(
       .where(eq(complaints.id, input.complaintId))
       .then((r) => r[0]);
 
-    if (!complaint) return err(AppError.notFound('crm.complaintNotFound', { id: input.complaintId }));
+    if (!complaint)
+      return err(AppError.notFound('crm.complaintNotFound', { id: input.complaintId }));
 
     // For cash/refund → create journal entry
     let jeId: string | undefined;
@@ -339,7 +341,11 @@ export async function earnLoyaltyPoints(
         createdBy: ctx.userId,
         updatedBy: ctx.userId,
       });
-      loyaltyRows = await db.select().from(memberLoyalty).where(eq(memberLoyalty.memberId, memberId)).limit(1);
+      loyaltyRows = await db
+        .select()
+        .from(memberLoyalty)
+        .where(eq(memberLoyalty.memberId, memberId))
+        .limit(1);
     }
 
     const record = loyaltyRows[0];
@@ -414,13 +420,16 @@ export async function redeemLoyaltyPoints(
       .limit(1);
 
     const record = loyaltyRows[0];
-    if (!record) return err(AppError.notFound('crm.memberLoyaltyNotFound', { memberId: input.memberId }));
+    if (!record)
+      return err(AppError.notFound('crm.memberLoyaltyNotFound', { memberId: input.memberId }));
 
     if (record.points < input.pointsToRedeem) {
-      return err(AppError.businessRule('crm.insufficientPoints', {
-        available: record.points,
-        required: input.pointsToRedeem,
-      }));
+      return err(
+        AppError.businessRule('crm.insufficientPoints', {
+          available: record.points,
+          required: input.pointsToRedeem,
+        }),
+      );
     }
 
     // Deduct points

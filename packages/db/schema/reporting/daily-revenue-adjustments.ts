@@ -5,8 +5,9 @@
  * for PB1-exclusive omzet export (Coretax / SPT PPh Final).
  */
 
+import { sql } from 'drizzle-orm';
 import { bigint, pgTable, text } from 'drizzle-orm/pg-core';
-import { pk, tenantCol, auditCols } from '../common';
+import { auditCols, pk, tenantCol } from '../common';
 
 /**
  * Manual fiscal adjustments for daily omzet report.
@@ -24,7 +25,7 @@ export const dailyRevenueAdjustments = pgTable('daily_revenue_adjustments', {
 
   // The adjustment amount in sen (IDR cents)
   // Negative = pengurang (retur, koreksi kurang), positive = penambah
-  adjustmentAmount: bigint('adjustment_amount', { mode: 'bigint' }).notNull().default(BigInt(0)),
+  adjustmentAmount: bigint('adjustment_amount', { mode: 'bigint' }).notNull().default(sql`0`),
 
   // Optional note explaining the adjustment
   adjustmentNote: text('adjustment_note'),

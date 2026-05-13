@@ -5,13 +5,13 @@
  * Integration tests (DB) run via full test harness.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
+  ApprovePOInputSchema,
+  CancelPOInputSchema,
   CreatePOInputSchema,
   POLineInputSchema,
   SubmitPOInputSchema,
-  ApprovePOInputSchema,
-  CancelPOInputSchema,
 } from '../src/purchasing/schemas';
 
 // ─── POLineInputSchema ──────────────────────────────────────────────────────
@@ -338,7 +338,7 @@ describe('PO Number format', () => {
 
 describe('PO line computation (bigint)', () => {
   function computeLineSubtotal(qtyOrdered: string, unitPrice: string): bigint {
-    const qty = BigInt(Math.round(parseFloat(qtyOrdered) * 1000));
+    const qty = BigInt(Math.round(Number.parseFloat(qtyOrdered) * 1000));
     const price = BigInt(unitPrice);
     return (qty * price) / 1000n;
   }

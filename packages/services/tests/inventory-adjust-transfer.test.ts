@@ -6,15 +6,15 @@
  * Integration tests use the full test harness with Neon (SD §35.2).
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  CreateAdjustmentInputSchema,
-  ApproveAdjustmentInputSchema,
-  RejectAdjustmentInputSchema,
   AdjustmentReasonSchema,
+  ApproveAdjustmentInputSchema,
+  CreateAdjustmentInputSchema,
   CreateTransferInputSchema,
-  ShipTransferInputSchema,
   ReceiveTransferInputSchema,
+  RejectAdjustmentInputSchema,
+  ShipTransferInputSchema,
 } from '../src/inventory/schemas';
 
 // ─── Adjustment Schema Tests ──────────────────────────────────────────────────
@@ -121,9 +121,7 @@ describe('CreateAdjustmentInputSchema', () => {
       locationId: 'loc-mli',
       adjustmentDate: '09-05-2026',
       reason: 'waste',
-      lines: [
-        { productId: 'p1', qtyBefore: '10', qtyAfter: '8', qtyDelta: '-2', uom: 'kg' },
-      ],
+      lines: [{ productId: 'p1', qtyBefore: '10', qtyAfter: '8', qtyDelta: '-2', uom: 'kg' }],
     };
     const result = CreateAdjustmentInputSchema.safeParse(input);
     expect(result.success).toBe(false);
@@ -134,9 +132,7 @@ describe('CreateAdjustmentInputSchema', () => {
       locationId: 'loc-mli',
       adjustmentDate: '2026-05-09',
       reason: 'theft',
-      lines: [
-        { productId: 'p1', qtyBefore: '10', qtyAfter: '8', qtyDelta: '-2', uom: 'kg' },
-      ],
+      lines: [{ productId: 'p1', qtyBefore: '10', qtyAfter: '8', qtyDelta: '-2', uom: 'kg' }],
     };
     const result = CreateAdjustmentInputSchema.safeParse(input);
     expect(result.success).toBe(false);
@@ -157,9 +153,7 @@ describe('CreateAdjustmentInputSchema', () => {
     const input = {
       adjustmentDate: '2026-05-09',
       reason: 'waste',
-      lines: [
-        { productId: 'p1', qtyBefore: '10', qtyAfter: '8', qtyDelta: '-2', uom: 'kg' },
-      ],
+      lines: [{ productId: 'p1', qtyBefore: '10', qtyAfter: '8', qtyDelta: '-2', uom: 'kg' }],
     };
     const result = CreateAdjustmentInputSchema.safeParse(input);
     expect(result.success).toBe(false);
@@ -189,9 +183,7 @@ describe('CreateAdjustmentInputSchema', () => {
       locationId: 'loc-mli',
       adjustmentDate: '2026-05-09',
       reason: 'waste',
-      lines: [
-        { productId: 'p1', qtyBefore: '-10', qtyAfter: '8', qtyDelta: '-2', uom: 'kg' },
-      ],
+      lines: [{ productId: 'p1', qtyBefore: '-10', qtyAfter: '8', qtyDelta: '-2', uom: 'kg' }],
     };
     const result = CreateAdjustmentInputSchema.safeParse(input);
     expect(result.success).toBe(false);
@@ -309,9 +301,7 @@ describe('CreateTransferInputSchema', () => {
       fromLocationId: 'loc-mli',
       toLocationId: 'loc-plz',
       transferDate: '2026-05-09',
-      lines: [
-        { productId: 'prod-1', variantId: 'var-large', qty: '5', uom: 'pcs' },
-      ],
+      lines: [{ productId: 'prod-1', variantId: 'var-large', qty: '5', uom: 'pcs' }],
     };
     const result = CreateTransferInputSchema.safeParse(input);
     expect(result.success).toBe(true);
@@ -606,13 +596,10 @@ describe('JE monetary calculation', () => {
   it('calculates net delta for mixed positive/negative lines', () => {
     const lines = [
       { qtyDelta: -2, unitCost: 50000n }, // -100000
-      { qtyDelta: 1, unitCost: 30000n },  // +30000
+      { qtyDelta: 1, unitCost: 30000n }, // +30000
       { qtyDelta: -0.5, unitCost: 20000n }, // -10000
     ];
-    const netDelta = lines.reduce(
-      (sum, l) => sum + l.qtyDelta * Number(l.unitCost),
-      0,
-    );
+    const netDelta = lines.reduce((sum, l) => sum + l.qtyDelta * Number(l.unitCost), 0);
     expect(netDelta).toBe(-80000);
   });
 
@@ -620,10 +607,7 @@ describe('JE monetary calculation', () => {
     const lines = [
       { qtyDelta: 5, unitCost: 20000n }, // +100000
     ];
-    const netDelta = lines.reduce(
-      (sum, l) => sum + l.qtyDelta * Number(l.unitCost),
-      0,
-    );
+    const netDelta = lines.reduce((sum, l) => sum + l.qtyDelta * Number(l.unitCost), 0);
     expect(netDelta > 0).toBe(true);
   });
 
@@ -631,17 +615,12 @@ describe('JE monetary calculation', () => {
     const lines = [
       { qtyDelta: -3, unitCost: 15000n }, // -45000
     ];
-    const netDelta = lines.reduce(
-      (sum, l) => sum + l.qtyDelta * Number(l.unitCost),
-      0,
-    );
+    const netDelta = lines.reduce((sum, l) => sum + l.qtyDelta * Number(l.unitCost), 0);
     expect(netDelta < 0).toBe(true);
   });
 
   it('zero unit cost results in netDelta = 0, skips JE', () => {
-    const lines = [
-      { qtyDelta: -5, unitCost: null as bigint | null },
-    ];
+    const lines = [{ qtyDelta: -5, unitCost: null as bigint | null }];
     const netDelta = lines.reduce((sum, l) => {
       const cost = l.unitCost ? Number(l.unitCost) : 0;
       return sum + l.qtyDelta * cost;
@@ -654,10 +633,7 @@ describe('JE monetary calculation', () => {
     const lines = [
       { qtyDelta: 0.001, unitCost: 10000n }, // 10 IDR
     ];
-    const netDelta = lines.reduce(
-      (sum, l) => sum + l.qtyDelta * Number(l.unitCost),
-      0,
-    );
+    const netDelta = lines.reduce((sum, l) => sum + l.qtyDelta * Number(l.unitCost), 0);
     expect(netDelta).toBe(10);
     expect(netDelta > 0.01).toBe(true); // > 0.01 threshold
   });

@@ -7,15 +7,10 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { type DbProduct, type DbVariant, getProducts, getVariants } from '@erp/offline';
 import { useTranslations } from 'next-intl';
+import { useCallback, useEffect, useState } from 'react';
 import { useDemoCart } from './demo-cart-context';
-import {
-  getProducts,
-  getVariants,
-  type DbProduct,
-  type DbVariant,
-} from '@erp/offline';
 
 interface ProductWithVariants extends DbProduct {
   variants: DbVariant[];
@@ -32,17 +27,14 @@ export function DemoProductSearch() {
   useEffect(() => {
     async function load() {
       try {
-        const [allProducts, allVariants] = await Promise.all([
-          getProducts(),
-          getVariants(),
-        ]);
+        const [allProducts, allVariants] = await Promise.all([getProducts(), getVariants()]);
         const variantMap = new Map<string, DbVariant[]>();
         for (const v of allVariants) {
           if (!variantMap.has(v.productId)) variantMap.set(v.productId, []);
           variantMap.get(v.productId)!.push(v);
         }
         setProducts(
-          allProducts.map(p => ({
+          allProducts.map((p) => ({
             ...p,
             variants: variantMap.get(p.id) ?? [],
           })),
@@ -54,13 +46,13 @@ export function DemoProductSearch() {
     load();
   }, []);
 
-  const filtered = products.filter(p => {
+  const filtered = products.filter((p) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return (
       p.name.toLowerCase().includes(q) ||
       p.sku.toLowerCase().includes(q) ||
-      p.variants.some(v => v.name.toLowerCase().includes(q))
+      p.variants.some((v) => v.name.toLowerCase().includes(q))
     );
   });
 
@@ -98,7 +90,7 @@ export function DemoProductSearch() {
         <input
           type="search"
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder={t('searchProduct')}
           className="h-10 w-full rounded-lg border border-brand-cream-3 bg-brand-cream-2 px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
         />
@@ -110,13 +102,11 @@ export function DemoProductSearch() {
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <span className="text-3xl">🧋</span>
             <p className="mt-2 text-sm text-brand-ink-3">{t('noProductSelected')}</p>
-            {search && (
-              <p className="mt-1 text-xs text-brand-ink-3">Coba kata kunci lain</p>
-            )}
+            {search && <p className="mt-1 text-xs text-brand-ink-3">Coba kata kunci lain</p>}
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2">
-            {filtered.map(product => (
+            {filtered.map((product) => (
               <div key={product.id} className="flex flex-col">
                 {/* Main product card */}
                 <button
@@ -147,7 +137,7 @@ export function DemoProductSearch() {
                 {/* Variant pills — shown if product has variants */}
                 {product.variants.length > 0 && (
                   <div className="mt-1 flex flex-wrap gap-1">
-                    {product.variants.map(v => {
+                    {product.variants.map((v) => {
                       const vName: string = String(v.name);
                       return (
                         <button
@@ -174,5 +164,9 @@ export function DemoProductSearch() {
 function formatRupiah(value: string): string {
   const num = Number(value);
   if (isNaN(num)) return 'Rp 0';
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(num);
 }

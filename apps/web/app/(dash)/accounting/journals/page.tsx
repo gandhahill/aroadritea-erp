@@ -3,8 +3,8 @@
  * Shows all journal entries in a table with status badges and filters.
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchJournalList } from './actions';
 import { JournalTable } from './journal-table';
@@ -17,7 +17,7 @@ export default async function JournalsPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const tenantId = (session.user as Record<string, unknown>)?.tenantId as string ?? 'default';
+  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
   const journals = await fetchJournalList(tenantId);
 
   return (

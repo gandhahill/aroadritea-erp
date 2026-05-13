@@ -5,7 +5,6 @@
  */
 'use client';
 
-import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { type SiteLocale, localeFlags } from '../i18n';
 import { siteLocales } from '../i18n';
@@ -19,11 +18,11 @@ const NAV_LINKS = [
 
 interface Props {
   locale: SiteLocale;
+  brand: string;
+  labels: Record<(typeof NAV_LINKS)[number]['key'], string>;
 }
 
-export function PublicHeader({ locale }: Props) {
-  const t = useTranslations('nav');
-  const tBrand = useTranslations('common');
+export function PublicHeader({ locale, brand, labels }: Props) {
   const pathname = usePathname();
 
   function switchLocale(newLocale: SiteLocale) {
@@ -37,8 +36,10 @@ export function PublicHeader({ locale }: Props) {
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         {/* Logo */}
         <a href={`/${locale}`} className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-red text-lg font-bold text-white">A</span>
-          <span className="text-lg font-semibold text-brand-red">{tBrand('brand')}</span>
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-red text-lg font-bold text-white">
+            A
+          </span>
+          <span className="text-lg font-semibold text-brand-red">{brand}</span>
         </a>
 
         {/* Nav */}
@@ -49,7 +50,7 @@ export function PublicHeader({ locale }: Props) {
               href={href(locale)}
               className="text-sm font-medium text-brand-ink transition-colors hover:text-brand-red"
             >
-              {t(key)}
+              {labels[key]}
             </a>
           ))}
         </nav>
@@ -61,9 +62,7 @@ export function PublicHeader({ locale }: Props) {
               key={loc}
               href={switchLocale(loc)}
               className={`rounded px-2 py-1 text-xs font-medium transition-colors ${
-                loc === locale
-                  ? 'bg-brand-red text-white'
-                  : 'text-brand-ink hover:bg-brand-cream-2'
+                loc === locale ? 'bg-brand-red text-white' : 'text-brand-ink hover:bg-brand-cream-2'
               }`}
             >
               {localeFlags[loc]}

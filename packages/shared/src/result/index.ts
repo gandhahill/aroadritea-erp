@@ -30,7 +30,10 @@ export function map<T, U, E>(result: Result<T, E>, fn: (value: T) => U): Result<
 }
 
 /** FlatMap (chain) — for sequential Result operations. */
-export function flatMap<T, U, E>(result: Result<T, E>, fn: (value: T) => Result<U, E>): Result<U, E> {
+export function flatMap<T, U, E>(
+  result: Result<T, E>,
+  fn: (value: T) => Result<U, E>,
+): Result<U, E> {
   if (result.ok) return fn(result.value);
   return result;
 }
@@ -48,10 +51,7 @@ export async function tryCatch<T>(
 }
 
 /** Wrap a sync function that may throw into a Result. */
-export function tryCatchSync<T>(
-  fn: () => T,
-  mapError?: (e: unknown) => AppError,
-): Result<T> {
+export function tryCatchSync<T>(fn: () => T, mapError?: (e: unknown) => AppError): Result<T> {
   try {
     return ok(fn());
   } catch (e) {

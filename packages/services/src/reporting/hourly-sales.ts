@@ -9,11 +9,11 @@
  * Permission: accounting.view | reporting.view
  */
 
-import { eq, and, gte, lte, inArray, sql } from 'drizzle-orm';
 import { db } from '@erp/db';
 import { salesOrders } from '@erp/db/schema/pos';
 import { type Result, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
@@ -21,14 +21,14 @@ import { requirePermission } from '../iam';
 const STORE_OPEN_HOUR = 10; // 10:00 WIB
 const STORE_CLOSE_HOUR = 22; // 22:00 WIB (exclusive — last hour = 21)
 const ALL_CHANNELS = ['dine_in', 'take_away', 'gofood', 'grabfood', 'shopeefood'] as const;
-type Channel = typeof ALL_CHANNELS[number];
+type Channel = (typeof ALL_CHANNELS)[number];
 
 // ─── Types ─────────────────────────────────────────────────────────────────────────
 
 export interface HourlySalesParams {
   locationId: string;
   startDate: string; // YYYY-MM-DD
-  endDate: string;   // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
   groupBy?: 'channel' | 'day';
 }
 
@@ -51,8 +51,8 @@ export interface HourlySalesResult {
   period: { start: string; end: string };
   locationId: string;
   groupBy: 'channel' | 'day';
-  channelRows?: ChannelHourRow[];   // present when groupBy='channel'
-  dayRows?: DayHourRow[];           // present when groupBy='day'
+  channelRows?: ChannelHourRow[]; // present when groupBy='channel'
+  dayRows?: DayHourRow[]; // present when groupBy='day'
   hourTotals: Record<string, HourlyCell>; // "10".."21" grand total per hour
   totalTxCount: number;
   totalGrossSales: string;

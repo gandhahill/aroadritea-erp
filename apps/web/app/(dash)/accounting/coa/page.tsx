@@ -3,8 +3,8 @@
  * Tree view of Chart of Accounts with search, multi-bahasa display.
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchCOATree } from './actions';
 import { COATreeView } from './coa-tree';
@@ -17,7 +17,7 @@ export default async function COAPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const tenantId = (session.user as Record<string, unknown>)?.tenantId as string ?? 'default';
+  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
   const tree = await fetchCOATree(tenantId);
 
   return (
@@ -44,5 +44,7 @@ export default async function COAPage() {
 }
 
 function countNodes(node: { children: { children: unknown[] }[] }): number {
-  return 1 + node.children.reduce((sum: number, child) => sum + countNodes(child as typeof node), 0);
+  return (
+    1 + node.children.reduce((sum: number, child) => sum + countNodes(child as typeof node), 0)
+  );
 }

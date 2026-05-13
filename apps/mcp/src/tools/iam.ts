@@ -6,14 +6,14 @@
  * - iam.list_locations → locations accessible to the user
  */
 
-import { z } from 'zod';
-import { eq, and } from 'drizzle-orm';
 import { db } from '@erp/db';
-import { users, locations, userRoles, roles } from '@erp/db/schema/auth';
+import { locations, roles, userRoles, users } from '@erp/db/schema/auth';
 import { isActive } from '@erp/db/schema/common';
-import { can, type PermissionContext } from '@erp/services/iam';
-import { mcpError, mcpSuccess } from '../helpers';
+import { type PermissionContext, can } from '@erp/services/iam';
+import { and, eq } from 'drizzle-orm';
+import { z } from 'zod';
 import type { McpContext } from '../context';
+import { mcpError, mcpSuccess } from '../helpers';
 
 // --- Schemas ---
 
@@ -26,7 +26,11 @@ export const ListLocationsSchema = z.object({
 
 // --- Helpers ---
 
-async function checkPermission(ctx: McpContext, permission: string, locationId?: string): Promise<boolean> {
+async function checkPermission(
+  ctx: McpContext,
+  permission: string,
+  locationId?: string,
+): Promise<boolean> {
   const context: PermissionContext = locationId ? { locationId } : {};
   return can(ctx.userId, permission, context);
 }
@@ -42,7 +46,8 @@ export const iamTools = [
   },
   {
     name: 'iam.list_locations',
-    description: 'List locations (branches/offices) accessible to the current user. Returns all active locations the user has any role on.',
+    description:
+      'List locations (branches/offices) accessible to the current user. Returns all active locations the user has any role on.',
     schema: ListLocationsSchema,
     handler: listLocationsHandler,
   },
@@ -108,7 +113,7 @@ async function listLocationsHandler(
   // Global roles (null locationId) → can see all locations
   const hasGlobalAccess = userLocationIds.some((r) => r.locationId === null);
 
-  let query = db
+  const query = db
     .select({
       id: locations.id,
       code: locations.code,

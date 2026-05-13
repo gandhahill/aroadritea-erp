@@ -10,13 +10,13 @@
  *   pb1 = gross - net
  */
 
-import { eq, and, sql } from 'drizzle-orm';
 import { db } from '@erp/db';
 import { salesOrders, shifts } from '@erp/db/schema/pos';
 import { dailyRevenueAdjustments } from '@erp/db/schema/reporting/daily-revenue-adjustments';
-import { type Result, ok, err } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
+import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -31,12 +31,12 @@ export interface OmzetHarianResult {
   date: string;
   locationId: string;
   locationName: string;
-  grossSales: string;         // bigint string (in sen/IDR cents)
-  pb1Amount: string;           // bigint string
-  netOmzet: string;           // bigint string (PB1-exclusive)
-  adjustmentAmount: string;   // bigint string (can be negative)
+  grossSales: string; // bigint string (in sen/IDR cents)
+  pb1Amount: string; // bigint string
+  netOmzet: string; // bigint string (PB1-exclusive)
+  adjustmentAmount: string; // bigint string (can be negative)
   adjustmentNote: string | null;
-  fiscalOmzet: string;         // bigint string (netOmzet + adjustment)
+  fiscalOmzet: string; // bigint string (netOmzet + adjustment)
   lastModified: string | null;
   shiftCount: number;
 }
@@ -285,7 +285,7 @@ export async function exportOmzetHarianXlsx(
     sheet.views = [{ state: 'frozen', xSplit: 0, ySplit: 1 }];
     sheet.autoFilter = 'A1:H1';
 
-    const buffer = await workbook.xlsx.writeBuffer() as ArrayBuffer;
+    const buffer = (await workbook.xlsx.writeBuffer()) as ArrayBuffer;
     const locSlug = params.locationId.replace(/[^a-z0-9]/gi, '-').toLowerCase();
     const filename = `omzet-harian-${params.date}-${locSlug}.xlsx`;
 
@@ -299,10 +299,37 @@ export async function exportOmzetHarianXlsx(
 
 function getHeaders(locale: string): string[] {
   if (locale === 'zh') {
-    return ['日期', '地点', '总销售额 (IDR)', 'PB1 10% (IDR)', '净收入 (IDR)', '调整金额 (IDR)', '财政应税收入 (IDR)', '备注'];
+    return [
+      '日期',
+      '地点',
+      '总销售额 (IDR)',
+      'PB1 10% (IDR)',
+      '净收入 (IDR)',
+      '调整金额 (IDR)',
+      '财政应税收入 (IDR)',
+      '备注',
+    ];
   }
   if (locale === 'en') {
-    return ['Date', 'Location', 'Gross Sales (IDR)', 'PB1 10% (IDR)', 'Net Revenue (IDR)', 'Adjustment (IDR)', 'Fiscal Omzet (IDR)', 'Note'];
+    return [
+      'Date',
+      'Location',
+      'Gross Sales (IDR)',
+      'PB1 10% (IDR)',
+      'Net Revenue (IDR)',
+      'Adjustment (IDR)',
+      'Fiscal Omzet (IDR)',
+      'Note',
+    ];
   }
-  return ['Tanggal', 'Lokasi', 'Gross Sales (IDR)', 'PB1 10% (IDR)', 'Omzet Neto (IDR)', 'Penyesuaian (IDR)', 'Omzet Fiskal (IDR)', 'Keterangan'];
+  return [
+    'Tanggal',
+    'Lokasi',
+    'Gross Sales (IDR)',
+    'PB1 10% (IDR)',
+    'Omzet Neto (IDR)',
+    'Penyesuaian (IDR)',
+    'Omzet Fiskal (IDR)',
+    'Keterangan',
+  ];
 }

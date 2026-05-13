@@ -16,20 +16,13 @@
 'use client';
 
 import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-  useRef,
-} from 'react';
-import {
+  type DbPendingOrder,
   countPendingOrders,
   flushOutbox,
   startHeartbeat,
   startSyncScheduler,
-  type DbPendingOrder,
 } from '@erp/offline';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 
@@ -41,7 +34,12 @@ interface OfflineSyncState {
 
 interface OfflineSyncActions {
   syncNow: () => Promise<void>;
-  enqueueOrder: (order: Omit<DbPendingOrder, 'attempts' | 'lastError' | 'nextRetryAt' | 'synced' | 'serverSaleNumber'>) => Promise<void>;
+  enqueueOrder: (
+    order: Omit<
+      DbPendingOrder,
+      'attempts' | 'lastError' | 'nextRetryAt' | 'synced' | 'serverSaleNumber'
+    >,
+  ) => Promise<void>;
 }
 
 type OfflineSyncContextValue = OfflineSyncState & OfflineSyncActions;
@@ -107,7 +105,14 @@ export function OfflineSyncProvider({ children }: { children: React.ReactNode })
     ) => {
       // Dynamic import to avoid SSR issues (IndexedDB is browser-only)
       const { enqueueOrder: enq } = await import('@erp/offline');
-      await enq({ ...order, attempts: 0, lastError: null, nextRetryAt: null, synced: false, serverSaleNumber: null });
+      await enq({
+        ...order,
+        attempts: 0,
+        lastError: null,
+        nextRetryAt: null,
+        synced: false,
+        serverSaleNumber: null,
+      });
       setPendingCount((c) => c + 1);
     },
     [],

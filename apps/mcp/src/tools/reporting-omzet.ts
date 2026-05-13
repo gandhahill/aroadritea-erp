@@ -2,10 +2,10 @@
  * reporting.get_omzet_harian MCP tool — SD §25.5b.6, SoT §21.3b
  */
 
-import { z } from 'zod';
 import { getOmzetHarian } from '@erp/services/reporting';
-import { mcpSuccess, mcpError } from '../helpers';
+import { z } from 'zod';
 import type { McpContext } from '../context';
+import { mcpError, mcpSuccess } from '../helpers';
 
 export const GetOmzetHarianSchema = z.object({
   location_id: z.string(),
@@ -27,11 +27,14 @@ export async function getOmzetHarianHandler(input: unknown, ctx: McpContext) {
   const permitted = await checkPermission(ctx, 'reporting.view', location_id);
   if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: reporting.view');
 
-  const result = await getOmzetHarian({ locationId: location_id, date }, {
-    userId: ctx.userId,
-    tenantId: ctx.tenantId,
-    locationId: location_id,
-  });
+  const result = await getOmzetHarian(
+    { locationId: location_id, date },
+    {
+      userId: ctx.userId,
+      tenantId: ctx.tenantId,
+      locationId: location_id,
+    },
+  );
 
   if (!result.ok) return mcpError('OMZET_GET_FAILED', JSON.stringify(result.error));
 
@@ -41,10 +44,13 @@ export async function getOmzetHarianHandler(input: unknown, ctx: McpContext) {
   function toIDR(s: string): string {
     const cents = BigInt(s);
     const idr = cents / BigInt(100);
-    return Number(idr).toLocaleString(locale === 'zh' ? 'zh-CN' : locale === 'en' ? 'en-US' : 'id-ID', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    });
+    return Number(idr).toLocaleString(
+      locale === 'zh' ? 'zh-CN' : locale === 'en' ? 'en-US' : 'id-ID',
+      {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      },
+    );
   }
 
   return mcpSuccess({

@@ -4,13 +4,13 @@
 
 'use client';
 
-import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
 import {
-  createProductCode,
-  updateProductCode,
-  deleteProductCode,
   type ProductCodeItem,
+  createProductCode,
+  deleteProductCode,
+  updateProductCode,
 } from './actions';
 
 interface Props {
@@ -72,32 +72,17 @@ export function ProductCodesTable({ codes, tenantId }: Props) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-brand-cream-3 bg-brand-cream">
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
-              Product ID
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
-              Variant ID
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
-              Naixer Code
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
-              Status
-            </th>
-            <th className="px-4 py-3 text-right font-medium text-brand-ink-2">
-              Actions
-            </th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Product ID</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Variant ID</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Naixer Code</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Status</th>
+            <th className="px-4 py-3 text-right font-medium text-brand-ink-2">Actions</th>
           </tr>
         </thead>
         <tbody>
           {codes.map((code) => (
-            <tr
-              key={code.id}
-              className="border-b border-brand-cream-3 last:border-0"
-            >
-              <td className="px-4 py-3 font-mono text-xs text-brand-ink">
-                {code.productId}
-              </td>
+            <tr key={code.id} className="border-b border-brand-cream-3 last:border-0">
+              <td className="px-4 py-3 font-mono text-xs text-brand-ink">{code.productId}</td>
               <td className="px-4 py-3 font-mono text-xs text-brand-ink-3">
                 {code.variantId ?? '(all)'}
               </td>
@@ -139,10 +124,7 @@ export function ProductCodesTable({ codes, tenantId }: Props) {
           ))}
           {codes.length === 0 && !showAddForm && (
             <tr>
-              <td
-                colSpan={5}
-                className="px-4 py-8 text-center text-sm text-brand-ink-3"
-              >
+              <td colSpan={5} className="px-4 py-8 text-center text-sm text-brand-ink-3">
                 No product code mappings yet. Add one below.
               </td>
             </tr>
@@ -155,9 +137,7 @@ export function ProductCodesTable({ codes, tenantId }: Props) {
         <div className="border-t border-brand-cream-3 bg-brand-cream px-4 py-3">
           <div className="flex items-end gap-3">
             <div className="flex-1">
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                Product ID
-              </label>
+              <label className="mb-1 block text-xs font-medium text-brand-ink-2">Product ID</label>
               <input
                 type="text"
                 value={newProductId}
@@ -179,9 +159,7 @@ export function ProductCodesTable({ codes, tenantId }: Props) {
               />
             </div>
             <div className="w-32">
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                Naixer Code
-              </label>
+              <label className="mb-1 block text-xs font-medium text-brand-ink-2">Naixer Code</label>
               <input
                 type="text"
                 value={newNaixerCode}

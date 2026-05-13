@@ -8,10 +8,10 @@
  * - Error screen if master data snapshot failed
  */
 
-import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
-import { DemoModeProvider } from './demo-mode-context';
+import { redirect } from 'next/navigation';
 import { DemoCartProvider } from './demo-cart-context';
+import { DemoModeProvider } from './demo-mode-context';
 
 export const metadata = { title: '[DEMO] Point of Sale' };
 
@@ -23,9 +23,7 @@ export default async function DemoPosLayout({ children }: { children: React.Reac
     <DemoModeProvider>
       <DemoCartProvider>
         {/* Demo banner + main layout injected via children */}
-        <div className="flex min-h-screen flex-col bg-brand-cream">
-          {children}
-        </div>
+        <div className="flex min-h-screen flex-col bg-brand-cream">{children}</div>
       </DemoCartProvider>
     </DemoModeProvider>
   );

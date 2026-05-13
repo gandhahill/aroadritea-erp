@@ -4,9 +4,11 @@
  * Middleware handles the redirect, this layout provides the session context.
  */
 
-import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 import { Sidebar } from './sidebar';
+
+export const dynamic = 'force-dynamic';
 
 export default async function DashboardLayout({
   children,
@@ -35,24 +37,22 @@ export default async function DashboardLayout({
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-full bg-brand-red/10 flex items-center justify-center">
               <span className="text-sm font-semibold text-brand-red">
-                {String(session.user?.name || session.user?.email || 'U').charAt(0).toUpperCase()}
+                {String(session.user?.name || session.user?.email || 'U')
+                  .charAt(0)
+                  .toUpperCase()}
               </span>
             </div>
             <div className="text-right">
               <p className="text-sm font-medium text-brand-ink">
                 {String(session.user?.name || 'User')}
               </p>
-              <p className="text-[11px] text-brand-ink-3">
-                {String(session.user?.email || '')}
-              </p>
+              <p className="text-[11px] text-brand-ink-3">{String(session.user?.email || '')}</p>
             </div>
           </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 bg-brand-cream p-6">
-          {children}
-        </main>
+        <main className="flex-1 bg-brand-cream p-6">{children}</main>
       </div>
     </div>
   );

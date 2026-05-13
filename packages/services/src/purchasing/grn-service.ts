@@ -6,31 +6,23 @@
  */
 
 import { db } from '@erp/db';
+import { accountingPeriods, accounts } from '@erp/db/schema/accounting';
+import { products, stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import {
-  purchaseOrders,
-  purchaseOrderLines,
   goodsReceiptNotes,
   grnLines,
+  purchaseOrderLines,
+  purchaseOrders,
 } from '@erp/db/schema/purchasing';
-import { accounts, accountingPeriods } from '@erp/db/schema/accounting';
-import {
-  stockMovements,
-  stockLevels,
-  products,
-} from '@erp/db/schema/inventory';
-import { eq, and, sql } from 'drizzle-orm';
-import { type Result, ok, err } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
-import { type AuditContext } from '@erp/shared/types';
-import { requirePermission } from '../iam';
 import { generateId } from '@erp/shared/id';
-import { auditRecord } from '../audit';
+import { type Result, err, ok } from '@erp/shared/result';
+import type { AuditContext } from '@erp/shared/types';
+import { and, eq, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
-import {
-  CreateGRNInputSchema,
-  ConfirmGRNInputSchema,
-  type GRNLineInput,
-} from './grn-schemas';
+import { auditRecord } from '../audit';
+import { requirePermission } from '../iam';
+import { ConfirmGRNInputSchema, CreateGRNInputSchema, type GRNLineInput } from './grn-schemas';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -39,10 +31,7 @@ const DEFAULT_INVENTORY_ACCOUNT_CODE = '1-1210'; // Persediaan Barang Dagangan
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-async function resolveAccountId(
-  tenantId: string,
-  code: string,
-): Promise<string | null> {
+async function resolveAccountId(tenantId: string, code: string): Promise<string | null> {
   const [row] = await db
     .select({ id: accounts.id })
     .from(accounts)
@@ -124,10 +113,7 @@ export interface GRNConfirmResult {
 
 // ─── Create GRN ─────────────────────────────────────────────────────────────
 
-export async function createGRN(
-  rawInput: unknown,
-  ctx: AuditContext,
-): Promise<Result<GRNResult>> {
+export async function createGRN(rawInput: unknown, ctx: AuditContext): Promise<Result<GRNResult>> {
   const permCheck = await requirePermission(ctx.userId, 'purchasing.grn.create', {
     locationId: ctx.locationId,
   });
@@ -135,9 +121,11 @@ export async function createGRN(
 
   const parsed = CreateGRNInputSchema.safeParse(rawInput);
   if (!parsed.success) {
-    return err(AppError.validation('purchasing.errors.invalid_input', {
-      detail: parsed.error.message,
-    }));
+    return err(
+      AppError.validation('purchasing.errors.invalid_input', {
+        detail: parsed.error.message,
+      }),
+    );
   }
   const input = parsed.data;
 
@@ -146,10 +134,7 @@ export async function createGRN(
     .select()
     .from(purchaseOrders)
     .where(
-      and(
-        eq(purchaseOrders.tenantId, ctx.tenantId),
-        eq(purchaseOrders.id, input.purchaseOrderId),
-      ),
+      and(eq(purchaseOrders.tenantId, ctx.tenantId), eq(purchaseOrders.id, input.purchaseOrderId)),
     )
     .limit(1);
 
@@ -159,9 +144,11 @@ export async function createGRN(
 
   const RECEIVABLE_STATUSES = new Set(['approved', 'partial']);
   if (!RECEIVABLE_STATUSES.has(po.status)) {
-    return err(AppError.businessRule('purchasing.errors.po_not_receivable', {
-      currentStatus: po.status,
-    }));
+    return err(
+      AppError.businessRule('purchasing.errors.po_not_receivable', {
+        currentStatus: po.status,
+      }),
+    );
   }
 
   // Load all PO lines
@@ -177,33 +164,39 @@ export async function createGRN(
   for (const grnLine of input.lines) {
     const poLine = poLineMap.get(grnLine.poLineId);
     if (!poLine) {
-      return err(AppError.validation('purchasing.errors.invalid_po_line', {
-        poLineId: grnLine.poLineId,
-      }));
+      return err(
+        AppError.validation('purchasing.errors.invalid_po_line', {
+          poLineId: grnLine.poLineId,
+        }),
+      );
     }
 
     if (grnLine.productId !== poLine.productId) {
-      return err(AppError.validation('purchasing.errors.product_mismatch', {
-        poLineId: grnLine.poLineId,
-        expected: poLine.productId,
-        got: grnLine.productId,
-      }));
+      return err(
+        AppError.validation('purchasing.errors.product_mismatch', {
+          poLineId: grnLine.poLineId,
+          expected: poLine.productId,
+          got: grnLine.productId,
+        }),
+      );
     }
 
     // Check qty does not exceed remaining
-    const alreadyReceived = parseFloat(poLine.qtyReceived);
-    const ordered = parseFloat(poLine.qtyOrdered);
-    const receiving = parseFloat(grnLine.qtyReceived);
+    const alreadyReceived = Number.parseFloat(poLine.qtyReceived);
+    const ordered = Number.parseFloat(poLine.qtyOrdered);
+    const receiving = Number.parseFloat(grnLine.qtyReceived);
     const remaining = ordered - alreadyReceived;
 
     if (receiving > remaining + 0.001) {
-      return err(AppError.businessRule('purchasing.errors.qty_exceeds_remaining', {
-        poLineId: grnLine.poLineId,
-        ordered: poLine.qtyOrdered,
-        alreadyReceived: poLine.qtyReceived,
-        remaining: remaining.toFixed(3),
-        receiving: grnLine.qtyReceived,
-      }));
+      return err(
+        AppError.businessRule('purchasing.errors.qty_exceeds_remaining', {
+          poLineId: grnLine.poLineId,
+          ordered: poLine.qtyOrdered,
+          alreadyReceived: poLine.qtyReceived,
+          remaining: remaining.toFixed(3),
+          receiving: grnLine.qtyReceived,
+        }),
+      );
     }
   }
 
@@ -294,9 +287,11 @@ export async function confirmGRN(
 
   const parsed = ConfirmGRNInputSchema.safeParse(rawInput);
   if (!parsed.success) {
-    return err(AppError.validation('purchasing.errors.invalid_input', {
-      detail: parsed.error.message,
-    }));
+    return err(
+      AppError.validation('purchasing.errors.invalid_input', {
+        detail: parsed.error.message,
+      }),
+    );
   }
 
   // Load GRN
@@ -316,9 +311,11 @@ export async function confirmGRN(
   }
 
   if (grn.status !== 'draft') {
-    return err(AppError.businessRule('purchasing.errors.grn_not_draft', {
-      currentStatus: grn.status,
-    }));
+    return err(
+      AppError.businessRule('purchasing.errors.grn_not_draft', {
+        currentStatus: grn.status,
+      }),
+    );
   }
 
   // Load GRN lines
@@ -349,23 +346,24 @@ export async function confirmGRN(
     .select()
     .from(accountingPeriods)
     .where(
-      and(
-        eq(accountingPeriods.tenantId, ctx.tenantId),
-        eq(accountingPeriods.code, periodCode),
-      ),
+      and(eq(accountingPeriods.tenantId, ctx.tenantId), eq(accountingPeriods.code, periodCode)),
     )
     .limit(1);
 
   if (!period) {
-    return err(AppError.businessRule('accounting.journal.periodNotFound', {
-      periodCode,
-    }));
+    return err(
+      AppError.businessRule('accounting.journal.periodNotFound', {
+        periodCode,
+      }),
+    );
   }
   if (period.status !== 'open') {
-    return err(AppError.businessRule('accounting.journal.periodClosed', {
-      periodCode,
-      periodStatus: period.status,
-    }));
+    return err(
+      AppError.businessRule('accounting.journal.periodClosed', {
+        periodCode,
+        periodStatus: period.status,
+      }),
+    );
   }
 
   // 1. Update PO line qtyReceived
@@ -379,7 +377,8 @@ export async function confirmGRN(
     const poLine = poLineMap.get(line.poLineId);
     if (!poLine) continue;
 
-    const newQtyReceived = parseFloat(poLine.qtyReceived) + parseFloat(line.qtyReceived);
+    const newQtyReceived =
+      Number.parseFloat(poLine.qtyReceived) + Number.parseFloat(line.qtyReceived);
     await db
       .update(purchaseOrderLines)
       .set({
@@ -435,11 +434,11 @@ export async function confirmGRN(
       )
       .then((r) => r[0]);
 
-    const addQty = parseFloat(line.qtyReceived);
+    const addQty = Number.parseFloat(line.qtyReceived);
 
     if (existing) {
-      const newOnHand = parseFloat(existing.qtyOnHand) + addQty;
-      const newAvailable = parseFloat(existing.qtyAvailable) + addQty;
+      const newOnHand = Number.parseFloat(existing.qtyOnHand) + addQty;
+      const newAvailable = Number.parseFloat(existing.qtyAvailable) + addQty;
       await db
         .update(stockLevels)
         .set({
@@ -480,7 +479,7 @@ export async function confirmGRN(
   for (const line of lines) {
     const poLine = poLineMap.get(line.poLineId);
     if (poLine) {
-      const qty = BigInt(Math.round(parseFloat(line.qtyReceived) * 1000));
+      const qty = BigInt(Math.round(Number.parseFloat(line.qtyReceived) * 1000));
       const unitPrice = poLine.unitPrice;
       totalValue += (qty * unitPrice) / 1000n;
     }
@@ -528,7 +527,7 @@ export async function confirmGRN(
   // 5. Determine new PO status
   const updatedPoLines = [...poLineMap.values()];
   const allFullyReceived = updatedPoLines.every(
-    (l) => parseFloat(l.qtyReceived) >= parseFloat(l.qtyOrdered) - 0.001,
+    (l) => Number.parseFloat(l.qtyReceived) >= Number.parseFloat(l.qtyOrdered) - 0.001,
   );
   const newPoStatus = allFullyReceived ? 'received' : 'partial';
 
@@ -539,12 +538,7 @@ export async function confirmGRN(
       updatedBy: ctx.userId,
       version: po.version + 1,
     })
-    .where(
-      and(
-        eq(purchaseOrders.id, po.id),
-        eq(purchaseOrders.version, po.version),
-      ),
-    );
+    .where(and(eq(purchaseOrders.id, po.id), eq(purchaseOrders.version, po.version)));
 
   // 6. Update GRN status
   await db
@@ -554,12 +548,7 @@ export async function confirmGRN(
       updatedBy: ctx.userId,
       version: grn.version + 1,
     })
-    .where(
-      and(
-        eq(goodsReceiptNotes.id, grn.id),
-        eq(goodsReceiptNotes.version, grn.version),
-      ),
-    );
+    .where(and(eq(goodsReceiptNotes.id, grn.id), eq(goodsReceiptNotes.version, grn.version)));
 
   // 7. Audit
   await auditRecord({

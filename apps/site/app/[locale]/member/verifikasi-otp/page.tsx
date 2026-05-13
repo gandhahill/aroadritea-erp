@@ -13,14 +13,15 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: 'Verifikasi OTP' };
 }
 
-export default async function VerifikasiOtpPage({ searchParams }: Props) {
-  const params = await searchParams;
-  if (!params.token) {
+export default async function VerifikasiOtpPage({ params, searchParams }: Props) {
+  const { locale } = await params;
+  const query = await searchParams;
+  if (!query.token) {
     return (
       <div className="mx-auto max-w-md px-4 py-12 text-center">
         <p className="text-brand-ink-3">Token tidak valid. Silakan daftar ulang.</p>
       </div>
     );
   }
-  return <OtpVerifyForm />;
+  return <OtpVerifyForm locale={locale} />;
 }

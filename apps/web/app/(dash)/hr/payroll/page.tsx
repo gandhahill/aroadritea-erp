@@ -8,12 +8,12 @@
  * - Run payroll → creates draft payroll
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 import { db, eq } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import { payrolls } from '@erp/db/schema/hr';
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { PayrollRunClient } from './payroll-run-client';
 
 export const metadata: Metadata = { title: 'Payroll' };

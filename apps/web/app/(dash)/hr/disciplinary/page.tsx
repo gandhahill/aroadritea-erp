@@ -4,11 +4,11 @@
  * Server component: loads initial data, renders client component.
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 import { db, eq } from '@erp/db';
 import { disciplinaryActions, employees } from '@erp/db/schema/hr';
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { DisciplinaryClient } from './disciplinary-client';
 
 export const metadata: Metadata = { title: 'Surat Peringatan' };
@@ -49,9 +49,6 @@ export default async function DisciplinaryPage() {
   }));
 
   return (
-    <DisciplinaryClient
-      initialActions={rows as unknown as never[]}
-      employees={employeeOptions}
-    />
+    <DisciplinaryClient initialActions={rows as unknown as never[]} employees={employeeOptions} />
   );
 }

@@ -15,22 +15,22 @@
  * Permission: accounting.journal.create (checked via requirePermission)
  */
 
-import { eq, and, inArray } from 'drizzle-orm';
 import { db } from '@erp/db';
 import {
-  journalEntries,
-  journalLines,
   accountingPeriods,
   accounts,
+  journalEntries,
+  journalLines,
 } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
-import { type Result, ok, err, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq, inArray } from 'drizzle-orm';
 import { requirePermission } from '../iam';
-import { CreateJournalInputSchema, type CreateJournalInput } from './schemas';
 import { generateJournalNumber } from './number-generator';
+import { type CreateJournalInput, CreateJournalInputSchema } from './schemas';
 
 // --- Return type ---
 
@@ -138,10 +138,7 @@ export async function createJournal(
     .select()
     .from(accountingPeriods)
     .where(
-      and(
-        eq(accountingPeriods.tenantId, ctx.tenantId),
-        eq(accountingPeriods.code, periodMonth),
-      ),
+      and(eq(accountingPeriods.tenantId, ctx.tenantId), eq(accountingPeriods.code, periodMonth)),
     )
     .then((rows) => rows[0]);
 
@@ -172,12 +169,7 @@ export async function createJournal(
       code: accounts.code,
     })
     .from(accounts)
-    .where(
-      and(
-        eq(accounts.tenantId, ctx.tenantId),
-        inArray(accounts.id, accountIds),
-      ),
-    );
+    .where(and(eq(accounts.tenantId, ctx.tenantId), inArray(accounts.id, accountIds)));
 
   const accountMap = new Map(foundAccounts.map((a) => [a.id, a]));
 
@@ -185,9 +177,7 @@ export async function createJournal(
   for (const accId of accountIds) {
     const acc = accountMap.get(accId);
     if (!acc) {
-      return err(
-        AppError.notFound('accounting.journal.accountNotFound', { accountId: accId }),
-      );
+      return err(AppError.notFound('accounting.journal.accountNotFound', { accountId: accId }));
     }
     if (!acc.isActive) {
       return err(

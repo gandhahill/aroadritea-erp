@@ -8,16 +8,16 @@
  * - Late penalty tracking (3 free per month, then Rp 50,000/late)
  */
 
-import { eq, and, sql, desc } from 'drizzle-orm';
 import { db } from '@erp/db';
-import { attendance, shiftDefinitions, employees } from '@erp/db/schema/hr';
 import { locations } from '@erp/db/schema/auth';
-import { type Result, ok, err, tryCatch } from '@erp/shared/result';
+import { attendance, employees, shiftDefinitions } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
-import type { AuditContext } from '@erp/shared/types';
-import { requirePermission } from '../iam';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
+import type { AuditContext } from '@erp/shared/types';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
+import { requirePermission } from '../iam';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -97,7 +97,7 @@ function haversineM(lat1: number, lng1: number, lat2: number, lng2: number): num
  * Parse "HH:MM" shift time + today's date → Date in WIB (UTC+7).
  */
 function shiftTimeToDate(startTime: string, referenceDate: Date): Date {
-  const parts = startTime.split(':').map((s) => parseInt(s, 10));
+  const parts = startTime.split(':').map((s) => Number.parseInt(s, 10));
   const h = parts[0] ?? 0;
   const m = parts[1] ?? 0;
   const d = new Date(referenceDate);
@@ -131,7 +131,9 @@ export async function checkIn(
 
   const parsed = CheckInInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('hr.attendance.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('hr.attendance.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const data = parsed.data;
 
@@ -150,8 +152,12 @@ export async function checkIn(
 
       // 2. Check for duplicate check-in today (no double check-in)
       const today = new Date();
-      const todayStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0));
-      const todayEnd = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59));
+      const todayStart = new Date(
+        Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0),
+      );
+      const todayEnd = new Date(
+        Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59),
+      );
 
       const [existing] = await db
         .select({ id: attendance.id })
@@ -268,7 +274,9 @@ export async function checkOut(
 
   const parsed = CheckOutInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('hr.attendance.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('hr.attendance.validationFailed', { issues: parsed.error.issues }),
+    );
   }
   const data = parsed.data;
 
@@ -278,19 +286,16 @@ export async function checkOut(
       const [existing] = await db
         .select()
         .from(attendance)
-        .where(
-          and(
-            eq(attendance.id, data.attendanceId),
-            eq(attendance.tenantId, ctx.tenantId),
-          ),
-        )
+        .where(and(eq(attendance.id, data.attendanceId), eq(attendance.tenantId, ctx.tenantId)))
         .limit(1);
 
       if (!existing) {
         throw AppError.notFound('hr.attendance.notFound', { attendanceId: data.attendanceId });
       }
       if (existing.checkOutAt) {
-        throw AppError.conflict('hr.attendance.alreadyCheckedOut', { attendanceId: data.attendanceId });
+        throw AppError.conflict('hr.attendance.alreadyCheckedOut', {
+          attendanceId: data.attendanceId,
+        });
       }
 
       const performedAt = data.performedAt ? new Date(data.performedAt) : new Date();
@@ -313,10 +318,14 @@ export async function checkOut(
           // Expected end = start + shift duration
           const shiftStart = shiftTimeToDate(shiftDef.startTime, existing.checkInAt);
           const shiftEnd = shiftTimeToDate(shiftDef.endTime, existing.checkInAt);
-          const expectedDurationMin = Math.round((shiftEnd.getTime() - shiftStart.getTime()) / 60000);
+          const expectedDurationMin = Math.round(
+            (shiftEnd.getTime() - shiftStart.getTime()) / 60000,
+          );
 
           // Actual worked = check-out time − check-in time
-          const actualWorkedMin = Math.round((performedAt.getTime() - existing.checkInAt!.getTime()) / 60000);
+          const actualWorkedMin = Math.round(
+            (performedAt.getTime() - existing.checkInAt!.getTime()) / 60000,
+          );
           workedMinutes = Math.min(actualWorkedMin, expectedDurationMin); // cap at expected
         }
       }
@@ -324,9 +333,18 @@ export async function checkOut(
       // Update record
       const [updated] = await db
         .update(attendance)
-        .set({ checkOutAt: performedAt, checkOutGps: data.gpsData ?? null, workedMinutes, updatedBy: ctx.userId })
+        .set({
+          checkOutAt: performedAt,
+          checkOutGps: data.gpsData ?? null,
+          workedMinutes,
+          updatedBy: ctx.userId,
+        })
         .where(eq(attendance.id, data.attendanceId))
-        .returning({ id: attendance.id, checkOutAt: attendance.checkOutAt, workedMinutes: attendance.workedMinutes });
+        .returning({
+          id: attendance.id,
+          checkOutAt: attendance.checkOutAt,
+          workedMinutes: attendance.workedMinutes,
+        });
 
       if (!updated) {
         throw AppError.internal('hr.attendance.checkOutFailed', new Error('No record updated'));

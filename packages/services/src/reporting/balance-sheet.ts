@@ -8,11 +8,11 @@
  * Permission: accounting.view
  */
 
-import { type Result, ok, err, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { requirePermission } from '../iam';
-import { trialBalance, type TrialBalanceLine } from './trial-balance';
+import { type TrialBalanceLine, trialBalance } from './trial-balance';
 
 // --- Types ---
 
@@ -62,10 +62,7 @@ export async function balanceSheet(
   return tryCatch(
     async () => {
       // Get trial balance first
-      const tbResult = await trialBalance(
-        { asOf: input.asOf, locationId: input.locationId },
-        ctx,
-      );
+      const tbResult = await trialBalance({ asOf: input.asOf, locationId: input.locationId }, ctx);
 
       if (!tbResult.ok) throw tbResult.error;
       const tb = tbResult.value;
@@ -119,7 +116,5 @@ function filterSection(
 }
 
 function sumBalances(lines: TrialBalanceLine[], types: string[]): bigint {
-  return lines
-    .filter((l) => types.includes(l.accountType))
-    .reduce((sum, l) => sum + l.balance, 0n);
+  return lines.filter((l) => types.includes(l.accountType)).reduce((sum, l) => sum + l.balance, 0n);
 }

@@ -15,21 +15,17 @@
  * Permission: accounting.journal.post
  */
 
-import { eq, and } from 'drizzle-orm';
 import { db } from '@erp/db';
-import {
-  journalEntries,
-  journalLines,
-  accountingPeriods,
-} from '@erp/db/schema/accounting';
+import { accountingPeriods, journalEntries, journalLines } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
-import { type Result, ok, err, tryCatch } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
-import { PostJournalInputSchema, type PostJournalInput } from './schemas';
 import type { JournalEntryResult, JournalLineResult } from './create-journal';
+import { type PostJournalInput, PostJournalInputSchema } from './schemas';
 
 // --- Service function ---
 
@@ -59,12 +55,7 @@ export async function postJournal(
   const je = await db
     .select()
     .from(journalEntries)
-    .where(
-      and(
-        eq(journalEntries.id, journalId),
-        eq(journalEntries.tenantId, ctx.tenantId),
-      ),
-    )
+    .where(and(eq(journalEntries.id, journalId), eq(journalEntries.tenantId, ctx.tenantId)))
     .then((rows) => rows[0]);
 
   if (!je) {
@@ -106,12 +97,7 @@ export async function postJournal(
   const period = await db
     .select()
     .from(accountingPeriods)
-    .where(
-      and(
-        eq(accountingPeriods.id, je.periodId),
-        eq(accountingPeriods.tenantId, ctx.tenantId),
-      ),
-    )
+    .where(and(eq(accountingPeriods.id, je.periodId), eq(accountingPeriods.tenantId, ctx.tenantId)))
     .then((rows) => rows[0]);
 
   if (!period) {
@@ -202,17 +188,19 @@ export async function postJournal(
         status: 'posted',
         totalDebit: je.totalDebit,
         totalCredit: je.totalCredit,
-        lines: lines.map((l): JournalLineResult => ({
-          id: l.id,
-          lineNo: l.lineNo,
-          accountId: l.accountId,
-          locationId: l.locationId,
-          description: l.description,
-          debit: l.debit,
-          credit: l.credit,
-          taxCode: l.taxCode,
-          partnerId: l.partnerId,
-        })),
+        lines: lines.map(
+          (l): JournalLineResult => ({
+            id: l.id,
+            lineNo: l.lineNo,
+            accountId: l.accountId,
+            locationId: l.locationId,
+            description: l.description,
+            debit: l.debit,
+            credit: l.credit,
+            taxCode: l.taxCode,
+            partnerId: l.partnerId,
+          }),
+        ),
       };
 
       return result;

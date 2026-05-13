@@ -4,8 +4,8 @@
  * Heatmap + summary + table + XLSX export.
  */
 
-import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth';
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchHourlySales } from './actions';
 import { HourlySalesClient } from './hourly-sales-client';

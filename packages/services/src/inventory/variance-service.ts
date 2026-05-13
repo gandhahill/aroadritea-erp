@@ -7,22 +7,22 @@
  * Permission: inventory.view | accounting.view | reporting.view
  */
 
-import { eq, and, gte, lte, sql, desc } from 'drizzle-orm';
 import { db } from '@erp/db';
-import { stockOpnameSessions, stockOpnameLines } from '@erp/db/schema/stock-opname';
-import { products, stockLevels } from '@erp/db/schema/inventory';
 import { locations } from '@erp/db';
-import { type Result, ok, err } from '@erp/shared/result';
+import { products, stockLevels } from '@erp/db/schema/inventory';
+import { stockOpnameLines, stockOpnameSessions } from '@erp/db/schema/stock-opname';
 import { AppError } from '@erp/shared/errors';
-import { requirePermission } from '../iam';
+import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
+import { requirePermission } from '../iam';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 export interface VarianceReportParams {
-  locationId?: string;   // all locations if omitted
-  startDate: string;     // YYYY-MM-DD
-  endDate: string;       // YYYY-MM-DD
+  locationId?: string; // all locations if omitted
+  startDate: string; // YYYY-MM-DD
+  endDate: string; // YYYY-MM-DD
 }
 
 export interface VarianceSessionRow {
@@ -36,7 +36,7 @@ export interface VarianceSessionRow {
   countedLines: number;
   linesWithVariance: number;
   totalVarianceValue: string; // bigint string (absolute IDR value)
-  netVarianceQty: number;     // signed: positive = surplus, negative = shortage
+  netVarianceQty: number; // signed: positive = surplus, negative = shortage
   journalEntryId: string | null;
   preparedBy: string | null;
 }
@@ -47,13 +47,13 @@ export interface VarianceProductRow {
   categoryId: string | null;
   sku: string | null;
   uom: string;
-  sessions: number;       // how many sessions this product appeared in
+  sessions: number; // how many sessions this product appeared in
   totalSystemQty: number;
   totalCountedQty: number;
   totalVarianceQty: number; // signed
   totalVarianceValueAbs: string; // absolute IDR value
-  varianceRate: number;     // % of system qty (can be > 100% on small denominators)
-  worstSession: string;    // session number with the largest |variance|
+  varianceRate: number; // % of system qty (can be > 100% on small denominators)
+  worstSession: string; // session number with the largest |variance|
   worstSessionDate: string;
 }
 
@@ -65,9 +65,9 @@ export interface VarianceReportResult {
     totalLines: number;
     linesWithVariance: number;
     totalVarianceValueAbs: string; // sum of |varianceValue| across all lines
-    totalSurplusValue: string;     // sum of positive varianceValues
-    totalShortageValue: string;    // sum of negative varianceValues
-    avgVarianceRate: number;       // average |varianceQty| / |systemQty| across all lines
+    totalSurplusValue: string; // sum of positive varianceValues
+    totalShortageValue: string; // sum of negative varianceValues
+    avgVarianceRate: number; // average |varianceQty| / |systemQty| across all lines
   };
   sessions: VarianceSessionRow[];
   products: VarianceProductRow[];
@@ -83,7 +83,7 @@ function bigIntToStr(v: bigint | null): string {
 /** Signed numeric from DB numeric string. */
 function parseNumeric(v: string | number | null | undefined): number {
   if (v == null) return 0;
-  return parseFloat(String(v));
+  return Number.parseFloat(String(v));
 }
 
 // ─── Service ──────────────────────────────────────────────────────────────────
@@ -302,9 +302,7 @@ export async function getVarianceReport(
     // Collect unique session IDs this product appeared in
     const sessionCount = new Set(pLines.map((l) => l.sessionId)).size;
 
-    const varianceRate = totalSystemQty !== 0
-      ? (Math.abs(totalVarQty) / totalSystemQty) * 100
-      : 0;
+    const varianceRate = totalSystemQty !== 0 ? (Math.abs(totalVarQty) / totalSystemQty) * 100 : 0;
 
     productRows2.push({
       productId,
@@ -328,12 +326,13 @@ export async function getVarianceReport(
   // Sort products by |varianceValue| descending
   productRows2.sort(
     (a, b) =>
-      parseInt(b.totalVarianceValueAbs, 10) - parseInt(a.totalVarianceValueAbs, 10),
+      Number.parseInt(b.totalVarianceValueAbs, 10) - Number.parseInt(a.totalVarianceValueAbs, 10),
   );
 
-  const avgVarianceRate = totalSystemQtySum !== 0
-    ? Math.round((totalVarianceQtyAbsSum / totalSystemQtySum) * 10000) / 100
-    : 0;
+  const avgVarianceRate =
+    totalSystemQtySum !== 0
+      ? Math.round((totalVarianceQtyAbsSum / totalSystemQtySum) * 10000) / 100
+      : 0;
 
   const uniqueProductIds = new Set(lines.map((l) => l.productId)).size;
 

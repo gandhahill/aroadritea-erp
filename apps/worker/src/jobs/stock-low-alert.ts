@@ -21,7 +21,9 @@ export async function stockLowAlertHandler(data: StockAlertJobData): Promise<voi
     // For now: just log the check
     console.info('[stock-alert] Stock check completed (placeholder — Phase 2)', { locationId });
   } catch (err) {
-    console.error('[stock-alert] Stock check failed', { error: err instanceof Error ? err.message : String(err) });
+    console.error('[stock-alert] Stock check failed', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     throw err;
   }
 }

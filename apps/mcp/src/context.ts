@@ -10,6 +10,11 @@ export interface McpContext {
   locationId?: string;
 }
 
-export function createMcpContext(userId: string, tenantId: string, locale = 'id', locationId?: string): McpContext {
+export function createMcpContext(
+  userId: string,
+  tenantId: string,
+  locale = 'id',
+  locationId?: string,
+): McpContext {
   return { userId, tenantId, locale, locationId };
 }

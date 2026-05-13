@@ -7,16 +7,16 @@
  * Permission: pos.shift.open, pos.shift.close
  */
 
-import { eq, and, sql } from 'drizzle-orm';
 import { db } from '@erp/db';
-import { shifts, salesOrders, payments } from '@erp/db/schema/pos';
 import { auditLog } from '@erp/db/schema/audit';
-import { type Result, ok, err } from '@erp/shared/result';
+import { payments, salesOrders, shifts } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
-import { OpenShiftInputSchema, CloseShiftInputSchema } from './schemas';
+import { CloseShiftInputSchema, OpenShiftInputSchema } from './schemas';
 import type { ShiftResult } from './schemas';
 
 type ShiftRow = {
@@ -41,10 +41,7 @@ type ShiftRow = {
  * Open a new cashier shift at a location.
  * Only one open shift per location is allowed at any time.
  */
-export async function openShift(
-  input: unknown,
-  ctx: AuditContext,
-): Promise<Result<ShiftResult>> {
+export async function openShift(input: unknown, ctx: AuditContext): Promise<Result<ShiftResult>> {
   const permCheck = await requirePermission(ctx.userId, 'pos.shift.open', {
     locationId: ctx.locationId,
   });
@@ -131,10 +128,7 @@ export async function openShift(
  *
  * Permission: pos.shift.close
  */
-export async function closeShift(
-  input: unknown,
-  ctx: AuditContext,
-): Promise<Result<ShiftResult>> {
+export async function closeShift(input: unknown, ctx: AuditContext): Promise<Result<ShiftResult>> {
   const permCheck = await requirePermission(ctx.userId, 'pos.shift.close', {
     locationId: ctx.locationId,
   });
@@ -154,12 +148,7 @@ export async function closeShift(
     const rawShift = await db
       .select()
       .from(shifts)
-      .where(
-        and(
-          eq(shifts.tenantId, ctx.tenantId),
-          eq(shifts.id, data.shiftId),
-        ),
-      )
+      .where(and(eq(shifts.tenantId, ctx.tenantId), eq(shifts.id, data.shiftId)))
       .then((r) => r[0]);
 
     if (!rawShift) {
@@ -180,16 +169,13 @@ export async function closeShift(
       .innerJoin(salesOrders, eq(payments.salesOrderId, salesOrders.id))
       .where(eq(salesOrders.shiftId, data.shiftId));
 
-    const cashTotal = allPayments.reduce(
-      (sum, p) => sum + p.amount,
-      BigInt(0),
-    );
+    const cashTotal = allPayments.reduce((sum, p) => sum + p.amount, BigInt(0));
 
     // Expected cash = opening + cash payments received
     const openingCash = Number(shift.openingCash);
     const expectedCash = openingCash + Number(cashTotal);
 
-    const actualCash = parseInt(data.actualCash, 10);
+    const actualCash = Number.parseInt(data.actualCash, 10);
     const variance = actualCash - expectedCash;
 
     await db
@@ -203,11 +189,7 @@ export async function closeShift(
         variance: BigInt(variance),
         updatedBy: ctx.userId,
       } as typeof shifts.$inferInsert)
-      .where(
-        and(
-          eq(shifts.id, data.shiftId),
-        ),
-      );
+      .where(and(eq(shifts.id, data.shiftId)));
 
     await db.insert(auditLog).values({
       id: generateId(),
