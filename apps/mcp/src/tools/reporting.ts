@@ -18,6 +18,7 @@ import type { BalanceSheetInput, TrialBalanceInput, ProfitLossInput, DailySummar
 import { can } from '@erp/services/iam';
 import { mcpError, mcpSuccess, serializeResult } from '../helpers';
 import type { McpContext } from '../context';
+import { getOmzetHarianHandler, GetOmzetHarianSchema } from './reporting-omzet';
 
 async function checkPermission(ctx: McpContext, permission: string) {
   return can(ctx.userId, permission);
@@ -88,6 +89,7 @@ export const reportingTools = [
   { name: 'reporting.get_daily_summary', schema: DailySummarySchema, handler: dailySummaryHandler, description: 'Get daily sales summary (gross/net sales, payment breakdown, top products, shift summary). SD §25.5.' },
   { name: 'reporting.get_donations', schema: DonationReportSchema, handler: donationReportHandler, description: 'Get donation summary report for a period (daily breakdown: date, amount, tx count, average). SD §25.11.6.' },
   { name: 'reporting.get_hourly_sales', schema: HourlySalesSchema, handler: hourlySalesHandler, description: 'Get hourly sales breakdown by channel or day (10–22 WIB). SD §25.6.' },
+  { name: 'reporting.get_omzet_harian', schema: GetOmzetHarianSchema, handler: getOmzetHarianHandler, description: 'Get daily PB1-exclusive omzet with fiscal adjustment. Returns gross, PB1 amount, net omzet, adjustment, fiscal omzet. SoT §21.3b / SD §25.5b.' },
 ] as const;
 
 // --- Handlers ---
