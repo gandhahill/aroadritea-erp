@@ -569,5 +569,31 @@
     "howItWorks": "Cara Kerja",
     "howItWorksDesc": "Workflow aktif secara otomatis saat data baru dibuat. Kondisi dievaluasi terhadap data; workflow dengan prioritas tertinggi yang cocok akan dijalankan.",
     "confirmDelete": "Yakin hapus workflow ini? Instance yang berjalan akan tetap ada."
+  },
+  "reporting": {
+    "omzetHarian": {
+      "title": "Omzet Harian",
+      "subtitle": "Omzet neto setelah PB1 10% dipisahkan + koreksi fiskal manual.",
+      "date": "Tanggal",
+      "location": "Lokasi",
+      "noDataForDate": "Tidak ada data untuk tanggal ini.",
+      "selectLocationFirst": "Pilih lokasi terlebih dahulu.",
+      "howItWorks": "Cara Kerja",
+      "howItWorksDesc": "Kolom C–E terisi otomatis dari data penjualan. Kolom F (Penyesuaian) untuk koreksi manual (retur, transaksi batal, dll). Export Excel untuk laporan pajak Coretax.",
+      "fiscalWarning": "⚠️ Omzet fiskal berbeda dari omzet akuntansi sebesar Rp {diff} ({direction}).",
+      "colDate": "Tanggal",
+      "colLocation": "Lokasi",
+      "colGross": "Gross Sales",
+      "colPB1": "PB1 10%",
+      "colNetOmzet": "Omzet Neto",
+      "colAdjustment": "Penyesuaian",
+      "colFiscalOmzet": "Omzet Fiskal",
+      "colNote": "Keterangan",
+      "saveAdjustment": "Simpan Penyesuaian",
+      "exportExcel": "Export Excel",
+      "notePlaceholder": "cth: Retur 2x milk tea",
+      "less": "lebih kecil",
+      "more": "lebih besar"
+    }
   }
 }

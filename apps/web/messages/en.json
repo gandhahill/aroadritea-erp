@@ -513,5 +513,31 @@
     "howItWorks": "How It Works",
     "howItWorksDesc": "Active workflows trigger automatically when new data is created. Conditions are evaluated against the data; the highest-priority matching workflow runs.",
     "confirmDelete": "Delete this workflow? Running instances will remain."
+  },
+  "reporting": {
+    "omzetHarian": {
+      "title": "Daily Revenue",
+      "subtitle": "PB1-exclusive omzet with manual fiscal adjustment.",
+      "date": "Date",
+      "location": "Location",
+      "noDataForDate": "No data for this date.",
+      "selectLocationFirst": "Select a location first.",
+      "howItWorks": "How It Works",
+      "howItWorksDesc": "Columns C–E are auto-filled from sales data. Column F (Adjustment) is for manual corrections (returns, cancelled transactions, etc). Export Excel for Coretax tax reporting.",
+      "fiscalWarning": "⚠️ Fiscal omzet differs from accounting omzet by Rp {diff} ({direction}).",
+      "colDate": "Date",
+      "colLocation": "Location",
+      "colGross": "Gross Sales",
+      "colPB1": "PB1 10%",
+      "colNetOmzet": "Net Revenue",
+      "colAdjustment": "Adjustment",
+      "colFiscalOmzet": "Fiscal Omzet",
+      "colNote": "Note",
+      "saveAdjustment": "Save Adjustment",
+      "exportExcel": "Export Excel",
+      "notePlaceholder": "e.g. 2x milk tea returns",
+      "less": "less",
+      "more": "more"
+    }
   }
 }

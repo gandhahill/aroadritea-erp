@@ -49,3 +49,10 @@ export {
   type ChannelHourRow,
   type DayHourRow,
 } from './hourly-sales';
+
+export {
+  getOmzetHarian,
+  saveOmzetAdjustment,
+  exportOmzetHarianXlsx,
+  type OmzetHarianResult,
+} from './daily-omzet';

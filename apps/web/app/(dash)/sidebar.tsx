@@ -68,6 +68,7 @@ export function Sidebar() {
         { label: 'Ringkasan Harian', href: '/reporting/daily-summary', icon: <></> },
         { label: 'Penjualan Per Jam', href: '/reporting/hourly-sales', icon: <></> },
         { label: 'Laporan Donasi', href: '/reporting/donations', icon: <></> },
+        { label: 'Omzet Harian', href: '/reporting/omzet-harian', icon: <></> },
       ],
     },
     {

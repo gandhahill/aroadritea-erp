@@ -513,5 +513,31 @@
     "howItWorks": "工作原理",
     "howItWorksDesc": "当新数据创建时，活动工作流会自动触发。条件根据数据评估；优先级最高的匹配工作流将运行。",
     "confirmDelete": "删除此工作流？运行中的实例将继续存在。"
+  },
+  "reporting": {
+    "omzetHarian": {
+      "title": "每日营业收入",
+      "subtitle": "PB1专用营业额，含手动财政调整。",
+      "date": "日期",
+      "location": "地点",
+      "noDataForDate": "该日期没有数据。",
+      "selectLocationFirst": "请先选择地点。",
+      "howItWorks": "工作原理",
+      "howItWorksDesc": "C–E列自动填充销售数据。F列（调整金额）用于手动校正（退货、取消交易等）。导出Excel用于Coretax税务申报。",
+      "fiscalWarning": "⚠️ 财政应税收入与会计收入相差 Rp {diff}（{direction}）。",
+      "colDate": "日期",
+      "colLocation": "地点",
+      "colGross": "总销售额",
+      "colPB1": "PB1 10%",
+      "colNetOmzet": "净收入",
+      "colAdjustment": "调整金额",
+      "colFiscalOmzet": "财政应税收入",
+      "colNote": "备注",
+      "saveAdjustment": "保存调整",
+      "exportExcel": "导出Excel",
+      "notePlaceholder": "例：2杯奶茶退货",
+      "less": "较少",
+      "more": "较多"
+    }
   }
 }
