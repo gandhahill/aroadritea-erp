@@ -492,5 +492,26 @@
       },
       "confirmDelete": "Delete field \"{name}\"? Stored data will remain."
     }
+  },
+  "workflow": {
+    "title": "Approval Workflows",
+    "subtitle": "Define approval flows per module.",
+    "createDefinition": "Create Workflow",
+    "editDefinition": "Edit Workflow",
+    "deleteDefinition": "Delete Workflow",
+    "entityType": "Module",
+    "description": "Description",
+    "priority": "Priority",
+    "conditions": "Trigger Conditions",
+    "addCondition": "Add Condition",
+    "noConditions": "No conditions — applies to all data of this module",
+    "steps": "Approval Steps",
+    "addStep": "Add Step",
+    "formTab": "Form",
+    "jsonTab": "JSON Preview",
+    "empty": "No workflows yet.",
+    "howItWorks": "How It Works",
+    "howItWorksDesc": "Active workflows trigger automatically when new data is created. Conditions are evaluated against the data; the highest-priority matching workflow runs.",
+    "confirmDelete": "Delete this workflow? Running instances will remain."
   }
 }

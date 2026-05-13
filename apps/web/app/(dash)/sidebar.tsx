@@ -138,6 +138,7 @@ export function Sidebar() {
         { label: 'Scheduled Jobs', href: '/settings/scheduled-jobs', icon: <></> },
         { label: 'Naixer KDS', href: '/settings/integrations/naixer', icon: <></> },
         { label: 'Custom Fields', href: '/settings/custom-fields', icon: <></> },
+        { label: 'Workflow Editor', href: '/settings/workflow-editor', icon: <></> },
       ],
     },
   ];

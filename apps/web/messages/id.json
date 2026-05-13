@@ -548,5 +548,26 @@
       "publishFailed": "Gagal mempublikasikan",
       "notFound": "Halaman tidak ditemukan"
     }
+  },
+  "workflow": {
+    "title": "Workflow Persetujuan",
+    "subtitle": "Definisikan alur persetujuan per modul.",
+    "createDefinition": "Buat Workflow",
+    "editDefinition": "Ubah Workflow",
+    "deleteDefinition": "Hapus Workflow",
+    "entityType": "Modul",
+    "description": "Deskripsi",
+    "priority": "Prioritas",
+    "conditions": "Kondisi Pemicu",
+    "addCondition": "Tambah Kondisi",
+    "noConditions": "Tanpa kondisi — berlaku untuk semua data modul ini",
+    "steps": "Langkah Persetujuan",
+    "addStep": "Tambah Langkah",
+    "formTab": "Form",
+    "jsonTab": "JSON Preview",
+    "empty": "Belum ada workflow.",
+    "howItWorks": "Cara Kerja",
+    "howItWorksDesc": "Workflow aktif secara otomatis saat data baru dibuat. Kondisi dievaluasi terhadap data; workflow dengan prioritas tertinggi yang cocok akan dijalankan.",
+    "confirmDelete": "Yakin hapus workflow ini? Instance yang berjalan akan tetap ada."
   }
 }

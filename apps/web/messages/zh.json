@@ -492,5 +492,26 @@
       },
       "confirmDelete": "删除字段 \"{name}\"？已存储的数据将保留。"
     }
+  },
+  "workflow": {
+    "title": "审批工作流",
+    "subtitle": "为每个模块定义审批流程。",
+    "createDefinition": "创建工作流",
+    "editDefinition": "编辑工作流",
+    "deleteDefinition": "删除工作流",
+    "entityType": "模块",
+    "description": "描述",
+    "priority": "优先级",
+    "conditions": "触发条件",
+    "addCondition": "添加条件",
+    "noConditions": "无条件 — 适用于此模块的所有数据",
+    "steps": "审批步骤",
+    "addStep": "添加步骤",
+    "formTab": "表单",
+    "jsonTab": "JSON 预览",
+    "empty": "暂无工作流。",
+    "howItWorks": "工作原理",
+    "howItWorksDesc": "当新数据创建时，活动工作流会自动触发。条件根据数据评估；优先级最高的匹配工作流将运行。",
+    "confirmDelete": "删除此工作流？运行中的实例将继续存在。"
   }
 }
