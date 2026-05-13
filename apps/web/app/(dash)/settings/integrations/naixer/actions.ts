@@ -5,7 +5,8 @@
 
 'use server';
 
-import { and, db, desc, eq } from '@erp/db';
+import { getSession } from '@/lib/auth';
+import { db, eq, inArray } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import {
   naixerModifierCodes,
@@ -14,6 +15,7 @@ import {
 } from '@erp/db/schema/kitchen';
 import { dashStrategy, pipeStrategy } from '@erp/services/kitchen';
 import { generateId } from '@erp/shared/id';
+import QRCode from 'qrcode';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -41,14 +43,28 @@ export interface FormatConfigItem {
   format: string;
   includeOrderId: boolean;
   parameterOrderJson: string[];
+  labelWidthMm: number;
+  labelHeightMm: number;
   isActive: boolean;
 }
 
 type ActionResult = { success: boolean; error?: string };
 
+async function getSessionTenantId(): Promise<string | null> {
+  const session = await getSession();
+  if (!session?.user) return null;
+  return (((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default') || null;
+}
+
+async function canAccessTenant(tenantId: string): Promise<boolean> {
+  const currentTenantId = await getSessionTenantId();
+  return currentTenantId === tenantId;
+}
+
 // ─── Product Codes ──────────────────────────────────────────────────────────
 
 export async function fetchProductCodes(tenantId: string): Promise<ProductCodeItem[]> {
+  if (!(await canAccessTenant(tenantId))) return [];
   return db
     .select({
       id: naixerProductCodes.id,
@@ -67,6 +83,7 @@ export async function createProductCode(
   data: { productId: string; variantId?: string; naixerCode: string },
 ): Promise<ActionResult> {
   try {
+    if (!(await canAccessTenant(tenantId))) return { success: false, error: 'Forbidden' };
     if (!data.productId || !data.naixerCode) {
       return { success: false, error: 'Product ID and Naixer code are required' };
     }
@@ -92,6 +109,15 @@ export async function updateProductCode(
   data: { naixerCode?: string; isActive?: boolean },
 ): Promise<ActionResult> {
   try {
+    const tenantId = await getSessionTenantId();
+    if (!tenantId) return { success: false, error: 'Unauthenticated' };
+    const [current] = await db
+      .select({ tenantId: naixerProductCodes.tenantId })
+      .from(naixerProductCodes)
+      .where(eq(naixerProductCodes.id, id))
+      .limit(1);
+    if (!current || current.tenantId !== tenantId) return { success: false, error: 'Not found' };
+
     const result = await db
       .update(naixerProductCodes)
       .set({
@@ -111,6 +137,15 @@ export async function updateProductCode(
 
 export async function deleteProductCode(id: string): Promise<ActionResult> {
   try {
+    const tenantId = await getSessionTenantId();
+    if (!tenantId) return { success: false, error: 'Unauthenticated' };
+    const [current] = await db
+      .select({ tenantId: naixerProductCodes.tenantId })
+      .from(naixerProductCodes)
+      .where(eq(naixerProductCodes.id, id))
+      .limit(1);
+    if (!current || current.tenantId !== tenantId) return { success: false, error: 'Not found' };
+
     const result = await db
       .delete(naixerProductCodes)
       .where(eq(naixerProductCodes.id, id))
@@ -125,6 +160,7 @@ export async function deleteProductCode(id: string): Promise<ActionResult> {
 // ─── Modifier Codes ─────────────────────────────────────────────────────────
 
 export async function fetchModifierCodes(tenantId: string): Promise<ModifierCodeItem[]> {
+  if (!(await canAccessTenant(tenantId))) return [];
   return db
     .select({
       id: naixerModifierCodes.id,
@@ -149,6 +185,7 @@ export async function createModifierCode(
   },
 ): Promise<ActionResult> {
   try {
+    if (!(await canAccessTenant(tenantId))) return { success: false, error: 'Forbidden' };
     if (!data.modifierKind || !data.modifierOptionId || !data.naixerCode) {
       return { success: false, error: 'All fields are required' };
     }
@@ -175,6 +212,15 @@ export async function updateModifierCode(
   data: { naixerCode?: string; displayOrder?: number; isActive?: boolean },
 ): Promise<ActionResult> {
   try {
+    const tenantId = await getSessionTenantId();
+    if (!tenantId) return { success: false, error: 'Unauthenticated' };
+    const [current] = await db
+      .select({ tenantId: naixerModifierCodes.tenantId })
+      .from(naixerModifierCodes)
+      .where(eq(naixerModifierCodes.id, id))
+      .limit(1);
+    if (!current || current.tenantId !== tenantId) return { success: false, error: 'Not found' };
+
     const result = await db
       .update(naixerModifierCodes)
       .set({
@@ -195,6 +241,15 @@ export async function updateModifierCode(
 
 export async function deleteModifierCode(id: string): Promise<ActionResult> {
   try {
+    const tenantId = await getSessionTenantId();
+    if (!tenantId) return { success: false, error: 'Unauthenticated' };
+    const [current] = await db
+      .select({ tenantId: naixerModifierCodes.tenantId })
+      .from(naixerModifierCodes)
+      .where(eq(naixerModifierCodes.id, id))
+      .limit(1);
+    if (!current || current.tenantId !== tenantId) return { success: false, error: 'Not found' };
+
     const result = await db
       .delete(naixerModifierCodes)
       .where(eq(naixerModifierCodes.id, id))
@@ -209,6 +264,15 @@ export async function deleteModifierCode(id: string): Promise<ActionResult> {
 // ─── Format Config ──────────────────────────────────────────────────────────
 
 export async function fetchFormatConfigs(tenantId: string): Promise<FormatConfigItem[]> {
+  if (!(await canAccessTenant(tenantId))) return [];
+  const locs = await db
+    .select({ id: locations.id, name: locations.name, code: locations.code })
+    .from(locations)
+    .where(eq(locations.tenantId, tenantId));
+  const locationIds = locs.map((loc) => loc.id);
+
+  if (locationIds.length === 0) return [];
+
   const configs = await db
     .select({
       id: naixerQrFormatConfig.id,
@@ -216,14 +280,12 @@ export async function fetchFormatConfigs(tenantId: string): Promise<FormatConfig
       format: naixerQrFormatConfig.format,
       includeOrderId: naixerQrFormatConfig.includeOrderId,
       parameterOrderJson: naixerQrFormatConfig.parameterOrderJson,
+      labelWidthMm: naixerQrFormatConfig.labelWidthMm,
+      labelHeightMm: naixerQrFormatConfig.labelHeightMm,
       isActive: naixerQrFormatConfig.isActive,
     })
-    .from(naixerQrFormatConfig);
-
-  const locs = await db
-    .select({ id: locations.id, name: locations.name, code: locations.code })
-    .from(locations)
-    .where(eq(locations.tenantId, tenantId));
+    .from(naixerQrFormatConfig)
+    .where(inArray(naixerQrFormatConfig.locationId, locationIds));
 
   const locMap = new Map<string, string>();
   for (const l of locs) {
@@ -244,9 +306,37 @@ export async function updateFormatConfig(
     format?: string;
     includeOrderId?: boolean;
     parameterOrderJson?: string[];
+    labelWidthMm?: number;
+    labelHeightMm?: number;
     isActive?: boolean;
   },
 ): Promise<ActionResult> {
+  const tenantId = await getSessionTenantId();
+  if (!tenantId) return { success: false, error: 'Unauthenticated' };
+
+  const allowedLocations = await db
+    .select({ id: locations.id })
+    .from(locations)
+    .where(eq(locations.tenantId, tenantId));
+  const allowedLocationIds = new Set(allowedLocations.map((loc) => loc.id));
+
+  const [current] = await db
+    .select({ locationId: naixerQrFormatConfig.locationId })
+    .from(naixerQrFormatConfig)
+    .where(eq(naixerQrFormatConfig.id, id))
+    .limit(1);
+
+  if (!current || !allowedLocationIds.has(current.locationId)) {
+    return { success: false, error: 'Not found' };
+  }
+
+  if (data.labelWidthMm !== undefined && (data.labelWidthMm < 30 || data.labelWidthMm > 100)) {
+    return { success: false, error: 'Label width must be between 30 and 100 mm' };
+  }
+  if (data.labelHeightMm !== undefined && (data.labelHeightMm < 20 || data.labelHeightMm > 80)) {
+    return { success: false, error: 'Label height must be between 20 and 80 mm' };
+  }
+
   try {
     const result = await db
       .update(naixerQrFormatConfig)
@@ -255,6 +345,10 @@ export async function updateFormatConfig(
         ...(data.includeOrderId !== undefined && { includeOrderId: data.includeOrderId }),
         ...(data.parameterOrderJson !== undefined && {
           parameterOrderJson: data.parameterOrderJson,
+        }),
+        ...(data.labelWidthMm !== undefined && { labelWidthMm: Math.trunc(data.labelWidthMm) }),
+        ...(data.labelHeightMm !== undefined && {
+          labelHeightMm: Math.trunc(data.labelHeightMm),
         }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
         updatedAt: new Date(),
@@ -276,12 +370,17 @@ export async function previewQrPayload(
   specCodes: string[],
   format: string,
   includeOrderId: boolean,
-): Promise<{ payload: string }> {
+): Promise<{ payload: string; qrDataUrl: string }> {
   const strategy = format === 'pipe' ? pipeStrategy : dashStrategy;
   const payload = strategy.encode({
     orderNumber: includeOrderId ? 'ORD-PREVIEW' : undefined,
     productCode,
     specCodes,
   });
-  return { payload };
+  const qrDataUrl = await QRCode.toDataURL(payload, {
+    errorCorrectionLevel: 'M',
+    margin: 1,
+    width: 192,
+  });
+  return { payload, qrDataUrl };
 }

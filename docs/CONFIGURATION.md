@@ -1,11 +1,11 @@
 # Konfigurasi Production & Kustomisasi Tanpa Edit Source
 
-Dokumen ini menjadi referensi operasional untuk hal yang boleh berubah antar toko, channel, pajak, atau deployment. Prinsipnya: perubahan bisnis harian harus lewat database, admin UI, seed, atau environment variable, bukan edit source code.
+Dokumen ini menjadi referensi operasional untuk hal yang boleh berubah antar toko, channel, pajak, atau deployment. Prinsipnya: perubahan bisnis harian harus lewat database, admin UI, atau seed, bukan edit source code.
 
 ## Prioritas Sumber Konfigurasi
 
 1. Database: pilihan utama untuk data bisnis yang berubah rutin, seperti `tax_rates`, `accounts`, `custom_field_definitions`, `workflow_definitions`, `scheduled_jobs`, CMS, katalog, lokasi, role, permission, dan mapping integrasi.
-2. Environment variable: untuk secret, URL deployment, provider eksternal, dan default operasional saat bootstrap.
+2. Environment variable: untuk secret, URL deployment, provider eksternal, dan default bootstrap yang jarang berubah.
 3. Source code: hanya untuk schema, validasi kontrak, dan default fallback yang aman untuk development.
 
 ## Environment Wajib Production
@@ -18,7 +18,6 @@ Dokumen ini menjadi referensi operasional untuk hal yang boleh berubah antar tok
 | `NEXT_PUBLIC_WEB_URL` | URL publik dashboard/PWA. |
 | `NEXT_PUBLIC_SITE_URL` | URL public website/member portal. |
 | `MCP_SERVER_URL` | URL MCP HTTP server bila dipakai dari client/tool eksternal. |
-| `PUBLIC_SITE_TENANT_ID` | Tenant yang dipakai public website untuk membaca menu/CMS. Default `default`. |
 
 ## Member Registration
 
@@ -31,18 +30,31 @@ Dokumen ini menjadi referensi operasional untuk hal yang boleh berubah antar tok
 
 Di development tanpa `TURNSTILE_SECRET_KEY`, token `dev-token` boleh dipakai. Di production fallback dev ini tidak aktif.
 
-## POS Posting & Pajak
+## Health Monitoring
+
+Worker outage monitor memakai URL default internal Docker. Override hanya diperlukan bila topology deploy berubah.
 
 | Variable | Default | Fungsi |
-|---|---:|---|
-| `POS_PB1_TAX_CODE` | `PB1` | Kode pajak yang dicari di tabel `tax_rates`. Besaran pajak mengikuti DB, bukan angka hardcoded. |
-| `POS_CASH_ACCOUNT_CODE` | `1-1030` | Kode akun kas/settlement POS. Service resolve ke `accounts.id`. |
-| `POS_REVENUE_ACCOUNT_CODE` | `4-1010` | Kode akun pendapatan penjualan. |
-| `POS_DONATION_TRUST_ACCOUNT_CODE` | `2-2050` | Kode akun liabilitas donasi/rounding donation. |
-| `POS_DELIVERY_CHANNELS` | `gofood,grabfood,shopeefood` | Channel yang memakai net settlement fee. |
-| `POS_DELIVERY_NET_BPS` | `8000` | Basis point net settlement delivery. `8000` berarti 80%. |
+|---|---|---|
+| `SITE_HEALTH_URL` | `http://site:3000/api/healthz` | Health check public site. |
+| `WEB_HEALTH_URL` | `http://web:3001/api/healthz` | Health check ERP web. |
+| `MCP_HEALTH_URL` | `http://mcp:3002/healthz` | Health check MCP server. |
 
-Untuk mengubah tarif PB1/PBJT, ubah record `tax_rates.code = POS_PB1_TAX_CODE`. Untuk mengganti akun posting, ubah COA di DB atau override variable akun di deployment.
+## POS Posting, Pajak, dan Printer
+
+POS menggunakan tabel `pos_settings` dan halaman `Settings → POS Settings`.
+
+| Field | Default | Fungsi |
+|---|---:|---|
+| `pb1_tax_code` | `PB1` | Kode pajak yang dicari di tabel `tax_rates`. Besaran pajak mengikuti DB. |
+| `cash_account_code` | `1-1030` | Kode akun kas/settlement POS. Service resolve ke `accounts.id`. |
+| `revenue_account_code` | `4-1010` | Kode akun pendapatan penjualan. |
+| `donation_trust_account_code` | `2-2050` | Kode akun liabilitas donasi/rounding donation. |
+| `delivery_channels_json` | `gofood,grabfood,shopeefood` | Channel yang memakai net settlement fee. |
+| `delivery_net_bps` | `8000` | Basis point net settlement delivery. `8000` berarti 80%. |
+| `receipt_width_mm` | `80` | Lebar struk thermal. Default 80 mm / 8 cm, bisa disesuaikan printer. |
+
+Untuk mengubah tarif PB1/PBJT, ubah record `tax_rates`. Untuk mengganti akun posting, ubah COA dan pilih kode akun di UI POS Settings.
 
 ## Area Kustomisasi DB
 
@@ -52,9 +64,10 @@ Untuk mengubah tarif PB1/PBJT, ubah record `tax_rates.code = POS_PB1_TAX_CODE`. 
 | Workflow approval | `workflow_definitions`, halaman Workflow Editor |
 | Scheduled job | `scheduled_jobs`, halaman Scheduled Jobs |
 | Integrasi Naixer/KDS | tabel konfigurasi Naixer, halaman Settings Integrations |
+| Ukuran label Naixer | `naixer_qr_format_config.label_width_mm`, `label_height_mm` via Settings → Integrations → Naixer KDS |
 | CMS public website | tabel CMS dan halaman CMS |
 | Pajak | `tax_rates`, `tax_rules` |
 | Akun posting | `accounts` |
 | Role & permission | tabel IAM/permission seed dan admin UI lanjutan |
 
-Jika ada kebutuhan operasional baru yang masih memerlukan edit source, tambahkan dulu titik konfigurasi di DB atau environment lalu dokumentasikan di file ini.
+Jika ada kebutuhan operasional baru yang masih memerlukan edit source, tambahkan dulu titik konfigurasi di DB/UI lalu dokumentasikan di file ini.

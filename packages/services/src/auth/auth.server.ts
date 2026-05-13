@@ -6,11 +6,26 @@
  * (users, sessions tables) via the Drizzle adapter with table mapping.
  */
 
+import { randomBytes } from 'node:crypto';
 import { db } from '@erp/db';
 import * as authSchema from '@erp/db/schema/auth';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+
+const authBaseURL =
+  process.env.BETTER_AUTH_URL ??
+  (process.env.NODE_ENV === 'production' ? 'https://erp.aroadritea.com' : 'http://localhost:3000');
+
+const authSecret =
+  process.env.BETTER_AUTH_SECRET ??
+  (process.env.NODE_ENV === 'production'
+    ? randomBytes(32).toString('hex')
+    : 'aroadri-dev-auth-secret-change-me');
+
 export const auth = betterAuth({
+  baseURL: authBaseURL,
+  secret: authSecret,
+
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema: {

@@ -7,7 +7,7 @@
  */
 
 import { authClient } from '@/lib/auth-client';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, Suspense, useState } from 'react';
 
@@ -22,9 +22,11 @@ export default function LoginPage() {
 function LoginContent() {
   const t = useTranslations('auth.login');
   const app = useTranslations('app');
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const [selectedLocale, setSelectedLocale] = useState(locale);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -33,6 +35,12 @@ function LoginContent() {
 
   const callbackUrl = searchParams.get('callbackUrl') ?? '/';
   const suspendedError = searchParams.get('error') === 'suspended';
+
+  function handleLocaleChange(nextLocale: string) {
+    setSelectedLocale(nextLocale);
+    document.cookie = `aroadri.locale=${nextLocale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
+    router.refresh();
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -48,15 +56,7 @@ function LoginContent() {
       if (result.error) {
         setError(t('errorInvalid'));
       } else {
-        // Set locale cookie from user preference for i18n
-        if (result.data?.user) {
-          const userLocale = (result.data.user as Record<string, unknown>).locale as
-            | string
-            | undefined;
-          if (userLocale) {
-            document.cookie = `aroadri.locale=${userLocale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
-          }
-        }
+        document.cookie = `aroadri.locale=${selectedLocale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
         router.push(callbackUrl);
         router.refresh();
       }
@@ -120,6 +120,23 @@ function LoginContent() {
           )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="login-locale" className="text-sm font-medium text-brand-ink-2">
+                {t('language')}
+              </label>
+              <select
+                id="login-locale"
+                value={selectedLocale}
+                onChange={(e) => handleLocaleChange(e.target.value)}
+                disabled={loading}
+                className="h-10 w-full rounded-md border border-brand-cream-3 bg-white px-3 text-sm text-brand-ink focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)] disabled:opacity-50"
+              >
+                <option value="id">{t('languageId')}</option>
+                <option value="en">{t('languageEn')}</option>
+                <option value="zh">{t('languageZh')}</option>
+              </select>
+            </div>
+
             {/* Email field */}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="login-email" className="text-sm font-medium text-brand-ink-2">
@@ -164,6 +181,7 @@ function LoginContent() {
                 >
                   {showPassword ? (
                     <svg
+                      aria-hidden="true"
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
@@ -180,6 +198,7 @@ function LoginContent() {
                     </svg>
                   ) : (
                     <svg
+                      aria-hidden="true"
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
@@ -208,7 +227,12 @@ function LoginContent() {
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <svg
+                    aria-hidden="true"
+                    className="h-4 w-4 animate-spin"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
                     <circle
                       className="opacity-25"
                       cx="12"

@@ -15,6 +15,13 @@
       "when": 1778666454579,
       "tag": "0001_regular_ghost_rider",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778681781210,
+      "tag": "0002_demonic_maximus",
+      "breakpoints": true
     }
   ]
 }

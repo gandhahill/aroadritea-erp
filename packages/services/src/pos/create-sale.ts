@@ -41,6 +41,7 @@ import { bomLines, boms, products, stockLevels, stockMovements } from '@erp/db/s
 import {
   idempotencyRecords,
   payments,
+  posSettings,
   salesOrderLines,
   salesOrders,
   shifts,
@@ -76,26 +77,18 @@ interface PosPostingConfig {
   deliveryNetBps: bigint;
 }
 
-function envOrDefault(name: string, fallback: string): string {
-  const value = process.env[name]?.trim();
-  return value ? value : fallback;
-}
-
-function parseDeliveryChannels(): Set<string> {
-  const raw = envOrDefault('POS_DELIVERY_CHANNELS', DEFAULT_DELIVERY_CHANNELS.join(','));
+function parseDeliveryChannels(raw: unknown): Set<string> {
+  const value = Array.isArray(raw) ? raw.join(',') : DEFAULT_DELIVERY_CHANNELS.join(',');
   return new Set(
-    raw
+    value
       .split(',')
       .map((value) => value.trim())
       .filter(Boolean),
   );
 }
 
-function parseDeliveryNetBps(): bigint {
-  const value = Number.parseInt(
-    envOrDefault('POS_DELIVERY_NET_BPS', String(DEFAULT_DELIVERY_NET_BPS)),
-    10,
-  );
+function parseDeliveryNetBps(raw: unknown): bigint {
+  const value = Number.parseInt(String(raw ?? DEFAULT_DELIVERY_NET_BPS), 10);
   if (!Number.isFinite(value) || value <= 0 || value > 10000) {
     return BigInt(DEFAULT_DELIVERY_NET_BPS);
   }
@@ -118,9 +111,23 @@ async function resolveAccountIdByCode(tenantId: string, code: string): Promise<R
 
 async function resolvePosPostingConfig(
   tenantId: string,
+  locationId: string,
   postingDate: string,
 ): Promise<Result<PosPostingConfig>> {
-  const taxCode = envOrDefault('POS_PB1_TAX_CODE', DEFAULT_PB1_TAX_CODE);
+  const [setting] = await db
+    .select({
+      pb1TaxCode: posSettings.pb1TaxCode,
+      cashAccountCode: posSettings.cashAccountCode,
+      revenueAccountCode: posSettings.revenueAccountCode,
+      donationTrustAccountCode: posSettings.donationTrustAccountCode,
+      deliveryChannelsJson: posSettings.deliveryChannelsJson,
+      deliveryNetBps: posSettings.deliveryNetBps,
+    })
+    .from(posSettings)
+    .where(and(eq(posSettings.tenantId, tenantId), eq(posSettings.locationId, locationId)))
+    .limit(1);
+
+  const taxCode = setting?.pb1TaxCode ?? DEFAULT_PB1_TAX_CODE;
   const [taxRate] = await db
     .select({
       code: taxRates.code,
@@ -146,19 +153,19 @@ async function resolvePosPostingConfig(
 
   const cashAccount = await resolveAccountIdByCode(
     tenantId,
-    envOrDefault('POS_CASH_ACCOUNT_CODE', DEFAULT_CASH_ACCOUNT_CODE),
+    setting?.cashAccountCode ?? DEFAULT_CASH_ACCOUNT_CODE,
   );
   if (!cashAccount.ok) return cashAccount;
 
   const revenueAccount = await resolveAccountIdByCode(
     tenantId,
-    envOrDefault('POS_REVENUE_ACCOUNT_CODE', DEFAULT_REVENUE_ACCOUNT_CODE),
+    setting?.revenueAccountCode ?? DEFAULT_REVENUE_ACCOUNT_CODE,
   );
   if (!revenueAccount.ok) return revenueAccount;
 
   const donationTrustAccount = await resolveAccountIdByCode(
     tenantId,
-    envOrDefault('POS_DONATION_TRUST_ACCOUNT_CODE', DEFAULT_DONATION_TRUST_ACCOUNT_CODE),
+    setting?.donationTrustAccountCode ?? DEFAULT_DONATION_TRUST_ACCOUNT_CODE,
   );
   if (!donationTrustAccount.ok) return donationTrustAccount;
 
@@ -169,8 +176,8 @@ async function resolvePosPostingConfig(
     cashAccountId: cashAccount.value,
     revenueAccountId: revenueAccount.value,
     donationTrustAccountId: donationTrustAccount.value,
-    deliveryChannels: parseDeliveryChannels(),
-    deliveryNetBps: parseDeliveryNetBps(),
+    deliveryChannels: parseDeliveryChannels(setting?.deliveryChannelsJson),
+    deliveryNetBps: parseDeliveryNetBps(setting?.deliveryNetBps),
   });
 }
 
@@ -194,7 +201,7 @@ async function generateSaleNumber(tenantId: string, locationId: string): Promise
 
   // Count existing sales orders with this prefix
   const result = await db.execute(
-    sql`SELECT COUNT(*) FROM sales_orders WHERE tenant_id = ${tenantId} AND number LIKE ${prefix + '%'}`,
+    sql`SELECT COUNT(*) FROM sales_orders WHERE tenant_id = ${tenantId} AND number LIKE ${`${prefix}%`}`,
   );
   const count = Number(result.rows[0]?.count ?? 0);
   return `${prefix}${(count + 1).toString().padStart(4, '0')}`;
@@ -394,7 +401,11 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     }
 
     const postingDate = new Date().toISOString().slice(0, 10);
-    const postingConfigResult = await resolvePosPostingConfig(ctx.tenantId, postingDate);
+    const postingConfigResult = await resolvePosPostingConfig(
+      ctx.tenantId,
+      data.locationId,
+      postingDate,
+    );
     if (!postingConfigResult.ok) return postingConfigResult;
     const postingConfig = postingConfigResult.value;
 
@@ -554,7 +565,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     await db.insert(payments).values(paymentRecords);
 
     // 13. Create journal entry
-    // Delivery settlement is configurable via POS_DELIVERY_* env.
+    // Delivery settlement is configurable per location via Settings -> POS.
     const isDeliveryChannel = postingConfig.deliveryChannels.has(data.channel);
     const revenueMultiplier = isDeliveryChannel ? postingConfig.deliveryNetBps : BigInt(10000);
     const taxableRevenue = totalSubtotal - totalTax - totalDiscount;

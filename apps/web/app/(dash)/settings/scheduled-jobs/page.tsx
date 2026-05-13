@@ -45,6 +45,7 @@ export default async function ScheduledJobsPage() {
       <div className="rounded-lg border border-brand-gold/20 bg-brand-gold/5 px-4 py-3">
         <div className="flex items-start gap-3">
           <svg
+            aria-hidden="true"
             className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-gold"
             fill="none"
             viewBox="0 0 24 24"
@@ -71,7 +72,7 @@ export default async function ScheduledJobsPage() {
       </div>
 
       {/* Table */}
-      <ScheduledJobsTable jobs={jobs} />
+      <ScheduledJobsTable jobs={jobs} tenantId={tenantId} />
     </div>
   );
 }

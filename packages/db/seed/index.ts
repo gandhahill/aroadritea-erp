@@ -21,6 +21,8 @@ import {
   userRoles,
   users,
 } from '../schema/auth';
+import { naixerQrFormatConfig } from '../schema/kitchen';
+import { posSettings } from '../schema/pos';
 import { scheduledJobs } from '../schema/scheduled-jobs';
 import { COA_SEED } from './coa';
 import {
@@ -31,6 +33,7 @@ import {
   ROLES_SEED,
   ROLE_PERMISSION_MAP,
 } from './iam';
+import { NAIXER_QR_FORMAT_DEFAULTS } from './naixer-seed';
 import { SCHEDULED_JOBS_SEED } from './scheduled-jobs-seed';
 import { TAX_RATES_SEED } from './tax-rates';
 import { TAX_RULES_SEED } from './tax-rules-seed';
@@ -45,7 +48,7 @@ const sql = neon(DATABASE_URL);
 const db = drizzle(sql);
 
 async function seed() {
-  console.log('🌱 Starting seed...\n');
+  console.info('🌱 Starting seed...\n');
 
   // 1. Tenant
   const tenantId = DEFAULT_TENANT.id;
@@ -57,7 +60,7 @@ async function seed() {
       localeDefault: DEFAULT_TENANT.localeDefault,
     })
     .onConflictDoNothing();
-  console.log('✅ Tenant seeded');
+  console.info('✅ Tenant seeded');
 
   // 2. Locations
   const locationIds = new Map<string, string>();
@@ -76,7 +79,15 @@ async function seed() {
       })
       .onConflictDoNothing();
   }
-  console.log(`✅ ${LOCATIONS_SEED.length} locations seeded`);
+  const locationRows = await db
+    .select({ id: locations.id, code: locations.code })
+    .from(locations)
+    .where(eq(locations.tenantId, tenantId));
+  locationIds.clear();
+  for (const loc of locationRows) {
+    locationIds.set(loc.code, loc.id);
+  }
+  console.info(`✅ ${LOCATIONS_SEED.length} locations seeded`);
 
   // 3. Roles
   const roleIds = new Map<string, string>();
@@ -93,7 +104,7 @@ async function seed() {
       })
       .onConflictDoNothing();
   }
-  console.log(`✅ ${ROLES_SEED.length} roles seeded`);
+  console.info(`✅ ${ROLES_SEED.length} roles seeded`);
 
   // 4. Permissions
   const permIds = new Map<string, string>();
@@ -109,7 +120,7 @@ async function seed() {
       })
       .onConflictDoNothing();
   }
-  console.log(`✅ ${PERMISSIONS_SEED.length} permissions seeded`);
+  console.info(`✅ ${PERMISSIONS_SEED.length} permissions seeded`);
 
   // 5. Role-Permission mapping
   let rpCount = 0;
@@ -129,7 +140,7 @@ async function seed() {
       rpCount++;
     }
   }
-  console.log(`✅ ${rpCount} role-permission mappings seeded`);
+  console.info(`✅ ${rpCount} role-permission mappings seeded`);
 
   // 6. Dev admin user
   const adminId = generateId();
@@ -152,7 +163,7 @@ async function seed() {
       emailVerified: new Date(),
     })
     .onConflictDoNothing();
-  console.log(`✅ Admin user seeded (${DEV_ADMIN_USER.email})`);
+  console.info(`✅ Admin user seeded (${DEV_ADMIN_USER.email})`);
 
   // 7. Assign director role to admin (global scope)
   const directorRoleId = roleIds.get(DEV_ADMIN_USER.roleCode);
@@ -165,7 +176,7 @@ async function seed() {
         locationId: null,
       })
       .onConflictDoNothing();
-    console.log('✅ Admin assigned director role (global)');
+    console.info('✅ Admin assigned director role (global)');
   }
 
   // 8. COA (Chart of Accounts)
@@ -184,7 +195,7 @@ async function seed() {
       })
       .onConflictDoNothing();
   }
-  console.log(`✅ ${COA_SEED.length} COA accounts seeded`);
+  console.info(`✅ ${COA_SEED.length} COA accounts seeded`);
 
   // 9. Tax Rates (resolve COA codes → account IDs)
   const coaRows = await db
@@ -217,7 +228,7 @@ async function seed() {
       .onConflictDoNothing();
     taxCount++;
   }
-  console.log(`✅ ${taxCount} tax rates seeded`);
+  console.info(`✅ ${taxCount} tax rates seeded`);
 
   // 10. Tax Rules (SD §19.3.2 — PPN opt-in engine)
   let ruleCount = 0;
@@ -237,9 +248,52 @@ async function seed() {
       .onConflictDoNothing();
     ruleCount++;
   }
-  console.log(`✅ ${ruleCount} tax rules seeded`);
+  console.info(`✅ ${ruleCount} tax rules seeded`);
 
-  // 11. Scheduled Jobs
+  // 11. POS operational settings (UI-managed after bootstrap)
+  let posSettingsCount = 0;
+  for (const loc of locationRows) {
+    await db
+      .insert(posSettings)
+      .values({
+        id: generateId(),
+        tenantId,
+        locationId: loc.id,
+        pb1TaxCode: 'PB1',
+        cashAccountCode: '1-1030',
+        revenueAccountCode: '4-1010',
+        donationTrustAccountCode: '2-2050',
+        deliveryChannelsJson: ['gofood', 'grabfood', 'shopeefood'],
+        deliveryNetBps: 8000,
+        receiptWidthMm: 80,
+      })
+      .onConflictDoNothing();
+    posSettingsCount++;
+  }
+  console.info(`✅ ${posSettingsCount} POS settings seeded`);
+
+  // 12. Naixer QR + label print defaults
+  let naixerConfigCount = 0;
+  for (const cfg of NAIXER_QR_FORMAT_DEFAULTS) {
+    const locationId = locationIds.get(cfg.locationCode);
+    if (!locationId) continue;
+    await db
+      .insert(naixerQrFormatConfig)
+      .values({
+        id: generateId(),
+        locationId,
+        format: cfg.format,
+        includeOrderId: cfg.includeOrderId,
+        parameterOrderJson: cfg.parameterOrder,
+        labelWidthMm: cfg.labelWidthMm,
+        labelHeightMm: cfg.labelHeightMm,
+      })
+      .onConflictDoNothing();
+    naixerConfigCount++;
+  }
+  console.info(`✅ ${naixerConfigCount} Naixer QR format configs seeded`);
+
+  // 13. Scheduled Jobs
   for (const job of SCHEDULED_JOBS_SEED) {
     await db
       .insert(scheduledJobs)
@@ -256,9 +310,9 @@ async function seed() {
       })
       .onConflictDoNothing();
   }
-  console.log(`✅ ${SCHEDULED_JOBS_SEED.length} scheduled jobs seeded`);
+  console.info(`✅ ${SCHEDULED_JOBS_SEED.length} scheduled jobs seeded`);
 
-  console.log('\n🎉 Seed complete!');
+  console.info('\n🎉 Seed complete!');
 }
 
 seed().catch((e) => {

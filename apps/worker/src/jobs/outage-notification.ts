@@ -1,7 +1,7 @@
 /**
  * Outage Notification Job — SD §35.1.6
  *
- * Runs every 5 minutes. Pings healthz endpoints of web, mcp, worker.
+ * Runs every 5 minutes. Pings healthz endpoints of site, web, and mcp.
  * After 3 consecutive failures (15 min), sends WhatsApp + email alerts.
  * After recovery, sends "resolved" notification.
  *
@@ -28,13 +28,13 @@ interface HealthTarget {
 }
 
 function getTargets(): HealthTarget[] {
-  const webUrl = process.env.WEB_HEALTH_URL ?? 'http://localhost:3000/api/healthz';
-  const mcpUrl = process.env.MCP_HEALTH_URL ?? 'http://localhost:3001/api/healthz';
-  const workerUrl = process.env.WORKER_HEALTH_URL ?? 'http://localhost:3002/api/healthz';
+  const siteUrl = process.env.SITE_HEALTH_URL ?? 'http://site:3000/api/healthz';
+  const webUrl = process.env.WEB_HEALTH_URL ?? 'http://web:3001/api/healthz';
+  const mcpUrl = process.env.MCP_HEALTH_URL ?? 'http://mcp:3002/healthz';
   return [
+    { name: 'site', url: siteUrl },
     { name: 'web', url: webUrl },
     { name: 'mcp', url: mcpUrl },
-    { name: 'worker', url: workerUrl },
   ];
 }
 
@@ -59,14 +59,13 @@ async function checkHealth(
 
     if (res.ok) {
       return { ok: true, statusCode: res.status, latencyMs };
-    } else {
-      return {
-        ok: false,
-        statusCode: res.status,
-        latencyMs,
-        error: `HTTP ${res.status} ${res.statusText}`,
-      };
     }
+    return {
+      ok: false,
+      statusCode: res.status,
+      latencyMs,
+      error: `HTTP ${res.status} ${res.statusText}`,
+    };
   } catch (err) {
     const latencyMs = Date.now() - start;
     return {

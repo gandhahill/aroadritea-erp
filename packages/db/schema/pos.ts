@@ -58,6 +58,32 @@ export const shifts = pgTable(
 
 // ─── Sales Orders (POS Order) ─────────────────────────────────────────────────
 
+export const posSettings = pgTable(
+  'pos_settings',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    pb1TaxCode: text('pb1_tax_code').notNull().default('PB1'),
+    cashAccountCode: text('cash_account_code').notNull().default('1-1030'),
+    revenueAccountCode: text('revenue_account_code').notNull().default('4-1010'),
+    donationTrustAccountCode: text('donation_trust_account_code').notNull().default('2-2050'),
+    deliveryChannelsJson: jsonb('delivery_channels_json')
+      .$type<string[]>()
+      .notNull()
+      .default(['gofood', 'grabfood', 'shopeefood']),
+    deliveryNetBps: integer('delivery_net_bps').notNull().default(8000),
+    receiptWidthMm: integer('receipt_width_mm').notNull().default(80),
+
+    ...auditCols,
+  },
+  (t) => [
+    uniqueIndex('pos_settings_tenant_location_idx').on(t.tenantId, t.locationId),
+    index('pos_settings_location_idx').on(t.locationId),
+  ],
+);
+
 export const salesOrders = pgTable(
   'sales_orders',
   {

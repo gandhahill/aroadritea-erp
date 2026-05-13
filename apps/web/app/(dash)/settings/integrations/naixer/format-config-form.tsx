@@ -16,7 +16,11 @@ export function FormatConfigForm({ configs }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{
+    configId: string;
+    payload: string;
+    qrDataUrl: string;
+  } | null>(null);
 
   async function handleUpdate(
     id: string,
@@ -24,6 +28,8 @@ export function FormatConfigForm({ configs }: Props) {
       format?: string;
       includeOrderId?: boolean;
       parameterOrderJson?: string[];
+      labelWidthMm?: number;
+      labelHeightMm?: number;
     },
   ) {
     setError(null);
@@ -35,9 +41,9 @@ export function FormatConfigForm({ configs }: Props) {
     startTransition(() => router.refresh());
   }
 
-  async function handlePreview(format: string, includeOrderId: boolean) {
+  async function handlePreview(configId: string, format: string, includeOrderId: boolean) {
     const result = await previewQrPayload('T003', ['C01', 'S02', 'W01'], format, includeOrderId);
-    setPreview(result.payload);
+    setPreview({ configId, payload: result.payload, qrDataUrl: result.qrDataUrl });
   }
 
   if (configs.length === 0) {
@@ -71,11 +77,17 @@ export function FormatConfigForm({ configs }: Props) {
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid gap-4 lg:grid-cols-5">
             {/* Format */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">QR Format</label>
+              <label
+                htmlFor={`naixer-format-${config.id}`}
+                className="mb-1 block text-xs font-medium text-brand-ink-2"
+              >
+                QR Format
+              </label>
               <select
+                id={`naixer-format-${config.id}`}
                 value={config.format}
                 onChange={(e) => handleUpdate(config.id, { format: e.target.value })}
                 disabled={isPending}
@@ -86,14 +98,84 @@ export function FormatConfigForm({ configs }: Props) {
               </select>
             </div>
 
+            {/* Label Size */}
+            <fieldset className="lg:col-span-2">
+              <legend className="mb-1 block text-xs font-medium text-brand-ink-2">
+                Label Size
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleUpdate(config.id, {
+                      labelWidthMm: 60,
+                      labelHeightMm: 40,
+                    })
+                  }
+                  disabled={isPending}
+                  className={`rounded border px-2.5 py-1 text-xs font-medium ${
+                    config.labelWidthMm === 60 && config.labelHeightMm === 40
+                      ? 'border-brand-red bg-brand-red/10 text-brand-red'
+                      : 'border-brand-cream-3 text-brand-ink-2 hover:bg-brand-cream-2'
+                  }`}
+                >
+                  6x4 cm
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleUpdate(config.id, {
+                      labelWidthMm: 40,
+                      labelHeightMm: 30,
+                    })
+                  }
+                  disabled={isPending}
+                  className={`rounded border px-2.5 py-1 text-xs font-medium ${
+                    config.labelWidthMm === 40 && config.labelHeightMm === 30
+                      ? 'border-brand-red bg-brand-red/10 text-brand-red'
+                      : 'border-brand-cream-3 text-brand-ink-2 hover:bg-brand-cream-2'
+                  }`}
+                >
+                  4x3 cm
+                </button>
+                <div className="flex items-center gap-1">
+                  <input
+                    aria-label="Label width in millimeters"
+                    type="number"
+                    min={30}
+                    max={100}
+                    value={config.labelWidthMm}
+                    onChange={(e) =>
+                      handleUpdate(config.id, { labelWidthMm: Number(e.target.value) })
+                    }
+                    disabled={isPending}
+                    className="h-7 w-14 rounded border border-brand-cream-3 bg-card px-1.5 text-xs text-brand-ink focus:border-brand-red focus:outline-none"
+                  />
+                  <span className="text-xs text-brand-ink-3">x</span>
+                  <input
+                    aria-label="Label height in millimeters"
+                    type="number"
+                    min={20}
+                    max={80}
+                    value={config.labelHeightMm}
+                    onChange={(e) =>
+                      handleUpdate(config.id, { labelHeightMm: Number(e.target.value) })
+                    }
+                    disabled={isPending}
+                    className="h-7 w-14 rounded border border-brand-cream-3 bg-card px-1.5 text-xs text-brand-ink focus:border-brand-red focus:outline-none"
+                  />
+                  <span className="text-xs text-brand-ink-3">mm</span>
+                </div>
+              </div>
+            </fieldset>
+
             {/* Include Order ID */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                Include Order ID
-              </label>
+              <p className="mb-1 block text-xs font-medium text-brand-ink-2">Include Order ID</p>
               <div className="flex items-center gap-2 pt-1.5">
                 <button
                   type="button"
+                  aria-pressed={config.includeOrderId}
                   onClick={() =>
                     handleUpdate(config.id, {
                       includeOrderId: !config.includeOrderId,
@@ -118,13 +200,11 @@ export function FormatConfigForm({ configs }: Props) {
 
             {/* Parameter Order */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                Parameter Order
-              </label>
+              <p className="mb-1 block text-xs font-medium text-brand-ink-2">Parameter Order</p>
               <div className="flex flex-wrap gap-1 pt-0.5">
                 {config.parameterOrderJson.map((param, idx) => (
                   <span
-                    key={idx}
+                    key={param}
                     className="inline-flex items-center rounded bg-brand-cream-2 px-1.5 py-0.5 text-[11px] font-mono text-brand-ink-2"
                   >
                     {idx + 1}. {param}
@@ -138,16 +218,36 @@ export function FormatConfigForm({ configs }: Props) {
           <div className="mt-3 flex items-center gap-3 border-t border-brand-cream-3 pt-3">
             <button
               type="button"
-              onClick={() => handlePreview(config.format, config.includeOrderId)}
+              onClick={() => handlePreview(config.id, config.format, config.includeOrderId)}
               disabled={isPending}
               className="rounded border border-brand-red px-3 py-1 text-xs font-medium text-brand-red hover:bg-brand-red/5 disabled:opacity-50"
             >
-              Preview QR Payload
+              Preview Label
             </button>
-            {preview && (
-              <code className="rounded bg-brand-cream-2 px-2 py-1 text-xs font-mono text-brand-ink">
-                {preview}
-              </code>
+            {preview?.configId === config.id && (
+              <div className="flex flex-wrap items-center gap-3">
+                <div
+                  className="grid overflow-hidden rounded border border-brand-ink/20 bg-card p-1 shadow-sm"
+                  style={{
+                    width: `${config.labelWidthMm * 3}px`,
+                    minHeight: `${config.labelHeightMm * 3}px`,
+                    gridTemplateColumns: '72px 1fr',
+                    gap: '6px',
+                  }}
+                >
+                  <img src={preview.qrDataUrl} alt="QR preview" className="h-[72px] w-[72px]" />
+                  <div className="min-w-0 text-[10px] leading-tight text-brand-ink">
+                    <p className="text-base font-bold leading-none">Pickup #3</p>
+                    <p className="mt-1 font-medium">10:42</p>
+                    <p className="mt-1 line-clamp-3">
+                      Glutinous Fragrant Tea (500ml), Less sugar, Standard ice
+                    </p>
+                  </div>
+                </div>
+                <code className="rounded bg-brand-cream-2 px-2 py-1 text-xs font-mono text-brand-ink">
+                  {preview.payload}
+                </code>
+              </div>
             )}
           </div>
         </div>

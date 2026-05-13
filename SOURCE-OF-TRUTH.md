@@ -214,7 +214,10 @@ Mengacu jawaban Q22 + tampilan KDS Naixer:
   2. **Struk untuk pelanggan / kasir**
   3. **Struk untuk dapur** (atau routing ke GoFood/GrabFood)
 - Format label QR: contoh `T003-C01-S02-W01` (toko–channel–shift–worker / atau format unik per pesanan)
-- Contoh isi label: `Pickup number: 3 | Glutinous Fragrant Tea (500ml) | Less sugar, Standard ice`
+- Ukuran label Naixer KDS harus fleksibel per printer: **6x4 cm landscape** atau **4x3 cm landscape** sebagai pilihan awal.
+- Isi label minimal: **QR code Naixer KDS**, **pickup number**, **jam pesanan**, dan **detail produk/modifier**.
+- Lebar struk default **8 cm**, tetapi harus bisa diubah lewat UI setting karena ukuran printer thermal bisa berbeda.
+- Contoh isi label: `Pickup number: 3 | 10:42 | Glutinous Fragrant Tea (500ml) | Less sugar, Standard ice`
 
 ### 6.7 Split Bill / Gabung Bill
 - Belum ada kebutuhan, **tetapi** harus mudah ditambahkan sebagai fitur (kebutuhan deklaratif user).

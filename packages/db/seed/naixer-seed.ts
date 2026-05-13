@@ -11,11 +11,15 @@ export const NAIXER_QR_FORMAT_DEFAULTS = [
     format: 'dash' as const,
     includeOrderId: false,
     parameterOrder: ['product', 'size', 'ice', 'sugar'],
+    labelWidthMm: 60,
+    labelHeightMm: 40,
   },
   {
     locationCode: 'JKT', // Jakarta
     format: 'dash' as const,
     includeOrderId: false,
     parameterOrder: ['product', 'size', 'ice', 'sugar'],
+    labelWidthMm: 60,
+    labelHeightMm: 40,
   },
 ];

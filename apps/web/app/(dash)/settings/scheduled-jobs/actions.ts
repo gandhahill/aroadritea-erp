@@ -6,7 +6,8 @@
 
 'use server';
 
-import { db, desc, eq } from '@erp/db';
+import { getSession } from '@/lib/auth';
+import { and, db, desc, eq } from '@erp/db';
 import { scheduledJobs } from '@erp/db/schema/scheduled-jobs';
 
 export interface ScheduledJobItem {
@@ -24,10 +25,19 @@ export interface ScheduledJobItem {
   updatedAt: Date | null;
 }
 
+async function canAccessTenant(tenantId: string): Promise<boolean> {
+  const session = await getSession();
+  if (!session?.user) return false;
+  const currentTenantId =
+    ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
+  return currentTenantId === tenantId;
+}
+
 /**
  * Fetch all scheduled jobs for a tenant.
  */
 export async function fetchScheduledJobs(tenantId: string): Promise<ScheduledJobItem[]> {
+  if (!(await canAccessTenant(tenantId))) return [];
   const rows = await db
     .select({
       id: scheduledJobs.id,
@@ -59,13 +69,14 @@ export async function toggleScheduledJob(
   enabled: boolean,
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    if (!(await canAccessTenant(tenantId))) return { success: false, error: 'Forbidden' };
     const result = await db
       .update(scheduledJobs)
       .set({
         enabled,
         updatedAt: new Date(),
       })
-      .where(eq(scheduledJobs.id, jobId))
+      .where(and(eq(scheduledJobs.id, jobId), eq(scheduledJobs.tenantId, tenantId)))
       .returning({ id: scheduledJobs.id });
 
     if (result.length === 0) {
@@ -89,6 +100,8 @@ export async function updateJobSchedule(
   jobId: string,
   cronExpression: string,
 ): Promise<{ success: boolean; error?: string }> {
+  if (!(await canAccessTenant(tenantId))) return { success: false, error: 'Forbidden' };
+
   // Basic cron expression validation (5 or 6 fields)
   const fields = cronExpression.trim().split(/\s+/);
   if (fields.length < 5 || fields.length > 6) {
@@ -102,7 +115,7 @@ export async function updateJobSchedule(
         cronExpression: cronExpression.trim(),
         updatedAt: new Date(),
       })
-      .where(eq(scheduledJobs.id, jobId))
+      .where(and(eq(scheduledJobs.id, jobId), eq(scheduledJobs.tenantId, tenantId)))
       .returning({ id: scheduledJobs.id });
 
     if (result.length === 0) {

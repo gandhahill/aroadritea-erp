@@ -7,6 +7,7 @@
 
 import { relations } from 'drizzle-orm';
 import {
+  boolean,
   index,
   jsonb,
   pgTable,
@@ -166,6 +167,23 @@ export const sessions = pgTable(
     uniqueIndex('sessions_token_idx').on(t.token),
     index('sessions_user_idx').on(t.userId),
     index('sessions_expires_idx').on(t.expiresAt),
+  ],
+);
+
+export const loginAttempts = pgTable(
+  'login_attempts',
+  {
+    ...pk,
+    emailHash: text('email_hash'),
+    ipAddress: text('ip_address').notNull(),
+    userAgent: text('user_agent'),
+    succeeded: boolean('succeeded').notNull().default(false),
+    attemptedAt: timestamp('attempted_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('login_attempts_ip_time_idx').on(t.ipAddress, t.attemptedAt),
+    index('login_attempts_email_time_idx').on(t.emailHash, t.attemptedAt),
+    index('login_attempts_attempted_at_idx').on(t.attemptedAt),
   ],
 );
 

@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| _(no active tasks — all scoped work is in Backlog)_ |
+| _None_ |  |  |  |  |  |  |
 
 ---
 
@@ -166,6 +166,7 @@
 | T-0154 | Service workflow engine (rule eval + step execution) | Claude Opus 4.6 | 2026-05-12 | 9e22eb9 | |
 | T-0155 | UI workflow definition editor | Claude Opus 4.6 | 2026-05-13 | 2f432bd | Condition builder, steps editor, JSON preview tab |
 | T-0156 | Full MCP tools per module (cms, member, hr, payroll, crm, kitchen) | Claude Opus 4.6 | 2026-05-13 | 4a8ec8b | All tool handlers implemented (POS, HR, Audit done) |
+| T-0157 | Production readiness config, security, Naixer print settings, HestiaCP README | Codex | 2026-05-13 | pending commit | UI-configurable POS/Naixer settings, login language selector, security hardening, HestiaCP docs |
 
 ---
 

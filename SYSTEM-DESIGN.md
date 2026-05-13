@@ -927,6 +927,7 @@ Faktur dari supplier; link ke GRN. Memicu jurnal AP / payment.
 | `*line_total` | bigint | |
 | `~modifier_json` | jsonb | sugar/ice/topping snapshot |
 | `~kds_qr_token` | text | unik per line — untuk scan di KDS |
+| `~kds_qr_payload` | text | payload QR Naixer untuk audit/cetak ulang |
 
 #### `payments`
 Mendukung split payment.
@@ -960,6 +961,22 @@ Shift kasir (open/close kas).
 | `~actual_cash` | bigint | input kasir |
 | `~variance` | bigint | actual − expected |
 | `*status` | text CHECK | `'open' \| 'closed'` |
+
+#### `pos_settings`
+Konfigurasi POS per lokasi yang dikelola lewat UI `Settings → POS Settings`.
+
+| Field | Tipe | Catatan |
+|-------|------|---------|
+| 🔑 `id` | text | |
+| `*tenant_id` | text 🔗 | |
+| `*location_id` | text 🔗 | unique per tenant/location |
+| `*pb1_tax_code` | text | default `PB1`, resolve ke `tax_rates.code` |
+| `*cash_account_code` | text | default `1-1030`, resolve ke `accounts.code` |
+| `*revenue_account_code` | text | default `4-1010` |
+| `*donation_trust_account_code` | text | default `2-2050` |
+| `*delivery_channels_json` | jsonb | contoh `["gofood","grabfood","shopeefood"]` |
+| `*delivery_net_bps` | int | default `8000` = 80% |
+| `*receipt_width_mm` | int | default `80` mm / 8 cm; fleksibel per printer |
 
 ### 9.6 HR & Payroll
 
@@ -3692,10 +3709,15 @@ export async function generateQrPayload(
 
 ### 33.4 Cetak Label
 
-Label printer (Comson CSPL78 BT atau equivalen) diberi 3 elemen:
-1. **Pickup number text** (besar): `Pickup #3`
-2. **Deskripsi produk + ringkasan modifier** (sedang): `Glutinous Fragrant Tea (500ml) — Less sugar, Standard ice`
-3. **QR code** (cukup besar untuk dibaca scanner di KDS): payload Naixer (Format B atau A sesuai config).
+Label printer (Comson CSPL78 BT atau equivalen) disimpan sebagai konfigurasi per lokasi di `naixer_qr_format_config`, bukan hardcoded. Pilihan awal:
+- **6x4 cm landscape** (`label_width_mm=60`, `label_height_mm=40`)
+- **4x3 cm landscape** (`label_width_mm=40`, `label_height_mm=30`)
+
+Label wajib berisi 4 elemen:
+1. **QR code** Naixer KDS (cukup besar untuk dibaca scanner): payload Naixer (Format B atau A sesuai config).
+2. **Pickup number text** (besar): `Pickup #3`
+3. **Jam pesanan**: contoh `10:42` dari `kds_order_items.queued_at` / waktu order.
+4. **Deskripsi produk + ringkasan modifier** (sedang): `Glutinous Fragrant Tea (500ml) — Less sugar, Standard ice`
 
 Driver: WebUSB / WebBluetooth (bila printer support) atau via service worker yang call print API mesin POS Imin Swan 2.
 
@@ -4140,7 +4162,7 @@ Target sistem adalah fleksibel untuk operasional Aroadri Tea tanpa harus menguba
 - Bila menemukan nilai hardcoded baru di service/app, pindahkan ke DB atau env sebelum fitur dianggap production-ready.
 - Referensi operasional lengkap ada di `docs/CONFIGURATION.md`.
 
-Contoh yang sudah menjadi konfigurasi: POS mengambil kode pajak PB1 dari `POS_PB1_TAX_CODE`, tarifnya dari `tax_rates`, dan akun posting dari kode akun di environment yang di-resolve ke `accounts.id`. Member registration memakai Turnstile dan Resend via environment, dengan fallback development yang tidak aktif di production.
+Contoh yang sudah menjadi konfigurasi UI/DB: POS mengambil kode pajak PB1, akun kas/settlement, akun pendapatan, akun donasi, channel delivery net settlement, basis point settlement, dan lebar struk dari tabel `pos_settings`. Tarif pajak tetap dari `tax_rates`; mapping Naixer dan ukuran label dari tabel konfigurasi Naixer. Member registration memakai Turnstile dan Resend via environment karena keduanya secret/provider eksternal, dengan fallback development yang tidak aktif di production.
 
 ---
 

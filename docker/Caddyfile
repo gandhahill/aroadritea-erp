@@ -6,8 +6,27 @@
     email admin@aroadritea.com
 }
 
+(tls13) {
+    tls {
+        protocols tls1.3 tls1.3
+    }
+}
+
+(security_headers) {
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
+        -Server
+    }
+}
+
 # ── Public Website ─────────────────────────────────────────────────────────
 aroadritea.com, www.aroadritea.com {
+    import tls13
+    import security_headers
     encode zstd gzip
 
     # Member portal routes — no cache (session-dependent)
@@ -23,6 +42,8 @@ aroadritea.com, www.aroadritea.com {
 
 # ── ERP Web App ────────────────────────────────────────────────────────────
 erp.aroadritea.com {
+    import tls13
+    import security_headers
     encode zstd gzip
 
     # Static assets
@@ -33,6 +54,8 @@ erp.aroadritea.com {
 
 # ── MCP Server ─────────────────────────────────────────────────────────────
 mcp.erp.aroadritea.com {
+    import tls13
+    import security_headers
     encode zstd gzip
 
     reverse_proxy mcp:3002

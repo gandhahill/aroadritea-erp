@@ -124,6 +124,10 @@ export const naixerQrFormatConfig = pgTable(
     // e.g. ["product","size","ice","sugar","topping"]
     parameterOrderJson: jsonb('parameter_order_json').notNull(),
 
+    // Landscape label dimensions. Defaults to 6x4 cm.
+    labelWidthMm: integer('label_width_mm').notNull().default(60),
+    labelHeightMm: integer('label_height_mm').notNull().default(40),
+
     isActive: boolean('is_active').notNull().default(true),
 
     ...auditCols,

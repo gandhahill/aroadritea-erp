@@ -85,7 +85,7 @@ export default async function MenuPage({ params }: Props) {
 }
 
 async function getPublicMenu(locale: Locale): Promise<MenuCategory[]> {
-  const tenantId = process.env.PUBLIC_SITE_TENANT_ID ?? 'default';
+  const tenantId = 'default';
   const rows = await db
     .select({
       categoryId: productCategories.id,

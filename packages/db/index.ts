@@ -10,6 +10,7 @@ export type { Database } from './client';
 export {
   apiTokens,
   locations,
+  loginAttempts,
   permissions,
   rolePermissions,
   roles,
@@ -63,6 +64,7 @@ export {
   salesOrders,
   salesOrderLines,
   payments,
+  posSettings,
   refunds,
   refundLines,
   idempotencyRecords,

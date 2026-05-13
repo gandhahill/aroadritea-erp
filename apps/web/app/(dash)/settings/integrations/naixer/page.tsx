@@ -52,6 +52,7 @@ export default async function NaixerKdsPage() {
       <div className="rounded-lg border border-brand-gold/20 bg-brand-gold/5 px-4 py-3">
         <div className="flex items-start gap-3">
           <svg
+            aria-hidden="true"
             className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-gold"
             fill="none"
             viewBox="0 0 24 24"
@@ -67,8 +68,9 @@ export default async function NaixerKdsPage() {
           <div>
             <p className="text-sm font-medium text-brand-ink">QR Code Integration</p>
             <p className="mt-0.5 text-xs text-brand-ink-2">
-              Each product and modifier must be mapped to a Naixer vendor code. The QR code on cup
-              labels is generated using these mappings. Format B (dash) is the default: e.g.{' '}
+              Each product and modifier must be mapped to a Naixer vendor code. Cup labels include a
+              scannable Naixer QR, pickup number, order time, and product details. Format B (dash)
+              is the default: e.g.{' '}
               <code className="rounded bg-brand-cream-2 px-1 py-0.5 text-[11px] font-mono">
                 T003-C01-S02-W01
               </code>

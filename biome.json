@@ -73,7 +73,9 @@
       "dist",
       "out",
       "coverage",
+      ".agents",
       ".claude",
+      "packages/db/migrations/meta",
       "*.min.js",
       "apps/web/public/sw.js"
     ]

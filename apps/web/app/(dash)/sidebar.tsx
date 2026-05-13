@@ -29,6 +29,7 @@ export function Sidebar() {
       href: '/cms',
       icon: (
         <svg
+          aria-hidden="true"
           className="h-4.5 w-4.5"
           fill="none"
           viewBox="0 0 24 24"
@@ -52,6 +53,7 @@ export function Sidebar() {
       href: '/accounting',
       icon: (
         <svg
+          aria-hidden="true"
           className="h-4.5 w-4.5"
           fill="none"
           viewBox="0 0 24 24"
@@ -78,6 +80,7 @@ export function Sidebar() {
       href: '/reporting',
       icon: (
         <svg
+          aria-hidden="true"
           className="h-4.5 w-4.5"
           fill="none"
           viewBox="0 0 24 24"
@@ -106,6 +109,7 @@ export function Sidebar() {
       href: '/pos',
       icon: (
         <svg
+          aria-hidden="true"
           className="h-4.5 w-4.5"
           fill="none"
           viewBox="0 0 24 24"
@@ -129,6 +133,7 @@ export function Sidebar() {
       href: '/inventory',
       icon: (
         <svg
+          aria-hidden="true"
           className="h-4.5 w-4.5"
           fill="none"
           viewBox="0 0 24 24"
@@ -152,6 +157,7 @@ export function Sidebar() {
       href: '/tax',
       icon: (
         <svg
+          aria-hidden="true"
           className="h-4.5 w-4.5"
           fill="none"
           viewBox="0 0 24 24"
@@ -175,6 +181,7 @@ export function Sidebar() {
       href: '/hr',
       icon: (
         <svg
+          aria-hidden="true"
           className="h-4.5 w-4.5"
           fill="none"
           viewBox="0 0 24 24"
@@ -201,6 +208,7 @@ export function Sidebar() {
       href: '/settings',
       icon: (
         <svg
+          aria-hidden="true"
           className="h-4.5 w-4.5"
           fill="none"
           viewBox="0 0 24 24"
@@ -220,6 +228,7 @@ export function Sidebar() {
         </svg>
       ),
       children: [
+        { label: 'POS Settings', href: '/settings/pos', icon: <></> },
         { label: 'Scheduled Jobs', href: '/settings/scheduled-jobs', icon: <></> },
         { label: 'Naixer KDS', href: '/settings/integrations/naixer', icon: <></> },
         { label: 'Custom Fields', href: '/settings/custom-fields', icon: <></> },
@@ -258,6 +267,7 @@ export function Sidebar() {
                 {hasChildren ? (
                   <>
                     <button
+                      type="button"
                       onClick={() => toggleSection(item.href)}
                       className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                         isActive
@@ -268,6 +278,7 @@ export function Sidebar() {
                       {item.icon}
                       <span className="flex-1 text-left">{item.label}</span>
                       <svg
+                        aria-hidden="true"
                         className={`h-3.5 w-3.5 text-brand-ink-3 transition-transform duration-150 ${
                           !isCollapsed ? 'rotate-90' : ''
                         }`}
@@ -286,7 +297,7 @@ export function Sidebar() {
 
                     {!isCollapsed && (
                       <ul className="ml-5 mt-0.5 space-y-0.5 border-l border-brand-cream-3 pl-3">
-                        {item.children!.map((child) => {
+                        {item.children?.map((child) => {
                           const childActive = pathname === child.href;
                           return (
                             <li key={child.href}>

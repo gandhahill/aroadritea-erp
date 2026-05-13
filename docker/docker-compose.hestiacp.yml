@@ -1,0 +1,65 @@
+# Docker Compose for VPS with HestiaCP.
+# HestiaCP/Nginx owns ports 80/443. Containers bind only to localhost.
+
+services:
+  site:
+    image: ghcr.io/aroadritea/site:${VERSION:-latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.site
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    ports:
+      - "127.0.0.1:3000:3000"
+    mem_limit: 384m
+    networks:
+      - erp
+
+  web:
+    image: ghcr.io/aroadritea/web:${VERSION:-latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.web
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      - PORT=3001
+      - HOSTNAME=0.0.0.0
+    ports:
+      - "127.0.0.1:3001:3001"
+    mem_limit: 640m
+    networks:
+      - erp
+
+  mcp:
+    image: ghcr.io/aroadritea/mcp:${VERSION:-latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.mcp
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      - PORT=3002
+    ports:
+      - "127.0.0.1:3002:3002"
+    mem_limit: 192m
+    networks:
+      - erp
+
+  worker:
+    image: ghcr.io/aroadritea/worker:${VERSION:-latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.worker
+    restart: unless-stopped
+    env_file: ../.env
+    mem_limit: 256m
+    networks:
+      - erp
+
+networks:
+  erp:
+    driver: bridge

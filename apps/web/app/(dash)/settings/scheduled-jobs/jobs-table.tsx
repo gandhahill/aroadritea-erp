@@ -12,6 +12,7 @@ import type { ScheduledJobItem } from './actions';
 
 interface Props {
   jobs: ScheduledJobItem[];
+  tenantId: string;
 }
 
 function formatDate(d: Date | null): string {
@@ -108,6 +109,7 @@ function CronEditor({
       >
         {cronExpression}
         <svg
+          aria-hidden="true"
           className="h-3 w-3 text-brand-ink-3 opacity-0 transition-opacity group-hover:opacity-100"
           fill="none"
           viewBox="0 0 24 24"
@@ -131,7 +133,6 @@ function CronEditor({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         className="w-36 rounded border border-brand-cream-3 bg-white px-2 py-1 font-mono text-xs text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red/30"
-        autoFocus
         onKeyDown={(e) => {
           if (e.key === 'Enter') handleSave();
           if (e.key === 'Escape') {
@@ -162,7 +163,7 @@ function CronEditor({
   );
 }
 
-export function ScheduledJobsTable({ jobs: initialJobs }: Props) {
+export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
   const [jobs, setJobs] = useState(initialJobs);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -173,7 +174,7 @@ export function ScheduledJobsTable({ jobs: initialJobs }: Props) {
     setJobs((prev) => prev.map((j) => (j.id === jobId ? { ...j, enabled: !currentEnabled } : j)));
 
     startTransition(async () => {
-      const result = await toggleScheduledJob('default', jobId, !currentEnabled);
+      const result = await toggleScheduledJob(tenantId, jobId, !currentEnabled);
       if (!result.success) {
         // Rollback
         setJobs((prev) =>
@@ -186,7 +187,7 @@ export function ScheduledJobsTable({ jobs: initialJobs }: Props) {
 
   const handleCronSave = async (jobId: string, cron: string) => {
     setError(null);
-    const result = await updateJobSchedule('default', jobId, cron);
+    const result = await updateJobSchedule(tenantId, jobId, cron);
     if (!result.success) {
       setError(result.error ?? 'Failed to update schedule');
     } else {
@@ -198,6 +199,7 @@ export function ScheduledJobsTable({ jobs: initialJobs }: Props) {
     return (
       <div className="rounded-lg border border-brand-cream-3 bg-card px-6 py-12 text-center">
         <svg
+          aria-hidden="true"
           className="mx-auto h-10 w-10 text-brand-ink-3/40"
           fill="none"
           viewBox="0 0 24 24"

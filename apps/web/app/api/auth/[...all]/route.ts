@@ -3,7 +3,141 @@
  * SD §11.1: All auth endpoints served via /api/auth/*
  */
 
+import { createHash } from 'node:crypto';
+import { and, db, eq, sql } from '@erp/db';
+import { loginAttempts } from '@erp/db/schema/auth';
 import { auth } from '@erp/services/auth';
+import { generateId } from '@erp/shared/id';
 import { toNextJsHandler } from 'better-auth/next-js';
 
-export const { GET, POST } = toNextJsHandler(auth);
+const handlers = toNextJsHandler(auth);
+const LOGIN_FAILURE_LIMIT = 5;
+const ATTACK_FAILURE_LIMIT = 20;
+
+export const GET = handlers.GET;
+
+function getClientIp(request: Request): string {
+  const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+  return forwardedFor || request.headers.get('x-real-ip') || 'unknown';
+}
+
+async function getEmailFromRequest(request: Request): Promise<string | null> {
+  const contentType = request.headers.get('content-type') ?? '';
+  try {
+    if (contentType.includes('application/json')) {
+      const body = (await request.clone().json()) as { email?: unknown };
+      return typeof body.email === 'string' ? body.email.toLowerCase().trim() : null;
+    }
+
+    if (contentType.includes('form')) {
+      const form = await request.clone().formData();
+      const email = form.get('email');
+      return typeof email === 'string' ? email.toLowerCase().trim() : null;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+function hashEmail(email: string | null): string | null {
+  if (!email) return null;
+  return createHash('sha256').update(email).digest('hex');
+}
+
+async function assertLoginAllowed(
+  ipAddress: string,
+  emailHash: string | null,
+): Promise<Response | null> {
+  const recentIpFailures = await db
+    .select({ id: loginAttempts.id })
+    .from(loginAttempts)
+    .where(
+      and(
+        eq(loginAttempts.ipAddress, ipAddress),
+        eq(loginAttempts.succeeded, false),
+        sql`${loginAttempts.attemptedAt} >= now() - interval '15 minutes'`,
+      ),
+    )
+    .limit(LOGIN_FAILURE_LIMIT);
+
+  if (recentIpFailures.length >= LOGIN_FAILURE_LIMIT) {
+    return Response.json({ error: { message: 'Too many login attempts' } }, { status: 429 });
+  }
+
+  const hourlyIpFailures = await db
+    .select({ id: loginAttempts.id })
+    .from(loginAttempts)
+    .where(
+      and(
+        eq(loginAttempts.ipAddress, ipAddress),
+        eq(loginAttempts.succeeded, false),
+        sql`${loginAttempts.attemptedAt} >= now() - interval '1 hour'`,
+      ),
+    )
+    .limit(ATTACK_FAILURE_LIMIT);
+
+  if (hourlyIpFailures.length >= ATTACK_FAILURE_LIMIT) {
+    return Response.json({ error: { message: 'Login temporarily blocked' } }, { status: 429 });
+  }
+
+  if (!emailHash) return null;
+
+  const recentAccountFailures = await db
+    .select({ id: loginAttempts.id })
+    .from(loginAttempts)
+    .where(
+      and(
+        eq(loginAttempts.emailHash, emailHash),
+        eq(loginAttempts.succeeded, false),
+        sql`${loginAttempts.attemptedAt} >= now() - interval '15 minutes'`,
+      ),
+    )
+    .limit(LOGIN_FAILURE_LIMIT);
+
+  if (recentAccountFailures.length >= LOGIN_FAILURE_LIMIT) {
+    return Response.json({ error: { message: 'Too many login attempts' } }, { status: 429 });
+  }
+
+  return null;
+}
+
+async function recordLoginAttempt(
+  ipAddress: string,
+  emailHash: string | null,
+  userAgent: string | null,
+  succeeded: boolean,
+) {
+  await db.insert(loginAttempts).values({
+    id: generateId(),
+    emailHash,
+    ipAddress,
+    userAgent,
+    succeeded,
+  });
+}
+
+export async function POST(request: Request) {
+  const isEmailLogin = new URL(request.url).pathname.endsWith('/sign-in/email');
+  if (!isEmailLogin) return handlers.POST(request);
+
+  const ipAddress = getClientIp(request);
+  const emailHash = hashEmail(await getEmailFromRequest(request));
+  const userAgent = request.headers.get('user-agent');
+
+  const blockedResponse = await assertLoginAllowed(ipAddress, emailHash);
+  if (blockedResponse) {
+    await recordLoginAttempt(ipAddress, emailHash, userAgent, false);
+    return blockedResponse;
+  }
+
+  try {
+    const response = await handlers.POST(request);
+    await recordLoginAttempt(ipAddress, emailHash, userAgent, response.status < 400);
+    return response;
+  } catch (err) {
+    await recordLoginAttempt(ipAddress, emailHash, userAgent, false);
+    throw err;
+  }
+}
