@@ -207,6 +207,9 @@ importers:
       '@neondatabase/serverless':
         specifier: ^0.10.0
         version: 0.10.4
+      argon2:
+        specifier: ^0.44.0
+        version: 0.44.0
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@neondatabase/serverless@0.10.4)(@types/pg@8.11.6)(kysely@0.28.17)(pg@8.20.0)

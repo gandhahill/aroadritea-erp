@@ -15,6 +15,7 @@ import { partners } from '@erp/db/schema/accounting';
 import { type Result, ok, err } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
 import { createJournal } from '../accounting/create-journal';
+import { generateId } from '@erp/shared/id';
 import type { AuditContext } from '@erp/shared/types';
 import { requirePermission } from '../iam';
 
@@ -29,6 +30,47 @@ const VOUCHER_KIND_MAP: Record<string, string> = {
   refund_cash: 'discount_fixed',
   discount: 'discount_percent',
 };
+
+// ─── Members ────────────────────────────────────────────────────────────────
+
+/**
+ * Create a customer partner (member or guest).
+ * Used by CRM MCP tool and signup flow.
+ */
+export async function createPartner(
+  input: {
+    name: string;
+    phone: string;
+    email?: string;
+    kind?: string;
+    isMember?: boolean;
+    birthDate?: string;
+    city?: string;
+    loyaltyTier?: string;
+  },
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
+  try {
+    const id = generateId();
+    await db.insert(partners).values({
+      id,
+      tenantId: ctx.tenantId,
+      name: input.name,
+      email: input.email ?? null,
+      phone: input.phone,
+      kind: input.kind ?? 'customer',
+      isMember: input.isMember ?? false,
+      loyaltyTier: input.loyaltyTier ?? 'bronze',
+      birthDate: input.birthDate ? new Date(input.birthDate) : null,
+      city: input.city ?? null,
+      createdBy: ctx.userId,
+      updatedBy: ctx.userId,
+    });
+    return ok({ id });
+  } catch (e) {
+    return err(AppError.internal('crm.createPartner.failed', e));
+  }
+}
 
 // ─── Complaints ─────────────────────────────────────────────────────────────
 

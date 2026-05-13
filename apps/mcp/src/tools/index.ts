@@ -62,6 +62,12 @@ export {
   crmTools,
   CRMCreateMemberSchema,
   CRMLogComplaintSchema,
+  CRMListComplaintsSchema,
+  CRMResolveComplaintSchema,
+  memberTools,
+  MemberGetLoyaltySchema,
+  MemberGetVouchersSchema,
+  MemberRedeemPointsSchema,
   auditTools,
   AuditSearchSchema,
 } from './phase2';

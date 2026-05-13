@@ -37,17 +37,75 @@ export const inventoryTools = [
   {
     name: 'inventory.list_products',
     schema: InventoryListProductsSchema,
-    handler: async (_input: unknown, _ctx: McpContext) => NOT_IMPLEMENTED('inventory.list_products'),
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = InventoryListProductsSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const permitted = await checkPermission(ctx, 'inventory.view', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: inventory.view');
+
+      const { listProducts } = await import('@erp/services/inventory');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const result = await listProducts(
+        { isActive: true, limit: 50, offset: 0, search: parsed.data.query, categoryId: parsed.data.category },
+        auditCtx,
+      );
+      if (!result.ok) return mcpError('INVENTORY_LIST_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
   },
   {
     name: 'inventory.get_stock',
     schema: InventoryGetStockSchema,
-    handler: async (_input: unknown, _ctx: McpContext) => NOT_IMPLEMENTED('inventory.get_stock'),
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = InventoryGetStockSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const { product_id, location_id } = parsed.data;
+      const locId = location_id ?? ctx.locationId ?? '';
+
+      const permitted = await checkPermission(ctx, 'inventory.view', locId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: inventory.view');
+
+      const { db } = await import('@erp/db');
+      const { stockLevels } = await import('@erp/db/schema/inventory');
+      const { eq, and } = await import('drizzle-orm');
+
+      const query = locId
+        ? db.select().from(stockLevels).where(and(eq(stockLevels.tenantId, ctx.tenantId), eq(stockLevels.productId, product_id), eq(stockLevels.locationId, locId)))
+        : db.select().from(stockLevels).where(and(eq(stockLevels.tenantId, ctx.tenantId), eq(stockLevels.productId, product_id)));
+
+      const rows = await query;
+      return mcpSuccess({ items: rows });
+    },
   },
   {
     name: 'inventory.adjust',
     schema: InventoryAdjustSchema,
-    handler: async (_input: unknown, _ctx: McpContext) => NOT_IMPLEMENTED('inventory.adjust'),
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = InventoryAdjustSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const { product_id, location_id, qty_delta, reason, note } = parsed.data;
+
+      const permitted = await checkPermission(ctx, 'inventory.adjust', location_id);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: inventory.adjust');
+
+      const { createAdjustmentDraft, submitAdjustment } = await import('@erp/services/inventory');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: location_id };
+
+      // 1. Create draft adjustment
+      const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      const draftResult = await createAdjustmentDraft(
+        { locationId: location_id, adjustmentDate: today, reason: reason as never, notes: note, lines: [{ productId: product_id, qtyBefore: '0', qtyAfter: String(Math.max(0, qty_delta)), qtyDelta: String(qty_delta), uom: 'pcs' }] },
+        auditCtx,
+      );
+      if (!draftResult.ok) return mcpError('INVENTORY_ADJUST_DRAFT_FAILED', JSON.stringify(draftResult.error));
+
+      // 2. Auto-submit (single-step approval for MCP)
+      const submitResult = await submitAdjustment(draftResult.value.id, auditCtx);
+      if (!submitResult.ok) return mcpError('INVENTORY_ADJUST_SUBMIT_FAILED', JSON.stringify(submitResult.error));
+
+      return mcpSuccess(submitResult.value);
+    },
   },
 ] as const;
 
@@ -84,17 +142,76 @@ export const purchasingTools = [
   {
     name: 'purchasing.create_po',
     schema: PurchasingCreatePOSchema,
-    handler: async (_input: unknown, _ctx: McpContext) => NOT_IMPLEMENTED('purchasing.create_po'),
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = PurchasingCreatePOSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const { supplier_id, location_id, lines } = parsed.data;
+
+      const permitted = await checkPermission(ctx, 'purchasing.po.create', location_id);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: purchasing.po.create');
+
+      const { createPO } = await import('@erp/services/purchasing');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: location_id };
+      const result = await createPO(
+        { supplierId: supplier_id, locationId: location_id, lines: lines.map(l => ({ productId: l.product_id, qty: l.qty, unitPrice: l.unit_price })) },
+        auditCtx,
+      );
+      if (!result.ok) return mcpError('PURCHASING_CREATE_PO_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
   },
   {
     name: 'purchasing.approve_po',
     schema: PurchasingApprovePOSchema,
-    handler: async (_input: unknown, _ctx: McpContext) => NOT_IMPLEMENTED('purchasing.approve_po'),
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = PurchasingApprovePOSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const { po_id } = parsed.data;
+
+      // Load PO to get location for permission check
+      const { db } = await import('@erp/db');
+      const { purchaseOrders } = await import('@erp/db/schema/purchasing');
+      const { eq } = await import('drizzle-orm');
+      const [po] = await db.select({ locationId: purchaseOrders.locationId }).from(purchaseOrders).where(eq(purchaseOrders.id, po_id)).limit(1);
+      if (!po) return mcpError('NOT_FOUND', `Purchase order ${po_id} not found`);
+
+      const permitted = await checkPermission(ctx, 'purchasing.po.approve', po.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: purchasing.po.approve');
+
+      const { approvePO } = await import('@erp/services/purchasing');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: po.locationId };
+      const result = await approvePO({ purchaseOrderId: po_id }, auditCtx);
+      if (!result.ok) return mcpError('PURCHASING_APPROVE_PO_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
   },
   {
     name: 'purchasing.create_grn',
     schema: PurchasingCreateGRNSchema,
-    handler: async (_input: unknown, _ctx: McpContext) => NOT_IMPLEMENTED('purchasing.create_grn'),
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = PurchasingCreateGRNSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const { po_id, lines } = parsed.data;
+
+      // Load PO to get location for permission check
+      const { db } = await import('@erp/db');
+      const { purchaseOrders } = await import('@erp/db/schema/purchasing');
+      const { eq } = await import('drizzle-orm');
+      const [po] = await db.select({ locationId: purchaseOrders.locationId }).from(purchaseOrders).where(eq(purchaseOrders.id, po_id)).limit(1);
+      if (!po) return mcpError('NOT_FOUND', `Purchase order ${po_id} not found`);
+
+      const permitted = await checkPermission(ctx, 'purchasing.grn.create', po.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: purchasing.grn.create');
+
+      const { createGRN } = await import('@erp/services/purchasing');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: po.locationId };
+      const result = await createGRN(
+        { purchaseOrderId: po_id, lines: lines.map(l => ({ poLineId: l.po_line_id, qtyReceived: l.qty_received, notes: l.notes })) },
+        auditCtx,
+      );
+      if (!result.ok) return mcpError('PURCHASING_CREATE_GRN_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
   },
 ] as const;
 
@@ -346,23 +463,189 @@ export const CRMCreateMemberSchema = z.object({
 });
 
 export const CRMLogComplaintSchema = z.object({
-  customer_id: z.string(),
-  description: z.string(),
-  compensation: z
-    .object({ type: z.enum(['product', 'refund', 'discount']), value: z.string() })
-    .optional(),
+  member_id: z.string().optional(),
+  customer_name: z.string().optional(),
+  customer_phone: z.string().optional(),
+  order_id: z.string().optional(),
+  order_number: z.string().optional(),
+  occurred_at: z.string().datetime(),
+  category: z.enum(['product_quality', 'service', 'cleanliness', 'wrong_order', 'staff', 'other']),
+  description: z.string().min(10),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional().default('medium'),
+});
+
+export const CRMListComplaintsSchema = z.object({
+  status: z.enum(['open', 'investigating', 'resolved', 'closed', 'escalated']).optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+  limit: z.number().optional().default(50),
+});
+
+export const CRMResolveComplaintSchema = z.object({
+  complaint_id: z.string(),
+  status: z.enum(['investigating', 'resolved', 'closed', 'escalated']),
+  resolution_notes: z.string().optional(),
 });
 
 export const crmTools = [
   {
     name: 'crm.create_member',
     schema: CRMCreateMemberSchema,
-    handler: async (_input: unknown, _ctx: McpContext) => NOT_IMPLEMENTED('crm.create_member'),
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = CRMCreateMemberSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const { display_name, phone, email, date_of_birth, city } = parsed.data;
+
+      const permitted = await checkPermission(ctx, 'crm.manage_members', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: crm.manage_members');
+
+      const { createPartner } = await import('@erp/services/crm');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const result = await createPartner(
+        { name: display_name, phone, email, kind: 'customer', isMember: true, birthDate: date_of_birth, city },
+        auditCtx,
+      );
+      if (!result.ok) return mcpError('CRM_CREATE_MEMBER_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
   },
   {
     name: 'crm.log_complaint',
     schema: CRMLogComplaintSchema,
-    handler: async (_input: unknown, _ctx: McpContext) => NOT_IMPLEMENTED('crm.log_complaint'),
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = CRMLogComplaintSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const { member_id, customer_name, customer_phone, order_id, order_number, occurred_at, category, description, priority } = parsed.data;
+
+      const permitted = await checkPermission(ctx, 'crm.logComplaint', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: crm.logComplaint');
+
+      const { logComplaint } = await import('@erp/services/crm');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const result = await logComplaint(
+        { memberId: member_id, customerName: customer_name, customerPhone: customer_phone, orderId: order_id, orderNumber: order_number, occurredAt: occurred_at, category, description, priority },
+        auditCtx,
+      );
+      if (!result.ok) return mcpError('CRM_LOG_COMPLAINT_FAILED', JSON.stringify(result.error));
+      return mcpSuccess({ complaint_id: result.value.id });
+    },
+  },
+  {
+    name: 'crm.list_complaints',
+    schema: CRMListComplaintsSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = CRMListComplaintsSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const permitted = await checkPermission(ctx, 'crm.listComplaints', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: crm.listComplaints');
+
+      const { listComplaints } = await import('@erp/services/crm');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const result = await listComplaints(
+        { status: parsed.data.status, from: parsed.data.from, to: parsed.data.to, limit: parsed.data.limit },
+        auditCtx,
+      );
+      if (!result.ok) return mcpError('CRM_LIST_COMPLAINTS_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
+  },
+  {
+    name: 'crm.resolve_complaint',
+    schema: CRMResolveComplaintSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = CRMResolveComplaintSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const { complaint_id, status, resolution_notes } = parsed.data;
+
+      const permitted = await checkPermission(ctx, 'crm.resolveComplaint', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: crm.resolveComplaint');
+
+      const { resolveComplaint } = await import('@erp/services/crm');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const result = await resolveComplaint({ complaintId: complaint_id, status, resolutionNotes: resolution_notes }, auditCtx);
+      if (!result.ok) return mcpError('CRM_RESOLVE_COMPLAINT_FAILED', JSON.stringify(result.error));
+      return mcpSuccess({ status });
+    },
+  },
+] as const;
+
+// --- Member / Loyalty (MCP for CRM/Member module) ---
+
+export const MemberGetLoyaltySchema = z.object({
+  member_id: z.string(),
+});
+
+export const MemberGetVouchersSchema = z.object({
+  member_id: z.string(),
+  unused_only: z.boolean().optional().default(true),
+});
+
+export const MemberRedeemPointsSchema = z.object({
+  member_id: z.string(),
+  points_to_redeem: z.number().positive(),
+  voucher_kind: z.enum(['discount_percent', 'discount_fixed', 'free_delivery']),
+  voucher_value: z.number().positive(),
+});
+
+export const memberTools = [
+  {
+    name: 'member.get_loyalty',
+    schema: MemberGetLoyaltySchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = MemberGetLoyaltySchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const { member_id } = parsed.data;
+
+      const permitted = await checkPermission(ctx, 'crm.view', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: crm.view');
+
+      const { getMemberLoyalty } = await import('@erp/services/member');
+      const result = await getMemberLoyalty(member_id);
+      if (!result.ok) return mcpError('MEMBER_GET_LOYALTY_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
+  },
+  {
+    name: 'member.get_vouchers',
+    schema: MemberGetVouchersSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = MemberGetVouchersSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const { member_id, unused_only } = parsed.data;
+
+      const permitted = await checkPermission(ctx, 'crm.view', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: crm.view');
+
+      const { getMemberVouchers } = await import('@erp/services/member');
+      const result = await getMemberVouchers(member_id, { unusedOnly: unused_only });
+      if (!result.ok) return mcpError('MEMBER_GET_VOUCHERS_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
+  },
+  {
+    name: 'member.redeem_points',
+    schema: MemberRedeemPointsSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = MemberRedeemPointsSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+      const { member_id, points_to_redeem, voucher_kind, voucher_value } = parsed.data;
+
+      const permitted = await checkPermission(ctx, 'crm.manage_members', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: crm.manage_members');
+
+      const { redeemPoints } = await import('@erp/services/member');
+      const auditCtx = { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' };
+      const result = await redeemPoints(
+        member_id,
+        points_to_redeem,
+        voucher_kind,
+        voucher_value,
+        auditCtx,
+      );
+      if (!result.ok) return mcpError('MEMBER_REDEEM_POINTS_FAILED', JSON.stringify(result.error));
+      return mcpSuccess(result.value);
+    },
   },
 ] as const;
 
