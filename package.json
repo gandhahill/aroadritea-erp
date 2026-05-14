@@ -32,7 +32,8 @@
     "db:migrate": "pnpm --filter @erp/db migrate",
     "db:seed": "pnpm --filter @erp/db seed",
     "seed:menu": "tsx scripts/seed-aroadri-menu.ts",
-    "seed:naixer": "tsx scripts/seed-naixer-codes.ts"
+    "seed:naixer": "tsx scripts/seed-naixer-codes.ts",
+    "jobs:disable-unconfigured": "tsx scripts/disable-unconfigured-scheduled-jobs.ts"
   },
   "dependencies": {
     "tsx": "^4.21.0"
