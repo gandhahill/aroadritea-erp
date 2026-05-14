@@ -25,7 +25,10 @@
       "reversed": "Reversed",
       "pending": "Pending",
       "approved": "Approved",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "in_progress": "In Progress",
+      "submitted": "Submitted",
+      "cancelled": "Cancelled"
     },
     "labels": {
       "name": "Name",
@@ -304,6 +307,11 @@
       "openProductionPOS": "Open Production POS"
     }
   },
+  "app": {
+    "name": "Aroadri Tea ERP",
+    "company": "PT Gandha Hill Catering Management Indonesia",
+    "tagline": "Enterprise Resource Planning"
+  },
   "hr": {
     "nav": "HR & Payroll",
     "title": "Human Resources",
@@ -542,6 +550,54 @@
       "notePlaceholder": "e.g. 2x milk tea returns",
       "less": "less",
       "more": "more"
+    }
+  },
+  "opname": {
+    "title": "Stock Opname",
+    "createSession": "Create Opname Session",
+    "sessionDate": "Session Date",
+    "periodCode": "Period Code",
+    "workflow": {
+      "step1": "Create Session",
+      "step2": "Physical Count",
+      "step3": "Submit",
+      "step4": "Approve"
+    },
+    "status": {
+      "draft": "Draft",
+      "in_progress": "In Progress",
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "cancelled": "Cancelled"
+    },
+    "lines": {
+      "systemQty": "System Stock",
+      "countedQty": "Counted",
+      "variance": "Variance",
+      "varianceValue": "Variance Value",
+      "lineNo": "No."
+    },
+    "actions": {
+      "recordCount": "Record Count",
+      "submitOpname": "Submit Opname",
+      "approveOpname": "Approve",
+      "cancelOpname": "Cancel",
+      "saveProgress": "Save Progress",
+      "saveAll": "Save All"
+    },
+    "messages": {
+      "sessionCreated": "Opname session created",
+      "countRecorded": "Count saved",
+      "submitted": "Opname submitted",
+      "approved": "Opname approved",
+      "cancelled": "Opname cancelled",
+      "noLines": "No product lines yet",
+      "allCounted": "All lines have been counted",
+      "pendingCount": "{n} lines have not been counted"
+    },
+    "errors": {
+      "allLinesMustBeCounted": "All lines must be counted before submission",
+      "approvalRestricted": "Only directors can approve"
     }
   }
 }

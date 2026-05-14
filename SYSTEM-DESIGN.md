@@ -3562,6 +3562,8 @@ Editor produk di `apps/web /inventory/products/<id>` punya tab "Marketing" untuk
 | `erp.aroadritea.com` | `http://127.0.0.1:3001` |
 | `erp.aroadritea.com/mcp/` | `http://127.0.0.1:3002/` |
 
+Reverse proxy wajib meneruskan `Host`, `X-Forwarded-Host`, `X-Forwarded-Proto`, dan `X-Forwarded-Port` dari request publik. Tanpa header ini, redirect middleware Next.js dapat membangun `Location` memakai origin internal seperti `localhost:3000`.
+
 Aktifkan gzip/brotli di HestiaCP bila tersedia. Cache header tetap dikelola dari Next.js.
 
 ### 32.4 Cookies

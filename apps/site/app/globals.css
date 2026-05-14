@@ -1,0 +1,42 @@
+/*
+ * Aroadri Tea public site stylesheet.
+ * Tailwind v4 CSS-first tokens used by apps/site components.
+ */
+
+@import "tailwindcss";
+
+@theme {
+  --color-brand-red: #d6262e;
+  --color-brand-red-dark: #a41b22;
+  --color-brand-cream: #fbf6ee;
+  --color-brand-cream-2: #f4ecdf;
+  --color-brand-cream-3: #ede3d2;
+  --color-brand-ink: #1a1a1a;
+  --color-brand-ink-2: #3a3a3a;
+  --color-brand-ink-3: #6b6b6b;
+  --color-brand-gold: #c8a557;
+  --color-cream-50: #fbf6ee;
+  --font-sans: "Inter", "Noto Sans SC", system-ui, -apple-system, sans-serif;
+  --font-display: "Manrope", "Noto Serif SC", Georgia, serif;
+}
+
+@layer base {
+  html {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-brand-ink);
+    background-color: var(--color-cream-50);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: 0;
+  }
+}

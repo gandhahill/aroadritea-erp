@@ -325,6 +325,15 @@ pm2 logs --lines 100
 
 PM2 wajib bind ke loopback `127.0.0.1` untuk port 3000-3002. Jangan bind ke `0.0.0.0` dan jangan buka port tersebut ke publik; akses luar tetap lewat reverse proxy HestiaCP.
 
+Reverse proxy harus meneruskan host publik agar redirect Next.js tidak berubah menjadi `localhost`:
+
+```nginx
+proxy_set_header Host $host;
+proxy_set_header X-Forwarded-Host $host;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-Port 443;
+```
+
 Catatan Cloudflare: Universal SSL wildcard `*.aroadritea.com` tidak mencakup subdomain bertingkat `mcp.erp.aroadritea.com`. Gunakan path `/mcp/` di `erp.aroadritea.com`, atau buat `mcp.aroadritea.com`, atau aktifkan Advanced Certificate/DNS-only bila ingin subdomain MCP terpisah.
 
 ### 6.8 Firewall

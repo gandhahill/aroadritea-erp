@@ -50,9 +50,10 @@ Setting bisnis harian wajib lewat DB/UI, bukan edit source.
    - `aroadritea.com` dan `www.aroadritea.com` ke `http://127.0.0.1:3000`
    - `erp.aroadritea.com` ke `http://127.0.0.1:3001`
    - `erp.aroadritea.com/mcp/` ke `http://127.0.0.1:3002/`
-11. Aktifkan Let's Encrypt untuk semua domain.
-12. Pastikan firewall publik hanya membuka 80/443.
-13. Cek health:
+11. Pastikan reverse proxy mengirim `Host`, `X-Forwarded-Host`, `X-Forwarded-Proto`, dan `X-Forwarded-Port` agar redirect production tidak memakai origin internal `localhost`.
+12. Aktifkan Let's Encrypt untuk semua domain.
+13. Pastikan firewall publik hanya membuka 80/443.
+14. Cek health:
     - `https://aroadritea.com/api/healthz`
     - `https://erp.aroadritea.com/api/healthz`
     - `https://erp.aroadritea.com/mcp/healthz`

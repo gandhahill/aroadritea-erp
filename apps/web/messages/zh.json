@@ -25,7 +25,10 @@
       "reversed": "已冲销",
       "pending": "待处理",
       "approved": "已批准",
-      "rejected": "已拒绝"
+      "rejected": "已拒绝",
+      "in_progress": "进行中",
+      "submitted": "已提交",
+      "cancelled": "已取消"
     },
     "labels": {
       "name": "名称",
@@ -304,6 +307,11 @@
       "openProductionPOS": "打开正式收银台"
     }
   },
+  "app": {
+    "name": "Aroadri Tea ERP",
+    "company": "PT Gandha Hill Catering Management Indonesia",
+    "tagline": "企业资源规划"
+  },
   "hr": {
     "nav": "人力资源",
     "title": "人力资源",
@@ -542,6 +550,54 @@
       "notePlaceholder": "例：2杯奶茶退货",
       "less": "较少",
       "more": "较多"
+    }
+  },
+  "opname": {
+    "title": "库存盘点",
+    "createSession": "创建盘点会话",
+    "sessionDate": "会话日期",
+    "periodCode": "期间代码",
+    "workflow": {
+      "step1": "创建会话",
+      "step2": "实物盘点",
+      "step3": "提交",
+      "step4": "批准"
+    },
+    "status": {
+      "draft": "草稿",
+      "in_progress": "进行中",
+      "submitted": "已提交",
+      "approved": "已批准",
+      "cancelled": "已取消"
+    },
+    "lines": {
+      "systemQty": "系统库存",
+      "countedQty": "实盘数量",
+      "variance": "差异",
+      "varianceValue": "差异金额",
+      "lineNo": "编号"
+    },
+    "actions": {
+      "recordCount": "录入盘点",
+      "submitOpname": "提交盘点",
+      "approveOpname": "批准",
+      "cancelOpname": "取消",
+      "saveProgress": "保存进度",
+      "saveAll": "全部保存"
+    },
+    "messages": {
+      "sessionCreated": "盘点会话已创建",
+      "countRecorded": "盘点数量已保存",
+      "submitted": "盘点已提交",
+      "approved": "盘点已批准",
+      "cancelled": "盘点已取消",
+      "noLines": "暂无产品行",
+      "allCounted": "所有行都已盘点",
+      "pendingCount": "还有 {n} 行未盘点"
+    },
+    "errors": {
+      "allLinesMustBeCounted": "提交前必须完成所有行的盘点",
+      "approvalRestricted": "只有董事可以批准"
     }
   }
 }
