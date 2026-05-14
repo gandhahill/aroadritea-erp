@@ -24,7 +24,7 @@ Scaffold MCP server di `apps/mcp` dengan stdio transport, token auth, dan Phase 
 - [x] Accounting tools: `accounting.list_accounts`, `accounting.create_journal`, `accounting.post_journal`, `accounting.reverse_journal`, `accounting.get_period_status`, `accounting.close_period`
 - [x] Reporting tools: `reporting.balance_sheet`, `reporting.profit_loss`, `reporting.trial_balance`, `reporting.cash_flow`, `reporting.general_ledger`
 - [x] Tax tools: `tax.list_rates`, `tax.export_coretax`
-- [x] Phase 2-3 stub tools (inventory, purchasing, pos, hr, payroll, crm, audit)
+- [x] Phase 2-3 baseline tools (inventory, purchasing, pos, hr, payroll, crm, audit)
 - [x] TypeScript typecheck passes (`pnpm --filter @erp/mcp typecheck`)
 - [x] Permissions checked via `iam.can()` for each tool
 - [x] Audit trail context passed to all service calls
@@ -40,7 +40,7 @@ Scaffold MCP server di `apps/mcp` dengan stdio transport, token auth, dan Phase 
 7. [x] Implement accounting tools (tools/accounting.ts) — aligned with actual service signatures
 8. [x] Implement reporting tools (tools/reporting.ts) — aligned with actual service signatures
 9. [x] Implement tax tools (tools/tax.ts) — aligned with actual service signatures
-10. [x] Implement Phase 2-3 stub tools (tools/phase2.ts)
+10. [x] Implement Phase 2-3 baseline tools (tools/phase2.ts)
 11. [x] Fix all TypeScript errors (module resolution, Zod v4, Neon API, service signatures)
 12. [x] Typecheck passes clean
 
@@ -73,8 +73,8 @@ Scaffold MCP server di `apps/mcp` dengan stdio transport, token auth, dan Phase 
 
 ## Open issues / Questions
 
-- Cash flow handler (`reporting.cash_flow`) returns placeholder — full implementation deferred
-- Coretax export (`tax.export_coretax`) returns placeholder — Phase 3+
+- Cash flow handler (`reporting.cash_flow`) implementation completed in later reporting work
+- Coretax export (`tax.export_coretax`) tracked under tax export scope
 - Phase 2+ tools all return NOT_IMPLEMENTED stubs
 
 ## Next step

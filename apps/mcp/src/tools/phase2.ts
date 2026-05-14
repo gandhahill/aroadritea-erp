@@ -1,17 +1,13 @@
 /**
  * Inventory, Purchasing, POS, HR, Payroll, CRM, Audit MCP tools.
- * These are Phase 2+ tools — stubs that return informative "not implemented" messages.
+ * These handlers route every call through the same service and permission
+ * layer used by the ERP UI.
  */
 
 import { can } from '@erp/services/iam';
 import { z } from 'zod';
 import type { McpContext } from '../context';
 import { mcpError, mcpSuccess } from '../helpers';
-
-const NOT_IMPLEMENTED = (module: string) =>
-  mcpSuccess({
-    note: `Module '${module}' is not yet implemented. Expected in Phase 2+. See SYSTEM-DESIGN.md §16.4 and TASK.md backlog.`,
-  });
 
 // --- Inventory ---
 

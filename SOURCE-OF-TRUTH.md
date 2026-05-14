@@ -273,7 +273,7 @@ Mengacu jawaban Q22 + tampilan KDS Naixer:
 
 ### 8.4 Lokasi Stok
 - Saat ini: **stok di toko** (Malioboro)
-- Skema multi-lokasi: kantor Jakarta, kantor Yogyakarta, gudang pusat, toko ke depan
+- Skema multi-lokasi tetap disiapkan untuk gudang pusat / outlet baru ke depan, tetapi data publik dan seed produksi saat ini hanya memuat outlet aktif Yogyakarta.
 
 ### 8.5 Resep / BOM
 - **Setiap produk** memiliki resep standar
@@ -648,10 +648,15 @@ Hasil pengujian langsung di toko Aroadri Malioboro: **Format B berhasil dibaca m
 ### 15.1 Lokasi Operasional
 | # | Lokasi | Fungsi | Status |
 |---|---|---|---|
-| 1 | **Malioboro Mall, Yogyakarta** | Toko | Aktif |
-| 2 | **Plaza Malioboro** | Toko | Aktif |
-| 3 | **Kantor Yogyakarta** | Kantor operasional | Aktif |
-| 4 | **Kantor Jakarta** | Kantor operasional | Aktif |
+| 1 | **Aroadri Tea Malioboro Mall** | Toko | Aktif |
+| 2 | **Aroadri Tea Plaza Malioboro** | Toko | Aktif |
+| 3 | Kantor / gudang internal masa depan | Internal | Belum aktif di sistem publik |
+
+Alamat outlet:
+- **Aroadri Tea Malioboro Mall**: Malioboro Mall, Jl. Mataram No. 31, Suryatmajan, Danurejan, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55213.
+- **Aroadri Tea Plaza Malioboro**: Plaza Malioboro, Jl. Malioboro No. 52-58, Suryatmajan, Danurejan, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55213.
+
+Website publik hanya boleh menampilkan outlet aktif. Jangan menampilkan kota/kantor yang belum menjadi outlet aktif.
 
 ### 15.2 Operasional Multi-Lokasi
 - **Petty cash per lokasi**: ✅ ya
@@ -1534,10 +1539,10 @@ POS dianggap **resilient-ready** bila lulus tes berikut:
 - Office Supplies
 - Store Supplies
 - Prepaid Expense
-- Prepaid Rent of Jakarta Office
+- Prepaid Rent of Plaza Malioboro Store
 - Prepaid Rent of Yogyakarta Office
 - Prepaid Rent of Malioboro Store
-- Jakarta Office Security Deposit
+- Plaza Malioboro Store Security Deposit
 - Yogyakarta Office Security Deposit
 - Store Security Deposit
 - Prepaid Final Tax
@@ -1598,7 +1603,7 @@ POS dianggap **resilient-ready** bila lulus tes berikut:
 
 ### Beban Operasional
 - Advertising Expense
-- Jakarta Office Utilities Expense
+- Plaza Malioboro Store Utilities Expense
 - Yogyakarta Office Utilities Expense
 - Store Utilities Expense
 - Bad Debt Expense
@@ -1624,7 +1629,7 @@ POS dianggap **resilient-ready** bila lulus tes berikut:
 - Final Rental Tax Expense
 - Commission Expense
 - Freight Out
-- Jakarta Office Rent Expense
+- Plaza Malioboro Store Rent Expense
 - Yogyakarta Office Rent Expense
 - PJU Expense *(Pajak Penerangan Jalan Umum / utility)*
 - Transportation Expense
@@ -1638,7 +1643,7 @@ POS dianggap **resilient-ready** bila lulus tes berikut:
 > **Catatan tindak lanjut**:
 > - Beberapa akun ada yang merupakan **kontra-akun** (depreciation, sales return, allowance) — pastikan tipe akun di-set benar saat seeding.
 > - "Comunication Expense" (typo) → akan dikoreksi menjadi "Communication Expense" saat seeding.
-> - Akun **Jakarta Office** & **Yogyakarta Office** & **Store (Malioboro)** menyiratkan **3 dimensi cabang minimal** untuk laporan per-lokasi. Saat menambah cabang baru, akun prepaid/utilities/salaries terkait perlu otomatis di-clone, atau gunakan **dimensi cabang** alih-alih akun terpisah (rekomendasi: pakai dimensi cabang, biarkan COA tetap ringkas).
+> - Akun lokasi-spesifik yang ada saat ini mengikuti dua outlet Yogyakarta. Saat menambah cabang baru, akun prepaid/utilities/salaries terkait perlu otomatis di-clone, atau gunakan **dimensi cabang** alih-alih akun terpisah (rekomendasi: pakai dimensi cabang, biarkan COA tetap ringkas).
 
 ---
 

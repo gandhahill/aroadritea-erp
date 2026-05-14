@@ -22,6 +22,7 @@ interface Props {
   initialData: OmzetHarianResult | null;
   initialDate: string;
   initialLocationId: string;
+  locationOptions: Array<{ id: string; label: string; code: string }>;
 }
 
 function fmtIDR(value: string): string {
@@ -49,7 +50,12 @@ function parseIdrInputToCents(value: string): bigint {
   return BigInt(cleanVal || '0') * BigInt(100);
 }
 
-export function OmzetHarianClient({ initialData, initialDate, initialLocationId }: Props) {
+export function OmzetHarianClient({
+  initialData,
+  initialDate,
+  initialLocationId,
+  locationOptions,
+}: Props) {
   const t = useTranslations('reporting.omzetHarian');
 
   const [date, setDate] = useState(initialDate);
@@ -199,13 +205,22 @@ export function OmzetHarianClient({ initialData, initialDate, initialLocationId 
         </div>
         <div className="flex-1 min-w-48">
           <label className="mb-1 block text-sm font-medium text-brand-ink">{t('location')}</label>
-          <input
-            type="text"
+          <select
             value={locationId}
             onChange={(e) => handleLocationChange(e.target.value)}
-            placeholder="Location ID"
+            disabled={locationOptions.length === 0}
             className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-          />
+          >
+            {locationOptions.length === 0 ? (
+              <option value="">{t('noActiveLocations')}</option>
+            ) : (
+              locationOptions.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.label}
+                </option>
+              ))
+            )}
+          </select>
         </div>
       </div>
 

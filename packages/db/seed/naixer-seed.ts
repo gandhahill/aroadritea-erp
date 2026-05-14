@@ -15,11 +15,11 @@ export const NAIXER_QR_FORMAT_DEFAULTS = [
     labelHeightMm: 40,
   },
   {
-    locationCode: 'JKT', // Jakarta
+    locationCode: 'PLZ', // Plaza Malioboro
     format: 'dash' as const,
     includeOrderId: false,
     parameterOrder: ['product', 'size', 'ice', 'sugar'],
-    labelWidthMm: 60,
-    labelHeightMm: 40,
+    labelWidthMm: 40,
+    labelHeightMm: 30,
   },
 ];

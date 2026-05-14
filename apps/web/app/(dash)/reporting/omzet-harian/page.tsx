@@ -4,6 +4,7 @@
  */
 
 import { getSession } from '@/lib/auth';
+import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/location-options';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { serverGetOmzetHarian } from './actions';
@@ -23,8 +24,12 @@ export default async function OmzetHarianPage({
 
   const params = await searchParams;
   const today = new Date().toISOString().slice(0, 10);
+  const user = session.user as Record<string, unknown>;
+  const tenantId = (user.tenantId as string) ?? 'default';
+  const sessionLocationId = user.locationId as string | undefined;
+  const locationOptions = await getActiveLocationOptions({ tenantId, locale: 'id', type: 'store' });
   const date = params.date ?? today;
-  const locationId = params.location ?? '';
+  const locationId = resolveDefaultLocationId(locationOptions, params.location, sessionLocationId);
 
   const result = locationId ? await serverGetOmzetHarian({ locationId, date }) : null;
 
@@ -33,6 +38,7 @@ export default async function OmzetHarianPage({
       initialData={result?.ok ? result.value : null}
       initialDate={date}
       initialLocationId={locationId}
+      locationOptions={locationOptions}
     />
   );
 }

@@ -25,11 +25,14 @@ import * as stockOpnameSchema from './schema/stock-opname';
 import * as workflowSchema from './schema/workflow';
 
 const DATABASE_URL = process.env.DATABASE_URL;
-if (!DATABASE_URL) {
-  console.warn('⚠️  DATABASE_URL not set — database queries will fail. Add it to .env');
+const isProductionRuntime =
+  process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build';
+
+if (!DATABASE_URL && isProductionRuntime) {
+  throw new Error('DATABASE_URL is required for production database access.');
 }
 
-const sql = neon(DATABASE_URL ?? 'postgresql://placeholder:placeholder@localhost/placeholder');
+const sql = neon(DATABASE_URL ?? 'postgresql://missing:missing@127.0.0.1:5432/missing_database');
 
 export const db = drizzle(sql, {
   schema: {

@@ -110,9 +110,9 @@ export const COA_SEED: AccountSeed[] = [
   {
     code: '1-1420',
     name: n(
-      'Sewa Dibayar Dimuka - Kantor Jakarta',
-      'Prepaid Rent of Jakarta Office',
-      '预付租金-雅加达',
+      'Sewa Dibayar Dimuka - Toko Plaza Malioboro',
+      'Prepaid Rent of Plaza Malioboro Store',
+      '预付租金-Plaza Malioboro',
     ),
     type: 'asset',
     subtype: 'current_asset',
@@ -145,7 +145,11 @@ export const COA_SEED: AccountSeed[] = [
   },
   {
     code: '1-1510',
-    name: n('Deposit Jaminan Kantor Jakarta', 'Jakarta Office Security Deposit', '保证金-雅加达'),
+    name: n(
+      'Deposit Jaminan Toko Plaza Malioboro',
+      'Plaza Malioboro Store Security Deposit',
+      '保证金-Plaza Malioboro',
+    ),
     type: 'asset',
     subtype: 'current_asset',
     normalBalance: 'debit',
@@ -634,9 +638,9 @@ export const COA_SEED: AccountSeed[] = [
   {
     code: '6-1020',
     name: n(
-      'Beban Utilitas Kantor Jakarta',
-      'Jakarta Office Utilities Expense',
-      '雅加达办公室水电费',
+      'Beban Utilitas Toko Plaza Malioboro',
+      'Plaza Malioboro Store Utilities Expense',
+      'Plaza Malioboro 店铺水电费',
     ),
     type: 'expense',
     subtype: 'operating',
@@ -861,7 +865,11 @@ export const COA_SEED: AccountSeed[] = [
   },
   {
     code: '6-1280',
-    name: n('Beban Sewa Kantor Jakarta', 'Jakarta Office Rent Expense', '雅加达办公室租金'),
+    name: n(
+      'Beban Sewa Toko Plaza Malioboro',
+      'Plaza Malioboro Store Rent Expense',
+      'Plaza Malioboro 店铺租金',
+    ),
     type: 'expense',
     subtype: 'operating',
     normalBalance: 'debit',

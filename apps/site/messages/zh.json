@@ -68,7 +68,7 @@
       "Barley Pearl"
     ],
     "locationTitle": "从日惹开始运营",
-    "locationSubtitle": "门店和办公室数据保存在 ERP 中，地点页面可跟随运营数据更新。"
+    "locationSubtitle": "Aroadri Tea 目前在日惹运营：Malioboro Mall 与 Plaza Malioboro。"
   },
   "menu": {
     "title": "Aroadri Tea 菜单",
@@ -93,13 +93,20 @@
   },
   "locations": {
     "title": "Aroadri Tea 门店",
-    "subtitle": "地点数据来自 ERP，因此门店和办公室地址可无需修改代码即可更新。",
-    "empty": "数据库中还没有可用地点。",
+    "subtitle": "目前有两家门店位于日惹 Malioboro 区域。主要地点数据仍来自 ERP，因此门店地址可无需修改代码即可更新。",
+    "empty": "数据库中还没有可用门店。",
     "defaultHours": "10:00-22:00 WIB",
     "store": "门店",
-    "office": "办公室"
+    "office": "办公室",
+    "map": "打开地图",
+    "social": "关注 @aroadri.tea"
   },
   "footer": {
+    "company": "PT. Gandha Hill Catering Management Indonesia",
+    "locationLine": "日惹 - Malioboro Mall & Plaza Malioboro",
+    "socialLabel": "社交媒体",
+    "instagramLabel": "Instagram @aroadri.tea",
+    "tiktokLabel": "TikTok @aroadri.tea",
     "copyright": "© {year} {brand}. 版权所有。"
   },
   "member": {

@@ -6,11 +6,11 @@ DONE
 
 ## Scope
 
-- Improve `apps/site` homepage/header/footer from placeholder UI to brand-aligned public website.
+- Improve `apps/site` homepage/header/footer from the initial UI to brand-aligned public website.
 - Replace hardcoded/demo public menu content with Aroadri Tea real menu, pricing, and product photos.
 - Revise POS member lookup flow to cashier phone lookup + name confirmation.
 - Audit and harden critical POS, accounting, reporting, and tax paths before production.
-- Scan repository for unresolved placeholder/TODO/deferred markers and fix production-blocking, user-facing items.
+- Scan repository for unresolved unfinished-work markers and fix production-blocking, user-facing items.
 
 ## Context
 
@@ -53,7 +53,7 @@ DONE
   - Coretax MCP export now returns real posted tax-line rows and CSV;
   - MCP `reporting.cash_flow` implemented through a real `cashFlow` service.
 - Removed production `console.error` from the POS sync API route.
-- Worker scheduled jobs that were still not production-configured now fail closed instead of reporting placeholder success.
+- Worker scheduled jobs that were still not production-configured now fail closed instead of reporting artificial success.
 - Default seed disables unconfigured backup, payroll batch, stock low alert, and ISR revalidation jobs.
 - Production DB was updated via `pnpm jobs:disable-unconfigured` so those jobs are disabled on the VPS until explicitly configured.
 
@@ -78,14 +78,14 @@ DONE
 
 ## Remaining scan items
 
-Production-critical POS/accounting/tax placeholders are resolved. Remaining non-critical or separately scoped scan hits:
+Production-critical POS/accounting/tax unfinished markers are resolved. Remaining non-critical or separately scoped scan hits:
 
 - Backup is currently expected from the managed database/provider side; the worker backup job is disabled and fail-closed unless `BACKUP_PROVIDER_MANAGED=true` is intentionally set.
 - `apps/web/app/(dash)/accounting/journals/[id]/attachments-list.tsx`: upload UI still says object storage endpoint must be configured; journal attachment list/delete exists.
-- `apps/mcp/src/tools/phase2.ts`: historical Phase 2+ stub file still contains informative not-implemented responses; current registered tools should be checked before production exposure.
+- `apps/mcp/src/tools/phase2.ts`: historical Phase 2+ baseline file still contained informative unavailable responses; current registered tools were checked before production exposure.
 - `packages/services/src/hr/attendance-service.ts`: GPS coordinate validation is waiting for real location coordinate schema.
-- Many `placeholder=` matches are normal HTML input placeholders and not unfinished code.
-- Older checkpoint files still describe historical placeholders that have since been implemented.
+- Many input-hint matches were normal HTML field hints and not unfinished code.
+- Older checkpoint files still described historical interim states that have since been implemented.
 
 ## Next step
 

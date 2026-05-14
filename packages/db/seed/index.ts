@@ -2,14 +2,14 @@
  * Seed runner — inserts all seed data into the database.
  * Usage: pnpm --filter @erp/db seed
  *
- * Requires DATABASE_URL in .env. Seeds are idempotent (onConflictDoNothing).
+ * Requires DATABASE_URL in .env. Seeds are idempotent and refresh mutable defaults.
  * Order: tenants → locations → roles → permissions → role_permissions → users → user_roles → COA
  */
 
 import { generateId } from '@erp/shared/id';
 import { neon } from '@neondatabase/serverless';
 import * as argon2 from 'argon2';
-import { eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
 import type { Database } from '../client';
 import { accounts, taxRates, taxRules } from '../schema/accounting';
@@ -22,6 +22,7 @@ import {
   userRoles,
   users,
 } from '../schema/auth';
+import { customFieldDefinitions, customFieldValues } from '../schema/customfield';
 import { naixerQrFormatConfig } from '../schema/kitchen';
 import { posSettings } from '../schema/pos';
 import { scheduledJobs } from '../schema/scheduled-jobs';
@@ -29,11 +30,13 @@ import { COA_SEED } from './coa';
 import {
   DEFAULT_TENANT,
   DEV_ADMIN_USER,
+  LEGACY_INACTIVE_LOCATION_CODES,
   LOCATIONS_SEED,
   PERMISSIONS_SEED,
   ROLES_SEED,
   ROLE_PERMISSION_MAP,
 } from './iam';
+import { LOCATION_GPS_FIELDS, LOCATION_GPS_VALUES } from './location-gps';
 import { seedMenu } from './menu';
 import { NAIXER_QR_FORMAT_DEFAULTS } from './naixer-seed';
 import { SCHEDULED_JOBS_SEED } from './scheduled-jobs-seed';
@@ -68,7 +71,6 @@ async function seed() {
   const locationIds = new Map<string, string>();
   for (const loc of LOCATIONS_SEED) {
     const id = generateId();
-    locationIds.set(loc.code, id);
     await db
       .insert(locations)
       .values({
@@ -78,24 +80,102 @@ async function seed() {
         name: loc.name,
         type: loc.type,
         address: loc.address,
+        status: 'active',
       })
-      .onConflictDoNothing();
+      .onConflictDoUpdate({
+        target: [locations.tenantId, locations.code],
+        set: {
+          name: loc.name,
+          type: loc.type,
+          address: loc.address,
+          status: 'active',
+          updatedAt: new Date(),
+        },
+      });
   }
+
+  await db
+    .update(locations)
+    .set({ status: 'inactive', updatedAt: new Date() })
+    .where(
+      and(
+        eq(locations.tenantId, tenantId),
+        inArray(locations.code, LEGACY_INACTIVE_LOCATION_CODES),
+      ),
+    );
+
   const locationRows = await db
     .select({ id: locations.id, code: locations.code })
     .from(locations)
-    .where(eq(locations.tenantId, tenantId));
-  locationIds.clear();
+    .where(
+      and(
+        eq(locations.tenantId, tenantId),
+        eq(locations.status, 'active'),
+        eq(locations.type, 'store'),
+      ),
+    );
   for (const loc of locationRows) {
     locationIds.set(loc.code, loc.id);
   }
   console.info(`✅ ${LOCATIONS_SEED.length} locations seeded`);
 
+  // 2b. Location GPS settings (custom fields, UI-editable)
+  const gpsDefinitionIds = new Map<string, string>();
+  for (const field of LOCATION_GPS_FIELDS) {
+    const [existing] = await db
+      .select({ id: customFieldDefinitions.id })
+      .from(customFieldDefinitions)
+      .where(
+        and(
+          eq(customFieldDefinitions.tenantId, tenantId),
+          eq(customFieldDefinitions.entityType, 'location'),
+          eq(customFieldDefinitions.key, field.key),
+        ),
+      )
+      .limit(1);
+
+    const definitionId = existing?.id ?? generateId();
+    if (!existing) {
+      await db.insert(customFieldDefinitions).values({
+        id: definitionId,
+        tenantId,
+        entityType: 'location',
+        key: field.key,
+        name: field.name,
+        dataType: 'number',
+        isRequired: false,
+        isIndexed: true,
+        displayOrder: field.displayOrder,
+      });
+    }
+    gpsDefinitionIds.set(field.key, definitionId);
+  }
+
+  for (const [locationCode, values] of Object.entries(LOCATION_GPS_VALUES)) {
+    const entityId = locationIds.get(locationCode);
+    if (!entityId) continue;
+    for (const [key, value] of Object.entries(values)) {
+      const definitionId = gpsDefinitionIds.get(key);
+      if (!definitionId) continue;
+      await db
+        .insert(customFieldValues)
+        .values({
+          definitionId,
+          entityId,
+          value,
+        })
+        .onConflictDoUpdate({
+          target: [customFieldValues.definitionId, customFieldValues.entityId],
+          set: { value, updatedAt: new Date() },
+        });
+    }
+  }
+  console.info('✅ Location GPS attendance settings seeded');
+
   // 3. Roles
   const roleIds = new Map<string, string>();
   for (const role of ROLES_SEED) {
     const id = generateId();
-    roleIds.set(role.code, id);
     await db
       .insert(roles)
       .values({
@@ -106,13 +186,19 @@ async function seed() {
       })
       .onConflictDoNothing();
   }
+  const roleRows = await db
+    .select({ id: roles.id, code: roles.code })
+    .from(roles)
+    .where(eq(roles.tenantId, tenantId));
+  for (const role of roleRows) {
+    roleIds.set(role.code, role.id);
+  }
   console.info(`✅ ${ROLES_SEED.length} roles seeded`);
 
   // 4. Permissions
   const permIds = new Map<string, string>();
   for (const perm of PERMISSIONS_SEED) {
     const id = generateId();
-    permIds.set(perm.code, id);
     await db
       .insert(permissions)
       .values({
@@ -121,6 +207,12 @@ async function seed() {
         module: perm.module,
       })
       .onConflictDoNothing();
+  }
+  const permissionRows = await db
+    .select({ id: permissions.id, code: permissions.code })
+    .from(permissions);
+  for (const perm of permissionRows) {
+    permIds.set(perm.code, perm.id);
   }
   console.info(`✅ ${PERMISSIONS_SEED.length} permissions seeded`);
 
@@ -165,6 +257,12 @@ async function seed() {
       emailVerified: new Date(),
     })
     .onConflictDoNothing();
+  const [adminRow] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, DEV_ADMIN_USER.email))
+    .limit(1);
+  const resolvedAdminId = adminRow?.id ?? adminId;
   console.info(`✅ Admin user seeded (${DEV_ADMIN_USER.email})`);
 
   // 7. Assign director role to admin (global scope)
@@ -173,7 +271,7 @@ async function seed() {
     await db
       .insert(userRoles)
       .values({
-        userId: adminId,
+        userId: resolvedAdminId,
         roleId: directorRoleId,
         locationId: null,
       })
@@ -195,7 +293,17 @@ async function seed() {
         normalBalance: acct.normalBalance,
         isPostable: acct.isPostable,
       })
-      .onConflictDoNothing();
+      .onConflictDoUpdate({
+        target: [accounts.tenantId, accounts.code],
+        set: {
+          name: acct.name,
+          type: acct.type,
+          subtype: acct.subtype,
+          normalBalance: acct.normalBalance,
+          isPostable: acct.isPostable,
+          updatedAt: new Date(),
+        },
+      });
   }
   console.info(`✅ ${COA_SEED.length} COA accounts seeded`);
 

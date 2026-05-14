@@ -562,6 +562,7 @@
       "location": "Lokasi",
       "noDataForDate": "Tidak ada data untuk tanggal ini.",
       "selectLocationFirst": "Pilih lokasi terlebih dahulu.",
+      "noActiveLocations": "Belum ada outlet aktif",
       "howItWorks": "Cara Kerja",
       "howItWorksDesc": "Kolom C–E terisi otomatis dari data penjualan. Kolom F (Penyesuaian) untuk koreksi manual (retur, transaksi batal, dll). Export Excel untuk laporan pajak Coretax.",
       "fiscalWarning": "⚠️ Omzet fiskal berbeda dari omzet akuntansi sebesar Rp {diff} ({direction}).",

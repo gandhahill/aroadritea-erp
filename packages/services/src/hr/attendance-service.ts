@@ -9,7 +9,7 @@
  */
 
 import { db } from '@erp/db';
-import { locations } from '@erp/db/schema/auth';
+import { customFieldDefinitions, customFieldValues } from '@erp/db/schema/customfield';
 import { attendance, employees, shiftDefinitions } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -44,6 +44,12 @@ export interface CheckOutResult {
   id: string;
   checkOutAt: Date;
   workedMinutes: number | null;
+}
+
+interface LocationGpsConfig {
+  lat: number;
+  lng: number;
+  radiusM: number;
 }
 
 // ─── Input schemas ───────────────────────────────────────────────────────────
@@ -118,6 +124,34 @@ function calcLateMinutes(actualCheckIn: Date, expectedShiftStart: Date): number 
   return diffMin;
 }
 
+async function getLocationGpsConfig(
+  tenantId: string,
+  locationId: string,
+): Promise<LocationGpsConfig | null> {
+  const rows = await db
+    .select({
+      key: customFieldDefinitions.key,
+      value: customFieldValues.value,
+    })
+    .from(customFieldDefinitions)
+    .innerJoin(customFieldValues, eq(customFieldValues.definitionId, customFieldDefinitions.id))
+    .where(
+      and(
+        eq(customFieldDefinitions.tenantId, tenantId),
+        eq(customFieldDefinitions.entityType, 'location'),
+        eq(customFieldValues.entityId, locationId),
+      ),
+    );
+
+  const values = new Map(rows.map((row) => [row.key, Number(row.value)]));
+  const lat = values.get('gps_lat');
+  const lng = values.get('gps_lng');
+  const radiusM = values.get('gps_radius_m') ?? 150;
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || !Number.isFinite(radiusM)) return null;
+  return { lat: lat!, lng: lng!, radiusM };
+}
+
 // ─── checkIn ────────────────────────────────────────────────────────────────
 
 export async function checkIn(
@@ -177,7 +211,12 @@ export async function checkIn(
       }
 
       // 3. GPS verification (if GPS method)
-      if (data.method === 'gps' && data.gpsData) {
+      if (data.method === 'gps') {
+        if (!data.gpsData) {
+          throw AppError.validation('hr.attendance.gpsRequired', {
+            message: 'GPS check-in requires a current location reading.',
+          });
+        }
         const gps = data.gpsData;
         if (gps.accuracy_m > 200) {
           throw AppError.validation('hr.attendance.gpsInaccurate', {
@@ -186,16 +225,22 @@ export async function checkIn(
           });
         }
 
-        // Verify against registered location coordinates
-        const [loc] = await db
-          .select({ coordinates: sql`${locations.id}::jsonb` }) // placeholder — coordinates stored elsewhere
-          .from(locations)
-          .where(eq(locations.id, ctx.locationId))
-          .limit(1);
+        const locationGps = await getLocationGpsConfig(ctx.tenantId, ctx.locationId);
+        if (!locationGps) {
+          throw AppError.validation('hr.attendance.gpsLocationNotConfigured', {
+            locationId: ctx.locationId,
+            message: 'GPS coordinates for this location are not configured.',
+          });
+        }
 
-        // Location GPS check: we check against the location's stored GPS coords
-        // (For now, skip distance check — full GPS coord storage in locations table is TBD)
-        // TODO: verify against location.coordinates_gps JSONB when locations schema is extended
+        const distanceM = haversineM(gps.lat, gps.lng, locationGps.lat, locationGps.lng);
+        if (distanceM > locationGps.radiusM) {
+          throw AppError.validation('hr.attendance.outsideLocationRadius', {
+            distanceM: Math.round(distanceM),
+            radiusM: locationGps.radiusM,
+            message: 'You are outside the configured attendance radius for this location.',
+          });
+        }
       }
 
       // 4. Calculate late minutes

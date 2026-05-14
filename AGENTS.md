@@ -6,7 +6,7 @@ This document explains how Codex (and other AI assistants) work in the Aroadri T
 
 ## 1. Project Context
 
-This repository is a **custom ERP system** for **PT. Gandha Hill Catering Management Indonesia** (brand **Aroadri Tea**) — a Chinese-style bubble tea & dessert shop with locations in Yogyakarta and offices in Yogyakarta + Jakarta.
+This repository is a **custom ERP system** for **PT. Gandha Hill Catering Management Indonesia** (brand **Aroadri Tea**) — a Chinese-style bubble tea & dessert shop with active outlets in Yogyakarta.
 
 - **PIC + developer**: Lintang Maulana Zulfan (`lintangmaulanazulfan@gmail.com`)
 - **Working language**: Bahasa Indonesia (for communication & documentation). Code comments may be in English.
@@ -233,7 +233,7 @@ When building a new feature, **always consider** a corresponding MCP tool — so
 
 ## 7. Directory Structure (To Be Filled)
 
-> Currently empty. After the initial scaffold, document the layout here. Example placeholder:
+> Currently empty. After the initial scaffold, document the layout here. Example outline:
 >
 > ```
 > ERP/
@@ -287,7 +287,6 @@ Open business questions:
 - [ ] Complete supplier list + payment terms (will be entered by user into the system later).
 - [ ] Complete fixed asset list with acquisition value, date, useful life (in separate Excel file, needs import).
 - [ ] Complete recipe / BOM list (will be entered by user after module is ready).
-- [ ] Is Plaza Malioboro second outlet operational or still in preparation? (Status in questionnaire: Active, needs confirmation)
 - [ ] Tax consultant confirmation: are retail F&B sales subject to PPN in addition to PB1 or not?
 
 ---

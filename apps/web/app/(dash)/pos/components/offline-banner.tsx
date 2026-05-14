@@ -14,12 +14,12 @@ import { useOfflineSync } from '../lib/offline-sync-context';
 
 export function OfflineBanner() {
   const t = useTranslations('pos.offline');
-  const { isOnline, pendingCount, isSyncing, syncNow } = useOfflineSync();
+  const { isOnline, pendingCount, isSyncing, failedRetryCount, syncNow } = useOfflineSync();
 
   if (isOnline && pendingCount === 0) return null;
 
   const isOffline = !isOnline;
-  const isCritical = false; // TODO: track consecutive failures > 3
+  const isCritical = failedRetryCount >= 3;
 
   const bgClass = isCritical
     ? 'bg-red-600 text-white'

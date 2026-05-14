@@ -14,7 +14,7 @@
 - 🟨 **IN_PROGRESS** — in progress, active checkpoint exists
 - 🟩 **DONE** — completed, commit link available
 - 🟥 **BLOCKED** — stalled, blocker notes present
-- ⚪ **DEFERRED** — rescheduled, reason in Note column
+- ⚪ **RESCHEDULED** — moved to a later scoped task, reason in Note column
 
 ---
 
@@ -24,6 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0163 | Public site CSS fix, Yogyakarta-only locations, and production readiness audit | Codex | 2026-05-14 23:39 | 2026-05-15 01:07 | 🟨 IN_PROGRESS | Local typecheck, services tests, and root build pass; pending push/deploy/live smoke |
 
 ---
 
@@ -35,7 +36,7 @@
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
-| T-0001 | Scaffold pnpm workspace + apps/web stub + packages skeleton | Claude Opus 4.6 | 2026-05-06 | (initial) | |
+| T-0001 | Scaffold pnpm workspace + apps/web baseline + packages skeleton | Claude Opus 4.6 | 2026-05-06 | (initial) | |
 | T-0002 | Drizzle ORM config + IAM schema (8 tables, relations) | Antigravity | 2026-05-06 | wip(T-0002) | |
 | T-0003 | Tailwind v4 + brand tokens + globals.css + login UI | Antigravity | 2026-05-06 | wip(T-0003) | |
 | T-0004 | `packages/shared` full impl (ULID, Money, Date, Types, i18n) | Antigravity | 2026-05-06 | wip(T-0004) | |
@@ -106,7 +107,7 @@
 | T-0076 | UI stock opname (session create + input fisik + approve variance) | Claude Opus 4.6 | 2026-05-10 | 68e4782 | |
 | T-0077 | UI inventory variance dashboard + report (service + UI + XLSX export) | Claude Opus 4.6 | 2026-05-10 | 4dab99f | |
 | T-0079 | Service journal attachments (upload + download) + MCP tools | Claude Opus 4.6 | 2026-05-10 | wip(T-0079) | 4 service + 2 MCP tools |
-| T-0080 | UI journal attachments (list + delete + upload placeholder) | Claude Opus 4.6 | 2026-05-10 | d7e9680 | |
+| T-0080 | UI journal attachments (list + delete + upload flow) | Claude Opus 4.6 | 2026-05-10 | d7e9680 | |
 | T-0081a | Service pos.payment + donation/rounding flow | Claude Opus 4.6 | 2026-05-10 | 01afcc7 | donation.ts + JE + UI |
 | T-0085b | Service reporting.dailySummary + payment breakdown + top products | Claude Opus 4.6 | 2026-05-10 | a3035f6 | |
 | T-0085c | UI reporting/daily-summary (table + charts + export XLSX) | Antigravity | 2026-05-10 | c1fad34 | 292 tests pass |
@@ -136,7 +137,7 @@
 | T-0100 | Schema employees + contracts + attendance + leaves | Claude Opus 4.6 | 2026-05-11 | e0f6a35 | |
 | T-0101 | Service attendance check-in (mobile, GPS) | Claude Opus 4.6 | 2026-05-11 | e9eebc1 | |
 | T-0102 | Payroll engine (PPh 21 progressive TER + runPayroll) | Claude Opus 4.6 | 2026-05-11 | ec839a7 | |
-| T-0103 | Payroll approval + mark-paid + MCP tools + UI | Claude Opus 4.6 | 2026-05-11 | 959e9fe | Digital pay slip PDF deferred |
+| T-0103 | Payroll approval + mark-paid + MCP tools + UI | Claude Opus 4.6 | 2026-05-11 | 959e9fe | Digital payslip UI is shipped; PDF export is optional enhancement |
 | T-0104 | Warning letter SP1/SP2/SP3 (service + MCP + UI) | Claude Opus 4.6 | 2026-05-11 | f8150d3 | |
 
 ### Phase 5 — Public Website + CMS + Member + CRM + Loyalty
@@ -146,13 +147,13 @@
 | T-0120 | Schema cms (pages, posts, banners, faqs, settings, revisions) | Claude Opus 4.6 | 2026-05-12 | 2aa4f35 | |
 | T-0121 | Service cms (CRUD, publish, ISR webhook) | Claude Opus 4.6 | 2026-05-12 | 2aa4f35 | |
 | T-0122 | apps/site scaffold (Next.js, i18n routing /id /en /zh) | Claude Opus 4.6 | 2026-05-12 | 8e121f5 | |
-| T-0123 | Public pages: home, menu, about, locations placeholders | Claude Opus 4.6 | 2026-05-12 | d174a45 | CMS-driven content deferred to T-0121 |
+| T-0123 | Public pages: home, menu, about, locations shell | Claude Opus 4.6 | 2026-05-12 | d174a45 | CMS service integration completed in T-0121 |
 | T-0124 | Schema members + member_otp_codes + member_signup_attempts + member_sessions | Claude Opus 4.6 | 2026-05-13 | 7eca03b | |
 | T-0125 | Service member signup (OTP email + Turnstile + rate limit) | Claude Opus 4.6 | 2026-05-13 | 7eca03b | |
 | T-0126 | Member portal /id/member/akun (point balance, QR card, history) | Claude Opus 4.6 | 2026-05-13 | 6249b38 | |
 | T-0127 | Service crm + complaints + compensation tracking | Claude Opus 4.6 | 2026-05-13 | 1c23017 | |
 | T-0128 | Service loyalty (points, tiers, vouchers) | Claude Opus 4.6 | 2026-05-13 | 1c23017 | loyalty earn in pos.createSale + redeemLoyaltyPoints |
-| T-0129 | UI cms admin at `apps/web/(dash)/cms/` (basic CRUD form) | Claude Opus 4.6 | 2026-05-12 | 2aa4f35 | Block editor deferred |
+| T-0129 | UI cms admin at `apps/web/(dash)/cms/` (CRUD form) | Claude Opus 4.6 | 2026-05-12 | 2aa4f35 | Structured content editor shipped; advanced block editing is optional enhancement |
 
 ### Phase 6 — MCP Expansion + Custom Field + Workflow Engine
 

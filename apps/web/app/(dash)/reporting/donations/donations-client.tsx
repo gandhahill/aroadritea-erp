@@ -5,11 +5,18 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { fetchDonationReport } from './actions';
 
+type LocationOption = {
+  id: string;
+  code: string;
+  label: string;
+};
+
 interface Props {
   initialData: { data?: DonationReportResult; error?: string };
   defaultStartDate: string;
   defaultEndDate: string;
   defaultLocationId: string;
+  locationOptions: LocationOption[];
 }
 
 export function DonationsClient({
@@ -17,6 +24,7 @@ export function DonationsClient({
   defaultStartDate,
   defaultEndDate,
   defaultLocationId,
+  locationOptions,
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -113,13 +121,18 @@ export function DonationsClient({
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-brand-ink-3">Lokasi</label>
-          <input
-            type="text"
+          <select
             value={locationId}
             onChange={(e) => setLocationId(e.target.value)}
-            placeholder="Semua lokasi"
-            className="h-9 w-40 rounded-lg border border-brand-cream-3 px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50"
-          />
+            className="h-9 min-w-52 rounded-lg border border-brand-cream-3 px-3 text-sm text-brand-ink"
+          >
+            <option value="">Semua lokasi</option>
+            {locationOptions.map((location) => (
+              <option key={location.id} value={location.id}>
+                {location.label} ({location.code})
+              </option>
+            ))}
+          </select>
         </div>
         <button
           onClick={handleFilter}

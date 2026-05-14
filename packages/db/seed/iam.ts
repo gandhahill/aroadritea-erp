@@ -18,29 +18,29 @@ export const DEFAULT_TENANT = {
 export const LOCATIONS_SEED = [
   {
     code: 'MLI',
-    name: n('Toko Malioboro', 'Malioboro Store', '马里奥波罗店'),
+    name: n(
+      'Aroadri Tea Malioboro Mall',
+      'Aroadri Tea Malioboro Mall',
+      'Aroadri Tea Malioboro Mall',
+    ),
     type: 'store' as const,
-    address: 'Malioboro Mall, Yogyakarta',
+    address:
+      'Malioboro Mall, Jl. Mataram No. 31, Suryatmajan, Danurejan, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55213',
   },
   {
     code: 'PLZ',
-    name: n('Toko Plaza Malioboro', 'Plaza Malioboro Store', '广场马里奥波罗店'),
+    name: n(
+      'Aroadri Tea Plaza Malioboro',
+      'Aroadri Tea Plaza Malioboro',
+      'Aroadri Tea Plaza Malioboro',
+    ),
     type: 'store' as const,
-    address: 'Plaza Malioboro, Yogyakarta',
-  },
-  {
-    code: 'JKT',
-    name: n('Kantor Jakarta', 'Jakarta Office', '雅加达办公室'),
-    type: 'office' as const,
-    address: 'Jakarta',
-  },
-  {
-    code: 'YOG',
-    name: n('Kantor Yogyakarta', 'Yogyakarta Office', '日惹办公室'),
-    type: 'office' as const,
-    address: 'Yogyakarta',
+    address:
+      'Plaza Malioboro, Jl. Malioboro No. 52-58, Suryatmajan, Danurejan, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55213',
   },
 ];
+
+export const LEGACY_INACTIVE_LOCATION_CODES = ['JKT', 'YOG'];
 
 // === ROLES — SoT §3.2 ===
 export const ROLES_SEED = [

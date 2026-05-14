@@ -15,7 +15,7 @@ SKIP=0
 
 echo "╔═══════════════════════════════════════════════════════════╗"
 echo "║   AROADRI TEA ERP — Resilience Test Suite (Phase 1)      ║"
-echo "║   SD §35.2: 8 scenarios (4 Phase 1, 4 deferred)         ║"
+echo "║   SD §35.2: 8 scenarios (4 Phase 1, 4 remaining)        ║"
 echo "╚═══════════════════════════════════════════════════════════╝"
 echo ""
 echo "Compose file: $COMPOSE_FILE"

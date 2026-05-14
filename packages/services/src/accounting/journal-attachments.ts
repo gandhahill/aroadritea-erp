@@ -2,7 +2,7 @@
  * accounting.journalAttachments — SD §25.10
  *
  * Manages metadata records for journal entry file attachments.
- * Actual file upload/download (R2/S3 presigned URLs) handled at API layer.
+ * File bytes are stored and served by the web transport layer.
  */
 
 import { db } from '@erp/db';
@@ -84,13 +84,8 @@ export async function createJournalAttachment(
   }
   const data = parsed.data;
 
-  const permCheck = await requirePermission(ctx.userId, 'accounting.journal.create', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const je = await db
-    .select({ id: journalEntries.id })
+    .select({ id: journalEntries.id, locationId: journalEntries.locationId })
     .from(journalEntries)
     .where(
       and(eq(journalEntries.id, data.journalEntryId), eq(journalEntries.tenantId, ctx.tenantId)),
@@ -102,6 +97,11 @@ export async function createJournalAttachment(
       AppError.notFound('accounting.journal.notFound', { journalId: data.journalEntryId }),
     );
   }
+
+  const permCheck = await requirePermission(ctx.userId, 'accounting.journal.create', {
+    locationId: je[0].locationId,
+  });
+  if (!permCheck.ok) return permCheck;
 
   return tryCatch(
     async () => {
@@ -153,13 +153,8 @@ export async function listJournalAttachments(
   journalEntryId: string,
   ctx: AuditContext,
 ): Promise<Result<JournalAttachmentResult[]>> {
-  const permCheck = await requirePermission(ctx.userId, 'accounting.view', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const je = await db
-    .select({ id: journalEntries.id })
+    .select({ id: journalEntries.id, locationId: journalEntries.locationId })
     .from(journalEntries)
     .where(and(eq(journalEntries.id, journalEntryId), eq(journalEntries.tenantId, ctx.tenantId)))
     .limit(1);
@@ -167,6 +162,11 @@ export async function listJournalAttachments(
   if (!je[0]) {
     return err(AppError.notFound('accounting.journal.notFound', { journalId: journalEntryId }));
   }
+
+  const permCheck = await requirePermission(ctx.userId, 'accounting.view', {
+    locationId: je[0].locationId,
+  });
+  if (!permCheck.ok) return permCheck;
 
   const rows = await db
     .select()
@@ -177,27 +177,32 @@ export async function listJournalAttachments(
 }
 
 /**
- * Delete an attachment record (soft — removes metadata; actual file cleanup deferred to worker).
+ * Delete an attachment metadata record after the caller has authorized the action.
  */
 export async function deleteJournalAttachment(
   attachmentId: string,
   ctx: AuditContext,
 ): Promise<Result<void>> {
-  const permCheck = await requirePermission(ctx.userId, 'accounting.journal.create', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const rows = await db
-    .select()
+    .select({
+      attachment: journalAttachments,
+      journalLocationId: journalEntries.locationId,
+    })
     .from(journalAttachments)
-    .where(eq(journalAttachments.id, attachmentId))
+    .innerJoin(journalEntries, eq(journalEntries.id, journalAttachments.journalEntryId))
+    .where(and(eq(journalAttachments.id, attachmentId), eq(journalEntries.tenantId, ctx.tenantId)))
     .limit(1);
 
-  const attachment = rows[0];
-  if (!attachment) {
+  const row = rows[0];
+  if (!row) {
     return err(AppError.notFound('accounting.attachment.notFound', { attachmentId }));
   }
+  const attachment = row.attachment;
+
+  const permCheck = await requirePermission(ctx.userId, 'accounting.journal.create', {
+    locationId: row.journalLocationId,
+  });
+  if (!permCheck.ok) return permCheck;
 
   return tryCatch(
     async () => {

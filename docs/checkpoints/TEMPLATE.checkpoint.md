@@ -54,7 +54,7 @@ Daftar langkah konkret yang akan dijalankan. Tandai checklist saat selesai.
 
 ## Open issues / Questions
 
-> Pertanyaan yang muncul, bug yang ditemukan, TODO yang ditunda.
+> Pertanyaan yang muncul, bug yang ditemukan, dan catatan tindak lanjut.
 
 - _(belum ada)_
 

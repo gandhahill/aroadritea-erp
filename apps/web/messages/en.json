@@ -550,6 +550,7 @@
       "location": "Location",
       "noDataForDate": "No data for this date.",
       "selectLocationFirst": "Select a location first.",
+      "noActiveLocations": "No active outlets",
       "howItWorks": "How It Works",
       "howItWorksDesc": "Columns C–E are auto-filled from sales data. Column F (Adjustment) is for manual corrections (returns, cancelled transactions, etc). Export Excel for Coretax tax reporting.",
       "fiscalWarning": "⚠️ Fiscal omzet differs from accounting omzet by Rp {diff} ({direction}).",

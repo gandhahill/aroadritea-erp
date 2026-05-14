@@ -50,6 +50,11 @@ export default async function LocaleLayout({ children, params }: Props) {
           <PublicFooter
             brand={brand}
             tagline={tagline}
+            company={footer('company')}
+            locationLine={footer('locationLine')}
+            socialLabel={footer('socialLabel')}
+            instagramLabel={footer('instagramLabel')}
+            tiktokLabel={footer('tiktokLabel')}
             copyright={footer('copyright', { brand, year: new Date().getFullYear() })}
           />
         </ClientLayout>

@@ -15,7 +15,7 @@ Complete the payroll workflow:
 - ✅ **markPayrollPaid**: mark as paid (status = paid)
 - ✅ **MCP tools**: `payroll.run`, `payroll.approve`, `payroll.mark_paid`
 - ✅ **UI**: payroll detail page with employee breakdown + approve/mark-paid buttons
-- ⏸️ Digital pay slip (PDF): deferred — use `generatePdf` from `@react-pdf/renderer` when needed
+- Digital payslip PDF export is an optional enhancement; use `generatePdf` from `@react-pdf/renderer` when needed
 
 ## What Was Built
 

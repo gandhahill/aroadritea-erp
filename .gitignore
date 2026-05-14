@@ -9,6 +9,7 @@ out/
 build/
 apps/web/public/sw.js
 _tmp_*
+storage/
 
 # Environment
 .env

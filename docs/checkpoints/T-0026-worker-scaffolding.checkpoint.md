@@ -44,7 +44,7 @@ Scaffold `apps/worker` dengan pg-boss queue dan DB-driven cron schedules.
 - `apps/worker/src/scheduler.ts` — DB-to-pg-boss sync (startup + 60s polling)
 - `apps/worker/src/index.ts` — simplified: just boss.start() + startScheduler()
 - `apps/worker/src/boss.ts` — pg-boss initialization
-- `apps/worker/src/jobs/` — 4 placeholder job handlers
+- `apps/worker/src/jobs/` — 4 initial job handlers
 - `apps/worker/Dockerfile` — multi-stage build
 - `apps/worker/tsconfig.json` — added paths for cross-package imports
 - `apps/web/messages/id.json` — added scheduledJobs i18n keys
@@ -55,8 +55,8 @@ Scaffold `apps/worker` dengan pg-boss queue dan DB-driven cron schedules.
 
 - `docker-compose.yml` not created yet — T-0028 will add full Docker Compose
 - pg-boss schema migration runs automatically on first `boss.start()` — no separate migration script needed
-- Job retry dead-letter handling deferred to Phase 6 (T-0157 notification)
-- Settings UI for managing schedules not implemented yet — placeholder for future work
+- Job retry dead-letter handling scheduled for Phase 6 (T-0157 notification)
+- Settings UI for managing schedules was added later in the scheduled-jobs settings task
 
 ## Next step
 

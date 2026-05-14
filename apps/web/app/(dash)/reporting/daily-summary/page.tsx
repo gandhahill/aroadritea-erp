@@ -5,6 +5,7 @@
  */
 
 import { getSession } from '@/lib/auth';
+import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/location-options';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchDailySummary } from './actions';
@@ -27,17 +28,27 @@ export default async function DailySummaryPage({
 
   const params = await searchParams;
   const today = new Date().toISOString().slice(0, 10);
+  const user = session.user as Record<string, unknown>;
+  const tenantId = (user.tenantId as string) ?? 'default';
+  const sessionLocationId = user.locationId as string | undefined;
+  const locationOptions = await getActiveLocationOptions({ tenantId, locale: 'id', type: 'store' });
 
   const startDate = params.startDate ?? today;
   const endDate = params.endDate ?? today;
-  const locationId = params.locationId ?? 'LOC-001';
+  const locationId = resolveDefaultLocationId(
+    locationOptions,
+    params.locationId,
+    sessionLocationId,
+  );
 
-  const data = await fetchDailySummary({
-    locationId,
-    startDate,
-    endDate,
-    cashierId: params.cashierId,
-  });
+  const data = locationId
+    ? await fetchDailySummary({
+        locationId,
+        startDate,
+        endDate,
+        cashierId: params.cashierId,
+      })
+    : { error: 'Belum ada outlet aktif untuk laporan harian.' };
 
   return (
     <DailySummaryClient
@@ -45,6 +56,7 @@ export default async function DailySummaryPage({
       defaultStartDate={startDate}
       defaultEndDate={endDate}
       defaultLocationId={locationId}
+      locationOptions={locationOptions}
     />
   );
 }

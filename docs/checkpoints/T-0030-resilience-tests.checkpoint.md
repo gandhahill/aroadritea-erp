@@ -16,6 +16,6 @@ Per SYSTEM-DESIGN §35.2: 8 test scenarios for production deploy readiness.
 - `scripts/resilience-tests/08-db-reconnect.sh` — scenario 8: DB reconnect timing
 
 ## Notes
-- Scenarios 1, 2, 5, 6 deferred to Phase 2 (require POS PWA + sync endpoint)
+- Scenarios 1, 2, 5, 6 scheduled for Phase 2 (require POS PWA + sync endpoint)
 - 4 of 8 scenarios implemented as bash scripts
 - Scripts test against Docker Compose deployment on staging

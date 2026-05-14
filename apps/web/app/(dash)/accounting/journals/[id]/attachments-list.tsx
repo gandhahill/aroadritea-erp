@@ -1,14 +1,13 @@
 /**
  * JournalAttachmentsList — client component for journal attachment UI.
  *
- * Lists attachments for a journal entry, supports delete, and shows
- * upload button (actual upload deferred to R2/S3 API layer).
+ * Lists, uploads, downloads, and deletes journal entry attachments.
  */
 
 'use client';
 
 import { useState, useTransition } from 'react';
-import { createAttachmentAction, deleteAttachmentAction } from '../attachments/actions';
+import { deleteAttachmentAction, uploadAttachmentAction } from '../attachments/actions';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -46,7 +45,8 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
   const [attachments, setAttachments] = useState<Attachment[]>(initialAttachments);
   const [isPending, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [showUploadInfo, setShowUploadInfo] = useState(false);
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   async function handleDelete(attachmentId: string) {
     if (!confirm('Hapus lampiran ini?')) return;
@@ -62,6 +62,21 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
     });
   }
 
+  async function handleUpload(formData: FormData) {
+    setUploadError(null);
+    startTransition(async () => {
+      const result = await uploadAttachmentAction(formData);
+      if (result.error) {
+        setUploadError(result.error);
+        return;
+      }
+      if (result.data) {
+        setAttachments((prev) => [result.data, ...prev]);
+        setShowUploadForm(false);
+      }
+    });
+  }
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -72,7 +87,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
         </div>
         <button
           type="button"
-          onClick={() => setShowUploadInfo((v) => !v)}
+          onClick={() => setShowUploadForm((v) => !v)}
           className="inline-flex items-center gap-1.5 rounded-lg border border-brand-cream-3 bg-white px-3 py-1.5 text-xs font-medium text-brand-ink transition-colors hover:bg-brand-cream-1"
         >
           <svg
@@ -93,24 +108,30 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
         </button>
       </div>
 
-      {/* Upload info panel */}
-      {showUploadInfo && (
+      {/* Upload form */}
+      {showUploadForm && (
         <div className="rounded-lg border border-brand-gold/30 bg-brand-gold/5 px-4 py-3">
           <p className="text-sm font-medium text-brand-ink">Unggah Lampiran</p>
-          <p className="mt-1 text-xs text-brand-ink-3">
-            Upload file via R2/S3 presigned URL. API endpoint{' '}
-            <code className="rounded bg-brand-cream-2 px-1 py-0.5 text-xs">
-              POST /api/files/upload
-            </code>{' '}
-            akan diaktifkan setelah penyimpanan objek dikonfigurasi. Hubungi administrator.
-          </p>
-          <button
-            type="button"
-            onClick={() => setShowUploadInfo(false)}
-            className="mt-2 text-xs text-brand-ember-5 hover:underline"
+          <form
+            action={handleUpload}
+            className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center"
           >
-            Tutup
-          </button>
+            <input type="hidden" name="journalEntryId" value={journalEntryId} />
+            <input
+              type="file"
+              name="file"
+              required
+              className="block flex-1 rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-xs text-brand-ink"
+            />
+            <button
+              type="submit"
+              disabled={isPending}
+              className="rounded-lg bg-brand-ember-5 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-ember-6 disabled:opacity-50"
+            >
+              {isPending ? 'Mengunggah...' : 'Unggah'}
+            </button>
+          </form>
+          {uploadError && <p className="mt-2 text-xs text-rose-600">{uploadError}</p>}
         </div>
       )}
 
@@ -169,8 +190,8 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
 
               {/* Actions */}
               <div className="flex items-center gap-2 flex-shrink-0">
-                <button
-                  type="button"
+                <a
+                  href={`/api/accounting/journal-attachments/${att.id}`}
                   className="inline-flex items-center gap-1 rounded-md border border-brand-cream-3 bg-white px-2.5 py-1.5 text-xs font-medium text-brand-ember-5 transition-colors hover:bg-brand-ember-5 hover:text-white"
                 >
                   <svg
@@ -188,7 +209,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
                     />
                   </svg>
                   Unduh
-                </button>
+                </a>
                 <button
                   type="button"
                   onClick={() => handleDelete(att.id)}

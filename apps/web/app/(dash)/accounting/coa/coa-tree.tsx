@@ -97,10 +97,10 @@ export function COATreeView({ tree }: COATreeViewProps) {
             <input
               id="coa-search"
               type="text"
-              placeholder="Search by code or name..."
+              aria-label="Search by code or name"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-md border border-brand-cream-3 bg-brand-cream py-2 pl-9 pr-4 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20 transition-colors"
+              className="w-full rounded-md border border-brand-cream-3 bg-brand-cream py-2 pl-9 pr-4 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20 transition-colors"
             />
           </div>
 

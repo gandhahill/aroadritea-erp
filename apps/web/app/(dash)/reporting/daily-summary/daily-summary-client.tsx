@@ -9,7 +9,6 @@
 
 import { exportWorkbook } from '@/lib/export-workbook';
 import type { DailySummaryResult } from '@erp/services/reporting';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { fetchDailySummary } from './actions';
 
@@ -207,6 +206,7 @@ interface Props {
   defaultStartDate: string;
   defaultEndDate: string;
   defaultLocationId: string;
+  locationOptions: Array<{ id: string; label: string; code: string }>;
 }
 
 export function DailySummaryClient({
@@ -214,8 +214,8 @@ export function DailySummaryClient({
   defaultStartDate,
   defaultEndDate,
   defaultLocationId,
+  locationOptions,
 }: Props) {
-  const router = useRouter();
   const [startDate, setStartDate] = useState(defaultStartDate);
   const [endDate, setEndDate] = useState(defaultEndDate);
   const [locationId, setLocationId] = useState(defaultLocationId);
@@ -224,6 +224,11 @@ export function DailySummaryClient({
   const [error, setError] = useState<string | null>(initialData.error ?? null);
 
   async function handleSearch() {
+    if (!locationId) {
+      setError('Belum ada outlet aktif untuk laporan harian.');
+      setData(null);
+      return;
+    }
     setIsLoading(true);
     setError(null);
     try {
@@ -308,11 +313,18 @@ export function DailySummaryClient({
             id="locationId"
             value={locationId}
             onChange={(e) => setLocationId(e.target.value)}
+            disabled={locationOptions.length === 0}
             className="rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
           >
-            <option value="LOC-001">Toko Pusat Yogyakarta</option>
-            <option value="LOC-002">Cabang Jakarta</option>
-            <option value="LOC-003">Warehouse Utama</option>
+            {locationOptions.length === 0 ? (
+              <option value="">Belum ada outlet aktif</option>
+            ) : (
+              locationOptions.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.label}
+                </option>
+              ))
+            )}
           </select>
         </div>
         <button

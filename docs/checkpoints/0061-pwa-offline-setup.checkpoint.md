@@ -11,7 +11,7 @@
 - [x] Added `serwist @serwist/next idb` dependencies to `apps/web/package.json`
 - [x] Created `apps/web/public/manifest.json` (PWA manifest, standalone display, theme brand-red)
 - [x] Updated `apps/web/next.config.ts` to integrate Serwist plugin (`withSerwist`)
-- [x] Created placeholder `apps/web/service-worker/index.ts`
+- [x] Created initial `apps/web/service-worker/index.ts`
 
 ---
 

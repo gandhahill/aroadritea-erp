@@ -550,6 +550,7 @@
       "location": "地点",
       "noDataForDate": "该日期没有数据。",
       "selectLocationFirst": "请先选择地点。",
+      "noActiveLocations": "暂无启用门店",
       "howItWorks": "工作原理",
       "howItWorksDesc": "C–E列自动填充销售数据。F列（调整金额）用于手动校正（退货、取消交易等）。导出Excel用于Coretax税务申报。",
       "fiscalWarning": "⚠️ 财政应税收入与会计收入相差 Rp {diff}（{direction}）。",

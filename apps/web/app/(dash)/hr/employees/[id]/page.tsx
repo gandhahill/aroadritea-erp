@@ -9,7 +9,7 @@
  */
 
 import { getSession } from '@/lib/auth';
-import { and, db, desc, eq } from '@erp/db';
+import { and, db, desc, eq, gte, lte } from '@erp/db';
 import {
   attendance,
   employees,
@@ -96,27 +96,22 @@ export default async function EmployeeDetailPage({
 
   const attRows = await db
     .select({
-      totalDays: employmentContracts.id, // placeholder column for count
-    })
-    .from(attendance)
-    .where(and(eq(attendance.employeeId, id), eq(attendance.tenantId, tenantId)));
-
-  const [lateRows] = await db
-    .select({
-      lateCount: employmentContracts.id,
+      id: attendance.id,
+      isLate: attendance.isLate,
     })
     .from(attendance)
     .where(
       and(
         eq(attendance.employeeId, id),
         eq(attendance.tenantId, tenantId),
-        eq(attendance.isLate, true),
+        gte(attendance.checkInAt, yearStart),
+        lte(attendance.checkInAt, yearEnd),
       ),
     );
 
   const attSummary = {
     totalDays: attRows.length,
-    lateDays: lateRows ? 1 : 0,
+    lateDays: attRows.filter((row) => row.isLate).length,
   };
 
   // Leave balances (current year)

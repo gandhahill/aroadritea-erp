@@ -25,7 +25,7 @@
 - `paymentBreakdown[]`: method | txCount | total (via `inArray` + `groupBy`)
 - `shiftSummary[]`: openedAt, closedAt, openingCash, expectedCash, actualCash, variance, cashierName, txCount, txTotal
 - `topProducts[]`: rank 1-10 by nominal DESC, with qty, nominal, channel
-- `isPreliminary`: false (placeholder for real-time / EOD mode)
+- `isPreliminary`: false (reserved field for real-time / EOD mode)
 
 ### Key Design Decisions
 

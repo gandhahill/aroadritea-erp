@@ -68,7 +68,7 @@
       "Barley Pearl"
     ],
     "locationTitle": "Operating from Yogyakarta",
-    "locationSubtitle": "Stores and offices live in the ERP, so location pages can follow operational data."
+    "locationSubtitle": "Aroadri Tea currently operates in Yogyakarta: Malioboro Mall and Plaza Malioboro."
   },
   "menu": {
     "title": "Aroadri Tea Menu",
@@ -102,13 +102,20 @@
   },
   "locations": {
     "title": "Aroadri Tea Locations",
-    "subtitle": "Location data is read from ERP so outlet and office addresses can be updated without source-code edits.",
-    "empty": "No active locations are available in the database yet.",
+    "subtitle": "Two active outlets in the Malioboro area, Yogyakarta. Primary data still comes from ERP so outlet addresses can be updated without source-code edits.",
+    "empty": "No active outlets are available in the database yet.",
     "defaultHours": "10:00-22:00 WIB",
     "store": "Outlet",
-    "office": "Office"
+    "office": "Office",
+    "map": "Open map",
+    "social": "Follow @aroadri.tea"
   },
   "footer": {
+    "company": "PT. Gandha Hill Catering Management Indonesia",
+    "locationLine": "Yogyakarta - Malioboro Mall & Plaza Malioboro",
+    "socialLabel": "Social media",
+    "instagramLabel": "Instagram @aroadri.tea",
+    "tiktokLabel": "TikTok @aroadri.tea",
     "copyright": "© {year} {brand}. All rights reserved."
   },
   "member": {

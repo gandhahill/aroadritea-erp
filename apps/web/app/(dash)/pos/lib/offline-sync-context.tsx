@@ -19,6 +19,7 @@ import {
   type DbPendingOrder,
   countPendingOrders,
   flushOutbox,
+  maxPendingOrderAttempts,
   startHeartbeat,
   startSyncScheduler,
 } from '@erp/offline';
@@ -30,6 +31,7 @@ interface OfflineSyncState {
   isOnline: boolean;
   pendingCount: number;
   isSyncing: boolean;
+  failedRetryCount: number;
 }
 
 interface OfflineSyncActions {
@@ -52,12 +54,22 @@ export function OfflineSyncProvider({ children }: { children: React.ReactNode })
   const [isOnline, setIsOnline] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [failedRetryCount, setFailedRetryCount] = useState(0);
   const cleanupRef = useRef<() => void>(() => {});
+
+  const refreshOutboxStatus = useCallback(async () => {
+    const [pending, failedRetries] = await Promise.all([
+      countPendingOrders(),
+      maxPendingOrderAttempts(),
+    ]);
+    setPendingCount(pending);
+    setFailedRetryCount(failedRetries);
+  }, []);
 
   // Start heartbeat + sync scheduler on mount
   useEffect(() => {
     // Initial pending count
-    countPendingOrders().then(setPendingCount);
+    refreshOutboxStatus();
 
     // Heartbeat
     const stopHeartbeat = startHeartbeat((online) => {
@@ -75,26 +87,26 @@ export function OfflineSyncProvider({ children }: { children: React.ReactNode })
     return () => {
       cleanupRef.current();
     };
-  }, []);
+  }, [refreshOutboxStatus]);
 
   // Periodic refresh of pending count
   useEffect(() => {
     const interval = setInterval(async () => {
-      setPendingCount(await countPendingOrders());
+      await refreshOutboxStatus();
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshOutboxStatus]);
 
   const syncNow = useCallback(async () => {
     if (isSyncing) return;
     setIsSyncing(true);
     try {
       await flushOutbox();
-      setPendingCount(await countPendingOrders());
+      await refreshOutboxStatus();
     } finally {
       setIsSyncing(false);
     }
-  }, [isSyncing]);
+  }, [isSyncing, refreshOutboxStatus]);
 
   const enqueueOrder = useCallback(
     async (
@@ -113,14 +125,14 @@ export function OfflineSyncProvider({ children }: { children: React.ReactNode })
         synced: false,
         serverSaleNumber: null,
       });
-      setPendingCount((c) => c + 1);
+      await refreshOutboxStatus();
     },
-    [],
+    [refreshOutboxStatus],
   );
 
   return (
     <OfflineSyncContext.Provider
-      value={{ isOnline, pendingCount, isSyncing, syncNow, enqueueOrder }}
+      value={{ isOnline, pendingCount, isSyncing, failedRetryCount, syncNow, enqueueOrder }}
     >
       {children}
     </OfflineSyncContext.Provider>

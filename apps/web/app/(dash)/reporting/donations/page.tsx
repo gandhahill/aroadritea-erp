@@ -1,4 +1,5 @@
 import { getSession } from '@/lib/auth';
+import { getActiveLocationOptions } from '@/lib/location-options';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchDonationReport } from './actions';
@@ -19,11 +20,16 @@ export default async function DonationsPage({
   if (!session) redirect('/login');
 
   const params = await searchParams;
+  const user = session.user as Record<string, unknown>;
+  const tenantId = (user.tenantId as string | undefined) ?? 'default';
   const today = new Date().toISOString().slice(0, 10);
+  const locationOptions = await getActiveLocationOptions({ tenantId, type: 'store' });
 
   const startDate = params.startDate ?? today;
   const endDate = params.endDate ?? today;
-  const locationId = params.locationId ?? undefined;
+  const locationIds = new Set(locationOptions.map((location) => location.id));
+  const locationId =
+    params.locationId && locationIds.has(params.locationId) ? params.locationId : undefined;
 
   const data = await fetchDonationReport({ locationId, startDate, endDate });
 
@@ -33,6 +39,7 @@ export default async function DonationsPage({
       defaultStartDate={startDate}
       defaultEndDate={endDate}
       defaultLocationId={locationId ?? ''}
+      locationOptions={locationOptions}
     />
   );
 }

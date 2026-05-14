@@ -348,6 +348,15 @@ export async function countPendingOrders(): Promise<number> {
   return all.filter((o) => !o.synced).length;
 }
 
+/**
+ * Highest failed retry count among unsynced orders.
+ */
+export async function maxPendingOrderAttempts(): Promise<number> {
+  const db = await getOfflineDb();
+  const all = await db.getAll(STORE.PENDING_ORDERS);
+  return all.filter((o) => !o.synced).reduce((max, order) => Math.max(max, order.attempts), 0);
+}
+
 // ─── Meta ────────────────────────────────────────────────────────────────────
 
 export async function setMeta(key: string, value: string): Promise<void> {

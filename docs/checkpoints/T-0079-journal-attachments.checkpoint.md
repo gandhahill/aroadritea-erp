@@ -30,7 +30,7 @@
 - `accounting.list_journal_attachments` — list attachments by journal entry ID
 
 ### Note
-Actual file upload/download (R2/S3 presigned URLs) deferred to API layer when object storage is configured. Service manages metadata only.
+Actual file upload/download was completed later through the server API layer. Service metadata remains reusable if object storage is added.
 
 ## Files Touched
 

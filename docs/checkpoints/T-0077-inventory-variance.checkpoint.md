@@ -35,7 +35,7 @@ From `TASK.md` Backlog Phase 2:
 - [x] Read relevant section of `SYSTEM-DESIGN.md`?
 - [x] Read all relevant ADRs (ADR-0006 anti-generic UI)?
 - [x] Checked `TASK.md` for Active Tasks? → T-0077 was in Backlog
-- [x] Moved from Backlog → Active + Owner filled? → DONE (TASK.md update deferred until after checkpoint)
+- [x] Moved from Backlog → Active + Owner filled? → DONE (TASK.md update completed after checkpoint)
 - [x] Know which module is touched?
   - `packages/services/src/inventory/variance-service.ts` (NEW)
   - `apps/web/app/(dash)/inventory/variance/page.tsx` (NEW)

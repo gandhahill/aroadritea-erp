@@ -9,7 +9,7 @@
 
 ## Goal
 
-Harden `packages/shared` dari stub scaffold menjadi production-ready utilities:
+Harden `packages/shared` dari scaffold awal menjadi production-ready utilities:
 - Ganti UUID → ULID (SD §7.10)
 - Extend Money type dengan operasi aritmatika lengkap
 - Tambah timezone-aware date helpers (WIB)

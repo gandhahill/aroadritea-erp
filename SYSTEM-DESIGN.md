@@ -1616,7 +1616,7 @@ Saat settlement dari GoFood:
 
 ### 20.5 Multi-Lokasi
 - `location_id` adalah **dimensi**, bukan akun terpisah. Akun tetap (e.g., "Sales") sama untuk semua lokasi; filter per lokasi di laporan.
-- Pengecualian: akun-akun yang sudah lokasi-spesifik di COA (Prepaid Rent of Jakarta Office, dll.) tetap dipakai sesuai existing — saat menambah lokasi baru, jangan duplicate akun, gunakan dimensi.
+- Pengecualian: akun-akun yang sudah lokasi-spesifik di COA (mis. prepaid rent / utilities outlet Yogyakarta) tetap dipakai sesuai existing — saat menambah lokasi baru, jangan duplicate akun, gunakan dimensi.
 
 ### 20.6 Reversal
 - Untuk membatalkan JE yang sudah posted: buat JE baru dengan amount terbalik (`reversed_by_je_id` ke source). Tidak boleh edit JE yang sudah posted.
@@ -2112,7 +2112,7 @@ Lihat tabel definitive di §4.3. Ringkas:
 - [ ] Audit setiap login (success/fail).
 - [ ] Token API (MCP) di-hash di DB; rotasi mudah; revoke instan.
 - [ ] Backup terenkripsi sebelum diunggah off-site.
-- [ ] Secret di `.env`; tidak commit `.env`. `.env.example` lengkap dengan placeholder.
+- [ ] Secret di `.env`; tidak commit `.env`. `.env.example` lengkap dengan contoh nilai aman.
 - [ ] Dependency audit otomatis (npm audit / Renovate) di CI.
 
 ### 25.2 Military-Level Security (SoT §18.2 — added 2026-05-09)
@@ -2284,7 +2284,7 @@ Implementasi: Next.js `headers()` dan/atau header tambahan di template Nginx/Apa
 
 - Semua secret (DB password, JWT secret, API keys, encryption key) di `ENV`.
 - Tidak pernah di-commit ke repo (`.env` di `.gitignore`).
-- `.env.example` memiliki semua key dengan placeholder `CHANGE_ME`.
+- `.env.example` memiliki semua key dengan contoh nilai `CHANGE_ME`.
 - Rotation: password/secret apapun berputar otomatis setiap **90 hari** via worker job + alert ke admin.
 - API keys untuk third-party: gunakan Cloudflare Secrets atau Vault (self-hosted) bila budget tersedia.
 
@@ -3962,7 +3962,7 @@ Spinner default (border circle berputar) **dilarang** karena terlalu generic. Pa
 1. **WAJIB** import token dari `tailwind.config.ts`. **Dilarang** menulis `bg-white`, `text-zinc-*`, `border-slate-*` di komponen produksi. Lint rule menangkap ini.
 2. **WAJIB** override shadcn/ui base components di `packages/ui/` sebelum dipakai di `apps/*`. Jangan pakai shadcn raw.
 3. **WAJIB** review screenshot tiap halaman penting di `docs/screenshots/<page>.png` — bila tampak generic AI dashboard, refactor.
-4. **DILARANG** generate ilustrasi via DALL-E / placeholder Lorem Picsum di production. Pakai SVG kustom atau foto produk asli (folder `apps/site/public/photo/`).
+4. **DILARANG** generate ilustrasi via DALL-E / gambar sementara Lorem Picsum di production. Pakai SVG kustom atau foto produk asli (folder `apps/site/public/photo/`).
 5. Sebelum PR: jalankan visual diff (Playwright + Percy / sederhana — screenshot manual) untuk halaman utama.
 
 > Lihat ADR-0006 untuk diskusi alternatif & alasan keputusan.
@@ -3998,7 +3998,7 @@ ERP/
   2. **Plan**: langkah-langkah yang sudah dijabarkan.
   3. **Done so far**: file & function yang sudah ditulis/diubah, dengan path eksplisit.
   4. **Decisions**: keputusan teknis yang diambil dalam task ini.
-  5. **Open issues**: bugs / TODO / pertanyaan yang muncul.
+  5. **Open issues**: bugs / pending implementation questions.
   6. **Next step**: kalimat eksplisit "selanjutnya jalankan X di file Y baris Z".
   7. **Test status**: lulus / gagal / belum jalan.
 

@@ -16,6 +16,12 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { fetchHourlySales } from './actions';
 
+type LocationOption = {
+  id: string;
+  code: string;
+  label: string;
+};
+
 // ─── Formatters ────────────────────────────────────────────────────────────────
 
 function formatIDR(v: string | number | bigint | null | undefined): string {
@@ -333,6 +339,7 @@ interface Props {
   defaultEndDate: string;
   defaultLocationId: string;
   defaultGroupBy: 'channel' | 'day';
+  locationOptions: LocationOption[];
 }
 
 export function HourlySalesClient({
@@ -341,6 +348,7 @@ export function HourlySalesClient({
   defaultEndDate,
   defaultLocationId,
   defaultGroupBy,
+  locationOptions,
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -422,13 +430,17 @@ export function HourlySalesClient({
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-brand-ink-3">Lokasi</label>
-          <input
-            type="text"
+          <select
             value={locationId}
             onChange={(e) => setLocationId(e.target.value)}
-            placeholder="Semua lokasi"
-            className="h-9 w-40 rounded-lg border border-brand-cream-3 px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50"
-          />
+            className="h-9 min-w-52 rounded-lg border border-brand-cream-3 px-3 text-sm text-brand-ink"
+          >
+            {locationOptions.map((location) => (
+              <option key={location.id} value={location.id}>
+                {location.label} ({location.code})
+              </option>
+            ))}
+          </select>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-brand-ink-3">Group By</label>
