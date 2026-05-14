@@ -24,7 +24,6 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0160 | Switch VPS deployment runtime from Docker to PM2 | Codex | 2026-05-14 00:05 +07:00 | 2026-05-14 00:05 +07:00 | 🟨 IN_PROGRESS | User deployed to VPS and requested PM2 setup after Docker issue |
 
 ---
 
@@ -169,6 +168,7 @@
 | T-0157 | Production readiness config, security, Naixer print settings, HestiaCP README | Codex | 2026-05-13 | pending commit | UI-configurable POS/Naixer settings, login language selector, security hardening, HestiaCP docs |
 | T-0158 | Expand README step-by-step deployment guide | Codex | 2026-05-13 | pending commit | README now covers local setup, HestiaCP deploy, update, rollback, troubleshooting |
 | T-0159 | Switch automatic email to HestiaCP SMTP | Codex | 2026-05-13 | pending commit | OTP member and worker email now use HestiaCP SMTP mailbox via `SMTP_*`; docs/ADR updated |
+| T-0160 | Switch VPS deployment runtime from Docker to PM2 | Codex | 2026-05-14 | 697cb98 | PM2 runtime deployed on VPS; site/web/MCP health checks OK |
 
 ---
 
