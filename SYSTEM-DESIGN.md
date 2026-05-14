@@ -199,7 +199,7 @@ Setiap kali AI hendak menambah dependency baru, fitur baru, atau optimisasi yang
 ### 4.1 Empat Surface Eksternal
 1. **Public Website (`apps/site`)** — `aroadritea.com` — marketing + member portal + CMS-rendered konten. Tanpa login untuk halaman publik; login member untuk `/member/akun`.
 2. **ERP Web (`apps/web`)** — `erp.aroadritea.com` — semua interaksi staf, dengan PWA offline untuk POS. Login wajib dengan RBAC.
-3. **MCP (`apps/mcp`)** — `mcp.erp.aroadritea.com` (atau path `erp.aroadritea.com/mcp`) — surface untuk AI lokal.
+3. **MCP (`apps/mcp`)** — path `erp.aroadritea.com/mcp` (atau subdomain satu tingkat bila SSL mendukung) — surface untuk AI lokal.
 4. **REST API minimal** — di kedua app web, hanya untuk:
    - `apps/web /api/sync/pos` — sinkronisasi PWA offline
    - `apps/web /api/files/*` — upload/download
@@ -3542,7 +3542,7 @@ Editor produk di `apps/web /inventory/products/<id>` punya tab "Marketing" untuk
 |---|---|---|
 | `aroadritea.com`, `www.aroadritea.com` | `apps/site` | Public marketing + CMS-rendered + member portal |
 | `erp.aroadritea.com` | `apps/web` | ERP (login required) |
-| `mcp.erp.aroadritea.com` | `apps/mcp` | MCP server (token required) |
+| `erp.aroadritea.com/mcp/` | `apps/mcp` | MCP server health/HTTP surface (token required if remote tools are enabled) |
 | `display.aroadritea.com` (opsional) | route di `apps/web` (subdomain rewrite) | Customer-facing display |
 
 > **Catatan**: jika RAM server di staging menunjukkan stress > 80%, fold `display` ke `apps/web/display/<location>` dan tidak pakai subdomain terpisah (mengurangi 1 host vhost).
@@ -3550,7 +3550,7 @@ Editor produk di `apps/web /inventory/products/<id>` punya tab "Marketing" untuk
 ### 32.2 DNS
 - A record `@` dan `www` → IP VPS.
 - CNAME `erp` → `@`.
-- CNAME `mcp` → `@`.
+- MCP default lewat path `/mcp/` di `erp.aroadritea.com`. Jika butuh subdomain terpisah di Cloudflare, gunakan satu tingkat seperti `mcp.aroadritea.com` atau Advanced Certificate untuk subdomain bertingkat.
 - (Opsional) CNAME `display` → `@`.
 - TLS via HestiaCP Let's Encrypt untuk semua hostnames.
 
@@ -3560,7 +3560,7 @@ Editor produk di `apps/web /inventory/products/<id>` punya tab "Marketing" untuk
 |---|---|
 | `aroadritea.com`, `www.aroadritea.com` | `http://127.0.0.1:3000` |
 | `erp.aroadritea.com` | `http://127.0.0.1:3001` |
-| `mcp.erp.aroadritea.com` | `http://127.0.0.1:3002` |
+| `erp.aroadritea.com/mcp/` | `http://127.0.0.1:3002/` |
 
 Aktifkan gzip/brotli di HestiaCP bila tersedia. Cache header tetap dikelola dari Next.js.
 

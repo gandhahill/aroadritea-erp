@@ -27,7 +27,9 @@ HestiaCP tetap menjadi reverse proxy publik untuk:
 
 - `aroadritea.com` dan `www.aroadritea.com` → `http://127.0.0.1:3000`
 - `erp.aroadritea.com` → `http://127.0.0.1:3001`
-- `mcp.erp.aroadritea.com` → `http://127.0.0.1:3002`
+- `erp.aroadritea.com/mcp/` → `http://127.0.0.1:3002/`
+
+Subdomain MCP bertingkat (`mcp.erp.aroadritea.com`) tidak menjadi default production karena Cloudflare Universal SSL standar tidak mencakup nested wildcard. Jika nanti butuh subdomain terpisah, gunakan `mcp.aroadritea.com`, DNS-only, atau Advanced Certificate.
 
 Konfigurasi PM2 resmi ada di `ecosystem.config.cjs`.
 

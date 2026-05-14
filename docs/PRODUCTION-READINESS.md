@@ -49,13 +49,15 @@ Setting bisnis harian wajib lewat DB/UI, bukan edit source.
 10. Di HestiaCP, proxy:
    - `aroadritea.com` dan `www.aroadritea.com` ke `http://127.0.0.1:3000`
    - `erp.aroadritea.com` ke `http://127.0.0.1:3001`
-   - `mcp.erp.aroadritea.com` ke `http://127.0.0.1:3002`
+   - `erp.aroadritea.com/mcp/` ke `http://127.0.0.1:3002/`
 11. Aktifkan Let's Encrypt untuk semua domain.
 12. Pastikan firewall publik hanya membuka 80/443.
 13. Cek health:
     - `https://aroadritea.com/api/healthz`
     - `https://erp.aroadritea.com/api/healthz`
-    - `https://mcp.erp.aroadritea.com/healthz`
+    - `https://erp.aroadritea.com/mcp/healthz`
+
+Catatan: bila DNS memakai Cloudflare Universal SSL, hindari `mcp.erp.aroadritea.com` karena wildcard standar tidak mencakup subdomain bertingkat. Gunakan path `/mcp/` atau domain satu tingkat seperti `mcp.aroadritea.com`.
 
 ## Manual QA Wajib
 

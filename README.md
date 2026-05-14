@@ -34,7 +34,7 @@ VPS production:
   - `aroadritea.com`
   - `www.aroadritea.com`
   - `erp.aroadritea.com`
-  - `mcp.erp.aroadritea.com`
+  - MCP remote health memakai path `https://erp.aroadritea.com/mcp/healthz`. Subdomain bertingkat seperti `mcp.erp.aroadritea.com` hanya dipakai jika DNS/SSL memang mendukungnya.
 
 ## 3. Setup Local Development
 
@@ -224,7 +224,7 @@ BETTER_AUTH_SECRET="<random-secret-strong>"
 BETTER_AUTH_URL="https://erp.aroadritea.com"
 NEXT_PUBLIC_WEB_URL="https://erp.aroadritea.com"
 NEXT_PUBLIC_SITE_URL="https://aroadritea.com"
-MCP_SERVER_URL="https://mcp.erp.aroadritea.com"
+MCP_SERVER_URL="https://erp.aroadritea.com/mcp"
 ```
 
 3. Isi secret provider jika fitur terkait dipakai.
@@ -312,19 +312,20 @@ pm2 logs --lines 100
    - `aroadritea.com`
    - `www.aroadritea.com`
    - `erp.aroadritea.com`
-   - `mcp.erp.aroadritea.com`
 3. Aktifkan SSL Let's Encrypt untuk semua domain.
 4. Aktifkan proxy support.
 5. Arahkan reverse proxy ke target lokal berikut.
 
-| Domain | Target lokal |
+| Domain / path | Target lokal |
 |---|---|
 | `aroadritea.com` | `http://127.0.0.1:3000` |
 | `www.aroadritea.com` | `http://127.0.0.1:3000` |
 | `erp.aroadritea.com` | `http://127.0.0.1:3001` |
-| `mcp.erp.aroadritea.com` | `http://127.0.0.1:3002` |
+| `erp.aroadritea.com/mcp/` | `http://127.0.0.1:3002/` |
 
 PM2 wajib bind ke loopback `127.0.0.1` untuk port 3000-3002. Jangan bind ke `0.0.0.0` dan jangan buka port tersebut ke publik; akses luar tetap lewat reverse proxy HestiaCP.
+
+Catatan Cloudflare: Universal SSL wildcard `*.aroadritea.com` tidak mencakup subdomain bertingkat `mcp.erp.aroadritea.com`. Gunakan path `/mcp/` di `erp.aroadritea.com`, atau buat `mcp.aroadritea.com`, atau aktifkan Advanced Certificate/DNS-only bila ingin subdomain MCP terpisah.
 
 ### 6.8 Firewall
 
@@ -355,7 +356,7 @@ Tes dari internet:
 ```bash
 curl -fsS https://aroadritea.com/api/healthz
 curl -fsS https://erp.aroadritea.com/api/healthz
-curl -fsS https://mcp.erp.aroadritea.com/healthz
+curl -fsS https://erp.aroadritea.com/mcp/healthz
 ```
 
 Jika salah satu gagal:

@@ -33,6 +33,7 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@erp/shared', '@erp/ui-public'],
   output: 'standalone',
   outputFileTracingRoot: repoRoot,
+  poweredByHeader: false,
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];
   },
