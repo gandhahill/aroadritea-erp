@@ -3200,8 +3200,8 @@ Production VPS HestiaCP menjalankan proses Node lewat `ecosystem.config.cjs`:
 
 - `aroadri-site` → `apps/site`, port `3000`.
 - `aroadri-web` → `apps/web`, port `3001`.
-- `aroadri-mcp` → `apps/mcp/dist/server.js`, health port `3002`.
-- `aroadri-worker` → `apps/worker/dist/index.js`.
+- `aroadri-mcp` → compiled MCP server output, health port `3002`.
+- `aroadri-worker` → compiled worker output.
 
 DB di managed (Neon/Supabase) → tidak ada DB lokal di VPS.
 
