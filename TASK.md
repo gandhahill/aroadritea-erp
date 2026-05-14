@@ -24,7 +24,6 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0163 | Public site CSS fix, Yogyakarta-only locations, and production readiness audit | Codex | 2026-05-14 23:39 | 2026-05-15 01:07 | 🟨 IN_PROGRESS | Local typecheck, services tests, and root build pass; pending push/deploy/live smoke |
 
 ---
 
@@ -166,12 +165,13 @@
 | T-0154 | Service workflow engine (rule eval + step execution) | Claude Opus 4.6 | 2026-05-12 | 9e22eb9 | |
 | T-0155 | UI workflow definition editor | Claude Opus 4.6 | 2026-05-13 | 2f432bd | Condition builder, steps editor, JSON preview tab |
 | T-0156 | Full MCP tools per module (cms, member, hr, payroll, crm, kitchen) | Claude Opus 4.6 | 2026-05-13 | 4a8ec8b | All tool handlers implemented (POS, HR, Audit done) |
-| T-0157 | Production readiness config, security, Naixer print settings, HestiaCP README | Codex | 2026-05-13 | pending commit | UI-configurable POS/Naixer settings, login language selector, security hardening, HestiaCP docs |
-| T-0158 | Expand README step-by-step deployment guide | Codex | 2026-05-13 | pending commit | README now covers local setup, HestiaCP deploy, update, rollback, troubleshooting |
-| T-0159 | Switch automatic email to HestiaCP SMTP | Codex | 2026-05-13 | pending commit | OTP member and worker email now use HestiaCP SMTP mailbox via `SMTP_*`; docs/ADR updated |
+| T-0157 | Production readiness config, security, Naixer print settings, HestiaCP README | Codex | 2026-05-13 | 6a7709d | UI-configurable POS/Naixer settings, login language selector, security hardening, HestiaCP docs |
+| T-0158 | Expand README step-by-step deployment guide | Codex | 2026-05-13 | 15c3fd0 | README now covers local setup, HestiaCP deploy, update, rollback, troubleshooting |
+| T-0159 | Switch automatic email to HestiaCP SMTP | Codex | 2026-05-13 | e7d86bb | OTP member and worker email now use HestiaCP SMTP mailbox via `SMTP_*`; docs/ADR updated |
 | T-0160 | Switch VPS deployment runtime from Docker to PM2 | Codex | 2026-05-14 | 697cb98 | PM2 runtime deployed on VPS; site/web/MCP health checks OK |
 | T-0161 | Final production hardening and smoke test | Codex | 2026-05-14 | b91cab0 | Production checks, redirect fix, i18n parity, public site CSS, SSH key verified |
 | T-0162 | Public site polish + POS/accounting/tax production hardening | Codex | 2026-05-14 | c829e30 | Real menu/photos, member lookup flow, POS/accounting/tax fixes, worker fail-closed safety, PM2 deploy and health checks OK |
+| T-0163 | Public site CSS fix, Yogyakarta-only locations, and production readiness audit | Codex | 2026-05-15 | aeeb295 | Tailwind CSS fixed on live site, Yogyakarta-only public locations seeded, POS/accounting/tax tests pass, PM2 deploy and live smoke checks OK |
 
 ---
 

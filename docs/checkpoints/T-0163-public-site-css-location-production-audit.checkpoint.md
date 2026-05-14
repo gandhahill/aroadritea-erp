@@ -2,8 +2,8 @@
 
 - **Owner**: Codex
 - **Started**: 2026-05-14 23:39 WIB
-- **Last updated**: 2026-05-15 01:07 WIB
-- **Status**: IN_PROGRESS
+- **Last updated**: 2026-05-15 01:27 WIB
+- **Status**: DONE
 - **Phase**: 5 + cross-module production hardening
 - **Branch**: current branch
 
@@ -17,14 +17,14 @@ References:
 - ADR: 0003 public website CMS, 0006 brand UI, 0010 PPN, 0012 PM2 runtime.
 
 Definition of Done:
-- [ ] Live `aroadritea.com` no longer renders as plain HTML after deploy.
+- [x] Live `aroadritea.com` no longer renders as plain HTML after deploy.
 - [x] Site content shows only Yogyakarta stores and correct social handles.
 - [x] Address sources are checked from the web and reflected in public copy.
-- [ ] `TASK.md` has no active/pending production tasks after completion.
+- [x] `TASK.md` has no active/pending production tasks after completion.
 - [x] Unfinished-work markers in production code are resolved or reclassified as non-production historical notes.
 - [x] POS, accounting, tax focused test suite passes.
 - [x] Typecheck/build passes for the affected workspace.
-- [ ] Deployment to VPS via PM2 is verified with health checks and browser smoke screenshot.
+- [x] Deployment to VPS via PM2 is verified with health checks and browser smoke screenshot.
 
 ## Plan
 
@@ -35,7 +35,7 @@ Definition of Done:
 5. [x] Audit and resolve unfinished-work markers in production code.
 6. [x] Clean `TASK.md` task state and update checkpoint.
 7. [x] Run focused POS/accounting/tax tests plus typecheck/build.
-8. [ ] Commit, push, deploy to VPS, restart PM2, verify live site.
+8. [x] Commit, push, deploy to VPS, restart PM2, verify live site.
 
 ## Done so far
 
@@ -49,6 +49,9 @@ Definition of Done:
 - Fixed POS offline banner critical state, HR attendance GPS validation, HR employee attendance summary, seed role/permission idempotency, and Naixer PLZ label config.
 - Cleaned stale task/checkpoint wording that described older interim work.
 - Verified `pnpm lint:fix`, `pnpm typecheck`, `pnpm --filter @erp/services exec vitest run`, and `pnpm build` locally.
+- Pushed commit `aeeb295` to GitHub, pulled it on VPS, built on server, seeded production DB from `.env`, reloaded PM2, and verified site/web/MCP health endpoints.
+- Live smoke: `https://aroadritea.com` returned 200, served compiled Next CSS without raw `@theme`, and rendered the designed homepage screenshot at `C:\tmp\aroadritea-home-after.png`.
+- Live location smoke: `https://aroadritea.com/id/lokasi` returned 200, contains Malioboro Mall and Plaza Malioboro, and has no Jakarta location copy.
 
 ## Decisions
 
@@ -62,14 +65,16 @@ Definition of Done:
 
 ## Next step
 
-Commit, push, deploy to VPS, seed production, reload PM2, and smoke-test `https://aroadritea.com`.
+None. Monitor live PM2 logs and user traffic after production use.
 
 ## Test status
 
 - **Unit**: `pnpm --filter @erp/services exec vitest run` — 24 files, 527 tests passed
 - **Typecheck**: `pnpm typecheck` — passed
 - **Build**: `pnpm build` — passed for worker, MCP, site, web
-- **E2E/browser**: live screenshot captured before fix (`C:\tmp\aroadri-home.png`); post-deploy screenshot pending
+- **Server deploy**: `git pull --ff-only`, `pnpm install --frozen-lockfile`, `pnpm build`, sourced `.env`, `pnpm db:seed`, `pnpm jobs:disable-unconfigured`, `pm2 reload`, `pm2 save` — passed
+- **Health**: local VPS `site`, `web`, and `mcp` endpoints returned `status: ok`
+- **E2E/browser**: post-deploy screenshot captured at `C:\tmp\aroadritea-home-after.png`
 
 ## Files Touched
 
@@ -93,4 +98,4 @@ Commit, push, deploy to VPS, seed production, reload PM2, and smoke-test `https:
 
 | SHA | Message | Date |
 |-----|---------|------|
-| _(none yet)_ | | |
+| aeeb295 | fix: harden public site and production readiness | 2026-05-15 |
