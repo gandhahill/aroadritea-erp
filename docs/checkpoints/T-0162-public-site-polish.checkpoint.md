@@ -2,7 +2,7 @@
 
 ## Status
 
-IN_PROGRESS
+DONE
 
 ## Scope
 
@@ -53,6 +53,9 @@ IN_PROGRESS
   - Coretax MCP export now returns real posted tax-line rows and CSV;
   - MCP `reporting.cash_flow` implemented through a real `cashFlow` service.
 - Removed production `console.error` from the POS sync API route.
+- Worker scheduled jobs that were still not production-configured now fail closed instead of reporting placeholder success.
+- Default seed disables unconfigured backup, payroll batch, stock low alert, and ISR revalidation jobs.
+- Production DB was updated via `pnpm jobs:disable-unconfigured` so those jobs are disabled on the VPS until explicitly configured.
 
 ## Verification
 
@@ -64,13 +67,20 @@ IN_PROGRESS
 - `pnpm build` passed for worker, MCP, site, and web. Local build warns `DATABASE_URL not set`; production/server env must provide it.
 - Earlier in the same hardening pass, `@erp/web`, `@erp/offline`, and `@erp/site` typechecks also passed.
 - i18n parity passed for web and site ID/EN/ZH.
+- VPS deploy passed at commit `c829e30`: `pnpm install --frozen-lockfile`, `pnpm jobs:disable-unconfigured`, `pnpm build`, `pm2 reload`, and `pm2 save`.
+- VPS health checks passed:
+  - `site` health OK on `127.0.0.1:3000`;
+  - `web` health OK on `127.0.0.1:3001`, including DB latency check;
+  - `mcp` health OK on `127.0.0.1:3002`;
+  - `https://aroadritea.com/id` returns HTTP 200 and references Next CSS;
+  - `https://erp.aroadritea.com/login` returns HTTP 200 without redirecting to localhost.
+- PM2 error logs for site/web/MCP/worker are empty after reload; all 4 processes are online.
 
 ## Remaining scan items
 
 Production-critical POS/accounting/tax placeholders are resolved. Remaining non-critical or separately scoped scan hits:
 
-- `apps/worker/src/jobs/backup.ts`: backup handler still needs real storage/runtime configuration; do not rely on current worker backup as proof of off-site backup.
-- `apps/worker/src/jobs/stock-low-alert.ts`, `payroll-batch.ts`, `isr-revalidate.ts`: scheduled worker jobs still need final implementation or explicit default disablement before relying on them operationally.
+- Backup is currently expected from the managed database/provider side; the worker backup job is disabled and fail-closed unless `BACKUP_PROVIDER_MANAGED=true` is intentionally set.
 - `apps/web/app/(dash)/accounting/journals/[id]/attachments-list.tsx`: upload UI still says object storage endpoint must be configured; journal attachment list/delete exists.
 - `apps/mcp/src/tools/phase2.ts`: historical Phase 2+ stub file still contains informative not-implemented responses; current registered tools should be checked before production exposure.
 - `packages/services/src/hr/attendance-service.ts`: GPS coordinate validation is waiting for real location coordinate schema.
@@ -79,4 +89,4 @@ Production-critical POS/accounting/tax placeholders are resolved. Remaining non-
 
 ## Next step
 
-Decide whether T-0162 can close now or whether to add a separate task for worker backup/stock/payroll/ISR production completion. If closing, commit and push the current changes, then deploy/pull on the VPS and restart PM2.
+No continuation required for T-0162. For the next production hardening task, configure and verify provider-managed/off-site backup restore, then optionally add dedicated implementation tasks for attachment object storage and HR GPS location policy.

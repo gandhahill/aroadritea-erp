@@ -24,7 +24,6 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0162 | Polish public website design and remove production placeholders | Codex | 2026-05-14 | 2026-05-14 | IN_PROGRESS | Public site/menu/member flow plus POS/accounting/tax hardening verified; worker backup/jobs remain separate production-readiness follow-up |
 
 ---
 
@@ -171,6 +170,7 @@
 | T-0159 | Switch automatic email to HestiaCP SMTP | Codex | 2026-05-13 | pending commit | OTP member and worker email now use HestiaCP SMTP mailbox via `SMTP_*`; docs/ADR updated |
 | T-0160 | Switch VPS deployment runtime from Docker to PM2 | Codex | 2026-05-14 | 697cb98 | PM2 runtime deployed on VPS; site/web/MCP health checks OK |
 | T-0161 | Final production hardening and smoke test | Codex | 2026-05-14 | b91cab0 | Production checks, redirect fix, i18n parity, public site CSS, SSH key verified |
+| T-0162 | Public site polish + POS/accounting/tax production hardening | Codex | 2026-05-14 | c829e30 | Real menu/photos, member lookup flow, POS/accounting/tax fixes, worker fail-closed safety, PM2 deploy and health checks OK |
 
 ---
 
