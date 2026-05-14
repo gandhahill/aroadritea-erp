@@ -314,7 +314,7 @@ async function seed() {
         cronExpression: job.cronExpression,
         timezone: job.timezone,
         jobData: job.jobData,
-        enabled: true,
+        enabled: job.enabled,
       })
       .onConflictDoNothing();
   }

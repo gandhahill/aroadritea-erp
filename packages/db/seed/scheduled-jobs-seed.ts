@@ -15,6 +15,7 @@ export const SCHEDULED_JOBS_SEED = [
     cronExpression: '0 0 19 * * *', // 02:00 WIB = 19:00 UTC
     timezone: 'Asia/Jakarta',
     jobData: {},
+    enabled: false,
   },
   {
     name: 'payroll-batch',
@@ -23,6 +24,7 @@ export const SCHEDULED_JOBS_SEED = [
     cronExpression: '0 0 16 8 * *', // 8th monthly 23:00 WIB = 16:00 UTC
     timezone: 'Asia/Jakarta',
     jobData: {},
+    enabled: false,
   },
   {
     name: 'stock-low-alert',
@@ -31,6 +33,7 @@ export const SCHEDULED_JOBS_SEED = [
     cronExpression: '0 0 1 * * 1', // Monday 08:00 WIB = 01:00 UTC
     timezone: 'Asia/Jakarta',
     jobData: {},
+    enabled: false,
   },
   {
     name: 'isr-revalidate',
@@ -39,5 +42,6 @@ export const SCHEDULED_JOBS_SEED = [
     cronExpression: '0 0 21 * * *', // 04:00 WIB = 21:00 UTC
     timezone: 'Asia/Jakarta',
     jobData: {},
+    enabled: false,
   },
 ] as const;
