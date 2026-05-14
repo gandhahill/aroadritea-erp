@@ -3,7 +3,7 @@
 - **Owner**: Codex
 - **Started**: 2026-05-13 23:00 +07:00
 - **Last updated**: 2026-05-13 23:07 +07:00
-- **Status**: DONE - pending commit
+- **Status**: DONE
 
 ## Goal
 
@@ -15,7 +15,7 @@ Lengkapi `README.md` dengan panduan step-by-step yang mudah diikuti untuk develo
 - Menambahkan step local development dari clone sampai `pnpm dev`.
 - Menambahkan tabel konfigurasi DB/UI agar non-secret tidak perlu edit source.
 - Menambahkan verifikasi sebelum deploy.
-- Menambahkan deployment HestiaCP langkah demi langkah: persiapan VPS, swap, clone, `.env`, migration, container, proxy domain, firewall.
+- Menambahkan deployment HestiaCP langkah demi langkah: persiapan VPS, swap, clone, `.env`, migration, PM2 runtime, proxy domain, firewall.
 - Menambahkan health check, setup awal setelah login, update production, rollback, troubleshooting, dan catatan production.
 
 ## Verification
@@ -25,4 +25,4 @@ Lengkapi `README.md` dengan panduan step-by-step yang mudah diikuti untuk develo
 
 ## Next step
 
-Review README, lalu commit bersama perubahan production-readiness sebelumnya.
+None. Completed in commit `15c3fd0` and later PM2 deployment docs updates.
