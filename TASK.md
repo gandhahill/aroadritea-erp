@@ -24,6 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0161 | Final production hardening and smoke test | Codex | 2026-05-14 17:35 +07:00 | 2026-05-14 17:35 +07:00 | 🟨 IN_PROGRESS | Verify VPS/HestiaCP/PM2/DB/security readiness after PM2 deployment |
 
 ---
 

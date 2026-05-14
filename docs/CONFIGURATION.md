@@ -51,6 +51,7 @@ Worker outage monitor memakai URL default lokal PM2. Override hanya diperlukan b
 | `SITE_HEALTH_URL` | `http://127.0.0.1:3000/api/healthz` | Health check public site. |
 | `WEB_HEALTH_URL` | `http://127.0.0.1:3001/api/healthz` | Health check ERP web. |
 | `MCP_HEALTH_URL` | `http://127.0.0.1:3002/healthz` | Health check MCP server. |
+| `MCP_HTTP_HOST` | `127.0.0.1` | Bind host MCP health server di PM2. Jangan ubah ke `0.0.0.0` di production. |
 
 ## POS Posting, Pajak, dan Printer
 

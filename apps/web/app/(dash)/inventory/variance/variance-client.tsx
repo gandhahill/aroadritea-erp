@@ -7,9 +7,9 @@
 
 'use client';
 
+import { exportWorkbook } from '@/lib/export-workbook';
 import type { VarianceReportResult } from '@erp/services/inventory';
 import { useState } from 'react';
-import * as XLSX from 'xlsx';
 import { fetchVarianceReport } from './actions';
 
 // ─── Formatters ────────────────────────────────────────────────────────────────
@@ -47,9 +47,6 @@ function formatVarianceRate(v: number): string {
 // ─── XLSX Export ─────────────────────────────────────────────────────────────
 
 async function exportXLSX(report: VarianceReportResult) {
-  const wb = XLSX.utils.book_new();
-
-  // Summary sheet
   const summaryRows = [
     ['Laporan Varians Persediaan'],
     ['Periode', `${report.params.startDate} s/d ${report.params.endDate}`],
@@ -65,41 +62,67 @@ async function exportXLSX(report: VarianceReportResult) {
     ['Total Kekurangan', formatIDR(report.summary.totalShortageValue)],
     ['Rata-rata Tingkat Varians', `${report.summary.avgVarianceRate.toFixed(2)}%`],
   ];
-  const summaryWs = XLSX.utils.json_to_sheet(summaryRows);
-  XLSX.utils.book_append_sheet(wb, summaryWs, 'Ringkasan');
 
-  // Sessions sheet
-  const sessionRows = report.sessions.map((s) => ({
-    'No. Sesi': s.sessionNumber,
-    Tanggal: s.sessionDate,
-    Periode: s.periodCode,
-    Lokasi: s.locationName,
-    'Total Baris': s.totalLines,
-    'Baris Dihitung': s.countedLines,
-    'Baris dengan Varians': s.linesWithVariance,
-    'Net Varians Qty': s.netVarianceQty,
-    'Nilai Varians': formatIDR(s.totalVarianceValue),
-  }));
-  const sessionWs = XLSX.utils.json_to_sheet(sessionRows);
-  XLSX.utils.book_append_sheet(wb, sessionWs, 'Sesi Opname');
+  const sessionRows = [
+    [
+      'No. Sesi',
+      'Tanggal',
+      'Periode',
+      'Lokasi',
+      'Total Baris',
+      'Baris Dihitung',
+      'Baris dengan Varians',
+      'Net Varians Qty',
+      'Nilai Varians',
+    ],
+    ...report.sessions.map((s) => [
+      s.sessionNumber,
+      s.sessionDate,
+      s.periodCode,
+      s.locationName,
+      s.totalLines,
+      s.countedLines,
+      s.linesWithVariance,
+      s.netVarianceQty,
+      formatIDR(s.totalVarianceValue),
+    ]),
+  ];
 
-  // Products sheet
-  const productRows = report.products.map((p) => ({
-    'ID Produk': p.productId,
-    'Nama Produk': p.productName,
-    SKU: p.sku ?? '',
-    'Qty Sistem': p.totalSystemQty,
-    'Qty Hitung': p.totalCountedQty,
-    'Varians Qty': p.totalVarianceQty,
-    'Varians Nilai': formatIDR(p.totalVarianceValueAbs),
-    'Tingkat Varians': formatVarianceRate(p.varianceRate),
-    'Sesi Terbesar': p.worstSession,
-    Tanggal: p.worstSessionDate,
-  }));
-  const productWs = XLSX.utils.json_to_sheet(productRows);
-  XLSX.utils.book_append_sheet(wb, productWs, 'Produk');
+  const productRows = [
+    [
+      'ID Produk',
+      'Nama Produk',
+      'SKU',
+      'Qty Sistem',
+      'Qty Hitung',
+      'Varians Qty',
+      'Varians Nilai',
+      'Tingkat Varians',
+      'Sesi Terbesar',
+      'Tanggal',
+    ],
+    ...report.products.map((p) => [
+      p.productId,
+      p.productName,
+      p.sku ?? '',
+      p.totalSystemQty,
+      p.totalCountedQty,
+      p.totalVarianceQty,
+      formatIDR(p.totalVarianceValueAbs),
+      formatVarianceRate(p.varianceRate),
+      p.worstSession,
+      p.worstSessionDate,
+    ]),
+  ];
 
-  XLSX.writeFile(wb, `varians-persediaan-${report.params.startDate}-${report.params.endDate}.xlsx`);
+  await exportWorkbook(
+    `varians-persediaan-${report.params.startDate}-${report.params.endDate}.xlsx`,
+    [
+      { name: 'Ringkasan', rows: summaryRows },
+      { name: 'Sesi Opname', rows: sessionRows },
+      { name: 'Produk', rows: productRows },
+    ],
+  );
 }
 
 // ─── Chart components ─────────────────────────────────────────────────────────

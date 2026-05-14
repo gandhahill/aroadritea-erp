@@ -18,6 +18,7 @@ Perubahan yang sudah diterapkan:
 - Scheduled Jobs dan Naixer settings diperketat agar tenant tidak bisa membaca/mengubah data tenant lain.
 - Worker outage monitor diarahkan ke port lokal PM2 (`127.0.0.1:3000-3002`).
 - Runtime production memakai PM2 dengan HestiaCP sebagai reverse proxy.
+- Semua proses PM2 wajib bind loopback `127.0.0.1`, bukan `0.0.0.0`; port 3000-3002 tidak boleh terbuka langsung ke publik.
 - Email otomatis memakai mailbox bawaan HestiaCP via SMTP (`SMTP_*`), bukan provider email eksternal default.
 
 ## Secret Yang Tetap Wajib `.env`

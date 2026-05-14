@@ -18,16 +18,16 @@
     "@tailwindcss/postcss": "^4.2.4",
     "argon2": "^0.44.0",
     "better-auth": "^1.6.9",
+    "exceljs": "^4.4.0",
     "idb": "^8.0.3",
-    "next": "^15.0.0",
+    "next": "15.5.18",
     "next-intl": "^4.11.0",
     "postcss": "^8.5.14",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "serwist": "^9.5.11",
-    "tailwindcss": "^4.2.4",
-    "xlsx": "^0.18.5"
+    "tailwindcss": "^4.2.4"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

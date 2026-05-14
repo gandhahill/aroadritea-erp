@@ -3198,12 +3198,14 @@ export const reportingDonations = {
 
 Production VPS HestiaCP menjalankan proses Node lewat `ecosystem.config.cjs`:
 
-- `aroadri-site` → `apps/site`, port `3000`.
-- `aroadri-web` → `apps/web`, port `3001`.
-- `aroadri-mcp` → `apps/mcp/src/server.ts` via `tsx`, health port `3002`, `MCP_ENABLE_STDIO=false` untuk mode daemon PM2.
+- `aroadri-site` → `apps/site`, bind `127.0.0.1:3000`.
+- `aroadri-web` → `apps/web`, bind `127.0.0.1:3001`.
+- `aroadri-mcp` → `apps/mcp/src/server.ts` via `tsx`, health bind `127.0.0.1:3002`, `MCP_ENABLE_STDIO=false` untuk mode daemon PM2.
 - `aroadri-worker` → `apps/worker/src/index.ts` via `tsx`.
 
 DB di managed (Neon/Supabase) → tidak ada DB lokal di VPS.
+
+Semua port aplikasi PM2 wajib bind loopback (`127.0.0.1`), bukan `0.0.0.0`; akses publik hanya lewat reverse proxy HestiaCP HTTPS.
 
 MCP transport utama tetap `stdio` untuk klien AI lokal. Proses PM2 hanya menjaga health/root HTTP; transport HTTP/SSE token-gated dapat ditambahkan saat ada klien remote yang benar-benar dipakai.
 

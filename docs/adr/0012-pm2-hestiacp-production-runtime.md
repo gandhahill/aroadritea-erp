@@ -21,6 +21,8 @@ Runtime production VPS memakai PM2 untuk proses Node.js:
 - `aroadri-mcp` di port lokal `3002` dengan `MCP_ENABLE_STDIO=false` agar PM2 berjalan sebagai health daemon.
 - `aroadri-worker` tanpa port HTTP publik.
 
+Semua proses HTTP PM2 wajib bind ke `127.0.0.1`, bukan `0.0.0.0`. Port 3000-3002 hanya boleh diakses dari reverse proxy lokal HestiaCP.
+
 HestiaCP tetap menjadi reverse proxy publik untuk:
 
 - `aroadritea.com` dan `www.aroadritea.com` → `http://127.0.0.1:3000`

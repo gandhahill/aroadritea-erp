@@ -2,15 +2,15 @@
  * DailySummaryClient — client component for the daily summary report.
  *
  * Filter bar, summary cards, payment table, top products table,
- * CSS-only charts, XLSX export. Uses xlsx library (already in deps).
+ * CSS-only charts, XLSX export.
  */
 
 'use client';
 
+import { exportWorkbook } from '@/lib/export-workbook';
 import type { DailySummaryResult } from '@erp/services/reporting';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import * as XLSX from 'xlsx';
 import { fetchDailySummary } from './actions';
 
 // ─── Formatters ────────────────────────────────────────────────────────────────
@@ -130,9 +130,6 @@ function BarChart({ items }: { items: Array<{ label: string; value: number; colo
 // ─── Export XLSX ─────────────────────────────────────────────────────────────
 
 async function exportXLSX(data: DailySummaryResult) {
-  const wb = XLSX.utils.book_new();
-
-  // Summary sheet
   const summaryRows = [
     ['Ringkasan Harian'],
     ['Periode', `${data.period.start} s/d ${data.period.end}`],
@@ -150,47 +147,57 @@ async function exportXLSX(data: DailySummaryResult) {
     ['', ''],
     ['Preliminary', data.isPreliminary ? 'Ya' : 'Tidak'],
   ];
-  const summaryWs = XLSX.utils.json_to_sheet(summaryRows);
-  XLSX.utils.book_append_sheet(wb, summaryWs, 'Ringkasan');
 
-  // Payment breakdown
-  const paymentRows = data.paymentBreakdown.map((row) => ({
-    Metode: row.method,
-    'Jumlah Transaksi': row.txCount,
-    Total: row.total,
-  }));
-  const paymentWs = XLSX.utils.json_to_sheet(paymentRows);
-  XLSX.utils.book_append_sheet(wb, paymentWs, 'Pembayaran');
+  const paymentRows = [
+    ['Metode', 'Jumlah Transaksi', 'Total'],
+    ...data.paymentBreakdown.map((row) => [row.method, row.txCount, row.total]),
+  ];
 
-  // Top products
-  const productRows = data.topProducts.map((row) => ({
-    Rank: row.rank,
-    'Product ID': row.productId,
-    'Product Name': row.productName,
-    Qty: row.qty,
-    Nominal: row.nominal,
-    Channel: row.channel,
-  }));
-  const productWs = XLSX.utils.json_to_sheet(productRows);
-  XLSX.utils.book_append_sheet(wb, productWs, 'Top Products');
+  const productRows = [
+    ['Rank', 'Product ID', 'Product Name', 'Qty', 'Nominal', 'Channel'],
+    ...data.topProducts.map((row) => [
+      row.rank,
+      row.productId,
+      row.productName,
+      row.qty,
+      row.nominal,
+      row.channel,
+    ]),
+  ];
 
-  // Shift summary
-  const shiftRows = data.shiftSummary.map((s) => ({
-    'Shift ID': s.shiftId,
-    'Opened At': s.openedAt,
-    'Closed At': s.closedAt ?? '',
-    'Kas Awal': s.openingCash,
-    'Kas Diharapkan': s.expectedCash ?? '',
-    'Kas Atual': s.actualCash ?? '',
-    Selisih: s.variance ?? '',
-    Kasir: s.cashierName,
-    'Jumlah Tx': s.txCount,
-    'Total Tx': s.txTotal,
-  }));
-  const shiftWs = XLSX.utils.json_to_sheet(shiftRows);
-  XLSX.utils.book_append_sheet(wb, shiftWs, 'Shift');
+  const shiftRows = [
+    [
+      'Shift ID',
+      'Opened At',
+      'Closed At',
+      'Kas Awal',
+      'Kas Diharapkan',
+      'Kas Aktual',
+      'Selisih',
+      'Kasir',
+      'Jumlah Tx',
+      'Total Tx',
+    ],
+    ...data.shiftSummary.map((s) => [
+      s.shiftId,
+      s.openedAt,
+      s.closedAt ?? '',
+      s.openingCash,
+      s.expectedCash ?? '',
+      s.actualCash ?? '',
+      s.variance ?? '',
+      s.cashierName,
+      s.txCount,
+      s.txTotal,
+    ]),
+  ];
 
-  XLSX.writeFile(wb, `ringkasan-harian-${data.period.start}.xlsx`);
+  await exportWorkbook(`ringkasan-harian-${data.period.start}.xlsx`, [
+    { name: 'Ringkasan', rows: summaryRows },
+    { name: 'Pembayaran', rows: paymentRows },
+    { name: 'Top Products', rows: productRows },
+    { name: 'Shift', rows: shiftRows },
+  ]);
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────

@@ -8,6 +8,7 @@ import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 
 const APP_VERSION = process.env.npm_package_version ?? '0.1.0';
+const HOST = process.env.MCP_HTTP_HOST ?? '127.0.0.1';
 const PORT = Number.parseInt(process.env.MCP_HTTP_PORT ?? '3002', 10);
 
 const app = new Hono();
@@ -32,9 +33,10 @@ app.get('/', (c) => {
 
 const server = serve({
   fetch: app.fetch,
+  hostname: HOST,
   port: PORT,
 });
 
-console.info(`[mcp-http] Health server listening on port ${PORT}`);
+console.info(`[mcp-http] Health server listening on ${HOST}:${PORT}`);
 
 export { server };

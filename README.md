@@ -324,7 +324,7 @@ pm2 logs --lines 100
 | `erp.aroadritea.com` | `http://127.0.0.1:3001` |
 | `mcp.erp.aroadritea.com` | `http://127.0.0.1:3002` |
 
-PM2 mendengarkan port lokal 3000-3002. Jangan buka port tersebut ke publik; akses luar tetap lewat reverse proxy HestiaCP.
+PM2 wajib bind ke loopback `127.0.0.1` untuk port 3000-3002. Jangan bind ke `0.0.0.0` dan jangan buka port tersebut ke publik; akses luar tetap lewat reverse proxy HestiaCP.
 
 ### 6.8 Firewall
 
