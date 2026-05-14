@@ -5,7 +5,11 @@
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  PingRequestSchema,
+} from '@modelcontextprotocol/sdk/types.js';
 import type { z } from 'zod';
 import { verifyToken } from './auth';
 import type { McpContext } from './context';
@@ -177,10 +181,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // --- Ping ---
 
-server.setRequestHandler(
-  { method: 'ping' } as unknown as Parameters<typeof server.setRequestHandler>[0],
-  async () => ({ result: { version: SERVER_INFO.version } }),
-);
+server.setRequestHandler(PingRequestSchema, async () => ({}));
 
 // --- Start HTTP health server ---
 import { server as httpServer } from './http-server';
