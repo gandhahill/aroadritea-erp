@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-05-14 17:35 +07:00
-- **Last updated**: 2026-05-14 19:22 +07:00
+- **Last updated**: 2026-05-14 19:43 +07:00
 - **Status**: DONE
 
 ## Goal
@@ -33,7 +33,7 @@ Verifikasi dan rapikan kesiapan production setelah runtime VPS beralih ke PM2.
   - `pnpm --filter @erp/site build`: PASS lokal dan server.
   - `pnpm --filter @erp/web build`: PASS lokal dan server.
 - Deployment:
-  - Server repo deployed di commit `e4a4a0c`.
+  - Server repo deployed di commit `b91cab0`.
   - PM2 processes online: `aroadri-site`, `aroadri-web`, `aroadri-mcp`, `aroadri-worker`.
   - `pm2-root` systemd enabled dan active.
   - Port app 3000/3001/3002 listen hanya di `127.0.0.1`; akses publik langsung ke port tersebut timeout.
@@ -41,6 +41,13 @@ Verifikasi dan rapikan kesiapan production setelah runtime VPS beralih ke PM2.
     - `https://aroadritea.com/api/healthz`
     - `https://erp.aroadritea.com/api/healthz`
     - `https://erp.aroadritea.com/mcp/healthz`
+- i18n parity:
+  - `apps/web/messages/{id,en,zh}.json`: 485 leaf keys each, no missing keys.
+  - `apps/site/messages/{id,en,zh}.json`: 30 leaf keys each, no missing keys.
+  - Login `app.name`, `app.tagline`, `app.company` fixed for EN/ZH.
+- Public site CSS:
+  - `apps/site/app/globals.css` added and imported from root layout.
+  - Live `https://aroadritea.com/id` now includes `/_next/static/css/*.css`.
 - Redirect fix:
   - Root site sekarang redirect ke `https://aroadritea.com/id`.
   - Root ERP sekarang redirect ke `https://erp.aroadritea.com/login?callbackUrl=%2F`.

@@ -24,7 +24,6 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0161 | Final production hardening and smoke test | Codex | 2026-05-14 17:35 +07:00 | 2026-05-14 17:35 +07:00 | 🟨 IN_PROGRESS | Verify VPS/HestiaCP/PM2/DB/security readiness after PM2 deployment |
 
 ---
 
@@ -170,6 +169,7 @@
 | T-0158 | Expand README step-by-step deployment guide | Codex | 2026-05-13 | pending commit | README now covers local setup, HestiaCP deploy, update, rollback, troubleshooting |
 | T-0159 | Switch automatic email to HestiaCP SMTP | Codex | 2026-05-13 | pending commit | OTP member and worker email now use HestiaCP SMTP mailbox via `SMTP_*`; docs/ADR updated |
 | T-0160 | Switch VPS deployment runtime from Docker to PM2 | Codex | 2026-05-14 | 697cb98 | PM2 runtime deployed on VPS; site/web/MCP health checks OK |
+| T-0161 | Final production hardening and smoke test | Codex | 2026-05-14 | b91cab0 | Production checks, redirect fix, i18n parity, public site CSS, SSH key verified |
 
 ---
 
