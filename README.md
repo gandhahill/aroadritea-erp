@@ -2,7 +2,7 @@
 
 Custom ERP untuk PT. Gandha Hill Catering Management Indonesia / Aroadri Tea.
 
-Stack utama: Next.js 15, Drizzle ORM, managed PostgreSQL/Neon, Hono MCP, pnpm workspace, Docker, dan HestiaCP untuk reverse proxy VPS.
+Stack utama: Next.js 15, Drizzle ORM, managed PostgreSQL/Neon, Hono MCP, pnpm workspace, PM2, dan HestiaCP untuk reverse proxy VPS.
 
 ## 1. Struktur Aplikasi
 
@@ -20,7 +20,7 @@ Stack utama: Next.js 15, Drizzle ORM, managed PostgreSQL/Neon, Hono MCP, pnpm wo
 
 Local development:
 
-- Node.js 20 atau lebih baru. Dockerfile production memakai Node.js 22.
+- Node.js 20 atau lebih baru. Production VPS direkomendasikan memakai Node.js 22 LTS.
 - pnpm 9.15.4 via Corepack.
 - Git.
 - PostgreSQL managed, direkomendasikan Neon.
@@ -28,7 +28,7 @@ Local development:
 VPS production:
 
 - Ubuntu/Debian dengan HestiaCP.
-- Docker Engine dan Docker Compose plugin.
+- Node.js 20+ dan PM2.
 - Minimal sesuai desain: 1 vCPU, 2 GB RAM, 60 GB disk.
 - Domain mengarah ke IP VPS:
   - `aroadritea.com`
@@ -148,7 +148,7 @@ Checklist hardening dan QA production ada di `docs/PRODUCTION-READINESS.md`.
 
 ## 6. Deploy Ke VPS HestiaCP
 
-HestiaCP biasanya sudah memakai Nginx/Apache di port 80/443. Karena itu gunakan `docker/docker-compose.hestiacp.yml`, bukan compose default dengan Caddy.
+HestiaCP biasanya sudah memakai Nginx/Apache di port 80/443. Runtime production sekarang memakai PM2, bukan Docker Compose, agar lebih sederhana di VPS HestiaCP.
 
 ### 6.1 Persiapan VPS
 
@@ -158,13 +158,17 @@ HestiaCP biasanya sudah memakai Nginx/Apache di port 80/443. Karena itu gunakan 
 ssh root@<IP_VPS>
 ```
 
-2. Install Docker jika belum ada.
+2. Install Node.js 22 LTS, pnpm, dan PM2 jika belum ada.
 
 ```bash
-curl -fsSL https://get.docker.com | sh
-systemctl enable --now docker
-docker version
-docker compose version
+curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+apt-get install -y nodejs
+corepack enable
+corepack prepare pnpm@9.15.4 --activate
+npm install -g pm2
+node -v
+pnpm -v
+pm2 -v
 ```
 
 3. Untuk VPS 2 GB RAM, aktifkan swap jika belum ada.
@@ -185,8 +189,8 @@ Lewati pembuatan swap jika `swapon --show` sudah menampilkan swap aktif.
 1. Buat folder aplikasi.
 
 ```bash
-mkdir -p /opt/aroadri-erp
-cd /opt/aroadri-erp
+mkdir -p /home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp
+cd /home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp
 ```
 
 2. Clone atau pull repository.
@@ -197,11 +201,9 @@ git checkout main
 git pull --ff-only
 ```
 
-3. Aktifkan pnpm di VPS untuk migration dan seed.
+3. Install dependency.
 
 ```bash
-corepack enable
-corepack prepare pnpm@9.15.4 --activate
 pnpm install --frozen-lockfile
 ```
 
@@ -270,37 +272,37 @@ Email otomatis seperti OTP member dan notifikasi outage memakai mailbox bawaan H
 ### 6.5 Jalankan Migration Dan Seed
 
 ```bash
-cd /opt/aroadri-erp
+cd /home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp
 pnpm db:migrate
 pnpm db:seed
 ```
 
-Untuk deploy berikutnya, jalankan `pnpm db:migrate` sebelum restart container. Jalankan `pnpm db:seed` hanya bila ada seed idempotent baru yang perlu masuk.
+Untuk deploy berikutnya, jalankan `pnpm db:migrate` sebelum reload PM2. Jalankan `pnpm db:seed` hanya bila ada seed idempotent baru yang perlu masuk.
 
-### 6.6 Jalankan Container
+### 6.6 Build Dan Jalankan PM2
 
-Rekomendasi production adalah memakai image yang sudah dibuild CI/GitHub Container Registry. Jika image belum tersedia, compose dapat build di VPS, tetapi pastikan swap aktif.
-
-Build langsung di VPS:
+Build semua app:
 
 ```bash
-cd /opt/aroadri-erp
-docker compose -f docker/docker-compose.hestiacp.yml --env-file .env up -d --build
+cd /home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp
+pnpm build
 ```
 
-Jika image sudah tersedia di registry:
+Jalankan proses via PM2:
 
 ```bash
-cd /opt/aroadri-erp
-docker compose -f docker/docker-compose.hestiacp.yml --env-file .env pull
-docker compose -f docker/docker-compose.hestiacp.yml --env-file .env up -d
+pm2 start ecosystem.config.cjs --env production
+pm2 save
+pm2 startup systemd -u root --hp /root
 ```
 
-Lihat status container:
+Jika output `pm2 startup` menampilkan command tambahan, jalankan command tersebut sekali.
+
+Lihat status proses:
 
 ```bash
-docker compose -f docker/docker-compose.hestiacp.yml ps
-docker compose -f docker/docker-compose.hestiacp.yml logs -f --tail=100
+pm2 status
+pm2 logs --lines 100
 ```
 
 ### 6.7 Atur Domain Di HestiaCP
@@ -322,7 +324,7 @@ docker compose -f docker/docker-compose.hestiacp.yml logs -f --tail=100
 | `erp.aroadritea.com` | `http://127.0.0.1:3001` |
 | `mcp.erp.aroadritea.com` | `http://127.0.0.1:3002` |
 
-Container sengaja bind ke `127.0.0.1`, jadi port 3000-3002 tidak terbuka publik.
+PM2 mendengarkan port lokal 3000-3002. Jangan buka port tersebut ke publik; akses luar tetap lewat reverse proxy HestiaCP.
 
 ### 6.8 Firewall
 
@@ -359,11 +361,11 @@ curl -fsS https://mcp.erp.aroadritea.com/healthz
 Jika salah satu gagal:
 
 ```bash
-docker compose -f docker/docker-compose.hestiacp.yml ps
-docker compose -f docker/docker-compose.hestiacp.yml logs --tail=200 <service>
+pm2 status
+pm2 logs <service> --lines 200
 ```
 
-Nama service: `site`, `web`, `mcp`, `worker`.
+Nama service: `aroadri-site`, `aroadri-web`, `aroadri-mcp`, `aroadri-worker`.
 
 ## 8. Setup Awal Setelah Login
 
@@ -384,7 +386,7 @@ Nama service: `site`, `web`, `mcp`, `worker`.
 1. Masuk ke folder aplikasi.
 
 ```bash
-cd /opt/aroadri-erp
+cd /home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp
 ```
 
 2. Ambil perubahan terbaru.
@@ -407,16 +409,18 @@ pnpm install --frozen-lockfile
 pnpm db:migrate
 ```
 
-5. Rebuild/restart container.
+5. Build ulang dan reload PM2.
 
 ```bash
-docker compose -f docker/docker-compose.hestiacp.yml --env-file .env up -d --build
+pnpm build
+pm2 reload ecosystem.config.cjs --env production --update-env
+pm2 save
 ```
 
 6. Cek log dan health.
 
 ```bash
-docker compose -f docker/docker-compose.hestiacp.yml ps
+pm2 status
 curl -fsS https://erp.aroadritea.com/api/healthz
 ```
 
@@ -434,23 +438,25 @@ git log --oneline -10
 git checkout <COMMIT_STABIL>
 ```
 
-3. Rebuild container.
+3. Build ulang dan reload PM2.
 
 ```bash
-docker compose -f docker/docker-compose.hestiacp.yml --env-file .env up -d --build
+pnpm build
+pm2 reload ecosystem.config.cjs --env production --update-env
 ```
 
 Rollback database tidak otomatis. Jika migration sudah mengubah schema/data production, restore dari backup managed PostgreSQL/Neon sesuai prosedur provider.
 
 ## 11. Troubleshooting
 
-Container tidak sehat:
+PM2 process tidak sehat:
 
 ```bash
-docker compose -f docker/docker-compose.hestiacp.yml logs --tail=200 web
-docker compose -f docker/docker-compose.hestiacp.yml logs --tail=200 site
-docker compose -f docker/docker-compose.hestiacp.yml logs --tail=200 mcp
-docker compose -f docker/docker-compose.hestiacp.yml logs --tail=200 worker
+pm2 status
+pm2 logs aroadri-web --lines 200
+pm2 logs aroadri-site --lines 200
+pm2 logs aroadri-mcp --lines 200
+pm2 logs aroadri-worker --lines 200
 ```
 
 Migration gagal:
@@ -469,9 +475,9 @@ Login bermasalah:
 
 Public site atau ERP 502 dari HestiaCP:
 
-- Cek container berjalan.
+- Cek proses PM2 berjalan.
 - Cek target proxy HestiaCP mengarah ke `127.0.0.1`.
-- Cek port container lokal dengan `curl http://127.0.0.1:<port>/api/healthz`.
+- Cek port lokal dengan `curl http://127.0.0.1:<port>/api/healthz`.
 
 ## 12. Catatan Production
 

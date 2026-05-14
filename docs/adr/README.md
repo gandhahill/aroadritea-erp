@@ -62,9 +62,10 @@ Opsi lain yang dievaluasi + alasan ditolak.
 | [0006](0006-design-system-anti-generic.md) | Design System Anti-Generic (UI Aroadri) | Accepted | 2026-05-05 | Token brand + override shadcn/ui; lint rule untuk hindari look generic AI |
 | [0007](0007-naixer-qr-integration.md) | Integrasi POS ↔ KDS Naixer via QR Code | Accepted | 2026-05-05 | QR-only (tanpa API); strategy pluggable dash/pipe; mapping master di DB |
 | [0008](0008-pos-demo-mode-client-side.md) | POS Demo / Training Mode (IndexedDB Sandbox) | Accepted | 2026-05-05 | Sandbox client-side; tidak pernah sync ke server; QR demo prefix `DEMO-` |
-| [0009](0009-resilience-and-auto-recovery.md) | Resilience & Auto-Recovery | Accepted | 2026-05-05 | PWA offline POS + Docker auto-restart + healthcheck + idempotency; RTO 2m, RPO 0 untuk POS |
+| [0009](0009-resilience-and-auto-recovery.md) | Resilience & Auto-Recovery | Accepted | 2026-05-05 | PWA offline POS + process auto-restart + healthcheck + idempotency; runtime production lihat ADR-0012 |
 | [0010](0010-ppn-engine-opt-in.md) | PPN Engine — Opt-In | Accepted | 2026-05-05 | PB1 default, PPN keluaran default off untuk retail F&B; engine siap aktivasi B2B kelak via `tax_rules` |
 | [0011](0011-hestiacp-smtp-transactional-email.md) | HestiaCP SMTP Untuk Email Transaksional | Accepted | 2026-05-13 | Email otomatis via mailbox HestiaCP SMTP; bukan Resend/SES sebagai default |
+| [0012](0012-pm2-hestiacp-production-runtime.md) | PM2 + HestiaCP Untuk Runtime Production VPS | Accepted | 2026-05-14 | Runtime production VPS memakai PM2, bukan Docker Compose |
 
 > Tabel di atas wajib diperbarui setiap kali ADR baru dibuat atau status berubah. Index ini di-render di `CLAUDE.md` sebagai daftar pengingat.
 

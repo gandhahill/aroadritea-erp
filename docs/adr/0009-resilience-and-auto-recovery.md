@@ -1,6 +1,6 @@
 # ADR-0009: Resilience & Auto-Recovery
 
-- **Status**: Accepted
+- **Status**: Accepted (deployment runtime portion superseded by ADR-0012)
 - **Tanggal**: 2026-05-05
 - **Pengambil keputusan**: Lintang Maulana Zulfan
 - **Konteks bisnis**: SOURCE-OF-TRUTH §25 (Resilience & Auto-Recovery), §21.1 (Pain Points)
@@ -9,7 +9,7 @@
 ## Konteks
 
 Server VPS Aroadri sangat ketat (1 vCPU / 2 GB RAM). Risiko nyata:
-- **OOM kill** karena memory pressure (Next.js + worker + Caddy + DB connections).
+- **OOM kill** karena memory pressure (Next.js + worker + HestiaCP reverse proxy + DB connections).
 - **Process crash** karena exception unhandled.
 - **Internet putus** di toko (Indibiz "kadang putus" — SoT §21.1).
 - **Listrik padam** di toko, POS device reboot.
@@ -42,16 +42,18 @@ Strategi **resilience berlapis** yang tidak menggantungkan pada single failure p
 
 ### Layer 2 — Server Process
 
+> Update 2026-05-14: production VPS runtime dialihkan dari Docker Compose ke PM2 + HestiaCP reverse proxy. Prinsip auto-restart dan RTO/RPO tetap berlaku; mekanisme runtime production lihat ADR-0012.
+
 | Komponen | Implementasi |
 |---|---|
-| Container restart | Docker Compose `restart: unless-stopped` untuk semua service |
-| Healthcheck | `/healthz` endpoint cek DB pool + return 200; Docker `HEALTHCHECK` |
-| Memory limit | Per service `mem_limit` + Node `--max-old-space-size` |
+| Process restart | PM2 `autorestart` untuk semua service |
+| Healthcheck | `/healthz` endpoint cek DB pool + return 200; worker outage monitor cek port lokal |
+| Memory limit | PM2 `max_memory_restart` + Node `--max-old-space-size` |
 | Graceful shutdown | SIGTERM handler: drain HTTP, flush logs, close DB pool |
-| Caddy upstream | `lb_try_duration 5s` + maintenance.html bila upstream unhealthy |
+| HestiaCP upstream | Reverse proxy ke port lokal; halaman error/maintenance dikelola di HestiaCP |
 | Idempotency server-side | Tabel `idempotency_records (key, scope, response_json, expires_at)` cache 24 jam |
 
-**Recovery server**: container yang OOM-kill atau crash → Docker auto-restart < 30 detik; healthcheck konfirmasi sehat sebelum Caddy route.
+**Recovery server**: process yang OOM-kill atau crash → PM2 auto-restart < 30 detik; healthcheck konfirmasi sehat sebelum traffic normal.
 
 ### Layer 3 — Database
 
@@ -71,7 +73,7 @@ Strategi **resilience berlapis** yang tidak menggantungkan pada single failure p
 |---|---|---|
 | Internal cron | Worker hit `/healthz` semua service | 5 menit |
 | External uptime | UptimeRobot / Better Stack free tier | 5 menit |
-| Memory alert | Worker baca `/proc/meminfo` (di Docker) | 5 menit |
+| Memory alert | Worker baca memory OS/process PM2 | 5 menit |
 | Backup verification | Worker verifikasi ukuran backup harian | daily |
 
 ### Layer 6 — Notifikasi Outage
@@ -84,14 +86,14 @@ Strategi **resilience berlapis** yang tidak menggantungkan pada single failure p
 Modul POS lulus deploy ke production hanya bila semua **8 skenario test** di SYSTEM-DESIGN §35.2 lulus:
 1. Cabut jaringan saat order → tetap selesaikan.
 2. Sambungkan kembali → outbox flush ≤ 30s.
-3. Stop container `web` saat ada outbox → maintenance page; restart < 30s; flush.
+3. Stop PM2 process `aroadri-web` saat ada outbox → restart < 30s; flush.
 4. OOM kill simulasi → restart < 30s.
 5. Reboot POS device dengan outbox → setelah boot, outbox masih ada; sync resume.
 6. Submit dua kali (idempotency) → 1 record saja.
 7. Server down 5 menit → notifikasi terkirim.
 8. DB connection drop → reconnect < 5s; tidak ada request hilang.
 
-Skrip test di `scripts/resilience-tests/*.ts` (Playwright + skrip docker).
+Skrip test di `scripts/resilience-tests/*.ts` (Playwright + skrip proses PM2).
 
 ### RTO / RPO
 - **RTO**: ≤ 2 menit (crash → service healthy).
@@ -143,10 +145,10 @@ Skrip test di `scripts/resilience-tests/*.ts` (Playwright + skrip docker).
 
 ### Phase 1 (Foundation)
 - [ ] `/healthz` endpoint di apps/web, apps/site, apps/mcp.
-- [ ] Docker Compose dengan restart policy + healthcheck + mem_limit.
+- [x] PM2 ecosystem dengan autorestart, memory restart, dan `--max-old-space-size` (ADR-0012).
 - [ ] `--max-old-space-size` di startup commands.
 - [ ] Connection pool retry config.
-- [ ] Caddy upstream healthcheck + maintenance.html.
+- [ ] HestiaCP upstream error/maintenance page.
 - [ ] Tabel `idempotency_records` + cron cleanup.
 
 ### Phase 2 (POS)

@@ -24,6 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0160 | Switch VPS deployment runtime from Docker to PM2 | Codex | 2026-05-14 00:05 +07:00 | 2026-05-14 00:05 +07:00 | 🟨 IN_PROGRESS | User deployed to VPS and requested PM2 setup after Docker issue |
 
 ---
 

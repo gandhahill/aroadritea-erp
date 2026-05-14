@@ -56,7 +56,7 @@ ERP/
 │   └── BRAND.md          ← logo, palette, typography, visual restrictions, UI guide
 └── docs/
     ├── adr/              ← Architecture Decision Records
-    │   ├── README.md     ← ADR index (11 ADRs decided)
+    │   ├── README.md     ← ADR index (12 ADRs decided)
     │   ├── 0001-stack-choice.md
     │   ├── 0002-monorepo-and-app-split.md
     │   ├── 0003-public-website-cms-architecture.md
@@ -67,7 +67,8 @@ ERP/
     │   ├── 0008-pos-demo-mode-client-side.md
     │   ├── 0009-resilience-and-auto-recovery.md
     │   ├── 0010-ppn-engine-opt-in.md
-    │   └── 0011-hestiacp-smtp-transactional-email.md
+    │   ├── 0011-hestiacp-smtp-transactional-email.md
+    │   └── 0012-pm2-hestiacp-production-runtime.md
     ├── checkpoints/      ← state per IN_PROGRESS task
     │   ├── README.md     ← usage guide
     │   ├── TEMPLATE.checkpoint.md
@@ -89,9 +90,10 @@ Once code starts being written, follow the structure in **SYSTEM-DESIGN.md §6**
 | [0006](docs/adr/0006-design-system-anti-generic.md) | Anti-Generic UI Design System | Accepted | Brand tokens + shadcn/ui override; lint rule bans `bg-white`, `text-zinc-*`, `border-slate-*` |
 | [0007](docs/adr/0007-naixer-qr-integration.md) | Naixer KDS Integration via QR | Accepted | QR-only (no API); pluggable dash/pipe strategy; mapping master in DB |
 | [0008](docs/adr/0008-pos-demo-mode-client-side.md) | POS Demo / Training Mode | Accepted | Client-side IndexedDB sandbox; never syncs to server; demo QR prefix `DEMO-` |
-| [0009](docs/adr/0009-resilience-and-auto-recovery.md) | Resilience & Auto-Recovery | Accepted | PWA offline POS + Docker auto-restart + healthcheck + idempotency; RTO 2m, RPO 0 for POS |
+| [0009](docs/adr/0009-resilience-and-auto-recovery.md) | Resilience & Auto-Recovery | Accepted | PWA offline POS + process auto-restart + healthcheck + idempotency; RTO 2m, RPO 0 for POS |
 | [0010](docs/adr/0010-ppn-engine-opt-in.md) | PPN Engine — Opt-In | Accepted | PB1 default, output PPN off for retail; engine ready for B2B via `tax_rules` |
 | [0011](docs/adr/0011-hestiacp-smtp-transactional-email.md) | HestiaCP SMTP Transactional Email | Accepted | Email otomatis via mailbox HestiaCP SMTP; no Resend/SES by default |
+| [0012](docs/adr/0012-pm2-hestiacp-production-runtime.md) | PM2 + HestiaCP Production Runtime | Accepted | Production VPS runs Node apps via PM2 behind HestiaCP reverse proxy |
 
 When a new decision affects >1 module, changes a schema, or adds a major dependency → **must** write a new ADR in `docs/adr/`. Format: see `docs/adr/README.md`.
 
@@ -104,7 +106,7 @@ Full detail in **`SYSTEM-DESIGN.md`**. Operational summary:
 - **Stack**: TypeScript + Next.js 15 (App Router) + Hono (MCP) + Drizzle ORM + managed PostgreSQL (Neon/Supabase) + Tailwind + shadcn/ui (brand-overridden) + better-auth + next-intl + Serwist (PWA).
 - **Shape**: modular monolith in a pnpm workspace with 4 apps: `site` (public, aroadritea.com), `web` (ERP, erp.aroadritea.com), `mcp` (Hono), `worker` (cron + queue).
 - **Three layers**: `apps/*` (transport) → `packages/services/*` (business logic, Result-typed) → `packages/db` (Drizzle schema).
-- **Managed DB** separate from VPS (offloads RAM); VPS only runs compute (Next.js × 2 + MCP + worker + Caddy).
+- **Managed DB** separate from VPS (offloads RAM); VPS only runs compute via PM2 (Next.js × 2 + MCP + worker) behind HestiaCP reverse proxy.
 
 **Hard constraints**:
 - VPS server **1 vCPU / 2 GB RAM / 60 GB disk** (upgraded from 1 GB on 2026-05-05) — Odoo/ERPNext/Frappe (≥ 4 GB) **remain excluded**.
@@ -304,6 +306,7 @@ This repository already has user memory at `~/.Codex/projects/D--KERJA-Aroadri-T
 - Managed DB: **Neon** (Supabase fallback). Auth: **better-auth**.
 - PPN engine **opt-in** — PB1 default for retail F&B; output PPN ready to be activated later for B2B via `tax_rules` table (see ADR-0010).
 - Email otomatis memakai mailbox bawaan HestiaCP via SMTP env `SMTP_*` (lihat ADR-0011).
+- Production VPS memakai PM2 + HestiaCP reverse proxy, bukan Docker Compose, sesuai ADR-0012.
 
 If any of this information changes (e.g., budget increases, team grows, server upgraded again), **update the memory** and this document simultaneously.
 
@@ -326,4 +329,4 @@ If anything is unclear — **stop and ask the user**.
 
 ---
 
-*This document was prepared 2026-05-05. Version 1.4 (2 GB RAM, ADR 0006-0011, TASK.md workflow, decisions resolved).*
+*This document was prepared 2026-05-05. Version 1.5 (2 GB RAM, ADR 0006-0012, TASK.md workflow, decisions resolved).*

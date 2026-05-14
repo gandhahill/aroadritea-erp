@@ -44,13 +44,13 @@ Email otomatis memakai SMTP mailbox bawaan HestiaCP, bukan Resend/SES. Credentia
 
 ## Health Monitoring
 
-Worker outage monitor memakai URL default internal Docker. Override hanya diperlukan bila topology deploy berubah.
+Worker outage monitor memakai URL default lokal PM2. Override hanya diperlukan bila topology deploy berubah.
 
 | Variable | Default | Fungsi |
 |---|---|---|
-| `SITE_HEALTH_URL` | `http://site:3000/api/healthz` | Health check public site. |
-| `WEB_HEALTH_URL` | `http://web:3001/api/healthz` | Health check ERP web. |
-| `MCP_HEALTH_URL` | `http://mcp:3002/healthz` | Health check MCP server. |
+| `SITE_HEALTH_URL` | `http://127.0.0.1:3000/api/healthz` | Health check public site. |
+| `WEB_HEALTH_URL` | `http://127.0.0.1:3001/api/healthz` | Health check ERP web. |
+| `MCP_HEALTH_URL` | `http://127.0.0.1:3002/healthz` | Health check MCP server. |
 
 ## POS Posting, Pajak, dan Printer
 

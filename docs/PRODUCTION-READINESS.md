@@ -11,13 +11,13 @@ Perubahan yang sudah diterapkan:
 - Konfigurasi operasional POS tidak lagi bergantung pada `.env`; dipindahkan ke tabel `pos_settings` dan UI `Settings -> POS Settings`.
 - Login dashboard dapat memilih bahasa `ID/EN/ZH` sebelum submit.
 - Login diberi DB-backed rate limit dan audit attempt per email hash/IP, tanpa mewajibkan 2FA.
-- Security header ditambahkan di Next.js dan Caddy: CSP, HSTS, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, dan `Permissions-Policy`.
-- Caddy production dibatasi TLS 1.3 dan menyembunyikan `Server` header.
+- Security header ditambahkan di Next.js: CSP, HSTS, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, dan `Permissions-Policy`.
+- TLS production dikelola HestiaCP/Let's Encrypt; reverse proxy wajib hanya membuka 80/443 publik.
 - Naixer KDS label fleksibel per lokasi/printer: 60x40 mm dan 40x30 mm landscape, dengan preview QR, pickup number, jam pesanan, dan detail produk.
 - Lebar struk thermal fleksibel, default 80 mm.
 - Scheduled Jobs dan Naixer settings diperketat agar tenant tidak bisa membaca/mengubah data tenant lain.
-- Worker outage monitor diarahkan ke service DNS Docker yang benar (`site`, `web`, `mcp`), bukan `localhost`.
-- Compose khusus HestiaCP ditambahkan, binding port app ke `127.0.0.1` saja.
+- Worker outage monitor diarahkan ke port lokal PM2 (`127.0.0.1:3000-3002`).
+- Runtime production memakai PM2 dengan HestiaCP sebagai reverse proxy.
 - Email otomatis memakai mailbox bawaan HestiaCP via SMTP (`SMTP_*`), bukan provider email eksternal default.
 
 ## Secret Yang Tetap Wajib `.env`
@@ -36,21 +36,22 @@ Setting bisnis harian wajib lewat DB/UI, bukan edit source.
 
 ## Checklist Deploy HestiaCP
 
-1. Pull branch/release ke `/opt/aroadri-erp`.
+1. Pull branch/release ke `/home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp`.
 2. Isi `.env` production berdasarkan `.env.example`.
 3. Buat mailbox HestiaCP untuk email otomatis, misalnya `noreply@aroadritea.com`, lalu isi `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, dan `SMTP_FROM_NAME`.
 4. Pastikan DNS email aktif: MX, SPF, DKIM, dan DMARC.
 5. Jalankan `pnpm install --frozen-lockfile`.
 6. Jalankan `pnpm --filter @erp/db migrate`.
 7. Jalankan `pnpm --filter @erp/db seed` untuk bootstrap awal.
-8. Jalankan `docker compose -f docker/docker-compose.hestiacp.yml --env-file .env up -d --build`.
-9. Di HestiaCP, proxy:
+8. Jalankan `pnpm build`.
+9. Jalankan `pm2 start ecosystem.config.cjs --env production`, `pm2 save`, dan `pm2 startup systemd -u root --hp /root`.
+10. Di HestiaCP, proxy:
    - `aroadritea.com` dan `www.aroadritea.com` ke `http://127.0.0.1:3000`
    - `erp.aroadritea.com` ke `http://127.0.0.1:3001`
    - `mcp.erp.aroadritea.com` ke `http://127.0.0.1:3002`
-10. Aktifkan Let's Encrypt untuk semua domain.
-11. Pastikan firewall publik hanya membuka 80/443.
-12. Cek health:
+11. Aktifkan Let's Encrypt untuk semua domain.
+12. Pastikan firewall publik hanya membuka 80/443.
+13. Cek health:
     - `https://aroadritea.com/api/healthz`
     - `https://erp.aroadritea.com/api/healthz`
     - `https://mcp.erp.aroadritea.com/healthz`
@@ -63,7 +64,7 @@ Setting bisnis harian wajib lewat DB/UI, bukan edit source.
 - Ubah lebar struk dari 80 mm ke ukuran printer lain dan lakukan test print.
 - Ubah Naixer label 60x40 mm dan 40x30 mm, scan QR preview/test print di mesin Naixer.
 - Toggle scheduled job dan ubah cron, pastikan hanya tenant aktif yang bisa mengubah.
-- Matikan salah satu container sementara dan pastikan restart policy menghidupkannya kembali.
+- Matikan salah satu process PM2 sementara dan pastikan PM2 menghidupkannya kembali.
 
 ## Risiko Tersisa
 

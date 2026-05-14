@@ -140,7 +140,7 @@ Setiap kali AI hendak menambah dependency baru, fitur baru, atau optimisasi yang
 | Bahasa | ID / EN / ZH | i18n sejak hari pertama. |
 | Browser target | Chromium-based modern + Safari iOS 14+ | Mesin kasir Imin Swan 2 (Android). PWA harus jalan di Android Chrome WebView. |
 | Pajak | SAK ETAP, PB1 10% inclusive | Engine pajak fleksibel di tabel. |
-| Recovery | RTO ≤ 2 menit, RPO = 0 utk POS | Auto-restart Docker, outbox client, idempotent sync. |
+| Recovery | RTO ≤ 2 menit, RPO = 0 utk POS | Auto-restart PM2, outbox client, idempotent sync. |
 | Naixer KDS | QR-only (tanpa API) | Generator QR pluggable. Lihat §33. |
 | Demo POS | Wajib | Client-side IndexedDB only. Lihat §34. |
 | UI/UX | **Wajib distinctive — bukan default shadcn** | Tokenize brand, custom variants. Lihat §36. |
@@ -214,20 +214,20 @@ Setiap kali AI hendak menambah dependency baru, fitur baru, atau optimisasi yang
 - **Site ↔ Web** (cross-app): **tidak ada call langsung**. Komunikasi via DB / via service yang sama (mis. data produk dibaca site-cms dari `packages/services/inventory`).
 
 ### 4.3 Memori Footprint per Proses (target — server 2 GB)
-| Proses | Tipe | Target memori | Hard limit (Docker) |
+| Proses | Tipe | Target memori | Hard limit (PM2) |
 |---|---|---|---|
 | `apps/site` | Next.js standalone (publik, mostly SSG/ISR) | ≤ 250 MB | 384 MB |
 | `apps/web` | Next.js standalone (ERP) | ≤ 450 MB | 640 MB |
 | `apps/mcp` | Hono | ≤ 120 MB | 192 MB |
 | `apps/worker` | Node + queue | ≤ 150 MB | 256 MB |
-| Caddy reverse proxy | — | ≤ 60 MB | 96 MB |
+| HestiaCP reverse proxy | — | ≤ 60 MB | 96 MB |
 | OS + buffer | — | ~ 250 MB | — |
 | **Total target** | | **≤ 1280 MB** | **≤ 1568 MB hard limit** |
 | **Buffer untuk spike & OS** | | **~ 720 MB** | **~ 432 MB** |
 
 > Tetap konservatif. Jika gabungan melebihi target, **fold** `apps/site` ke dalam `apps/web` (Next.js single app dengan multiple route groups) sebagai mitigasi terakhir. Lihat ADR-0002.
 
-**Setiap proses Node wajib pasang `--max-old-space-size=<nilai sesuai limit Docker>`** (mis. `--max-old-space-size=512` untuk apps/web) agar OOM kill terprediksi dan Docker dapat me-restart.
+**Setiap proses Node wajib pasang `--max-old-space-size=<nilai sesuai limit PM2>`** (mis. `--max-old-space-size=512` untuk apps/web) agar OOM restart terprediksi dan PM2 dapat me-restart.
 
 ---
 
@@ -260,7 +260,7 @@ Setiap kali AI hendak menambah dependency baru, fitur baru, atau optimisasi yang
 | **Test** | Vitest + Playwright | latest | Unit + E2E |
 | **Linter** | Biome | ≥ 1.9 | Lebih cepat & terpadu vs ESLint+Prettier |
 | **Package mgr** | pnpm | ≥ 9 | Disk-efficient (penting di server 60 GB) |
-| **Deployment** | Docker + Caddy | latest | Single VPS, TLS otomatis |
+| **Deployment** | PM2 + HestiaCP reverse proxy | latest | Single VPS HestiaCP; runtime ringan tanpa Docker |
 | **CI** | GitHub Actions | — | Build, test, deploy |
 | **Backup** | rclone | ≥ 1.66 | Sync ke S3/R2 |
 | **Logger** | pino | ≥ 9 | Cepat, JSON struktural |
@@ -412,11 +412,12 @@ ERP/
 ├── docker/
 │   ├── Caddyfile
 │   ├── docker-compose.yml
-│   └── Dockerfile
+│   └── Dockerfile                 # legacy/staging option; production VPS uses PM2
 ├── .github/workflows/
 │   ├── ci.yml
 │   └── deploy.yml
 ├── .env.example
+├── ecosystem.config.cjs           # PM2 production runtime config
 ├── biome.json
 ├── package.json                   # pnpm workspace root
 ├── pnpm-workspace.yaml
@@ -2021,7 +2022,7 @@ Member data (lihat SoT §13.1) di `partners` (kind=customer + is_member).
 - Pesan ditampilkan via i18n (mapping `AppError.code` + `messageKey`).
 
 ### 22.2 Server Logging
-- `pino` + JSON output → stdout. Caddy tidak parse, langsung ke disk + dirotasi.
+- `pino` + JSON output → stdout/PM2 log file, lalu dirotasi.
 - Setiap request log: `method, path, status, duration_ms, user_id, idempotency_key, request_id`.
 - Setiap service mutation: `service.<module>.<action>`, `entity_id`, `duration_ms`.
 - **Tidak boleh** log password, token, isi PII (KTP, NPWP) — gunakan masking.
@@ -2072,7 +2073,7 @@ Lihat tabel definitive di §4.3. Ringkas:
 - `apps/site` (publik): ≤ 250 MB target.
 - `apps/mcp`: ≤ 120 MB.
 - `apps/worker`: ≤ 150 MB.
-- Caddy: ≤ 60 MB.
+- HestiaCP reverse proxy: ≤ 60 MB.
 - Total target ≤ 1.28 GB; menyisakan ~ 720 MB untuk OS + spike.
 
 ### 24.2 Strategi
@@ -2106,7 +2107,7 @@ Lihat tabel definitive di §4.3. Ringkas:
 - [ ] Output escaping React default (jangan `dangerouslySetInnerHTML` kecuali pasti aman).
 - [ ] Rate limit pada login (5 percobaan / 15 menit / IP).
 - [ ] PII (NPWP, KTP, telp) encrypted at rest (pgcrypto field-level atau aplikasi-level dengan key di KMS/env).
-- [ ] HTTPS only (Caddy auto TLS).
+- [ ] HTTPS only (HestiaCP/Let's Encrypt).
 - [ ] Header keamanan: HSTS, CSP, X-Content-Type-Options, X-Frame-Options.
 - [ ] Audit setiap login (success/fail).
 - [ ] Token API (MCP) di-hash di DB; rotasi mudah; revoke instan.
@@ -2168,10 +2169,10 @@ export function decrypt(ciphertext: string): string {
 
 #### 25.2.2 Enkripsi Data-in-Transit
 
-- TLS 1.3 wajib. TLS 1.1/1.2 dinepakan (Caddy config: `minimum_protocol TLS 1.3`).
+- TLS 1.2+ wajib; TLS policy dikelola di HestiaCP/Nginx/Apache.
 - HSTS header: `max-age=31536000; includeSubDomains; preload`
-- Tidak ada HTTP fallback untuk subdomain ERP/MCP (Caddy strict).
-- Certificate otomatis via Let's Encrypt (via Caddy).
+- Tidak ada HTTP fallback untuk subdomain ERP/MCP kecuali redirect ke HTTPS.
+- Certificate otomatis via Let's Encrypt di HestiaCP.
 
 #### 25.2.3 Brute Force Protection
 
@@ -2254,7 +2255,7 @@ Referrer-Policy: strict-origin-when-cross-origin
 Permissions-Policy: camera=(), microphone=(), geolocation=()
 ```
 
-Implementasi: Caddy `header` directive atau Next.js `headers()` di `layout.tsx`.
+Implementasi: Next.js `headers()` dan/atau header tambahan di template Nginx/Apache HestiaCP.
 
 #### 25.2.6 Security Audit & Penetration Testing
 
@@ -3185,39 +3186,29 @@ export const reportingDonations = {
 3. Type check (`tsc --noEmit`).
 4. Test (`vitest run`).
 5. Build (`next build` dengan `output: 'standalone'`).
-6. Build Docker image (multi-stage).
-7. Push ke registry (GHCR).
+6. Build aplikasi (`next build` + `tsc`).
+7. Deploy/reload via PM2 di VPS HestiaCP.
 
 ### 26.2 CD
 - **Staging**: deploy otomatis dari `develop`.
 - **Production**: deploy manual approval dari `main`.
 - Strategi: rolling restart (single VPS — accept 30 detik downtime saat deploy; user dilatih untuk tidak transaksi tepat saat deploy).
 
-### 26.3 Docker Compose (Server VPS)
-```yaml
-services:
-  caddy:
-    image: caddy:2-alpine
-    ports: ['80:80', '443:443']
-    volumes: ['./docker/Caddyfile:/etc/caddy/Caddyfile', 'caddy_data:/data']
-  web:
-    image: ghcr.io/aroadritea/web:${VERSION}
-    env_file: .env
-    depends_on: [caddy]
-  mcp:
-    image: ghcr.io/aroadritea/mcp:${VERSION}
-    env_file: .env
-  worker:
-    image: ghcr.io/aroadritea/worker:${VERSION}
-    env_file: .env
-```
+### 26.3 PM2 Process Manager (Server VPS)
 
-DB di managed (Neon/Supabase) → tidak ada container DB lokal.
+Production VPS HestiaCP menjalankan proses Node lewat `ecosystem.config.cjs`:
+
+- `aroadri-site` → `apps/site`, port `3000`.
+- `aroadri-web` → `apps/web`, port `3001`.
+- `aroadri-mcp` → `apps/mcp/dist/server.js`, health port `3002`.
+- `aroadri-worker` → `apps/worker/dist/index.js`.
+
+DB di managed (Neon/Supabase) → tidak ada DB lokal di VPS.
 
 ### 26.4 Migrations
 - Drizzle Kit `generate` saat development (commit migration files).
-- Saat deploy: jalankan `drizzle-kit migrate` sebagai job sebelum start container web/mcp.
-- Jangan auto-migrate saat startup di prod (race condition multi-container).
+- Saat deploy: jalankan `drizzle-kit migrate` sebelum `pm2 reload`.
+- Jangan auto-migrate saat startup di prod.
 
 ---
 
@@ -3238,7 +3229,7 @@ DB di managed (Neon/Supabase) → tidak ada container DB lokal.
 ## 28. Observability
 
 ### 28.1 Logs
-- pino → stdout → file via Docker logging driver. Rotate 7 hari.
+- pino/console structured logs → PM2 log files (`logs/pm2/*.log`). Rotate via `pm2-logrotate` atau logrotate OS.
 - Worker yang sukses: log INFO singkat. Yang gagal: log ERROR + stack.
 
 ### 28.2 Metrics
@@ -3557,33 +3548,17 @@ Editor produk di `apps/web /inventory/products/<id>` punya tab "Marketing" untuk
 - CNAME `erp` → `@`.
 - CNAME `mcp` → `@`.
 - (Opsional) CNAME `display` → `@`.
-- TLS via Caddy auto-issue (Let's Encrypt) untuk semua hostnames.
+- TLS via HestiaCP Let's Encrypt untuk semua hostnames.
 
-### 32.3 Caddyfile Outline
+### 32.3 HestiaCP Reverse Proxy Mapping
 
-```caddyfile
-{
-    email admin@aroadritea.com
-}
+| Domain | Local upstream |
+|---|---|
+| `aroadritea.com`, `www.aroadritea.com` | `http://127.0.0.1:3000` |
+| `erp.aroadritea.com` | `http://127.0.0.1:3001` |
+| `mcp.erp.aroadritea.com` | `http://127.0.0.1:3002` |
 
-aroadritea.com, www.aroadritea.com {
-    encode zstd gzip
-    @member path /api/member/* /id/member/* /en/member/* /zh/member/*
-    header @member Cache-Control "no-store"
-    header /assets/* Cache-Control "public, max-age=31536000, immutable"
-    reverse_proxy site:3000
-}
-
-erp.aroadritea.com {
-    encode zstd gzip
-    reverse_proxy web:3001
-}
-
-mcp.erp.aroadritea.com {
-    encode zstd gzip
-    reverse_proxy mcp:3002
-}
-```
+Aktifkan gzip/brotli di HestiaCP bila tersedia. Cache header tetap dikelola dari Next.js.
 
 ### 32.4 Cookies
 - `apps/site` sesi member: cookie `__Host-member-session`, `Domain` tidak diset (host-only) → terkirim hanya untuk `aroadritea.com`.
@@ -3821,12 +3796,12 @@ Tambah ke seed:
 #### 35.1.2 Layer Server Process
 | Komponen | Implementasi |
 |---|---|
-| Container restart | Docker `restart: unless-stopped` (atau `always`) untuk semua service |
+| Process restart | PM2 `autorestart` untuk semua service |
 | Healthcheck | Endpoint `/healthz` di tiap app: cek DB connection, Drizzle pool sehat, return 200 |
-| Docker healthcheck | `HEALTHCHECK CMD curl -f http://localhost:3001/healthz \|\| exit 1` interval 30s, timeout 5s, retries 3 |
-| Memory limits | Per service `mem_limit` di docker-compose; `--max-old-space-size` di Node command |
+| PM2 health check | Worker outage monitor hit `http://127.0.0.1:3000-3002` dan kirim alert bila gagal |
+| Memory limits | PM2 `max_memory_restart`; `--max-old-space-size` di Node command |
 | Graceful shutdown | Listen SIGTERM → drain HTTP, flush logs, close DB pool, exit 0 |
-| Caddy upstream | `lb_try_duration 5s` + serve `/maintenance.html` bila upstream unhealthy |
+| HestiaCP upstream | Reverse proxy ke port lokal; error/maintenance page dikelola di HestiaCP |
 
 #### 35.1.3 Layer Database
 - Managed (Neon/Supabase) — provider menangani replikasi & failover.
@@ -3854,17 +3829,17 @@ Tiap deploy ke production harus lulus test berikut di staging:
 |---|----------|----------|
 | 1 | Cabut kabel jaringan saat user input order | POS terus dapat selesaikan order, banner offline muncul, struk tetap cetak, transaksi masuk outbox |
 | 2 | Sambungkan kembali jaringan | Outbox flush dalam ≤ 30 detik, status order menjadi "synced" |
-| 3 | Stop container `web` saat ada 5 transaksi outbox | Caddy serve maintenance page; container restart < 30 detik; outbox flush setelah restart |
-| 4 | OOM kill simulasi (`docker kill -s KILL`) | Container otomatis restart < 30 detik (Docker `restart` policy) |
+| 3 | Stop PM2 process `aroadri-web` saat ada 5 transaksi outbox | HestiaCP serve 502/maintenance; PM2 restart < 30 detik; outbox flush setelah restart |
+| 4 | OOM/restart simulasi (`pm2 restart aroadri-web`) | Process otomatis kembali healthy < 30 detik |
 | 5 | Reboot POS device dengan 3 transaksi outbox | Setelah boot + buka browser PWA, outbox masih ada, sync resume |
 | 6 | Submit transaksi sama 2 kali (idempotency test) | Server hanya membuat 1 record; response kedua sama dengan pertama |
 | 7 | Server down 5 menit | Notifikasi terkirim ke admin |
 | 8 | DB connection drop | App reconnect otomatis dalam ≤ 5 detik; tidak ada request hilang |
 
-Skrip uji di `scripts/resilience-tests/*.ts` (Playwright + skrip docker).
+Skrip uji di `scripts/resilience-tests/*.ts` perlu diarahkan ke PM2 untuk skenario proses server.
 
 ### 35.3 RTO / RPO
-- **RTO (Recovery Time Objective)**: ≤ 2 menit (dari container crash hingga service healthy lagi).
+- **RTO (Recovery Time Objective)**: ≤ 2 menit (dari process crash hingga service healthy lagi).
 - **RPO (Recovery Point Objective)**: 
   - POS: **0 transaksi hilang** (jaminan via outbox + idempotency).
   - Modul lain (akuntansi, dll.): ≤ 1 jam (kompromi karena tidak offline-capable; user wajib retry manual untuk action yang gagal saat outage).
@@ -4177,6 +4152,7 @@ Contoh yang sudah menjadi konfigurasi UI/DB: POS mengambil kode pajak PB1, akun 
 | 1.7 | 2026-05-12 | Lintang Maulana Zulfan | Tambah §25.5b (Omzet Harian Export — PB1 10% exclusive + koreksi fiskal manual): schema `daily_revenue_adjustments`, rumus PB1-exclusive gross÷1.10, UI inline edit, XLSX export 8 kolom, MCP tool `reporting.get_omzet_harian` |
 | 1.8 | 2026-05-13 | Codex | Tambah §38 dan `docs/CONFIGURATION.md`: kebijakan konfigurasi production/kustomisasi tanpa edit source, env wajib, POS posting, pajak, Turnstile, dan OTP email |
 | 1.9 | 2026-05-13 | Codex | Email otomatis diputuskan memakai SMTP mailbox HestiaCP (`SMTP_*`) sesuai ADR-0011 |
+| 2.0 | 2026-05-14 | Codex | Deployment VPS production dialihkan dari Docker Compose ke PM2 + HestiaCP sesuai ADR-0012 |
 
 ---
 
