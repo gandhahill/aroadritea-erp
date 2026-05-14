@@ -4,30 +4,46 @@
 
 'use server';
 
+import { getSession } from '@/lib/auth';
 import {
   exportOmzetHarianXlsx,
   getOmzetHarian,
   saveOmzetAdjustment,
 } from '@erp/services/reporting';
 import type { AuditContext } from '@erp/shared/types';
+import { redirect } from 'next/navigation';
 
-export async function serverGetOmzetHarian(
-  params: { locationId: string; date: string },
-  ctx: AuditContext,
-) {
+async function buildCtx(locationId: string): Promise<AuditContext> {
+  const session = await getSession();
+  if (!session?.user) redirect('/login');
+  const user = session.user as Record<string, unknown>;
+  return {
+    userId: String(user.id ?? ''),
+    tenantId: String(user.tenantId ?? 'default'),
+    locationId,
+  };
+}
+
+export async function serverGetOmzetHarian(params: { locationId: string; date: string }) {
+  const ctx = await buildCtx(params.locationId);
   return getOmzetHarian(params, ctx);
 }
 
-export async function serverSaveOmzetAdjustment(
-  params: { locationId: string; date: string; adjustmentAmount: string; adjustmentNote?: string },
-  ctx: AuditContext,
-) {
+export async function serverSaveOmzetAdjustment(params: {
+  locationId: string;
+  date: string;
+  adjustmentAmount: string;
+  adjustmentNote?: string;
+}) {
+  const ctx = await buildCtx(params.locationId);
   return saveOmzetAdjustment(params, ctx);
 }
 
-export async function serverExportOmzetHarian(
-  params: { locationId: string; date: string; locale?: 'id' | 'en' | 'zh' },
-  ctx: AuditContext,
-) {
+export async function serverExportOmzetHarian(params: {
+  locationId: string;
+  date: string;
+  locale?: 'id' | 'en' | 'zh';
+}) {
+  const ctx = await buildCtx(params.locationId);
   return exportOmzetHarianXlsx(params, ctx);
 }

@@ -374,7 +374,7 @@ ERP/
 │   │   ├── reporting/
 │   │   ├── tax/
 │   │   ├── cms/                   # halaman, posting, banner, FAQ
-│   │   ├── member/                # signup OTP, member auth, kartu QR
+│   │   ├── member/                # signup OTP, member auth, lookup telepon POS
 │   │   ├── customfield/
 │   │   ├── workflow/
 │   │   ├── audit/
@@ -3494,15 +3494,17 @@ Session DB-backed untuk member portal. Cookie `__Host-member-session` di domain 
    - Redirect ke /id/member/akun
 
 4. Halaman /id/member/akun
-   - Tampilkan: kartu QR, saldo poin (kalau loyalty aktif), riwayat trx, profil
+   - Tampilkan: ID member, instruksi nomor telepon untuk kasir, saldo poin (kalau loyalty aktif), riwayat trx, profil
 ```
 
-### 31.7 Kartu Member Digital
+### 31.7 Identifikasi Member di POS
 
-- QR code berisi `MEM:<member_ulid>` (prefix untuk distinguish dari order QR).
-- Render via `qrcode` library di server, deliver sebagai PNG/SVG.
-- Cache 24 jam.
-- Saat kasir scan QR: POS `pos.attachMember(orderDraft, member_id)` → simpan `customer_id` di order, hitung poin.
+- Flow utama: kasir bertanya "Apakah ada member?", lalu memasukkan nomor telepon pelanggan di POS.
+- Service `member.findMemberByPhone(phone)` melakukan normalisasi nomor (hapus spasi/tanda baca, konversi awalan `0` Indonesia menjadi `62`) dan mencari `partners.kind='customer'`, `is_member=true`, `is_active=true`.
+- POS menampilkan nama hasil lookup; kasir wajib mengonfirmasi "Atas nama `<nama member>`?" sebelum attach member.
+- Setelah dikonfirmasi, POS menyimpan `customer_id` ke draft order dan `createSale` menulisnya ke `sales_orders.customer_id`; loyalty points dihitung dari mekanisme existing.
+- Jika nomor tidak ditemukan atau pelanggan tidak mengonfirmasi, transaksi tetap berjalan sebagai walk-in tanpa `customer_id`.
+- Kartu digital/QR member adalah opsi Phase 2, bukan dependency alur kasir. Jika nanti diaktifkan, QR tetap harus token non-PII dan dikonfirmasi di POS.
 
 ### 31.8 Anti-Abuse di apps/site
 - **Captcha**: Cloudflare Turnstile pada `/api/member/signup` dan `/api/member/contact`.

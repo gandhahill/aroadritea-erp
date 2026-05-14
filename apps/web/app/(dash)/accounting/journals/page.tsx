@@ -17,8 +17,7 @@ export default async function JournalsPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
-  const journals = await fetchJournalList(tenantId);
+  const journals = await fetchJournalList();
 
   return (
     <div className="space-y-6">

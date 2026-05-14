@@ -29,6 +29,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   const common = await getTranslations({ locale, namespace: 'common' });
   const footer = await getTranslations({ locale, namespace: 'footer' });
   const brand = common('brand');
+  const tagline = common('tagline');
 
   return (
     <html lang={locale}>
@@ -42,10 +43,13 @@ export default async function LocaleLayout({ children, params }: Props) {
               menu: nav('menu'),
               about: nav('about'),
               locations: nav('locations'),
+              member: nav('member'),
             }}
           />
           <main className="flex-1">{children}</main>
           <PublicFooter
+            brand={brand}
+            tagline={tagline}
             copyright={footer('copyright', { brand, year: new Date().getFullYear() })}
           />
         </ClientLayout>

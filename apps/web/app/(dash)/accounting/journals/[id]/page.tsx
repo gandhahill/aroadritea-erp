@@ -23,8 +23,7 @@ export default async function JournalDetailPage({
   if (!session) redirect('/login');
 
   const { id } = await params;
-  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
-  const journal = await fetchJournalDetail(tenantId, id);
+  const journal = await fetchJournalDetail(id);
 
   if (!journal) notFound();
 
@@ -52,6 +51,7 @@ export default async function JournalDetailPage({
           viewBox="0 0 24 24"
           stroke="currentColor"
           strokeWidth={2}
+          aria-hidden="true"
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
         </svg>
@@ -194,6 +194,6 @@ function MetaItem({ label, value }: { label: string; value: string }) {
 
 function formatRp(amountStr: string): string {
   const num = Number.parseInt(amountStr, 10);
-  if (isNaN(num)) return amountStr;
-  return 'Rp ' + num.toLocaleString('id-ID');
+  if (Number.isNaN(num)) return amountStr;
+  return `Rp ${num.toLocaleString('id-ID')}`;
 }

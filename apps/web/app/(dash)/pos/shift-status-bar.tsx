@@ -34,7 +34,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
       setShift(s);
       setShiftId(s?.id ?? null);
     });
-  }, [locationId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [locationId, setShiftId]);
 
   async function handleOpenShift(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -93,6 +93,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
         <div>
           {isOpen ? (
             <button
+              type="button"
               onClick={() => setShowCloseModal(true)}
               className="h-8 rounded-md border border-brand-cream-3 bg-white px-3 text-xs font-medium text-brand-ink hover:bg-brand-cream-2 disabled:opacity-50"
               disabled={isPending}
@@ -101,6 +102,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
             </button>
           ) : (
             <button
+              type="button"
               onClick={() => setShowOpenModal(true)}
               className="h-8 rounded-md bg-brand-red px-3 text-xs font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
               disabled={isPending}
@@ -222,13 +224,15 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="relative w-full max-w-sm rounded-xl" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full max-w-sm rounded-xl">
         <button
+          type="button"
           onClick={onClose}
           className="absolute right-3 top-3 text-brand-ink-3 hover:text-brand-ink"
           aria-label="close"
         >
           <svg
+            aria-hidden="true"
             className="h-5 w-5"
             fill="none"
             viewBox="0 0 24 24"
@@ -246,7 +250,7 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
 
 function formatRupiah(value: string | bigint): string {
   const num = Number(value);
-  if (isNaN(num)) return 'Rp 0';
+  if (Number.isNaN(num)) return 'Rp 0';
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',

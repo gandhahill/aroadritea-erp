@@ -10,6 +10,7 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { ChannelSelector } from './channel-selector';
+import { MemberLookup } from './member-lookup';
 import { OrderCart } from './order-cart';
 import { PaymentModal } from './payment-modal';
 import { usePosCart } from './pos-cart-context';
@@ -40,10 +41,12 @@ export default function PosPage() {
           <h2 className="text-base font-semibold text-brand-ink">{t('orderLines')}</h2>
           {state.lines.length > 0 && (
             <span className="text-xs text-brand-ink-3">
-              {state.lines.length} {state.lines.length === 1 ? 'item' : 'items'}
+              {t('itemCount', { count: state.lines.length })}
             </span>
           )}
         </div>
+
+        <MemberLookup />
 
         {/* Order lines */}
         <div className="flex-1 overflow-y-auto">
@@ -70,13 +73,19 @@ export default function PosPage() {
           </div>
 
           <button
+            type="button"
             onClick={() => setShowPayment(true)}
-            disabled={state.lines.length === 0 || remainingBalance > BigInt(0)}
+            disabled={state.lines.length === 0 || !state.shiftId || grandTotal <= BigInt(0)}
             className="h-12 w-full rounded-lg bg-brand-red text-sm font-semibold text-white hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
             style={{ transition: 'all 220ms cubic-bezier(0.16, 1, 0.3, 1)' }}
           >
             {t('payNow')}
           </button>
+          {!state.shiftId && (
+            <p className="mt-2 text-center text-xs font-medium text-brand-red">
+              {t('shiftRequired')}
+            </p>
+          )}
         </div>
       </div>
 
@@ -90,7 +99,7 @@ export default function PosPage() {
 
 function formatRupiah(value: string | bigint): string {
   const num = Number(value);
-  if (isNaN(num)) return 'Rp 0';
+  if (Number.isNaN(num)) return 'Rp 0';
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',

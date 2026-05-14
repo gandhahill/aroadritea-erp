@@ -1,7 +1,7 @@
 {
   "common": {
     "brand": "Aroadri Tea",
-    "tagline": "Chinese-style Bubble Tea & Dessert"
+    "tagline": "Chinese-style fresh tea, milk tea, and dessert"
   },
   "nav": {
     "home": "Home",
@@ -9,28 +9,107 @@
     "about": "About",
     "locations": "Locations",
     "blog": "Blog",
-    "contact": "Contact"
+    "contact": "Contact",
+    "member": "Join Member"
   },
   "home": {
-    "heroTitle": "Modern Chinese Beverages & Desserts",
-    "heroSubtitle": "Experience authentic Chinese flavors in every sip",
-    "ctaOrder": "Order Now",
+    "eyebrow": "Chinese-style tea & dessert",
+    "heroTitle": "Aroadri Tea",
+    "heroSubtitle": "Fresh tea, milk tea, lemon tea, snow cap, and warm desserts with a modern Chinese tea character.",
+    "heroFeatureLabel": "Best Seller Top 3",
+    "heroFeatureItems": "Bamboo Oolong · Osmanthus Oolong · Glutinous Fragrant Lemon",
+    "ctaMember": "Join Member",
     "ctaMenu": "View Menu",
-    "popularTitle": "Popular",
-    "popularSubtitle": "Our customers' favorites"
+    "ctaLocations": "View Locations",
+    "menuTitle": "The actual Aroadri menu",
+    "menuSubtitle": "Built around Aroadri Tea's operating categories: fresh milk tea, fresh tea, lemon fresh tea, snow cap milk tea, and dessert.",
+    "groups": [
+      {
+        "name": "Fresh Milk Tea",
+        "description": "Milk tea based on oolong, jasmine green, ceylon black, and roasted fragrant yellow tea.",
+        "price": "Regular IDR 42k-43k · Large IDR 47k-49k",
+        "items": "Bamboo Oolong Milk Tea, Osmanthus Oolong Milk Tea, Glutinous Fragrant Milk Tea, Jasmine Green Milk Tea, Ceylon Black Milk Tea, Roasted Fragrant Yellow Milk Tea"
+      },
+      {
+        "name": "Fresh Tea",
+        "description": "Milk-free tea with floral, roasted, and grain aroma profiles.",
+        "price": "Regular from IDR 32k · Large from IDR 42k",
+        "items": "Bamboo Oolong Tea, Osmanthus Oolong Tea, Jasmine Green Tea, Ceylon Black Tea, Roasted Fragrant Yellow Tea, Glutinous Fragrant Tea, Buckwheat Biluochun Tea"
+      },
+      {
+        "name": "Lemon Fresh Tea",
+        "description": "Fresh tea with lemon for a lighter, brighter cup.",
+        "price": "Regular IDR 43k-45k · Large IDR 47k-49k",
+        "items": "Glutinous Fragrant Lemon Tea, Bamboo Oolong Lemon Tea, Osmanthus Oolong Lemon Tea, Roasted Fragrant Yellow Lemon Tea, Jasmine Green Lemon Tea, Buckwheat Biluochun Lemon Tea"
+      },
+      {
+        "name": "Snow Cap Milk Tea",
+        "description": "Milk tea finished with a soft snow cap layer.",
+        "price": "IDR 56k",
+        "items": "Bamboo Oolong Snow Cap Milk Tea, Osmanthus Oolong Snow Cap Milk Tea"
+      },
+      {
+        "name": "Dessert",
+        "description": "Tea companions for dine-in and take away.",
+        "price": "Outlet pricing",
+        "items": "Egg Tart, Fancy Egg Tart, Pudding, Mousse Cake"
+      }
+    ],
+    "customTitle": "Customized at checkout",
+    "customSubtitle": "Size, temperature, sugar, ice, and toppings are managed from POS so the business can change them without editing source code.",
+    "customItems": [
+      "Regular / Large",
+      "Hot / Cold",
+      "No sugar / Less sugar",
+      "No ice / Less ice",
+      "Cheese Pearl",
+      "Oat Pearl",
+      "Crystal Pearl",
+      "Barley Pearl"
+    ],
+    "locationTitle": "Operating from Yogyakarta",
+    "locationSubtitle": "Stores and offices live in the ERP, so location pages can follow operational data."
   },
   "menu": {
-    "title": "Our Menu",
-    "empty": "Menu is not available yet."
+    "title": "Aroadri Tea Menu",
+    "subtitle": "Prices follow Regular/Large and Hot/Cold variants. Sugar, ice, and topping options are available when ordering.",
+    "empty": "Menu is not available in the database yet. Run the production seed or manage menu from ERP.",
+    "from": "From",
+    "priceUnavailable": "Outlet price",
+    "optionsTitle": "Customization options",
+    "sizeTemp": "Regular/Large · Hot/Cold",
+    "sugarIce": "No sugar, less sugar · no ice, less ice",
+    "toppings": "Cheese Pearl, Oat Pearl, Crystal Pearl, Barley Pearl"
   },
   "about": {
-    "title": "About Us"
+    "eyebrow": "Brand Identity",
+    "title": "Modern Chinese-style tea by Aroadri Tea",
+    "body": "Aroadri Tea carries the shanshui language of mountain, cloud, and water as symbols of calm, purity, and craft. The menu focuses on fresh tea, milk tea, lemon tea, snow cap, and dessert pairings.",
+    "pillars": [
+      {
+        "title": "Tea-first",
+        "desc": "The menu starts from oolong, jasmine green, ceylon black, roasted yellow, and biluochun tea profiles."
+      },
+      {
+        "title": "Customizable",
+        "desc": "Size, temperature, sugar, ice, and toppings are prepared flexibly from POS."
+      },
+      {
+        "title": "Operationally ready",
+        "desc": "Menu, locations, members, and website content are prepared to be managed from ERP."
+      }
+    ]
   },
   "locations": {
-    "title": "Store Locations"
+    "title": "Aroadri Tea Locations",
+    "subtitle": "Location data is read from ERP so outlet and office addresses can be updated without source-code edits.",
+    "empty": "No active locations are available in the database yet.",
+    "defaultHours": "10:00-22:00 WIB",
+    "store": "Outlet",
+    "office": "Office"
   },
   "footer": {
-    "copyright": "© 2026 {brand}. All rights reserved."
+    "copyright": "© {year} {brand}. All rights reserved."
   },
   "member": {
     "title": "My Account",
@@ -42,7 +121,7 @@
     "noHistory": "No points history yet.",
     "vouchers": "My Vouchers",
     "noVouchers": "No vouchers yet.",
-    "memberCard": "Member Card",
-    "scanAtStore": "Scan at checkout"
+    "cashierLookupTitle": "Use your phone number at checkout",
+    "cashierLookupBody": "When the cashier asks whether you are a member, mention your registered phone number. The cashier will find the member record and confirm the name before points are recorded."
   }
 }

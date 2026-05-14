@@ -31,6 +31,7 @@
     "db:generate": "pnpm --filter @erp/db generate",
     "db:migrate": "pnpm --filter @erp/db migrate",
     "db:seed": "pnpm --filter @erp/db seed",
+    "seed:menu": "tsx scripts/seed-aroadri-menu.ts",
     "seed:naixer": "tsx scripts/seed-naixer-codes.ts"
   },
   "devDependencies": {

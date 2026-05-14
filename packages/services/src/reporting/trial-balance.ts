@@ -8,7 +8,12 @@
  */
 
 import { db } from '@erp/db';
-import { accounts, journalEntries, journalLines } from '@erp/db/schema/accounting';
+import {
+  accountingPeriods,
+  accounts,
+  journalEntries,
+  journalLines,
+} from '@erp/db/schema/accounting';
 import { AppError } from '@erp/shared/errors';
 import { type Result, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -127,13 +132,24 @@ export async function trialBalance(
       // Sort by account code
       lines.sort((a, b) => a.accountCode.localeCompare(b.accountCode));
 
+      const closingPeriods = await db
+        .select({ id: accountingPeriods.id })
+        .from(accountingPeriods)
+        .where(
+          and(
+            eq(accountingPeriods.tenantId, ctx.tenantId),
+            eq(accountingPeriods.status, 'closing'),
+            lte(accountingPeriods.startDate, input.asOf),
+          ),
+        );
+
       return {
         asOf: input.asOf,
         locationId: input.locationId ?? null,
         lines,
         totalDebit: grandTotalDebit,
         totalCredit: grandTotalCredit,
-        isPreliminary: false, // TODO: check if any period is in 'closing' status
+        isPreliminary: closingPeriods.length > 0,
       };
     },
     (e) => AppError.internal('reporting.trialBalance.failed', e),

@@ -10,9 +10,8 @@
  */
 
 import type { OmzetHarianResult } from '@erp/services/reporting';
-import type { AuditContext } from '@erp/shared/types';
 import { useTranslations } from 'next-intl';
-import { useCallback, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import {
   serverExportOmzetHarian,
   serverGetOmzetHarian,
@@ -23,7 +22,6 @@ interface Props {
   initialData: OmzetHarianResult | null;
   initialDate: string;
   initialLocationId: string;
-  ctx: AuditContext;
 }
 
 function fmtIDR(value: string): string {
@@ -46,7 +44,12 @@ function fmtAbs(value: string): string {
   );
 }
 
-export function OmzetHarianClient({ initialData, initialDate, initialLocationId, ctx }: Props) {
+function parseIdrInputToCents(value: string): bigint {
+  const cleanVal = value.replace(/[^\d-]/g, '');
+  return BigInt(cleanVal || '0') * BigInt(100);
+}
+
+export function OmzetHarianClient({ initialData, initialDate, initialLocationId }: Props) {
   const t = useTranslations('reporting.omzetHarian');
 
   const [date, setDate] = useState(initialDate);
@@ -65,7 +68,7 @@ export function OmzetHarianClient({ initialData, initialDate, initialLocationId,
   function loadData(loc: string, d: string) {
     if (!loc) return;
     startTransition(async () => {
-      const result = await serverGetOmzetHarian({ locationId: loc, date: d }, ctx);
+      const result = await serverGetOmzetHarian({ locationId: loc, date: d });
       if (result.ok) {
         setData(result.value);
         setAdjAmount(
@@ -105,19 +108,14 @@ export function OmzetHarianClient({ initialData, initialDate, initialLocationId,
     setSaveError(null);
     startTransition(async () => {
       // Convert IDR to sen (multiply by 100)
-      const cleanVal = adjAmount.replace(/[^\d-]/g, '');
-      const idrVal = BigInt(cleanVal || '0');
-      const senVal = (idrVal * BigInt(100)).toString();
+      const senVal = parseIdrInputToCents(adjAmount).toString();
 
-      const result = await serverSaveOmzetAdjustment(
-        {
-          locationId: data.locationId,
-          date: data.date,
-          adjustmentAmount: senVal,
-          adjustmentNote: adjNote,
-        },
-        ctx,
-      );
+      const result = await serverSaveOmzetAdjustment({
+        locationId: data.locationId,
+        date: data.date,
+        adjustmentAmount: senVal,
+        adjustmentNote: adjNote,
+      });
       if (result.ok) {
         setIsDirty(false);
         setSaveSuccess(true);
@@ -131,10 +129,11 @@ export function OmzetHarianClient({ initialData, initialDate, initialLocationId,
   function handleExport() {
     if (!data) return;
     startTransition(async () => {
-      const result = await serverExportOmzetHarian(
-        { locationId: data.locationId, date: data.date, locale: 'id' },
-        ctx,
-      );
+      const result = await serverExportOmzetHarian({
+        locationId: data.locationId,
+        date: data.date,
+        locale: 'id',
+      });
       if (result.ok) {
         const blob = new Blob([result.value.buffer], {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -149,7 +148,7 @@ export function OmzetHarianClient({ initialData, initialDate, initialLocationId,
     });
   }
 
-  const adjCents = BigInt(adjAmount || '0');
+  const adjCents = parseIdrInputToCents(adjAmount);
   const netCents = data ? BigInt(data.netOmzet) : BigInt(0);
   const fiscalCents = netCents + adjCents;
   const hasAdj = adjCents !== BigInt(0);

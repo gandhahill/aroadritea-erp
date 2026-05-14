@@ -8,6 +8,7 @@
 @theme {
   --color-brand-red: #d6262e;
   --color-brand-red-dark: #a41b22;
+  --color-brand-cream-1: #fffaf4;
   --color-brand-cream: #fbf6ee;
   --color-brand-cream-2: #f4ecdf;
   --color-brand-cream-3: #ede3d2;
@@ -15,9 +16,14 @@
   --color-brand-ink-2: #3a3a3a;
   --color-brand-ink-3: #6b6b6b;
   --color-brand-gold: #c8a557;
+  --color-brand-jade: #5c8d7e;
+  --color-brand-clay: #b85c38;
   --color-cream-50: #fbf6ee;
   --font-sans: "Inter", "Noto Sans SC", system-ui, -apple-system, sans-serif;
   --font-display: "Manrope", "Noto Serif SC", Georgia, serif;
+  --shadow-soft: 0 1px 2px rgba(58, 39, 18, 0.06), 0 8px 24px -12px rgba(58, 39, 18, 0.16);
+  --shadow-pop: 0 2px 6px rgba(58, 39, 18, 0.1), 0 18px 48px -16px rgba(58, 39, 18, 0.24);
+  --shadow-focus: 0 0 0 2px var(--color-brand-cream), 0 0 0 4px var(--color-brand-red);
 }
 
 @layer base {
@@ -25,12 +31,14 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
   }
 
   body {
     font-family: var(--font-sans);
     color: var(--color-brand-ink);
-    background-color: var(--color-cream-50);
+    background: radial-gradient(circle at top left, rgba(214, 38, 46, 0.08), transparent 28rem),
+      linear-gradient(180deg, var(--color-brand-cream-1), var(--color-brand-cream));
   }
 
   h1,
@@ -38,5 +46,27 @@
   h3 {
     font-family: var(--font-display);
     letter-spacing: 0;
+  }
+
+  ::selection {
+    color: var(--color-brand-cream);
+    background: var(--color-brand-red);
+  }
+}
+
+@layer utilities {
+  .transition-brand {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-duration: 240ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .site-wave {
+    background-image: radial-gradient(
+        circle at 20% 120%,
+        rgba(214, 38, 46, 0.12) 0 16%,
+        transparent 17%
+      ), radial-gradient(circle at 48% 120%, rgba(200, 165, 87, 0.15) 0 14%, transparent 15%),
+      radial-gradient(circle at 78% 120%, rgba(92, 141, 126, 0.13) 0 16%, transparent 17%);
   }
 }

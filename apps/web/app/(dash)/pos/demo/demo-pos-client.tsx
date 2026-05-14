@@ -63,15 +63,19 @@ export function DemoPosClient() {
               </div>
               <div className="flex items-center gap-2">
                 {state.lines.length > 0 && (
-                  <span className="text-xs text-brand-ink-3">{state.lines.length} items</span>
+                  <span className="text-xs text-brand-ink-3">
+                    {t('itemCount', { count: state.lines.length })}
+                  </span>
                 )}
                 {/* Demo settings button */}
                 <button
+                  type="button"
                   onClick={() => setShowReset(true)}
                   className="flex h-8 items-center gap-1 rounded-lg border border-brand-cream-3 px-2 text-xs text-brand-ink-3 hover:border-red-300 hover:bg-red-50 hover:text-red-600"
                   title={t('demo.demoSettings')}
                 >
                   <svg
+                    aria-hidden="true"
                     className="h-3.5 w-3.5"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -118,8 +122,9 @@ export function DemoPosClient() {
               </div>
 
               <button
+                type="button"
                 onClick={() => setShowPayment(true)}
-                disabled={state.lines.length === 0 || remainingBalance > BigInt(0)}
+                disabled={state.lines.length === 0 || grandTotal <= BigInt(0)}
                 className="h-12 w-full rounded-lg bg-brand-red text-sm font-semibold text-white hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
                 style={{ transition: 'all 220ms cubic-bezier(0.16, 1, 0.3, 1)' }}
               >
@@ -146,7 +151,7 @@ export function DemoPosClient() {
 
 function formatRupiah(value: string): string {
   const num = Number(value);
-  if (isNaN(num)) return 'Rp 0';
+  if (Number.isNaN(num)) return 'Rp 0';
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',

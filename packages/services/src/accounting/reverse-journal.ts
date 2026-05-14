@@ -16,7 +16,7 @@
  * - Original JE must exist and be 'posted'
  * - Cannot reverse a JE that is already reversed
  * - Reversal posting date must be in an open period
- * - Permission: accounting.journal.post (reversal is a posting action)
+ * - Permission: accounting.journal.reverse
  * - Audit log for both the original status change and the new reversal
  */
 
@@ -69,7 +69,7 @@ export async function reverseJournal(
   }
 
   // 3. Permission check (use original JE's locationId)
-  const permCheck = await requirePermission(ctx.userId, 'accounting.journal.post', {
+  const permCheck = await requirePermission(ctx.userId, 'accounting.journal.reverse', {
     locationId: originalJe.locationId,
   });
   if (!permCheck.ok) return permCheck;

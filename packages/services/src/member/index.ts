@@ -19,7 +19,7 @@ import type { AuditContext } from '@erp/shared/types';
  * Member registration, OTP authentication, session management, loyalty.
  * All reads are server-side (site app); writes go through this service.
  */
-import { and, asc, count, desc, eq, gte, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 // ─── Rate limiting constants ───────────────────────────────────────────────
@@ -72,6 +72,21 @@ export type VerifyOtpInput = z.infer<typeof VerifyOtpInputSchema>;
 export type RetryOtpInput = z.infer<typeof RetryOtpInputSchema>;
 export type CompleteSignupInput = z.infer<typeof CompleteSignupInputSchema>;
 
+export const MemberPhoneLookupInputSchema = z.object({
+  phone: z.string().min(8).max(32),
+});
+
+export type MemberPhoneLookupInput = z.infer<typeof MemberPhoneLookupInputSchema>;
+
+export interface MemberLookupResult {
+  memberId: string;
+  name: string;
+  phone: string | null;
+  loyaltyTier: string;
+  points: number;
+  lifetimePoints: number;
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function hashOtp(code: string): string {
@@ -89,6 +104,34 @@ function generateToken(): string {
 
 function minutesFromNow(minutes: number): Date {
   return new Date(Date.now() + minutes * 60 * 1000);
+}
+
+export function normalizeMemberPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('0')) return `62${digits.slice(1)}`;
+  if (digits.startsWith('8')) return `62${digits}`;
+  return digits;
+}
+
+function buildPhoneLookupCandidates(phone: string): string[] {
+  const raw = phone.trim();
+  const digits = raw.replace(/\D/g, '');
+  const normalized = normalizeMemberPhone(phone);
+  const candidates = new Set<string>();
+
+  for (const value of [raw, digits, normalized]) {
+    if (!value) continue;
+    candidates.add(value);
+    candidates.add(`+${value}`);
+  }
+
+  if (normalized.startsWith('62') && normalized.length > 2) {
+    candidates.add(`0${normalized.slice(2)}`);
+    candidates.add(`+62${normalized.slice(2)}`);
+  }
+
+  return [...candidates].filter((value) => value.length >= 8);
 }
 
 async function verifyTurnstile(token: string, ipAddress?: string): Promise<boolean> {
@@ -174,13 +217,15 @@ export async function initiateSignup(
       AppError.validation('member.signup.validationFailed', { issues: parsed.error.issues }),
     );
   }
+  const normalizedPhone = normalizeMemberPhone(input.phone);
+  const phoneCandidates = buildPhoneLookupCandidates(input.phone);
 
   const turnstileValid = await verifyTurnstile(input.turnstileToken, ipAddress);
   if (!turnstileValid) {
     await db.insert(memberSignupAttempts).values({
       id: crypto.randomUUID(),
       email: input.email,
-      phone: input.phone,
+      phone: normalizedPhone || input.phone,
       ipAddress,
       userAgent,
       outcome: 'failed_captcha',
@@ -210,18 +255,52 @@ export async function initiateSignup(
   const existing = await db
     .select({ id: partners.id })
     .from(partners)
-    .where(and(eq(partners.email, input.email), eq(partners.kind, 'customer')))
+    .where(
+      and(
+        eq(partners.tenantId, 'default'),
+        eq(partners.email, input.email),
+        eq(partners.kind, 'customer'),
+      ),
+    )
     .limit(1);
 
   if (existing[0]) {
     await db.insert(memberSignupAttempts).values({
       id: crypto.randomUUID(),
       email: input.email,
+      phone: normalizedPhone || input.phone,
       ipAddress,
       userAgent,
       outcome: 'email_exists',
     });
     return err(AppError.conflict('member.signup.emailExists'));
+  }
+
+  const existingPhone = phoneCandidates.length
+    ? await db
+        .select({ id: partners.id })
+        .from(partners)
+        .where(
+          and(
+            eq(partners.tenantId, 'default'),
+            eq(partners.kind, 'customer'),
+            eq(partners.isMember, true),
+            inArray(partners.phone, phoneCandidates),
+          ),
+        )
+        .limit(1)
+    : [];
+
+  if (existingPhone[0]) {
+    await db.insert(memberSignupAttempts).values({
+      id: crypto.randomUUID(),
+      email: input.email,
+      phone: normalizedPhone || input.phone,
+      ipAddress,
+      userAgent,
+      outcome: 'phone_exists',
+    });
+    return err(AppError.conflict('member.signup.phoneExists'));
   }
 
   // Generate OTP + token
@@ -236,7 +315,7 @@ export async function initiateSignup(
   // Store signup payload in encrypted JSON (for later account creation)
   const payloadJson = JSON.stringify({
     name: input.name,
-    phone: input.phone,
+    phone: normalizedPhone || input.phone,
     birthDate: input.birthDate,
     city: input.city,
     passwordHash,
@@ -261,7 +340,7 @@ export async function initiateSignup(
   await db.insert(memberSignupAttempts).values({
     id: crypto.randomUUID(),
     email: input.email,
-    phone: input.phone,
+    phone: normalizedPhone || input.phone,
     ipAddress,
     userAgent,
     outcome: 'otp_sent',
@@ -403,13 +482,32 @@ export async function completeSignup(
   let memberId: string;
   try {
     const existingPartner = await db
-      .select({ id: partners.id })
+      .select({ id: partners.id, isMember: partners.isMember, phone: partners.phone })
       .from(partners)
-      .where(and(eq(partners.email, email), eq(partners.kind, 'customer')))
+      .where(
+        and(
+          eq(partners.tenantId, 'default'),
+          eq(partners.email, email),
+          eq(partners.kind, 'customer'),
+        ),
+      )
       .limit(1);
 
     if (existingPartner[0]) {
       memberId = existingPartner[0].id;
+      if (!existingPartner[0].isMember || existingPartner[0].phone !== phone) {
+        await db
+          .update(partners)
+          .set({
+            name,
+            phone: phone || existingPartner[0].phone,
+            birthDate: birthDate ? new Date(birthDate) : null,
+            city: city || null,
+            isMember: true,
+            updatedBy: ctx?.userId,
+          })
+          .where(eq(partners.id, memberId));
+      }
     } else {
       memberId = crypto.randomUUID();
       await db.insert(partners).values({
@@ -501,6 +599,64 @@ export async function completeSignup(
   }
 
   return ok({ memberId, sessionToken });
+}
+
+// ─── Store Lookup ─────────────────────────────────────────────────────────────
+
+export async function findMemberByPhone(
+  input: MemberPhoneLookupInput,
+  tenantId = 'default',
+): Promise<Result<MemberLookupResult | null>> {
+  const parsed = MemberPhoneLookupInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return err(
+      AppError.validation('member.lookup.validationFailed', { issues: parsed.error.issues }),
+    );
+  }
+
+  const candidates = buildPhoneLookupCandidates(parsed.data.phone);
+  if (candidates.length === 0) {
+    return err(AppError.validation('member.lookup.invalidPhone'));
+  }
+
+  try {
+    const rows = await db
+      .select({
+        memberId: partners.id,
+        name: partners.name,
+        phone: partners.phone,
+        loyaltyTier: partners.loyaltyTier,
+        points: memberLoyalty.points,
+        lifetimePoints: memberLoyalty.lifetimePoints,
+        tier: memberLoyalty.tier,
+      })
+      .from(partners)
+      .leftJoin(memberLoyalty, eq(memberLoyalty.memberId, partners.id))
+      .where(
+        and(
+          eq(partners.tenantId, tenantId),
+          eq(partners.kind, 'customer'),
+          eq(partners.isMember, true),
+          eq(partners.isActive, true),
+          inArray(partners.phone, candidates),
+        ),
+      )
+      .limit(1);
+
+    const member = rows[0];
+    if (!member) return ok(null);
+
+    return ok({
+      memberId: member.memberId,
+      name: member.name,
+      phone: member.phone,
+      loyaltyTier: member.tier ?? member.loyaltyTier ?? 'bronze',
+      points: member.points ?? 0,
+      lifetimePoints: member.lifetimePoints ?? 0,
+    });
+  } catch (e) {
+    return err(AppError.internal('member.lookup.failed', e));
+  }
 }
 
 // ─── Sessions ────────────────────────────────────────────────────────────────

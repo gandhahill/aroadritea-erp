@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 /**
  * Member Account Page — SD §31.7
- * Point balance, QR card, points history, vouchers.
+ * Point balance, phone-based store identification, points history, vouchers.
  */
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
@@ -164,26 +164,16 @@ export default async function MemberAccountPage({ params }: Props) {
         )}
       </div>
 
-      {/* QR Code placeholder */}
-      <div className="mt-8 rounded-lg border border-brand-cream-3 bg-white p-6 text-center">
-        <p className="mb-4 text-sm text-brand-ink-3">{t('memberCard')}</p>
-        <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-lg bg-brand-cream-2 text-brand-cream-3">
-          <svg
-            aria-hidden="true"
-            className="h-20 w-20"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
-            />
-          </svg>
+      {/* Store member identification */}
+      <div className="mt-8 rounded-lg border border-brand-cream-3 bg-brand-cream-1 p-6">
+        <p className="text-sm font-semibold text-brand-ink">{t('cashierLookupTitle')}</p>
+        <p className="mt-2 text-sm leading-6 text-brand-ink-2">{t('cashierLookupBody')}</p>
+        <div className="mt-4 rounded-md border border-brand-red/20 bg-brand-red/5 px-4 py-3">
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-brand-red">
+            {t('memberId')}
+          </p>
+          <p className="mt-1 font-mono text-sm text-brand-ink">{member.memberId.slice(0, 12)}</p>
         </div>
-        <p className="mt-3 text-xs text-brand-ink-3">QR Code — {t('scanAtStore')}</p>
       </div>
     </div>
   );

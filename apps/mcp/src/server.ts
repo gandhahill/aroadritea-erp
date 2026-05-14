@@ -86,9 +86,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       if (fieldStr.includes('ZodEnum')) {
         const match = fieldStr.match(/\[(.*?)\]/);
         if (match) {
+          const enumValues = match[1] ?? '';
           properties[key] = {
             type: 'string',
-            enum: match[1]!.split(',').map((v: string) => v.trim().replace(/['"]/g, '')),
+            enum: enumValues.split(',').map((v: string) => v.trim().replace(/['"]/g, '')),
           };
         } else {
           properties[key] = { type: 'string' };
@@ -198,7 +199,7 @@ if (process.env.MCP_ENABLE_STDIO !== 'false') {
     version: SERVER_INFO.version,
   });
 } else {
-  console.info(`MCP stdio transport disabled — HTTP health server only`, {
+  console.info('MCP stdio transport disabled — HTTP health server only', {
     name: SERVER_INFO.name,
     version: SERVER_INFO.version,
     tools: allTools.length,

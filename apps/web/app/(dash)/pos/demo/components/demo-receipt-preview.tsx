@@ -21,7 +21,12 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <button
+        type="button"
+        aria-label="close"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
       {/* Receipt */}
       <div className="relative z-10 flex h-[85vh] w-full max-w-md flex-col rounded-t-2xl bg-white shadow-2xl sm:h-auto sm:rounded-2xl">
@@ -29,11 +34,13 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
         <div className="flex items-center justify-between border-b border-brand-cream-3 px-5 py-4">
           <h2 className="text-base font-semibold text-brand-ink">{t('demo.receiptPreview')}</h2>
           <button
+            type="button"
             onClick={onClose}
             className="text-brand-ink-3 hover:text-brand-ink"
             aria-label="close"
           >
             <svg
+              aria-hidden="true"
               className="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
@@ -141,6 +148,7 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
         {/* Footer */}
         <div className="border-t border-brand-cream-3 p-5">
           <button
+            type="button"
             onClick={onClose}
             className="h-11 w-full rounded-lg border border-brand-cream-3 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-2"
           >
@@ -154,7 +162,7 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
 
 function formatRupiah(value: string | bigint): string {
   const num = Number(value);
-  if (isNaN(num)) return 'Rp 0';
+  if (Number.isNaN(num)) return 'Rp 0';
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',

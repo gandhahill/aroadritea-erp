@@ -35,7 +35,7 @@ export type CloseShiftInput = z.infer<typeof CloseShiftInputSchema>;
 const LineInputSchema = z.object({
   productId: z.string().min(1),
   variantId: z.string().optional(),
-  qty: z.number().positive(),
+  qty: z.number().int().positive(),
   unitPrice: z.string().regex(/^\d+$/), // bigint rupiah (inclusive PB1)
   lineDiscount: z.string().regex(/^\d+$/).optional().default('0'),
   modifierJson: z.record(z.string(), z.unknown()).optional(),

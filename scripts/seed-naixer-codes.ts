@@ -107,13 +107,13 @@ async function importProducts(csv: string): Promise<void> {
     process.exit(1);
   }
 
-  console.log(`📄 Parsed ${rows.length} product code row(s)`);
+  console.info(`📄 Parsed ${rows.length} product code row(s)`);
 
   if (dryRun) {
-    console.log('\n🔍 Dry run — no changes will be made:\n');
+    console.info('\n🔍 Dry run — no changes will be made:\n');
     for (const row of rows) {
       const variant = row.variantId ? ` (variant: ${row.variantId})` : ' (all variants)';
-      console.log(`   ${row.productId}${variant} → ${row.naixerCode}`);
+      console.info(`   ${row.productId}${variant} → ${row.naixerCode}`);
     }
     return;
   }
@@ -160,7 +160,7 @@ async function importProducts(csv: string): Promise<void> {
     }
   }
 
-  console.log(`\n✅ Product codes: ${inserted} inserted, ${updated} updated`);
+  console.info(`\n✅ Product codes: ${inserted} inserted, ${updated} updated`);
 }
 
 // ─── Import modifiers ───────────────────────────────────────────────────────
@@ -180,12 +180,12 @@ async function importModifiers(csv: string): Promise<void> {
     process.exit(1);
   }
 
-  console.log(`📄 Parsed ${rows.length} modifier code row(s)`);
+  console.info(`📄 Parsed ${rows.length} modifier code row(s)`);
 
   if (dryRun) {
-    console.log('\n🔍 Dry run — no changes will be made:\n');
+    console.info('\n🔍 Dry run — no changes will be made:\n');
     for (const row of rows) {
-      console.log(
+      console.info(
         `   [${row.modifierKind}] ${row.modifierOptionId} → ${row.naixerCode} (order: ${row.displayOrder})`,
       );
     }
@@ -233,16 +233,16 @@ async function importModifiers(csv: string): Promise<void> {
     }
   }
 
-  console.log(`\n✅ Modifier codes: ${inserted} inserted, ${updated} updated`);
+  console.info(`\n✅ Modifier codes: ${inserted} inserted, ${updated} updated`);
 }
 
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
-  console.log(`\n🌱 Naixer code import — ${type}`);
-  console.log(`   File: ${fullPath}`);
-  if (dryRun) console.log('   Mode: DRY RUN');
-  console.log('');
+  console.info(`\n🌱 Naixer code import — ${type}`);
+  console.info(`   File: ${fullPath}`);
+  if (dryRun) console.info('   Mode: DRY RUN');
+  console.info('');
 
   if (type === 'products') {
     await importProducts(csvContent);
@@ -250,7 +250,7 @@ async function main(): Promise<void> {
     await importModifiers(csvContent);
   }
 
-  console.log('\n🎉 Import complete!');
+  console.info('\n🎉 Import complete!');
 }
 
 main().catch((e) => {

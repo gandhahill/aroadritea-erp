@@ -1301,13 +1301,21 @@ Sistem **internal** (bukan WordPress / Sanity / Strapi eksternal) yang menjadi b
 1. Pengunjung di `aroadritea.com/member/daftar` mengisi form: nama, email, nomor HP (WA), tanggal lahir, kota.
 2. Verifikasi nomor HP via OTP WhatsApp **atau** OTP email (Phase 1: pakai email otomatis dari mailbox HestiaCP; OTP WhatsApp Phase 2 bila integrasi WA Business API ada).
 3. Setelah verifikasi → akun member dibuat di ERP (tabel `partners` kind=customer is_member=true + tabel `members`).
-4. Member menerima **kartu digital** (QR code) yang dapat ditampilkan di toko untuk akumulasi poin.
+4. Member memakai **nomor telepon terdaftar** sebagai identitas utama saat transaksi di toko.
 5. Member dapat login ke `aroadritea.com/member/akun` untuk:
    - Lihat saldo poin
    - Lihat riwayat transaksi
    - Update profil
    - Lihat voucher yang berlaku
    - Lihat tier saat ini (bila tier aktif)
+
+#### 22.4.1a Alur Identifikasi Member di Kasir
+1. Saat transaksi POS, kasir bertanya: "Apakah ada member?"
+2. Jika pelanggan menjawab ada, kasir meminta **nomor telepon member**.
+3. POS mencari data member aktif berdasarkan nomor telepon yang sudah dinormalisasi.
+4. Jika ditemukan, POS menampilkan nama member; kasir mengonfirmasi: "Atas nama `<nama member>`?"
+5. Jika pelanggan mengonfirmasi, POS attach `customer_id` ke transaksi agar poin/loyalty tercatat.
+6. Jika nomor tidak ditemukan atau nama tidak cocok, transaksi tetap dapat dilanjutkan sebagai walk-in anonim.
 
 #### 22.4.2 Data yang Dikumpulkan
 Sesuai SoT §13.1 (CRM): nama, telepon, email, tanggal lahir. Tambahan untuk member portal: kata sandi (hashed), preferensi notifikasi.
@@ -1324,10 +1332,10 @@ Sesuai SoT §13.1 (CRM): nama, telepon, email, tanggal lahir. Tambahan untuk mem
 - Verifikasi OTP wajib sebelum akun aktif.
 - Tabel `member_signup_attempts` untuk audit + deteksi pattern abuse.
 
-### 22.5 Cetak Kartu Member Digital
-- QR code kartu member berisi `member_id` (token tidak menyertakan PII).
-- Kasir scan QR di POS → otomatis attach customer_id ke transaksi → poin terhitung.
-- Kartu dapat di-render sebagai gambar PNG/PDF untuk disimpan di Google Wallet / Apple Wallet (Phase 2).
+### 22.5 Kartu Member Digital (Opsional / Phase 2)
+- Flow utama operasional toko adalah **lookup nomor telepon + konfirmasi nama**, bukan scan QR.
+- Kartu digital/QR boleh disiapkan di Phase 2 sebagai alternatif, tetapi tidak wajib untuk akumulasi poin.
+- Jika nanti diaktifkan, QR code kartu member hanya berisi token/member id non-PII dan tetap membutuhkan konfirmasi kasir.
 
 ### 22.6 Newsletter / Komunikasi
 - **Phase 1**: tidak ada blast email/WA (sesuai SoT §13.3).

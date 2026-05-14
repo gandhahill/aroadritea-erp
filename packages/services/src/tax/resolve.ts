@@ -8,7 +8,7 @@
  *   3. For each tax_code, pick the rule with highest priority where is_applied_default=true.
  *   4. Return resolved tax info (code, rate, calculation, posting account).
  *
- * Permission: accounting.view
+ * Permission: tax.view
  */
 
 import { db } from '@erp/db';
@@ -43,6 +43,17 @@ export interface ResolvedTax {
   postingAccountId: string;
 }
 
+function taxCodeAppliesToDocument(
+  taxCode: string,
+  documentKind: TaxResolutionContext['documentKind'],
+): boolean {
+  const code = taxCode.toUpperCase();
+  if (documentKind === 'sales') {
+    return code !== 'PPN_IN';
+  }
+  return code !== 'PB1' && code !== 'PPN_OUT';
+}
+
 // --- Service function ---
 
 /**
@@ -57,7 +68,7 @@ export async function resolve(
   context: TaxResolutionContext,
   ctx: AuditContext,
 ): Promise<Result<ResolvedTax[]>> {
-  const permCheck = await requirePermission(ctx.userId, 'accounting.view');
+  const permCheck = await requirePermission(ctx.userId, 'tax.view');
   if (!permCheck.ok) return permCheck;
 
   return tryCatch(
@@ -83,7 +94,7 @@ export async function resolve(
             return context.channel != null && rule.scopeId === context.channel;
           case 'customer_segment':
             // Future: resolve customer → segment lookup
-            // For now, only match if scopeId equals customerId (placeholder)
+            // Current rules match explicit customer IDs until segment data exists.
             return context.customerId != null && rule.scopeId === context.customerId;
           case 'product_category':
             return context.productCategoryId != null && rule.scopeId === context.productCategoryId;
@@ -98,6 +109,7 @@ export async function resolve(
       const bestByCode = new Map<string, (typeof matchingRules)[number]>();
       for (const rule of matchingRules) {
         if (!rule.isAppliedDefault) continue;
+        if (!taxCodeAppliesToDocument(rule.taxCode, context.documentKind)) continue;
         const existing = bestByCode.get(rule.taxCode);
         if (!existing || rule.priority > existing.priority) {
           bestByCode.set(rule.taxCode, rule);

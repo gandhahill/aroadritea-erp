@@ -30,8 +30,9 @@ export function DemoProductSearch() {
         const [allProducts, allVariants] = await Promise.all([getProducts(), getVariants()]);
         const variantMap = new Map<string, DbVariant[]>();
         for (const v of allVariants) {
-          if (!variantMap.has(v.productId)) variantMap.set(v.productId, []);
-          variantMap.get(v.productId)!.push(v);
+          const variants = variantMap.get(v.productId) ?? [];
+          variants.push(v);
+          variantMap.set(v.productId, variants);
         }
         setProducts(
           allProducts.map((p) => ({
@@ -109,10 +110,7 @@ export function DemoProductSearch() {
             {filtered.map((product) => (
               <div key={product.id} className="flex flex-col">
                 {/* Main product card */}
-                <button
-                  onClick={() => handleAddVariant(product)}
-                  className="flex flex-1 flex-col items-center gap-1.5 rounded-xl border border-brand-cream-3 bg-white p-3 text-center transition-all hover:border-brand-red/40 hover:shadow-sm active:scale-95"
-                >
+                <div className="flex flex-1 flex-col items-center gap-1.5 rounded-xl border border-brand-cream-3 bg-white p-3 text-center transition-all hover:border-brand-red/40 hover:shadow-sm">
                   {product.imageUrl ? (
                     <img
                       src={product.imageUrl}
@@ -132,7 +130,16 @@ export function DemoProductSearch() {
                       {formatRupiah(product.defaultSellPrice)}
                     </p>
                   </div>
-                </button>
+                  {product.variants.length === 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleAddVariant(product)}
+                      className="mt-1 rounded border border-brand-cream-3 bg-brand-cream-2 px-2 py-1 text-[10px] font-semibold text-brand-red hover:border-brand-red/40"
+                    >
+                      {t('addProduct')}
+                    </button>
+                  )}
+                </div>
 
                 {/* Variant pills — shown if product has variants */}
                 {product.variants.length > 0 && (
@@ -142,6 +149,7 @@ export function DemoProductSearch() {
                       return (
                         <button
                           key={v.id}
+                          type="button"
                           onClick={() => handleAddVariant(product, v)}
                           className="rounded border border-brand-cream-3 bg-brand-cream-2 px-1.5 py-0.5 text-[10px] text-brand-ink-2 transition-colors hover:border-brand-red/40 hover:text-brand-red"
                           title={`${vName} — ${formatRupiah(v.sellPrice)}`}
@@ -163,7 +171,7 @@ export function DemoProductSearch() {
 
 function formatRupiah(value: string): string {
   const num = Number(value);
-  if (isNaN(num)) return 'Rp 0';
+  if (Number.isNaN(num)) return 'Rp 0';
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',

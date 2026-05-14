@@ -15,7 +15,7 @@ function formatBytes(bytes: number): string {
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  return `${Number.parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`;
 }
 
 function formatDate(iso: string): string {
@@ -71,6 +71,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
           <p className="mt-0.5 text-xs text-brand-ink-3">Bukti transaksi atau dokumen pendukung.</p>
         </div>
         <button
+          type="button"
           onClick={() => setShowUploadInfo((v) => !v)}
           className="inline-flex items-center gap-1.5 rounded-lg border border-brand-cream-3 bg-white px-3 py-1.5 text-xs font-medium text-brand-ink transition-colors hover:bg-brand-cream-1"
         >
@@ -80,6 +81,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
             viewBox="0 0 24 24"
             stroke="currentColor"
             strokeWidth={2}
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"
@@ -103,6 +105,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
             akan diaktifkan setelah penyimpanan objek dikonfigurasi. Hubungi administrator.
           </p>
           <button
+            type="button"
             onClick={() => setShowUploadInfo(false)}
             className="mt-2 text-xs text-brand-ember-5 hover:underline"
           >
@@ -120,6 +123,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
             viewBox="0 0 24 24"
             stroke="currentColor"
             strokeWidth={1.5}
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"
@@ -141,6 +145,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                   strokeWidth={1.5}
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -164,13 +169,17 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
 
               {/* Actions */}
               <div className="flex items-center gap-2 flex-shrink-0">
-                <button className="inline-flex items-center gap-1 rounded-md border border-brand-cream-3 bg-white px-2.5 py-1.5 text-xs font-medium text-brand-ember-5 transition-colors hover:bg-brand-ember-5 hover:text-white">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 rounded-md border border-brand-cream-3 bg-white px-2.5 py-1.5 text-xs font-medium text-brand-ember-5 transition-colors hover:bg-brand-ember-5 hover:text-white"
+                >
                   <svg
                     className="h-3.5 w-3.5"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                     strokeWidth={2}
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -181,13 +190,19 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
                   Unduh
                 </button>
                 <button
+                  type="button"
                   onClick={() => handleDelete(att.id)}
                   disabled={deletingId === att.id || isPending}
                   className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-white px-2.5 py-1.5 text-xs font-medium text-rose-500 transition-colors hover:bg-rose-50 disabled:opacity-50"
                 >
                   {deletingId === att.id ? (
                     <>
-                      <svg className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <svg
+                        className="h-3.5 w-3.5 animate-spin"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
                         <circle
                           className="opacity-25"
                           cx="12"
@@ -212,6 +227,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                         strokeWidth={2}
+                        aria-hidden="true"
                       >
                         <path
                           strokeLinecap="round"

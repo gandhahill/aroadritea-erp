@@ -2,7 +2,7 @@
  * POS service tests — T-0057, T-0058
  *
  * Tests: schema validation, PB1 extraction, sale number format,
- * shift business rules, delivery channel revenue multiplier, refund business logic.
+ * shift business rules, delivery channel accounting, refund business logic.
  */
 
 import { describe, expect, it } from 'vitest';
@@ -422,38 +422,40 @@ describe('Sale number format T01-YYYY-MM-NNNN', () => {
   });
 });
 
-// ─── Delivery channel revenue multiplier ─────────────────────────────────────
+// ─── Delivery channel accounting ─────────────────────────────────────────────
 
-describe('Delivery channel revenue multiplier', () => {
-  const ONLINE_COMMISSION_RATE = 0.8;
-
+describe('Delivery channel accounting', () => {
   const channels = ['gofood', 'grabfood', 'shopeefood'];
-  const walkInChannels = ['walk_in'];
 
-  it('applies 80% multiplier to delivery channel subtotals', () => {
+  it('records gross platform receivable at sale time', () => {
     for (const channel of channels) {
-      const subtotal = BigInt(33000);
-      const netRevenue = (subtotal * BigInt(80)) / BigInt(100);
-      expect(netRevenue).toBe(BigInt(26400));
+      const gross = BigInt(33000);
+      const { net: revenue, pb1 } = extractPB1(gross);
+      const receivableDebit = gross;
+
+      expect(channel).toMatch(/food|grab/);
+      expect(receivableDebit).toBe(BigInt(33000));
+      expect(revenue).toBe(BigInt(30000));
+      expect(pb1).toBe(BigInt(3000));
+      expect(receivableDebit).toBe(revenue + pb1);
     }
   });
 
-  it('applies 100% multiplier to walk_in channel', () => {
-    for (const channel of walkInChannels) {
-      const subtotal = BigInt(33000);
-      const netRevenue = (subtotal * BigInt(100)) / BigInt(100);
-      expect(netRevenue).toBe(subtotal);
-    }
+  it('recognizes platform commission only when settlement is entered', () => {
+    const grossReceivable = BigInt(33000);
+    const commission = (grossReceivable * BigInt(20)) / BigInt(100);
+    const bankSettlement = grossReceivable - commission;
+
+    expect(bankSettlement).toBe(BigInt(26400));
+    expect(commission).toBe(BigInt(6600));
+    expect(bankSettlement + commission).toBe(grossReceivable);
   });
 
-  it('delivery revenue is always 80% of gross', () => {
-    const prices = [11000, 22000, 33000, 44000, 55000];
-    for (const price of prices) {
-      const subtotal = BigInt(price);
-      const netRevenue = (subtotal * BigInt(80)) / BigInt(100);
-      const expected = BigInt(Math.round(Number(subtotal) * ONLINE_COMMISSION_RATE));
-      expect(netRevenue).toBe(expected);
-    }
+  it('keeps walk_in cash debit equal to gross sale', () => {
+    const gross = BigInt(33000);
+    const { net: revenue, pb1 } = extractPB1(gross);
+
+    expect(gross).toBe(revenue + pb1);
   });
 });
 
@@ -482,6 +484,18 @@ describe('Sales order total calculation', () => {
     expect(totalSubtotal).toBe(BigInt(88000));
     expect(totalDiscount).toBe(BigInt(2000));
     expect(grandTotal).toBe(BigInt(86000));
+  });
+
+  it('extracts PB1 after line discounts, not before discounts', () => {
+    const grossBeforeDiscount = BigInt(88000);
+    const lineDiscount = BigInt(2000);
+    const grossAfterDiscount = grossBeforeDiscount - lineDiscount;
+    const { net, pb1 } = extractPB1(grossAfterDiscount);
+
+    expect(grossAfterDiscount).toBe(BigInt(86000));
+    expect(net + pb1).toBe(grossAfterDiscount);
+    expect(net).toBe(BigInt(78181));
+    expect(pb1).toBe(BigInt(7819));
   });
 
   it('payment total covers grandTotal (walk_in cash)', () => {

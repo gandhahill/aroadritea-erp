@@ -1,48 +1,118 @@
 {
   "common": {
     "brand": "Aroadri Tea",
-    "tagline": "中式珍珠奶茶 & 甜品"
+    "tagline": "中式鲜茶、奶茶与甜品"
   },
   "nav": {
     "home": "首页",
     "menu": "菜单",
-    "about": "关于我们",
-    "locations": "分店",
+    "about": "关于",
+    "locations": "门店",
     "blog": "博客",
-    "contact": "联系我们"
+    "contact": "联系",
+    "member": "注册会员"
   },
   "home": {
-    "heroTitle": "现代中式饮品 & 甜品",
-    "heroSubtitle": "每一口都是传统与现代完美融合",
-    "ctaOrder": "立即下单",
+    "eyebrow": "中式茶饮与甜品",
+    "heroTitle": "Aroadri Tea",
+    "heroSubtitle": "鲜茶、奶茶、柠檬茶、雪顶奶茶和温暖甜品，呈现现代中式茶饮风味。",
+    "heroFeatureLabel": "人气前三",
+    "heroFeatureItems": "Bamboo Oolong · Osmanthus Oolong · Glutinous Fragrant Lemon",
+    "ctaMember": "注册会员",
     "ctaMenu": "查看菜单",
-    "popularTitle": "热门推荐",
-    "popularSubtitle": "顾客最爱的选择"
+    "ctaLocations": "查看门店",
+    "menuTitle": "Aroadri Tea 实际菜单",
+    "menuSubtitle": "围绕鲜奶茶、鲜茶、柠檬鲜茶、雪顶奶茶和甜品等运营分类整理。",
+    "groups": [
+      {
+        "name": "Fresh Milk Tea",
+        "description": "以乌龙、茉莉绿茶、锡兰红茶和烘焙黄茶为基础的奶茶。",
+        "price": "Regular Rp42k-43k · Large Rp47k-49k",
+        "items": "Bamboo Oolong Milk Tea, Osmanthus Oolong Milk Tea, Glutinous Fragrant Milk Tea, Jasmine Green Milk Tea, Ceylon Black Milk Tea, Roasted Fragrant Yellow Milk Tea"
+      },
+      {
+        "name": "Fresh Tea",
+        "description": "无奶鲜茶，呈现花香、焙香与谷物香。",
+        "price": "Regular Rp32k 起 · Large Rp42k 起",
+        "items": "Bamboo Oolong Tea, Osmanthus Oolong Tea, Jasmine Green Tea, Ceylon Black Tea, Roasted Fragrant Yellow Tea, Glutinous Fragrant Tea, Buckwheat Biluochun Tea"
+      },
+      {
+        "name": "Lemon Fresh Tea",
+        "description": "加入柠檬的鲜茶，口感清爽明亮。",
+        "price": "Regular Rp43k-45k · Large Rp47k-49k",
+        "items": "Glutinous Fragrant Lemon Tea, Bamboo Oolong Lemon Tea, Osmanthus Oolong Lemon Tea, Roasted Fragrant Yellow Lemon Tea, Jasmine Green Lemon Tea, Buckwheat Biluochun Lemon Tea"
+      },
+      {
+        "name": "Snow Cap Milk Tea",
+        "description": "带有柔滑雪顶层的奶茶。",
+        "price": "Rp56k",
+        "items": "Bamboo Oolong Snow Cap Milk Tea, Osmanthus Oolong Snow Cap Milk Tea"
+      },
+      {
+        "name": "Dessert",
+        "description": "适合堂食或外带的茶饮甜品搭配。",
+        "price": "以门店价格为准",
+        "items": "Egg Tart, Fancy Egg Tart, Pudding, Mousse Cake"
+      }
+    ],
+    "customTitle": "结账时可自定义",
+    "customSubtitle": "杯型、温度、糖度、冰量和配料由 POS 管理，业务调整无需修改源代码。",
+    "customItems": [
+      "Regular / Large",
+      "Hot / Cold",
+      "No sugar / Less sugar",
+      "No ice / Less ice",
+      "Cheese Pearl",
+      "Oat Pearl",
+      "Crystal Pearl",
+      "Barley Pearl"
+    ],
+    "locationTitle": "从日惹开始运营",
+    "locationSubtitle": "门店和办公室数据保存在 ERP 中，地点页面可跟随运营数据更新。"
   },
   "menu": {
-    "title": "我们的菜单",
-    "empty": "菜单暂未可用。"
+    "title": "Aroadri Tea 菜单",
+    "subtitle": "价格根据 Regular/Large 和 Hot/Cold 规格显示。下单时可选择糖度、冰量和配料。",
+    "empty": "数据库中还没有菜单。请运行生产 seed 或从 ERP 维护菜单。",
+    "from": "起",
+    "priceUnavailable": "门店价格",
+    "optionsTitle": "自定义选项",
+    "sizeTemp": "Regular/Large · Hot/Cold",
+    "sugarIce": "No sugar, less sugar · no ice, less ice",
+    "toppings": "Cheese Pearl, Oat Pearl, Crystal Pearl, Barley Pearl"
   },
   "about": {
-    "title": "关于我们"
+    "eyebrow": "品牌身份",
+    "title": "Aroadri Tea 的现代中式茶饮",
+    "body": "Aroadri Tea 采用山水意象：山、云、水象征宁静、纯净与匠心。菜单聚焦鲜茶、奶茶、柠檬茶、雪顶奶茶和甜品搭配。",
+    "pillars": [
+      { "title": "以茶为先", "desc": "菜单基于乌龙、茉莉绿茶、锡兰红茶、烘焙黄茶和碧螺春等茶香。" },
+      { "title": "灵活定制", "desc": "杯型、温度、糖度、冰量和配料可通过 POS 灵活管理。" },
+      { "title": "运营就绪", "desc": "菜单、地点、会员和网站内容都准备由 ERP 管理。" }
+    ]
   },
   "locations": {
-    "title": "分店地址"
+    "title": "Aroadri Tea 门店",
+    "subtitle": "地点数据来自 ERP，因此门店和办公室地址可无需修改代码即可更新。",
+    "empty": "数据库中还没有可用地点。",
+    "defaultHours": "10:00-22:00 WIB",
+    "store": "门店",
+    "office": "办公室"
   },
   "footer": {
-    "copyright": "© 2026 {brand} 版权所有。"
+    "copyright": "© {year} {brand}. 版权所有。"
   },
   "member": {
     "title": "我的账户",
     "logout": "退出",
-    "memberId": "会员ID",
+    "memberId": "会员 ID",
     "availablePoints": "可用积分",
     "lifetimePoints": "累计积分",
     "pointsHistory": "积分记录",
     "noHistory": "暂无积分记录。",
     "vouchers": "我的优惠券",
     "noVouchers": "暂无优惠券。",
-    "memberCard": "会员卡",
-    "scanAtStore": "结账时扫描"
+    "cashierLookupTitle": "结账时使用手机号",
+    "cashierLookupBody": "当收银员询问是否有会员时，请告知注册手机号。收银员会查找会员资料并确认姓名，然后记录本次积分。"
   }
 }

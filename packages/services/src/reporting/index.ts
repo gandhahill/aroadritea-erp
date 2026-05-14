@@ -25,6 +25,14 @@ export {
 } from './profit-loss';
 
 export {
+  cashFlow,
+  type CashFlowInput,
+  type CashFlowMovement,
+  type CashFlowSection,
+  type CashFlowResult,
+} from './cash-flow';
+
+export {
   getDailySummary,
   type DailySummaryParams,
   type DailySummaryResult,

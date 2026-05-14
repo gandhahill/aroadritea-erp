@@ -73,8 +73,7 @@ export async function listAccountsHandler(
             id: a.id,
             code: a.code,
             name:
-              (a.name as Record<string, string>)[locale] ??
-              (a.name as Record<string, string>)['id'],
+              (a.name as Record<string, string>)[locale] ?? (a.name as Record<string, string>).id,
             type: a.type,
             subtype: a.subtype,
             normal_balance: a.normalBalance,

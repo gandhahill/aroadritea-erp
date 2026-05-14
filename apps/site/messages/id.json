@@ -1,7 +1,7 @@
 {
   "common": {
     "brand": "Aroadri Tea",
-    "tagline": "Chinese-style Bubble Tea & Dessert"
+    "tagline": "Teh ala Tiongkok, fresh tea, milk tea, dan dessert"
   },
   "nav": {
     "home": "Beranda",
@@ -9,28 +9,107 @@
     "about": "Tentang",
     "locations": "Lokasi",
     "blog": "Blog",
-    "contact": "Hubungi"
+    "contact": "Hubungi",
+    "member": "Daftar Member"
   },
   "home": {
-    "heroTitle": "Minuman & Dessert Klasik China Modern",
-    "heroSubtitle": "Rasakan autensitas tradisi China dalam setiap tegukan",
-    "ctaOrder": "Pesan Sekarang",
+    "eyebrow": "Chinese-style tea & dessert",
+    "heroTitle": "Aroadri Tea",
+    "heroSubtitle": "Fresh tea, milk tea, lemon tea, snow cap, dan dessert hangat dengan rasa teh ala Tiongkok modern.",
+    "heroFeatureLabel": "Best Seller Top 3",
+    "heroFeatureItems": "Bamboo Oolong · Osmanthus Oolong · Glutinous Fragrant Lemon",
+    "ctaMember": "Daftar Member",
     "ctaMenu": "Lihat Menu",
-    "popularTitle": "Populer",
-    "popularSubtitle": "Pilihan favorit pelanggan kami"
+    "ctaLocations": "Lihat Lokasi",
+    "menuTitle": "Menu yang benar-benar tersedia",
+    "menuSubtitle": "Disusun dari kategori operasional Aroadri Tea: fresh milk tea, fresh tea, lemon fresh tea, snow cap milk tea, dan dessert.",
+    "groups": [
+      {
+        "name": "Fresh Milk Tea",
+        "description": "Milk tea berbasis oolong, jasmine green, ceylon black, dan roasted fragrant yellow tea.",
+        "price": "Regular Rp42k-43k · Large Rp47k-49k",
+        "items": "Bamboo Oolong Milk Tea, Osmanthus Oolong Milk Tea, Glutinous Fragrant Milk Tea, Jasmine Green Milk Tea, Ceylon Black Milk Tea, Roasted Fragrant Yellow Milk Tea"
+      },
+      {
+        "name": "Fresh Tea",
+        "description": "Teh tanpa susu dengan karakter floral, roasted, dan grain aroma.",
+        "price": "Regular mulai Rp32k · Large mulai Rp42k",
+        "items": "Bamboo Oolong Tea, Osmanthus Oolong Tea, Jasmine Green Tea, Ceylon Black Tea, Roasted Fragrant Yellow Tea, Glutinous Fragrant Tea, Buckwheat Biluochun Tea"
+      },
+      {
+        "name": "Lemon Fresh Tea",
+        "description": "Fresh tea dengan lemon, cocok untuk profil rasa ringan dan segar.",
+        "price": "Regular Rp43k-45k · Large Rp47k-49k",
+        "items": "Glutinous Fragrant Lemon Tea, Bamboo Oolong Lemon Tea, Osmanthus Oolong Lemon Tea, Roasted Fragrant Yellow Lemon Tea, Jasmine Green Lemon Tea, Buckwheat Biluochun Lemon Tea"
+      },
+      {
+        "name": "Snow Cap Milk Tea",
+        "description": "Milk tea dengan lapisan snow cap lembut.",
+        "price": "Rp56k",
+        "items": "Bamboo Oolong Snow Cap Milk Tea, Osmanthus Oolong Snow Cap Milk Tea"
+      },
+      {
+        "name": "Dessert",
+        "description": "Pendamping teh untuk dine-in maupun take away.",
+        "price": "Harga mengikuti outlet",
+        "items": "Egg Tart, Fancy Egg Tart, Pudding, Mousse Cake"
+      }
+    ],
+    "customTitle": "Bisa disesuaikan di kasir",
+    "customSubtitle": "Ukuran, suhu, level gula, level es, dan topping dikelola dari sistem POS agar tidak perlu edit source code.",
+    "customItems": [
+      "Regular / Large",
+      "Hot / Cold",
+      "No sugar / Less sugar",
+      "No ice / Less ice",
+      "Cheese Pearl",
+      "Oat Pearl",
+      "Crystal Pearl",
+      "Barley Pearl"
+    ],
+    "locationTitle": "Beroperasi dari Yogyakarta",
+    "locationSubtitle": "Outlet dan kantor tercatat di ERP sehingga halaman lokasi bisa mengikuti data operasional."
   },
   "menu": {
-    "title": "Menu",
-    "empty": "Menu belum tersedia."
+    "title": "Menu Aroadri Tea",
+    "subtitle": "Harga mengikuti varian Regular/Large dan Hot/Cold. Pilihan gula, es, dan topping tersedia saat pemesanan.",
+    "empty": "Menu belum tersedia di database. Jalankan seed produksi atau isi menu dari ERP.",
+    "from": "Mulai",
+    "priceUnavailable": "Harga di toko",
+    "optionsTitle": "Pilihan kustomisasi",
+    "sizeTemp": "Regular/Large · Hot/Cold",
+    "sugarIce": "No sugar, less sugar · no ice, less ice",
+    "toppings": "Cheese Pearl, Oat Pearl, Crystal Pearl, Barley Pearl"
   },
   "about": {
-    "title": "Tentang Kami"
+    "eyebrow": "Identitas Brand",
+    "title": "Teh ala Tiongkok modern dari Aroadri Tea",
+    "body": "Aroadri Tea membawa karakter shanshui: gunung, awan, dan air sebagai simbol ketenangan, kemurnian, dan craft. Fokus menu kami adalah fresh tea, milk tea, lemon tea, snow cap, dan dessert pendamping.",
+    "pillars": [
+      {
+        "title": "Tea-first",
+        "desc": "Menu berangkat dari karakter teh oolong, jasmine green, ceylon black, roasted yellow, dan biluochun."
+      },
+      {
+        "title": "Customizable",
+        "desc": "Ukuran, suhu, gula, es, dan topping disiapkan fleksibel dari POS."
+      },
+      {
+        "title": "Operationally ready",
+        "desc": "Menu, lokasi, member, dan konten website disiapkan agar bisa dikelola dari ERP."
+      }
+    ]
   },
   "locations": {
-    "title": "Lokasi Toko"
+    "title": "Lokasi Aroadri Tea",
+    "subtitle": "Data lokasi dibaca dari ERP agar alamat outlet dan kantor bisa diperbarui tanpa edit source code.",
+    "empty": "Belum ada lokasi aktif di database.",
+    "defaultHours": "10:00-22:00 WIB",
+    "store": "Outlet",
+    "office": "Kantor"
   },
   "footer": {
-    "copyright": "© 2026 {brand}. Hak cipta dilindungi."
+    "copyright": "© {year} {brand}. Hak cipta dilindungi."
   },
   "member": {
     "title": "Akun Saya",
@@ -42,7 +121,7 @@
     "noHistory": "Belum ada riwayat poin.",
     "vouchers": "Voucher Saya",
     "noVouchers": "Belum ada voucher.",
-    "memberCard": "Kartu Member",
-    "scanAtStore": "Pindai saat pembayaran"
+    "cashierLookupTitle": "Pakai nomor telepon di kasir",
+    "cashierLookupBody": "Saat kasir bertanya apakah ada member, sebutkan nomor telepon terdaftar. Kasir akan mencari data member dan mengonfirmasi nama sebelum poin transaksi dicatat."
   }
 }

@@ -17,8 +17,7 @@ export default async function COAPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
-  const tree = await fetchCOATree(tenantId);
+  const tree = await fetchCOATree();
 
   return (
     <div className="space-y-6">

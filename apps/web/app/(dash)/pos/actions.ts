@@ -8,10 +8,11 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, db, eq, or } from '@erp/db';
-import { ilike } from '@erp/db';
+import { and, db, eq, ilike, inArray, or, sql } from '@erp/db';
 import { productCategories, productVariants, products } from '@erp/db/schema/inventory';
 import { salesOrders, shifts } from '@erp/db/schema/pos';
+import { requirePermission } from '@erp/services/iam';
+import { type MemberLookupResult, findMemberByPhone } from '@erp/services/member';
 import { closeShift, createSale, openShift, refundSale, voidSale } from '@erp/services/pos';
 import { getOpenShift } from '@erp/services/pos';
 import type {
@@ -69,6 +70,10 @@ export interface SaleListItem {
   lines: { productName: string; qty: string; lineTotal: string }[];
 }
 
+export type MemberLookupActionResult =
+  | { ok: true; member: MemberLookupResult | null }
+  | { ok: false; error: string };
+
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
 async function getAuditContext() {
@@ -110,14 +115,23 @@ export async function fetchProducts(params: {
   search?: string;
 }): Promise<ProductListItem[]> {
   const ctx = await getAuditContext();
-  const conditions = [eq(products.tenantId, ctx.tenantId)];
+  const conditions = [
+    eq(products.tenantId, ctx.tenantId),
+    eq(products.isActive, true),
+    eq(products.isSellable, true),
+  ];
 
   if (params.categoryId) {
     conditions.push(eq(products.categoryId, params.categoryId));
   }
   if (params.search) {
     const searchPattern = `%${params.search}%`;
-    const searchCond = or(ilike(products.sku, searchPattern), ilike(products.name, searchPattern));
+    const searchCond = or(
+      ilike(products.sku, searchPattern),
+      sql`${products.name}->>'id' ILIKE ${searchPattern}`,
+      sql`${products.name}->>'en' ILIKE ${searchPattern}`,
+      sql`${products.name}->>'zh' ILIKE ${searchPattern}`,
+    );
     if (searchCond) conditions.push(searchCond);
   }
 
@@ -133,7 +147,7 @@ export async function fetchProducts(params: {
     })
     .from(products)
     .where(and(...conditions))
-    .orderBy(products.name)
+    .orderBy(sql`${products.name}->>'id'`)
     .then((rows) =>
       rows.map((r) => ({
         id: r.id,
@@ -159,7 +173,13 @@ export async function fetchProducts(params: {
           attributes: productVariants.attributes,
         })
         .from(productVariants)
-        .where(and(eq(productVariants.tenantId, ctx.tenantId)))
+        .where(
+          and(
+            eq(productVariants.tenantId, ctx.tenantId),
+            eq(productVariants.isActive, true),
+            inArray(productVariants.productId, productIds),
+          ),
+        )
         .orderBy(productVariants.sortOrder)
         .then((rows) =>
           rows.map((r) => ({
@@ -188,15 +208,16 @@ export async function fetchProducts(params: {
   );
   const variantsByProduct = new Map<string, VariantItem[]>();
   for (const v of variantRows) {
-    if (!variantsByProduct.has(v.productId)) variantsByProduct.set(v.productId, []);
     const vName = v.name as NameRecord;
-    variantsByProduct.get(v.productId)!.push({
+    const variantItems = variantsByProduct.get(v.productId) ?? [];
+    variantItems.push({
       id: v.id,
       name: vName?.id ?? vName?.en ?? 'Default',
       sku: v.sku,
       sellPrice: v.sellPrice.toString(),
       attributes: v.attributes ?? {},
     });
+    variantsByProduct.set(v.productId, variantItems);
   }
 
   return productRows.map((p) => {
@@ -232,6 +253,19 @@ export async function fetchCategories(): Promise<{ id: string; name: string }[]>
 }
 
 // ─── Sale Actions ───────────────────────────────────────────────────────────────
+
+export async function lookupMemberByPhoneAction(phone: string): Promise<MemberLookupActionResult> {
+  const ctx = await getAuditContext();
+  const perm = await requirePermission(ctx.userId, 'pos.transact', {
+    locationId: ctx.locationId,
+  });
+  if (!perm.ok) return { ok: false, error: perm.error.messageKey };
+
+  const result = await findMemberByPhone({ phone }, ctx.tenantId);
+  if (!result.ok) return { ok: false, error: result.error.messageKey };
+
+  return { ok: true, member: result.value };
+}
 
 export async function createSaleAction(input: CreateSaleInput) {
   const ctx = await getAuditContext();

@@ -39,11 +39,6 @@ import type { SaleResult } from './schemas';
 // ─── Refund Sale ──────────────────────────────────────────────────────────────
 
 export async function refundSale(input: unknown, ctx: AuditContext): Promise<Result<SaleResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'pos.refund', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = RefundSaleInputSchema.safeParse(input);
   if (!parsed.success) {
     return err(
@@ -65,6 +60,11 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
     if (!sale) {
       return err(AppError.notFound('pos.refund.notFound', { salesOrderId: data.salesOrderId }));
     }
+    const permCheck = await requirePermission(ctx.userId, 'pos.refund', {
+      locationId: sale.locationId,
+    });
+    if (!permCheck.ok) return permCheck;
+
     if (sale.status !== 'paid') {
       return err(AppError.businessRule('pos.refund.notPaid', { currentStatus: sale.status }));
     }

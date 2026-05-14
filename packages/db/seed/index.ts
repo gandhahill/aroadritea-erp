@@ -11,6 +11,7 @@ import { neon } from '@neondatabase/serverless';
 import * as argon2 from 'argon2';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
+import type { Database } from '../client';
 import { accounts, taxRates, taxRules } from '../schema/accounting';
 import {
   locations,
@@ -33,6 +34,7 @@ import {
   ROLES_SEED,
   ROLE_PERMISSION_MAP,
 } from './iam';
+import { seedMenu } from './menu';
 import { NAIXER_QR_FORMAT_DEFAULTS } from './naixer-seed';
 import { SCHEDULED_JOBS_SEED } from './scheduled-jobs-seed';
 import { TAX_RATES_SEED } from './tax-rates';
@@ -250,7 +252,13 @@ async function seed() {
   }
   console.info(`✅ ${ruleCount} tax rules seeded`);
 
-  // 11. POS operational settings (UI-managed after bootstrap)
+  // 11. Aroadri Tea menu master data (UI-managed after bootstrap)
+  const menuResult = await seedMenu(db as unknown as Database, tenantId);
+  console.info(
+    `✅ ${menuResult.products} menu products, ${menuResult.categories} categories, ${menuResult.modifierGroups} modifier groups seeded`,
+  );
+
+  // 12. POS operational settings (UI-managed after bootstrap)
   let posSettingsCount = 0;
   for (const loc of locationRows) {
     await db
@@ -272,7 +280,7 @@ async function seed() {
   }
   console.info(`✅ ${posSettingsCount} POS settings seeded`);
 
-  // 12. Naixer QR + label print defaults
+  // 13. Naixer QR + label print defaults
   let naixerConfigCount = 0;
   for (const cfg of NAIXER_QR_FORMAT_DEFAULTS) {
     const locationId = locationIds.get(cfg.locationCode);
@@ -293,7 +301,7 @@ async function seed() {
   }
   console.info(`✅ ${naixerConfigCount} Naixer QR format configs seeded`);
 
-  // 13. Scheduled Jobs
+  // 14. Scheduled Jobs
   for (const job of SCHEDULED_JOBS_SEED) {
     await db
       .insert(scheduledJobs)

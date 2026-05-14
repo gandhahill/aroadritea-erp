@@ -140,7 +140,7 @@ export function PosSettingsClient({ settings }: Props) {
             <div className="mt-4 grid gap-4 lg:grid-cols-3">
               <label className="space-y-1">
                 <span className="text-xs font-medium text-brand-ink-2">
-                  Channel Delivery Net Settlement
+                  Channel Delivery Platform
                 </span>
                 <input
                   value={draft.deliveryChannels.join(', ')}
@@ -152,13 +152,13 @@ export function PosSettingsClient({ settings }: Props) {
                   className={inputClass}
                 />
                 <span className="block text-[11px] text-brand-ink-3">
-                  Pisahkan dengan koma, contoh: gofood, grabfood, shopeefood.
+                  Dipakai untuk klasifikasi AR/settlement. Pisahkan dengan koma.
                 </span>
               </label>
 
               <label className="space-y-1">
                 <span className="text-xs font-medium text-brand-ink-2">
-                  Net Settlement Delivery (bps)
+                  Estimasi Net Settlement (bps)
                 </span>
                 <input
                   type="number"
@@ -173,7 +173,7 @@ export function PosSettingsClient({ settings }: Props) {
                   className={inputClass}
                 />
                 <span className="block text-[11px] text-brand-ink-3">
-                  {deliveryPercent}% dari harga, default 80.00%.
+                  {deliveryPercent}% dari gross untuk rekap komisi; jurnal sale tetap gross.
                 </span>
               </label>
 

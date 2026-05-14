@@ -68,15 +68,16 @@ export async function getOmzetHarian(
   if (!permCheck.ok) return permCheck;
 
   try {
-    // 1. Aggregate gross sales from completed sales orders for this location+date
+    // 1. Aggregate gross sales from paid sales orders for this location+date
     // salesOrders.grandTotal is in IDR (not sen), so multiply by 100n for cents
     const saleAgg = await db.execute(
       sql<{ total: bigint }>`
         SELECT COALESCE(SUM(grand_total * 100), 0::bigint) as total
         FROM sales_orders
-        WHERE location_id = ${params.locationId}
-          AND status = 'completed'
-          AND DATE(created_at AT TIME ZONE 'Asia/Jakarta') = ${params.date}
+        WHERE tenant_id = ${ctx.tenantId}
+          AND location_id = ${params.locationId}
+          AND status = 'paid'
+          AND DATE(placed_at AT TIME ZONE 'Asia/Jakarta') = ${params.date}
       `,
     );
     const grossCents = (saleAgg.rows[0]?.total as unknown as bigint) ?? BigInt(0);
@@ -109,7 +110,8 @@ export async function getOmzetHarian(
       sql<{ cnt: number }>`
         SELECT COUNT(*) as cnt
         FROM shifts
-        WHERE location_id = ${params.locationId}
+        WHERE tenant_id = ${ctx.tenantId}
+          AND location_id = ${params.locationId}
           AND DATE(opened_at AT TIME ZONE 'Asia/Jakarta') = ${params.date}
       `,
     );
@@ -144,7 +146,7 @@ export async function saveOmzetAdjustment(
   },
   ctx: AuditContext,
 ): Promise<Result<void>> {
-  const permCheck = await requirePermission(ctx.userId, 'accounting.view', {
+  const permCheck = await requirePermission(ctx.userId, 'tax.export', {
     locationId: params.locationId,
   });
   if (!permCheck.ok) return permCheck;
@@ -197,7 +199,7 @@ export async function exportOmzetHarianXlsx(
   params: { locationId: string; date: string; locale?: 'id' | 'en' | 'zh' },
   ctx: AuditContext,
 ): Promise<Result<{ buffer: ArrayBuffer; filename: string }>> {
-  const permCheck = await requirePermission(ctx.userId, 'accounting.view', {
+  const permCheck = await requirePermission(ctx.userId, 'tax.export', {
     locationId: params.locationId,
   });
   if (!permCheck.ok) return permCheck;

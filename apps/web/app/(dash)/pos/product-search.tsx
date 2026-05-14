@@ -8,7 +8,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { type ProductListItem, type VariantItem, fetchCategories, fetchProducts } from './actions';
 import { usePosCart } from './pos-cart-context';
 
@@ -28,20 +28,23 @@ export function ProductSearch() {
     return () => clearTimeout(timer);
   }, [search]);
 
+  // Load categories once.
+  useEffect(() => {
+    startTransition(async () => {
+      setCategories(await fetchCategories());
+    });
+  }, []);
+
   // Load products when filters change
   useEffect(() => {
     startTransition(async () => {
-      const [prods, cats] = await Promise.all([
-        fetchProducts({
-          categoryId: activeCategory || undefined,
-          search: debouncedSearch || undefined,
-        }),
-        categories.length === 0 ? fetchCategories() : Promise.resolve(categories),
-      ]);
+      const prods = await fetchProducts({
+        categoryId: activeCategory || undefined,
+        search: debouncedSearch || undefined,
+      });
       setProducts(prods);
-      if (cats.length > 0 && categories.length === 0) setCategories(cats);
     });
-  }, [activeCategory, debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeCategory, debouncedSearch]);
 
   function handleAddProduct(product: ProductListItem, variant?: VariantItem) {
     const unitPrice = variant ? variant.sellPrice : product.defaultSellPrice;
@@ -62,6 +65,7 @@ export function ProductSearch() {
       <div className="border-b border-brand-cream-3 p-3">
         <div className="relative">
           <svg
+            aria-hidden="true"
             className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-ink-3"
             fill="none"
             viewBox="0 0 24 24"
@@ -87,6 +91,7 @@ export function ProductSearch() {
       {/* Category filter pills */}
       <div className="flex gap-2 overflow-x-auto border-b border-brand-cream-3 px-3 py-2">
         <button
+          type="button"
           onClick={() => setActiveCategory('')}
           className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
             !activeCategory
@@ -94,11 +99,12 @@ export function ProductSearch() {
               : 'bg-brand-cream-2 text-brand-ink-3 hover:bg-brand-cream-3'
           }`}
         >
-          Semua
+          {t('allCategories')}
         </button>
         {categories.map((cat) => (
           <button
             key={cat.id}
+            type="button"
             onClick={() => setActiveCategory(cat.id)}
             className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               activeCategory === cat.id
@@ -120,6 +126,7 @@ export function ProductSearch() {
         ) : products.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-12">
             <svg
+              aria-hidden="true"
               className="h-12 w-12 text-brand-ink-3/30"
               fill="none"
               viewBox="0 0 24 24"
@@ -138,12 +145,10 @@ export function ProductSearch() {
           <div className="grid grid-cols-3 gap-2">
             {products.map((product) => {
               const hasVariants = product.variants.length > 0;
-              const defaultVariant = product.variants[0];
               return (
-                <button
+                <div
                   key={product.id}
-                  onClick={() => handleAddProduct(product, defaultVariant)}
-                  className="flex flex-col items-start gap-1 rounded-lg border border-brand-cream-3 bg-white p-3 text-left transition-shadow hover:border-brand-red/30 hover:shadow-sm active:scale-[0.98]"
+                  className="flex min-h-[190px] flex-col gap-2 rounded-lg border border-brand-cream-3 bg-white p-3 text-left transition-shadow hover:border-brand-red/30 hover:shadow-sm"
                 >
                   {/* Product image */}
                   {product.imageUrl ? (
@@ -160,17 +165,34 @@ export function ProductSearch() {
                   <p className="w-full text-xs font-medium leading-tight text-brand-ink">
                     {product.name}
                   </p>
-                  <div className="flex w-full items-center justify-between">
-                    <span className="text-xs font-semibold text-brand-red">
-                      {formatRupiah(defaultVariant?.sellPrice ?? product.defaultSellPrice)}
-                    </span>
-                    {hasVariants && (
-                      <span className="text-[10px] text-brand-ink-3">
-                        +{product.variants.length - 1}
-                      </span>
-                    )}
-                  </div>
-                </button>
+                  {hasVariants ? (
+                    <div className="mt-auto grid grid-cols-2 gap-1">
+                      {product.variants.map((variant) => (
+                        <button
+                          key={variant.id}
+                          type="button"
+                          onClick={() => handleAddProduct(product, variant)}
+                          title={`${variant.name} - ${formatRupiah(variant.sellPrice)}`}
+                          className="min-h-9 rounded-md border border-brand-cream-3 bg-brand-cream-2 px-2 py-1 text-left text-[10px] font-medium leading-tight text-brand-ink-2 hover:border-brand-red/40 hover:text-brand-red"
+                        >
+                          <span className="line-clamp-1 block">{variant.name}</span>
+                          <span className="block text-[10px] font-semibold text-brand-red">
+                            {formatRupiah(variant.sellPrice)}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleAddProduct(product)}
+                      className="mt-auto flex min-h-9 items-center justify-between rounded-md border border-brand-cream-3 bg-brand-cream-2 px-2 py-1 text-xs font-semibold text-brand-red hover:border-brand-red/40"
+                    >
+                      <span>{formatRupiah(product.defaultSellPrice)}</span>
+                      <span className="text-brand-ink-3">+</span>
+                    </button>
+                  )}
+                </div>
               );
             })}
           </div>
@@ -182,7 +204,7 @@ export function ProductSearch() {
 
 function formatRupiah(value: string): string {
   const num = Number(value);
-  if (isNaN(num)) return 'Rp 0';
+  if (Number.isNaN(num)) return 'Rp 0';
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',

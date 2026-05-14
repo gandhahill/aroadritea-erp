@@ -86,6 +86,7 @@ export function COATreeView({ tree }: COATreeViewProps) {
               viewBox="0 0 24 24"
               stroke="currentColor"
               strokeWidth={2}
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -110,6 +111,7 @@ export function COATreeView({ tree }: COATreeViewProps) {
               const isActive = selectedType === type;
               return (
                 <button
+                  type="button"
                   key={type}
                   onClick={() => setSelectedType(isActive ? null : type)}
                   className={`rounded-full border px-3 py-1 text-xs font-medium transition-all duration-150 ${
@@ -127,12 +129,14 @@ export function COATreeView({ tree }: COATreeViewProps) {
           {/* Expand/Collapse */}
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={expandAll}
               className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-medium text-brand-ink-2 hover:bg-brand-cream-2 transition-colors"
             >
               Expand All
             </button>
             <button
+              type="button"
               onClick={collapseAll}
               className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-medium text-brand-ink-2 hover:bg-brand-cream-2 transition-colors"
             >
@@ -163,6 +167,7 @@ export function COATreeView({ tree }: COATreeViewProps) {
               viewBox="0 0 24 24"
               stroke="currentColor"
               strokeWidth={1}
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -222,6 +227,7 @@ function TreeNode({ node, depth, expandedIds, onToggle }: TreeNodeProps) {
           {/* Expand/collapse toggle */}
           {hasChildren ? (
             <button
+              type="button"
               onClick={() => onToggle(node.id)}
               className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-brand-ink-3 hover:bg-brand-cream-2 hover:text-brand-ink transition-all"
               aria-label={isExpanded ? 'Collapse' : 'Expand'}
@@ -232,6 +238,7 @@ function TreeNode({ node, depth, expandedIds, onToggle }: TreeNodeProps) {
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth={2.5}
+                aria-hidden="true"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
               </svg>
@@ -275,7 +282,7 @@ function TreeNode({ node, depth, expandedIds, onToggle }: TreeNodeProps) {
         <div className="col-span-1 text-center">
           {node.isPostable ? (
             <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-jade-light text-brand-jade">
-              <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                 <path
                   fillRule="evenodd"
                   d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -285,7 +292,7 @@ function TreeNode({ node, depth, expandedIds, onToggle }: TreeNodeProps) {
             </span>
           ) : (
             <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-cream-3 text-brand-ink-3">
-              <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                 <path
                   fillRule="evenodd"
                   d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"

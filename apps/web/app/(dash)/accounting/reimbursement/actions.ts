@@ -96,7 +96,7 @@ export async function fetchReimbursements(
     approvedAt: r.approvedAt,
     disbursedAt: r.disbursedAt,
     rejectionReason: r.rejectionReason,
-    createdAt: r.createdAt!,
+    createdAt: r.createdAt ?? new Date(0),
   }));
 }
 

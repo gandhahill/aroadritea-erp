@@ -14,6 +14,7 @@ import { accounts, journalEntries, journalLines } from '@erp/db/schema/accountin
 import { can } from '@erp/services/iam';
 import {
   balanceSheet,
+  cashFlow,
   getDailySummary,
   getDonationReport,
   getHourlySales,
@@ -22,6 +23,7 @@ import {
 } from '@erp/services/reporting';
 import type {
   BalanceSheetInput,
+  CashFlowInput,
   DailySummaryParams,
   DonationReportParams,
   HourlySalesParams,
@@ -56,6 +58,8 @@ export const ProfitLossSchema = z.object({
 export const CashFlowSchema = z.object({
   from: z.string(),
   to: z.string(),
+  location_id: z.string().optional(),
+  cash_account_codes: z.array(z.string()).optional(),
   locale: z.enum(['id', 'en', 'zh']).optional().default('id'),
 });
 
@@ -170,14 +174,19 @@ async function cashFlowHandler(input: z.infer<typeof CashFlowSchema>, ctx: McpCo
   const permitted = await checkPermission(ctx, 'reporting.view');
   if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: reporting.view');
 
-  // Cash Flow Statement: simplified indirect method
-  // Actual implementation would use indirect method: Net Income +/- non-cash items +/- working capital changes
-  return mcpSuccess({
+  const params: CashFlowInput = {
     from: input.from,
     to: input.to,
-    locale: input.locale,
-    note: 'Cash Flow Statement. Full implementation requires working capital tracking per period. Currently returns placeholder.',
+    locationId: input.location_id,
+    cashAccountCodes: input.cash_account_codes,
+  };
+  const result = await cashFlow(params, {
+    userId: ctx.userId,
+    tenantId: ctx.tenantId,
+    locationId: input.location_id ?? 'system',
   });
+
+  return serializeResult(result);
 }
 
 async function generalLedgerHandler(input: z.infer<typeof GeneralLedgerSchema>, ctx: McpContext) {
@@ -188,7 +197,7 @@ async function generalLedgerHandler(input: z.infer<typeof GeneralLedgerSchema>, 
   const [account] = await db
     .select({ id: accounts.id, code: accounts.code, name: accounts.name })
     .from(accounts)
-    .where(eq(accounts.id, input.account_id))
+    .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.id, input.account_id)))
     .limit(1);
 
   if (!account) return mcpError('NOT_FOUND', `Account ${input.account_id} not found`);
@@ -212,6 +221,7 @@ async function generalLedgerHandler(input: z.infer<typeof GeneralLedgerSchema>, 
     .where(
       and(
         eq(journalLines.accountId, input.account_id),
+        eq(journalEntries.tenantId, ctx.tenantId),
         eq(journalEntries.status, 'posted'),
         gte(journalEntries.postingDate, input.from),
         lte(journalEntries.postingDate, input.to),
@@ -220,8 +230,7 @@ async function generalLedgerHandler(input: z.infer<typeof GeneralLedgerSchema>, 
     .orderBy(journalEntries.postingDate);
 
   const accountName =
-    (account.name as Record<string, string>)[locale] ??
-    (account.name as Record<string, string>)['id'];
+    (account.name as Record<string, string>)[locale] ?? (account.name as Record<string, string>).id;
 
   return mcpSuccess({
     account: {

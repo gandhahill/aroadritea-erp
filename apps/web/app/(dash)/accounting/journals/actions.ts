@@ -5,6 +5,7 @@
 
 'use server';
 
+import { getSession } from '@/lib/auth';
 import { and, db, desc, eq } from '@erp/db';
 import {
   accountingPeriods,
@@ -12,6 +13,7 @@ import {
   journalEntries,
   journalLines,
 } from '@erp/db/schema/accounting';
+import { requirePermission } from '@erp/services/iam';
 
 export interface JournalListItem {
   id: string;
@@ -52,10 +54,25 @@ export interface JournalDetail {
   lines: JournalLineDetail[];
 }
 
+async function getContext() {
+  const session = await getSession();
+  if (!session?.user) return null;
+  const user = session.user as Record<string, unknown>;
+  return {
+    tenantId: String(user.tenantId ?? 'default'),
+    userId: String(user.id ?? ''),
+  };
+}
+
 /**
  * Fetch journal entries list for a tenant, ordered by most recent.
  */
-export async function fetchJournalList(tenantId: string): Promise<JournalListItem[]> {
+export async function fetchJournalList(): Promise<JournalListItem[]> {
+  const ctx = await getContext();
+  if (!ctx) return [];
+  const perm = await requirePermission(ctx.userId, 'accounting.view');
+  if (!perm.ok) return [];
+
   const rows = await db
     .select({
       id: journalEntries.id,
@@ -69,31 +86,36 @@ export async function fetchJournalList(tenantId: string): Promise<JournalListIte
       createdAt: journalEntries.createdAt,
     })
     .from(journalEntries)
-    .where(eq(journalEntries.tenantId, tenantId))
+    .where(eq(journalEntries.tenantId, ctx.tenantId))
     .orderBy(desc(journalEntries.createdAt))
     .limit(100);
 
   return rows.map((r) => ({
     ...r,
     totalDebit: String(r.totalDebit),
-    createdAt: r.createdAt!,
+    createdAt: r.createdAt ?? new Date(0),
   }));
 }
 
 /**
  * Fetch a single journal entry with all its lines.
  */
-export async function fetchJournalDetail(
-  tenantId: string,
-  journalId: string,
-): Promise<JournalDetail | null> {
+export async function fetchJournalDetail(journalId: string): Promise<JournalDetail | null> {
+  const ctx = await getContext();
+  if (!ctx) return null;
+
   const [entry] = await db
     .select()
     .from(journalEntries)
-    .where(and(eq(journalEntries.tenantId, tenantId), eq(journalEntries.id, journalId)))
+    .where(and(eq(journalEntries.tenantId, ctx.tenantId), eq(journalEntries.id, journalId)))
     .limit(1);
 
   if (!entry) return null;
+
+  const perm = await requirePermission(ctx.userId, 'accounting.view', {
+    locationId: entry.locationId,
+  });
+  if (!perm.ok) return null;
 
   const lines = await db
     .select({
@@ -114,7 +136,7 @@ export async function fetchJournalDetail(
       ? await db
           .select({ id: accounts.id, code: accounts.code, name: accounts.name })
           .from(accounts)
-          .where(eq(accounts.tenantId, tenantId))
+          .where(eq(accounts.tenantId, ctx.tenantId))
       : [];
 
   const acctMap = new Map(acctRows.map((a) => [a.id, a]));
@@ -131,8 +153,8 @@ export async function fetchJournalDetail(
     totalDebit: String(entry.totalDebit),
     totalCredit: String(entry.totalCredit),
     version: entry.version,
-    createdAt: entry.createdAt!,
-    updatedAt: entry.updatedAt!,
+    createdAt: entry.createdAt ?? new Date(0),
+    updatedAt: entry.updatedAt ?? new Date(0),
     lines: lines.map((l) => {
       const acct = acctMap.get(l.accountId);
       return {

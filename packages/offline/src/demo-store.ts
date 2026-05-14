@@ -76,7 +76,7 @@ export function calcDemoTotals(state: DemoCartState): {
   const subtotalAfterDiscount = subtotal - totalDiscount;
   // PB1 is inclusive — back-out tax: tax = subtotal * 10 / 110
   const taxTotal = (subtotalAfterDiscount * BigInt(10)) / BigInt(110);
-  const grandTotal = subtotalAfterDiscount - taxTotal + totalDiscount;
+  const grandTotal = subtotalAfterDiscount;
   const totalPaid = state.payments.reduce((sum, p) => sum + BigInt(p.amount), BigInt(0));
   const remainingBalance = grandTotal - totalPaid > BigInt(0) ? grandTotal - totalPaid : BigInt(0);
   const excess = totalPaid - grandTotal > BigInt(0) ? totalPaid - grandTotal : BigInt(0);

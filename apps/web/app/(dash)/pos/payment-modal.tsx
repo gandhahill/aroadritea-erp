@@ -30,33 +30,47 @@ interface PaymentModalProps {
   onClose: () => void;
 }
 
+interface SplitPayment {
+  id: string;
+  method: string;
+  amount: string;
+}
+
 export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   const t = useTranslations('pos');
-  const { state, totalPaid, grandTotal: cartTotal, clearCart } = usePosCart();
+  const { state, totalPaid, clearCart } = usePosCart();
   const { isOnline, enqueueOrder } = useOfflineSync();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   const totalBig = BigInt(grandTotal);
   const paidBig = totalPaid;
-  const remaining = totalBig - paidBig > BigInt(0) ? totalBig - paidBig : BigInt(0);
-
   const [selectedMethod, setSelectedMethod] = useState<string>('cash');
   const [inputAmount, setInputAmount] = useState('');
-  const [splitPayments, setSplitPayments] = useState<{ method: string; amount: string }[]>([]);
+  const [splitPayments, setSplitPayments] = useState<SplitPayment[]>([]);
 
   const [donationChoice, setDonationChoice] = useState<RoundingOption>('no_donation');
 
   // Cash tendered so far in this modal (numeric input + split list)
-  const currentInputBig = BigInt(Number(inputAmount) > 0 ? inputAmount : '0');
-  const splitTotal = splitPayments.reduce(
-    (s, p) => s + BigInt(Number(p.amount) > 0 ? p.amount : '0'),
-    BigInt(0),
-  );
+  const currentInputBig = parseMoney(inputAmount);
+  const splitTotal = splitPayments.reduce((s, p) => s + parseMoney(p.amount), BigInt(0));
+  const remaining =
+    totalBig - paidBig - splitTotal > BigInt(0) ? totalBig - paidBig - splitTotal : BigInt(0);
   const allPaidBig = paidBig + splitTotal + currentInputBig;
+  const nonCashPaidBig =
+    state.payments
+      .filter((payment) => payment.method !== 'cash')
+      .reduce((sum, payment) => sum + parseMoney(payment.amount), BigInt(0)) +
+    splitPayments
+      .filter((payment) => payment.method !== 'cash')
+      .reduce((sum, payment) => sum + parseMoney(payment.amount), BigInt(0)) +
+    (selectedMethod !== 'cash' ? currentInputBig : BigInt(0));
   const excess = allPaidBig > totalBig ? allPaidBig - totalBig : BigInt(0);
   const isFullyPaid = allPaidBig >= totalBig;
-  const canConfirm = remaining > BigInt(0) ? false : isFullyPaid;
+  const nonCashOverpay = nonCashPaidBig > totalBig;
+  const canConfirm = isFullyPaid && !nonCashOverpay && Boolean(state.shiftId);
+  const canAddSplit =
+    inputAmount !== '' && currentInputBig > BigInt(0) && currentInputBig < remaining;
 
   // SD §25.11 — Donation options when cash change exists
   const donationOptions = useMemo(() => {
@@ -65,16 +79,21 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   }, [excess, selectedMethod]);
 
   function handleAddSplit() {
-    if (!inputAmount || Number(inputAmount) <= 0) return;
-    setSplitPayments((prev) => [...prev, { method: selectedMethod, amount: inputAmount }]);
+    if (!canAddSplit) return;
+    setSplitPayments((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), method: selectedMethod, amount: inputAmount },
+    ]);
     setInputAmount('');
   }
 
-  function handleRemoveSplit(idx: number) {
-    setSplitPayments((prev) => prev.filter((_, i) => i !== idx));
+  function handleRemoveSplit(id: string) {
+    setSplitPayments((prev) => prev.filter((payment) => payment.id !== id));
   }
 
   async function handleConfirm() {
+    if (!canConfirm || !state.shiftId) return;
+
     // SD §25.11 — resolve donation for the cash payment
     const donationResult =
       excess > BigInt(0) && donationChoice !== 'no_donation'
@@ -91,10 +110,10 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
       ...splitPayments.map((p) => ({ method: p.method, amount: p.amount })),
     ];
 
-    // Add cash payment only if customer handed cash and it covers the total
+    // Add the final payment only if it covers the remaining balance.
     if (
       inputAmount &&
-      Number(inputAmount) > 0 &&
+      currentInputBig > BigInt(0) &&
       currentInputBig + paidBig + splitTotal >= totalBig
     ) {
       payments.push({
@@ -121,12 +140,13 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
     }));
 
     const input = {
-      shiftId: state.shiftId ?? '',
+      shiftId: state.shiftId,
       channel: state.channel,
       locationId: state.locationId,
       idempotencyKey: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       lines,
       payments,
+      customerId: state.customer?.id,
       notes: state.notes,
     };
 
@@ -161,7 +181,12 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <button
+        type="button"
+        aria-label="close"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
       {/* Modal */}
       <div className="relative z-10 flex h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-2xl sm:h-auto sm:rounded-2xl">
@@ -169,11 +194,13 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
         <div className="flex items-center justify-between border-b border-brand-cream-3 px-5 py-4">
           <h2 className="text-base font-semibold text-brand-ink">{t('payment')}</h2>
           <button
+            type="button"
             onClick={onClose}
             className="text-brand-ink-3 hover:text-brand-ink"
             aria-label="close"
           >
             <svg
+              aria-hidden="true"
               className="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
@@ -201,6 +228,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
             <div className="grid grid-cols-4 gap-2">
               {PAYMENT_METHODS.map((m) => (
                 <button
+                  type="button"
                   key={m.id}
                   onClick={() => setSelectedMethod(m.id)}
                   className={`flex flex-col items-center gap-1 rounded-lg border py-2.5 text-xs font-medium transition-all ${
@@ -216,8 +244,8 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
             </div>
           </div>
 
-          {/* Cash amount input — shown for cash method when not yet fully paid */}
-          {selectedMethod === 'cash' && !isFullyPaid && (
+          {/* Payment amount input */}
+          {!isFullyPaid && (
             <div>
               <p className="mb-2 text-xs font-medium uppercase tracking-widest text-brand-ink-3">
                 {t('paymentAmount')}
@@ -238,14 +266,26 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
                 </div>
                 {remaining > BigInt(0) && (
                   <button
+                    type="button"
                     onClick={() => setInputAmount(remaining.toString())}
                     className="h-12 rounded-lg border border-brand-cream-3 bg-brand-cream-2 px-4 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-3"
                   >
                     {t('fullPayment')}
                   </button>
                 )}
+                <button
+                  type="button"
+                  onClick={handleAddSplit}
+                  disabled={!canAddSplit}
+                  className="h-12 rounded-lg border border-brand-cream-3 px-3 text-xs font-medium text-brand-ink-2 hover:bg-brand-cream-2 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {t('addPayment')}
+                </button>
               </div>
-              {excess > BigInt(0) && (
+              {nonCashOverpay && (
+                <p className="mt-1.5 text-xs font-medium text-brand-red">{t('nonCashOverpay')}</p>
+              )}
+              {selectedMethod === 'cash' && excess > BigInt(0) && (
                 <div className="mt-1.5 flex items-center gap-2">
                   <span className="text-xs text-brand-jade">{t('change')}:</span>
                   <span className="text-sm font-semibold text-brand-jade">
@@ -275,6 +315,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
               <div className="space-y-1.5">
                 {donationOptions.map((opt) => (
                   <button
+                    type="button"
                     key={opt.choice.type}
                     onClick={() => setDonationChoice(opt.choice.type)}
                     className={`flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left transition-all ${
@@ -306,9 +347,9 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
                 {t('splitPayment')}
               </p>
               <ul className="space-y-2">
-                {splitPayments.map((p, i) => (
+                {splitPayments.map((p) => (
                   <li
-                    key={i}
+                    key={p.id}
                     className="flex items-center justify-between rounded-lg border border-brand-cream-3 bg-brand-cream-2 px-3 py-2"
                   >
                     <div className="flex items-center gap-2">
@@ -320,11 +361,13 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
                       </span>
                     </div>
                     <button
-                      onClick={() => handleRemoveSplit(i)}
+                      type="button"
+                      onClick={() => handleRemoveSplit(p.id)}
                       className="text-brand-ink-3 hover:text-red-500"
                       aria-label="remove"
                     >
                       <svg
+                        aria-hidden="true"
                         className="h-4 w-4"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -342,12 +385,25 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
                 ))}
               </ul>
               <button
+                type="button"
                 onClick={handleAddSplit}
-                disabled={!inputAmount || Number(inputAmount) <= 0}
+                disabled={!canAddSplit}
                 className="mt-2 flex h-9 items-center gap-2 rounded-lg border border-dashed border-brand-cream-3 px-3 text-xs font-medium text-brand-ink-3 hover:border-brand-red/30 hover:text-brand-red disabled:cursor-not-allowed disabled:opacity-40"
               >
                 + {t('addPayment')}
               </button>
+            </div>
+          )}
+
+          {nonCashOverpay && isFullyPaid && (
+            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700" role="alert">
+              {t('nonCashOverpay')}
+            </div>
+          )}
+
+          {!state.shiftId && (
+            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700" role="alert">
+              {t('shiftRequired')}
             </div>
           )}
 
@@ -362,6 +418,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
         {/* Footer — confirm button */}
         <div className="border-t border-brand-cream-3 p-5">
           <button
+            type="button"
             onClick={handleConfirm}
             disabled={isPending || !canConfirm}
             className="h-12 w-full rounded-xl bg-brand-red text-sm font-semibold text-white hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
@@ -377,10 +434,14 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
 
 function formatRupiah(value: string | bigint): string {
   const num = Number(value);
-  if (isNaN(num)) return 'Rp 0';
+  if (Number.isNaN(num)) return 'Rp 0';
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
     maximumFractionDigits: 0,
   }).format(num);
+}
+
+function parseMoney(value: string): bigint {
+  return /^\d+$/.test(value) ? BigInt(value) : BigInt(0);
 }

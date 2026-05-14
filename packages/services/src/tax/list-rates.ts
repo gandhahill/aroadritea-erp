@@ -4,7 +4,7 @@
  * Query tax rates from the database, optionally filtered by
  * active status and effective date.
  *
- * Permission: accounting.view (read-only)
+ * Permission: tax.view (read-only)
  */
 
 import { db } from '@erp/db';
@@ -46,8 +46,7 @@ export async function listRates(
   },
   ctx: AuditContext,
 ): Promise<Result<TaxRateResult[]>> {
-  // Permission check (read-only, just needs accounting.view)
-  const permCheck = await requirePermission(ctx.userId, 'accounting.view');
+  const permCheck = await requirePermission(ctx.userId, 'tax.view');
   if (!permCheck.ok) return permCheck;
 
   return tryCatch(
@@ -100,7 +99,7 @@ export async function getRateByCode(
   code: string,
   ctx: AuditContext,
 ): Promise<Result<TaxRateResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'accounting.view');
+  const permCheck = await requirePermission(ctx.userId, 'tax.view');
   if (!permCheck.ok) return permCheck;
 
   const row = await db

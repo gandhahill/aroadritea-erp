@@ -14,7 +14,7 @@
  *      CR Revenue (4-1010)             (subtotal before PB1)
  *      CR PB1 Payable (2-1050)         (PB1 embedded in price)
  *    For GoFood/GrabFood/ShopeeFood (online channels):
- *      Debit reduced to 80% of price (commission already deducted by platform)
+ *      Debit gross platform receivable; commission is recognized on settlement.
  *
  * Permissions:
  *   pos.transact — required for createSale
@@ -25,7 +25,8 @@
  * - Idempotency key prevents duplicate orders from offline sync
  * - All lines must be for sellable products
  * - Payment total must ≥ grandTotal (overpay allowed, change recorded separately)
- * - Online channel (gofood/grabfood/shopeefood): revenue = 80% × price (net of commission)
+ * - Online channel (gofood/grabfood/shopeefood): sale JE records gross receivable
+ *   and commission is handled by settlement accounting.
  */
 
 import { db } from '@erp/db';
@@ -34,10 +35,18 @@ import {
   accounts,
   journalEntries,
   journalLines,
+  partners,
   taxRates,
 } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
-import { bomLines, boms, products, stockLevels, stockMovements } from '@erp/db/schema/inventory';
+import {
+  bomLines,
+  boms,
+  productVariants,
+  products,
+  stockLevels,
+  stockMovements,
+} from '@erp/db/schema/inventory';
 import {
   idempotencyRecords,
   payments,
@@ -54,8 +63,15 @@ import { and, eq, inArray, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import { earnLoyaltyPoints } from '../crm';
 import { requirePermission } from '../iam';
-import { type RoundingOption, calculateDonation } from './donation';
-import type { PaymentResult, SaleLineResult, SaleResult } from './schemas';
+import { type DonationResult, type RoundingOption, calculateDonation } from './donation';
+import {
+  CreateSaleInputSchema,
+  type PaymentInput,
+  type PaymentResult,
+  type SaleLineResult,
+  type SaleResult,
+  VoidSaleInputSchema,
+} from './schemas';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -64,7 +80,6 @@ const DEFAULT_CASH_ACCOUNT_CODE = '1-1030';
 const DEFAULT_REVENUE_ACCOUNT_CODE = '4-1010';
 const DEFAULT_DONATION_TRUST_ACCOUNT_CODE = '2-2050';
 const DEFAULT_DELIVERY_CHANNELS = ['gofood', 'grabfood', 'shopeefood'] as const;
-const DEFAULT_DELIVERY_NET_BPS = 8000;
 
 interface PosPostingConfig {
   taxCode: string;
@@ -74,7 +89,19 @@ interface PosPostingConfig {
   revenueAccountId: string;
   donationTrustAccountId: string;
   deliveryChannels: Set<string>;
-  deliveryNetBps: bigint;
+}
+
+interface NormalizedPaymentRecord {
+  method: PaymentInput['method'];
+  amount: bigint;
+  reference: string | null;
+  donationAmount: bigint | null;
+  roundingOption: RoundingOption | null;
+}
+
+interface NormalizedPayments {
+  records: NormalizedPaymentRecord[];
+  donationResult: DonationResult;
 }
 
 function parseDeliveryChannels(raw: unknown): Set<string> {
@@ -85,14 +112,6 @@ function parseDeliveryChannels(raw: unknown): Set<string> {
       .map((value) => value.trim())
       .filter(Boolean),
   );
-}
-
-function parseDeliveryNetBps(raw: unknown): bigint {
-  const value = Number.parseInt(String(raw ?? DEFAULT_DELIVERY_NET_BPS), 10);
-  if (!Number.isFinite(value) || value <= 0 || value > 10000) {
-    return BigInt(DEFAULT_DELIVERY_NET_BPS);
-  }
-  return BigInt(value);
 }
 
 async function resolveAccountIdByCode(tenantId: string, code: string): Promise<Result<string>> {
@@ -109,6 +128,57 @@ async function resolveAccountIdByCode(tenantId: string, code: string): Promise<R
   return ok(account.id);
 }
 
+async function autoPostJournalEntry(
+  journalEntryId: string,
+  ctx: AuditContext,
+): Promise<Result<void>> {
+  const postedAt = new Date();
+  const updated = await db
+    .update(journalEntries)
+    .set({
+      status: 'posted',
+      postedAt,
+      postedBy: ctx.userId,
+      updatedBy: ctx.userId,
+      updatedAt: postedAt,
+      version: sql`${journalEntries.version} + 1`,
+    })
+    .where(
+      and(
+        eq(journalEntries.id, journalEntryId),
+        eq(journalEntries.tenantId, ctx.tenantId),
+        eq(journalEntries.status, 'draft'),
+      ),
+    )
+    .returning({ id: journalEntries.id });
+
+  if (updated.length === 0) {
+    return err(AppError.conflict('pos.createSale.journalAutoPostFailed', { journalEntryId }));
+  }
+
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'post',
+    entityType: 'journal_entry',
+    entityId: journalEntryId,
+    before: { status: 'draft' },
+    after: {
+      status: 'posted',
+      postedAt: postedAt.toISOString(),
+      postedBy: ctx.userId,
+    },
+    metadata: {
+      ip: ctx.ipAddress ?? null,
+      userAgent: ctx.userAgent ?? null,
+      source: 'pos.createSale',
+    },
+  });
+
+  return ok(undefined);
+}
+
 async function resolvePosPostingConfig(
   tenantId: string,
   locationId: string,
@@ -121,7 +191,6 @@ async function resolvePosPostingConfig(
       revenueAccountCode: posSettings.revenueAccountCode,
       donationTrustAccountCode: posSettings.donationTrustAccountCode,
       deliveryChannelsJson: posSettings.deliveryChannelsJson,
-      deliveryNetBps: posSettings.deliveryNetBps,
     })
     .from(posSettings)
     .where(and(eq(posSettings.tenantId, tenantId), eq(posSettings.locationId, locationId)))
@@ -177,7 +246,6 @@ async function resolvePosPostingConfig(
     revenueAccountId: revenueAccount.value,
     donationTrustAccountId: donationTrustAccount.value,
     deliveryChannels: parseDeliveryChannels(setting?.deliveryChannelsJson),
-    deliveryNetBps: parseDeliveryNetBps(setting?.deliveryNetBps),
   });
 }
 
@@ -192,6 +260,104 @@ function extractInclusiveTax(
   const net = price10k / BigInt(10000 + rateBps);
   const tax = inclusivePrice - net;
   return { net, tax };
+}
+
+function minBigint(a: bigint, b: bigint): bigint {
+  return a < b ? a : b;
+}
+
+/**
+ * POS stores payment.amount as cash/bank value retained by the business.
+ * Cash tender above the sale total is change, not revenue and not drawer cash.
+ */
+function normalizeSalePayments(
+  inputPayments: PaymentInput[],
+  totalGrand: bigint,
+): Result<NormalizedPayments> {
+  const totalTendered = inputPayments.reduce((sum, p) => sum + BigInt(p.amount), BigInt(0));
+  if (totalTendered < totalGrand) {
+    return err(
+      AppError.businessRule('pos.createSale.insufficientPayment', {
+        required: totalGrand.toString(),
+        paid: totalTendered.toString(),
+      }),
+    );
+  }
+
+  const nonCashTotal = inputPayments
+    .filter((p) => p.method !== 'cash')
+    .reduce((sum, p) => sum + BigInt(p.amount), BigInt(0));
+
+  if (nonCashTotal > totalGrand) {
+    return err(
+      AppError.businessRule('pos.createSale.nonCashOverpay', {
+        required: totalGrand.toString(),
+        paid: nonCashTotal.toString(),
+      }),
+    );
+  }
+
+  const cashTendered = inputPayments
+    .filter((p) => p.method === 'cash')
+    .reduce((sum, p) => sum + BigInt(p.amount), BigInt(0));
+  const cashNeededForSale = totalGrand - nonCashTotal;
+
+  if (cashTendered < cashNeededForSale) {
+    return err(
+      AppError.businessRule('pos.createSale.insufficientPayment', {
+        required: totalGrand.toString(),
+        paid: totalTendered.toString(),
+      }),
+    );
+  }
+
+  const firstCashPayment = inputPayments.find((p) => p.method === 'cash');
+  const roundingOption = (firstCashPayment?.roundingOption ?? 'no_donation') as RoundingOption;
+  const donationResult = calculateDonation(cashTendered - cashNeededForSale, roundingOption);
+  let cashRetainedRemaining = cashNeededForSale + donationResult.donatedAmount;
+  let donationRemaining = donationResult.donatedAmount;
+
+  const records: NormalizedPaymentRecord[] = [];
+  for (const payment of inputPayments) {
+    const tenderedAmount = BigInt(payment.amount);
+    if (payment.method !== 'cash') {
+      if (tenderedAmount > BigInt(0)) {
+        records.push({
+          method: payment.method,
+          amount: tenderedAmount,
+          reference: payment.reference ?? null,
+          donationAmount: null,
+          roundingOption: null,
+        });
+      }
+      continue;
+    }
+
+    const retainedAmount = minBigint(tenderedAmount, cashRetainedRemaining);
+    cashRetainedRemaining -= retainedAmount;
+    if (retainedAmount <= BigInt(0)) continue;
+
+    const paymentDonation = minBigint(donationRemaining, retainedAmount);
+    donationRemaining -= paymentDonation;
+    records.push({
+      method: payment.method,
+      amount: retainedAmount,
+      reference: payment.reference ?? null,
+      donationAmount: paymentDonation > BigInt(0) ? paymentDonation : null,
+      roundingOption:
+        paymentDonation > BigInt(0) && roundingOption !== 'no_donation' ? roundingOption : null,
+    });
+  }
+
+  if (cashRetainedRemaining > BigInt(0)) {
+    return err(AppError.internal('pos.createSale.paymentNormalizationFailed'));
+  }
+
+  if (records.length === 0) {
+    return err(AppError.businessRule('pos.createSale.noRetainedPayment'));
+  }
+
+  return ok({ records, donationResult });
 }
 
 /** Generate sales order number T01-YYYY-MM-NNNN (SD §9.5). */
@@ -250,6 +416,7 @@ async function deductIngredients(
   tenantId: string,
   locationId: string,
   ingredients: Array<{ ingredientId: string; qty: string; uom: string }>,
+  referenceId: string,
   ctx: AuditContext,
 ): Promise<Result<void>> {
   try {
@@ -293,7 +460,7 @@ async function deductIngredients(
         uom: ing.uom,
         reason: 'sale',
         referenceType: 'sales_order',
-        referenceId: '', // will be filled after order creation
+        referenceId,
         unitCost: null,
         createdBy: ctx.userId,
         updatedBy: ctx.userId,
@@ -308,13 +475,7 @@ async function deductIngredients(
 // ─── Create Sale ──────────────────────────────────────────────────────────────
 
 export async function createSale(input: unknown, ctx: AuditContext): Promise<Result<SaleResult>> {
-  // 1. Permission check
-  const permCheck = await requirePermission(ctx.userId, 'pos.transact', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
-  // 2. Parse input
+  // 1. Parse input
   const parsed = CreateSaleInputSchema.safeParse(input);
   if (!parsed.success) {
     return err(
@@ -325,6 +486,12 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
   }
   const data = parsed.data;
 
+  // 2. Permission check is scoped to the sale location, not the user's default location.
+  const permCheck = await requirePermission(ctx.userId, 'pos.transact', {
+    locationId: data.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
   try {
     // 3. Validate shift is open
     const shift = await db
@@ -334,6 +501,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
         and(
           eq(shifts.tenantId, ctx.tenantId),
           eq(shifts.id, data.shiftId),
+          eq(shifts.locationId, data.locationId),
           eq(shifts.status, 'open'),
         ),
       )
@@ -375,10 +543,32 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
         isSellable: products.isSellable,
         isActive: products.isActive,
         kind: products.kind,
+        defaultSellPrice: products.defaultSellPrice,
       })
       .from(products)
       .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, productIds)));
     const productMap = new Map(foundProducts.map((p) => [p.id, p]));
+
+    const variantIds = [
+      ...new Set(data.lines.map((line) => line.variantId).filter((id): id is string => !!id)),
+    ];
+    const foundVariants = variantIds.length
+      ? await db
+          .select({
+            id: productVariants.id,
+            productId: productVariants.productId,
+            sellPrice: productVariants.sellPrice,
+            isActive: productVariants.isActive,
+          })
+          .from(productVariants)
+          .where(
+            and(
+              eq(productVariants.tenantId, ctx.tenantId),
+              inArray(productVariants.id, variantIds),
+            ),
+          )
+      : [];
+    const variantMap = new Map(foundVariants.map((variant) => [variant.id, variant]));
 
     for (const line of data.lines) {
       const p = productMap.get(line.productId);
@@ -397,7 +587,67 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
           AppError.businessRule('pos.createSale.productNotSellable', { productId: line.productId }),
         );
       }
-      // Skip BOM deduction for service items
+
+      const submittedPrice = BigInt(line.unitPrice);
+      if (line.variantId) {
+        const variant = variantMap.get(line.variantId);
+        if (!variant) {
+          return err(
+            AppError.notFound('pos.createSale.variantNotFound', { variantId: line.variantId }),
+          );
+        }
+        if (!variant.isActive || variant.productId !== line.productId) {
+          return err(
+            AppError.businessRule('pos.createSale.variantInvalid', {
+              productId: line.productId,
+              variantId: line.variantId,
+            }),
+          );
+        }
+        const expectedPrice =
+          variant.sellPrice > BigInt(0) ? variant.sellPrice : p.defaultSellPrice;
+        if (submittedPrice !== expectedPrice) {
+          return err(
+            AppError.businessRule('pos.createSale.priceMismatch', {
+              productId: line.productId,
+              variantId: line.variantId,
+              expected: expectedPrice.toString(),
+              actual: submittedPrice.toString(),
+            }),
+          );
+        }
+      } else if (submittedPrice !== p.defaultSellPrice) {
+        return err(
+          AppError.businessRule('pos.createSale.priceMismatch', {
+            productId: line.productId,
+            expected: p.defaultSellPrice.toString(),
+            actual: submittedPrice.toString(),
+          }),
+        );
+      }
+    }
+
+    if (data.customerId) {
+      const customer = await db
+        .select({ id: partners.id })
+        .from(partners)
+        .where(
+          and(
+            eq(partners.tenantId, ctx.tenantId),
+            eq(partners.id, data.customerId),
+            eq(partners.kind, 'customer'),
+            eq(partners.isMember, true),
+            eq(partners.isActive, true),
+          ),
+        )
+        .limit(1)
+        .then((rows) => rows[0]);
+
+      if (!customer) {
+        return err(
+          AppError.notFound('pos.createSale.memberNotFound', { customerId: data.customerId }),
+        );
+      }
     }
 
     const postingDate = new Date().toISOString().slice(0, 10);
@@ -432,14 +682,23 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       const unitPrice = BigInt(line.unitPrice);
       const lineSubtotal = unitPrice * BigInt(Math.round(line.qty));
       const lineDiscount = BigInt(line.lineDiscount ?? '0');
-      const { tax } = extractInclusiveTax(unitPrice, postingConfig.taxRateBps);
-      const lineTax = tax * BigInt(Math.round(line.qty));
-      const lineTotal = lineSubtotal; // unitPrice already includes PB1
+      if (lineDiscount > lineSubtotal) {
+        return err(
+          AppError.businessRule('pos.createSale.discountExceedsLineTotal', {
+            productId: line.productId,
+            discount: lineDiscount.toString(),
+            lineSubtotal: lineSubtotal.toString(),
+          }),
+        );
+      }
+      const lineTotal = lineSubtotal - lineDiscount; // unitPrice already includes PB1
+      const { tax } = extractInclusiveTax(lineTotal, postingConfig.taxRateBps);
+      const lineTax = tax;
 
       totalSubtotal += lineSubtotal;
       totalDiscount += lineDiscount;
       totalTax += lineTax;
-      totalGrand += lineTotal - lineDiscount;
+      totalGrand += lineTotal;
 
       lineResults.push({
         productId: line.productId,
@@ -455,25 +714,12 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       });
     }
 
-    // 7. Validate payment coverage
-    const totalPaid = data.payments.reduce((sum, p) => sum + BigInt(p.amount), BigInt(0));
-    if (totalPaid < totalGrand) {
-      return err(
-        AppError.businessRule('pos.createSale.insufficientPayment', {
-          required: totalGrand.toString(),
-          paid: totalPaid.toString(),
-        }),
-      );
-    }
+    // 7. Validate payment coverage, cash change, and donation rounding.
+    const normalizedPayments = normalizeSalePayments(data.payments, totalGrand);
+    if (!normalizedPayments.ok) return normalizedPayments;
+    const { donationResult, records: normalizedPaymentRecords } = normalizedPayments.value;
 
     // 7b. SD §25.11 — Calculate donation / rounding for cash payments
-    // The change amount = totalPaid - totalGrand (overpay amount)
-    const changeAmount = totalPaid - totalGrand;
-    const cashPayment = data.payments.find((p) => p.method === 'cash');
-    const roundingOption = (cashPayment?.roundingOption ?? 'no_donation') as RoundingOption;
-
-    const donationResult = calculateDonation(changeAmount, roundingOption);
-
     // 8. Generate order number + ID
     const saleId = generateId();
     const saleNumber = await generateSaleNumber(ctx.tenantId, data.locationId);
@@ -490,17 +736,18 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
         line.qty,
       );
 
-      const deductResult = await deductIngredients(ctx.tenantId, data.locationId, ingredients, ctx);
+      const deductResult = await deductIngredients(
+        ctx.tenantId,
+        data.locationId,
+        ingredients,
+        saleId,
+        ctx,
+      );
       if (!deductResult.ok) {
         // Log but don't fail — stock deduction is best-effort for POS
         // (stock levels may not have been initialized for raw materials)
       }
-
-      // Update reference_id on stock movements (already created with empty ref)
-      // For simplicity, movements are already created with referenceId='' and
-      // will be linked via the sales_order after insertion.
     }
-
     // 10. Insert sales_order
     await db.insert(salesOrders).values({
       id: saleId,
@@ -545,20 +792,16 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     await db.insert(salesOrderLines).values(orderLines);
 
     // 12. Insert payments
-    const paymentRecords = data.payments.map((p) => ({
+    const paymentRecords = normalizedPaymentRecords.map((p) => ({
       id: generateId(),
       salesOrderId: saleId,
       method: p.method,
-      amount: BigInt(p.amount),
-      reference: p.reference ?? null,
+      amount: p.amount,
+      reference: p.reference,
       occurredAt: new Date(),
       // SD §25.11 — donation on cash payment
-      donationAmount:
-        p.method === 'cash' && donationResult.donatedAmount > BigInt(0)
-          ? donationResult.donatedAmount
-          : null,
-      roundingOption:
-        p.method === 'cash' && roundingOption !== 'no_donation' ? roundingOption : null,
+      donationAmount: p.donationAmount,
+      roundingOption: p.roundingOption,
       createdBy: ctx.userId,
       updatedBy: ctx.userId,
     }));
@@ -567,15 +810,13 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     // 13. Create journal entry
     // Delivery settlement is configurable per location via Settings -> POS.
     const isDeliveryChannel = postingConfig.deliveryChannels.has(data.channel);
-    const revenueMultiplier = isDeliveryChannel ? postingConfig.deliveryNetBps : BigInt(10000);
-    const taxableRevenue = totalSubtotal - totalTax - totalDiscount;
-    const netRevenue = (taxableRevenue * revenueMultiplier) / BigInt(10000);
-    const netPB1 = totalTax; // PB1 on gross
-    // Note: for delivery, netPB1 is on gross too (platform collects gross, remits PB1)
+    const taxableRevenue = totalGrand - totalTax;
+    const netRevenue = taxableRevenue;
+    const netPB1 = totalTax; // PB1 on gross after line discounts
 
     // SD §25.11 — JE for cash + donation: record trust separately
-    // Cash/settlement received = net revenue + tax + donation.
-    const totalCashReceived = netRevenue + netPB1 + donationResult.donatedAmount;
+    // Cash/settlement/AR debit = gross sale + any donation.
+    const totalCashReceived = totalGrand + donationResult.donatedAmount;
     const hasDonation = donationResult.donatedAmount > BigInt(0);
 
     const jeLines: Array<{
@@ -584,13 +825,14 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       description: string;
       debit: string;
       credit: string;
+      taxCode?: string;
     }> = [];
 
     // DR Cash — total cash received (sale + any donation)
     jeLines.push({
       accountId: postingConfig.cashAccountId,
       locationId: data.locationId,
-      description: `${data.channel} payment${hasDonation ? ' + donasi' : ''}`,
+      description: `${data.channel} ${isDeliveryChannel ? 'receivable' : 'payment'}${hasDonation ? ' + donasi' : ''}`,
       debit: totalCashReceived.toString(),
       credit: '0',
     });
@@ -622,13 +864,14 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       description: `PB1 ${saleNumber}`,
       debit: '0',
       credit: netPB1.toString(),
+      taxCode: postingConfig.taxCode,
     });
 
     const jeResult = await createJournal(
       {
         postingDate,
         locationId: data.locationId,
-        description: `POS ${saleNumber} — ${data.channel}${isDeliveryChannel ? ' (80% net)' : ''}${hasDonation ? ' + donasi' : ''}`,
+        description: `POS ${saleNumber} — ${data.channel}${isDeliveryChannel ? ' platform receivable' : ''}${hasDonation ? ' + donasi' : ''}`,
         referenceType: 'sales',
         referenceId: saleId,
         lines: jeLines,
@@ -639,6 +882,8 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     let journalEntryId: string | null = null;
     if (jeResult.ok) {
       journalEntryId = jeResult.value.id;
+      const postResult = await autoPostJournalEntry(journalEntryId, ctx);
+      if (!postResult.ok) return err(postResult.error);
       // Update sales_order with JE reference
       await db.update(salesOrders).set({ journalEntryId }).where(eq(salesOrders.id, saleId));
     } else {
@@ -732,11 +977,6 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
 // ─── Void Sale (cancel before payment) ────────────────────────────────────────
 
 export async function voidSale(input: unknown, ctx: AuditContext): Promise<Result<SaleResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'pos.void', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = VoidSaleInputSchema.safeParse(input);
   if (!parsed.success) {
     return err(
@@ -757,6 +997,11 @@ export async function voidSale(input: unknown, ctx: AuditContext): Promise<Resul
     if (!sale) {
       return err(AppError.notFound('pos.void.notFound', { salesOrderId: data.salesOrderId }));
     }
+    const permCheck = await requirePermission(ctx.userId, 'pos.void', {
+      locationId: sale.locationId,
+    });
+    if (!permCheck.ok) return permCheck;
+
     if (sale.status !== 'open') {
       return err(AppError.businessRule('pos.void.notOpen', { currentStatus: sale.status }));
     }
@@ -822,7 +1067,3 @@ export async function voidSale(input: unknown, ctx: AuditContext): Promise<Resul
     return err(AppError.internal('pos.void.failed', e));
   }
 }
-
-// ─── Input schema re-export (for convenience) ────────────────────────────────
-
-import { CreateSaleInputSchema, VoidSaleInputSchema } from './schemas';

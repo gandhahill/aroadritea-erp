@@ -84,6 +84,6 @@ export async function fetchPettyCashTransactions(
     amount: r.amount.toString(),
     description: r.description,
     createdBy: r.createdBy,
-    createdAt: r.createdAt!,
+    createdAt: r.createdAt ?? new Date(0),
   }));
 }

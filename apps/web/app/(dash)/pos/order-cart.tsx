@@ -17,6 +17,7 @@ export function OrderCart() {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3">
         <svg
+          aria-hidden="true"
           className="h-14 w-14 text-brand-ink-3/30"
           fill="none"
           viewBox="0 0 24 24"
@@ -69,8 +70,7 @@ function CartLineItem({
   const lineTotal = BigInt(line.unitPrice) * BigInt(line.qty);
   const lineDiscount = BigInt(line.lineDiscount ?? '0');
   const lineAfterDiscount = lineTotal - lineDiscount;
-  const lineTax = (lineAfterDiscount * BigInt(10)) / BigInt(110);
-  const lineGrand = lineAfterDiscount - lineTax;
+  const lineGrand = lineAfterDiscount;
 
   return (
     <li className="flex flex-col gap-2 p-3">
@@ -99,6 +99,7 @@ function CartLineItem({
         <div className="flex items-center gap-2">
           <div className="flex h-8 items-center overflow-hidden rounded-md border border-brand-cream-3">
             <button
+              type="button"
               onClick={() => onQtyChange(Math.max(1, line.qty - 1))}
               className="flex h-full w-8 items-center justify-center text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
             >
@@ -106,6 +107,7 @@ function CartLineItem({
             </button>
             <span className="w-8 text-center text-sm font-medium text-brand-ink">{line.qty}</span>
             <button
+              type="button"
               onClick={() => onQtyChange(line.qty + 1)}
               className="flex h-full w-8 items-center justify-center text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
             >
@@ -118,11 +120,13 @@ function CartLineItem({
 
         {/* Remove button */}
         <button
+          type="button"
           onClick={onRemove}
           className="flex h-8 w-8 items-center justify-center rounded-md text-brand-ink-3 hover:bg-red-50 hover:text-red-500"
           aria-label={t('removeLine')}
         >
           <svg
+            aria-hidden="true"
             className="h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
@@ -149,7 +153,7 @@ function CartLineItem({
 
 function formatRupiah(value: string | bigint): string {
   const num = Number(value);
-  if (isNaN(num)) return 'Rp 0';
+  if (Number.isNaN(num)) return 'Rp 0';
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',

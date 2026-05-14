@@ -1,5 +1,5 @@
 /**
- * POS Layout — SD §21.4, §14, §35.1.1
+ * POS Layout - SD §21.4, §14, §35.1.1
  *
  * POS shell with shift status bar at the top.
  * Uses a separate client-side POS context for cart state.
@@ -36,15 +36,13 @@ export default async function PosLayout({ children }: { children: React.ReactNod
       {/* Yellow banner shows only when offline or pending orders exist */}
       <OfflineBanner />
 
-      <div className="flex min-h-screen flex-col bg-brand-cream">
-        {/* Shift status bar — always visible at top */}
-        <ShiftStatusBar locationId={locationId} tenantId={tenantId} />
+      <PosCartProvider locationId={locationId} tenantId={tenantId}>
+        <div className="flex min-h-screen flex-col bg-brand-cream">
+          <ShiftStatusBar locationId={locationId} tenantId={tenantId} />
 
-        {/* Order entry area */}
-        <PosCartProvider locationId={locationId} tenantId={tenantId}>
           <div className="flex flex-1">{children}</div>
-        </PosCartProvider>
-      </div>
+        </div>
+      </PosCartProvider>
     </OfflineSyncProvider>
   );
 }

@@ -210,21 +210,13 @@ describe('tax.resolve', () => {
     }
   });
 
-  it('should resolve multiple tax codes when applicable', async () => {
+  it('should not resolve PPN_IN for sales documents', async () => {
     queryResults = [
       [
         makeRule({ taxCode: 'PB1', scopeKind: 'channel', scopeId: 'walk_in', priority: 100 }),
         makeRule({ taxCode: 'PPN_IN', scopeKind: 'global_default', scopeId: null, priority: 10 }),
       ],
-      [
-        makeRate(),
-        makeRate({
-          code: 'PPN_IN',
-          rateBps: 1100,
-          calculation: 'exclusive',
-          postingAccountId: 'acc-ppn-in',
-        }),
-      ],
+      [makeRate()],
     ];
 
     const result = await resolve(
@@ -234,10 +226,10 @@ describe('tax.resolve', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value).toHaveLength(2);
+      expect(result.value).toHaveLength(1);
       const codes = result.value.map((t) => t.taxCode);
       expect(codes).toContain('PB1');
-      expect(codes).toContain('PPN_IN');
+      expect(codes).not.toContain('PPN_IN');
     }
   });
 

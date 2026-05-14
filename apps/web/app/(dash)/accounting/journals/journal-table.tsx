@@ -57,6 +57,7 @@ export function JournalTable({ journals }: JournalTableProps) {
               viewBox="0 0 24 24"
               stroke="currentColor"
               strokeWidth={2}
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -77,6 +78,7 @@ export function JournalTable({ journals }: JournalTableProps) {
           {/* Status filters */}
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => setStatusFilter(null)}
               className={`rounded-full border px-3 py-1 text-xs font-medium transition-all ${
                 !statusFilter
@@ -91,6 +93,7 @@ export function JournalTable({ journals }: JournalTableProps) {
               const isActive = statusFilter === status;
               return (
                 <button
+                  type="button"
                   key={status}
                   onClick={() => setStatusFilter(isActive ? null : status)}
                   className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all ${
@@ -143,6 +146,7 @@ export function JournalTable({ journals }: JournalTableProps) {
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                       strokeWidth={1}
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"
@@ -207,6 +211,6 @@ export function JournalTable({ journals }: JournalTableProps) {
 
 function formatAmount(amountStr: string): string {
   const num = Number.parseInt(amountStr, 10);
-  if (isNaN(num)) return amountStr;
-  return 'Rp ' + num.toLocaleString('id-ID');
+  if (Number.isNaN(num)) return amountStr;
+  return `Rp ${num.toLocaleString('id-ID')}`;
 }

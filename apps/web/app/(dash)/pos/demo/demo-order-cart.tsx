@@ -52,11 +52,13 @@ export function DemoOrderCart() {
           {/* Qty controls */}
           <div className="flex items-center gap-1">
             <button
+              type="button"
               onClick={() => updateLineQty(line.id, line.qty - 1)}
               className="flex h-6 w-6 items-center justify-center rounded border border-brand-cream-3 text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red"
               aria-label="decrease"
             >
               <svg
+                aria-hidden="true"
                 className="h-3 w-3"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -68,11 +70,13 @@ export function DemoOrderCart() {
             </button>
             <span className="w-6 text-center text-xs font-semibold text-brand-ink">{line.qty}</span>
             <button
+              type="button"
               onClick={() => updateLineQty(line.id, line.qty + 1)}
               className="flex h-6 w-6 items-center justify-center rounded border border-brand-cream-3 text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red"
               aria-label="increase"
             >
               <svg
+                aria-hidden="true"
                 className="h-3 w-3"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -83,11 +87,13 @@ export function DemoOrderCart() {
               </svg>
             </button>
             <button
+              type="button"
               onClick={() => removeLine(line.id)}
               className="ml-1 flex h-6 w-6 items-center justify-center rounded text-red-400 hover:bg-red-50 hover:text-red-600"
               aria-label="remove"
             >
               <svg
+                aria-hidden="true"
                 className="h-3.5 w-3.5"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -106,7 +112,7 @@ export function DemoOrderCart() {
 
 function formatRupiah(value: string): string {
   const num = Number(value);
-  if (isNaN(num)) return 'Rp 0';
+  if (Number.isNaN(num)) return 'Rp 0';
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',

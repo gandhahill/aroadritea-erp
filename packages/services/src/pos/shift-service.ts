@@ -42,11 +42,6 @@ type ShiftRow = {
  * Only one open shift per location is allowed at any time.
  */
 export async function openShift(input: unknown, ctx: AuditContext): Promise<Result<ShiftResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'pos.shift.open', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = OpenShiftInputSchema.safeParse(input);
   if (!parsed.success) {
     return err(
@@ -56,6 +51,11 @@ export async function openShift(input: unknown, ctx: AuditContext): Promise<Resu
     );
   }
   const data = parsed.data;
+
+  const permCheck = await requirePermission(ctx.userId, 'pos.shift.open', {
+    locationId: data.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
 
   try {
     // Check no open shift exists for this location
@@ -129,11 +129,6 @@ export async function openShift(input: unknown, ctx: AuditContext): Promise<Resu
  * Permission: pos.shift.close
  */
 export async function closeShift(input: unknown, ctx: AuditContext): Promise<Result<ShiftResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'pos.shift.close', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = CloseShiftInputSchema.safeParse(input);
   if (!parsed.success) {
     return err(
@@ -155,6 +150,11 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
       return err(AppError.notFound('pos.shift.notFound', { shiftId: data.shiftId }));
     }
     const shift = rawShift as unknown as ShiftRow;
+    const permCheck = await requirePermission(ctx.userId, 'pos.shift.close', {
+      locationId: shift.locationId,
+    });
+    if (!permCheck.ok) return permCheck;
+
     if (shift.status !== 'open') {
       return err(AppError.businessRule('pos.shift.notOpen', { currentStatus: shift.status }));
     }
@@ -167,15 +167,20 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
       .select({ amount: payments.amount })
       .from(payments)
       .innerJoin(salesOrders, eq(payments.salesOrderId, salesOrders.id))
-      .where(eq(salesOrders.shiftId, data.shiftId));
+      .where(
+        and(
+          eq(salesOrders.tenantId, ctx.tenantId),
+          eq(salesOrders.shiftId, data.shiftId),
+          eq(salesOrders.status, 'paid'),
+          eq(payments.method, 'cash'),
+        ),
+      );
 
     const cashTotal = allPayments.reduce((sum, p) => sum + p.amount, BigInt(0));
 
-    // Expected cash = opening + cash payments received
-    const openingCash = Number(shift.openingCash);
-    const expectedCash = openingCash + Number(cashTotal);
-
-    const actualCash = Number.parseInt(data.actualCash, 10);
+    // Expected cash = opening + retained cash payments received.
+    const expectedCash = shift.openingCash + cashTotal;
+    const actualCash = BigInt(data.actualCash);
     const variance = actualCash - expectedCash;
 
     await db
@@ -185,8 +190,8 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
         closedBy: ctx.userId,
         closedAt: new Date(),
         actualCash: BigInt(data.actualCash),
-        expectedCash: BigInt(expectedCash),
-        variance: BigInt(variance),
+        expectedCash,
+        variance,
         updatedBy: ctx.userId,
       } as typeof shifts.$inferInsert)
       .where(and(eq(shifts.id, data.shiftId)));
@@ -201,9 +206,9 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
       before: { status: 'open' },
       after: {
         status: 'closed',
-        expectedCash: String(expectedCash),
+        expectedCash: expectedCash.toString(),
         actualCash: data.actualCash,
-        variance: String(variance),
+        variance: variance.toString(),
       },
       metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
     });
@@ -215,9 +220,9 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
       openingCash: shift.openingCash.toString(),
       openedBy: shift.openedBy,
       openedAt: shift.openedAt.toISOString(),
-      expectedCash: String(expectedCash),
+      expectedCash: expectedCash.toString(),
       actualCash: data.actualCash,
-      variance: String(variance),
+      variance: variance.toString(),
       closedBy: ctx.userId,
       closedAt: new Date().toISOString(),
     });
@@ -251,6 +256,21 @@ export async function getOpenShift(
 
     if (!shift) return ok(null);
 
+    const cashPayments = await db
+      .select({ amount: payments.amount })
+      .from(payments)
+      .innerJoin(salesOrders, eq(payments.salesOrderId, salesOrders.id))
+      .where(
+        and(
+          eq(salesOrders.tenantId, ctx.tenantId),
+          eq(salesOrders.shiftId, shift.id),
+          eq(salesOrders.status, 'paid'),
+          eq(payments.method, 'cash'),
+        ),
+      );
+    const cashTotal = cashPayments.reduce((sum, payment) => sum + payment.amount, BigInt(0));
+    const expectedCash = shift.openingCash + cashTotal;
+
     return ok({
       id: shift.id,
       locationId: shift.locationId,
@@ -258,7 +278,7 @@ export async function getOpenShift(
       openingCash: shift.openingCash.toString(),
       openedBy: shift.openedBy,
       openedAt: shift.openedAt.toISOString(),
-      expectedCash: null,
+      expectedCash: expectedCash.toString(),
       actualCash: null,
       variance: null,
       closedBy: null,

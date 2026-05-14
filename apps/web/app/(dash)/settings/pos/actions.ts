@@ -9,6 +9,7 @@ import { getSession } from '@/lib/auth';
 import { and, db, eq } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import { posSettings } from '@erp/db/schema/pos';
+import { requirePermission } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
 
@@ -57,6 +58,8 @@ async function requireContext() {
 export async function fetchPosSettings(): Promise<PosSettingItem[]> {
   const ctx = await requireContext();
   if (!ctx) return [];
+  const perm = await requirePermission(ctx.userId, 'settings.manage');
+  if (!perm.ok) return [];
 
   const [locRows, settingRows] = await Promise.all([
     db
@@ -117,6 +120,8 @@ export async function updatePosSetting(
 ): Promise<ActionResult> {
   const ctx = await requireContext();
   if (!ctx) return { success: false, error: 'Unauthenticated' };
+  const perm = await requirePermission(ctx.userId, 'settings.manage', { locationId });
+  if (!perm.ok) return { success: false, error: 'Forbidden' };
 
   const [location] = await db
     .select({ id: locations.id })

@@ -203,6 +203,17 @@ describe('trialBalance', () => {
     }
   });
 
+  it('should mark report preliminary when an accounting period is closing', async () => {
+    queryResults = [[], ACCOUNTS, [{ id: 'period-2026-05' }]];
+
+    const result = await trialBalance({ asOf: '2026-05-31' }, makeCtx());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.isPreliminary).toBe(true);
+    }
+  });
+
   it('should sort lines by account code', async () => {
     queryResults = [
       [

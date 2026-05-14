@@ -5,9 +5,11 @@
 
 'use server';
 
+import { getSession } from '@/lib/auth';
 import { db } from '@erp/db';
 import { and, eq, isNull } from '@erp/db';
 import { accounts } from '@erp/db/schema/accounting';
+import { requirePermission } from '@erp/services/iam';
 
 export interface COANode {
   id: string;
@@ -25,7 +27,16 @@ export interface COANode {
 /**
  * Fetch all COA accounts for a tenant, organized as a tree.
  */
-export async function fetchCOATree(tenantId: string): Promise<COANode[]> {
+export async function fetchCOATree(): Promise<COANode[]> {
+  const session = await getSession();
+  if (!session?.user) return [];
+  const user = session.user as Record<string, unknown>;
+  const tenantId = String(user.tenantId ?? 'default');
+  const userId = String(user.id ?? '');
+
+  const perm = await requirePermission(userId, 'accounting.view');
+  if (!perm.ok) return [];
+
   const rows = await db
     .select({
       id: accounts.id,
@@ -58,8 +69,9 @@ export async function fetchCOATree(tenantId: string): Promise<COANode[]> {
 
   // Second pass: link children
   for (const node of nodeMap.values()) {
-    if (node.parentId && nodeMap.has(node.parentId)) {
-      nodeMap.get(node.parentId)!.children.push(node);
+    const parent = node.parentId ? nodeMap.get(node.parentId) : undefined;
+    if (parent) {
+      parent.children.push(node);
     } else {
       roots.push(node);
     }

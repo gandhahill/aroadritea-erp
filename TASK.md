@@ -24,6 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0162 | Polish public website design and remove production placeholders | Codex | 2026-05-14 | 2026-05-14 | IN_PROGRESS | Public site/menu/member flow plus POS/accounting/tax hardening verified; worker backup/jobs remain separate production-readiness follow-up |
 
 ---
 

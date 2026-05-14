@@ -1,5 +1,5 @@
 /**
- * Public Site i18n config — SD §31.1, ADR-0003
+ * Public Site i18n config - SD §31.1, ADR-0003
  *
  * URL-based routing: /{id,en,zh} prefix.
  * Default locale: id (Bahasa Indonesia).
@@ -17,8 +17,8 @@ export const localeNames: Record<SiteLocale, string> = {
   zh: '中文',
 };
 
-export const localeFlags: Record<SiteLocale, string> = {
-  id: '🇮🇩',
-  en: '🇬🇧',
-  zh: '🇨🇳',
+export const localeLabels: Record<SiteLocale, string> = {
+  id: 'ID',
+  en: 'EN',
+  zh: '中文',
 };

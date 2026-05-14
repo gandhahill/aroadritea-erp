@@ -26,20 +26,13 @@ export default async function OmzetHarianPage({
   const date = params.date ?? today;
   const locationId = params.location ?? '';
 
-  const ctx = {
-    userId: ((session.user as Record<string, unknown>)?.id as string) ?? '',
-    tenantId: ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default',
-    locationId: locationId,
-  };
-
-  const result = locationId ? await serverGetOmzetHarian({ locationId, date }, ctx) : null;
+  const result = locationId ? await serverGetOmzetHarian({ locationId, date }) : null;
 
   return (
     <OmzetHarianClient
       initialData={result?.ok ? result.value : null}
       initialDate={date}
       initialLocationId={locationId}
-      ctx={ctx}
     />
   );
 }

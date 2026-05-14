@@ -27,6 +27,14 @@ export interface CartPayment {
   reference?: string;
 }
 
+export interface CartCustomer {
+  id: string;
+  name: string;
+  phone: string | null;
+  loyaltyTier: string;
+  points: number;
+}
+
 export interface CartState {
   shiftId: string | null;
   locationId: string;
@@ -34,6 +42,7 @@ export interface CartState {
   channel: 'walk_in' | 'gofood' | 'grabfood' | 'shopeefood';
   lines: CartLine[];
   payments: CartPayment[];
+  customer: CartCustomer | null;
   notes: string;
 }
 
@@ -45,6 +54,8 @@ interface PosCartContextValue {
   updateLineQty: (lineId: string, qty: number) => void;
   removeLine: (lineId: string) => void;
   updateLineNotes: (lineId: string, notes: string) => void;
+  setCustomer: (customer: CartCustomer) => void;
+  clearCustomer: () => void;
   addPayment: (payment: Omit<CartPayment, 'id'>) => void;
   removePayment: (id: string) => void;
   setNotes: (n: string) => void;
@@ -62,6 +73,7 @@ const defaultState: CartState = {
   channel: 'walk_in',
   lines: [],
   payments: [],
+  customer: null,
   notes: '',
 };
 
@@ -115,6 +127,14 @@ export function PosCartProvider({
     }));
   }, []);
 
+  const setCustomer = useCallback((customer: CartCustomer) => {
+    setState((s) => ({ ...s, customer }));
+  }, []);
+
+  const clearCustomer = useCallback(() => {
+    setState((s) => ({ ...s, customer: null }));
+  }, []);
+
   const addPayment = useCallback((payment: Omit<CartPayment, 'id'>) => {
     setState((s) => ({
       ...s,
@@ -131,7 +151,7 @@ export function PosCartProvider({
   }, []);
 
   const clearCart = useCallback(() => {
-    setState((s) => ({ ...s, lines: [], payments: [], notes: '' }));
+    setState((s) => ({ ...s, lines: [], payments: [], customer: null, notes: '' }));
   }, []);
 
   // Derived values
@@ -144,9 +164,7 @@ export function PosCartProvider({
     BigInt(0),
   );
   const subtotalAfterDiscount = subtotal - totalDiscount;
-  // PB1 is inclusive — back-out tax: tax = subtotal * 10 / 110
-  const taxTotal = (subtotalAfterDiscount * BigInt(10)) / BigInt(110);
-  const grandTotal = subtotalAfterDiscount - taxTotal + totalDiscount;
+  const grandTotal = subtotalAfterDiscount;
   const totalPaid = state.payments.reduce((sum, p) => sum + BigInt(p.amount), BigInt(0));
   const remainingBalance = grandTotal - totalPaid > BigInt(0) ? grandTotal - totalPaid : BigInt(0);
 
@@ -160,6 +178,8 @@ export function PosCartProvider({
         updateLineQty,
         removeLine,
         updateLineNotes,
+        setCustomer,
+        clearCustomer,
         addPayment,
         removePayment,
         setNotes,
