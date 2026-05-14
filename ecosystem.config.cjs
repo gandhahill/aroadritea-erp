@@ -109,6 +109,7 @@ module.exports = {
       error_file: path.join(logDir, 'mcp.err.log'),
       env: withSharedEnv({
         MCP_HTTP_PORT: fileEnv.MCP_HTTP_PORT ?? '3002',
+        MCP_ENABLE_STDIO: 'false',
       }),
     },
     {

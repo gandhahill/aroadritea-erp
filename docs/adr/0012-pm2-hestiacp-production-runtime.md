@@ -18,7 +18,7 @@ Runtime production VPS memakai PM2 untuk proses Node.js:
 
 - `aroadri-site` di port lokal `3000`.
 - `aroadri-web` di port lokal `3001`.
-- `aroadri-mcp` di port lokal `3002`.
+- `aroadri-mcp` di port lokal `3002` dengan `MCP_ENABLE_STDIO=false` agar PM2 berjalan sebagai health daemon.
 - `aroadri-worker` tanpa port HTTP publik.
 
 HestiaCP tetap menjadi reverse proxy publik untuk:
@@ -28,6 +28,8 @@ HestiaCP tetap menjadi reverse proxy publik untuk:
 - `mcp.erp.aroadritea.com` → `http://127.0.0.1:3002`
 
 Konfigurasi PM2 resmi ada di `ecosystem.config.cjs`.
+
+Transport utama MCP tetap `stdio` untuk klien AI lokal. Mode HTTP/SSE remote belum menjadi jalur production utama dan harus token-gated jika diaktifkan nanti.
 
 ## Alternatif yang Dipertimbangkan
 

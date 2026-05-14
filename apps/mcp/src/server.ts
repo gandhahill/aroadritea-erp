@@ -188,10 +188,18 @@ void httpServer;
 
 // --- Start stdio MCP server ---
 
-const transport = new StdioServerTransport();
-await server.connect(transport);
+if (process.env.MCP_ENABLE_STDIO !== 'false') {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
 
-console.info(`MCP server connected — ${allTools.length} tools available`, {
-  name: SERVER_INFO.name,
-  version: SERVER_INFO.version,
-});
+  console.info(`MCP server connected — ${allTools.length} tools available`, {
+    name: SERVER_INFO.name,
+    version: SERVER_INFO.version,
+  });
+} else {
+  console.info(`MCP stdio transport disabled — HTTP health server only`, {
+    name: SERVER_INFO.name,
+    version: SERVER_INFO.version,
+    tools: allTools.length,
+  });
+}

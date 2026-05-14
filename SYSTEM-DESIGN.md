@@ -3200,10 +3200,12 @@ Production VPS HestiaCP menjalankan proses Node lewat `ecosystem.config.cjs`:
 
 - `aroadri-site` → `apps/site`, port `3000`.
 - `aroadri-web` → `apps/web`, port `3001`.
-- `aroadri-mcp` → `apps/mcp/src/server.ts` via `tsx`, health port `3002`.
+- `aroadri-mcp` → `apps/mcp/src/server.ts` via `tsx`, health port `3002`, `MCP_ENABLE_STDIO=false` untuk mode daemon PM2.
 - `aroadri-worker` → `apps/worker/src/index.ts` via `tsx`.
 
 DB di managed (Neon/Supabase) → tidak ada DB lokal di VPS.
+
+MCP transport utama tetap `stdio` untuk klien AI lokal. Proses PM2 hanya menjaga health/root HTTP; transport HTTP/SSE token-gated dapat ditambahkan saat ada klien remote yang benar-benar dipakai.
 
 ### 26.4 Migrations
 - Drizzle Kit `generate` saat development (commit migration files).
