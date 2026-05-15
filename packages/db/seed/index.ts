@@ -12,18 +12,19 @@ import * as argon2 from 'argon2';
 import { and, eq, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
 import type { Database } from '../client';
-import { accounts, taxRates, taxRules } from '../schema/accounting';
+import { accountingPeriods, accounts, taxRates, taxRules } from '../schema/accounting';
 import {
+  authAccounts,
   locations,
   permissions,
   rolePermissions,
   roles,
   tenants,
-  authAccounts,
   userRoles,
   users,
 } from '../schema/auth';
 import { customFieldDefinitions, customFieldValues } from '../schema/customfield';
+import { leaveTypes } from '../schema/hr';
 import { naixerQrFormatConfig } from '../schema/kitchen';
 import { posSettings } from '../schema/pos';
 import { scheduledJobs } from '../schema/scheduled-jobs';
@@ -37,6 +38,7 @@ import {
   ROLES_SEED,
   ROLE_PERMISSION_MAP,
 } from './iam';
+import { LEAVE_TYPES_SEED } from './leave-types-seed';
 import { LOCATION_GPS_FIELDS, LOCATION_GPS_VALUES } from './location-gps';
 import { seedMenu } from './menu';
 import { NAIXER_QR_FORMAT_DEFAULTS } from './naixer-seed';
@@ -338,6 +340,30 @@ async function seed() {
   console.info(`✅ ${COA_SEED.length} COA accounts seeded`);
 
   // 9. Tax Rates (resolve COA codes → account IDs)
+  const now = new Date();
+  const periodYears = [now.getFullYear(), now.getFullYear() + 1];
+  let periodCount = 0;
+  for (const year of periodYears) {
+    for (let month = 1; month <= 12; month++) {
+      const code = `${year}-${String(month).padStart(2, '0')}`;
+      const startDate = `${code}-01`;
+      const endDate = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
+      await db
+        .insert(accountingPeriods)
+        .values({
+          id: generateId(),
+          tenantId,
+          code,
+          startDate,
+          endDate,
+          status: 'open',
+        })
+        .onConflictDoNothing();
+      periodCount++;
+    }
+  }
+  console.info(`✅ ${periodCount} accounting periods ensured`);
+
   const coaRows = await db
     .select({ id: accounts.id, code: accounts.code })
     .from(accounts)
@@ -406,6 +432,36 @@ async function seed() {
   console.info(
     `✅ ${menuResult.products} menu products, ${menuResult.categories} categories, ${menuResult.modifierGroups} modifier groups seeded`,
   );
+
+  // 11b. HR leave types
+  let leaveTypeCount = 0;
+  for (const leaveType of LEAVE_TYPES_SEED) {
+    await db
+      .insert(leaveTypes)
+      .values({
+        id: leaveType.id,
+        tenantId,
+        code: leaveType.code,
+        name: leaveType.name,
+        annualQuotaDays: leaveType.annualQuotaDays,
+        isPaid: leaveType.isPaid,
+        requiresApproval: leaveType.requiresApproval,
+        isActive: leaveType.isActive,
+      })
+      .onConflictDoUpdate({
+        target: [leaveTypes.tenantId, leaveTypes.code],
+        set: {
+          name: leaveType.name,
+          annualQuotaDays: leaveType.annualQuotaDays,
+          isPaid: leaveType.isPaid,
+          requiresApproval: leaveType.requiresApproval,
+          isActive: leaveType.isActive,
+          updatedAt: new Date(),
+        },
+      });
+    leaveTypeCount++;
+  }
+  console.info(`✅ ${leaveTypeCount} leave types seeded`);
 
   // 12. POS operational settings (UI-managed after bootstrap)
   let posSettingsCount = 0;
@@ -484,15 +540,13 @@ async function seed() {
   console.info('\n🎉 Seed complete!');
 }
 
-function getBootstrapAdminConfig():
-  | {
-      email: string;
-      password: string;
-      displayName: string;
-      locale: 'id' | 'en' | 'zh';
-      roleCode: string;
-    }
-  | null {
+function getBootstrapAdminConfig(): {
+  email: string;
+  password: string;
+  displayName: string;
+  locale: 'id' | 'en' | 'zh';
+  roleCode: string;
+} | null {
   const password = process.env.SEED_ADMIN_PASSWORD;
   if (!password) return null;
   if (password.length < 12) {

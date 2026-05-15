@@ -5,6 +5,7 @@
 
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchJournalList } from './actions';
 import { JournalTable } from './journal-table';
@@ -33,6 +34,12 @@ export default async function JournalsPage() {
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
             {journals.length} entries
           </span>
+          <Link
+            href="/accounting/journals/new"
+            className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark"
+          >
+            New Journal
+          </Link>
         </div>
       </div>
 

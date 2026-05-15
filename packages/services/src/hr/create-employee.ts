@@ -1,7 +1,7 @@
 /**
  * hr.createEmployee — SD §9.6, §21.8
  *
- * Creates an employee + initial contract in one transaction.
+ * Creates an employee record.
  * Permission: hr.employee.write
  */
 
@@ -11,7 +11,6 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 import { type CreateEmployeeInput, CreateEmployeeInputSchema } from './schemas';
 
@@ -34,44 +33,41 @@ export async function createEmployee(
 
   return tryCatch(
     async () => {
-      return await db.transaction(async (tx) => {
-        // Create employee record
-        const empId = generateId();
+      const empId = generateId();
 
-        const [emp] = await tx
-          .insert(employees)
-          .values({
-            id: empId,
-            tenantId: ctx.tenantId,
-            locationId: ctx.locationId,
-            createdBy: ctx.userId,
-            updatedBy: ctx.userId,
-            nik: data.nik,
-            name: data.name,
-            email: data.email,
-            phone: data.phone ?? null,
-            address: data.address ?? null,
-            status: 'probation',
-            position: data.position,
-            department: data.department ?? null,
-            hireDate: new Date(data.hireDate),
-            probationEndDate: data.probationEndDate ? new Date(data.probationEndDate) : null,
-            contractType: data.contractType,
-            workSchedule: data.workSchedule,
-            npwp: data.npwp ?? null,
-            bpjsKesehatan: data.bpjsKesehatan ?? null,
-            bpjsTenagakerja: data.bpjsTenagakerja ?? null,
-            emergencyContactName: data.emergencyContactName ?? null,
-            emergencyContactPhone: data.emergencyContactPhone ?? null,
-          })
-          .returning({ id: employees.id });
+      const [emp] = await db
+        .insert(employees)
+        .values({
+          id: empId,
+          tenantId: ctx.tenantId,
+          locationId: ctx.locationId,
+          createdBy: ctx.userId,
+          updatedBy: ctx.userId,
+          nik: data.nik,
+          name: data.name,
+          email: data.email,
+          phone: data.phone ?? null,
+          address: data.address ?? null,
+          status: 'probation',
+          position: data.position,
+          department: data.department ?? null,
+          hireDate: new Date(data.hireDate),
+          probationEndDate: data.probationEndDate ? new Date(data.probationEndDate) : null,
+          contractType: data.contractType,
+          workSchedule: data.workSchedule,
+          npwp: data.npwp ?? null,
+          bpjsKesehatan: data.bpjsKesehatan ?? null,
+          bpjsTenagakerja: data.bpjsTenagakerja ?? null,
+          emergencyContactName: data.emergencyContactName ?? null,
+          emergencyContactPhone: data.emergencyContactPhone ?? null,
+        })
+        .returning({ id: employees.id });
 
-        if (!emp) {
-          throw AppError.internal('hr.employee.createFailed', new Error('No rows returned'));
-        }
+      if (!emp) {
+        throw AppError.internal('hr.employee.createFailed', new Error('No rows returned'));
+      }
 
-        return { id: emp.id };
-      });
+      return { id: emp.id };
     },
     (e) => {
       if (e instanceof AppError) return e;

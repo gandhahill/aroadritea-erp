@@ -49,6 +49,26 @@ export function Sidebar() {
       ],
     },
     {
+      label: 'Docs',
+      href: '/docs',
+      icon: (
+        <svg
+          aria-hidden="true"
+          className="h-4.5 w-4.5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1.5}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M19.5 14.25v-7.5A2.25 2.25 0 0 0 17.25 4.5H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5A2.25 2.25 0 0 0 6.75 19.5h7.5m5.25-5.25-5.25 5.25m5.25-5.25h-3.75a1.5 1.5 0 0 0-1.5 1.5v3.75"
+          />
+        </svg>
+      ),
+    },
+    {
       label: 'Accounting',
       href: '/accounting',
       icon: (
@@ -148,8 +168,33 @@ export function Sidebar() {
         </svg>
       ),
       children: [
+        { label: 'Produk & Menu', href: '/inventory/products', icon: <></> },
         { label: 'Stock Opname', href: '/inventory/opname', icon: <></> },
         { label: 'Varians Persediaan', href: '/inventory/variance', icon: <></> },
+      ],
+    },
+    {
+      label: 'Purchasing',
+      href: '/purchasing',
+      icon: (
+        <svg
+          aria-hidden="true"
+          className="h-4.5 w-4.5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1.5}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h9.75a3 3 0 0 0 2.914-2.287l1.286-5.25A1.125 1.125 0 0 0 20.36 5.25H5.106m2.394 9L5.106 5.25M8.25 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm10.5 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
+          />
+        </svg>
+      ),
+      children: [
+        { label: 'Purchase Orders', href: '/purchasing', icon: <></> },
+        { label: 'PO Baru', href: '/purchasing/po/new', icon: <></> },
       ],
     },
     {
@@ -230,7 +275,9 @@ export function Sidebar() {
       children: [
         { label: 'POS Settings', href: '/settings/pos', icon: <></> },
         { label: 'Scheduled Jobs', href: '/settings/scheduled-jobs', icon: <></> },
+        { label: 'Notifications', href: '/settings/notifications', icon: <></> },
         { label: 'Naixer KDS', href: '/settings/integrations/naixer', icon: <></> },
+        { label: 'Permissions', href: '/settings/permissions', icon: <></> },
         { label: 'Custom Fields', href: '/settings/custom-fields', icon: <></> },
         { label: 'Workflow Editor', href: '/settings/workflow-editor', icon: <></> },
       ],

@@ -166,46 +166,86 @@
     "terms": {
       "title": "Syarat & Ketentuan",
       "updated": "Berlaku sejak 15 Mei 2026",
-      "intro": "Dengan mendaftar sebagai member Aroadri Tea, Anda menyetujui ketentuan berikut.",
+      "intro": "Dokumen ini mengatur penggunaan website, pendaftaran member, kartu digital, poin, voucher, dan layanan pelanggan Aroadri Tea. Dengan membuat akun atau memakai benefit member, Anda menyatakan telah membaca dan menyetujui ketentuan ini.",
       "sections": [
         {
-          "title": "Keanggotaan",
-          "body": "Member digunakan untuk mencatat identitas pelanggan, poin, voucher, dan riwayat transaksi yang terhubung dengan nomor telepon terdaftar."
+          "title": "Pihak dan ruang lingkup",
+          "body": "Layanan member disediakan oleh PT. Gandha Hill Catering Management Indonesia untuk brand Aroadri Tea. Ketentuan ini berlaku untuk pendaftaran member, penggunaan nomor telepon saat transaksi di outlet, kartu digital, poin, voucher, promosi, komunikasi akun, dan fitur lain yang terhubung dengan sistem Aroadri Tea."
         },
         {
-          "title": "Penggunaan di Outlet",
-          "body": "Saat transaksi, kasir dapat meminta nomor telepon dan mengonfirmasi nama member sebelum poin atau benefit dicatat."
+          "title": "Kelayakan dan pendaftaran akun",
+          "body": "Member wajib memberikan data yang benar, aktif, dan dapat dihubungi. Aroadri Tea dapat menolak, menunda, atau menonaktifkan pendaftaran apabila data tidak valid, terindikasi duplikasi, disalahgunakan, atau digunakan untuk tindakan yang merugikan pelanggan lain, outlet, maupun sistem."
         },
         {
-          "title": "Poin dan Voucher",
-          "body": "Poin, tier, dan voucher dapat berubah mengikuti program yang berlaku di Aroadri Tea. Penyalahgunaan akun dapat menyebabkan benefit dibatalkan."
+          "title": "Penggunaan member di outlet",
+          "body": "Saat transaksi, kasir dapat menanyakan apakah pelanggan memiliki member. Jika ada, pelanggan menyebutkan nomor telepon terdaftar, lalu kasir mencari data member dan mengonfirmasi nama pelanggan sebelum mencatat poin, voucher, atau benefit terkait transaksi tersebut."
         },
         {
-          "title": "Perubahan Layanan",
-          "body": "Aroadri Tea dapat memperbarui ketentuan ini untuk menyesuaikan operasional, promosi, dan kewajiban hukum."
+          "title": "Poin, voucher, dan promosi",
+          "body": "Poin, voucher, tier, hadiah, masa berlaku, minimum transaksi, pengecualian produk, dan mekanisme penukaran mengikuti program yang sedang berlaku. Benefit tidak dapat diuangkan, dipindahtangankan tanpa persetujuan Aroadri Tea, atau diklaim apabila transaksi dibatalkan, direfund, dicurigai fraud, atau tidak memenuhi syarat promosi."
+        },
+        {
+          "title": "Keamanan akun dan larangan penggunaan",
+          "body": "Member bertanggung jawab menjaga akses email, nomor telepon, dan kata sandi. Dilarang membuat akun palsu, memakai identitas orang lain, melakukan manipulasi transaksi, scraping, reverse engineering, percobaan akses tidak sah, atau tindakan yang mengganggu operasional website, ERP, POS, maupun layanan outlet."
+        },
+        {
+          "title": "Koreksi transaksi dan gangguan layanan",
+          "body": "Apabila terjadi selisih poin, voucher, status member, atau gangguan sistem, Aroadri Tea berhak melakukan verifikasi terhadap struk, riwayat transaksi, log sistem, dan data outlet. Koreksi dapat dilakukan apabila ditemukan kekeliruan pencatatan atau penyalahgunaan."
+        },
+        {
+          "title": "Pembatasan tanggung jawab",
+          "body": "Aroadri Tea berupaya menjaga layanan tetap tersedia dan akurat, namun tidak menjamin website atau fitur member selalu bebas gangguan. Sepanjang diperbolehkan hukum yang berlaku, tanggung jawab Aroadri Tea dibatasi pada perbaikan data, pemulihan benefit yang valid, atau solusi operasional yang wajar."
+        },
+        {
+          "title": "Perubahan ketentuan",
+          "body": "Aroadri Tea dapat memperbarui ketentuan ini untuk menyesuaikan operasional, program promosi, kebutuhan keamanan, atau kewajiban hukum. Versi terbaru akan dipublikasikan di website dan berlaku sejak tanggal efektif yang tercantum."
+        },
+        {
+          "title": "Hukum yang berlaku dan kontak",
+          "body": "Ketentuan ini tunduk pada hukum Republik Indonesia. Pertanyaan, komplain, koreksi data, atau permintaan terkait akun dapat dikirim melalui kanal resmi Aroadri Tea, termasuk Instagram dan TikTok @aroadri.tea."
         }
       ]
     },
     "privacy": {
       "title": "Kebijakan Privasi",
       "updated": "Berlaku sejak 15 Mei 2026",
-      "intro": "Kami menjaga data pribadi member sesuai prinsip kehati-hatian dan kebutuhan operasional.",
+      "intro": "Kebijakan ini menjelaskan bagaimana Aroadri Tea mengumpulkan, menggunakan, menyimpan, melindungi, dan menghapus data pribadi member sesuai prinsip perlindungan data pribadi di Indonesia, termasuk UU No. 27 Tahun 2022 tentang Perlindungan Data Pribadi dan regulasi sistem elektronik yang berlaku.",
       "sections": [
         {
-          "title": "Data yang Dikumpulkan",
-          "body": "Data member dapat mencakup nama, email, nomor telepon, tanggal lahir, kota, riwayat poin, voucher, dan riwayat transaksi."
+          "title": "Identitas pengendali data",
+          "body": "Pengendali data untuk layanan member Aroadri Tea adalah PT. Gandha Hill Catering Management Indonesia. Data diproses untuk kepentingan operasional outlet, layanan pelanggan, program loyalti, audit transaksi, keamanan sistem, dan kepatuhan hukum."
         },
         {
-          "title": "Tujuan Penggunaan",
-          "body": "Data digunakan untuk verifikasi member, pencatatan poin, layanan pelanggan, audit transaksi, dan komunikasi terkait akun."
+          "title": "Data yang dikumpulkan",
+          "body": "Data yang dapat dikumpulkan meliputi nama, email, nomor telepon, kota, tanggal lahir apabila diberikan, kredensial akun yang telah diamankan, status email, kartu digital, poin, voucher, preferensi bahasa, riwayat transaksi terkait member, log persetujuan, perangkat atau browser, alamat IP, dan catatan layanan pelanggan."
         },
         {
-          "title": "Perlindungan Data",
-          "body": "Akses data dibatasi untuk kebutuhan operasional. Sistem menggunakan autentikasi, audit log, dan pengamanan data sesuai rancangan ERP."
+          "title": "Dasar dan tujuan pemrosesan",
+          "body": "Data diproses berdasarkan persetujuan member, kebutuhan pelaksanaan layanan member, kepentingan sah untuk keamanan dan audit, serta kewajiban hukum pembukuan. Data digunakan untuk verifikasi akun, pencarian member oleh kasir melalui nomor telepon, pencatatan poin, penerbitan voucher, penyelesaian komplain, pencegahan fraud, dan komunikasi yang relevan dengan akun atau layanan."
         },
         {
-          "title": "Hak Member",
-          "body": "Member dapat meminta koreksi atau penghapusan akun melalui kanal resmi Aroadri Tea, sepanjang tidak bertentangan dengan kewajiban pembukuan dan hukum."
+          "title": "Pembagian data",
+          "body": "Data dapat diakses oleh personel Aroadri Tea yang berwenang dan penyedia layanan yang membantu operasional sistem, seperti hosting, database, email transaksional, keamanan, analitik internal, dan backup. Aroadri Tea tidak menjual data pribadi member. Pembagian data kepada pihak lain hanya dilakukan apabila diperlukan untuk layanan, diwajibkan hukum, atau disetujui member."
+        },
+        {
+          "title": "Keamanan data",
+          "body": "Aroadri Tea menerapkan pembatasan akses berbasis role, autentikasi, audit log, enkripsi atau hashing untuk data sensitif sesuai desain sistem, backup, dan pemantauan error. Tidak ada metode keamanan yang mutlak bebas risiko, namun setiap insiden yang berdampak pada data pribadi akan ditangani sesuai prosedur dan ketentuan hukum yang berlaku."
+        },
+        {
+          "title": "Penyimpanan dan retensi",
+          "body": "Data member disimpan selama akun aktif atau selama diperlukan untuk layanan, audit transaksi, pembukuan, penyelesaian sengketa, keamanan, dan kewajiban hukum. Data yang tidak lagi diperlukan akan dihapus, dianonimkan, atau dibatasi penggunaannya sesuai kemampuan teknis dan kewajiban retensi."
+        },
+        {
+          "title": "Hak member",
+          "body": "Member dapat meminta akses, koreksi, pembaruan, pembatasan pemrosesan, penarikan persetujuan, atau penghapusan akun melalui kanal resmi Aroadri Tea. Permintaan dapat ditolak atau dibatasi apabila bertentangan dengan kewajiban hukum, pembukuan, investigasi fraud, keamanan, atau hak pihak lain."
+        },
+        {
+          "title": "Cookie dan teknologi serupa",
+          "body": "Website dapat memakai cookie atau penyimpanan lokal untuk menjaga sesi, preferensi bahasa, keamanan, dan pengalaman pengguna. Beberapa cookie diperlukan agar login, pendaftaran, dan fitur member berjalan dengan benar."
+        },
+        {
+          "title": "Perubahan kebijakan dan kontak",
+          "body": "Kebijakan ini dapat diperbarui dari waktu ke waktu. Pertanyaan atau permintaan terkait data pribadi dapat dikirim melalui kanal resmi Aroadri Tea, termasuk Instagram dan TikTok @aroadri.tea."
         }
       ]
     }

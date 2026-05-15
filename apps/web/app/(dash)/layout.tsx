@@ -6,6 +6,8 @@
 
 import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { LocaleSwitcher } from './locale-switcher';
+import { LogoutButton } from './logout-button';
 import { Sidebar } from './sidebar';
 
 export const dynamic = 'force-dynamic';
@@ -35,6 +37,7 @@ export default async function DashboardLayout({
         {/* Top bar */}
         <header className="flex h-14 items-center justify-end border-b border-brand-cream-3 bg-card px-6">
           <div className="flex items-center gap-3">
+            <LocaleSwitcher />
             <div className="h-8 w-8 rounded-full bg-brand-red/10 flex items-center justify-center">
               <span className="text-sm font-semibold text-brand-red">
                 {String(session.user?.name || session.user?.email || 'U')
@@ -48,6 +51,7 @@ export default async function DashboardLayout({
               </p>
               <p className="text-[11px] text-brand-ink-3">{String(session.user?.email || '')}</p>
             </div>
+            <LogoutButton />
           </div>
         </header>
 

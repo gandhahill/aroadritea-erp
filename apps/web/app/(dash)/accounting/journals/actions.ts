@@ -6,14 +6,18 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, db, desc, eq } from '@erp/db';
+import { getActiveLocationOptions } from '@/lib/location-options';
+import { and, asc, db, desc, eq } from '@erp/db';
 import {
   accountingPeriods,
   accounts,
   journalEntries,
   journalLines,
 } from '@erp/db/schema/accounting';
+import { createJournal } from '@erp/services/accounting';
 import { requirePermission } from '@erp/services/iam';
+import type { AuditContext } from '@erp/shared/types';
+import { revalidatePath } from 'next/cache';
 
 export interface JournalListItem {
   id: string;
@@ -54,6 +58,30 @@ export interface JournalDetail {
   lines: JournalLineDetail[];
 }
 
+export interface JournalFormAccount {
+  id: string;
+  code: string;
+  name: Record<string, string>;
+  normalBalance: string;
+}
+
+export interface JournalFormLocation {
+  id: string;
+  code: string;
+  label: string;
+}
+
+export interface JournalFormData {
+  accounts: JournalFormAccount[];
+  locations: JournalFormLocation[];
+}
+
+export interface JournalCreateState {
+  ok?: boolean;
+  error?: string;
+  journalId?: string;
+}
+
 async function getContext() {
   const session = await getSession();
   if (!session?.user) return null;
@@ -62,6 +90,38 @@ async function getContext() {
     tenantId: String(user.tenantId ?? 'default'),
     userId: String(user.id ?? ''),
   };
+}
+
+async function getAuditContext(): Promise<AuditContext | null> {
+  const session = await getSession();
+  if (!session?.user) return null;
+  const user = session.user as Record<string, unknown>;
+  return {
+    tenantId: String(user.tenantId ?? 'default'),
+    userId: String(user.id ?? ''),
+    locationId: String(user.locationId ?? ''),
+  };
+}
+
+function text(formData: FormData, key: string) {
+  return String(formData.get(key) ?? '').trim();
+}
+
+function optionalText(formData: FormData, key: string) {
+  const value = text(formData, key);
+  return value.length > 0 ? value : undefined;
+}
+
+function money(formData: FormData, key: string) {
+  const value = text(formData, key).replace(/[^\d]/g, '');
+  return value.length > 0 ? value : '0';
+}
+
+function errorMessage(error: unknown) {
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String((error as { message: unknown }).message);
+  }
+  return String(error);
 }
 
 /**
@@ -95,6 +155,87 @@ export async function fetchJournalList(): Promise<JournalListItem[]> {
     totalDebit: String(r.totalDebit),
     createdAt: r.createdAt ?? new Date(0),
   }));
+}
+
+export async function fetchJournalFormData(): Promise<JournalFormData> {
+  const ctx = await getContext();
+  if (!ctx) return { accounts: [], locations: [] };
+
+  const perm = await requirePermission(ctx.userId, 'accounting.view');
+  if (!perm.ok) return { accounts: [], locations: [] };
+
+  const [accountRows, locations] = await Promise.all([
+    db
+      .select({
+        id: accounts.id,
+        code: accounts.code,
+        name: accounts.name,
+        normalBalance: accounts.normalBalance,
+      })
+      .from(accounts)
+      .where(
+        and(
+          eq(accounts.tenantId, ctx.tenantId),
+          eq(accounts.isActive, true),
+          eq(accounts.isPostable, true),
+        ),
+      )
+      .orderBy(asc(accounts.code)),
+    getActiveLocationOptions({ tenantId: ctx.tenantId, locale: 'id' }),
+  ]);
+
+  return {
+    accounts: accountRows.map((account) => ({
+      ...account,
+      name: account.name as Record<string, string>,
+    })),
+    locations,
+  };
+}
+
+export async function createJournalAction(
+  _prev: JournalCreateState | null,
+  formData: FormData,
+): Promise<JournalCreateState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+
+  const locationId = text(formData, 'locationId');
+  const lineCount = Number.parseInt(text(formData, 'lineCount'), 10);
+  const lines = [];
+
+  for (let index = 0; index < lineCount; index++) {
+    const accountId = text(formData, `accountId-${index}`);
+    const debit = money(formData, `debit-${index}`);
+    const credit = money(formData, `credit-${index}`);
+    const description = optionalText(formData, `lineDescription-${index}`);
+    const lineLocationId = text(formData, `lineLocationId-${index}`) || locationId;
+
+    if (!accountId && debit === '0' && credit === '0' && !description) continue;
+    lines.push({
+      accountId,
+      locationId: lineLocationId,
+      description,
+      debit,
+      credit,
+    });
+  }
+
+  const result = await createJournal(
+    {
+      postingDate: text(formData, 'postingDate'),
+      locationId,
+      description: text(formData, 'description'),
+      referenceType: 'manual',
+      referenceId: optionalText(formData, 'referenceId'),
+      lines,
+    },
+    ctx,
+  );
+
+  if (!result.ok) return { error: errorMessage(result.error) };
+  revalidatePath('/accounting/journals');
+  return { ok: true, journalId: result.value.id };
 }
 
 /**

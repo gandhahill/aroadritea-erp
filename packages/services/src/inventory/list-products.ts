@@ -10,7 +10,7 @@ import { productCategories, productVariants, products } from '@erp/db/schema/inv
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, desc, eq, ilike, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 import type { ProductResult } from './create-product';
 import { type ListProductsInput, ListProductsInputSchema } from './schemas';
@@ -90,8 +90,9 @@ export async function listProducts(
       }
       if (data.search) {
         // Search by SKU or name (Indonesian locale)
+        const searchPattern = `%${data.search}%`;
         conditions.push(
-          sql`(${products.sku} ILIKE ${'%' + data.search + '%'} OR ${products.name}->>'id' ILIKE ${'%' + data.search + '%'} OR ${products.name}->>'en' ILIKE ${'%' + data.search + '%'})`,
+          sql`(${products.sku} ILIKE ${searchPattern} OR ${products.name}->>'id' ILIKE ${searchPattern} OR ${products.name}->>'en' ILIKE ${searchPattern})`,
         );
       }
 
@@ -145,10 +146,7 @@ export async function listProducts(
           })
           .from(productVariants)
           .where(
-            and(
-              sql`${productVariants.productId} = ANY(${productIds})`,
-              eq(productVariants.isActive, true),
-            ),
+            and(inArray(productVariants.productId, productIds), eq(productVariants.isActive, true)),
           )
           .groupBy(productVariants.productId);
 
@@ -272,8 +270,8 @@ export async function getProduct(
           en: string;
           zh: string;
         },
-        createdAt: row.createdAt!,
-        updatedAt: row.updatedAt!,
+        createdAt: row.createdAt as Date,
+        updatedAt: row.updatedAt as Date,
         variants: variants.map((v) => ({
           id: v.id,
           sku: v.sku,

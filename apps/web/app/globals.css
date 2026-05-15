@@ -20,15 +20,22 @@
   --color-brand-cream: #fbf6ee;
   --color-brand-cream-2: #f4ecdf;
   --color-brand-cream-3: #ede3d2;
+  --color-brand-paper: #fbf6ee;
+  --color-brand-porcelain: #fffaf2;
   --color-brand-ink: #1a1a1a;
   --color-brand-ink-2: #3a3a3a;
   --color-brand-ink-3: #6b6b6b;
+  --color-brand-muted: #6b6b6b;
   --color-brand-gold: #c8a557;
   --color-brand-gold-light: #e8d8a8;
   --color-brand-jade: #5c8d7e;
   --color-brand-jade-light: #c2ddd5;
   --color-brand-clay: #b85c38;
   --color-brand-clay-light: #e8c4b4;
+  --color-brand-wood: #5a3a1f;
+  --color-brand-ember-5: #d6262e;
+  --color-brand-ember-6: #a41b22;
+  --color-brand-rose-4: #be123c;
 
   /* --- Semantic Colors (shadcn CSS var override) --- */
   --color-background: #fbf6ee;

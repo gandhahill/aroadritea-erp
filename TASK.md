@@ -24,6 +24,8 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0166 | Fix ERP sidebar 404 links, Docs page, and language switcher | Codex | 2026-05-15 12:43 | 2026-05-15 14:46 | 🟨 IN_PROGRESS | Static sidebar route audit clean locally; docs/help center, language switcher, purchasing, notifications pages added; pending deploy smoke |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-15 14:46 | 🟨 IN_PROGRESS | Critical fixes local: member OTP crash, admin wildcard/bootstrap, product master UI, purchasing UI, notification channel UI/service, HR employee new, journal create, legal pages; tests/build pass locally |
 
 ---
 

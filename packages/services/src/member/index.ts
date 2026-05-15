@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, randomInt } from 'node:crypto';
 import { db } from '@erp/db';
 import { partners } from '@erp/db/schema/accounting';
 import {
@@ -94,8 +94,7 @@ function hashOtp(code: string): string {
 }
 
 function generateOtp(): string {
-  const num = randomBytes(3).readUInt32BE(0);
-  return (num % 1000000).toString().padStart(6, '0');
+  return randomInt(0, 1_000_000).toString().padStart(6, '0');
 }
 
 function generateToken(): string {

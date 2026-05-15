@@ -150,6 +150,12 @@ export {
   complaintCompensations,
 } from './schema/crm';
 
+// Schema — Notifications
+export {
+  notificationChannels,
+  outageNotifications,
+} from './schema/notification';
+
 // Schema — Custom Fields (SD §9.9, §17)
 export {
   customFieldDefinitions,

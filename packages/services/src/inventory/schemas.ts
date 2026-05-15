@@ -15,6 +15,14 @@ const LocaleStringSchema = z.object({
   zh: z.string().min(1),
 });
 
+const ImageReferenceSchema = z
+  .string()
+  .min(1)
+  .max(500)
+  .refine((value) => value.startsWith('/') || z.string().url().safeParse(value).success, {
+    message: 'Image reference must be an absolute URL or public path',
+  });
+
 // ─── Product Category ─────────────────────────────────────────────────────────
 
 export const CreateCategoryInputSchema = z.object({
@@ -62,7 +70,7 @@ export const CreateProductInputSchema = z.object({
   revenueAccountId: z.string().optional(),
   inventoryAccountId: z.string().optional(),
   taxCode: z.string().optional(),
-  imageUrl: z.string().url().optional(),
+  imageUrl: ImageReferenceSchema.optional(),
 });
 
 export type CreateProductInput = z.infer<typeof CreateProductInputSchema>;
@@ -87,7 +95,7 @@ export const UpdateProductInputSchema = z.object({
   revenueAccountId: z.string().nullable().optional(),
   inventoryAccountId: z.string().nullable().optional(),
   taxCode: z.string().nullable().optional(),
-  imageUrl: z.string().url().nullable().optional(),
+  imageUrl: ImageReferenceSchema.nullable().optional(),
   isActive: z.boolean().optional(),
   version: z.number().int().min(1),
 });
@@ -129,7 +137,7 @@ export const ListProductsInputSchema = z.object({
     .enum(['finished_good', 'raw_material', 'merchandise', 'consumable', 'service'])
     .optional(),
   search: z.string().optional(),
-  isActive: z.boolean().optional().default(true),
+  isActive: z.boolean().optional(),
   isSellable: z.boolean().optional(),
   isPurchasable: z.boolean().optional(),
   limit: z.number().int().min(1).max(200).optional().default(50),

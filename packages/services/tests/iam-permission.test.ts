@@ -7,6 +7,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { can, invalidatePermissionCache } from '../src/iam/permission-engine';
+import { requirePermission } from '../src/iam/require-permission';
 
 vi.mock('@erp/db', () => ({
   db: {
@@ -194,19 +196,16 @@ describe('Location-scoped permission resolution', () => {
 });
 
 describe('Permission cache behavior', () => {
-  it('should invalidate on explicit call', async () => {
-    const mod = await import('../src/iam/permission-engine');
-    expect(() => mod.invalidatePermissionCache('user-123')).not.toThrow();
-    expect(() => mod.invalidatePermissionCache()).not.toThrow();
+  it('should invalidate on explicit call', () => {
+    expect(() => invalidatePermissionCache('user-123')).not.toThrow();
+    expect(() => invalidatePermissionCache()).not.toThrow();
   });
 });
 
 describe('requirePermission Result wrapper', () => {
-  it('module exports the expected functions', async () => {
-    const mod = await import('../src/iam/permission-engine');
-    const { requirePermission } = await import('../src/iam/require-permission');
-    expect(typeof mod.can).toBe('function');
+  it('module exports the expected functions', () => {
+    expect(typeof can).toBe('function');
     expect(typeof requirePermission).toBe('function');
-    expect(typeof mod.invalidatePermissionCache).toBe('function');
+    expect(typeof invalidatePermissionCache).toBe('function');
   });
 });

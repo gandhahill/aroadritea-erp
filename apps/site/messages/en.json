@@ -166,46 +166,86 @@
     "terms": {
       "title": "Terms & Conditions",
       "updated": "Effective May 15, 2026",
-      "intro": "By registering as an Aroadri Tea member, you agree to the terms below.",
+      "intro": "These terms govern the use of the Aroadri Tea website, member registration, digital card, points, vouchers, and customer-service features. By creating an account or using member benefits, you confirm that you have read and agreed to these terms.",
       "sections": [
         {
-          "title": "Membership",
-          "body": "Membership is used to record customer identity, points, vouchers, and transaction history linked to the registered phone number."
+          "title": "Parties and scope",
+          "body": "The member service is provided by PT. Gandha Hill Catering Management Indonesia for the Aroadri Tea brand. These terms apply to member registration, use of a registered phone number at the outlet, digital cards, points, vouchers, promotions, account communication, and other features connected to Aroadri Tea systems."
         },
         {
-          "title": "In-store Use",
-          "body": "During checkout, the cashier may ask for your phone number and confirm the member name before recording points or benefits."
+          "title": "Eligibility and account registration",
+          "body": "Members must provide accurate, active, and reachable information. Aroadri Tea may reject, delay, or deactivate registration if the data is invalid, duplicated, misused, or used in a way that harms other customers, outlets, or systems."
         },
         {
-          "title": "Points and Vouchers",
-          "body": "Points, tiers, and vouchers may change according to Aroadri Tea programs. Misuse of an account may cause benefits to be cancelled."
+          "title": "In-store member use",
+          "body": "During checkout, the cashier may ask whether the customer has a member account. If yes, the customer provides the registered phone number, the cashier looks up the member data, and the cashier confirms the member name before recording points, vouchers, or other transaction benefits."
         },
         {
-          "title": "Service Updates",
-          "body": "Aroadri Tea may update these terms to reflect operational, promotional, or legal requirements."
+          "title": "Points, vouchers, and promotions",
+          "body": "Points, vouchers, tiers, rewards, expiry dates, minimum purchase rules, excluded products, and redemption mechanisms follow the active program terms. Benefits cannot be exchanged for cash, transferred without Aroadri Tea approval, or claimed for cancelled, refunded, suspicious, or ineligible transactions."
+        },
+        {
+          "title": "Account security and prohibited use",
+          "body": "Members are responsible for protecting their email, phone number, and password access. Fake accounts, impersonation, transaction manipulation, scraping, reverse engineering, unauthorized access attempts, or actions that disrupt the website, ERP, POS, or outlet operations are prohibited."
+        },
+        {
+          "title": "Transaction corrections and service interruptions",
+          "body": "If there is any discrepancy in points, vouchers, member status, or system operation, Aroadri Tea may verify receipts, transaction history, system logs, and outlet data. Corrections may be made when recording errors or misuse are identified."
+        },
+        {
+          "title": "Limitation of liability",
+          "body": "Aroadri Tea works to keep the service available and accurate, but does not guarantee that the website or member features will always be uninterrupted. To the extent permitted by law, Aroadri Tea's responsibility is limited to data correction, recovery of valid benefits, or reasonable operational remedies."
+        },
+        {
+          "title": "Changes to these terms",
+          "body": "Aroadri Tea may update these terms to reflect operational changes, promotional programs, security needs, or legal obligations. The latest version will be published on the website and applies from the stated effective date."
+        },
+        {
+          "title": "Governing law and contact",
+          "body": "These terms are governed by the laws of the Republic of Indonesia. Questions, complaints, data corrections, or account-related requests may be sent through Aroadri Tea's official channels, including Instagram and TikTok @aroadri.tea."
         }
       ]
     },
     "privacy": {
       "title": "Privacy Policy",
       "updated": "Effective May 15, 2026",
-      "intro": "We protect member personal data with care and use it only for relevant operational needs.",
+      "intro": "This policy explains how Aroadri Tea collects, uses, stores, protects, and deletes member personal data in line with Indonesian personal data protection principles, including Law No. 27 of 2022 on Personal Data Protection and applicable electronic system regulations.",
       "sections": [
         {
-          "title": "Data We Collect",
-          "body": "Member data may include name, email, phone number, birth date, city, points history, vouchers, and transaction history."
+          "title": "Data controller",
+          "body": "The data controller for Aroadri Tea member services is PT. Gandha Hill Catering Management Indonesia. Data is processed for outlet operations, customer service, loyalty programs, transaction audit, system security, and legal compliance."
         },
         {
-          "title": "How We Use Data",
-          "body": "Data is used for member verification, point recording, customer service, transaction audit, and account-related communication."
+          "title": "Data collected",
+          "body": "The data collected may include name, email, phone number, city, birth date if provided, secured account credentials, email status, digital card, points, vouchers, language preference, member-related transaction history, consent logs, device or browser data, IP address, and customer-service records."
         },
         {
-          "title": "Data Protection",
-          "body": "Data access is limited to operational needs. The system uses authentication, audit logs, and data safeguards according to the ERP design."
+          "title": "Legal basis and purposes",
+          "body": "Data is processed based on member consent, the need to provide member services, legitimate interests in security and audit, and bookkeeping or legal obligations. Data is used for account verification, cashier lookup by phone number, point recording, voucher issuance, complaint handling, fraud prevention, and communication relevant to the account or service."
         },
         {
-          "title": "Member Rights",
-          "body": "Members may request correction or account deletion through official Aroadri Tea channels, as long as it does not conflict with bookkeeping and legal obligations."
+          "title": "Data sharing",
+          "body": "Data may be accessed by authorized Aroadri Tea personnel and service providers supporting system operations, such as hosting, database, transactional email, security, internal analytics, and backups. Aroadri Tea does not sell member personal data. Sharing with other parties only occurs when required for the service, required by law, or approved by the member."
+        },
+        {
+          "title": "Data security",
+          "body": "Aroadri Tea applies role-based access restrictions, authentication, audit logs, encryption or hashing for sensitive data according to system design, backups, and error monitoring. No security method is completely risk-free, but incidents affecting personal data will be handled according to procedure and applicable law."
+        },
+        {
+          "title": "Storage and retention",
+          "body": "Member data is stored while the account is active or as long as needed for service delivery, transaction audit, bookkeeping, dispute handling, security, and legal obligations. Data that is no longer required will be deleted, anonymized, or restricted where technically and legally possible."
+        },
+        {
+          "title": "Member rights",
+          "body": "Members may request access, correction, updates, processing restriction, withdrawal of consent, or account deletion through Aroadri Tea's official channels. Requests may be refused or limited if they conflict with legal obligations, bookkeeping, fraud investigation, security, or other parties' rights."
+        },
+        {
+          "title": "Cookies and similar technologies",
+          "body": "The website may use cookies or local storage to maintain sessions, language preferences, security, and user experience. Some cookies are necessary for login, registration, and member features to work properly."
+        },
+        {
+          "title": "Policy updates and contact",
+          "body": "This policy may be updated from time to time. Questions or personal data requests may be sent through Aroadri Tea's official channels, including Instagram and TikTok @aroadri.tea."
         }
       ]
     }

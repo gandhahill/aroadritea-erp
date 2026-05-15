@@ -43,19 +43,21 @@ function LegalArticle({
   sections: LegalSection[];
 }) {
   return (
-    <div className="px-4 py-12 sm:px-6">
-      <article className="mx-auto max-w-3xl">
+    <div className="px-4 py-14 sm:px-6">
+      <article className="mx-auto max-w-4xl">
         <p className="brand-tagline text-xs text-brand-red">{updated}</p>
         <h1 className="mt-4 text-4xl font-black text-brand-ink md:text-5xl">{title}</h1>
-        <p className="mt-5 text-base leading-7 text-brand-ink-2">{intro}</p>
-        <div className="mt-10 space-y-5">
-          {sections.map((section) => (
-            <section
-              key={section.title}
-              className="rounded-[8px] border border-brand-red/10 bg-brand-cream-1 p-6 shadow-soft"
-            >
-              <h2 className="text-xl font-black text-brand-red">{section.title}</h2>
-              <p className="mt-3 text-sm leading-7 text-brand-ink-2">{section.body}</p>
+        <p className="mt-5 max-w-3xl text-base leading-7 text-brand-ink-2">{intro}</p>
+        <div className="mt-10 divide-y divide-brand-red/10 border-y border-brand-red/10">
+          {sections.map((section, index) => (
+            <section key={section.title} className="grid gap-4 py-7 md:grid-cols-[72px_1fr]">
+              <p className="font-display text-2xl font-black text-brand-red">
+                {String(index + 1).padStart(2, '0')}
+              </p>
+              <div>
+                <h2 className="text-xl font-black text-brand-ink">{section.title}</h2>
+                <p className="mt-3 text-sm leading-7 text-brand-ink-2">{section.body}</p>
+              </div>
             </section>
           ))}
         </div>
