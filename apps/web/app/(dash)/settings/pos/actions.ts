@@ -13,7 +13,19 @@ import { requirePermission } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
 
-const DEFAULT_DELIVERY_CHANNELS = ['gofood', 'grabfood', 'shopeefood'];
+export interface DeliveryChannelSetting {
+  id: string;
+  label: string;
+  netBps: number;
+  commissionBps: number;
+  enabled: boolean;
+}
+
+const DEFAULT_DELIVERY_CHANNELS: DeliveryChannelSetting[] = [
+  { id: 'gofood', label: 'GoFood', netBps: 8000, commissionBps: 2000, enabled: true },
+  { id: 'grabfood', label: 'GrabFood', netBps: 8000, commissionBps: 2000, enabled: true },
+  { id: 'shopeefood', label: 'ShopeeFood', netBps: 8000, commissionBps: 2000, enabled: true },
+];
 
 export interface PosSettingItem {
   id: string | null;
@@ -23,8 +35,7 @@ export interface PosSettingItem {
   cashAccountCode: string;
   revenueAccountCode: string;
   donationTrustAccountCode: string;
-  deliveryChannels: string[];
-  deliveryNetBps: number;
+  deliveryChannels: DeliveryChannelSetting[];
   receiptWidthMm: number;
 }
 
@@ -35,14 +46,44 @@ function getLocationName(name: unknown, fallback: string): string {
   return value?.id ?? value?.en ?? value?.zh ?? fallback;
 }
 
-function normalizeChannels(channels: string[]): string[] {
-  return Array.from(
-    new Set(
-      channels
-        .map((channel) => channel.trim().toLowerCase())
-        .filter((channel) => /^[a-z0-9_-]{2,32}$/.test(channel)),
-    ),
-  );
+function normalizeChannels(channels: unknown): DeliveryChannelSetting[] {
+  const source =
+    Array.isArray(channels) && channels.length > 0 ? channels : DEFAULT_DELIVERY_CHANNELS;
+  const result = new Map<string, DeliveryChannelSetting>();
+
+  for (const item of source) {
+    const record =
+      typeof item === 'string'
+        ? { id: item, label: item, netBps: 8000, enabled: true }
+        : item && typeof item === 'object'
+          ? (item as Record<string, unknown>)
+          : null;
+    if (!record) continue;
+
+    const id = String(record.id ?? '')
+      .trim()
+      .toLowerCase();
+    if (!/^[a-z0-9_-]{2,32}$/.test(id)) continue;
+
+    const rawNetBps = Number(record.netBps ?? 8000);
+    const rawCommissionBps = Number(record.commissionBps ?? 10000 - rawNetBps);
+    const netBps = Number.isFinite(rawNetBps)
+      ? Math.min(10000, Math.max(0, Math.trunc(rawNetBps)))
+      : 8000;
+    const commissionBps = Number.isFinite(rawCommissionBps)
+      ? Math.min(10000, Math.max(0, Math.trunc(rawCommissionBps)))
+      : 10000 - netBps;
+
+    result.set(id, {
+      id,
+      label: String(record.label ?? id).trim() || id,
+      netBps,
+      commissionBps,
+      enabled: record.enabled !== false,
+    });
+  }
+
+  return [...result.values()];
 }
 
 async function requireContext() {
@@ -67,9 +108,17 @@ export async function fetchPosSettings(): Promise<PosSettingItem[]> {
         id: locations.id,
         code: locations.code,
         name: locations.name,
+        type: locations.type,
+        status: locations.status,
       })
       .from(locations)
-      .where(eq(locations.tenantId, ctx.tenantId))
+      .where(
+        and(
+          eq(locations.tenantId, ctx.tenantId),
+          eq(locations.type, 'store'),
+          eq(locations.status, 'active'),
+        ),
+      )
       .orderBy(locations.code),
     db
       .select({
@@ -99,8 +148,7 @@ export async function fetchPosSettings(): Promise<PosSettingItem[]> {
       cashAccountCode: setting?.cashAccountCode ?? '1-1300',
       revenueAccountCode: setting?.revenueAccountCode ?? '4-1100',
       donationTrustAccountCode: setting?.donationTrustAccountCode ?? '2-2050',
-      deliveryChannels: setting?.deliveryChannelsJson ?? DEFAULT_DELIVERY_CHANNELS,
-      deliveryNetBps: setting?.deliveryNetBps ?? 8000,
+      deliveryChannels: normalizeChannels(setting?.deliveryChannelsJson),
       receiptWidthMm: setting?.receiptWidthMm ?? 80,
     };
   });
@@ -113,8 +161,7 @@ export async function updatePosSetting(
     cashAccountCode: string;
     revenueAccountCode: string;
     donationTrustAccountCode: string;
-    deliveryChannels: string[];
-    deliveryNetBps: number;
+    deliveryChannels: DeliveryChannelSetting[];
     receiptWidthMm: number;
   },
 ): Promise<ActionResult> {
@@ -135,10 +182,13 @@ export async function updatePosSetting(
   if (channels.length === 0) {
     return { success: false, error: 'At least one delivery channel is required' };
   }
-
-  const deliveryNetBps = Math.trunc(Number(data.deliveryNetBps));
-  if (!Number.isFinite(deliveryNetBps) || deliveryNetBps <= 0 || deliveryNetBps > 10000) {
-    return { success: false, error: 'Delivery net bps must be between 1 and 10000' };
+  for (const channel of channels) {
+    if (channel.netBps + channel.commissionBps !== 10000) {
+      return {
+        success: false,
+        error: `Net and commission for ${channel.id} must add up to 100%`,
+      };
+    }
   }
 
   const receiptWidthMm = Math.trunc(Number(data.receiptWidthMm));
@@ -152,7 +202,9 @@ export async function updatePosSetting(
     revenueAccountCode: data.revenueAccountCode.trim() || '4-1100',
     donationTrustAccountCode: data.donationTrustAccountCode.trim() || '2-2050',
     deliveryChannelsJson: channels,
-    deliveryNetBps,
+    deliveryNetBps: Math.trunc(
+      channels.reduce((sum, channel) => sum + channel.netBps, 0) / channels.length,
+    ),
     receiptWidthMm,
     updatedAt: new Date(),
     updatedBy: ctx.userId || null,

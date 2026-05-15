@@ -1,8 +1,8 @@
 /**
  * POS Zod schemas — SD §9.5, §21.4
  *
- * Channel enum: walk_in | gofood | grabfood | shopeefood
- * Payment method: cash | qris | flazz | debit | credit | gofood | grabfood | shopeefood
+ * Channels and payment methods are configurable tokens.
+ * Built-ins include walk_in, gofood, grabfood, and shopeefood.
  */
 
 import { z } from 'zod';
@@ -10,7 +10,7 @@ import { z } from 'zod';
 
 // ─── Channel ───────────────────────────────────────────────────────────────────
 
-export const ChannelSchema = z.enum(['walk_in', 'gofood', 'grabfood', 'shopeefood']);
+export const ChannelSchema = z.string().regex(/^[a-z0-9_-]{2,32}$/);
 export type Channel = z.infer<typeof ChannelSchema>;
 
 // ─── Shift ────────────────────────────────────────────────────────────────────
@@ -43,7 +43,7 @@ const LineInputSchema = z.object({
 });
 
 const PaymentInputSchema = z.object({
-  method: z.enum(['cash', 'qris', 'flazz', 'debit', 'credit', 'gofood', 'grabfood', 'shopeefood']),
+  method: z.string().regex(/^[a-z0-9_-]{2,32}$/),
   amount: z.string().regex(/^\d+$/), // bigint rupiah
   reference: z.string().optional(),
   /** SD §25.11 — donation amount (donated instead of given as change). */

@@ -7,7 +7,7 @@
 import { can } from '@erp/services/iam';
 import { z } from 'zod';
 import type { McpContext } from '../context';
-import { mcpError, mcpSuccess } from '../helpers';
+import { mcpError, mcpSuccess, serializeResult } from '../helpers';
 
 // --- Inventory ---
 
@@ -280,7 +280,13 @@ export const POSListSalesSchema = z.object({
   location_id: z.string(),
   from: z.string().optional(),
   to: z.string().optional(),
-  channel: z.enum(['walk_in', 'gofood', 'grabfood', 'shopeefood']).optional(),
+  channel: z
+    .string()
+    .trim()
+    .min(1)
+    .max(64)
+    .regex(/^[A-Za-z0-9_-]+$/)
+    .optional(),
   limit: z.number().min(1).max(200).optional().default(50),
   offset: z.number().min(0).optional().default(0),
 });
@@ -948,6 +954,143 @@ export const memberTools = [
   },
 ] as const;
 
+// --- Promotions ---
+
+const PromotionNameSchema = z.object({
+  id: z.string().min(1).max(160),
+  en: z.string().min(1).max(160),
+  zh: z.string().min(1).max(160),
+});
+
+const PromotionKindSchema = z.enum([
+  'percent_discount',
+  'fixed_discount',
+  'buy_x_get_y',
+  'free_item',
+  'complimentary',
+]);
+
+const PromotionStatusSchema = z.enum(['draft', 'active', 'paused', 'expired']);
+
+const PromotionTokenArraySchema = z.array(z.string().trim().min(1).max(80)).default([]);
+
+export const PromotionListSchema = z.object({});
+
+export const PromotionUpsertSchema = z.object({
+  id: z.string().optional(),
+  code: z
+    .string()
+    .min(2)
+    .max(32)
+    .regex(/^[A-Za-z0-9_-]+$/),
+  name: PromotionNameSchema,
+  kind: PromotionKindSchema,
+  status: PromotionStatusSchema,
+  priority: z.number().int().min(0).max(9999).optional().default(100),
+  starts_at: z.string().datetime(),
+  ends_at: z.string().datetime().optional().nullable(),
+  location_scope: PromotionTokenArraySchema,
+  channel_scope: PromotionTokenArraySchema,
+  conditions: z
+    .object({
+      minSubtotal: z.string().regex(/^\d+$/).optional(),
+      requiredProductIds: PromotionTokenArraySchema.optional(),
+      requiredCategoryIds: PromotionTokenArraySchema.optional(),
+      minQty: z.number().int().positive().optional(),
+      daysOfWeek: z.array(z.number().int().min(0).max(6)).optional(),
+      startTime: z
+        .string()
+        .regex(/^\d{2}:\d{2}$/)
+        .optional(),
+      endTime: z
+        .string()
+        .regex(/^\d{2}:\d{2}$/)
+        .optional(),
+      memberOnly: z.boolean().optional(),
+    })
+    .optional()
+    .default({}),
+  benefits: z
+    .object({
+      percentBps: z.number().int().min(0).max(10000).optional(),
+      amount: z.string().regex(/^\d+$/).optional(),
+      appliesTo: z.enum(['order', 'matching_lines']).optional(),
+      maxDiscountAmount: z.string().regex(/^\d+$/).optional(),
+      buyProductId: z.string().optional(),
+      buyQty: z.number().int().positive().optional(),
+      getProductId: z.string().optional(),
+      getVariantId: z.string().optional(),
+      getQty: z.number().int().positive().optional(),
+      discountBps: z.number().int().min(0).max(10000).optional(),
+      requiresReason: z.boolean().optional(),
+      expenseAccountCode: z.string().optional(),
+    })
+    .optional()
+    .default({}),
+  stackable: z.boolean().optional().default(false),
+  requires_approval: z.boolean().optional().default(false),
+  usage_limit: z.number().int().positive().optional().nullable(),
+});
+
+export const promotionTools = [
+  {
+    name: 'promotion.list',
+    description:
+      'List configurable POS promotions, discounts, buy-X-get-Y, and complimentary rules.',
+    schema: PromotionListSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = PromotionListSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const { listPromotions } = await import('@erp/services/promotion');
+      const result = await listPromotions({
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      });
+      return serializeResult(result);
+    },
+  },
+  {
+    name: 'promotion.upsert',
+    description:
+      'Create or update a configurable promotion rule through the same service used by ERP UI.',
+    schema: PromotionUpsertSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = PromotionUpsertSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const data = parsed.data;
+      const { upsertPromotion } = await import('@erp/services/promotion');
+      const result = await upsertPromotion(
+        {
+          id: data.id,
+          code: data.code,
+          name: data.name,
+          kind: data.kind,
+          status: data.status,
+          priority: data.priority,
+          startsAt: data.starts_at,
+          endsAt: data.ends_at ?? null,
+          locationScope: data.location_scope,
+          channelScope: data.channel_scope,
+          conditions: data.conditions,
+          benefits: data.benefits,
+          stackable: data.stackable,
+          requiresApproval: data.requires_approval,
+          usageLimit: data.usage_limit ?? null,
+        },
+        {
+          userId: ctx.userId,
+          tenantId: ctx.tenantId,
+          locationId: ctx.locationId ?? '',
+        },
+      );
+      return serializeResult(result);
+    },
+  },
+] as const;
+
 // --- Audit ---
 
 export const AuditSearchSchema = z.object({
@@ -969,8 +1112,8 @@ export const auditTools = [
       if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
       const { entity_type, entity_id, actor, from, to, limit, cursor } = parsed.data;
 
-      const permitted = await checkPermission(ctx, 'audit.read', ctx.locationId);
-      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: audit.read');
+      const permitted = await checkPermission(ctx, 'audit.view', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: audit.view');
 
       const { db } = await import('@erp/db');
       const { auditLog } = await import('@erp/db/schema/audit');

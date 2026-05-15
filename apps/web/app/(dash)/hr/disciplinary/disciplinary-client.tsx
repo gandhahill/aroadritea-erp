@@ -6,6 +6,7 @@
 
 'use client';
 
+import { FileUploadField } from '@/components/file-upload-field';
 import { useState, useTransition } from 'react';
 import {
   acknowledgeDisciplinaryActionAction,
@@ -181,18 +182,14 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                   className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none"
                 />
               </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">
-                  Lampiran URL
-                </label>
-                <input
-                  type="url"
-                  value={attachmentUrl}
-                  onChange={(e) => setAttachmentUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none"
-                />
-              </div>
+              <FileUploadField
+                label="Lampiran"
+                hiddenName="attachmentUrl"
+                value={attachmentUrl}
+                area="disciplinary"
+                visibility="private"
+                onChange={(url) => setAttachmentUrl(url)}
+              />
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">Alasan *</label>

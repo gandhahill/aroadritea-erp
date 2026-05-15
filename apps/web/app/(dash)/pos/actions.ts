@@ -8,9 +8,10 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
+import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/location-options';
 import { and, db, eq, ilike, inArray, or, sql } from '@erp/db';
 import { productCategories, productVariants, products } from '@erp/db/schema/inventory';
-import { salesOrders, shifts } from '@erp/db/schema/pos';
+import { posSettings, salesOrders, shifts } from '@erp/db/schema/pos';
 import { requirePermission } from '@erp/services/iam';
 import { type MemberLookupResult, findMemberByPhone } from '@erp/services/member';
 import { closeShift, createSale, openShift, refundSale, voidSale } from '@erp/services/pos';
@@ -22,6 +23,7 @@ import type {
   RefundSaleInput,
   VoidSaleInput,
 } from '@erp/services/pos/schemas';
+import { getLocale } from 'next-intl/server';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -74,19 +76,89 @@ export type MemberLookupActionResult =
   | { ok: true; member: MemberLookupResult | null }
   | { ok: false; error: string };
 
+export interface PosChannelOption {
+  id: string;
+  label: string;
+  netBps: number;
+  commissionBps: number;
+  enabled: boolean;
+}
+
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
 async function getAuditContext() {
   const session = await getSession();
   if (!session) throw new Error('Unauthenticated');
   const user = session.user as Record<string, unknown>;
+  const tenantId = String(user.tenantId ?? 'default');
+  const sessionLocationId = String(user.locationId ?? '');
+  const locationOptions = await getActiveLocationOptions({ tenantId, locale: 'id', type: 'store' });
   return {
     userId: String(user.id ?? ''),
-    tenantId: String(user.tenantId ?? 'default'),
-    locationId: String(user.locationId ?? ''),
+    tenantId,
+    locationId: resolveDefaultLocationId(locationOptions, undefined, sessionLocationId),
     ipAddress: undefined as string | undefined,
     userAgent: undefined as string | undefined,
   };
+}
+
+type AppLocale = 'id' | 'en' | 'zh';
+type NameRecord = { id?: string; en?: string; zh?: string };
+
+function normalizeLocale(locale: string): AppLocale {
+  return locale === 'en' || locale === 'zh' ? locale : 'id';
+}
+
+function localizeName(value: unknown, locale: AppLocale, fallback: string): string {
+  const name = value as NameRecord | null | undefined;
+  return name?.[locale] ?? name?.id ?? name?.en ?? name?.zh ?? fallback;
+}
+
+function humanizeChannel(id: string) {
+  return id
+    .split(/[_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function normalizeDeliveryChannels(raw: unknown): PosChannelOption[] {
+  const source = Array.isArray(raw) ? raw : [];
+  const rows = source
+    .map((item): PosChannelOption | null => {
+      if (typeof item === 'string') {
+        const id = item.trim().toLowerCase();
+        if (!/^[a-z0-9_-]{2,32}$/.test(id)) return null;
+        return {
+          id,
+          label: humanizeChannel(id),
+          netBps: 8000,
+          commissionBps: 2000,
+          enabled: true,
+        };
+      }
+
+      if (!item || typeof item !== 'object') return null;
+      const value = item as Record<string, unknown>;
+      const id = String(value.id ?? '')
+        .trim()
+        .toLowerCase();
+      if (!/^[a-z0-9_-]{2,32}$/.test(id)) return null;
+      const netBps = Number(value.netBps ?? 8000);
+      const commissionBps = Number(value.commissionBps ?? 10000 - netBps);
+      return {
+        id,
+        label: String(value.label ?? humanizeChannel(id)).trim() || humanizeChannel(id),
+        netBps: Number.isFinite(netBps) ? netBps : 8000,
+        commissionBps: Number.isFinite(commissionBps) ? commissionBps : 2000,
+        enabled: value.enabled !== false,
+      };
+    })
+    .filter((item): item is PosChannelOption => Boolean(item));
+
+  const byId = new Map<string, PosChannelOption>();
+  for (const row of rows) byId.set(row.id, row);
+  return [...byId.values()].filter((row) => row.enabled);
 }
 
 // ─── Shift Actions ─────────────────────────────────────────────────────────────
@@ -115,6 +187,7 @@ export async function fetchProducts(params: {
   search?: string;
 }): Promise<ProductListItem[]> {
   const ctx = await getAuditContext();
+  const locale = normalizeLocale(await getLocale());
   const conditions = [
     eq(products.tenantId, ctx.tenantId),
     eq(products.isActive, true),
@@ -202,17 +275,15 @@ export async function fetchProducts(params: {
         .then((rows) => rows.map((r) => ({ id: r.id, name: r.name })))
     : [];
 
-  type NameRecord = { id?: string; en?: string; zh?: string };
   const categoryMap = new Map<string, NameRecord>(
     categoryRows.map((c) => [c.id, c.name as NameRecord]),
   );
   const variantsByProduct = new Map<string, VariantItem[]>();
   for (const v of variantRows) {
-    const vName = v.name as NameRecord;
     const variantItems = variantsByProduct.get(v.productId) ?? [];
     variantItems.push({
       id: v.id,
-      name: vName?.id ?? vName?.en ?? 'Default',
+      name: localizeName(v.name, locale, 'Default'),
       sku: v.sku,
       sellPrice: v.sellPrice.toString(),
       attributes: v.attributes ?? {},
@@ -221,15 +292,13 @@ export async function fetchProducts(params: {
   }
 
   return productRows.map((p) => {
-    const pName = p.name as NameRecord;
     const catName = categoryMap.get(p.categoryId);
-    const cName = catName as NameRecord;
     return {
       id: p.id,
       sku: p.sku,
-      name: pName?.id ?? p.sku,
+      name: localizeName(p.name, locale, p.sku),
       categoryId: p.categoryId,
-      categoryName: cName?.id ?? cName?.en ?? p.categoryId,
+      categoryName: localizeName(catName, locale, p.categoryId),
       defaultSellPrice: p.defaultSellPrice.toString(),
       imageUrl: p.imageUrl,
       kind: p.kind,
@@ -240,16 +309,30 @@ export async function fetchProducts(params: {
 
 export async function fetchCategories(): Promise<{ id: string; name: string }[]> {
   const ctx = await getAuditContext();
+  const locale = normalizeLocale(await getLocale());
   const rows = await db
     .select({ id: productCategories.id, name: productCategories.name })
     .from(productCategories)
     .where(eq(productCategories.tenantId, ctx.tenantId))
     .orderBy(productCategories.sortOrder);
-  type NameRecord = { id?: string; en?: string; zh?: string };
   return rows.map((r) => {
-    const n = r.name as NameRecord;
-    return { id: r.id, name: n?.id ?? n?.en ?? r.id };
+    return { id: r.id, name: localizeName(r.name, locale, r.id) };
   });
+}
+
+export async function fetchPosChannelOptions(locationId?: string): Promise<PosChannelOption[]> {
+  const ctx = await getAuditContext();
+  const targetLocationId = locationId || ctx.locationId;
+
+  const [setting] = await db
+    .select({ deliveryChannelsJson: posSettings.deliveryChannelsJson })
+    .from(posSettings)
+    .where(
+      and(eq(posSettings.tenantId, ctx.tenantId), eq(posSettings.locationId, targetLocationId)),
+    )
+    .limit(1);
+
+  return normalizeDeliveryChannels(setting?.deliveryChannelsJson);
 }
 
 // ─── Sale Actions ───────────────────────────────────────────────────────────────

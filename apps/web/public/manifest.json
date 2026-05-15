@@ -1,8 +1,10 @@
 {
   "name": "Aroadri Tea POS",
   "short_name": "Aroadri POS",
-  "description": "Point of Sale — PT Gandha Hill Catering Management Indonesia",
+  "id": "/pos",
+  "description": "Aroadri Tea ERP POS untuk operasional kasir dengan dukungan offline.",
   "start_url": "/pos",
+  "scope": "/",
   "display": "standalone",
   "orientation": "landscape",
   "background_color": "#1A0A0A",
@@ -23,6 +25,20 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "POS",
+      "short_name": "POS",
+      "url": "/pos",
+      "description": "Buka layar kasir"
+    },
+    {
+      "name": "Demo POS",
+      "short_name": "Demo",
+      "url": "/pos/demo",
+      "description": "Latihan POS tanpa mengubah database"
     }
   ],
   "categories": ["business", "food"],

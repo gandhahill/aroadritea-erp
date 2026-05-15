@@ -39,7 +39,7 @@ export interface CartState {
   shiftId: string | null;
   locationId: string;
   tenantId: string;
-  channel: 'walk_in' | 'gofood' | 'grabfood' | 'shopeefood';
+  channel: string;
   lines: CartLine[];
   payments: CartPayment[];
   customer: CartCustomer | null;
@@ -49,7 +49,7 @@ export interface CartState {
 interface PosCartContextValue {
   state: CartState;
   setShiftId: (id: string | null) => void;
-  setChannel: (c: CartState['channel']) => void;
+  setChannel: (c: string) => void;
   addLine: (line: Omit<CartLine, 'id'>) => void;
   updateLineQty: (lineId: string, qty: number) => void;
   removeLine: (lineId: string) => void;
@@ -98,7 +98,7 @@ export function PosCartProvider({
     setState((s) => ({ ...s, shiftId: id }));
   }, []);
 
-  const setChannel = useCallback((c: CartState['channel']) => {
+  const setChannel = useCallback((c: string) => {
     setState((s) => ({ ...s, channel: c }));
   }, []);
 

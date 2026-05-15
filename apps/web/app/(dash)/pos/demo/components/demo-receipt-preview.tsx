@@ -29,7 +29,7 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
       />
 
       {/* Receipt */}
-      <div className="relative z-10 flex h-[85vh] w-full max-w-md flex-col rounded-t-2xl bg-white shadow-2xl sm:h-auto sm:rounded-2xl">
+      <div className="relative z-10 flex h-[85vh] w-full max-w-md flex-col rounded-t-2xl bg-card shadow-2xl sm:h-auto sm:rounded-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-brand-cream-3 px-5 py-4">
           <h2 className="text-base font-semibold text-brand-ink">{t('demo.receiptPreview')}</h2>

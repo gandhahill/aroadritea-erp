@@ -47,10 +47,14 @@ function formatVarianceRate(v: number): string {
 // ─── XLSX Export ─────────────────────────────────────────────────────────────
 
 async function exportXLSX(report: VarianceReportResult) {
+  const locationLabel = report.params.locationId
+    ? (report.sessions.find((session) => session.locationId === report.params.locationId)
+        ?.locationName ?? report.params.locationId)
+    : 'Semua';
   const summaryRows = [
     ['Laporan Varians Persediaan'],
     ['Periode', `${report.params.startDate} s/d ${report.params.endDate}`],
-    report.params.locationId ? ['Lokasi', report.params.locationId] : ['Lokasi', 'Semua'],
+    ['Lokasi', locationLabel],
     [],
     ['Ringkasan'],
     ['Total Sesi Opname', String(report.summary.totalSessions)],
@@ -302,7 +306,7 @@ export function VarianceClient({
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
+            className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
           />
         </div>
         <div className="space-y-1">
@@ -314,7 +318,7 @@ export function VarianceClient({
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
+            className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
           />
         </div>
         <div className="space-y-1">
@@ -325,7 +329,7 @@ export function VarianceClient({
             id="locationId"
             value={locationId}
             onChange={(e) => setLocationId(e.target.value)}
-            className="rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
+            className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
           >
             <option value="">Semua Lokasi</option>
             {locations.map((loc) => (

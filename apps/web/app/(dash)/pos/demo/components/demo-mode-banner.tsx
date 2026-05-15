@@ -27,7 +27,7 @@ export function DemoModeBanner({ pendingCount }: DemoModeBannerProps) {
     <div className="fixed inset-x-0 top-0 z-[100] flex items-center justify-between gap-2 bg-brand-red px-3 py-2 text-sm font-medium text-white shadow-lg">
       {/* Left: demo label */}
       <div className="flex items-center gap-2">
-        <span className="inline-block rounded bg-white/20 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-white">
+        <span className="inline-block rounded bg-card/20 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-white">
           DEMO
         </span>
         <span className="text-sm font-medium text-white/90">{t('demo.bannerLabel')}</span>

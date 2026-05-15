@@ -322,6 +322,14 @@ export async function markOrderSynced(
 }
 
 /**
+ * Remove a pending order that failed local/server validation before it can be synced.
+ */
+export async function removePendingOrder(clientOrderUuid: string): Promise<void> {
+  const db = await getOfflineDb();
+  await db.delete(STORE.PENDING_ORDERS, clientOrderUuid);
+}
+
+/**
  * Update retry metadata on a failed sync attempt.
  */
 export async function markOrderRetry(

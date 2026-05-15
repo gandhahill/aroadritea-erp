@@ -20,12 +20,12 @@ interface NavItem {
 
 export function Sidebar() {
   const pathname = usePathname();
-  const t = useTranslations('pos');
+  const t = useTranslations('nav');
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
 
   const NAV_ITEMS: NavItem[] = [
     {
-      label: 'CMS',
+      label: t('cms'),
       href: '/cms',
       icon: (
         <svg
@@ -44,12 +44,13 @@ export function Sidebar() {
         </svg>
       ),
       children: [
-        { label: 'Halaman', href: '/cms/pages', icon: <></> },
-        { label: 'Post', href: '/cms/posts', icon: <></> },
+        { label: t('docsSettings'), href: '/cms/docs', icon: <></> },
+        { label: t('pages'), href: '/cms/pages', icon: <></> },
+        { label: t('posts'), href: '/cms/posts', icon: <></> },
       ],
     },
     {
-      label: 'Docs',
+      label: t('docs'),
       href: '/docs',
       icon: (
         <svg
@@ -69,7 +70,7 @@ export function Sidebar() {
       ),
     },
     {
-      label: 'Accounting',
+      label: t('accounting'),
       href: '/accounting',
       icon: (
         <svg
@@ -88,15 +89,15 @@ export function Sidebar() {
         </svg>
       ),
       children: [
-        { label: 'Chart of Accounts', href: '/accounting/coa', icon: <></> },
-        { label: 'Journal Entries', href: '/accounting/journals', icon: <></> },
-        { label: 'Periods', href: '/accounting/periods', icon: <></> },
-        { label: 'Petty Cash', href: '/accounting/petty-cash', icon: <></> },
-        { label: 'Reimbursement', href: '/accounting/reimbursement', icon: <></> },
+        { label: t('coa'), href: '/accounting/coa', icon: <></> },
+        { label: t('journals'), href: '/accounting/journals', icon: <></> },
+        { label: t('periods'), href: '/accounting/periods', icon: <></> },
+        { label: t('pettyCash'), href: '/accounting/petty-cash', icon: <></> },
+        { label: t('reimbursement'), href: '/accounting/reimbursement', icon: <></> },
       ],
     },
     {
-      label: 'Reporting',
+      label: t('reporting'),
       href: '/reporting',
       icon: (
         <svg
@@ -115,17 +116,18 @@ export function Sidebar() {
         </svg>
       ),
       children: [
-        { label: 'Trial Balance', href: '/reporting/trial-balance', icon: <></> },
-        { label: 'Balance Sheet', href: '/reporting/balance-sheet', icon: <></> },
-        { label: 'Profit & Loss', href: '/reporting/profit-loss', icon: <></> },
-        { label: 'Ringkasan Harian', href: '/reporting/daily-summary', icon: <></> },
-        { label: 'Penjualan Per Jam', href: '/reporting/hourly-sales', icon: <></> },
-        { label: 'Laporan Donasi', href: '/reporting/donations', icon: <></> },
-        { label: 'Omzet Harian', href: '/reporting/omzet-harian', icon: <></> },
+        { label: t('businessIntelligence'), href: '/reporting/business-intelligence', icon: <></> },
+        { label: t('trialBalance'), href: '/reporting/trial-balance', icon: <></> },
+        { label: t('balanceSheet'), href: '/reporting/balance-sheet', icon: <></> },
+        { label: t('profitLoss'), href: '/reporting/profit-loss', icon: <></> },
+        { label: t('dailySummary'), href: '/reporting/daily-summary', icon: <></> },
+        { label: t('hourlySales'), href: '/reporting/hourly-sales', icon: <></> },
+        { label: t('donations'), href: '/reporting/donations', icon: <></> },
+        { label: t('dailyRevenue'), href: '/reporting/omzet-harian', icon: <></> },
       ],
     },
     {
-      label: 'POS',
+      label: t('pos'),
       href: '/pos',
       icon: (
         <svg
@@ -144,12 +146,13 @@ export function Sidebar() {
         </svg>
       ),
       children: [
-        { label: t('kasirPos'), href: '/pos', icon: <></> },
-        { label: t('modeDemo'), href: '/pos/demo', icon: <></> },
+        { label: t('posCashier'), href: '/pos', icon: <></> },
+        { label: t('demoMode'), href: '/pos/demo', icon: <></> },
+        { label: t('promotions'), href: '/settings/promotions', icon: <></> },
       ],
     },
     {
-      label: 'Inventory',
+      label: t('inventory'),
       href: '/inventory',
       icon: (
         <svg
@@ -168,13 +171,13 @@ export function Sidebar() {
         </svg>
       ),
       children: [
-        { label: 'Produk & Menu', href: '/inventory/products', icon: <></> },
-        { label: 'Stock Opname', href: '/inventory/opname', icon: <></> },
-        { label: 'Varians Persediaan', href: '/inventory/variance', icon: <></> },
+        { label: t('productsMenu'), href: '/inventory/products', icon: <></> },
+        { label: t('stockOpname'), href: '/inventory/opname', icon: <></> },
+        { label: t('inventoryVariance'), href: '/inventory/variance', icon: <></> },
       ],
     },
     {
-      label: 'Purchasing',
+      label: t('purchasing'),
       href: '/purchasing',
       icon: (
         <svg
@@ -193,12 +196,12 @@ export function Sidebar() {
         </svg>
       ),
       children: [
-        { label: 'Purchase Orders', href: '/purchasing', icon: <></> },
-        { label: 'PO Baru', href: '/purchasing/po/new', icon: <></> },
+        { label: t('purchaseOrders'), href: '/purchasing', icon: <></> },
+        { label: t('newPo'), href: '/purchasing/po/new', icon: <></> },
       ],
     },
     {
-      label: 'Tax',
+      label: t('tax'),
       href: '/tax',
       icon: (
         <svg
@@ -217,12 +220,12 @@ export function Sidebar() {
         </svg>
       ),
       children: [
-        { label: 'Tax Rates', href: '/tax/rates', icon: <></> },
-        { label: 'Tax Rules', href: '/tax/rules', icon: <></> },
+        { label: t('taxRates'), href: '/tax/rates', icon: <></> },
+        { label: t('taxRules'), href: '/tax/rules', icon: <></> },
       ],
     },
     {
-      label: 'HR & Payroll',
+      label: t('hrPayroll'),
       href: '/hr',
       icon: (
         <svg
@@ -241,15 +244,15 @@ export function Sidebar() {
         </svg>
       ),
       children: [
-        { label: 'Employees', href: '/hr/employees', icon: <></> },
-        { label: 'Attendance', href: '/hr/attendance', icon: <></> },
-        { label: 'Leave', href: '/hr/leave', icon: <></> },
-        { label: 'Payroll', href: '/hr/payroll', icon: <></> },
-        { label: 'Surat Peringatan', href: '/hr/disciplinary', icon: <></> },
+        { label: t('employees'), href: '/hr/employees', icon: <></> },
+        { label: t('attendance'), href: '/hr/attendance', icon: <></> },
+        { label: t('leave'), href: '/hr/leave', icon: <></> },
+        { label: t('payroll'), href: '/hr/payroll', icon: <></> },
+        { label: t('disciplinary'), href: '/hr/disciplinary', icon: <></> },
       ],
     },
     {
-      label: 'Settings',
+      label: t('settings'),
       href: '/settings',
       icon: (
         <svg
@@ -273,13 +276,17 @@ export function Sidebar() {
         </svg>
       ),
       children: [
-        { label: 'POS Settings', href: '/settings/pos', icon: <></> },
-        { label: 'Scheduled Jobs', href: '/settings/scheduled-jobs', icon: <></> },
-        { label: 'Notifications', href: '/settings/notifications', icon: <></> },
-        { label: 'Naixer KDS', href: '/settings/integrations/naixer', icon: <></> },
-        { label: 'Permissions', href: '/settings/permissions', icon: <></> },
-        { label: 'Custom Fields', href: '/settings/custom-fields', icon: <></> },
-        { label: 'Workflow Editor', href: '/settings/workflow-editor', icon: <></> },
+        { label: t('account'), href: '/account', icon: <></> },
+        { label: t('auditTrail'), href: '/audit', icon: <></> },
+        { label: t('locations'), href: '/settings/locations', icon: <></> },
+        { label: t('posSettings'), href: '/settings/pos', icon: <></> },
+        { label: t('promotions'), href: '/settings/promotions', icon: <></> },
+        { label: t('scheduledJobs'), href: '/settings/scheduled-jobs', icon: <></> },
+        { label: t('notifications'), href: '/settings/notifications', icon: <></> },
+        { label: t('naixerKds'), href: '/settings/integrations/naixer', icon: <></> },
+        { label: t('permissions'), href: '/settings/permissions', icon: <></> },
+        { label: t('customFields'), href: '/settings/custom-fields', icon: <></> },
+        { label: t('workflowEditor'), href: '/settings/workflow-editor', icon: <></> },
       ],
     },
   ];

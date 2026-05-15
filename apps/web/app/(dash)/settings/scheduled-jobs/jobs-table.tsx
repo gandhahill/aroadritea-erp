@@ -71,7 +71,7 @@ function ToggleSwitch({
       }`}
     >
       <span
-        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out ${
           enabled ? 'translate-x-4' : 'translate-x-0'
         }`}
       />
@@ -132,7 +132,7 @@ function CronEditor({
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="w-36 rounded border border-brand-cream-3 bg-white px-2 py-1 font-mono text-xs text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red/30"
+        className="w-36 rounded border border-brand-cream-3 bg-card px-2 py-1 font-mono text-xs text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red/30"
         onKeyDown={(e) => {
           if (e.key === 'Enter') handleSave();
           if (e.key === 'Escape') {

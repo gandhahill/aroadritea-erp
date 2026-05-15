@@ -134,8 +134,11 @@ describe('ChannelSchema', () => {
   it('accepts shopeefood', () => {
     expect(ChannelSchema.safeParse('shopeefood').success).toBe(true);
   });
-  it('rejects invalid channel', () => {
-    expect(ChannelSchema.safeParse('dine_in').success).toBe(false);
+  it('accepts configurable channel tokens', () => {
+    expect(ChannelSchema.safeParse('dine_in').success).toBe(true);
+  });
+  it('rejects invalid channel token format', () => {
+    expect(ChannelSchema.safeParse('DINE IN').success).toBe(false);
   });
   it('rejects empty string', () => {
     expect(ChannelSchema.safeParse('').success).toBe(false);
@@ -266,14 +269,14 @@ describe('CreateSaleInputSchema', () => {
     }
   });
 
-  it('rejects invalid payment method', () => {
+  it('rejects invalid payment method token format', () => {
     const result = CreateSaleInputSchema.safeParse({
       shiftId: 'shift-001',
       channel: 'walk_in',
       locationId: 'loc-001',
       idempotencyKey: 'key-001',
       lines: [{ productId: 'prod-001', qty: 1, unitPrice: '33000' }],
-      payments: [{ method: 'bitcoin', amount: '33000' }],
+      payments: [{ method: 'credit card', amount: '33000' }],
     });
     expect(result.success).toBe(false);
   });

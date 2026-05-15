@@ -4,7 +4,7 @@ import { useActionState } from 'react';
 import { createNotificationChannelAction } from './actions';
 
 const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
+  'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
 
 export function NotificationChannelForm() {
   const [state, action, pending] = useActionState(createNotificationChannelAction, {

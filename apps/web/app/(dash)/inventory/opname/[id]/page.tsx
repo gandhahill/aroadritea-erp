@@ -222,7 +222,7 @@ export default async function OpnameDetailPage({
           >
             <button
               type="submit"
-              className="rounded-lg border border-rose-200 bg-white px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
+              className="rounded-lg border border-rose-200 bg-card px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
             >
               Batalkan
             </button>
@@ -262,7 +262,7 @@ export default async function OpnameDetailPage({
           >
             <button
               type="submit"
-              className="rounded-lg border border-rose-200 bg-white px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
+              className="rounded-lg border border-rose-200 bg-card px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
             >
               Batalkan
             </button>

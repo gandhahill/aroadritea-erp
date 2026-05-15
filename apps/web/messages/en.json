@@ -91,11 +91,17 @@
       "totalCredit": "Total Credit",
       "notBalanced": "Journal is not balanced",
       "periodClosed": "Period is closed",
+      "new": {
+        "back": "Back to journals",
+        "title": "Create Journal",
+        "subtitle": "Create a manual journal draft. Posting is performed from the detail page after review.",
+        "missingMasterData": "Postable accounts or active locations are not ready, or your account does not have accounting access."
+      },
       "attachments": {
         "title": "Attachments",
         "subtitle": "Supporting documents and transaction evidence.",
         "upload": "Upload Attachment",
-        "uploadInfo": "File upload via R2/S3 presigned URL. API endpoint will be activated after object storage is configured. Contact administrator.",
+        "uploadInfo": "Upload transaction evidence, photos, or supporting documents directly from this device.",
         "download": "Download",
         "delete": "Delete",
         "deleting": "Deleting...",
@@ -132,6 +138,17 @@
       "amount": "Amount",
       "noTransactions": "No transactions yet.",
       "noAccounts": "No petty cash accounts. Contact admin to create one."
+    }
+  },
+  "purchasing": {
+    "po": {
+      "new": {
+        "eyebrow": "Purchasing",
+        "title": "Create Purchase Order",
+        "subtitle": "Create a PO from an active supplier. Once approved, goods receipt is recorded through GRN so inventory and journals remain consistent.",
+        "back": "Back",
+        "missingMasterData": "Suppliers, active locations, or purchasable products are not ready. Complete those records before creating a PO."
+      }
     }
   },
   "scheduledJobs": {
@@ -184,12 +201,58 @@
   "nav": {
     "dashboard": "Dashboard",
     "accounting": "Accounting",
-    "pos": "Point of Sale",
+    "pos": "POS",
     "inventory": "Inventory",
     "purchasing": "Purchasing",
     "hr": "HR & Payroll",
     "reports": "Reports",
-    "settings": "Settings"
+    "settings": "Settings",
+    "cms": "CMS",
+    "pages": "Pages",
+    "posts": "Posts",
+    "docs": "Docs",
+    "coa": "Chart of Accounts",
+    "journals": "Journal Entries",
+    "periods": "Periods",
+    "pettyCash": "Petty Cash",
+    "reimbursement": "Reimbursement",
+    "reporting": "Reports",
+    "trialBalance": "Trial Balance",
+    "balanceSheet": "Balance Sheet",
+    "profitLoss": "Profit & Loss",
+    "dailySummary": "Daily Summary",
+    "hourlySales": "Hourly Sales",
+    "donations": "Donations",
+    "dailyRevenue": "Daily Revenue",
+    "businessIntelligence": "Business Intelligence",
+    "posCashier": "POS Cashier",
+    "demoMode": "Demo Mode",
+    "promotions": "Promotions",
+    "productsMenu": "Products & Menu",
+    "stockOpname": "Stock Opname",
+    "inventoryVariance": "Inventory Variance",
+    "purchaseOrders": "Purchase Orders",
+    "newPo": "New PO",
+    "tax": "Tax",
+    "taxRates": "Tax Rates",
+    "taxRules": "Tax Rules",
+    "hrPayroll": "HR & Payroll",
+    "employees": "Employees",
+    "attendance": "Attendance",
+    "leave": "Leave",
+    "payroll": "Payroll",
+    "disciplinary": "Disciplinary Actions",
+    "account": "My Account",
+    "auditTrail": "Audit Trail",
+    "locations": "Locations",
+    "posSettings": "POS Settings",
+    "scheduledJobs": "Scheduled Jobs",
+    "notifications": "Notifications",
+    "naixerKds": "Naixer KDS",
+    "permissions": "Permissions",
+    "customFields": "Custom Fields",
+    "workflowEditor": "Workflow Editor",
+    "docsSettings": "Edit Docs"
   },
   "pos": {
     "title": "Point of Sale",
@@ -319,9 +382,13 @@
       "loadingSnapshot": "Loading Demo Mode...",
       "snapshotFailed": "Failed to Load Master Data",
       "retrySnapshot": "Try Again",
-      "noMasterData": "Master Data Not Available",
+      "loadingMasterData": "Loading master data from IndexedDB...",
+      "snapshotHelp": "Make sure production POS has been opened on this browser before. Products, prices, and modifiers must be saved in browser IndexedDB.",
+      "noMasterData": "POS master data needs setup",
+      "noMasterDataHelp": "Open production POS first to load products, prices, and modifiers, then return to demo mode.",
       "openProductionPOS": "Open Production POS"
-    }
+    },
+    "noActiveStore": "No active outlet is available for POS. Activate an outlet in location data first."
   },
   "app": {
     "name": "Aroadri Tea ERP",
@@ -487,6 +554,28 @@
   },
   "settings": {
     "title": "Settings",
+    "locations": {
+      "title": "Locations",
+      "subtitle": "Manage outlets, internal offices, warehouses, addresses, active status, currency, and timezone from the ERP.",
+      "add": "Add location",
+      "save": "Save",
+      "saving": "Saving...",
+      "code": "Code",
+      "nameId": "Name ID",
+      "nameEn": "Name EN",
+      "nameZh": "Name ZH",
+      "type": "Type",
+      "status": "Status",
+      "timezone": "Timezone",
+      "currency": "Currency",
+      "address": "Address",
+      "active": "Active",
+      "inactive": "Inactive",
+      "store": "Outlet",
+      "office": "Office",
+      "warehouse": "Warehouse",
+      "saved": "Location saved."
+    },
     "customFields": {
       "title": "Custom Fields",
       "subtitle": "Add and manage custom columns per module.",
@@ -519,6 +608,58 @@
         "journal_entry": "Journal"
       },
       "confirmDelete": "Delete field \"{name}\"? Stored data will remain."
+    },
+    "pos": {
+      "title": "POS Settings",
+      "subtitle": "Configure posting accounts, delivery channels, tax, and receipt size for each outlet printer.",
+      "operationalDefaults": "Operational Defaults",
+      "save": "Save Settings"
+    },
+    "promotions": {
+      "title": "Promotions",
+      "subtitle": "Manage percentage discounts, fixed discounts, buy X get Y, free items, complimentary items, delivery channels, and quotas from the ERP.",
+      "add": "Add promotion",
+      "save": "Save promotion",
+      "saving": "Saving...",
+      "saved": "Promotion saved.",
+      "code": "Code",
+      "nameId": "Name ID",
+      "nameEn": "Name EN",
+      "nameZh": "Name ZH",
+      "kind": "Kind",
+      "status": "Status",
+      "priority": "Priority",
+      "startsAt": "Starts",
+      "endsAt": "Ends",
+      "locations": "Locations",
+      "channels": "Channels",
+      "conditions": "Conditions",
+      "benefits": "Benefits",
+      "stackable": "Stackable",
+      "requiresApproval": "Requires approval",
+      "usageLimit": "Usage limit",
+      "minSubtotal": "Minimum subtotal",
+      "minQty": "Minimum qty",
+      "memberOnly": "Member only",
+      "percent": "Discount %",
+      "amount": "Fixed discount",
+      "buyQty": "Buy qty",
+      "buyProductId": "Buy product",
+      "getQty": "Free qty",
+      "getProductId": "Free product",
+      "getVariantId": "Free variant",
+      "discountPercent": "Free item discount %",
+      "expenseAccount": "Expense account",
+      "active": "Active",
+      "draft": "Draft",
+      "paused": "Paused",
+      "expired": "Expired",
+      "percentDiscount": "Percentage discount",
+      "fixedDiscount": "Fixed discount",
+      "buyXGetY": "Buy X Get Y",
+      "freeItem": "Free item",
+      "complimentary": "Complimentary",
+      "allLocations": "All locations"
     }
   },
   "workflow": {
@@ -543,6 +684,26 @@
     "confirmDelete": "Delete this workflow? Running instances will remain."
   },
   "reporting": {
+    "bi": {
+      "eyebrow": "Business Intelligence",
+      "title": "Management Dashboard",
+      "subtitle": "Outlet performance summary from {from} to {to}.",
+      "gross": "Gross sales",
+      "netRevenue": "Net revenue",
+      "orders": "Transactions",
+      "weeklyGross": "7-day gross",
+      "pb1": "PB1/PBJT",
+      "deliveryCommission": "Delivery commission",
+      "refunds": "Refunds",
+      "cashVariance": "Cash variance",
+      "locations": "By outlet",
+      "payments": "Payment methods",
+      "topProducts": "Top products",
+      "operations": "Operations",
+      "openShifts": "Open shifts",
+      "activeLocations": "Active outlets",
+      "period": "Period"
+    },
     "omzetHarian": {
       "title": "Daily Revenue",
       "subtitle": "PB1-exclusive omzet with manual fiscal adjustment.",
@@ -615,6 +776,84 @@
     "errors": {
       "allLinesMustBeCounted": "All lines must be counted before submission",
       "approvalRestricted": "Only directors can approve"
+    }
+  },
+  "shell": {
+    "language": "Language",
+    "account": "Account",
+    "accountFallback": "User",
+    "logout": "Sign out",
+    "loggingOut": "Signing out..."
+  },
+  "account": {
+    "title": "My Account",
+    "subtitle": "Manage login identity, default language, email, and password.",
+    "profile": "Profile",
+    "displayName": "Display name",
+    "defaultLanguage": "Default language",
+    "saveProfile": "Save profile",
+    "email": "Email",
+    "emailAddress": "Email address",
+    "currentPassword": "Current password",
+    "saveEmail": "Save email",
+    "password": "Password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "savePassword": "Change password",
+    "saving": "Saving...",
+    "validationFailed": "Check the form fields again.",
+    "profileSaved": "Profile saved.",
+    "emailSaved": "Email updated. Email verification will be requested again when enabled.",
+    "passwordSaved": "Password changed.",
+    "currentPasswordWrong": "Current password is incorrect.",
+    "emailInUse": "Email is already used by another account.",
+    "passwordMismatch": "Password confirmation does not match.",
+    "passwordTooShort": "New password must be at least 12 characters."
+  },
+  "audit": {
+    "title": "Audit Trail",
+    "subtitle": "Trace critical changes across ERP modules: who did what, when, and which data changed.",
+    "entityType": "Entity type",
+    "action": "Action",
+    "allActions": "All actions",
+    "actor": "User",
+    "from": "From date",
+    "to": "To date",
+    "apply": "Apply",
+    "latest": "{count} latest records",
+    "time": "Time",
+    "entityId": "Entity ID",
+    "change": "Change",
+    "viewDiff": "View change",
+    "empty": "No audit records match this filter."
+  },
+  "files": {
+    "choose": "Choose file",
+    "uploading": "Uploading...",
+    "replace": "Replace file",
+    "remove": "Remove file",
+    "uploadFailed": "Upload failed. Check file size or type.",
+    "preview": "Preview",
+    "current": "Current file",
+    "maxSize": "Maximum 10 MB."
+  },
+  "docs": {
+    "badge": "Operations Guide",
+    "toc": "Contents",
+    "edit": "Edit docs",
+    "editor": {
+      "eyebrow": "CMS Docs",
+      "title": "Edit ERP Docs",
+      "subtitle": "Update guides, tutorials, and work instructions from the UI. Saved changes become the Docs page source without editing source code.",
+      "save": "Save Docs",
+      "saving": "Saving...",
+      "docTitle": "Page title",
+      "docSubtitle": "Summary",
+      "body": "Guide body",
+      "markdownHelp": "Use ## for section headings, ### for subsections, 1. for ordered steps, and - for control lists. Internal links can be written as ?Label: /page-path?.",
+      "saved": "Docs saved.",
+      "saveFailed": "Could not save docs.",
+      "unauthorized": "Session expired. Please sign in again."
     }
   }
 }

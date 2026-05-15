@@ -5,7 +5,7 @@ import { useActionState, useEffect, useMemo, useState } from 'react';
 import { type JournalFormAccount, type JournalFormLocation, createJournalAction } from '../actions';
 
 const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
+  'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
 
 interface LineDraft {
   key: number;
@@ -134,7 +134,7 @@ export function JournalForm({ accounts, locations }: Props) {
           <button
             type="button"
             onClick={addLine}
-            className="rounded-lg border border-brand-cream-3 bg-white px-3 py-1.5 text-xs font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
+            className="rounded-lg border border-brand-cream-3 bg-card px-3 py-1.5 text-xs font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
           >
             Tambah baris
           </button>
@@ -152,7 +152,7 @@ export function JournalForm({ accounts, locations }: Props) {
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-cream-3 bg-white">
+            <tbody className="divide-y divide-brand-cream-3 bg-card">
               {lines.map((line, index) => (
                 <tr key={line.key}>
                   <td className="min-w-72 px-4 py-3">
@@ -258,7 +258,7 @@ export function JournalForm({ accounts, locations }: Props) {
         <button
           type="button"
           onClick={() => router.push('/accounting/journals')}
-          className="rounded-lg border border-brand-cream-3 bg-white px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
+          className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
         >
           Batal
         </button>

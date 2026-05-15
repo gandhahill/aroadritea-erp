@@ -193,7 +193,7 @@ export function OmzetHarianClient({
       </div>
 
       {/* Filter bar */}
-      <div className="flex flex-wrap items-end gap-4 rounded-lg border border-brand-cream-3 bg-white p-4">
+      <div className="flex flex-wrap items-end gap-4 rounded-lg border border-brand-cream-3 bg-card p-4">
         <div>
           <label className="mb-1 block text-sm font-medium text-brand-ink">{t('date')}</label>
           <input
@@ -302,7 +302,7 @@ export function OmzetHarianClient({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-brand-cream-3 bg-white">
+              <tbody className="divide-y divide-brand-cream-3 bg-card">
                 <tr>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-brand-ink">
                     {data.date}
@@ -373,7 +373,7 @@ export function OmzetHarianClient({
               <button
                 onClick={handleSave}
                 disabled={isPending || !isDirty}
-                className="rounded-lg border border-brand-cream-3 bg-white px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isPending && isDirty ? 'Menyimpan...' : t('saveAdjustment')}
               </button>

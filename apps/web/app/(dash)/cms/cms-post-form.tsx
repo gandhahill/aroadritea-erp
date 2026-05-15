@@ -3,6 +3,7 @@
  */
 'use client';
 
+import { FileUploadField } from '@/components/file-upload-field';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { createCmsPost, deleteCmsPost, publishCmsPost, updateCmsPost } from './actions';
@@ -15,7 +16,7 @@ interface Props {
 const LOCALE_TABS = [
   { code: 'id', label: 'Bahasa Indonesia' },
   { code: 'en', label: 'English' },
-  { code: 'zh', label: '中文' },
+  { code: 'zh', label: '??' },
 ];
 
 const KIND_OPTIONS = [
@@ -298,18 +299,16 @@ export function CmsPostForm({ post, isNew = false }: Props) {
                 />
               </div>
 
-              <div>
-                <label className="mb-1 block text-xs font-medium text-brand-ink-3">
-                  Gambar Cover URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.coverImageUrl}
-                  onChange={(e) => setFormData((v) => ({ ...v, coverImageUrl: e.target.value }))}
-                  className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-                  placeholder="https://..."
-                />
-              </div>
+              <FileUploadField
+                label="Gambar Cover"
+                hiddenName="coverImageUrl"
+                value={formData.coverImageUrl}
+                area="cms-images"
+                visibility="public"
+                accept="image/*"
+                imageOnly
+                onChange={(url) => setFormData((v) => ({ ...v, coverImageUrl: url }))}
+              />
             </div>
           </div>
 
@@ -319,7 +318,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
               <button
                 onClick={handleDelete}
                 disabled={isPending}
-                className="w-full rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                className="w-full rounded-md border border-red-300 bg-card px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
               >
                 Hapus Post
               </button>

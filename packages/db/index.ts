@@ -150,6 +150,15 @@ export {
   complaintCompensations,
 } from './schema/crm';
 
+// Schema — Promotions
+export { promotions, promotionApplications } from './schema/promotion';
+export type {
+  PromotionBenefitConfig,
+  PromotionConditionConfig,
+  PromotionKind,
+  PromotionStatus,
+} from './schema/promotion';
+
 // Schema — Notifications
 export {
   notificationChannels,

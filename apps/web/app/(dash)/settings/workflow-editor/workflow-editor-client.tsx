@@ -404,7 +404,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
             return (
               <div
                 key={def.id}
-                className="rounded-lg border border-brand-cream-3 bg-white p-4 hover:border-brand-red/30"
+                className="rounded-lg border border-brand-cream-3 bg-card p-4 hover:border-brand-red/30"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
@@ -484,7 +484,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
       {/* Create/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 backdrop-blur-sm py-8">
-          <div className="w-full max-w-2xl rounded-xl border border-brand-cream-3 bg-white shadow-2xl">
+          <div className="w-full max-w-2xl rounded-xl border border-brand-cream-3 bg-card shadow-2xl">
             {/* Modal header */}
             <div className="flex items-center justify-between border-b border-brand-cream-3 px-6 py-4">
               <h2 className="text-lg font-semibold text-brand-ink">
@@ -797,7 +797,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
       {/* Confirm Delete Dialog */}
       {confirmDeleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-xl border border-brand-cream-3 bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-sm rounded-xl border border-brand-cream-3 bg-card p-6 shadow-2xl">
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50">
                 <svg

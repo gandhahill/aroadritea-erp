@@ -15,7 +15,8 @@ export const metadata: Metadata = {
     title: 'Aroadri POS',
   },
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
     apple: '/icons/icon-192.png',
   },
 };

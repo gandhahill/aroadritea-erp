@@ -129,7 +129,7 @@ function LoginContent() {
                 value={selectedLocale}
                 onChange={(e) => handleLocaleChange(e.target.value)}
                 disabled={loading}
-                className="h-10 w-full rounded-md border border-brand-cream-3 bg-white px-3 text-sm text-brand-ink focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)] disabled:opacity-50"
+                className="h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)] disabled:opacity-50"
               >
                 <option value="id">{t('languageId')}</option>
                 <option value="en">{t('languageEn')}</option>
@@ -151,7 +151,7 @@ function LoginContent() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
-                className="h-10 w-full rounded-md border border-brand-cream-3 bg-white px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)] disabled:opacity-50"
+                className="h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)] disabled:opacity-50"
               />
             </div>
 
@@ -170,7 +170,7 @@ function LoginContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
-                  className="h-10 w-full rounded-md border border-brand-cream-3 bg-white px-3 pr-10 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)] disabled:opacity-50"
+                  className="h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 pr-10 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)] disabled:opacity-50"
                 />
                 <button
                   type="button"

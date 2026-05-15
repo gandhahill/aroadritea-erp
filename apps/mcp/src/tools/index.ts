@@ -68,6 +68,9 @@ export {
   MemberGetLoyaltySchema,
   MemberGetVouchersSchema,
   MemberRedeemPointsSchema,
+  promotionTools,
+  PromotionListSchema,
+  PromotionUpsertSchema,
   auditTools,
   AuditSearchSchema,
 } from './phase2';

@@ -88,7 +88,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
         <button
           type="button"
           onClick={() => setShowUploadForm((v) => !v)}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-brand-cream-3 bg-white px-3 py-1.5 text-xs font-medium text-brand-ink transition-colors hover:bg-brand-cream-1"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-brand-cream-3 bg-card px-3 py-1.5 text-xs font-medium text-brand-ink transition-colors hover:bg-brand-cream-1"
         >
           <svg
             className="h-3.5 w-3.5"
@@ -121,7 +121,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
               type="file"
               name="file"
               required
-              className="block flex-1 rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-xs text-brand-ink"
+              className="block flex-1 rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-xs text-brand-ink"
             />
             <button
               type="submit"
@@ -192,7 +192,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
               <div className="flex items-center gap-2 flex-shrink-0">
                 <a
                   href={`/api/accounting/journal-attachments/${att.id}`}
-                  className="inline-flex items-center gap-1 rounded-md border border-brand-cream-3 bg-white px-2.5 py-1.5 text-xs font-medium text-brand-ember-5 transition-colors hover:bg-brand-ember-5 hover:text-white"
+                  className="inline-flex items-center gap-1 rounded-md border border-brand-cream-3 bg-card px-2.5 py-1.5 text-xs font-medium text-brand-ember-5 transition-colors hover:bg-brand-ember-5 hover:text-white"
                 >
                   <svg
                     className="h-3.5 w-3.5"
@@ -214,7 +214,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
                   type="button"
                   onClick={() => handleDelete(att.id)}
                   disabled={deletingId === att.id || isPending}
-                  className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-white px-2.5 py-1.5 text-xs font-medium text-rose-500 transition-colors hover:bg-rose-50 disabled:opacity-50"
+                  className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-card px-2.5 py-1.5 text-xs font-medium text-rose-500 transition-colors hover:bg-rose-50 disabled:opacity-50"
                 >
                   {deletingId === att.id ? (
                     <>

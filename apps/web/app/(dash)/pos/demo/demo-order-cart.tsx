@@ -27,7 +27,7 @@ export function DemoOrderCart() {
       {state.lines.map((line) => (
         <div
           key={line.id}
-          className="flex items-center gap-2 rounded-lg border border-brand-cream-3 bg-white px-3 py-2"
+          className="flex items-center gap-2 rounded-lg border border-brand-cream-3 bg-card px-3 py-2"
         >
           {/* Product info */}
           <div className="flex-1 min-w-0">

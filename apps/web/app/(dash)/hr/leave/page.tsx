@@ -40,7 +40,7 @@ export default async function LeavePage() {
             <p className="text-sm text-brand-ink-3">Belum ada jenis cuti.</p>
           ) : (
             data.types.map((type) => (
-              <div key={type.id} className="rounded-lg border border-brand-cream-3 bg-white p-4">
+              <div key={type.id} className="rounded-lg border border-brand-cream-3 bg-card p-4">
                 <p className="font-semibold text-brand-ink">{pickName(type.name, locale)}</p>
                 <p className="mt-1 text-xs text-brand-ink-3">
                   {type.code} - {type.annualQuotaDays} hari/tahun -{' '}
@@ -113,7 +113,7 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-brand-cream-3 bg-white">
+        <tbody className="divide-y divide-brand-cream-3 bg-card">
           {rows.length === 0 ? (
             <tr>
               <td colSpan={headers.length} className="px-4 py-6 text-center text-brand-ink-3">

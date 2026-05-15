@@ -42,7 +42,7 @@ export default function DemoPosPage() {
       <div className="flex flex-1 flex-col items-center justify-center">
         <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-brand-cream-3 border-t-brand-red" />
         <p className="text-sm text-brand-ink-3">{t('demo.loadingSnapshot')}</p>
-        <p className="mt-1 text-xs text-brand-ink-3">Memuat data master dari IndexedDB...</p>
+        <p className="mt-1 text-xs text-brand-ink-3">{t('demo.loadingMasterData')}</p>
       </div>
     );
   }
@@ -68,10 +68,8 @@ export default function DemoPosPage() {
         </div>
         <h2 className="mb-2 text-lg font-semibold text-brand-ink">{t('demo.snapshotFailed')}</h2>
         <p className="mb-1 text-sm text-red-600">{snapshotError}</p>
-        <p className="mb-6 text-center text-xs text-brand-ink-3">
-          Pastikan Anda sudah pernah menggunakan POS produksi.
-          <br />
-          Data master (produk, harga, modifier) harus tersimpan di IndexedDB browser.
+        <p className="mb-6 max-w-md text-center text-xs text-brand-ink-3">
+          {t('demo.snapshotHelp')}
         </p>
         <button
           onClick={refreshSnapshot}
@@ -103,10 +101,8 @@ export default function DemoPosPage() {
           </svg>
         </div>
         <h2 className="mb-2 text-lg font-semibold text-brand-ink">{t('demo.noMasterData')}</h2>
-        <p className="mb-6 text-center text-sm text-brand-ink-3">
-          Data master POS belum tersedia.
-          <br />
-          Buka POS produksi terlebih dahulu untuk memuat data, lalu kembali ke mode demo.
+        <p className="mb-6 max-w-md text-center text-sm text-brand-ink-3">
+          {t('demo.noMasterDataHelp')}
         </p>
         <a
           href="/pos"

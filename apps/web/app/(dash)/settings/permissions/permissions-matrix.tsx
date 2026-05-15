@@ -73,9 +73,9 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
-              <thead className="bg-white text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+              <thead className="bg-card text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                 <tr>
-                  <th className="sticky left-0 z-10 min-w-64 bg-white px-4 py-3">Permission</th>
+                  <th className="sticky left-0 z-10 min-w-64 bg-card px-4 py-3">Permission</th>
                   {matrix.roles.map((role) => (
                     <th key={role.id} className="px-4 py-3 text-center">
                       {role.name.id ?? role.code}
@@ -83,10 +83,10 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-brand-cream-3 bg-white">
+              <tbody className="divide-y divide-brand-cream-3 bg-card">
                 {permissions.map((permission) => (
                   <tr key={permission.id} className="hover:bg-brand-cream-1/60">
-                    <td className="sticky left-0 z-10 bg-white px-4 py-3">
+                    <td className="sticky left-0 z-10 bg-card px-4 py-3">
                       <p className="font-mono text-xs font-semibold text-brand-ink">
                         {permission.code}
                       </p>

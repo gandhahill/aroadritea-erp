@@ -36,7 +36,7 @@ export default async function NotificationSettingsPage() {
                     <th className="px-4 py-3">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-brand-cream-3 bg-white">
+                <tbody className="divide-y divide-brand-cream-3 bg-card">
                   {channels.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-4 py-8 text-center text-brand-ink-3">

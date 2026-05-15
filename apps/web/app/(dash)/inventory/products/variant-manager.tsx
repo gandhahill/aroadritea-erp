@@ -5,7 +5,7 @@ import { useActionState } from 'react';
 import { createVariantAction } from './actions';
 
 const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
+  'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
 
 export function VariantManager({
   productId,
@@ -33,7 +33,7 @@ export function VariantManager({
               <th className="px-4 py-3">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-brand-cream-3 bg-white">
+          <tbody className="divide-y divide-brand-cream-3 bg-card">
             {variants.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-6 text-center text-brand-ink-3">

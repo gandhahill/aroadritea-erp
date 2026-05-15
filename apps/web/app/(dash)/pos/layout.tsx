@@ -7,6 +7,8 @@
  */
 
 import { getSession } from '@/lib/auth';
+import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/location-options';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { OfflineBanner } from './components/offline-banner';
 import { OfflineSyncProvider } from './lib/offline-sync-context';
@@ -20,13 +22,20 @@ export default async function PosLayout({ children }: { children: React.ReactNod
   if (!session) redirect('/login');
 
   const user = session.user as Record<string, unknown>;
-  const locationId = String(user.locationId ?? '');
   const tenantId = String(user.tenantId ?? 'default');
+  const locale = (await getLocale()) as 'id' | 'en' | 'zh';
+  const t = await getTranslations('pos');
+  const locationOptions = await getActiveLocationOptions({ tenantId, locale, type: 'store' });
+  const locationId = resolveDefaultLocationId(
+    locationOptions,
+    undefined,
+    String(user.locationId ?? ''),
+  );
 
   if (!locationId) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-brand-cream">
-        <p className="text-brand-ink-3">No location assigned. Contact administrator.</p>
+        <p className="max-w-md text-center text-brand-ink-3">{t('noActiveStore')}</p>
       </div>
     );
   }

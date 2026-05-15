@@ -73,7 +73,7 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
               onChange={(e) => setForm((f) => ({ ...f, locationId: e.target.value }))}
               required
               disabled={locationOptions.length === 0}
-              className="w-full rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5 disabled:opacity-60"
+              className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5 disabled:opacity-60"
             >
               {locationOptions.length === 0 ? (
                 <option value="">Belum ada lokasi aktif</option>
@@ -98,7 +98,7 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
               value={form.sessionDate}
               onChange={(e) => setForm((f) => ({ ...f, sessionDate: e.target.value }))}
               required
-              className="w-full rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
+              className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
             />
           </div>
 
@@ -114,7 +114,7 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
               value={form.periodCode}
               onChange={(e) => setForm((f) => ({ ...f, periodCode: e.target.value }))}
               required
-              className="w-full rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
+              className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
             />
             <p className="text-xs text-brand-ink-3">
               Periode akuntansi untuk menjurnal penyesuaian opname. Contoh: 2026-05
@@ -132,7 +132,7 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
               placeholder="Catatan opsional untuk sesi ini..."
               value={form.notes}
               onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-              className="w-full rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
+              className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
             />
           </div>
 
@@ -146,7 +146,7 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
             <button
               type="button"
               onClick={() => router.back()}
-              className="rounded-lg border border-brand-cream-3 bg-white px-4 py-2 text-sm font-medium text-brand-ink transition-colors hover:bg-brand-cream-1"
+              className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink transition-colors hover:bg-brand-cream-1"
             >
               Batal
             </button>

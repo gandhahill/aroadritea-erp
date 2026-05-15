@@ -79,7 +79,19 @@ const DEFAULT_PB1_TAX_CODE = 'PB1';
 const DEFAULT_CASH_ACCOUNT_CODE = '1-1300';
 const DEFAULT_REVENUE_ACCOUNT_CODE = '4-1100';
 const DEFAULT_DONATION_TRUST_ACCOUNT_CODE = '2-2050';
-const DEFAULT_DELIVERY_CHANNELS = ['gofood', 'grabfood', 'shopeefood'] as const;
+const DEFAULT_DELIVERY_CHANNELS = [
+  { id: 'gofood', label: 'GoFood', netBps: 8000, enabled: true },
+  { id: 'grabfood', label: 'GrabFood', netBps: 8000, enabled: true },
+  { id: 'shopeefood', label: 'ShopeeFood', netBps: 8000, enabled: true },
+] as const;
+
+interface DeliveryChannelConfig {
+  id: string;
+  label: string;
+  netBps: number;
+  commissionBps: number;
+  enabled: boolean;
+}
 
 interface PosPostingConfig {
   taxCode: string;
@@ -88,7 +100,7 @@ interface PosPostingConfig {
   cashAccountId: string;
   revenueAccountId: string;
   donationTrustAccountId: string;
-  deliveryChannels: Set<string>;
+  deliveryChannels: Map<string, DeliveryChannelConfig>;
 }
 
 interface NormalizedPaymentRecord {
@@ -104,14 +116,43 @@ interface NormalizedPayments {
   donationResult: DonationResult;
 }
 
-function parseDeliveryChannels(raw: unknown): Set<string> {
-  const value = Array.isArray(raw) ? raw.join(',') : DEFAULT_DELIVERY_CHANNELS.join(',');
-  return new Set(
-    value
-      .split(',')
-      .map((value) => value.trim())
-      .filter(Boolean),
-  );
+function normalizeDeliveryChannelConfig(raw: unknown): DeliveryChannelConfig[] {
+  const source = Array.isArray(raw) && raw.length > 0 ? raw : [...DEFAULT_DELIVERY_CHANNELS];
+  const channels = new Map<string, DeliveryChannelConfig>();
+
+  for (const item of source) {
+    const record =
+      typeof item === 'string'
+        ? { id: item, label: item, netBps: 8000, enabled: true }
+        : item && typeof item === 'object'
+          ? (item as Record<string, unknown>)
+          : null;
+    if (!record) continue;
+
+    const id = String(record.id ?? '')
+      .trim()
+      .toLowerCase();
+    if (!/^[a-z0-9_-]{2,32}$/.test(id)) continue;
+
+    const rawNetBps = Number(record.netBps ?? 8000);
+    const rawCommissionBps = Number(record.commissionBps ?? 10000 - rawNetBps);
+    const netBps = Number.isFinite(rawNetBps)
+      ? Math.min(10000, Math.max(0, Math.trunc(rawNetBps)))
+      : 8000;
+    const commissionBps = Number.isFinite(rawCommissionBps)
+      ? Math.min(10000, Math.max(0, Math.trunc(rawCommissionBps)))
+      : 10000 - netBps;
+
+    channels.set(id, {
+      id,
+      label: String(record.label ?? id).trim() || id,
+      netBps,
+      commissionBps,
+      enabled: record.enabled !== false,
+    });
+  }
+
+  return [...channels.values()];
 }
 
 async function resolveAccountIdByCode(tenantId: string, code: string): Promise<Result<string>> {
@@ -245,7 +286,11 @@ async function resolvePosPostingConfig(
     cashAccountId: cashAccount.value,
     revenueAccountId: revenueAccount.value,
     donationTrustAccountId: donationTrustAccount.value,
-    deliveryChannels: parseDeliveryChannels(setting?.deliveryChannelsJson),
+    deliveryChannels: new Map(
+      normalizeDeliveryChannelConfig(setting?.deliveryChannelsJson)
+        .filter((channel) => channel.enabled)
+        .map((channel) => [channel.id, channel]),
+    ),
   });
 }
 
@@ -658,6 +703,13 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     );
     if (!postingConfigResult.ok) return postingConfigResult;
     const postingConfig = postingConfigResult.value;
+    if (data.channel !== 'walk_in' && !postingConfig.deliveryChannels.has(data.channel)) {
+      return err(
+        AppError.businessRule('pos.createSale.deliveryChannelNotConfigured', {
+          channel: data.channel,
+        }),
+      );
+    }
 
     // 6. Calculate totals
     let totalSubtotal = BigInt(0);

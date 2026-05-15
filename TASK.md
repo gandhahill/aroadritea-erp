@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-15 15:31 | 🟨 IN_PROGRESS | Critical fixes deployed and smoke-tested; remaining work is the full MD requirement matrix and deeper module-by-module audit |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-15 20:06 | 🟨 IN_PROGRESS | Local traceability audit and critical fixes are passing typecheck/test/lint/build; remaining work is commit/push/deploy plus live smoke verification |
 
 ---
 

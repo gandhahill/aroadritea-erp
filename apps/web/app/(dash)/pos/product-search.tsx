@@ -83,7 +83,7 @@ export function ProductSearch() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t('searchProduct')}
-            className="h-10 w-full rounded-md border border-brand-cream-3 bg-white py-2 pl-10 pr-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
+            className="h-10 w-full rounded-md border border-brand-cream-3 bg-card py-2 pl-10 pr-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
           />
         </div>
       </div>
@@ -148,7 +148,7 @@ export function ProductSearch() {
               return (
                 <div
                   key={product.id}
-                  className="flex min-h-[190px] flex-col gap-2 rounded-lg border border-brand-cream-3 bg-white p-3 text-left transition-shadow hover:border-brand-red/30 hover:shadow-sm"
+                  className="flex min-h-[190px] flex-col gap-2 rounded-lg border border-brand-cream-3 bg-card p-3 text-left transition-shadow hover:border-brand-red/30 hover:shadow-sm"
                 >
                   {/* Product image */}
                   {product.imageUrl ? (

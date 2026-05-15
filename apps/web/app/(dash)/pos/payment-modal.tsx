@@ -14,15 +14,12 @@ import { createSaleAction } from './actions';
 import { useOfflineSync } from './lib/offline-sync-context';
 import { usePosCart } from './pos-cart-context';
 
-const PAYMENT_METHODS = [
-  { id: 'cash', icon: '💵' },
-  { id: 'qris', icon: '📱' },
-  { id: 'flazz', icon: '💳' },
-  { id: 'debit', icon: '💳' },
-  { id: 'credit', icon: '💳' },
-  { id: 'gofood', icon: '🛵' },
-  { id: 'grabfood', icon: '🛵' },
-  { id: 'shopeefood', icon: '🛵' },
+const BASE_PAYMENT_METHODS = [
+  { id: 'cash', badge: 'Rp' },
+  { id: 'qris', badge: 'QR' },
+  { id: 'flazz', badge: 'FLZ' },
+  { id: 'debit', badge: 'DBT' },
+  { id: 'credit', badge: 'CRD' },
 ] as const;
 
 interface PaymentModalProps {
@@ -39,7 +36,7 @@ interface SplitPayment {
 export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   const t = useTranslations('pos');
   const { state, totalPaid, clearCart } = usePosCart();
-  const { isOnline, enqueueOrder } = useOfflineSync();
+  const { isOnline, enqueueOrder, syncNow } = useOfflineSync();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +47,10 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   const [splitPayments, setSplitPayments] = useState<SplitPayment[]>([]);
 
   const [donationChoice, setDonationChoice] = useState<RoundingOption>('no_donation');
+  const paymentMethods = useMemo(() => {
+    if (state.channel === 'walk_in') return [...BASE_PAYMENT_METHODS];
+    return [...BASE_PAYMENT_METHODS, { id: state.channel, badge: channelBadge(state.channel) }];
+  }, [state.channel]);
 
   // Cash tendered so far in this modal (numeric input + split list)
   const currentInputBig = parseMoney(inputAmount);
@@ -139,11 +140,12 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
       notes: l.notes,
     }));
 
+    const clientOrderUuid = crypto.randomUUID();
     const input = {
       shiftId: state.shiftId,
       channel: state.channel,
       locationId: state.locationId,
-      idempotencyKey: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      idempotencyKey: clientOrderUuid,
       lines,
       payments,
       customerId: state.customer?.id,
@@ -153,28 +155,45 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
     startTransition(async () => {
       setError(null);
 
-      // Online: call server action directly
-      if (isOnline) {
-        const result = await createSaleAction(input as Parameters<typeof createSaleAction>[0]);
-        if (result.ok) {
-          clearCart();
-          onClose();
-        } else {
-          setError(result.error?.message ?? t('paymentFailed'));
-        }
-        return;
-      }
-
-      // Offline: enqueue to IndexedDB outbox immediately
-      const clientOrderUuid = input.idempotencyKey;
       await enqueueOrder({
         clientOrderUuid,
         createdAtClient: new Date().toISOString(),
         payload: input,
       });
 
+      if (isOnline) {
+        try {
+          const result = await createSaleAction(input as Parameters<typeof createSaleAction>[0]);
+          const { markOrderSynced, removePendingOrder } = await import('@erp/offline');
+          if (result.ok) {
+            await markOrderSynced(clientOrderUuid, result.value.number);
+            clearCart();
+            onClose();
+          } else {
+            const permanentFailure = ['VALIDATION_FAILED', 'BUSINESS_RULE', 'FORBIDDEN'].includes(
+              result.error.code,
+            );
+            if (permanentFailure) {
+              await removePendingOrder(clientOrderUuid);
+              setError(result.error.messageKey ?? t('paymentFailed'));
+            } else {
+              clearCart();
+              onClose();
+              void syncNow();
+            }
+          }
+          return;
+        } catch {
+          clearCart();
+          onClose();
+          void syncNow();
+          return;
+        }
+      }
+
       clearCart();
       onClose();
+      void syncNow();
     });
   }
 
@@ -189,7 +208,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
       />
 
       {/* Modal */}
-      <div className="relative z-10 flex h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-2xl sm:h-auto sm:rounded-2xl">
+      <div className="relative z-10 flex h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-card shadow-2xl sm:h-auto sm:rounded-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-brand-cream-3 px-5 py-4">
           <h2 className="text-base font-semibold text-brand-ink">{t('payment')}</h2>
@@ -226,7 +245,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
               {t('paymentMethod')}
             </p>
             <div className="grid grid-cols-4 gap-2">
-              {PAYMENT_METHODS.map((m) => (
+              {paymentMethods.map((m) => (
                 <button
                   type="button"
                   key={m.id}
@@ -237,8 +256,10 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
                       : 'border-brand-cream-3 text-brand-ink-2 hover:border-brand-red/30'
                   }`}
                 >
-                  <span className="text-base">{m.icon}</span>
-                  <span>{t(`paymentMethods.${m.id}` as never)}</span>
+                  <span className="rounded bg-brand-cream-3 px-1.5 py-0.5 text-[10px] font-bold">
+                    {m.badge}
+                  </span>
+                  <span>{paymentMethodLabel(m.id, t)}</span>
                 </button>
               ))}
             </div>
@@ -261,7 +282,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
                     value={inputAmount}
                     onChange={(e) => setInputAmount(e.target.value.replace(/\D/g, ''))}
                     placeholder={formatRupiah(remaining.toString())}
-                    className="h-12 w-full rounded-lg border border-brand-cream-3 bg-white py-2 pl-8 pr-3 text-base font-semibold text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
+                    className="h-12 w-full rounded-lg border border-brand-cream-3 bg-card py-2 pl-8 pr-3 text-base font-semibold text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
                   />
                 </div>
                 {remaining > BigInt(0) && (
@@ -354,7 +375,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-brand-ink-3">
-                        {t(`paymentMethods.${p.method}` as never)}
+                        {paymentMethodLabel(p.method, t)}
                       </span>
                       <span className="text-sm font-medium text-brand-ink">
                         {formatRupiah(p.amount)}
@@ -444,4 +465,34 @@ function formatRupiah(value: string | bigint): string {
 
 function parseMoney(value: string): bigint {
   return /^\d+$/.test(value) ? BigInt(value) : BigInt(0);
+}
+
+function channelBadge(channel: string): string {
+  return channel
+    .split(/[_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('')
+    .slice(0, 3);
+}
+
+function humanize(value: string): string {
+  return value
+    .split(/[_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function paymentMethodLabel(method: string, t: ReturnType<typeof useTranslations>): string {
+  switch (method) {
+    case 'cash':
+    case 'qris':
+    case 'flazz':
+    case 'debit':
+    case 'credit':
+      return t(`paymentMethods.${method}` as never);
+    default:
+      return humanize(method);
+  }
 }

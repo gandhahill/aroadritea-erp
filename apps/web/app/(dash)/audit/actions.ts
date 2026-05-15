@@ -1,0 +1,86 @@
+'use server';
+
+import { getSession } from '@/lib/auth';
+import { and, db, desc, eq, gte, ilike, lte } from '@erp/db';
+import { auditLog } from '@erp/db/schema/audit';
+import { users } from '@erp/db/schema/auth';
+import { requirePermission } from '@erp/services/iam';
+import { redirect } from 'next/navigation';
+
+export interface AuditTrailRow {
+  id: string;
+  createdAt: string;
+  userId: string;
+  userLabel: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  before: unknown;
+  after: unknown;
+  metadata: unknown;
+}
+
+export interface AuditTrailFilters {
+  entityType?: string;
+  action?: string;
+  actor?: string;
+  from?: string;
+  to?: string;
+}
+
+export async function fetchAuditTrail(filters: AuditTrailFilters): Promise<AuditTrailRow[]> {
+  const session = await getSession();
+  if (!session) redirect('/login');
+
+  const user = session.user as Record<string, unknown>;
+  const tenantId = String(user.tenantId ?? 'default');
+  const userId = String(user.id ?? '');
+  const permission = await requirePermission(userId, 'audit.view');
+  if (!permission.ok) return [];
+
+  const conditions = [eq(auditLog.tenantId, tenantId)];
+
+  if (filters.entityType) conditions.push(ilike(auditLog.entityType, `%${filters.entityType}%`));
+  if (filters.action) conditions.push(eq(auditLog.action, filters.action));
+  if (filters.actor) conditions.push(ilike(auditLog.userId, `%${filters.actor}%`));
+  if (filters.from)
+    conditions.push(gte(auditLog.createdAt, new Date(`${filters.from}T00:00:00+07:00`)));
+  if (filters.to) {
+    const toDate = new Date(`${filters.to}T00:00:00+07:00`);
+    toDate.setDate(toDate.getDate() + 1);
+    conditions.push(lte(auditLog.createdAt, toDate));
+  }
+
+  const rows = await db
+    .select({
+      id: auditLog.id,
+      createdAt: auditLog.createdAt,
+      userId: auditLog.userId,
+      userName: users.displayName,
+      userEmail: users.email,
+      action: auditLog.action,
+      entityType: auditLog.entityType,
+      entityId: auditLog.entityId,
+      before: auditLog.before,
+      after: auditLog.after,
+      metadata: auditLog.metadata,
+    })
+    .from(auditLog)
+    .leftJoin(users, eq(users.id, auditLog.userId))
+    .where(and(...conditions))
+    .orderBy(desc(auditLog.createdAt))
+    .limit(200);
+
+  return rows.map((row) => ({
+    id: row.id,
+    createdAt: row.createdAt.toISOString(),
+    userId: row.userId,
+    userLabel: row.userName ? `${row.userName} (${row.userEmail ?? row.userId})` : row.userId,
+    action: row.action,
+    entityType: row.entityType,
+    entityId: row.entityId,
+    before: row.before,
+    after: row.after,
+    metadata: row.metadata,
+  }));
+}

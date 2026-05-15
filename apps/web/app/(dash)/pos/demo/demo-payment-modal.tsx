@@ -148,7 +148,7 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
         onClick={onClose}
       />
 
-      <div className="relative z-10 flex h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-2xl sm:h-auto sm:rounded-2xl">
+      <div className="relative z-10 flex h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-card shadow-2xl sm:h-auto sm:rounded-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-brand-cream-3 px-5 py-4">
           <h2 className="text-base font-semibold text-brand-ink">{t('payment')}</h2>
@@ -220,7 +220,7 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
                     value={inputAmount}
                     onChange={(e) => setInputAmount(e.target.value.replace(/\D/g, ''))}
                     placeholder={formatRupiah(remaining.toString())}
-                    className="h-12 w-full rounded-lg border border-brand-cream-3 bg-white py-2 pl-8 pr-3 text-base font-semibold text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
+                    className="h-12 w-full rounded-lg border border-brand-cream-3 bg-card py-2 pl-8 pr-3 text-base font-semibold text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
                   />
                 </div>
                 <button

@@ -1,5 +1,6 @@
 'use client';
 
+import { FileUploadField } from '@/components/file-upload-field';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect } from 'react';
 import { createProductAction, updateProductAction } from './actions';
@@ -14,7 +15,7 @@ const KIND_OPTIONS: Array<{ value: ProductKind; label: string }> = [
 ];
 
 const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
+  'w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
 
 interface Props {
   mode: 'create' | 'edit';
@@ -107,14 +108,17 @@ export function ProductForm({ mode, categories, product }: Props) {
           <Field label="Kode pajak">
             <input name="taxCode" defaultValue={product?.taxCode ?? ''} className={INPUT} />
           </Field>
-          <Field label="Gambar produk">
-            <input
-              name="imageUrl"
-              defaultValue={product?.imageUrl ?? ''}
-              placeholder="/menu/bamboo-oolong.jpg atau https://..."
-              className={INPUT}
-            />
-          </Field>
+        </div>
+        <div className="mt-4">
+          <FileUploadField
+            label="Gambar produk"
+            hiddenName="imageUrl"
+            value={product?.imageUrl}
+            area="product-images"
+            visibility="public"
+            accept="image/*"
+            imageOnly
+          />
         </div>
       </section>
 
@@ -199,7 +203,7 @@ export function ProductForm({ mode, categories, product }: Props) {
         <button
           type="button"
           onClick={() => router.push('/inventory/products')}
-          className="rounded-lg border border-brand-cream-3 bg-white px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
+          className="rounded-lg border border-brand-cream-3 bg-brand-cream px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
         >
           Batal
         </button>
@@ -253,7 +257,7 @@ function Toggle({
   defaultChecked: boolean;
 }) {
   return (
-    <label className="flex items-center gap-3 rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm font-medium text-brand-ink">
+    <label className="flex items-center gap-3 rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm font-medium text-brand-ink">
       <input
         type="checkbox"
         name={name}

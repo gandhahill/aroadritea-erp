@@ -303,7 +303,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-cream-3 bg-white">
+            <tbody className="divide-y divide-brand-cream-3 bg-card">
               {filteredFields.map((field) => {
                 const nameObj = field.name as Record<string, string>;
                 return (
@@ -405,7 +405,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
       {/* Create/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-xl border border-brand-cream-3 bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-lg rounded-xl border border-brand-cream-3 bg-card p-6 shadow-2xl">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-brand-ink">
                 {editingId ? t('editField') : t('createField')}
@@ -586,7 +586,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
       {/* Confirm Delete Dialog */}
       {confirmDeleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-xl border border-brand-cream-3 bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-sm rounded-xl border border-brand-cream-3 bg-card p-6 shadow-2xl">
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50">
                 <svg

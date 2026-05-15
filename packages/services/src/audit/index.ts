@@ -122,7 +122,7 @@ function sanitizeRecord(
   if (data === null || data === undefined) return null;
   const sanitized: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(data)) {
-    if (v instanceof BigInt) {
+    if (typeof v === 'bigint') {
       sanitized[k] = String(v);
     } else if (v instanceof Date) {
       sanitized[k] = v.toISOString();

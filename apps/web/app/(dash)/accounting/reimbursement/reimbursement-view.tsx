@@ -1,5 +1,6 @@
 'use client';
 
+import { FileUploadField } from '@/components/file-upload-field';
 import { useMemo, useState, useTransition } from 'react';
 import type { LocationItem, ReimbursementItem } from './actions';
 import {
@@ -76,6 +77,8 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('operational');
   const [description, setDescription] = useState('');
+  const [attachmentUrl, setAttachmentUrl] = useState('');
+  const [attachmentName, setAttachmentName] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -98,7 +101,14 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
 
     startTransition(async () => {
       const result = await createReimbursement(
-        { locationId, amount: amountNum, category, description: description.trim() },
+        {
+          locationId,
+          amount: amountNum,
+          category,
+          description: description.trim(),
+          attachmentUrl: attachmentUrl || undefined,
+          attachmentName: attachmentName || undefined,
+        },
         tenantId,
         userId,
       );
@@ -138,7 +148,7 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
             <select
               value={locationId}
               onChange={(e) => setLocationId(e.target.value)}
-              className="mt-1 w-full rounded-md border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+              className="mt-1 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
             >
               <option value="">Pilih lokasi...</option>
               {locations.map((loc) => (
@@ -156,7 +166,7 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
               value={amount}
               onChange={handleAmountChange}
               placeholder="0"
-              className="mt-1 w-full rounded-md border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+              className="mt-1 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
             />
           </div>
 
@@ -165,7 +175,7 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="mt-1 w-full rounded-md border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+              className="mt-1 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
             >
               {CATEGORY_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -182,9 +192,21 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
               placeholder="Jelaskan alasan pengajuan..."
-              className="mt-1 w-full resize-none rounded-md border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+              className="mt-1 w-full resize-none rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
             />
           </div>
+
+          <FileUploadField
+            label="Lampiran"
+            hiddenName="attachmentUrl"
+            value={attachmentUrl}
+            area="reimbursement"
+            visibility="private"
+            onChange={(url, name) => {
+              setAttachmentUrl(url);
+              setAttachmentName(name);
+            }}
+          />
 
           {error && (
             <p className="rounded-md bg-brand-clay-light px-3 py-2 text-xs text-brand-clay">
@@ -235,7 +257,7 @@ function RejectModal({ onConfirm, onClose, isPending }: RejectModalProps) {
             onChange={(e) => setReason(e.target.value)}
             rows={3}
             placeholder="Jelaskan alasan penolakan..."
-            className="mt-1 w-full resize-none rounded-md border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+            className="mt-1 w-full resize-none rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
           />
         </div>
         <div className="flex justify-end gap-2">
@@ -559,7 +581,18 @@ function ReimbursementViewInner({
             {selected.attachmentName && (
               <div className="sm:col-span-2">
                 <span className="text-xs font-medium text-brand-ink-3">Lampiran</span>
-                <p className="mt-1 text-sm text-brand-ink">{selected.attachmentName}</p>
+                {selected.attachmentUrl ? (
+                  <a
+                    href={selected.attachmentUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1 block text-sm font-semibold text-brand-red"
+                  >
+                    {selected.attachmentName}
+                  </a>
+                ) : (
+                  <p className="mt-1 text-sm text-brand-ink">{selected.attachmentName}</p>
+                )}
               </div>
             )}
 

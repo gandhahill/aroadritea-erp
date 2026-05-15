@@ -74,7 +74,7 @@
   "menu": {
     "title": "Aroadri Tea Menu",
     "subtitle": "Prices follow Regular/Large and Hot/Cold variants. Sugar, ice, and topping options are available when ordering.",
-    "empty": "Menu is not available yet.",
+    "empty": "The outlet is refreshing this menu.",
     "from": "From",
     "priceUnavailable": "Outlet price",
     "optionsTitle": "Customization options",

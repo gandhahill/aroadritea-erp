@@ -75,15 +75,18 @@ export interface VarianceReportResult {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Format a nullable bigint as string (sen/rupiah). */
-function bigIntToStr(v: bigint | null): string {
-  return v == null ? '0' : v.toString();
-}
-
 /** Signed numeric from DB numeric string. */
 function parseNumeric(v: string | number | null | undefined): number {
   if (v == null) return 0;
   return Number.parseFloat(String(v));
+}
+
+function localizeName(value: unknown, fallback: string): string {
+  if (typeof value === 'string') return value;
+  if (!value || typeof value !== 'object') return fallback;
+  const name = value as { id?: unknown; en?: unknown; zh?: unknown };
+  const candidate = name.id ?? name.en ?? name.zh;
+  return typeof candidate === 'string' && candidate.trim() ? candidate : fallback;
 }
 
 // ─── Service ──────────────────────────────────────────────────────────────────
@@ -177,13 +180,7 @@ export async function getVarianceReport(
     .from(locations)
     .where(sql`${locations.id} = ANY(${locationIds})`);
 
-  const locationMap = new Map(
-    locationRows.map((l) => [
-      l.id,
-      // name is jsonb { id, en, zh } — extract id locale
-      (l.name as { id: string; en: string; zh: string } | null)?.id ?? l.id,
-    ]),
-  );
+  const locationMap = new Map(locationRows.map((l) => [l.id, localizeName(l.name, l.id)]));
 
   // ── Build session rows ────────────────────────────────────────────────────────
   const linesBySession = new Map<string, typeof lines>();
@@ -306,9 +303,7 @@ export async function getVarianceReport(
 
     productRows2.push({
       productId,
-      productName: product
-        ? String((product.name as { id: string; en: string; zh: string })?.id ?? product.name)
-        : productId,
+      productName: product ? localizeName(product.name, productId) : productId,
       categoryId: product?.categoryId ?? null,
       sku: product?.sku ?? null,
       uom,

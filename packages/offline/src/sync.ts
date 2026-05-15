@@ -61,6 +61,8 @@ async function syncOrder(order: DbPendingOrder): Promise<boolean> {
   try {
     const response = await fetch(SYNC_ENDPOINT, {
       method: 'POST',
+      credentials: 'same-origin',
+      cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
         'Idempotency-Key': order.clientOrderUuid,
@@ -143,6 +145,7 @@ async function isOnline(): Promise<boolean> {
     const timeoutId = setTimeout(() => controller.abort(), 3000);
     const res = await fetch('/api/healthz', {
       method: 'GET',
+      cache: 'no-store',
       signal: controller.signal,
     });
     clearTimeout(timeoutId);
@@ -175,7 +178,9 @@ export function startSyncScheduler(): () => void {
   }, SYNC_INTERVAL_MS);
 
   // Also flush immediately when coming back online
-  const handleOnline = () => flushOutbox();
+  const handleOnline = () => {
+    void flushOutbox();
+  };
   window.addEventListener('online', handleOnline);
 
   // Return cleanup function

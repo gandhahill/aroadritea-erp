@@ -100,7 +100,7 @@ export function MemberLookup() {
           value={phone}
           onChange={(event) => setPhone(event.target.value)}
           placeholder={t('memberPhonePlaceholder')}
-          className="h-10 min-w-0 flex-1 rounded-md border border-brand-cream-3 bg-white px-3 text-sm font-medium text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
+          className="h-10 min-w-0 flex-1 rounded-md border border-brand-cream-3 bg-card px-3 text-sm font-medium text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
         />
         <button
           type="submit"
@@ -116,7 +116,7 @@ export function MemberLookup() {
       )}
 
       {candidate && (
-        <div className="mt-3 rounded-md border border-brand-red/25 bg-white p-3 shadow-sm">
+        <div className="mt-3 rounded-md border border-brand-red/25 bg-card p-3 shadow-sm">
           <p className="text-xs text-brand-ink-3">{t('memberConfirmName')}</p>
           <p className="mt-0.5 text-base font-semibold text-brand-ink">{candidate.name}</p>
           <div className="mt-3 flex gap-2">

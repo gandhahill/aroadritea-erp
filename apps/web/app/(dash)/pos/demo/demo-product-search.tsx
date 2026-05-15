@@ -110,7 +110,7 @@ export function DemoProductSearch() {
             {filtered.map((product) => (
               <div key={product.id} className="flex flex-col">
                 {/* Main product card */}
-                <div className="flex flex-1 flex-col items-center gap-1.5 rounded-xl border border-brand-cream-3 bg-white p-3 text-center transition-all hover:border-brand-red/40 hover:shadow-sm">
+                <div className="flex flex-1 flex-col items-center gap-1.5 rounded-xl border border-brand-cream-3 bg-card p-3 text-center transition-all hover:border-brand-red/40 hover:shadow-sm">
                   {product.imageUrl ? (
                     <img
                       src={product.imageUrl}

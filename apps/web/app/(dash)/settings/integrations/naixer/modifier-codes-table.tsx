@@ -167,7 +167,7 @@ export function ModifierCodesTable({ codes, tenantId }: Props) {
               <select
                 value={newKind}
                 onChange={(e) => setNewKind(e.target.value)}
-                className="w-full rounded border border-brand-cream-3 bg-white px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
+                className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
               >
                 {MODIFIER_KINDS.map((k) => (
                   <option key={k} value={k}>
@@ -185,7 +185,7 @@ export function ModifierCodesTable({ codes, tenantId }: Props) {
                 value={newOptionId}
                 onChange={(e) => setNewOptionId(e.target.value)}
                 placeholder="e.g. option-uuid"
-                className="w-full rounded border border-brand-cream-3 bg-white px-2.5 py-1.5 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none"
+                className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none"
               />
             </div>
             <div className="w-28">
@@ -195,7 +195,7 @@ export function ModifierCodesTable({ codes, tenantId }: Props) {
                 value={newNaixerCode}
                 onChange={(e) => setNewNaixerCode(e.target.value)}
                 placeholder="e.g. C01"
-                className="w-full rounded border border-brand-cream-3 bg-white px-2.5 py-1.5 text-sm font-mono text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none"
+                className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm font-mono text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none"
               />
             </div>
             <div className="w-20">
@@ -204,7 +204,7 @@ export function ModifierCodesTable({ codes, tenantId }: Props) {
                 type="number"
                 value={newOrder}
                 onChange={(e) => setNewOrder(e.target.value)}
-                className="w-full rounded border border-brand-cream-3 bg-white px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
+                className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
               />
             </div>
             <button

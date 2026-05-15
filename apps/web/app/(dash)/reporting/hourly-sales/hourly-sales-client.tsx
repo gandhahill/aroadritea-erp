@@ -105,15 +105,15 @@ function SummaryCards({ data }: { data: HourlySalesResult }) {
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <div className="rounded-xl border border-brand-cream-3 bg-white px-4 py-3">
+      <div className="rounded-xl border border-brand-cream-3 bg-card px-4 py-3">
         <p className="text-xs font-medium text-brand-ink-3">Total Transaksi</p>
         <p className="mt-1 text-lg font-bold text-brand-ink">{totalTx.toLocaleString('id-ID')}</p>
       </div>
-      <div className="rounded-xl border border-brand-cream-3 bg-white px-4 py-3">
+      <div className="rounded-xl border border-brand-cream-3 bg-card px-4 py-3">
         <p className="text-xs font-medium text-brand-ink-3">Total Penjualan</p>
         <p className="mt-1 text-lg font-bold text-brand-ink">{totalSales}</p>
       </div>
-      <div className="rounded-xl border border-brand-cream-3 bg-white px-4 py-3">
+      <div className="rounded-xl border border-brand-cream-3 bg-card px-4 py-3">
         <p className="text-xs font-medium text-brand-ink-3">Jam Tersibuk</p>
         <p className="mt-1 text-lg font-bold text-brand-ink">{busiestHour} WIB</p>
       </div>
@@ -136,11 +136,11 @@ function Heatmap({ data }: { data: HourlySalesResult }) {
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-white">
+    <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-card">
       <table className="w-full text-xs">
         <thead>
           <tr className="border-b border-brand-cream-3">
-            <th className="sticky left-0 bg-white px-3 py-2 text-left font-medium text-brand-ink-2">
+            <th className="sticky left-0 bg-card px-3 py-2 text-left font-medium text-brand-ink-2">
               Channel
             </th>
             {STORE_HOURS.map((h) => (
@@ -159,7 +159,7 @@ function Heatmap({ data }: { data: HourlySalesResult }) {
             );
             return (
               <tr key={row.channel} className="border-b border-brand-cream-3 last:border-b-0">
-                <td className="sticky left-0 bg-white px-3 py-2">
+                <td className="sticky left-0 bg-card px-3 py-2">
                   <ChannelBadge channel={row.channel} />
                 </td>
                 {STORE_HOURS.map((h) => {
@@ -217,7 +217,7 @@ function maxTxInRow(row: ChannelHourRow): number {
 function DayTable({ data }: { data: HourlySalesResult }) {
   if (!data.dayRows) return null;
   return (
-    <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-white">
+    <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-card">
       <table className="w-full text-xs">
         <thead>
           <tr className="border-b border-brand-cream-3 bg-brand-cream-2">
@@ -388,7 +388,7 @@ export function HourlySalesClient({
         {data && (
           <button
             onClick={() => handleExportXlsx(data)}
-            className="flex items-center gap-2 rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-2"
+            className="flex items-center gap-2 rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-2"
           >
             <svg
               className="h-4 w-4"
@@ -409,7 +409,7 @@ export function HourlySalesClient({
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-white p-4">
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4">
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-brand-ink-3">Dari Tanggal</label>
           <input
@@ -447,13 +447,13 @@ export function HourlySalesClient({
           <div className="flex h-9 rounded-lg border border-brand-cream-3 overflow-hidden">
             <button
               onClick={() => setGroupBy('channel')}
-              className={`px-3 text-sm font-medium transition-colors ${groupBy === 'channel' ? 'bg-brand-red text-white' : 'bg-white text-brand-ink hover:bg-brand-cream-2'}`}
+              className={`px-3 text-sm font-medium transition-colors ${groupBy === 'channel' ? 'bg-brand-red text-white' : 'bg-card text-brand-ink hover:bg-brand-cream-2'}`}
             >
               Channel
             </button>
             <button
               onClick={() => setGroupBy('day')}
-              className={`px-3 text-sm font-medium transition-colors border-l border-brand-cream-3 ${groupBy === 'day' ? 'bg-brand-red text-white' : 'bg-white text-brand-ink hover:bg-brand-cream-2'}`}
+              className={`px-3 text-sm font-medium transition-colors border-l border-brand-cream-3 ${groupBy === 'day' ? 'bg-brand-red text-white' : 'bg-card text-brand-ink hover:bg-brand-cream-2'}`}
             >
               Hari
             </button>

@@ -41,7 +41,7 @@ export function DemoPosClient() {
       <div className="flex h-[calc(100vh-44px)] flex-1 flex-col pt-11">
         <div className="flex flex-1 gap-0">
           {/* Left: product panel */}
-          <div className="flex w-1/2 flex-col border-r border-brand-cream-3 bg-white">
+          <div className="flex w-1/2 flex-col border-r border-brand-cream-3 bg-card">
             <div className="border-b border-brand-cream-3 p-3">
               <DemoChannelSelector />
             </div>
@@ -49,7 +49,7 @@ export function DemoPosClient() {
           </div>
 
           {/* Right: cart panel */}
-          <div className="flex w-1/2 flex-col bg-white">
+          <div className="flex w-1/2 flex-col bg-card">
             {/* Cart header */}
             <div className="flex h-14 items-center justify-between border-b border-brand-cream-3 px-4">
               <div className="flex items-center gap-2">

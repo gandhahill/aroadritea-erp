@@ -7,10 +7,25 @@
 const APP_VERSION = process.env.npm_package_version ?? '0.1.0';
 
 export async function GET() {
-  return Response.json({
-    status: 'ok',
-    service: 'site',
-    version: APP_VERSION,
-    timestamp: new Date().toISOString(),
-  });
+  const memory = process.memoryUsage();
+  return Response.json(
+    {
+      status: 'ok',
+      service: 'site',
+      version: APP_VERSION,
+      timestamp: new Date().toISOString(),
+      checks: {
+        memory: {
+          rssMb: Math.round(memory.rss / 1024 / 1024),
+          heapUsedMb: Math.round(memory.heapUsed / 1024 / 1024),
+          heapTotalMb: Math.round(memory.heapTotal / 1024 / 1024),
+        },
+      },
+    },
+    {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    },
+  );
 }

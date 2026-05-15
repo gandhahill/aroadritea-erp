@@ -91,7 +91,7 @@ export function FormatConfigForm({ configs }: Props) {
                 value={config.format}
                 onChange={(e) => handleUpdate(config.id, { format: e.target.value })}
                 disabled={isPending}
-                className="w-full rounded border border-brand-cream-3 bg-white px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none disabled:opacity-50"
+                className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none disabled:opacity-50"
               >
                 <option value="dash">Format B — Dash (default)</option>
                 <option value="pipe">Format A — Pipe (vendor)</option>
@@ -187,7 +187,7 @@ export function FormatConfigForm({ configs }: Props) {
                   }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ease-in-out ${
+                    className={`inline-block h-4 w-4 transform rounded-full bg-card shadow transition-transform duration-200 ease-in-out ${
                       config.includeOrderId ? 'translate-x-4' : 'translate-x-0'
                     }`}
                   />

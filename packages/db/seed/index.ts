@@ -2,7 +2,8 @@
  * Seed runner — inserts all seed data into the database.
  * Usage: pnpm --filter @erp/db seed
  *
- * Requires DATABASE_URL in .env. Seeds are idempotent and refresh mutable defaults.
+ * Requires DATABASE_URL in .env. Seeds are idempotent. UI-managed business
+ * configuration is created only when missing and is not overwritten on rerun.
  * Order: tenants → locations → roles → permissions → role_permissions → optional bootstrap admin → COA
  */
 
@@ -55,6 +56,12 @@ if (!DATABASE_URL) {
 const sql = neon(DATABASE_URL);
 const db = drizzle(sql);
 
+const DEFAULT_DELIVERY_CHANNELS = [
+  { id: 'gofood', label: 'GoFood', netBps: 8000, commissionBps: 2000, enabled: true },
+  { id: 'grabfood', label: 'GrabFood', netBps: 8000, commissionBps: 2000, enabled: true },
+  { id: 'shopeefood', label: 'ShopeeFood', netBps: 8000, commissionBps: 2000, enabled: true },
+];
+
 async function seed() {
   console.info('🌱 Starting seed...\n');
 
@@ -85,16 +92,7 @@ async function seed() {
         address: loc.address,
         status: 'active',
       })
-      .onConflictDoUpdate({
-        target: [locations.tenantId, locations.code],
-        set: {
-          name: loc.name,
-          type: loc.type,
-          address: loc.address,
-          status: 'active',
-          updatedAt: new Date(),
-        },
-      });
+      .onConflictDoNothing({ target: [locations.tenantId, locations.code] });
   }
 
   await db
@@ -476,23 +474,11 @@ async function seed() {
         cashAccountCode: '1-1300',
         revenueAccountCode: '4-1100',
         donationTrustAccountCode: '2-2050',
-        deliveryChannelsJson: ['gofood', 'grabfood', 'shopeefood'],
+        deliveryChannelsJson: DEFAULT_DELIVERY_CHANNELS,
         deliveryNetBps: 8000,
         receiptWidthMm: 80,
       })
-      .onConflictDoUpdate({
-        target: [posSettings.tenantId, posSettings.locationId],
-        set: {
-          pb1TaxCode: 'PB1',
-          cashAccountCode: '1-1300',
-          revenueAccountCode: '4-1100',
-          donationTrustAccountCode: '2-2050',
-          deliveryChannelsJson: ['gofood', 'grabfood', 'shopeefood'],
-          deliveryNetBps: 8000,
-          receiptWidthMm: 80,
-          updatedAt: new Date(),
-        },
-      });
+      .onConflictDoNothing({ target: [posSettings.tenantId, posSettings.locationId] });
     posSettingsCount++;
   }
   console.info(`✅ ${posSettingsCount} POS settings seeded`);

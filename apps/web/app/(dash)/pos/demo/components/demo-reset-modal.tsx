@@ -45,7 +45,7 @@ export function DemoResetModal({ onClose }: DemoResetModalProps) {
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="relative z-10 flex w-full max-w-sm flex-col rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl">
+      <div className="relative z-10 flex w-full max-w-sm flex-col rounded-t-2xl bg-card shadow-2xl sm:rounded-2xl">
         <div className="border-b border-brand-cream-3 px-5 py-4">
           <h2 className="text-base font-semibold text-brand-ink">{t('demo.demoSettings')}</h2>
         </div>

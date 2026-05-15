@@ -21,6 +21,7 @@ import type { AuditContext } from '@erp/shared/types';
  */
 import { and, asc, count, desc, eq, gte, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
+import { hashMemberPassword } from './password';
 
 // ─── Rate limiting constants ───────────────────────────────────────────────
 
@@ -308,8 +309,7 @@ export async function initiateSignup(
   const codeHash = hashOtp(code);
   const expiresAt = minutesFromNow(OTP_EXPIRY_MINUTES);
   const tokenExpiresAt = minutesFromNow(TOKEN_EXPIRY_MINUTES);
-  const { hashPassword } = await import('../auth/password');
-  const passwordHash = await hashPassword(input.password);
+  const passwordHash = await hashMemberPassword(input.password);
 
   // Store signup payload in encrypted JSON (for later account creation)
   const payloadJson = JSON.stringify({
@@ -466,9 +466,8 @@ export async function completeSignup(
 
   const name = input.name || storedPayload.name || email;
   const phone = storedPayload.phone ?? '';
-  const { hashPassword } = await import('../auth/password');
   const passwordHash = input.password
-    ? await hashPassword(input.password)
+    ? await hashMemberPassword(input.password)
     : storedPayload.passwordHash || '';
   const birthDate = input.birthDate || storedPayload.birthDate;
   const city = input.city || storedPayload.city;

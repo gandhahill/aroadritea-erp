@@ -32,7 +32,7 @@ export default async function TaxRulesPage() {
               <th className="px-4 py-3">Effective</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-brand-cream-3 bg-white">
+          <tbody className="divide-y divide-brand-cream-3 bg-card">
             {rows.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-brand-ink-3">

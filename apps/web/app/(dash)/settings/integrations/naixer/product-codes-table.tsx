@@ -143,7 +143,7 @@ export function ProductCodesTable({ codes, tenantId }: Props) {
                 value={newProductId}
                 onChange={(e) => setNewProductId(e.target.value)}
                 placeholder="e.g. product-uuid"
-                className="w-full rounded border border-brand-cream-3 bg-white px-2.5 py-1.5 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none"
+                className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none"
               />
             </div>
             <div className="flex-1">
@@ -155,7 +155,7 @@ export function ProductCodesTable({ codes, tenantId }: Props) {
                 value={newVariantId}
                 onChange={(e) => setNewVariantId(e.target.value)}
                 placeholder="leave empty for all"
-                className="w-full rounded border border-brand-cream-3 bg-white px-2.5 py-1.5 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none"
+                className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none"
               />
             </div>
             <div className="w-32">
@@ -165,7 +165,7 @@ export function ProductCodesTable({ codes, tenantId }: Props) {
                 value={newNaixerCode}
                 onChange={(e) => setNewNaixerCode(e.target.value)}
                 placeholder="e.g. T003"
-                className="w-full rounded border border-brand-cream-3 bg-white px-2.5 py-1.5 text-sm font-mono text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none"
+                className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm font-mono text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none"
               />
             </div>
             <button

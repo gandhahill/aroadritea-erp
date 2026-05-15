@@ -73,7 +73,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
 
   return (
     <>
-      <div className="flex h-12 items-center justify-between border-b border-brand-cream-3 bg-white px-4">
+      <div className="flex h-12 items-center justify-between border-b border-brand-cream-3 bg-card px-4">
         {/* Shift status */}
         <div className="flex items-center gap-3">
           <span
@@ -95,7 +95,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
             <button
               type="button"
               onClick={() => setShowCloseModal(true)}
-              className="h-8 rounded-md border border-brand-cream-3 bg-white px-3 text-xs font-medium text-brand-ink hover:bg-brand-cream-2 disabled:opacity-50"
+              className="h-8 rounded-md border border-brand-cream-3 bg-card px-3 text-xs font-medium text-brand-ink hover:bg-brand-cream-2 disabled:opacity-50"
               disabled={isPending}
             >
               {t('closeShift')}
@@ -133,14 +133,14 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                   inputMode="numeric"
                   placeholder="0"
                   required
-                  className="h-10 w-full rounded-md border border-brand-cream-3 bg-white px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
+                  className="h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
                 />
               </div>
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowOpenModal(false)}
-                  className="h-10 rounded-md border border-brand-cream-3 bg-white px-4 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
+                  className="h-10 rounded-md border border-brand-cream-3 bg-card px-4 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
                 >
                   {t('cancel')}
                 </button>
@@ -192,14 +192,14 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                   inputMode="numeric"
                   placeholder="0"
                   required
-                  className="h-10 w-full rounded-md border border-brand-cream-3 bg-white px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
+                  className="h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
                 />
               </div>
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowCloseModal(false)}
-                  className="h-10 rounded-md border border-brand-cream-3 bg-white px-4 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
+                  className="h-10 rounded-md border border-brand-cream-3 bg-card px-4 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
                 >
                   {t('close')}
                 </button>

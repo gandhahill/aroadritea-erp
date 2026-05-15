@@ -46,11 +46,11 @@ export default async function ProductsPage({ searchParams }: Props) {
               name="q"
               defaultValue={search ?? ''}
               placeholder="SKU atau nama produk"
-              className="min-w-0 flex-1 rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm text-brand-ink shadow-sm placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
+              className="min-w-0 flex-1 rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
             />
             <button
               type="submit"
-              className="rounded-lg border border-brand-cream-3 bg-white px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
+              className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
             >
               Cari
             </button>
@@ -82,7 +82,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                 <th className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-cream-3 bg-white">
+            <tbody className="divide-y divide-brand-cream-3 bg-card">
               {data.products.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-8 text-center text-brand-ink-3">
@@ -118,7 +118,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`/inventory/products/${product.id}`}
-                        className="rounded-md border border-brand-cream-3 bg-white px-3 py-1.5 text-xs font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
+                        className="rounded-md border border-brand-cream-3 bg-card px-3 py-1.5 text-xs font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
                       >
                         Edit
                       </Link>

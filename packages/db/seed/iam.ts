@@ -103,6 +103,9 @@ export const PERMISSIONS_SEED = [
   { code: 'pos.demo.use', module: 'pos' },
   { code: 'pos.shift.open', module: 'pos' },
   { code: 'pos.shift.close', module: 'pos' },
+  // Promotion
+  { code: 'promotion.view', module: 'promotion' },
+  { code: 'promotion.manage', module: 'promotion' },
   // Inventory
   { code: 'inventory.view', module: 'inventory' },
   { code: 'inventory.product.read', module: 'inventory' },
@@ -174,6 +177,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'pos.demo.use',
     'pos.shift.open',
     'pos.shift.close',
+    'promotion.view',
     'inventory.view',
     'inventory.product.read',
     'inventory.product.create',
@@ -236,6 +240,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'pos.demo.use',
     'pos.shift.open',
     'pos.shift.close',
+    'promotion.view',
     'inventory.view',
     'inventory.product.read',
     'inventory.product.create',
@@ -263,6 +268,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'pos.demo.use',
     'pos.shift.open',
     'pos.shift.close',
+    'promotion.view',
   ],
   assistant: [
     'accounting.view',

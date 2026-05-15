@@ -75,6 +75,22 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
   - Health checks passed: site 200, web 200 with DB ok, MCP 200.
   - Public smoke passed for public site pages, ERP login, and protected ERP routes redirecting to login instead of 404.
   - CSS assets for public site and ERP returned HTTP 200, addressing the plain-HTML symptom.
+- New user feedback after deploy:
+  - ERP UI must remove internal/technical wording such as "Konfigurasi non-secret" and environment-variable explanation from user-facing settings pages.
+  - Docs page is not sufficient; it must become a detailed user guide with table of contents, left navigation, step-by-step instructions, module purpose, troubleshooting, and guidance for confusing modules such as Workflow Editor.
+  - Treat the review lens as ISO/IEC 27001, ISO 9001, ISO/IEC 25010, ISO 22301, ISO/IEC 38500, COBIT, and ITIL: fix gaps immediately where visible in UI/docs, especially usability, governance, access control, operational continuity, and supportability.
+  - Ensure displayed language follows the selected ERP language, including shell labels and account area fallbacks.
+- 2026-05-15 20:06 local audit update:
+  - Added `docs/TRACEABILITY-AUDIT.md` as a SoT/SD requirement matrix with evidence/status per module instead of relying on verbal claims.
+  - Added UI-managed promotion rules (`/settings/promotions`) for percent discount, fixed discount, buy-X-get-Y, free item, complimentary/giveaway, location scope, channel scope, priority, approval flag, and usage limit.
+  - Added promotion DB schema/migration and service layer with permission/audit integration, plus MCP tools `promotion.list` and `promotion.upsert`.
+  - Fixed MCP audit permission mismatch from `audit.read` to seeded `audit.view`; MCP health boot test passed with 47 tools.
+  - Added Management BI page at `/reporting/business-intelligence` for non-director management views using daily summary data by active store.
+  - Added parent route redirects for `/accounting`, `/hr`, `/inventory`, `/reporting`, `/settings`, and `/tax`; sidebar route audit now reports 49 hrefs, 0 missing routes.
+  - Added ERP favicon and normalized ERP UI away from raw `bg-white` to semantic `bg-card` tokens.
+  - Expanded i18n messages and fixed raw placeholder scans; `apps/web/messages` and `apps/site/messages` now have 0 missing keys across ID/EN/ZH.
+  - Marker scan over `apps` and `packages` for `TODO/FIXME/not implemented/stub/coming soon/under construction/lorem/dummy/belum tersedia/segera hadir` returns no matches.
+  - Important residual risk: hardcoded Indonesian UI strings still exist in older module pages (for example reimbursement, inventory, reporting, HR, purchasing forms). The selected language now works where migrated, but a full hardcoded-string migration remains a separate large pass.
 
 ## Plan
 
@@ -84,25 +100,26 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 4. [x] Finish admin permission + permission UI.
 5. [x] Add journal entry create UI.
 6. [x] Finish missing route pages found so far.
-7. [ ] Build audit matrix from MD requirements to backend/UI/tests/status.
+7. [x] Build audit matrix from MD requirements to backend/UI/tests/status.
 8. [x] Run local typecheck/test/build checks.
 9. [x] Commit, push, deploy, run production DB scripts, verify.
+10. [x] Rebuild ERP Docs into production-grade help center shell with left navigation, search-style layout, workflow guidance, and editable content integration.
+11. [ ] Commit, push, deploy latest local critical fixes, run production migrations, and smoke test live site/web/MCP.
 
 ## Next Step
 
-Build the full MD requirement matrix from `SOURCE-OF-TRUTH.md`, `SYSTEM-DESIGN.md`, ADRs, and `TASK.md`: for each requirement, record backend status, UI status, test status, production smoke status, and remaining gap. Then fix the highest-risk gaps module by module.
+Commit the current local changes, push to GitHub, pull on the VPS, run `pnpm db:migrate`, `pnpm db:seed`, `pnpm admin:ensure-access`, rebuild `site` and `web`, reload PM2, then smoke test `/docs`, `/settings/promotions`, `/reporting/business-intelligence`, `/settings/locations`, `/pos/demo`, public legal/member pages, and MCP `/healthz`.
 
 ## Test Status
 
-- `pnpm --filter @erp/services test` PASS: 24 files, 527 tests.
-- `pnpm --filter @erp/web typecheck` PASS.
-- `pnpm --filter @erp/site typecheck` PASS.
-- `pnpm --filter @erp/worker typecheck` PASS.
-- `pnpm --filter @erp/mcp typecheck` PASS.
-- `pnpm --filter @erp/db typecheck` PASS.
-- `pnpm --filter @erp/worker typecheck` PASS.
-- `pnpm --filter @erp/web build` PASS.
-- `pnpm --filter @erp/site build` PASS.
-- `pnpm --filter @erp/worker build` PASS.
-- `pnpm --filter @erp/mcp build` PASS.
-- `pnpm lint` PASS (warnings remain in older files, no lint errors).
+- `pnpm -r typecheck` PASS: 10 workspace projects.
+- `pnpm --filter @erp/services test` PASS: 24 files, 528 tests.
+- `pnpm lint` PASS: 0 lint errors, 456 warnings remain in older files.
+- `pnpm --filter @erp/site build` PASS: 31 static pages generated for ID/EN/ZH public routes.
+- `pnpm --filter @erp/web build` PASS: Serwist service worker bundled, ERP route build completed.
+- `pnpm --filter @erp/mcp build` PASS after aligning build to `tsc --noEmit`.
+- `pnpm --filter @erp/worker build` PASS after aligning build to `tsc --noEmit`.
+- MCP runtime health boot test PASS: `http://127.0.0.1:3912/healthz` returned 200 with `status=ok`, registry log reported 47 tools.
+- Sidebar route audit PASS: 49 hrefs, 0 missing route files.
+- i18n key parity PASS: `apps/web/messages` and `apps/site/messages` have 0 missing keys for ID/EN/ZH.
+- Unfinished marker scan PASS: no TODO/FIXME/not-implemented/stub/placeholder-work markers in `apps` or `packages`.

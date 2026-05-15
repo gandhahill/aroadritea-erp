@@ -79,7 +79,7 @@ export function DonationsClient({
         {data && data.rows.length > 0 && (
           <button
             onClick={handleExportXlsx}
-            className="flex items-center gap-2 rounded-lg border border-brand-cream-3 bg-white px-3 py-2 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-2"
+            className="flex items-center gap-2 rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-2"
           >
             <svg
               className="h-4 w-4"
@@ -100,7 +100,7 @@ export function DonationsClient({
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-white p-4">
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4">
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-brand-ink-3">Dari Tanggal</label>
           <input
@@ -159,7 +159,7 @@ export function DonationsClient({
 
       {/* Table */}
       {data && data.rows.length > 0 && (
-        <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-white">
+        <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-3 bg-brand-cream-2">
@@ -211,7 +211,7 @@ export function DonationsClient({
 
 function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-brand-cream-3 bg-white px-4 py-3">
+    <div className="rounded-xl border border-brand-cream-3 bg-card px-4 py-3">
       <p className="text-xs font-medium text-brand-ink-3">{label}</p>
       <p className="mt-1 text-lg font-bold text-brand-ink">{value}</p>
     </div>

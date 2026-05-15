@@ -12,8 +12,7 @@
  */
 
 import { db } from '@erp/db';
-import { payments, salesOrderLines, salesOrders, shifts } from '@erp/db/schema/pos';
-import { AppError } from '@erp/shared/errors';
+import { payments, posSettings, salesOrderLines, salesOrders, shifts } from '@erp/db/schema/pos';
 import { type Result, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm';
@@ -76,19 +75,43 @@ export interface DailySummaryResult {
 
 export type DailySummary = DailySummaryResult;
 
-// ─── Constants ─────────────────────────────────────────────────────────────────
-
-/**
- * Delivery commission: platform retains 20%, net = 80% × gross.
- * Commission = grossDelivery × 20/100.
- */
-const DELIVERY_COMMISSION_RATE = 20n; // percent
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Format bigint as IDR string (divide by 100 to convert from sen/rupiah unit). */
-function formatMoney(v: bigint): string {
-  return v.toString();
+interface DeliveryChannelConfig {
+  id: string;
+  commissionBps: number;
+  enabled: boolean;
+}
+
+function normalizeDeliveryChannels(raw: unknown): Map<string, DeliveryChannelConfig> {
+  const source = Array.isArray(raw) ? raw : [];
+  const result = new Map<string, DeliveryChannelConfig>();
+
+  for (const item of source) {
+    const record =
+      typeof item === 'string'
+        ? { id: item, commissionBps: 2000, enabled: true }
+        : item && typeof item === 'object'
+          ? (item as Record<string, unknown>)
+          : null;
+    if (!record) continue;
+
+    const id = String(record.id ?? '')
+      .trim()
+      .toLowerCase();
+    if (!/^[a-z0-9_-]{2,32}$/.test(id)) continue;
+
+    const rawCommissionBps = Number(record.commissionBps ?? 2000);
+    result.set(id, {
+      id,
+      commissionBps: Number.isFinite(rawCommissionBps)
+        ? Math.min(10000, Math.max(0, Math.trunc(rawCommissionBps)))
+        : 2000,
+      enabled: record.enabled !== false,
+    });
+  }
+
+  return result;
 }
 
 // ─── Service ───────────────────────────────────────────────────────────────────
@@ -142,13 +165,22 @@ export async function getDailySummary(
   const grossSales = paidSaleRows.reduce((s, r) => s + r.subtotal, 0n);
   const discountTotal = paidSaleRows.reduce((s, r) => s + r.discountTotal, 0n);
   const taxTotal = paidSaleRows.reduce((s, r) => s + r.taxTotal, 0n);
-  const grandTotal = paidSaleRows.reduce((s, r) => s + r.grandTotal, 0n);
   const netSales = grossSales - discountTotal;
 
-  const deliveryGross = paidSaleRows
-    .filter((s) => ['gofood', 'grabfood', 'shopeefood'].includes(s.channel))
-    .reduce((s, r) => s + r.subtotal, 0n);
-  const commissionDelivery = (deliveryGross * DELIVERY_COMMISSION_RATE) / 100n;
+  const [setting] = await db
+    .select({ deliveryChannelsJson: posSettings.deliveryChannelsJson })
+    .from(posSettings)
+    .where(
+      and(eq(posSettings.tenantId, ctx.tenantId), eq(posSettings.locationId, params.locationId)),
+    )
+    .limit(1);
+
+  const deliveryChannels = normalizeDeliveryChannels(setting?.deliveryChannelsJson);
+  const commissionDelivery = paidSaleRows.reduce((sum, sale) => {
+    const channel = deliveryChannels.get(sale.channel);
+    if (!channel?.enabled) return sum;
+    return sum + (sale.subtotal * BigInt(channel.commissionBps)) / 10000n;
+  }, 0n);
   const netRevenue = netSales - commissionDelivery;
 
   const refundTotal = refundSaleRows.reduce((s, r) => s + r.grandTotal, 0n);

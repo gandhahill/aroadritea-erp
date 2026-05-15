@@ -66,6 +66,17 @@ export function OfflineSyncProvider({ children }: { children: React.ReactNode })
     setFailedRetryCount(failedRetries);
   }, []);
 
+  const syncNow = useCallback(async () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    try {
+      await flushOutbox();
+      await refreshOutboxStatus();
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [isSyncing, refreshOutboxStatus]);
+
   // Start heartbeat + sync scheduler on mount
   useEffect(() => {
     // Initial pending count
@@ -78,6 +89,8 @@ export function OfflineSyncProvider({ children }: { children: React.ReactNode })
 
     // Sync scheduler (online detection + outbox flush)
     const stopSync = startSyncScheduler();
+
+    void flushOutbox().finally(refreshOutboxStatus);
 
     cleanupRef.current = () => {
       stopHeartbeat();
@@ -96,17 +109,6 @@ export function OfflineSyncProvider({ children }: { children: React.ReactNode })
     }, 5000);
     return () => clearInterval(interval);
   }, [refreshOutboxStatus]);
-
-  const syncNow = useCallback(async () => {
-    if (isSyncing) return;
-    setIsSyncing(true);
-    try {
-      await flushOutbox();
-      await refreshOutboxStatus();
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [isSyncing, refreshOutboxStatus]);
 
   const enqueueOrder = useCallback(
     async (

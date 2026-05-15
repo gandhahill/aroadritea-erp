@@ -11,6 +11,7 @@ const APP_VERSION = process.env.npm_package_version ?? '0.1.0';
 export async function GET() {
   let dbStatus: 'ok' | 'error' = 'ok';
   let dbLatencyMs: number | null = null;
+  const memory = process.memoryUsage();
 
   try {
     const start = Date.now();
@@ -33,8 +34,18 @@ export async function GET() {
           status: dbStatus,
           ...(dbLatencyMs !== null && { latencyMs: dbLatencyMs }),
         },
+        memory: {
+          rssMb: Math.round(memory.rss / 1024 / 1024),
+          heapUsedMb: Math.round(memory.heapUsed / 1024 / 1024),
+          heapTotalMb: Math.round(memory.heapTotal / 1024 / 1024),
+        },
       },
     },
-    { status: healthy ? 200 : 503 },
+    {
+      status: healthy ? 200 : 503,
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    },
   );
 }

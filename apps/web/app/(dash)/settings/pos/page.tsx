@@ -19,15 +19,8 @@ export default async function PosSettingsPage() {
       <div>
         <h1 className="text-2xl font-bold text-brand-ink">POS Settings</h1>
         <p className="mt-1 text-sm text-brand-ink-3">
-          Atur posting akuntansi POS, channel delivery, dan ukuran struk lewat database/UI.
-        </p>
-      </div>
-
-      <div className="rounded-lg border border-brand-gold/20 bg-brand-gold/5 px-4 py-3">
-        <p className="text-sm font-medium text-brand-ink">Konfigurasi non-secret</p>
-        <p className="mt-1 text-xs text-brand-ink-2">
-          Nilai di halaman ini menggantikan konfigurasi POS lama berbasis environment variable.
-          Secret dan URL deployment tetap berada di environment.
+          Atur posting akuntansi POS, channel delivery, komisi platform, dan ukuran struk per
+          outlet.
         </p>
       </div>
 

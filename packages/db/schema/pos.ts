@@ -70,7 +70,18 @@ export const posSettings = pgTable(
     revenueAccountCode: text('revenue_account_code').notNull().default('4-1100'),
     donationTrustAccountCode: text('donation_trust_account_code').notNull().default('2-2050'),
     deliveryChannelsJson: jsonb('delivery_channels_json')
-      .$type<string[]>()
+      .$type<
+        Array<
+          | string
+          | {
+              id: string;
+              label?: string;
+              netBps?: number;
+              commissionBps?: number;
+              enabled?: boolean;
+            }
+        >
+      >()
       .notNull()
       .default(['gofood', 'grabfood', 'shopeefood']),
     deliveryNetBps: integer('delivery_net_bps').notNull().default(8000),

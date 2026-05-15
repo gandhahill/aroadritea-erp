@@ -24,7 +24,7 @@ export default function PosPage() {
   return (
     <div className="flex h-full flex-1 gap-0">
       {/* Left: product panel */}
-      <div className="flex w-1/2 flex-col border-r border-brand-cream-3 bg-white">
+      <div className="flex w-1/2 flex-col border-r border-brand-cream-3 bg-card">
         {/* Channel selector */}
         <div className="border-b border-brand-cream-3 p-3">
           <ChannelSelector />
@@ -35,7 +35,7 @@ export default function PosPage() {
       </div>
 
       {/* Right: cart panel */}
-      <div className="flex w-1/2 flex-col bg-white">
+      <div className="flex w-1/2 flex-col bg-card">
         {/* Cart header */}
         <div className="flex h-14 items-center justify-between border-b border-brand-cream-3 px-4">
           <h2 className="text-base font-semibold text-brand-ink">{t('orderLines')}</h2>
