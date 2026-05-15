@@ -9,8 +9,13 @@
 
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/location-options';
-import { and, db, eq, ilike, inArray, or, sql } from '@erp/db';
-import { productCategories, productModifierGroups, productModifierLinks, productModifierOptions, productVariants, products } from '@erp/db/schema/inventory';
+import { and, db, eq, ilike, inArray, isNull, or, sql } from '@erp/db';
+import {
+  productCategories,
+  productModifierOptions,
+  productVariants,
+  products,
+} from '@erp/db/schema/inventory';
 import { posSettings, salesOrders, shifts } from '@erp/db/schema/pos';
 import { promotions } from '@erp/db/schema/promotion';
 import { taxRates } from '@erp/db/schema/accounting';
@@ -422,7 +427,13 @@ export async function fetchMasterDataRaw() {
   const promotionRows = await db
     .select()
     .from(promotions)
-    .where(and(eq(promotions.tenantId, ctx.tenantId), eq(promotions.isActive, true)));
+    .where(
+      and(
+        eq(promotions.tenantId, ctx.tenantId),
+        eq(promotions.status, 'active'),
+        isNull(promotions.deletedAt),
+      ),
+    );
   const taxRateRows = await db
     .select()
     .from(taxRates)
@@ -458,18 +469,23 @@ export async function fetchMasterDataRaw() {
     promotions: promotionRows.map((p) => ({
       id: p.id,
       name: JSON.stringify(p.name),
-      type: p.type,
-      rules: p.rules ?? {},
-      startDate: p.startDate.toISOString(),
-      endDate: p.endDate?.toISOString() ?? '9999-12-31T23:59:59.999Z',
-      isActive: p.isActive,
+      type: p.kind,
+      rules: {
+        conditions: p.conditionsJson ?? {},
+        benefits: p.benefitsJson ?? {},
+        locationScope: p.locationScopeJson ?? [],
+        channelScope: p.channelScopeJson ?? [],
+      },
+      startDate: p.startsAt.toISOString(),
+      endDate: p.endsAt?.toISOString() ?? '9999-12-31T23:59:59.999Z',
+      isActive: p.status === 'active',
     })),
     taxRates: taxRateRows.map((t) => ({
       code: t.code,
       name: JSON.stringify(t.name),
-      rate: t.rate,
-      calculation: t.calculation,
-      appliesTo: t.appliesTo ?? [],
+      rate: String(t.rateBps / 10000),
+      calculation: t.calculation as 'inclusive' | 'exclusive',
+      appliesTo: [],
     })),
   };
 }

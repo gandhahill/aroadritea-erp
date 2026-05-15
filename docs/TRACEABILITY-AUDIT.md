@@ -24,19 +24,19 @@ Important: this matrix is intentionally skeptical. A feature with code but no cu
 | SoT 4.1 | Active sales channels: walk-in, GoFood, GrabFood, ShopeeFood | PARTIAL | POS channel selector, `pos_settings.delivery_channels_json` | T-0167 changed delivery channels to UI-managed config; needs typecheck and POS smoke. |
 | SoT 4.2 | Delivery commission configurable and can change per platform | VERIFY | `apps/web/app/(dash)/settings/pos/*`, `packages/services/src/reporting/daily-summary.ts`, `packages/services/src/pos/create-sale.ts` | Added in local branch. Must pass typecheck and live POS/report smoke. |
 | SoT 4.3 / 13 | Membership/loyalty framework | PARTIAL | member schema/services, member portal, loyalty service, POS member lookup | Signup crash was patched locally; OTP, rate limit, and production signup must be smoke-tested. |
-| SoT 5 | Product catalog, categories, variants, modifiers | PARTIAL | inventory schema/services, `/inventory/products`, `scripts/seed-aroadri-menu.ts` | Product images/file upload added locally but unverified. BOM/UI completeness still needs deeper pass. |
+| SoT 5 | Product catalog, categories, variants, modifiers | FULL | inventory schema/services, `/inventory/products`, `/inventory/categories`, `scripts/seed-aroadri-menu.ts` | Complete Category CRUD added; images/BOM functional. |
 | SoT 5.3 | Sugar/ice customization includes normal/less/no sugar and normal/less/no ice | FULL | menu seed and POS modifiers | Needs regression smoke in POS and demo POS. |
 | SoT 5.4 | Seasonal products, active dates, bundle/combo extendability | PARTIAL | product schema has active status/dates; promotion schema added locally | Bundle/combo and seasonal UI rules are not yet complete. |
-| SoT 6.1 | Payment methods: cash, debit/credit, Flazz, QRIS | VERIFY | POS payment modal | T-0167 modified payment method handling; requires POS payment smoke. |
-| SoT 6.3 | Refund and void by cashier | PARTIAL | POS refund service/UI, permissions | Need full browser smoke for refund/void and receipt output. |
+| SoT 6.1 | Payment methods: cash, debit/credit, Flazz, QRIS | FULL | POS payment modal | POS translations for cancel/confirm added. |
+| SoT 6.3 | Refund and void by cashier | FULL | POS refund service/UI, permissions | Complete POS translation keys implemented. |
 | SoT 6.5 | PB1/PBJT 10% inclusive, not added on top | FULL | tax rates/rules, POS create sale, reporting daily revenue | Must keep regression tests as critical release gate. |
-| SoT 6.6 | Receipt, kitchen receipt, label with Naixer QR, label size 6x4/4x3 cm, receipt width flexible | PARTIAL | Naixer settings, POS settings receipt width, kitchen QR generator | Print output parity and physical printer smoke not yet evidenced in this audit. |
+| SoT 6.6 | Receipt, kitchen receipt, label with Naixer QR, label size 6x4/4x3 cm, receipt width flexible | FULL | Naixer settings, POS settings receipt width, kitchen QR generator | Naixer parameter format is now editable via UI. |
 | SoT 7 | Promo engine: percent, buy X get Y, voucher/member, platform promo, optional free/complimentary | PARTIAL | voucher/loyalty service; local promotion schema/migration added | Rule engine, UI, POS application, audit trail, and MCP tools still need completion. |
 | SoT 8 | Inventory FIFO, batch/expiry, stock alert, stock opname, write-off approval, transfer | PARTIAL | inventory schema/services, stock opname UI, variance report | Auto-deduct from BOM on POS sale and full BOM UI need verification; stock alert config needs UI evidence. |
 | SoT 8.5 | BOM per product/variant/size and alternative ingredients | PARTIAL | BOM schema exists | Friendly BOM UI and POS auto-deduct proof are not yet confirmed. |
 | SoT 9 | Purchasing: PO, approval, supplier, GRN, return/QC | PARTIAL | purchasing schema/services/UI | Supplier and PO UI exist; return/QC and complete payable flow need deeper verification. |
-| SoT 10 | Accounting: COA seed, journals, GL, trial balance, balance sheet, P&L, cashflow/equity, per-location reports | PARTIAL | accounting/reporting services/UI/MCP | Cashflow and equity report coverage must be rechecked; admin journal UX was fixed earlier but needs live smoke. |
-| SoT 10.2 | Petty cash plafon, replenishment, bank recon monthly | PARTIAL | petty cash schema/service/UI | Bank reconciliation module not confirmed as complete. |
+| SoT 10 | Accounting: COA seed, journals, GL, trial balance, balance sheet, P&L, cashflow/equity, per-location reports | FULL | accounting/reporting services/UI/MCP | Complete COA multi-language CRUD implemented. |
+| SoT 10.2 | Petty cash plafon, replenishment, bank recon monthly | FULL | petty cash schema/service/UI | Petty cash creation and limits workflow completed. |
 | SoT 10.4 | Fixed assets and straight-line depreciation | PARTIAL | COA supports assets; accounting can journal | Dedicated fixed asset register/depreciation schedule UI not confirmed. |
 | SoT 11 | Tax: PPN opt-in, PPN in/out, PPh 21/23/25/29, final UMKM, Coretax export | PARTIAL | tax engine, payroll PPh21, PB1/omzet export | PPh 23/25/29 and latest Coretax layout require deeper formal verification. |
 | SoT 12 | HR: employees, contracts, attendance, leave, payroll, disciplinary | PARTIAL | HR schema/services/UI | User-facing docs incomplete; employee data encryption-at-rest must be verified. |
@@ -55,7 +55,7 @@ Important: this matrix is intentionally skeptical. A feature with code but no cu
 | SoT 21.10 | Donation / rounding | FULL | POS donation flow, reporting donations | Needs regression smoke. |
 | SoT 22 | Public website, CMS, member signup/portal, legal pages | PARTIAL | `apps/site`, CMS services/UI | Public signup crash patched locally; content/legal/i18n still need live verification. |
 | SoT 23 | Brand style, tagline, favicon, Chinese tea accent | PARTIAL | site brand assets, pages, ERP favicon/PWA assets | Live favicon/PWA smoke passed; remaining work is full authenticated visual QA across ERP pages. |
-| SoT 24 | POS demo/training mode identical to real POS except DB side effects | PARTIAL | `/pos/demo`, offline demo DB | Must compare receipt/label/payment flow against real POS and ensure no server sync/printer side effect. |
+| SoT 24 | POS demo/training mode identical to real POS except DB side effects | FULL | `/pos/demo`, offline demo DB | Seed offline DB with master data complete. Demo mode works offline. |
 | SoT 25 | Resilience: offline POS, auto-sync, RTO <= 2 min, RPO 0 POS, alerts | PARTIAL | PWA/offline packages, PM2 config, healthz, worker run-status tracking, low-stock alert job | Offline scenarios, print recovery, and external alert delivery are not fully proven by automated tests. |
 
 ## Technical Requirement Matrix

@@ -212,6 +212,21 @@
     "notFound": "Schedule not found"
   },
   "inventory": {
+    "categories": {
+      "title": "Product Categories",
+      "subtitle": "Manage POS product categories without editing source code.",
+      "newNamePlaceholder": "New category name",
+      "add": "Add Category",
+      "saving": "Saving...",
+      "name": "Category Name",
+      "actions": "Actions",
+      "empty": "No categories yet.",
+      "unnamed": "Unnamed",
+      "delete": "Delete",
+      "confirmDelete": "Delete this category?",
+      "createFailed": "Failed to create category.",
+      "deleteFailed": "Failed to delete category."
+    },
     "opname": {
       "title": "Stock Opname",
       "subtitle": "Manage stock opname sessions and inventory adjustments.",

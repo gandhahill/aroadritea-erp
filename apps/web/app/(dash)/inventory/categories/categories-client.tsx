@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { createCategoryAction, deleteCategoryAction } from './actions';
@@ -12,6 +13,8 @@ interface CategoryItem {
 
 export function CategoriesClient({ categories }: { categories: CategoryItem[] }) {
   const router = useRouter();
+  const locale = useLocale() as 'id' | 'en' | 'zh';
+  const t = useTranslations('inventory.categories');
   const [isCreating, setIsCreating] = useState(false);
   const [newName, setNewName] = useState('');
 
@@ -23,20 +26,20 @@ export function CategoriesClient({ categories }: { categories: CategoryItem[] })
       await createCategoryAction(newName);
       setNewName('');
       router.refresh();
-    } catch (err) {
-      alert('Gagal membuat kategori');
+    } catch {
+      alert(t('createFailed'));
     } finally {
       setIsCreating(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Hapus kategori ini?')) return;
+    if (!confirm(t('confirmDelete'))) return;
     try {
       await deleteCategoryAction(id);
       router.refresh();
-    } catch (err) {
-      alert('Gagal menghapus kategori');
+    } catch {
+      alert(t('deleteFailed'));
     }
   };
 
@@ -47,7 +50,7 @@ export function CategoriesClient({ categories }: { categories: CategoryItem[] })
           type="text"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          placeholder="Nama Kategori Baru"
+          placeholder={t('newNamePlaceholder')}
           className="rounded-lg border border-brand-cream-3 px-3 py-2 text-sm focus:border-brand-red focus:outline-none"
         />
         <button
@@ -55,7 +58,7 @@ export function CategoriesClient({ categories }: { categories: CategoryItem[] })
           disabled={isCreating || !newName.trim()}
           className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
         >
-          {isCreating ? 'Menyimpan...' : 'Tambah Kategori'}
+          {isCreating ? t('saving') : t('add')}
         </button>
       </form>
 
@@ -63,21 +66,24 @@ export function CategoriesClient({ categories }: { categories: CategoryItem[] })
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Nama Kategori</th>
-              <th className="px-4 py-3 text-right font-medium text-brand-ink-2">Aksi</th>
+              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('name')}</th>
+              <th className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                {t('actions')}
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-2">
             {categories.length === 0 ? (
               <tr>
                 <td colSpan={2} className="px-4 py-8 text-center text-brand-ink-3">
-                  Belum ada kategori.
+                  {t('empty')}
                 </td>
               </tr>
             ) : (
               categories.map((cat) => {
-                const nameObj = cat.name as { id?: string; en?: string } | null;
-                const display = nameObj?.id ?? nameObj?.en ?? 'Tanpa Nama';
+                const nameObj = cat.name as { id?: string; en?: string; zh?: string } | null;
+                const display =
+                  nameObj?.[locale] ?? nameObj?.id ?? nameObj?.en ?? nameObj?.zh ?? t('unnamed');
                 return (
                   <tr key={cat.id} className="hover:bg-brand-cream/50">
                     <td className="px-4 py-3 font-medium text-brand-ink">{display}</td>
@@ -86,7 +92,7 @@ export function CategoriesClient({ categories }: { categories: CategoryItem[] })
                         onClick={() => handleDelete(cat.id)}
                         className="text-brand-red hover:underline text-xs"
                       >
-                        Hapus
+                        {t('delete')}
                       </button>
                     </td>
                   </tr>

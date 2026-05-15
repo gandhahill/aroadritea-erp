@@ -1,42 +1,60 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { db, eq } from '@erp/db';
-import { productCategories } from '@erp/db/schema/inventory';
-import { generateId } from '@erp/shared/id';
+import { createCategory, listCategories, updateCategory } from '@erp/services/inventory';
+import type { AuditContext } from '@erp/shared/types';
+import { revalidatePath } from 'next/cache';
+
+function slugCode(value: string) {
+  const slug = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  return (slug || `category_${Date.now()}`).slice(0, 32);
+}
+
+async function getAuditContext(): Promise<AuditContext> {
+  const session = await getSession();
+  if (!session?.user) throw new Error('Unauthenticated');
+
+  const user = session.user as Record<string, unknown>;
+  return {
+    userId: String(user.id ?? ''),
+    tenantId: String(user.tenantId ?? 'default'),
+    locationId: String(user.locationId ?? ''),
+  };
+}
 
 export async function fetchCategories() {
-  const session = await getSession();
-  const tenantId = ((session?.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
-  
-  return db
-    .select({
-      id: productCategories.id,
-      name: productCategories.name,
-      sortOrder: productCategories.sortOrder,
-    })
-    .from(productCategories)
-    .where(eq(productCategories.tenantId, tenantId))
-    .orderBy(productCategories.sortOrder);
+  const ctx = await getAuditContext();
+  const result = await listCategories(ctx);
+  if (!result.ok) return [];
+  return result.value.filter((category) => category.isActive);
 }
 
 export async function createCategoryAction(name: string) {
-  const session = await getSession();
-  const tenantId = ((session?.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
-  
-  await db.insert(productCategories).values({
-    id: generateId(),
-    tenantId,
-    name: { id: name, en: name, zh: name },
-    sortOrder: 0,
-  });
+  const normalized = name.trim();
+  if (!normalized) throw new Error('Category name is required');
+
+  const ctx = await getAuditContext();
+  const result = await createCategory(
+    {
+      code: slugCode(normalized),
+      name: { id: normalized, en: normalized, zh: normalized },
+      sortOrder: 0,
+    },
+    ctx,
+  );
+  if (!result.ok) throw new Error(result.error.message);
+
+  revalidatePath('/inventory/categories');
 }
 
 export async function deleteCategoryAction(id: string) {
-  const session = await getSession();
-  const tenantId = ((session?.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
-  
-  await db.delete(productCategories)
-    .where(eq(productCategories.id, id))
-    .where(eq(productCategories.tenantId, tenantId));
+  const ctx = await getAuditContext();
+  const result = await updateCategory({ categoryId: id, isActive: false, version: 1 }, ctx);
+  if (!result.ok) throw new Error(result.error.message);
+
+  revalidatePath('/inventory/categories');
 }

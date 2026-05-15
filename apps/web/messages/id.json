@@ -212,6 +212,21 @@
     "notFound": "Jadwal tidak ditemukan"
   },
   "inventory": {
+    "categories": {
+      "title": "Kategori Produk",
+      "subtitle": "Kelola kategori produk POS tanpa mengubah source code.",
+      "newNamePlaceholder": "Nama kategori baru",
+      "add": "Tambah Kategori",
+      "saving": "Menyimpan...",
+      "name": "Nama Kategori",
+      "actions": "Aksi",
+      "empty": "Belum ada kategori.",
+      "unnamed": "Tanpa Nama",
+      "delete": "Hapus",
+      "confirmDelete": "Hapus kategori ini?",
+      "createFailed": "Gagal membuat kategori.",
+      "deleteFailed": "Gagal menghapus kategori."
+    },
     "opname": {
       "title": "Stock Opname",
       "subtitle": "Kelola sesi stock opname dan penyesuaian inventaris.",
