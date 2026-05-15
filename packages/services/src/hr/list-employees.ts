@@ -10,8 +10,9 @@ import { employees, employmentContracts } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, desc, eq, ilike, sql } from 'drizzle-orm';
+import { and, eq, ilike, inArray, or, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
+import { decryptPii, encryptPiiForLookup } from '../security/pii';
 import { type ListEmployeesInput, ListEmployeesInputSchema } from './schemas';
 
 export interface EmployeeListItem {
@@ -65,8 +66,18 @@ export async function listEmployees(
         conditions.push(eq(employees.locationId, data.locationId));
       }
       if (data.search) {
+        const q = `%${data.search}%`;
+        const encryptedNik = encryptPiiForLookup(data.search, 'employees.nik');
+        const encryptedPhone = encryptPiiForLookup(data.search, 'employees.phone');
         conditions.push(
-          sql`(${employees.name} ILIKE ${'%' + data.search + '%'} OR ${employees.nik} ILIKE ${'%' + data.search + '%'} OR ${employees.email} ILIKE ${'%' + data.search + '%'})`,
+          or(
+            ilike(employees.name, q),
+            ilike(employees.email, q),
+            ilike(employees.nik, q),
+            ilike(employees.phone, q),
+            encryptedNik ? eq(employees.nik, encryptedNik) : undefined,
+            encryptedPhone ? eq(employees.phone, encryptedPhone) : undefined,
+          )!,
         );
       }
 
@@ -114,21 +125,16 @@ export async function listEmployees(
         const contractRows = await db
           .select({ id: employmentContracts.id, baseSalary: employmentContracts.baseSalary })
           .from(employmentContracts)
-          .where(
-            and(
-              sql`${employmentContracts.id} = ANY(${contractIds})`,
-              eq(employmentContracts.isActive, true),
-            ),
-          );
+          .where(and(inArray(employmentContracts.id, contractIds), eq(employmentContracts.isActive, true)));
         contractSalaries = new Map(contractRows.map((r) => [r.id, String(r.baseSalary)]));
       }
 
       const items: EmployeeListItem[] = rows.map((r) => ({
         id: r.id,
-        nik: r.nik,
+        nik: decryptPii(r.nik, 'employees.nik') ?? r.nik,
         name: r.name,
         email: r.email,
-        phone: r.phone,
+        phone: decryptPii(r.phone, 'employees.phone'),
         status: r.status,
         position: r.position,
         department: r.department,

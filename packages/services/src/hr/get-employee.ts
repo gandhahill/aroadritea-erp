@@ -19,6 +19,7 @@ import { type Result, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
+import { decryptPii } from '../security/pii';
 
 export interface EmployeeContract {
   id: string;
@@ -217,11 +218,11 @@ export async function getEmployee(
 
       const result: EmployeeDetailResult = {
         id: row.id,
-        nik: row.nik,
+        nik: decryptPii(row.nik, 'employees.nik') ?? row.nik,
         name: row.name,
         email: row.email,
-        phone: row.phone,
-        address: row.address,
+        phone: decryptPii(row.phone, 'employees.phone'),
+        address: decryptPii(row.address, 'employees.address'),
         status: row.status,
         position: row.position,
         department: row.department,
@@ -229,11 +230,14 @@ export async function getEmployee(
         probationEndDate: row.probationEndDate,
         contractType: row.contractType,
         workSchedule: row.workSchedule,
-        npwp: row.npwp,
-        bpjsKesehatan: row.bpjsKesehatan,
-        bpjsTenagakerja: row.bpjsTenagakerja,
+        npwp: decryptPii(row.npwp, 'employees.npwp'),
+        bpjsKesehatan: decryptPii(row.bpjsKesehatan, 'employees.bpjsKesehatan'),
+        bpjsTenagakerja: decryptPii(row.bpjsTenagakerja, 'employees.bpjsTenagakerja'),
         emergencyContactName: row.emergencyContactName,
-        emergencyContactPhone: row.emergencyContactPhone,
+        emergencyContactPhone: decryptPii(
+          row.emergencyContactPhone,
+          'employees.emergencyContactPhone',
+        ),
         currentContractId: row.currentContractId,
         locationId: row.locationId,
         createdAt: row.createdAt!,

@@ -18,6 +18,7 @@
     "./member": "./src/member/index.ts",
     "./promotion": "./src/promotion/index.ts",
     "./scheduled-jobs": "./src/scheduled-jobs/index.ts",
+    "./security/pii": "./src/security/pii.ts",
     "./customfield": "./src/customfield/index.ts",
     "./workflow": "./src/workflow/index.ts",
     "./audit": "./src/audit/index.ts",

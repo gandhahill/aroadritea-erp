@@ -5,20 +5,14 @@
  */
 
 import { getSession } from '@/lib/auth';
-import { db, desc, eq, sql } from '@erp/db';
-import { employees } from '@erp/db/schema/hr';
+import { listEmployees } from '@erp/services/hr';
+import type { AuditContext } from '@erp/shared/types';
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { EmployeeListClient } from './employee-list-client';
 
 export const metadata: Metadata = { title: 'Employees' };
-
-const STATUS_LABEL: Record<string, string> = {
-  probation: 'Probation',
-  active: 'Aktif',
-  on_leave: 'Cuti',
-  terminated: 'Diberhentikan',
-};
 
 const STATUS_COLOR: Record<string, { bg: string; text: string }> = {
   probation: { bg: 'bg-brand-gold/10', text: 'text-brand-gold' },
@@ -35,7 +29,13 @@ export default async function EmployeesPage({
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
+  const user = session.user as Record<string, unknown>;
+  const ctx: AuditContext = {
+    userId: String(user.id ?? ''),
+    tenantId: String(user.tenantId ?? 'default'),
+    locationId: String(user.locationId ?? ''),
+  };
+  const t = await getTranslations('hr.employees');
   const params = await searchParams;
   const q = params.q ?? '';
   const status = params.status ?? '';
@@ -43,59 +43,41 @@ export default async function EmployeesPage({
   const limit = 20;
   const offset = (page - 1) * limit;
 
-  const conditions = [eq(employees.tenantId, tenantId)];
-  if (q) {
-    conditions.push(
-      sql`(${employees.name} ILIKE ${'%' + q + '%'} OR ${employees.nik} ILIKE ${'%' + q + '%'} OR ${employees.email} ILIKE ${'%' + q + '%'})`,
-    );
+  const result = await listEmployees(
+    {
+      search: q || undefined,
+      status: status
+        ? (status as 'probation' | 'active' | 'on_leave' | 'terminated')
+        : undefined,
+      limit,
+      offset,
+    },
+    ctx,
+  );
+  if (!result.ok) {
+    throw new Error(result.error.message ?? result.error.messageKey ?? 'Failed to load employees');
   }
-  if (status) {
-    conditions.push(eq(employees.status, status));
-  }
 
-  const whereClause = sql.join(conditions, sql` AND `);
-
-  // Count
-  const [countRow] = await db
-    .select({ count: sql<number>`cast(count(*) as int)` })
-    .from(employees)
-    .where(whereClause);
-
-  // Fetch
-  const rows = await db
-    .select({
-      id: employees.id,
-      nik: employees.nik,
-      name: employees.name,
-      email: employees.email,
-      status: employees.status,
-      position: employees.position,
-      department: employees.department,
-      hireDate: employees.hireDate,
-      contractType: employees.contractType,
-    })
-    .from(employees)
-    .where(whereClause)
-    .orderBy(employees.name)
-    .limit(limit)
-    .offset(offset);
-
-  const total = countRow?.count ?? 0;
+  const rows = result.value.items;
+  const total = result.value.total;
   const totalPages = Math.ceil((Number(total) || 0) / limit);
+  const statusLabel: Record<string, string> = {
+    probation: t('statusProbation'),
+    active: t('statusActive'),
+    on_leave: t('statusOnLeave'),
+    terminated: t('statusTerminated'),
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Employees</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            Manage employee records, contracts, and payroll.
-          </p>
+          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
+          <p className="mt-1 text-sm text-brand-ink-3">{t('description')}</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-cream-2 px-3 py-1 text-xs font-medium text-brand-ink-2">
-            {total} employees
+            {t('count', { count: total })}
           </span>
           <a
             href="/hr/employees/new"
@@ -110,17 +92,16 @@ export default async function EmployeesPage({
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            Add Employee
+            {t('add')}
           </a>
         </div>
       </div>
 
-      {/* Filters */}
       <EmployeeListClient
         rows={rows.map((r) => ({
           ...r,
-          hireDate: r.hireDate?.toISOString() ?? '',
-          statusLabel: STATUS_LABEL[r.status] ?? r.status,
+          hireDate: r.hireDate.toISOString(),
+          statusLabel: statusLabel[r.status] ?? r.status,
           statusColor: STATUS_COLOR[r.status] ?? {
             bg: 'bg-brand-cream-2',
             text: 'text-brand-ink-2',
@@ -137,7 +118,7 @@ export default async function EmployeesPage({
         totalPages={totalPages}
         initialQ={q}
         initialStatus={status}
-        statusOptions={Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label }))}
+        statusOptions={Object.entries(statusLabel).map(([value, label]) => ({ value, label }))}
       />
     </div>
   );

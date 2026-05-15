@@ -12,6 +12,7 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { requirePermission } from '../iam';
+import { encryptPii } from '../security/pii';
 import { type CreateEmployeeInput, CreateEmployeeInputSchema } from './schemas';
 
 export async function createEmployee(
@@ -43,11 +44,11 @@ export async function createEmployee(
           locationId: ctx.locationId,
           createdBy: ctx.userId,
           updatedBy: ctx.userId,
-          nik: data.nik,
+          nik: encryptPii(data.nik, 'employees.nik') ?? '',
           name: data.name,
           email: data.email,
-          phone: data.phone ?? null,
-          address: data.address ?? null,
+          phone: encryptPii(data.phone, 'employees.phone'),
+          address: encryptPii(data.address, 'employees.address'),
           status: 'probation',
           position: data.position,
           department: data.department ?? null,
@@ -55,11 +56,14 @@ export async function createEmployee(
           probationEndDate: data.probationEndDate ? new Date(data.probationEndDate) : null,
           contractType: data.contractType,
           workSchedule: data.workSchedule,
-          npwp: data.npwp ?? null,
-          bpjsKesehatan: data.bpjsKesehatan ?? null,
-          bpjsTenagakerja: data.bpjsTenagakerja ?? null,
+          npwp: encryptPii(data.npwp, 'employees.npwp'),
+          bpjsKesehatan: encryptPii(data.bpjsKesehatan, 'employees.bpjsKesehatan'),
+          bpjsTenagakerja: encryptPii(data.bpjsTenagakerja, 'employees.bpjsTenagakerja'),
           emergencyContactName: data.emergencyContactName ?? null,
-          emergencyContactPhone: data.emergencyContactPhone ?? null,
+          emergencyContactPhone: encryptPii(
+            data.emergencyContactPhone,
+            'employees.emergencyContactPhone',
+          ),
         })
         .returning({ id: employees.id });
 

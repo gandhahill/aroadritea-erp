@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -45,6 +45,7 @@ export function EmployeeListClient({
   statusOptions,
 }: Props) {
   const t = useTranslations('hr.employees');
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -85,7 +86,7 @@ export function EmployeeListClient({
             onKeyDown={(e) => {
               if (e.key === 'Enter') applyFilter(q, initialStatus, 1);
             }}
-            placeholder={t('name')}
+            placeholder={t('searchPlaceholder')}
             className="w-full rounded-lg border border-brand-cream-3 bg-card pl-10 pr-4 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
           />
         </div>
@@ -120,7 +121,7 @@ export function EmployeeListClient({
               d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
             />
           </svg>
-          <h3 className="mt-3 text-base font-semibold text-brand-ink">No employees found</h3>
+          <h3 className="mt-3 text-base font-semibold text-brand-ink">{t('emptyTitle')}</h3>
           <p className="mt-1 text-sm text-brand-ink-3">{t('noData')}</p>
         </div>
       ) : (
@@ -143,7 +144,7 @@ export function EmployeeListClient({
                 <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
                   {t('hireDate')}
                 </th>
-                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">Aksi</th>
+                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
@@ -172,14 +173,14 @@ export function EmployeeListClient({
                   </td>
                   <td className="px-4 py-3 text-brand-ink-2">{row.contractLabel}</td>
                   <td className="px-4 py-3 text-brand-ink-2">
-                    {row.hireDate ? new Date(row.hireDate).toLocaleDateString('id-ID') : '—'}
+                    {row.hireDate ? new Date(row.hireDate).toLocaleDateString(locale) : '—'}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Link
                       href={`/hr/employees/${row.id}`}
                       className="inline-flex items-center gap-1 text-sm font-medium text-brand-ember-5 transition-colors hover:text-brand-ember-6"
                     >
-                      View
+                      {t('view')}
                       <svg
                         className="h-3.5 w-3.5"
                         fill="none"
@@ -206,7 +207,7 @@ export function EmployeeListClient({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-brand-ink-3">
-            Page {page} of {totalPages} — {total} results
+            {t('pageStatus', { page, totalPages, total })}
           </p>
           <div className="flex items-center gap-2">
             <button
@@ -214,14 +215,14 @@ export function EmployeeListClient({
               disabled={page <= 1}
               className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink disabled:cursor-not-allowed disabled:opacity-40 hover:bg-brand-cream-1"
             >
-              Prev
+              {t('prev')}
             </button>
             <button
               onClick={() => applyFilter(q, initialStatus, page + 1)}
               disabled={page >= totalPages}
               className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink disabled:cursor-not-allowed disabled:opacity-40 hover:bg-brand-cream-1"
             >
-              Next
+              {t('next')}
             </button>
           </div>
         </div>
