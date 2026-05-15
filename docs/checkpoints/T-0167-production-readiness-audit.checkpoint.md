@@ -111,6 +111,13 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
   - Improved Naixer 4x3 label preview compact sizing and product media URL rendering.
   - Updated `docs/TRACEABILITY-AUDIT.md` with current evidence and residual release risks.
   - Verification passed locally: `pnpm -r typecheck`, `pnpm --filter @erp/services test` (528 tests), `pnpm --filter @erp/web build`, `pnpm --filter @erp/site build`, `pnpm --filter @erp/mcp build`, `pnpm --filter @erp/worker build`, sidebar route audit, i18n key parity, marker scan, and local MCP `/healthz` smoke.
+- 2026-05-15 23:31 local SoT/SD sweep:
+  - Hardened scheduled worker jobs so backup/revalidation/payroll/stock-alert jobs do not fail by default when optional production integrations are not configured.
+  - Worker now records scheduled job success/failure back to `scheduled_jobs`, making the scheduled-jobs UI operational rather than static.
+  - Stock-low alert job now queries stock thresholds and sends configured operational notifications through active email/WhatsApp channels.
+  - Scheduled-jobs settings UI now uses localized ID/EN/ZH message keys.
+  - HR check-in client now follows selected ERP language for labels, GPS status, date/time locale, warnings, and result messages.
+  - Verification passed locally: `pnpm -r typecheck`, `pnpm --filter @erp/web typecheck`, `pnpm --filter @erp/services test`, i18n key parity, and unfinished-marker scan.
 
 ## Plan
 
@@ -126,11 +133,11 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 10. [x] Rebuild ERP Docs into production-grade help center shell with left navigation, search-style layout, workflow guidance, and editable content integration.
 11. [x] Commit, push, deploy latest local critical fixes, run production migrations, and smoke test live site/web/MCP.
 12. [x] Commit, push, deploy ERP static asset middleware patch, then live re-smoke favicon/PWA assets.
-13. [ ] Commit/push/deploy the 22:52 local sweep and run authenticated ERP browser smoke with admin session across POS production, POS demo, docs, permissions, product master, promotions, BI, journals, HR check-in/leave, account settings, and audit trail.
+13. [ ] Commit/push/deploy the 23:31 local sweep and run authenticated ERP browser smoke with admin session across POS production, POS demo, docs, permissions, product master, promotions, BI, journals, HR check-in/leave, account settings, audit trail, and scheduled jobs.
 
 ## Next Step
 
-Stage, commit, push, and deploy the current local sweep. On the VPS run the normal build/reload flow plus seed/admin scripts, then run authenticated ERP browser smoke for `/pos`, `/pos/demo`, `/docs`, `/settings/permissions`, `/inventory/products`, `/settings/promotions`, `/reporting/business-intelligence`, `/accounting/journals/new`, `/accounting/coa`, `/tax/rates`, `/tax/rules`, `/hr/checkin`, `/hr/leave`, `/account`, and `/audit`; capture any UI/i18n/button/404 issues and fix them before marking T-0167 done.
+Stage, commit, push, and deploy the current local sweep. On the VPS run the normal build/reload flow plus seed/admin scripts, then run authenticated ERP browser smoke for `/pos`, `/pos/demo`, `/docs`, `/settings/permissions`, `/inventory/products`, `/settings/promotions`, `/reporting/business-intelligence`, `/accounting/journals/new`, `/accounting/coa`, `/tax/rates`, `/tax/rules`, `/hr/checkin`, `/hr/leave`, `/account`, `/audit`, and `/settings/scheduled-jobs`; capture any UI/i18n/button/404 issues and fix them before marking T-0167 done.
 
 ## Test Status
 
@@ -154,3 +161,11 @@ Stage, commit, push, and deploy the current local sweep. On the VPS run the norm
   - `pnpm --filter @erp/site build` passed; 31 static public pages generated.
   - `pnpm --filter @erp/mcp build` and `pnpm --filter @erp/worker build` passed.
   - Local MCP health smoke passed: `http://127.0.0.1:3912/healthz` returned HTTP 200.
+- 2026-05-15 23:31 local verification PASS:
+  - `pnpm -r typecheck` passed after worker scheduled-job hardening.
+  - `pnpm --filter @erp/web typecheck` passed after HR check-in i18n changes.
+  - `pnpm --filter @erp/services test` passed: 24 files, 528 tests.
+  - `pnpm --filter @erp/web build`, `pnpm --filter @erp/site build`, `pnpm --filter @erp/worker build`, and `pnpm --filter @erp/mcp build` passed.
+  - Local MCP HTTP health smoke passed on `http://127.0.0.1:3912/healthz`.
+  - Web/site ID/EN/ZH message key parity passed with 0 missing keys.
+  - Marker scan over `apps` and `packages` found no TODO/FIXME/not-implemented/stub/placeholder-work markers.

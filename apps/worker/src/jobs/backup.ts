@@ -18,7 +18,7 @@ export async function backupHandler(data: BackupJobData): Promise<void> {
     return;
   }
 
-  throw new Error(
-    'Backup job is not configured. Keep this scheduled job disabled unless BACKUP_PROVIDER_MANAGED=true is set or an off-site backup runner is implemented.',
+  console.warn(
+    '[backup] Skipped because BACKUP_PROVIDER_MANAGED is not true. Keep the job disabled unless the managed database backup policy is confirmed.',
   );
 }

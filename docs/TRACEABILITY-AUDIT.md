@@ -45,7 +45,7 @@ Important: this matrix is intentionally skeptical. A feature with code but no cu
 | SoT 15 | Multi-location branch dimension; public site shows outlets only | PARTIAL | locations schema/UI local patch, public site location pages | Seed still overwrites some location data; local patch required to preserve UI-managed edits. |
 | SoT 16 | Dashboard and reports for management | PARTIAL | dashboard/report pages | User requested super-complete BI dashboard for management, not only director; page is linked but not implemented yet. |
 | SoT 17 | Infra: Next.js apps, MCP, worker, PM2/HestiaCP | FULL | app layout, `ecosystem.config.cjs`, README/deploy docs | Needs re-run after local changes. |
-| SoT 18 | Security, audit, backup, military-level without mandatory 2FA | PARTIAL | auth, RBAC, audit log, backup runbooks, security headers | Field-level encryption for PII, dependency scan, incident runbook and audit evidence need completion. |
+| SoT 18 | Security, audit, backup, military-level without mandatory 2FA | PARTIAL | auth, RBAC, audit log, backup runbooks, security headers, hardened scheduled jobs | Field-level encryption for PII, dependency scan, incident runbook and restore-drill evidence need completion. |
 | SoT 19 | Compliance: PDP, BPOM/Halal docs, tax compliance | PARTIAL | legal pages, member consent, attachments | Legal pages improved earlier; document storage and legal text need final counsel review. |
 | SoT 21.2a | XLSX export in all relevant modules with clear labels | PARTIAL | reporting/inventory XLSX exports | Export coverage across all modules and location-name clarity still being patched. |
 | SoT 21.2b | Dedicated docs/help page as source of truth for users | PARTIAL | `/docs`, `/cms/docs` local editable docs | Content is still below requested depth; needs module-by-module step-by-step expansion. |
@@ -54,9 +54,9 @@ Important: this matrix is intentionally skeptical. A feature with code but no cu
 | SoT 21.9 | Journal attachments + MCP audit | PARTIAL | journal attachments service/UI/MCP; local upload API | General attachment upload is local and unverified. |
 | SoT 21.10 | Donation / rounding | FULL | POS donation flow, reporting donations | Needs regression smoke. |
 | SoT 22 | Public website, CMS, member signup/portal, legal pages | PARTIAL | `apps/site`, CMS services/UI | Public signup crash patched locally; content/legal/i18n still need live verification. |
-| SoT 23 | Brand style, tagline, favicon, Chinese tea accent | PARTIAL | site brand assets and pages | ERP favicon missing in current dirty state; local fix required. |
+| SoT 23 | Brand style, tagline, favicon, Chinese tea accent | PARTIAL | site brand assets, pages, ERP favicon/PWA assets | Live favicon/PWA smoke passed; remaining work is full authenticated visual QA across ERP pages. |
 | SoT 24 | POS demo/training mode identical to real POS except DB side effects | PARTIAL | `/pos/demo`, offline demo DB | Must compare receipt/label/payment flow against real POS and ensure no server sync/printer side effect. |
-| SoT 25 | Resilience: offline POS, auto-sync, RTO <= 2 min, RPO 0 POS, alerts | PARTIAL | PWA/offline packages, PM2 config, healthz | Offline scenarios and alerting are not fully proven by automated tests. |
+| SoT 25 | Resilience: offline POS, auto-sync, RTO <= 2 min, RPO 0 POS, alerts | PARTIAL | PWA/offline packages, PM2 config, healthz, worker run-status tracking, low-stock alert job | Offline scenarios, print recovery, and external alert delivery are not fully proven by automated tests. |
 
 ## Technical Requirement Matrix
 
@@ -69,7 +69,7 @@ Important: this matrix is intentionally skeptical. A feature with code but no cu
 | SD 10 | Minimal API only where needed | PARTIAL | sync/upload/member APIs | Upload API added locally; authorization and private file serving must be tested. |
 | SD 11 | AuthZ via DB permission engine; no hardcoded role checks | PARTIAL | IAM service/UI | Need `rg` audit for `role ===` and route-level gaps before marking full. |
 | SD 12 | Multi-location dimension and active-location filtering | PARTIAL | locations schema, local settings UI | Seed overwrite must be fixed; export/name localization pass in progress. |
-| SD 13 | ID/EN/ZH i18n from day one | PARTIAL | message JSON files, locale switcher | `apps/web/messages/zh.json` contains raw `???` placeholders; must be fixed. |
+| SD 13 | ID/EN/ZH i18n from day one | PARTIAL | message JSON files, locale switcher, HR check-in i18n patch | ID/EN/ZH key parity passes; remaining risk is hardcoded UI copy in older pages that still needs migration. |
 | SD 14 | Offline-first POS PWA, IndexedDB outbox, idempotency | PARTIAL | `packages/offline`, POS sync API | Offline/no-network/reboot/server-down scenarios not yet fully automated. |
 | SD 15 | Audit log immutable and queryable | PARTIAL | audit service, local audit UI | Audit UI added locally; needs typecheck and smoke. |
 | SD 16 | MCP read/write/audit tools using same permission engine | PARTIAL | `apps/mcp/src/tools/*` | Need tool inventory and smoke test; new locations/docs/promotions tools missing. |
@@ -86,8 +86,8 @@ Important: this matrix is intentionally skeptical. A feature with code but no cu
 | SD 25.4 | Comprehensive editable documentation | PARTIAL | local `/docs` and `/cms/docs` | Needs full content expansion and UI verification. |
 | SD 25.10 | Journal attachments with MCP audit | PARTIAL | attachments + local upload API | File upload must be authorized and smoke-tested. |
 | SD 26 | CI/CD deployment with PM2/HestiaCP | FULL | README, `ecosystem.config.cjs` | Must redeploy after local fixes. |
-| SD 27 | Backup/restore/DR | PARTIAL | runbooks/scripts | Restore drill evidence missing. |
-| SD 28 | Observability and alerts | PARTIAL | healthz, worker/outage concepts | Alert configuration UI exists locally, but end-to-end alert proof missing. |
+| SD 27 | Backup/restore/DR | PARTIAL | runbooks/scripts, DB-managed backup job behavior | Backup job no longer crashes when managed backup mode is used; restore drill evidence is still missing. |
+| SD 28 | Observability and alerts | PARTIAL | healthz, worker run-status persistence, stock-low alert delivery path | Alert configuration and delivery code exist; external email/WhatsApp delivery and escalation proof are still missing. |
 | SD 29/37 | AI workflow via TASK/checkpoint | PARTIAL | `TASK.md`, checkpoint | Checkpoint must be updated after this audit. |
 | SD 31 | Public website + CMS + member portal | PARTIAL | `apps/site`, CMS/member services | Current public/signup regression needs verification. |
 | SD 33 | Naixer QR integration | PARTIAL | kitchen/Naixer services/UI | Physical QR/label test not evidenced. |
@@ -155,6 +155,28 @@ This update records the current local evidence after the second SoT/SD sweep. It
 4. MCP has 47 runtime tools and health passes, but newly added UI CRUD surfaces such as COA/tax management are not all exposed as MCP write tools yet.
 5. PII encryption-at-rest and full legal/compliance counsel review remain formal assurance tasks before calling the whole ERP compliance-complete.
 6. Production deploy and authenticated browser smoke are still required after this local patch set.
+
+## T-0167 Update - 2026-05-15 23:31 WIB
+
+Additional SoT/SD sweep focused on worker resilience and HR i18n gaps found after the 22:52 pass.
+
+### Fixed / Improved In This Pass
+
+1. Worker scheduled jobs now record last-run success/failure back to `scheduled_jobs`, so the UI can show operational evidence instead of static configuration only.
+2. Backup, public-site revalidation, payroll batch, and stock-low alert jobs no longer fail by default just because optional production integrations are not configured.
+3. Stock-low alert job now queries inventory thresholds and sends operational alerts through active configured notification channels for email or WhatsApp.
+4. Scheduled-jobs settings page/table is now localized through `scheduledJobs` message keys instead of hardcoded UI copy.
+5. HR check-in page now follows selected ERP language for labels, GPS status, date/time locale, error messages, shift warnings, and submit state.
+
+### Verification Evidence
+
+1. `pnpm -r typecheck` PASS across 10 workspace projects after worker/scheduled-job changes.
+2. `pnpm --filter @erp/web typecheck` PASS after HR check-in i18n changes.
+3. `pnpm --filter @erp/services test` PASS: 24 files, 528 tests.
+4. `pnpm --filter @erp/web build`, `pnpm --filter @erp/site build`, `pnpm --filter @erp/worker build`, and `pnpm --filter @erp/mcp build` PASS.
+5. Local MCP HTTP health smoke PASS on `http://127.0.0.1:3912/healthz`.
+6. Web/site i18n key parity PASS: `apps/web/messages` has 746 keys and `apps/site/messages` has 98 keys with 0 missing keys across ID/EN/ZH.
+7. Unfinished-marker scan PASS over `apps` and `packages` for TODO/FIXME/not-implemented/stub/coming-soon/lorem/dummy markers.
 
 ## Next Implementation Order
 

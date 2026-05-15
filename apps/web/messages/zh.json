@@ -153,6 +153,14 @@
   },
   "scheduledJobs": {
     "title": "定时任务",
+    "copy": {
+      "subtitle": "管理备份、库存提醒、工资处理和站点缓存等后台任务。Worker 会自动读取变更。",
+      "activeCount": "{count} 个启用",
+      "totalCount": "共 {count} 个",
+      "howItWorksTitle": "工作方式",
+      "howItWorksBody": "Worker 每 60 秒从数据库读取任务计划。可在此启用任务或修改 cron，无需重新部署。Cron 格式：",
+      "cronExample": "分钟 小时 日期 月份 星期"
+    },
     "backup": {
       "label": "数据库备份",
       "description": "每日数据库备份到离线存储（S3/R2）"
@@ -181,8 +189,23 @@
       "nextRunAt": "下次运行"
     },
     "status": {
+      "neverRun": "尚未运行",
       "success": "成功",
       "failed": "失败"
+    },
+    "empty": {
+      "title": "暂无定时任务",
+      "body": "任务计划可通过 seed 数据或此设置页面创建。"
+    },
+    "actions": {
+      "editSchedule": "编辑计划",
+      "save": "保存",
+      "cancel": "取消",
+      "saving": "保存中..."
+    },
+    "errors": {
+      "toggleFailed": "切换任务状态失败。",
+      "scheduleFailed": "更新计划失败。"
     },
     "create": "添加计划",
     "edit": "编辑计划",
@@ -448,7 +471,32 @@
       "workedMinutes": "工作时长",
       "noRecords": "暂无考勤记录",
       "statusOnTime": "准时",
-      "statusLate": "迟到"
+      "statusLate": "迟到",
+      "checkInPage": {
+        "location": "??",
+        "status": {
+          "accurate": "??",
+          "lowAccuracy": "????",
+          "gettingLocation": "??????...",
+          "denied": "???",
+          "error": "??",
+          "notStarted": "???"
+        },
+        "actions": {
+          "requestPermissionAgain": "????????",
+          "checkingIn": "????..."
+        },
+        "messages": {
+          "geolocationUnsupported": "????????????",
+          "locationPermissionDenied": "?????????????????????",
+          "employeeMissing": "??????????????????",
+          "checkedInLate": "???????? {minutes} ???",
+          "checkedInOnTime": "?????????",
+          "checkInFailed": "?????????",
+          "noShift": "?????????????????????",
+          "noEmployeeLinked": "???????????????????"
+        }
+      }
     },
     "leave": {
       "title": "请假",

@@ -153,6 +153,14 @@
   },
   "scheduledJobs": {
     "title": "Scheduled Jobs",
+    "copy": {
+      "subtitle": "Manage background jobs such as backup, stock alerts, payroll, and site cache. Worker picks up changes automatically.",
+      "activeCount": "{count} active",
+      "totalCount": "{count} total",
+      "howItWorksTitle": "How it works",
+      "howItWorksBody": "The worker reads schedules from the database every 60 seconds. Toggle jobs or edit cron here without redeploying. Cron format:",
+      "cronExample": "minute hour day month weekday"
+    },
     "backup": {
       "label": "Database Backup",
       "description": "Daily database backup to off-site storage (S3/R2)"
@@ -181,8 +189,23 @@
       "nextRunAt": "Next Run"
     },
     "status": {
+      "neverRun": "Never run",
       "success": "Success",
       "failed": "Failed"
+    },
+    "empty": {
+      "title": "No scheduled jobs",
+      "body": "Schedules are created through seed data or this settings page."
+    },
+    "actions": {
+      "editSchedule": "Edit schedule",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saving": "Saving..."
+    },
+    "errors": {
+      "toggleFailed": "Failed to toggle job.",
+      "scheduleFailed": "Failed to update schedule."
     },
     "create": "Add Schedule",
     "edit": "Edit Schedule",
@@ -448,7 +471,32 @@
       "workedMinutes": "Worked",
       "noRecords": "No attendance records",
       "statusOnTime": "On Time",
-      "statusLate": "Late"
+      "statusLate": "Late",
+      "checkInPage": {
+        "location": "Location",
+        "status": {
+          "accurate": "Accurate",
+          "lowAccuracy": "Low accuracy",
+          "gettingLocation": "Getting location...",
+          "denied": "Denied",
+          "error": "Error",
+          "notStarted": "Not started"
+        },
+        "actions": {
+          "requestPermissionAgain": "Request location permission again",
+          "checkingIn": "Checking in..."
+        },
+        "messages": {
+          "geolocationUnsupported": "This browser does not support geolocation.",
+          "locationPermissionDenied": "Location permission was denied. Enable location access in the browser.",
+          "employeeMissing": "Employee data was not found. Sign in with an employee account.",
+          "checkedInLate": "Check-in recorded. Late by {minutes} minutes.",
+          "checkedInOnTime": "Check-in recorded. On time.",
+          "checkInFailed": "Check-in failed. Please try again.",
+          "noShift": "No shift is available. Contact an administrator to activate shift master data.",
+          "noEmployeeLinked": "This account is not linked to an employee record. Contact an administrator."
+        }
+      }
     },
     "leave": {
       "title": "Leave",

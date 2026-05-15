@@ -41,6 +41,28 @@ const handlerMap: Record<string, JobHandler> = {
 // Tracks which jobs are currently scheduled in pg-boss.
 const scheduled = new Map<string, string>(); // name → cron expression
 
+async function recordRunStatus(
+  name: string,
+  status: 'success' | 'failed',
+  errorMessage?: string,
+): Promise<void> {
+  try {
+    await db
+      .update(scheduledJobs)
+      .set({
+        lastRunAt: new Date(),
+        lastRunStatus: status,
+        lastRunError: errorMessage ?? null,
+        updatedAt: new Date(),
+      })
+      .where(eq(scheduledJobs.name, name));
+  } catch (err) {
+    console.error(`[scheduler] Failed to update run status for ${name}`, {
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
 /**
  * Sync all enabled scheduled jobs from DB to pg-boss.
  * Called on startup and periodically (every 60 seconds).
@@ -95,10 +117,13 @@ export async function syncSchedules(): Promise<void> {
             _runAt: new Date().toISOString(),
           };
           await handler(mergedData);
+          await recordRunStatus(job.name, 'success');
         } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
           console.error(`[scheduler] Job ${job.name} failed`, {
-            error: err instanceof Error ? err.message : String(err),
+            error: message,
           });
+          await recordRunStatus(job.name, 'failed', message);
           throw err; // re-throw so pg-boss marks job as failed
         }
       });

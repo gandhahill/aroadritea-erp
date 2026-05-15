@@ -21,7 +21,34 @@ export async function isrRevalidateHandler(data: IsrRevalidateJobData): Promise<
     fullRevalidate,
   });
 
-  throw new Error(
-    'ISR revalidation job is not configured. Keep this scheduled job disabled until a signed public-site revalidation endpoint is available.',
-  );
+  const endpoint = process.env.SITE_REVALIDATE_URL;
+  const secret = process.env.SITE_REVALIDATE_SECRET;
+  if (!endpoint || !secret) {
+    console.warn(
+      '[isr-revalidate] Skipped because SITE_REVALIDATE_URL or SITE_REVALIDATE_SECRET is not configured.',
+    );
+    return;
+  }
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${secret}`,
+      'Content-Type': 'application/json',
+      'User-Agent': 'aroadri-erp-worker/1.0 isr-revalidate',
+    },
+    body: JSON.stringify({
+      path,
+      tag,
+      tenantId,
+      fullRevalidate: fullRevalidate === true,
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`ISR revalidation failed: ${response.status} ${response.statusText} ${body}`);
+  }
+
+  console.info('[isr-revalidate] Revalidation request accepted', { status: response.status });
 }

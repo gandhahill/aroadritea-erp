@@ -11,7 +11,8 @@
 'use client';
 
 import type { GpsData } from '@erp/services/hr';
-import { useCallback, useEffect, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { serverCheckIn } from './actions';
 
 interface Props {
@@ -32,6 +33,9 @@ interface GpsState {
 }
 
 export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts }: Props) {
+  const t = useTranslations('hr.attendance.checkInPage');
+  const attendanceT = useTranslations('hr.attendance');
+  const locale = useLocale();
   const [gps, setGps] = useState<GpsState>({
     status: 'idle',
     data: null,
@@ -43,6 +47,11 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
   const [currentTime, setCurrentTime] = useState(new Date());
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const displayLocale = useMemo(() => {
+    if (locale === 'en') return 'en-US';
+    if (locale === 'zh') return 'zh-CN';
+    return 'id-ID';
+  }, [locale]);
 
   // Live clock
   useEffect(() => {
@@ -56,7 +65,7 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
       setGps((s) => ({
         ...s,
         status: 'error',
-        error: 'Geolocation not supported by this browser.',
+        error: t('messages.geolocationUnsupported'),
       }));
       return;
     }
@@ -77,7 +86,7 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
       (err) => {
         const errorMsg =
           err.code === err.PERMISSION_DENIED
-            ? 'Location permission denied. Please enable location access.'
+            ? t('messages.locationPermissionDenied')
             : err.message;
         setGps((s) => ({ ...s, status: 'denied', error: errorMsg }));
       },
@@ -103,7 +112,7 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
     if (!employeeId) {
       setResult({
         ok: false,
-        message: 'Employee ID not found. Please log in with your employee account.',
+        message: t('messages.employeeMissing'),
       });
       return;
     }
@@ -137,12 +146,15 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
     if (res.ok) {
       const data = res.value;
       if (data.isLate) {
-        setResult({ ok: true, message: `Checked in! Late: +${data.lateMinutes} minutes` });
+        setResult({
+          ok: true,
+          message: t('messages.checkedInLate', { minutes: data.lateMinutes }),
+        });
       } else {
-        setResult({ ok: true, message: 'Checked in successfully. On time!' });
+        setResult({ ok: true, message: t('messages.checkedInOnTime') });
       }
     } else {
-      const msg = res.error?.message ?? 'Check-in failed. Please try again.';
+      const msg = res.error?.message ?? t('messages.checkInFailed');
       setResult({ ok: false, message: msg });
     }
   };
@@ -157,9 +169,9 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
       <div className="w-full max-w-sm space-y-6">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-brand-ink">Check In</h1>
+          <h1 className="text-2xl font-bold text-brand-ink">{attendanceT('checkIn')}</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            {currentTime.toLocaleDateString('id-ID', {
+            {currentTime.toLocaleDateString(displayLocale, {
               weekday: 'long',
               year: 'numeric',
               month: 'long',
@@ -167,7 +179,7 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
             })}
           </p>
           <p className="mt-0.5 font-mono text-3xl font-bold text-brand-ember-5">
-            {currentTime.toLocaleTimeString('id-ID', {
+            {currentTime.toLocaleTimeString(displayLocale, {
               hour: '2-digit',
               minute: '2-digit',
               second: '2-digit',
@@ -178,7 +190,7 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
         {/* GPS Status */}
         <div className="rounded-xl border border-brand-cream-3 bg-card p-4">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm font-medium text-brand-ink">Location</span>
+            <span className="text-sm font-medium text-brand-ink">{t('location')}</span>
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${
                 gps.status === 'granted'
@@ -191,28 +203,29 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
               }`}
             >
               {gps.status === 'granted'
-                ? 'â— Accurate'
+                ? t('status.accurate')
                 : gps.status === 'low_accuracy'
-                  ? 'â— Low accuracy'
+                  ? t('status.lowAccuracy')
                   : gps.status === 'requesting'
-                    ? 'â—‹ Getting location...'
+                    ? t('status.gettingLocation')
                     : gps.status === 'denied'
-                      ? 'âœ• Denied'
+                      ? t('status.denied')
                       : gps.status === 'error'
-                        ? 'âœ• Error'
-                        : 'â—‹ Not started'}
+                        ? t('status.error')
+                        : t('status.notStarted')}
             </span>
           </div>
           {gps.data && (
             <p className="font-mono text-xs text-brand-ink-3">
-              {gps.data.lat.toFixed(6)}, {gps.data.lng.toFixed(6)} Â· Â±
-              {Math.round(gps.data.accuracy_m)}m
+              {gps.data.lat.toFixed(6)}, {gps.data.lng.toFixed(6)} / +/-
+              {Math.round(gps.data.accuracy_m)}
+              m
             </p>
           )}
           {gps.error && <p className="text-xs text-rose-500">{gps.error}</p>}
           {gps.status === 'denied' && (
             <button onClick={requestGps} className="mt-2 text-xs text-brand-ember-5 underline">
-              Request permission again
+              {t('actions.requestPermissionAgain')}
             </button>
           )}
         </div>
@@ -227,7 +240,7 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
                 : 'border-brand-cream-3 bg-card text-brand-ink'
             }`}
           >
-            GPS
+            {attendanceT('methodGPS')}
           </button>
           <button
             onClick={() => setMethod('qr_scan')}
@@ -237,13 +250,13 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
                 : 'border-brand-cream-3 bg-card text-brand-ink'
             }`}
           >
-            QR Scan
+            {attendanceT('methodQR')}
           </button>
         </div>
 
         {/* Shift selection */}
         <div className="space-y-2">
-          <span className="text-sm font-medium text-brand-ink">Shift</span>
+          <span className="text-sm font-medium text-brand-ink">{attendanceT('shift')}</span>
           <div className="grid grid-cols-2 gap-2">
             {shifts.map((shift) => (
               <button
@@ -262,7 +275,7 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
           </div>
           {shifts.length === 0 && (
             <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
-              Shift belum tersedia. Hubungi administrator untuk mengaktifkan master shift.
+              {t('messages.noShift')}
             </p>
           )}
         </div>
@@ -290,12 +303,12 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
               : 'bg-brand-cream-2 text-brand-ink-3 cursor-not-allowed'
           }`}
         >
-          {submitting ? 'Checking in...' : 'CHECK IN'}
+          {submitting ? t('actions.checkingIn') : attendanceT('checkIn')}
         </button>
 
         {!employeeId && (
           <p className="text-center text-xs text-rose-500">
-            No employee account linked to this user. Contact administrator.
+            {t('messages.noEmployeeLinked')}
           </p>
         )}
       </div>

@@ -153,6 +153,14 @@
   },
   "scheduledJobs": {
     "title": "Jadwal Otomatis",
+    "copy": {
+      "subtitle": "Kelola jadwal pekerjaan latar seperti backup, peringatan stok, payroll, dan cache situs. Perubahan diterapkan otomatis oleh worker.",
+      "activeCount": "{count} aktif",
+      "totalCount": "{count} total",
+      "howItWorksTitle": "Cara kerja",
+      "howItWorksBody": "Worker membaca jadwal dari database setiap 60 detik. Ubah status atau cron di halaman ini tanpa perlu deploy ulang. Format cron:",
+      "cronExample": "menit jam tanggal bulan hari"
+    },
     "backup": {
       "label": "Cadangan Database",
       "description": "Backup database harian ke penyimpanan off-site (S3/R2)"
@@ -181,8 +189,23 @@
       "nextRunAt": "Jadwal Berikutnya"
     },
     "status": {
+      "neverRun": "Belum pernah jalan",
       "success": "Berhasil",
       "failed": "Gagal"
+    },
+    "empty": {
+      "title": "Belum ada jadwal otomatis",
+      "body": "Jadwal dibuat lewat seed atau halaman pengaturan ini."
+    },
+    "actions": {
+      "editSchedule": "Ubah jadwal",
+      "save": "Simpan",
+      "cancel": "Batal",
+      "saving": "Menyimpan..."
+    },
+    "errors": {
+      "toggleFailed": "Gagal mengubah status jadwal.",
+      "scheduleFailed": "Gagal memperbarui jadwal."
     },
     "create": "Tambah Jadwal",
     "edit": "Ubah Jadwal",
@@ -496,7 +519,32 @@
       "workedMinutes": "Jam Kerja",
       "noRecords": "Belum ada data kehadiran",
       "statusOnTime": "Tepat Waktu",
-      "statusLate": "Terlambat"
+      "statusLate": "Terlambat",
+      "checkInPage": {
+        "location": "Lokasi",
+        "status": {
+          "accurate": "Akurat",
+          "lowAccuracy": "Akurasi rendah",
+          "gettingLocation": "Mengambil lokasi...",
+          "denied": "Ditolak",
+          "error": "Error",
+          "notStarted": "Belum mulai"
+        },
+        "actions": {
+          "requestPermissionAgain": "Minta izin lokasi lagi",
+          "checkingIn": "Mencatat presensi..."
+        },
+        "messages": {
+          "geolocationUnsupported": "Browser ini belum mendukung geolokasi.",
+          "locationPermissionDenied": "Izin lokasi ditolak. Aktifkan akses lokasi di browser.",
+          "employeeMissing": "Data karyawan tidak ditemukan. Masuk memakai akun karyawan.",
+          "checkedInLate": "Presensi masuk tercatat. Terlambat {minutes} menit.",
+          "checkedInOnTime": "Presensi masuk berhasil. Tepat waktu.",
+          "checkInFailed": "Presensi gagal. Coba lagi.",
+          "noShift": "Shift belum tersedia. Hubungi administrator untuk mengaktifkan master shift.",
+          "noEmployeeLinked": "Akun ini belum terhubung ke data karyawan. Hubungi administrator."
+        }
+      }
     },
     "leave": {
       "title": "Cuti",

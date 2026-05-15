@@ -1,47 +1,44 @@
 /**
- * Scheduled Jobs Settings Page — SD §21.10, §35.1.4
+ * Scheduled Jobs Settings Page - SD §21.10, §35.1.4.
  * View and manage DB-driven cron schedules.
- * Worker syncs from this table every 60 seconds — no redeploy needed.
  */
 
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchScheduledJobs } from './actions';
 import { ScheduledJobsTable } from './jobs-table';
 
 export const metadata: Metadata = {
-  title: 'Scheduled Jobs — Settings',
+  title: 'Scheduled Jobs - Settings',
 };
 
 export default async function ScheduledJobsPage() {
   const session = await getSession();
   if (!session) redirect('/login');
+  const t = await getTranslations('scheduledJobs');
 
   const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
   const jobs = await fetchScheduledJobs(tenantId);
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Scheduled Jobs</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            Manage background task schedules. Changes apply within 60 seconds — no restart needed.
-          </p>
+          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
+          <p className="mt-1 text-sm text-brand-ink-3">{t('copy.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
-            {jobs.filter((j) => j.enabled).length} active
+            {t('copy.activeCount', { count: jobs.filter((j) => j.enabled).length })}
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-cream-2 px-3 py-1 text-xs font-medium text-brand-ink-3">
-            {jobs.length} total
+            {t('copy.totalCount', { count: jobs.length })}
           </span>
         </div>
       </div>
 
-      {/* Info banner */}
       <div className="rounded-lg border border-brand-gold/20 bg-brand-gold/5 px-4 py-3">
         <div className="flex items-start gap-3">
           <svg
@@ -59,19 +56,17 @@ export default async function ScheduledJobsPage() {
             />
           </svg>
           <div>
-            <p className="text-sm font-medium text-brand-ink">How it works</p>
+            <p className="text-sm font-medium text-brand-ink">{t('copy.howItWorksTitle')}</p>
             <p className="mt-0.5 text-xs text-brand-ink-2">
-              The worker process polls this table every 60 seconds using pg-boss. Toggle a job or
-              change its cron schedule here — it takes effect automatically. Cron format:{' '}
-              <code className="rounded bg-brand-cream-2 px-1 py-0.5 text-[11px] font-mono">
-                minute hour day month weekday
+              {t('copy.howItWorksBody')}{' '}
+              <code className="rounded bg-brand-cream-2 px-1 py-0.5 font-mono text-[11px]">
+                {t('copy.cronExample')}
               </code>
             </p>
           </div>
         </div>
       </div>
 
-      {/* Table */}
       <ScheduledJobsTable jobs={jobs} tenantId={tenantId} />
     </div>
   );
