@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-15 23:43 | 🟨 IN_PROGRESS | Local SoT/SD sweep patched POS client safety, CRUD gaps, HR shift/attendance, exports, product media, POS demo parity, worker scheduled jobs, stock alerts, and i18n gaps; typecheck/services tests/builds/MCP health/i18n/marker scans pass; next step is commit/push/deploy and authenticated ERP browser smoke |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-16 00:02 | 🟨 IN_PROGRESS | Commit 35d6add deployed to VPS; worker/scheduler/i18n sweep passed local typecheck/tests/builds/MCP health and live public/authenticated ERP smoke; next step is deeper SOT mismatch sweep for remaining partial modules and UI hardcoded-copy gaps |
 
 ---
 

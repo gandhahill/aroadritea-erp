@@ -2,7 +2,7 @@
 
 Audit date: 2026-05-15
 Task: T-0167 Production readiness audit and critical fixes
-Scope: `SOURCE-OF-TRUTH.md` v1.6 and `SYSTEM-DESIGN.md` v2.0 against the current codebase, including local T-0167 changes not yet deployed.
+Scope: `SOURCE-OF-TRUTH.md` v1.6 and `SYSTEM-DESIGN.md` v2.0 against the current codebase through deployed commit `35d6add`.
 
 ## Status Legend
 
@@ -178,9 +178,24 @@ Additional SoT/SD sweep focused on worker resilience and HR i18n gaps found afte
 6. Web/site i18n key parity PASS: `apps/web/messages` has 746 keys and `apps/site/messages` has 98 keys with 0 missing keys across ID/EN/ZH.
 7. Unfinished-marker scan PASS over `apps` and `packages` for TODO/FIXME/not-implemented/stub/coming-soon/lorem/dummy markers.
 
+## T-0167 Deploy Evidence - 2026-05-16 00:02 WIB
+
+Commit `35d6add` was pushed to GitHub and deployed on the VPS under `/home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp`.
+
+### Deployment Verification
+
+1. Remote `git pull --ff-only`, `pnpm install --frozen-lockfile`, `pnpm db:seed`, `pnpm admin:ensure-access`, and `pnpm jobs:disable-unconfigured` completed.
+2. Remote builds passed for `@erp/web`, `@erp/site`, `@erp/mcp`, and `@erp/worker`.
+3. PM2 reload/save completed; site, web, MCP, and worker are online.
+4. Internal health checks passed for site, web (including DB status ok), and MCP.
+5. Public smoke returned HTTP 200 for public ID/EN/ZH pages, menu, location, member signup, legal pages, ERP health, login, manifest, service worker, and favicon.
+6. Protected public route smoke returned redirects for unauthenticated ERP routes instead of 404.
+7. Authenticated ERP smoke using admin session returned HTTP 200 with no login fallback or application-error marker for `/pos`, `/pos/demo`, `/docs`, `/settings/permissions`, `/inventory/products`, `/settings/promotions`, `/reporting/business-intelligence`, `/accounting/journals/new`, `/accounting/coa`, `/tax/rates`, `/tax/rules`, `/hr/checkin`, `/hr/leave`, `/account`, `/audit`, and `/settings/scheduled-jobs`.
+8. HR check-in and scheduled-jobs pages were smoke-checked in ID/EN/ZH for localized markers.
+9. `pnpm audit --audit-level moderate` reported no known vulnerabilities locally, despite GitHub's post-push Dependabot banner; the GitHub advisory still needs direct Dependabot review if it remains open.
+
 ## Next Implementation Order
 
-1. Commit/push this verified patch set and deploy to VPS.
-2. Run production DB seed/migration and `admin:ensure-access`.
-3. Run authenticated browser smoke for `/pos`, `/pos/demo`, `/docs`, `/inventory/products`, `/settings/permissions`, `/settings/locations`, `/settings/pos`, `/settings/promotions`, `/tax/rates`, `/tax/rules`, `/accounting/coa`, `/hr/checkin`, `/hr/leave`, `/account`, and `/audit`.
-4. Continue the next sweep on remaining enterprise gaps: hardcoded i18n copy migration, absence scheduling, print parity, PII encryption verification, and MCP write-tool expansion.
+1. Continue the next sweep on remaining enterprise gaps: hardcoded i18n copy migration, absence scheduling, print parity, PII encryption verification, and MCP write-tool expansion.
+2. Review GitHub Dependabot advisory directly if it remains open after `pnpm audit` shows clean locally.
+3. Add broader authenticated UI smoke coverage with real browser interaction for create/edit/delete paths, not only page-load checks.

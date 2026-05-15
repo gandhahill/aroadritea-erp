@@ -118,6 +118,15 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
   - Scheduled-jobs settings UI now uses localized ID/EN/ZH message keys.
   - HR check-in client now follows selected ERP language for labels, GPS status, date/time locale, warnings, and result messages.
   - Verification passed locally: `pnpm -r typecheck`, `pnpm --filter @erp/web typecheck`, `pnpm --filter @erp/services test`, i18n key parity, and unfinished-marker scan.
+- 2026-05-16 00:02 deploy and live smoke:
+  - Commit `35d6add` was pushed to GitHub, pulled on VPS, seeded, rebuilt, and PM2 reloaded/saved.
+  - Remote builds passed for `@erp/web`, `@erp/site`, `@erp/mcp`, and `@erp/worker`.
+  - Internal health passed for site, web with DB status ok, and MCP.
+  - Public smoke passed for public ID/EN/ZH pages, menu, location, member signup, legal pages, ERP health/login/PWA assets/favicon.
+  - Unauthenticated ERP protected routes redirected instead of 404 for `/hr/checkin`, `/settings/scheduled-jobs`, `/pos`, `/pos/demo`, and `/docs`.
+  - Authenticated route-load smoke with admin session returned HTTP 200 with no login fallback/application-error marker for `/pos`, `/pos/demo`, `/docs`, `/settings/permissions`, `/inventory/products`, `/settings/promotions`, `/reporting/business-intelligence`, `/accounting/journals/new`, `/accounting/coa`, `/tax/rates`, `/tax/rules`, `/hr/checkin`, `/hr/leave`, `/account`, `/audit`, and `/settings/scheduled-jobs`.
+  - HR check-in and scheduled-jobs page localized markers were smoke-checked in ID/EN/ZH.
+  - `pnpm audit --audit-level moderate` returned "No known vulnerabilities found" locally after GitHub showed a Dependabot banner on push.
 
 ## Plan
 
@@ -133,11 +142,12 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 10. [x] Rebuild ERP Docs into production-grade help center shell with left navigation, search-style layout, workflow guidance, and editable content integration.
 11. [x] Commit, push, deploy latest local critical fixes, run production migrations, and smoke test live site/web/MCP.
 12. [x] Commit, push, deploy ERP static asset middleware patch, then live re-smoke favicon/PWA assets.
-13. [ ] Commit/push/deploy the 23:31 local sweep and run authenticated ERP browser smoke with admin session across POS production, POS demo, docs, permissions, product master, promotions, BI, journals, HR check-in/leave, account settings, audit trail, and scheduled jobs.
+13. [x] Commit/push/deploy the 23:31 local sweep and run authenticated ERP route-load smoke with admin session across POS production, POS demo, docs, permissions, product master, promotions, BI, journals, HR check-in/leave, account settings, audit trail, and scheduled jobs.
+14. [ ] Continue deeper SoT mismatch sweep for remaining partial modules, especially hardcoded-copy i18n migration, MCP write-tool coverage, print parity, PII encryption verification, absence automation, and real browser CRUD smoke.
 
 ## Next Step
 
-Stage, commit, push, and deploy the current local sweep. On the VPS run the normal build/reload flow plus seed/admin scripts, then run authenticated ERP browser smoke for `/pos`, `/pos/demo`, `/docs`, `/settings/permissions`, `/inventory/products`, `/settings/promotions`, `/reporting/business-intelligence`, `/accounting/journals/new`, `/accounting/coa`, `/tax/rates`, `/tax/rules`, `/hr/checkin`, `/hr/leave`, `/account`, `/audit`, and `/settings/scheduled-jobs`; capture any UI/i18n/button/404 issues and fix them before marking T-0167 done.
+Continue the SoT mismatch sweep from `docs/TRACEABILITY-AUDIT.md`: pick the remaining `PARTIAL` rows with highest operational risk, starting with hardcoded-copy i18n migration, MCP write-tool expansion for newly added CRUD surfaces, POS receipt/label print parity, and PII encryption verification. For each fix, run targeted typecheck/test/build, then add authenticated browser/route smoke evidence before moving T-0167 to done.
 
 ## Test Status
 
@@ -169,3 +179,9 @@ Stage, commit, push, and deploy the current local sweep. On the VPS run the norm
   - Local MCP HTTP health smoke passed on `http://127.0.0.1:3912/healthz`.
   - Web/site ID/EN/ZH message key parity passed with 0 missing keys.
   - Marker scan over `apps` and `packages` found no TODO/FIXME/not-implemented/stub/placeholder-work markers.
+- 2026-05-16 00:02 deployment verification PASS:
+  - VPS deploy for commit `35d6add` completed with seed/admin/job scripts.
+  - Remote builds passed for `@erp/web`, `@erp/site`, `@erp/mcp`, and `@erp/worker`.
+  - PM2 processes are online; internal site/web/MCP health checks passed.
+  - External public smoke passed for site/member/legal/PWA assets.
+  - Authenticated ERP route-load smoke passed for 16 critical ERP routes.
