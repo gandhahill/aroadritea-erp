@@ -91,6 +91,12 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
   - Expanded i18n messages and fixed raw placeholder scans; `apps/web/messages` and `apps/site/messages` now have 0 missing keys across ID/EN/ZH.
   - Marker scan over `apps` and `packages` for `TODO/FIXME/not implemented/stub/coming soon/under construction/lorem/dummy/belum tersedia/segera hadir` returns no matches.
   - Important residual risk: hardcoded Indonesian UI strings still exist in older module pages (for example reimbursement, inventory, reporting, HR, purchasing forms). The selected language now works where migrated, but a full hardcoded-string migration remains a separate large pass.
+- 2026-05-15 20:37 deploy smoke follow-up:
+  - Commit `aaa31a0` was pushed, pulled on VPS, migrated, seeded, rebuilt, and PM2 reloaded.
+  - Internal health checks passed for site, web, and MCP.
+  - External smoke found a remaining ERP static asset bug: `/favicon.svg` redirected to login because middleware only excluded `favicon.ico`.
+  - Local fix applied in `apps/web/middleware.ts` to allow `/favicon.svg`, `/icons/*`, `/sw.js`, `/workbox-*`, `/manifest.json`, and logo assets through middleware.
+  - Verification after patch: `pnpm --filter @erp/web typecheck` PASS and `pnpm --filter @erp/web build` PASS.
 
 ## Plan
 
@@ -104,11 +110,12 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 8. [x] Run local typecheck/test/build checks.
 9. [x] Commit, push, deploy, run production DB scripts, verify.
 10. [x] Rebuild ERP Docs into production-grade help center shell with left navigation, search-style layout, workflow guidance, and editable content integration.
-11. [ ] Commit, push, deploy latest local critical fixes, run production migrations, and smoke test live site/web/MCP.
+11. [x] Commit, push, deploy latest local critical fixes, run production migrations, and smoke test live site/web/MCP.
+12. [ ] Commit, push, deploy ERP static asset middleware patch, then live re-smoke favicon/PWA assets.
 
 ## Next Step
 
-Commit the current local changes, push to GitHub, pull on the VPS, run `pnpm db:migrate`, `pnpm db:seed`, `pnpm admin:ensure-access`, rebuild `site` and `web`, reload PM2, then smoke test `/docs`, `/settings/promotions`, `/reporting/business-intelligence`, `/settings/locations`, `/pos/demo`, public legal/member pages, and MCP `/healthz`.
+Commit the ERP static asset middleware patch, push to GitHub, pull on the VPS, rebuild `web`, reload PM2, then smoke test `https://erp.aroadritea.com/favicon.svg`, `/manifest.json`, `/sw.js`, `/icons/icon-192.png`, `/login`, `/docs`, `/settings/promotions`, and MCP `/healthz`.
 
 ## Test Status
 

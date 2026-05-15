@@ -50,7 +50,18 @@ function getPublicOrigin(request: NextRequest) {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const publicPaths = ['/login', '/api/auth', '/api/healthz'];
+  const publicPaths = [
+    '/login',
+    '/api/auth',
+    '/api/healthz',
+    '/favicon.ico',
+    '/favicon.svg',
+    '/manifest.json',
+    '/sw.js',
+    '/workbox-',
+    '/icons/',
+    '/logo-primary.png',
+  ];
   if (publicPaths.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
   }
@@ -67,6 +78,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!login|api/auth|api/healthz|_next/static|_next/image|favicon.ico|logo-primary.png|manifest.json).*)',
+    '/((?!login|api/auth|api/healthz|_next/static|_next/image|favicon.ico|favicon.svg|logo-primary.png|manifest.json|sw.js|workbox-|icons/).*)',
   ],
 };

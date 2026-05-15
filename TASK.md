@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-15 20:06 | 🟨 IN_PROGRESS | Local traceability audit and critical fixes are passing typecheck/test/lint/build; remaining work is commit/push/deploy plus live smoke verification |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-15 20:37 | 🟨 IN_PROGRESS | Latest production fixes are pushed/deployed through commit aaa31a0; final patch exposes ERP favicon/PWA assets before live re-smoke |
 
 ---
 
