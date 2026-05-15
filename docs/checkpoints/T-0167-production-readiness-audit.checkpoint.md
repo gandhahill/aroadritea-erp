@@ -97,6 +97,11 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
   - External smoke found a remaining ERP static asset bug: `/favicon.svg` redirected to login because middleware only excluded `favicon.ico`.
   - Local fix applied in `apps/web/middleware.ts` to allow `/favicon.svg`, `/icons/*`, `/sw.js`, `/workbox-*`, `/manifest.json`, and logo assets through middleware.
   - Verification after patch: `pnpm --filter @erp/web typecheck` PASS and `pnpm --filter @erp/web build` PASS.
+- 2026-05-15 20:49 production smoke closeout:
+  - Commit `4623caa` was pushed, pulled on VPS, rebuilt for `@erp/web`, and PM2 was reloaded/saved.
+  - Internal web health after reload returned 200 with DB status `ok`; PM2 reload completed.
+  - External smoke passed with HTTP 200 for `https://erp.aroadritea.com/favicon.svg`, `/manifest.json`, `/sw.js`, `/icons/icon-192.png`, `/login`, `/api/healthz`, protected route redirects to login, and public site/member/legal pages.
+  - `https://mcp.aroadritea.com/healthz` is not resolvable and direct public port `3002` is blocked; MCP health is currently verified internally on the VPS only unless a public DNS/reverse proxy is intentionally added.
 
 ## Plan
 
@@ -111,11 +116,12 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 9. [x] Commit, push, deploy, run production DB scripts, verify.
 10. [x] Rebuild ERP Docs into production-grade help center shell with left navigation, search-style layout, workflow guidance, and editable content integration.
 11. [x] Commit, push, deploy latest local critical fixes, run production migrations, and smoke test live site/web/MCP.
-12. [ ] Commit, push, deploy ERP static asset middleware patch, then live re-smoke favicon/PWA assets.
+12. [x] Commit, push, deploy ERP static asset middleware patch, then live re-smoke favicon/PWA assets.
+13. [ ] Run authenticated ERP browser smoke with admin session across POS demo, docs, permissions, product master, promotions, BI, journals, HR employee create, account settings, and audit trail.
 
 ## Next Step
 
-Commit the ERP static asset middleware patch, push to GitHub, pull on the VPS, rebuild `web`, reload PM2, then smoke test `https://erp.aroadritea.com/favicon.svg`, `/manifest.json`, `/sw.js`, `/icons/icon-192.png`, `/login`, `/docs`, `/settings/promotions`, and MCP `/healthz`.
+Run an authenticated ERP browser smoke with the admin account on production or staging: verify `/pos/demo`, `/docs`, `/settings/permissions`, `/inventory/products`, `/settings/promotions`, `/reporting/business-intelligence`, `/accounting/journals/new`, `/hr/employees/new`, `/account`, and `/audit`; capture any UI/i18n/button/404 issues and fix them before marking T-0167 done.
 
 ## Test Status
 
@@ -127,6 +133,8 @@ Commit the ERP static asset middleware patch, push to GitHub, pull on the VPS, r
 - `pnpm --filter @erp/mcp build` PASS after aligning build to `tsc --noEmit`.
 - `pnpm --filter @erp/worker build` PASS after aligning build to `tsc --noEmit`.
 - MCP runtime health boot test PASS: `http://127.0.0.1:3912/healthz` returned 200 with `status=ok`, registry log reported 47 tools.
+- Production web smoke PASS after `4623caa`: ERP favicon/PWA assets, login, health endpoint, protected route redirects, and public member/legal pages return HTTP 200 externally.
+- Production MCP note: MCP `/healthz` passes internally on VPS, but no public `mcp.aroadritea.com` DNS/reverse proxy is currently active.
 - Sidebar route audit PASS: 49 hrefs, 0 missing route files.
 - i18n key parity PASS: `apps/web/messages` and `apps/site/messages` have 0 missing keys for ID/EN/ZH.
 - Unfinished marker scan PASS: no TODO/FIXME/not-implemented/stub/placeholder-work markers in `apps` or `packages`.

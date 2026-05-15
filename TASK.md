@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-15 20:37 | 🟨 IN_PROGRESS | Latest production fixes are pushed/deployed through commit aaa31a0; final patch exposes ERP favicon/PWA assets before live re-smoke |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-15 20:49 | 🟨 IN_PROGRESS | Commits aaa31a0 and 4623caa are pushed/deployed; public/site, ERP login, ERP PWA assets, and web health smoke pass; next pass should focus authenticated ERP UX/i18n gaps |
 
 ---
 
