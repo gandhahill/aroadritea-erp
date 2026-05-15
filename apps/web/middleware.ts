@@ -8,7 +8,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 
-const SESSION_COOKIE = 'aroadri.session_token';
+const SESSION_COOKIE_NAMES = ['aroadri.session_token', '__Secure-aroadri.session_token'];
 const PRODUCTION_WEB_ORIGIN = 'https://erp.aroadritea.com';
 
 function isLoopbackHost(host: string | null) {
@@ -55,7 +55,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const hasSession = request.cookies.has(SESSION_COOKIE);
+  const hasSession = SESSION_COOKIE_NAMES.some((name) => request.cookies.has(name));
   if (!hasSession) {
     const loginUrl = new URL('/login', getPublicOrigin(request));
     loginUrl.searchParams.set('callbackUrl', pathname);
