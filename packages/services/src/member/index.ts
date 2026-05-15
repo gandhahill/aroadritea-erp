@@ -21,6 +21,7 @@ import type { AuditContext } from '@erp/shared/types';
  */
 import { and, asc, count, desc, eq, gte, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
+import nodemailer from 'nodemailer';
 import { hashMemberPassword } from './password';
 
 // ─── Rate limiting constants ───────────────────────────────────────────────
@@ -171,7 +172,6 @@ async function sendSignupOtp(email: string, code: string): Promise<Result<void>>
   }
 
   try {
-    const nodemailer = await import('nodemailer');
     const secure =
       process.env.SMTP_SECURE !== undefined ? process.env.SMTP_SECURE === 'true' : smtpPort === 465;
     const transporter = nodemailer.createTransport({

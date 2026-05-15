@@ -607,6 +607,7 @@
       "store": "门店",
       "office": "办公室",
       "warehouse": "仓库",
+      "delete": "删除",
       "saved": "地点已保存。"
     },
     "pos": {

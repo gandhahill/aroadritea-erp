@@ -33,6 +33,8 @@ export interface DemoCartPayment {
   method: string;
   amount: string;
   reference?: string;
+  donationAmount?: string;
+  roundingOption?: string;
 }
 
 export interface DemoCartState {

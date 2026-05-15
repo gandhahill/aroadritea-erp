@@ -25,7 +25,7 @@ import {
   users,
 } from '../schema/auth';
 import { customFieldDefinitions, customFieldValues } from '../schema/customfield';
-import { leaveTypes } from '../schema/hr';
+import { leaveTypes, shiftDefinitions } from '../schema/hr';
 import { naixerQrFormatConfig } from '../schema/kitchen';
 import { posSettings } from '../schema/pos';
 import { scheduledJobs } from '../schema/scheduled-jobs';
@@ -44,6 +44,7 @@ import { LOCATION_GPS_FIELDS, LOCATION_GPS_VALUES } from './location-gps';
 import { seedMenu } from './menu';
 import { NAIXER_QR_FORMAT_DEFAULTS } from './naixer-seed';
 import { SCHEDULED_JOBS_SEED } from './scheduled-jobs-seed';
+import { SHIFT_DEFINITIONS_SEED } from './shift-definitions-seed';
 import { TAX_RATES_SEED } from './tax-rates';
 import { TAX_RULES_SEED } from './tax-rules-seed';
 
@@ -460,6 +461,43 @@ async function seed() {
     leaveTypeCount++;
   }
   console.info(`✅ ${leaveTypeCount} leave types seeded`);
+
+  // 11c. HR shift definitions (UI-managed after bootstrap)
+  const defaultShiftLocationId = locationRows[0]?.id;
+  let shiftDefinitionCount = 0;
+  if (defaultShiftLocationId) {
+    for (const shift of SHIFT_DEFINITIONS_SEED) {
+      await db
+        .insert(shiftDefinitions)
+        .values({
+          id: shift.id,
+          tenantId,
+          locationId: defaultShiftLocationId,
+          code: shift.code,
+          name: shift.name,
+          startTime: shift.startTime,
+          endTime: shift.endTime,
+          breakStart: shift.breakStart,
+          breakEnd: shift.breakEnd,
+          isActive: shift.isActive,
+        })
+        .onConflictDoUpdate({
+          target: [shiftDefinitions.tenantId, shiftDefinitions.code],
+          set: {
+            locationId: defaultShiftLocationId,
+            name: shift.name,
+            startTime: shift.startTime,
+            endTime: shift.endTime,
+            breakStart: shift.breakStart,
+            breakEnd: shift.breakEnd,
+            isActive: shift.isActive,
+            updatedAt: new Date(),
+          },
+        });
+      shiftDefinitionCount++;
+    }
+  }
+  console.info(`âœ… ${shiftDefinitionCount} shift definitions seeded`);
 
   // 12. POS operational settings (UI-managed after bootstrap)
   let posSettingsCount = 0;

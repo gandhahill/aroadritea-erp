@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getLocale } from 'next-intl/server';
-import { fetchLeaveDashboard } from './actions';
+import { deleteLeaveTypeAction, fetchLeaveDashboard, saveLeaveTypeAction } from './actions';
 
 export const metadata: Metadata = {
   title: 'Leave - Aroadri ERP',
@@ -34,19 +34,79 @@ export default async function LeavePage() {
         <Metric title="Saldo tercatat" value={data.balances.length} />
       </section>
 
-      <Panel title="Jenis Cuti">
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <Panel title="Kelola Jenis Cuti">
+        <form
+          action={saveLeaveTypeAction}
+          className="mb-4 grid gap-3 rounded-lg border border-brand-cream-3 bg-brand-cream-1 p-4 md:grid-cols-6"
+        >
+          <Field name="code" label="Kode" placeholder="annual" required />
+          <Field name="nameId" label="Nama ID" placeholder="Cuti Tahunan" required />
+          <Field name="nameEn" label="Nama EN" placeholder="Annual Leave" />
+          <Field name="nameZh" label="Nama ZH" placeholder="年假" />
+          <Field name="annualQuotaDays" label="Kuota/tahun" type="number" defaultValue="0" />
+          <div className="flex flex-wrap items-end gap-3">
+            <Check name="isPaid" label="Dibayar" defaultChecked />
+            <Check name="requiresApproval" label="Approval" defaultChecked />
+            <Check name="isActive" label="Aktif" defaultChecked />
+            <button
+              type="submit"
+              className="rounded-md bg-brand-red px-3 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark"
+            >
+              Tambah
+            </button>
+          </div>
+        </form>
+
+        <div className="space-y-3">
           {data.types.length === 0 ? (
             <p className="text-sm text-brand-ink-3">Belum ada jenis cuti.</p>
           ) : (
             data.types.map((type) => (
-              <div key={type.id} className="rounded-lg border border-brand-cream-3 bg-card p-4">
-                <p className="font-semibold text-brand-ink">{pickName(type.name, locale)}</p>
-                <p className="mt-1 text-xs text-brand-ink-3">
-                  {type.code} - {type.annualQuotaDays} hari/tahun -{' '}
-                  {type.isPaid ? 'paid' : 'unpaid'}
-                </p>
-              </div>
+              <form
+                key={type.id}
+                action={saveLeaveTypeAction}
+                className="grid gap-3 rounded-lg border border-brand-cream-3 bg-card p-4 md:grid-cols-7"
+              >
+                <input type="hidden" name="id" value={type.id} />
+                <Field name="code" label="Kode" defaultValue={type.code} required />
+                <Field
+                  name="nameId"
+                  label="Nama ID"
+                  defaultValue={type.name.id ?? pickName(type.name, locale)}
+                  required
+                />
+                <Field name="nameEn" label="Nama EN" defaultValue={type.name.en ?? ''} />
+                <Field name="nameZh" label="Nama ZH" defaultValue={type.name.zh ?? ''} />
+                <Field
+                  name="annualQuotaDays"
+                  label="Kuota/tahun"
+                  type="number"
+                  defaultValue={String(type.annualQuotaDays)}
+                />
+                <div className="flex flex-wrap items-end gap-3">
+                  <Check name="isPaid" label="Dibayar" defaultChecked={type.isPaid} />
+                  <Check
+                    name="requiresApproval"
+                    label="Approval"
+                    defaultChecked={type.requiresApproval}
+                  />
+                  <Check name="isActive" label="Aktif" defaultChecked={type.isActive} />
+                </div>
+                <div className="flex items-end gap-2">
+                  <button
+                    type="submit"
+                    className="rounded-md bg-brand-red px-3 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark"
+                  >
+                    Simpan
+                  </button>
+                  <button
+                    formAction={deleteLeaveTypeAction}
+                    className="rounded-md border border-brand-cream-3 px-3 py-2 text-xs font-semibold text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </form>
             ))
           )}
         </div>
@@ -79,6 +139,58 @@ export default async function LeavePage() {
         />
       </Panel>
     </div>
+  );
+}
+
+function Field({
+  name,
+  label,
+  type = 'text',
+  defaultValue,
+  placeholder,
+  required = false,
+}: {
+  name: string;
+  label: string;
+  type?: string;
+  defaultValue?: string;
+  placeholder?: string;
+  required?: boolean;
+}) {
+  return (
+    <label className="space-y-1">
+      <span className="text-xs font-medium text-brand-ink-3">{label}</span>
+      <input
+        name={name}
+        type={type}
+        defaultValue={defaultValue}
+        placeholder={placeholder}
+        required={required}
+        className="h-9 w-full rounded-md border border-brand-cream-3 bg-card px-2.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
+      />
+    </label>
+  );
+}
+
+function Check({
+  name,
+  label,
+  defaultChecked,
+}: {
+  name: string;
+  label: string;
+  defaultChecked?: boolean;
+}) {
+  return (
+    <label className="flex items-center gap-1.5 pb-2 text-xs font-medium text-brand-ink-2">
+      <input
+        name={name}
+        type="checkbox"
+        defaultChecked={defaultChecked}
+        className="h-4 w-4 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
+      />
+      {label}
+    </label>
   );
 }
 

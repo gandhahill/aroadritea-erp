@@ -690,7 +690,8 @@
       "store": "Outlet",
       "office": "Kantor",
       "warehouse": "Gudang",
-      "saved": "Lokasi berhasil disimpan."
+      "saved": "Lokasi berhasil disimpan.",
+      "delete": "Hapus"
     },
     "customFields": {
       "title": "Bidang Kustom",

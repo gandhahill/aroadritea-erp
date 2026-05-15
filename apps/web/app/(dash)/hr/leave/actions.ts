@@ -4,15 +4,19 @@ import { getSession } from '@/lib/auth';
 import {
   and,
   asc,
+  auditLog,
   db,
   desc,
   employees,
   eq,
+  isNull,
   leaveBalances,
   leaveRequests,
   leaveTypes,
 } from '@erp/db';
 import { requirePermission } from '@erp/services/iam';
+import { generateId } from '@erp/shared/id';
+import { revalidatePath } from 'next/cache';
 
 export interface LeaveDashboardData {
   types: Array<{
@@ -73,7 +77,7 @@ export async function fetchLeaveDashboard(): Promise<LeaveDashboardData | null> 
         isActive: leaveTypes.isActive,
       })
       .from(leaveTypes)
-      .where(eq(leaveTypes.tenantId, ctx.tenantId))
+      .where(and(eq(leaveTypes.tenantId, ctx.tenantId), isNull(leaveTypes.deletedAt)))
       .orderBy(asc(leaveTypes.code)),
     db
       .select({
@@ -125,4 +129,143 @@ export async function fetchLeaveDashboard(): Promise<LeaveDashboardData | null> 
       pendingDays: String(row.pendingDays),
     })),
   };
+}
+
+export async function saveLeaveTypeAction(formData: FormData): Promise<void> {
+  const ctx = await getContext();
+  if (!ctx) return;
+  const perm = await requirePermission(ctx.userId, 'hr.approve_leave');
+  if (!perm.ok) return;
+
+  const id = String(formData.get('id') ?? '').trim();
+  const code = String(formData.get('code') ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, '_');
+  const nameId = String(formData.get('nameId') ?? '').trim();
+  const nameEn = String(formData.get('nameEn') ?? '').trim() || nameId;
+  const nameZh = String(formData.get('nameZh') ?? '').trim() || nameId;
+  const quota = Number(formData.get('annualQuotaDays') ?? 0);
+
+  if (!/^[a-z0-9_-]{2,40}$/.test(code)) {
+    return;
+  }
+  if (!nameId) return;
+  if (!Number.isFinite(quota) || quota < 0 || quota > 365) {
+    return;
+  }
+
+  const values = {
+    code,
+    name: { id: nameId, en: nameEn, zh: nameZh },
+    annualQuotaDays: Math.trunc(quota),
+    isPaid: formData.get('isPaid') === 'on',
+    requiresApproval: formData.get('requiresApproval') === 'on',
+    isActive: formData.get('isActive') === 'on',
+    updatedAt: new Date(),
+    updatedBy: ctx.userId || null,
+  };
+
+  try {
+    if (id) {
+      const [before] = await db
+        .select()
+        .from(leaveTypes)
+        .where(and(eq(leaveTypes.tenantId, ctx.tenantId), eq(leaveTypes.id, id)))
+        .limit(1);
+      if (!before || before.deletedAt) return;
+
+      await db
+        .update(leaveTypes)
+        .set(values)
+        .where(and(eq(leaveTypes.tenantId, ctx.tenantId), eq(leaveTypes.id, id)));
+
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'update',
+        entityType: 'leave_type',
+        entityId: id,
+        before: before as never,
+        after: values as never,
+      });
+    } else {
+      const newId = generateId();
+      await db.insert(leaveTypes).values({
+        id: newId,
+        tenantId: ctx.tenantId,
+        ...values,
+        createdBy: ctx.userId || null,
+      });
+
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'create',
+        entityType: 'leave_type',
+        entityId: newId,
+        before: null,
+        after: values as never,
+      });
+    }
+
+    revalidatePath('/hr/leave');
+    return;
+  } catch {
+    return;
+  }
+}
+
+export async function deleteLeaveTypeAction(formData: FormData): Promise<void> {
+  const ctx = await getContext();
+  if (!ctx) return;
+  const perm = await requirePermission(ctx.userId, 'hr.approve_leave');
+  if (!perm.ok) return;
+
+  const id = String(formData.get('id') ?? '').trim();
+  if (!id) return;
+
+  const [before] = await db
+    .select()
+    .from(leaveTypes)
+    .where(and(eq(leaveTypes.tenantId, ctx.tenantId), eq(leaveTypes.id, id)))
+    .limit(1);
+  if (!before || before.deletedAt) return;
+
+  const [usedRequest] = await db
+    .select({ id: leaveRequests.id })
+    .from(leaveRequests)
+    .where(and(eq(leaveRequests.tenantId, ctx.tenantId), eq(leaveRequests.leaveTypeId, id)))
+    .limit(1);
+  const [usedBalance] = await db
+    .select({ id: leaveBalances.id })
+    .from(leaveBalances)
+    .where(and(eq(leaveBalances.tenantId, ctx.tenantId), eq(leaveBalances.leaveTypeId, id)))
+    .limit(1);
+
+  const deletedAt = new Date();
+  await db
+    .update(leaveTypes)
+    .set({
+      isActive: false,
+      deletedAt,
+      updatedAt: deletedAt,
+      updatedBy: ctx.userId || null,
+    })
+    .where(and(eq(leaveTypes.tenantId, ctx.tenantId), eq(leaveTypes.id, id)));
+
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: usedRequest || usedBalance ? 'deactivate' : 'delete',
+    entityType: 'leave_type',
+    entityId: id,
+    before: before as never,
+    after: { deletedAt: deletedAt.toISOString(), isActive: false } as never,
+  });
+
+  revalidatePath('/hr/leave');
 }

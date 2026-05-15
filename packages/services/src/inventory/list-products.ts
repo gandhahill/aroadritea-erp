@@ -20,6 +20,7 @@ import { type ListProductsInput, ListProductsInputSchema } from './schemas';
 export interface ProductListItem extends ProductResult {
   categoryCode: string;
   categoryName: { id: string; en: string; zh: string };
+  imageUrl: string | null;
   variantCount: number;
 }
 
@@ -122,6 +123,7 @@ export async function listProducts(
           shelfLifeDays: products.shelfLifeDays,
           defaultSellPrice: products.defaultSellPrice,
           defaultCostPrice: products.defaultCostPrice,
+          imageUrl: products.imageUrl,
           isActive: products.isActive,
           version: products.version,
           categoryCode: productCategories.code,
@@ -167,6 +169,7 @@ export async function listProducts(
         shelfLifeDays: r.shelfLifeDays,
         defaultSellPrice: String(r.defaultSellPrice),
         defaultCostPrice: String(r.defaultCostPrice),
+        imageUrl: r.imageUrl,
         isActive: r.isActive,
         version: r.version,
         categoryCode: r.categoryCode ?? '',

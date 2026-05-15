@@ -128,11 +128,11 @@ function BarChart({ items }: { items: Array<{ label: string; value: number; colo
 
 // ─── Export XLSX ─────────────────────────────────────────────────────────────
 
-async function exportXLSX(data: DailySummaryResult) {
+async function exportXLSX(data: DailySummaryResult, locationLabel: string) {
   const summaryRows = [
     ['Ringkasan Harian'],
     ['Periode', `${data.period.start} s/d ${data.period.end}`],
-    ['Lokasi', data.locationId],
+    ['Lokasi', locationLabel],
     [],
     ['Metrik', 'Nilai (IDR)'],
     ['Gross Sales', data.grossSales],
@@ -247,6 +247,10 @@ export function DailySummaryClient({
   }
 
   const report = data;
+  const selectedLocationLabel = report
+    ? (locationOptions.find((location) => location.id === report.locationId)?.label ??
+      report.locationId)
+    : '';
 
   return (
     <div className="space-y-6">
@@ -258,7 +262,7 @@ export function DailySummaryClient({
         </div>
         {report && (
           <button
-            onClick={() => report && exportXLSX(report)}
+            onClick={() => report && exportXLSX(report, selectedLocationLabel)}
             className="inline-flex items-center gap-2 rounded-lg bg-brand-jade px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90"
           >
             <svg

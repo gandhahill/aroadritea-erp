@@ -30,7 +30,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@erp/shared', '@erp/ui-public'],
+  transpilePackages: ['@erp/shared', '@erp/ui-public', '@erp/services', '@erp/db'],
   output: 'standalone',
   outputFileTracingRoot: repoRoot,
   poweredByHeader: false,

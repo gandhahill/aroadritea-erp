@@ -574,7 +574,8 @@
       "store": "Outlet",
       "office": "Office",
       "warehouse": "Warehouse",
-      "saved": "Location saved."
+      "saved": "Location saved.",
+      "delete": "Delete"
     },
     "customFields": {
       "title": "Custom Fields",

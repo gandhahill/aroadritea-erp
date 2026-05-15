@@ -1,5 +1,6 @@
 'use client';
 
+import { displayAssetUrl } from '@/lib/display-asset-url';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
@@ -66,13 +67,13 @@ export function FileUploadField({
           <div className="mb-3 flex items-center gap-3">
             {imageOnly ? (
               <img
-                src={url}
+                src={displayAssetUrl(url)}
                 alt={fileName || t('preview')}
                 className="h-20 w-20 rounded-md object-cover"
               />
             ) : (
               <a
-                href={url}
+                href={displayAssetUrl(url)}
                 target="_blank"
                 rel="noreferrer"
                 className="text-sm font-semibold text-brand-red"

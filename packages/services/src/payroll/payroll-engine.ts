@@ -26,8 +26,10 @@ export interface PayrollEmployeeContext {
   dependentsCount: 0 | 1 | 2 | 3; // PTKP tier
   /** Additional taxable earnings this period (bonus, THR, lembur) */
   additionalEarnings: PayrollEarning[];
-  /** Late minutes this period (for POTONGAN_TELAT) */
+  /** Total late minutes this period, kept for payroll audit notes. */
   lateMinutes: number;
+  /** Number of late events this period. SOP grants 3 free late events/month. */
+  lateCount?: number;
   /** Absences without notice this period */
   absentCount: number;
 }
@@ -214,15 +216,11 @@ export function calculatePayroll(ctx: PayrollEmployeeContext): PayrollResult {
 
   // 6. Late penalty (after FREE_LATES_PER_MONTH)
   let latePenalty = 0n;
-  const penalizableLates = Math.max(
-    0,
-    ctx.lateMinutes > 0 ? ctx.lateMinutes - FREE_LATES_PER_MONTH : 0,
-  );
-  if (penalizableLates > 0 || ctx.lateMinutes > 0) {
-    // Count late days (each late day = 1 penalty if over free limit)
-    const lateDays = Math.ceil(ctx.lateMinutes / 60); // rough: 1 penalty per hour of lateness
-    const lateDaysOverFree = Math.max(0, lateDays - FREE_LATES_PER_MONTH);
-    latePenalty = BigInt(lateDaysOverFree) * LATE_PENALTY;
+  const lateEvents = Math.max(0, Math.trunc(ctx.lateCount ?? 0));
+  const lateEventsOverFree = Math.max(0, lateEvents - FREE_LATES_PER_MONTH);
+  const lateDaysOverFree = lateEventsOverFree;
+  if (lateEvents > 0) {
+    latePenalty = BigInt(lateEventsOverFree) * LATE_PENALTY;
     if (latePenalty > 0n) {
       lines.push({
         componentCode: 'POTONGAN_TELAT',

@@ -102,6 +102,15 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
   - Internal web health after reload returned 200 with DB status `ok`; PM2 reload completed.
   - External smoke passed with HTTP 200 for `https://erp.aroadritea.com/favicon.svg`, `/manifest.json`, `/sw.js`, `/icons/icon-192.png`, `/login`, `/api/healthz`, protected route redirects to login, and public site/member/legal pages.
   - `https://mcp.aroadritea.com/healthz` is not resolvable and direct public port `3002` is blocked; MCP health is currently verified internally on the VPS only unless a public DNS/reverse proxy is intentionally added.
+- 2026-05-15 22:52 local SoT/SD sweep:
+  - Fixed POS client-safety regression by keeping donation rounding helpers in a client-safe POS lib instead of importing server/database services into the browser bundle.
+  - Fixed reporting export quality: daily summary exports outlet labels instead of raw location IDs; donations and hourly sales now use real `.xlsx` workbooks; export button styling is normalized.
+  - Added/expanded UI-managed CRUD gaps: roles, locations soft-delete, leave types, COA, tax rates/rules, POS account dropdowns, product image previews, and product variant activate/deactivate.
+  - Fixed HR shift/presence mismatch: main seed now inserts shift definitions; check-in shift choices come from DB; attendance service rejects inactive/missing shift IDs.
+  - Improved POS demo parity: demo payment methods now follow the selected channel and include production-like cash donation/change handling; demo receipt shows paid/donation/change.
+  - Improved Naixer 4x3 label preview compact sizing and product media URL rendering.
+  - Updated `docs/TRACEABILITY-AUDIT.md` with current evidence and residual release risks.
+  - Verification passed locally: `pnpm -r typecheck`, `pnpm --filter @erp/services test` (528 tests), `pnpm --filter @erp/web build`, `pnpm --filter @erp/site build`, `pnpm --filter @erp/mcp build`, `pnpm --filter @erp/worker build`, sidebar route audit, i18n key parity, marker scan, and local MCP `/healthz` smoke.
 
 ## Plan
 
@@ -117,11 +126,11 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 10. [x] Rebuild ERP Docs into production-grade help center shell with left navigation, search-style layout, workflow guidance, and editable content integration.
 11. [x] Commit, push, deploy latest local critical fixes, run production migrations, and smoke test live site/web/MCP.
 12. [x] Commit, push, deploy ERP static asset middleware patch, then live re-smoke favicon/PWA assets.
-13. [ ] Run authenticated ERP browser smoke with admin session across POS demo, docs, permissions, product master, promotions, BI, journals, HR employee create, account settings, and audit trail.
+13. [ ] Commit/push/deploy the 22:52 local sweep and run authenticated ERP browser smoke with admin session across POS production, POS demo, docs, permissions, product master, promotions, BI, journals, HR check-in/leave, account settings, and audit trail.
 
 ## Next Step
 
-Run an authenticated ERP browser smoke with the admin account on production or staging: verify `/pos/demo`, `/docs`, `/settings/permissions`, `/inventory/products`, `/settings/promotions`, `/reporting/business-intelligence`, `/accounting/journals/new`, `/hr/employees/new`, `/account`, and `/audit`; capture any UI/i18n/button/404 issues and fix them before marking T-0167 done.
+Stage, commit, push, and deploy the current local sweep. On the VPS run the normal build/reload flow plus seed/admin scripts, then run authenticated ERP browser smoke for `/pos`, `/pos/demo`, `/docs`, `/settings/permissions`, `/inventory/products`, `/settings/promotions`, `/reporting/business-intelligence`, `/accounting/journals/new`, `/accounting/coa`, `/tax/rates`, `/tax/rules`, `/hr/checkin`, `/hr/leave`, `/account`, and `/audit`; capture any UI/i18n/button/404 issues and fix them before marking T-0167 done.
 
 ## Test Status
 
@@ -138,3 +147,10 @@ Run an authenticated ERP browser smoke with the admin account on production or s
 - Sidebar route audit PASS: 49 hrefs, 0 missing route files.
 - i18n key parity PASS: `apps/web/messages` and `apps/site/messages` have 0 missing keys for ID/EN/ZH.
 - Unfinished marker scan PASS: no TODO/FIXME/not-implemented/stub/placeholder-work markers in `apps` or `packages`.
+- 2026-05-15 22:52 local verification PASS:
+  - `pnpm -r typecheck` passed across 10 workspace projects.
+  - `pnpm --filter @erp/services test` passed: 24 files, 528 tests.
+  - `pnpm --filter @erp/web build` passed; Serwist service worker bundled and standalone assets synced.
+  - `pnpm --filter @erp/site build` passed; 31 static public pages generated.
+  - `pnpm --filter @erp/mcp build` and `pnpm --filter @erp/worker build` passed.
+  - Local MCP health smoke passed: `http://127.0.0.1:3912/healthz` returned HTTP 200.

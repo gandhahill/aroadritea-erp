@@ -1,10 +1,16 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { type DeliveryChannelSetting, type PosSettingItem, updatePosSetting } from './actions';
+import {
+  type AccountOption,
+  type DeliveryChannelSetting,
+  type PosSettingItem,
+  updatePosSetting,
+} from './actions';
 
 interface Props {
   settings: PosSettingItem[];
+  accountOptions: AccountOption[];
 }
 
 type Draft = Omit<PosSettingItem, 'id' | 'locationName'>;
@@ -24,7 +30,7 @@ function toDraft(setting: PosSettingItem): Draft {
   };
 }
 
-export function PosSettingsClient({ settings }: Props) {
+export function PosSettingsClient({ settings, accountOptions }: Props) {
   const [drafts, setDrafts] = useState<Record<string, Draft>>(() =>
     Object.fromEntries(settings.map((setting) => [setting.locationId, toDraft(setting)])),
   );
@@ -148,34 +154,32 @@ export function PosSettingsClient({ settings }: Props) {
               </label>
               <label className="space-y-1">
                 <span className="text-xs font-medium text-brand-ink-2">Akun Kas/Settlement</span>
-                <input
+                <AccountSelect
                   value={draft.cashAccountCode}
-                  onChange={(event) =>
-                    updateDraft(setting.locationId, { cashAccountCode: event.target.value })
-                  }
-                  className={inputClass}
+                  options={accountOptions}
+                  onChange={(value) => updateDraft(setting.locationId, { cashAccountCode: value })}
                 />
               </label>
               <label className="space-y-1">
                 <span className="text-xs font-medium text-brand-ink-2">Akun Pendapatan</span>
-                <input
+                <AccountSelect
                   value={draft.revenueAccountCode}
-                  onChange={(event) =>
-                    updateDraft(setting.locationId, { revenueAccountCode: event.target.value })
+                  options={accountOptions}
+                  onChange={(value) =>
+                    updateDraft(setting.locationId, { revenueAccountCode: value })
                   }
-                  className={inputClass}
                 />
               </label>
               <label className="space-y-1">
                 <span className="text-xs font-medium text-brand-ink-2">Akun Donasi</span>
-                <input
+                <AccountSelect
                   value={draft.donationTrustAccountCode}
-                  onChange={(event) =>
+                  options={accountOptions}
+                  onChange={(value) =>
                     updateDraft(setting.locationId, {
-                      donationTrustAccountCode: event.target.value,
+                      donationTrustAccountCode: value,
                     })
                   }
-                  className={inputClass}
                 />
               </label>
             </div>
@@ -311,5 +315,28 @@ export function PosSettingsClient({ settings }: Props) {
         );
       })}
     </div>
+  );
+}
+
+function AccountSelect({
+  value,
+  options,
+  onChange,
+}: {
+  value: string;
+  options: AccountOption[];
+  onChange: (value: string) => void;
+}) {
+  const hasCurrent = options.some((option) => option.code === value);
+
+  return (
+    <select value={value} onChange={(event) => onChange(event.target.value)} className={inputClass}>
+      {!hasCurrent ? <option value={value}>{value}</option> : null}
+      {options.map((option) => (
+        <option key={option.code} value={option.code}>
+          {option.label}
+        </option>
+      ))}
+    </select>
   );
 }

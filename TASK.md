@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-15 20:49 | 🟨 IN_PROGRESS | Commits aaa31a0 and 4623caa are pushed/deployed; public/site, ERP login, ERP PWA assets, and web health smoke pass; next pass should focus authenticated ERP UX/i18n gaps |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-15 22:52 | 🟨 IN_PROGRESS | Local SoT/SD sweep patched POS client safety, CRUD gaps, HR shift/attendance, exports, product media, POS demo parity, and docs; typecheck/test/build/MCP health pass; next step is commit/push/deploy and authenticated ERP browser smoke |
 
 ---
 

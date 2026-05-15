@@ -1,16 +1,17 @@
-/**
- * HourlySalesClient — client component for the hourly sales report (SD §25.6.3)
+﻿/**
+ * HourlySalesClient â€” client component for the hourly sales report (SD Â§25.6.3)
  *
  * Features:
  * - Filter bar: date range, location, groupBy channel/day toggle
  * - Summary cards: total transactions, total gross, busiest hour
- * - CSS heatmap: channel × hour matrix with color intensity
+ * - CSS heatmap: channel Ã— hour matrix with color intensity
  * - Detail table: per-channel or per-day breakdown
  * - Export XLSX: multi-sheet workbook (Ringkasan, Heatmap)
  */
 
 'use client';
 
+import { exportWorkbook } from '@/lib/export-workbook';
 import type { ChannelHourRow, DayHourRow, HourlySalesResult } from '@erp/services/reporting';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -22,12 +23,12 @@ type LocationOption = {
   label: string;
 };
 
-// ─── Formatters ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Formatters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function formatIDR(v: string | number | bigint | null | undefined): string {
-  if (!v) return '—';
+  if (!v) return 'â€”';
   const num = typeof v === 'string' ? Number.parseInt(v, 10) : Number(v);
-  if (isNaN(num)) return '—';
+  if (isNaN(num)) return 'â€”';
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
@@ -35,12 +36,12 @@ function formatIDR(v: string | number | bigint | null | undefined): string {
   }).format(num);
 }
 
-// ─── Constants ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const STORE_HOURS = Array.from({ length: 12 }, (_, i) => (i + 10).toString()); // 10..21
 const CHANNEL_LABELS: Record<string, { id: string; en: string; zh: string }> = {
-  dine_in: { id: 'Dine In', en: 'Dine In', zh: '堂食' },
-  take_away: { id: 'Bawa Pulang', en: 'Take Away', zh: '外带' },
+  dine_in: { id: 'Dine In', en: 'Dine In', zh: 'å ‚é£Ÿ' },
+  take_away: { id: 'Bawa Pulang', en: 'Take Away', zh: 'å¤–å¸¦' },
   gofood: { id: 'GoFood', en: 'GoFood', zh: 'GoFood' },
   grabfood: { id: 'GrabFood', en: 'GrabFood', zh: 'GrabFood' },
   shopeefood: { id: 'ShopeeFood', en: 'ShopeeFood', zh: 'ShopeeFood' },
@@ -55,11 +56,11 @@ const CHANNEL_COLORS: Record<string, string> = {
 };
 
 const HEATMAP_COLORS: [string, string][] = [
-  ['#FDE8E8', '#C0392B'], // very low → red
-  ['#FEF3C7', '#D97706'], // low → orange
-  ['#FEF9C3', '#CA8A04'], // medium-low → yellow
-  ['#D1FAE5', '#059669'], // medium → green
-  ['#A7F3D0', '#047857'], // high → dark green
+  ['#FDE8E8', '#C0392B'], // very low â†’ red
+  ['#FEF3C7', '#D97706'], // low â†’ orange
+  ['#FEF9C3', '#CA8A04'], // medium-low â†’ yellow
+  ['#D1FAE5', '#059669'], // medium â†’ green
+  ['#A7F3D0', '#047857'], // high â†’ dark green
 ];
 
 function heatColor(value: number, max: number): string {
@@ -72,7 +73,7 @@ function heatColor(value: number, max: number): string {
   return HEATMAP_COLORS[4]![0]!;
 }
 
-// ─── Channel badge ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Channel badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function ChannelBadge({ channel }: { channel: string }) {
   const color = CHANNEL_COLORS[channel] ?? '#6B7280';
@@ -87,14 +88,14 @@ function ChannelBadge({ channel }: { channel: string }) {
   );
 }
 
-// ─── Summary Cards ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Summary Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function SummaryCards({ data }: { data: HourlySalesResult }) {
   const totalTx = data.totalTxCount;
   const totalSales = formatIDR(data.totalGrossSales);
 
   // Find busiest hour
-  let busiestHour = '—';
+  let busiestHour = 'â€”';
   let maxTx = 0;
   for (const [hour, cell] of Object.entries(data.hourTotals)) {
     if (cell.txCount > maxTx) {
@@ -121,7 +122,7 @@ function SummaryCards({ data }: { data: HourlySalesResult }) {
   );
 }
 
-// ─── Heatmap ───────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Heatmap â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function Heatmap({ data }: { data: HourlySalesResult }) {
   if (!data.channelRows) return null;
@@ -174,7 +175,7 @@ function Heatmap({ data }: { data: HourlySalesResult }) {
                       style={{ background: bg }}
                       title={`${formatIDR(gross)} / ${tx} tx`}
                     >
-                      <span className="block font-medium text-brand-ink">{tx > 0 ? tx : '—'}</span>
+                      <span className="block font-medium text-brand-ink">{tx > 0 ? tx : 'â€”'}</span>
                       <span className="block text-[10px] text-brand-ink-3">
                         {tx > 0 ? formatIDR(gross).replace('Rp', '').trim() : ''}
                       </span>
@@ -194,7 +195,7 @@ function Heatmap({ data }: { data: HourlySalesResult }) {
               const cell = data.hourTotals[h]!;
               return (
                 <td key={h} className="px-1 py-2 text-center text-brand-ink">
-                  {cell.txCount > 0 ? cell.txCount : '—'}
+                  {cell.txCount > 0 ? cell.txCount : 'â€”'}
                 </td>
               );
             })}
@@ -212,7 +213,7 @@ function maxTxInRow(row: ChannelHourRow): number {
   return Math.max(...Object.values(row.hourBreakdown).map((c) => c.txCount), 0);
 }
 
-// ─── Day Table ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Day Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function DayTable({ data }: { data: HourlySalesResult }) {
   if (!data.dayRows) return null;
@@ -251,7 +252,7 @@ function DayTable({ data }: { data: HourlySalesResult }) {
                   const cell = row.hourBreakdown[h]!;
                   return (
                     <td key={h} className="px-1.5 py-2.5 text-center text-brand-ink">
-                      {cell.txCount > 0 ? cell.txCount : '—'}
+                      {cell.txCount > 0 ? cell.txCount : 'â€”'}
                     </td>
                   );
                 })}
@@ -268,10 +269,10 @@ function DayTable({ data }: { data: HourlySalesResult }) {
   );
 }
 
-// ─── Export XLSX ───────────────────────────────────────────────────────────────
+// â”€â”€â”€ Export XLSX â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-function buildXlsxData(data: HourlySalesResult): unknown[][] {
-  const rows: unknown[][] = [];
+function buildXlsxData(data: HourlySalesResult): Array<Array<string | number>> {
+  const rows: Array<Array<string | number>> = [];
 
   if (data.groupBy === 'channel' && data.channelRows) {
     // Header row
@@ -279,7 +280,7 @@ function buildXlsxData(data: HourlySalesResult): unknown[][] {
     for (const row of data.channelRows) {
       const hourVals = STORE_HOURS.map((h) => {
         const c = row.hourBreakdown[h];
-        return c ? `${c.txCount} tx / ${formatIDR(c.grossSales)}` : '—';
+        return c ? `${c.txCount} tx / ${formatIDR(c.grossSales)}` : 'â€”';
       });
       const total = Object.values(row.hourBreakdown).reduce((s, c) => s + BigInt(c.grossSales), 0n);
       rows.push([row.channel, ...hourVals, formatIDR(total.toString())]);
@@ -287,7 +288,7 @@ function buildXlsxData(data: HourlySalesResult): unknown[][] {
     // Total row
     const totalHours = STORE_HOURS.map((h) => {
       const c = data.hourTotals[h];
-      return c ? `${c.txCount} tx` : '—';
+      return c ? `${c.txCount} tx` : 'â€”';
     });
     rows.push(['TOTAL', ...totalHours, formatIDR(data.totalGrossSales)]);
   } else if (data.groupBy === 'day' && data.dayRows) {
@@ -302,7 +303,7 @@ function buildXlsxData(data: HourlySalesResult): unknown[][] {
         row.date,
         ...STORE_HOURS.map((h) => {
           const c = row.hourBreakdown[h];
-          return c && c.txCount > 0 ? c.txCount : '—';
+          return c && c.txCount > 0 ? c.txCount : 'â€”';
         }),
         dayTotalTx,
         formatIDR(dayTotalGross.toString()),
@@ -313,25 +314,25 @@ function buildXlsxData(data: HourlySalesResult): unknown[][] {
   return rows;
 }
 
-function handleExportXlsx(data: HourlySalesResult) {
+async function handleExportXlsx(data: HourlySalesResult, locationLabel: string) {
   const rows = buildXlsxData(data);
-  // Build a simple TSV format (similar to the donations export)
-  const header = rows[0]!.join('\t');
-  const bodyRows = rows
-    .slice(1)
-    .map((r) => r.join('\t'))
-    .join('\n');
-  const csv = '﻿' + header + '\n' + bodyRows;
-  const blob = new Blob([csv], { type: 'text/tab-separated-values;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `penjualan-per-jam-${data.period.start}-${data.period.end}.xls`;
-  a.click();
-  URL.revokeObjectURL(url);
+  await exportWorkbook(`penjualan-per-jam-${data.period.start}-${data.period.end}.xlsx`, [
+    {
+      name: 'Ringkasan',
+      rows: [
+        ['Laporan Penjualan Per Jam'],
+        ['Periode', `${data.period.start} s/d ${data.period.end}`],
+        ['Lokasi', locationLabel],
+        ['Mode', data.groupBy],
+        ['Total Transaksi', data.totalTxCount],
+        ['Total Penjualan', data.totalGrossSales],
+      ],
+    },
+    { name: data.groupBy === 'channel' ? 'Per Channel' : 'Per Hari', rows },
+  ]);
 }
 
-// ─── Main Client Component ─────────────────────────────────────────────────────
+// â”€â”€â”€ Main Client Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface Props {
   initialData: { data?: HourlySalesResult; error?: string };
@@ -379,6 +380,9 @@ export function HourlySalesClient({
   }
 
   const data = result.data;
+  const selectedLocationLabel = locationId
+    ? (locationOptions.find((location) => location.id === locationId)?.label ?? locationId)
+    : 'Semua lokasi';
 
   return (
     <div className="space-y-5">
@@ -387,8 +391,8 @@ export function HourlySalesClient({
         <h1 className="text-xl font-bold text-brand-ink">Penjualan Per Jam</h1>
         {data && (
           <button
-            onClick={() => handleExportXlsx(data)}
-            className="flex items-center gap-2 rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-2"
+            onClick={() => handleExportXlsx(data, selectedLocationLabel)}
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-jade px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90"
           >
             <svg
               className="h-4 w-4"
@@ -482,7 +486,7 @@ export function HourlySalesClient({
             <>
               <div>
                 <h2 className="mb-2 text-sm font-semibold text-brand-ink-2">
-                  Heatmap — Penjualan Per Jam (10:00–22:00 WIB)
+                  Heatmap â€” Penjualan Per Jam (10:00â€“22:00 WIB)
                 </h2>
                 <Heatmap data={data} />
               </div>

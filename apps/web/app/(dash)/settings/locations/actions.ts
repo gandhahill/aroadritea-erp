@@ -1,7 +1,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, db, eq } from '@erp/db';
+import { and, db, eq, isNull } from '@erp/db';
 import { auditLog, locations } from '@erp/db';
 import { requirePermission } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
@@ -83,7 +83,7 @@ export async function fetchLocations(): Promise<LocationItem[]> {
       status: locations.status,
     })
     .from(locations)
-    .where(eq(locations.tenantId, ctx.tenantId))
+    .where(and(eq(locations.tenantId, ctx.tenantId), isNull(locations.deletedAt)))
     .orderBy(locations.type, locations.code);
 
   return rows.map((row) => ({
@@ -180,4 +180,44 @@ export async function saveLocation(input: LocationDraft): Promise<LocationAction
       error: error instanceof Error ? error.message : 'Gagal menyimpan lokasi.',
     };
   }
+}
+
+export async function deleteLocation(input: { id: string }): Promise<LocationActionResult> {
+  const ctx = await requireContext();
+  if (!ctx) return { success: false, error: 'Forbidden' };
+
+  const id = input.id.trim();
+  if (!id) return { success: false, error: 'Lokasi tidak valid.' };
+
+  const [before] = await db
+    .select()
+    .from(locations)
+    .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.id, id), isNull(locations.deletedAt)))
+    .limit(1);
+  if (!before) return { success: false, error: 'Lokasi tidak ditemukan.' };
+
+  const deletedAt = new Date();
+  await db
+    .update(locations)
+    .set({
+      status: 'inactive',
+      deletedAt,
+      updatedAt: deletedAt,
+      updatedBy: ctx.userId || null,
+    })
+    .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.id, id)));
+
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'delete',
+    entityType: 'location',
+    entityId: id,
+    before: before as never,
+    after: { deletedAt: deletedAt.toISOString(), status: 'inactive' } as never,
+  });
+
+  revalidatePath('/settings/locations');
+  return { success: true, id };
 }

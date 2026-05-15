@@ -96,27 +96,69 @@ Important: this matrix is intentionally skeptical. A feature with code but no cu
 | SD 36 | Anti-generic UI design system | PARTIAL | brand tokens | `rg` still finds `bg-white` and generic classes in production UI; needs cleanup. |
 | SD 38 | UI-managed non-secret configuration | PARTIAL | POS/settings/customfields/workflow/CMS/local locations UI | Promotions/docs/locations/file upload are being added; seed still risks overwriting settings. |
 
-## Immediate Release Blockers
+## T-0167 Update - 2026-05-15 22:48 WIB
 
-These are blockers before the system can be described as production-ready for the requested scope.
+This update records the current local evidence after the second SoT/SD sweep. It does not claim absolute zero bugs; it records what has been verified and what remains a release risk.
 
-1. Current local T-0167 branch has unverified schema/service/UI changes. Run typecheck/build/tests and fix every failure.
-2. `apps/web/messages/zh.json` contains raw placeholder question marks in user-visible ERP labels.
-3. Promotion requirement is only partially implemented. Need UI-managed promotions plus POS application and audit records.
-4. ERP favicon is missing from `apps/web/public`.
-5. Seed currently overwrites UI-managed location and POS settings. This violates SD 38 and can reintroduce duplicate/incorrect locations.
-6. Docs/help center content and structure are still insufficient for end users.
-7. BI dashboard linked in navigation is not implemented yet.
-8. MCP coverage has not been inventoried against all modules after new local UI/features.
-9. POS/demo/offline receipt and label parity needs browser/printer-oriented verification.
-10. Security requirements need a second pass for PII encryption, upload authorization, dependency scan, and audit-log coverage.
+### Fixed / Improved In This Pass
+
+1. POS production client crash path: client POS no longer imports server/database service code for donation options.
+2. Member signup standalone tracing: site build now transpiles service/db packages and member OTP email uses static `nodemailer` import.
+3. Settings/master CRUD:
+   - Roles can be created, edited, deleted when unassigned, and mapped to permissions.
+   - Locations can be edited and soft-deleted from UI; active location selectors exclude soft-deleted locations.
+   - Leave types can be created, edited, deleted from UI.
+   - COA and tax rates/rules now have UI CRUD surfaces.
+   - Product variants can now be activated/deactivated from product detail UI.
+4. POS settings:
+   - Posting accounts are dropdowns from active postable COA accounts, not free-text account numbers.
+   - Receipt width remains UI-configurable.
+   - Delivery channel commission remains UI-configurable.
+5. Public/member/upload:
+   - Product image previews resolve public-site assets and ERP uploads.
+   - Generic file upload API and reusable upload field are used for product images, CMS images, reimbursement, disciplinary files, and journal attachments.
+6. Reporting/export:
+   - Daily summary export now uses outlet label instead of raw location ID.
+   - Donation and hourly-sales reports now generate real `.xlsx` workbooks via `exportWorkbook`.
+   - Export button style is normalized to the same green XLSX action style.
+7. HR/SOP:
+   - Shift definitions are now seeded by the main seed runner.
+   - Check-in shift options come from DB, not hardcoded UI constants.
+   - Attendance service rejects missing/inactive shift IDs instead of silently recording attendance without shift validation.
+   - Payroll late penalty now uses late event count with 3 free events/month per SOP.
+8. POS demo:
+   - Demo payment now mirrors production payment methods per channel.
+   - Demo payment now includes cash change donation options and receipt preview shows paid/donation/change amounts.
+9. Naixer label:
+   - 4x3 cm preview uses compact QR/text/padding sizing instead of scaling the 6x4 layout unchanged.
+10. Docs/help:
+   - HR/SOP docs have been expanded with employee attendance, leave, opening/closing, product handling, and payroll guidance.
+
+### Current Verification Evidence
+
+1. `pnpm -r typecheck` PASS across 10 workspace projects.
+2. `pnpm --filter @erp/services test` PASS: 24 files, 528 tests.
+3. `pnpm --filter @erp/web build` PASS: Next production build, Serwist PWA bundle, standalone asset sync.
+4. `pnpm --filter @erp/site build` PASS: 31 static public pages.
+5. `pnpm --filter @erp/mcp build` PASS.
+6. `pnpm --filter @erp/worker build` PASS.
+7. MCP local health smoke PASS: `http://127.0.0.1:3912/healthz` returned HTTP 200.
+8. Sidebar route audit PASS: 49 sidebar hrefs, 0 missing route files.
+9. i18n key parity PASS: web/site ID/EN/ZH have 0 missing keys.
+10. Marker scan PASS: no `TODO`, `FIXME`, `NOT_IMPLEMENTED`, `not implemented`, `stub`, `coming soon`, `under construction`, `lorem`, `dummy`, `Belum tersedia`, or `Segera hadir` markers in `apps` or `packages`.
+
+### Remaining Release Risks
+
+1. Hardcoded UI copy still exists in older ERP pages even though key parity passes. This is an i18n quality gap, not a missing-key gap.
+2. POS demo is closer to production, but physical receipt/label print parity still needs browser/printer smoke.
+3. Payroll absence penalty is supported by the engine, but automatic no-notice absence capture still needs a formal schedule/absence recording flow.
+4. MCP has 47 runtime tools and health passes, but newly added UI CRUD surfaces such as COA/tax management are not all exposed as MCP write tools yet.
+5. PII encryption-at-rest and full legal/compliance counsel review remain formal assurance tasks before calling the whole ERP compliance-complete.
+6. Production deploy and authenticated browser smoke are still required after this local patch set.
 
 ## Next Implementation Order
 
-1. Stabilize data/config foundation: seed preservation, i18n placeholders, favicon, migration journal.
-2. Complete promotions engine enough for future promo mechanics: CRUD UI, rule storage, POS calculation path, audit trail, MCP tool.
-3. Re-run `pnpm --filter @erp/db typecheck`, `pnpm --filter @erp/services test`, `pnpm --filter @erp/web typecheck`, and app builds.
-4. Expand docs/help center content and expose edit path from ERP.
-5. Add BI dashboard and MCP coverage audit.
-6. Run browser smoke for login, language switch, POS real/demo, member signup, docs, locations, POS settings, audit trail, account settings, uploads.
-
+1. Commit/push this verified patch set and deploy to VPS.
+2. Run production DB seed/migration and `admin:ensure-access`.
+3. Run authenticated browser smoke for `/pos`, `/pos/demo`, `/docs`, `/inventory/products`, `/settings/permissions`, `/settings/locations`, `/settings/pos`, `/settings/promotions`, `/tax/rates`, `/tax/rules`, `/accounting/coa`, `/hr/checkin`, `/hr/leave`, `/account`, and `/audit`.
+4. Continue the next sweep on remaining enterprise gaps: hardcoded i18n copy migration, absence scheduling, print parity, PII encryption verification, and MCP write-tool expansion.

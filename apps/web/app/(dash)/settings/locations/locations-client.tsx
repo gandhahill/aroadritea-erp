@@ -7,6 +7,7 @@ import {
   type LocationItem,
   type LocationStatus,
   type LocationType,
+  deleteLocation,
   saveLocation,
 } from './actions';
 
@@ -29,6 +30,7 @@ interface Labels {
   office: string;
   warehouse: string;
   saved: string;
+  delete: string;
 }
 
 interface Props {
@@ -95,6 +97,23 @@ export function LocationsClient({ locations, labels }: Props) {
               : item,
           ),
         );
+      }
+    });
+  }
+
+  function removeRow(row: LocationDraft) {
+    if (!row.id) {
+      setRows((prev) => prev.filter((item) => item !== row));
+      return;
+    }
+    setPendingId(row.id);
+    setResult(null);
+    startTransition(async () => {
+      const response = await deleteLocation({ id: row.id ?? '' });
+      setResult(response);
+      setPendingId(null);
+      if (response.success) {
+        setRows((prev) => prev.filter((item) => item.id !== row.id));
       }
     });
   }
@@ -215,14 +234,26 @@ export function LocationsClient({ locations, labels }: Props) {
                   />
                 </td>
                 <td className="px-3 py-3">
-                  <button
-                    type="button"
-                    onClick={() => submitRow(row)}
-                    disabled={isPending && pendingId === (row.id ?? row.code)}
-                    className="rounded-md bg-brand-red px-3 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isPending && pendingId === (row.id ?? row.code) ? labels.saving : labels.save}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => submitRow(row)}
+                      disabled={isPending && pendingId === (row.id ?? row.code)}
+                      className="rounded-md bg-brand-red px-3 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isPending && pendingId === (row.id ?? row.code)
+                        ? labels.saving
+                        : labels.save}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeRow(row)}
+                      disabled={isPending && pendingId === (row.id ?? row.code)}
+                      className="rounded-md border border-brand-cream-3 px-3 py-2 text-xs font-semibold text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {labels.delete}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

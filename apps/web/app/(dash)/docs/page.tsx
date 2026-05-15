@@ -62,7 +62,6 @@ function parseDocsMarkdown(markdown: string): Block[] {
     const line = rawLine.trim();
     if (!line) {
       flushParagraph();
-      flushList();
       continue;
     }
 

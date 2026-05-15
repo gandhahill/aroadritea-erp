@@ -1,7 +1,7 @@
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { fetchPosSettings } from './actions';
+import { fetchAccountOptions, fetchPosSettings } from './actions';
 import { PosSettingsClient } from './pos-settings-client';
 
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export default async function PosSettingsPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const settings = await fetchPosSettings();
+  const [settings, accountOptions] = await Promise.all([fetchPosSettings(), fetchAccountOptions()]);
 
   return (
     <div className="space-y-6">
@@ -24,7 +24,7 @@ export default async function PosSettingsPage() {
         </p>
       </div>
 
-      <PosSettingsClient settings={settings} />
+      <PosSettingsClient settings={settings} accountOptions={accountOptions} />
     </div>
   );
 }

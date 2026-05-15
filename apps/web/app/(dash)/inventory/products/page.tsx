@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { displayAssetUrl } from '@/lib/display-asset-url';
 import { fetchProductMasterData } from './actions';
 import { CategoryForm } from './category-form';
 
@@ -73,6 +74,7 @@ export default async function ProductsPage({ searchParams }: Props) {
             <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
               <tr>
                 <th className="px-4 py-3">SKU</th>
+                <th className="px-4 py-3">Foto</th>
                 <th className="px-4 py-3">Nama</th>
                 <th className="px-4 py-3">Kategori</th>
                 <th className="px-4 py-3">Jenis</th>
@@ -85,7 +87,7 @@ export default async function ProductsPage({ searchParams }: Props) {
             <tbody className="divide-y divide-brand-cream-3 bg-card">
               {data.products.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-brand-ink-3">
+                  <td colSpan={9} className="px-4 py-8 text-center text-brand-ink-3">
                     Belum ada produk yang cocok.
                   </td>
                 </tr>
@@ -93,6 +95,19 @@ export default async function ProductsPage({ searchParams }: Props) {
                 data.products.map((product) => (
                   <tr key={product.id} className="hover:bg-brand-cream-1/60">
                     <td className="px-4 py-3 font-mono text-xs text-brand-ink">{product.sku}</td>
+                    <td className="px-4 py-3">
+                      {product.imageUrl ? (
+                        <img
+                          src={displayAssetUrl(product.imageUrl)}
+                          alt={product.name.id ?? product.sku}
+                          className="h-12 w-12 rounded-md object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-md bg-brand-cream-2 text-xs text-brand-ink-3">
+                          -
+                        </div>
+                      )}
+                    </td>
                     <td className="px-4 py-3 font-semibold text-brand-ink">{product.name.id}</td>
                     <td className="px-4 py-3 text-brand-ink-3">
                       {product.categoryCode || product.categoryName.id || '-'}

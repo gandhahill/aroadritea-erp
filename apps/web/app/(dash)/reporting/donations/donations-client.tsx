@@ -1,5 +1,6 @@
 'use client';
 
+import { exportWorkbook } from '@/lib/export-workbook';
 import type { DonationReportResult } from '@erp/services/reporting';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -18,6 +19,9 @@ interface Props {
   defaultLocationId: string;
   locationOptions: LocationOption[];
 }
+
+const exportButtonClass =
+  'inline-flex items-center gap-2 rounded-lg bg-brand-jade px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90';
 
 export function DonationsClient({
   initialData,
@@ -51,36 +55,46 @@ export function DonationsClient({
     });
   }
 
-  function handleExportXlsx() {
+  async function handleExportXlsx() {
     if (!result.data) return;
     const { rows, totalDonation, totalTransactions, overallAverage } = result.data;
+    const locationLabel = locationId
+      ? (locationOptions.find((location) => location.id === locationId)?.label ?? locationId)
+      : 'Semua lokasi';
 
-    const header = ['Tanggal', 'Jumlah Donasi', 'Jumlah Transaksi', 'Rata-rata'];
-    const csvRows = rows.map((r) => [r.date, r.donationTotal, r.txCount.toString(), r.average]);
-    csvRows.push(['TOTAL', totalDonation, totalTransactions.toString(), overallAverage]);
-
-    const csv = [header, ...csvRows].map((r) => r.join('\t')).join('\n');
-    const blob = new Blob(['﻿' + csv], { type: 'text/tab-separated-values;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `donasi-${startDate}-${endDate}.xls`;
-    a.click();
-    URL.revokeObjectURL(url);
+    await exportWorkbook(`donasi-${startDate}-${endDate}.xlsx`, [
+      {
+        name: 'Ringkasan',
+        rows: [
+          ['Laporan Donasi'],
+          ['Periode', `${startDate} s/d ${endDate}`],
+          ['Lokasi', locationLabel],
+          [],
+          ['Metrik', 'Nilai'],
+          ['Total Donasi', totalDonation],
+          ['Jumlah Transaksi', totalTransactions],
+          ['Rata-rata Donasi', overallAverage],
+        ],
+      },
+      {
+        name: 'Harian',
+        rows: [
+          ['Tanggal', 'Jumlah Donasi', 'Jumlah Transaksi', 'Rata-rata'],
+          ...rows.map((row) => [row.date, row.donationTotal, row.txCount, row.average]),
+          ['TOTAL', totalDonation, totalTransactions, overallAverage],
+        ],
+      },
+    ]);
   }
 
   const data = result.data;
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-brand-ink">Laporan Donasi</h1>
         {data && data.rows.length > 0 && (
-          <button
-            onClick={handleExportXlsx}
-            className="flex items-center gap-2 rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-2"
-          >
+          <button onClick={handleExportXlsx} className={exportButtonClass}>
             <svg
               className="h-4 w-4"
               fill="none"
@@ -99,7 +113,6 @@ export function DonationsClient({
         )}
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4">
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-brand-ink-3">Dari Tanggal</label>
@@ -143,12 +156,10 @@ export function DonationsClient({
         </button>
       </div>
 
-      {/* Error */}
       {result.error && (
         <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{result.error}</div>
       )}
 
-      {/* Summary cards */}
       {data && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <SummaryCard label="Total Donasi" value={formatRupiah(data.totalDonation)} />
@@ -157,7 +168,6 @@ export function DonationsClient({
         </div>
       )}
 
-      {/* Table */}
       {data && data.rows.length > 0 && (
         <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card">
           <table className="w-full text-sm">
@@ -199,7 +209,6 @@ export function DonationsClient({
         </div>
       )}
 
-      {/* Empty state */}
       {data && data.rows.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-brand-cream-3 py-12 text-center">
           <p className="text-sm text-brand-ink-3">Tidak ada data donasi pada periode ini</p>

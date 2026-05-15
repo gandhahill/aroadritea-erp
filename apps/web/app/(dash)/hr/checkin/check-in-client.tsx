@@ -1,11 +1,11 @@
-/**
- * HR Check-In Client — mobile-friendly GPS check-in.
+﻿/**
+ * HR Check-In Client â€” mobile-friendly GPS check-in.
  *
  * Workflow:
  * 1. Request geolocation permission
  * 2. Show current GPS (lat/lng/accuracy)
  * 3. Select shift (defaults to today's expected)
- * 4. Tap "Check In" → server action → success/error
+ * 4. Tap "Check In" â†’ server action â†’ success/error
  */
 
 'use client';
@@ -19,6 +19,7 @@ interface Props {
   tenantId: string;
   locationId: string;
   employeeId: string;
+  shifts: Array<{ id: string; label: string; time: string }>;
 }
 
 type GpsStatus = 'idle' | 'requesting' | 'granted' | 'denied' | 'error' | 'low_accuracy';
@@ -30,14 +31,14 @@ interface GpsState {
   watchId: number | null;
 }
 
-export function CheckInClient({ userId, tenantId, locationId, employeeId }: Props) {
+export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts }: Props) {
   const [gps, setGps] = useState<GpsState>({
     status: 'idle',
     data: null,
     error: null,
     watchId: null,
   });
-  const [selectedShift, setSelectedShift] = useState('shift-pagi');
+  const [selectedShift, setSelectedShift] = useState(shifts[0]?.id ?? '');
   const [method, setMethod] = useState<'gps' | 'qr_scan'>('gps');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [submitting, setSubmitting] = useState(false);
@@ -145,16 +146,11 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId }: Prop
       setResult({ ok: false, message: msg });
     }
   };
-
-  const SHIFTS = [
-    { id: 'shift-pagi', label: 'Pagi', time: '09:30 – 17:30' },
-    { id: 'shift-siang', label: 'Siang', time: '14:30 – 22:30' },
-  ];
-
   const canCheckIn =
     (method === 'qr_scan' || gps.status === 'granted' || gps.status === 'low_accuracy') &&
     !submitting &&
-    !!employeeId;
+    !!employeeId &&
+    !!selectedShift;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-brand-cream px-4 py-8">
@@ -195,21 +191,21 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId }: Prop
               }`}
             >
               {gps.status === 'granted'
-                ? '● Accurate'
+                ? 'â— Accurate'
                 : gps.status === 'low_accuracy'
-                  ? '● Low accuracy'
+                  ? 'â— Low accuracy'
                   : gps.status === 'requesting'
-                    ? '○ Getting location...'
+                    ? 'â—‹ Getting location...'
                     : gps.status === 'denied'
-                      ? '✕ Denied'
+                      ? 'âœ• Denied'
                       : gps.status === 'error'
-                        ? '✕ Error'
-                        : '○ Not started'}
+                        ? 'âœ• Error'
+                        : 'â—‹ Not started'}
             </span>
           </div>
           {gps.data && (
             <p className="font-mono text-xs text-brand-ink-3">
-              {gps.data.lat.toFixed(6)}, {gps.data.lng.toFixed(6)} · ±
+              {gps.data.lat.toFixed(6)}, {gps.data.lng.toFixed(6)} Â· Â±
               {Math.round(gps.data.accuracy_m)}m
             </p>
           )}
@@ -249,7 +245,7 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId }: Prop
         <div className="space-y-2">
           <span className="text-sm font-medium text-brand-ink">Shift</span>
           <div className="grid grid-cols-2 gap-2">
-            {SHIFTS.map((shift) => (
+            {shifts.map((shift) => (
               <button
                 key={shift.id}
                 onClick={() => setSelectedShift(shift.id)}
@@ -264,6 +260,11 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId }: Prop
               </button>
             ))}
           </div>
+          {shifts.length === 0 && (
+            <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+              Shift belum tersedia. Hubungi administrator untuk mengaktifkan master shift.
+            </p>
+          )}
         </div>
 
         {/* Result message */}

@@ -2,7 +2,7 @@
 
 import type { VariantResult } from '@erp/services/inventory';
 import { useActionState } from 'react';
-import { createVariantAction } from './actions';
+import { createVariantAction, toggleVariantStatusAction } from './actions';
 
 const INPUT =
   'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
@@ -31,12 +31,13 @@ export function VariantManager({
               <th className="px-4 py-3">Atribut</th>
               <th className="px-4 py-3 text-right">Harga</th>
               <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3 text-right">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-3 bg-card">
             {variants.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-brand-ink-3">
+                <td colSpan={6} className="px-4 py-6 text-center text-brand-ink-3">
                   Belum ada varian.
                 </td>
               </tr>
@@ -57,6 +58,24 @@ export function VariantManager({
                     <span className="rounded-full bg-brand-jade-light px-2 py-1 text-xs font-semibold text-brand-jade">
                       {variant.isActive ? 'Aktif' : 'Nonaktif'}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <form action={toggleVariantStatusAction}>
+                      <input type="hidden" name="productId" value={productId} />
+                      <input type="hidden" name="variantId" value={variant.id} />
+                      <input type="hidden" name="version" value={variant.version} />
+                      <input
+                        type="hidden"
+                        name="isActive"
+                        value={variant.isActive ? 'false' : 'true'}
+                      />
+                      <button
+                        type="submit"
+                        className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink hover:bg-brand-cream-2"
+                      >
+                        {variant.isActive ? 'Nonaktifkan' : 'Aktifkan'}
+                      </button>
+                    </form>
                   </td>
                 </tr>
               ))

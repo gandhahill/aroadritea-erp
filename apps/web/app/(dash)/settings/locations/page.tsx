@@ -46,6 +46,7 @@ export default async function LocationsPage() {
           office: t('office'),
           warehouse: t('warehouse'),
           saved: t('saved'),
+          delete: t('delete'),
         }}
       />
     </div>

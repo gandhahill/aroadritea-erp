@@ -147,7 +147,8 @@ export async function runPayroll(
         .select({
           employeeId: attendance.employeeId,
           lateMinutes: sql<number>`coalesce(sum(${attendance.lateMinutes}), 0)`,
-          absentDays: sql<number>`count(case when ${attendance.checkInAt} is null then 1 end)`,
+          lateCount: sql<number>`cast(count(case when ${attendance.isLate} then 1 end) as int)`,
+          absentDays: sql<number>`0`,
         })
         .from(attendance)
         .where(
@@ -165,6 +166,7 @@ export async function runPayroll(
           a.employeeId,
           {
             lateMinutes: a.lateMinutes,
+            lateCount: a.lateCount,
             absentDays: a.absentDays,
           },
         ]),
@@ -191,7 +193,7 @@ export async function runPayroll(
 
       for (const emp of empRows) {
         const baseSalary = contractMap.get(emp.currentContractId ?? '') ?? 0n;
-        const att = attMap.get(emp.id) ?? { lateMinutes: 0, absentDays: 0 };
+        const att = attMap.get(emp.id) ?? { lateMinutes: 0, lateCount: 0, absentDays: 0 };
 
         const payrollCtx: PayrollEmployeeContext = {
           employeeId: emp.id,
@@ -201,6 +203,7 @@ export async function runPayroll(
           dependentsCount: 0,
           additionalEarnings: [],
           lateMinutes: att.lateMinutes,
+          lateCount: att.lateCount,
           absentCount: att.absentDays,
         };
 

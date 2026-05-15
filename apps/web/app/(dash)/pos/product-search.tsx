@@ -7,6 +7,7 @@
 
 'use client';
 
+import { displayAssetUrl } from '@/lib/display-asset-url';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState, useTransition } from 'react';
 import { type ProductListItem, type VariantItem, fetchCategories, fetchProducts } from './actions';
@@ -153,7 +154,7 @@ export function ProductSearch() {
                   {/* Product image */}
                   {product.imageUrl ? (
                     <img
-                      src={product.imageUrl}
+                      src={displayAssetUrl(product.imageUrl)}
                       alt={product.name}
                       className="h-16 w-full rounded-md object-cover"
                     />

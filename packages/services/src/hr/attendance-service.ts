@@ -15,7 +15,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { requirePermission } from '../iam';
 
@@ -106,9 +106,35 @@ function shiftTimeToDate(startTime: string, referenceDate: Date): Date {
   const parts = startTime.split(':').map((s) => Number.parseInt(s, 10));
   const h = parts[0] ?? 0;
   const m = parts[1] ?? 0;
-  const d = new Date(referenceDate);
-  d.setUTCHours(h + 7, m, 0, 0); // WIB = UTC+7
-  return d;
+  const wibDate = new Date(referenceDate.getTime() + 7 * 60 * 60 * 1000);
+  return new Date(
+    Date.UTC(
+      wibDate.getUTCFullYear(),
+      wibDate.getUTCMonth(),
+      wibDate.getUTCDate(),
+      h - 7,
+      m,
+      0,
+      0,
+    ),
+  );
+}
+
+function wibDayBounds(referenceDate: Date): { start: Date; end: Date } {
+  const wibDate = new Date(referenceDate.getTime() + 7 * 60 * 60 * 1000);
+  const start = new Date(
+    Date.UTC(
+      wibDate.getUTCFullYear(),
+      wibDate.getUTCMonth(),
+      wibDate.getUTCDate(),
+      -7,
+      0,
+      0,
+      0,
+    ),
+  );
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000 - 1);
+  return { start, end };
 }
 
 /**
@@ -179,19 +205,27 @@ export async function checkIn(
         const [sd] = await db
           .select()
           .from(shiftDefinitions)
-          .where(eq(shiftDefinitions.id, data.shiftDefinitionId))
+          .where(
+            and(
+              eq(shiftDefinitions.id, data.shiftDefinitionId),
+              eq(shiftDefinitions.tenantId, ctx.tenantId),
+              eq(shiftDefinitions.isActive, true),
+              isNull(shiftDefinitions.deletedAt),
+            ),
+          )
           .limit(1);
+        if (!sd) {
+          throw AppError.notFound('hr.attendance.shiftNotFound', {
+            shiftDefinitionId: data.shiftDefinitionId,
+          });
+        }
         shiftDef = sd;
       }
 
-      // 2. Check for duplicate check-in today (no double check-in)
-      const today = new Date();
-      const todayStart = new Date(
-        Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0),
-      );
-      const todayEnd = new Date(
-        Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59),
-      );
+      const performedAt = data.performedAt ? new Date(data.performedAt) : new Date();
+
+      // 2. Check for duplicate check-in on the same WIB operational day.
+      const { start: todayStart, end: todayEnd } = wibDayBounds(performedAt);
 
       const [existing] = await db
         .select({ id: attendance.id })
@@ -244,7 +278,6 @@ export async function checkIn(
       }
 
       // 4. Calculate late minutes
-      const performedAt = data.performedAt ? new Date(data.performedAt) : new Date();
       let isLate = false;
       let lateMinutes = 0;
       let shiftCode: string | null = null;
@@ -355,6 +388,8 @@ export async function checkOut(
             and(
               eq(shiftDefinitions.tenantId, ctx.tenantId),
               eq(shiftDefinitions.code, existing.shiftDefinitionCode),
+              eq(shiftDefinitions.isActive, true),
+              isNull(shiftDefinitions.deletedAt),
             ),
           )
           .limit(1);
@@ -482,7 +517,7 @@ export async function listAttendance(
         const empRows = await db
           .select({ id: employees.id, name: employees.name })
           .from(employees)
-          .where(sql`${employees.id} = ANY(${empIds})`);
+          .where(inArray(employees.id, empIds));
         empNames = new Map(empRows.map((r) => [r.id, r.name]));
       }
 

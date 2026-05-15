@@ -22,6 +22,7 @@ function payroll(ctx: Partial<PayrollEmployeeContext>): PayrollResult {
     dependentsCount: 0,
     additionalEarnings: [],
     lateMinutes: 0,
+    lateCount: 0,
     absentCount: 0,
     ...ctx,
   });
@@ -103,25 +104,25 @@ describe('BPJS TK caps', () => {
 // ─── Late Penalty Tests ───────────────────────────────────────────────────────
 
 describe('Late penalty (SOP §21.8)', () => {
-  it('no penalty for 0 late minutes', () => {
-    const result = payroll({ lateMinutes: 0 });
+  it('no penalty for 0 late events', () => {
+    const result = payroll({ lateMinutes: 0, lateCount: 0 });
     expect(result.latePenalty).toBe(0n);
   });
 
   it('no penalty for up to 3 free lates', () => {
-    const result = payroll({ lateMinutes: 120 }); // 2 hours = 2 "late events"
+    const result = payroll({ lateMinutes: 120, lateCount: 3 });
     expect(result.latePenalty).toBe(0n);
   });
 
   it('penalty kicks in after 3 free lates', () => {
-    // 4 hours of lateness → 1 penalty × Rp 50,000
-    const result = payroll({ lateMinutes: 240 });
+    // 4 late events -> 1 penalty x Rp 50,000
+    const result = payroll({ lateMinutes: 80, lateCount: 4 });
     expect(result.latePenalty).toBe(50_000n);
   });
 
   it('multiple penalties for excessive lates', () => {
-    // 10 hours late → 7 penalized hours × 50,000
-    const result = payroll({ lateMinutes: 600 });
+    // 10 late events -> 7 charged events x Rp 50,000
+    const result = payroll({ lateMinutes: 250, lateCount: 10 });
     expect(result.latePenalty).toBe(350_000n);
   });
 });

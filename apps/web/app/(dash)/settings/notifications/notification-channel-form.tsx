@@ -42,8 +42,6 @@ export function NotificationChannelForm() {
         <span className="text-sm font-medium text-brand-ink">Tipe</span>
         <select name="channelType" required defaultValue="email" className={INPUT}>
           <option value="email">Email</option>
-          <option value="whatsapp">WhatsApp</option>
-          <option value="telegram">Telegram</option>
         </select>
       </label>
       <label className="space-y-1.5">
@@ -51,7 +49,7 @@ export function NotificationChannelForm() {
         <input
           name="target"
           required
-          placeholder="ops@aroadritea.com / +628..."
+          placeholder="ops@aroadritea.com"
           className={INPUT}
         />
       </label>

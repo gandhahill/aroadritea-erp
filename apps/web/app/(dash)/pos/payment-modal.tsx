@@ -7,10 +7,10 @@
 
 'use client';
 
-import { type RoundingOption, getDonationOptions } from '@erp/services/pos';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import { createSaleAction } from './actions';
+import { type RoundingOption, getDonationOptions } from './lib/donation-options';
 import { useOfflineSync } from './lib/offline-sync-context';
 import { usePosCart } from './pos-cart-context';
 

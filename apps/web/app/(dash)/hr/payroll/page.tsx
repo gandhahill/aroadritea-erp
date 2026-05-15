@@ -9,7 +9,7 @@
  */
 
 import { getSession } from '@/lib/auth';
-import { db, eq } from '@erp/db';
+import { and, db, eq, isNull } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import { payrolls } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
@@ -28,9 +28,13 @@ export default async function PayrollPage() {
 
   // Fetch locations for the tenant
   const locRows = await db
-    .select({ id: locations.id, name: locations.name })
+    .select({
+      id: locations.id,
+      code: locations.code,
+      name: locations.name,
+    })
     .from(locations)
-    .where(eq(locations.tenantId, tenantId));
+    .where(and(eq(locations.tenantId, tenantId), isNull(locations.deletedAt)));
 
   // Fetch existing payrolls
   const payrollRows = await db
@@ -50,7 +54,9 @@ export default async function PayrollPage() {
     .orderBy(payrolls.periodStart);
 
   const locations_ = locRows.map((l) => {
-    return { value: l.id, label: l.id };
+    const name = l.name as { id?: string; en?: string; zh?: string } | null;
+    const label = [l.code, name?.id ?? name?.en ?? name?.zh].filter(Boolean).join(' - ');
+    return { value: l.id, label: label || l.id };
   });
 
   return (

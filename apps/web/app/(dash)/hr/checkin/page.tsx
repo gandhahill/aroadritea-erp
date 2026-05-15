@@ -6,6 +6,8 @@
  */
 
 import { getSession } from '@/lib/auth';
+import { and, asc, db, eq, isNull } from '@erp/db';
+import { employees, shiftDefinitions } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { CheckInClient } from './check-in-client';
@@ -19,8 +21,50 @@ export default async function CheckInPage() {
   const user = session.user as Record<string, unknown>;
   const userId = String(user.id ?? '');
   const tenantId = String(user.tenantId ?? 'default');
-  const locationId = String(user.locationId ?? '');
-  const employeeId = String(user.employeeId ?? ''); // employeeId set on user record
+  let locationId = String(user.locationId ?? '');
+  const sessionEmployeeId = String(user.employeeId ?? '');
+  const userEmail = String(user.email ?? '').trim().toLowerCase();
+
+  let employeeId = sessionEmployeeId;
+  if (userEmail && (!employeeId || !locationId)) {
+    const [employee] = await db
+      .select({ id: employees.id, locationId: employees.locationId })
+      .from(employees)
+      .where(
+        and(
+          eq(employees.tenantId, tenantId),
+          eq(employees.email, userEmail),
+          isNull(employees.deletedAt),
+        ),
+      )
+      .limit(1);
+    employeeId = employee?.id ?? '';
+    locationId = locationId || employee?.locationId || '';
+  }
+
+  const shiftRows = await db
+    .select({
+      id: shiftDefinitions.id,
+      name: shiftDefinitions.name,
+      code: shiftDefinitions.code,
+      startTime: shiftDefinitions.startTime,
+      endTime: shiftDefinitions.endTime,
+    })
+    .from(shiftDefinitions)
+    .where(
+      and(
+        eq(shiftDefinitions.tenantId, tenantId),
+        eq(shiftDefinitions.isActive, true),
+        isNull(shiftDefinitions.deletedAt),
+      ),
+    )
+    .orderBy(asc(shiftDefinitions.startTime));
+
+  const shifts = shiftRows.map((shift) => ({
+    id: shift.id,
+    label: shift.name || shift.code,
+    time: `${shift.startTime} - ${shift.endTime}`,
+  }));
 
   return (
     <CheckInClient
@@ -28,6 +72,7 @@ export default async function CheckInPage() {
       tenantId={tenantId}
       locationId={locationId}
       employeeId={employeeId}
+      shifts={shifts}
     />
   );
 }

@@ -7,6 +7,7 @@ import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchCOATree } from './actions';
+import { COAEditor } from './coa-editor';
 import { COATreeView } from './coa-tree';
 
 export const metadata: Metadata = {
@@ -35,6 +36,8 @@ export default async function COAPage() {
           </span>
         </div>
       </div>
+
+      <COAEditor tree={tree} />
 
       {/* COA Tree */}
       <COATreeView tree={tree} />

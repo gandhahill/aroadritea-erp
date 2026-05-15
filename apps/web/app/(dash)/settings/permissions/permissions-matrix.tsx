@@ -1,12 +1,33 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
-import { type PermissionMatrix, setRolePermission } from './actions';
+import {
+  createRoleAction,
+  deleteRoleAction,
+  type PermissionMatrix,
+  setRolePermission,
+  updateRoleAction,
+} from './actions';
 
 export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
+  const router = useRouter();
   const [grants, setGrants] = useState(matrix.grants);
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
+  const [newRole, setNewRole] = useState({ code: '', id: '', en: '', zh: '' });
+  const [roleDrafts, setRoleDrafts] = useState(() =>
+    Object.fromEntries(
+      matrix.roles.map((role) => [
+        role.id,
+        {
+          id: role.name.id ?? role.code,
+          en: role.name.en ?? role.name.id ?? role.code,
+          zh: role.name.zh ?? role.name.id ?? role.code,
+        },
+      ]),
+    ),
+  );
 
   const grouped = useMemo(() => {
     const map = new Map<string, typeof matrix.permissions>();
@@ -43,6 +64,42 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
     });
   }
 
+  function saveNewRole() {
+    setMessage(null);
+    startTransition(async () => {
+      const result = await createRoleAction({
+        code: newRole.code,
+        name: { id: newRole.id, en: newRole.en, zh: newRole.zh },
+      });
+      if (!result.ok) {
+        setMessage(result.error ?? 'Gagal membuat role');
+        return;
+      }
+      setNewRole({ code: '', id: '', en: '', zh: '' });
+      router.refresh();
+    });
+  }
+
+  function saveRole(roleId: string) {
+    const draft = roleDrafts[roleId];
+    if (!draft) return;
+    setMessage(null);
+    startTransition(async () => {
+      const result = await updateRoleAction({ id: roleId, name: draft });
+      if (!result.ok) setMessage(result.error ?? 'Gagal menyimpan role');
+      else router.refresh();
+    });
+  }
+
+  function deleteRole(roleId: string) {
+    setMessage(null);
+    startTransition(async () => {
+      const result = await deleteRoleAction(roleId);
+      if (!result.ok) setMessage(result.error ?? 'Gagal menghapus role');
+      else router.refresh();
+    });
+  }
+
   if (!matrix.canManage) {
     return (
       <div className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
@@ -61,6 +118,121 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
       {pending ? (
         <p className="text-xs font-medium text-brand-ink-3">Menyimpan perubahan...</p>
       ) : null}
+
+      <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
+        <div className="mb-4">
+          <h2 className="text-base font-semibold text-brand-ink">Role</h2>
+          <p className="mt-1 text-sm text-brand-ink-3">
+            Buat role baru, ubah nama role, lalu centang permission yang dibutuhkan.
+          </p>
+        </div>
+        <div className="grid gap-3 md:grid-cols-[1fr_1.3fr_1.3fr_1.3fr_auto]">
+          <Input
+            label="Kode"
+            value={newRole.code}
+            onChange={(value) => setNewRole((current) => ({ ...current, code: value }))}
+            placeholder="store_supervisor"
+          />
+          <Input
+            label="Nama ID"
+            value={newRole.id}
+            onChange={(value) => setNewRole((current) => ({ ...current, id: value }))}
+            placeholder="Supervisor Outlet"
+          />
+          <Input
+            label="Nama EN"
+            value={newRole.en}
+            onChange={(value) => setNewRole((current) => ({ ...current, en: value }))}
+            placeholder="Store Supervisor"
+          />
+          <Input
+            label="Nama ZH"
+            value={newRole.zh}
+            onChange={(value) => setNewRole((current) => ({ ...current, zh: value }))}
+            placeholder="门店主管"
+          />
+          <button
+            type="button"
+            onClick={saveNewRole}
+            disabled={pending}
+            className="self-end rounded-md bg-brand-red px-3 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
+          >
+            Tambah Role
+          </button>
+        </div>
+
+        <div className="mt-4 space-y-2">
+          {matrix.roles.map((role) => {
+            const draft = roleDrafts[role.id] ?? {
+              id: role.name.id ?? role.code,
+              en: role.name.en ?? role.code,
+              zh: role.name.zh ?? role.code,
+            };
+            return (
+              <div
+                key={role.id}
+                className="grid gap-2 rounded-lg border border-brand-cream-3 bg-brand-cream-1 p-3 md:grid-cols-[0.8fr_1.2fr_1.2fr_1.2fr_auto_auto]"
+              >
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-ink-3">
+                    Kode
+                  </p>
+                  <p className="mt-2 font-mono text-xs font-semibold text-brand-ink">
+                    {role.code}
+                  </p>
+                </div>
+                <Input
+                  label="Nama ID"
+                  value={draft.id}
+                  onChange={(value) =>
+                    setRoleDrafts((current) => ({
+                      ...current,
+                      [role.id]: { ...draft, id: value },
+                    }))
+                  }
+                />
+                <Input
+                  label="Nama EN"
+                  value={draft.en}
+                  onChange={(value) =>
+                    setRoleDrafts((current) => ({
+                      ...current,
+                      [role.id]: { ...draft, en: value },
+                    }))
+                  }
+                />
+                <Input
+                  label="Nama ZH"
+                  value={draft.zh}
+                  onChange={(value) =>
+                    setRoleDrafts((current) => ({
+                      ...current,
+                      [role.id]: { ...draft, zh: value },
+                    }))
+                  }
+                />
+                <button
+                  type="button"
+                  onClick={() => saveRole(role.id)}
+                  disabled={pending}
+                  className="self-end rounded-md bg-brand-red px-3 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
+                >
+                  Simpan
+                </button>
+                <button
+                  type="button"
+                  onClick={() => deleteRole(role.id)}
+                  disabled={pending || role.code === 'director'}
+                  className="self-end rounded-md border border-brand-cream-3 px-3 py-2 text-xs font-semibold text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red disabled:opacity-40"
+                >
+                  Hapus
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       {grouped.map(([module, permissions]) => (
         <section
           key={module}
@@ -110,5 +282,31 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
         </section>
       ))}
     </div>
+  );
+}
+
+function Input({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <label className="space-y-1">
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-brand-ink-3">
+        {label}
+      </span>
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="h-9 w-full rounded-md border border-brand-cream-3 bg-card px-2.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
+      />
+    </label>
   );
 }

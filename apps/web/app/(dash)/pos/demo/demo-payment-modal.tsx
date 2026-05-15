@@ -1,33 +1,27 @@
 /**
- * Demo Payment Modal — full payment flow for demo POS.
- * Mirrors production `payment-modal.tsx` but:
- * - No server action (all in-memory)
- * - Generates DEMO-XXX order number
- * - Shows demo receipt preview after payment
- * - Adds order to demo history
+ * Demo Payment Modal.
  *
- * ADR-0008 §QR: QR payload prefix is `DEMO-` so Naixer won't read it.
+ * Mirrors the production payment flow while keeping every order client-side.
+ * Demo orders never call server actions, never sync, and use DEMO order numbers.
  */
 
 'use client';
 
-import { buildDemoQrPayload, getNextDemoOrderNumber } from '@erp/offline';
+import { getNextDemoOrderNumber } from '@erp/offline';
 import type { DemoOrder } from '@erp/offline';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
+import { type RoundingOption, getDonationOptions } from '../lib/donation-options';
 import { DemoReceiptPreview } from './components/demo-receipt-preview';
 import { useDemoCart } from './demo-cart-context';
 import { useDemoMode } from './demo-mode-context';
 
-const PAYMENT_METHODS = [
-  { id: 'cash', icon: '💵' },
-  { id: 'qris', icon: '📱' },
-  { id: 'flazz', icon: '💳' },
-  { id: 'debit', icon: '💳' },
-  { id: 'credit', icon: '💳' },
-  { id: 'gofood', icon: '🛵' },
-  { id: 'grabfood', icon: '🛵' },
-  { id: 'shopeefood', icon: '🛵' },
+const BASE_PAYMENT_METHODS = [
+  { id: 'cash', badge: 'Rp' },
+  { id: 'qris', badge: 'QR' },
+  { id: 'flazz', badge: 'FLZ' },
+  { id: 'debit', badge: 'DBT' },
+  { id: 'credit', badge: 'CRD' },
 ] as const;
 
 interface DemoPaymentModalProps {
@@ -51,10 +45,11 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
   const [splitPayments, setSplitPayments] = useState<SplitPayment[]>([]);
   const [completedOrder, setCompletedOrder] = useState<DemoOrder | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [donationChoice, setDonationChoice] = useState<RoundingOption>('no_donation');
 
   const totalBig = BigInt(grandTotal);
   const paidBig = state.payments.reduce((sum, p) => sum + parseMoney(p.amount), BigInt(0));
-  const splitTotal = splitPayments.reduce((s, p) => s + parseMoney(p.amount), BigInt(0));
+  const splitTotal = splitPayments.reduce((sum, payment) => sum + parseMoney(payment.amount), BigInt(0));
   const currentInputBig = parseMoney(inputAmount);
   const remaining =
     totalBig - paidBig - splitTotal > BigInt(0) ? totalBig - paidBig - splitTotal : BigInt(0);
@@ -74,6 +69,16 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
   const canAddSplit =
     inputAmount !== '' && currentInputBig > BigInt(0) && currentInputBig < remaining;
 
+  const paymentMethods = useMemo(() => {
+    if (state.channel === 'walk_in') return [...BASE_PAYMENT_METHODS];
+    return [...BASE_PAYMENT_METHODS, { id: state.channel, badge: channelBadge(state.channel) }];
+  }, [state.channel]);
+
+  const donationOptions = useMemo(() => {
+    if (excess <= BigInt(0) || selectedMethod !== 'cash') return [];
+    return getDonationOptions(excess);
+  }, [excess, selectedMethod]);
+
   function handleAddSplit() {
     if (!canAddSplit) return;
     setSplitPayments((prev) => [
@@ -88,23 +93,49 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
   }
 
   async function handleConfirm() {
+    if (!canConfirm) return;
     setError(null);
+
     try {
       const orderNumber = await getNextDemoOrderNumber();
       const subtotal = state.lines.reduce(
-        (sum, l) => sum + BigInt(l.unitPrice) * BigInt(l.qty),
+        (sum, line) => sum + BigInt(line.unitPrice) * BigInt(line.qty),
         BigInt(0),
       );
-      const taxTotal = (subtotal * BigInt(10)) / BigInt(110);
+      const taxTotal = (totalBig * BigInt(10)) / BigInt(110);
+      const donationResult =
+        excess > BigInt(0) && donationChoice !== 'no_donation'
+          ? getDonationOptions(excess).find((option) => option.choice.type === donationChoice)
+          : undefined;
 
-      // Build payments from cart + split list + current input
       const payments: typeof state.payments = [
         ...state.payments,
-        ...splitPayments.map((p) => ({ id: p.id, method: p.method, amount: p.amount })),
-        ...(inputAmount && currentInputBig > BigInt(0) && allPaidBig >= totalBig
-          ? [{ id: crypto.randomUUID(), method: selectedMethod, amount: inputAmount }]
-          : []),
+        ...splitPayments.map((payment) => ({
+          id: payment.id,
+          method: payment.method,
+          amount: payment.amount,
+        })),
       ];
+
+      if (
+        inputAmount &&
+        currentInputBig > BigInt(0) &&
+        currentInputBig + paidBig + splitTotal >= totalBig
+      ) {
+        payments.push({
+          id: crypto.randomUUID(),
+          method: selectedMethod,
+          amount: inputAmount,
+          ...(selectedMethod === 'cash' &&
+          donationResult &&
+          donationResult.donatedAmount > BigInt(0)
+            ? {
+                donationAmount: donationResult.donatedAmount.toString(),
+                roundingOption: donationChoice,
+              }
+            : {}),
+        });
+      }
 
       const order: DemoOrder = {
         orderNumber,
@@ -125,7 +156,6 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
     }
   }
 
-  // Show receipt if order completed
   if (completedOrder) {
     return (
       <DemoReceiptPreview
@@ -149,7 +179,6 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
       />
 
       <div className="relative z-10 flex h-[85vh] w-full max-w-lg flex-col rounded-t-2xl bg-card shadow-2xl sm:h-auto sm:rounded-2xl">
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-brand-cream-3 px-5 py-4">
           <h2 className="text-base font-semibold text-brand-ink">{t('payment')}</h2>
           <button
@@ -171,39 +200,37 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
           </button>
         </div>
 
-        {/* Body */}
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
-          {/* Grand total */}
           <div className="flex items-center justify-between rounded-xl border border-brand-red/20 bg-brand-red/5 px-4 py-3">
             <span className="text-sm font-medium text-brand-ink-2">{t('grandTotal')}</span>
             <span className="text-xl font-bold text-brand-red">{formatRupiah(grandTotal)}</span>
           </div>
 
-          {/* Payment methods */}
           <div>
             <p className="mb-2 text-xs font-medium uppercase tracking-widest text-brand-ink-3">
               {t('paymentMethod')}
             </p>
             <div className="grid grid-cols-4 gap-2">
-              {PAYMENT_METHODS.map((m) => (
+              {paymentMethods.map((method) => (
                 <button
                   type="button"
-                  key={m.id}
-                  onClick={() => setSelectedMethod(m.id)}
+                  key={method.id}
+                  onClick={() => setSelectedMethod(method.id)}
                   className={`flex flex-col items-center gap-1 rounded-lg border py-2.5 text-xs font-medium transition-all ${
-                    selectedMethod === m.id
+                    selectedMethod === method.id
                       ? 'border-brand-red bg-brand-red/5 text-brand-red'
                       : 'border-brand-cream-3 text-brand-ink-2 hover:border-brand-red/30'
                   }`}
                 >
-                  <span className="text-base">{m.icon}</span>
-                  <span>{t(`paymentMethods.${m.id}` as never)}</span>
+                  <span className="rounded bg-brand-cream-3 px-1.5 py-0.5 text-[10px] font-bold">
+                    {method.badge}
+                  </span>
+                  <span>{paymentMethodLabel(method.id, t)}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Payment input */}
           {!isFullyPaid && (
             <div>
               <p className="mb-2 text-xs font-medium uppercase tracking-widest text-brand-ink-3">
@@ -218,18 +245,20 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
                     type="text"
                     inputMode="numeric"
                     value={inputAmount}
-                    onChange={(e) => setInputAmount(e.target.value.replace(/\D/g, ''))}
+                    onChange={(event) => setInputAmount(event.target.value.replace(/\D/g, ''))}
                     placeholder={formatRupiah(remaining.toString())}
                     className="h-12 w-full rounded-lg border border-brand-cream-3 bg-card py-2 pl-8 pr-3 text-base font-semibold text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
                   />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setInputAmount(remaining.toString())}
-                  className="h-12 rounded-lg border border-brand-cream-3 bg-brand-cream-2 px-4 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-3"
-                >
-                  {t('fullPayment')}
-                </button>
+                {remaining > BigInt(0) && (
+                  <button
+                    type="button"
+                    onClick={() => setInputAmount(remaining.toString())}
+                    className="h-12 rounded-lg border border-brand-cream-3 bg-brand-cream-2 px-4 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-3"
+                  >
+                    {t('fullPayment')}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={handleAddSplit}
@@ -253,7 +282,6 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
             </div>
           )}
 
-          {/* Change shown when fully paid */}
           {isFullyPaid && excess > BigInt(0) && selectedMethod === 'cash' && (
             <div className="flex items-center justify-between rounded-lg border border-brand-jade/20 bg-brand-jade/5 px-4 py-2.5">
               <span className="text-sm font-medium text-brand-ink-2">{t('change')}</span>
@@ -263,29 +291,61 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
             </div>
           )}
 
-          {/* Split payments */}
+          {isFullyPaid && donationOptions.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-medium uppercase tracking-widest text-brand-ink-3">
+                {t('donationChoice')}
+              </p>
+              <div className="space-y-1.5">
+                {donationOptions.map((option) => (
+                  <button
+                    type="button"
+                    key={option.choice.type}
+                    onClick={() => setDonationChoice(option.choice.type)}
+                    className={`flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left transition-all ${
+                      donationChoice === option.choice.type
+                        ? 'border-brand-red bg-brand-red/5'
+                        : 'border-brand-cream-3 hover:border-brand-red/30'
+                    }`}
+                  >
+                    <span
+                      className={`text-sm font-medium ${donationChoice === option.choice.type ? 'text-brand-red' : 'text-brand-ink-2'}`}
+                    >
+                      {option.choice.description}
+                    </span>
+                    {option.donatedAmount > BigInt(0) && (
+                      <span className="text-xs font-medium text-brand-ink-3">
+                        {formatRupiah(option.donatedAmount.toString())}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {splitPayments.length > 0 && (
             <div>
               <p className="mb-2 text-xs font-medium uppercase tracking-widest text-brand-ink-3">
                 {t('splitPayment')}
               </p>
               <ul className="space-y-2">
-                {splitPayments.map((p) => (
+                {splitPayments.map((payment) => (
                   <li
-                    key={p.id}
+                    key={payment.id}
                     className="flex items-center justify-between rounded-lg border border-brand-cream-3 bg-brand-cream-2 px-3 py-2"
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-brand-ink-3">
-                        {t(`paymentMethods.${p.method}` as never)}
+                        {paymentMethodLabel(payment.method, t)}
                       </span>
                       <span className="text-sm font-medium text-brand-ink">
-                        {formatRupiah(p.amount)}
+                        {formatRupiah(payment.amount)}
                       </span>
                     </div>
                     <button
                       type="button"
-                      onClick={() => handleRemoveSplit(p.id)}
+                      onClick={() => handleRemoveSplit(payment.id)}
                       className="text-brand-ink-3 hover:text-red-500"
                       aria-label="remove"
                     >
@@ -331,7 +391,6 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
           )}
         </div>
 
-        {/* Footer */}
         <div className="border-t border-brand-cream-3 p-5">
           <button
             type="button"
@@ -348,7 +407,7 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
   );
 }
 
-function formatRupiah(value: string): string {
+function formatRupiah(value: string | bigint): string {
   const num = Number(value);
   if (Number.isNaN(num)) return 'Rp 0';
   return new Intl.NumberFormat('id-ID', {
@@ -360,4 +419,34 @@ function formatRupiah(value: string): string {
 
 function parseMoney(value: string): bigint {
   return /^\d+$/.test(value) ? BigInt(value) : BigInt(0);
+}
+
+function channelBadge(channel: string): string {
+  return channel
+    .split(/[_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('')
+    .slice(0, 3);
+}
+
+function humanize(value: string): string {
+  return value
+    .split(/[_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function paymentMethodLabel(method: string, t: ReturnType<typeof useTranslations>): string {
+  switch (method) {
+    case 'cash':
+    case 'qris':
+    case 'flazz':
+    case 'debit':
+    case 'credit':
+      return t(`paymentMethods.${method}` as never);
+    default:
+      return humanize(method);
+  }
 }

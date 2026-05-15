@@ -9,6 +9,7 @@ import {
   listCategories,
   listProducts,
   updateProduct,
+  updateVariant,
 } from '@erp/services/inventory';
 import type { CategoryResult, ProductDetailResult, ProductListItem } from '@erp/services/inventory';
 import type { AuditContext } from '@erp/shared/types';
@@ -257,4 +258,17 @@ export async function createVariantAction(
   if (!result.ok) return { error: errorMessage(result.error) };
   revalidatePath(`/inventory/products/${productId}`);
   return { ok: true, productId };
+}
+
+export async function toggleVariantStatusAction(formData: FormData): Promise<void> {
+  const ctx = await getAuditContext();
+  if (!ctx) return;
+
+  const productId = text(formData, 'productId');
+  const variantId = text(formData, 'variantId');
+  const version = Number.parseInt(text(formData, 'version'), 10);
+  const isActive = text(formData, 'isActive') === 'true';
+
+  await updateVariant({ variantId, version, isActive }, ctx);
+  revalidatePath(`/inventory/products/${productId}`);
 }

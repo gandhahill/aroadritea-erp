@@ -18,6 +18,15 @@ interface DemoReceiptPreviewProps {
 
 export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) {
   const t = useTranslations('pos');
+  const totalPaid = order.payments.reduce((sum, payment) => sum + BigInt(payment.amount), BigInt(0));
+  const donationTotal = order.payments.reduce(
+    (sum, payment) => sum + BigInt(payment.donationAmount ?? '0'),
+    BigInt(0),
+  );
+  const changeDue =
+    totalPaid > BigInt(order.grandTotal) + donationTotal
+      ? totalPaid - BigInt(order.grandTotal) - donationTotal
+      : BigInt(0);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
@@ -123,14 +132,24 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
                   <span className="text-brand-red">{formatRupiah(order.grandTotal)}</span>
                 </div>
                 {order.payments.length > 0 && (
-                  <div className="mt-1 flex justify-between text-xs text-brand-ink-3">
-                    <span>{t('totalPaid')}</span>
-                    <span>
-                      {formatRupiah(
-                        order.payments.reduce((s, p) => s + BigInt(p.amount), BigInt(0)).toString(),
-                      )}
-                    </span>
-                  </div>
+                  <>
+                    <div className="mt-1 flex justify-between text-xs text-brand-ink-3">
+                      <span>{t('totalPaid')}</span>
+                      <span>{formatRupiah(totalPaid.toString())}</span>
+                    </div>
+                    {donationTotal > BigInt(0) && (
+                      <div className="flex justify-between text-xs text-brand-ink-3">
+                        <span>{t('donationChoice')}</span>
+                        <span>{formatRupiah(donationTotal.toString())}</span>
+                      </div>
+                    )}
+                    {changeDue > BigInt(0) && (
+                      <div className="flex justify-between text-xs text-brand-ink-3">
+                        <span>{t('change')}</span>
+                        <span>{formatRupiah(changeDue.toString())}</span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 

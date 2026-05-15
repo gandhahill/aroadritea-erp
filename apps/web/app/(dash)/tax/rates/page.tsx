@@ -1,7 +1,12 @@
 import type { Metadata } from 'next';
 import { getLocale } from 'next-intl/server';
 
-import { fetchTaxRates } from './actions';
+import {
+  deleteTaxRateAction,
+  fetchTaxAccountOptions,
+  fetchTaxRates,
+  saveTaxRateAction,
+} from './actions';
 
 export const metadata: Metadata = {
   title: 'Tax Rates - Aroadri ERP',
@@ -81,7 +86,7 @@ function pickName(name: Record<string, string>, locale: string) {
 export default async function TaxRatesPage() {
   const locale = await getLocale();
   const copy = getCopy(locale);
-  const rows = await fetchTaxRates();
+  const [rows, accountOptions] = await Promise.all([fetchTaxRates(), fetchTaxAccountOptions()]);
 
   return (
     <main className="min-h-screen bg-brand-paper text-brand-ink">
@@ -91,6 +96,38 @@ export default async function TaxRatesPage() {
           <h1 className="font-display text-3xl font-semibold text-brand-ink">{copy.title}</h1>
           <p className="max-w-3xl text-sm leading-6 text-brand-muted">{copy.subtitle}</p>
         </div>
+
+        <form
+          action={saveTaxRateAction}
+          className="grid gap-3 rounded-lg border border-brand-ink/10 bg-brand-porcelain p-4 md:grid-cols-4"
+        >
+          <input name="code" placeholder="PBJT" className="rounded border border-brand-ink/10 bg-card px-3 py-2 text-sm" />
+          <input name="nameId" placeholder="Nama ID" className="rounded border border-brand-ink/10 bg-card px-3 py-2 text-sm" />
+          <input name="nameEn" placeholder="Name EN" className="rounded border border-brand-ink/10 bg-card px-3 py-2 text-sm" />
+          <input name="nameZh" placeholder="中文名称" className="rounded border border-brand-ink/10 bg-card px-3 py-2 text-sm" />
+          <input name="ratePercent" type="number" step="0.01" placeholder="10" className="rounded border border-brand-ink/10 bg-card px-3 py-2 text-sm" />
+          <select name="calculation" className="rounded border border-brand-ink/10 bg-card px-3 py-2 text-sm">
+            <option value="inclusive">{copy.inclusive}</option>
+            <option value="exclusive">{copy.exclusive}</option>
+          </select>
+          <select name="postingAccountId" className="rounded border border-brand-ink/10 bg-card px-3 py-2 text-sm">
+            <option value="">Pilih akun posting</option>
+            {accountOptions.map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.label}
+              </option>
+            ))}
+          </select>
+          <input name="effectiveFrom" type="date" className="rounded border border-brand-ink/10 bg-card px-3 py-2 text-sm" defaultValue={new Date().toISOString().slice(0, 10)} />
+          <input name="effectiveUntil" type="date" className="rounded border border-brand-ink/10 bg-card px-3 py-2 text-sm" />
+          <label className="inline-flex items-center gap-2 text-sm text-brand-muted">
+            <input name="isActive" type="checkbox" defaultChecked />
+            {copy.active}
+          </label>
+          <button type="submit" className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90">
+            Simpan tarif
+          </button>
+        </form>
 
         {rows.length === 0 ? (
           <div className="rounded-lg border border-brand-ink/10 bg-brand-porcelain p-6 text-sm text-brand-muted">
@@ -109,6 +146,7 @@ export default async function TaxRatesPage() {
                     <th className="px-4 py-3 font-semibold">{copy.account}</th>
                     <th className="px-4 py-3 font-semibold">{copy.effective}</th>
                     <th className="px-4 py-3 font-semibold">{copy.status}</th>
+                    <th className="px-4 py-3 font-semibold">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-brand-ink/10">
@@ -139,6 +177,47 @@ export default async function TaxRatesPage() {
                         >
                           {row.isActive ? copy.active : copy.inactive}
                         </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <details className="group">
+                          <summary className="cursor-pointer text-xs font-semibold text-brand-red">
+                            Edit
+                          </summary>
+                          <form action={saveTaxRateAction} className="mt-3 grid min-w-96 gap-2">
+                            <input type="hidden" name="id" value={row.id} />
+                            <input name="code" defaultValue={row.code} className="rounded border border-brand-ink/10 bg-card px-2 py-1 text-xs" />
+                            <input name="nameId" defaultValue={row.name.id ?? ''} className="rounded border border-brand-ink/10 bg-card px-2 py-1 text-xs" />
+                            <input name="nameEn" defaultValue={row.name.en ?? ''} className="rounded border border-brand-ink/10 bg-card px-2 py-1 text-xs" />
+                            <input name="nameZh" defaultValue={row.name.zh ?? ''} className="rounded border border-brand-ink/10 bg-card px-2 py-1 text-xs" />
+                            <input name="ratePercent" type="number" step="0.01" defaultValue={row.ratePercent} className="rounded border border-brand-ink/10 bg-card px-2 py-1 text-xs" />
+                            <select name="calculation" defaultValue={row.calculation} className="rounded border border-brand-ink/10 bg-card px-2 py-1 text-xs">
+                              <option value="inclusive">{copy.inclusive}</option>
+                              <option value="exclusive">{copy.exclusive}</option>
+                            </select>
+                            <select name="postingAccountId" defaultValue={row.postingAccountId} className="rounded border border-brand-ink/10 bg-card px-2 py-1 text-xs">
+                              {accountOptions.map((account) => (
+                                <option key={account.id} value={account.id}>
+                                  {account.label}
+                                </option>
+                              ))}
+                            </select>
+                            <input name="effectiveFrom" type="date" defaultValue={row.effectiveFrom} className="rounded border border-brand-ink/10 bg-card px-2 py-1 text-xs" />
+                            <input name="effectiveUntil" type="date" defaultValue={row.effectiveUntil ?? ''} className="rounded border border-brand-ink/10 bg-card px-2 py-1 text-xs" />
+                            <label className="inline-flex items-center gap-2 text-xs text-brand-muted">
+                              <input name="isActive" type="checkbox" defaultChecked={row.isActive} />
+                              {copy.active}
+                            </label>
+                            <button type="submit" className="rounded bg-brand-red px-3 py-1.5 text-xs font-semibold text-white">
+                              Simpan
+                            </button>
+                          </form>
+                          <form action={deleteTaxRateAction} className="mt-2">
+                            <input type="hidden" name="id" value={row.id} />
+                            <button type="submit" className="text-xs font-semibold text-brand-red">
+                              Nonaktifkan
+                            </button>
+                          </form>
+                        </details>
                       </td>
                     </tr>
                   ))}

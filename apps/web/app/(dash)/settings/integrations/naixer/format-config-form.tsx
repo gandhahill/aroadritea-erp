@@ -12,6 +12,27 @@ interface Props {
   configs: FormatConfigItem[];
 }
 
+function labelPreviewLayout(config: FormatConfigItem) {
+  const compact = config.labelWidthMm <= 40 || config.labelHeightMm <= 30;
+  return compact
+    ? {
+        qrPx: 42,
+        gapPx: 4,
+        paddingPx: 3,
+        pickupFontPx: 12,
+        textFontPx: 8,
+        productLines: 2,
+      }
+    : {
+        qrPx: 64,
+        gapPx: 6,
+        paddingPx: 4,
+        pickupFontPx: 16,
+        textFontPx: 10,
+        productLines: 3,
+      };
+}
+
 export function FormatConfigForm({ configs }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -62,7 +83,9 @@ export function FormatConfigForm({ configs }: Props) {
         </div>
       )}
 
-      {configs.map((config) => (
+      {configs.map((config) => {
+        const labelPreview = labelPreviewLayout(config);
+        return (
         <div key={config.id} className="rounded-lg border border-brand-cream-3 p-4">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="font-medium text-brand-ink">{config.locationName}</h3>
@@ -231,15 +254,35 @@ export function FormatConfigForm({ configs }: Props) {
                   style={{
                     width: `${config.labelWidthMm * 3}px`,
                     minHeight: `${config.labelHeightMm * 3}px`,
-                    gridTemplateColumns: '72px 1fr',
-                    gap: '6px',
+                    gridTemplateColumns: `${labelPreview.qrPx}px 1fr`,
+                    gap: `${labelPreview.gapPx}px`,
+                    padding: `${labelPreview.paddingPx}px`,
                   }}
                 >
-                  <img src={preview.qrDataUrl} alt="QR preview" className="h-[72px] w-[72px]" />
-                  <div className="min-w-0 text-[10px] leading-tight text-brand-ink">
-                    <p className="text-base font-bold leading-none">Pickup #3</p>
-                    <p className="mt-1 font-medium">10:42</p>
-                    <p className="mt-1 line-clamp-3">
+                  <img
+                    src={preview.qrDataUrl}
+                    alt="QR preview"
+                    style={{ width: `${labelPreview.qrPx}px`, height: `${labelPreview.qrPx}px` }}
+                  />
+                  <div
+                    className="min-w-0 leading-tight text-brand-ink"
+                    style={{ fontSize: `${labelPreview.textFontPx}px` }}
+                  >
+                    <p
+                      className="font-bold leading-none"
+                      style={{ fontSize: `${labelPreview.pickupFontPx}px` }}
+                    >
+                      Pickup #3
+                    </p>
+                    <p className="mt-0.5 font-medium">10:42</p>
+                    <p
+                      className="mt-0.5 overflow-hidden"
+                      style={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: labelPreview.productLines,
+                        WebkitBoxOrient: 'vertical',
+                      }}
+                    >
                       Glutinous Fragrant Tea (500ml), Less sugar, Normal ice
                     </p>
                   </div>
@@ -251,7 +294,8 @@ export function FormatConfigForm({ configs }: Props) {
             )}
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

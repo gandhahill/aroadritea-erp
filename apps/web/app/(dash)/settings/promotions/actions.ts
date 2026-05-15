@@ -48,7 +48,13 @@ export async function fetchPromotionPageData() {
         type: locations.type,
       })
       .from(locations)
-      .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.status, 'active')))
+      .where(
+        and(
+          eq(locations.tenantId, ctx.tenantId),
+          eq(locations.status, 'active'),
+          eq(locations.type, 'store'),
+        ),
+      )
       .orderBy(locations.code),
   ]);
 
@@ -68,6 +74,23 @@ export async function savePromotionAction(
 ): Promise<PromotionActionResult> {
   const ctx = await getContext();
   if (!ctx) return { ok: false, error: 'account.validationFailed' };
+
+  if (input.locationScope.length > 0) {
+    const storeRows = await db
+      .select({ id: locations.id })
+      .from(locations)
+      .where(
+        and(
+          eq(locations.tenantId, ctx.tenantId),
+          eq(locations.status, 'active'),
+          eq(locations.type, 'store'),
+        ),
+      );
+    const storeIds = new Set(storeRows.map((row) => row.id));
+    if (input.locationScope.some((locationId) => !storeIds.has(locationId))) {
+      return { ok: false, error: 'promotion.outletOnly' };
+    }
+  }
 
   const result = await upsertPromotion(input, ctx);
   if (!result.ok) {
