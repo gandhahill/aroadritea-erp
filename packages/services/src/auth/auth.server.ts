@@ -62,7 +62,6 @@ export const auth = betterAuth({
 
   // Map our schema fields to what better-auth expects
   user: {
-    modelName: 'users',
     fields: {
       name: 'displayName',
       email: 'email',
