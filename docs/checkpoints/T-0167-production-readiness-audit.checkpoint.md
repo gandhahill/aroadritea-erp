@@ -66,6 +66,15 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 - Follow-up run: 527/527 service tests passed.
 - Stub scan:
   - `rg "^export {};|TODO|FIXME|NOT_IMPLEMENTED|not implemented|stub"` over `apps` and `packages/services/src` returns no matches after notification service implementation.
+- Deployment evidence:
+  - Commit `3eab86b` pushed and pulled to VPS.
+  - Commit `bdb1b73` pushed and pulled to VPS for standalone PM2 runtime.
+  - `pnpm db:seed`, `pnpm admin:ensure-access`, and `pnpm jobs:disable-unconfigured` passed on VPS.
+  - VPS `pnpm --filter @erp/web build`, `pnpm --filter @erp/site build`, `pnpm --filter @erp/mcp build`, and `pnpm --filter @erp/worker build` passed across the deploy sequence.
+  - PM2 processes are online; site/web now run standalone `server.js` instead of `next start`.
+  - Health checks passed: site 200, web 200 with DB ok, MCP 200.
+  - Public smoke passed for public site pages, ERP login, and protected ERP routes redirecting to login instead of 404.
+  - CSS assets for public site and ERP returned HTTP 200, addressing the plain-HTML symptom.
 
 ## Plan
 
@@ -77,11 +86,11 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 6. [x] Finish missing route pages found so far.
 7. [ ] Build audit matrix from MD requirements to backend/UI/tests/status.
 8. [x] Run local typecheck/test/build checks.
-9. [ ] Commit, push, deploy, run production DB scripts, verify.
+9. [x] Commit, push, deploy, run production DB scripts, verify.
 
 ## Next Step
 
-Commit and push local fixes, deploy to VPS, run `pnpm db:seed`, `pnpm admin:ensure-access`, `pnpm jobs:disable-unconfigured`, reload PM2, then smoke test live ERP/public routes and member signup.
+Build the full MD requirement matrix from `SOURCE-OF-TRUTH.md`, `SYSTEM-DESIGN.md`, ADRs, and `TASK.md`: for each requirement, record backend status, UI status, test status, production smoke status, and remaining gap. Then fix the highest-risk gaps module by module.
 
 ## Test Status
 

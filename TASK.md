@@ -24,8 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0166 | Fix ERP sidebar 404 links, Docs page, and language switcher | Codex | 2026-05-15 12:43 | 2026-05-15 14:46 | 🟨 IN_PROGRESS | Static sidebar route audit clean locally; docs/help center, language switcher, purchasing, notifications pages added; pending deploy smoke |
-| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-15 14:46 | 🟨 IN_PROGRESS | Critical fixes local: member OTP crash, admin wildcard/bootstrap, product master UI, purchasing UI, notification channel UI/service, HR employee new, journal create, legal pages; tests/build pass locally |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-15 15:31 | 🟨 IN_PROGRESS | Critical fixes deployed and smoke-tested; remaining work is the full MD requirement matrix and deeper module-by-module audit |
 
 ---
 
@@ -37,6 +36,7 @@
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
+| T-0166 | Fix ERP sidebar 404 links, Docs page, and language switcher | Codex | 2026-05-15 | 3eab86b + bdb1b73 | Production smoke passed: protected routes redirect to login instead of 404; standalone PM2 runtime fixed; CSS assets 200 |
 | T-0001 | Scaffold pnpm workspace + apps/web baseline + packages skeleton | Claude Opus 4.6 | 2026-05-06 | (initial) | |
 | T-0002 | Drizzle ORM config + IAM schema (8 tables, relations) | Antigravity | 2026-05-06 | wip(T-0002) | |
 | T-0003 | Tailwind v4 + brand tokens + globals.css + login UI | Antigravity | 2026-05-06 | wip(T-0003) | |
