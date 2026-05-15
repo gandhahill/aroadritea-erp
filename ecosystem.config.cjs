@@ -63,9 +63,8 @@ module.exports = {
     {
       ...restartPolicy,
       name: 'aroadri-site',
-      cwd: path.join(rootDir, 'apps', 'site'),
-      script: path.join(rootDir, 'apps', 'site', 'node_modules', 'next', 'dist', 'bin', 'next'),
-      args: 'start -H 127.0.0.1 -p 3000',
+      cwd: path.join(rootDir, 'apps', 'site', '.next', 'standalone', 'apps', 'site'),
+      script: path.join(rootDir, 'apps', 'site', '.next', 'standalone', 'apps', 'site', 'server.js'),
       interpreter: 'node',
       instances: 1,
       exec_mode: 'fork',
@@ -74,15 +73,15 @@ module.exports = {
       out_file: path.join(logDir, 'site.out.log'),
       error_file: path.join(logDir, 'site.err.log'),
       env: withSharedEnv({
+        HOSTNAME: '127.0.0.1',
         PORT: '3000',
       }),
     },
     {
       ...restartPolicy,
       name: 'aroadri-web',
-      cwd: path.join(rootDir, 'apps', 'web'),
-      script: path.join(rootDir, 'apps', 'web', 'node_modules', 'next', 'dist', 'bin', 'next'),
-      args: 'start -H 127.0.0.1 -p 3001',
+      cwd: path.join(rootDir, 'apps', 'web', '.next', 'standalone', 'apps', 'web'),
+      script: path.join(rootDir, 'apps', 'web', '.next', 'standalone', 'apps', 'web', 'server.js'),
       interpreter: 'node',
       instances: 1,
       exec_mode: 'fork',
@@ -91,6 +90,7 @@ module.exports = {
       out_file: path.join(logDir, 'web.out.log'),
       error_file: path.join(logDir, 'web.err.log'),
       env: withSharedEnv({
+        HOSTNAME: '127.0.0.1',
         PORT: '3001',
       }),
     },
