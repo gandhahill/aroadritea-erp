@@ -1,10 +1,7 @@
 /**
  * Locations Page - SD §22.2
- * Lists active store branches and offices from ERP location master data.
+ * Lists active public store branches from ERP location master data.
  */
-import { db } from '@erp/db';
-import { locations } from '@erp/db/schema/auth';
-import { and, eq } from 'drizzle-orm';
 import { getTranslations } from 'next-intl/server';
 
 interface Props {
@@ -93,14 +90,6 @@ export default async function LocationsPage({ params }: Props) {
                   >
                     {t('map')}
                   </a>
-                  <a
-                    href="https://www.instagram.com/aroadri.tea/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-full border border-brand-red/20 bg-brand-cream px-4 py-2 text-brand-red transition-brand hover:bg-brand-cream-2"
-                  >
-                    {t('social')}
-                  </a>
                 </div>
               </article>
             ))}
@@ -112,23 +101,43 @@ export default async function LocationsPage({ params }: Props) {
 }
 
 async function getPublicLocations(locale: Locale) {
-  const rows = await db
-    .select({
-      id: locations.id,
-      code: locations.code,
-      name: locations.name,
-      type: locations.type,
-      address: locations.address,
-    })
-    .from(locations)
-    .where(
-      and(
-        eq(locations.tenantId, 'default'),
-        eq(locations.status, 'active'),
-        eq(locations.type, 'store'),
-      ),
-    )
-    .orderBy(locations.type, locations.code);
+  if (!process.env.DATABASE_URL) return fallbackLocations(locale);
+
+  let rows: Array<{
+    id: string;
+    code: string;
+    name: unknown;
+    type: string;
+    address: string | null;
+  }>;
+
+  try {
+    const [{ db }, { locations }, { and, eq }] = await Promise.all([
+      import('@erp/db'),
+      import('@erp/db/schema/auth'),
+      import('drizzle-orm'),
+    ]);
+
+    rows = await db
+      .select({
+        id: locations.id,
+        code: locations.code,
+        name: locations.name,
+        type: locations.type,
+        address: locations.address,
+      })
+      .from(locations)
+      .where(
+        and(
+          eq(locations.tenantId, 'default'),
+          eq(locations.status, 'active'),
+          eq(locations.type, 'store'),
+        ),
+      )
+      .orderBy(locations.type, locations.code);
+  } catch {
+    return fallbackLocations(locale);
+  }
 
   if (rows.length === 0) return fallbackLocations(locale);
 

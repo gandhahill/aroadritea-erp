@@ -30,9 +30,9 @@
 5. BOM deduction: lookup active BOM → scale by qty → deduct from stock_levels + create stock_movement (reason='sale')
 6. Insert sales_order (status='paid') + order lines + payments
 7. Create journal entry:
-   - DR Cash/Bank (1-1030) = grandTotal
-   - CR Revenue (4-1010) = subtotal - pb1 (or ×0.8 for delivery channels)
-   - CR PB1 Payable (2-1050) = totalPB1
+   - DR Cash/Bank (1-1300) = grandTotal
+   - CR Revenue (4-1100) = subtotal - pb1 (or ×0.8 for delivery channels)
+   - CR PB1 Payable (2-1500) = totalPB1
 8. Delivery channels (gofood/grabfood/shopeefood): revenue = 80% × gross (net of commission)
 9. Idempotency record with 24h expiry
 

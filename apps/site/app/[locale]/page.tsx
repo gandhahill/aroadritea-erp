@@ -18,6 +18,7 @@ interface HomeMenuGroup {
 export default async function HomePage({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'home' });
+  const common = await getTranslations({ locale, namespace: 'common' });
   const groups = t.raw('groups') as HomeMenuGroup[];
   const customItems = t.raw('customItems') as string[];
   const heroImages = [
@@ -29,13 +30,19 @@ export default async function HomePage({ params }: Props) {
   return (
     <div className="overflow-hidden">
       <section className="relative min-h-[calc(100svh-76px)] px-4 py-10 sm:px-6 lg:py-14">
+        <span
+          className="brand-chinese-mark pointer-events-none absolute right-[-1rem] top-8 hidden select-none text-[8rem] leading-none text-brand-red/[0.055] md:block lg:right-[3vw] lg:text-[11rem]"
+          aria-hidden="true"
+        >
+          {common('chineseTea')}
+        </span>
         <div className="absolute inset-x-0 bottom-0 h-24 site-wave" aria-hidden="true" />
         <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="relative z-10">
             <p className="inline-flex rounded-full border border-brand-red/16 bg-brand-cream-1 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-brand-red">
               {t('eyebrow')}
             </p>
-            <h1 className="mt-6 max-w-3xl text-[clamp(3.2rem,9vw,7.2rem)] font-black leading-[0.88] text-brand-red">
+            <h1 className="brand-wordmark mt-6 max-w-3xl text-[clamp(3.2rem,9vw,7.2rem)] leading-[0.88] text-brand-red">
               {t('heroTitle')}
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-brand-ink-2 md:text-xl">

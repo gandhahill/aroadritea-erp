@@ -96,8 +96,8 @@ export async function fetchPosSettings(): Promise<PosSettingItem[]> {
       locationId: loc.id,
       locationName: getLocationName(loc.name, loc.code),
       pb1TaxCode: setting?.pb1TaxCode ?? 'PB1',
-      cashAccountCode: setting?.cashAccountCode ?? '1-1030',
-      revenueAccountCode: setting?.revenueAccountCode ?? '4-1010',
+      cashAccountCode: setting?.cashAccountCode ?? '1-1300',
+      revenueAccountCode: setting?.revenueAccountCode ?? '4-1100',
       donationTrustAccountCode: setting?.donationTrustAccountCode ?? '2-2050',
       deliveryChannels: setting?.deliveryChannelsJson ?? DEFAULT_DELIVERY_CHANNELS,
       deliveryNetBps: setting?.deliveryNetBps ?? 8000,
@@ -148,8 +148,8 @@ export async function updatePosSetting(
 
   const values = {
     pb1TaxCode: data.pb1TaxCode.trim() || 'PB1',
-    cashAccountCode: data.cashAccountCode.trim() || '1-1030',
-    revenueAccountCode: data.revenueAccountCode.trim() || '4-1010',
+    cashAccountCode: data.cashAccountCode.trim() || '1-1300',
+    revenueAccountCode: data.revenueAccountCode.trim() || '4-1100',
     donationTrustAccountCode: data.donationTrustAccountCode.trim() || '2-2050',
     deliveryChannelsJson: channels,
     deliveryNetBps,

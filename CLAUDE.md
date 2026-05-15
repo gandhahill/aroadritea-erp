@@ -6,7 +6,7 @@ This document explains how Claude Code (and other AI assistants) work in the Aro
 
 ## 1. Project Context
 
-This repository is a **custom ERP system** for **PT. Gandha Hill Catering Management Indonesia** (brand **Aroadri Tea**) — a Chinese-style bubble tea & dessert shop with active outlets in Yogyakarta.
+This repository is a **custom ERP system** for **PT. Gandha Hill Catering Management Indonesia** (brand **Aroadri Tea**) — a Chinese-style bubble tea & dessert shop with active public outlets in Yogyakarta. Internal offices exist in Yogyakarta and Jakarta for ERP/accounting purposes, but public surfaces must show outlets only.
 
 - **PIC + developer**: Lintang Maulana Zulfan (`lintangmaulanazulfan@gmail.com`)
 - **Working language**: Bahasa Indonesia (for communication & documentation). Code comments may be in English.

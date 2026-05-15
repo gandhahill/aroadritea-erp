@@ -2,6 +2,7 @@
  * Member Registration Page — SD §31.6
  */
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { SignupForm } from '../../../../components/signup-form';
 
 interface Props {
@@ -10,9 +11,8 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  return {
-    title: locale === 'id' ? 'Daftar Member' : locale === 'zh' ? '注册会员' : 'Join Member',
-  };
+  const t = await getTranslations({ locale, namespace: 'member.signup' });
+  return { title: t('title') };
 }
 
 export default async function DaftarPage({ params }: Props) {

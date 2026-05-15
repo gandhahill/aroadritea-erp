@@ -30,6 +30,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   const footer = await getTranslations({ locale, namespace: 'footer' });
   const brand = common('brand');
   const tagline = common('tagline');
+  const chineseTea = common('chineseTea');
 
   return (
     <html lang={locale}>
@@ -38,6 +39,8 @@ export default async function LocaleLayout({ children, params }: Props) {
           <PublicHeader
             locale={locale as SiteLocale}
             brand={brand}
+            tagline={tagline}
+            chineseTea={chineseTea}
             labels={{
               home: nav('home'),
               menu: nav('menu'),
@@ -66,7 +69,12 @@ export default async function LocaleLayout({ children, params }: Props) {
 export function generateMetadata(): Metadata {
   return {
     title: { default: 'Aroadri Tea', template: '%s | Aroadri Tea' },
-    description: 'Chinese-style bubble tea & dessert in Yogyakarta',
+    description: 'Nature Aroma in Every Sip - Chinese-style tea and dessert in Yogyakarta',
     metadataBase: new URL('https://aroadritea.com'),
+    icons: {
+      icon: '/brand/logo-favicon.svg',
+      shortcut: '/brand/logo-favicon.svg',
+      apple: '/brand/logo-primary.png',
+    },
   };
 }

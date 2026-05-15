@@ -22,7 +22,7 @@ export const TAX_RATES_SEED = [
     },
     rateBps: 1000, // 10%
     calculation: 'inclusive' as const,
-    postingAccountCode: '2-1050', // PB1/PBJT Payable
+    postingAccountCode: '2-1500', // PB1/PBJT Payable
     isActive: true,
     effectiveFrom: '2024-01-01',
   },
@@ -35,7 +35,7 @@ export const TAX_RATES_SEED = [
     },
     rateBps: 1100, // 11%
     calculation: 'exclusive' as const,
-    postingAccountCode: '2-1110', // PPN Keluaran (Vat Out)
+    postingAccountCode: '2-2300', // PPN Keluaran (Vat Out)
     isActive: true,
     effectiveFrom: '2024-01-01',
   },
@@ -48,7 +48,7 @@ export const TAX_RATES_SEED = [
     },
     rateBps: 1100, // 11%
     calculation: 'exclusive' as const,
-    postingAccountCode: '1-1640', // PPN Masukan (Vat In)
+    postingAccountCode: '1-4100', // PPN Masukan (Vat In)
     isActive: true,
     effectiveFrom: '2024-01-01',
   },
@@ -61,7 +61,7 @@ export const TAX_RATES_SEED = [
     },
     rateBps: 500, // 5% base bracket — actual calculation uses TER brackets
     calculation: 'exclusive' as const,
-    postingAccountCode: '2-1070', // Final Income Tax Payable
+    postingAccountCode: '2-1300', // Income Tax Payable
     isActive: true,
     effectiveFrom: '2024-01-01',
   },
@@ -74,7 +74,7 @@ export const TAX_RATES_SEED = [
     },
     rateBps: 200, // 2%
     calculation: 'exclusive' as const,
-    postingAccountCode: '2-1080', // PPh 23 Payable
+    postingAccountCode: '2-1800', // PPh 23 Payable
     isActive: true,
     effectiveFrom: '2024-01-01',
   },
@@ -87,7 +87,7 @@ export const TAX_RATES_SEED = [
     },
     rateBps: 50, // 0.5% (default for UMKM PP 55/2022)
     calculation: 'exclusive' as const,
-    postingAccountCode: '1-1610', // Prepaid Final Tax
+    postingAccountCode: '1-2600', // Prepaid Final Tax
     isActive: true,
     effectiveFrom: '2024-01-01',
   },

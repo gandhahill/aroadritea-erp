@@ -8,7 +8,7 @@
  */
 
 import { db } from '@erp/db';
-import { partners } from '@erp/db/schema/accounting';
+import { accounts, partners } from '@erp/db/schema/accounting';
 import { complaintCompensations, complaints } from '@erp/db/schema/crm';
 import { memberLoyalty, memberPointsTransactions, memberVouchers } from '@erp/db/schema/member';
 import { AppError } from '@erp/shared/errors';
@@ -30,6 +30,21 @@ const VOUCHER_KIND_MAP: Record<string, string> = {
   refund_cash: 'discount_fixed',
   discount: 'discount_percent',
 };
+
+async function resolveAccountIdByCode(tenantId: string, code: string): Promise<Result<string>> {
+  const row = await db
+    .select({ id: accounts.id, isActive: accounts.isActive, isPostable: accounts.isPostable })
+    .from(accounts)
+    .where(and(eq(accounts.tenantId, tenantId), eq(accounts.code, code)))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (!row) return err(AppError.notFound('crm.accountNotFound', { code }));
+  if (!row.isActive || !row.isPostable) {
+    return err(AppError.businessRule('crm.accountNotPostable', { code }));
+  }
+  return ok(row.id);
+}
 
 // ─── Members ────────────────────────────────────────────────────────────────
 
@@ -234,6 +249,10 @@ export async function awardCompensation(
     // For cash/refund → create journal entry
     let jeId: string | undefined;
     if (input.kind === 'refund_cash' && input.value > 0) {
+      const expenseAccount = await resolveAccountIdByCode(ctx.tenantId, '6-2100');
+      if (!expenseAccount.ok) return expenseAccount;
+      const cashAccount = await resolveAccountIdByCode(ctx.tenantId, '1-1300');
+      if (!cashAccount.ok) return cashAccount;
       const postingDate = new Date().toISOString().slice(0, 10);
       const jeResult = await createJournal(
         {
@@ -244,14 +263,14 @@ export async function awardCompensation(
           referenceId: input.complaintId,
           lines: [
             {
-              accountId: '6-1050', // Beban Comp / Biaya Compensasi
+              accountId: expenseAccount.value,
               locationId: ctx.locationId,
               description: `Compensation ${input.description ?? input.kind}`,
               debit: String(input.value),
               credit: '0',
             },
             {
-              accountId: '1-1030', // Kas
+              accountId: cashAccount.value,
               locationId: ctx.locationId,
               description: `Compensation refund`,
               debit: '0',

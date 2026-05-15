@@ -2,9 +2,6 @@
  * Menu Page - SD §22.2
  * Lists sellable products by category from DB.
  */
-import { db } from '@erp/db';
-import { productCategories, productVariants, products } from '@erp/db/schema/inventory';
-import { and, eq, inArray } from 'drizzle-orm';
 import { getTranslations } from 'next-intl/server';
 
 interface Props {
@@ -116,46 +113,78 @@ export default async function MenuPage({ params }: Props) {
 }
 
 async function getPublicMenu(locale: Locale): Promise<MenuCategory[]> {
-  const tenantId = 'default';
-  const rows = await db
-    .select({
-      categoryId: productCategories.id,
-      categoryName: productCategories.name,
-      categorySortOrder: productCategories.sortOrder,
-      categoryCode: productCategories.code,
-      productId: products.id,
-      productName: products.name,
-      productDescription: products.description,
-      imageUrl: products.imageUrl,
-      defaultSellPrice: products.defaultSellPrice,
-      productSku: products.sku,
-    })
-    .from(products)
-    .innerJoin(productCategories, eq(products.categoryId, productCategories.id))
-    .where(
-      and(
-        eq(products.tenantId, tenantId),
-        eq(productCategories.tenantId, tenantId),
-        eq(products.isActive, true),
-        eq(products.isSellable, true),
-        eq(productCategories.isActive, true),
-      ),
-    )
-    .orderBy(productCategories.sortOrder, productCategories.code, products.sku);
+  if (!process.env.DATABASE_URL) return [];
 
-  const productIds = rows.map((row) => row.productId);
-  const variants =
-    productIds.length > 0
-      ? await db
-          .select({
-            productId: productVariants.productId,
-            sellPrice: productVariants.sellPrice,
-          })
-          .from(productVariants)
-          .where(
-            and(inArray(productVariants.productId, productIds), eq(productVariants.isActive, true)),
-          )
-      : [];
+  const tenantId = 'default';
+
+  let rows: Array<{
+    categoryId: string;
+    categoryName: unknown;
+    categorySortOrder: number | null;
+    categoryCode: string;
+    productId: string;
+    productName: unknown;
+    productDescription: unknown;
+    imageUrl: string | null;
+    defaultSellPrice: bigint;
+    productSku: string;
+  }>;
+
+  let variants: Array<{ productId: string; sellPrice: bigint }>;
+
+  try {
+    const [{ db }, { productCategories, productVariants, products }, { and, eq, inArray }] =
+      await Promise.all([
+        import('@erp/db'),
+        import('@erp/db/schema/inventory'),
+        import('drizzle-orm'),
+      ]);
+
+    rows = await db
+      .select({
+        categoryId: productCategories.id,
+        categoryName: productCategories.name,
+        categorySortOrder: productCategories.sortOrder,
+        categoryCode: productCategories.code,
+        productId: products.id,
+        productName: products.name,
+        productDescription: products.description,
+        imageUrl: products.imageUrl,
+        defaultSellPrice: products.defaultSellPrice,
+        productSku: products.sku,
+      })
+      .from(products)
+      .innerJoin(productCategories, eq(products.categoryId, productCategories.id))
+      .where(
+        and(
+          eq(products.tenantId, tenantId),
+          eq(productCategories.tenantId, tenantId),
+          eq(products.isActive, true),
+          eq(products.isSellable, true),
+          eq(productCategories.isActive, true),
+        ),
+      )
+      .orderBy(productCategories.sortOrder, productCategories.code, products.sku);
+
+    const productIds = rows.map((row) => row.productId);
+    variants =
+      productIds.length > 0
+        ? await db
+            .select({
+              productId: productVariants.productId,
+              sellPrice: productVariants.sellPrice,
+            })
+            .from(productVariants)
+            .where(
+              and(
+                inArray(productVariants.productId, productIds),
+                eq(productVariants.isActive, true),
+              ),
+            )
+        : [];
+  } catch {
+    return [];
+  }
 
   const priceMap = new Map<string, bigint[]>();
   for (const variant of variants) {
@@ -170,7 +199,7 @@ async function getPublicMenu(locale: Locale): Promise<MenuCategory[]> {
     if (!category) {
       category = {
         id: row.categoryId,
-        name: localized(row.categoryName, locale),
+        name: localized(row.categoryName as LocalizedText, locale),
         items: [],
       };
       categoryMap.set(row.categoryId, category);
@@ -179,8 +208,10 @@ async function getPublicMenu(locale: Locale): Promise<MenuCategory[]> {
     const prices = priceMap.get(row.productId) ?? [];
     category.items.push({
       id: row.productId,
-      name: localized(row.productName, locale),
-      description: row.productDescription ? localized(row.productDescription, locale) : null,
+      name: localized(row.productName as LocalizedText, locale),
+      description: row.productDescription
+        ? localized(row.productDescription as LocalizedText, locale)
+        : null,
       imageUrl: row.imageUrl,
       price:
         prices.length > 0

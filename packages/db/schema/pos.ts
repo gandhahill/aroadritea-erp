@@ -66,8 +66,8 @@ export const posSettings = pgTable(
     ...locationCol,
 
     pb1TaxCode: text('pb1_tax_code').notNull().default('PB1'),
-    cashAccountCode: text('cash_account_code').notNull().default('1-1030'),
-    revenueAccountCode: text('revenue_account_code').notNull().default('4-1010'),
+    cashAccountCode: text('cash_account_code').notNull().default('1-1300'),
+    revenueAccountCode: text('revenue_account_code').notNull().default('4-1100'),
     donationTrustAccountCode: text('donation_trust_account_code').notNull().default('2-2050'),
     deliveryChannelsJson: jsonb('delivery_channels_json')
       .$type<string[]>()

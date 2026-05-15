@@ -69,4 +69,23 @@
       ), radial-gradient(circle at 48% 120%, rgba(200, 165, 87, 0.15) 0 14%, transparent 15%),
       radial-gradient(circle at 78% 120%, rgba(92, 141, 126, 0.13) 0 16%, transparent 17%);
   }
+
+  .brand-wordmark {
+    font-family: "Manrope", "Noto Sans SC", system-ui, sans-serif;
+    font-weight: 900;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .brand-tagline {
+    font-family: Georgia, "Noto Serif SC", serif;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .brand-chinese-mark {
+    font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
+    font-weight: 800;
+    letter-spacing: 0;
+  }
 }

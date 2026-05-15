@@ -168,8 +168,8 @@ Mengacu jawaban Q22 + tampilan KDS Naixer:
 - **Suhu**: Hot / Cold
 - **Range harga**: Regular Rp 32.000 – 45.000 ; Large Rp 42.000 – 49.000
 - **Customization**:
-  - Sugar level: no sugar / less sugar / standard
-  - Ice level: less ice / standard ice / no ice (untuk cold)
+  - Sugar level: normal sugar / less sugar / no sugar
+  - Ice level: normal ice / less ice / no ice (untuk cold)
   - Topping (add-on): cheese pearl, oat pearl, crystal pearl, barley pearl
 
 ### 5.4 Produk Musiman / Bundle / Berat
@@ -217,7 +217,7 @@ Mengacu jawaban Q22 + tampilan KDS Naixer:
 - Ukuran label Naixer KDS harus fleksibel per printer: **6x4 cm landscape** atau **4x3 cm landscape** sebagai pilihan awal.
 - Isi label minimal: **QR code Naixer KDS**, **pickup number**, **jam pesanan**, dan **detail produk/modifier**.
 - Lebar struk default **8 cm**, tetapi harus bisa diubah lewat UI setting karena ukuran printer thermal bisa berbeda.
-- Contoh isi label: `Pickup number: 3 | 10:42 | Glutinous Fragrant Tea (500ml) | Less sugar, Standard ice`
+- Contoh isi label: `Pickup number: 3 | 10:42 | Glutinous Fragrant Tea (500ml) | Less sugar, Normal ice`
 
 ### 6.7 Split Bill / Gabung Bill
 - Belum ada kebutuhan, **tetapi** harus mudah ditambahkan sebagai fitur (kebutuhan deklaratif user).
@@ -650,13 +650,14 @@ Hasil pengujian langsung di toko Aroadri Malioboro: **Format B berhasil dibaca m
 |---|---|---|---|
 | 1 | **Aroadri Tea Malioboro Mall** | Toko | Aktif |
 | 2 | **Aroadri Tea Plaza Malioboro** | Toko | Aktif |
-| 3 | Kantor / gudang internal masa depan | Internal | Belum aktif di sistem publik |
+| 3 | Kantor Yogyakarta | Internal | Aktif untuk administrasi/accounting |
+| 4 | Kantor Jakarta | Internal | Aktif untuk administrasi/accounting |
 
 Alamat outlet:
 - **Aroadri Tea Malioboro Mall**: Malioboro Mall, Jl. Mataram No. 31, Suryatmajan, Danurejan, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55213.
 - **Aroadri Tea Plaza Malioboro**: Plaza Malioboro, Jl. Malioboro No. 52-58, Suryatmajan, Danurejan, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55213.
 
-Website publik hanya boleh menampilkan outlet aktif. Jangan menampilkan kota/kantor yang belum menjadi outlet aktif.
+Website publik hanya boleh menampilkan **outlet aktif**. Kantor Yogyakarta/Jakarta boleh dipakai di ERP internal dan COA, tetapi tidak boleh muncul di halaman publik.
 
 ### 15.2 Operasional Multi-Lokasi
 - **Petty cash per lokasi**: ✅ ya
@@ -1363,6 +1364,11 @@ Sesuai SoT §13.1 (CRM): nama, telepon, email, tanggal lahir. Tambahan untuk mem
 ### 23.1 Logo
 Lingkaran merah dengan huruf **A** stilisasi membentuk **siluet gunung putih** + motif **awan keberuntungan (祥云)** di kiri-kanan + **gelombang air & awan** di bawah, dengan tanda **™** di kanan atas. Filosofi: gunung-air (山水 / shānshuǐ) — alam, kemurnian, ketenangan — sejalan dengan posisi premium teh ala Tiongkok.
 
+### 23.1a Nama & Tagline
+- **Aroadri** berasal dari perpaduan kata **Aroma** dan **Adri**. Dalam bahasa Sanskerta, **Adri** berarti **gunung**.
+- Tagline resmi: **Nature Aroma in Every Sip**. Tagline ini adalah teks brand dan tidak diterjemahkan di website publik.
+- Teks signage outlet **中国茶** digunakan sebagai aksen visual brand di website publik pada semua bahasa/locale.
+
 ### 23.2 Penggunaan
 - Login screen ERP & website publik: logo besar di tengah.
 - Header dashboard ERP: logo kecil + nama "Aroadri Tea — ERP".
@@ -1539,10 +1545,10 @@ POS dianggap **resilient-ready** bila lulus tes berikut:
 - Office Supplies
 - Store Supplies
 - Prepaid Expense
-- Prepaid Rent of Plaza Malioboro Store
+- Prepaid Rent of Jakarta Office
 - Prepaid Rent of Yogyakarta Office
 - Prepaid Rent of Malioboro Store
-- Plaza Malioboro Store Security Deposit
+- Jakarta Office Security Deposit
 - Yogyakarta Office Security Deposit
 - Store Security Deposit
 - Prepaid Final Tax
@@ -1603,7 +1609,7 @@ POS dianggap **resilient-ready** bila lulus tes berikut:
 
 ### Beban Operasional
 - Advertising Expense
-- Plaza Malioboro Store Utilities Expense
+- Jakarta Office Utilities Expense
 - Yogyakarta Office Utilities Expense
 - Store Utilities Expense
 - Bad Debt Expense
@@ -1629,7 +1635,7 @@ POS dianggap **resilient-ready** bila lulus tes berikut:
 - Final Rental Tax Expense
 - Commission Expense
 - Freight Out
-- Plaza Malioboro Store Rent Expense
+- Jakarta Office Rent Expense
 - Yogyakarta Office Rent Expense
 - PJU Expense *(Pajak Penerangan Jalan Umum / utility)*
 - Transportation Expense
@@ -1642,8 +1648,8 @@ POS dianggap **resilient-ready** bila lulus tes berikut:
 
 > **Catatan tindak lanjut**:
 > - Beberapa akun ada yang merupakan **kontra-akun** (depreciation, sales return, allowance) — pastikan tipe akun di-set benar saat seeding.
-> - "Comunication Expense" (typo) → akan dikoreksi menjadi "Communication Expense" saat seeding.
-> - Akun lokasi-spesifik yang ada saat ini mengikuti dua outlet Yogyakarta. Saat menambah cabang baru, akun prepaid/utilities/salaries terkait perlu otomatis di-clone, atau gunakan **dimensi cabang** alih-alih akun terpisah (rekomendasi: pakai dimensi cabang, biarkan COA tetap ringkas).
+> - "Comunication Expense" adalah typo asli COA lama dan dipertahankan di label English seed agar cocok dengan daftar historis; UI dapat menampilkan label Indonesia yang natural.
+> - Akun lokasi-spesifik COA lama mencakup kantor Jakarta, kantor Yogyakarta, dan toko Malioboro. Website publik tetap hanya menampilkan outlet. Saat menambah outlet/kantor baru, akun prepaid/utilities/salaries terkait perlu otomatis di-clone, atau gunakan **dimensi cabang** alih-alih akun terpisah (rekomendasi: pakai dimensi cabang, biarkan COA tetap ringkas).
 
 ---
 
@@ -1661,7 +1667,7 @@ Foto-foto referensi yang ada di kuesioner (PDF asli):
 | 18 | Area gudang: rak penyimpanan stok teh, syrup, krimer (label "Jasmine", "Bamboo", "Ceylon", "Osmanthus" tertulis tangan) |
 | 19 | Display dessert: Egg Tart Rp 18K |
 | 19 | Tampak dalam toko (kursi, lampion, mural) |
-| 20 | Printer label **Comson** + label QR ("Pickup number:3, Glutinous Fragrant Tea (500ml), Less sugar, Standard ice") |
+| 20 | Printer label **Comson** + label QR ("Pickup number:3, Glutinous Fragrant Tea (500ml), Less sugar, Normal ice") |
 | 20 | Router internet & instalasi listrik di kabinet bawah kasir |
 | 22–24 | Screenshot **restosuite.ai POS lama**: New order, Orders, Stock management, Reports - Business |
 | 25–27 | Screenshot **KDS Naixer**: Order recipe, Material information, Production data, Data records |

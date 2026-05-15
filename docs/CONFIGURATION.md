@@ -19,6 +19,18 @@ Dokumen ini menjadi referensi operasional untuk hal yang boleh berubah antar tok
 | `NEXT_PUBLIC_SITE_URL` | URL public website/member portal. |
 | `MCP_SERVER_URL` | URL MCP HTTP server bila dipakai dari client/tool eksternal. |
 
+## Bootstrap Admin
+
+Seed database **tidak** membuat admin dengan password default. Untuk membuat admin pertama, isi sementara variable berikut sebelum menjalankan `pnpm db:seed`.
+
+| Variable | Fungsi |
+|---|---|
+| `SEED_ADMIN_EMAIL` | Email admin pertama. Default jika kosong: `admin@aroadritea.com`. |
+| `SEED_ADMIN_PASSWORD` | Password awal admin pertama. Minimal 12 karakter. Jika kosong, seed admin dilewati. |
+| `SEED_ADMIN_NAME` | Nama tampilan admin pertama. |
+
+Setelah admin berhasil login dan password sudah diganti, kosongkan lagi `SEED_ADMIN_PASSWORD` dari `.env`.
+
 ## Member Registration
 
 | Variable | Fungsi |
@@ -60,8 +72,8 @@ POS menggunakan tabel `pos_settings` dan halaman `Settings → POS Settings`.
 | Field | Default | Fungsi |
 |---|---:|---|
 | `pb1_tax_code` | `PB1` | Kode pajak yang dicari di tabel `tax_rates`. Besaran pajak mengikuti DB. |
-| `cash_account_code` | `1-1030` | Kode akun kas/settlement POS. Service resolve ke `accounts.id`. |
-| `revenue_account_code` | `4-1010` | Kode akun pendapatan penjualan. |
+| `cash_account_code` | `1-1300` | Kode akun kas/settlement POS. Service resolve ke `accounts.id`. |
+| `revenue_account_code` | `4-1100` | Kode akun pendapatan penjualan. |
 | `donation_trust_account_code` | `2-2050` | Kode akun liabilitas donasi/rounding donation. |
 | `delivery_channels_json` | `gofood,grabfood,shopeefood` | Channel yang memakai net settlement fee. |
 | `delivery_net_bps` | `8000` | Basis point net settlement delivery. `8000` berarti 80%. |

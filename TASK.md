@@ -24,6 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0164 | Public site brand/legal/i18n polish + office-aware COA correction | Codex | 2026-05-15 06:57 | 2026-05-15 08:44 | 🟨 IN_PROGRESS | Restore office accounts internally, keep public site outlet-only, add legal pages and member i18n |
 
 ---
 

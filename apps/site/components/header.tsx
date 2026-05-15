@@ -18,10 +18,12 @@ const NAV_LINKS = [
 interface Props {
   locale: SiteLocale;
   brand: string;
+  tagline: string;
+  chineseTea: string;
   labels: Record<(typeof NAV_LINKS)[number]['key'] | 'member', string>;
 }
 
-export function PublicHeader({ locale, brand, labels }: Props) {
+export function PublicHeader({ locale, brand, tagline, chineseTea, labels }: Props) {
   const pathname = usePathname();
 
   function switchLocale(newLocale: SiteLocale) {
@@ -38,15 +40,20 @@ export function PublicHeader({ locale, brand, labels }: Props) {
           className="group flex min-w-0 items-center gap-3 rounded-[8px] focus-visible:outline-none focus-visible:shadow-focus"
           aria-label={brand}
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-red">
-            <img src="/brand/logo-primary.png" alt="" className="h-full w-full object-cover" />
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-1 shadow-soft">
+            <img src="/brand/logo-primary.png" alt="" className="h-full w-full object-contain" />
           </span>
           <span className="min-w-0">
-            <span className="block truncate font-display text-base font-bold tracking-normal text-brand-red sm:text-lg">
-              {brand}
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="brand-wordmark block truncate text-base text-brand-red sm:text-lg">
+                {brand}
+              </span>
+              <span className="brand-chinese-mark inline-flex shrink-0 rounded-full border border-brand-red/16 bg-brand-red/[0.07] px-2 py-0.5 text-[11px] text-brand-red sm:text-xs">
+                {chineseTea}
+              </span>
             </span>
-            <span className="hidden text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-ink-3 sm:block">
-              Chinese Tea & Dessert
+            <span className="brand-tagline hidden text-[10px] text-brand-ink-3 sm:block">
+              {tagline}
             </span>
           </span>
         </a>

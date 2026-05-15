@@ -9,7 +9,7 @@ interface Props {
 
 export function ClientLayout({ locale, messages, children }: Props) {
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
+    <NextIntlClientProvider locale={locale} messages={messages} timeZone="Asia/Jakarta">
       {children}
     </NextIntlClientProvider>
   );

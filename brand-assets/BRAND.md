@@ -16,6 +16,9 @@
 ## Filosofi Visual
 
 - **Gunung + awan + air**: ikon klasik lukisan lanskap Tionghoa (山水 / shānshuǐ) → menyiratkan **alam, kemurnian, dan ketenangan** — relevan untuk merek teh premium.
+- **Nama Aroadri**: berasal dari perpaduan **Aroma** dan **Adri**; dalam bahasa Sanskerta, **Adri** berarti **gunung**.
+- **Tagline resmi**: **Nature Aroma in Every Sip**. Tagline diperlakukan sebagai teks brand dan tidak diterjemahkan.
+- **Tanda outlet**: gunakan teks **中国茶** sebagai aksen visual brand di website publik pada semua bahasa/locale.
 - **Merah + putih**: kontras tinggi, kuat di papan reklame mall / signage toko (sudah dipakai 6 unit signage menurut SoT §10.4).
 - **Gaya Chinese-traditional dengan twist modern**: target pasar kelas menengah Indonesia yang menginginkan teh ala Tiongkok premium (kompetitor: Chagee, Molly Tea — SoT §2).
 

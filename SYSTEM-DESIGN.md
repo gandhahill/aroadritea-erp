@@ -972,8 +972,8 @@ Konfigurasi POS per lokasi yang dikelola lewat UI `Settings → POS Settings`.
 | `*tenant_id` | text 🔗 | |
 | `*location_id` | text 🔗 | unique per tenant/location |
 | `*pb1_tax_code` | text | default `PB1`, resolve ke `tax_rates.code` |
-| `*cash_account_code` | text | default `1-1030`, resolve ke `accounts.code` |
-| `*revenue_account_code` | text | default `4-1010` |
+| `*cash_account_code` | text | default `1-1300`, resolve ke `accounts.code` |
+| `*revenue_account_code` | text | default `4-1100` |
 | `*donation_trust_account_code` | text | default `2-2050` |
 | `*delivery_channels_json` | jsonb | contoh `["gofood","grabfood","shopeefood"]` |
 | `*delivery_net_bps` | int | default `8000` = 80% |
@@ -3700,7 +3700,7 @@ Label wajib berisi 4 elemen:
 1. **QR code** Naixer KDS (cukup besar untuk dibaca scanner): payload Naixer (Format B atau A sesuai config).
 2. **Pickup number text** (besar): `Pickup #3`
 3. **Jam pesanan**: contoh `10:42` dari `kds_order_items.queued_at` / waktu order.
-4. **Deskripsi produk + ringkasan modifier** (sedang): `Glutinous Fragrant Tea (500ml) — Less sugar, Standard ice`
+4. **Deskripsi produk + ringkasan modifier** (sedang): `Glutinous Fragrant Tea (500ml) — Less sugar, Normal ice`
 
 Driver: WebUSB / WebBluetooth (bila printer support) atau via service worker yang call print API mesin POS Imin Swan 2.
 

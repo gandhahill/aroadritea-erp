@@ -3,6 +3,7 @@
  */
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 import { useState, useTransition } from 'react';
@@ -14,6 +15,7 @@ interface Props {
 
 export function SignupForm({ locale }: Props) {
   const router = useRouter();
+  const t = useTranslations('member.signup');
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -37,10 +39,8 @@ export function SignupForm({ locale }: Props) {
 
   return (
     <div className="mx-auto max-w-md px-4 py-12">
-      <h1 className="text-2xl font-bold text-brand-ink">Daftar Member</h1>
-      <p className="mt-2 text-sm text-brand-ink-3">
-        Bergabung dan kumpulkan poin untuk setiap pembelian.
-      </p>
+      <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
+      <p className="mt-2 text-sm leading-6 text-brand-ink-3">{t('subtitle')}</p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         {error && (
@@ -51,7 +51,7 @@ export function SignupForm({ locale }: Props) {
 
         <div>
           <label htmlFor="member-name" className="mb-1 block text-sm font-medium text-brand-ink">
-            Nama Lengkap
+            {t('name')}
           </label>
           <input
             id="member-name"
@@ -59,13 +59,13 @@ export function SignupForm({ locale }: Props) {
             type="text"
             required
             className="w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-brand-ink"
-            placeholder="Nama lengkap"
+            placeholder={t('namePlaceholder')}
           />
         </div>
 
         <div>
           <label htmlFor="member-email" className="mb-1 block text-sm font-medium text-brand-ink">
-            Email
+            {t('email')}
           </label>
           <input
             id="member-email"
@@ -73,13 +73,13 @@ export function SignupForm({ locale }: Props) {
             type="email"
             required
             className="w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-brand-ink"
-            placeholder="email@contoh.com"
+            placeholder={t('emailPlaceholder')}
           />
         </div>
 
         <div>
           <label htmlFor="member-phone" className="mb-1 block text-sm font-medium text-brand-ink">
-            No. HP
+            {t('phone')}
           </label>
           <input
             id="member-phone"
@@ -87,20 +87,20 @@ export function SignupForm({ locale }: Props) {
             type="tel"
             required
             className="w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-brand-ink"
-            placeholder="08xxxxxxxxxx"
+            placeholder={t('phonePlaceholder')}
           />
         </div>
 
         <div>
           <label htmlFor="member-city" className="mb-1 block text-sm font-medium text-brand-ink">
-            Kota
+            {t('city')}
           </label>
           <input
             id="member-city"
             name="city"
             type="text"
             className="w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-brand-ink"
-            placeholder="Yogyakarta"
+            placeholder={t('cityPlaceholder')}
           />
         </div>
 
@@ -109,7 +109,7 @@ export function SignupForm({ locale }: Props) {
             htmlFor="member-password"
             className="mb-1 block text-sm font-medium text-brand-ink"
           >
-            Kata Sandi
+            {t('password')}
           </label>
           <input
             id="member-password"
@@ -118,7 +118,7 @@ export function SignupForm({ locale }: Props) {
             required
             minLength={8}
             className="w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-brand-ink"
-            placeholder="Min. 8 karakter"
+            placeholder={t('passwordPlaceholder')}
           />
         </div>
 
@@ -130,13 +130,13 @@ export function SignupForm({ locale }: Props) {
             className="mt-1 h-4 w-4 rounded border-brand-cream-3 text-brand-red"
           />
           <span className="text-sm text-brand-ink-2">
-            Saya menyetujui{' '}
+            {t('consentPrefix')}{' '}
             <a href={`/${locale}/syarat-dan-ketentuan`} className="text-brand-red underline">
-              Syarat & Ketentuan
+              {t('terms')}
             </a>{' '}
-            dan{' '}
+            {t('consentJoiner')}{' '}
             <a href={`/${locale}/kebijakan-privasi`} className="text-brand-red underline">
-              Kebijakan Privasi
+              {t('privacy')}
             </a>
             .
           </span>
@@ -156,7 +156,7 @@ export function SignupForm({ locale }: Props) {
           disabled={isPending}
           className="w-full rounded-md bg-brand-red py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-red/90 disabled:opacity-50"
         >
-          {isPending ? 'Mengirim OTP...' : 'Daftar'}
+          {isPending ? t('submitting') : t('submit')}
         </button>
       </form>
     </div>

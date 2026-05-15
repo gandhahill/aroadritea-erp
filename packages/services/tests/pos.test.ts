@@ -653,9 +653,9 @@ describe('Refund journal reversal', () => {
     // Reversal JE: DR Revenue 30000, DR PB1 Payable 3000, CR Cash 33000
     const originalJE = {
       lines: [
-        { accountCode: '1-1030', debit: BigInt(33000), credit: BigInt(0) },
-        { accountCode: '4-1010', debit: BigInt(0), credit: BigInt(30000) },
-        { accountCode: '2-1050', debit: BigInt(0), credit: BigInt(3000) },
+        { accountCode: '1-1300', debit: BigInt(33000), credit: BigInt(0) },
+        { accountCode: '4-1100', debit: BigInt(0), credit: BigInt(30000) },
+        { accountCode: '2-1500', debit: BigInt(0), credit: BigInt(3000) },
       ],
     };
 
@@ -668,9 +668,9 @@ describe('Refund journal reversal', () => {
   it('reversal JE total must balance', () => {
     // Reversal: all debits and credits swapped
     const reversalLines = [
-      { accountCode: '4-1010', debit: BigInt(30000), credit: BigInt(0) },
-      { accountCode: '2-1050', debit: BigInt(3000), credit: BigInt(0) },
-      { accountCode: '1-1030', debit: BigInt(0), credit: BigInt(33000) },
+      { accountCode: '4-1100', debit: BigInt(30000), credit: BigInt(0) },
+      { accountCode: '2-1500', debit: BigInt(3000), credit: BigInt(0) },
+      { accountCode: '1-1300', debit: BigInt(0), credit: BigInt(33000) },
     ];
 
     const totalDebit = reversalLines.reduce((s, l) => s + l.debit, BigInt(0));

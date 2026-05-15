@@ -3,7 +3,7 @@
  * Usage: pnpm --filter @erp/db seed
  *
  * Requires DATABASE_URL in .env. Seeds are idempotent and refresh mutable defaults.
- * Order: tenants → locations → roles → permissions → role_permissions → users → user_roles → COA
+ * Order: tenants → locations → roles → permissions → role_permissions → optional bootstrap admin → COA
  */
 
 import { generateId } from '@erp/shared/id';
@@ -26,7 +26,7 @@ import { customFieldDefinitions, customFieldValues } from '../schema/customfield
 import { naixerQrFormatConfig } from '../schema/kitchen';
 import { posSettings } from '../schema/pos';
 import { scheduledJobs } from '../schema/scheduled-jobs';
-import { COA_SEED } from './coa';
+import { COA_SEED, LEGACY_COA_CODES_TO_DEACTIVATE } from './coa';
 import {
   DEFAULT_TENANT,
   DEV_ADMIN_USER,
@@ -236,50 +236,54 @@ async function seed() {
   }
   console.info(`✅ ${rpCount} role-permission mappings seeded`);
 
-  // 6. Dev admin user
-  const adminId = generateId();
-  const passwordHash = await argon2.hash('Admin123!', {
-    type: argon2.argon2id,
-    memoryCost: 19456,
-    timeCost: 2,
-    parallelism: 1,
-  });
-  await db
-    .insert(users)
-    .values({
-      id: adminId,
-      tenantId,
-      email: DEV_ADMIN_USER.email,
-      passwordHash,
-      displayName: DEV_ADMIN_USER.displayName,
-      locale: DEV_ADMIN_USER.locale,
-      status: DEV_ADMIN_USER.status,
-      emailVerified: new Date(),
-    })
-    .onConflictDoNothing();
-  const [adminRow] = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(eq(users.email, DEV_ADMIN_USER.email))
-    .limit(1);
-  const resolvedAdminId = adminRow?.id ?? adminId;
-  console.info(`✅ Admin user seeded (${DEV_ADMIN_USER.email})`);
-
-  // 7. Assign director role to admin (global scope)
-  const directorRoleId = roleIds.get(DEV_ADMIN_USER.roleCode);
-  if (directorRoleId) {
+  // 6. Optional bootstrap admin user
+  const bootstrapAdmin = getBootstrapAdminConfig();
+  if (bootstrapAdmin) {
+    const adminId = generateId();
+    const passwordHash = await argon2.hash(bootstrapAdmin.password, {
+      type: argon2.argon2id,
+      memoryCost: 19456,
+      timeCost: 2,
+      parallelism: 1,
+    });
     await db
-      .insert(userRoles)
+      .insert(users)
       .values({
-        userId: resolvedAdminId,
-        roleId: directorRoleId,
-        locationId: null,
+        id: adminId,
+        tenantId,
+        email: bootstrapAdmin.email,
+        passwordHash,
+        displayName: bootstrapAdmin.displayName,
+        locale: bootstrapAdmin.locale,
+        status: DEV_ADMIN_USER.status,
+        emailVerified: new Date(),
       })
       .onConflictDoNothing();
-    console.info('✅ Admin assigned director role (global)');
+    const [adminRow] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, bootstrapAdmin.email))
+      .limit(1);
+    const resolvedAdminId = adminRow?.id ?? adminId;
+    console.info(`✅ Bootstrap admin present (${bootstrapAdmin.email})`);
+
+    const directorRoleId = roleIds.get(bootstrapAdmin.roleCode);
+    if (directorRoleId) {
+      await db
+        .insert(userRoles)
+        .values({
+          userId: resolvedAdminId,
+          roleId: directorRoleId,
+          locationId: null,
+        })
+        .onConflictDoNothing();
+      console.info('✅ Bootstrap admin assigned director role (global)');
+    }
+  } else {
+    console.info('ℹ️  Bootstrap admin skipped (set SEED_ADMIN_PASSWORD to create one)');
   }
 
-  // 8. COA (Chart of Accounts)
+  // 7. COA (Chart of Accounts)
   for (const acct of COA_SEED) {
     await db
       .insert(accounts)
@@ -305,6 +309,13 @@ async function seed() {
         },
       });
   }
+
+  await db
+    .update(accounts)
+    .set({ isActive: false, updatedAt: new Date() })
+    .where(
+      and(eq(accounts.tenantId, tenantId), inArray(accounts.code, LEGACY_COA_CODES_TO_DEACTIVATE)),
+    );
   console.info(`✅ ${COA_SEED.length} COA accounts seeded`);
 
   // 9. Tax Rates (resolve COA codes → account IDs)
@@ -335,7 +346,18 @@ async function seed() {
         isActive: rate.isActive,
         effectiveFrom: rate.effectiveFrom,
       })
-      .onConflictDoNothing();
+      .onConflictDoUpdate({
+        target: taxRates.code,
+        set: {
+          name: rate.name,
+          rateBps: rate.rateBps,
+          calculation: rate.calculation,
+          postingAccountId,
+          isActive: rate.isActive,
+          effectiveFrom: rate.effectiveFrom,
+          updatedAt: new Date(),
+        },
+      });
     taxCount++;
   }
   console.info(`✅ ${taxCount} tax rates seeded`);
@@ -376,14 +398,26 @@ async function seed() {
         tenantId,
         locationId: loc.id,
         pb1TaxCode: 'PB1',
-        cashAccountCode: '1-1030',
-        revenueAccountCode: '4-1010',
+        cashAccountCode: '1-1300',
+        revenueAccountCode: '4-1100',
         donationTrustAccountCode: '2-2050',
         deliveryChannelsJson: ['gofood', 'grabfood', 'shopeefood'],
         deliveryNetBps: 8000,
         receiptWidthMm: 80,
       })
-      .onConflictDoNothing();
+      .onConflictDoUpdate({
+        target: [posSettings.tenantId, posSettings.locationId],
+        set: {
+          pb1TaxCode: 'PB1',
+          cashAccountCode: '1-1300',
+          revenueAccountCode: '4-1100',
+          donationTrustAccountCode: '2-2050',
+          deliveryChannelsJson: ['gofood', 'grabfood', 'shopeefood'],
+          deliveryNetBps: 8000,
+          receiptWidthMm: 80,
+          updatedAt: new Date(),
+        },
+      });
     posSettingsCount++;
   }
   console.info(`✅ ${posSettingsCount} POS settings seeded`);
@@ -429,6 +463,30 @@ async function seed() {
   console.info(`✅ ${SCHEDULED_JOBS_SEED.length} scheduled jobs seeded`);
 
   console.info('\n🎉 Seed complete!');
+}
+
+function getBootstrapAdminConfig():
+  | {
+      email: string;
+      password: string;
+      displayName: string;
+      locale: 'id' | 'en' | 'zh';
+      roleCode: string;
+    }
+  | null {
+  const password = process.env.SEED_ADMIN_PASSWORD;
+  if (!password) return null;
+  if (password.length < 12) {
+    throw new Error('SEED_ADMIN_PASSWORD must be at least 12 characters.');
+  }
+
+  return {
+    email: process.env.SEED_ADMIN_EMAIL ?? DEV_ADMIN_USER.email,
+    password,
+    displayName: process.env.SEED_ADMIN_NAME ?? DEV_ADMIN_USER.displayName,
+    locale: DEV_ADMIN_USER.locale,
+    roleCode: DEV_ADMIN_USER.roleCode,
+  };
 }
 
 seed().catch((e) => {

@@ -240,7 +240,7 @@ export function FormatConfigForm({ configs }: Props) {
                     <p className="text-base font-bold leading-none">Pickup #3</p>
                     <p className="mt-1 font-medium">10:42</p>
                     <p className="mt-1 line-clamp-3">
-                      Glutinous Fragrant Tea (500ml), Less sugar, Standard ice
+                      Glutinous Fragrant Tea (500ml), Less sugar, Normal ice
                     </p>
                   </div>
                 </div>

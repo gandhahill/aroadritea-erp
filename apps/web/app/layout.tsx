@@ -33,7 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang={locale}>
       <body className="min-h-screen bg-background text-foreground antialiased">
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider locale={locale} messages={messages} timeZone="Asia/Jakarta">
           <RegisterPWA />
           {children}
         </NextIntlClientProvider>

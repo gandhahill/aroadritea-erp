@@ -11,8 +11,8 @@
  * 5. Insert sales_order + lines + payments (with idempotency dedup)
  * 6. Create journal entry:
  *      DR Cash/Bank                    (total received)
- *      CR Revenue (4-1010)             (subtotal before PB1)
- *      CR PB1 Payable (2-1050)         (PB1 embedded in price)
+ *      CR Revenue (4-1100)             (subtotal before PB1)
+ *      CR PB1 Payable (2-1500)         (PB1 embedded in price)
  *    For GoFood/GrabFood/ShopeeFood (online channels):
  *      Debit gross platform receivable; commission is recognized on settlement.
  *
@@ -76,8 +76,8 @@ import {
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const DEFAULT_PB1_TAX_CODE = 'PB1';
-const DEFAULT_CASH_ACCOUNT_CODE = '1-1030';
-const DEFAULT_REVENUE_ACCOUNT_CODE = '4-1010';
+const DEFAULT_CASH_ACCOUNT_CODE = '1-1300';
+const DEFAULT_REVENUE_ACCOUNT_CODE = '4-1100';
 const DEFAULT_DONATION_TRUST_ACCOUNT_CODE = '2-2050';
 const DEFAULT_DELIVERY_CHANNELS = ['gofood', 'grabfood', 'shopeefood'] as const;
 

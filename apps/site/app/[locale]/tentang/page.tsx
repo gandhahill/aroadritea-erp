@@ -15,15 +15,8 @@ interface Pillar {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  return {
-    title:
-      locale === 'id'
-        ? 'Tentang Aroadri Tea'
-        : locale === 'zh'
-          ? '关于 Aroadri Tea'
-          : 'About Aroadri Tea',
-    description: 'Aroadri Tea brand story and Chinese-style tea identity',
-  };
+  const t = await getTranslations({ locale, namespace: 'about' });
+  return { title: t('title'), description: t('body') };
 }
 
 export default async function AboutPage({ params }: Props) {
@@ -35,7 +28,7 @@ export default async function AboutPage({ params }: Props) {
     <div className="px-4 py-14 sm:px-6">
       <section className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
         <div>
-          <p className="inline-flex rounded-full border border-brand-red/16 bg-brand-cream-1 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-brand-red">
+          <p className="inline-flex rounded-full border border-brand-red/16 bg-brand-cream-1 px-3 py-1 text-xs font-bold uppercase text-brand-red">
             {t('eyebrow')}
           </p>
           <h1 className="mt-5 text-4xl font-black leading-tight text-brand-ink md:text-6xl">
@@ -69,9 +62,7 @@ export default async function AboutPage({ params }: Props) {
             key={pillar.title}
             className="rounded-[8px] border border-brand-red/10 bg-brand-cream-1 p-6 shadow-soft"
           >
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-gold">
-              0{index + 1}
-            </p>
+            <p className="text-xs font-black uppercase text-brand-gold">0{index + 1}</p>
             <h2 className="mt-3 text-xl font-black text-brand-red">{pillar.title}</h2>
             <p className="mt-3 text-sm leading-6 text-brand-ink-2">{pillar.desc}</p>
           </article>

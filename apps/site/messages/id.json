@@ -1,7 +1,8 @@
 {
   "common": {
     "brand": "Aroadri Tea",
-    "tagline": "Teh ala Tiongkok, fresh tea, milk tea, dan dessert"
+    "tagline": "Nature Aroma in Every Sip",
+    "chineseTea": "中国茶"
   },
   "nav": {
     "home": "Beranda",
@@ -15,14 +16,14 @@
   "home": {
     "eyebrow": "Chinese-style tea & dessert",
     "heroTitle": "Aroadri Tea",
-    "heroSubtitle": "Fresh tea, milk tea, lemon tea, snow cap, dan dessert hangat dengan rasa teh ala Tiongkok modern.",
+    "heroSubtitle": "Teh fresh, milk tea, lemon tea, snow cap, dan dessert hangat dengan karakter aroma yang bersih dan lembut.",
     "heroFeatureLabel": "Best Seller Top 3",
     "heroFeatureItems": "Bamboo Oolong · Osmanthus Oolong · Glutinous Fragrant Lemon",
     "ctaMember": "Daftar Member",
     "ctaMenu": "Lihat Menu",
     "ctaLocations": "Lihat Lokasi",
-    "menuTitle": "Menu yang benar-benar tersedia",
-    "menuSubtitle": "Disusun dari kategori operasional Aroadri Tea: fresh milk tea, fresh tea, lemon fresh tea, snow cap milk tea, dan dessert.",
+    "menuTitle": "Pilihan favorit Aroadri",
+    "menuSubtitle": "Dari milk tea yang creamy sampai lemon tea yang segar, setiap menu dibuat untuk menonjolkan aroma tehnya.",
     "groups": [
       {
         "name": "Fresh Milk Tea",
@@ -32,19 +33,19 @@
       },
       {
         "name": "Fresh Tea",
-        "description": "Teh tanpa susu dengan karakter floral, roasted, dan grain aroma.",
+        "description": "Teh tanpa susu dengan profil floral, roasted, dan grain aroma.",
         "price": "Regular mulai Rp32k · Large mulai Rp42k",
         "items": "Bamboo Oolong Tea, Osmanthus Oolong Tea, Jasmine Green Tea, Ceylon Black Tea, Roasted Fragrant Yellow Tea, Glutinous Fragrant Tea, Buckwheat Biluochun Tea"
       },
       {
         "name": "Lemon Fresh Tea",
-        "description": "Fresh tea dengan lemon, cocok untuk profil rasa ringan dan segar.",
+        "description": "Fresh tea dengan lemon untuk rasa yang ringan, wangi, dan menyegarkan.",
         "price": "Regular Rp43k-45k · Large Rp47k-49k",
         "items": "Glutinous Fragrant Lemon Tea, Bamboo Oolong Lemon Tea, Osmanthus Oolong Lemon Tea, Roasted Fragrant Yellow Lemon Tea, Jasmine Green Lemon Tea, Buckwheat Biluochun Lemon Tea"
       },
       {
         "name": "Snow Cap Milk Tea",
-        "description": "Milk tea dengan lapisan snow cap lembut.",
+        "description": "Milk tea dengan lapisan snow cap yang lembut.",
         "price": "Rp56k",
         "items": "Bamboo Oolong Snow Cap Milk Tea, Osmanthus Oolong Snow Cap Milk Tea"
       },
@@ -55,67 +56,66 @@
         "items": "Egg Tart, Fancy Egg Tart, Pudding, Mousse Cake"
       }
     ],
-    "customTitle": "Bisa disesuaikan di kasir",
-    "customSubtitle": "Ukuran, suhu, level gula, level es, dan topping dikelola dari sistem POS agar tidak perlu edit source code.",
+    "customTitle": "Pesan sesuai selera",
+    "customSubtitle": "Pilih ukuran, suhu, level gula, level es, dan topping langsung saat memesan di kasir.",
     "customItems": [
       "Regular / Large",
       "Hot / Cold",
-      "No sugar / Less sugar",
-      "No ice / Less ice",
+      "Normal sugar / Less sugar / No sugar",
+      "Normal ice / Less ice / No ice",
       "Cheese Pearl",
       "Oat Pearl",
       "Crystal Pearl",
       "Barley Pearl"
     ],
-    "locationTitle": "Beroperasi dari Yogyakarta",
-    "locationSubtitle": "Saat ini Aroadri Tea beroperasi di Yogyakarta: Malioboro Mall dan Plaza Malioboro."
+    "locationTitle": "Hadir di Malioboro",
+    "locationSubtitle": "Saat ini Aroadri Tea melayani pelanggan dari Malioboro Mall dan Plaza Malioboro, Yogyakarta."
   },
   "menu": {
     "title": "Menu Aroadri Tea",
     "subtitle": "Harga mengikuti varian Regular/Large dan Hot/Cold. Pilihan gula, es, dan topping tersedia saat pemesanan.",
-    "empty": "Menu belum tersedia di database. Jalankan seed produksi atau isi menu dari ERP.",
+    "empty": "Menu belum tersedia.",
     "from": "Mulai",
-    "priceUnavailable": "Harga di toko",
+    "priceUnavailable": "Harga di outlet",
     "optionsTitle": "Pilihan kustomisasi",
     "sizeTemp": "Regular/Large · Hot/Cold",
-    "sugarIce": "No sugar, less sugar · no ice, less ice",
+    "sugarIce": "Normal sugar, less sugar, no sugar · normal ice, less ice, no ice",
     "toppings": "Cheese Pearl, Oat Pearl, Crystal Pearl, Barley Pearl"
   },
   "about": {
     "eyebrow": "Identitas Brand",
-    "title": "Teh ala Tiongkok modern dari Aroadri Tea",
-    "body": "Aroadri Tea membawa karakter shanshui: gunung, awan, dan air sebagai simbol ketenangan, kemurnian, dan craft. Fokus menu kami adalah fresh tea, milk tea, lemon tea, snow cap, dan dessert pendamping.",
+    "title": "Aroma teh, karakter gunung",
+    "body": "Nama Aroadri lahir dari perpaduan Aroma dan Adri, kata Sanskerta yang berarti gunung. Identitas ini bertemu dengan bahasa visual shanshui: gunung, awan, dan air sebagai simbol ketenangan, kemurnian, dan craft.",
     "pillars": [
       {
-        "title": "Tea-first",
-        "desc": "Menu berangkat dari karakter teh oolong, jasmine green, ceylon black, roasted yellow, dan biluochun."
+        "title": "Nature Aroma",
+        "desc": "Setiap minuman dirancang untuk membawa aroma teh yang bersih, lembut, dan mudah dinikmati."
       },
       {
-        "title": "Customizable",
-        "desc": "Ukuran, suhu, gula, es, dan topping disiapkan fleksibel dari POS."
+        "title": "Adri",
+        "desc": "Adri berarti gunung; inspirasi untuk logo, suasana toko, dan rasa yang tenang."
       },
       {
-        "title": "Operationally ready",
-        "desc": "Menu, lokasi, member, dan konten website disiapkan agar bisa dikelola dari ERP."
+        "title": "Modern Chinese Tea",
+        "desc": "Oolong, jasmine green, ceylon black, roasted yellow, dan biluochun disajikan dengan format modern."
       }
     ]
   },
   "locations": {
     "title": "Lokasi Aroadri Tea",
-    "subtitle": "Dua outlet aktif di kawasan Malioboro, Yogyakarta. Data utama tetap dibaca dari ERP agar alamat outlet bisa diperbarui tanpa edit source code.",
-    "empty": "Belum ada outlet aktif di database.",
+    "subtitle": "Dua outlet aktif di kawasan Malioboro, Yogyakarta.",
+    "empty": "Belum ada outlet aktif.",
     "defaultHours": "10:00-22:00 WIB",
     "store": "Outlet",
     "office": "Kantor",
-    "map": "Buka peta",
-    "social": "Ikuti @aroadri.tea"
+    "map": "Buka peta"
   },
   "footer": {
     "company": "PT. Gandha Hill Catering Management Indonesia",
     "locationLine": "Yogyakarta - Malioboro Mall & Plaza Malioboro",
-    "socialLabel": "Sosial media",
-    "instagramLabel": "Instagram @aroadri.tea",
-    "tiktokLabel": "TikTok @aroadri.tea",
+    "socialLabel": "Temukan kami",
+    "instagramLabel": "@aroadri.tea",
+    "tiktokLabel": "@aroadri.tea",
     "copyright": "© {year} {brand}. Hak cipta dilindungi."
   },
   "member": {
@@ -129,6 +129,85 @@
     "vouchers": "Voucher Saya",
     "noVouchers": "Belum ada voucher.",
     "cashierLookupTitle": "Pakai nomor telepon di kasir",
-    "cashierLookupBody": "Saat kasir bertanya apakah ada member, sebutkan nomor telepon terdaftar. Kasir akan mencari data member dan mengonfirmasi nama sebelum poin transaksi dicatat."
+    "cashierLookupBody": "Saat kasir bertanya apakah ada member, sebutkan nomor telepon terdaftar. Kasir akan mencari data member dan mengonfirmasi nama sebelum poin transaksi dicatat.",
+    "signup": {
+      "title": "Daftar Member",
+      "subtitle": "Gunakan nomor telepon yang sama saat bertransaksi di outlet agar kasir bisa menemukan akun member Anda.",
+      "name": "Nama lengkap",
+      "email": "Email",
+      "phone": "Nomor telepon",
+      "city": "Kota",
+      "password": "Kata sandi",
+      "namePlaceholder": "Nama lengkap",
+      "emailPlaceholder": "email@contoh.com",
+      "phonePlaceholder": "08xxxxxxxxxx",
+      "cityPlaceholder": "Yogyakarta",
+      "passwordPlaceholder": "Minimal 8 karakter",
+      "consentPrefix": "Saya menyetujui",
+      "terms": "Syarat & Ketentuan",
+      "privacy": "Kebijakan Privasi",
+      "consentJoiner": "dan",
+      "submit": "Daftar",
+      "submitting": "Mengirim OTP..."
+    },
+    "otp": {
+      "title": "Verifikasi Email",
+      "subtitle": "Masukkan kode 6 digit yang kami kirim ke email Anda.",
+      "code": "Kode OTP",
+      "verify": "Verifikasi",
+      "verifying": "Memverifikasi...",
+      "completeTitle": "Lengkapi Data",
+      "completeSubmit": "Simpan dan masuk",
+      "completing": "Mendaftarkan...",
+      "invalidToken": "Token tidak valid. Silakan daftar ulang."
+    }
+  },
+  "legal": {
+    "terms": {
+      "title": "Syarat & Ketentuan",
+      "updated": "Berlaku sejak 15 Mei 2026",
+      "intro": "Dengan mendaftar sebagai member Aroadri Tea, Anda menyetujui ketentuan berikut.",
+      "sections": [
+        {
+          "title": "Keanggotaan",
+          "body": "Member digunakan untuk mencatat identitas pelanggan, poin, voucher, dan riwayat transaksi yang terhubung dengan nomor telepon terdaftar."
+        },
+        {
+          "title": "Penggunaan di Outlet",
+          "body": "Saat transaksi, kasir dapat meminta nomor telepon dan mengonfirmasi nama member sebelum poin atau benefit dicatat."
+        },
+        {
+          "title": "Poin dan Voucher",
+          "body": "Poin, tier, dan voucher dapat berubah mengikuti program yang berlaku di Aroadri Tea. Penyalahgunaan akun dapat menyebabkan benefit dibatalkan."
+        },
+        {
+          "title": "Perubahan Layanan",
+          "body": "Aroadri Tea dapat memperbarui ketentuan ini untuk menyesuaikan operasional, promosi, dan kewajiban hukum."
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Kebijakan Privasi",
+      "updated": "Berlaku sejak 15 Mei 2026",
+      "intro": "Kami menjaga data pribadi member sesuai prinsip kehati-hatian dan kebutuhan operasional.",
+      "sections": [
+        {
+          "title": "Data yang Dikumpulkan",
+          "body": "Data member dapat mencakup nama, email, nomor telepon, tanggal lahir, kota, riwayat poin, voucher, dan riwayat transaksi."
+        },
+        {
+          "title": "Tujuan Penggunaan",
+          "body": "Data digunakan untuk verifikasi member, pencatatan poin, layanan pelanggan, audit transaksi, dan komunikasi terkait akun."
+        },
+        {
+          "title": "Perlindungan Data",
+          "body": "Akses data dibatasi untuk kebutuhan operasional. Sistem menggunakan autentikasi, audit log, dan pengamanan data sesuai rancangan ERP."
+        },
+        {
+          "title": "Hak Member",
+          "body": "Member dapat meminta koreksi atau penghapusan akun melalui kanal resmi Aroadri Tea, sepanjang tidak bertentangan dengan kewajiban pembukuan dan hukum."
+        }
+      ]
+    }
   }
 }

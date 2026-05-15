@@ -3,6 +3,7 @@
  */
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { completeSignupAction, verifyOtpAction } from '../actions/member';
@@ -13,6 +14,8 @@ interface Props {
 
 export function OtpVerifyForm({ locale }: Props) {
   const router = useRouter();
+  const t = useTranslations('member.otp');
+  const signupT = useTranslations('member.signup');
   const searchParams = useSearchParams();
   const token = searchParams.get('token') ?? '';
   const [step, setStep] = useState<'otp' | 'complete'>('otp');
@@ -57,7 +60,7 @@ export function OtpVerifyForm({ locale }: Props) {
   if (step === 'complete') {
     return (
       <div className="mx-auto max-w-md px-4 py-12">
-        <h1 className="text-2xl font-bold text-brand-ink">Lengkapi Data</h1>
+        <h1 className="text-2xl font-bold text-brand-ink">{t('completeTitle')}</h1>
         <form onSubmit={handleCompleteSubmit} className="mt-6 space-y-4">
           {error && (
             <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -69,7 +72,7 @@ export function OtpVerifyForm({ locale }: Props) {
               htmlFor="member-complete-name"
               className="mb-1 block text-sm font-medium text-brand-ink"
             >
-              Nama Lengkap
+              {signupT('name')}
             </label>
             <input
               id="member-complete-name"
@@ -86,7 +89,7 @@ export function OtpVerifyForm({ locale }: Props) {
               htmlFor="member-complete-city"
               className="mb-1 block text-sm font-medium text-brand-ink"
             >
-              Kota
+              {signupT('city')}
             </label>
             <input
               id="member-complete-city"
@@ -103,7 +106,7 @@ export function OtpVerifyForm({ locale }: Props) {
             disabled={isPending}
             className="w-full rounded-md bg-brand-red py-3 text-sm font-semibold text-white hover:bg-brand-red/90 disabled:opacity-50"
           >
-            {isPending ? 'Mendaftarkan...' : 'Daftar'}
+            {isPending ? t('completing') : t('completeSubmit')}
           </button>
         </form>
       </div>
@@ -112,10 +115,8 @@ export function OtpVerifyForm({ locale }: Props) {
 
   return (
     <div className="mx-auto max-w-md px-4 py-12">
-      <h1 className="text-2xl font-bold text-brand-ink">Verifikasi Email</h1>
-      <p className="mt-2 text-sm text-brand-ink-3">
-        Masukkan kode 6 digit yang kami kirim ke email Anda.
-      </p>
+      <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
+      <p className="mt-2 text-sm text-brand-ink-3">{t('subtitle')}</p>
       <form onSubmit={handleOtpSubmit} className="mt-6 space-y-4">
         {error && (
           <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -127,7 +128,7 @@ export function OtpVerifyForm({ locale }: Props) {
             htmlFor="member-otp-code"
             className="mb-1 block text-sm font-medium text-brand-ink"
           >
-            Kode OTP
+            {t('code')}
           </label>
           <input
             id="member-otp-code"
@@ -146,7 +147,7 @@ export function OtpVerifyForm({ locale }: Props) {
           disabled={isPending}
           className="w-full rounded-md bg-brand-red py-3 text-sm font-semibold text-white hover:bg-brand-red/90 disabled:opacity-50"
         >
-          {isPending ? 'Memverifikasi...' : 'Verifikasi'}
+          {isPending ? t('verifying') : t('verify')}
         </button>
       </form>
     </div>

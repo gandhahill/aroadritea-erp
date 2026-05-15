@@ -38,6 +38,18 @@ export const LOCATIONS_SEED = [
     address:
       'Plaza Malioboro, Jl. Malioboro No. 52-58, Suryatmajan, Danurejan, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55213',
   },
+  {
+    code: 'YOG-OFC',
+    name: n('Kantor Yogyakarta', 'Yogyakarta Office', '日惹办公室'),
+    type: 'office' as const,
+    address: 'Yogyakarta, Daerah Istimewa Yogyakarta',
+  },
+  {
+    code: 'JKT-OFC',
+    name: n('Kantor Jakarta', 'Jakarta Office', '雅加达办公室'),
+    type: 'office' as const,
+    address: 'Jakarta, Indonesia',
+  },
 ];
 
 export const LEGACY_INACTIVE_LOCATION_CODES = ['JKT', 'YOG'];
@@ -234,9 +246,8 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
   ],
 };
 
-// === DEV ADMIN USER (seed only — NEVER in production) ===
-// Password: Admin123! (pre-hashed with argon2id)
-// To regenerate: import { hashPassword } from '@erp/services/auth'; await hashPassword('Admin123!');
+// === BOOTSTRAP ADMIN USER DEFAULTS ===
+// Password is intentionally not stored here. Set SEED_ADMIN_PASSWORD only for initial bootstrap.
 export const DEV_ADMIN_USER = {
   email: 'admin@aroadritea.com',
   displayName: 'Admin Dev',

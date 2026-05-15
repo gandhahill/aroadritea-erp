@@ -16,7 +16,7 @@ import { and, eq, gte, inArray, lt, lte } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
-const DEFAULT_CASH_ACCOUNT_CODES = ['1-1010', '1-1020', '1-1030', '1-1040'];
+const DEFAULT_CASH_ACCOUNT_CODES = ['1-1100', '1-1200', '1-1300', '1-1400'];
 
 export interface CashFlowInput {
   /** Start date (inclusive). Format: YYYY-MM-DD. */

@@ -81,6 +81,14 @@ NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 MCP_SERVER_URL="http://localhost:3002"
 ```
 
+Opsional untuk membuat admin pertama saat seed:
+
+```env
+SEED_ADMIN_EMAIL="admin@aroadritea.com"
+SEED_ADMIN_PASSWORD="<minimal-12-karakter>"
+SEED_ADMIN_NAME="Aroadri Admin"
+```
+
 6. Generate dan jalankan migration.
 
 ```bash
@@ -240,6 +248,8 @@ SMTP_PASS="<password-mailbox-hestiacp>"
 SMTP_FROM="noreply@aroadritea.com"
 SMTP_FROM_NAME="Aroadri Tea"
 ```
+
+Jika production belum punya user admin, isi sementara `SEED_ADMIN_PASSWORD` sebelum `pnpm db:seed`, lalu hapus/kosongkan lagi setelah admin berhasil login dan password diganti.
 
 4. Generate secret kuat untuk `BETTER_AUTH_SECRET`.
 

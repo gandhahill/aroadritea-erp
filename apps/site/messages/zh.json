@@ -1,7 +1,8 @@
 {
   "common": {
     "brand": "Aroadri Tea",
-    "tagline": "中式鲜茶、奶茶与甜品"
+    "tagline": "Nature Aroma in Every Sip",
+    "chineseTea": "中国茶"
   },
   "nav": {
     "home": "首页",
@@ -15,18 +16,18 @@
   "home": {
     "eyebrow": "中式茶饮与甜品",
     "heroTitle": "Aroadri Tea",
-    "heroSubtitle": "鲜茶、奶茶、柠檬茶、雪顶奶茶和温暖甜品，呈现现代中式茶饮风味。",
+    "heroSubtitle": "鲜茶、奶茶、柠檬茶、雪顶奶茶与温暖甜品，呈现干净柔和的茶香。",
     "heroFeatureLabel": "人气前三",
     "heroFeatureItems": "Bamboo Oolong · Osmanthus Oolong · Glutinous Fragrant Lemon",
     "ctaMember": "注册会员",
     "ctaMenu": "查看菜单",
     "ctaLocations": "查看门店",
-    "menuTitle": "Aroadri Tea 实际菜单",
-    "menuSubtitle": "围绕鲜奶茶、鲜茶、柠檬鲜茶、雪顶奶茶和甜品等运营分类整理。",
+    "menuTitle": "Aroadri 人气选择",
+    "menuSubtitle": "从香醇奶茶到清爽柠檬茶，每一杯都以茶香为主角。",
     "groups": [
       {
         "name": "Fresh Milk Tea",
-        "description": "以乌龙、茉莉绿茶、锡兰红茶和烘焙黄茶为基础的奶茶。",
+        "description": "以乌龙、茉莉绿茶、锡兰红茶和焙香黄茶为基础的奶茶。",
         "price": "Regular Rp42k-43k · Large Rp47k-49k",
         "items": "Bamboo Oolong Milk Tea, Osmanthus Oolong Milk Tea, Glutinous Fragrant Milk Tea, Jasmine Green Milk Tea, Ceylon Black Milk Tea, Roasted Fragrant Yellow Milk Tea"
       },
@@ -55,58 +56,66 @@
         "items": "Egg Tart, Fancy Egg Tart, Pudding, Mousse Cake"
       }
     ],
-    "customTitle": "结账时可自定义",
-    "customSubtitle": "杯型、温度、糖度、冰量和配料由 POS 管理，业务调整无需修改源代码。",
+    "customTitle": "按喜好点单",
+    "customSubtitle": "点单时可选择杯型、温度、糖度、冰量和配料。",
     "customItems": [
       "Regular / Large",
       "Hot / Cold",
-      "No sugar / Less sugar",
-      "No ice / Less ice",
+      "Normal sugar / Less sugar / No sugar",
+      "Normal ice / Less ice / No ice",
       "Cheese Pearl",
       "Oat Pearl",
       "Crystal Pearl",
       "Barley Pearl"
     ],
-    "locationTitle": "从日惹开始运营",
-    "locationSubtitle": "Aroadri Tea 目前在日惹运营：Malioboro Mall 与 Plaza Malioboro。"
+    "locationTitle": "位于 Malioboro",
+    "locationSubtitle": "Aroadri Tea 目前在日惹 Malioboro Mall 与 Plaza Malioboro 为顾客服务。"
   },
   "menu": {
     "title": "Aroadri Tea 菜单",
     "subtitle": "价格根据 Regular/Large 和 Hot/Cold 规格显示。下单时可选择糖度、冰量和配料。",
-    "empty": "数据库中还没有菜单。请运行生产 seed 或从 ERP 维护菜单。",
+    "empty": "菜单暂未开放。",
     "from": "起",
     "priceUnavailable": "门店价格",
     "optionsTitle": "自定义选项",
     "sizeTemp": "Regular/Large · Hot/Cold",
-    "sugarIce": "No sugar, less sugar · no ice, less ice",
+    "sugarIce": "Normal sugar, less sugar, no sugar · normal ice, less ice, no ice",
     "toppings": "Cheese Pearl, Oat Pearl, Crystal Pearl, Barley Pearl"
   },
   "about": {
     "eyebrow": "品牌身份",
-    "title": "Aroadri Tea 的现代中式茶饮",
-    "body": "Aroadri Tea 采用山水意象：山、云、水象征宁静、纯净与匠心。菜单聚焦鲜茶、奶茶、柠檬茶、雪顶奶茶和甜品搭配。",
+    "title": "茶香与山的气质",
+    "body": "Aroadri 来自 Aroma 与 Adri，Adri 在梵语中意为山。这个名字与山水意象相连：山、云、水象征宁静、纯净与匠心。",
     "pillars": [
-      { "title": "以茶为先", "desc": "菜单基于乌龙、茉莉绿茶、锡兰红茶、烘焙黄茶和碧螺春等茶香。" },
-      { "title": "灵活定制", "desc": "杯型、温度、糖度、冰量和配料可通过 POS 灵活管理。" },
-      { "title": "运营就绪", "desc": "菜单、地点、会员和网站内容都准备由 ERP 管理。" }
+      {
+        "title": "Nature Aroma",
+        "desc": "每一杯都希望呈现干净、柔和、自然的茶香。"
+      },
+      {
+        "title": "Adri",
+        "desc": "Adri 意为山，是 logo、门店氛围与平静气质的灵感。"
+      },
+      {
+        "title": "现代中式茶饮",
+        "desc": "乌龙、茉莉绿茶、锡兰红茶、焙香黄茶和碧螺春，以现代方式呈现。"
+      }
     ]
   },
   "locations": {
     "title": "Aroadri Tea 门店",
-    "subtitle": "目前有两家门店位于日惹 Malioboro 区域。主要地点数据仍来自 ERP，因此门店地址可无需修改代码即可更新。",
-    "empty": "数据库中还没有可用门店。",
+    "subtitle": "目前有两家门店位于日惹 Malioboro 区域。",
+    "empty": "暂无可用门店。",
     "defaultHours": "10:00-22:00 WIB",
     "store": "门店",
     "office": "办公室",
-    "map": "打开地图",
-    "social": "关注 @aroadri.tea"
+    "map": "打开地图"
   },
   "footer": {
     "company": "PT. Gandha Hill Catering Management Indonesia",
     "locationLine": "日惹 - Malioboro Mall & Plaza Malioboro",
-    "socialLabel": "社交媒体",
-    "instagramLabel": "Instagram @aroadri.tea",
-    "tiktokLabel": "TikTok @aroadri.tea",
+    "socialLabel": "关注我们",
+    "instagramLabel": "@aroadri.tea",
+    "tiktokLabel": "@aroadri.tea",
     "copyright": "© {year} {brand}. 版权所有。"
   },
   "member": {
@@ -120,6 +129,85 @@
     "vouchers": "我的优惠券",
     "noVouchers": "暂无优惠券。",
     "cashierLookupTitle": "结账时使用手机号",
-    "cashierLookupBody": "当收银员询问是否有会员时，请告知注册手机号。收银员会查找会员资料并确认姓名，然后记录本次积分。"
+    "cashierLookupBody": "当收银员询问是否有会员时，请告知注册手机号。收银员会查找会员资料并确认姓名，然后记录本次积分。",
+    "signup": {
+      "title": "注册会员",
+      "subtitle": "在门店消费时使用同一个手机号，方便收银员找到您的会员账户。",
+      "name": "姓名",
+      "email": "邮箱",
+      "phone": "手机号",
+      "city": "城市",
+      "password": "密码",
+      "namePlaceholder": "姓名",
+      "emailPlaceholder": "email@example.com",
+      "phonePlaceholder": "08xxxxxxxxxx",
+      "cityPlaceholder": "Yogyakarta",
+      "passwordPlaceholder": "至少 8 个字符",
+      "consentPrefix": "我同意",
+      "terms": "条款与条件",
+      "privacy": "隐私政策",
+      "consentJoiner": "和",
+      "submit": "注册会员",
+      "submitting": "正在发送 OTP..."
+    },
+    "otp": {
+      "title": "验证邮箱",
+      "subtitle": "请输入发送到您邮箱的 6 位验证码。",
+      "code": "OTP 验证码",
+      "verify": "验证",
+      "verifying": "正在验证...",
+      "completeTitle": "完善资料",
+      "completeSubmit": "保存并登录",
+      "completing": "正在创建账户...",
+      "invalidToken": "Token 无效，请重新注册。"
+    }
+  },
+  "legal": {
+    "terms": {
+      "title": "条款与条件",
+      "updated": "自 2026 年 5 月 15 日起生效",
+      "intro": "注册成为 Aroadri Tea 会员即表示您同意以下条款。",
+      "sections": [
+        {
+          "title": "会员资格",
+          "body": "会员用于记录顾客身份、积分、优惠券，以及与注册手机号相关的交易历史。"
+        },
+        {
+          "title": "门店使用",
+          "body": "结账时，收银员可能会询问手机号并确认会员姓名，然后记录积分或权益。"
+        },
+        {
+          "title": "积分与优惠券",
+          "body": "积分、等级和优惠券会根据 Aroadri Tea 的活动规则调整。账户滥用可能导致权益取消。"
+        },
+        {
+          "title": "服务更新",
+          "body": "Aroadri Tea 可根据运营、促销或法律要求更新本条款。"
+        }
+      ]
+    },
+    "privacy": {
+      "title": "隐私政策",
+      "updated": "自 2026 年 5 月 15 日起生效",
+      "intro": "我们谨慎保护会员个人数据，并仅在相关运营需求下使用。",
+      "sections": [
+        {
+          "title": "收集的数据",
+          "body": "会员数据可能包括姓名、邮箱、手机号、生日、城市、积分记录、优惠券和交易历史。"
+        },
+        {
+          "title": "使用目的",
+          "body": "数据用于会员验证、积分记录、客户服务、交易审计以及账户相关沟通。"
+        },
+        {
+          "title": "数据保护",
+          "body": "数据访问仅限运营需要。系统按照 ERP 设计使用身份认证、审计日志和数据保护措施。"
+        },
+        {
+          "title": "会员权利",
+          "body": "会员可通过 Aroadri Tea 官方渠道请求更正或删除账户，但不得违反账务和法律义务。"
+        }
+      ]
+    }
   }
 }

@@ -55,7 +55,7 @@ export const accounts = pgTable(
   {
     ...pk,
     ...tenantCol,
-    code: text('code').notNull(), // '1-1010', '4-1000'
+    code: text('code').notNull(), // '1-1100', '4-1100'
     name: jsonb('name').notNull(), // LocaleString { id, en, zh }
     type: text('type').notNull(), // 'asset' | 'liability' | 'equity' | 'income' | 'cogs' | 'expense'
     subtype: text('subtype').notNull(), // 'current_asset', 'fixed_asset', 'contra_asset', etc.
