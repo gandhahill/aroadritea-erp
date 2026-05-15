@@ -19,6 +19,7 @@ import {
   rolePermissions,
   roles,
   tenants,
+  authAccounts,
   userRoles,
   users,
 } from '../schema/auth';
@@ -266,6 +267,24 @@ async function seed() {
       .limit(1);
     const resolvedAdminId = adminRow?.id ?? adminId;
     console.info(`✅ Bootstrap admin present (${bootstrapAdmin.email})`);
+
+    await db
+      .insert(authAccounts)
+      .values({
+        id: generateId(),
+        userId: resolvedAdminId,
+        accountId: resolvedAdminId,
+        providerId: 'credential',
+        password: passwordHash,
+      })
+      .onConflictDoUpdate({
+        target: [authAccounts.providerId, authAccounts.accountId],
+        set: {
+          password: passwordHash,
+          updatedAt: new Date(),
+        },
+      });
+    console.info('✅ Bootstrap admin credential account ready');
 
     const directorRoleId = roleIds.get(bootstrapAdmin.roleCode);
     if (directorRoleId) {

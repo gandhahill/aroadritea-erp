@@ -29,6 +29,13 @@
       "when": 1778803298424,
       "tag": "0003_legacy_coa_pos_defaults",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1778811691779,
+      "tag": "0004_amazing_lifeguard",
+      "breakpoints": true
     }
   ]
 }

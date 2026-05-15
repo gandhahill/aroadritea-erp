@@ -2,7 +2,7 @@
  * IAM (Identity & Access Management) schema — SD §9.1
  *
  * Tables: tenants, locations, users, roles, permissions,
- *         role_permissions, user_roles, sessions
+ *         role_permissions, user_roles, auth_accounts, sessions
  */
 
 import { relations } from 'drizzle-orm';
@@ -149,6 +149,33 @@ export const userRoles = pgTable(
 );
 
 // ================================================================
+// AUTH ACCOUNTS — better-auth credential/OAuth accounts
+// ================================================================
+
+export const authAccounts = pgTable(
+  'account',
+  {
+    ...pk,
+    userId: text('user_id').notNull(),
+    accountId: text('account_id').notNull(),
+    providerId: text('provider_id').notNull(),
+    accessToken: text('access_token'),
+    refreshToken: text('refresh_token'),
+    idToken: text('id_token'),
+    accessTokenExpiresAt: timestamp('access_token_expires_at', { withTimezone: true }),
+    refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }),
+    scope: text('scope'),
+    password: text('password'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('auth_accounts_user_idx').on(t.userId),
+    uniqueIndex('auth_accounts_provider_account_idx').on(t.providerId, t.accountId),
+  ],
+);
+
+// ================================================================
 // SESSIONS — DB-backed sessions (better-auth style) — SD §9.1
 // ================================================================
 
@@ -162,6 +189,7 @@ export const sessions = pgTable(
     ipAddress: text('ip_address'),
     userAgent: text('user_agent'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex('sessions_token_idx').on(t.token),
@@ -229,6 +257,7 @@ export const locationsRelations = relations(locations, ({ one }) => ({
 export const usersRelations = relations(users, ({ one, many }) => ({
   tenant: one(tenants, { fields: [users.tenantId], references: [tenants.id] }),
   userRoles: many(userRoles),
+  accounts: many(authAccounts),
   sessions: many(sessions),
   apiTokens: many(apiTokens),
 }));
@@ -254,6 +283,10 @@ export const rolePermissionsRelations = relations(rolePermissions, ({ one }) => 
 export const userRolesRelations = relations(userRoles, ({ one }) => ({
   user: one(users, { fields: [userRoles.userId], references: [users.id] }),
   role: one(roles, { fields: [userRoles.roleId], references: [roles.id] }),
+}));
+
+export const authAccountsRelations = relations(authAccounts, ({ one }) => ({
+  user: one(users, { fields: [authAccounts.userId], references: [users.id] }),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({

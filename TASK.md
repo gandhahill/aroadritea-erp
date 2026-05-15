@@ -24,6 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0165 | Fix ERP staff login credential account integration | Codex | 2026-05-15 09:19 | 2026-05-15 09:25 | 🟨 IN_PROGRESS | better-auth email/password needs credential account table; admin login currently rejects valid reset |
 
 ---
 
