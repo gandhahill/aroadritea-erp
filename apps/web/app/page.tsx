@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
+import { getSession } from '@/lib/auth';
 
-export default function HomePage() {
-  // ERP root redirects to login or dashboard
-  redirect('/login');
+export default async function HomePage() {
+  const session = await getSession();
+  redirect(session ? '/pos' : '/login');
 }

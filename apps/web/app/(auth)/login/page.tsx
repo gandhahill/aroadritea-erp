@@ -33,7 +33,7 @@ function LoginContent() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const callbackUrl = searchParams.get('callbackUrl') ?? '/';
+  const callbackUrl = searchParams.get('callbackUrl') ?? '/pos';
   const suspendedError = searchParams.get('error') === 'suspended';
 
   function handleLocaleChange(nextLocale: string) {
