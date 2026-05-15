@@ -29,7 +29,121 @@ export const InventoryAdjustSchema = z.object({
   note: z.string().optional(),
 });
 
+const InventoryLocaleNameSchema = z.object({
+  id: z.string().min(1).max(160),
+  en: z.string().min(1).max(160),
+  zh: z.string().min(1).max(160),
+});
+
+export const InventoryListCategoriesSchema = z.object({
+  active_only: z.boolean().optional().default(false),
+});
+
+export const InventoryUpsertCategorySchema = z.object({
+  id: z.string().optional(),
+  code: z
+    .string()
+    .min(1)
+    .max(32)
+    .regex(/^[A-Za-z0-9_-]+$/)
+    .optional(),
+  name: InventoryLocaleNameSchema.optional(),
+  parent_id: z.string().optional().nullable(),
+  sort_order: z.number().int().min(0).optional().default(0),
+  is_active: z.boolean().optional(),
+});
+
+export const InventoryDeleteCategorySchema = z.object({
+  id: z.string().min(1),
+});
+
 export const inventoryTools = [
+  {
+    name: 'inventory.list_categories',
+    description: 'List product categories used by POS, inventory, and public menu.',
+    schema: InventoryListCategoriesSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = InventoryListCategoriesSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const { listCategories } = await import('@erp/services/inventory');
+      const result = await listCategories({
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      });
+      if (!result.ok) return serializeResult(result);
+      const items = parsed.data.active_only
+        ? result.value.filter((category) => category.isActive)
+        : result.value;
+      return mcpSuccess({ items });
+    },
+  },
+  {
+    name: 'inventory.upsert_category',
+    description: 'Create or update a multilingual product category through the inventory service.',
+    schema: InventoryUpsertCategorySchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = InventoryUpsertCategorySchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const data = parsed.data;
+      const auditCtx = {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      };
+      const { createCategory, updateCategory } = await import('@erp/services/inventory');
+      const result = data.id
+        ? await updateCategory(
+            {
+              categoryId: data.id,
+              name: data.name,
+              parentId: data.parent_id,
+              sortOrder: data.sort_order,
+              isActive: data.is_active,
+              version: 1,
+            },
+            auditCtx,
+          )
+        : data.code && data.name
+          ? await createCategory(
+              {
+                code: data.code.trim().toUpperCase(),
+                name: data.name,
+                parentId: data.parent_id ?? undefined,
+                sortOrder: data.sort_order,
+              },
+              auditCtx,
+            )
+          : null;
+
+      if (!result) {
+        return mcpError('INVALID_INPUT', 'code and name are required when creating a category');
+      }
+      return serializeResult(result);
+    },
+  },
+  {
+    name: 'inventory.delete_category',
+    description: 'Disable a product category without deleting historical product references.',
+    schema: InventoryDeleteCategorySchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = InventoryDeleteCategorySchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const { updateCategory } = await import('@erp/services/inventory');
+      const result = await updateCategory(
+        { categoryId: parsed.data.id, isActive: false, version: 1 },
+        {
+          userId: ctx.userId,
+          tenantId: ctx.tenantId,
+          locationId: ctx.locationId ?? '',
+        },
+      );
+      return serializeResult(result);
+    },
+  },
   {
     name: 'inventory.list_products',
     schema: InventoryListProductsSchema,
@@ -1086,6 +1200,64 @@ export const promotionTools = [
           locationId: ctx.locationId ?? '',
         },
       );
+      return serializeResult(result);
+    },
+  },
+] as const;
+
+// --- Editable ERP Docs ---
+
+const DOCS_SETTING_KEY = 'erp_docs_content';
+
+const DocsLocaleContentSchema = z.object({
+  title: z.string().min(1).max(200),
+  subtitle: z.string().max(400).optional().default(''),
+  body: z.string().min(1).max(120_000),
+});
+
+export const DocsGetSchema = z.object({});
+
+export const DocsUpdateSchema = z.object({
+  content: z.object({
+    id: DocsLocaleContentSchema,
+    en: DocsLocaleContentSchema,
+    zh: DocsLocaleContentSchema,
+  }),
+});
+
+export const docsTools = [
+  {
+    name: 'docs.get',
+    description: 'Read the editable ERP user guide content used by the /docs page.',
+    schema: DocsGetSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = DocsGetSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const { getSetting } = await import('@erp/services/cms');
+      const result = await getSetting(ctx.tenantId, DOCS_SETTING_KEY);
+      return serializeResult(result);
+    },
+  },
+  {
+    name: 'docs.update',
+    description: 'Update the editable ERP user guide content without editing source code.',
+    schema: DocsUpdateSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = DocsUpdateSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const permitted =
+        (await checkPermission(ctx, 'cms.manage', ctx.locationId)) ||
+        (await checkPermission(ctx, 'settings.manage', ctx.locationId));
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: cms.manage');
+
+      const { setSetting } = await import('@erp/services/cms');
+      const result = await setSetting(ctx.tenantId, DOCS_SETTING_KEY, parsed.data.content, {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      });
       return serializeResult(result);
     },
   },

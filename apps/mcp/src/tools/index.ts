@@ -5,6 +5,8 @@
 export {
   iamTools,
   ListLocationsSchema,
+  UpsertLocationSchema,
+  DeleteLocationSchema,
   WhoamiSchema,
 } from './iam';
 
@@ -18,12 +20,19 @@ export {
   ClosePeriodSchema,
   GetJournalWithAttachmentsSchema,
   ListJournalAttachmentsSchema,
+  UpsertAccountSchema,
+  DeleteAccountSchema,
 } from './accounting';
 
 export {
   taxTools,
   ListRatesSchema,
   ExportCoretaxSchema,
+  UpsertTaxRateSchema,
+  DeleteTaxRateSchema,
+  ListTaxRulesSchema,
+  UpsertTaxRuleSchema,
+  DeleteTaxRuleSchema,
 } from './tax';
 
 export {
@@ -38,6 +47,9 @@ export {
 
 export {
   inventoryTools,
+  InventoryListCategoriesSchema,
+  InventoryUpsertCategorySchema,
+  InventoryDeleteCategorySchema,
   InventoryListProductsSchema,
   InventoryGetStockSchema,
   InventoryAdjustSchema,
@@ -71,6 +83,9 @@ export {
   promotionTools,
   PromotionListSchema,
   PromotionUpsertSchema,
+  docsTools,
+  DocsGetSchema,
+  DocsUpdateSchema,
   operationsTools,
   ScheduledJobListSchema,
   ScheduledJobUpdateSchema,

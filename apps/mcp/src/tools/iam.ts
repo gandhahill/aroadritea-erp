@@ -7,10 +7,12 @@
  */
 
 import { db } from '@erp/db';
+import { auditLog } from '@erp/db/schema/audit';
 import { locations, roles, userRoles, users } from '@erp/db/schema/auth';
 import { isActive } from '@erp/db/schema/common';
 import { type PermissionContext, can } from '@erp/services/iam';
-import { and, eq } from 'drizzle-orm';
+import { generateId } from '@erp/shared/id';
+import { and, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import type { McpContext } from '../context';
 import { mcpError, mcpSuccess } from '../helpers';
@@ -24,6 +26,31 @@ export const ListLocationsSchema = z.object({
   type: z.enum(['store', 'office', 'warehouse']).optional(),
 });
 
+const LocaleNameSchema = z.object({
+  id: z.string().min(1).max(160),
+  en: z.string().min(1).max(160),
+  zh: z.string().min(1).max(160),
+});
+
+export const UpsertLocationSchema = z.object({
+  id: z.string().optional(),
+  code: z
+    .string()
+    .min(2)
+    .max(16)
+    .regex(/^[A-Za-z0-9_-]+$/),
+  name: LocaleNameSchema,
+  type: z.enum(['store', 'office', 'warehouse']),
+  timezone: z.string().min(1).max(64).optional().default('Asia/Jakarta'),
+  currency: z.string().min(3).max(3).optional().default('IDR'),
+  address: z.string().max(500).optional().nullable(),
+  status: z.enum(['active', 'inactive']).optional().default('active'),
+});
+
+export const DeleteLocationSchema = z.object({
+  id: z.string().min(1),
+});
+
 // --- Helpers ---
 
 async function checkPermission(
@@ -33,6 +60,13 @@ async function checkPermission(
 ): Promise<boolean> {
   const context: PermissionContext = locationId ? { locationId } : {};
   return can(ctx.userId, permission, context);
+}
+
+async function canManageLocations(ctx: McpContext): Promise<boolean> {
+  return (
+    (await checkPermission(ctx, 'settings.manage')) ||
+    (await checkPermission(ctx, 'iam.manage_locations'))
+  );
 }
 
 // --- Tool definitions (for registration) ---
@@ -50,6 +84,19 @@ export const iamTools = [
       'List locations (branches/offices) accessible to the current user. Returns all active locations the user has any role on.',
     schema: ListLocationsSchema,
     handler: listLocationsHandler,
+  },
+  {
+    name: 'iam.upsert_location',
+    description:
+      'Create or update an ERP location through the same settings/location permission boundary as the UI.',
+    schema: UpsertLocationSchema,
+    handler: upsertLocationHandler,
+  },
+  {
+    name: 'iam.delete_location',
+    description: 'Soft-delete a location by marking it inactive and recording an audit trail.',
+    schema: DeleteLocationSchema,
+    handler: deleteLocationHandler,
   },
 ] as const;
 
@@ -149,4 +196,108 @@ async function listLocationsHandler(
   }
 
   return mcpSuccess(filtered);
+}
+
+async function upsertLocationHandler(
+  input: z.infer<typeof UpsertLocationSchema>,
+  ctx: McpContext,
+): Promise<{ content: unknown[]; isError: boolean }> {
+  const permitted = await canManageLocations(ctx);
+  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: settings.manage');
+
+  const now = new Date();
+  const values = {
+    code: input.code.trim().toUpperCase(),
+    name: input.name,
+    type: input.type,
+    timezone: input.timezone,
+    currency: input.currency.toUpperCase(),
+    address: input.address?.trim() || null,
+    status: input.status,
+    updatedAt: now,
+    updatedBy: ctx.userId || null,
+  };
+
+  if (input.id) {
+    const [before] = await db
+      .select()
+      .from(locations)
+      .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.id, input.id)))
+      .limit(1);
+    if (!before) return mcpError('NOT_FOUND', `Location ${input.id} not found`);
+
+    await db
+      .update(locations)
+      .set(values)
+      .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.id, input.id)));
+    await db.insert(auditLog).values({
+      id: generateId(),
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: 'update',
+      entityType: 'location',
+      entityId: input.id,
+      before: before as never,
+      after: values as never,
+    });
+    return mcpSuccess({ id: input.id });
+  }
+
+  const id = generateId();
+  await db.insert(locations).values({
+    id,
+    tenantId: ctx.tenantId,
+    ...values,
+    createdBy: ctx.userId || null,
+  });
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'create',
+    entityType: 'location',
+    entityId: id,
+    before: null,
+    after: values as never,
+  });
+  return mcpSuccess({ id });
+}
+
+async function deleteLocationHandler(
+  input: z.infer<typeof DeleteLocationSchema>,
+  ctx: McpContext,
+): Promise<{ content: unknown[]; isError: boolean }> {
+  const permitted = await canManageLocations(ctx);
+  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: settings.manage');
+
+  const [before] = await db
+    .select()
+    .from(locations)
+    .where(
+      and(eq(locations.tenantId, ctx.tenantId), eq(locations.id, input.id), isNull(locations.deletedAt)),
+    )
+    .limit(1);
+  if (!before) return mcpError('NOT_FOUND', `Location ${input.id} not found`);
+
+  const deletedAt = new Date();
+  await db
+    .update(locations)
+    .set({
+      status: 'inactive',
+      deletedAt,
+      updatedAt: deletedAt,
+      updatedBy: ctx.userId || null,
+    })
+    .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.id, input.id)));
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'delete',
+    entityType: 'location',
+    entityId: input.id,
+    before: before as never,
+    after: { deletedAt: deletedAt.toISOString(), status: 'inactive' } as never,
+  });
+  return mcpSuccess({ id: input.id });
 }

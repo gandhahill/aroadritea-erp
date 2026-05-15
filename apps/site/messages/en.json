@@ -136,6 +136,8 @@
       "name": "Full name",
       "email": "Email",
       "phone": "Phone number",
+      "birthDate": "Birth Date",
+      "optional": "optional",
       "city": "City",
       "password": "Password",
       "namePlaceholder": "Full name",

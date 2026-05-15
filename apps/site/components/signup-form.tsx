@@ -92,8 +92,20 @@ export function SignupForm({ locale }: Props) {
         </div>
 
         <div>
+          <label htmlFor="member-birthDate" className="mb-1 block text-sm font-medium text-brand-ink">
+            {t('birthDate')} <span className="text-brand-ink-3 font-normal">({t('optional')})</span>
+          </label>
+          <input
+            id="member-birthDate"
+            name="birthDate"
+            type="date"
+            className="w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-brand-ink"
+          />
+        </div>
+
+        <div>
           <label htmlFor="member-city" className="mb-1 block text-sm font-medium text-brand-ink">
-            {t('city')}
+            {t('city')} <span className="text-brand-ink-3 font-normal">({t('optional')})</span>
           </label>
           <input
             id="member-city"

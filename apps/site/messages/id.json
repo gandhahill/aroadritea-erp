@@ -136,6 +136,8 @@
       "name": "Nama lengkap",
       "email": "Email",
       "phone": "Nomor telepon",
+      "birthDate": "Tanggal Lahir",
+      "optional": "opsional",
       "city": "Kota",
       "password": "Kata sandi",
       "namePlaceholder": "Nama lengkap",

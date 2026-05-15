@@ -90,7 +90,15 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
         </div>
 
         {/* Actions */}
-        <div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => window.open('/display', 'pos-display', 'width=1024,height=768')}
+            className="h-8 rounded-md border border-brand-cream-3 bg-card px-3 text-xs font-medium text-brand-ink hover:bg-brand-cream-2 disabled:opacity-50"
+          >
+            {t('customerDisplay')}
+          </button>
+
           {isOpen ? (
             <button
               type="button"

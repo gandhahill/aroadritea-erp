@@ -10,7 +10,7 @@
  * - accounting.close_period
  */
 
-import { db } from '@erp/db';
+import { auditLog, db } from '@erp/db';
 import { accounts, journalEntries } from '@erp/db/schema/accounting';
 import { locations } from '@erp/db/schema/auth';
 import { isActive } from '@erp/db/schema/common';
@@ -23,7 +23,8 @@ import type {
   ReverseJournalInput,
 } from '@erp/services/accounting';
 import { type PermissionContext, can } from '@erp/services/iam';
-import { and, eq } from 'drizzle-orm';
+import { generateId } from '@erp/shared/id';
+import { and, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import type { McpContext } from '../context';
 import { mcpError, serializeResult } from '../helpers';
@@ -255,6 +256,32 @@ export const ClosePeriodSchema = z.object({
   force: z.boolean().optional().default(false),
 });
 
+const LocaleNameSchema = z.object({
+  id: z.string().min(1).max(160),
+  en: z.string().min(1).max(160),
+  zh: z.string().min(1).max(160),
+});
+
+export const UpsertAccountSchema = z.object({
+  id: z.string().optional(),
+  code: z
+    .string()
+    .min(4)
+    .max(12)
+    .regex(/^[1-9]-\d{4,6}$/),
+  name: LocaleNameSchema,
+  type: z.enum(['asset', 'liability', 'equity', 'income', 'cogs', 'expense']),
+  subtype: z.string().min(1).max(80),
+  parent_id: z.string().optional().nullable(),
+  normal_balance: z.enum(['debit', 'credit']),
+  is_postable: z.boolean().optional().default(true),
+  is_active: z.boolean().optional().default(true),
+});
+
+export const DeleteAccountSchema = z.object({
+  id: z.string(),
+});
+
 // --- Journal Attachments ---
 
 export const GetJournalWithAttachmentsSchema = z.object({
@@ -297,6 +324,117 @@ export async function listJournalAttachmentsHandler(
   return serializeResult(result);
 }
 
+export async function upsertAccountHandler(
+  input: z.infer<typeof UpsertAccountSchema>,
+  ctx: McpContext,
+) {
+  const permitted = await checkPermission(ctx, 'accounting.coa.manage');
+  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: accounting.coa.manage');
+
+  const now = new Date();
+  const values = {
+    code: input.code.trim().toUpperCase(),
+    name: input.name,
+    type: input.type,
+    subtype: input.subtype.trim() || input.type,
+    parentId: input.parent_id?.trim() || null,
+    normalBalance: input.normal_balance,
+    isPostable: input.is_postable,
+    isActive: input.is_active,
+    updatedAt: now,
+    updatedBy: ctx.userId,
+  };
+
+  if (input.id) {
+    const [before] = await db
+      .select()
+      .from(accounts)
+      .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.id, input.id)))
+      .limit(1);
+    if (!before) return mcpError('NOT_FOUND', `Account ${input.id} not found`);
+
+    await db
+      .update(accounts)
+      .set(values)
+      .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.id, input.id)));
+    await db.insert(auditLog).values({
+      id: generateId(),
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: 'update',
+      entityType: 'account',
+      entityId: input.id,
+      before: before as never,
+      after: values as never,
+    });
+    return serializeResult({ ok: true, value: { id: input.id } });
+  }
+
+  const id = generateId();
+  await db.insert(accounts).values({
+    id,
+    tenantId: ctx.tenantId,
+    ...values,
+    createdBy: ctx.userId,
+  });
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'create',
+    entityType: 'account',
+    entityId: id,
+    before: null,
+    after: values as never,
+  });
+  return serializeResult({ ok: true, value: { id } });
+}
+
+export async function deleteAccountHandler(
+  input: z.infer<typeof DeleteAccountSchema>,
+  ctx: McpContext,
+) {
+  const permitted = await checkPermission(ctx, 'accounting.coa.manage');
+  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: accounting.coa.manage');
+
+  const [before] = await db
+    .select()
+    .from(accounts)
+    .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.id, input.id), isNull(accounts.deletedAt)))
+    .limit(1);
+  if (!before) return mcpError('NOT_FOUND', `Account ${input.id} not found`);
+
+  const [child] = await db
+    .select({ id: accounts.id })
+    .from(accounts)
+    .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.parentId, input.id), isNull(accounts.deletedAt)))
+    .limit(1);
+  if (child) return mcpError('BUSINESS_RULE', 'Account still has child accounts.');
+
+  const deletedAt = new Date();
+  const values = {
+    isActive: false,
+    deletedAt,
+    updatedAt: deletedAt,
+    updatedBy: ctx.userId,
+  };
+  await db
+    .update(accounts)
+    .set(values)
+    .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.id, input.id)));
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'delete',
+    entityType: 'account',
+    entityId: input.id,
+    before: before as never,
+    after: { deletedAt: deletedAt.toISOString(), isActive: false } as never,
+  });
+  return serializeResult({ ok: true, value: { id: input.id } });
+}
+
 export const accountingTools = [
   { name: 'accounting.list_accounts', schema: ListAccountsSchema, handler: listAccountsHandler },
   { name: 'accounting.create_journal', schema: CreateJournalSchema, handler: createJournalHandler },
@@ -321,5 +459,17 @@ export const accountingTools = [
     name: 'accounting.list_journal_attachments',
     schema: ListJournalAttachmentsSchema,
     handler: listJournalAttachmentsHandler,
+  },
+  {
+    name: 'accounting.upsert_account',
+    schema: UpsertAccountSchema,
+    handler: upsertAccountHandler,
+    description: 'Create or update a Chart of Accounts record through the DB permission engine.',
+  },
+  {
+    name: 'accounting.delete_account',
+    schema: DeleteAccountSchema,
+    handler: deleteAccountHandler,
+    description: 'Soft-delete a Chart of Accounts record when it has no child accounts.',
   },
 ] as const;

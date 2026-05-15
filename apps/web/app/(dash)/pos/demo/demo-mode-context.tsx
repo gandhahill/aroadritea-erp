@@ -8,7 +8,8 @@
  * - `demoOrderHistory`: list of completed demo orders (in-memory, ephemeral)
  * - `addDemoOrder`: add a completed demo order to history
  *
- * ADR-0008: always client-side, never touches server.
+ * ADR-0008: transactions stay client-side and never sync to production.
+ * Master data may be refreshed read-only from the ERP server for parity.
  */
 
 'use client';
@@ -19,10 +20,12 @@ import {
   getNextDemoOrderNumber,
   isMasterStale,
   snapshotMasterData,
+  snapshotMasterDataFromSource,
   wipeDemoDb,
 } from '@erp/offline';
 import type { DemoCartState, DemoOrder } from '@erp/offline';
 import { type ReactNode, createContext, useCallback, useContext, useState } from 'react';
+import { fetchMasterDataRaw } from '../actions';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -51,6 +54,15 @@ type DemoModeContextValue = DemoModeState &
 
 const DemoModeContext = createContext<DemoModeContextValue | null>(null);
 
+async function snapshotLiveMasterData(): Promise<SnapshotResult> {
+  try {
+    const source = await fetchMasterDataRaw();
+    return await snapshotMasterDataFromSource(source);
+  } catch {
+    return snapshotMasterData();
+  }
+}
+
 // ─── Provider ───────────────────────────────────────────────────────────────────
 
 export function DemoModeProvider({ children }: { children: ReactNode }) {
@@ -67,7 +79,7 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
   const activateDemo = useCallback(async () => {
     setState((s) => ({ ...s, snapshotLoading: true, snapshotError: null }));
     try {
-      const result: SnapshotResult = await snapshotMasterData();
+      const result: SnapshotResult = await snapshotLiveMasterData();
       if (!result.success) {
         setState((s) => ({
           ...s,
@@ -110,7 +122,7 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
   const refreshSnapshot = useCallback(async () => {
     setState((s) => ({ ...s, snapshotLoading: true, snapshotError: null }));
     try {
-      await snapshotMasterData();
+      await snapshotLiveMasterData();
       const [age, stale] = await Promise.all([getMasterSnapshotAgeHuman(), isMasterStale()]);
       setState((s) => ({
         ...s,

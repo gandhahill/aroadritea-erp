@@ -136,6 +136,8 @@
       "name": "姓名",
       "email": "邮箱",
       "phone": "手机号",
+      "birthDate": "出生日期",
+      "optional": "选填",
       "city": "城市",
       "password": "密码",
       "namePlaceholder": "姓名",
