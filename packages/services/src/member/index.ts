@@ -41,8 +41,8 @@ export const SignupInputSchema = z.object({
     .max(20)
     .regex(/^\+?[0-9]+$/, 'Invalid phone number'),
   name: z.string().min(2).max(100),
-  birthDate: z.string().optional(), // YYYY-MM-DD
-  city: z.string().optional(),
+  birthDate: z.string().min(10, 'Birth date is required'), // YYYY-MM-DD
+  city: z.string().min(1, 'City is required'),
   password: z.string().min(8).max(128),
   consentGiven: z.boolean().refine((v) => v === true, 'Consent is required'),
   turnstileToken: z.string().min(1), // Cloudflare Turnstile token

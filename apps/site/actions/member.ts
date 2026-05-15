@@ -24,11 +24,8 @@ export async function signupAction(formData: FormData) {
   const email = String(formData.get('email') ?? '');
   const phone = String(formData.get('phone') ?? '');
   const name = String(formData.get('name') ?? '');
-  const rawBirthDate = formData.get('birthDate');
-  const birthDate =
-    typeof rawBirthDate === 'string' && rawBirthDate.trim() ? rawBirthDate : undefined;
-  const rawCity = formData.get('city');
-  const city = typeof rawCity === 'string' && rawCity.trim() ? rawCity : undefined;
+  const birthDate = String(formData.get('birthDate') ?? '');
+  const city = String(formData.get('city') ?? '');
   const password = String(formData.get('password') ?? '');
   const turnstileToken = String(
     formData.get('turnstileToken') ?? formData.get('cf-turnstile-response') ?? '',
