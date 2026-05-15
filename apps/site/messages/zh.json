@@ -147,9 +147,13 @@
       "terms": "条款与条件",
       "privacy": "隐私政策",
       "consentJoiner": "和",
-      "submit": "注册会员",
-      "submitting": "正在发送 OTP..."
-    },
+      "submit": "注册",
+      "submitting": "正在发送验证码...",
+      "otpSendFailed": "验证码发送失败。请确保邮箱正确或稍后再试。",
+      "otpProviderNotConfigured": "验证码系统尚未配置。请联系管理员。",
+      "validationFailed": "您输入的数据无效。",
+      "captchaFailed": "人机验证失败。请重试。"
+      },
     "otp": {
       "title": "验证邮箱",
       "subtitle": "请输入发送到您邮箱的 6 位验证码。",

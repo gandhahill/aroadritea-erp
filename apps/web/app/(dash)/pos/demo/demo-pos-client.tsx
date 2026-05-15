@@ -38,20 +38,20 @@ export function DemoPosClient() {
       <DemoModeBanner />
 
       {/* Main layout — padded top for banner */}
-      <div className="flex h-[calc(100vh-44px)] flex-1 flex-col pt-11">
-        <div className="flex flex-1 gap-0">
+      <div className="flex h-[calc(100vh-44px)] flex-1 flex-col pt-11 overflow-hidden">
+        <div className="flex flex-1 gap-0 overflow-hidden">
           {/* Left: product panel */}
-          <div className="flex w-1/2 flex-col border-r border-brand-cream-3 bg-card">
-            <div className="border-b border-brand-cream-3 p-3">
+          <div className="flex w-1/2 flex-col border-r border-brand-cream-3 bg-card overflow-hidden">
+            <div className="border-b border-brand-cream-3 p-3 shrink-0">
               <DemoChannelSelector />
             </div>
             <DemoProductSearch />
           </div>
 
           {/* Right: cart panel */}
-          <div className="flex w-1/2 flex-col bg-card">
+          <div className="flex w-1/2 flex-col bg-card overflow-hidden">
             {/* Cart header */}
-            <div className="flex h-14 items-center justify-between border-b border-brand-cream-3 px-4">
+            <div className="flex h-14 shrink-0 items-center justify-between border-b border-brand-cream-3 px-4">
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-semibold text-brand-ink">{t('orderLines')}</h2>
                 {/* Demo order history shortcut */}
@@ -98,12 +98,12 @@ export function DemoPosClient() {
             </div>
 
             {/* Order lines */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto min-h-0">
               <DemoOrderCart />
             </div>
 
             {/* Totals + pay button */}
-            <div className="border-t border-brand-cream-3 p-4">
+            <div className="border-t border-brand-cream-3 p-4 shrink-0">
               <div className="mb-3 space-y-1.5">
                 <div className="flex justify-between text-sm">
                   <span className="text-brand-ink-3">{t('grandTotal')}</span>

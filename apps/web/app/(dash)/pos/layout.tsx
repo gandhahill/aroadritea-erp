@@ -46,10 +46,10 @@ export default async function PosLayout({ children }: { children: React.ReactNod
       <OfflineBanner />
 
       <PosCartProvider locationId={locationId} tenantId={tenantId}>
-        <div className="flex min-h-screen flex-col bg-brand-cream">
+        <div className="flex h-full flex-col bg-brand-cream">
           <ShiftStatusBar locationId={locationId} tenantId={tenantId} />
 
-          <div className="flex flex-1">{children}</div>
+          <div className="flex flex-1 overflow-hidden">{children}</div>
         </div>
       </PosCartProvider>
     </OfflineSyncProvider>

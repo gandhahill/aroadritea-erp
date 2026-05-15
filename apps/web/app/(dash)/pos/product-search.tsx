@@ -61,9 +61,9 @@ export function ProductSearch() {
   }
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col overflow-hidden min-h-0">
       {/* Search bar */}
-      <div className="border-b border-brand-cream-3 p-3">
+      <div className="border-b border-brand-cream-3 p-3 shrink-0">
         <div className="relative">
           <svg
             aria-hidden="true"
@@ -90,7 +90,7 @@ export function ProductSearch() {
       </div>
 
       {/* Category filter pills */}
-      <div className="flex gap-2 overflow-x-auto border-b border-brand-cream-3 px-3 py-2">
+      <div className="flex gap-2 overflow-x-auto border-b border-brand-cream-3 px-3 py-2 shrink-0">
         <button
           type="button"
           onClick={() => setActiveCategory('')}
@@ -119,7 +119,7 @@ export function ProductSearch() {
       </div>
 
       {/* Product grid */}
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="flex-1 overflow-y-auto p-3 min-h-0">
         {isPending && products.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             <p className="text-sm text-brand-ink-3">{t('loading')}</p>

@@ -4,6 +4,8 @@ import { and, db, desc, eq } from '@erp/db';
 import { pettyCashAccounts, pettyCashTransactions } from '@erp/db/schema/accounting';
 import { locations } from '@erp/db/schema/auth';
 import type { LocaleString } from '@erp/shared/types';
+import { getSession } from '@/lib/auth';
+import { createPettyCashAccount } from '@erp/services/accounting';
 
 export interface PettyCashAccountItem {
   id: string;
@@ -86,4 +88,16 @@ export async function fetchPettyCashTransactions(
     createdBy: r.createdBy,
     createdAt: r.createdAt ?? new Date(0),
   }));
+}
+
+export async function createAccountAction(locationId: string, maxLimit: number) {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthenticated');
+  const user = session.user as Record<string, unknown>;
+  const tenantId = String(user.tenantId ?? 'default');
+  const userId = String(user.id ?? '');
+
+  const result = await createPettyCashAccount({ locationId, maxLimit: maxLimit.toString() }, { userId, tenantId, locationId });
+  if (!result.ok) throw new Error(result.error.messageKey);
+  return result.value;
 }

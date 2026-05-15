@@ -71,6 +71,11 @@ export {
   promotionTools,
   PromotionListSchema,
   PromotionUpsertSchema,
+  operationsTools,
+  ScheduledJobListSchema,
+  ScheduledJobUpdateSchema,
+  NotificationChannelListSchema,
+  NotificationChannelUpsertSchema,
   auditTools,
   AuditSearchSchema,
 } from './phase2';

@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import type { PettyCashAccountItem, PettyCashTransactionItem } from './actions';
+import { createAccountAction } from './actions';
+import { useRouter } from 'next/navigation';
 
 function formatRupiah(amount: string): string {
   const n = Number(amount);
@@ -25,13 +27,28 @@ function formatDate(d: Date | string): string {
 interface Props {
   accounts: PettyCashAccountItem[];
   transactions: Record<string, PettyCashTransactionItem[]>;
+  userLocationId: string;
 }
 
-export function PettyCashView({ accounts, transactions }: Props) {
+export function PettyCashView({ accounts, transactions, userLocationId }: Props) {
+  const router = useRouter();
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
     accounts[0]?.id ?? null,
   );
   const [filterKind, setFilterKind] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleCreate = async () => {
+    try {
+      setIsCreating(true);
+      await createAccountAction(userLocationId, 500000); // default limit 500k
+      router.refresh();
+    } catch (err) {
+      alert('Gagal membuat akun kas kecil');
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   const selectedAccount = useMemo(
     () => accounts.find((a) => a.id === selectedAccountId),

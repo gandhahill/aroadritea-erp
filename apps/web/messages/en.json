@@ -367,8 +367,11 @@
     "addFirstProduct": "Add your first product",
     "confirmVoid": "Are you sure you want to void this order?",
     "confirmRefundTitle": "Confirm Refund",
-    "shiftAlreadyOpen": "A shift is already open at this location",
+    "shiftAlreadyOpen": "Shift is already open at this location",
     "shiftNotOpen": "No open shift",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "loading": "Loading...",
     "paymentMethods": {
       "cash": "Cash",
       "qris": "QRIS",

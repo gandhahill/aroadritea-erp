@@ -85,9 +85,9 @@ export function DemoProductSearch() {
   }
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col overflow-hidden min-h-0">
       {/* Search */}
-      <div className="border-b border-brand-cream-3 p-3">
+      <div className="border-b border-brand-cream-3 p-3 shrink-0">
         <input
           type="search"
           value={search}
@@ -98,7 +98,7 @@ export function DemoProductSearch() {
       </div>
 
       {/* Product grid */}
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="flex-1 overflow-y-auto p-3 min-h-0">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <span className="text-3xl">🧋</span>

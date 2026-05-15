@@ -168,6 +168,20 @@ export function PosCartProvider({
   const totalPaid = state.payments.reduce((sum, p) => sum + BigInt(p.amount), BigInt(0));
   const remainingBalance = grandTotal - totalPaid > BigInt(0) ? grandTotal - totalPaid : BigInt(0);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      const channel = new BroadcastChannel('pos-display');
+      channel.postMessage({
+        state,
+        subtotal: subtotalAfterDiscount.toString(),
+        totalPaid: totalPaid.toString(),
+        remainingBalance: remainingBalance.toString(),
+        grandTotal: grandTotal.toString(),
+      });
+      channel.close();
+    }
+  }, [state, subtotalAfterDiscount, totalPaid, remainingBalance, grandTotal]);
+
   return (
     <PosCartContext.Provider
       value={{

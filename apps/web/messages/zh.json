@@ -369,6 +369,9 @@
     "confirmRefundTitle": "确认退款",
     "shiftAlreadyOpen": "此门店已有开班中的班次",
     "shiftNotOpen": "无开班中的班次",
+    "cancel": "取消",
+    "confirm": "确认",
+    "loading": "加载中...",
     "paymentMethods": {
       "cash": "现金",
       "qris": "QRIS",

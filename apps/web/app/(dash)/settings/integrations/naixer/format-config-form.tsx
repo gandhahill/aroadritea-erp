@@ -224,15 +224,29 @@ export function FormatConfigForm({ configs }: Props) {
             {/* Parameter Order */}
             <div>
               <p className="mb-1 block text-xs font-medium text-brand-ink-2">Parameter Order</p>
-              <div className="flex flex-wrap gap-1 pt-0.5">
-                {config.parameterOrderJson.map((param, idx) => (
-                  <span
-                    key={param}
-                    className="inline-flex items-center rounded bg-brand-cream-2 px-1.5 py-0.5 text-[11px] font-mono text-brand-ink-2"
-                  >
-                    {idx + 1}. {param}
-                  </span>
-                ))}
+              <div className="flex flex-col gap-1 pt-0.5">
+                <input
+                  type="text"
+                  value={config.parameterOrderJson.join(', ')}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const arr = val.split(',').map(s => s.trim()).filter(Boolean);
+                    handleUpdate(config.id, { parameterOrderJson: arr });
+                  }}
+                  disabled={isPending}
+                  className="w-full rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs text-brand-ink focus:border-brand-red focus:outline-none disabled:opacity-50"
+                  placeholder="e.g. product, modifiers"
+                />
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {config.parameterOrderJson.map((param, idx) => (
+                    <span
+                      key={`${param}-${idx}`}
+                      className="inline-flex items-center rounded bg-brand-cream-2 px-1.5 py-0.5 text-[10px] font-mono text-brand-ink-2"
+                    >
+                      {idx + 1}. {param}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

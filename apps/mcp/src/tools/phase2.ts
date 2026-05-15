@@ -1091,6 +1091,129 @@ export const promotionTools = [
   },
 ] as const;
 
+// --- Operations Settings ---
+
+export const ScheduledJobListSchema = z.object({});
+
+export const ScheduledJobUpdateSchema = z.object({
+  id: z.string(),
+  cron_expression: z.string().min(9).max(64).optional(),
+  timezone: z.string().max(32).optional(),
+  enabled: z.boolean().optional(),
+  job_data: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const NotificationChannelListSchema = z.object({});
+
+export const NotificationChannelUpsertSchema = z.object({
+  id: z.string().optional(),
+  label: z.string().min(1).max(120),
+  channel_type: z.enum(['email', 'whatsapp', 'telegram']),
+  target: z.string().min(3).max(255),
+  purpose: z.enum(['all', 'outage', 'stock_alert']).optional().default('all'),
+  is_active: z.boolean().optional().default(true),
+});
+
+export const operationsTools = [
+  {
+    name: 'operations.list_scheduled_jobs',
+    description: 'List DB-managed worker schedules and their last run status.',
+    schema: ScheduledJobListSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = ScheduledJobListSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const permitted = await checkPermission(ctx, 'settings.manage', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: settings.manage');
+
+      const { listScheduledJobs } = await import('@erp/services/scheduled-jobs');
+      const result = await listScheduledJobs(ctx.tenantId, {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      });
+      return serializeResult(result);
+    },
+  },
+  {
+    name: 'operations.update_scheduled_job',
+    description: 'Update a DB-managed worker schedule without editing source code.',
+    schema: ScheduledJobUpdateSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = ScheduledJobUpdateSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const permitted = await checkPermission(ctx, 'settings.manage', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: settings.manage');
+
+      const { updateScheduledJob } = await import('@erp/services/scheduled-jobs');
+      const data = parsed.data;
+      const result = await updateScheduledJob(
+        data.id,
+        ctx.tenantId,
+        {
+          cronExpression: data.cron_expression,
+          timezone: data.timezone,
+          enabled: data.enabled,
+          jobData: data.job_data,
+        },
+        {
+          userId: ctx.userId,
+          tenantId: ctx.tenantId,
+          locationId: ctx.locationId ?? '',
+        },
+      );
+      return serializeResult(result);
+    },
+  },
+  {
+    name: 'operations.list_notification_channels',
+    description: 'List configured operational alert recipients.',
+    schema: NotificationChannelListSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = NotificationChannelListSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const permitted = await checkPermission(ctx, 'settings.manage', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: settings.manage');
+
+      const { listNotificationChannels } = await import('@erp/services/notification');
+      const result = await listNotificationChannels(ctx.tenantId);
+      return serializeResult(result);
+    },
+  },
+  {
+    name: 'operations.upsert_notification_channel',
+    description: 'Create or update an operational alert recipient.',
+    schema: NotificationChannelUpsertSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = NotificationChannelUpsertSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const { createNotificationChannel, updateNotificationChannel } = await import(
+        '@erp/services/notification'
+      );
+      const data = parsed.data;
+      const auditCtx = {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      };
+      const serviceInput = {
+        label: data.label,
+        channelType: data.channel_type,
+        target: data.target,
+        purpose: data.purpose,
+        isActive: data.is_active,
+      };
+      const result = data.id
+        ? await updateNotificationChannel(data.id, serviceInput, auditCtx)
+        : await createNotificationChannel(serviceInput, auditCtx);
+      return serializeResult(result);
+    },
+  },
+] as const;
+
 // --- Audit ---
 
 export const AuditSearchSchema = z.object({

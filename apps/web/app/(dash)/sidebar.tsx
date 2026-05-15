@@ -22,6 +22,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const t = useTranslations('nav');
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const NAV_ITEMS: NavItem[] = [
     {
@@ -172,6 +173,7 @@ export function Sidebar() {
       ),
       children: [
         { label: t('productsMenu'), href: '/inventory/products', icon: <></> },
+        { label: 'Kategori', href: '/inventory/categories', icon: <></> },
         { label: t('stockOpname'), href: '/inventory/opname', icon: <></> },
         { label: t('inventoryVariance'), href: '/inventory/variance', icon: <></> },
       ],
@@ -301,24 +303,42 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="flex w-56 flex-col border-r border-brand-cream-3 bg-card">
+    <aside className={`flex flex-col border-r border-brand-cream-3 bg-card transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-56'}`}>
       {/* Logo */}
-      <div className="flex h-14 items-center gap-3 border-b border-brand-cream-3 px-4">
-        <img src="/logo-primary.png" alt="Aroadri Tea" width={28} height={28} className="h-7 w-7" />
-        <span className="font-display text-base font-semibold text-brand-ink">ERP</span>
+      <div className={`flex h-14 items-center border-b border-brand-cream-3 px-4 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+        <div className="flex items-center gap-3 overflow-hidden">
+          <img src="/logo-primary.png" alt="Aroadri Tea" width={28} height={28} className="h-7 w-7 shrink-0" />
+          {!isCollapsed && <span className="font-display text-base font-semibold text-brand-ink shrink-0">ERP</span>}
+        </div>
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className={`shrink-0 p-1 text-brand-ink-3 hover:text-brand-ink hover:bg-brand-cream-2 rounded-md transition-colors ${isCollapsed ? 'hidden' : 'block'}`}
+          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
       </div>
+      {isCollapsed && (
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="mx-auto mt-2 p-1.5 text-brand-ink-3 hover:text-brand-ink hover:bg-brand-cream-2 rounded-md transition-colors"
+          title="Expand Sidebar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      )}
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2">
+      <nav className="flex-1 overflow-y-auto py-3 px-2 overflow-x-hidden">
         <ul className="space-y-0.5">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname.startsWith(item.href);
             const hasChildren = item.children && item.children.length > 0;
-            const isCollapsed = collapsedSections.has(item.href);
+            const isSectionCollapsed = collapsedSections.has(item.href);
 
             return (
               <li key={item.href}>
-                {hasChildren ? (
+                {hasChildren && !isCollapsed ? (
                   <>
                     <button
                       type="button"
@@ -329,12 +349,12 @@ export function Sidebar() {
                           : 'text-brand-ink-2 hover:bg-brand-cream-2 hover:text-brand-ink'
                       }`}
                     >
-                      {item.icon}
-                      <span className="flex-1 text-left">{item.label}</span>
+                      <div className="shrink-0">{item.icon}</div>
+                      <span className="flex-1 text-left whitespace-nowrap">{item.label}</span>
                       <svg
                         aria-hidden="true"
-                        className={`h-3.5 w-3.5 text-brand-ink-3 transition-transform duration-150 ${
-                          !isCollapsed ? 'rotate-90' : ''
+                        className={`h-3.5 w-3.5 shrink-0 text-brand-ink-3 transition-transform duration-150 ${
+                          !isSectionCollapsed ? 'rotate-90' : ''
                         }`}
                         fill="none"
                         viewBox="0 0 24 24"
@@ -349,7 +369,7 @@ export function Sidebar() {
                       </svg>
                     </button>
 
-                    {!isCollapsed && (
+                    {!isSectionCollapsed && (
                       <ul className="ml-5 mt-0.5 space-y-0.5 border-l border-brand-cream-3 pl-3">
                         {item.children?.map((child) => {
                           const childActive = pathname === child.href;
@@ -357,7 +377,7 @@ export function Sidebar() {
                             <li key={child.href}>
                               <Link
                                 href={child.href}
-                                className={`block rounded-md px-3 py-1.5 text-sm transition-colors ${
+                                className={`block rounded-md px-3 py-1.5 text-sm transition-colors whitespace-nowrap ${
                                   childActive
                                     ? 'bg-brand-red/10 font-medium text-brand-red'
                                     : 'text-brand-ink-3 hover:bg-brand-cream-2 hover:text-brand-ink'
@@ -374,14 +394,15 @@ export function Sidebar() {
                 ) : (
                   <Link
                     href={item.href}
+                    title={isCollapsed ? item.label : undefined}
                     className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                       isActive
                         ? 'bg-brand-red/10 text-brand-red'
                         : 'text-brand-ink-2 hover:bg-brand-cream-2 hover:text-brand-ink'
-                    }`}
+                    } ${isCollapsed ? 'justify-center px-0' : ''}`}
                   >
-                    {item.icon}
-                    {item.label}
+                    <div className="shrink-0">{item.icon}</div>
+                    {!isCollapsed && <span className="whitespace-nowrap">{item.label}</span>}
                   </Link>
                 )}
               </li>
@@ -391,7 +412,7 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-brand-cream-3 px-4 py-3">
+      <div className={`border-t border-brand-cream-3 px-4 py-3 whitespace-nowrap overflow-hidden transition-opacity ${isCollapsed ? 'opacity-0' : 'opacity-100'}`}>
         <p className="text-[10px] font-medium uppercase tracking-widest text-brand-ink-3">
           Aroadri Tea ERP
         </p>

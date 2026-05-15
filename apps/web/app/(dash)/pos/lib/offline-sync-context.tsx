@@ -22,8 +22,14 @@ import {
   maxPendingOrderAttempts,
   startHeartbeat,
   startSyncScheduler,
+  upsertModifiers,
+  upsertProducts,
+  upsertPromotions,
+  upsertTaxRates,
+  upsertVariants,
 } from '@erp/offline';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { fetchMasterDataRaw } from '../actions';
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 
@@ -32,10 +38,12 @@ interface OfflineSyncState {
   pendingCount: number;
   isSyncing: boolean;
   failedRetryCount: number;
+  isMasterDataSyncing: boolean;
 }
 
 interface OfflineSyncActions {
   syncNow: () => Promise<void>;
+  syncMasterData: () => Promise<void>;
   enqueueOrder: (
     order: Omit<
       DbPendingOrder,
@@ -54,6 +62,7 @@ export function OfflineSyncProvider({ children }: { children: React.ReactNode })
   const [isOnline, setIsOnline] = useState(true);
   const [pendingCount, setPendingCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isMasterDataSyncing, setIsMasterDataSyncing] = useState(false);
   const [failedRetryCount, setFailedRetryCount] = useState(0);
   const cleanupRef = useRef<() => void>(() => {});
 
@@ -77,10 +86,32 @@ export function OfflineSyncProvider({ children }: { children: React.ReactNode })
     }
   }, [isSyncing, refreshOutboxStatus]);
 
+  const syncMasterData = useCallback(async () => {
+    if (isMasterDataSyncing) return;
+    setIsMasterDataSyncing(true);
+    try {
+      const data = await fetchMasterDataRaw();
+      await Promise.all([
+        upsertProducts(data.products as any),
+        upsertVariants(data.variants as any),
+        upsertModifiers(data.modifiers as any),
+        upsertPromotions(data.promotions as any),
+        upsertTaxRates(data.taxRates as any),
+      ]);
+    } catch (err) {
+      console.error('Failed to sync master data to offline DB', err);
+    } finally {
+      setIsMasterDataSyncing(false);
+    }
+  }, [isMasterDataSyncing]);
+
   // Start heartbeat + sync scheduler on mount
   useEffect(() => {
     // Initial pending count
     refreshOutboxStatus();
+
+    // Sync master data initially
+    void syncMasterData();
 
     // Heartbeat
     const stopHeartbeat = startHeartbeat((online) => {
@@ -100,7 +131,7 @@ export function OfflineSyncProvider({ children }: { children: React.ReactNode })
     return () => {
       cleanupRef.current();
     };
-  }, [refreshOutboxStatus]);
+  }, [refreshOutboxStatus, syncMasterData]);
 
   // Periodic refresh of pending count
   useEffect(() => {
@@ -134,7 +165,7 @@ export function OfflineSyncProvider({ children }: { children: React.ReactNode })
 
   return (
     <OfflineSyncContext.Provider
-      value={{ isOnline, pendingCount, isSyncing, failedRetryCount, syncNow, enqueueOrder }}
+      value={{ isOnline, pendingCount, isSyncing, isMasterDataSyncing, failedRetryCount, syncNow, syncMasterData, enqueueOrder }}
     >
       {children}
     </OfflineSyncContext.Provider>

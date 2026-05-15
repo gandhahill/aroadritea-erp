@@ -9,6 +9,8 @@
 import { getSession } from '@/lib/auth';
 import { and, db, desc, eq } from '@erp/db';
 import { scheduledJobs } from '@erp/db/schema/scheduled-jobs';
+import { requirePermission } from '@erp/services/iam';
+import { revalidatePath } from 'next/cache';
 
 export interface ScheduledJobItem {
   id: string;
@@ -25,19 +27,29 @@ export interface ScheduledJobItem {
   updatedAt: Date | null;
 }
 
-async function canAccessTenant(tenantId: string): Promise<boolean> {
+async function requireContext(
+  tenantId: string,
+): Promise<{ userId: string; tenantId: string } | null> {
   const session = await getSession();
-  if (!session?.user) return false;
+  if (!session?.user) return null;
+  const user = session.user as Record<string, unknown>;
   const currentTenantId =
-    ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
-  return currentTenantId === tenantId;
+    (user.tenantId as string | undefined) ?? 'default';
+  if (currentTenantId !== tenantId) return null;
+
+  const userId = String(user.id ?? '');
+  const perm = await requirePermission(userId, 'settings.manage');
+  if (!perm.ok) return null;
+
+  return { userId, tenantId: currentTenantId };
 }
 
 /**
  * Fetch all scheduled jobs for a tenant.
  */
 export async function fetchScheduledJobs(tenantId: string): Promise<ScheduledJobItem[]> {
-  if (!(await canAccessTenant(tenantId))) return [];
+  const ctx = await requireContext(tenantId);
+  if (!ctx) return [];
   const rows = await db
     .select({
       id: scheduledJobs.id,
@@ -69,7 +81,7 @@ export async function toggleScheduledJob(
   enabled: boolean,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!(await canAccessTenant(tenantId))) return { success: false, error: 'Forbidden' };
+    if (!(await requireContext(tenantId))) return { success: false, error: 'Forbidden' };
     const result = await db
       .update(scheduledJobs)
       .set({
@@ -83,6 +95,7 @@ export async function toggleScheduledJob(
       return { success: false, error: 'Job not found' };
     }
 
+    revalidatePath('/settings/scheduled-jobs');
     return { success: true };
   } catch (err) {
     return {
@@ -100,7 +113,7 @@ export async function updateJobSchedule(
   jobId: string,
   cronExpression: string,
 ): Promise<{ success: boolean; error?: string }> {
-  if (!(await canAccessTenant(tenantId))) return { success: false, error: 'Forbidden' };
+  if (!(await requireContext(tenantId))) return { success: false, error: 'Forbidden' };
 
   // Basic cron expression validation (5 or 6 fields)
   const fields = cronExpression.trim().split(/\s+/);
@@ -122,6 +135,7 @@ export async function updateJobSchedule(
       return { success: false, error: 'Job not found' };
     }
 
+    revalidatePath('/settings/scheduled-jobs');
     return { success: true };
   } catch (err) {
     return {

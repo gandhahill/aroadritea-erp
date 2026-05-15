@@ -10,8 +10,10 @@
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/location-options';
 import { and, db, eq, ilike, inArray, or, sql } from '@erp/db';
-import { productCategories, productVariants, products } from '@erp/db/schema/inventory';
+import { productCategories, productModifierGroups, productModifierLinks, productModifierOptions, productVariants, products } from '@erp/db/schema/inventory';
 import { posSettings, salesOrders, shifts } from '@erp/db/schema/pos';
+import { promotions } from '@erp/db/schema/promotion';
+import { taxRates } from '@erp/db/schema/accounting';
 import { requirePermission } from '@erp/services/iam';
 import { type MemberLookupResult, findMemberByPhone } from '@erp/services/member';
 import { closeShift, createSale, openShift, refundSale, voidSale } from '@erp/services/pos';
@@ -400,4 +402,74 @@ export async function fetchRecentSales(params: {
     cashierName: r.cashierId,
     lines: [],
   }));
+}
+
+export async function fetchMasterDataRaw() {
+  const ctx = await getAuditContext();
+
+  const productRows = await db
+    .select()
+    .from(products)
+    .where(and(eq(products.tenantId, ctx.tenantId), eq(products.isActive, true), eq(products.isSellable, true)));
+  const variantRows = await db
+    .select()
+    .from(productVariants)
+    .where(and(eq(productVariants.tenantId, ctx.tenantId), eq(productVariants.isActive, true)));
+  const modifierRows = await db
+    .select()
+    .from(productModifierOptions)
+    .where(and(eq(productModifierOptions.tenantId, ctx.tenantId), eq(productModifierOptions.isActive, true)));
+  const promotionRows = await db
+    .select()
+    .from(promotions)
+    .where(and(eq(promotions.tenantId, ctx.tenantId), eq(promotions.isActive, true)));
+  const taxRateRows = await db
+    .select()
+    .from(taxRates)
+    .where(eq(taxRates.isActive, true));
+
+  return {
+    products: productRows.map((p) => ({
+      id: p.id,
+      sku: p.sku,
+      name: JSON.stringify(p.name),
+      categoryId: p.categoryId,
+      defaultSellPrice: p.defaultSellPrice.toString(),
+      imageUrl: p.imageUrl,
+      kind: p.kind,
+      updatedAt: p.updatedAt.toISOString(),
+    })),
+    variants: variantRows.map((v) => ({
+      id: v.id,
+      productId: v.productId,
+      name: JSON.stringify(v.name),
+      sku: v.sku,
+      sellPrice: v.sellPrice.toString(),
+      attributes: v.attributes ?? {},
+      sortOrder: v.sortOrder,
+    })),
+    modifiers: modifierRows.map((m) => ({
+      id: m.id,
+      name: JSON.stringify(m.name),
+      price: m.extraPrice.toString(),
+      category: m.groupId,
+      isActive: m.isActive,
+    })),
+    promotions: promotionRows.map((p) => ({
+      id: p.id,
+      name: JSON.stringify(p.name),
+      type: p.type,
+      rules: p.rules ?? {},
+      startDate: p.startDate.toISOString(),
+      endDate: p.endDate?.toISOString() ?? '9999-12-31T23:59:59.999Z',
+      isActive: p.isActive,
+    })),
+    taxRates: taxRateRows.map((t) => ({
+      code: t.code,
+      name: JSON.stringify(t.name),
+      rate: t.rate,
+      calculation: t.calculation,
+      appliesTo: t.appliesTo ?? [],
+    })),
+  };
 }

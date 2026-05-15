@@ -23,6 +23,7 @@ import {
   iamTools,
   inventoryTools,
   memberTools,
+  operationsTools,
   payrollTools,
   posTools,
   promotionTools,
@@ -59,6 +60,7 @@ const allTools: ToolEntry[] = [
   ...(crmTools as unknown as ToolEntry[]),
   ...(memberTools as unknown as ToolEntry[]),
   ...(promotionTools as unknown as ToolEntry[]),
+  ...(operationsTools as unknown as ToolEntry[]),
   ...(auditTools as unknown as ToolEntry[]),
 ];
 

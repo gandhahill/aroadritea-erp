@@ -11,7 +11,7 @@
 
 import type { DemoCartLine, DemoCartPayment, DemoCartState } from '@erp/offline';
 import { calcDemoTotals } from '@erp/offline';
-import { type ReactNode, createContext, useCallback, useContext, useState } from 'react';
+import { type ReactNode, createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 interface DemoCartContextValue {
   state: DemoCartState;
@@ -94,6 +94,20 @@ export function DemoCartProvider({ children }: { children: ReactNode }) {
 
   const { subtotal, taxTotal, totalPaid, remainingBalance, grandTotal, excess } =
     calcDemoTotals(state);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      const channel = new BroadcastChannel('pos-display');
+      channel.postMessage({
+        state,
+        subtotal: subtotal.toString(),
+        totalPaid: totalPaid.toString(),
+        remainingBalance: remainingBalance.toString(),
+        grandTotal: grandTotal.toString(),
+      });
+      channel.close();
+    }
+  }, [state, subtotal, totalPaid, remainingBalance, grandTotal]);
 
   return (
     <DemoCartContext.Provider

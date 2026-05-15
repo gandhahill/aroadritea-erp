@@ -369,6 +369,9 @@
     "confirmRefundTitle": "Konfirmasi Pengembalian Dana",
     "shiftAlreadyOpen": "Shift sudah dibuka di lokasi ini",
     "shiftNotOpen": "Tidak ada shift terbuka",
+    "cancel": "Batal",
+    "confirm": "Konfirmasi",
+    "loading": "Memuat...",
     "paymentMethods": {
       "cash": "Tunai",
       "qris": "QRIS",

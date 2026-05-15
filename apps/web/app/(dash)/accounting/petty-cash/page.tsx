@@ -13,6 +13,7 @@ export default async function PettyCashPage() {
   if (!session) redirect('/login');
 
   const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
+  const userLocationId = ((session.user as Record<string, unknown>)?.locationId as string) ?? 'store-malioboro-1';
   const accounts = await fetchPettyCashAccounts(tenantId);
 
   const transactions: Record<string, Awaited<ReturnType<typeof fetchPettyCashTransactions>>> = {};
@@ -29,7 +30,7 @@ export default async function PettyCashPage() {
         </p>
       </div>
 
-      <PettyCashView accounts={accounts} transactions={transactions} />
+      <PettyCashView accounts={accounts} transactions={transactions} userLocationId={userLocationId} />
     </div>
   );
 }

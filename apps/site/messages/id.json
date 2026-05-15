@@ -148,7 +148,11 @@
       "privacy": "Kebijakan Privasi",
       "consentJoiner": "dan",
       "submit": "Daftar",
-      "submitting": "Mengirim OTP..."
+      "submitting": "Mengirim OTP...",
+      "otpSendFailed": "Gagal mengirim OTP. Pastikan email Anda benar atau coba lagi nanti.",
+      "otpProviderNotConfigured": "Sistem OTP belum dikonfigurasi. Hubungi admin.",
+      "validationFailed": "Data yang Anda masukkan tidak valid.",
+      "captchaFailed": "Verifikasi captcha gagal. Coba lagi."
     },
     "otp": {
       "title": "Verifikasi Email",

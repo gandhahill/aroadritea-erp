@@ -148,7 +148,11 @@
       "privacy": "Privacy Policy",
       "consentJoiner": "and",
       "submit": "Join Member",
-      "submitting": "Sending OTP..."
+      "submitting": "Sending OTP...",
+      "otpSendFailed": "Failed to send OTP. Ensure your email is correct or try again later.",
+      "otpProviderNotConfigured": "OTP system is not configured. Contact admin.",
+      "validationFailed": "The data you entered is invalid.",
+      "captchaFailed": "Captcha verification failed. Try again."
     },
     "otp": {
       "title": "Verify Email",

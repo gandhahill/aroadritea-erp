@@ -31,21 +31,21 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       {/* Sidebar navigation */}
       <Sidebar />
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="flex h-14 items-center justify-end border-b border-brand-cream-3 bg-card px-6">
+        <header className="flex h-14 items-center justify-end border-b border-brand-cream-3 bg-card px-6 shrink-0">
           <div className="flex items-center gap-3">
             <LocaleSwitcher />
             <Link
               href="/account"
               className="flex items-center gap-2 rounded-lg px-2 py-1 transition hover:bg-brand-cream-1"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-red/10">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-red/10 shrink-0">
                 <span className="text-sm font-semibold text-brand-red">
                   {String(session.user?.name || session.user?.email || t('accountFallback'))
                     .charAt(0)
@@ -56,7 +56,7 @@ export default async function DashboardLayout({
                 <p className="text-sm font-medium text-brand-ink">
                   {String(session.user?.name || t('accountFallback'))}
                 </p>
-                <p className="text-[11px] text-brand-ink-3">{String(session.user?.email || '')}</p>
+                <p className="text-[11px] text-brand-ink-3 truncate max-w-[120px]">{String(session.user?.email || '')}</p>
               </div>
             </Link>
             <LogoutButton label={t('logout')} loadingLabel={t('loggingOut')} />
@@ -64,7 +64,7 @@ export default async function DashboardLayout({
         </header>
 
         {/* Page content */}
-        <main className="flex-1 bg-brand-cream p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto bg-brand-cream p-6">{children}</main>
       </div>
     </div>
   );
