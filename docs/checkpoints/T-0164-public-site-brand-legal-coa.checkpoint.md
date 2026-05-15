@@ -2,8 +2,8 @@
 
 - **Owner**: Codex
 - **Started**: 2026-05-15 06:57
-- **Last updated**: 2026-05-15 08:44
-- **Status**: 🟨 IN_PROGRESS
+- **Last updated**: 2026-05-15 09:06
+- **Status**: 🟩 DONE
 
 ## Goal
 Koreksi public website dan data accounting sesuai arahan user 2026-05-15:
@@ -23,7 +23,7 @@ Spec: SOURCE-OF-TRUTH §10, §15, §22, §23; SYSTEM-DESIGN §31, §36, §38.
 4. [x] Polish header/logo/favicon/font/copy public site.
 5. [x] Tambah legal pages ID/EN/ZH dan i18n signup/OTP.
 6. [x] Jalankan lint/typecheck/build/smoke visual.
-7. [ ] Commit, push, dan bila valid deploy/pull server.
+7. [x] Commit, push, dan bila valid deploy/pull server.
 
 ## Done so far
 - Membaca dokumen wajib dan menemukan Active Tasks kosong.
@@ -39,6 +39,7 @@ Spec: SOURCE-OF-TRUTH §10, §15, §22, §23; SYSTEM-DESIGN §31, §36, §38.
 - Member signup + OTP memakai i18n ID/EN/ZH; halaman legal `/syarat-dan-ketentuan` dan `/kebijakan-privasi` ditambahkan untuk semua locale.
 - Seed lokasi sekarang punya 2 outlet aktif plus kantor internal `YOG-OFC` dan `JKT-OFC`; query public tetap filter `type='store'`.
 - Bootstrap admin seed tidak lagi memakai password default; admin pertama hanya dibuat jika `SEED_ADMIN_PASSWORD` diisi eksplisit.
+- Commit `841f4fd` sudah dipush ke GitHub, dipull di VPS, migration + seed production berhasil, semua app production dibuild ulang dan PM2 reload.
 
 ## Decisions
 - Public locations tetap hanya `type='store'`, sehingga office tidak akan tampil di website publik.
@@ -48,7 +49,7 @@ Spec: SOURCE-OF-TRUTH §10, §15, §22, §23; SYSTEM-DESIGN §31, §36, §38.
 - Belum ada.
 
 ## Next step
-Commit, push ke GitHub, lalu deploy server PM2: pull latest, install/build, migrate + seed, reload PM2, dan live smoke check.
+None. T-0164 selesai dan sudah deploy production. Jika ada perubahan lanjutan, buat task baru.
 
 ## Test status
 - Sebelum update lokasi internal: JSON parse OK, `@erp/site`, `@erp/db`, `@erp/services` typecheck OK, `pnpm lint:fix` OK, `@erp/services` vitest 527 tests OK.
@@ -67,3 +68,6 @@ Commit, push ke GitHub, lalu deploy server PM2: pull latest, install/build, migr
   - `pnpm --filter @erp/db generate` OK, no schema changes.
   - `pnpm --filter @erp/services exec vitest run` OK: 24 files, 527 tests.
   - Playwright local site smoke OK on Next start: CSS loaded, legal pages 200, locations outlet-only, footer icons/logo present, `中国茶` visible, `Normal sugar`/`Normal ice` visible, no mobile horizontal overflow.
+  - Production VPS: `git pull --ff-only`, `pnpm --filter @erp/db migrate`, `pnpm --filter @erp/db seed`, `pnpm --filter @erp/site build`, `pnpm --filter @erp/web build`, `pnpm --filter @erp/mcp build`, `pnpm --filter @erp/worker build`, `pm2 reload` OK.
+  - Live smoke: `/id`, `/id/menu`, `/id/lokasi`, `/id/member/daftar`, `/id/kebijakan-privasi`, `/id/syarat-dan-ketentuan`, `https://erp.aroadritea.com/api/healthz`, dan `https://aroadritea.com/api/healthz` semuanya HTTP 200.
+  - Live visual smoke Playwright: CSS stylesheet aktif, body font brand aktif, background bukan polos, hero Aroadri tampil, final URL tetap domain production.

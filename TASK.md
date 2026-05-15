@@ -24,7 +24,6 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0164 | Public site brand/legal/i18n polish + office-aware COA correction | Codex | 2026-05-15 06:57 | 2026-05-15 08:44 | 🟨 IN_PROGRESS | Restore office accounts internally, keep public site outlet-only, add legal pages and member i18n |
 
 ---
 
@@ -173,6 +172,7 @@
 | T-0161 | Final production hardening and smoke test | Codex | 2026-05-14 | b91cab0 | Production checks, redirect fix, i18n parity, public site CSS, SSH key verified |
 | T-0162 | Public site polish + POS/accounting/tax production hardening | Codex | 2026-05-14 | c829e30 | Real menu/photos, member lookup flow, POS/accounting/tax fixes, worker fail-closed safety, PM2 deploy and health checks OK |
 | T-0163 | Public site CSS fix, Yogyakarta-only locations, and production readiness audit | Codex | 2026-05-15 | aeeb295 | Tailwind CSS fixed on live site, Yogyakarta-only public locations seeded, POS/accounting/tax tests pass, PM2 deploy and live smoke checks OK |
+| T-0164 | Public site brand/legal/i18n polish + office-aware COA correction | Codex | 2026-05-15 | 841f4fd | Normal sugar/ice added, legal pages/member i18n, outlet-only public site, legacy COA/POS defaults, bootstrap admin hardened, PM2 deploy and live smoke checks OK |
 
 ---
 
