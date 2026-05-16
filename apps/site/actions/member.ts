@@ -43,7 +43,8 @@ export async function signupAction(formData: FormData) {
     if (result.error.code === 'VALIDATION_FAILED' && result.error.details) {
       return { success: false, error: `${String(result.error)} - Details: ${JSON.stringify(result.error.details)}` };
     }
-    return { success: false, error: String(result.error) };
+    // Return full details for debugging
+    return { success: false, error: `${String(result.error)} - ${JSON.stringify(result.error.details)}` };
   }
   return { success: true, token: result.value.token };
 }
