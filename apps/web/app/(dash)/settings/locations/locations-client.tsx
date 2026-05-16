@@ -31,6 +31,10 @@ interface Labels {
   warehouse: string;
   saved: string;
   delete: string;
+  gpsLat: string;
+  gpsLng: string;
+  gpsRadius: string;
+  pickFromBrowser: string;
 }
 
 interface Props {
@@ -47,7 +51,25 @@ const emptyLocation: LocationDraft = {
   currency: 'IDR',
   address: '',
   status: 'active',
+  gpsLat: '',
+  gpsLng: '',
+  gpsRadiusM: null,
 };
+
+function pickGpsFromBrowser(): Promise<{ lat: string; lng: string } | null> {
+  return new Promise((resolve) => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return resolve(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        resolve({
+          lat: pos.coords.latitude.toFixed(6),
+          lng: pos.coords.longitude.toFixed(6),
+        }),
+      () => resolve(null),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+  });
+}
 
 export function LocationsClient({ locations, labels }: Props) {
   const [rows, setRows] = useState<LocationDraft[]>(locations);
@@ -153,6 +175,9 @@ export function LocationsClient({ locations, labels }: Props) {
               <th className="px-3 py-3">{labels.timezone}</th>
               <th className="px-3 py-3">{labels.currency}</th>
               <th className="px-3 py-3">{labels.address}</th>
+              <th className="px-3 py-3">{labels.gpsLat}</th>
+              <th className="px-3 py-3">{labels.gpsLng}</th>
+              <th className="px-3 py-3">{labels.gpsRadius}</th>
               <th className="px-3 py-3"></th>
             </tr>
           </thead>
@@ -231,6 +256,50 @@ export function LocationsClient({ locations, labels }: Props) {
                     value={row.address}
                     onChange={(event) => updateRow(index, { address: event.target.value })}
                     className="min-h-16 w-56 rounded-md border border-brand-cream-3 bg-brand-cream-1 px-2 py-1.5 text-brand-ink"
+                  />
+                </td>
+                <td className="px-3 py-3">
+                  <div className="flex flex-col gap-1">
+                    <input
+                      value={row.gpsLat}
+                      onChange={(event) => updateRow(index, { gpsLat: event.target.value })}
+                      placeholder="-7.797068"
+                      className="h-9 w-28 rounded-md border border-brand-cream-3 bg-brand-cream-1 px-2 text-brand-ink"
+                    />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const here = await pickGpsFromBrowser();
+                        if (here) updateRow(index, { gpsLat: here.lat, gpsLng: here.lng });
+                      }}
+                      className="text-[10px] text-brand-red hover:underline"
+                    >
+                      {labels.pickFromBrowser}
+                    </button>
+                  </div>
+                </td>
+                <td className="px-3 py-3">
+                  <input
+                    value={row.gpsLng}
+                    onChange={(event) => updateRow(index, { gpsLng: event.target.value })}
+                    placeholder="110.370529"
+                    className="h-9 w-28 rounded-md border border-brand-cream-3 bg-brand-cream-1 px-2 text-brand-ink"
+                  />
+                </td>
+                <td className="px-3 py-3">
+                  <input
+                    type="number"
+                    min={10}
+                    max={5000}
+                    step={5}
+                    value={row.gpsRadiusM ?? ''}
+                    onChange={(event) =>
+                      updateRow(index, {
+                        gpsRadiusM: event.target.value === '' ? null : Number(event.target.value),
+                      })
+                    }
+                    placeholder="100"
+                    className="h-9 w-20 rounded-md border border-brand-cream-3 bg-brand-cream-1 px-2 text-brand-ink"
                   />
                 </td>
                 <td className="px-3 py-3">

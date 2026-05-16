@@ -56,6 +56,8 @@ export default async function AttendancePage({
       lateMinutes: attendance.lateMinutes,
       workedMinutes: attendance.workedMinutes,
       shiftCode: attendance.shiftDefinitionCode,
+      lateForgiven: attendance.lateForgiven,
+      lateForgivenReason: attendance.lateForgivenReason,
     })
     .from(attendance)
     .where(whereClause)
@@ -85,6 +87,8 @@ export default async function AttendancePage({
     isLate: r.isLate,
     lateMinutes: Number(r.lateMinutes),
     workedMinutes: r.workedMinutes ? Number(r.workedMinutes) : null,
+    lateForgiven: r.lateForgiven,
+    lateForgivenReason: r.lateForgivenReason,
   }));
 
   // Load employees for filter dropdown

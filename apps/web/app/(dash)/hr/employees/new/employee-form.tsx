@@ -8,7 +8,11 @@ import { createEmployeeAction } from '../actions';
 const INPUT =
   'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
 
-export function EmployeeForm() {
+interface EmployeeFormProps {
+  assignableRoles?: Array<{ code: string; label: string }>;
+}
+
+export function EmployeeForm({ assignableRoles = [] }: EmployeeFormProps) {
   const router = useRouter();
   const t = useTranslations('hr.employees');
   const f = useTranslations('hr.employees.form');
@@ -64,6 +68,31 @@ export function EmployeeForm() {
         <Field label={f('bpjsTenagakerja')} name="bpjsTenagakerja" />
         <Field label={f('emergencyName')} name="emergencyContactName" />
         <Field label={f('emergencyPhone')} name="emergencyContactPhone" />
+      </Section>
+
+      <Section title={f('loginSection')}>
+        <label className="space-y-1.5">
+          <span className="text-sm font-medium text-brand-ink">{f('role')}</span>
+          <select name="roleCode" defaultValue="" className={INPUT}>
+            <option value="">{f('noLogin')}</option>
+            {assignableRoles.map((role) => (
+              <option key={role.code} value={role.code}>
+                {role.label} ({role.code})
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="space-y-1.5">
+          <span className="text-sm font-medium text-brand-ink">{f('password')}</span>
+          <input
+            type="password"
+            name="password"
+            autoComplete="new-password"
+            minLength={8}
+            placeholder={f('passwordHint')}
+            className={INPUT}
+          />
+        </label>
       </Section>
 
       <div className="flex items-center justify-end gap-3">

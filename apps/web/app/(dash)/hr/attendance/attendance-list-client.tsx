@@ -6,7 +6,8 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
+import { forgiveLateAction } from './actions';
 
 interface AttendanceRow {
   id: string;
@@ -19,6 +20,8 @@ interface AttendanceRow {
   isLate: boolean;
   lateMinutes: number;
   workedMinutes: number | null;
+  lateForgiven?: boolean;
+  lateForgivenReason?: string | null;
 }
 
 function formatDateTime(iso: string): string {
@@ -62,6 +65,29 @@ export function AttendanceListClient({
 }: Props) {
   const router = useRouter();
   const [, startTransition] = useTransition();
+  const [forgiveId, setForgiveId] = useState<string | null>(null);
+  const [forgiveReason, setForgiveReason] = useState('');
+  const [forgiveErr, setForgiveErr] = useState<string | null>(null);
+  const [forgiving, setForgiving] = useState(false);
+
+  async function submitForgive() {
+    if (!forgiveId) return;
+    if (forgiveReason.trim().length < 3) {
+      setForgiveErr('Alasan minimal 3 karakter.');
+      return;
+    }
+    setForgiving(true);
+    setForgiveErr(null);
+    const res = await forgiveLateAction(forgiveId, forgiveReason.trim());
+    setForgiving(false);
+    if (!res.ok) {
+      setForgiveErr(res.error ?? 'Gagal memaafkan keterlambatan.');
+      return;
+    }
+    setForgiveId(null);
+    setForgiveReason('');
+    router.refresh();
+  }
 
   const applyFilter = (opts: {
     employeeId?: string;
@@ -166,6 +192,7 @@ export function AttendanceListClient({
                 <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Method</th>
                 <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Late</th>
                 <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Worked</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
@@ -178,24 +205,86 @@ export function AttendanceListClient({
                     {formatDateTime(row.checkOutAt ?? '')}
                   </td>
                   <td className="px-4 py-3 text-brand-ink-2 capitalize">
-                    {row.checkInMethod === 'gps' ? 'GPS' : 'QR'}
+                    {row.checkInMethod === 'gps' ? 'GPS' : row.checkInMethod}
                   </td>
                   <td className="px-4 py-3">
                     {row.isLate ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-medium text-rose-500">
-                        +{row.lateMinutes}m
-                      </span>
+                      row.lateForgiven ? (
+                        <span
+                          className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade/10 px-2.5 py-0.5 text-xs font-medium text-brand-jade"
+                          title={row.lateForgivenReason ?? ''}
+                        >
+                          +{row.lateMinutes}m (dimaafkan)
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-medium text-rose-500">
+                          +{row.lateMinutes}m
+                        </span>
+                      )
                     ) : (
                       <span className="text-xs text-brand-jade">On time</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-brand-ink-2">{formatMinutes(row.workedMinutes)}</td>
+                  <td className="px-4 py-3">
+                    {row.isLate && !row.lateForgiven ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setForgiveId(row.id);
+                          setForgiveReason('');
+                          setForgiveErr(null);
+                        }}
+                        className="rounded-md border border-brand-cream-3 px-2.5 py-1 text-xs font-semibold text-brand-ink-2 hover:border-brand-jade/40 hover:text-brand-jade"
+                      >
+                        Maafkan
+                      </button>
+                    ) : null}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
+
+      {forgiveId ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-xl bg-card p-5 shadow-xl">
+            <h3 className="text-base font-semibold text-brand-ink">Maafkan keterlambatan</h3>
+            <p className="mt-1 text-sm text-brand-ink-3">
+              Catat alasan agar audit trail jelas. Setelah dimaafkan, kejadian
+              ini tidak dihitung untuk denda payroll.
+            </p>
+            <textarea
+              value={forgiveReason}
+              onChange={(event) => setForgiveReason(event.target.value)}
+              placeholder="Mis. shift dimajukan dadakan oleh manajer."
+              className="mt-3 h-24 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
+            />
+            {forgiveErr ? (
+              <p className="mt-1 text-xs text-rose-600">{forgiveErr}</p>
+            ) : null}
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setForgiveId(null)}
+                className="rounded-md border border-brand-cream-3 px-3 py-2 text-sm font-semibold text-brand-ink-3 hover:bg-brand-cream-1"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={submitForgive}
+                disabled={forgiving}
+                className="rounded-md bg-brand-red px-3 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
+              >
+                {forgiving ? 'Menyimpan...' : 'Konfirmasi'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Pagination */}
       {totalPages > 1 && (

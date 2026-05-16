@@ -43,7 +43,6 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
     watchId: null,
   });
   const [selectedShift, setSelectedShift] = useState(shifts[0]?.id ?? '');
-  const [method, setMethod] = useState<'gps' | 'qr_scan'>('gps');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
@@ -126,16 +125,15 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
       locationId,
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
     };
-    const gpsData =
-      method === 'gps' && gps.data
-        ? { ...gps.data, source: gps.data.source ?? 'geolocation_api' }
-        : undefined;
+    const gpsData = gps.data
+      ? { ...gps.data, source: gps.data.source ?? 'geolocation_api' }
+      : undefined;
 
     const res = await serverCheckIn(
       {
         employeeId,
         shiftDefinitionId: selectedShift || undefined,
-        method,
+        method: 'gps',
         gpsData,
       },
       ctx,
@@ -159,7 +157,7 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
     }
   };
   const canCheckIn =
-    (method === 'qr_scan' || gps.status === 'granted' || gps.status === 'low_accuracy') &&
+    (gps.status === 'granted' || gps.status === 'low_accuracy') &&
     !submitting &&
     !!employeeId &&
     !!selectedShift;
@@ -228,30 +226,6 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
               {t('actions.requestPermissionAgain')}
             </button>
           )}
-        </div>
-
-        {/* Method toggle */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => setMethod('gps')}
-            className={`flex-1 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors ${
-              method === 'gps'
-                ? 'border-brand-ember-5 bg-brand-ember-5 text-white'
-                : 'border-brand-cream-3 bg-card text-brand-ink'
-            }`}
-          >
-            {attendanceT('methodGPS')}
-          </button>
-          <button
-            onClick={() => setMethod('qr_scan')}
-            className={`flex-1 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors ${
-              method === 'qr_scan'
-                ? 'border-brand-ember-5 bg-brand-ember-5 text-white'
-                : 'border-brand-cream-3 bg-card text-brand-ink'
-            }`}
-          >
-            {attendanceT('methodQR')}
-          </button>
         </div>
 
         {/* Shift selection */}

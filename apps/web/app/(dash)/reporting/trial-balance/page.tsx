@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchTrialBalance } from '../actions';
+import { ExportXlsxButton } from '../export-button';
 
 export const metadata: Metadata = {
   title: 'Trial Balance',
@@ -33,11 +34,35 @@ export default async function TrialBalancePage({
             Neraca Saldo as of <span className="font-medium text-brand-ink">{asOf}</span>
           </p>
         </div>
-        {data?.isPreliminary && (
-          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
-            ⚠ Preliminary
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {data?.isPreliminary && (
+            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+              ⚠ Preliminary
+            </span>
+          )}
+          {data ? (
+            <ExportXlsxButton
+              filename={`trial-balance-${asOf}.xlsx`}
+              sheets={[
+                {
+                  name: 'Trial Balance',
+                  rows: [
+                    ['Code', 'Account', 'Type', 'Total Debit', 'Total Credit', 'Balance'],
+                    ...data.lines.map((l) => [
+                      l.accountCode,
+                      l.accountName.id ?? l.accountName.en ?? '',
+                      l.accountType,
+                      Number(l.totalDebit),
+                      Number(l.totalCredit),
+                      Number(l.balance),
+                    ]),
+                    ['', 'TOTAL', '', Number(data.totalDebit), Number(data.totalCredit), ''],
+                  ],
+                },
+              ]}
+            />
+          ) : null}
+        </div>
       </div>
 
       {data ? (

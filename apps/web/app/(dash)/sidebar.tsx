@@ -26,6 +26,26 @@ export function Sidebar() {
 
   const NAV_ITEMS: NavItem[] = [
     {
+      label: t('dashboard'),
+      href: '/dashboard',
+      icon: (
+        <svg
+          aria-hidden="true"
+          className="h-4.5 w-4.5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1.5}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M2.25 12 12 2.25 21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"
+          />
+        </svg>
+      ),
+    },
+    {
       label: t('cms'),
       href: '/cms',
       icon: (
@@ -247,6 +267,7 @@ export function Sidebar() {
       ),
       children: [
         { label: t('employees'), href: '/hr/employees', icon: <></> },
+        { label: t('checkIn'), href: '/hr/checkin', icon: <></> },
         { label: t('attendance'), href: '/hr/attendance', icon: <></> },
         { label: t('leave'), href: '/hr/leave', icon: <></> },
         { label: t('payroll'), href: '/hr/payroll', icon: <></> },
@@ -418,7 +439,6 @@ export function Sidebar() {
         <p className="brand-wordmark text-[10px] uppercase tracking-widest text-brand-ink-3">
           Aroadri Tea ERP
         </p>
-        <p className="text-[10px] text-brand-ink-3/60">v0.1.0 — Phase 1</p>
       </div>
     </aside>
   );

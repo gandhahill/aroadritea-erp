@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchBalanceSheet } from '../actions';
+import { ExportXlsxButton } from '../export-button';
 
 export const metadata: Metadata = {
   title: 'Balance Sheet',
@@ -49,6 +50,60 @@ export default async function BalanceSheetPage({
             <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-600">
               ⚠ Unbalanced
             </span>
+          ) : null}
+          {data ? (
+            <ExportXlsxButton
+              filename={`balance-sheet-${asOf}.xlsx`}
+              sheets={[
+                {
+                  name: 'Assets',
+                  rows: [
+                    ['Code', 'Name', 'Balance (IDR)'],
+                    ...data.assets.accounts.map((a) => [
+                      a.accountCode,
+                      a.accountName.id ?? a.accountName.en ?? '',
+                      Number(a.balance),
+                    ]),
+                    ['', 'TOTAL ASSETS', Number(data.assets.total)],
+                  ],
+                },
+                {
+                  name: 'Liabilities',
+                  rows: [
+                    ['Code', 'Name', 'Balance (IDR)'],
+                    ...data.liabilities.accounts.map((a) => [
+                      a.accountCode,
+                      a.accountName.id ?? a.accountName.en ?? '',
+                      Number(a.balance),
+                    ]),
+                    ['', 'TOTAL LIABILITIES', Number(data.liabilities.total)],
+                  ],
+                },
+                {
+                  name: 'Equity',
+                  rows: [
+                    ['Code', 'Name', 'Balance (IDR)'],
+                    ...data.equity.accounts.map((a) => [
+                      a.accountCode,
+                      a.accountName.id ?? a.accountName.en ?? '',
+                      Number(a.balance),
+                    ]),
+                    ['', 'Retained Earnings', Number(data.retainedEarnings)],
+                    ['', 'TOTAL EQUITY', Number(data.totalEquityWithRetained)],
+                  ],
+                },
+                {
+                  name: 'Summary',
+                  rows: [
+                    ['As Of', asOf],
+                    ['Total Assets', Number(data.assets.total)],
+                    ['Total Liabilities + Equity', Number(data.totalLiabilitiesAndEquity)],
+                    ['Balanced?', data.isBalanced ? 'YES' : 'NO'],
+                    ['Preliminary?', data.isPreliminary ? 'YES' : 'NO'],
+                  ],
+                },
+              ]}
+            />
           ) : null}
         </div>
       </div>

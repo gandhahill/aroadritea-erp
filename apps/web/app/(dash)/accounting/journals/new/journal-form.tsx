@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useMemo, useState } from 'react';
+import { uploadAttachmentAction } from '../attachments/actions';
 import { type JournalFormAccount, type JournalFormLocation, createJournalAction } from '../actions';
 
 const INPUT =
@@ -48,11 +49,49 @@ export function JournalForm({ accounts, locations }: Props) {
     },
   ]);
 
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [uploadingAttachments, setUploadingAttachments] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!state?.ok || !state.journalId) return;
-    router.push(`/accounting/journals/${state.journalId}`);
-    router.refresh();
-  }, [router, state]);
+    const journalId = state.journalId;
+    if (pendingFiles.length === 0) {
+      router.push(`/accounting/journals/${journalId}`);
+      router.refresh();
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setUploadingAttachments(true);
+      setUploadError(null);
+      try {
+        for (const file of pendingFiles) {
+          const fd = new FormData();
+          fd.append('journalEntryId', journalId);
+          fd.append('file', file);
+          const res = await uploadAttachmentAction(fd);
+          if (res && 'error' in res && res.error) {
+            throw new Error(res.error);
+          }
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setUploadError(err instanceof Error ? err.message : 'Gagal mengunggah lampiran.');
+          setUploadingAttachments(false);
+          return;
+        }
+      }
+      if (!cancelled) {
+        setUploadingAttachments(false);
+        router.push(`/accounting/journals/${journalId}`);
+        router.refresh();
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [router, state, pendingFiles]);
 
   const totals = useMemo(() => {
     return lines.reduce(
@@ -257,6 +296,41 @@ export function JournalForm({ accounts, locations }: Props) {
         </div>
       </section>
 
+      <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
+        <h2 className="text-base font-semibold text-brand-ink">Lampiran (opsional)</h2>
+        <p className="mt-1 text-sm text-brand-ink-3">
+          Unggah bukti transaksi atau dokumen pendukung. File akan otomatis
+          terpasang setelah draft jurnal berhasil dibuat. Maksimum 10 MB per
+          file.
+        </p>
+        <div className="mt-3 space-y-2">
+          <input
+            type="file"
+            multiple
+            onChange={(event) => {
+              const files = Array.from(event.target.files ?? []);
+              setPendingFiles(files);
+            }}
+            className="block w-full text-sm text-brand-ink-2 file:mr-4 file:rounded-md file:border-0 file:bg-brand-red file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-brand-red-dark"
+          />
+          {pendingFiles.length > 0 ? (
+            <ul className="text-xs text-brand-ink-3">
+              {pendingFiles.map((f) => (
+                <li key={f.name}>
+                  • {f.name} ({Math.round(f.size / 1024)} KB)
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {uploadError ? (
+            <p className="text-xs text-rose-600">{uploadError}</p>
+          ) : null}
+          {uploadingAttachments ? (
+            <p className="text-xs text-brand-ink-3">Mengunggah lampiran…</p>
+          ) : null}
+        </div>
+      </section>
+
       <div className="flex items-center justify-end gap-3">
         <button
           type="button"
@@ -267,10 +341,15 @@ export function JournalForm({ accounts, locations }: Props) {
         </button>
         <button
           type="submit"
-          disabled={isPending || accounts.length === 0 || locations.length === 0}
+          disabled={
+            isPending ||
+            uploadingAttachments ||
+            accounts.length === 0 ||
+            locations.length === 0
+          }
           className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
         >
-          {isPending ? t('saving') : t('saveDraft')}
+          {isPending || uploadingAttachments ? t('saving') : t('saveDraft')}
         </button>
       </div>
     </form>

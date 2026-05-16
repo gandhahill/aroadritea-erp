@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { fetchAssignableRoles } from '../actions';
 import { EmployeeForm } from './employee-form';
 
 export const metadata: Metadata = {
   title: 'Tambah Karyawan - Aroadri ERP',
 };
 
-export default function NewEmployeePage() {
+export default async function NewEmployeePage() {
+  const roles = await fetchAssignableRoles();
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
@@ -18,10 +20,12 @@ export default function NewEmployeePage() {
         </Link>
         <h1 className="mt-3 text-2xl font-bold text-brand-ink">Tambah karyawan</h1>
         <p className="mt-1 text-sm text-brand-ink-3">
-          Data karyawan masuk ke HR, payroll, attendance, cuti, dan audit ERP.
+          Data karyawan masuk ke HR, payroll, presensi, cuti, dan audit ERP. Isi
+          juga sandi awal dan role bila ingin karyawan langsung dapat masuk ke
+          ERP setelah disimpan.
         </p>
       </div>
-      <EmployeeForm />
+      <EmployeeForm assignableRoles={roles} />
     </div>
   );
 }

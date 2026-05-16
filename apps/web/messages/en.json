@@ -271,7 +271,7 @@
       "activeCount": "{count} active",
       "totalCount": "{count} total",
       "howItWorksTitle": "How it works",
-      "howItWorksBody": "The worker reads schedules from the database every 60 seconds. Toggle jobs or edit cron here without redeploying. Cron format:",
+      "howItWorksBody": "The worker reads schedules from the database every 60 seconds. Toggle jobs or edit cron from this page. Cron format:",
       "cronExample": "minute hour day month weekday"
     },
     "backup": {
@@ -383,7 +383,7 @@
     },
     "categories": {
       "title": "Product Categories",
-      "subtitle": "Manage POS product categories without editing source code.",
+      "subtitle": "Manage POS product categories from this page.",
       "newNamePlaceholder": "New category name",
       "code": "Category code",
       "codePlaceholder": "TEA",
@@ -487,6 +487,7 @@
     "hrPayroll": "HR & Payroll",
     "employees": "Employees",
     "attendance": "Attendance",
+    "checkIn": "Check In",
     "leave": "Leave",
     "payroll": "Payroll",
     "disciplinary": "Disciplinary Actions",
@@ -701,7 +702,14 @@
       "statusProbation": "Probation",
       "statusActive": "Active",
       "statusOnLeave": "On Leave",
-      "statusTerminated": "Terminated"
+      "statusTerminated": "Terminated",
+      "form": {
+        "loginSection": "ERP Login Access (optional)",
+        "role": "Role",
+        "noLogin": "— No login required —",
+        "password": "Initial password",
+        "passwordHint": "Min 8 chars. The employee can change it after first login."
+      }
     },
     "contracts": {
       "title": "Employment Contracts",
@@ -723,7 +731,6 @@
       "date": "Date",
       "method": "Method",
       "methodGPS": "GPS",
-      "methodQR": "QR Code",
       "lateMinutes": "Late (min)",
       "workedMinutes": "Worked",
       "workedDays": "Days worked",
@@ -932,7 +939,7 @@
     },
     "attendance": {
       "title": "Attendance Policy",
-      "subtitle": "Adjust late/absent penalties and the monthly free-late allowance without redeploying.",
+      "subtitle": "Adjust late/absent penalties and the monthly free-late allowance per company policy.",
       "penaltyTitle": "Attendance Penalties",
       "penaltyHint": "Automatically applied to the monthly payroll calculation for each employee.",
       "latePenalty": "Penalty per late event",
@@ -950,7 +957,7 @@
     },
     "loyalty": {
       "title": "Loyalty Settings",
-      "subtitle": "Adjust point earn rate and tier thresholds without editing source code.",
+      "subtitle": "Adjust point earn rate and tier thresholds per your loyalty programme.",
       "earnRateTitle": "Point Earn Rate",
       "earnRateHint": "Each member customer earns 1 point per amount of net purchase below.",
       "rupiahPerPoint": "Per rupiah spent",
@@ -993,7 +1000,11 @@
       "office": "Office",
       "warehouse": "Warehouse",
       "saved": "Location saved.",
-      "delete": "Delete"
+      "delete": "Delete",
+      "gpsLat": "GPS Latitude",
+      "gpsLng": "GPS Longitude",
+      "gpsRadius": "Radius (m)",
+      "pickFromBrowser": "Pick from browser"
     },
     "customFields": {
       "title": "Custom Fields",
@@ -1288,7 +1299,7 @@
     "editor": {
       "eyebrow": "CMS Docs",
       "title": "Edit ERP Docs",
-      "subtitle": "Update guides, tutorials, and work instructions from the UI. Saved changes become the Docs page source without editing source code.",
+      "subtitle": "Update guides, tutorials, and work instructions from the UI. Saved changes become the Docs page content immediately.",
       "save": "Save Docs",
       "saving": "Saving...",
       "docTitle": "Page title",

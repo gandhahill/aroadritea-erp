@@ -181,6 +181,12 @@ export const attendance = pgTable(
     // SOP late rules (SD §21.8 §Attendance SOP)
     isLate: boolean('is_late').notNull().default(false),
     lateMinutes: integer('late_minutes').notNull().default(0),
+    // Supervisor can waive the late status (excuse) so it does not count
+    // toward payroll penalties — e.g. schedule changed at the last minute.
+    lateForgiven: boolean('late_forgiven').notNull().default(false),
+    lateForgivenBy: text('late_forgiven_by'),
+    lateForgivenReason: text('late_forgiven_reason'),
+    lateForgivenAt: timestamp('late_forgiven_at', { withTimezone: true }),
 
     // Shift actual worked (auto-calculated from check-in/out minus break)
     workedMinutes: integer('worked_minutes'),

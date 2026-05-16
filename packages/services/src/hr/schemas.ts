@@ -44,6 +44,13 @@ export const CreateEmployeeInputSchema = z.object({
   bpjsTenagakerja: z.string().optional(),
   emergencyContactName: z.string().optional(),
   emergencyContactPhone: z.string().optional(),
+  /**
+   * Optional ERP login provisioning. If `password` + `roleCode` are given,
+   * a corresponding row is added to `users` and `user_roles` with the
+   * specified role, so the new employee can sign in immediately.
+   */
+  password: z.string().min(8).max(72).optional(),
+  roleCode: z.string().min(1).optional(),
 });
 
 export type CreateEmployeeInput = z.infer<typeof CreateEmployeeInputSchema>;

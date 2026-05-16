@@ -120,8 +120,27 @@ export function PettyCashView({ accounts, transactions, userLocationId }: Props)
         {accounts.length === 0 && (
           <div className="surface-card col-span-full p-8 text-center">
             <p className="text-sm text-brand-ink-3">
-              Belum ada kas kecil. Hubungi admin untuk membuat akun kas kecil.
+              Belum ada akun kas kecil untuk outlet Anda. Buat akun dengan limit
+              awal Rp 500.000 — limit dapat diubah dari menu Pengaturan setelah
+              dibuat.
             </p>
+            {errorMessage ? (
+              <p className="mt-2 text-xs text-rose-600">{errorMessage}</p>
+            ) : null}
+            <button
+              type="button"
+              onClick={handleCreate}
+              disabled={isCreating || !userLocationId}
+              className="mt-4 inline-flex items-center justify-center rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isCreating ? 'Membuat...' : 'Buat akun kas kecil'}
+            </button>
+            {!userLocationId ? (
+              <p className="mt-2 text-xs text-brand-ink-3">
+                Sesi tidak memiliki lokasi default. Hubungi admin untuk mengisi
+                lokasi pada profil Anda.
+              </p>
+            ) : null}
           </div>
         )}
       </div>

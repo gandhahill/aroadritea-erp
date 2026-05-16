@@ -6,11 +6,14 @@
  */
 
 import { db } from '@erp/db';
+import { roles, userRoles, users } from '@erp/db/schema/auth';
 import { employees } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq } from 'drizzle-orm';
+import { hashPassword } from '../auth/password';
 import { requirePermission } from '../iam';
 import { encryptPii } from '../security/pii';
 import { type CreateEmployeeInput, CreateEmployeeInputSchema } from './schemas';
@@ -69,6 +72,45 @@ export async function createEmployee(
 
       if (!emp) {
         throw AppError.internal('hr.employee.createFailed', new Error('No rows returned'));
+      }
+
+      // Optional: provision ERP login account for this employee.
+      if (data.password && data.roleCode) {
+        // Reject duplicate email so we don't shadow an existing user.
+        const existing = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.email, data.email))
+          .limit(1);
+        if (existing[0]) {
+          throw AppError.validation('hr.employee.emailAlreadyHasLogin', { email: data.email });
+        }
+
+        const [role] = await db
+          .select({ id: roles.id })
+          .from(roles)
+          .where(and(eq(roles.tenantId, ctx.tenantId), eq(roles.code, data.roleCode)))
+          .limit(1);
+        if (!role) {
+          throw AppError.validation('hr.employee.roleNotFound', { roleCode: data.roleCode });
+        }
+
+        const userId = generateId();
+        const hash = await hashPassword(data.password);
+        await db.insert(users).values({
+          id: userId,
+          tenantId: ctx.tenantId,
+          email: data.email,
+          passwordHash: hash,
+          displayName: data.name,
+          phone: encryptPii(data.phone, 'users.phone'),
+          locale: 'id',
+          status: 'active',
+          emailVerified: new Date(),
+          createdBy: ctx.userId,
+          updatedBy: ctx.userId,
+        });
+        await db.insert(userRoles).values({ userId, roleId: role.id });
       }
 
       return { id: emp.id };

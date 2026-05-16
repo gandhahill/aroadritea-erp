@@ -185,8 +185,8 @@ export async function runPayroll(
       const attRows = await db
         .select({
           employeeId: attendance.employeeId,
-          lateMinutes: sql<number>`coalesce(sum(${attendance.lateMinutes}), 0)`,
-          lateCount: sql<number>`cast(count(case when ${attendance.isLate} then 1 end) as int)`,
+          lateMinutes: sql<number>`coalesce(sum(case when ${attendance.lateForgiven} then 0 else ${attendance.lateMinutes} end), 0)`,
+          lateCount: sql<number>`cast(count(case when ${attendance.isLate} and not ${attendance.lateForgiven} then 1 end) as int)`,
           absentDays: sql<number>`0`,
         })
         .from(attendance)

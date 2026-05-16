@@ -271,7 +271,7 @@
       "activeCount": "{count} aktif",
       "totalCount": "{count} total",
       "howItWorksTitle": "Cara kerja",
-      "howItWorksBody": "Worker membaca jadwal dari database setiap 60 detik. Ubah status atau cron di halaman ini tanpa perlu deploy ulang. Format cron:",
+      "howItWorksBody": "Worker membaca jadwal dari database setiap 60 detik. Ubah status atau cron langsung dari halaman ini. Format cron:",
       "cronExample": "menit jam tanggal bulan hari"
     },
     "backup": {
@@ -383,7 +383,7 @@
     },
     "categories": {
       "title": "Kategori Produk",
-      "subtitle": "Kelola kategori produk POS tanpa mengubah source code.",
+      "subtitle": "Kelola kategori produk POS dari halaman ini.",
       "newNamePlaceholder": "Nama kategori baru",
       "code": "Kode kategori",
       "codePlaceholder": "TEA",
@@ -487,6 +487,7 @@
     "hrPayroll": "HR & Payroll",
     "employees": "Karyawan",
     "attendance": "Kehadiran",
+    "checkIn": "Presensi",
     "leave": "Cuti",
     "payroll": "Payroll",
     "disciplinary": "Surat Peringatan",
@@ -766,7 +767,12 @@
         "emergencyPhone": "Telepon kontak darurat",
         "fulltime": "Full-time",
         "parttime": "Part-time",
-        "shift": "Shift"
+        "shift": "Shift",
+        "loginSection": "Akses Login ERP (opsional)",
+        "role": "Role / Peran",
+        "noLogin": "— Tidak perlu login —",
+        "password": "Sandi awal",
+        "passwordHint": "Min 8 karakter. Karyawan dapat ganti sendiri setelah login."
       },
       "new": {
         "pageTitle": "Tambah Karyawan - Aroadri ERP",
@@ -798,7 +804,6 @@
       "date": "Tanggal",
       "method": "Metode",
       "methodGPS": "GPS",
-      "methodQR": "QR Code",
       "lateMinutes": "Terlambat",
       "workedMinutes": "Jam Kerja",
       "workedDays": "Hari Kerja",
@@ -1095,7 +1100,7 @@
     },
     "attendance": {
       "title": "Kebijakan Presensi",
-      "subtitle": "Atur denda keterlambatan dan jatah toleransi presensi tanpa mengubah source code.",
+      "subtitle": "Atur denda keterlambatan dan jatah toleransi presensi sesuai kebijakan perusahaan.",
       "penaltyTitle": "Denda Presensi",
       "penaltyHint": "Diterapkan otomatis pada perhitungan payroll bulanan untuk setiap karyawan.",
       "latePenalty": "Denda per keterlambatan",
@@ -1113,7 +1118,7 @@
     },
     "loyalty": {
       "title": "Pengaturan Loyalty",
-      "subtitle": "Atur tarif perolehan poin dan ambang batas tier member tanpa mengubah source code.",
+      "subtitle": "Atur tarif perolehan poin dan ambang batas tier member sesuai program loyalty Anda.",
       "earnRateTitle": "Tarif Perolehan Poin",
       "earnRateHint": "Setiap pelanggan member mendapat 1 poin atas setiap nominal pembelian (net) di bawah ini.",
       "rupiahPerPoint": "Setiap Rupiah belanja",
@@ -1156,7 +1161,11 @@
       "office": "Kantor",
       "warehouse": "Gudang",
       "saved": "Lokasi berhasil disimpan.",
-      "delete": "Hapus"
+      "delete": "Hapus",
+      "gpsLat": "GPS Latitude",
+      "gpsLng": "GPS Longitude",
+      "gpsRadius": "Radius (m)",
+      "pickFromBrowser": "Ambil dari browser"
     },
     "customFields": {
       "title": "Bidang Kustom",

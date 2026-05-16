@@ -19,6 +19,9 @@ export interface LocationItem {
   currency: string;
   address: string;
   status: LocationStatus;
+  gpsLat: string;
+  gpsLng: string;
+  gpsRadiusM: number | null;
 }
 
 export interface LocationDraft {
@@ -30,6 +33,9 @@ export interface LocationDraft {
   currency: string;
   address: string;
   status: LocationStatus;
+  gpsLat: string;
+  gpsLng: string;
+  gpsRadiusM: number | null;
 }
 
 export type LocationActionResult =
@@ -81,6 +87,9 @@ export async function fetchLocations(): Promise<LocationItem[]> {
       currency: locations.currency,
       address: locations.address,
       status: locations.status,
+      gpsLat: locations.gpsLat,
+      gpsLng: locations.gpsLng,
+      gpsRadiusM: locations.gpsRadiusM,
     })
     .from(locations)
     .where(and(eq(locations.tenantId, ctx.tenantId), isNull(locations.deletedAt)))
@@ -95,6 +104,9 @@ export async function fetchLocations(): Promise<LocationItem[]> {
     currency: row.currency,
     address: row.address ?? '',
     status: isLocationStatus(row.status) ? row.status : 'active',
+    gpsLat: row.gpsLat ?? '',
+    gpsLng: row.gpsLng ?? '',
+    gpsRadiusM: row.gpsRadiusM,
   }));
 }
 
@@ -108,6 +120,25 @@ export async function saveLocation(input: LocationDraft): Promise<LocationAction
   }
   if (!input.name.id.trim()) return { success: false, error: 'Nama Indonesia wajib diisi.' };
 
+  // GPS validation — if any one of the three is set, all three should be set
+  const gpsLatTrim = (input.gpsLat ?? '').trim();
+  const gpsLngTrim = (input.gpsLng ?? '').trim();
+  const gpsRadius = input.gpsRadiusM;
+  const anyGps = Boolean(gpsLatTrim) || Boolean(gpsLngTrim) || (gpsRadius != null && gpsRadius > 0);
+  if (anyGps) {
+    const latNum = Number(gpsLatTrim);
+    const lngNum = Number(gpsLngTrim);
+    if (!Number.isFinite(latNum) || latNum < -90 || latNum > 90) {
+      return { success: false, error: 'Latitude harus angka antara -90 dan 90.' };
+    }
+    if (!Number.isFinite(lngNum) || lngNum < -180 || lngNum > 180) {
+      return { success: false, error: 'Longitude harus angka antara -180 dan 180.' };
+    }
+    if (!gpsRadius || gpsRadius < 10 || gpsRadius > 5000) {
+      return { success: false, error: 'Radius geofence harus 10–5000 meter.' };
+    }
+  }
+
   const values = {
     code,
     name: {
@@ -120,6 +151,9 @@ export async function saveLocation(input: LocationDraft): Promise<LocationAction
     currency: input.currency.trim().toUpperCase() || 'IDR',
     address: input.address.trim() || null,
     status: isLocationStatus(input.status) ? input.status : 'active',
+    gpsLat: anyGps ? gpsLatTrim : null,
+    gpsLng: anyGps ? gpsLngTrim : null,
+    gpsRadiusM: anyGps ? gpsRadius : null,
     updatedAt: new Date(),
     updatedBy: ctx.userId || null,
   };

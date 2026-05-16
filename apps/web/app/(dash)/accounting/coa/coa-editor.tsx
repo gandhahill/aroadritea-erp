@@ -16,6 +16,49 @@ interface Props {
 
 const ACCOUNT_TYPES = ['asset', 'liability', 'equity', 'income', 'cogs', 'expense'];
 const NORMAL_BALANCES = ['debit', 'credit'];
+
+/**
+ * Subtype options per account type. `header` and `other` are universal.
+ * Adding a new subtype value is a code-level change but admins picking
+ * the right value is now constrained to this curated list (no typos).
+ */
+const SUBTYPES_BY_TYPE: Record<string, string[]> = {
+  asset: [
+    'header',
+    'current_asset',
+    'cash',
+    'bank',
+    'receivable',
+    'inventory',
+    'prepaid',
+    'fixed_asset',
+    'contra_asset',
+    'other_asset',
+  ],
+  liability: [
+    'header',
+    'current_liability',
+    'payable',
+    'tax_payable',
+    'accrued',
+    'loan',
+    'other_liability',
+  ],
+  equity: ['header', 'capital', 'retained_earnings', 'dividend', 'other_equity'],
+  income: ['header', 'sales', 'service_revenue', 'other_income'],
+  cogs: ['header', 'cogs', 'direct_material', 'direct_labor', 'overhead'],
+  expense: [
+    'header',
+    'operating',
+    'salary',
+    'rent',
+    'utility',
+    'marketing',
+    'depreciation',
+    'tax',
+    'other_expense',
+  ],
+};
 const fieldClass =
   'w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none';
 
@@ -157,7 +200,21 @@ export function COAEditor({ tree }: Props) {
         <Field label="Tipe">
           <select
             value={draft.type}
-            onChange={(event) => update({ type: event.target.value })}
+            onChange={(event) => {
+              const nextType = event.target.value;
+              const allowed = SUBTYPES_BY_TYPE[nextType] ?? ['other'];
+              const nextSubtype = allowed.includes(draft.subtype)
+                ? draft.subtype
+                : (allowed[1] ?? allowed[0] ?? 'other');
+              update({
+                type: nextType,
+                subtype: nextSubtype,
+                normalBalance:
+                  nextType === 'asset' || nextType === 'expense' || nextType === 'cogs'
+                    ? 'debit'
+                    : 'credit',
+              });
+            }}
             className={fieldClass}
           >
             {ACCOUNT_TYPES.map((type) => (
@@ -168,11 +225,17 @@ export function COAEditor({ tree }: Props) {
           </select>
         </Field>
         <Field label="Subtipe">
-          <input
+          <select
             value={draft.subtype}
             onChange={(event) => update({ subtype: event.target.value })}
             className={fieldClass}
-          />
+          >
+            {(SUBTYPES_BY_TYPE[draft.type] ?? ['other']).map((subtype) => (
+              <option key={subtype} value={subtype}>
+                {subtype}
+              </option>
+            ))}
+          </select>
         </Field>
         <Field label="Normal balance">
           <select

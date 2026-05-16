@@ -271,7 +271,7 @@
       "activeCount": "{count} 个启用",
       "totalCount": "共 {count} 个",
       "howItWorksTitle": "工作方式",
-      "howItWorksBody": "Worker 每 60 秒从数据库读取任务计划。可在此启用任务或修改 cron，无需重新部署。Cron 格式：",
+      "howItWorksBody": "Worker 每 60 秒从数据库读取任务计划。可在此启用任务或修改 cron。Cron 格式：",
       "cronExample": "分钟 小时 日期 月份 星期"
     },
     "backup": {
@@ -419,7 +419,7 @@
     },
     "categories": {
       "title": "产品分类",
-      "subtitle": "在 ERP 中管理 POS 产品分类，无需修改源代码。",
+      "subtitle": "在 ERP 中管理 POS 产品分类。",
       "newNamePlaceholder": "新分类名称",
       "code": "分类代码",
       "codePlaceholder": "TEA",
@@ -484,6 +484,7 @@
     "hrPayroll": "人事与薪资",
     "employees": "员工",
     "attendance": "考勤",
+    "checkIn": "签到",
     "leave": "请假",
     "payroll": "薪资",
     "disciplinary": "纪律处分",
@@ -701,7 +702,14 @@
       "statusProbation": "试用期",
       "statusActive": "在职",
       "statusOnLeave": "休假中",
-      "statusTerminated": "已离职"
+      "statusTerminated": "已离职",
+      "form": {
+        "loginSection": "ERP 登录访问（可选）",
+        "role": "角色",
+        "noLogin": "— 无需登录 —",
+        "password": "初始密码",
+        "passwordHint": "至少 8 位。员工首次登录后可自行修改。"
+      }
     },
     "contracts": {
       "title": "劳动合同",
@@ -725,7 +733,6 @@
       "date": "日期",
       "method": "方式",
       "methodGPS": "GPS定位",
-      "methodQR": "二维码",
       "lateMinutes": "迟到(分钟)",
       "workedMinutes": "工作时长",
       "noRecords": "暂无考勤记录",
@@ -965,7 +972,7 @@
     },
     "attendance": {
       "title": "考勤政策",
-      "subtitle": "无需重新部署即可调整迟到/缺勤罚款和每月免迟到额度。",
+      "subtitle": "按公司政策调整迟到/缺勤罚款和每月免迟到额度。",
       "penaltyTitle": "考勤罚款",
       "penaltyHint": "在每月工资计算时自动应用于每位员工。",
       "latePenalty": "每次迟到罚款",
@@ -983,7 +990,7 @@
     },
     "loyalty": {
       "title": "会员积分设置",
-      "subtitle": "无需修改源代码即可调整积分获取比例和会员等级门槛。",
+      "subtitle": "按您的会员积分计划调整获取比例和等级门槛。",
       "earnRateTitle": "积分获取比例",
       "earnRateHint": "每位会员每消费以下金额获得 1 积分。",
       "rupiahPerPoint": "每消费",
@@ -1026,7 +1033,11 @@
       "office": "办公室",
       "warehouse": "仓库",
       "delete": "删除",
-      "saved": "地点已保存。"
+      "saved": "地点已保存。",
+      "gpsLat": "GPS 纬度",
+      "gpsLng": "GPS 经度",
+      "gpsRadius": "半径 (m)",
+      "pickFromBrowser": "从浏览器获取"
     },
     "pos": {
       "title": "POS 设置",
@@ -1288,7 +1299,7 @@
     "editor": {
       "eyebrow": "CMS 指南",
       "title": "编辑 ERP 使用指南",
-      "subtitle": "可在 UI 中维护指南、教程和作业说明。保存后立即成为 Docs 页面内容，无需修改源代码。",
+      "subtitle": "可在 UI 中维护指南、教程和作业说明。保存后立即成为 Docs 页面内容。",
       "save": "保存指南",
       "saving": "保存中...",
       "docTitle": "页面标题",

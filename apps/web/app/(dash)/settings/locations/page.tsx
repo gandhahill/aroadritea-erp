@@ -47,6 +47,10 @@ export default async function LocationsPage() {
           warehouse: t('warehouse'),
           saved: t('saved'),
           delete: t('delete'),
+          gpsLat: t('gpsLat'),
+          gpsLng: t('gpsLng'),
+          gpsRadius: t('gpsRadius'),
+          pickFromBrowser: t('pickFromBrowser'),
         }}
       />
     </div>

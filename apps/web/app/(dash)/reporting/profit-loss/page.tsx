@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchProfitLoss } from '../actions';
+import { ExportXlsxButton } from '../export-button';
 
 export const metadata: Metadata = {
   title: 'Profit & Loss',
@@ -37,6 +38,61 @@ export default async function ProfitLossPage({
             <span className="font-medium text-brand-ink">{to}</span>
           </p>
         </div>
+        {data ? (
+          <ExportXlsxButton
+            filename={`profit-loss-${from}_to_${to}.xlsx`}
+            sheets={[
+              {
+                name: 'Revenue',
+                rows: [
+                  ['Code', 'Name', 'Balance (IDR)'],
+                  ...data.revenue.lines.map((l) => [
+                    l.accountCode,
+                    l.accountName.id ?? l.accountName.en ?? '',
+                    Number(l.balance),
+                  ]),
+                  ['', 'TOTAL REVENUE', Number(data.revenue.total)],
+                ],
+              },
+              {
+                name: 'COGS',
+                rows: [
+                  ['Code', 'Name', 'Balance (IDR)'],
+                  ...data.cogs.lines.map((l) => [
+                    l.accountCode,
+                    l.accountName.id ?? l.accountName.en ?? '',
+                    Number(l.balance),
+                  ]),
+                  ['', 'TOTAL COGS', Number(data.cogs.total)],
+                ],
+              },
+              {
+                name: 'Expenses',
+                rows: [
+                  ['Code', 'Name', 'Balance (IDR)'],
+                  ...data.expenses.lines.map((l) => [
+                    l.accountCode,
+                    l.accountName.id ?? l.accountName.en ?? '',
+                    Number(l.balance),
+                  ]),
+                  ['', 'TOTAL EXPENSES', Number(data.expenses.total)],
+                ],
+              },
+              {
+                name: 'Summary',
+                rows: [
+                  ['From', from],
+                  ['To', to],
+                  ['Revenue', Number(data.revenue.total)],
+                  ['COGS', Number(data.cogs.total)],
+                  ['Gross Profit', Number(data.grossProfit)],
+                  ['Expenses', Number(data.expenses.total)],
+                  ['Net Income', Number(data.netIncome)],
+                ],
+              },
+            ]}
+          />
+        ) : null}
       </div>
 
       {data ? (

@@ -9,6 +9,7 @@ import { relations } from 'drizzle-orm';
 import {
   boolean,
   index,
+  integer,
   jsonb,
   pgTable,
   primaryKey,
@@ -45,6 +46,12 @@ export const locations = pgTable(
     currency: text('currency').notNull().default('IDR'),
     address: text('address'),
     status: text('status').notNull().default('active'), // 'active' | 'inactive'
+    // GPS for attendance check-in (HR presensi). Used by Haversine check
+    // in attendance-service.ts; if null, the location does not enforce a
+    // geofence (admin must enter coordinates before staff can clock in).
+    gpsLat: text('gps_lat'),
+    gpsLng: text('gps_lng'),
+    gpsRadiusM: integer('gps_radius_m'),
     ...auditCols,
     ...versionCol,
   },

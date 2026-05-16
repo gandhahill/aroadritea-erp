@@ -8,11 +8,33 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
+import { and, db, eq } from '@erp/db';
+import { roles } from '@erp/db/schema/auth';
 import { createEmployee, deactivateEmployee, updateEmployee } from '@erp/services/hr';
 import { getEmployee, listEmployees } from '@erp/services/hr';
 import type { CreateEmployeeInput, ListEmployeesInput, UpdateEmployeeInput } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
+
+export interface RoleOption {
+  code: string;
+  label: string;
+}
+
+export async function fetchAssignableRoles(): Promise<RoleOption[]> {
+  const ctx = await getAuditContext();
+  if (!ctx) return [];
+  const rows = await db
+    .select({ code: roles.code, name: roles.name })
+    .from(roles)
+    .where(eq(roles.tenantId, ctx.tenantId))
+    .orderBy(roles.code);
+  return rows.map((row) => {
+    const nameField = row.name as Record<string, string> | null;
+    const label = nameField?.id ?? nameField?.en ?? row.code;
+    return { code: row.code, label };
+  });
+}
 
 export interface CreateEmployeeState {
   ok?: boolean;
@@ -92,6 +114,8 @@ export async function createEmployeeAction(
     bpjsTenagakerja: optionalText(formData, 'bpjsTenagakerja'),
     emergencyContactName: optionalText(formData, 'emergencyContactName'),
     emergencyContactPhone: optionalText(formData, 'emergencyContactPhone'),
+    password: optionalText(formData, 'password'),
+    roleCode: optionalText(formData, 'roleCode'),
   };
 
   const result = await createEmployee(input, ctx);

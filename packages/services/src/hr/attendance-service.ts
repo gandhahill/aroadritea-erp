@@ -1,14 +1,15 @@
 /**
  * attendance.checkIn / checkOut — SD §21.8 §Attendance SOP
  *
- * Mobile-first check-in (GPS or QR scan) with:
- * - GPS location verification (within 100m of registered location)
+ * Mobile-first GPS check-in (geofence per location) with:
+ * - GPS location verification (per-location radius, default 150m)
  * - Shift-based late detection (grace: 15 min per SOP)
  * - Late minutes recorded for payroll deduction
- * - Late penalty tracking (3 free per month, then Rp 50,000/late)
+ * - Late penalty tracking (configurable via Settings → Attendance Policy)
  */
 
 import { db } from '@erp/db';
+import { locations } from '@erp/db/schema/auth';
 import { customFieldDefinitions, customFieldValues } from '@erp/db/schema/customfield';
 import { attendance, employees, shiftDefinitions } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
@@ -26,7 +27,7 @@ export interface GpsData {
   lat: number;
   lng: number;
   accuracy_m: number;
-  source?: string; // 'geolocation_api' | 'qr_scan' | 'manual'
+  source?: string; // 'geolocation_api' | 'manual'
 }
 
 /** Attendance record shape returned by checkIn */
@@ -34,7 +35,7 @@ export interface CheckInResult {
   id: string;
   employeeId: string;
   checkInAt: Date;
-  checkInMethod: 'gps' | 'qr_scan';
+  checkInMethod: 'gps';
   isLate: boolean;
   lateMinutes: number;
   shiftCode: string | null;
@@ -64,7 +65,7 @@ const GpsDataSchema = z.object({
 export const CheckInInputSchema = z.object({
   employeeId: z.string().min(1),
   shiftDefinitionId: z.string().optional(), // if null, derive from employee's current schedule
-  method: z.enum(['gps', 'qr_scan']),
+  method: z.enum(['gps']),
   gpsData: GpsDataSchema.optional(),
   /** Override current date/time (for testing/import) */
   performedAt: z.string().datetime().optional(),
@@ -154,6 +155,28 @@ async function getLocationGpsConfig(
   tenantId: string,
   locationId: string,
 ): Promise<LocationGpsConfig | null> {
+  // Prefer native columns on the locations table (added by migration 0006).
+  const nativeRow = await db
+    .select({
+      gpsLat: locations.gpsLat,
+      gpsLng: locations.gpsLng,
+      gpsRadiusM: locations.gpsRadiusM,
+    })
+    .from(locations)
+    .where(and(eq(locations.tenantId, tenantId), eq(locations.id, locationId)))
+    .limit(1);
+
+  const native = nativeRow[0];
+  if (native?.gpsLat && native?.gpsLng) {
+    const lat = Number(native.gpsLat);
+    const lng = Number(native.gpsLng);
+    const radiusM = Number(native.gpsRadiusM ?? 150);
+    if (Number.isFinite(lat) && Number.isFinite(lng) && Number.isFinite(radiusM)) {
+      return { lat, lng, radiusM };
+    }
+  }
+
+  // Backward-compat fallback: custom-field-driven config (pre-migration).
   const rows = await db
     .select({
       key: customFieldDefinitions.key,
@@ -326,7 +349,7 @@ export async function checkIn(
         id: record.id,
         employeeId: record.employeeId,
         checkInAt: record.checkInAt!,
-        checkInMethod: record.checkInMethod as 'gps' | 'qr_scan',
+        checkInMethod: record.checkInMethod as 'gps',
         isLate: record.isLate,
         lateMinutes: Number(record.lateMinutes),
         shiftCode: record.shiftCode,
@@ -456,6 +479,8 @@ export interface AttendanceListItem {
   isLate: boolean;
   lateMinutes: number;
   workedMinutes: number | null;
+  lateForgiven: boolean;
+  lateForgivenReason: string | null;
 }
 
 export interface ListAttendanceInput {
@@ -503,6 +528,8 @@ export async function listAttendance(
           lateMinutes: attendance.lateMinutes,
           workedMinutes: attendance.workedMinutes,
           shiftCode: attendance.shiftDefinitionCode,
+          lateForgiven: attendance.lateForgiven,
+          lateForgivenReason: attendance.lateForgivenReason,
         })
         .from(attendance)
         .where(whereClause)
@@ -532,10 +559,60 @@ export async function listAttendance(
         isLate: r.isLate,
         lateMinutes: Number(r.lateMinutes),
         workedMinutes: r.workedMinutes ? Number(r.workedMinutes) : null,
+        lateForgiven: r.lateForgiven,
+        lateForgivenReason: r.lateForgivenReason,
       }));
 
       return { items, total: Number(total) };
     },
     (e) => AppError.internal('hr.attendance.listFailed', e),
+  );
+}
+
+// ─── forgiveLate (supervisor waives a late event) ─────────────────────────────
+
+export async function forgiveLate(
+  input: { attendanceId: string; reason: string },
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
+  const perm = await requirePermission(ctx.userId, 'hr.manage_attendance', {
+    locationId: ctx.locationId,
+  });
+  if (!perm.ok) return perm;
+
+  if (!input.attendanceId || !input.reason || input.reason.trim().length < 3) {
+    return err(AppError.validation('hr.attendance.forgiveLate.invalid'));
+  }
+
+  return tryCatch(
+    async () => {
+      const [row] = await db
+        .select({ id: attendance.id, isLate: attendance.isLate })
+        .from(attendance)
+        .where(and(eq(attendance.id, input.attendanceId), eq(attendance.tenantId, ctx.tenantId)))
+        .limit(1);
+      if (!row) {
+        throw AppError.notFound('hr.attendance.notFound');
+      }
+      if (!row.isLate) {
+        throw AppError.businessRule('hr.attendance.forgiveLate.notLate');
+      }
+
+      await db
+        .update(attendance)
+        .set({
+          lateForgiven: true,
+          lateForgivenBy: ctx.userId,
+          lateForgivenReason: input.reason.trim(),
+          lateForgivenAt: new Date(),
+        })
+        .where(eq(attendance.id, input.attendanceId));
+
+      return { id: input.attendanceId };
+    },
+    (e) => {
+      if (e instanceof AppError) return e;
+      return AppError.internal('hr.attendance.forgiveLate.failed', e);
+    },
   );
 }
