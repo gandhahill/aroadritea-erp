@@ -1,8 +1,10 @@
 import { getSession } from '@/lib/auth';
 import { getSetting } from '@erp/services/cms';
+import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import {
   DOCS_SETTING_KEY,
   type EditableDocsLocaleContent,
@@ -14,11 +16,18 @@ export const metadata: Metadata = {
 };
 
 type Block =
-  | { type: 'h2'; id: string; text: string }
+  | { type: 'h2'; id: string; text: string; perm: string | null }
   | { type: 'h3'; text: string }
   | { type: 'p'; text: string }
   | { type: 'ul'; items: string[] }
   | { type: 'ol'; items: string[] };
+
+/** Pull `{perm=accounting.view}` annotation off a heading. */
+function extractPerm(text: string): { text: string; perm: string | null } {
+  const match = text.match(/^(.*?)\s*\{perm=([a-z0-9._-]+)\}\s*$/i);
+  if (!match) return { text, perm: null };
+  return { text: (match[1] ?? '').trim(), perm: match[2] ?? null };
+}
 
 function slugify(value: string) {
   return value
@@ -68,8 +77,9 @@ function parseDocsMarkdown(markdown: string): Block[] {
     if (line.startsWith('## ')) {
       flushParagraph();
       flushList();
-      const text = line.replace(/^##\s+/, '').trim();
-      blocks.push({ type: 'h2', id: uniqueId(text), text });
+      const raw = line.replace(/^##\s+/, '').trim();
+      const { text, perm } = extractPerm(raw);
+      blocks.push({ type: 'h2', id: uniqueId(text), text, perm });
       continue;
     }
 
@@ -132,10 +142,41 @@ async function loadDocsContent(locale: 'id' | 'en' | 'zh'): Promise<EditableDocs
 }
 
 export default async function DocsPage() {
+  const session = await getSession();
+  if (!session) redirect('/login');
+  const userId = String((session.user as Record<string, unknown>)?.id ?? '');
+
   const locale = (await getLocale()) as 'id' | 'en' | 'zh';
   const t = await getTranslations('docs');
   const content = await loadDocsContent(locale);
-  const blocks = parseDocsMarkdown(content.body);
+  const allBlocks = parseDocsMarkdown(content.body);
+  const canEditDocs = userId ? await can(userId, 'docs.edit') : false;
+
+  // RBAC: filter sections whose H2 has `{perm=…}` and the user lacks it.
+  const allowedH2Ids = new Set<string>();
+  const permChecks = await Promise.all(
+    allBlocks
+      .filter((b): b is Extract<Block, { type: 'h2' }> => b.type === 'h2')
+      .map(async (h2) => ({
+        id: h2.id,
+        allowed: h2.perm ? await can(userId, h2.perm) : true,
+      })),
+  );
+  for (const check of permChecks) {
+    if (check.allowed) allowedH2Ids.add(check.id);
+  }
+
+  let currentH2Allowed = true;
+  const blocks: Block[] = [];
+  for (const block of allBlocks) {
+    if (block.type === 'h2') {
+      currentH2Allowed = allowedH2Ids.has(block.id);
+      if (currentH2Allowed) blocks.push(block);
+    } else if (currentH2Allowed) {
+      blocks.push(block);
+    }
+  }
+
   const headings = blocks.filter(
     (block): block is Extract<Block, { type: 'h2' }> => block.type === 'h2',
   );
@@ -175,12 +216,14 @@ export default async function DocsPage() {
                 {content.subtitle}
               </p>
             </div>
-            <Link
-              href="/cms/docs"
-              className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-brand-cream-3 bg-brand-cream-1 px-4 text-sm font-semibold text-brand-ink transition-colors hover:border-brand-red/40 hover:text-brand-red"
-            >
-              {t('edit')}
-            </Link>
+            {canEditDocs ? (
+              <Link
+                href="/cms/docs"
+                className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-brand-cream-3 bg-brand-cream-1 px-4 text-sm font-semibold text-brand-ink transition-colors hover:border-brand-red/40 hover:text-brand-red"
+              >
+                {t('edit')}
+              </Link>
+            ) : null}
           </div>
         </header>
 

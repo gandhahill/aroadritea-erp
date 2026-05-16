@@ -167,6 +167,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
           const { markOrderSynced, removePendingOrder } = await import('@erp/offline');
           if (result.ok) {
             await markOrderSynced(clientOrderUuid, result.value.number);
+            triggerPrint(result.value.id);
             clearCart();
             onClose();
           } else {
@@ -482,6 +483,30 @@ function humanize(value: string): string {
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+}
+
+/**
+ * Open the receipt + label printers in popup windows after a successful sale.
+ * Cup labels and the customer receipt go to physically separate thermal
+ * printers, so we open two windows and let each route window.print() itself.
+ */
+function triggerPrint(orderId: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.open(
+      `/pos/print/receipt/${orderId}`,
+      `print-receipt-${orderId}`,
+      'width=420,height=720',
+    );
+    window.open(
+      `/pos/print/label/${orderId}`,
+      `print-label-${orderId}`,
+      'width=300,height=400',
+    );
+  } catch {
+    // Popup blocked or environment without window.open — silent failure
+    // is acceptable; the cashier can re-print from order detail.
+  }
 }
 
 function paymentMethodLabel(method: string, t: ReturnType<typeof useTranslations>): string {

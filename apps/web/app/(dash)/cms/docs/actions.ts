@@ -2,6 +2,7 @@
 
 import { getSession } from '@/lib/auth';
 import { getSetting, setSetting } from '@erp/services/cms';
+import { requirePermission } from '@erp/services/iam';
 import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
 import {
@@ -45,6 +46,8 @@ export async function saveDocsEditorContent(
   const session = await getSession();
   if (!session) return { ok: false, message: 'docs.editor.unauthorized' };
   const ctx = buildCtx(session);
+  const perm = await requirePermission(ctx.userId, 'docs.edit');
+  if (!perm.ok) return { ok: false, message: 'docs.editor.forbidden' };
   const defaults = getDefaultEditableDocs();
 
   const content: EditableDocsContent = {

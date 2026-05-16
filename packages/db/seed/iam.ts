@@ -158,6 +158,9 @@ export const PERMISSIONS_SEED = [
   { code: 'audit.view', module: 'audit', description: n('Lihat audit trail', 'View audit trail', '查看审计日志') },
   // CMS
   { code: 'cms.manage', module: 'cms', description: n('Kelola konten website', 'Manage website content', '管理网站内容') },
+  // Docs (in-app operations manual)
+  { code: 'docs.view', module: 'docs', description: n('Lihat panduan operasi', 'View operations docs', '查看操作指南') },
+  { code: 'docs.edit', module: 'docs', description: n('Ubah panduan operasi', 'Edit operations docs', '编辑操作指南') },
 ];
 
 // === ROLE → PERMISSION MAPPING (SoT §3.2 + §3.4) ===
@@ -209,6 +212,8 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'crm.resolveComplaint',
     'workflow.approve',
     'workflow.view',
+    'docs.view',
+    'docs.edit',
   ],
   accountant: [
     'accounting.view',
@@ -237,6 +242,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'reporting.view',
     'reporting.export',
     'audit.view',
+    'docs.view',
   ],
   store_manager: [
     'pos.transact',
@@ -267,6 +273,8 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'hr.disciplinary.write',
     'kitchen.view',
     'reporting.view',
+    'docs.view',
+    'docs.edit',
   ],
   cashier: [
     'pos.transact',
@@ -277,6 +285,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'pos.shift.close',
     'promotion.view',
     'hr.attendance.write',
+    'docs.view',
   ],
   assistant: [
     'accounting.view',
@@ -285,6 +294,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'tax.view',
     'reporting.view',
     'hr.attendance.write',
+    'docs.view',
   ],
 };
 

@@ -21,7 +21,15 @@ import { requirePermission } from '../iam';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const TIER_THRESHOLDS = { bronze: 0, silver: 50_000, gold: 150_000 };
+// Loyalty earning rate: 1 point per Rp 100,000 spent (see earnLoyaltyPoints).
+// Tier thresholds are expressed in *lifetime* points:
+//   bronze: 0 pts (entry tier)
+//   silver: 50 pts  ≈ Rp 5,000,000 lifetime spend
+//   gold:   150 pts ≈ Rp 15,000,000 lifetime spend
+// Previously these were 50_000 / 150_000 which required Rp 5–15 billion of
+// lifetime spend before upgrade — effectively unreachable for a bubble-tea
+// store. Corrected to match the documented earn rate.
+const TIER_THRESHOLDS = { bronze: 0, silver: 50, gold: 150 };
 const POINTS_PER_RP10K = 1; // 1 point per Rp 10,000
 
 const VOUCHER_KIND_MAP: Record<string, string> = {
