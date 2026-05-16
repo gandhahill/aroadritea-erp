@@ -8,14 +8,35 @@ export const metadata: Metadata = {
   title: 'Produk & Menu - Aroadri ERP',
 };
 
+type ProductKind = 'finished_good' | 'raw_material' | 'merchandise' | 'consumable' | 'service';
+
+const KIND_TABS: { value: ProductKind | 'all'; label: string }[] = [
+  { value: 'all', label: 'Semua' },
+  { value: 'finished_good', label: 'Produk Jual' },
+  { value: 'raw_material', label: 'Bahan Baku' },
+  { value: 'merchandise', label: 'Merchandise' },
+  { value: 'consumable', label: 'Perlengkapan' },
+  { value: 'service', label: 'Jasa' },
+];
+
+const KIND_LABELS: Record<ProductKind, string> = {
+  finished_good: 'Produk Jual',
+  raw_material: 'Bahan Baku',
+  merchandise: 'Merchandise',
+  consumable: 'Perlengkapan',
+  service: 'Jasa',
+};
+
 interface Props {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; kind?: string }>;
 }
 
 export default async function ProductsPage({ searchParams }: Props) {
   const params = await searchParams;
   const search = params.q?.trim() || undefined;
-  const data = await fetchProductMasterData(search);
+  const kindParam = params.kind as ProductKind | undefined;
+  const validKind = kindParam && Object.keys(KIND_LABELS).includes(kindParam) ? kindParam : undefined;
+  const data = await fetchProductMasterData(search, validKind);
 
   return (
     <div className="space-y-6">
@@ -39,7 +60,31 @@ export default async function ProductsPage({ searchParams }: Props) {
 
       <CategoryForm />
 
+      {/* Kind filter tabs */}
+      <div className="flex flex-wrap gap-2">
+        {KIND_TABS.map((tab) => {
+          const isActive = tab.value === 'all' ? !validKind : validKind === tab.value;
+          const href = tab.value === 'all'
+            ? `/inventory/products${search ? `?q=${encodeURIComponent(search)}` : ''}`
+            : `/inventory/products?kind=${tab.value}${search ? `&q=${encodeURIComponent(search)}` : ''}`;
+          return (
+            <Link
+              key={tab.value}
+              href={href}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                isActive
+                  ? 'bg-brand-red text-white'
+                  : 'bg-brand-cream-2 text-brand-ink-2 hover:bg-brand-cream-3'
+              }`}
+            >
+              {tab.label}
+            </Link>
+          );
+        })}
+      </div>
+
       <form className="rounded-xl border border-brand-cream-3 bg-card p-4 shadow-sm">
+        {validKind && <input type="hidden" name="kind" value={validKind} />}
         <label className="block space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">Cari produk</span>
           <div className="flex gap-3">
@@ -112,7 +157,17 @@ export default async function ProductsPage({ searchParams }: Props) {
                     <td className="px-4 py-3 text-brand-ink-3">
                       {product.categoryCode || product.categoryName.id || '-'}
                     </td>
-                    <td className="px-4 py-3 text-brand-ink-3">{product.kind}</td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                        product.kind === 'finished_good' ? 'bg-brand-jade-light text-brand-jade' :
+                        product.kind === 'raw_material' ? 'bg-amber-100 text-amber-700' :
+                        product.kind === 'merchandise' ? 'bg-blue-100 text-blue-700' :
+                        product.kind === 'consumable' ? 'bg-purple-100 text-purple-700' :
+                        'bg-brand-cream-2 text-brand-ink-3'
+                      }`}>
+                        {KIND_LABELS[product.kind as ProductKind] ?? product.kind}
+                      </span>
+                    </td>
                     <td className="px-4 py-3 text-right font-semibold text-brand-ink">
                       {formatRupiah(product.defaultSellPrice)}
                     </td>

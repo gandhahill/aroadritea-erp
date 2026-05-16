@@ -97,8 +97,10 @@ export function CmsPostForm({ post, isNew = false }: Props) {
     });
   }
 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   async function handleDelete() {
-    if (!confirm('Yakin ingin menghapus post ini?')) return;
+    setShowDeleteConfirm(false);
     startTransition(async () => {
       const result = await deleteCmsPost(post!.id as string);
       if (!result.success) {
@@ -315,13 +317,34 @@ export function CmsPostForm({ post, isNew = false }: Props) {
           {!isNew && (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4">
               <h3 className="mb-2 text-sm font-semibold text-red-700">Zona Berbahaya</h3>
-              <button
-                onClick={handleDelete}
-                disabled={isPending}
-                className="w-full rounded-md border border-red-300 bg-card px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
-              >
-                Hapus Post
-              </button>
+              {showDeleteConfirm ? (
+                <div className="space-y-2">
+                  <p className="text-sm text-red-600">Yakin ingin menghapus post ini?</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleDelete}
+                      disabled={isPending}
+                      className="rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                    >
+                      Ya, Hapus
+                    </button>
+                    <button
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="rounded-md border border-brand-cream-3 px-3 py-2 text-sm font-medium text-brand-ink-3 hover:bg-brand-cream-2"
+                    >
+                      Batal
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  disabled={isPending}
+                  className="w-full rounded-md border border-red-300 bg-card px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+                >
+                  Hapus Post
+                </button>
+              )}
             </div>
           )}
         </div>

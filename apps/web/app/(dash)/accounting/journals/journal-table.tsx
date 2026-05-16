@@ -23,6 +23,8 @@ interface JournalTableProps {
 export function JournalTable({ journals }: JournalTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const filtered = useMemo(() => {
     return journals.filter((j) => {
@@ -31,9 +33,12 @@ export function JournalTable({ journals }: JournalTableProps) {
         j.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
         j.description.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = !statusFilter || j.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesDate =
+        (!dateFrom || j.postingDate >= dateFrom) &&
+        (!dateTo || j.postingDate <= dateTo);
+      return matchesSearch && matchesStatus && matchesDate;
     });
-  }, [journals, searchQuery, statusFilter]);
+  }, [journals, searchQuery, statusFilter, dateFrom, dateTo]);
 
   // Stats
   const counts = useMemo(() => {
@@ -48,31 +53,61 @@ export function JournalTable({ journals }: JournalTableProps) {
     <div className="space-y-4">
       {/* Controls */}
       <div className="surface-card p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          {/* Search */}
-          <div className="relative flex-1 max-w-md">
-            <svg
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-ink-3"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1 0 5.65 5.65a7.5 7.5 0 0 0 10.99 10.99z"
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            {/* Search */}
+            <div className="relative flex-1 max-w-md">
+              <svg
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-ink-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1 0 5.65 5.65a7.5 7.5 0 0 0 10.99 10.99z"
+                />
+              </svg>
+              <input
+                id="journal-search"
+                type="text"
+                aria-label="Search by number or description"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-md border border-brand-cream-3 bg-brand-cream py-2 pl-9 pr-4 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20 transition-colors"
               />
-            </svg>
-            <input
-              id="journal-search"
-              type="text"
-              aria-label="Search by number or description"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-md border border-brand-cream-3 bg-brand-cream py-2 pl-9 pr-4 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20 transition-colors"
-            />
+            </div>
+
+            {/* Date range */}
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="rounded-md border border-brand-cream-3 bg-brand-cream px-3 py-1.5 text-xs text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20"
+                aria-label="From date"
+              />
+              <span className="text-xs text-brand-ink-3">—</span>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="rounded-md border border-brand-cream-3 bg-brand-cream px-3 py-1.5 text-xs text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20"
+                aria-label="To date"
+              />
+              {(dateFrom || dateTo) && (
+                <button
+                  type="button"
+                  onClick={() => { setDateFrom(''); setDateTo(''); }}
+                  className="rounded-md border border-brand-cream-3 px-2 py-1.5 text-xs text-brand-ink-3 hover:bg-brand-cream-2"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Status filters */}

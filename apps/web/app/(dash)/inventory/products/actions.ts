@@ -94,13 +94,13 @@ function errorMessage(error: unknown) {
   return String(error);
 }
 
-export async function fetchProductMasterData(search?: string): Promise<ProductMasterData> {
+export async function fetchProductMasterData(search?: string, kind?: ProductKind): Promise<ProductMasterData> {
   const ctx = await getAuditContext();
   if (!ctx) return { products: [], total: 0, categories: [], error: 'Unauthenticated' };
 
   const [categoryResult, productResult] = await Promise.all([
     listCategories(ctx),
-    listProducts({ search, limit: 200, offset: 0 }, ctx),
+    listProducts({ search, kind, limit: 200, offset: 0 }, ctx),
   ]);
 
   return {

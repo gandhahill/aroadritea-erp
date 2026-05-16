@@ -10,8 +10,15 @@ interface CartLine {
   unitPrice: string;
 }
 
+interface CartCustomer {
+  id: string;
+  name: string;
+  loyaltyTier: string;
+}
+
 interface DisplayState {
   lines: CartLine[];
+  customer: CartCustomer | null;
 }
 
 export default function PosDisplayPage() {
@@ -26,9 +33,9 @@ export default function PosDisplayPage() {
       channel.onmessage = (event) => {
         const { state, grandTotal, totalPaid, remainingBalance } = event.data;
         setDisplayState(state);
-        setGrandTotal(grandTotal);
-        setTotalPaid(totalPaid);
-        setRemainingBalance(remainingBalance);
+        setGrandTotal(grandTotal ?? '0');
+        setTotalPaid(totalPaid ?? '0');
+        setRemainingBalance(remainingBalance ?? '0');
       };
       return () => channel.close();
     }
@@ -36,8 +43,9 @@ export default function PosDisplayPage() {
 
   if (!displayState) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center bg-brand-cream bg-[url('/brand-assets/logo-monochrome.png')] bg-center bg-no-repeat bg-[length:30%] bg-blend-soft-light">
-        <h1 className="text-4xl font-display font-semibold text-brand-ink/50">Welcome to Aroadri Tea</h1>
+      <div className="flex h-screen flex-col items-center justify-center bg-brand-cream">
+        <img src="/logo-primary.png" alt="Aroadri Tea" className="h-32 w-32 opacity-40 mb-6" />
+        <h1 className="text-4xl font-display font-semibold text-brand-ink/50">Aroadri Tea</h1>
         <p className="mt-4 text-xl text-brand-ink-3">Silakan pesan di kasir</p>
       </div>
     );
@@ -53,7 +61,19 @@ export default function PosDisplayPage() {
           <img src="/logo-primary.png" alt="Aroadri Tea" className="h-12 w-12" />
           <span className="font-display text-2xl font-bold text-brand-ink">Aroadri Tea</span>
         </div>
-        <h1 className="text-xl font-medium text-brand-ink-2">Daftar Pesanan Anda</h1>
+        <div className="text-right">
+          <h1 className="text-xl font-medium text-brand-ink-2">Daftar Pesanan Anda</h1>
+          {displayState.customer && (
+            <p className="text-sm text-brand-ink-3">
+              Member: <span className="font-semibold text-brand-red">{displayState.customer.name}</span>
+              {displayState.customer.loyaltyTier && (
+                <span className="ml-2 rounded-full bg-brand-gold/10 px-2 py-0.5 text-xs font-medium text-brand-gold">
+                  {displayState.customer.loyaltyTier}
+                </span>
+              )}
+            </p>
+          )}
+        </div>
       </header>
 
       {/* Main Content */}

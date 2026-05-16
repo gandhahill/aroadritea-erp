@@ -439,11 +439,22 @@ export async function fetchMasterDataRaw() {
     .from(taxRates)
     .where(eq(taxRates.isActive, true));
 
+  // Helper to extract localized name as a single display string
+  function localizeNameRaw(name: unknown): string {
+    if (!name) return '';
+    if (typeof name === 'string') return name;
+    if (typeof name === 'object') {
+      const n = name as Record<string, string>;
+      return n.id || n.en || n.zh || JSON.stringify(name);
+    }
+    return String(name);
+  }
+
   return {
     products: productRows.map((p) => ({
       id: p.id,
       sku: p.sku,
-      name: JSON.stringify(p.name),
+      name: localizeNameRaw(p.name),
       categoryId: p.categoryId,
       defaultSellPrice: p.defaultSellPrice.toString(),
       imageUrl: p.imageUrl,
@@ -453,7 +464,7 @@ export async function fetchMasterDataRaw() {
     variants: variantRows.map((v) => ({
       id: v.id,
       productId: v.productId,
-      name: JSON.stringify(v.name),
+      name: localizeNameRaw(v.name),
       sku: v.sku,
       sellPrice: v.sellPrice.toString(),
       attributes: v.attributes ?? {},
@@ -461,14 +472,14 @@ export async function fetchMasterDataRaw() {
     })),
     modifiers: modifierRows.map((m) => ({
       id: m.id,
-      name: JSON.stringify(m.name),
+      name: localizeNameRaw(m.name),
       price: m.extraPrice.toString(),
       category: m.groupId,
       isActive: m.isActive,
     })),
     promotions: promotionRows.map((p) => ({
       id: p.id,
-      name: JSON.stringify(p.name),
+      name: localizeNameRaw(p.name),
       type: p.kind,
       rules: {
         conditions: p.conditionsJson ?? {},

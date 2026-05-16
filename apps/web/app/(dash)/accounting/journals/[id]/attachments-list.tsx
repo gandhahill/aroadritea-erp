@@ -47,14 +47,17 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   async function handleDelete(attachmentId: string) {
-    if (!confirm('Hapus lampiran ini?')) return;
+    setConfirmDeleteId(null);
+    setDeleteError(null);
     setDeletingId(attachmentId);
     startTransition(async () => {
       const result = await deleteAttachmentAction(attachmentId);
       if (result.error) {
-        alert(`Gagal menghapus: ${result.error}`);
+        setDeleteError(`Gagal menghapus: ${result.error}`);
       } else {
         setAttachments((prev) => prev.filter((a) => a.id !== attachmentId));
       }
@@ -79,6 +82,11 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
 
   return (
     <div className="space-y-4">
+      {deleteError && (
+        <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {deleteError}
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -212,7 +220,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
                 </a>
                 <button
                   type="button"
-                  onClick={() => handleDelete(att.id)}
+                  onClick={() => confirmDeleteId === att.id ? handleDelete(att.id) : setConfirmDeleteId(att.id)}
                   disabled={deletingId === att.id || isPending}
                   className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-card px-2.5 py-1.5 text-xs font-medium text-rose-500 transition-colors hover:bg-rose-50 disabled:opacity-50"
                 >

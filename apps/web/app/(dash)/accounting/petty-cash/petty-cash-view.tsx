@@ -37,14 +37,16 @@ export function PettyCashView({ accounts, transactions, userLocationId }: Props)
   );
   const [filterKind, setFilterKind] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleCreate = async () => {
     try {
       setIsCreating(true);
+      setErrorMessage(null);
       await createAccountAction(userLocationId, 500000); // default limit 500k
       router.refresh();
     } catch (err) {
-      alert('Gagal membuat akun kas kecil');
+      setErrorMessage('Gagal membuat akun kas kecil');
     } finally {
       setIsCreating(false);
     }
@@ -63,6 +65,11 @@ export function PettyCashView({ accounts, transactions, userLocationId }: Props)
 
   return (
     <div className="space-y-6">
+      {errorMessage && (
+        <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {errorMessage}
+        </div>
+      )}
       {/* Balance cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {accounts.map((acct) => {
