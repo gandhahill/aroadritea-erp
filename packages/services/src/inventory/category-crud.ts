@@ -178,14 +178,18 @@ export async function updateCategory(
         throw AppError.internal('inventory.category.updateFailed');
       }
 
+      // Determine audit action: if isActive goes from true→false, it's a soft-delete
+      const auditAction =
+        data.isActive === false && existing.isActive === true ? 'delete' : 'update';
+
       await db.insert(auditLog).values({
         id: generateId(),
         tenantId: ctx.tenantId,
         userId: ctx.userId,
-        action: 'update',
+        action: auditAction,
         entityType: 'product_category',
         entityId: data.categoryId,
-        before: { code: existing.code, name: existing.name },
+        before: { code: existing.code, name: existing.name, isActive: existing.isActive },
         after: updates,
         metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
       });

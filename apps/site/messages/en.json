@@ -11,7 +11,9 @@
     "locations": "Locations",
     "blog": "Blog",
     "contact": "Contact",
-    "member": "Join Member"
+    "member": "Join Member",
+    "login": "Login",
+    "myAccount": "My Account"
   },
   "home": {
     "eyebrow": "Chinese-style tea & dessert",
@@ -130,6 +132,19 @@
     "noVouchers": "No vouchers yet.",
     "cashierLookupTitle": "Use your phone number at checkout",
     "cashierLookupBody": "When the cashier asks whether you are a member, mention your registered phone number. The cashier will find the member record and confirm the name before points are recorded.",
+    "login": {
+      "title": "Member Login",
+      "subtitle": "Login to your member account to view points, vouchers, and transaction history.",
+      "email": "Email",
+      "password": "Password",
+      "emailPlaceholder": "email@example.com",
+      "passwordPlaceholder": "Your password",
+      "submit": "Login",
+      "submitting": "Verifying...",
+      "noAccount": "Don't have an account?",
+      "register": "Join Member",
+      "error": "Invalid email or password."
+    },
     "signup": {
       "title": "Join Member",
       "subtitle": "Use the same phone number when ordering in store so the cashier can find your member account.",

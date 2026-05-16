@@ -29,6 +29,11 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
     ),
   );
 
+  const wildcardPermId = useMemo(
+    () => matrix.permissions.find((p) => p.code === '*.*')?.id,
+    [matrix.permissions],
+  );
+
   const grouped = useMemo(() => {
     const map = new Map<string, typeof matrix.permissions>();
     for (const permission of matrix.permissions) {
@@ -222,7 +227,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                 <button
                   type="button"
                   onClick={() => deleteRole(role.id)}
-                  disabled={pending || role.code === 'director'}
+                  disabled={pending || (!!wildcardPermId && isGranted(role.id, wildcardPermId))}
                   className="self-end rounded-md border border-brand-cream-3 px-3 py-2 text-xs font-semibold text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red disabled:opacity-40"
                 >
                   Hapus
@@ -256,12 +261,19 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-cream-3 bg-card">
-                {permissions.map((permission) => (
+                {permissions.map((permission) => {
+                  const desc = permission.description as Record<string, string> | null;
+                  return (
                   <tr key={permission.id} className="hover:bg-brand-cream-1/60">
                     <td className="sticky left-0 z-10 bg-card px-4 py-3">
                       <p className="font-mono text-xs font-semibold text-brand-ink">
                         {permission.code}
                       </p>
+                      {desc && (
+                        <p className="mt-0.5 text-[11px] text-brand-ink-3">
+                          {desc.id ?? desc.en ?? ''}
+                        </p>
+                      )}
                     </td>
                     {matrix.roles.map((role) => (
                       <td key={role.id} className="px-4 py-3 text-center">
@@ -275,7 +287,8 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                       </td>
                     ))}
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

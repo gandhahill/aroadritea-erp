@@ -486,7 +486,7 @@ export async function submitOpname(
     id: generateId(),
     entityType: 'stock_opname_session',
     entityId: sessionId,
-    action: 'update',
+    action: 'submit',
     before: { status: session.status },
     after: { status: 'submitted' },
     userId: ctx.userId,

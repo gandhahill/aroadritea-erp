@@ -11,7 +11,9 @@
     "locations": "Lokasi",
     "blog": "Blog",
     "contact": "Hubungi",
-    "member": "Daftar Member"
+    "member": "Daftar Member",
+    "login": "Masuk",
+    "myAccount": "Akun Saya"
   },
   "home": {
     "eyebrow": "Chinese-style tea & dessert",
@@ -130,6 +132,19 @@
     "noVouchers": "Belum ada voucher.",
     "cashierLookupTitle": "Pakai nomor telepon di kasir",
     "cashierLookupBody": "Saat kasir bertanya apakah ada member, sebutkan nomor telepon terdaftar. Kasir akan mencari data member dan mengonfirmasi nama sebelum poin transaksi dicatat.",
+    "login": {
+      "title": "Masuk Member",
+      "subtitle": "Masuk ke akun member Anda untuk melihat poin, voucher, dan riwayat transaksi.",
+      "email": "Email",
+      "password": "Kata sandi",
+      "emailPlaceholder": "email@contoh.com",
+      "passwordPlaceholder": "Kata sandi Anda",
+      "submit": "Masuk",
+      "submitting": "Memverifikasi...",
+      "noAccount": "Belum punya akun?",
+      "register": "Daftar Member",
+      "error": "Email atau kata sandi tidak valid."
+    },
     "signup": {
       "title": "Daftar Member",
       "subtitle": "Gunakan nomor telepon yang sama saat bertransaksi di outlet agar kasir bisa menemukan akun member Anda.",

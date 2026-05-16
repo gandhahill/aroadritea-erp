@@ -209,9 +209,9 @@ function TreeNode({ node, depth, expandedIds, onToggle }: TreeNodeProps) {
   const hasChildren = node.children.length > 0;
   const isExpanded = expandedIds.has(node.id);
   const colors = TYPE_COLORS[node.type] ?? {
-    bg: 'bg-gray-100',
-    text: 'text-gray-600',
-    border: 'border-gray-200',
+    bg: 'bg-brand-cream-2',
+    text: 'text-brand-ink-3',
+    border: 'border-brand-cream-3',
   };
 
   return (

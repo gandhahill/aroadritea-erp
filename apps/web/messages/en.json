@@ -15,7 +15,15 @@
       "submit": "Submit",
       "reset": "Reset",
       "close": "Close",
-      "loading": "Loading..."
+      "loading": "Loading...",
+      "saving": "Saving...",
+      "add": "Add",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "download": "Download",
+      "upload": "Upload",
+      "view": "View",
+      "select": "Select"
     },
     "status": {
       "active": "Active",
@@ -40,7 +48,22 @@
       "location": "Location",
       "createdAt": "Created at",
       "updatedAt": "Updated at",
-      "createdBy": "Created by"
+      "createdBy": "Created by",
+      "notes": "Notes",
+      "remarks": "Remarks",
+      "all": "All",
+      "details": "Details",
+      "code": "Code",
+      "type": "Type",
+      "yes": "Yes",
+      "no": "No",
+      "updated": "Updated",
+      "endDate": "End Date",
+      "actions": "Actions",
+      "postable": "Postable",
+      "noParent": "No parent",
+      "allLocations": "All Locations",
+      "preliminary": "Preliminary"
     },
     "errors": {
       "required": "Required",
@@ -48,7 +71,12 @@
       "forbidden": "Access denied",
       "conflict": "Data conflict, please reload",
       "serverError": "Server error occurred",
-      "validationFailed": "Validation failed"
+      "validationFailed": "Validation failed",
+      "loadFailed": "Failed to load data. Please try again.",
+      "saveFailed": "Failed to save.",
+      "deleteFailed": "Failed to delete.",
+      "createFailed": "Failed to create.",
+      "noData": "No data yet."
     },
     "pagination": {
       "page": "Page",
@@ -91,6 +119,11 @@
       "totalCredit": "Total Credit",
       "notBalanced": "Journal is not balanced",
       "periodClosed": "Period is closed",
+      "addLine": "Add line",
+      "saveDraft": "Save journal draft",
+      "selectAccount": "Select account",
+      "saving": "Saving...",
+      "deleteItem": "Delete",
       "new": {
         "back": "Back to journals",
         "title": "Create Journal",
@@ -111,6 +144,12 @@
     },
     "coa": {
       "title": "Chart of Accounts",
+      "subtitle": "Add, edit, deactivate, and complete account names in ID/EN/ZH.",
+      "manage": "Manage Accounts",
+      "newAccount": "New account",
+      "saveAccount": "Save account",
+      "saved": "Account saved.",
+      "deactivated": "Account deactivated.",
       "code": "Account Code",
       "name": "Account Name",
       "type": "Type",
@@ -119,7 +158,29 @@
     "period": {
       "title": "Accounting Periods",
       "open": "Open Period",
-      "close": "Close Period"
+      "close": "Close Period",
+      "empty": "No accounting periods yet.",
+      "notClosed": "Not closed"
+    },
+    "reimbursement": {
+      "title": "Reimbursement",
+      "subtitle": "Submit and manage reimbursements.",
+      "empty": "No reimbursement requests yet.",
+      "saveDraft": "Save Draft",
+      "details": "Reimbursement Details",
+      "approvedNotPaid": "Approved (Not Paid)",
+      "approvedBy": "Approved by",
+      "submitting": "Submitting...",
+      "submitRequest": "Submit",
+      "approving": "Approving...",
+      "approveRequest": "Approve",
+      "submitSuccess": "Request approved successfully.",
+      "errors": {
+        "invalidAmount": "Enter a valid amount.",
+        "noDescription": "Enter a description.",
+        "noLocation": "Select a location."
+      },
+      "selectLocation": "Select location..."
     },
     "pettyCash": {
       "title": "Petty Cash",
@@ -141,6 +202,17 @@
     }
   },
   "purchasing": {
+    "title": "Purchasing",
+    "subtitle": "Manage suppliers and purchase orders from the ERP.",
+    "supplierTitle": "Suppliers",
+    "addSupplier": "Add supplier",
+    "saveSupplier": "Save supplier",
+    "selectSupplier": "Select supplier",
+    "selectLocation": "Select location",
+    "selectProduct": "Select product",
+    "emptyPo": "No purchase orders yet.",
+    "emptySupplier": "No suppliers yet.",
+    "deleteItem": "Delete",
     "po": {
       "new": {
         "eyebrow": "Purchasing",
@@ -212,6 +284,27 @@
     "notFound": "Schedule not found"
   },
   "inventory": {
+    "products": {
+      "title": "Products & Menu",
+      "subtitle": "Manage sale items, raw materials, variant prices, images, and categories from the ERP.",
+      "add": "Add product",
+      "searchPlaceholder": "Search products",
+      "searchBtn": "Search",
+      "empty": "No matching products found.",
+      "createCategory": "Create a category first",
+      "saveProduct": "Save product",
+      "saveChanges": "Save changes",
+      "new": {
+        "pageTitle": "Add Product - Aroadri ERP",
+        "heading": "Add product"
+      },
+      "variants": {
+        "add": "Add variant",
+        "empty": "No variants yet.",
+        "deactivate": "Deactivate",
+        "activate": "Activate"
+      }
+    },
     "categories": {
       "title": "Product Categories",
       "subtitle": "Manage POS product categories without editing source code.",
@@ -234,14 +327,44 @@
       "delete": "Delete",
       "confirmDelete": "Delete this category?",
       "createFailed": "Failed to create category.",
-      "deleteFailed": "Failed to delete category."
+      "deleteFailed": "Failed to delete category.",
+      "productCount": "Products",
+      "hasProducts": "Cannot delete a category that still has active products."
     },
     "opname": {
       "title": "Stock Opname",
       "subtitle": "Manage stock opname sessions and inventory adjustments.",
+      "createBtn": "Create Opname Session",
+      "empty": "No opname sessions yet",
+      "newSession": {
+        "title": "Create Opname Session",
+        "subtitle": "Create a new stock opname session. The system will snapshot current stock as baseline.",
+        "creating": "Processing...",
+        "createBtn": "Create Session",
+        "back": "Back",
+        "notesLabel": "Notes",
+        "notesPlaceholder": "Optional notes for this session...",
+        "noLocations": "No active locations"
+      },
+      "detail": {
+        "productList": "Product List",
+        "saveChanges": "Save {count} Changes",
+        "uncountedWarning": "{count} lines not yet counted. Fill the \"Counted\" column and click \"Save\".",
+        "allCountedMsg": "All lines have been counted. Click \"Submit Opname\" to calculate variances.",
+        "varianceFound": "Variance found.",
+        "afterApproval": "After approval, the system will create an adjustment journal entry.",
+        "journalCreated": "Created",
+        "journalNotCreated": "Not created"
+      },
       "variance": {
         "title": "Inventory Variance",
-        "subtitle": "Stock opname variance report per session and product."
+        "subtitle": "Stock opname variance report per session and product.",
+        "loadFailed": "Failed to load data. Please try again.",
+        "noData": "No data",
+        "selectDateLocation": "Select date and location",
+        "noSurplus": "No surplus",
+        "noSessions": "No approved opname sessions yet.",
+        "noProducts": "No product data."
       }
     }
   },
@@ -481,6 +604,11 @@
       "emergencyContact": "Emergency contact",
       "probationEnd": "Probation end",
       "noData": "No employee records",
+      "save": "Save employee",
+      "new": {
+        "pageTitle": "Add Employee - Aroadri ERP",
+        "heading": "Add employee"
+      },
       "confirmDelete": "Delete this employee?",
       "statusProbation": "Probation",
       "statusActive": "Active",
@@ -562,6 +690,12 @@
       "statusRejected": "Rejected",
       "noRequests": "No leave requests",
       "noBalances": "No leave balances",
+      "manage": "Manage Leave Types",
+      "addType": "Add",
+      "saveType": "Save",
+      "deleteType": "Delete",
+      "emptyTypes": "No leave types yet.",
+      "activeLabel": "Active",
       "ofTotal": "of {total} days",
       "recentRequests": "Recent requests",
       "annualLeave": "Annual Leave",
@@ -588,6 +722,11 @@
     "disciplinary": {
       "title": "Disciplinary Actions",
       "add": "Issue SP",
+      "createTitle": "Create Disciplinary Letter",
+      "selectEmployee": "Select Employee",
+      "allLevels": "All Levels",
+      "allStatus": "All Status",
+      "createFailed": "Failed to create disciplinary letter.",
       "level": "Level",
       "reason": "Reason",
       "incidentDate": "Incident Date",
@@ -609,9 +748,12 @@
     "title": "Site Content Management",
     "pages": {
       "title": "Pages",
-      "subtitle": "Manage static pages for your website.",
+      "subtitle": "Manage static site pages (home, about, menu, etc.)",
       "create": "Create Page",
-      "empty": "No pages yet. Create your first page.",
+      "createNew": "Create New Page",
+      "editPage": "Edit Page",
+      "createFirst": "Create your first page for the website.",
+      "empty": "No pages yet",
       "delete": "Delete Page",
       "publish": "Publish",
       "unpublish": "Unpublish",
@@ -627,7 +769,10 @@
       "title": "Posts",
       "subtitle": "Manage news, promos, recipes, and events.",
       "create": "Create Post",
-      "empty": "No posts yet. Create your first post.",
+      "createNew": "Create New Post",
+      "editPost": "Edit Post",
+      "createFirst": "Create your first post for blog or promos.",
+      "empty": "No posts yet",
       "delete": "Delete Post",
       "publish": "Publish",
       "unpublish": "Unpublish",
@@ -647,8 +792,52 @@
       "notFound": "Page not found"
     }
   },
+  "tax": {
+    "rates": {
+      "title": "Tax Rates",
+      "empty": "No tax rates yet.",
+      "saveRate": "Save rate",
+      "selectPostingAccount": "Select posting account"
+    },
+    "rules": {
+      "title": "Tax Rules",
+      "empty": "No tax rules yet.",
+      "saveRule": "Save rule",
+      "deleteRule": "Delete"
+    }
+  },
+  "display": {
+    "orderList": "Your Orders",
+    "noOrders": "No orders yet"
+  },
   "settings": {
     "title": "Settings",
+    "permissions": {
+      "title": "Permissions",
+      "subtitle": "Create new roles, edit role names, and check required permissions.",
+      "noAccess": "This account does not have access to manage permissions.",
+      "addRole": "Add Role",
+      "roleCode": "Code",
+      "roleNameId": "Name ID",
+      "roleNameEn": "Name EN",
+      "roleNameZh": "Name ZH",
+      "errors": {
+        "savePermission": "Failed to save permission",
+        "createRole": "Failed to create role",
+        "saveRole": "Failed to save role",
+        "deleteRole": "Failed to delete role"
+      }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Manage operational notification recipients.",
+      "addChannel": "Add channel",
+      "saveChannel": "Save channel",
+      "listTitle": "Channel list",
+      "empty": "No notification channels yet.",
+      "allNotifications": "All notifications",
+      "activeLabel": "Active"
+    },
     "locations": {
       "title": "Locations",
       "subtitle": "Manage outlets, internal offices, warehouses, addresses, active status, currency, and timezone from the ERP.",
@@ -709,7 +898,12 @@
       "title": "POS Settings",
       "subtitle": "Configure posting accounts, delivery channels, tax, and receipt size for each outlet printer.",
       "operationalDefaults": "Operational Defaults",
-      "save": "Save Settings"
+      "save": "Save Settings",
+      "noLocations": "No locations. Seed locations before configuring POS.",
+      "saved": "POS settings saved.",
+      "saveFailed": "Failed to save.",
+      "addChannel": "Add channel",
+      "deleteChannel": "Delete"
     },
     "promotions": {
       "title": "Promotions",
@@ -780,6 +974,26 @@
     "confirmDelete": "Delete this workflow? Running instances will remain."
   },
   "reporting": {
+    "dailySummary": {
+      "title": "Daily Summary",
+      "loadFailed": "Failed to load data. Please try again.",
+      "noData": "No data",
+      "selectDateLocation": "Select date and location",
+      "paymentDetails": "Payment Details",
+      "noPayments": "No payments",
+      "noActiveOutlets": "No active outlets for daily report.",
+      "open": "Open"
+    },
+    "donations": {
+      "title": "Donations",
+      "loading": "Loading...",
+      "empty": "No donation data for this period"
+    },
+    "hourlySales": {
+      "title": "Hourly Sales",
+      "dailyDetails": "Daily Details",
+      "empty": "No sales data for this period"
+    },
     "bi": {
       "eyebrow": "Business Intelligence",
       "title": "Management Dashboard",

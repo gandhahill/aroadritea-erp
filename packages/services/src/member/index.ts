@@ -22,7 +22,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, asc, count, desc, eq, gte, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import nodemailer from 'nodemailer';
-import { hashMemberPassword } from './password';
+import { hashMemberPassword, verifyMemberPassword } from './password';
 
 // ─── Rate limiting constants ───────────────────────────────────────────────
 
@@ -598,6 +598,83 @@ export async function completeSignup(
   }
 
   return ok({ memberId, sessionToken });
+}
+
+// ─── Login ───────────────────────────────────────────────────────────────────
+
+const LoginInputSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
+export type LoginInput = z.infer<typeof LoginInputSchema>;
+
+/**
+ * Authenticate member by email + password.
+ * Returns session token on success.
+ * SD §31.5 — member login flow.
+ */
+export async function loginMember(
+  input: LoginInput,
+  ipAddress?: string,
+  userAgent?: string,
+): Promise<Result<{ memberId: string; sessionToken: string }>> {
+  const parsed = LoginInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return err(AppError.validation('member.login.validationFailed', { issues: parsed.error.issues }));
+  }
+
+  const { email, password } = parsed.data;
+
+  // Find member by email
+  const [partner] = await db
+    .select({ id: partners.id, name: partners.name, isActive: partners.isActive, isMember: partners.isMember })
+    .from(partners)
+    .where(
+      and(
+        eq(partners.tenantId, 'default'),
+        eq(partners.email, email.toLowerCase().trim()),
+        eq(partners.kind, 'customer'),
+      ),
+    )
+    .limit(1);
+
+  if (!partner || !partner.isMember || !partner.isActive) {
+    return err(AppError.unauthenticated('member.login.invalidCredentials'));
+  }
+
+  // Get password hash
+  const [credential] = await db
+    .select({ passwordHash: memberCredentials.passwordHash })
+    .from(memberCredentials)
+    .where(eq(memberCredentials.memberId, partner.id))
+    .limit(1);
+
+  if (!credential) {
+    return err(AppError.unauthenticated('member.login.invalidCredentials'));
+  }
+
+  // Verify password
+  const valid = await verifyMemberPassword(password, credential.passwordHash);
+  if (!valid) {
+    return err(AppError.unauthenticated('member.login.invalidCredentials'));
+  }
+
+  // Create session
+  const sessionToken = randomBytes(48).toString('hex');
+  const tokenHash = createHash('sha256').update(sessionToken).digest('hex');
+  const expiresAt = minutesFromNow(30 * 24 * 60); // 30 days
+
+  await db.insert(memberSessions).values({
+    id: crypto.randomUUID(),
+    memberId: partner.id,
+    tokenHash,
+    expiresAt,
+    ipAddress,
+    userAgent,
+  });
+
+  return ok({ memberId: partner.id, sessionToken });
 }
 
 // ─── Store Lookup ─────────────────────────────────────────────────────────────

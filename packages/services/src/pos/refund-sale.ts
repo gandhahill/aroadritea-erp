@@ -215,7 +215,7 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
       id: generateId(),
       tenantId: ctx.tenantId,
       userId: ctx.userId,
-      action: 'update',
+      action: 'refund',
       entityType: 'sales_order',
       entityId: data.salesOrderId,
       before: { status: sale.status },

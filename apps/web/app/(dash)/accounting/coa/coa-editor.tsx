@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import type { ReactNode } from 'react';
 import {
@@ -52,6 +53,8 @@ function toDraft(node: COANode): COAAccountDraft {
 }
 
 export function COAEditor({ tree }: Props) {
+  const t = useTranslations('accounting.coa');
+  const tc = useTranslations('common');
   const [draft, setDraft] = useState<COAAccountDraft>(blankDraft);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -70,7 +73,7 @@ export function COAEditor({ tree }: Props) {
   async function save() {
     setMessage(null);
     const result = await saveCOAAccount(draft);
-    setMessage(result.success ? 'Akun berhasil disimpan.' : result.error);
+    setMessage(result.success ? t('saved') : result.error);
     if (result.success) {
       startTransition(() => window.location.reload());
     }
@@ -80,7 +83,7 @@ export function COAEditor({ tree }: Props) {
     if (!draft.id) return;
     setMessage(null);
     const result = await deleteCOAAccount({ id: draft.id });
-    setMessage(result.success ? 'Akun berhasil dinonaktifkan.' : result.error);
+    setMessage(result.success ? t('deactivated') : result.error);
     if (result.success) {
       setDraft(blankDraft);
       startTransition(() => window.location.reload());
@@ -91,9 +94,9 @@ export function COAEditor({ tree }: Props) {
     <section className="surface-card p-4">
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-base font-semibold text-brand-ink">Kelola Akun</h2>
+          <h2 className="text-base font-semibold text-brand-ink">{t('manage')}</h2>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Tambah, ubah, nonaktifkan, dan lengkapi nama akun dalam ID/EN/ZH.
+            {t('subtitle')}
           </p>
         </div>
         <select
@@ -105,7 +108,7 @@ export function COAEditor({ tree }: Props) {
           }}
           className="h-10 min-w-72 rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink"
         >
-          <option value="">Akun baru</option>
+          <option value="">{t('newAccount')}</option>
           {accounts.map((account) => (
             <option key={account.id} value={account.id}>
               {' '.repeat(account.depth * 2)}
@@ -190,7 +193,7 @@ export function COAEditor({ tree }: Props) {
             onChange={(event) => update({ parentId: event.target.value || null })}
             className={fieldClass}
           >
-            <option value="">Tanpa parent</option>
+            <option value="">{tc('labels.noParent')}</option>
             {accounts
               .filter((account) => account.id !== draft.id)
               .map((account) => (
@@ -210,7 +213,7 @@ export function COAEditor({ tree }: Props) {
             checked={draft.isPostable}
             onChange={(event) => update({ isPostable: event.target.checked })}
           />
-          Postable
+          {tc('labels.postable')}
         </label>
         <label className="inline-flex items-center gap-2 text-sm text-brand-ink-2">
           <input
@@ -218,7 +221,7 @@ export function COAEditor({ tree }: Props) {
             checked={draft.isActive}
             onChange={(event) => update({ isActive: event.target.checked })}
           />
-          Aktif
+          {tc('status.active')}
         </label>
         <button
           type="button"
@@ -226,7 +229,7 @@ export function COAEditor({ tree }: Props) {
           disabled={isPending}
           className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90 disabled:opacity-60"
         >
-          Simpan akun
+          {t('saveAccount')}
         </button>
         {draft.id && (
           <button
@@ -235,7 +238,7 @@ export function COAEditor({ tree }: Props) {
             disabled={isPending}
             className="rounded-md border border-brand-red px-4 py-2 text-sm font-semibold text-brand-red hover:bg-brand-red/5 disabled:opacity-60"
           >
-            Nonaktifkan
+            {tc('actions.deactivate')}
           </button>
         )}
       </div>

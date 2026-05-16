@@ -197,7 +197,7 @@ async function seed() {
   }
   console.info(`✅ ${ROLES_SEED.length} roles seeded`);
 
-  // 4. Permissions
+  // 4. Permissions (with multilingual descriptions)
   const permIds = new Map<string, string>();
   for (const perm of PERMISSIONS_SEED) {
     const id = generateId();
@@ -207,8 +207,15 @@ async function seed() {
         id,
         code: perm.code,
         module: perm.module,
+        description: perm.description ?? null,
       })
-      .onConflictDoNothing();
+      .onConflictDoUpdate({
+        target: permissions.code,
+        set: {
+          module: perm.module,
+          description: perm.description ?? null,
+        },
+      });
   }
   const permissionRows = await db
     .select({ id: permissions.id, code: permissions.code })

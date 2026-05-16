@@ -2,6 +2,7 @@
  * Public Site Header - SD §31.1
  *
  * Sticky navigation with logo + locale switcher + nav links.
+ * Auth-aware: shows login/register when anonymous, shows "My Account" when logged in.
  */
 'use client';
 
@@ -20,10 +21,11 @@ interface Props {
   brand: string;
   tagline: string;
   chineseTea: string;
-  labels: Record<(typeof NAV_LINKS)[number]['key'] | 'member', string>;
+  labels: Record<(typeof NAV_LINKS)[number]['key'] | 'member' | 'login' | 'myAccount', string>;
+  isLoggedIn?: boolean;
 }
 
-export function PublicHeader({ locale, brand, tagline, chineseTea, labels }: Props) {
+export function PublicHeader({ locale, brand, tagline, chineseTea, labels, isLoggedIn }: Props) {
   const pathname = usePathname();
 
   function switchLocale(newLocale: SiteLocale) {
@@ -71,12 +73,29 @@ export function PublicHeader({ locale, brand, tagline, chineseTea, labels }: Pro
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
-          <a
-            href={`/${locale}/member/daftar`}
-            className="hidden rounded-full bg-brand-red px-4 py-2 text-sm font-bold text-brand-cream shadow-soft transition-brand hover:bg-brand-red-dark hover:shadow-pop focus-visible:outline-none focus-visible:shadow-focus sm:inline-flex"
-          >
-            {labels.member}
-          </a>
+          {isLoggedIn ? (
+            <a
+              href={`/${locale}/member/akun`}
+              className="hidden rounded-full bg-brand-red px-4 py-2 text-sm font-bold text-brand-cream shadow-soft transition-brand hover:bg-brand-red-dark hover:shadow-pop focus-visible:outline-none focus-visible:shadow-focus sm:inline-flex"
+            >
+              {labels.myAccount}
+            </a>
+          ) : (
+            <>
+              <a
+                href={`/${locale}/member/masuk`}
+                className="hidden rounded-full border border-brand-red/20 bg-brand-cream-1 px-4 py-2 text-sm font-bold text-brand-red transition-brand hover:bg-brand-cream-2 focus-visible:outline-none focus-visible:shadow-focus sm:inline-flex"
+              >
+                {labels.login}
+              </a>
+              <a
+                href={`/${locale}/member/daftar`}
+                className="hidden rounded-full bg-brand-red px-4 py-2 text-sm font-bold text-brand-cream shadow-soft transition-brand hover:bg-brand-red-dark hover:shadow-pop focus-visible:outline-none focus-visible:shadow-focus sm:inline-flex"
+              >
+                {labels.member}
+              </a>
+            </>
+          )}
           <div className="flex items-center rounded-full border border-brand-red/10 bg-brand-cream-1 p-1">
             {siteLocales.map((loc) => (
               <a

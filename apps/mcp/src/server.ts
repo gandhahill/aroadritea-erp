@@ -13,7 +13,7 @@ import {
 import type { z } from 'zod';
 import { verifyToken } from './auth';
 import type { McpContext } from './context';
-import { mcpError } from './helpers';
+import { mcpError, logMcpToolCall } from './helpers';
 import {
   accountingTools,
   auditTools,
@@ -183,9 +183,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   // Execute — handler expects the specific inferred type
   try {
-    return await tool.handler(parsed.data, ctx);
+    const result = await tool.handler(parsed.data, ctx);
+
+    // Audit log MCP tool usage (fire-and-forget)
+    logMcpToolCall(ctx, toolName, parsed.data, result.isError).catch(() => {});
+
+    return result;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    // Log failed call too
+    logMcpToolCall(ctx, toolName, parsed.data, true).catch(() => {});
     return mcpError('INTERNAL', `Unhandled error in ${toolName}: ${msg}`);
   }
 });

@@ -127,15 +127,18 @@ export async function updateProduct(
         throw AppError.conflict('inventory.product.concurrentUpdate');
       }
 
-      // 8. Audit log
+      // 8. Audit log — detect soft-delete (isActive true→false)
+      const auditAction =
+        data.isActive === false && existing.isActive === true ? 'delete' : 'update';
+
       await db.insert(auditLog).values({
         id: generateId(),
         tenantId: ctx.tenantId,
         userId: ctx.userId,
-        action: 'update',
+        action: auditAction,
         entityType: 'product',
         entityId: data.productId,
-        before: { sku: existing.sku, name: existing.name, version: existing.version },
+        before: { sku: existing.sku, name: existing.name, version: existing.version, isActive: existing.isActive },
         after: { ...updates, version: existing.version + 1 },
         metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
       });

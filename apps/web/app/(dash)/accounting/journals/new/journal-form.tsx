@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useMemo, useState } from 'react';
 import { type JournalFormAccount, type JournalFormLocation, createJournalAction } from '../actions';
@@ -22,6 +23,8 @@ interface Props {
 }
 
 export function JournalForm({ accounts, locations }: Props) {
+  const t = useTranslations('accounting.journal');
+  const tc = useTranslations('common');
   const router = useRouter();
   const [state, submitAction, isPending] = useActionState(createJournalAction, null);
   const defaultLocationId = locations[0]?.id ?? '';
@@ -136,7 +139,7 @@ export function JournalForm({ accounts, locations }: Props) {
             onClick={addLine}
             className="rounded-lg border border-brand-cream-3 bg-card px-3 py-1.5 text-xs font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
           >
-            Tambah baris
+            {t('addLine')}
           </button>
         </div>
 
@@ -163,7 +166,7 @@ export function JournalForm({ accounts, locations }: Props) {
                       onChange={(event) => updateLine(line.key, { accountId: event.target.value })}
                       className={INPUT}
                     >
-                      <option value="">Pilih account</option>
+                      <option value="">{t('selectAccount')}</option>
                       {accounts.map((account) => (
                         <option key={account.id} value={account.id}>
                           {account.code} - {account.name.id ?? account.name.en}

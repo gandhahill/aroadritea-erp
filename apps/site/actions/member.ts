@@ -11,6 +11,7 @@ import {
   getMemberVouchers,
   getPointsHistory,
   initiateSignup,
+  loginMember,
   validateMemberSession,
   verifySignupOtp,
 } from '@erp/services/member';
@@ -47,6 +48,29 @@ export async function signupAction(formData: FormData) {
     return { success: false, error: `${String(result.error)} - ${JSON.stringify(result.error.details)}` };
   }
   return { success: true, token: result.value.token };
+}
+
+export async function loginAction(formData: FormData) {
+  const email = String(formData.get('email') ?? '');
+  const password = String(formData.get('password') ?? '');
+
+  const result = await loginMember({ email, password });
+
+  if (!result.ok) {
+    return { success: false, error: 'Email atau kata sandi tidak valid.' };
+  }
+
+  // Set session cookie
+  const cookieStore = await cookies();
+  cookieStore.set(MEMBER_SESSION_COOKIE, result.value.sessionToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  });
+
+  return { success: true };
 }
 
 export async function verifyOtpAction(token: string, code: string) {

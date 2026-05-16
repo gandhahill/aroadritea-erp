@@ -11,7 +11,9 @@
     "locations": "门店",
     "blog": "博客",
     "contact": "联系",
-    "member": "注册会员"
+    "member": "注册会员",
+    "login": "登录",
+    "myAccount": "我的账户"
   },
   "home": {
     "eyebrow": "中式茶饮与甜品",
@@ -130,6 +132,19 @@
     "noVouchers": "暂无优惠券。",
     "cashierLookupTitle": "结账时使用手机号",
     "cashierLookupBody": "当收银员询问是否有会员时，请告知注册手机号。收银员会查找会员资料并确认姓名，然后记录本次积分。",
+    "login": {
+      "title": "会员登录",
+      "subtitle": "登录您的会员账户查看积分、优惠券和交易记录。",
+      "email": "电子邮箱",
+      "password": "密码",
+      "emailPlaceholder": "email@example.com",
+      "passwordPlaceholder": "您的密码",
+      "submit": "登录",
+      "submitting": "验证中...",
+      "noAccount": "还没有账户？",
+      "register": "注册会员",
+      "error": "邮箱或密码无效。"
+    },
     "signup": {
       "title": "注册会员",
       "subtitle": "在门店消费时使用同一个手机号，方便收银员找到您的会员账户。",

@@ -132,8 +132,21 @@ export async function setRolePermission(input: {
     .limit(1);
 
   if (!role || !permissionRow) return { ok: false, error: 'Role or permission not found' };
-  if (!input.granted && permissionRow.code === '*.*' && role.code === 'director') {
-    return { ok: false, error: 'Director wildcard access cannot be removed from this UI' };
+  // Prevent removing wildcard from any role that currently holds it (safety guard)
+  if (!input.granted && permissionRow.code === '*.*') {
+    const [wildcardGrant] = await db
+      .select({ id: rolePermissions.roleId })
+      .from(rolePermissions)
+      .where(
+        and(
+          eq(rolePermissions.roleId, input.roleId),
+          eq(rolePermissions.permissionId, input.permissionId),
+        ),
+      )
+      .limit(1);
+    if (wildcardGrant) {
+      return { ok: false, error: 'Wildcard access cannot be removed from this UI' };
+    }
   }
 
   if (input.granted) {
@@ -282,7 +295,15 @@ export async function deleteRoleAction(id: string): Promise<{ ok: boolean; error
     .where(and(eq(roles.tenantId, ctx.tenantId), eq(roles.id, id), isNull(roles.deletedAt)))
     .limit(1);
   if (!role) return { ok: false, error: 'Role not found' };
-  if (role.code === 'director') return { ok: false, error: 'Director role cannot be deleted.' };
+
+  // Prevent deleting any role that holds wildcard (*.*) permission — DB-driven check per SD §11
+  const [hasWildcard] = await db
+    .select({ id: rolePermissions.roleId })
+    .from(rolePermissions)
+    .innerJoin(permissions, eq(permissions.id, rolePermissions.permissionId))
+    .where(and(eq(rolePermissions.roleId, id), eq(permissions.code, '*.*')))
+    .limit(1);
+  if (hasWildcard) return { ok: false, error: 'Roles with wildcard access cannot be deleted.' };
 
   const [assigned] = await db
     .select({ userId: userRoles.userId })

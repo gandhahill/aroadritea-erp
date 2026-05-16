@@ -1081,7 +1081,7 @@ export async function voidSale(input: unknown, ctx: AuditContext): Promise<Resul
       id: generateId(),
       tenantId: ctx.tenantId,
       userId: ctx.userId,
-      action: 'update',
+      action: 'void',
       entityType: 'sales_order',
       entityId: data.salesOrderId,
       before: { status: sale.status },

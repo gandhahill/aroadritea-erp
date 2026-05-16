@@ -180,14 +180,18 @@ export async function updateVariant(
         throw AppError.conflict('inventory.variant.concurrentUpdate');
       }
 
+      // Determine audit action: if isActive goes from true→false, it's a soft-delete
+      const auditAction =
+        data.isActive === false && existing.isActive === true ? 'delete' : 'update';
+
       await db.insert(auditLog).values({
         id: generateId(),
         tenantId: ctx.tenantId,
         userId: ctx.userId,
-        action: 'update',
+        action: auditAction,
         entityType: 'product_variant',
         entityId: data.variantId,
-        before: { sku: existing.sku, version: existing.version },
+        before: { sku: existing.sku, version: existing.version, isActive: existing.isActive },
         after: { ...updates, version: existing.version + 1 },
         metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
       });

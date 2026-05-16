@@ -15,7 +15,15 @@
       "submit": "提交",
       "reset": "重置",
       "close": "关闭",
-      "loading": "加载中..."
+      "loading": "加载中...",
+      "saving": "保存中...",
+      "add": "添加",
+      "deactivate": "停用",
+      "activate": "启用",
+      "download": "下载",
+      "upload": "上传",
+      "view": "查看",
+      "select": "选择"
     },
     "status": {
       "active": "活跃",
@@ -40,7 +48,22 @@
       "location": "位置",
       "createdAt": "创建时间",
       "updatedAt": "更新时间",
-      "createdBy": "创建人"
+      "createdBy": "创建人",
+      "notes": "备注",
+      "remarks": "说明",
+      "all": "全部",
+      "details": "详情",
+      "code": "编码",
+      "type": "类型",
+      "yes": "是",
+      "no": "否",
+      "updated": "已更新",
+      "endDate": "结束日期",
+      "actions": "操作",
+      "postable": "可记账",
+      "noParent": "无上级",
+      "allLocations": "所有位置",
+      "preliminary": "初步"
     },
     "errors": {
       "required": "必填",
@@ -48,7 +71,12 @@
       "forbidden": "拒绝访问",
       "conflict": "数据冲突，请重新加载",
       "serverError": "服务器错误",
-      "validationFailed": "验证失败"
+      "validationFailed": "验证失败",
+      "loadFailed": "加载数据失败，请重试。",
+      "saveFailed": "保存失败。",
+      "deleteFailed": "删除失败。",
+      "createFailed": "创建失败。",
+      "noData": "暂无数据。"
     },
     "pagination": {
       "page": "页",
@@ -91,6 +119,11 @@
       "totalCredit": "贷方合计",
       "notBalanced": "凭证不平衡",
       "periodClosed": "期间已关闭",
+      "addLine": "添加行",
+      "saveDraft": "保存日记账草稿",
+      "selectAccount": "选择科目",
+      "saving": "保存中...",
+      "deleteItem": "删除",
       "new": {
         "back": "返回日记账",
         "title": "创建凭证",
@@ -111,6 +144,12 @@
     },
     "coa": {
       "title": "科目表",
+      "subtitle": "添加、编辑、停用，并完善ID/EN/ZH科目名称。",
+      "manage": "管理科目",
+      "newAccount": "新科目",
+      "saveAccount": "保存科目",
+      "saved": "科目已保存。",
+      "deactivated": "科目已停用。",
       "code": "科目代码",
       "name": "科目名称",
       "type": "类型",
@@ -119,7 +158,9 @@
     "period": {
       "title": "会计期间",
       "open": "打开期间",
-      "close": "关闭期间"
+      "close": "关闭期间",
+      "empty": "暂无会计期间。",
+      "notClosed": "未关闭"
     },
     "pettyCash": {
       "title": "零用金",
@@ -138,9 +179,40 @@
       "amount": "金额",
       "noTransactions": "暂无交易记录。",
       "noAccounts": "暂无零用金账户。请联系管理员创建。"
+    },
+    "reimbursement": {
+      "title": "报销",
+      "subtitle": "提交和管理报销申请。",
+      "empty": "暂无报销申请。",
+      "saveDraft": "保存草稿",
+      "details": "报销详情",
+      "approvedNotPaid": "已批准（未支付）",
+      "approvedBy": "批准人",
+      "submitting": "提交中...",
+      "submitRequest": "提交",
+      "approving": "审批中...",
+      "approveRequest": "批准",
+      "submitSuccess": "申请已批准。",
+      "errors": {
+        "invalidAmount": "请输入有效金额。",
+        "noDescription": "请输入说明。",
+        "noLocation": "请选择位置。"
+      },
+      "selectLocation": "选择位置..."
     }
   },
   "purchasing": {
+    "title": "采购",
+    "subtitle": "从ERP管理供应商和采购订单。",
+    "supplierTitle": "供应商",
+    "addSupplier": "添加供应商",
+    "saveSupplier": "保存供应商",
+    "selectSupplier": "选择供应商",
+    "selectLocation": "选择位置",
+    "selectProduct": "选择产品",
+    "emptyPo": "暂无采购订单。",
+    "emptySupplier": "暂无供应商。",
+    "deleteItem": "删除",
     "po": {
       "new": {
         "eyebrow": "采购",
@@ -212,12 +284,61 @@
     "notFound": "计划未找到"
   },
   "inventory": {
+    "products": {
+      "title": "产品和菜单",
+      "subtitle": "从ERP管理销售商品、原材料、规格价格、图片和分类。",
+      "add": "添加产品",
+      "searchPlaceholder": "搜索产品",
+      "searchBtn": "搜索",
+      "empty": "未找到匹配的产品。",
+      "createCategory": "请先创建分类",
+      "saveProduct": "保存产品",
+      "saveChanges": "保存更改",
+      "new": {
+        "pageTitle": "添加产品 - Aroadri ERP",
+        "heading": "添加产品"
+      },
+      "variants": {
+        "add": "添加规格",
+        "empty": "暂无规格。",
+        "deactivate": "停用",
+        "activate": "启用"
+      }
+    },
     "opname": {
       "title": "库存盘点",
       "subtitle": "管理库存盘点会话和库存调整。",
+      "createBtn": "创建盘点会话",
+      "empty": "暂无盘点会话",
+      "newSession": {
+        "title": "创建盘点会话",
+        "subtitle": "创建新的盘点会话。系统将以当前库存作为基准快照。",
+        "creating": "处理中...",
+        "createBtn": "创建会话",
+        "back": "返回",
+        "notesLabel": "备注",
+        "notesPlaceholder": "此会话的可选备注...",
+        "noLocations": "暂无活跃位置"
+      },
+      "detail": {
+        "productList": "产品列表",
+        "saveChanges": "保存{count}项更改",
+        "uncountedWarning": "{count}行尚未盘点。请填写\"已盘点\"列，然后点击\"保存\"。",
+        "allCountedMsg": "所有行已盘点完成。点击\"提交盘点\"计算差异。",
+        "varianceFound": "发现差异。",
+        "afterApproval": "批准后，系统将创建调整日记账。",
+        "journalCreated": "已创建",
+        "journalNotCreated": "未创建"
+      },
       "variance": {
         "title": "库存差异",
-        "subtitle": "每个会话和产品的库存盘点差异报告。"
+        "subtitle": "每个会话和产品的库存盘点差异报告。",
+        "loadFailed": "加载数据失败，请重试。",
+        "noData": "无数据",
+        "selectDateLocation": "选择日期和位置",
+        "noSurplus": "无盈余",
+        "noSessions": "暂无已批准的盘点会话。",
+        "noProducts": "无产品数据。"
       }
     },
     "categories": {
@@ -242,7 +363,9 @@
       "delete": "删除",
       "confirmDelete": "要删除这个分类吗？",
       "createFailed": "创建分类失败。",
-      "deleteFailed": "删除分类失败。"
+      "deleteFailed": "删除分类失败。",
+      "productCount": "产品",
+      "hasProducts": "无法删除仍有活动产品的分类。"
     }
   },
   "nav": {
@@ -481,6 +604,11 @@
       "bpjsTenagakerja": "BPJS工伤保险",
       "address": "地址",
       "noData": "暂无员工数据",
+      "save": "保存员工",
+      "new": {
+        "pageTitle": "添加员工 - Aroadri ERP",
+        "heading": "添加员工"
+      },
       "confirmDelete": "确认删除该员工？",
       "statusProbation": "试用期",
       "statusActive": "在职",
@@ -569,7 +697,13 @@
       "unpaidLeave": "无薪假",
       "marriageLeave": "婚假",
       "maternityLeave": "产假",
-      "bereavementLeave": "丧假"
+      "bereavementLeave": "丧假",
+      "manage": "管理休假类型",
+      "addType": "添加",
+      "saveType": "保存",
+      "deleteType": "删除",
+      "emptyTypes": "暂无休假类型。",
+      "activeLabel": "活跃"
     },
     "payroll": {
       "title": "工资单",
@@ -588,6 +722,11 @@
     "disciplinary": {
       "title": "纪律处分",
       "add": "发出警告",
+      "createTitle": "创建纪律处分通知",
+      "selectEmployee": "选择员工",
+      "allLevels": "所有级别",
+      "allStatus": "所有状态",
+      "createFailed": "创建纪律通知失败。",
       "level": "级别",
       "reason": "原因",
       "incidentDate": "事件日期",
@@ -609,9 +748,12 @@
     "title": "网站内容管理",
     "pages": {
       "title": "页面",
-      "subtitle": "管理网站的静态页面。",
+      "subtitle": "管理网站静态页面（首页、关于、菜单等）",
       "create": "创建页面",
-      "empty": "暂无页面。创建第一个页面。",
+      "createNew": "创建新页面",
+      "editPage": "编辑页面",
+      "createFirst": "为您的网站创建第一个页面。",
+      "empty": "暂无页面",
       "delete": "删除页面",
       "publish": "发布",
       "unpublish": "取消发布",
@@ -627,7 +769,10 @@
       "title": "文章",
       "subtitle": "管理新闻、促销、食谱和活动。",
       "create": "创建文章",
-      "empty": "暂无文章。创建第一篇文章。",
+      "createNew": "创建新文章",
+      "editPost": "编辑文章",
+      "createFirst": "为博客或促销创建第一篇文章。",
+      "empty": "暂无文章",
       "delete": "删除文章",
       "publish": "发布",
       "unpublish": "取消发布",
@@ -646,6 +791,24 @@
       "publishFailed": "发布失败",
       "notFound": "页面未找到"
     }
+  },
+  "tax": {
+    "rates": {
+      "title": "税率",
+      "empty": "暂无税率。",
+      "saveRate": "保存税率",
+      "selectPostingAccount": "选择过账科目"
+    },
+    "rules": {
+      "title": "税务规则",
+      "empty": "暂无税务规则。",
+      "saveRule": "保存规则",
+      "deleteRule": "删除"
+    }
+  },
+  "display": {
+    "orderList": "您的订单",
+    "noOrders": "暂无订单"
   },
   "settings": {
     "title": "设置",
@@ -682,6 +845,32 @@
       },
       "confirmDelete": "删除字段 \"{name}\"？已存储的数据将保留。"
     },
+    "permissions": {
+      "title": "权限",
+      "subtitle": "创建新角色，编辑角色名称，并勾选所需权限。",
+      "noAccess": "此帐户无权管理权限。",
+      "addRole": "添加角色",
+      "roleCode": "编码",
+      "roleNameId": "名称ID",
+      "roleNameEn": "名称EN",
+      "roleNameZh": "名称ZH",
+      "errors": {
+        "savePermission": "保存权限失败",
+        "createRole": "创建角色失败",
+        "saveRole": "保存角色失败",
+        "deleteRole": "删除角色失败"
+      }
+    },
+    "notifications": {
+      "title": "通知",
+      "subtitle": "管理运营通知接收方。",
+      "addChannel": "添加渠道",
+      "saveChannel": "保存渠道",
+      "listTitle": "渠道列表",
+      "empty": "暂无通知渠道。",
+      "allNotifications": "所有通知",
+      "activeLabel": "活跃"
+    },
     "locations": {
       "title": "地点",
       "subtitle": "在 ERP 中管理门店、内部办公室、仓库、地址、启用状态、货币和时区。",
@@ -709,7 +898,12 @@
       "title": "POS 设置",
       "subtitle": "按门店配置入账科目、外卖渠道、税务和小票打印宽度。",
       "operationalDefaults": "运营默认值",
-      "save": "保存设置"
+      "save": "保存设置",
+      "noLocations": "暂无位置。请先配置位置数据再设置POS。",
+      "saved": "POS设置已保存。",
+      "saveFailed": "保存失败。",
+      "addChannel": "添加渠道",
+      "deleteChannel": "删除"
     },
     "promotions": {
       "title": "促销",
@@ -804,6 +998,26 @@
       "notePlaceholder": "例：2杯奶茶退货",
       "less": "较少",
       "more": "较多"
+    },
+    "dailySummary": {
+      "title": "日汇总",
+      "loadFailed": "加载数据失败，请重试。",
+      "noData": "无数据",
+      "selectDateLocation": "选择日期和位置",
+      "paymentDetails": "付款详情",
+      "noPayments": "无付款记录",
+      "noActiveOutlets": "暂无活跃门店用于日报。",
+      "open": "打开"
+    },
+    "donations": {
+      "title": "捐赠",
+      "loading": "加载中...",
+      "empty": "此期间无捐赠数据"
+    },
+    "hourlySales": {
+      "title": "按小时销售",
+      "dailyDetails": "每日详情",
+      "empty": "此期间无销售数据"
     },
     "bi": {
       "eyebrow": "Business Intelligence",

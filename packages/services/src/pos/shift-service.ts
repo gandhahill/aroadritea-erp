@@ -200,7 +200,7 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
       id: generateId(),
       tenantId: ctx.tenantId,
       userId: ctx.userId,
-      action: 'update',
+      action: 'close',
       entityType: 'shift',
       entityId: data.shiftId,
       before: { status: 'open' },

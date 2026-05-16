@@ -15,7 +15,15 @@
       "submit": "Kirim",
       "reset": "Reset",
       "close": "Tutup",
-      "loading": "Memuat..."
+      "loading": "Memuat...",
+      "saving": "Menyimpan...",
+      "add": "Tambah",
+      "deactivate": "Nonaktifkan",
+      "activate": "Aktifkan",
+      "download": "Unduh",
+      "upload": "Unggah",
+      "view": "Lihat",
+      "select": "Pilih"
     },
     "status": {
       "active": "Aktif",
@@ -40,7 +48,22 @@
       "location": "Lokasi",
       "createdAt": "Dibuat pada",
       "updatedAt": "Diperbarui pada",
-      "createdBy": "Dibuat oleh"
+      "createdBy": "Dibuat oleh",
+      "notes": "Catatan",
+      "remarks": "Keterangan",
+      "all": "Semua",
+      "details": "Rincian",
+      "code": "Kode",
+      "type": "Tipe",
+      "yes": "Ya",
+      "no": "Tidak",
+      "updated": "Diperbarui",
+      "endDate": "Tanggal Selesai",
+      "actions": "Aksi",
+      "postable": "Postable",
+      "noParent": "Tanpa parent",
+      "allLocations": "Semua Lokasi",
+      "preliminary": "Awal"
     },
     "errors": {
       "required": "Wajib diisi",
@@ -48,7 +71,12 @@
       "forbidden": "Akses ditolak",
       "conflict": "Data konflik, silakan muat ulang",
       "serverError": "Terjadi kesalahan server",
-      "validationFailed": "Validasi gagal"
+      "validationFailed": "Validasi gagal",
+      "loadFailed": "Gagal memuat data. Silakan coba lagi.",
+      "saveFailed": "Gagal menyimpan.",
+      "deleteFailed": "Gagal menghapus.",
+      "createFailed": "Gagal membuat data.",
+      "noData": "Belum ada data."
     },
     "pagination": {
       "page": "Halaman",
@@ -91,6 +119,11 @@
       "totalCredit": "Total Kredit",
       "notBalanced": "Jurnal tidak seimbang",
       "periodClosed": "Periode sudah ditutup",
+      "addLine": "Tambah baris",
+      "saveDraft": "Simpan draft jurnal",
+      "selectAccount": "Pilih account",
+      "saving": "Menyimpan...",
+      "deleteItem": "Hapus",
       "new": {
         "back": "Kembali ke jurnal",
         "title": "Buat Jurnal",
@@ -111,6 +144,12 @@
     },
     "coa": {
       "title": "Bagan Akun",
+      "subtitle": "Tambah, ubah, nonaktifkan, dan lengkapi nama akun dalam ID/EN/ZH.",
+      "manage": "Kelola Akun",
+      "newAccount": "Akun baru",
+      "saveAccount": "Simpan akun",
+      "saved": "Akun berhasil disimpan.",
+      "deactivated": "Akun berhasil dinonaktifkan.",
       "code": "Kode Akun",
       "name": "Nama Akun",
       "type": "Jenis",
@@ -119,7 +158,29 @@
     "period": {
       "title": "Periode Akuntansi",
       "open": "Buka Periode",
-      "close": "Tutup Periode"
+      "close": "Tutup Periode",
+      "empty": "Belum ada periode akuntansi.",
+      "notClosed": "Belum ditutup"
+    },
+    "reimbursement": {
+      "title": "Reimbursement",
+      "subtitle": "Ajukan dan kelola reimbursement.",
+      "empty": "Belum ada pengajuan reimbursement.",
+      "saveDraft": "Simpan Draf",
+      "details": "Detail Reimbursement",
+      "approvedNotPaid": "Disetujui (Belum Cair)",
+      "approvedBy": "Disetujui oleh",
+      "submitting": "Mengirim...",
+      "submitRequest": "Ajukan",
+      "approving": "Menyetujui...",
+      "approveRequest": "Setujui",
+      "submitSuccess": "Pengajuan berhasil disetujui.",
+      "errors": {
+        "invalidAmount": "Masukkan jumlah yang valid.",
+        "noDescription": "Masukkan keterangan.",
+        "noLocation": "Pilih lokasi."
+      },
+      "selectLocation": "Pilih lokasi..."
     },
     "pettyCash": {
       "title": "Kas Kecil",
@@ -141,6 +202,17 @@
     }
   },
   "purchasing": {
+    "title": "Pembelian",
+    "subtitle": "Kelola supplier dan purchase order dari ERP.",
+    "supplierTitle": "Supplier",
+    "addSupplier": "Tambah supplier",
+    "saveSupplier": "Simpan supplier",
+    "selectSupplier": "Pilih supplier",
+    "selectLocation": "Pilih lokasi",
+    "selectProduct": "Pilih produk",
+    "emptyPo": "Belum ada purchase order.",
+    "emptySupplier": "Belum ada supplier.",
+    "deleteItem": "Hapus",
     "po": {
       "new": {
         "eyebrow": "Pembelian",
@@ -212,6 +284,27 @@
     "notFound": "Jadwal tidak ditemukan"
   },
   "inventory": {
+    "products": {
+      "title": "Produk & Menu",
+      "subtitle": "Kelola menu jual, bahan baku, harga varian, gambar, dan kategori langsung dari ERP.",
+      "add": "Tambah produk",
+      "searchPlaceholder": "Cari produk",
+      "searchBtn": "Cari",
+      "empty": "Belum ada produk yang cocok.",
+      "createCategory": "Buat kategori terlebih dahulu",
+      "saveProduct": "Simpan produk",
+      "saveChanges": "Simpan perubahan",
+      "new": {
+        "pageTitle": "Tambah Produk - Aroadri ERP",
+        "heading": "Tambah produk"
+      },
+      "variants": {
+        "add": "Tambah varian",
+        "empty": "Belum ada varian.",
+        "deactivate": "Nonaktifkan",
+        "activate": "Aktifkan"
+      }
+    },
     "categories": {
       "title": "Kategori Produk",
       "subtitle": "Kelola kategori produk POS tanpa mengubah source code.",
@@ -234,14 +327,44 @@
       "delete": "Hapus",
       "confirmDelete": "Hapus kategori ini?",
       "createFailed": "Gagal membuat kategori.",
-      "deleteFailed": "Gagal menghapus kategori."
+      "deleteFailed": "Gagal menghapus kategori.",
+      "productCount": "Produk",
+      "hasProducts": "Tidak bisa menghapus kategori yang masih memiliki produk aktif."
     },
     "opname": {
       "title": "Stock Opname",
       "subtitle": "Kelola sesi stock opname dan penyesuaian inventaris.",
+      "createBtn": "Buat Sesi Opname",
+      "empty": "Belum ada sesi opname",
+      "newSession": {
+        "title": "Buat Sesi Opname",
+        "subtitle": "Buat sesi stock opname baru. Sistem akan mem-snapshot stok saat ini sebagai baseline.",
+        "creating": "Memproses...",
+        "createBtn": "Buat Sesi",
+        "back": "Kembali",
+        "notesLabel": "Catatan",
+        "notesPlaceholder": "Catatan opsional untuk sesi ini...",
+        "noLocations": "Belum ada lokasi aktif"
+      },
+      "detail": {
+        "productList": "Daftar Produk",
+        "saveChanges": "Simpan {count} Perubahan",
+        "uncountedWarning": "{count} baris belum dihitung. Isi kolom \"Dihitung\" lalu klik \"Simpan\".",
+        "allCountedMsg": "Semua baris sudah dihitung. Klik \"Ajukan Opname\" untuk menghitung selisih.",
+        "varianceFound": "Selisih ditemukan.",
+        "afterApproval": "Setelah disetujui, sistem akan membuat jurnal penyesuaian.",
+        "journalCreated": "Sudah dibuat",
+        "journalNotCreated": "Belum dibuat"
+      },
       "variance": {
         "title": "Varians Persediaan",
-        "subtitle": "Laporan selisih stock opname per sesi dan produk."
+        "subtitle": "Laporan selisih stock opname per sesi dan produk.",
+        "loadFailed": "Gagal memuat data. Silakan coba lagi.",
+        "noData": "Tidak ada data",
+        "selectDateLocation": "Pilih tanggal dan lokasi",
+        "noSurplus": "Tidak ada surplus",
+        "noSessions": "Belum ada sesi opname yang disetujui.",
+        "noProducts": "Tidak ada data produk."
       }
     }
   },
@@ -529,6 +652,11 @@
       "emergencyContact": "Kontak darurat",
       "probationEnd": "Akhir probation",
       "noData": "Belum ada data karyawan",
+      "save": "Simpan karyawan",
+      "new": {
+        "pageTitle": "Tambah Karyawan - Aroadri ERP",
+        "heading": "Tambah karyawan"
+      },
       "confirmDelete": "Yakin ingin menghapus karyawan ini?",
       "statusProbation": "Masa Percobaan",
       "statusActive": "Aktif",
@@ -610,6 +738,12 @@
       "statusRejected": "Ditolak",
       "noRequests": "Belum ada pengajuan cuti",
       "noBalances": "Belum ada saldo cuti",
+      "manage": "Kelola Jenis Cuti",
+      "addType": "Tambah",
+      "saveType": "Simpan",
+      "deleteType": "Hapus",
+      "emptyTypes": "Belum ada jenis cuti.",
+      "activeLabel": "Aktif",
       "ofTotal": "dari {total} hari",
       "recentRequests": "Pengajuan terbaru",
       "annualLeave": "Cuti Tahunan",
@@ -636,6 +770,11 @@
     "disciplinary": {
       "title": "Surat Peringatan",
       "add": "Buat SP",
+      "createTitle": "Buat Surat Peringatan Baru",
+      "selectEmployee": "Pilih Karyawan",
+      "allLevels": "Semua Tingkat",
+      "allStatus": "Semua Status",
+      "createFailed": "Gagal membuat surat peringatan.",
       "level": "Tingkat",
       "reason": "Alasan",
       "incidentDate": "Tanggal Kejadian",
@@ -657,9 +796,12 @@
     "title": "Kelola Konten Situs",
     "pages": {
       "title": "Halaman",
-      "subtitle": "Kelola halaman statis situs web.",
+      "subtitle": "Kelola halaman statis situs (beranda, tentang, menu, dll.)",
       "create": "Buat Halaman",
-      "empty": "Belum ada halaman. Buat halaman pertama.",
+      "createNew": "Buat Halaman Baru",
+      "editPage": "Edit Halaman",
+      "createFirst": "Buat halaman pertama untuk situs Anda.",
+      "empty": "Belum ada halaman",
       "delete": "Hapus Halaman",
       "publish": "Publikasi",
       "unpublish": "Batalkan Publikasi",
@@ -675,7 +817,10 @@
       "title": "Post",
       "subtitle": "Kelola berita, promo, resep, dan event.",
       "create": "Buat Post",
-      "empty": "Belum ada post. Buat post pertama.",
+      "createNew": "Buat Post Baru",
+      "editPost": "Edit Post",
+      "createFirst": "Buat post pertama untuk blog atau promo.",
+      "empty": "Belum ada post",
       "delete": "Hapus Post",
       "publish": "Publikasi",
       "unpublish": "Batalkan Publikasi",
@@ -717,6 +862,26 @@
     "confirmDelete": "Yakin hapus workflow ini? Instance yang berjalan akan tetap ada."
   },
   "reporting": {
+    "dailySummary": {
+      "title": "Ringkasan Harian",
+      "loadFailed": "Gagal memuat data. Silakan coba lagi.",
+      "noData": "Tidak ada data",
+      "selectDateLocation": "Pilih tanggal dan lokasi",
+      "paymentDetails": "Rincian Pembayaran",
+      "noPayments": "Tidak ada pembayaran",
+      "noActiveOutlets": "Belum ada outlet aktif untuk laporan harian.",
+      "open": "Buka"
+    },
+    "donations": {
+      "title": "Donasi",
+      "loading": "Memuat...",
+      "empty": "Tidak ada data donasi pada periode ini"
+    },
+    "hourlySales": {
+      "title": "Penjualan Per Jam",
+      "dailyDetails": "Rincian Per Hari",
+      "empty": "Tidak ada data penjualan pada periode ini"
+    },
     "bi": {
       "eyebrow": "Business Intelligence",
       "title": "Dashboard Manajemen",
@@ -763,8 +928,52 @@
       "more": "lebih besar"
     }
   },
+  "tax": {
+    "rates": {
+      "title": "Tarif Pajak",
+      "empty": "Belum ada tarif pajak.",
+      "saveRate": "Simpan tarif",
+      "selectPostingAccount": "Pilih akun posting"
+    },
+    "rules": {
+      "title": "Aturan Pajak",
+      "empty": "Belum ada tax rule.",
+      "saveRule": "Simpan rule",
+      "deleteRule": "Hapus"
+    }
+  },
+  "display": {
+    "orderList": "Daftar Pesanan Anda",
+    "noOrders": "Belum ada pesanan"
+  },
   "settings": {
     "title": "Pengaturan",
+    "permissions": {
+      "title": "Permissions",
+      "subtitle": "Buat role baru, ubah nama role, lalu centang permission yang dibutuhkan.",
+      "noAccess": "Akun ini tidak memiliki akses untuk mengatur permission.",
+      "addRole": "Tambah Role",
+      "roleCode": "Kode",
+      "roleNameId": "Nama ID",
+      "roleNameEn": "Nama EN",
+      "roleNameZh": "Nama ZH",
+      "errors": {
+        "savePermission": "Gagal menyimpan permission",
+        "createRole": "Gagal membuat role",
+        "saveRole": "Gagal menyimpan role",
+        "deleteRole": "Gagal menghapus role"
+      }
+    },
+    "notifications": {
+      "title": "Notifikasi",
+      "subtitle": "Kelola penerima notifikasi operasional.",
+      "addChannel": "Tambah kanal",
+      "saveChannel": "Simpan kanal",
+      "listTitle": "Daftar kanal",
+      "empty": "Belum ada kanal notifikasi.",
+      "allNotifications": "Semua notifikasi",
+      "activeLabel": "Aktif"
+    },
     "locations": {
       "title": "Lokasi",
       "subtitle": "Kelola outlet, kantor internal, gudang, alamat, status aktif, mata uang, dan zona waktu dari ERP.",
@@ -825,7 +1034,12 @@
       "title": "Pengaturan POS",
       "subtitle": "Atur akun posting, channel delivery, pajak, dan ukuran struk sesuai printer outlet.",
       "operationalDefaults": "Default Operasional",
-      "save": "Simpan Pengaturan"
+      "save": "Simpan Pengaturan",
+      "noLocations": "Belum ada lokasi. Seed lokasi terlebih dahulu sebelum mengatur POS.",
+      "saved": "Setting POS tersimpan.",
+      "saveFailed": "Gagal menyimpan.",
+      "addChannel": "Tambah channel",
+      "deleteChannel": "Hapus"
     },
     "promotions": {
       "title": "Promosi",

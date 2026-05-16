@@ -195,4 +195,5 @@ export {
   desc,
   asc,
   ilike,
+  count,
 } from 'drizzle-orm';

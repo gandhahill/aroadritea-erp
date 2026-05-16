@@ -5,6 +5,7 @@
 import type { Metadata } from 'next';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { getMemberAccount } from '../../actions/member';
 import { PublicFooter } from '../../components/footer';
 import { PublicHeader } from '../../components/header';
 import { type SiteLocale, siteLocales } from '../../i18n';
@@ -32,6 +33,10 @@ export default async function LocaleLayout({ children, params }: Props) {
   const tagline = common('tagline');
   const chineseTea = common('chineseTea');
 
+  // Check member session for auth-aware header
+  const memberAccount = await getMemberAccount();
+  const isLoggedIn = !!memberAccount;
+
   return (
     <html lang={locale}>
       <body className="flex min-h-screen flex-col bg-cream-50">
@@ -41,12 +46,15 @@ export default async function LocaleLayout({ children, params }: Props) {
             brand={brand}
             tagline={tagline}
             chineseTea={chineseTea}
+            isLoggedIn={isLoggedIn}
             labels={{
               home: nav('home'),
               menu: nav('menu'),
               about: nav('about'),
               locations: nav('locations'),
               member: nav('member'),
+              login: nav('login'),
+              myAccount: nav('myAccount'),
             }}
           />
           <main className="flex-1">{children}</main>
