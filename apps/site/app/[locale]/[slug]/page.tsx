@@ -46,13 +46,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = localize(page.metaTitle || page.title, locale as SiteLocale);
   const description = localize(page.metaDescription, locale as SiteLocale);
 
-  return {
-    title,
-    ...(description && { description }),
-    ...(page.ogImageUrl && {
-      openGraph: { images: [{ url: page.ogImageUrl as string }] },
-    }),
-  };
+  const meta: Record<string, unknown> = { title };
+  if (description) meta.description = description;
+  if (page.ogImageUrl) {
+    meta.openGraph = { images: [{ url: page.ogImageUrl as string }] };
+  }
+  return meta;
 }
 
 export default async function CmsPage({ params }: Props) {
