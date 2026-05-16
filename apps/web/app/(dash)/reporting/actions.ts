@@ -5,22 +5,25 @@
 
 'use server';
 
+import { getSession } from '@/lib/auth';
 import { trialBalance as tbService } from '@erp/services/reporting';
 import { balanceSheet as bsService } from '@erp/services/reporting';
 import { profitLoss as plService } from '@erp/services/reporting';
 import type { AuditContext } from '@erp/shared/types';
 
-function makeCtx(tenantId: string): AuditContext {
+async function makeCtx(tenantIdHint: string): Promise<AuditContext> {
+  const session = await getSession();
+  const user = (session?.user ?? {}) as Record<string, unknown>;
   return {
-    userId: 'system',
-    tenantId,
-    locationId: '',
+    userId: String(user.id ?? 'system'),
+    tenantId: String(user.tenantId ?? tenantIdHint),
+    locationId: String(user.locationId ?? ''),
     ipAddress: '127.0.0.1',
   };
 }
 
 export async function fetchTrialBalance(tenantId: string, asOf: string, locationId?: string) {
-  const result = await tbService({ asOf, locationId }, makeCtx(tenantId));
+  const result = await tbService({ asOf, locationId }, await makeCtx(tenantId));
   if (!result.ok) return null;
 
   return {
@@ -37,7 +40,7 @@ export async function fetchTrialBalance(tenantId: string, asOf: string, location
 }
 
 export async function fetchBalanceSheet(tenantId: string, asOf: string, locationId?: string) {
-  const result = await bsService({ asOf, locationId }, makeCtx(tenantId));
+  const result = await bsService({ asOf, locationId }, await makeCtx(tenantId));
   if (!result.ok) return null;
 
   const serializeSection = (s: typeof result.value.assets) => ({
@@ -69,7 +72,7 @@ export async function fetchProfitLoss(
   to: string,
   locationId?: string,
 ) {
-  const result = await plService({ from, to, locationId }, makeCtx(tenantId));
+  const result = await plService({ from, to, locationId }, await makeCtx(tenantId));
   if (!result.ok) return null;
 
   const serializeSection = (s: typeof result.value.revenue) => ({

@@ -171,7 +171,7 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
             onClick={onClose}
             className="h-11 w-full rounded-lg border border-brand-cream-3 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-2"
           >
-            {t('close')}
+            {t('cancel')}
           </button>
         </div>
       </div>

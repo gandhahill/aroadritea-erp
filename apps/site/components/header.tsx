@@ -7,6 +7,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import { type SiteLocale, localeLabels, siteLocales } from '../i18n';
 
 const NAV_LINKS = [
@@ -28,6 +29,7 @@ interface Props {
 
 export function PublicHeader({ locale, brand, tagline, chineseTea, labels, isLoggedIn, memberName }: Props) {
   const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   function switchLocale(newLocale: SiteLocale) {
     const segments = pathname.split('/');
@@ -73,6 +75,22 @@ export function PublicHeader({ locale, brand, tagline, chineseTea, labels, isLog
           ))}
         </nav>
 
+        <button
+          type="button"
+          aria-label="Menu"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-brand-red/15 bg-brand-cream-1 text-brand-red md:hidden"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            {menuOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
+        </button>
+
         <div className="flex shrink-0 items-center gap-2">
           {isLoggedIn ? (
             <a
@@ -117,6 +135,50 @@ export function PublicHeader({ locale, brand, tagline, chineseTea, labels, isLog
           </div>
         </div>
       </div>
+
+      {menuOpen && (
+        <div className="border-t border-brand-red/10 bg-brand-cream-1 md:hidden">
+          <nav className="flex flex-col gap-1 px-4 py-3">
+            {NAV_LINKS.map(({ key, href }) => (
+              <a
+                key={key}
+                href={href(locale)}
+                onClick={() => setMenuOpen(false)}
+                className="rounded-md px-3 py-2 text-sm font-semibold text-brand-ink-2 hover:bg-brand-cream-2 hover:text-brand-red"
+              >
+                {labels[key]}
+              </a>
+            ))}
+            <div className="my-2 h-px bg-brand-red/10" />
+            {isLoggedIn ? (
+              <a
+                href={`/${locale}/member/akun`}
+                onClick={() => setMenuOpen(false)}
+                className="rounded-md bg-brand-red px-3 py-2 text-sm font-bold text-brand-cream"
+              >
+                {memberName || labels.myAccount}
+              </a>
+            ) : (
+              <>
+                <a
+                  href={`/${locale}/member/masuk`}
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-md border border-brand-red/20 px-3 py-2 text-sm font-bold text-brand-red"
+                >
+                  {labels.login}
+                </a>
+                <a
+                  href={`/${locale}/member/daftar`}
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-md bg-brand-red px-3 py-2 text-sm font-bold text-brand-cream"
+                >
+                  {labels.member}
+                </a>
+              </>
+            )}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

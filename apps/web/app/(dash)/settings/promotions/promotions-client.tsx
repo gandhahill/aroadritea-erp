@@ -412,11 +412,40 @@ export function PromotionsClient({ initialPromotions, locations, labels }: Props
           </div>
         </div>
 
-        <Field
-          label={labels.channels}
-          value={draft.channelScope}
-          onChange={(channelScope) => update({ channelScope })}
-        />
+        <div>
+          <div className="mb-2 text-xs font-semibold uppercase tracking-widest text-brand-ink-3">
+            {labels.channels}
+          </div>
+          <div className="grid grid-cols-2 gap-1 rounded-md border border-brand-cream-3 p-2">
+            {[
+              { code: 'walk_in', label: 'Walk-in' },
+              { code: 'gofood', label: 'GoFood' },
+              { code: 'grabfood', label: 'GrabFood' },
+              { code: 'shopeefood', label: 'ShopeeFood' },
+            ].map((channel) => {
+              const tokens = tokenList(draft.channelScope);
+              const checked = tokens.includes(channel.code);
+              return (
+                <label
+                  key={channel.code}
+                  className="flex items-center gap-2 text-xs text-brand-ink-2"
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={(event) => {
+                      const next = event.target.checked
+                        ? Array.from(new Set([...tokens, channel.code]))
+                        : tokens.filter((t) => t !== channel.code);
+                      update({ channelScope: next.join(', ') });
+                    }}
+                  />
+                  {channel.label}
+                </label>
+              );
+            })}
+          </div>
+        </div>
 
         <div className="rounded-md border border-brand-cream-3 p-3">
           <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-brand-ink-3">

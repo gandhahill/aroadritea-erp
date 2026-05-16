@@ -160,7 +160,17 @@ export function ProductSearch() {
                     />
                   ) : (
                     <div className="flex h-16 w-full items-center justify-center rounded-md bg-brand-cream-2">
-                      <span className="text-2xl">🍵</span>
+                      <svg
+                        className="h-8 w-8 text-brand-red/40"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      >
+                        <path d="M3 8h12v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+                        <path d="M15 10h2a3 3 0 0 1 0 6h-2" />
+                        <path d="M7 3v3M11 3v3" strokeLinecap="round" />
+                      </svg>
                     </div>
                   )}
                   <p className="w-full text-xs font-medium leading-tight text-brand-ink">

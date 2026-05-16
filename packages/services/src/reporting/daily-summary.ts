@@ -12,6 +12,7 @@
  */
 
 import { db } from '@erp/db';
+import { products } from '@erp/db/schema/inventory';
 import { payments, posSettings, salesOrderLines, salesOrders, shifts } from '@erp/db/schema/pos';
 import { type Result, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -243,23 +244,31 @@ export async function getDailySummary(
         qty: sql<number>`sum((${salesOrderLines.qty})::numeric)`,
         nominal: sql<bigint>`sum(${salesOrderLines.lineSubtotal})`,
         channel: salesOrders.channel,
+        productName: products.name,
+        categoryId: products.categoryId,
       })
       .from(salesOrderLines)
       .innerJoin(salesOrders, eq(salesOrderLines.salesOrderId, salesOrders.id))
+      .leftJoin(products, eq(salesOrderLines.productId, products.id))
       .where(inArray(salesOrderLines.salesOrderId, paidSaleIds))
-      .groupBy(salesOrderLines.productId, salesOrders.channel)
+      .groupBy(salesOrderLines.productId, salesOrders.channel, products.name, products.categoryId)
       .orderBy(sql`sum(${salesOrderLines.lineSubtotal}) DESC`)
       .limit(10);
 
-    topProducts = topRows.map((row, idx) => ({
-      rank: idx + 1,
-      productId: row.productId,
-      productName: row.productId, // resolved by caller
-      categoryId: '',
-      qty: Number(row.qty),
-      nominal: row.nominal.toString(),
-      channel: row.channel,
-    }));
+    topProducts = topRows.map((row, idx) => {
+      const nameField = row.productName as Record<string, string> | null;
+      const resolvedName =
+        nameField?.id ?? nameField?.en ?? nameField?.zh ?? row.productId;
+      return {
+        rank: idx + 1,
+        productId: row.productId,
+        productName: resolvedName,
+        categoryId: row.categoryId ?? '',
+        qty: Number(row.qty),
+        nominal: row.nominal.toString(),
+        channel: row.channel,
+      };
+    });
   }
 
   return ok({

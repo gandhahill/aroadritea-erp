@@ -9,6 +9,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { closeShiftAction, fetchOpenShift, openShiftAction } from './actions';
 import type { ShiftStatusItem } from './actions';
@@ -21,6 +22,7 @@ interface ShiftStatusBarProps {
 
 export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
   const t = useTranslations('pos');
+  const router = useRouter();
   const { setShiftId } = usePosCart();
   const [shift, setShift] = useState<ShiftStatusItem | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -35,6 +37,13 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
       setShiftId(s?.id ?? null);
     });
   }, [locationId, setShiftId]);
+
+  // Refresh expectedCash from server every time the close modal opens
+  async function openCloseModal() {
+    setShowCloseModal(true);
+    const fresh = await fetchOpenShift(locationId);
+    if (fresh) setShift(fresh);
+  }
 
   async function handleOpenShift(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -65,6 +74,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
         setShift(null);
         setShiftId(null);
         setShowCloseModal(false);
+        router.refresh();
       }
     });
   }
@@ -102,7 +112,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
           {isOpen ? (
             <button
               type="button"
-              onClick={() => setShowCloseModal(true)}
+              onClick={openCloseModal}
               className="h-8 rounded-md border border-brand-cream-3 bg-card px-3 text-xs font-medium text-brand-ink hover:bg-brand-cream-2 disabled:opacity-50"
               disabled={isPending}
             >
@@ -209,7 +219,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                   onClick={() => setShowCloseModal(false)}
                   className="h-10 rounded-md border border-brand-cream-3 bg-card px-4 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
                 >
-                  {t('close')}
+                  {t('cancel')}
                 </button>
                 <button
                   type="submit"

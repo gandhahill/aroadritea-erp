@@ -14,13 +14,36 @@ import { usePosCart } from './pos-cart-context';
 
 type FoundMember = NonNullable<Extract<MemberLookupActionResult, { ok: true }>['member']>;
 
+/** Extract the "a/n:" prefix from cart notes so we can edit it independently. */
+function extractGuestName(notes: string): { guest: string; rest: string } {
+  const match = notes.match(/^a\/n:\s*([^|]*?)(?:\s*\|\s*)?(.*)$/i);
+  if (!match) return { guest: '', rest: notes };
+  return { guest: (match[1] ?? '').trim(), rest: (match[2] ?? '').trim() };
+}
+
+function composeNotes(guest: string, rest: string): string {
+  const g = guest.trim();
+  const r = rest.trim();
+  if (!g) return r;
+  if (!r) return `a/n: ${g}`;
+  return `a/n: ${g} | ${r}`;
+}
+
 export function MemberLookup() {
   const t = useTranslations('pos');
-  const { state, setCustomer, clearCustomer } = usePosCart();
+  const { state, setCustomer, clearCustomer, setNotes } = usePosCart();
+  const { guest: initialGuest } = extractGuestName(state.notes);
   const [phone, setPhone] = useState('');
   const [candidate, setCandidate] = useState<FoundMember | null>(null);
   const [messageKey, setMessageKey] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [guestName, setGuestName] = useState(initialGuest);
+
+  function commitGuestName(next: string) {
+    setGuestName(next);
+    const { rest } = extractGuestName(state.notes);
+    setNotes(composeNotes(next, rest));
+  }
 
   function handleLookup(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -137,6 +160,19 @@ export function MemberLookup() {
           </div>
         </div>
       )}
+
+      <div className="mt-3">
+        <label className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-ink-3">
+          {t('guestName')}
+        </label>
+        <input
+          type="text"
+          value={guestName}
+          onChange={(event) => commitGuestName(event.target.value)}
+          placeholder={t('guestNamePlaceholder')}
+          className="mt-1 h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 text-sm font-medium text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
+        />
+      </div>
     </section>
   );
 }

@@ -583,6 +583,8 @@
     "memberNo": "Not this one",
     "memberAttached": "Member attached",
     "memberClear": "Remove",
+    "guestName": "Customer Name",
+    "guestNamePlaceholder": "Customer name (optional)",
     "memberNotFound": "Member not found. Continue as walk-in or register a new member.",
     "memberLookupFailed": "Could not search member. Try again.",
     "memberPhoneInvalid": "Enter a valid phone number.",

@@ -102,7 +102,17 @@ export function DemoProductSearch() {
       <div className="flex-1 overflow-y-auto p-3 min-h-0">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <span className="text-3xl">🧋</span>
+            <svg
+              className="h-10 w-10 text-brand-red/40"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M3 8h12v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+              <path d="M15 10h2a3 3 0 0 1 0 6h-2" />
+              <path d="M7 3v3M11 3v3" strokeLinecap="round" />
+            </svg>
             <p className="mt-2 text-sm text-brand-ink-3">{t('noProductSelected')}</p>
             {search && <p className="mt-1 text-xs text-brand-ink-3">Coba kata kunci lain</p>}
           </div>
@@ -120,8 +130,18 @@ export function DemoProductSearch() {
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }}
                     />
                   ) : null}
-                  <div className={`${product.imageUrl ? 'hidden' : ''} flex h-16 w-16 items-center justify-center rounded-lg bg-brand-cream-2 text-3xl`}>
-                    🧋
+                  <div className={`${product.imageUrl ? 'hidden' : ''} flex h-16 w-16 items-center justify-center rounded-lg bg-brand-cream-2`}>
+                    <svg
+                      className="h-8 w-8 text-brand-red/40"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <path d="M3 8h12v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+                      <path d="M15 10h2a3 3 0 0 1 0 6h-2" />
+                      <path d="M7 3v3M11 3v3" strokeLinecap="round" />
+                    </svg>
                   </div>
                   <div className="w-full">
                     <p className="line-clamp-2 text-xs font-medium leading-tight text-brand-ink">

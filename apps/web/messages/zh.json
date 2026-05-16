@@ -583,6 +583,8 @@
     "memberNo": "不是",
     "memberAttached": "已绑定会员",
     "memberClear": "移除",
+    "guestName": "顾客姓名",
+    "guestNamePlaceholder": "顾客姓名（选填）",
     "memberNotFound": "未找到会员。可继续作为普通顾客结账或注册新会员。",
     "memberLookupFailed": "会员查找失败，请重试。",
     "memberPhoneInvalid": "请输入有效手机号。",
