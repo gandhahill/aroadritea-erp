@@ -22,6 +22,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, asc, count, desc, eq, gte, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import nodemailer from 'nodemailer';
+import { buildOtpEmailHtml } from './email-templates';
 import { hashMemberPassword, verifyMemberPassword } from './password';
 
 // ─── Rate limiting constants ───────────────────────────────────────────────
@@ -187,8 +188,8 @@ async function sendSignupOtp(email: string, code: string): Promise<Result<void>>
       from: smtpFrom.includes('<') ? smtpFrom : `${smtpFromName} <${smtpFrom}>`,
       to: email,
       subject: 'Kode OTP Aroadri Tea',
-      text: `Kode OTP Aroadri Tea Anda: ${code}. Kode berlaku ${OTP_EXPIRY_MINUTES} menit.`,
-      html: `<p>Kode OTP Aroadri Tea Anda:</p><p style="font-size:24px;font-weight:700;letter-spacing:4px">${code}</p><p>Kode berlaku ${OTP_EXPIRY_MINUTES} menit.</p>`,
+      text: `Kode OTP Aroadri Tea Anda: ${code}. Kode berlaku ${OTP_EXPIRY_MINUTES} menit. Jangan bagikan kode ini kepada siapapun.`,
+      html: buildOtpEmailHtml(code, OTP_EXPIRY_MINUTES),
     });
 
     return ok(undefined);
