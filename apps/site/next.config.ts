@@ -2,8 +2,9 @@ import { fileURLToPath } from 'node:url';
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 
-const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
+
+const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 const isProduction = process.env.NODE_ENV === 'production';
 
 const securityHeaders = [

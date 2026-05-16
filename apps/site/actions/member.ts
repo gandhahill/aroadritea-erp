@@ -38,7 +38,13 @@ export async function signupAction(formData: FormData) {
     undefined, // userAgent
   );
 
-  if (!result.ok) return { success: false, error: String(result.error) };
+  if (!result.ok) {
+    if (result.error.code === 'VALIDATION_FAILED' && result.error.details) {
+      console.error('Validation failed:', JSON.stringify(result.error.details, null, 2));
+      return { success: false, error: `${String(result.error)} - Details: ${JSON.stringify(result.error.details)}` };
+    }
+    return { success: false, error: String(result.error) };
+  }
   return { success: true, token: result.value.token };
 }
 
