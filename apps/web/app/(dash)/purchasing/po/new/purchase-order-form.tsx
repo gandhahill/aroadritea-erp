@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useMemo, useState } from 'react';
 import { type PurchaseOrderFormData, createPurchaseOrderAction } from '../../actions';
@@ -17,6 +18,8 @@ interface LineDraft {
 }
 
 export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
+  const t = useTranslations('purchasing');
+  const tc = useTranslations('common');
   const router = useRouter();
   const today = new Date().toISOString().slice(0, 10);
   const [state, action, pending] = useActionState(createPurchaseOrderAction, { success: false });
@@ -77,15 +80,15 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
       ) : null}
       {state.success ? (
         <div className="rounded-lg border border-brand-jade/30 bg-brand-jade/10 px-4 py-3 text-sm text-brand-jade">
-          Purchase order tersimpan.
+          {t('poSaved')}
         </div>
       ) : null}
 
       <section className="grid gap-4 md:grid-cols-2">
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-brand-ink">Supplier</span>
+          <span className="text-sm font-medium text-brand-ink">{t('supplierTitle')}</span>
           <select name="supplierId" required className={INPUT}>
-            <option value="">Pilih supplier</option>
+            <option value="">{t('selectSupplier')}</option>
             {data.suppliers.map((supplier) => (
               <option key={supplier.id} value={supplier.id}>
                 {supplier.name} {supplier.isPkp ? '(PKP)' : ''}
@@ -94,9 +97,9 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
           </select>
         </label>
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-brand-ink">Lokasi</span>
+          <span className="text-sm font-medium text-brand-ink">{tc('labels.location')}</span>
           <select name="locationId" required className={INPUT}>
-            <option value="">Pilih lokasi</option>
+            <option value="">{t('selectLocation')}</option>
             {data.locations.map((location) => (
               <option key={location.id} value={location.id}>
                 {location.name}
@@ -105,11 +108,11 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
           </select>
         </label>
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-brand-ink">Tanggal PO</span>
+          <span className="text-sm font-medium text-brand-ink">{t('orderDate')}</span>
           <input name="orderDate" type="date" required defaultValue={today} className={INPUT} />
         </label>
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-brand-ink">Estimasi diterima</span>
+          <span className="text-sm font-medium text-brand-ink">{t('expectedDate')}</span>
           <input name="expectedDate" type="date" className={INPUT} />
         </label>
       </section>
@@ -117,9 +120,9 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-brand-ink">Barang</h2>
+            <h2 className="text-base font-semibold text-brand-ink">{t('items')}</h2>
             <p className="text-sm text-brand-ink-3">
-              Produk yang muncul di sini adalah produk dengan status purchasable.
+              {t('itemsHint')}
             </p>
           </div>
           <button
@@ -127,7 +130,7 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
             onClick={addLine}
             className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
           >
-            + Baris
+            {t('addLine')}
           </button>
         </div>
 
@@ -135,11 +138,11 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
           <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
             <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
               <tr>
-                <th className="px-4 py-3">Produk</th>
-                <th className="px-4 py-3 text-right">Qty</th>
-                <th className="px-4 py-3">UOM</th>
-                <th className="px-4 py-3 text-right">Harga</th>
-                <th className="px-4 py-3">Pajak</th>
+                <th className="px-4 py-3">{tc('labels.product')}</th>
+                <th className="px-4 py-3 text-right">{tc('labels.qty')}</th>
+                <th className="px-4 py-3">{tc('labels.uom')}</th>
+                <th className="px-4 py-3 text-right">{tc('labels.price')}</th>
+                <th className="px-4 py-3">{tc('labels.tax')}</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -154,7 +157,7 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
                       onChange={(event) => updateLine(line.key, { productId: event.target.value })}
                       className={INPUT}
                     >
-                      <option value="">Pilih produk</option>
+                      <option value="">{t('selectProduct')}</option>
                       {data.products.map((product) => (
                         <option key={product.id} value={product.id}>
                           {product.sku} — {product.name}
@@ -198,7 +201,7 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
                       onChange={(event) => updateLine(line.key, { taxCode: event.target.value })}
                       className={INPUT}
                     >
-                      <option value="">Tanpa pajak</option>
+                      <option value="">{t('noTax')}</option>
                       {data.taxRates.map((rate) => (
                         <option key={rate.code} value={rate.code}>
                           {rate.code} — {rate.name}
@@ -213,7 +216,7 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
                       className="rounded-lg px-3 py-2 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-50 disabled:opacity-40"
                       disabled={lines.length === 1}
                     >
-                      Hapus
+                      {t('deleteItem')}
                     </button>
                   </td>
                 </tr>
@@ -224,13 +227,13 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
       </section>
 
       <label className="space-y-1.5">
-        <span className="text-sm font-medium text-brand-ink">Catatan</span>
+        <span className="text-sm font-medium text-brand-ink">{tc('labels.notes')}</span>
         <textarea name="notes" rows={3} className={INPUT} />
       </label>
 
       <div className="flex flex-col gap-3 border-t border-brand-cream-3 pt-4 md:flex-row md:items-center md:justify-between">
         <p className="text-sm text-brand-muted">
-          Estimasi subtotal:{' '}
+          {t('estimatedSubtotal')}:{' '}
           <span className="font-semibold text-brand-ink">
             {new Intl.NumberFormat('id-ID', {
               style: 'currency',
@@ -245,14 +248,14 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
             onClick={() => router.push('/purchasing')}
             className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
           >
-            Batal
+            {tc('actions.cancel')}
           </button>
           <button
             type="submit"
             disabled={pending || data.suppliers.length === 0 || data.products.length === 0}
             className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
           >
-            {pending ? 'Menyimpan...' : 'Simpan PO'}
+            {pending ? tc('actions.saving') : t('savePo')}
           </button>
         </div>
       </div>

@@ -4,6 +4,7 @@
  */
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { createCmsPage, deleteCmsPage, publishCmsPage, updateCmsPage } from './actions';
@@ -20,6 +21,9 @@ const LOCALE_TABS = [
 ];
 
 export function CmsPageForm({ page, isNew = false }: Props) {
+  const t = useTranslations('cms.pages');
+  const tErr = useTranslations('cms.errors');
+  const tc = useTranslations('common');
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -70,14 +74,14 @@ export function CmsPageForm({ page, isNew = false }: Props) {
       }
 
       if (!result.success) {
-        setError(result.error ?? 'Gagal menyimpan');
+        setError(result.error ?? tErr('saveFailed'));
         return;
       }
 
       if (publishAfter && !isNew) {
         const pub = await publishCmsPage(page!.id as string, 'publish');
         if (!pub.success) {
-          setError(pub.error ?? 'Gagal mempublikasikan');
+          setError(pub.error ?? tErr('publishFailed'));
           return;
         }
       }
@@ -94,7 +98,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
     startTransition(async () => {
       const result = await deleteCmsPage(page!.id as string);
       if (!result.success) {
-        setError(result.error ?? 'Gagal menghapus');
+        setError(result.error ?? tErr('deleteFailed'));
         return;
       }
       router.push('/cms/pages');
@@ -110,7 +114,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
         status === 'published' ? 'draft' : 'publish',
       );
       if (!result.success) {
-        setError(result.error ?? 'Gagal mempublikasikan');
+        setError(result.error ?? tErr('publishFailed'));
         return;
       }
       router.refresh();
@@ -123,7 +127,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-brand-ink">
-            {isNew ? 'Buat Halaman Baru' : 'Edit Halaman'}
+            {isNew ? t('createNew') : t('editPage')}
           </h1>
           {!isNew && (
             <div className="mt-1 flex items-center gap-3">
@@ -149,7 +153,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
               disabled={isPending}
               className="inline-flex items-center gap-1.5 rounded-md bg-brand-jade px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90 disabled:opacity-50"
             >
-              {status === 'published' ? 'Unpublish' : 'Publikasi'}
+              {status === 'published' ? t('unpublish') : t('publish')}
             </button>
           )}
           <button
@@ -157,7 +161,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
             disabled={isPending}
             className="inline-flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90 disabled:opacity-50"
           >
-            {isPending ? 'Menyimpan...' : 'Simpan'}
+            {isPending ? tc('actions.saving') : tc('actions.save')}
           </button>
         </div>
       </div>
@@ -173,7 +177,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
         <div className="space-y-4 lg:col-span-2">
           {/* Title */}
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
-            <label className="mb-1 block text-sm font-medium text-brand-ink">Judul</label>
+            <label className="mb-1 block text-sm font-medium text-brand-ink">{tc('labels.title')}</label>
             <div className="flex gap-1 border-b border-brand-cream-3">
               {LOCALE_TABS.map((tab) => (
                 <button
@@ -200,7 +204,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
 
           {/* Content */}
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
-            <label className="mb-2 block text-sm font-medium text-brand-ink">Konten</label>
+            <label className="mb-2 block text-sm font-medium text-brand-ink">{tc('labels.content')}</label>
             <div className="space-y-2">
               {LOCALE_TABS.map((tab) => (
                 <div key={tab.code}>
@@ -254,10 +258,10 @@ export function CmsPageForm({ page, isNew = false }: Props) {
         {/* Sidebar settings */}
         <div className="space-y-4">
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
-            <h3 className="mb-3 text-sm font-semibold text-brand-ink">Pengaturan</h3>
+            <h3 className="mb-3 text-sm font-semibold text-brand-ink">{tc('labels.settings')}</h3>
             <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-brand-ink-3">Slug</label>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">{t('slug')}</label>
                 <input
                   type="text"
                   value={formData.slug}
@@ -268,27 +272,27 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                 />
                 {isNew && (
                   <p className="mt-1 text-xs text-brand-ink-3">
-                    Slug tidak dapat diubah setelah dibuat.
+                    {t('slugHint')}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-brand-ink-3">Tipe</label>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">{t('type')}</label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData((v) => ({ ...v, type: e.target.value }))}
                   className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                 >
-                  <option value="page">Halaman</option>
-                  <option value="landing">Landing Page</option>
-                  <option value="legal">Hukum / Legal</option>
+                  <option value="page">{t('types.page')}</option>
+                  <option value="landing">{t('types.landing')}</option>
+                  <option value="legal">{t('types.legal')}</option>
                 </select>
               </div>
 
               <div>
                 <label className="mb-1 block text-xs font-medium text-brand-ink-3">
-                  Urutan Tampilan
+                  {t('displayOrder')}
                 </label>
                 <input
                   type="number"
@@ -305,30 +309,30 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                   onChange={(e) => setFormData((v) => ({ ...v, isInNavbar: e.target.checked }))}
                   className="h-4 w-4 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
                 />
-                <span className="text-sm text-brand-ink">Tampilkan di Navbar</span>
+                <span className="text-sm text-brand-ink">{t('showInNavbar')}</span>
               </label>
             </div>
           </div>
 
           {!isNew && (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-              <h3 className="mb-2 text-sm font-semibold text-red-700">Zona Berbahaya</h3>
+              <h3 className="mb-2 text-sm font-semibold text-red-700">{tc('labels.dangerZone')}</h3>
               {showDeleteConfirm ? (
                 <div className="space-y-2">
-                  <p className="text-sm text-red-600">Yakin ingin menghapus halaman ini?</p>
+                  <p className="text-sm text-red-600">{t('confirmDelete')}</p>
                   <div className="flex gap-2">
                     <button
                       onClick={handleDelete}
                       disabled={isPending}
                       className="rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
                     >
-                      Ya, Hapus
+                      {tc('actions.yesDelete')}
                     </button>
                     <button
                       onClick={() => setShowDeleteConfirm(false)}
                       className="rounded-md border border-brand-cream-3 px-3 py-2 text-sm font-medium text-brand-ink-3 hover:bg-brand-cream-2"
                     >
-                      Batal
+                      {tc('actions.cancel')}
                     </button>
                   </div>
                 </div>
@@ -338,7 +342,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                   disabled={isPending}
                   className="w-full rounded-md border border-red-300 bg-card px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
                 >
-                  Hapus Halaman
+                  {t('delete')}
                 </button>
               )}
             </div>

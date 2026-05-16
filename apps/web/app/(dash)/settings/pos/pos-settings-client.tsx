@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import {
   type AccountOption,
@@ -31,6 +32,7 @@ function toDraft(setting: PosSettingItem): Draft {
 }
 
 export function PosSettingsClient({ settings, accountOptions }: Props) {
+  const t = useTranslations('settings.pos');
   const [drafts, setDrafts] = useState<Record<string, Draft>>(() =>
     Object.fromEntries(settings.map((setting) => [setting.locationId, toDraft(setting)])),
   );
@@ -53,7 +55,7 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
     startTransition(async () => {
       const result = await updatePosSetting(locationId, draft);
       setSavingLocation(null);
-      setMessage(result.success ? 'Setting POS tersimpan.' : (result.error ?? 'Gagal menyimpan.'));
+      setMessage(result.success ? t('saved') : (result.error ?? t('saveFailed')));
     });
   }
 

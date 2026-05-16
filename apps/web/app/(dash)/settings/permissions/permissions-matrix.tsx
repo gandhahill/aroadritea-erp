@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
 import {
@@ -11,6 +12,8 @@ import {
 } from './actions';
 
 export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
+  const t = useTranslations('settings.permissions');
+  const tc = useTranslations('common');
   const router = useRouter();
   const [grants, setGrants] = useState(matrix.grants);
   const [pending, startTransition] = useTransition();
@@ -64,7 +67,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
       const result = await setRolePermission({ roleId, permissionId, granted });
       if (!result.ok) {
         setGrants(before);
-        setMessage(result.error ?? 'Gagal menyimpan permission');
+        setMessage(result.error ?? t('errors.savePermission'));
       }
     });
   }
@@ -77,7 +80,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
         name: { id: newRole.id, en: newRole.en, zh: newRole.zh },
       });
       if (!result.ok) {
-        setMessage(result.error ?? 'Gagal membuat role');
+        setMessage(result.error ?? t('errors.createRole'));
         return;
       }
       setNewRole({ code: '', id: '', en: '', zh: '' });
@@ -91,7 +94,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
     setMessage(null);
     startTransition(async () => {
       const result = await updateRoleAction({ id: roleId, name: draft });
-      if (!result.ok) setMessage(result.error ?? 'Gagal menyimpan role');
+      if (!result.ok) setMessage(result.error ?? t('errors.saveRole'));
       else router.refresh();
     });
   }
@@ -100,7 +103,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
     setMessage(null);
     startTransition(async () => {
       const result = await deleteRoleAction(roleId);
-      if (!result.ok) setMessage(result.error ?? 'Gagal menghapus role');
+      if (!result.ok) setMessage(result.error ?? t('errors.deleteRole'));
       else router.refresh();
     });
   }
@@ -108,7 +111,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
   if (!matrix.canManage) {
     return (
       <div className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
-        Akun ini tidak memiliki akses untuk mengatur permission.
+        {t('noAccess')}
       </div>
     );
   }
@@ -121,14 +124,14 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
         </div>
       ) : null}
       {pending ? (
-        <p className="text-xs font-medium text-brand-ink-3">Menyimpan perubahan...</p>
+        <p className="text-xs font-medium text-brand-ink-3">{tc('actions.saving')}</p>
       ) : null}
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
         <div className="mb-4">
           <h2 className="text-base font-semibold text-brand-ink">Role</h2>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Buat role baru, ubah nama role, lalu centang permission yang dibutuhkan.
+            {t('subtitle')}
           </p>
         </div>
         <div className="grid gap-3 md:grid-cols-[1fr_1.3fr_1.3fr_1.3fr_auto]">
@@ -162,7 +165,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
             disabled={pending}
             className="self-end rounded-md bg-brand-red px-3 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
           >
-            Tambah Role
+            {t('addRole')}
           </button>
         </div>
 
@@ -222,7 +225,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                   disabled={pending}
                   className="self-end rounded-md bg-brand-red px-3 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
                 >
-                  Simpan
+                  {tc('actions.save')}
                 </button>
                 <button
                   type="button"
@@ -230,7 +233,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                   disabled={pending || (!!wildcardPermId && isGranted(role.id, wildcardPermId))}
                   className="self-end rounded-md border border-brand-cream-3 px-3 py-2 text-xs font-semibold text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red disabled:opacity-40"
                 >
-                  Hapus
+                  {tc('actions.delete')}
                 </button>
               </div>
             );

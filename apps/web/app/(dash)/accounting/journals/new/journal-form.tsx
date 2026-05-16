@@ -99,14 +99,14 @@ export function JournalForm({ accounts, locations }: Props) {
       ) : null}
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-        <h2 className="text-base font-semibold text-brand-ink">Header jurnal</h2>
+        <h2 className="text-base font-semibold text-brand-ink">{t('headerSection')}</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <label className="space-y-1.5">
-            <span className="text-sm font-medium text-brand-ink">Tanggal posting</span>
+            <span className="text-sm font-medium text-brand-ink">{t('postingDate')}</span>
             <input name="postingDate" type="date" required defaultValue={today} className={INPUT} />
           </label>
           <label className="space-y-1.5">
-            <span className="text-sm font-medium text-brand-ink">Lokasi</span>
+            <span className="text-sm font-medium text-brand-ink">{tc('labels.location')}</span>
             <select name="locationId" required defaultValue={defaultLocationId} className={INPUT}>
               {locations.map((location) => (
                 <option key={location.id} value={location.id}>
@@ -116,7 +116,7 @@ export function JournalForm({ accounts, locations }: Props) {
             </select>
           </label>
           <label className="space-y-1.5 md:col-span-2">
-            <span className="text-sm font-medium text-brand-ink">Deskripsi</span>
+            <span className="text-sm font-medium text-brand-ink">{tc('labels.description')}</span>
             <input name="description" required className={INPUT} />
           </label>
           <label className="space-y-1.5 md:col-span-2">
@@ -129,9 +129,9 @@ export function JournalForm({ accounts, locations }: Props) {
       <section className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
         <div className="flex items-center justify-between border-b border-brand-cream-3 px-5 py-4">
           <div>
-            <h2 className="text-base font-semibold text-brand-ink">Baris jurnal</h2>
+            <h2 className="text-base font-semibold text-brand-ink">{t('linesSection')}</h2>
             <p className="text-sm text-brand-ink-3">
-              Debit dan kredit harus balance sebelum bisa disimpan.
+              {t('linesHint')}
             </p>
           </div>
           <button
@@ -147,11 +147,11 @@ export function JournalForm({ accounts, locations }: Props) {
           <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
             <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
               <tr>
-                <th className="px-4 py-3">Account</th>
-                <th className="px-4 py-3">Deskripsi</th>
-                <th className="px-4 py-3">Lokasi</th>
-                <th className="px-4 py-3 text-right">Debit</th>
-                <th className="px-4 py-3 text-right">Kredit</th>
+                <th className="px-4 py-3">{tc('labels.account')}</th>
+                <th className="px-4 py-3">{tc('labels.description')}</th>
+                <th className="px-4 py-3">{tc('labels.location')}</th>
+                <th className="px-4 py-3 text-right">{t('debit')}</th>
+                <th className="px-4 py-3 text-right">{t('credit')}</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -227,7 +227,7 @@ export function JournalForm({ accounts, locations }: Props) {
                       disabled={lines.length <= 2}
                       className="rounded-md px-2 py-1 text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-50 disabled:opacity-30"
                     >
-                      Hapus
+                      {t('deleteItem')}
                     </button>
                   </td>
                 </tr>
@@ -243,11 +243,11 @@ export function JournalForm({ accounts, locations }: Props) {
                 <td className="px-4 py-3">
                   {totals.debit === totals.credit && totals.debit > 0 ? (
                     <span className="rounded-full bg-brand-jade-light px-2 py-1 text-xs text-brand-jade">
-                      Balance
+                      {t('balanced')}
                     </span>
                   ) : (
                     <span className="rounded-full bg-rose-50 px-2 py-1 text-xs text-rose-700">
-                      Tidak balance
+                      {t('notBalanced')}
                     </span>
                   )}
                 </td>
@@ -263,14 +263,14 @@ export function JournalForm({ accounts, locations }: Props) {
           onClick={() => router.push('/accounting/journals')}
           className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
         >
-          Batal
+          {tc('actions.cancel')}
         </button>
         <button
           type="submit"
           disabled={isPending || accounts.length === 0 || locations.length === 0}
           className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
         >
-          {isPending ? 'Menyimpan...' : 'Simpan draft jurnal'}
+          {isPending ? t('saving') : t('saveDraft')}
         </button>
       </div>
     </form>

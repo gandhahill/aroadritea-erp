@@ -18,13 +18,13 @@ import {
   serverUpdateCustomField,
 } from './actions';
 
-const ENTITY_TYPES = [
-  { value: 'product', label: 'Produk' },
-  { value: 'partner', label: 'Mitra/Pelanggan' },
-  { value: 'employee', label: 'Karyawan' },
-  { value: 'purchase_order', label: 'Purchase Order' },
-  { value: 'sales_order', label: 'Order Penjualan' },
-  { value: 'journal_entry', label: 'Jurnal' },
+const ENTITY_TYPE_KEYS = [
+  'product',
+  'partner',
+  'employee',
+  'purchase_order',
+  'sales_order',
+  'journal_entry',
 ] as const;
 
 const DATA_TYPES = ['string', 'number', 'boolean', 'date', 'enum', 'reference'] as const;
@@ -239,17 +239,17 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
 
       {/* Entity type tabs */}
       <div className="flex gap-1.5 overflow-x-auto border-b border-brand-cream-3 pb-px">
-        {ENTITY_TYPES.map((et) => (
+        {ENTITY_TYPE_KEYS.map((etKey) => (
           <button
-            key={et.value}
-            onClick={() => setSelectedEntity(et.value)}
+            key={etKey}
+            onClick={() => setSelectedEntity(etKey)}
             className={`flex-shrink-0 rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${
-              selectedEntity === et.value
+              selectedEntity === etKey
                 ? 'border-b-2 border-brand-red bg-brand-red/5 text-brand-red'
                 : 'text-brand-ink-2 hover:bg-brand-cream-2 hover:text-brand-ink'
             }`}
           >
-            {et.label}
+            {tET(etKey)}
           </button>
         ))}
       </div>
