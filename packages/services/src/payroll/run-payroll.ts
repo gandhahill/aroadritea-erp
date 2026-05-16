@@ -11,6 +11,7 @@
  */
 
 import { db } from '@erp/db';
+import { cmsSettings } from '@erp/db/schema/cms';
 import {
   attendance,
   employees,
@@ -26,7 +27,43 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { requirePermission } from '../iam';
-import { type PayrollEmployeeContext, calculatePayroll } from './payroll-engine';
+import {
+  type AttendancePolicy,
+  DEFAULT_ATTENDANCE_POLICY,
+  type PayrollEmployeeContext,
+  calculatePayroll,
+} from './payroll-engine';
+
+export const ATTENDANCE_POLICY_SETTING_KEY = 'attendance.policy';
+
+async function loadAttendancePolicy(tenantId: string): Promise<AttendancePolicy> {
+  try {
+    const row = await db
+      .select({ value: cmsSettings.value })
+      .from(cmsSettings)
+      .where(
+        and(eq(cmsSettings.tenantId, tenantId), eq(cmsSettings.key, ATTENDANCE_POLICY_SETTING_KEY)),
+      )
+      .limit(1);
+    const raw = row[0]?.value as Record<string, unknown> | null | undefined;
+    if (!raw) return DEFAULT_ATTENDANCE_POLICY;
+    const latePenalty =
+      typeof raw.latePenalty === 'number' && raw.latePenalty >= 0
+        ? BigInt(Math.round(raw.latePenalty))
+        : DEFAULT_ATTENDANCE_POLICY.latePenalty;
+    const freeLatesPerMonth =
+      typeof raw.freeLatesPerMonth === 'number' && raw.freeLatesPerMonth >= 0
+        ? Math.trunc(raw.freeLatesPerMonth)
+        : DEFAULT_ATTENDANCE_POLICY.freeLatesPerMonth;
+    const absentPenalty =
+      typeof raw.absentPenalty === 'number' && raw.absentPenalty >= 0
+        ? BigInt(Math.round(raw.absentPenalty))
+        : DEFAULT_ATTENDANCE_POLICY.absentPenalty;
+    return { latePenalty, freeLatesPerMonth, absentPenalty };
+  } catch {
+    return DEFAULT_ATTENDANCE_POLICY;
+  }
+}
 
 export const RunPayrollInputSchema = z.object({
   periodCode: z.string().regex(/^\d{4}-\d{2}$/, 'Format: YYYY-MM'),
@@ -63,6 +100,8 @@ export async function runPayroll(
 
   return tryCatch(
     async () => {
+      const attendancePolicy = await loadAttendancePolicy(ctx.tenantId);
+
       // 1. Check for duplicate payroll run for this period/location
       const [existing] = await db
         .select({ id: payrolls.id })
@@ -205,6 +244,7 @@ export async function runPayroll(
           lateMinutes: att.lateMinutes,
           lateCount: att.lateCount,
           absentCount: att.absentDays,
+          attendancePolicy,
         };
 
         const result = calculatePayroll(payrollCtx);

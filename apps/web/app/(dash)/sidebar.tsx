@@ -283,6 +283,8 @@ export function Sidebar() {
         { label: t('locations'), href: '/settings/locations', icon: <></> },
         { label: t('posSettings'), href: '/settings/pos', icon: <></> },
         { label: t('promotions'), href: '/settings/promotions', icon: <></> },
+        { label: t('loyalty'), href: '/settings/loyalty', icon: <></> },
+        { label: t('attendancePolicy'), href: '/settings/attendance', icon: <></> },
         { label: t('scheduledJobs'), href: '/settings/scheduled-jobs', icon: <></> },
         { label: t('notifications'), href: '/settings/notifications', icon: <></> },
         { label: t('naixerKds'), href: '/settings/integrations/naixer', icon: <></> },

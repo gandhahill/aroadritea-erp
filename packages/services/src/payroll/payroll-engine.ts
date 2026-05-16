@@ -32,6 +32,8 @@ export interface PayrollEmployeeContext {
   lateCount?: number;
   /** Absences without notice this period */
   absentCount: number;
+  /** Optional override of late/absent policy. Defaults to DEFAULT_ATTENDANCE_POLICY. */
+  attendancePolicy?: AttendancePolicy;
 }
 
 export interface PayrollEarning {
@@ -82,12 +84,26 @@ const BPJS_KES_CEILING = 12_000_000n;
 const BPJS_TK_EMPLOYEE_RATE = 0.02;
 const BPJS_TK_CEILING = 10_000_000n;
 
-/** Late penalty (SOP §21.8): Rp 50,000 after 3 free lates per month */
-const LATE_PENALTY = 50_000n;
-const FREE_LATES_PER_MONTH = 3;
+/**
+ * Default attendance policy (SOP §21.8). Can be overridden per payroll run via
+ * `PayrollEmployeeContext.attendancePolicy`, which the runner loads from
+ * `cmsSettings` key `attendance.policy` so management can tune penalties
+ * without redeploying.
+ */
+export interface AttendancePolicy {
+  /** IDR penalty per late event after the free allowance. */
+  latePenalty: bigint;
+  /** Number of free late events per month before penalty kicks in. */
+  freeLatesPerMonth: number;
+  /** IDR penalty per unexcused absence. */
+  absentPenalty: bigint;
+}
 
-/** Absent penalty (no notice): Rp 100,000 */
-const ABSENT_PENALTY = 100_000n;
+export const DEFAULT_ATTENDANCE_POLICY: AttendancePolicy = {
+  latePenalty: 50_000n,
+  freeLatesPerMonth: 3,
+  absentPenalty: 100_000n,
+};
 
 // ─── PPh 21 Progressive Brackets ───────────────────────────────────────────
 
@@ -214,13 +230,13 @@ export function calculatePayroll(ctx: PayrollEmployeeContext): PayrollResult {
     });
   }
 
-  // 6. Late penalty (after FREE_LATES_PER_MONTH)
+  // 6. Late penalty (after free allowance)
+  const policy = ctx.attendancePolicy ?? DEFAULT_ATTENDANCE_POLICY;
   let latePenalty = 0n;
   const lateEvents = Math.max(0, Math.trunc(ctx.lateCount ?? 0));
-  const lateEventsOverFree = Math.max(0, lateEvents - FREE_LATES_PER_MONTH);
-  const lateDaysOverFree = lateEventsOverFree;
+  const lateEventsOverFree = Math.max(0, lateEvents - policy.freeLatesPerMonth);
   if (lateEvents > 0) {
-    latePenalty = BigInt(lateEventsOverFree) * LATE_PENALTY;
+    latePenalty = BigInt(lateEventsOverFree) * policy.latePenalty;
     if (latePenalty > 0n) {
       lines.push({
         componentCode: 'POTONGAN_TELAT',
@@ -228,7 +244,7 @@ export function calculatePayroll(ctx: PayrollEmployeeContext): PayrollResult {
         amount: latePenalty,
         baseAmount: 0n,
         percentageApplied: null,
-        notes: `Late penalty: ${lateDaysOverFree}× Rp 50,000`,
+        notes: `Late penalty: ${lateEventsOverFree}× Rp ${policy.latePenalty.toLocaleString('id-ID')}`,
       });
     }
   }
@@ -236,7 +252,7 @@ export function calculatePayroll(ctx: PayrollEmployeeContext): PayrollResult {
   // 7. Absent penalty
   let absentPenalty = 0n;
   if (ctx.absentCount > 0) {
-    absentPenalty = BigInt(ctx.absentCount) * ABSENT_PENALTY;
+    absentPenalty = BigInt(ctx.absentCount) * policy.absentPenalty;
     lines.push({
       componentCode: 'POTONGAN_ABSEN',
       componentKind: 'deduction',

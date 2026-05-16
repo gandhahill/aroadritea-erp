@@ -9,6 +9,7 @@
 
 import { db } from '@erp/db';
 import { accounts, partners } from '@erp/db/schema/accounting';
+import { cmsSettings } from '@erp/db/schema/cms';
 import { complaintCompensations, complaints } from '@erp/db/schema/crm';
 import { memberLoyalty, memberPointsTransactions, memberVouchers } from '@erp/db/schema/member';
 import { AppError } from '@erp/shared/errors';
@@ -19,18 +20,74 @@ import { and, asc, desc, eq, gte } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import { requirePermission } from '../iam';
 
-// ─── Constants ──────────────────────────────────────────────────────────────
+// ─── Loyalty configuration ──────────────────────────────────────────────────
 
-// Loyalty earning rate: 1 point per Rp 100,000 spent (see earnLoyaltyPoints).
-// Tier thresholds are expressed in *lifetime* points:
-//   bronze: 0 pts (entry tier)
-//   silver: 50 pts  ≈ Rp 5,000,000 lifetime spend
-//   gold:   150 pts ≈ Rp 15,000,000 lifetime spend
-// Previously these were 50_000 / 150_000 which required Rp 5–15 billion of
-// lifetime spend before upgrade — effectively unreachable for a bubble-tea
-// store. Corrected to match the documented earn rate.
-const TIER_THRESHOLDS = { bronze: 0, silver: 50, gold: 150 };
-const POINTS_PER_RP10K = 1; // 1 point per Rp 10,000
+/**
+ * Loyalty config can be customized per-tenant via cmsSettings (key
+ * `loyalty.config`) so admins can tune earn rate / thresholds / tier list
+ * without redeploying. These are the safe defaults if no setting exists.
+ *
+ * - `rupiahPerPoint`: how many rupiah of net spend earn one point.
+ * - `tiers`: ordered list of tiers; `minLifetimePoints` defines the cutoff.
+ *   First tier with `minLifetimePoints: 0` is the entry tier.
+ */
+export interface LoyaltyConfig {
+  rupiahPerPoint: number;
+  tiers: Array<{ code: string; minLifetimePoints: number }>;
+}
+
+export const LOYALTY_SETTING_KEY = 'loyalty.config';
+
+export const DEFAULT_LOYALTY_CONFIG: LoyaltyConfig = {
+  rupiahPerPoint: 100_000,
+  tiers: [
+    { code: 'bronze', minLifetimePoints: 0 },
+    { code: 'silver', minLifetimePoints: 50 },
+    { code: 'gold', minLifetimePoints: 150 },
+  ],
+};
+
+function normalizeLoyaltyConfig(value: unknown): LoyaltyConfig {
+  const fallback = DEFAULT_LOYALTY_CONFIG;
+  if (!value || typeof value !== 'object') return fallback;
+  const obj = value as Record<string, unknown>;
+  const rupiahPerPoint =
+    typeof obj.rupiahPerPoint === 'number' && obj.rupiahPerPoint > 0
+      ? obj.rupiahPerPoint
+      : fallback.rupiahPerPoint;
+  const rawTiers = Array.isArray(obj.tiers) ? obj.tiers : [];
+  const tiers = rawTiers
+    .map((t) => {
+      if (!t || typeof t !== 'object') return null;
+      const tier = t as Record<string, unknown>;
+      const code = typeof tier.code === 'string' ? tier.code : null;
+      const minLifetimePoints =
+        typeof tier.minLifetimePoints === 'number' ? tier.minLifetimePoints : null;
+      if (!code || minLifetimePoints === null || minLifetimePoints < 0) return null;
+      return { code, minLifetimePoints };
+    })
+    .filter((t): t is { code: string; minLifetimePoints: number } => Boolean(t))
+    .sort((a, b) => a.minLifetimePoints - b.minLifetimePoints);
+  if (tiers.length === 0) return fallback;
+  // Ensure the lowest tier starts at 0 (entry tier required).
+  if ((tiers[0]?.minLifetimePoints ?? 1) > 0) {
+    tiers.unshift({ code: 'bronze', minLifetimePoints: 0 });
+  }
+  return { rupiahPerPoint, tiers };
+}
+
+export async function getLoyaltyConfig(tenantId: string): Promise<LoyaltyConfig> {
+  try {
+    const row = await db
+      .select({ value: cmsSettings.value })
+      .from(cmsSettings)
+      .where(and(eq(cmsSettings.tenantId, tenantId), eq(cmsSettings.key, LOYALTY_SETTING_KEY)))
+      .limit(1);
+    return normalizeLoyaltyConfig(row[0]?.value ?? null);
+  } catch {
+    return DEFAULT_LOYALTY_CONFIG;
+  }
+}
 
 const VOUCHER_KIND_MAP: Record<string, string> = {
   product_replacement: 'free_item',
@@ -348,7 +405,10 @@ export async function earnLoyaltyPoints(
   ctx: AuditContext,
 ): Promise<Result<{ pointsEarned: number; newBalance: number; tier: string }>> {
   try {
-    const pointsEarned = Math.floor(Number(amountCents) / 10_000_000); // amountCents is in IDR cents (100x rupiah)
+    const config = await getLoyaltyConfig(ctx.tenantId);
+    // amountCents is in IDR cents (rupiah × 100); divide by (rupiahPerPoint × 100)
+    const divisorCents = config.rupiahPerPoint * 100;
+    const pointsEarned = divisorCents > 0 ? Math.floor(Number(amountCents) / divisorCents) : 0;
 
     // Fetch loyalty record
     let loyaltyRows = await db
@@ -380,7 +440,7 @@ export async function earnLoyaltyPoints(
 
     const newPoints = record.points + pointsEarned;
     const newLifetime = record.lifetimePoints + pointsEarned;
-    const newTier = computeTier(newLifetime);
+    const newTier = computeTierFromConfig(newLifetime, config);
 
     await db
       .update(memberLoyalty)
@@ -416,11 +476,21 @@ export async function earnLoyaltyPoints(
   }
 }
 
-/** Compute tier based on lifetime points. */
+/** Compute tier from a loyalty config: highest tier whose threshold is met. */
+export function computeTierFromConfig(
+  lifetimePoints: number,
+  config: LoyaltyConfig = DEFAULT_LOYALTY_CONFIG,
+): string {
+  let resolved = config.tiers[0]?.code ?? 'bronze';
+  for (const tier of config.tiers) {
+    if (lifetimePoints >= tier.minLifetimePoints) resolved = tier.code;
+  }
+  return resolved;
+}
+
+/** Legacy helper kept for callers; uses the default config (synchronous). */
 export function computeTier(lifetimePoints: number): string {
-  if (lifetimePoints >= TIER_THRESHOLDS.gold) return 'gold';
-  if (lifetimePoints >= TIER_THRESHOLDS.silver) return 'silver';
-  return 'bronze';
+  return computeTierFromConfig(lifetimePoints, DEFAULT_LOYALTY_CONFIG);
 }
 
 // ─── Loyalty redeem ──────────────────────────────────────────────────────────

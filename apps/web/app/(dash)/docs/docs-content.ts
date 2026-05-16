@@ -97,7 +97,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
       {
         id: 'pos-member',
         eyebrow: 'Kasir',
-        title: 'POS, member, pembayaran, dan shift',
+        title: 'POS, member, pembayaran, dan shift {perm=pos.transact}',
         summary:
           'POS adalah modul paling kritis untuk outlet. Semua transaksi harus dimulai dari shift yang benar, produk yang benar, member yang dikonfirmasi, dan pembayaran yang cocok dengan channel.',
         steps: [
@@ -177,7 +177,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
       {
         id: 'accounting-tax',
         eyebrow: 'Finance',
-        title: 'Accounting, periode, jurnal, dan pajak',
+        title: 'Accounting, periode, jurnal, dan pajak {perm=accounting.view}',
         summary:
           'Finance menjaga agar setiap transaksi punya jejak akuntansi yang balance, periode yang benar, dan perlakuan pajak yang konsisten. Retail F&B memakai PBJT/PB1 inclusive sesuai konfigurasi pajak.',
         steps: [
@@ -234,17 +234,17 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
       {
         id: 'hr',
         eyebrow: 'SDM',
-        title: 'Karyawan, attendance, cuti, payroll, dan surat peringatan',
+        title: 'Karyawan, presensi, cuti, payroll, dan surat peringatan {perm=hr.view}',
         summary:
-          'HR menyimpan data karyawan yang dipakai untuk attendance, kontrak, payroll, cuti, dan disciplinary record. Data pribadi harus dilihat dan diubah hanya oleh role yang berwenang.',
+          'HR menyimpan data karyawan yang dipakai untuk presensi, kontrak, payroll, cuti, dan disciplinary record. Data pribadi harus dilihat dan diubah hanya oleh role yang berwenang.',
         steps: [
           'Buka HR > Employees untuk melihat daftar karyawan.',
           'Klik Add Employee untuk membuat data karyawan baru.',
           'Isi nama, email, telepon, posisi, lokasi kerja, tanggal mulai, dan data kontrak yang diperlukan.',
-          'Karyawan melakukan presensi dari HR > Check In atau shortcut PWA di perangkat outlet. Pilih shift pagi 09:30-17:30 atau shift siang 14:30-22:30 sesuai jadwal.',
+          'Karyawan melakukan presensi (clock-in/clock-out) dari menu HR > Check In atau shortcut PWA di perangkat outlet. Pilih shift pagi 09:30-17:30 atau shift siang 14:30-22:30 sesuai jadwal.',
           'Presensi GPS membutuhkan koordinat lokasi yang sudah diisi administrator. Jika GPS belum disiapkan, gunakan QR check-in sesuai instruksi outlet.',
-          'Attendance mencatat jam masuk, jam pulang, metode check-in, status telat, dan menit telat. Toleransi telat adalah 15 menit dari awal shift.',
-          'Jatah telat adalah 3 kali per bulan. Telat berikutnya dikenai potongan Rp 50.000 per kejadian. Tidak hadir tanpa kabar dikenai potongan Rp 100.000 per kejadian.',
+          'Sistem presensi mencatat jam masuk, jam pulang, metode check-in, status telat, dan menit telat. Toleransi telat default adalah 15 menit dari awal shift.',
+          'Denda keterlambatan dan jatah toleransi per bulan dapat diatur di menu Pengaturan > Kebijakan Presensi (tanpa perlu edit source code). Default: 3 kali toleransi per bulan; telat berikutnya dikenai potongan Rp 50.000 per kejadian; mangkir tanpa kabar dikenai Rp 100.000 per kejadian.',
           'Jam istirahat shift pagi adalah 13:30-15:30 selama 1 jam. Shift siang istirahat 16:00-17:00 atau setelah 20:30; hindari istirahat 18:00-20:30 kecuali kebutuhan khusus seperti ibadah, sakit maag, atau menstruasi.',
           'Gunakan Leave untuk mengatur jenis cuti, memproses permintaan cuti, dan memastikan tukar libur atau cuti mendapat persetujuan atasan.',
           'Jalankan Payroll sesuai periode payroll, review komponen gaji, potongan telat/absen, BPJS, dan PPh 21 sebelum approval atau pembayaran.',
@@ -302,7 +302,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
       {
         id: 'permissions',
         eyebrow: 'Security',
-        title: 'Permission, role, dan audit akses',
+        title: 'Permission, role, dan audit akses {perm=settings.manage}',
         summary:
           'Permission menentukan menu dan aksi yang boleh dilakukan user. Pengaturan ini mendukung prinsip least privilege: user hanya mendapat akses yang diperlukan untuk pekerjaannya.',
         steps: [
@@ -323,7 +323,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
       {
         id: 'settings-support',
         eyebrow: 'Support',
-        title: 'Pengaturan, notifikasi, job otomatis, dan troubleshooting',
+        title: 'Pengaturan, notifikasi, job otomatis, dan troubleshooting {perm=settings.manage}',
         summary:
           'Pengaturan operasional dipakai agar ERP bisa menyesuaikan kebutuhan outlet tanpa edit source code. Jika terjadi error, catat bukti yang cukup supaya root cause bisa ditelusuri.',
         steps: [
@@ -590,7 +590,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
       {
         id: 'hr',
         eyebrow: 'HR',
-        title: 'Employees, attendance, leave, payroll, and warnings',
+        title: 'Employees, attendance, leave, payroll, and warnings {perm=hr.view}',
         summary:
           'HR stores employee data used for attendance, contracts, payroll, leave, and disciplinary records.',
         steps: [
@@ -600,7 +600,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           'Employees check in from HR > Check In or a PWA shortcut on the outlet device. Choose morning shift 09:30-17:30 or evening shift 14:30-22:30 according to schedule.',
           'GPS attendance requires location coordinates configured by an administrator. If GPS is not prepared yet, use QR check-in according to outlet instructions.',
           'Attendance records check-in time, check-out time, method, late status, and late minutes. Late tolerance is 15 minutes from shift start.',
-          'The monthly free late allowance is 3 events. Every late event after that deducts Rp 50,000. Absence without notice deducts Rp 100,000 per event.',
+          'Late penalty and the monthly free-late allowance are configured under Settings > Attendance Policy (no source-code edit required). Defaults: 3 free lates per month; Rp 50,000 per additional late; Rp 100,000 per unexcused absence.',
           'Morning break is 13:30-15:30 for 1 hour. Evening break is 16:00-17:00 or after 20:30; avoid 18:00-20:30 except for prayer, stomach illness, menstruation, or similar needs.',
           'Use Leave to maintain leave types, process requests, and make sure leave swaps or weekly-off changes have supervisor approval.',
           'Run Payroll for the correct period, then review salary components, late/absence deductions, BPJS, and PPh 21 before approval or payment.',
@@ -939,7 +939,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
       {
         id: 'hr',
         eyebrow: '人事',
-        title: '员工、考勤、请假、工资和警告',
+        title: '员工、考勤、请假、工资和警告 {perm=hr.view}',
         summary: '人事模块保存员工资料，用于考勤、合同、工资、请假和纪律记录。',
         steps: [
           '打开 HR > Employees。',

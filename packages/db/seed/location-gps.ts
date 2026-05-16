@@ -19,7 +19,7 @@ export const LOCATION_GPS_FIELDS = [
   {
     key: 'gps_radius_m',
     name: {
-      id: 'Radius absensi GPS (meter)',
+      id: 'Radius presensi GPS (meter)',
       en: 'GPS attendance radius (meters)',
       zh: 'GPS 考勤半径（米）',
     },

@@ -1,0 +1,43 @@
+/**
+ * Kebijakan Presensi — admins tune late/absent penalties without redeploying.
+ */
+
+import { getSession } from '@/lib/auth';
+import { can } from '@erp/services/iam';
+import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
+import { fetchAttendancePolicy } from './actions';
+import { AttendancePolicyForm } from './attendance-policy-form';
+
+export const metadata: Metadata = {
+  title: 'Kebijakan Presensi',
+};
+
+export default async function AttendancePolicyPage() {
+  const session = await getSession();
+  if (!session) redirect('/login');
+  const userId = String((session.user as Record<string, unknown>)?.id ?? '');
+
+  const allowed = await can(userId, 'settings.manage');
+  if (!allowed) {
+    return (
+      <div className="rounded-lg border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
+        Akun ini tidak memiliki akses untuk mengatur pengaturan sistem.
+      </div>
+    );
+  }
+
+  const policy = await fetchAttendancePolicy();
+  const t = await getTranslations('settings.attendance');
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
+        <p className="mt-1 max-w-3xl text-sm text-brand-ink-3">{t('subtitle')}</p>
+      </div>
+      <AttendancePolicyForm initial={policy} />
+    </div>
+  );
+}
