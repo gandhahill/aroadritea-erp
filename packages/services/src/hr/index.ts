@@ -9,5 +9,6 @@ export * from './schemas';
 export * from './list-employees';
 export * from './get-employee';
 export * from './create-employee';
+export * from './update-employee';
 export * from './attendance-service';
 export * from './disciplinary-service';

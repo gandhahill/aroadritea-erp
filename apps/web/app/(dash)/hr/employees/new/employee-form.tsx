@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect } from 'react';
 import { createEmployeeAction } from '../actions';
@@ -9,6 +10,8 @@ const INPUT =
 
 export function EmployeeForm() {
   const router = useRouter();
+  const t = useTranslations('hr.employees');
+  const f = useTranslations('hr.employees.form');
   const [state, submitAction, isPending] = useActionState(createEmployeeAction, null);
 
   useEffect(() => {
@@ -25,42 +28,42 @@ export function EmployeeForm() {
         </div>
       ) : null}
 
-      <Section title="Identitas karyawan">
-        <Field label="NIK / KTP" name="nik" required />
-        <Field label="Nama lengkap" name="name" required />
-        <Field label="Email" name="email" type="email" required />
-        <Field label="Nomor telepon" name="phone" />
-        <Field label="Alamat" name="address" className="md:col-span-2" />
+      <Section title={f('identitySection')}>
+        <Field label={f('nik')} name="nik" required />
+        <Field label={f('fullName')} name="name" required />
+        <Field label={t('email')} name="email" type="email" required />
+        <Field label={f('phone')} name="phone" />
+        <Field label={f('address')} name="address" className="md:col-span-2" />
       </Section>
 
-      <Section title="Pekerjaan">
-        <Field label="Jabatan" name="position" required />
-        <Field label="Departemen" name="department" />
-        <Field label="Tanggal mulai kerja" name="hireDate" type="date" required />
-        <Field label="Akhir probation" name="probationEndDate" type="date" />
+      <Section title={f('employmentSection')}>
+        <Field label={f('position')} name="position" required />
+        <Field label={f('department')} name="department" />
+        <Field label={f('hireDate')} name="hireDate" type="date" required />
+        <Field label={f('probationEnd')} name="probationEndDate" type="date" />
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-brand-ink">Tipe kontrak</span>
+          <span className="text-sm font-medium text-brand-ink">{f('contractType')}</span>
           <select name="contractType" required defaultValue="pkwt" className={INPUT}>
             <option value="pkwt">PKWT</option>
             <option value="pkwtt">PKWTT</option>
           </select>
         </label>
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-brand-ink">Jadwal kerja</span>
+          <span className="text-sm font-medium text-brand-ink">{f('workSchedule')}</span>
           <select name="workSchedule" required defaultValue="fulltime" className={INPUT}>
-            <option value="fulltime">Full-time</option>
-            <option value="parttime">Part-time</option>
-            <option value="shift">Shift</option>
+            <option value="fulltime">{f('fulltime')}</option>
+            <option value="parttime">{f('parttime')}</option>
+            <option value="shift">{f('shift')}</option>
           </select>
         </label>
       </Section>
 
-      <Section title="Pajak, BPJS, dan kontak darurat">
-        <Field label="NPWP" name="npwp" />
-        <Field label="BPJS Kesehatan" name="bpjsKesehatan" />
-        <Field label="BPJS Ketenagakerjaan" name="bpjsTenagakerja" />
-        <Field label="Nama kontak darurat" name="emergencyContactName" />
-        <Field label="Telepon kontak darurat" name="emergencyContactPhone" />
+      <Section title={f('taxBpjsSection')}>
+        <Field label={f('npwp')} name="npwp" />
+        <Field label={f('bpjsKesehatan')} name="bpjsKesehatan" />
+        <Field label={f('bpjsTenagakerja')} name="bpjsTenagakerja" />
+        <Field label={f('emergencyName')} name="emergencyContactName" />
+        <Field label={f('emergencyPhone')} name="emergencyContactPhone" />
       </Section>
 
       <div className="flex items-center justify-end gap-3">
@@ -69,14 +72,14 @@ export function EmployeeForm() {
           onClick={() => router.push('/hr/employees')}
           className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
         >
-          Batal
+          {t('cancel')}
         </button>
         <button
           type="submit"
           disabled={isPending}
           className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
         >
-          {isPending ? 'Menyimpan...' : 'Simpan karyawan'}
+          {isPending ? t('saving') : t('save')}
         </button>
       </div>
     </form>

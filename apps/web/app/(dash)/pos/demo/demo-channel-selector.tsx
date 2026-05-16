@@ -9,10 +9,10 @@ import { useTranslations } from 'next-intl';
 import { useDemoCart } from './demo-cart-context';
 
 const CHANNELS = [
-  { id: 'walk_in', icon: '🏠' },
-  { id: 'gofood', icon: '🛵' },
-  { id: 'grabfood', icon: '🛵' },
-  { id: 'shopeefood', icon: '🛵' },
+  { id: 'walk_in', icon: '🏠', label: 'Dine In' },
+  { id: 'gofood', icon: '🛵', label: 'GoFood' },
+  { id: 'grabfood', icon: '🛵', label: 'GrabFood' },
+  { id: 'shopeefood', icon: '🛵', label: 'ShopeeFood' },
 ] as const;
 
 export function DemoChannelSelector() {
@@ -32,7 +32,7 @@ export function DemoChannelSelector() {
           }`}
         >
           <span className="text-sm">{ch.icon}</span>
-          <span>{t(`paymentMethods.${ch.id}` as never)}</span>
+          <span>{ch.label}</span>
         </button>
       ))}
     </div>

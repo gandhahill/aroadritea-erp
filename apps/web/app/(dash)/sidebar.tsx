@@ -413,7 +413,7 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className={`border-t border-brand-cream-3 px-4 py-3 whitespace-nowrap overflow-hidden transition-opacity ${isCollapsed ? 'opacity-0' : 'opacity-100'}`}>
-        <p className="text-[10px] font-medium uppercase tracking-widest text-brand-ink-3">
+        <p className="brand-wordmark text-[10px] uppercase tracking-widest text-brand-ink-3">
           Aroadri Tea ERP
         </p>
         <p className="text-[10px] text-brand-ink-3/60">v0.1.0 — Phase 1</p>

@@ -8,9 +8,9 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { createEmployee } from '@erp/services/hr';
+import { createEmployee, deactivateEmployee, updateEmployee } from '@erp/services/hr';
 import { getEmployee, listEmployees } from '@erp/services/hr';
-import type { CreateEmployeeInput, ListEmployeesInput } from '@erp/services/hr';
+import type { CreateEmployeeInput, ListEmployeesInput, UpdateEmployeeInput } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
 
@@ -95,6 +95,55 @@ export async function createEmployeeAction(
   };
 
   const result = await createEmployee(input, ctx);
+  if (!result.ok) return { error: errorMessage(result.error) };
+
+  revalidatePath('/hr/employees');
+  return { ok: true, employeeId: result.value.id };
+}
+
+export async function updateEmployeeAction(
+  _prev: CreateEmployeeState | null,
+  formData: FormData,
+): Promise<CreateEmployeeState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+
+  const employeeId = text(formData, 'employeeId');
+  const version = Number.parseInt(text(formData, 'version') || '1', 10);
+
+  const input: UpdateEmployeeInput = {
+    employeeId,
+    version,
+    name: optionalText(formData, 'name'),
+    email: optionalText(formData, 'email'),
+    phone: optionalText(formData, 'phone'),
+    address: optionalText(formData, 'address'),
+    position: optionalText(formData, 'position'),
+    department: optionalText(formData, 'department'),
+    status: optionalText(formData, 'status') as UpdateEmployeeInput['status'],
+    contractType: optionalText(formData, 'contractType') as UpdateEmployeeInput['contractType'],
+    workSchedule: optionalText(formData, 'workSchedule') as UpdateEmployeeInput['workSchedule'],
+    npwp: optionalText(formData, 'npwp'),
+    bpjsKesehatan: optionalText(formData, 'bpjsKesehatan'),
+    bpjsTenagakerja: optionalText(formData, 'bpjsTenagakerja'),
+    emergencyContactName: optionalText(formData, 'emergencyContactName'),
+    emergencyContactPhone: optionalText(formData, 'emergencyContactPhone'),
+  };
+
+  const result = await updateEmployee(input, ctx);
+  if (!result.ok) return { error: errorMessage(result.error) };
+
+  revalidatePath('/hr/employees');
+  revalidatePath(`/hr/employees/${employeeId}`);
+  return { ok: true, employeeId: result.value.id };
+}
+
+export async function deactivateEmployeeAction(formData: FormData): Promise<CreateEmployeeState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+
+  const employeeId = text(formData, 'employeeId');
+  const result = await deactivateEmployee(employeeId, ctx);
   if (!result.ok) return { error: errorMessage(result.error) };
 
   revalidatePath('/hr/employees');

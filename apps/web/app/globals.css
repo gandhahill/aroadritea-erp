@@ -166,6 +166,13 @@
    ================================================================ */
 
 @layer utilities {
+  /* Brand wordmark typography — consistent with public site (ADR-0006) */
+  .brand-wordmark {
+    font-family: var(--font-display);
+    font-weight: 900;
+    letter-spacing: 0;
+  }
+
   /* Card surface — warm, not default white (SD §36.3) */
   .surface-card {
     background-color: var(--color-card);

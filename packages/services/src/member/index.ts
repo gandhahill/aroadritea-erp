@@ -743,7 +743,7 @@ export async function findMemberByPhone(
  */
 export async function validateMemberSession(
   token: string,
-): Promise<Result<{ memberId: string; sessionId: string } | null>> {
+): Promise<Result<{ memberId: string; sessionId: string; memberName: string | null } | null>> {
   try {
     const tokenHash = createHash('sha256').update(token).digest('hex');
     const sessions = await db
@@ -761,7 +761,16 @@ export async function validateMemberSession(
       .set({ lastActiveAt: new Date() })
       .where(eq(memberSessions.id, sessions[0].id));
 
-    return ok({ memberId: sessions[0].memberId, sessionId: sessions[0].id });
+    // Fetch member name from partners table
+    let memberName: string | null = null;
+    const [partner] = await db
+      .select({ name: partners.name })
+      .from(partners)
+      .where(eq(partners.id, sessions[0].memberId))
+      .limit(1);
+    if (partner) memberName = partner.name;
+
+    return ok({ memberId: sessions[0].memberId, sessionId: sessions[0].id, memberName });
   } catch (e) {
     return err(AppError.internal('member.session.validateFailed', e));
   }

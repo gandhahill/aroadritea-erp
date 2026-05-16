@@ -36,6 +36,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   // Check member session for auth-aware header
   const memberAccount = await getMemberAccount();
   const isLoggedIn = !!memberAccount;
+  const memberName = memberAccount?.memberName ?? null;
 
   return (
     <html lang={locale}>
@@ -47,6 +48,7 @@ export default async function LocaleLayout({ children, params }: Props) {
             tagline={tagline}
             chineseTea={chineseTea}
             isLoggedIn={isLoggedIn}
+            memberName={memberName}
             labels={{
               home: nav('home'),
               menu: nav('menu'),

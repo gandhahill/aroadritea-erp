@@ -8,6 +8,7 @@
 'use client';
 
 import { type DbProduct, type DbVariant, getProducts, getVariants } from '@erp/offline';
+import { displayAssetUrl } from '@/lib/display-asset-url';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { useDemoCart } from './demo-cart-context';
@@ -113,15 +114,15 @@ export function DemoProductSearch() {
                 <div className="flex flex-1 flex-col items-center gap-1.5 rounded-xl border border-brand-cream-3 bg-card p-3 text-center transition-all hover:border-brand-red/40 hover:shadow-sm">
                   {product.imageUrl ? (
                     <img
-                      src={product.imageUrl}
+                      src={displayAssetUrl(product.imageUrl)}
                       alt={String(product.name)}
                       className="h-16 w-16 rounded-lg object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }}
                     />
-                  ) : (
-                    <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-brand-cream-2 text-3xl">
-                      🧋
-                    </div>
-                  )}
+                  ) : null}
+                  <div className={`${product.imageUrl ? 'hidden' : ''} flex h-16 w-16 items-center justify-center rounded-lg bg-brand-cream-2 text-3xl`}>
+                    🧋
+                  </div>
                   <div className="w-full">
                     <p className="line-clamp-2 text-xs font-medium leading-tight text-brand-ink">
                       {String(product.name)}

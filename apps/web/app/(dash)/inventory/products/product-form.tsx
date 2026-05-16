@@ -1,18 +1,11 @@
 'use client';
 
 import { FileUploadField } from '@/components/file-upload-field';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect } from 'react';
 import { createProductAction, updateProductAction } from './actions';
 import type { ProductCategoryOption, ProductFormInitial, ProductKind } from './product-types';
-
-const KIND_OPTIONS: Array<{ value: ProductKind; label: string }> = [
-  { value: 'finished_good', label: 'Produk jual' },
-  { value: 'raw_material', label: 'Bahan baku' },
-  { value: 'merchandise', label: 'Merchandise' },
-  { value: 'consumable', label: 'Perlengkapan habis pakai' },
-  { value: 'service', label: 'Jasa' },
-];
 
 const INPUT =
   'w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
@@ -25,8 +18,18 @@ interface Props {
 
 export function ProductForm({ mode, categories, product }: Props) {
   const router = useRouter();
+  const t = useTranslations('inventory.products');
+  const f = useTranslations('inventory.products.form');
   const action = mode === 'create' ? createProductAction : updateProductAction;
   const [state, submitAction, isPending] = useActionState(action, null);
+
+  const KIND_OPTIONS: Array<{ value: ProductKind; label: string }> = [
+    { value: 'finished_good', label: f('kindFinishedGood') },
+    { value: 'raw_material', label: f('kindRawMaterial') },
+    { value: 'merchandise', label: f('kindMerchandise') },
+    { value: 'consumable', label: f('kindConsumable') },
+    { value: 'service', label: f('kindService') },
+  ];
 
   useEffect(() => {
     if (!state?.ok || !state.productId) return;
@@ -50,9 +53,9 @@ export function ProductForm({ mode, categories, product }: Props) {
       ) : null}
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-        <h2 className="text-base font-semibold text-brand-ink">Identitas produk</h2>
+        <h2 className="text-base font-semibold text-brand-ink">{f('identitySection')}</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <Field label="SKU" required>
+          <Field label={f('sku')} required>
             <input
               name="sku"
               required
@@ -61,7 +64,7 @@ export function ProductForm({ mode, categories, product }: Props) {
               className={`${INPUT} ${mode === 'edit' ? 'bg-brand-cream-1 text-brand-ink-3' : ''}`}
             />
           </Field>
-          <Field label="Kategori" required>
+          <Field label={f('category')} required>
             <select
               name="categoryId"
               required
@@ -69,7 +72,7 @@ export function ProductForm({ mode, categories, product }: Props) {
               className={INPUT}
             >
               {categories.length === 0 ? (
-                <option value="">Buat kategori terlebih dahulu</option>
+                <option value="">{t('createCategory')}</option>
               ) : (
                 categories.map((category) => (
                   <option key={category.id} value={category.id}>
@@ -79,16 +82,16 @@ export function ProductForm({ mode, categories, product }: Props) {
               )}
             </select>
           </Field>
-          <Field label="Nama Indonesia" required>
+          <Field label={f('nameId')} required>
             <input name="nameId" required defaultValue={product?.name.id ?? ''} className={INPUT} />
           </Field>
-          <Field label="Nama English">
+          <Field label={f('nameEn')}>
             <input name="nameEn" defaultValue={product?.name.en ?? ''} className={INPUT} />
           </Field>
-          <Field label="Nama Mandarin">
+          <Field label={f('nameZh')}>
             <input name="nameZh" defaultValue={product?.name.zh ?? ''} className={INPUT} />
           </Field>
-          <Field label="Jenis produk" required>
+          <Field label={f('kind')} required>
             <select
               name="kind"
               required
@@ -102,16 +105,16 @@ export function ProductForm({ mode, categories, product }: Props) {
               ))}
             </select>
           </Field>
-          <Field label="Satuan" required>
+          <Field label={f('uom')} required>
             <input name="uom" required defaultValue={product?.uom ?? 'pcs'} className={INPUT} />
           </Field>
-          <Field label="Kode pajak">
+          <Field label={f('taxCode')}>
             <input name="taxCode" defaultValue={product?.taxCode ?? ''} className={INPUT} />
           </Field>
         </div>
         <div className="mt-4">
           <FileUploadField
-            label="Gambar produk"
+            label={f('image')}
             hiddenName="imageUrl"
             value={product?.imageUrl}
             area="product-images"
@@ -123,20 +126,20 @@ export function ProductForm({ mode, categories, product }: Props) {
       </section>
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-        <h2 className="text-base font-semibold text-brand-ink">Deskripsi</h2>
+        <h2 className="text-base font-semibold text-brand-ink">{f('descriptionSection')}</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           <TextArea
-            label="Deskripsi Indonesia"
+            label={f('descId')}
             name="descriptionId"
             value={product?.description?.id ?? ''}
           />
           <TextArea
-            label="Deskripsi English"
+            label={f('descEn')}
             name="descriptionEn"
             value={product?.description?.en ?? ''}
           />
           <TextArea
-            label="Deskripsi Mandarin"
+            label={f('descZh')}
             name="descriptionZh"
             value={product?.description?.zh ?? ''}
           />
@@ -144,9 +147,9 @@ export function ProductForm({ mode, categories, product }: Props) {
       </section>
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-        <h2 className="text-base font-semibold text-brand-ink">Harga dan stok</h2>
+        <h2 className="text-base font-semibold text-brand-ink">{f('pricingSection')}</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <Field label="Harga jual default">
+          <Field label={f('sellPrice')}>
             <input
               name="defaultSellPrice"
               inputMode="numeric"
@@ -154,7 +157,7 @@ export function ProductForm({ mode, categories, product }: Props) {
               className={INPUT}
             />
           </Field>
-          <Field label="Harga modal default">
+          <Field label={f('costPrice')}>
             <input
               name="defaultCostPrice"
               inputMode="numeric"
@@ -162,7 +165,7 @@ export function ProductForm({ mode, categories, product }: Props) {
               className={INPUT}
             />
           </Field>
-          <Field label="Umur simpan dalam hari">
+          <Field label={f('shelfLife')}>
             <input
               name="shelfLifeDays"
               type="number"
@@ -175,26 +178,26 @@ export function ProductForm({ mode, categories, product }: Props) {
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <Toggle
             name="isSellable"
-            label="Dijual di POS"
+            label={f('isSellable')}
             defaultChecked={product?.isSellable ?? true}
           />
           <Toggle
             name="isPurchasable"
-            label="Bisa dibeli"
+            label={f('isPurchasable')}
             defaultChecked={product?.isPurchasable ?? false}
           />
           <Toggle
             name="trackBatch"
-            label="Lacak batch"
+            label={f('trackBatch')}
             defaultChecked={product?.trackBatch ?? false}
           />
           <Toggle
             name="trackExpiry"
-            label="Lacak expiry"
+            label={f('trackExpiry')}
             defaultChecked={product?.trackExpiry ?? false}
           />
           {mode === 'edit' ? (
-            <Toggle name="isActive" label="Aktif" defaultChecked={product?.isActive ?? true} />
+            <Toggle name="isActive" label={f('isActive')} defaultChecked={product?.isActive ?? true} />
           ) : null}
         </div>
       </section>
@@ -205,14 +208,14 @@ export function ProductForm({ mode, categories, product }: Props) {
           onClick={() => router.push('/inventory/products')}
           className="rounded-lg border border-brand-cream-3 bg-brand-cream px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
         >
-          Batal
+          {t('cancel')}
         </button>
         <button
           type="submit"
           disabled={isPending || categories.length === 0}
           className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
         >
-          {isPending ? 'Menyimpan...' : mode === 'create' ? 'Simpan produk' : 'Simpan perubahan'}
+          {isPending ? t('saving') : mode === 'create' ? t('saveProduct') : t('saveChanges')}
         </button>
       </div>
     </form>

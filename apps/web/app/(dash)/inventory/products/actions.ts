@@ -5,9 +5,11 @@ import {
   createCategory,
   createProduct,
   createVariant,
+  deactivateProduct,
   getProduct,
   listCategories,
   listProducts,
+  reactivateProduct,
   updateProduct,
   updateVariant,
 } from '@erp/services/inventory';
@@ -271,4 +273,28 @@ export async function toggleVariantStatusAction(formData: FormData): Promise<voi
 
   await updateVariant({ variantId, version, isActive }, ctx);
   revalidatePath(`/inventory/products/${productId}`);
+}
+
+export async function deactivateProductAction(formData: FormData): Promise<ActionState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+
+  const productId = text(formData, 'productId');
+  const result = await deactivateProduct(productId, ctx);
+  if (!result.ok) return { error: errorMessage(result.error) };
+
+  revalidatePath('/inventory/products');
+  return { ok: true, productId };
+}
+
+export async function reactivateProductAction(formData: FormData): Promise<ActionState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+
+  const productId = text(formData, 'productId');
+  const result = await reactivateProduct(productId, ctx);
+  if (!result.ok) return { error: errorMessage(result.error) };
+
+  revalidatePath('/inventory/products');
+  return { ok: true, productId };
 }

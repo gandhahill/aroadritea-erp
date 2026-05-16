@@ -70,6 +70,7 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
     inputAmount !== '' && currentInputBig > BigInt(0) && currentInputBig < remaining;
 
   const paymentMethods = useMemo(() => {
+    // Only add delivery channel as payment method for delivery orders
     if (state.channel === 'walk_in') return [...BASE_PAYMENT_METHODS];
     return [...BASE_PAYMENT_METHODS, { id: state.channel, badge: channelBadge(state.channel) }];
   }, [state.channel]);

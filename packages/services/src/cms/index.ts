@@ -123,6 +123,38 @@ export async function getPage(id: string): Promise<Result<Record<string, unknown
   }
 }
 
+/** Get a published page by slug (for public site rendering). */
+export async function getPublishedPageBySlug(
+  tenantId: string,
+  slug: string,
+): Promise<Result<Record<string, unknown>>> {
+  try {
+    const row = await db
+      .select()
+      .from(cmsPages)
+      .where(and(eq(cmsPages.tenantId, tenantId), eq(cmsPages.slug, slug), eq(cmsPages.status, 'published')))
+      .limit(1);
+    if (!row[0]) return err(AppError.notFound('cms.page.notFound'));
+    return ok(row[0]);
+  } catch (e) {
+    return err(AppError.internal('cms.page.getFailed', e));
+  }
+}
+
+/** List all published pages (for public site nav/sitemap). */
+export async function listPublishedPages(tenantId: string): Promise<Result<Array<Record<string, unknown>>>> {
+  try {
+    const rows = await db
+      .select()
+      .from(cmsPages)
+      .where(and(eq(cmsPages.tenantId, tenantId), eq(cmsPages.status, 'published')))
+      .orderBy(cmsPages.displayOrder);
+    return ok(rows);
+  } catch (e) {
+    return err(AppError.internal('cms.pages.listFailed', e));
+  }
+}
+
 /** List pages, optionally filtered by status. */
 export async function listPages(
   tenantId: string,

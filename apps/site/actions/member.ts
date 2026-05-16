@@ -124,6 +124,7 @@ export async function getMemberAccount() {
   return {
     memberId: sessionResult.value.memberId,
     sessionId: sessionResult.value.sessionId,
+    memberName: sessionResult.value.memberName,
     loyalty: loyaltyResult.ok ? loyaltyResult.value : null,
     pointsHistory: pointsHistoryResult.ok ? pointsHistoryResult.value : [],
     vouchers: vouchersResult.ok ? vouchersResult.value : [],

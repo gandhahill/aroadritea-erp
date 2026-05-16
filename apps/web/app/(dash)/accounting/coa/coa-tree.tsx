@@ -6,6 +6,7 @@
 
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import type { COANode } from './actions';
 
@@ -19,26 +20,27 @@ const TYPE_COLORS: Record<string, { bg: string; text: string; border: string }> 
   expense: { bg: 'bg-rose-100', text: 'text-rose-700', border: 'border-rose-200' },
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  asset: 'Asset',
-  liability: 'Liability',
-  equity: 'Equity',
-  income: 'Income',
-  cogs: 'COGS',
-  expense: 'Expense',
-};
-
 interface COATreeViewProps {
   tree: COANode[];
 }
 
 export function COATreeView({ tree }: COATreeViewProps) {
+  const t = useTranslations('accounting.coa');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
     // Expand all root nodes by default
     return new Set(tree.map((n) => n.id));
   });
   const [selectedType, setSelectedType] = useState<string | null>(null);
+
+  const TYPE_LABELS: Record<string, string> = {
+    asset: t('typeAsset'),
+    liability: t('typeLiability'),
+    equity: t('typeEquity'),
+    income: t('typeIncome'),
+    cogs: t('typeCogs'),
+    expense: t('typeExpense'),
+  };
 
   // Filter tree by search query
   const filteredTree = useMemo(() => {
@@ -133,14 +135,14 @@ export function COATreeView({ tree }: COATreeViewProps) {
               onClick={expandAll}
               className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-medium text-brand-ink-2 hover:bg-brand-cream-2 transition-colors"
             >
-              Expand All
+              {t('expandAll')}
             </button>
             <button
               type="button"
               onClick={collapseAll}
               className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-medium text-brand-ink-2 hover:bg-brand-cream-2 transition-colors"
             >
-              Collapse All
+              {t('collapseAll')}
             </button>
           </div>
         </div>
@@ -150,12 +152,12 @@ export function COATreeView({ tree }: COATreeViewProps) {
       <div className="surface-card divide-y divide-brand-cream-2">
         {/* Header */}
         <div className="grid grid-cols-12 gap-2 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-          <div className="col-span-5">Account</div>
-          <div className="col-span-2">Type</div>
-          <div className="col-span-2">Subtype</div>
-          <div className="col-span-1 text-center">Balance</div>
-          <div className="col-span-1 text-center">Postable</div>
-          <div className="col-span-1 text-center">Status</div>
+          <div className="col-span-5">{t('account')}</div>
+          <div className="col-span-2">{t('type')}</div>
+          <div className="col-span-2">{t('subtype')}</div>
+          <div className="col-span-1 text-center">{t('balance')}</div>
+          <div className="col-span-1 text-center">{t('postable')}</div>
+          <div className="col-span-1 text-center">{t('status')}</div>
         </div>
 
         {/* Tree nodes */}
@@ -175,8 +177,8 @@ export function COATreeView({ tree }: COATreeViewProps) {
                 d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
               />
             </svg>
-            <p className="text-sm font-medium">No accounts found</p>
-            <p className="mt-1 text-xs">Try adjusting your search or filter.</p>
+            <p className="text-sm font-medium">{t('empty')}</p>
+            <p className="mt-1 text-xs">{t('emptyHint')}</p>
           </div>
         ) : (
           <div className="py-1">
@@ -187,6 +189,7 @@ export function COATreeView({ tree }: COATreeViewProps) {
                 depth={0}
                 expandedIds={expandedIds}
                 onToggle={toggleExpand}
+                labels={{ active: t('active'), inactive: t('inactive'), typeLabels: TYPE_LABELS }}
               />
             ))}
           </div>
@@ -203,9 +206,10 @@ interface TreeNodeProps {
   depth: number;
   expandedIds: Set<string>;
   onToggle: (id: string) => void;
+  labels: { active: string; inactive: string; typeLabels: Record<string, string> };
 }
 
-function TreeNode({ node, depth, expandedIds, onToggle }: TreeNodeProps) {
+function TreeNode({ node, depth, expandedIds, onToggle, labels }: TreeNodeProps) {
   const hasChildren = node.children.length > 0;
   const isExpanded = expandedIds.has(node.id);
   const colors = TYPE_COLORS[node.type] ?? {
@@ -260,7 +264,7 @@ function TreeNode({ node, depth, expandedIds, onToggle }: TreeNodeProps) {
           <span
             className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${colors.bg} ${colors.text} ${colors.border}`}
           >
-            {TYPE_LABELS[node.type] ?? node.type}
+            {labels.typeLabels[node.type] ?? node.type}
           </span>
         </div>
 
@@ -308,12 +312,12 @@ function TreeNode({ node, depth, expandedIds, onToggle }: TreeNodeProps) {
           {node.isActive ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-brand-jade-light px-2 py-0.5 text-[10px] font-medium text-brand-jade">
               <span className="h-1.5 w-1.5 rounded-full bg-brand-jade" />
-              Active
+              {labels.active}
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 rounded-full bg-brand-cream-3 px-2 py-0.5 text-[10px] font-medium text-brand-ink-3">
               <span className="h-1.5 w-1.5 rounded-full bg-brand-ink-3" />
-              Inactive
+              {labels.inactive}
             </span>
           )}
         </div>
@@ -329,6 +333,7 @@ function TreeNode({ node, depth, expandedIds, onToggle }: TreeNodeProps) {
               depth={depth + 1}
               expandedIds={expandedIds}
               onToggle={onToggle}
+              labels={labels}
             />
           ))}
         </div>

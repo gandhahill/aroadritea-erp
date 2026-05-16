@@ -181,7 +181,11 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
         summary:
           'Finance menjaga agar setiap transaksi punya jejak akuntansi yang balance, periode yang benar, dan perlakuan pajak yang konsisten. Retail F&B memakai PBJT/PB1 inclusive sesuai konfigurasi pajak.',
         steps: [
-          'Gunakan Chart of Accounts untuk melihat akun resmi perusahaan.',
+          'Buka Accounting > Chart of Accounts untuk melihat bagan akun perusahaan dalam bentuk tree.',
+          'Untuk menambah akun baru, klik "Kelola Akun" lalu "Akun baru". Isi kode akun, nama ID/EN/ZH, pilih tipe (Asset/Liability/Equity/Income/COGS/Expense), subtipe, saldo normal (Debit/Kredit), dan parent account (jika sub-akun). Simpan.',
+          'Untuk mengedit akun, klik ikon edit pada baris akun yang ingin diubah. Ubah field yang perlu, lalu simpan.',
+          'Untuk menonaktifkan akun, klik ikon deactivate. Akun nonaktif tidak bisa dipakai di jurnal baru tetapi tetap menyimpan histori.',
+          'Gunakan filter tipe dan pencarian kode/nama untuk menemukan akun dengan cepat.',
           'Buka Jurnal untuk melihat transaksi yang sudah dibuat sistem atau manual.',
           'Saat membuat jurnal manual, isi tanggal posting, lokasi, deskripsi, dan baris debit/kredit.',
           'Pastikan total debit sama dengan total kredit sebelum posting.',

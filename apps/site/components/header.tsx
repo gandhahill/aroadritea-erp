@@ -23,9 +23,10 @@ interface Props {
   chineseTea: string;
   labels: Record<(typeof NAV_LINKS)[number]['key'] | 'member' | 'login' | 'myAccount', string>;
   isLoggedIn?: boolean;
+  memberName?: string | null;
 }
 
-export function PublicHeader({ locale, brand, tagline, chineseTea, labels, isLoggedIn }: Props) {
+export function PublicHeader({ locale, brand, tagline, chineseTea, labels, isLoggedIn, memberName }: Props) {
   const pathname = usePathname();
 
   function switchLocale(newLocale: SiteLocale) {
@@ -76,9 +77,12 @@ export function PublicHeader({ locale, brand, tagline, chineseTea, labels, isLog
           {isLoggedIn ? (
             <a
               href={`/${locale}/member/akun`}
-              className="hidden rounded-full bg-brand-red px-4 py-2 text-sm font-bold text-brand-cream shadow-soft transition-brand hover:bg-brand-red-dark hover:shadow-pop focus-visible:outline-none focus-visible:shadow-focus sm:inline-flex"
+              className="hidden items-center gap-2 rounded-full bg-brand-red px-4 py-2 text-sm font-bold text-brand-cream shadow-soft transition-brand hover:bg-brand-red-dark hover:shadow-pop focus-visible:outline-none focus-visible:shadow-focus sm:inline-flex"
             >
-              {labels.myAccount}
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+              </svg>
+              {memberName || labels.myAccount}
             </a>
           ) : (
             <>
