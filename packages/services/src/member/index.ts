@@ -180,6 +180,7 @@ async function sendSignupOtp(email: string, code: string): Promise<Result<void>>
       secure,
       requireTLS: smtpPort === 587,
       auth: { user: smtpUser, pass: smtpPass },
+      tls: { rejectUnauthorized: false },
     });
 
     await transporter.sendMail({
