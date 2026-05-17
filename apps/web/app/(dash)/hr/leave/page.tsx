@@ -1,6 +1,13 @@
 import type { Metadata } from 'next';
 import { getLocale } from 'next-intl/server';
-import { deleteLeaveTypeAction, fetchLeaveDashboard, saveLeaveTypeAction } from './actions';
+import {
+  createLeaveRequestAction,
+  decideLeaveRequestAction,
+  deleteLeaveRequestAction,
+  deleteLeaveTypeAction,
+  fetchLeaveDashboard,
+  saveLeaveTypeAction,
+} from './actions';
 
 export const metadata: Metadata = {
   title: 'Leave - Aroadri ERP',
@@ -112,17 +119,150 @@ export default async function LeavePage() {
         </div>
       </Panel>
 
-      <Panel title="Pengajuan Cuti Terbaru">
-        <Table
-          headers={['Karyawan', 'Jenis', 'Tanggal', 'Hari', 'Status']}
-          rows={data.requests.map((request) => [
-            request.employeeName ?? '-',
-            pickName(request.leaveTypeName, locale),
-            `${formatDate(request.startDate, locale)} - ${formatDate(request.endDate, locale)}`,
-            request.totalDays,
-            request.status,
-          ])}
-        />
+      <Panel title="Pengajuan Cuti">
+        <form
+          action={createLeaveRequestAction}
+          className="mb-4 grid gap-3 rounded-lg border border-brand-cream-3 bg-brand-cream-1 p-4 md:grid-cols-6"
+        >
+          <label className="space-y-1 md:col-span-2">
+            <span className="text-xs font-medium text-brand-ink-3">Karyawan</span>
+            <select
+              name="employeeId"
+              required
+              defaultValue=""
+              className="h-9 w-full rounded-md border border-brand-cream-3 bg-card px-2.5 text-sm text-brand-ink"
+            >
+              <option value="" disabled>
+                Pilih karyawan…
+              </option>
+              {data.employees.map((emp) => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="space-y-1 md:col-span-2">
+            <span className="text-xs font-medium text-brand-ink-3">Jenis cuti</span>
+            <select
+              name="leaveTypeId"
+              required
+              defaultValue=""
+              className="h-9 w-full rounded-md border border-brand-cream-3 bg-card px-2.5 text-sm text-brand-ink"
+            >
+              <option value="" disabled>
+                Pilih jenis…
+              </option>
+              {data.activeLeaveTypes.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.nameId}
+                </option>
+              ))}
+            </select>
+          </label>
+          <Field name="startDate" label="Mulai" type="date" required />
+          <Field name="endDate" label="Selesai" type="date" required />
+          <label className="space-y-1 md:col-span-6">
+            <span className="text-xs font-medium text-brand-ink-3">Alasan (opsional)</span>
+            <textarea
+              name="reason"
+              rows={2}
+              className="w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink"
+              placeholder="Misal: keperluan keluarga, sakit, dll."
+            />
+          </label>
+          <div className="md:col-span-6 flex justify-end">
+            <button
+              type="submit"
+              className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
+            >
+              Ajukan cuti
+            </button>
+          </div>
+        </form>
+
+        <div className="overflow-x-auto rounded-lg border border-brand-cream-3">
+          <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
+            <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+              <tr>
+                <th className="px-4 py-3">Karyawan</th>
+                <th className="px-4 py-3">Jenis</th>
+                <th className="px-4 py-3">Tanggal</th>
+                <th className="px-4 py-3">Hari</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-brand-cream-3 bg-card">
+              {data.requestsFull.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-6 text-center text-brand-ink-3">
+                    Belum ada pengajuan.
+                  </td>
+                </tr>
+              ) : (
+                data.requestsFull.map((req) => (
+                  <tr key={req.id}>
+                    <td className="px-4 py-3 text-brand-ink">{req.employeeName ?? '-'}</td>
+                    <td className="px-4 py-3 text-brand-ink-2">
+                      {pickName(req.leaveTypeName, locale)}
+                    </td>
+                    <td className="px-4 py-3 text-brand-ink-2">
+                      {formatDate(req.startDate, locale)} – {formatDate(req.endDate, locale)}
+                    </td>
+                    <td className="px-4 py-3 text-brand-ink">{req.totalDays}</td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={req.status} />
+                    </td>
+                    <td className="px-4 py-3">
+                      {data.canApprove && req.status === 'pending' ? (
+                        <div className="flex flex-wrap gap-1">
+                          <form action={decideLeaveRequestAction}>
+                            <input type="hidden" name="id" value={req.id} />
+                            <input type="hidden" name="decision" value="approved" />
+                            <button
+                              type="submit"
+                              className="rounded-md bg-brand-jade px-2.5 py-1 text-xs font-semibold text-white hover:opacity-90"
+                            >
+                              Setujui
+                            </button>
+                          </form>
+                          <form action={decideLeaveRequestAction}>
+                            <input type="hidden" name="id" value={req.id} />
+                            <input type="hidden" name="decision" value="rejected" />
+                            <input
+                              type="text"
+                              name="rejectReason"
+                              placeholder="Alasan tolak"
+                              className="h-7 w-32 rounded-md border border-brand-cream-3 bg-card px-2 text-[11px]"
+                            />
+                            <button
+                              type="submit"
+                              className="ml-1 rounded-md border border-rose-300 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                            >
+                              Tolak
+                            </button>
+                          </form>
+                        </div>
+                      ) : null}
+                      {data.canApprove ? (
+                        <form action={deleteLeaveRequestAction} className="mt-1">
+                          <input type="hidden" name="id" value={req.id} />
+                          <button
+                            type="submit"
+                            className="text-xs text-brand-ink-3 hover:text-brand-red"
+                          >
+                            Hapus
+                          </button>
+                        </form>
+                      ) : null}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </Panel>
 
       <Panel title="Saldo Cuti">
@@ -249,6 +389,21 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    pending: { label: 'Menunggu', cls: 'bg-brand-gold/10 text-brand-gold' },
+    approved: { label: 'Disetujui', cls: 'bg-brand-jade/10 text-brand-jade' },
+    rejected: { label: 'Ditolak', cls: 'bg-rose-50 text-rose-600' },
+    cancelled: { label: 'Dibatalkan', cls: 'bg-brand-cream-2 text-brand-ink-3' },
+  };
+  const e = map[status] ?? { label: status, cls: 'bg-brand-cream-2 text-brand-ink-3' };
+  return (
+    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${e.cls}`}>
+      {e.label}
+    </span>
   );
 }
 

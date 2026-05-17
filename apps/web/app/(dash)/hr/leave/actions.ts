@@ -47,6 +47,22 @@ export interface LeaveDashboardData {
     usedDays: string;
     pendingDays: string;
   }>;
+  /** Employee + active-leave-type options for the request form. */
+  employees: Array<{ id: string; name: string }>;
+  activeLeaveTypes: Array<{ id: string; code: string; nameId: string }>;
+  /** Whether the current user can approve/reject (gates UI). */
+  canApprove: boolean;
+  /** Latest request rows include id for action wiring. */
+  requestsFull: Array<{
+    id: string;
+    employeeName: string | null;
+    leaveTypeName: Record<string, string> | null;
+    startDate: Date;
+    endDate: Date;
+    totalDays: string;
+    status: string;
+    reason: string | null;
+  }>;
 }
 
 async function getContext() {
@@ -56,6 +72,7 @@ async function getContext() {
   return {
     userId: String(user.id ?? ''),
     tenantId: String(user.tenantId ?? 'default'),
+    locationId: String(user.locationId ?? ''),
   };
 }
 
@@ -114,9 +131,21 @@ export async function fetchLeaveDashboard(): Promise<LeaveDashboardData | null> 
       .limit(100),
   ]);
 
+  const empRows = await db
+    .select({ id: employees.id, name: employees.name, status: employees.status })
+    .from(employees)
+    .where(eq(employees.tenantId, ctx.tenantId))
+    .orderBy(asc(employees.name));
+  const approvePerm = await requirePermission(ctx.userId, 'hr.approve_leave');
+
   return {
     types: typeRows.map((row) => ({ ...row, name: row.name as Record<string, string> })),
     requests: requestRows.map((row) => ({
+      ...row,
+      leaveTypeName: row.leaveTypeName as Record<string, string> | null,
+      totalDays: String(row.totalDays),
+    })),
+    requestsFull: requestRows.map((row) => ({
       ...row,
       leaveTypeName: row.leaveTypeName as Record<string, string> | null,
       totalDays: String(row.totalDays),
@@ -128,6 +157,16 @@ export async function fetchLeaveDashboard(): Promise<LeaveDashboardData | null> 
       usedDays: String(row.usedDays),
       pendingDays: String(row.pendingDays),
     })),
+    employees: empRows
+      .filter((r) => r.status !== 'terminated')
+      .map((r) => ({ id: r.id, name: r.name })),
+    activeLeaveTypes: typeRows
+      .filter((t) => t.isActive)
+      .map((t) => {
+        const name = t.name as Record<string, string>;
+        return { id: t.id, code: t.code, nameId: name.id ?? name.en ?? t.code };
+      }),
+    canApprove: approvePerm.ok,
   };
 }
 
@@ -267,5 +306,135 @@ export async function deleteLeaveTypeAction(formData: FormData): Promise<void> {
     after: { deletedAt: deletedAt.toISOString(), isActive: false } as never,
   });
 
+  revalidatePath('/hr/leave');
+}
+
+// ─── Leave Requests CRUD ────────────────────────────────────────────────────
+
+function diffDaysInclusive(start: Date, end: Date): number {
+  const ms = end.getTime() - start.getTime();
+  // Inclusive of both ends, in whole days.
+  return Math.max(1, Math.round(ms / 86_400_000) + 1);
+}
+
+export async function createLeaveRequestAction(formData: FormData): Promise<void> {
+  const ctx = await getContext();
+  if (!ctx) return;
+  const perm = await requirePermission(ctx.userId, 'hr.view');
+  if (!perm.ok) return;
+
+  const employeeId = String(formData.get('employeeId') ?? '').trim();
+  const leaveTypeId = String(formData.get('leaveTypeId') ?? '').trim();
+  const startStr = String(formData.get('startDate') ?? '').trim();
+  const endStr = String(formData.get('endDate') ?? '').trim();
+  const reason = String(formData.get('reason') ?? '').trim();
+  if (!employeeId || !leaveTypeId || !startStr || !endStr) return;
+
+  const start = new Date(`${startStr}T00:00:00+07:00`);
+  const end = new Date(`${endStr}T23:59:59+07:00`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) return;
+
+  const id = generateId();
+  await db.insert(leaveRequests).values({
+    id,
+    tenantId: ctx.tenantId,
+    locationId: ctx.locationId,
+    employeeId,
+    leaveTypeId,
+    startDate: start,
+    endDate: end,
+    totalDays: String(diffDaysInclusive(start, end)),
+    reason: reason || null,
+    status: 'pending',
+    createdBy: ctx.userId,
+    updatedBy: ctx.userId,
+  });
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'create',
+    entityType: 'leave_request',
+    entityId: id,
+    before: null,
+    after: { employeeId, leaveTypeId, startStr, endStr, status: 'pending' } as never,
+  });
+  revalidatePath('/hr/leave');
+}
+
+export async function decideLeaveRequestAction(formData: FormData): Promise<void> {
+  const ctx = await getContext();
+  if (!ctx) return;
+  const perm = await requirePermission(ctx.userId, 'hr.approve_leave');
+  if (!perm.ok) return;
+
+  const id = String(formData.get('id') ?? '').trim();
+  const decision = String(formData.get('decision') ?? '').trim();
+  const rejectReason = String(formData.get('rejectReason') ?? '').trim();
+  if (!id || !['approved', 'rejected', 'cancelled'].includes(decision)) return;
+
+  const [before] = await db
+    .select()
+    .from(leaveRequests)
+    .where(and(eq(leaveRequests.tenantId, ctx.tenantId), eq(leaveRequests.id, id)))
+    .limit(1);
+  if (!before || before.deletedAt) return;
+
+  await db
+    .update(leaveRequests)
+    .set({
+      status: decision,
+      approvedBy: ctx.userId || null,
+      approvedAt: new Date(),
+      rejectReason: decision === 'rejected' ? rejectReason || null : null,
+      updatedBy: ctx.userId || null,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(leaveRequests.tenantId, ctx.tenantId), eq(leaveRequests.id, id)));
+
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: decision,
+    entityType: 'leave_request',
+    entityId: id,
+    before: before as never,
+    after: { status: decision, approvedAt: new Date().toISOString() } as never,
+  });
+  revalidatePath('/hr/leave');
+}
+
+export async function deleteLeaveRequestAction(formData: FormData): Promise<void> {
+  const ctx = await getContext();
+  if (!ctx) return;
+  const perm = await requirePermission(ctx.userId, 'hr.approve_leave');
+  if (!perm.ok) return;
+  const id = String(formData.get('id') ?? '').trim();
+  if (!id) return;
+
+  const [before] = await db
+    .select()
+    .from(leaveRequests)
+    .where(and(eq(leaveRequests.tenantId, ctx.tenantId), eq(leaveRequests.id, id)))
+    .limit(1);
+  if (!before) return;
+
+  const deletedAt = new Date();
+  await db
+    .update(leaveRequests)
+    .set({ deletedAt, updatedAt: deletedAt, updatedBy: ctx.userId || null })
+    .where(and(eq(leaveRequests.tenantId, ctx.tenantId), eq(leaveRequests.id, id)));
+
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'delete',
+    entityType: 'leave_request',
+    entityId: id,
+    before: before as never,
+    after: { deletedAt: deletedAt.toISOString() } as never,
+  });
   revalidatePath('/hr/leave');
 }
