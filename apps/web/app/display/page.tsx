@@ -21,24 +21,44 @@ interface DisplayState {
   customer: CartCustomer | null;
 }
 
+/**
+ * Build the BroadcastChannel name scoped to the current outlet (and demo
+ * mode if applicable). Lets multiple outlets / tenants share the same
+ * browser without their carts bleeding into each other's customer-facing
+ * display.
+ */
+function buildChannelName(): string {
+  if (typeof window === 'undefined') return 'pos-display';
+  const params = new URLSearchParams(window.location.search);
+  const tenant = params.get('tenant') ?? 'default';
+  const location = params.get('location') ?? params.get('locationId') ?? 'unset';
+  const mode = params.get('mode') === 'demo' ? '-demo' : '';
+  return `pos-display${mode}-${tenant}-${location}`;
+}
+
 export default function PosDisplayPage() {
   const [displayState, setDisplayState] = useState<DisplayState | null>(null);
   const [grandTotal, setGrandTotal] = useState<string>('0');
   const [totalPaid, setTotalPaid] = useState<string>('0');
   const [remainingBalance, setRemainingBalance] = useState<string>('0');
+  const [channelName, setChannelName] = useState<string>('pos-display');
+  const [isDemo, setIsDemo] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
-      const channel = new BroadcastChannel('pos-display');
-      channel.onmessage = (event) => {
-        const { state, grandTotal, totalPaid, remainingBalance } = event.data;
-        setDisplayState(state);
-        setGrandTotal(grandTotal ?? '0');
-        setTotalPaid(totalPaid ?? '0');
-        setRemainingBalance(remainingBalance ?? '0');
-      };
-      return () => channel.close();
-    }
+    if (typeof window === 'undefined') return;
+    const name = buildChannelName();
+    setChannelName(name);
+    setIsDemo(name.includes('-demo-'));
+    if (!('BroadcastChannel' in window)) return;
+    const channel = new BroadcastChannel(name);
+    channel.onmessage = (event) => {
+      const { state, grandTotal, totalPaid, remainingBalance } = event.data;
+      setDisplayState(state);
+      setGrandTotal(grandTotal ?? '0');
+      setTotalPaid(totalPaid ?? '0');
+      setRemainingBalance(remainingBalance ?? '0');
+    };
+    return () => channel.close();
   }, []);
 
   if (!displayState) {
@@ -55,6 +75,12 @@ export default function PosDisplayPage() {
 
   return (
     <div className="flex h-screen w-full flex-col bg-brand-cream overflow-hidden">
+      {isDemo ? (
+        <div className="border-b border-amber-300 bg-amber-50 px-6 py-1 text-center text-xs font-semibold uppercase tracking-widest text-amber-700">
+          Mode Demo — bukan transaksi sebenarnya
+        </div>
+      ) : null}
+
       {/* Header */}
       <header className="flex h-20 shrink-0 items-center justify-between border-b-2 border-brand-cream-3 bg-card px-8">
         <div className="flex items-center gap-4">

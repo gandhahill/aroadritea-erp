@@ -267,6 +267,7 @@ export function Sidebar() {
       ),
       children: [
         { label: t('employees'), href: '/hr/employees', icon: <></> },
+        { label: t('schedule'), href: '/hr/schedule', icon: <></> },
         { label: t('checkIn'), href: '/hr/checkin', icon: <></> },
         { label: t('attendance'), href: '/hr/attendance', icon: <></> },
         { label: t('leave'), href: '/hr/leave', icon: <></> },

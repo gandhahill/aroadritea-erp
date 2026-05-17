@@ -22,6 +22,7 @@
 import {
   bigint,
   boolean,
+  date,
   index,
   integer,
   jsonb,
@@ -150,6 +151,45 @@ export const shiftDefinitions = pgTable(
   (table) => [
     uniqueIndex('shift_definitions_tenant_code_idx').on(table.tenantId, table.code),
     index('shift_definitions_tenant_active_idx').on(table.isActive),
+  ],
+);
+
+// ─── Shift Assignments (Roster) ───────────────────────────────────────────────
+
+/**
+ * Weekly shift roster — replaces the WhatsApp announcement that managers
+ * currently send each week. One row per (employee, date, shift).
+ * `kind = 'off'` rows record planned days off without a shift definition.
+ */
+export const shiftAssignments = pgTable(
+  'shift_assignments',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    employeeId: text('employee_id').notNull(),
+    workDate: date('work_date').notNull(),
+    /** 'shift' = working an actual shift, 'off' = planned day off */
+    kind: text('kind').notNull().default('shift'),
+    /** FK shift_definitions; nullable when kind = 'off' */
+    shiftDefinitionId: text('shift_definition_id'),
+    notes: text('notes'),
+
+    ...auditCols,
+  },
+  (table) => [
+    index('shift_assignments_employee_date_idx').on(table.employeeId, table.workDate),
+    index('shift_assignments_tenant_loc_date_idx').on(
+      table.tenantId,
+      table.locationId,
+      table.workDate,
+    ),
+    uniqueIndex('shift_assignments_unique_per_employee_date_shift_idx').on(
+      table.employeeId,
+      table.workDate,
+      table.shiftDefinitionId,
+    ),
   ],
 );
 

@@ -170,7 +170,10 @@ export function PosCartProvider({
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
-      const channel = new BroadcastChannel('pos-display');
+      // Scope display channel per tenant+location so multiple outlets in
+      // the same browser don't share state.
+      const channelName = `pos-display-${state.tenantId || 'default'}-${state.locationId || 'unset'}`;
+      const channel = new BroadcastChannel(channelName);
       channel.postMessage({
         state,
         subtotal: subtotalAfterDiscount.toString(),

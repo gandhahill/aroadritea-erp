@@ -69,15 +69,21 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   const excess = allPaidBig > totalBig ? allPaidBig - totalBig : BigInt(0);
   const isFullyPaid = allPaidBig >= totalBig;
   const nonCashOverpay = nonCashPaidBig > totalBig;
-  const canConfirm = isFullyPaid && !nonCashOverpay && Boolean(state.shiftId);
+  // Block non-cash overpay only when the cashier hasn't elected donation —
+  // otherwise the excess goes to the donation trust account.
+  const overpayBlocked = nonCashOverpay && donationChoice === 'no_donation';
+  const canConfirm = isFullyPaid && !overpayBlocked && Boolean(state.shiftId);
   const canAddSplit =
     inputAmount !== '' && currentInputBig > BigInt(0) && currentInputBig < remaining;
 
-  // SD §25.11 — Donation options when cash change exists
+  // SD §25.11 — Donation options when cash change exists.
+  // For non-cash methods (QRIS, debit, etc.) the customer occasionally
+  // rounds up intentionally; we still surface the choice so the cashier
+  // can ask before tapping confirm.
   const donationOptions = useMemo(() => {
-    if (excess <= BigInt(0) || selectedMethod !== 'cash') return [];
+    if (excess <= BigInt(0)) return [];
     return getDonationOptions(excess);
-  }, [excess, selectedMethod]);
+  }, [excess]);
 
   function handleAddSplit() {
     if (!canAddSplit) return;
@@ -95,7 +101,9 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   async function handleConfirm() {
     if (!canConfirm || !state.shiftId) return;
 
-    // SD §25.11 — resolve donation for the cash payment
+    // SD §25.11 — resolve donation. Works for any payment method when the
+    // customer has overpaid; the excess is recorded against the donation
+    // trust account instead of being given back as change.
     const donationResult =
       excess > BigInt(0) && donationChoice !== 'no_donation'
         ? getDonationOptions(excess).find((o) => o.choice.type === donationChoice)

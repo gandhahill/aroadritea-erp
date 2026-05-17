@@ -1,5 +1,7 @@
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
+import { and, db, eq, gte, lte, sql } from '@erp/db';
+import { salesOrders } from '@erp/db/schema/pos';
 import { getDailySummary } from '@erp/services/reporting';
 import type { AuditContext } from '@erp/shared/types';
 import type { Metadata } from 'next';
@@ -26,6 +28,21 @@ function formatIdr(value: bigint | string): string {
 
 function toBigInt(value: string | null | undefined): bigint {
   return value && /^\-?\d+$/.test(value) ? BigInt(value) : 0n;
+}
+
+function humanChannel(channel: string): string {
+  switch (channel) {
+    case 'walk_in':
+      return 'Walk-in';
+    case 'gofood':
+      return 'GoFood';
+    case 'grabfood':
+      return 'GrabFood';
+    case 'shopeefood':
+      return 'ShopeeFood';
+    default:
+      return channel;
+  }
 }
 
 export default async function BusinessIntelligencePage() {
@@ -135,6 +152,141 @@ export default async function BusinessIntelligencePage() {
     }
   }
 
+  // ── Extra BI queries (channel mix, hourly today, member split, 7-day trend) ──
+
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const trendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+
+  // Channel mix this month
+  const channelRows = await db
+    .select({
+      channel: salesOrders.channel,
+      gross: sql<bigint>`coalesce(sum(${salesOrders.grandTotal}), 0)`,
+      orders: sql<number>`cast(count(*) as int)`,
+    })
+    .from(salesOrders)
+    .where(
+      and(
+        eq(salesOrders.tenantId, tenantId),
+        eq(salesOrders.status, 'paid'),
+        gte(salesOrders.placedAt, startOfMonth),
+      ),
+    )
+    .groupBy(salesOrders.channel);
+  const channelMix = channelRows
+    .map((r) => ({
+      label: humanChannel(r.channel),
+      gross: BigInt(r.gross ?? 0) * 100n,
+      orders: Number(r.orders),
+    }))
+    .sort((a, b) => Number(b.gross - a.gross));
+
+  // Hourly distribution today
+  const hourlyRows = await db.execute(
+    sql<{ hour: number; gross: string; orders: number }>`
+      SELECT
+        EXTRACT(HOUR FROM placed_at AT TIME ZONE 'Asia/Jakarta')::int AS hour,
+        COALESCE(SUM(grand_total), 0)::bigint AS gross,
+        COUNT(*)::int AS orders
+      FROM sales_orders
+      WHERE tenant_id = ${tenantId}
+        AND status = 'paid'
+        AND placed_at >= ${startOfToday.toISOString()}
+      GROUP BY 1
+      ORDER BY 1
+    `,
+  );
+  const hourlyMap = new Map<number, { gross: bigint; orders: number }>();
+  for (const row of hourlyRows.rows as unknown as Array<{
+    hour: number;
+    gross: string;
+    orders: number;
+  }>) {
+    hourlyMap.set(Number(row.hour), {
+      gross: BigInt(row.gross) * 100n,
+      orders: Number(row.orders),
+    });
+  }
+  const hourlyToday = Array.from({ length: 15 }, (_, i) => {
+    const hour = 9 + i; // 09:00 .. 23:00 store hours
+    const v = hourlyMap.get(hour);
+    return { hour, gross: v?.gross ?? 0n, orders: v?.orders ?? 0 };
+  });
+
+  // 7-day trend
+  const trendRows = await db.execute(
+    sql<{ d: string; gross: string; orders: number }>`
+      SELECT
+        TO_CHAR(DATE(placed_at AT TIME ZONE 'Asia/Jakarta'), 'YYYY-MM-DD') AS d,
+        COALESCE(SUM(grand_total), 0)::bigint AS gross,
+        COUNT(*)::int AS orders
+      FROM sales_orders
+      WHERE tenant_id = ${tenantId}
+        AND status = 'paid'
+        AND placed_at >= ${trendStart.toISOString()}
+      GROUP BY 1
+      ORDER BY 1
+    `,
+  );
+  const trendMap = new Map<string, { gross: bigint; orders: number }>();
+  for (const row of trendRows.rows as unknown as Array<{
+    d: string;
+    gross: string;
+    orders: number;
+  }>) {
+    trendMap.set(String(row.d), {
+      gross: BigInt(row.gross) * 100n,
+      orders: Number(row.orders),
+    });
+  }
+  const trendData = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(trendStart);
+    d.setDate(trendStart.getDate() + i);
+    const ds = d.toISOString().slice(0, 10);
+    const v = trendMap.get(ds);
+    return { date: ds, gross: v?.gross ?? 0n, orders: v?.orders ?? 0 };
+  });
+
+  // Member vs guest (member when customerId not null)
+  const [memberRow] = await db
+    .select({
+      gross: sql<bigint>`coalesce(sum(${salesOrders.grandTotal}), 0)`,
+      orders: sql<number>`cast(count(*) as int)`,
+    })
+    .from(salesOrders)
+    .where(
+      and(
+        eq(salesOrders.tenantId, tenantId),
+        eq(salesOrders.status, 'paid'),
+        gte(salesOrders.placedAt, startOfMonth),
+        sql`${salesOrders.customerId} is not null`,
+      ),
+    );
+  const [guestRow] = await db
+    .select({
+      gross: sql<bigint>`coalesce(sum(${salesOrders.grandTotal}), 0)`,
+      orders: sql<number>`cast(count(*) as int)`,
+    })
+    .from(salesOrders)
+    .where(
+      and(
+        eq(salesOrders.tenantId, tenantId),
+        eq(salesOrders.status, 'paid'),
+        gte(salesOrders.placedAt, startOfMonth),
+        sql`${salesOrders.customerId} is null`,
+      ),
+    );
+  const memberSplit = {
+    memberGross: BigInt(memberRow?.gross ?? 0) * 100n,
+    memberOrders: Number(memberRow?.orders ?? 0),
+    guestGross: BigInt(guestRow?.gross ?? 0) * 100n,
+    guestOrders: Number(guestRow?.orders ?? 0),
+  };
+
+  const avgTicket =
+    totals.orderCount > 0 ? totals.gross / BigInt(totals.orderCount) : 0n;
+
   return (
     <div className="space-y-6">
       <div>
@@ -231,12 +383,130 @@ export default async function BusinessIntelligencePage() {
 
       <section className="rounded-lg border border-brand-cream-3 bg-card p-4">
         <h2 className="text-lg font-semibold text-brand-ink">{t('operations')}</h2>
-        <div className="mt-3 grid gap-3 md:grid-cols-3">
+        <div className="mt-3 grid gap-3 md:grid-cols-4">
           <Kpi title={t('openShifts')} value={String(totals.openShifts)} compact />
           <Kpi title={t('activeLocations')} value={String(locations.length)} compact />
-          <Kpi title={t('period')} value={`${monthStart} - ${today}`} compact />
+          <Kpi title="Avg ticket" value={formatIdr(avgTicket)} compact />
+          <Kpi
+            title="Refund rate"
+            value={
+              totals.orderCount > 0
+                ? `${((totals.refundCount / totals.orderCount) * 100).toFixed(1)}%`
+                : '—'
+            }
+            compact
+          />
         </div>
       </section>
+
+      <section className="grid gap-4 xl:grid-cols-3">
+        <Panel title="Tren 7 hari (omzet harian)">
+          <BarChart
+            data={trendData.map((row) => ({
+              label: row.date.slice(5),
+              value: Number(row.gross / 100n),
+              sub: `${row.orders} order`,
+            }))}
+          />
+        </Panel>
+
+        <Panel title="Channel mix (bulan ini)">
+          <BarChart
+            data={channelMix.map((c) => ({
+              label: c.label,
+              value: Number(c.gross / 100n),
+              sub: `${c.orders} order`,
+            }))}
+          />
+        </Panel>
+
+        <Panel title="Member vs walk-in (bulan ini)">
+          <div className="space-y-2">
+            <StackBar
+              left={{ label: 'Member', value: Number(memberSplit.memberGross / 100n) }}
+              right={{ label: 'Tamu', value: Number(memberSplit.guestGross / 100n) }}
+            />
+            <div className="grid grid-cols-2 gap-2 text-xs text-brand-ink-3">
+              <div>
+                Member: {memberSplit.memberOrders} order ·{' '}
+                <span className="text-brand-ink">
+                  {formatIdr(memberSplit.memberGross)}
+                </span>
+              </div>
+              <div>
+                Tamu: {memberSplit.guestOrders} order ·{' '}
+                <span className="text-brand-ink">
+                  {formatIdr(memberSplit.guestGross)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </Panel>
+      </section>
+
+      <section className="rounded-lg border border-brand-cream-3 bg-card p-4">
+        <h2 className="text-lg font-semibold text-brand-ink">Hourly hari ini ({today})</h2>
+        <p className="mt-1 text-xs text-brand-ink-3">
+          Distribusi transaksi per jam. Membantu menjadwalkan staff.
+        </p>
+        <div className="mt-3">
+          <BarChart
+            data={hourlyToday.map((h) => ({
+              label: `${String(h.hour).padStart(2, '0')}:00`,
+              value: Number(h.gross / 100n),
+              sub: `${h.orders} order`,
+            }))}
+          />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+interface BarRow {
+  label: string;
+  value: number;
+  sub?: string;
+}
+
+function BarChart({ data }: { data: BarRow[] }) {
+  const max = Math.max(1, ...data.map((d) => d.value));
+  if (data.length === 0)
+    return <p className="text-xs text-brand-ink-3">Belum ada data.</p>;
+  return (
+    <div className="space-y-1.5">
+      {data.map((row) => (
+        <div key={row.label} className="grid grid-cols-[80px_1fr_auto] items-center gap-2 text-xs">
+          <span className="font-medium text-brand-ink-2">{row.label}</span>
+          <div className="h-3 overflow-hidden rounded-full bg-brand-cream-2">
+            <div
+              className="h-full rounded-full bg-brand-red"
+              style={{ width: `${(row.value / max) * 100}%` }}
+            />
+          </div>
+          <span className="text-right tabular-nums text-brand-ink">
+            {new Intl.NumberFormat('id-ID').format(row.value)}
+            {row.sub ? <span className="ml-1 text-brand-ink-3">· {row.sub}</span> : null}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StackBar({
+  left,
+  right,
+}: {
+  left: { label: string; value: number };
+  right: { label: string; value: number };
+}) {
+  const total = Math.max(1, left.value + right.value);
+  const lp = (left.value / total) * 100;
+  return (
+    <div className="flex h-3 w-full overflow-hidden rounded-full bg-brand-cream-2">
+      <div className="bg-brand-red" style={{ width: `${lp}%` }} />
+      <div className="bg-brand-jade" style={{ width: `${100 - lp}%` }} />
     </div>
   );
 }

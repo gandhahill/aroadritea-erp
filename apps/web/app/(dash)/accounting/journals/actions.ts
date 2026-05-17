@@ -7,7 +7,7 @@
 
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
-import { and, asc, db, desc, eq } from '@erp/db';
+import { and, asc, db, desc, eq, inArray } from '@erp/db';
 import {
   accountingPeriods,
   accounts,
@@ -29,6 +29,13 @@ export interface JournalListItem {
   locationId: string;
   totalDebit: string;
   createdAt: Date;
+  /** Preview of the journal lines (account code/name + debit/credit). */
+  linesPreview: Array<{
+    accountCode: string;
+    accountName: string;
+    debit: string;
+    credit: string;
+  }>;
 }
 
 export interface JournalLineDetail {
@@ -150,10 +157,45 @@ export async function fetchJournalList(): Promise<JournalListItem[]> {
     .orderBy(desc(journalEntries.createdAt))
     .limit(100);
 
+  if (rows.length === 0) return [];
+
+  const ids = rows.map((r) => r.id);
+  const lines = await db
+    .select({
+      journalEntryId: journalLines.journalEntryId,
+      accountCode: accounts.code,
+      accountName: accounts.name,
+      debit: journalLines.debit,
+      credit: journalLines.credit,
+      lineNumber: journalLines.lineNo,
+    })
+    .from(journalLines)
+    .leftJoin(accounts, eq(journalLines.accountId, accounts.id))
+    .where(inArray(journalLines.journalEntryId, ids))
+    .orderBy(asc(journalLines.lineNo));
+
+  const linesByJournal = new Map<
+    string,
+    Array<{ accountCode: string; accountName: string; debit: string; credit: string }>
+  >();
+  for (const line of lines) {
+    const arr = linesByJournal.get(line.journalEntryId) ?? [];
+    const nameField = line.accountName as Record<string, string> | null;
+    const accountLabel = nameField?.id ?? nameField?.en ?? line.accountCode ?? '—';
+    arr.push({
+      accountCode: line.accountCode ?? '—',
+      accountName: accountLabel,
+      debit: String(line.debit ?? '0'),
+      credit: String(line.credit ?? '0'),
+    });
+    linesByJournal.set(line.journalEntryId, arr);
+  }
+
   return rows.map((r) => ({
     ...r,
     totalDebit: String(r.totalDebit),
     createdAt: r.createdAt ?? new Date(0),
+    linesPreview: linesByJournal.get(r.id) ?? [],
   }));
 }
 

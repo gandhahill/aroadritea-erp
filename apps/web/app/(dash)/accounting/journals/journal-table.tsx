@@ -6,7 +6,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import type { JournalListItem } from './actions';
 
 // --- Status badge config ---
@@ -197,41 +197,92 @@ export function JournalTable({ journals }: JournalTableProps) {
             ) : (
               filtered.map((journal) => {
                 const style = STATUS_STYLES[journal.status] ?? STATUS_STYLES.draft;
+                const lines = journal.linesPreview ?? [];
                 return (
-                  <tr key={journal.id} className="group transition-colors hover:bg-brand-cream/50">
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/accounting/journals/${journal.id}`}
-                        className="font-mono text-sm font-medium text-brand-red hover:underline"
-                      >
-                        {journal.number}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-brand-ink-2 tabular-nums">
-                      {journal.postingDate}
-                    </td>
-                    <td className="px-4 py-3 text-brand-ink max-w-xs truncate">
-                      {journal.description}
-                    </td>
-                    <td className="px-4 py-3">
-                      {journal.referenceType && (
-                        <span className="rounded-md bg-brand-cream-2 px-2 py-0.5 text-xs font-medium text-brand-ink-2 capitalize">
-                          {journal.referenceType}
+                  <Fragment key={journal.id}>
+                    <tr className="group transition-colors hover:bg-brand-cream/50">
+                      <td className="px-4 py-3 align-top">
+                        <Link
+                          href={`/accounting/journals/${journal.id}`}
+                          className="font-mono text-sm font-medium text-brand-red hover:underline"
+                        >
+                          {journal.number}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 align-top text-brand-ink-2 tabular-nums">
+                        {journal.postingDate}
+                      </td>
+                      <td className="px-4 py-3 align-top text-brand-ink max-w-xs truncate">
+                        {journal.description}
+                      </td>
+                      <td className="px-4 py-3 align-top">
+                        {journal.referenceType && (
+                          <span className="rounded-md bg-brand-cream-2 px-2 py-0.5 text-xs font-medium text-brand-ink-2 capitalize">
+                            {journal.referenceType}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 align-top text-right font-mono text-brand-ink tabular-nums">
+                        {formatAmount(journal.totalDebit)}
+                      </td>
+                      <td className="px-4 py-3 align-top text-center">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${style?.bg ?? ''} ${style?.text ?? ''}`}
+                        >
+                          <span className={`h-1.5 w-1.5 rounded-full ${style?.dot ?? ''}`} />
+                          {journal.status}
                         </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right font-mono text-brand-ink tabular-nums">
-                      {formatAmount(journal.totalDebit)}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${style?.bg ?? ''} ${style?.text ?? ''}`}
-                      >
-                        <span className={`h-1.5 w-1.5 rounded-full ${style?.dot ?? ''}`} />
-                        {journal.status}
-                      </span>
-                    </td>
-                  </tr>
+                      </td>
+                    </tr>
+                    {lines.length > 0 ? (
+                      <tr className="bg-brand-cream/30">
+                        <td colSpan={6} className="px-6 pb-4 pt-1">
+                          <div className="overflow-x-auto rounded-md border border-brand-cream-3 bg-card">
+                            <table className="w-full text-xs">
+                              <thead className="bg-brand-cream-1 text-brand-ink-3">
+                                <tr>
+                                  <th className="px-3 py-1.5 text-left font-medium">
+                                    Akun
+                                  </th>
+                                  <th className="px-3 py-1.5 text-right font-medium">
+                                    Debit
+                                  </th>
+                                  <th className="px-3 py-1.5 text-right font-medium">
+                                    Kredit
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {lines.map((line, idx) => (
+                                  <tr
+                                    key={`${journal.id}-line-${idx}`}
+                                    className="border-t border-brand-cream-2"
+                                  >
+                                    <td className="px-3 py-1 font-mono text-brand-ink-2">
+                                      <span className="mr-2 text-brand-ink-3">
+                                        {line.accountCode}
+                                      </span>
+                                      {line.accountName}
+                                    </td>
+                                    <td className="px-3 py-1 text-right tabular-nums text-brand-ink">
+                                      {Number(line.debit) > 0
+                                        ? formatAmount(line.debit)
+                                        : '—'}
+                                    </td>
+                                    <td className="px-3 py-1 text-right tabular-nums text-brand-ink">
+                                      {Number(line.credit) > 0
+                                        ? formatAmount(line.credit)
+                                        : '—'}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : null}
+                  </Fragment>
                 );
               })
             )}

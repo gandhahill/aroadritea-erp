@@ -64,6 +64,13 @@
       "when": 1779100100000,
       "tag": "0008_opname_kind",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1779100150000,
+      "tag": "0009_shift_roster",
+      "breakpoints": true
     }
   ]
 }

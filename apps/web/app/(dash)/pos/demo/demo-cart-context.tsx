@@ -97,7 +97,9 @@ export function DemoCartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
-      const channel = new BroadcastChannel('pos-display');
+      // Demo POS uses a separate channel from the real POS so a demo session
+      // never bleeds into a real customer display.
+      const channel = new BroadcastChannel('pos-display-demo-default-demo');
       channel.postMessage({
         state,
         subtotal: subtotal.toString(),

@@ -62,6 +62,19 @@ export function DemoModeBanner({ pendingCount }: DemoModeBannerProps) {
             {pendingCount} {t('demo.pendingOrders')}
           </span>
         )}
+        <button
+          type="button"
+          onClick={() =>
+            window.open(
+              '/display?mode=demo&tenant=default&location=demo',
+              'pos-display-demo',
+              'width=1024,height=768',
+            )
+          }
+          className="rounded bg-card/20 px-2 py-0.5 text-xs font-semibold text-white hover:bg-card/30"
+        >
+          {t('customerDisplay')}
+        </button>
       </div>
     </div>
   );
