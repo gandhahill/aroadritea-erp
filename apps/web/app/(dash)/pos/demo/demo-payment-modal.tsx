@@ -75,10 +75,12 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
     return [...BASE_PAYMENT_METHODS, { id: state.channel, badge: channelBadge(state.channel) }];
   }, [state.channel]);
 
+  // Match the real POS: donation works for any payment method when there's
+  // excess payment, not only cash.
   const donationOptions = useMemo(() => {
-    if (excess <= BigInt(0) || selectedMethod !== 'cash') return [];
+    if (excess <= BigInt(0)) return [];
     return getDonationOptions(excess);
-  }, [excess, selectedMethod]);
+  }, [excess]);
 
   function handleAddSplit() {
     if (!canAddSplit) return;

@@ -54,6 +54,7 @@ export default async function LocaleLayout({ children, params }: Props) {
               menu: nav('menu'),
               about: nav('about'),
               locations: nav('locations'),
+              careers: nav('careers'),
               member: nav('member'),
               login: nav('login'),
               myAccount: nav('myAccount'),
