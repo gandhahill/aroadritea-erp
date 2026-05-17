@@ -117,8 +117,10 @@
     "company": "PT. Gandha Hill Catering Management Indonesia",
     "locationLine": "日惹 - Malioboro Mall & Plaza Malioboro",
     "socialLabel": "关注我们",
-    "instagramLabel": "@aroadri.tea",
-    "tiktokLabel": "@aroadri.tea",
+    "instagramLabel": "Instagram",
+    "tiktokLabel": "TikTok",
+    "xiaohongshuLabel": "小红书",
+    "douyinLabel": "抖音",
     "copyright": "© {year} {brand}. 版权所有。"
   },
   "member": {

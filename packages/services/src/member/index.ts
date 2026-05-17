@@ -140,19 +140,36 @@ async function verifyTurnstile(token: string, ipAddress?: string): Promise<boole
   const secret = process.env.TURNSTILE_SECRET_KEY;
   if (!secret) return process.env.NODE_ENV !== 'production' && token === 'dev-token';
 
+  // Cloudflare Turnstile is unreachable from mainland China. The client
+  // sets this sentinel when challenges.cloudflare.com fails to load so the
+  // signup form does not deadlock. Bot protection still relies on the
+  // mandatory email OTP downstream + per-IP rate limiting elsewhere.
+  if (token === 'captcha-unreachable') {
+    if (process.env.TURNSTILE_ALLOW_BYPASS === 'false') return false;
+    return true;
+  }
+
   const formData = new FormData();
   formData.set('secret', secret);
   formData.set('response', token);
   if (ipAddress) formData.set('remoteip', ipAddress);
 
-  const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-    method: 'POST',
-    body: formData,
-  });
-  if (!response.ok) return false;
-
-  const payload = (await response.json()) as { success?: boolean };
-  return payload.success === true;
+  try {
+    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      body: formData,
+      // 5s upper bound — siteverify is normally <500ms; if Cloudflare is
+      // unreachable from the server too we fail open with OTP fallback
+      // rather than block legitimate signups.
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!response.ok) return false;
+    const payload = (await response.json()) as { success?: boolean };
+    return payload.success === true;
+  } catch {
+    // Network/timeout — allow OTP step to gate the registration.
+    return process.env.TURNSTILE_ALLOW_BYPASS !== 'false';
+  }
 }
 
 async function sendSignupOtp(email: string, code: string): Promise<Result<void>> {

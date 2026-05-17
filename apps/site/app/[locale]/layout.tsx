@@ -17,7 +17,7 @@ const montserrat = Montserrat({
   variable: '--font-brand-wordmark',
 });
 import { getMemberAccount } from '../../actions/member';
-import { PublicFooter } from '../../components/footer';
+import { PublicFooter, type SocialLink } from '../../components/footer';
 import { PublicHeader } from '../../components/header';
 import { type SiteLocale, siteLocales } from '../../i18n';
 import { ClientLayout } from './client-layout';
@@ -78,14 +78,46 @@ export default async function LocaleLayout({ children, params }: Props) {
             company={footer('company')}
             locationLine={footer('locationLine')}
             socialLabel={footer('socialLabel')}
-            instagramLabel={footer('instagramLabel')}
-            tiktokLabel={footer('tiktokLabel')}
+            socials={socialsForLocale(locale as SiteLocale, {
+              instagram: footer('instagramLabel'),
+              tiktok: footer('tiktokLabel'),
+              xiaohongshu: footer('xiaohongshuLabel'),
+              douyin: footer('douyinLabel'),
+            })}
             copyright={footer('copyright', { brand, year: new Date().getFullYear() })}
           />
         </ClientLayout>
       </body>
     </html>
   );
+}
+
+// Instagram/TikTok are blocked in mainland China. For zh visitors we
+// surface Xiaohongshu (小红书) and Douyin (抖音) — both reachable inside
+// China without a VPN. The username slugs below are placeholders that
+// can be updated once the brand registers official Chinese accounts.
+function socialsForLocale(
+  locale: SiteLocale,
+  labels: { instagram: string; tiktok: string; xiaohongshu: string; douyin: string },
+): SocialLink[] {
+  if (locale === 'zh') {
+    return [
+      {
+        kind: 'xiaohongshu',
+        label: labels.xiaohongshu,
+        href: 'https://www.xiaohongshu.com/search_result?keyword=Aroadri%20Tea',
+      },
+      {
+        kind: 'douyin',
+        label: labels.douyin,
+        href: 'https://www.douyin.com/search/Aroadri%20Tea',
+      },
+    ];
+  }
+  return [
+    { kind: 'instagram', label: labels.instagram, href: 'https://www.instagram.com/aroadri.tea/' },
+    { kind: 'tiktok', label: labels.tiktok, href: 'https://www.tiktok.com/@aroadri.tea' },
+  ];
 }
 
 export function generateMetadata(): Metadata {

@@ -6,7 +6,7 @@
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { signupAction } from '../actions/member';
 
 interface Props {
@@ -20,6 +20,18 @@ export function SignupForm({ locale }: Props) {
   const [error, setError] = useState<string | null>(null);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   const allowDevCaptcha = process.env.NODE_ENV !== 'production';
+  // Cloudflare Turnstile is unreliable from mainland China. If the script
+  // does not finish loading within 6 seconds we silently fall back to the
+  // OTP-only path so visitors are not stuck on an invisible widget.
+  const [turnstileBlocked, setTurnstileBlocked] = useState(false);
+  useEffect(() => {
+    if (!turnstileSiteKey) return;
+    const timer = window.setTimeout(() => {
+      const w = window as typeof window & { turnstile?: unknown };
+      if (!w.turnstile) setTurnstileBlocked(true);
+    }, 6000);
+    return () => window.clearTimeout(timer);
+  }, [turnstileSiteKey]);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -156,11 +168,21 @@ export function SignupForm({ locale }: Props) {
           </span>
         </label>
 
-        {turnstileSiteKey ? (
+        {turnstileSiteKey && !turnstileBlocked ? (
           <>
-            <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+            <Script
+              src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+              async
+              defer
+              onError={() => setTurnstileBlocked(true)}
+            />
             <div className="cf-turnstile" data-sitekey={turnstileSiteKey} />
           </>
+        ) : turnstileSiteKey && turnstileBlocked ? (
+          // Captcha provider unreachable (e.g. mainland China). Submit a
+          // sentinel token; the server treats it as captcha-bypass and
+          // relies on the OTP email step downstream for bot protection.
+          <input name="turnstileToken" type="hidden" value="captcha-unreachable" />
         ) : allowDevCaptcha ? (
           <input name="turnstileToken" type="hidden" value="dev-token" />
         ) : null}

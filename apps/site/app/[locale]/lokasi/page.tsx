@@ -13,6 +13,9 @@ type LocalizedText = { id?: string; en?: string; zh?: string };
 
 export const dynamic = 'force-dynamic';
 
+// Map provider choice: Google Maps is blocked in mainland China, so we never
+// link to it. OpenStreetMap is universally reachable; AMap (高德) is preferred
+// for zh locale because it's the native experience for Chinese visitors.
 const PUBLIC_STORE_FALLBACKS = [
   {
     id: 'fallback-mli',
@@ -25,8 +28,6 @@ const PUBLIC_STORE_FALLBACKS = [
     type: 'store',
     address:
       'Malioboro Mall, Jl. Mataram No. 31, Suryatmajan, Danurejan, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55213',
-    mapUrl:
-      'https://www.google.com/maps/search/?api=1&query=Malioboro%20Mall%20Jl.%20Mataram%20No.%2031%20Yogyakarta',
   },
   {
     id: 'fallback-plz',
@@ -39,8 +40,6 @@ const PUBLIC_STORE_FALLBACKS = [
     type: 'store',
     address:
       'Plaza Malioboro, Jl. Malioboro No. 52-58, Suryatmajan, Danurejan, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55213',
-    mapUrl:
-      'https://www.google.com/maps/search/?api=1&query=Plaza%20Malioboro%20Jl.%20Malioboro%2052-58%20Yogyakarta',
   },
 ] as const;
 
@@ -142,16 +141,14 @@ async function getPublicLocations(locale: Locale) {
   if (rows.length === 0) return fallbackLocations(locale);
 
   return rows.map((row) => {
-    const fallback = PUBLIC_STORE_FALLBACKS.find((store) => store.code === row.code);
+    const address = normalizeAddress(row.code, row.address);
     return {
       id: row.id,
       code: row.code,
       name: localized(row.name as LocalizedText, locale),
       type: row.type,
-      address: normalizeAddress(row.code, row.address),
-      mapUrl:
-        fallback?.mapUrl ??
-        mapSearchUrl(row.address ?? localized(row.name as LocalizedText, locale)),
+      address,
+      mapUrl: mapSearchUrl(address || localized(row.name as LocalizedText, locale), locale),
     };
   });
 }
@@ -167,7 +164,7 @@ function fallbackLocations(locale: Locale) {
     name: localized(store.name, locale),
     type: store.type,
     address: store.address,
-    mapUrl: store.mapUrl,
+    mapUrl: mapSearchUrl(store.address, locale),
   }));
 }
 
@@ -184,6 +181,12 @@ function normalizeAddress(code: string, address: string | null): string {
   return address;
 }
 
-function mapSearchUrl(query: string): string {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+function mapSearchUrl(query: string, locale: Locale): string {
+  // Google Maps is blocked in mainland China. For zh visitors we link to
+  // AMap (高德地图) — native and universally reachable inside China. For
+  // every other locale we use OpenStreetMap, which works globally
+  // (including from inside China without a VPN).
+  const encoded = encodeURIComponent(query);
+  if (locale === 'zh') return `https://uri.amap.com/search?keyword=${encoded}`;
+  return `https://www.openstreetmap.org/search?query=${encoded}`;
 }
