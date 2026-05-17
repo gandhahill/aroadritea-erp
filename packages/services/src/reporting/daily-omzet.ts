@@ -68,8 +68,14 @@ export async function getOmzetHarian(
   if (!permCheck.ok) return permCheck;
 
   try {
-    // 1. Aggregate gross sales from paid sales orders for this location+date
-    // salesOrders.grandTotal is in IDR (not sen), so multiply by 100n for cents
+    // 1. Aggregate gross sales from paid sales orders for this location+date.
+    // salesOrders.grandTotal is in IDR (rupiah), so multiply by 100 for sen.
+    // Use explicit half-open Asia/Jakarta day range to avoid relying on
+    // `DATE(... AT TIME ZONE)` which can mis-handle timestamps stored
+    // without timezone in some Postgres clients.
+    const dayStart = new Date(`${params.date}T00:00:00+07:00`);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
     const saleAgg = await db.execute(
       sql<{ total: bigint }>`
         SELECT COALESCE(SUM(grand_total * 100), 0::bigint) as total
@@ -77,7 +83,8 @@ export async function getOmzetHarian(
         WHERE tenant_id = ${ctx.tenantId}
           AND location_id = ${params.locationId}
           AND status = 'paid'
-          AND DATE(placed_at AT TIME ZONE 'Asia/Jakarta') = ${params.date}
+          AND placed_at >= ${dayStart.toISOString()}
+          AND placed_at < ${dayEnd.toISOString()}
       `,
     );
     const grossCents = (saleAgg.rows[0]?.total as unknown as bigint) ?? BigInt(0);
@@ -105,14 +112,15 @@ export async function getOmzetHarian(
     const adjCents = (adj?.amount as unknown as bigint) ?? BigInt(0);
     const fiscalCents = netCents + adjCents;
 
-    // 4. Shift count for the day
+    // 4. Shift count for the day (using explicit Asia/Jakarta day range)
     const shiftAgg = await db.execute(
       sql<{ cnt: number }>`
         SELECT COUNT(*) as cnt
         FROM shifts
         WHERE tenant_id = ${ctx.tenantId}
           AND location_id = ${params.locationId}
-          AND DATE(opened_at AT TIME ZONE 'Asia/Jakarta') = ${params.date}
+          AND opened_at >= ${dayStart.toISOString()}
+          AND opened_at < ${dayEnd.toISOString()}
       `,
     );
     const shiftCnt = Number(shiftAgg.rows[0]?.cnt ?? 0);

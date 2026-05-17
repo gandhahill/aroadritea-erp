@@ -15,18 +15,52 @@ export const metadata: Metadata = {
   title: 'Docs - Aroadri ERP',
 };
 
+type Audience = 'staff' | 'management' | 'developer';
+
+const AUDIENCES: Audience[] = ['staff', 'management', 'developer'];
+const AUDIENCE_LABEL: Record<Audience, string> = {
+  staff: 'Karyawan',
+  management: 'Manajemen',
+  developer: 'Developer',
+};
+
 type Block =
-  | { type: 'h2'; id: string; text: string; perm: string | null }
+  | {
+      type: 'h2';
+      id: string;
+      text: string;
+      perm: string | null;
+      audiences: Audience[] | null;
+    }
   | { type: 'h3'; text: string }
   | { type: 'p'; text: string }
   | { type: 'ul'; items: string[] }
   | { type: 'ol'; items: string[] };
 
-/** Pull `{perm=accounting.view}` annotation off a heading. */
-function extractPerm(text: string): { text: string; perm: string | null } {
-  const match = text.match(/^(.*?)\s*\{perm=([a-z0-9._-]+)\}\s*$/i);
-  if (!match) return { text, perm: null };
-  return { text: (match[1] ?? '').trim(), perm: match[2] ?? null };
+/** Pull `{perm=accounting.view}` and/or `{audience=staff,management}` annotations off a heading. */
+function extractAnnotations(text: string): {
+  text: string;
+  perm: string | null;
+  audiences: Audience[] | null;
+} {
+  let working = text;
+  let perm: string | null = null;
+  let audiences: Audience[] | null = null;
+  const permMatch = working.match(/\{perm=([a-z0-9._-]+)\}/i);
+  if (permMatch) {
+    perm = permMatch[1] ?? null;
+    working = working.replace(permMatch[0], '');
+  }
+  const audMatch = working.match(/\{audience=([a-z,\s]+)\}/i);
+  if (audMatch) {
+    const list = (audMatch[1] ?? '')
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter((s): s is Audience => (AUDIENCES as string[]).includes(s));
+    audiences = list.length > 0 ? list : null;
+    working = working.replace(audMatch[0], '');
+  }
+  return { text: working.trim(), perm, audiences };
 }
 
 function slugify(value: string) {
@@ -78,8 +112,8 @@ function parseDocsMarkdown(markdown: string): Block[] {
       flushParagraph();
       flushList();
       const raw = line.replace(/^##\s+/, '').trim();
-      const { text, perm } = extractPerm(raw);
-      blocks.push({ type: 'h2', id: uniqueId(text), text, perm });
+      const { text, perm, audiences } = extractAnnotations(raw);
+      blocks.push({ type: 'h2', id: uniqueId(text), text, perm, audiences });
       continue;
     }
 
@@ -141,7 +175,11 @@ async function loadDocsContent(locale: 'id' | 'en' | 'zh'): Promise<EditableDocs
   return docs[locale] ?? docs.id;
 }
 
-export default async function DocsPage() {
+export default async function DocsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ audience?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect('/login');
   const userId = String((session.user as Record<string, unknown>)?.id ?? '');
@@ -151,6 +189,11 @@ export default async function DocsPage() {
   const content = await loadDocsContent(locale);
   const allBlocks = parseDocsMarkdown(content.body);
   const canEditDocs = userId ? await can(userId, 'docs.edit') : false;
+  const params = await searchParams;
+  const audience: Audience =
+    params.audience === 'management' || params.audience === 'developer'
+      ? params.audience
+      : 'staff';
 
   // RBAC: filter sections whose H2 has `{perm=…}` and the user lacks it.
   const allowedH2Ids = new Set<string>();
@@ -170,7 +213,9 @@ export default async function DocsPage() {
   const blocks: Block[] = [];
   for (const block of allBlocks) {
     if (block.type === 'h2') {
-      currentH2Allowed = allowedH2Ids.has(block.id);
+      const permOk = allowedH2Ids.has(block.id);
+      const audienceOk = !block.audiences || block.audiences.includes(audience);
+      currentH2Allowed = permOk && audienceOk;
       if (currentH2Allowed) blocks.push(block);
     } else if (currentH2Allowed) {
       blocks.push(block);
@@ -215,6 +260,21 @@ export default async function DocsPage() {
               <p className="mt-4 max-w-4xl text-base leading-7 text-brand-ink-3">
                 {content.subtitle}
               </p>
+              <div className="mt-4 inline-flex rounded-full border border-brand-cream-3 bg-brand-cream-1 p-1 text-xs font-semibold">
+                {AUDIENCES.map((a) => (
+                  <Link
+                    key={a}
+                    href={`/docs${a === 'staff' ? '' : `?audience=${a}`}`}
+                    className={`rounded-full px-3 py-1.5 transition-colors ${
+                      audience === a
+                        ? 'bg-brand-red text-white shadow-sm'
+                        : 'text-brand-ink-2 hover:text-brand-ink'
+                    }`}
+                  >
+                    {AUDIENCE_LABEL[a]}
+                  </Link>
+                ))}
+              </div>
             </div>
             {canEditDocs ? (
               <Link

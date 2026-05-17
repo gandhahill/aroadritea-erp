@@ -71,6 +71,13 @@
       "when": 1779100150000,
       "tag": "0009_shift_roster",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1779100200000,
+      "tag": "0010_recruitment",
+      "breakpoints": true
     }
   ]
 }

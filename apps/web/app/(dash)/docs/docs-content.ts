@@ -302,7 +302,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
       {
         id: 'permissions',
         eyebrow: 'Security',
-        title: 'Permission, role, dan audit akses {perm=settings.manage}',
+        title: 'Permission, role, dan audit akses {perm=settings.manage} {audience=management,developer}',
         summary:
           'Permission menentukan menu dan aksi yang boleh dilakukan user. Pengaturan ini mendukung prinsip least privilege: user hanya mendapat akses yang diperlukan untuk pekerjaannya.',
         steps: [
@@ -323,7 +323,8 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
       {
         id: 'settings-support',
         eyebrow: 'Support',
-        title: 'Pengaturan, notifikasi, job otomatis, dan troubleshooting {perm=settings.manage}',
+        title:
+          'Pengaturan, notifikasi, job otomatis, dan troubleshooting {perm=settings.manage} {audience=management,developer}',
         summary:
           'Pengaturan operasional dipakai agar ERP bisa menyesuaikan kebutuhan outlet tanpa edit source code. Jika terjadi error, catat bukti yang cukup supaya root cause bisa ditelusuri.',
         steps: [

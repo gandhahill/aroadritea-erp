@@ -27,7 +27,7 @@ import { generateId } from '@erp/shared/id';
 import { and, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import type { McpContext } from '../context';
-import { mcpError, serializeResult } from '../helpers';
+import { mcpError, requireConfirmation, serializeResult } from '../helpers';
 
 // --- Permission ---
 
@@ -280,6 +280,11 @@ export const UpsertAccountSchema = z.object({
 
 export const DeleteAccountSchema = z.object({
   id: z.string(),
+  /**
+   * Must equal `id` (the account being deleted). Prevents accidental
+   * "delete all" loops by an LLM agent — see helpers.requireConfirmation.
+   */
+  confirm: z.string().min(1),
 });
 
 // --- Journal Attachments ---
@@ -396,6 +401,9 @@ export async function deleteAccountHandler(
 ) {
   const permitted = await checkPermission(ctx, 'accounting.coa.manage');
   if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: accounting.coa.manage');
+
+  const guard = requireConfirmation(input.id, input.confirm);
+  if ('error' in guard) return guard.error;
 
   const [before] = await db
     .select()

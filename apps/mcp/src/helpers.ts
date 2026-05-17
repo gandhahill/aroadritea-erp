@@ -28,6 +28,61 @@ export function mcpSuccess(data: unknown) {
   };
 }
 
+/**
+ * Safety guard for write/destructive MCP tools.
+ *
+ * Pattern: every delete / bulk-update tool MUST accept a `confirm` field
+ * whose value matches the entity primary key being affected. The MCP
+ * agent has to be deliberate — it cannot pass `confirm: "yes"` and wipe
+ * everything. This catches accidental "delete all" loops and mass
+ * mutation by a hallucinating agent.
+ *
+ * `confirm` is also written to audit_log via logMcpToolCall so an
+ * intentional destructive action stays attributable.
+ */
+export function requireConfirmation(
+  expected: string,
+  actual: string | undefined,
+): { ok: true } | { error: ReturnType<typeof mcpError> } {
+  if (!actual) {
+    return {
+      error: mcpError(
+        'CONFIRMATION_REQUIRED',
+        `Destructive operation requires "confirm" field equal to "${expected}".`,
+      ),
+    };
+  }
+  if (actual !== expected) {
+    return {
+      error: mcpError(
+        'CONFIRMATION_MISMATCH',
+        `"confirm" must equal "${expected}" (got "${actual}"). Refusing to act on the wrong entity.`,
+      ),
+    };
+  }
+  return { ok: true };
+}
+
+/**
+ * Cap how many rows a single MCP tool call may affect at once.
+ * Prevents an LLM from being asked to "loop through all employees and
+ * deactivate them". Tools must check `assertBulkLimit(items.length)`.
+ */
+export function assertBulkLimit(
+  count: number,
+  max = 25,
+): { ok: true } | { error: ReturnType<typeof mcpError> } {
+  if (count > max) {
+    return {
+      error: mcpError(
+        'BULK_LIMIT_EXCEEDED',
+        `This tool refuses calls touching more than ${max} rows at a time (asked for ${count}). Split the request or use the admin UI.`,
+      ),
+    };
+  }
+  return { ok: true };
+}
+
 /** Serialize a Result<T, AppError> into an MCP response */
 export function serializeResult(
   result: { ok: true; value: unknown } | { ok: false; error: unknown },

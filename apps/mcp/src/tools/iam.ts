@@ -15,7 +15,7 @@ import { generateId } from '@erp/shared/id';
 import { and, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import type { McpContext } from '../context';
-import { mcpError, mcpSuccess } from '../helpers';
+import { mcpError, mcpSuccess, requireConfirmation } from '../helpers';
 
 // --- Schemas ---
 
@@ -49,6 +49,8 @@ export const UpsertLocationSchema = z.object({
 
 export const DeleteLocationSchema = z.object({
   id: z.string().min(1),
+  /** Must equal `id` (the location being deleted). Safety guard. */
+  confirm: z.string().min(1),
 });
 
 // --- Helpers ---
@@ -269,6 +271,9 @@ async function deleteLocationHandler(
 ): Promise<{ content: unknown[]; isError: boolean }> {
   const permitted = await canManageLocations(ctx);
   if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: settings.manage');
+
+  const guard = requireConfirmation(input.id, input.confirm);
+  if ('error' in guard) return guard.error;
 
   const [before] = await db
     .select()

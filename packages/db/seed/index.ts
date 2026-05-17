@@ -42,6 +42,7 @@ import {
 import { LEAVE_TYPES_SEED } from './leave-types-seed';
 import { LOCATION_GPS_FIELDS, LOCATION_GPS_VALUES } from './location-gps';
 import { seedMenu } from './menu';
+import { seedRecipes } from './recipes';
 import { NAIXER_QR_FORMAT_DEFAULTS } from './naixer-seed';
 import { SCHEDULED_JOBS_SEED } from './scheduled-jobs-seed';
 import { SHIFT_DEFINITIONS_SEED } from './shift-definitions-seed';
@@ -438,6 +439,10 @@ async function seed() {
   console.info(
     `✅ ${menuResult.products} menu products, ${menuResult.categories} categories, ${menuResult.modifierGroups} modifier groups seeded`,
   );
+
+  // 11a. Recipes / BOMs (Fresh Tea, Lemon Tea, Milk Tea) from in-store photos.
+  await seedRecipes(db as unknown as Database, tenantId);
+  console.info('✅ Recipes (Fresh / Lemon / Milk Tea) seeded with BOM');
 
   // 11b. HR leave types
   let leaveTypeCount = 0;

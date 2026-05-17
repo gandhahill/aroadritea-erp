@@ -154,6 +154,71 @@ export const shiftDefinitions = pgTable(
   ],
 );
 
+// ─── Recruitment (Job Openings + Applicants) ─────────────────────────────────
+
+/**
+ * Job openings (lowongan). Created by HR, broadcast on the public site
+ * (future) or shared via WhatsApp / IG link. Status drives whether the
+ * opening is still accepting applications.
+ */
+export const jobOpenings = pgTable(
+  'job_openings',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    title: text('title').notNull(),
+    department: text('department'),
+    summary: text('summary'),
+    requirements: text('requirements'),
+    benefits: text('benefits'),
+    /** 'draft' | 'open' | 'closed' */
+    status: text('status').notNull().default('draft'),
+    headcount: integer('headcount').notNull().default(1),
+    openDate: date('open_date'),
+    closeDate: date('close_date'),
+
+    ...auditCols,
+  },
+  (table) => [
+    index('job_openings_tenant_status_idx').on(table.tenantId, table.status),
+  ],
+);
+
+/**
+ * Applicants for job openings. Tracks the simple recruitment pipeline
+ * applied → screen → interview → offer → hired (or rejected/withdrawn).
+ * `hiredEmployeeId` links to the created employee record when the
+ * applicant is hired.
+ */
+export const jobApplicants = pgTable(
+  'job_applicants',
+  {
+    ...pk,
+    ...tenantCol,
+
+    openingId: text('opening_id').notNull(),
+    name: text('name').notNull(),
+    email: text('email'),
+    phone: text('phone'), // PII encrypted at-rest
+    /** 'applied' | 'screening' | 'interview' | 'offer' | 'hired' | 'rejected' | 'withdrawn' */
+    stage: text('stage').notNull().default('applied'),
+    appliedAt: timestamp('applied_at', { withTimezone: true }).notNull().defaultNow(),
+    resumeUrl: text('resume_url'),
+    notes: text('notes'),
+
+    /** Set when stage transitions to 'hired'; FK employees.id */
+    hiredEmployeeId: text('hired_employee_id'),
+
+    ...auditCols,
+  },
+  (table) => [
+    index('job_applicants_opening_idx').on(table.openingId),
+    index('job_applicants_tenant_stage_idx').on(table.tenantId, table.stage),
+  ],
+);
+
 // ─── Shift Assignments (Roster) ───────────────────────────────────────────────
 
 /**
