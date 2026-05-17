@@ -168,6 +168,7 @@ export function Sidebar() {
       ),
       children: [
         { label: t('posCashier'), href: '/pos', icon: <></> },
+        { label: t('posOrders'), href: '/pos/orders', icon: <></> },
         { label: t('demoMode'), href: '/pos/demo', icon: <></> },
         { label: t('promotions'), href: '/settings/promotions', icon: <></> },
       ],

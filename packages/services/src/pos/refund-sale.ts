@@ -1,42 +1,48 @@
 /**
  * pos.refund — SD §21.4
  *
- * Refunds a paid sales order.
+ * Refunds a paid sales order (full or per-line partial).
  * Reverses journal entry, restores stock (BOM ingredients back),
  * marks order as refunded.
  *
  * Workflow:
  * 1. Load original sales order (must be 'paid')
- * 2. Reverse the original journal entry via accounting.reverseJournal
- * 3. Restore BOM ingredients to stock_levels (+reverse movement, reason='refund')
- * 4. Update sales_order status → 'refunded'
- * 5. Audit log
+ * 2. Validate refund lines against original order lines
+ * 3. Reverse the original journal entry (full) or create proportional
+ *    reversal JE (partial)
+ * 4. Restore BOM ingredients to stock_levels for refunded lines only
+ * 5. Update sales_order status → 'refunded'
+ * 6. Audit log
  *
  * Permission: pos.refund
  *
  * Business rules:
  * - Only 'paid' orders can be refunded
  * - Idempotency: prevent double-refund via version check
- * - Refund restores exactly the same quantity that was sold
+ * - Refund restores exactly the specified quantity per line
  * - Reversal JE must be in an open accounting period
+ * - Once refunded (full or partial), the order cannot be refunded again
  */
 
 import { db } from '@erp/db';
-import { journalEntries } from '@erp/db/schema/accounting';
+import {
+  accountingPeriods,
+  journalEntries,
+  journalLines,
+} from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
 import { bomLines, boms, stockLevels, stockMovements } from '@erp/db/schema/inventory';
-import { payments, salesOrderLines, salesOrders } from '@erp/db/schema/pos';
+import { salesOrderLines, salesOrders } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, sql } from 'drizzle-orm';
+import { generateJournalNumber } from '../accounting/number-generator';
 import { reverseJournal } from '../accounting/reverse-journal';
 import { requirePermission } from '../iam';
 import { RefundSaleInputSchema } from './schemas';
 import type { SaleResult } from './schemas';
-
-// ─── Refund Sale ──────────────────────────────────────────────────────────────
 
 export async function refundSale(input: unknown, ctx: AuditContext): Promise<Result<SaleResult>> {
   const parsed = RefundSaleInputSchema.safeParse(input);
@@ -50,7 +56,6 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
   const data = parsed.data;
 
   try {
-    // 1. Load original sales order
     const sale = await db
       .select()
       .from(salesOrders)
@@ -72,37 +77,77 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
       return err(AppError.conflict('pos.refund.versionMismatch'));
     }
 
-    // 2. Reverse the original journal entry
-    let reversalJeId: string | null = null;
-    if (sale.journalEntryId) {
-      const reversalResult = await reverseJournal(
-        {
-          journalId: sale.journalEntryId,
-          postingDate: new Date().toISOString().slice(0, 10),
-        },
-        ctx,
-      );
-      if (!reversalResult.ok) {
-        // Refund cannot proceed without reversal — return error
-        return err(
-          AppError.internal('pos.refund.journalReversalFailed', {
-            originalJeId: sale.journalEntryId,
-            reason: reversalResult.error.code,
-          }),
-        );
-      }
-      reversalJeId = reversalResult.value.id;
-    }
-
-    // 3. Restore BOM ingredients to stock_levels (undo createSale deduction)
-    const lines = await db
+    // ── Validate refund lines against original ──────────────────────────
+    const originalLines = await db
       .select()
       .from(salesOrderLines)
       .where(eq(salesOrderLines.salesOrderId, data.salesOrderId))
       .orderBy(salesOrderLines.lineNo);
 
-    for (const line of lines) {
-      // Find active BOM for this product
+    const originalLineMap = new Map(originalLines.map((l) => [l.id, l]));
+
+    let refundTotal = 0n;
+    for (const rl of data.lines) {
+      const ol = originalLineMap.get(rl.lineId);
+      if (!ol) {
+        return err(
+          AppError.validation('pos.refund.lineNotFound', { lineId: rl.lineId }),
+        );
+      }
+      const originalQty = Math.round(Number(ol.qty));
+      if (rl.qty > originalQty) {
+        return err(
+          AppError.validation('pos.refund.qtyExceeded', {
+            lineId: rl.lineId,
+            requestedQty: rl.qty,
+            originalQty,
+          }),
+        );
+      }
+      const lineTotal = BigInt(ol.lineTotal.toString());
+      refundTotal += (lineTotal * BigInt(rl.qty)) / BigInt(originalQty);
+    }
+
+    const isFullRefund =
+      refundTotal === BigInt(sale.grandTotal.toString()) &&
+      data.lines.length === originalLines.length;
+
+    // ── Journal handling ────────────────────────────────────────────────
+    let reversalJeId: string | null = null;
+
+    if (sale.journalEntryId) {
+      if (isFullRefund) {
+        const reversalResult = await reverseJournal(
+          {
+            journalId: sale.journalEntryId,
+            postingDate: new Date().toISOString().slice(0, 10),
+          },
+          ctx,
+        );
+        if (!reversalResult.ok) {
+          return err(
+            AppError.internal('pos.refund.journalReversalFailed', {
+              originalJeId: sale.journalEntryId,
+              reason: reversalResult.error.code,
+            }),
+          );
+        }
+        reversalJeId = reversalResult.value.id;
+      } else {
+        const partialResult = await createPartialReversalJe(
+          sale,
+          refundTotal,
+          ctx,
+        );
+        if (!partialResult.ok) return partialResult as Result<never>;
+        reversalJeId = partialResult.value;
+      }
+    }
+
+    // ── Restore stock for refunded lines only ──────────────────────────
+    for (const rl of data.lines) {
+      const line = originalLineMap.get(rl.lineId)!;
+
       const bom = await db
         .select({ id: boms.id })
         .from(boms)
@@ -116,7 +161,7 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
         )
         .then((r) => r[0]);
 
-      if (!bom) continue; // No BOM → nothing to restore (service item)
+      if (!bom) continue;
 
       const bomLineRows = await db
         .select({
@@ -127,12 +172,9 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
         .from(bomLines)
         .where(eq(bomLines.bomId, bom.id));
 
-      const qtySold = Number.parseFloat(line.qty);
-
       for (const ingredient of bomLineRows) {
-        const restoreQty = (Number.parseFloat(ingredient.qty) * qtySold).toFixed(3);
+        const restoreQty = (Number.parseFloat(ingredient.qty) * rl.qty).toFixed(3);
 
-        // Upsert stock_levels: add back
         const existingLevel = await db
           .select()
           .from(stockLevels)
@@ -158,7 +200,6 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
             })
             .where(eq(stockLevels.id, existingLevel.id));
         } else {
-          // Insert new stock level for this ingredient
           await db.insert(stockLevels).values({
             id: generateId(),
             tenantId: ctx.tenantId,
@@ -177,7 +218,6 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
           });
         }
 
-        // Record stock movement (reason='refund')
         await db.insert(stockMovements).values({
           id: generateId(),
           tenantId: ctx.tenantId,
@@ -199,18 +239,18 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
       }
     }
 
-    // 4. Update sales_order status → 'refunded'
+    // ── Update order status ─────────────────────────────────────────────
     await db
       .update(salesOrders)
       .set({
         status: 'refunded',
-        notes: data.reason ?? null,
+        notes: data.reason,
         updatedBy: ctx.userId,
         version: sale.version + 1,
       })
       .where(and(eq(salesOrders.id, data.salesOrderId), eq(salesOrders.version, sale.version)));
 
-    // 5. Audit log
+    // ── Audit log ───────────────────────────────────────────────────────
     await db.insert(auditLog).values({
       id: generateId(),
       tenantId: ctx.tenantId,
@@ -219,11 +259,17 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
       entityType: 'sales_order',
       entityId: data.salesOrderId,
       before: { status: sale.status },
-      after: { status: 'refunded', reason: data.reason, reversalJeId },
+      after: {
+        status: 'refunded',
+        reason: data.reason,
+        reversalJeId,
+        isFullRefund,
+        refundTotal: refundTotal.toString(),
+        refundLines: data.lines,
+      },
       metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
     });
 
-    // 6. Build result
     return ok({
       id: sale.id,
       number: sale.number,
@@ -233,7 +279,7 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
       discountTotal: sale.discountTotal.toString(),
       taxTotal: sale.taxTotal.toString(),
       grandTotal: sale.grandTotal.toString(),
-      lines: lines.map((l) => ({
+      lines: originalLines.map((l) => ({
         id: l.id,
         lineNo: l.lineNo,
         productId: l.productId,
@@ -247,10 +293,149 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
         modifierJson: l.modifierJson as unknown,
         notes: l.notes,
       })),
-      payments: [], // no payments in refund result
+      payments: [],
       journalEntryId: reversalJeId,
     });
   } catch (e) {
     return err(AppError.internal('pos.refund.failed', e));
   }
+}
+
+// ─── Partial reversal JE ──────────────────────────────────────────────────────
+
+async function createPartialReversalJe(
+  sale: typeof salesOrders.$inferSelect,
+  refundTotal: bigint,
+  ctx: AuditContext,
+): Promise<Result<string>> {
+  const postingDate = new Date().toISOString().slice(0, 10);
+  const periodCode = postingDate.substring(0, 7);
+
+  const period = await db
+    .select()
+    .from(accountingPeriods)
+    .where(
+      and(
+        eq(accountingPeriods.tenantId, ctx.tenantId),
+        eq(accountingPeriods.code, periodCode),
+      ),
+    )
+    .then((r) => r[0]);
+
+  if (!period) {
+    return err(AppError.businessRule('accounting.journal.periodNotFound', { periodCode }));
+  }
+  if (period.status !== 'open') {
+    return err(
+      AppError.businessRule('accounting.journal.periodClosed', {
+        periodCode,
+        periodStatus: period.status,
+      }),
+    );
+  }
+
+  const originalJeLines = await db
+    .select()
+    .from(journalLines)
+    .where(eq(journalLines.journalEntryId, sale.journalEntryId!));
+
+  if (originalJeLines.length === 0) {
+    return err(AppError.internal('pos.refund.noJournalLines'));
+  }
+
+  const grandTotal = Number(sale.grandTotal.toString());
+  const ratio = Number(refundTotal) / grandTotal;
+
+  const scaledLines = originalJeLines.map((line) => ({
+    accountId: line.accountId,
+    locationId: line.locationId,
+    description: line.description,
+    debit: BigInt(Math.round(Number(line.credit) * ratio)),
+    credit: BigInt(Math.round(Number(line.debit) * ratio)),
+    taxCode: line.taxCode,
+    partnerId: line.partnerId,
+  }));
+
+  let totalDebit = scaledLines.reduce((s, l) => s + l.debit, 0n);
+  let totalCredit = scaledLines.reduce((s, l) => s + l.credit, 0n);
+
+  if (totalDebit !== totalCredit) {
+    const diff = totalDebit - totalCredit;
+    if (diff > 0n) {
+      let maxIdx = 0;
+      for (let i = 1; i < scaledLines.length; i++) {
+        if (scaledLines[i]!.credit > scaledLines[maxIdx]!.credit) maxIdx = i;
+      }
+      scaledLines[maxIdx]!.credit += diff;
+      totalCredit += diff;
+    } else {
+      const absDiff = -diff;
+      let maxIdx = 0;
+      for (let i = 1; i < scaledLines.length; i++) {
+        if (scaledLines[i]!.debit > scaledLines[maxIdx]!.debit) maxIdx = i;
+      }
+      scaledLines[maxIdx]!.debit += absDiff;
+      totalDebit += absDiff;
+    }
+  }
+
+  const jeId = generateId();
+  const jeNumber = await generateJournalNumber(ctx.tenantId, postingDate);
+  const now = new Date();
+
+  await db.insert(journalEntries).values({
+    id: jeId,
+    tenantId: ctx.tenantId,
+    locationId: sale.locationId,
+    periodId: period.id,
+    postingDate,
+    number: jeNumber,
+    description: `Partial refund of sale ${sale.number}`,
+    referenceType: 'sales_order',
+    referenceId: sale.id,
+    status: 'posted',
+    postedAt: now,
+    postedBy: ctx.userId,
+    reversedByJeId: null,
+    totalDebit,
+    totalCredit,
+    createdBy: ctx.userId,
+    updatedBy: ctx.userId,
+  });
+
+  const lineValues = scaledLines.map((line, idx) => ({
+    id: generateId(),
+    journalEntryId: jeId,
+    lineNo: idx + 1,
+    accountId: line.accountId,
+    locationId: line.locationId,
+    description: line.description,
+    debit: line.debit,
+    credit: line.credit,
+    taxCode: line.taxCode,
+    partnerId: line.partnerId,
+  }));
+
+  await db.insert(journalLines).values(lineValues);
+
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'create',
+    entityType: 'journal_entry',
+    entityId: jeId,
+    before: null,
+    after: {
+      id: jeId,
+      number: jeNumber,
+      status: 'posted',
+      partialRefundOf: sale.number,
+      totalDebit: totalDebit.toString(),
+      totalCredit: totalCredit.toString(),
+    },
+    metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+  });
+
+  return ok(jeId);
 }

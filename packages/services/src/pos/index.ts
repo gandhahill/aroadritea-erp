@@ -31,6 +31,7 @@ export {
   type CreateSaleInput,
   type VoidSaleInput,
   type RefundSaleInput,
+  type RefundLineInput,
   type ShiftStatus,
   type SaleResult,
   type SaleLineResult,

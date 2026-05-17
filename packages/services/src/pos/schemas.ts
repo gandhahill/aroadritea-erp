@@ -85,13 +85,20 @@ export type VoidSaleInput = z.infer<typeof VoidSaleInputSchema>;
 
 // ─── Refund ────────────────────────────────────────────────────────────────────
 
+const RefundLineSchema = z.object({
+  lineId: z.string().min(1),
+  qty: z.number().int().positive(),
+});
+
 export const RefundSaleInputSchema = z.object({
   salesOrderId: z.string().min(1),
-  reason: z.string().min(1).max(255).optional(),
+  reason: z.string().min(1).max(255),
   version: z.number().int().min(1),
+  lines: z.array(RefundLineSchema).min(1),
 });
 
 export type RefundSaleInput = z.infer<typeof RefundSaleInputSchema>;
+export type RefundLineInput = z.infer<typeof RefundLineSchema>;
 
 // ─── Shift status enum ────────────────────────────────────────────────────────
 
