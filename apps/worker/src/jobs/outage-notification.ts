@@ -172,6 +172,8 @@ async function sendWhatsApp(to: string, body: string): Promise<{ sent: boolean; 
 
   try {
     const credentials = Buffer.from(`${twilioSid}:${twilioToken}`).toString('base64');
+    // ISO 22301 — bound the third-party dependency. Without an explicit
+    // timeout a hung Twilio API can pin the worker indefinitely.
     const res = await fetch(
       `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`,
       {
@@ -185,6 +187,7 @@ async function sendWhatsApp(to: string, body: string): Promise<{ sent: boolean; 
           To: to.startsWith('whatsapp:') ? to : `whatsapp:${to}`,
           Body: body,
         }),
+        signal: AbortSignal.timeout(10000),
       },
     );
 

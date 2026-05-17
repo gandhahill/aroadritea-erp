@@ -70,6 +70,15 @@ export const auth = betterAuth({
     },
   },
 
+  // ISO 27001 §A.9.4 — limit credential-stuffing / brute force on the
+  // staff login endpoint. better-auth's built-in window covers the
+  // /api/auth/* surface (signIn, signUp, etc.) globally per IP.
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 20,
+  },
+
   // Cookie configuration — SD §11.1: Secure, HttpOnly, SameSite=Lax
   advanced: {
     cookiePrefix: 'aroadri',

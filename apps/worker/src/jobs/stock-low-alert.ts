@@ -164,6 +164,8 @@ async function sendWhatsApp(to: string, body: string): Promise<{ sent: boolean; 
 
   try {
     const credentials = Buffer.from(`${twilioSid}:${twilioToken}`).toString('base64');
+    // ISO 22301 — bound the call so the alert job never blocks waiting
+    // on a degraded Twilio API.
     const response = await fetch(
       `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`,
       {
@@ -177,6 +179,7 @@ async function sendWhatsApp(to: string, body: string): Promise<{ sent: boolean; 
           To: to.startsWith('whatsapp:') ? to : `whatsapp:${to}`,
           Body: body,
         }),
+        signal: AbortSignal.timeout(10000),
       },
     );
 

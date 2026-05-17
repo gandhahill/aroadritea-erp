@@ -200,6 +200,12 @@ async function sendSignupOtp(email: string, code: string): Promise<Result<void>>
       requireTLS: smtpPort === 587,
       auth: { user: smtpUser, pass: smtpPass },
       tls: { rejectUnauthorized: false },
+      // ISO 22301 — bound the SMTP handshake/send window so a stuck
+      // mail relay can't pin the signup request indefinitely. 15s is
+      // the typical upper bound for HestiaCP SMTP (ADR-0011).
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
     });
 
     await transporter.sendMail({
