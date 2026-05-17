@@ -30,6 +30,8 @@
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
     "seed": "tsx seed/index.ts",
+    "reset": "tsx scripts/reset.ts",
+    "reset:migrate:seed": "tsx scripts/reset.ts && drizzle-kit migrate && tsx seed/index.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

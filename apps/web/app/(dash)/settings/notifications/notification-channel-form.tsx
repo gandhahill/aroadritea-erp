@@ -54,11 +54,11 @@ export function NotificationChannelForm() {
         />
       </label>
       <label className="space-y-1.5">
-        <span className="text-sm font-medium text-brand-ink">Purpose</span>
+        <span className="text-sm font-medium text-brand-ink">Tujuan</span>
         <select name="purpose" required defaultValue="all" className={INPUT}>
           <option value="all">Semua notifikasi</option>
-          <option value="outage">Outage</option>
-          <option value="stock_alert">Stock alert</option>
+          <option value="outage">Gangguan sistem</option>
+          <option value="stock_alert">Peringatan stok</option>
         </select>
       </label>
       <label className="flex items-center gap-2 text-sm font-medium text-brand-ink">

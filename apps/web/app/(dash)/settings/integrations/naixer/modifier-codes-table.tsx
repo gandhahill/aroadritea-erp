@@ -93,12 +93,12 @@ export function ModifierCodesTable({ codes, tenantId }: Props) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-brand-cream-3 bg-brand-cream">
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Kind</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Modifier Option ID</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Naixer Code</th>
-            <th className="px-4 py-3 text-center font-medium text-brand-ink-2">Order</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Jenis</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">ID Opsi Modifier</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Kode Naixer</th>
+            <th className="px-4 py-3 text-center font-medium text-brand-ink-2">Urutan</th>
             <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Status</th>
-            <th className="px-4 py-3 text-right font-medium text-brand-ink-2">Actions</th>
+            <th className="px-4 py-3 text-right font-medium text-brand-ink-2">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -128,11 +128,11 @@ export function ModifierCodesTable({ codes, tenantId }: Props) {
                   {code.isActive ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-brand-jade-light px-2 py-0.5 text-[11px] font-medium text-brand-jade">
                       <span className="h-1.5 w-1.5 rounded-full bg-brand-jade" />
-                      Active
+                      Aktif
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 rounded-full bg-brand-cream-2 px-2 py-0.5 text-[11px] font-medium text-brand-ink-3">
-                      Inactive
+                      Nonaktif
                     </span>
                   )}
                 </button>
@@ -144,7 +144,7 @@ export function ModifierCodesTable({ codes, tenantId }: Props) {
                   disabled={isPending}
                   className="text-xs text-brand-red hover:underline disabled:opacity-50"
                 >
-                  Delete
+                  Hapus
                 </button>
               </td>
             </tr>
