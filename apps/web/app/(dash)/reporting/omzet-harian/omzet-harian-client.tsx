@@ -70,10 +70,12 @@ export function OmzetHarianClient({
   const [isDirty, setIsDirty] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   function loadData(loc: string, d: string) {
     if (!loc) return;
     startTransition(async () => {
+      setLoadError(null);
       const result = await serverGetOmzetHarian({ locationId: loc, date: d });
       if (result.ok) {
         setData(result.value);
@@ -83,6 +85,13 @@ export function OmzetHarianClient({
         setAdjNote(result.value.adjustmentNote ?? '');
         setIsDirty(false);
         setSaveError(null);
+      } else {
+        setData(null);
+        const message =
+          (result.error as { message?: string; messageKey?: string } | undefined)?.message ??
+          (result.error as { messageKey?: string } | undefined)?.messageKey ??
+          'Gagal memuat omzet.';
+        setLoadError(message);
       }
     });
   }
@@ -223,6 +232,12 @@ export function OmzetHarianClient({
           </select>
         </div>
       </div>
+
+      {loadError ? (
+        <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {loadError}
+        </div>
+      ) : null}
 
       {/* No data state */}
       {!data && (

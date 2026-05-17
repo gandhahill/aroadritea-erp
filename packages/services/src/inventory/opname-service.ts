@@ -181,6 +181,8 @@ export async function createOpnameDraft(
     sessionDate: string; // YYYY-MM-DD
     periodCode: string;
     notes?: string;
+    /** 'daily' for closing-shift fast-mover counts; 'monthly' for full counts. */
+    kind?: 'daily' | 'monthly';
   },
   ctx: AuditContext,
 ): Promise<Result<OpnameResult>> {
@@ -235,6 +237,7 @@ export async function createOpnameDraft(
     sessionDate: input.sessionDate,
     periodCode: input.periodCode,
     status: 'draft',
+    kind: input.kind ?? 'monthly',
     preparedBy: ctx.userId,
     preparedAt: now,
     notes: input.notes ?? null,

@@ -22,6 +22,22 @@ const TYPE_LABELS: Record<string, string> = {
   legal: 'Hukum',
 };
 
+/**
+ * Static (file-system based) routes on the public website. The CMS cannot
+ * edit them — they live as page.tsx files under apps/site/app/[locale]/.
+ * Listed here so admins are aware they exist alongside DB-driven content.
+ */
+const STATIC_ROUTES: Array<{ slug: string; label: string; description: string }> = [
+  { slug: '/', label: 'Beranda', description: 'Landing page utama (file-based).' },
+  { slug: '/menu', label: 'Menu', description: 'Daftar menu publik.' },
+  { slug: '/tentang', label: 'Tentang', description: 'Profil perusahaan & cerita brand.' },
+  { slug: '/lokasi', label: 'Lokasi', description: 'Daftar outlet & alamat.' },
+  { slug: '/blog', label: 'Blog', description: 'Index posting blog (post dinamis).' },
+  { slug: '/member', label: 'Member', description: 'Area member (login, registrasi, akun).' },
+  { slug: '/syarat-dan-ketentuan', label: 'Syarat & Ketentuan', description: 'Halaman legal — kontennya editable via CMS Halaman.' },
+  { slug: '/kebijakan-privasi', label: 'Kebijakan Privasi', description: 'Halaman legal — kontennya editable via CMS Halaman.' },
+];
+
 export default async function CmsPagesPage() {
   const session = await getSession();
   if (!session) redirect('/login');
@@ -53,6 +69,57 @@ export default async function CmsPagesPage() {
           </svg>
           Buat Halaman
         </Link>
+      </div>
+
+      {/* File-based routes (not editable from CMS) */}
+      <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-brand-ink">
+              Halaman bawaan (file-based)
+            </p>
+            <p className="text-xs text-brand-ink-3">
+              Rute publik yang sudah aktif. Konten halaman legal di bawah ini bisa
+              diubah dari tabel CMS Halaman (slug yang sama akan menimpa konten
+              default).
+            </p>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-brand-cream-3 text-left text-xs uppercase tracking-wider text-brand-ink-3">
+                <th className="py-2 pr-3">Slug</th>
+                <th className="py-2 pr-3">Halaman</th>
+                <th className="py-2 pr-3">Keterangan</th>
+                <th className="py-2 pr-3">Pratinjau</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-brand-cream-3">
+              {STATIC_ROUTES.map((route) => (
+                <tr key={route.slug}>
+                  <td className="py-2 pr-3">
+                    <code className="rounded bg-brand-cream-2 px-1.5 py-0.5 text-xs font-mono text-brand-ink-2">
+                      {route.slug}
+                    </code>
+                  </td>
+                  <td className="py-2 pr-3 font-medium text-brand-ink">{route.label}</td>
+                  <td className="py-2 pr-3 text-brand-ink-3">{route.description}</td>
+                  <td className="py-2 pr-3">
+                    <a
+                      href={`https://aroadritea.com${route.slug === '/' ? '' : route.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-semibold text-brand-red hover:underline"
+                    >
+                      Buka
+                    </a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Pages table */}

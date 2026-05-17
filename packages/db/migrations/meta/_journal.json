@@ -57,6 +57,13 @@
       "when": 1779100050000,
       "tag": "0007_forgive_late",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1779100100000,
+      "tag": "0008_opname_kind",
+      "breakpoints": true
     }
   ]
 }

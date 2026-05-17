@@ -311,6 +311,25 @@ function minBigint(a: bigint, b: bigint): bigint {
   return a < b ? a : b;
 }
 
+/** Map POS channel code to a user-friendly label for journal descriptions. */
+function humanizeChannel(channel: string): string {
+  switch (channel) {
+    case 'walk_in':
+      return 'Walk-in';
+    case 'gofood':
+      return 'GoFood';
+    case 'grabfood':
+      return 'GrabFood';
+    case 'shopeefood':
+      return 'ShopeeFood';
+    default:
+      return channel
+        .split(/[_-]+/)
+        .map((part) => (part ? part.charAt(0).toUpperCase() + part.slice(1) : ''))
+        .join(' ');
+  }
+}
+
 /**
  * POS stores payment.amount as cash/bank value retained by the business.
  * Cash tender above the sale total is change, not revenue and not drawer cash.
@@ -880,11 +899,12 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       taxCode?: string;
     }> = [];
 
+    const channelLabel = humanizeChannel(data.channel);
     // DR Cash — total cash received (sale + any donation)
     jeLines.push({
       accountId: postingConfig.cashAccountId,
       locationId: data.locationId,
-      description: `${data.channel} ${isDeliveryChannel ? 'receivable' : 'payment'}${hasDonation ? ' + donasi' : ''}`,
+      description: `${channelLabel} ${isDeliveryChannel ? 'receivable' : 'payment'}${hasDonation ? ' + donasi' : ''}`,
       debit: totalCashReceived.toString(),
       credit: '0',
     });
@@ -923,7 +943,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       {
         postingDate,
         locationId: data.locationId,
-        description: `POS ${saleNumber} — ${data.channel}${isDeliveryChannel ? ' platform receivable' : ''}${hasDonation ? ' + donasi' : ''}`,
+        description: `POS ${saleNumber} — ${channelLabel}${isDeliveryChannel ? ' platform receivable' : ''}${hasDonation ? ' + donasi' : ''}`,
         referenceType: 'sales',
         referenceId: saleId,
         lines: jeLines,

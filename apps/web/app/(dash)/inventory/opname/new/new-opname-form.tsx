@@ -4,7 +4,13 @@ import { useRouter } from 'next/navigation';
 import { useActionState, useState } from 'react';
 import { createOpnameSessionAction } from '../actions';
 
-const EMPTY_FORM = { locationId: '', sessionDate: '', periodCode: '', notes: '' };
+const EMPTY_FORM = {
+  locationId: '',
+  sessionDate: '',
+  periodCode: '',
+  notes: '',
+  kind: 'monthly' as 'daily' | 'monthly',
+};
 
 interface Props {
   locationOptions: Array<{ id: string; label: string; code: string }>;
@@ -22,6 +28,7 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
       sessionDate: formData.get('sessionDate') as string,
       periodCode: formData.get('periodCode') as string,
       notes: formData.get('notes') as string,
+      kind: (formData.get('kind') as 'daily' | 'monthly') ?? 'monthly',
     };
 
     if (!params.locationId) return { error: 'Lokasi wajib dipilih' };
@@ -85,6 +92,48 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
                 ))
               )}
             </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-brand-ink">
+              Jenis Opname <span className="text-rose-500">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {(
+                [
+                  {
+                    value: 'daily',
+                    title: 'Harian (closing)',
+                    desc: 'Item wujud — cup, sedotan, susu, dll.',
+                  },
+                  {
+                    value: 'monthly',
+                    title: 'Bulanan (menyeluruh)',
+                    desc: 'Semua produk & bahan baku.',
+                  },
+                ] as const
+              ).map((opt) => (
+                <label
+                  key={opt.value}
+                  className={`cursor-pointer rounded-lg border p-3 text-sm transition-colors ${
+                    form.kind === opt.value
+                      ? 'border-brand-red bg-brand-red/5 text-brand-ink'
+                      : 'border-brand-cream-3 bg-card text-brand-ink-2 hover:border-brand-red/30'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="kind"
+                    value={opt.value}
+                    checked={form.kind === opt.value}
+                    onChange={() => setForm((f) => ({ ...f, kind: opt.value }))}
+                    className="sr-only"
+                  />
+                  <div className="font-semibold">{opt.title}</div>
+                  <div className="mt-0.5 text-xs text-brand-ink-3">{opt.desc}</div>
+                </label>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-1.5">
