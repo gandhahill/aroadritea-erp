@@ -22,11 +22,11 @@
  * seeded so editors can extend without colliding with the seed.
  */
 
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { Database } from '../client';
 import {
-  boms,
   bomLines,
+  boms,
   productCategories,
   productVariants,
   products,
@@ -181,6 +181,18 @@ const PRICE = {
 } as const;
 
 export async function seedRecipes(db: Database, tenantId: string) {
+  // Get RAW_MATERIAL category ID
+  const rawCat = await db
+    .select({ id: productCategories.id })
+    .from(productCategories)
+    .where(and(eq(productCategories.tenantId, tenantId), eq(productCategories.code, 'RAW_MATERIAL')))
+    .limit(1);
+  const rawCategoryId = rawCat[0]?.id;
+
+  if (!rawCategoryId) {
+    throw new Error('RAW_MATERIAL category not found. Ensure menu is seeded first.');
+  }
+
   // ── 1. Raw material products (ingredients) ──
   for (const raw of RAW_MATERIALS) {
     await db
@@ -190,16 +202,25 @@ export async function seedRecipes(db: Database, tenantId: string) {
         tenantId,
         sku: raw.code,
         name: raw.name,
+        categoryId: rawCategoryId,
         kind: 'raw_material',
         uom: raw.uom,
         isActive: true,
         isSellable: false,
         isPurchasable: true,
-        trackInventory: true,
         defaultSellPrice: 0n,
         defaultCostPrice: 0n,
       })
-      .onConflictDoNothing({ target: products.id });
+      .onConflictDoUpdate({
+        target: products.id,
+        set: {
+          sku: raw.code,
+          name: raw.name,
+          categoryId: rawCategoryId,
+          isActive: true,
+          updatedAt: new Date(),
+        },
+      });
   }
 
   // ── 2. Finished-good products (3 families × 3 base teas) + variants ──
@@ -207,7 +228,12 @@ export async function seedRecipes(db: Database, tenantId: string) {
     const [category] = await db
       .select({ id: productCategories.id })
       .from(productCategories)
-      .where(eq(productCategories.code, family.categoryCode))
+      .where(
+        and(
+          eq(productCategories.tenantId, tenantId),
+          eq(productCategories.code, family.categoryCode),
+        ),
+      )
       .limit(1);
 
     for (const tea of BASE_TEAS) {
@@ -228,15 +254,23 @@ export async function seedRecipes(db: Database, tenantId: string) {
           name: productName,
           kind: 'finished_good',
           uom: 'cup',
-          categoryId: category?.id ?? null,
+          categoryId: category?.id ?? rawCategoryId, // fallback to raw
           isActive: true,
           isSellable: true,
           isPurchasable: false,
-          trackInventory: false,
           defaultSellPrice: BigInt(PRICE[family.id]['700ml']),
           defaultCostPrice: 0n,
         })
-        .onConflictDoNothing({ target: products.id });
+        .onConflictDoUpdate({
+          target: products.id,
+          set: {
+            sku: productSku,
+            name: productName,
+            categoryId: category?.id ?? rawCategoryId,
+            isActive: true,
+            updatedAt: new Date(),
+          },
+        });
 
       for (const cup of ['500ml', '700ml'] as const) {
         const variantId = `${productId}-${cup}`;
@@ -253,12 +287,21 @@ export async function seedRecipes(db: Database, tenantId: string) {
             costPrice: 0n,
             isActive: true,
           })
-          .onConflictDoNothing({ target: productVariants.id });
+          .onConflictDoUpdate({
+            target: productVariants.id,
+            set: {
+              productId,
+              sku: variantSku,
+              name: n(cup, cup, cup),
+              sellPrice: BigInt(PRICE[family.id][cup]),
+              isActive: true,
+              updatedAt: new Date(),
+            },
+          });
 
         // ── 3. BOM (anchor recipe = standard ice + standard sugar) ──
         const bomId = `bom-${variantId}`;
-        const recipe: Recipe =
-          cup === '500ml' ? family.recipe500 : family.recipe700;
+        const recipe: Recipe = cup === '500ml' ? family.recipe500 : family.recipe700;
         await db
           .insert(boms)
           .values({
@@ -270,7 +313,15 @@ export async function seedRecipes(db: Database, tenantId: string) {
             description: `${tea.label} ${family.label} ${cup} — standard sugar + standard ice`,
             isActive: true,
           })
-          .onConflictDoNothing({ target: boms.id });
+          .onConflictDoUpdate({
+            target: boms.id,
+            set: {
+              productId,
+              variantId,
+              isActive: true,
+              updatedAt: new Date(),
+            },
+          });
 
         const bomLineRows: Array<{ ingredientId: string; qty: number; uom: string }> = [];
         bomLineRows.push({ ingredientId: tea.mat, qty: recipe.tea, uom: 'ml' });
@@ -318,7 +369,17 @@ export async function seedRecipes(db: Database, tenantId: string) {
               uom: row.uom,
               isOptional: false,
             })
-            .onConflictDoNothing({ target: bomLines.id });
+            .onConflictDoUpdate({
+              target: bomLines.id,
+              set: {
+                bomId,
+                lineNo: i + 1,
+                ingredientId: row.ingredientId,
+                qty: String(row.qty),
+                uom: row.uom,
+                updatedAt: new Date(),
+              },
+            });
         }
       }
     }

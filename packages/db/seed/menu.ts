@@ -59,6 +59,13 @@ const CATEGORIES = [
     parentCode: null,
     sortOrder: 20,
   },
+  {
+    id: 'cat-raw-material',
+    code: 'RAW_MATERIAL',
+    name: n('Bahan Baku', 'Raw Material', '原材料'),
+    parentCode: null,
+    sortOrder: 99,
+  },
 ] as const;
 
 type CategoryCode = (typeof CATEGORIES)[number]['code'];
@@ -89,6 +96,7 @@ const categoryDescriptions: Record<CategoryCode, LocaleString> = {
   LEMON_FRESH_TEA: n('Fresh tea dengan lemon.', 'Fresh tea with lemon.', '柠檬鲜茶。'),
   SNOW_CAP_MILK_TEA: n('Milk tea dengan snow cap.', 'Milk tea with snow cap.', '雪顶奶茶。'),
   DESSERT: n('Dessert pendamping teh.', 'Tea-pairing dessert.', '茶饮甜品搭配。'),
+  RAW_MATERIAL: n('Bahan baku dan ingredien.', 'Raw materials and ingredients.', '原材料。'),
 };
 
 const MENU_PRODUCTS: MenuProduct[] = [
