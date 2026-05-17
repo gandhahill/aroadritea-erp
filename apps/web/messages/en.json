@@ -477,6 +477,7 @@
     "loyalty": "Loyalty / Points",
     "attendancePolicy": "Attendance Policy",
     "productsMenu": "Products & Menu",
+    "recipes": "Recipes (BOM)",
     "stockOpname": "Stock Opname",
     "inventoryVariance": "Inventory Variance",
     "purchaseOrders": "Purchase Orders",

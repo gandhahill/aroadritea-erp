@@ -78,6 +78,13 @@
       "when": 1779100200000,
       "tag": "0010_recruitment",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1779100250000,
+      "tag": "0011_user_notifications",
+      "breakpoints": true
     }
   ]
 }

@@ -4,7 +4,18 @@
  */
 import type { Metadata } from 'next';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
+import { Montserrat } from 'next/font/google';
 import { notFound } from 'next/navigation';
+
+// Brand wordmark "Aroadri Tea" must be rendered in Montserrat ExtraBold
+// per BRAND.md guideline. Self-hosted via next/font so it does not
+// depend on a runtime Google Fonts request.
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['800'],
+  display: 'swap',
+  variable: '--font-brand-wordmark',
+});
 import { getMemberAccount } from '../../actions/member';
 import { PublicFooter } from '../../components/footer';
 import { PublicHeader } from '../../components/header';
@@ -39,7 +50,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   const memberName = memberAccount?.memberName ?? null;
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={montserrat.variable}>
       <body className="flex min-h-screen flex-col bg-cream-50">
         <ClientLayout locale={locale as SiteLocale} messages={messages}>
           <PublicHeader

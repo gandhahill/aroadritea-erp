@@ -6,7 +6,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useState, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { toggleScheduledJob, updateJobSchedule } from './actions';
 import type { ScheduledJobItem } from './actions';
 
@@ -74,14 +74,12 @@ function ToggleSwitch({
       aria-checked={enabled}
       disabled={disabled}
       onClick={onToggle}
-      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-red/30 focus:ring-offset-2 focus:ring-offset-brand-cream disabled:cursor-not-allowed disabled:opacity-50 ${
-        enabled ? 'bg-brand-jade' : 'bg-brand-ink-3/30'
-      }`}
+      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-red/30 focus:ring-offset-2 focus:ring-offset-brand-cream disabled:cursor-not-allowed disabled:opacity-50 ${enabled ? 'bg-brand-jade' : 'bg-brand-ink-3/30'
+        }`}
     >
       <span
-        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out ${
-          enabled ? 'translate-x-4' : 'translate-x-0'
-        }`}
+        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-4' : 'translate-x-0'
+          }`}
       />
     </button>
   );
@@ -178,6 +176,26 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const t = useTranslations('scheduledJobs');
+  const [q, setQ] = useState('');
+  const [enabledOnly, setEnabledOnly] = useState<'all' | 'enabled' | 'disabled'>('all');
+  const [statusOnly, setStatusOnly] = useState<'all' | 'success' | 'failed' | 'never'>('all');
+
+  const filteredJobs = useMemo(() => {
+    const ql = q.trim().toLowerCase();
+    return jobs.filter((j) => {
+      if (enabledOnly === 'enabled' && !j.enabled) return false;
+      if (enabledOnly === 'disabled' && j.enabled) return false;
+      const status = j.lastRunStatus ?? 'never';
+      if (statusOnly !== 'all' && status !== statusOnly) return false;
+      if (!ql) return true;
+      return (
+        j.name.toLowerCase().includes(ql) ||
+        (j.label ?? '').toLowerCase().includes(ql) ||
+        (j.description ?? '').toLowerCase().includes(ql) ||
+        j.cronExpression.toLowerCase().includes(ql)
+      );
+    });
+  }, [jobs, q, enabledOnly, statusOnly]);
 
   const handleToggle = (jobId: string, currentEnabled: boolean) => {
     setError(null);
@@ -242,6 +260,38 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
         </div>
       )}
 
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-brand-cream-3 bg-card p-3">
+        <input
+          type="search"
+          placeholder="Cari nama, deskripsi, atau cron…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          className="h-9 min-w-48 flex-1 rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
+        />
+        <select
+          value={enabledOnly}
+          onChange={(e) => setEnabledOnly(e.target.value as 'all' | 'enabled' | 'disabled')}
+          className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
+        >
+          <option value="all">Aktif & Nonaktif</option>
+          <option value="enabled">Aktif saja</option>
+          <option value="disabled">Nonaktif saja</option>
+        </select>
+        <select
+          value={statusOnly}
+          onChange={(e) => setStatusOnly(e.target.value as 'all' | 'success' | 'failed' | 'never')}
+          className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
+        >
+          <option value="all">Semua status</option>
+          <option value="success">Sukses</option>
+          <option value="failed">Gagal</option>
+          <option value="never">Belum dijalankan</option>
+        </select>
+        <span className="ml-auto text-xs text-brand-ink-3">
+          {filteredJobs.length} dari {jobs.length}
+        </span>
+      </div>
+
       <div className="overflow-hidden rounded-lg border border-brand-cream-3 bg-card">
         <table className="w-full">
           <thead>
@@ -264,12 +314,18 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-3">
-            {jobs.map((job) => (
+            {filteredJobs.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center text-xs text-brand-ink-3">
+                  Tidak ada job yang cocok dengan filter.
+                </td>
+              </tr>
+            ) : null}
+            {filteredJobs.map((job) => (
               <tr
                 key={job.id}
-                className={`transition-colors hover:bg-brand-cream-2/30 ${
-                  !job.enabled ? 'opacity-60' : ''
-                }`}
+                className={`transition-colors hover:bg-brand-cream-2/30 ${!job.enabled ? 'opacity-60' : ''
+                  }`}
               >
                 <td className="px-4 py-3">
                   <ToggleSwitch

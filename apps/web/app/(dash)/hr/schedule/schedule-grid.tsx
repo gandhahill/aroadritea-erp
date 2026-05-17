@@ -19,10 +19,9 @@ interface Props {
 const DAYS_ID = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 
 function daysOfWeek(weekStart: string): string[] {
-  const start = new Date(`${weekStart}T00:00:00.000+07:00`);
   return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(start);
-    d.setDate(start.getDate() + i);
+    const d = new Date(`${weekStart}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + i);
     return d.toISOString().slice(0, 10);
   });
 }
@@ -97,16 +96,16 @@ export function ScheduleGrid({ weekStart, options, initialAssignments, canManage
     });
   }
 
-  const prevWeek = (() => {
-    const d = new Date(`${weekStart}T00:00:00.000+07:00`);
-    d.setDate(d.getDate() - 7);
+  // Compute ±7 days in UTC so the toISOString().slice(0,10) cast doesn't
+  // shift the date back across the WIB→UTC boundary (which caused the
+  // "next week" button to snap back to the current Monday).
+  const shiftDays = (iso: string, days: number): string => {
+    const d = new Date(`${iso}T12:00:00Z`); // mid-day UTC avoids edge cases
+    d.setUTCDate(d.getUTCDate() + days);
     return d.toISOString().slice(0, 10);
-  })();
-  const nextWeek = (() => {
-    const d = new Date(`${weekStart}T00:00:00.000+07:00`);
-    d.setDate(d.getDate() + 7);
-    return d.toISOString().slice(0, 10);
-  })();
+  };
+  const prevWeek = shiftDays(weekStart, -7);
+  const nextWeek = shiftDays(weekStart, 7);
 
   return (
     <div className="space-y-4">

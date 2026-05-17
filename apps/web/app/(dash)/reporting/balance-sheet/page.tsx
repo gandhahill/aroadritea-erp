@@ -3,7 +3,9 @@
  */
 
 import { getSession } from '@/lib/auth';
+import { pickLocalized } from '@/lib/pick-localized';
 import type { Metadata } from 'next';
+import { getLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchBalanceSheet } from '../actions';
 import { ExportXlsxButton } from '../export-button';
@@ -24,14 +26,15 @@ export default async function BalanceSheetPage({
   const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
   const asOf = params.asOf ?? new Date().toISOString().slice(0, 10);
   const data = await fetchBalanceSheet(tenantId, asOf, params.locationId);
+  const locale = await getLocale();
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Balance Sheet</h1>
+          <h1 className="text-2xl font-bold text-brand-ink">Neraca</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Neraca as of <span className="font-medium text-brand-ink">{asOf}</span>
+            Neraca per <span className="font-medium text-brand-ink">{asOf}</span>
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -44,11 +47,11 @@ export default async function BalanceSheetPage({
                   clipRule="evenodd"
                 />
               </svg>
-              Balanced
+              Seimbang
             </span>
           ) : data ? (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-600">
-              ⚠ Unbalanced
+              ⚠ Tidak seimbang
             </span>
           ) : null}
           {data ? (
@@ -61,7 +64,7 @@ export default async function BalanceSheetPage({
                     ['Code', 'Name', 'Balance (IDR)'],
                     ...data.assets.accounts.map((a) => [
                       a.accountCode,
-                      a.accountName.id ?? a.accountName.en ?? '',
+                      pickLocalized(a.accountName, locale),
                       Number(a.balance),
                     ]),
                     ['', 'TOTAL ASSETS', Number(data.assets.total)],
@@ -73,7 +76,7 @@ export default async function BalanceSheetPage({
                     ['Code', 'Name', 'Balance (IDR)'],
                     ...data.liabilities.accounts.map((a) => [
                       a.accountCode,
-                      a.accountName.id ?? a.accountName.en ?? '',
+                      pickLocalized(a.accountName, locale),
                       Number(a.balance),
                     ]),
                     ['', 'TOTAL LIABILITIES', Number(data.liabilities.total)],
@@ -85,7 +88,7 @@ export default async function BalanceSheetPage({
                     ['Code', 'Name', 'Balance (IDR)'],
                     ...data.equity.accounts.map((a) => [
                       a.accountCode,
-                      a.accountName.id ?? a.accountName.en ?? '',
+                      pickLocalized(a.accountName, locale),
                       Number(a.balance),
                     ]),
                     ['', 'Retained Earnings', Number(data.retainedEarnings)],
@@ -113,37 +116,40 @@ export default async function BalanceSheetPage({
           {/* Left: Assets */}
           <div className="space-y-4">
             <SectionCard
-              title="Assets"
-              subtitle="Aset"
+              title="Aset"
+              subtitle="Assets"
               accounts={data.assets.accounts}
               total={data.assets.total}
               colorClass="text-brand-jade"
+              locale={locale}
             />
           </div>
 
           {/* Right: Liabilities + Equity */}
           <div className="space-y-4">
             <SectionCard
-              title="Liabilities"
-              subtitle="Kewajiban"
+              title="Kewajiban"
+              subtitle="Liabilities"
               accounts={data.liabilities.accounts}
               total={data.liabilities.total}
               colorClass="text-brand-clay"
+              locale={locale}
             />
             <SectionCard
-              title="Equity"
-              subtitle="Ekuitas"
+              title="Ekuitas"
+              subtitle="Equity"
               accounts={data.equity.accounts}
               total={data.equity.total}
               colorClass="text-brand-gold"
-              extraLines={[{ label: 'Retained Earnings', value: data.retainedEarnings }]}
+              extraLines={[{ label: 'Laba Ditahan', value: data.retainedEarnings }]}
+              locale={locale}
             />
 
             {/* Totals */}
             <div className="surface-card p-4">
               <div className="flex items-center justify-between border-t-2 border-brand-cream-3 pt-3">
                 <span className="text-sm font-semibold text-brand-ink">
-                  Total Liabilities + Equity
+                  Total Kewajiban + Ekuitas
                 </span>
                 <span className="font-mono text-sm font-bold tabular-nums text-brand-ink">
                   {fmtRp(data.totalLiabilitiesAndEquity)}
@@ -168,6 +174,7 @@ interface SectionCardProps {
   total: string;
   colorClass: string;
   extraLines?: Array<{ label: string; value: string }>;
+  locale?: string;
 }
 
 function SectionCard({
@@ -177,6 +184,7 @@ function SectionCard({
   total,
   colorClass,
   extraLines,
+  locale,
 }: SectionCardProps) {
   return (
     <div className="surface-card overflow-hidden">
@@ -195,7 +203,7 @@ function SectionCard({
                 {acct.accountCode}
               </span>
               <span className="text-sm text-brand-ink">
-                {acct.accountName.id ?? acct.accountName.en}
+                {pickLocalized(acct.accountName, locale, acct.accountCode)}
               </span>
             </div>
             <span className={`font-mono text-sm tabular-nums ${colorClass}`}>
@@ -237,7 +245,7 @@ function fmtRp(val: string): string {
 function EmptyState() {
   return (
     <div className="surface-card flex flex-col items-center justify-center py-16 text-brand-ink-3">
-      <p className="text-sm font-medium">No data available for this date.</p>
+      <p className="text-sm font-medium">Belum ada data untuk tanggal ini.</p>
     </div>
   );
 }

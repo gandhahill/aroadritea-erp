@@ -81,7 +81,7 @@ export function AttendanceListClient({
     const res = await forgiveLateAction(forgiveId, forgiveReason.trim());
     setForgiving(false);
     if (!res.ok) {
-      setForgiveErr(res.error ?? 'Gagal memaafkan keterlambatan.');
+      setForgiveErr(res.error ?? 'Gagal memberi dispensasi keterlambatan.');
       return;
     }
     setForgiveId(null);
@@ -121,7 +121,7 @@ export function AttendanceListClient({
           }
           className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
         >
-          <option value="">All Employees</option>
+          <option value="">Semua Karyawan</option>
           {employees.map((e) => (
             <option key={e.value} value={e.value}>
               {e.label}
@@ -130,7 +130,7 @@ export function AttendanceListClient({
         </select>
 
         <div className="flex items-center gap-2 text-sm text-brand-ink-3">
-          <span>From</span>
+          <span>Dari</span>
           <input
             type="date"
             value={initialDateFrom}
@@ -144,7 +144,7 @@ export function AttendanceListClient({
             }
             className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
           />
-          <span>To</span>
+          <span>Sampai</span>
           <input
             type="date"
             value={initialDateTo}
@@ -177,22 +177,21 @@ export function AttendanceListClient({
               d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
             />
           </svg>
-          <h3 className="mt-3 text-base font-semibold text-brand-ink">No attendance records</h3>
-          <p className="mt-1 text-sm text-brand-ink-3">Check-in records will appear here.</p>
+          <h3 className="mt-3 text-base font-semibold text-brand-ink">Belum ada presensi</h3>
+          <p className="mt-1 text-sm text-brand-ink-3">Riwayat clock-in/out akan tampil di sini.</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Employee</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Karyawan</th>
                 <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Shift</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Check In</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Check Out</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Method</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Late</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Worked</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Aksi</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Masuk</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Pulang</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Metode</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Telat</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Jam kerja</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
@@ -214,7 +213,7 @@ export function AttendanceListClient({
                           className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade/10 px-2.5 py-0.5 text-xs font-medium text-brand-jade"
                           title={row.lateForgivenReason ?? ''}
                         >
-                          +{row.lateMinutes}m (dimaafkan)
+                          +{row.lateMinutes}m (dispensasi)
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-medium text-rose-500">
@@ -222,7 +221,7 @@ export function AttendanceListClient({
                         </span>
                       )
                     ) : (
-                      <span className="text-xs text-brand-jade">On time</span>
+                      <span className="text-xs text-brand-jade">Tepat Waktu</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-brand-ink-2">{formatMinutes(row.workedMinutes)}</td>
@@ -237,7 +236,7 @@ export function AttendanceListClient({
                         }}
                         className="rounded-md border border-brand-cream-3 px-2.5 py-1 text-xs font-semibold text-brand-ink-2 hover:border-brand-jade/40 hover:text-brand-jade"
                       >
-                        Maafkan
+                        Dispensasi
                       </button>
                     ) : null}
                   </td>
@@ -251,9 +250,9 @@ export function AttendanceListClient({
       {forgiveId ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-md rounded-xl bg-card p-5 shadow-xl">
-            <h3 className="text-base font-semibold text-brand-ink">Maafkan keterlambatan</h3>
+            <h3 className="text-base font-semibold text-brand-ink">Beri dispensasi keterlambatan</h3>
             <p className="mt-1 text-sm text-brand-ink-3">
-              Catat alasan agar audit trail jelas. Setelah dimaafkan, kejadian
+              Catat alasan agar audit trail jelas. Setelah dispensasi, kejadian
               ini tidak dihitung untuk denda payroll.
             </p>
             <textarea
@@ -290,7 +289,7 @@ export function AttendanceListClient({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-brand-ink-3">
-            Page {page} of {totalPages} — {total} results
+            Halaman {page} dari {totalPages} — {total} entri
           </p>
           <div className="flex items-center gap-2">
             <button
@@ -298,14 +297,14 @@ export function AttendanceListClient({
               disabled={page <= 1}
               className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink disabled:cursor-not-allowed disabled:opacity-40 hover:bg-brand-cream-1"
             >
-              Prev
+              ← Sebelumnya
             </button>
             <button
               onClick={() => applyFilter({ page: page + 1 })}
               disabled={page >= totalPages}
               className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink disabled:cursor-not-allowed disabled:opacity-40 hover:bg-brand-cream-1"
             >
-              Next
+              Berikutnya →
             </button>
           </div>
         </div>

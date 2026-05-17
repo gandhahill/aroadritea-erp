@@ -25,20 +25,20 @@ export default async function JournalsPage() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Journal Entries</h1>
+          <h1 className="text-2xl font-bold text-brand-ink">Jurnal Umum</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            View and manage your general journal entries.
+            Lihat dan kelola entri jurnal umum.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
-            {journals.length} entries
+            {journals.length} entri
           </span>
           <Link
             href="/accounting/journals/new"
             className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark"
           >
-            New Journal
+            Jurnal Baru
           </Link>
         </div>
       </div>

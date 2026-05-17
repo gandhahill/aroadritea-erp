@@ -183,7 +183,7 @@ const QUICK_LINKS: QuickLink[] = [
   },
   {
     href: '/settings/permissions',
-    title: 'Permissions',
+    title: 'Permission & role',
     description: 'Atur role dan akses per pengguna.',
     permission: 'settings.manage',
   },
@@ -238,7 +238,7 @@ export default async function DashboardPage() {
         <Kpi
           title="Telat hari ini"
           value={String(kpis.lateToday)}
-          subtitle="(belum dimaafkan)"
+          subtitle="(belum dispensasi)"
         />
         <Kpi title="PO outstanding" value={String(kpis.openPos)} />
         <Kpi title="Karyawan aktif" value={String(kpis.activeEmployees)} />

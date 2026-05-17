@@ -36,13 +36,24 @@
 
 > Gunakan token ini di Tailwind config sebagai `colors.brand.*`. Jangan hardcode hex di komponen.
 
-## Tipografi (Rekomendasi Awal)
+## Tipografi (Brand Guideline)
 
-> Belum ada keputusan brand tipografi. Untuk multibahasa Indonesia / Inggris / Mandarin Sederhana:
+Aturan wajib:
 
-- **Latin (ID/EN)**: **Inter** (UI ERP) atau **Manrope** (UI publik) — keduanya open-source.
-- **Mandarin (ZH-CN)**: **Noto Sans SC** — open-source, render sempurna di web & PDF.
-- **Display (logo / heading marketing)**: bila ingin nuansa Chinese-modern, gunakan **Noto Serif SC** atau **ZCOOL XiaoWei**.
+- **Wordmark "Aroadri Tea" (logo + setiap penyebutan di header/sidebar/login):
+  Montserrat ExtraBold (800), uppercase, letter-spacing 0**. Dimuat via
+  `next/font/google` sebagai CSS variable `--font-brand-wordmark` dan
+  diterapkan lewat utility class `.brand-wordmark` di kedua app
+  (`apps/site`, `apps/web`).
+- **Latin (ID/EN) untuk body & UI**: **Inter** di ERP, **Manrope** di
+  site publik. Keduanya open-source.
+- **Mandarin (ZH-CN)**: **Noto Sans SC** untuk body, **Noto Serif SC**
+  untuk heading display.
+- **Heading marketing display**: bila ingin nuansa Chinese-modern,
+  gunakan **Noto Serif SC** atau **ZCOOL XiaoWei**.
+
+Pengecualian: file branding fisik (PNG logo, favicon SVG) sudah memuat
+wordmark tergambar sebagai vektor — jangan menimpa dengan teks.
 
 ## Suara Merek (Voice & Tone)
 

@@ -194,6 +194,7 @@ export function Sidebar() {
       children: [
         { label: t('productsMenu'), href: '/inventory/products', icon: <></> },
         { label: 'Kategori', href: '/inventory/categories', icon: <></> },
+        { label: t('recipes'), href: '/inventory/recipes', icon: <></> },
         { label: t('stockOpname'), href: '/inventory/opname', icon: <></> },
         { label: t('inventoryVariance'), href: '/inventory/variance', icon: <></> },
       ],

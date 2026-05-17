@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { LocaleSwitcher } from './locale-switcher';
 import { LogoutButton } from './logout-button';
+import { NotificationBell } from './notification-bell';
 import { Sidebar } from './sidebar';
 
 export const dynamic = 'force-dynamic';
@@ -40,6 +41,7 @@ export default async function DashboardLayout({
         {/* Top bar */}
         <header className="flex h-14 items-center justify-end border-b border-brand-cream-3 bg-card px-6 shrink-0">
           <div className="flex items-center gap-3">
+            <NotificationBell />
             <LocaleSwitcher />
             <Link
               href="/account"

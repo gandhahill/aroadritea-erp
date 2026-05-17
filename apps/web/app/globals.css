@@ -168,8 +168,8 @@
 @layer utilities {
   /* Brand wordmark typography — consistent with public site (ADR-0006) */
   .brand-wordmark {
-    font-family: var(--font-display);
-    font-weight: 900;
+    font-family: var(--font-brand-wordmark), "Montserrat", var(--font-display);
+    font-weight: 800;
     letter-spacing: 0;
   }
 

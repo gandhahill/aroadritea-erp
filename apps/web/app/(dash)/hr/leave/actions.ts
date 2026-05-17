@@ -14,6 +14,7 @@ import {
   leaveRequests,
   leaveTypes,
 } from '@erp/db';
+import { notifyByPermission } from '@erp/services/notification';
 import { requirePermission } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
@@ -349,6 +350,17 @@ export async function createLeaveRequestAction(formData: FormData): Promise<void
     createdBy: ctx.userId,
     updatedBy: ctx.userId,
   });
+
+  // Notify every user that holds hr.approve_leave so they see it in the
+  // bell icon. Best-effort; never blocks the request creation.
+  notifyByPermission({
+    tenantId: ctx.tenantId,
+    kind: 'leave',
+    title: `Pengajuan cuti menunggu persetujuan`,
+    body: `${startStr} → ${endStr}${reason ? ` · ${reason}` : ''}`,
+    link: `/hr/leave`,
+    permission: 'hr.approve_leave',
+  }).catch(() => {});
   await db.insert(auditLog).values({
     id: generateId(),
     tenantId: ctx.tenantId,

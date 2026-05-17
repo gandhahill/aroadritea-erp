@@ -3,7 +3,9 @@
  */
 
 import { getSession } from '@/lib/auth';
+import { pickLocalized } from '@/lib/pick-localized';
 import type { Metadata } from 'next';
+import { getLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchTrialBalance } from '../actions';
 import { ExportXlsxButton } from '../export-button';
@@ -24,14 +26,15 @@ export default async function TrialBalancePage({
   const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
   const asOf = params.asOf ?? new Date().toISOString().slice(0, 10);
   const data = await fetchTrialBalance(tenantId, asOf, params.locationId);
+  const locale = await getLocale();
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Trial Balance</h1>
+          <h1 className="text-2xl font-bold text-brand-ink">Neraca Saldo</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Neraca Saldo as of <span className="font-medium text-brand-ink">{asOf}</span>
+            Neraca Saldo per <span className="font-medium text-brand-ink">{asOf}</span>
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -50,7 +53,7 @@ export default async function TrialBalancePage({
                     ['Code', 'Account', 'Type', 'Total Debit', 'Total Credit', 'Balance'],
                     ...data.lines.map((l) => [
                       l.accountCode,
-                      l.accountName.id ?? l.accountName.en ?? '',
+                      pickLocalized(l.accountName, locale),
                       l.accountType,
                       Number(l.totalDebit),
                       Number(l.totalCredit),
@@ -71,22 +74,22 @@ export default async function TrialBalancePage({
             <thead>
               <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                  Code
+                  Kode
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                  Account
+                  Akun
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                  Type
+                  Tipe
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   Debit
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                  Credit
+                  Kredit
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                  Balance
+                  Saldo
                 </th>
               </tr>
             </thead>
@@ -97,7 +100,7 @@ export default async function TrialBalancePage({
                     {line.accountCode}
                   </td>
                   <td className="px-4 py-2.5 text-brand-ink">
-                    {line.accountName.id ?? line.accountName.en}
+                    {pickLocalized(line.accountName, locale, line.accountCode)}
                   </td>
                   <td className="px-4 py-2.5">
                     <span className="text-xs text-brand-ink-3 capitalize">{line.accountType}</span>
@@ -131,7 +134,7 @@ export default async function TrialBalancePage({
           </table>
         </div>
       ) : (
-        <EmptyState message="No data available for this date." />
+        <EmptyState message="Belum ada data untuk tanggal ini." />
       )}
     </div>
   );

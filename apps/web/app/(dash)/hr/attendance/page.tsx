@@ -102,8 +102,8 @@ export default async function AttendancePage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Attendance</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">Check-in/out records — {total} entries</p>
+          <h1 className="text-2xl font-bold text-brand-ink">Presensi</h1>
+          <p className="mt-1 text-sm text-brand-ink-3">Riwayat clock-in/out — {total} entri</p>
         </div>
       </div>
 

@@ -120,8 +120,10 @@ export function PettyCashView({ accounts, transactions, userLocationId }: Props)
         {accounts.length === 0 && (
           <div className="surface-card col-span-full p-8 text-center">
             <p className="text-sm text-brand-ink-3">
-              Belum ada akun kas kecil untuk outlet Anda. Buat akun dengan limit
-              awal Rp 500.000 — limit dapat diubah dari menu Pengaturan setelah
+              Belum ada akun kas kecil untuk outlet Anda. Perusahaan
+              mengalokasikan maksimal <b>Rp 500.000</b> per lokasi sebagai modal
+              kembalian. Klik tombol di bawah untuk membuat akun dengan limit
+              awal tersebut — limit bisa diubah dari menu Pengaturan setelah
               dibuat.
             </p>
             {errorMessage ? (

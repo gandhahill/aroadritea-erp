@@ -1,8 +1,17 @@
 import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
+import { Montserrat } from 'next/font/google';
 import './globals.css';
 import RegisterPWA from './register-pwa';
+
+// Brand wordmark "Aroadri Tea" uses Montserrat ExtraBold (BRAND.md).
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['800'],
+  display: 'swap',
+  variable: '--font-brand-wordmark',
+});
 
 export const metadata: Metadata = {
   title: { default: 'Aroadri Tea ERP', template: '%s — Aroadri Tea ERP' },
@@ -32,7 +41,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={montserrat.variable}>
       <body className="min-h-screen bg-background text-foreground antialiased">
         <NextIntlClientProvider locale={locale} messages={messages} timeZone="Asia/Jakarta">
           <RegisterPWA />

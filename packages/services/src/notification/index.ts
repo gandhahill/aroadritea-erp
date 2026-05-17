@@ -6,7 +6,11 @@
  * and purposes are managed from ERP UI.
  */
 
-import { db, eq, notificationChannels } from '@erp/db';
+import { and, db, desc, eq, isNull, sql } from '@erp/db';
+import { notificationChannels } from '@erp/db';
+import { rolePermissions, userRoles, users } from '@erp/db/schema/auth';
+import { userNotifications } from '@erp/db/schema/notification';
+import { permissions } from '@erp/db/schema/auth';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
@@ -123,4 +127,154 @@ export async function updateNotificationChannel(
 
   if (!rows[0]) return err(AppError.notFound('notification.channel.notFound', { id }));
   return ok(toResult(rows[0]));
+}
+
+// ─── In-app notifications (bell icon) ────────────────────────────────────────
+
+export interface NotifyInput {
+  tenantId: string;
+  /** Notification kind, e.g. 'leave', 'po', 'opname', 'attendance'. */
+  kind: string;
+  title: string;
+  body?: string;
+  link?: string;
+  /**
+   * Permission code that gates who receives this notification. The
+   * service fans out to every user in the tenant that holds the
+   * permission via the role mapping.
+   */
+  permission: string;
+  /** Optional explicit user IDs to also include. */
+  extraUserIds?: string[];
+}
+
+/**
+ * Fan-out an in-app notification to every user in the tenant that holds
+ * the gating permission. Use for approval flows, mention-style alerts,
+ * and audit-significant events.
+ */
+export async function notifyByPermission(input: NotifyInput): Promise<void> {
+  try {
+    const rows = await db
+      .select({ userId: users.id })
+      .from(users)
+      .innerJoin(userRoles, eq(userRoles.userId, users.id))
+      .innerJoin(rolePermissions, eq(rolePermissions.roleId, userRoles.roleId))
+      .innerJoin(permissions, eq(permissions.id, rolePermissions.permissionId))
+      .where(
+        and(
+          eq(users.tenantId, input.tenantId),
+          eq(users.status, 'active'),
+          sql`(${permissions.code} = ${input.permission} OR ${permissions.code} = '*.*')`,
+        ),
+      );
+    const targetIds = new Set<string>(rows.map((r) => r.userId));
+    for (const id of input.extraUserIds ?? []) targetIds.add(id);
+    if (targetIds.size === 0) return;
+
+    await db.insert(userNotifications).values(
+      [...targetIds].map((userId) => ({
+        id: generateId(),
+        tenantId: input.tenantId,
+        userId,
+        kind: input.kind,
+        title: input.title,
+        body: input.body ?? null,
+        link: input.link ?? null,
+        createdBy: 'system',
+        updatedBy: 'system',
+      })),
+    );
+  } catch {
+    // Notifications are best-effort; never crash the caller.
+  }
+}
+
+export interface UserNotificationRow {
+  id: string;
+  kind: string;
+  title: string;
+  body: string | null;
+  link: string | null;
+  readAt: Date | null;
+  createdAt: Date;
+}
+
+export async function listUserNotifications(
+  tenantId: string,
+  userId: string,
+  limit = 30,
+): Promise<UserNotificationRow[]> {
+  const rows = await db
+    .select({
+      id: userNotifications.id,
+      kind: userNotifications.kind,
+      title: userNotifications.title,
+      body: userNotifications.body,
+      link: userNotifications.link,
+      readAt: userNotifications.readAt,
+      createdAt: userNotifications.createdAt,
+    })
+    .from(userNotifications)
+    .where(
+      and(
+        eq(userNotifications.tenantId, tenantId),
+        eq(userNotifications.userId, userId),
+        isNull(userNotifications.deletedAt),
+      ),
+    )
+    .orderBy(desc(userNotifications.createdAt))
+    .limit(limit);
+  return rows;
+}
+
+export async function countUnreadNotifications(
+  tenantId: string,
+  userId: string,
+): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`cast(count(*) as int)` })
+    .from(userNotifications)
+    .where(
+      and(
+        eq(userNotifications.tenantId, tenantId),
+        eq(userNotifications.userId, userId),
+        isNull(userNotifications.readAt),
+        isNull(userNotifications.deletedAt),
+      ),
+    );
+  return Number(row?.count ?? 0);
+}
+
+export async function markNotificationRead(
+  tenantId: string,
+  userId: string,
+  notificationId: string,
+): Promise<void> {
+  await db
+    .update(userNotifications)
+    .set({ readAt: new Date(), updatedAt: new Date() })
+    .where(
+      and(
+        eq(userNotifications.tenantId, tenantId),
+        eq(userNotifications.userId, userId),
+        eq(userNotifications.id, notificationId),
+      ),
+    );
+}
+
+export async function markAllNotificationsRead(
+  tenantId: string,
+  userId: string,
+): Promise<void> {
+  await db
+    .update(userNotifications)
+    .set({ readAt: new Date(), updatedAt: new Date() })
+    .where(
+      and(
+        eq(userNotifications.tenantId, tenantId),
+        eq(userNotifications.userId, userId),
+        isNull(userNotifications.readAt),
+      ),
+    );
 }

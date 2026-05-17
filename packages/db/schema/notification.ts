@@ -88,3 +88,33 @@ export const outageNotifications = pgTable(
     index('on_service_idx').on(t.serviceName, t.sentAt),
   ],
 );
+
+// ─── user_notifications (in-app notification center) ───────────────────────────
+
+/**
+ * Per-user in-app notification feed. Surfaces in the bell icon and the
+ * /notifications page. Permission-gated by whoever inserts the row
+ * (e.g. createLeaveRequest notifies only users that hold
+ * `hr.approve_leave`).
+ */
+export const userNotifications = pgTable(
+  'user_notifications',
+  {
+    ...pk,
+    ...tenantCol,
+    userId: text('user_id').notNull(),
+    /** Coarse category: 'leave', 'po', 'opname', 'attendance', 'shift', etc. */
+    kind: text('kind').notNull(),
+    /** Single-line label rendered in the bell list. */
+    title: text('title').notNull(),
+    body: text('body'),
+    /** Optional deep link the bell row navigates to. */
+    link: text('link'),
+    readAt: timestamp('read_at', { withTimezone: true }),
+    ...auditCols,
+  },
+  (t) => [
+    index('un_user_unread_idx').on(t.userId, t.readAt),
+    index('un_tenant_created_idx').on(t.tenantId, t.createdAt),
+  ],
+);

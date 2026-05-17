@@ -474,6 +474,7 @@
     "posCashier": "POS 收银",
     "demoMode": "演示模式",
     "productsMenu": "产品与菜单",
+    "recipes": "配方 (BOM)",
     "stockOpname": "库存盘点",
     "inventoryVariance": "库存差异",
     "purchaseOrders": "采购订单",

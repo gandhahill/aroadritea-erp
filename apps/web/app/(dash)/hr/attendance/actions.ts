@@ -30,7 +30,7 @@ export async function forgiveLateAction(
   if (!result.ok) {
     return {
       ok: false,
-      error: result.error?.message ?? 'Gagal memaafkan keterlambatan.',
+      error: result.error?.message ?? 'Gagal memberi dispensasi keterlambatan.',
     };
   }
   revalidatePath('/hr/attendance');

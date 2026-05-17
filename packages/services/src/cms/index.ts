@@ -286,6 +286,55 @@ export async function listPosts(
   }
 }
 
+/**
+ * Public — list every published post for the given tenant. Used by the
+ * public site `/blog` index. No auth required.
+ */
+export async function listPublishedPosts(
+  tenantId: string,
+  options?: { kind?: string; limit?: number },
+): Promise<Result<Array<Record<string, unknown>>>> {
+  try {
+    const conditions = [eq(cmsPosts.tenantId, tenantId), eq(cmsPosts.status, 'published')];
+    if (options?.kind) conditions.push(eq(cmsPosts.kind, options.kind));
+    const rows = await db
+      .select()
+      .from(cmsPosts)
+      .where(and(...conditions))
+      .orderBy(desc(cmsPosts.updatedAt))
+      .limit(options?.limit ?? 50);
+    return ok(rows);
+  } catch (e) {
+    return err(AppError.internal('cms.posts.listFailed', e));
+  }
+}
+
+/**
+ * Public — fetch a single published post by slug. Used by
+ * `/blog/[slug]` on the public site.
+ */
+export async function getPublishedPostBySlug(
+  tenantId: string,
+  slug: string,
+): Promise<Result<Record<string, unknown> | null>> {
+  try {
+    const [row] = await db
+      .select()
+      .from(cmsPosts)
+      .where(
+        and(
+          eq(cmsPosts.tenantId, tenantId),
+          eq(cmsPosts.slug, slug),
+          eq(cmsPosts.status, 'published'),
+        ),
+      )
+      .limit(1);
+    return ok(row ?? null);
+  } catch (e) {
+    return err(AppError.internal('cms.post.getFailed', e));
+  }
+}
+
 /** Create a new blog post. */
 export async function createPost(
   input: CreatePostInput,

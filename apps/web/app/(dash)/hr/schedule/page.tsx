@@ -12,12 +12,13 @@ import { ScheduleGrid } from './schedule-grid';
 
 export const metadata: Metadata = { title: 'Jadwal Shift' };
 
-/** Anchor: previous (or same) Monday for the given ISO date. */
+/** Anchor: previous (or same) Monday for the given ISO date. UTC-based to
+ *  avoid the WIB↔UTC date-shift bug that froze the next-week navigation. */
 function mondayOf(iso: string): string {
-  const d = new Date(`${iso}T00:00:00.000+07:00`);
-  const day = d.getDay(); // 0 = Sunday
+  const d = new Date(`${iso}T12:00:00Z`);
+  const day = d.getUTCDay(); // 0 = Sunday
   const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
+  d.setUTCDate(d.getUTCDate() + diff);
   return d.toISOString().slice(0, 10);
 }
 

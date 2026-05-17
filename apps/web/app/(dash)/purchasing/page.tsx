@@ -1,25 +1,7 @@
 import Link from 'next/link';
 import { fetchPurchasingDashboard } from './actions';
+import { PoFilterTable } from './po-filter-table';
 import { SupplierForm } from './supplier-form';
-
-function formatIdr(value: string): string {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0,
-  }).format(Number(value));
-}
-
-function statusClass(status: string): string {
-  if (['approved', 'received', 'closed'].includes(status)) {
-    return 'border-brand-jade/30 bg-brand-jade/10 text-brand-jade';
-  }
-  if (['submitted', 'partial'].includes(status)) {
-    return 'border-brand-gold/40 bg-brand-gold/15 text-brand-wood';
-  }
-  if (status === 'cancelled') return 'border-rose-200 bg-rose-50 text-rose-700';
-  return 'border-brand-cream-3 bg-brand-cream-1 text-brand-ink-3';
-}
 
 export default async function PurchasingPage() {
   const data = await fetchPurchasingDashboard();
@@ -80,52 +62,9 @@ export default async function PurchasingPage() {
           <div className="space-y-6">
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
               <div className="border-b border-brand-cream-3 px-5 py-4">
-                <h2 className="text-base font-semibold text-brand-ink">Purchase order terakhir</h2>
+                <h2 className="text-base font-semibold text-brand-ink">Purchase Order</h2>
               </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
-                  <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                    <tr>
-                      <th className="px-4 py-3">Nomor</th>
-                      <th className="px-4 py-3">Supplier</th>
-                      <th className="px-4 py-3">Lokasi</th>
-                      <th className="px-4 py-3">Tanggal</th>
-                      <th className="px-4 py-3 text-right">Total</th>
-                      <th className="px-4 py-3">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-brand-cream-3 bg-card">
-                    {data.purchaseOrders.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="px-4 py-8 text-center text-brand-ink-3">
-                          Belum ada purchase order.
-                        </td>
-                      </tr>
-                    ) : (
-                      data.purchaseOrders.map((po) => (
-                        <tr key={po.id}>
-                          <td className="px-4 py-3 font-mono text-xs font-semibold text-brand-ink">
-                            {po.number}
-                          </td>
-                          <td className="px-4 py-3 text-brand-ink">{po.supplierName}</td>
-                          <td className="px-4 py-3 text-brand-muted">{po.locationName}</td>
-                          <td className="px-4 py-3 text-brand-muted">{po.orderDate}</td>
-                          <td className="px-4 py-3 text-right font-semibold text-brand-ink">
-                            {formatIdr(po.grandTotal)}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span
-                              className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClass(po.status)}`}
-                            >
-                              {po.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              <PoFilterTable purchaseOrders={data.purchaseOrders} />
             </div>
 
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">

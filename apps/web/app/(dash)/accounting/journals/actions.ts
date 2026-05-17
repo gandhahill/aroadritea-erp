@@ -7,7 +7,9 @@
 
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
+import { pickLocalized } from '@/lib/pick-localized';
 import { and, asc, db, desc, eq, inArray } from '@erp/db';
+import { getLocale } from 'next-intl/server';
 import {
   accountingPeriods,
   accounts,
@@ -178,10 +180,10 @@ export async function fetchJournalList(): Promise<JournalListItem[]> {
     string,
     Array<{ accountCode: string; accountName: string; debit: string; credit: string }>
   >();
+  const locale = await getLocale();
   for (const line of lines) {
     const arr = linesByJournal.get(line.journalEntryId) ?? [];
-    const nameField = line.accountName as Record<string, string> | null;
-    const accountLabel = nameField?.id ?? nameField?.en ?? line.accountCode ?? '—';
+    const accountLabel = pickLocalized(line.accountName, locale, line.accountCode ?? '—');
     arr.push({
       accountCode: line.accountCode ?? '—',
       accountName: accountLabel,

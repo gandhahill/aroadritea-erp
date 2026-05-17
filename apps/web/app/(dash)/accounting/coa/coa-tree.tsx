@@ -6,7 +6,8 @@
 
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { pickLocalized } from '@/lib/pick-localized';
+import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import type { COANode } from './actions';
 
@@ -26,6 +27,7 @@ interface COATreeViewProps {
 
 export function COATreeView({ tree }: COATreeViewProps) {
   const t = useTranslations('accounting.coa');
+  const locale = useLocale();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
     // Expand all root nodes by default
@@ -190,6 +192,7 @@ export function COATreeView({ tree }: COATreeViewProps) {
                 expandedIds={expandedIds}
                 onToggle={toggleExpand}
                 labels={{ active: t('active'), inactive: t('inactive'), typeLabels: TYPE_LABELS }}
+                locale={locale}
               />
             ))}
           </div>
@@ -207,9 +210,10 @@ interface TreeNodeProps {
   expandedIds: Set<string>;
   onToggle: (id: string) => void;
   labels: { active: string; inactive: string; typeLabels: Record<string, string> };
+  locale: string;
 }
 
-function TreeNode({ node, depth, expandedIds, onToggle, labels }: TreeNodeProps) {
+function TreeNode({ node, depth, expandedIds, onToggle, labels, locale }: TreeNodeProps) {
   const hasChildren = node.children.length > 0;
   const isExpanded = expandedIds.has(node.id);
   const colors = TYPE_COLORS[node.type] ?? {
@@ -255,7 +259,7 @@ function TreeNode({ node, depth, expandedIds, onToggle, labels }: TreeNodeProps)
             {node.code}
           </span>
           <span className="truncate font-medium text-brand-ink">
-            {node.name.id ?? node.name.en ?? Object.values(node.name)[0]}
+            {pickLocalized(node.name, locale, node.code)}
           </span>
         </div>
 
@@ -334,6 +338,7 @@ function TreeNode({ node, depth, expandedIds, onToggle, labels }: TreeNodeProps)
               expandedIds={expandedIds}
               onToggle={onToggle}
               labels={labels}
+              locale={locale}
             />
           ))}
         </div>

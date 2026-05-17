@@ -115,13 +115,12 @@ export function JournalTable({ journals }: JournalTableProps) {
             <button
               type="button"
               onClick={() => setStatusFilter(null)}
-              className={`rounded-full border px-3 py-1 text-xs font-medium transition-all ${
-                !statusFilter
-                  ? 'border-brand-red bg-brand-red/10 text-brand-red'
-                  : 'border-brand-cream-3 text-brand-ink-3 hover:bg-brand-cream-2'
-              }`}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-all ${!statusFilter
+                ? 'border-brand-red bg-brand-red/10 text-brand-red'
+                : 'border-brand-cream-3 text-brand-ink-3 hover:bg-brand-cream-2'
+                }`}
             >
-              All ({journals.length})
+              Semua ({journals.length})
             </button>
             {(['draft', 'posted', 'reversed'] as const).map((status) => {
               const style = STATUS_STYLES[status];
@@ -131,11 +130,10 @@ export function JournalTable({ journals }: JournalTableProps) {
                   type="button"
                   key={status}
                   onClick={() => setStatusFilter(isActive ? null : status)}
-                  className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all ${
-                    isActive
-                      ? `${style?.bg ?? ''} ${style?.text ?? ''} border-current ring-2 ring-offset-1 ring-brand-red/30`
-                      : 'border-brand-cream-3 text-brand-ink-3 hover:bg-brand-cream-2'
-                  }`}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all ${isActive
+                    ? `${style?.bg ?? ''} ${style?.text ?? ''} border-current ring-2 ring-offset-1 ring-brand-red/30`
+                    : 'border-brand-cream-3 text-brand-ink-3 hover:bg-brand-cream-2'
+                    }`}
                 >
                   {status} ({counts[status]})
                 </button>
@@ -151,19 +149,19 @@ export function JournalTable({ journals }: JournalTableProps) {
           <thead>
             <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Entry #
+                No. Jurnal
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Date
+                Tanggal
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Description
+                Deskripsi
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Type
+                Tipe
               </th>
               <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Amount
+                Nominal
               </th>
               <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                 Status
@@ -189,8 +187,8 @@ export function JournalTable({ journals }: JournalTableProps) {
                         d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
                       />
                     </svg>
-                    <p className="text-sm font-medium">No journal entries found</p>
-                    <p className="mt-1 text-xs">Try adjusting your search or filter.</p>
+                    <p className="text-sm font-medium">Tidak ada jurnal</p>
+                    <p className="mt-1 text-xs">Coba ubah filter atau kata kunci pencarian.</p>
                   </div>
                 </td>
               </tr>

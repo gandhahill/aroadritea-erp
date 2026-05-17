@@ -117,18 +117,21 @@ export function AuditTrailClient({
                     <td className="px-4 py-3 text-brand-ink">{row.entityType}</td>
                     <td className="px-4 py-3 font-mono text-xs text-brand-ink-3">{row.entityId}</td>
                     <td className="px-4 py-3">
-                      <details>
-                        <summary className="cursor-pointer text-xs font-semibold text-brand-red">
-                          {t('viewDiff')}
-                        </summary>
-                        <pre className="mt-2 max-h-64 overflow-auto rounded-lg bg-brand-cream p-3 text-xs text-brand-ink">
-                          {JSON.stringify(
-                            { before: row.before, after: row.after, metadata: row.metadata },
-                            null,
-                            2,
-                          )}
-                        </pre>
-                      </details>
+                      <FieldDiff before={row.before} after={row.after} />
+                      {row.metadata ? (
+                        <details className="mt-2">
+                          <summary className="cursor-pointer text-[11px] font-semibold text-brand-ink-3 hover:text-brand-red">
+                            Detail teknis
+                          </summary>
+                          <pre className="mt-1 max-h-48 overflow-auto rounded-md bg-brand-cream p-2 text-[10px] text-brand-ink-3">
+                            {JSON.stringify(
+                              { before: row.before, after: row.after, metadata: row.metadata },
+                              null,
+                              2,
+                            )}
+                          </pre>
+                        </details>
+                      ) : null}
                     </td>
                   </tr>
                 ))
@@ -139,6 +142,107 @@ export function AuditTrailClient({
       </div>
     </div>
   );
+}
+
+/**
+ * Render a human-readable diff of audit-log `before` / `after` JSON blobs.
+ *
+ * Strategy: union the keys, drop noise columns (timestamps, audit IDs),
+ * and show only the fields that actually changed. Long values are
+ * truncated. Nested objects are stringified compactly.
+ */
+function FieldDiff({ before, after }: { before: unknown; after: unknown }) {
+  const beforeObj = isObject(before) ? before : {};
+  const afterObj = isObject(after) ? after : {};
+  const NOISE = new Set([
+    'updatedAt',
+    'updated_at',
+    'createdAt',
+    'created_at',
+    'updatedBy',
+    'updated_by',
+    'version',
+  ]);
+  const keys = Array.from(new Set([...Object.keys(beforeObj), ...Object.keys(afterObj)])).filter(
+    (k) => !NOISE.has(k),
+  );
+
+  const rows = keys
+    .map((key) => ({
+      key,
+      before: beforeObj[key],
+      after: afterObj[key],
+    }))
+    .filter((r) => !shallowEqual(r.before, r.after));
+
+  if (rows.length === 0) {
+    if (Object.keys(beforeObj).length === 0 && Object.keys(afterObj).length === 0) {
+      return <span className="text-xs text-brand-ink-3">—</span>;
+    }
+    return <span className="text-xs text-brand-ink-3">Tidak ada perubahan field</span>;
+  }
+
+  return (
+    <ul className="space-y-1 text-xs">
+      {rows.map((r) => (
+        <li key={r.key} className="flex flex-wrap items-baseline gap-1">
+          <span className="font-semibold text-brand-ink">{humanizeKey(r.key)}:</span>
+          {Object.keys(beforeObj).length > 0 ? (
+            <>
+              <span className="rounded bg-rose-50 px-1.5 py-0.5 text-rose-700">
+                {renderValue(r.before)}
+              </span>
+              <span className="text-brand-ink-3">→</span>
+            </>
+          ) : null}
+          <span className="rounded bg-brand-jade/10 px-1.5 py-0.5 text-brand-jade">
+            {renderValue(r.after)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function shallowEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a == null && b == null) return true;
+  if (a == null || b == null) return false;
+  if (typeof a !== typeof b) return false;
+  if (typeof a === 'object') {
+    try {
+      return JSON.stringify(a) === JSON.stringify(b);
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+function humanizeKey(key: string): string {
+  return key
+    .replace(/_/g, ' ')
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim();
+}
+
+function renderValue(value: unknown): string {
+  if (value == null) return '—';
+  if (typeof value === 'string') {
+    return value.length > 60 ? `${value.slice(0, 57)}…` : value;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  try {
+    const s = JSON.stringify(value);
+    return s.length > 80 ? `${s.slice(0, 77)}…` : s;
+  } catch {
+    return '[object]';
+  }
 }
 
 function FilterInput({
