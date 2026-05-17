@@ -182,11 +182,7 @@ function normalizeAddress(code: string, address: string | null): string {
 }
 
 function mapSearchUrl(query: string, locale: Locale): string {
-  // Google Maps is blocked in mainland China. For zh visitors we link to
-  // AMap (高德地图) — native and universally reachable inside China. For
-  // every other locale we use OpenStreetMap, which works globally
-  // (including from inside China without a VPN).
+  // Use Google Maps as the primary map provider.
   const encoded = encodeURIComponent(query);
-  if (locale === 'zh') return `https://uri.amap.com/search?keyword=${encoded}`;
-  return `https://www.openstreetmap.org/search?query=${encoded}`;
+  return `https://www.google.com/maps/search/?api=1&query=${encoded}`;
 }

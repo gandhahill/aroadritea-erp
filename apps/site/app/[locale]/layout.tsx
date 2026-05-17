@@ -78,11 +78,9 @@ export default async function LocaleLayout({ children, params }: Props) {
             company={footer('company')}
             locationLine={footer('locationLine')}
             socialLabel={footer('socialLabel')}
-            socials={socialsForLocale(locale as SiteLocale, {
+            socials={socialsForLocale({
               instagram: footer('instagramLabel'),
               tiktok: footer('tiktokLabel'),
-              xiaohongshu: footer('xiaohongshuLabel'),
-              douyin: footer('douyinLabel'),
             })}
             copyright={footer('copyright', { brand, year: new Date().getFullYear() })}
           />
@@ -92,28 +90,10 @@ export default async function LocaleLayout({ children, params }: Props) {
   );
 }
 
-// Instagram/TikTok are blocked in mainland China. For zh visitors we
-// surface Xiaohongshu (小红书) and Douyin (抖音) — both reachable inside
-// China without a VPN. The username slugs below are placeholders that
-// can be updated once the brand registers official Chinese accounts.
+// Just surfacing Instagram and TikTok for all locales.
 function socialsForLocale(
-  locale: SiteLocale,
-  labels: { instagram: string; tiktok: string; xiaohongshu: string; douyin: string },
+  labels: { instagram: string; tiktok: string },
 ): SocialLink[] {
-  if (locale === 'zh') {
-    return [
-      {
-        kind: 'xiaohongshu',
-        label: labels.xiaohongshu,
-        href: 'https://www.xiaohongshu.com/search_result?keyword=Aroadri%20Tea',
-      },
-      {
-        kind: 'douyin',
-        label: labels.douyin,
-        href: 'https://www.douyin.com/search/Aroadri%20Tea',
-      },
-    ];
-  }
   return [
     { kind: 'instagram', label: labels.instagram, href: 'https://www.instagram.com/aroadri.tea/' },
     { kind: 'tiktok', label: labels.tiktok, href: 'https://www.tiktok.com/@aroadri.tea' },
