@@ -1,0 +1,3 @@
+-- This migration is intentionally empty to synchronize Drizzle Kit snapshots
+-- with the existing manual migrations (0005-0011) that were missing snapshots.
+-- New changes should start from the next migration.
