@@ -13,7 +13,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, gte, sql } from 'drizzle-orm';
 import { createJournal } from './create-journal';
 import { requirePermission } from '../iam';
 import {
@@ -218,28 +218,34 @@ export async function recordPettyCashExpense(
     return err(AppError.notFound('accounting.pettyCash.accountNotFound', { locationId }));
   }
 
-  if (acct.balance < amount) {
-    return err(
-      AppError.businessRule('accounting.pettyCash.insufficientBalance', {
-        balance: acct.balance.toString(),
-        requested: amountStr,
-      }),
-    );
-  }
-
   return tryCatch(
     async () => {
       const txId = generateId();
-      const newBalance = acct.balance - amount;
 
-      await db
+      // Atomic decrement guarded by balance >= amount. The neon-http
+      // driver doesn't support multi-statement transactions, so we rely
+      // on Postgres' per-row write lock to serialize concurrent expenses:
+      // either both succeed in order or the second one returns no rows
+      // and we surface insufficientBalance to the caller.
+      const updated = await db
         .update(pettyCashAccounts)
         .set({
-          balance: newBalance,
+          balance: sql`${pettyCashAccounts.balance} - ${amount}`,
           updatedAt: new Date(),
           updatedBy: ctx.userId,
         })
-        .where(eq(pettyCashAccounts.id, acct.id));
+        .where(
+          and(eq(pettyCashAccounts.id, acct.id), gte(pettyCashAccounts.balance, amount)),
+        )
+        .returning({ balance: pettyCashAccounts.balance });
+
+      const newBalance = updated[0]?.balance;
+      if (newBalance === undefined) {
+        throw AppError.businessRule('accounting.pettyCash.insufficientBalance', {
+          balance: acct.balance.toString(),
+          requested: amountStr,
+        });
+      }
 
       const txRows = await db
         .insert(pettyCashTransactions)
@@ -323,32 +329,37 @@ export async function replenishPettyCash(
     return err(AppError.notFound('accounting.pettyCash.accountNotFound', { locationId }));
   }
 
-  const newBalance = acct.balance + amount;
-
-  if (newBalance > acct.maxLimit) {
-    return err(
-      AppError.businessRule('accounting.pettyCash.exceedsMaxLimit', {
-        maxLimit: acct.maxLimit.toString(),
-        currentBalance: acct.balance.toString(),
-        topupAmount: amountStr,
-        resultingBalance: newBalance.toString(),
-      }),
-    );
-  }
-
   return tryCatch(
     async () => {
       const txId = generateId();
 
-      await db
+      // Atomic increment guarded against breaching maxLimit. If two
+      // replenishes race, only the one that still fits below the ceiling
+      // succeeds; the other surfaces exceedsMaxLimit.
+      const updated = await db
         .update(pettyCashAccounts)
         .set({
-          balance: newBalance,
+          balance: sql`${pettyCashAccounts.balance} + ${amount}`,
           lastReplenishAt: new Date(),
           updatedAt: new Date(),
           updatedBy: ctx.userId,
         })
-        .where(eq(pettyCashAccounts.id, acct.id));
+        .where(
+          and(
+            eq(pettyCashAccounts.id, acct.id),
+            sql`${pettyCashAccounts.balance} + ${amount} <= ${pettyCashAccounts.maxLimit}`,
+          ),
+        )
+        .returning({ balance: pettyCashAccounts.balance });
+
+      const newBalance = updated[0]?.balance;
+      if (newBalance === undefined) {
+        throw AppError.businessRule('accounting.pettyCash.exceedsMaxLimit', {
+          maxLimit: acct.maxLimit.toString(),
+          currentBalance: acct.balance.toString(),
+          topupAmount: amountStr,
+        });
+      }
 
       const txRows = await db
         .insert(pettyCashTransactions)
@@ -435,24 +446,32 @@ export async function depositPettyCashToBank(
   if (!acct) {
     return err(AppError.notFound('accounting.pettyCash.accountNotFound', { locationId }));
   }
-  if (acct.balance < amount) {
-    return err(
-      AppError.businessRule('accounting.pettyCash.insufficientBalance', {
-        balance: acct.balance.toString(),
-        requested: amountStr,
-      }),
-    );
-  }
 
   return tryCatch(
     async () => {
       const txId = generateId();
-      const newBalance = acct.balance - amount;
 
-      await db
+      // Atomic decrement (see expense path note). Guards against
+      // concurrent setor + expense draining the account below zero.
+      const updated = await db
         .update(pettyCashAccounts)
-        .set({ balance: newBalance, updatedAt: new Date(), updatedBy: ctx.userId })
-        .where(eq(pettyCashAccounts.id, acct.id));
+        .set({
+          balance: sql`${pettyCashAccounts.balance} - ${amount}`,
+          updatedAt: new Date(),
+          updatedBy: ctx.userId,
+        })
+        .where(
+          and(eq(pettyCashAccounts.id, acct.id), gte(pettyCashAccounts.balance, amount)),
+        )
+        .returning({ balance: pettyCashAccounts.balance });
+
+      const newBalance = updated[0]?.balance;
+      if (newBalance === undefined) {
+        throw AppError.businessRule('accounting.pettyCash.insufficientBalance', {
+          balance: acct.balance.toString(),
+          requested: amountStr,
+        });
+      }
 
       const txRows = await db
         .insert(pettyCashTransactions)

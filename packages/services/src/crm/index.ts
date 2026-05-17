@@ -19,6 +19,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, asc, desc, eq, gte } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import { requirePermission } from '../iam';
+import { decryptPii, encryptPii, encryptPiiForLookup } from '../security/pii';
 
 // ─── Loyalty configuration ──────────────────────────────────────────────────
 
@@ -136,8 +137,12 @@ export async function createPartner(
       id,
       tenantId: ctx.tenantId,
       name: input.name,
-      email: input.email ?? null,
-      phone: input.phone,
+      // partners.phone is mandated encrypted at rest by SD §25.1 / UU PDP.
+      // email is encrypted alongside it — the public site reads partners
+      // back via crm.findByPhone (which uses encryptPiiForLookup), so the
+      // application never needs cleartext storage.
+      email: encryptPii(input.email ?? null, 'partners.email'),
+      phone: encryptPii(input.phone, 'partners.phone'),
       kind: input.kind ?? 'customer',
       isMember: input.isMember ?? false,
       loyaltyTier: input.loyaltyTier ?? 'bronze',

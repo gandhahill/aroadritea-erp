@@ -6,8 +6,10 @@
  */
 
 import { db } from '@erp/db';
+import { auditLog } from '@erp/db/schema/audit';
 import { employees } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
@@ -69,6 +71,45 @@ export async function updateEmployee(
       if (!updated) {
         throw AppError.notFound('hr.employee.notFound');
       }
+
+      // SD §15 — log only non-PII field changes. The encrypted columns
+      // (phone/address/npwp/etc.) are intentionally excluded so the
+      // audit trail can be read by managers without holding the PII key.
+      const safeAfter: Record<string, unknown> = {};
+      for (const key of [
+        'name',
+        'email',
+        'position',
+        'department',
+        'status',
+        'contractType',
+        'workSchedule',
+        'emergencyContactName',
+      ] as const) {
+        const v = data[key as keyof typeof data];
+        if (v !== undefined) safeAfter[key] = v;
+      }
+      const piiKeysTouched = [
+        'phone',
+        'address',
+        'npwp',
+        'bpjsKesehatan',
+        'bpjsTenagakerja',
+        'emergencyContactPhone',
+      ].filter((k) => data[k as keyof typeof data] !== undefined);
+      if (piiKeysTouched.length > 0) safeAfter['_pii_fields_updated'] = piiKeysTouched;
+
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'update',
+        entityType: 'employee',
+        entityId: updated.id,
+        before: null,
+        after: safeAfter,
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      });
 
       return { id: updated.id };
     },

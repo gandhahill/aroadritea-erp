@@ -7,6 +7,7 @@
 
 import { db } from '@erp/db';
 import { roles, userRoles, users } from '@erp/db/schema/auth';
+import { auditLog } from '@erp/db/schema/audit';
 import { employees } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -112,6 +113,29 @@ export async function createEmployee(
         });
         await db.insert(userRoles).values({ userId, roleId: role.id });
       }
+
+      // SD §15 — every employee create writes an audit row. Don't log
+      // raw PII fields here; the before/after diff comes from the
+      // encrypted values stored in the row. We only persist a short
+      // summary that's safe to display in the audit-trail UI.
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'create',
+        entityType: 'employee',
+        entityId: emp.id,
+        before: null,
+        after: {
+          name: data.name,
+          email: data.email,
+          position: data.position,
+          department: data.department ?? null,
+          contractType: data.contractType,
+          hireDate: data.hireDate,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      });
 
       return { id: emp.id };
     },

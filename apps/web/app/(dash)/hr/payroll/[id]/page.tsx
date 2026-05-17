@@ -188,9 +188,9 @@ export default async function PayrollDetailPage({ params }: Props) {
               'use server';
               const action = formData.get('action') as string;
               if (action === 'approve') {
-                await approvePayrollAction({ payrollId: id }, ctx);
+                await approvePayrollAction({ payrollId: id });
               } else if (action === 'paid') {
-                await markPayrollPaidAction({ payrollId: id }, ctx);
+                await markPayrollPaidAction({ payrollId: id });
               }
             }}
           >

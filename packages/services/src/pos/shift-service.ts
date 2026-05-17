@@ -115,6 +115,14 @@ export async function openShift(input: unknown, ctx: AuditContext): Promise<Resu
       closedAt: null,
     });
   } catch (e) {
+    // Two cashiers racing to open the same location both passed the
+    // app-level check but the partial unique index in 0015_shift_unique_open
+    // rejects the second insert. Map that race to the same business
+    // error users see for normal duplicate opens.
+    const msg = e instanceof Error ? e.message : String(e);
+    if (/duplicate key|unique constraint|shifts_open_per_location_unique/i.test(msg)) {
+      return err(AppError.businessRule('pos.shift.alreadyOpen', { locationId: data.locationId }));
+    }
     return err(AppError.internal('pos.shift.openFailed', e));
   }
 }

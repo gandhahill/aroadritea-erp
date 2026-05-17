@@ -498,12 +498,15 @@ async function deductIngredients(
         .then((r) => r[0]);
 
       if (existing) {
-        const newOnHand = Number.parseFloat(existing.qtyOnHand) - Number.parseFloat(ing.qty);
+        // Atomic decrement via SQL so two concurrent sales can't lose a
+        // unit each. GREATEST clamps to zero in case the row drifted
+        // below the deduction quantity (SoT §25.9 mandates warn-only
+        // negative-stock handling, not hard block).
         await db
           .update(stockLevels)
           .set({
-            qtyOnHand: String(Math.max(0, newOnHand)),
-            qtyAvailable: String(Math.max(0, newOnHand)),
+            qtyOnHand: sql`GREATEST(0::numeric, ${stockLevels.qtyOnHand} - ${ing.qty})`,
+            qtyAvailable: sql`GREATEST(0::numeric, ${stockLevels.qtyAvailable} - ${ing.qty})`,
             updatedBy: ctx.userId,
             lastMovementAt: new Date(),
           })

@@ -24,6 +24,7 @@ import { z } from 'zod';
 import nodemailer from 'nodemailer';
 import { buildOtpEmailHtml } from './email-templates';
 import { hashMemberPassword, verifyMemberPassword } from './password';
+import { decryptPii, encryptPii, encryptPiiForLookup } from '../security/pii';
 
 // ─── Rate limiting constants ───────────────────────────────────────────────
 
@@ -270,14 +271,16 @@ export async function initiateSignup(
     return err(AppError.conflict('member.signup.rateLimited'));
   }
 
-  // Check email not already registered
+  // Check email not already registered. partners.email is encrypted at
+  // rest (SD §25.1) so we compare against the deterministic ciphertext.
+  const emailCipherSignup = encryptPiiForLookup(input.email, 'partners.email');
   const existing = await db
     .select({ id: partners.id })
     .from(partners)
     .where(
       and(
         eq(partners.tenantId, 'default'),
-        eq(partners.email, input.email),
+        eq(partners.email, emailCipherSignup ?? ''),
         eq(partners.kind, 'customer'),
       ),
     )
@@ -295,7 +298,13 @@ export async function initiateSignup(
     return err(AppError.conflict('member.signup.emailExists'));
   }
 
-  const existingPhone = phoneCandidates.length
+  // partners.phone is also encrypted — encrypt every dialing-format
+  // candidate so we can detect duplicates regardless of how the new
+  // signer typed the number.
+  const phoneCipherCandidates = phoneCandidates
+    .map((c) => encryptPiiForLookup(c, 'partners.phone'))
+    .filter((c): c is string => Boolean(c));
+  const existingPhone = phoneCipherCandidates.length
     ? await db
         .select({ id: partners.id })
         .from(partners)
@@ -304,7 +313,7 @@ export async function initiateSignup(
             eq(partners.tenantId, 'default'),
             eq(partners.kind, 'customer'),
             eq(partners.isMember, true),
-            inArray(partners.phone, phoneCandidates),
+            inArray(partners.phone, phoneCipherCandidates),
           ),
         )
         .limit(1)
@@ -498,13 +507,18 @@ export async function completeSignup(
   // Create partner record
   let memberId: string;
   try {
+    // SD §25.1 / UU PDP: partners.email + partners.phone stored
+    // encrypted at rest. Use deterministic encryptPiiForLookup for the
+    // dedup query so the same plaintext yields the same ciphertext.
+    const emailCipher = encryptPiiForLookup(email, 'partners.email');
+    const phoneCipher = phone ? encryptPii(phone, 'partners.phone') : null;
     const existingPartner = await db
       .select({ id: partners.id, isMember: partners.isMember, phone: partners.phone })
       .from(partners)
       .where(
         and(
           eq(partners.tenantId, 'default'),
-          eq(partners.email, email),
+          eq(partners.email, emailCipher ?? ''),
           eq(partners.kind, 'customer'),
         ),
       )
@@ -512,12 +526,12 @@ export async function completeSignup(
 
     if (existingPartner[0]) {
       memberId = existingPartner[0].id;
-      if (!existingPartner[0].isMember || existingPartner[0].phone !== phone) {
+      if (!existingPartner[0].isMember || existingPartner[0].phone !== phoneCipher) {
         await db
           .update(partners)
           .set({
             name,
-            phone: phone || existingPartner[0].phone,
+            phone: phoneCipher ?? existingPartner[0].phone,
             birthDate: birthDate ? new Date(birthDate) : null,
             city: city || null,
             isMember: true,
@@ -532,8 +546,8 @@ export async function completeSignup(
         tenantId: 'default',
         name,
         kind: 'customer',
-        email,
-        phone: phone || null,
+        email: emailCipher,
+        phone: phoneCipher,
         birthDate: birthDate ? new Date(birthDate) : null,
         city: city || null,
         isMember: true,
@@ -644,14 +658,17 @@ export async function loginMember(
 
   const { email, password } = parsed.data;
 
-  // Find member by email
+  // Find member by email — partners.email is encrypted; deterministic
+  // encryption means the same plaintext always produces the same
+  // ciphertext, so a direct equality match still works.
+  const emailCipher = encryptPiiForLookup(email.toLowerCase().trim(), 'partners.email');
   const [partner] = await db
     .select({ id: partners.id, name: partners.name, isActive: partners.isActive, isMember: partners.isMember })
     .from(partners)
     .where(
       and(
         eq(partners.tenantId, 'default'),
-        eq(partners.email, email.toLowerCase().trim()),
+        eq(partners.email, emailCipher ?? ''),
         eq(partners.kind, 'customer'),
       ),
     )
@@ -713,6 +730,12 @@ export async function findMemberByPhone(
     return err(AppError.validation('member.lookup.invalidPhone'));
   }
 
+  // partners.phone is encrypted at rest — encrypt every dialing-format
+  // candidate before the lookup so we can match without scanning rows.
+  const cipherCandidates = candidates
+    .map((c) => encryptPiiForLookup(c, 'partners.phone'))
+    .filter((c): c is string => Boolean(c));
+
   try {
     const rows = await db
       .select({
@@ -732,7 +755,7 @@ export async function findMemberByPhone(
           eq(partners.kind, 'customer'),
           eq(partners.isMember, true),
           eq(partners.isActive, true),
-          inArray(partners.phone, candidates),
+          inArray(partners.phone, cipherCandidates),
         ),
       )
       .limit(1);
@@ -743,7 +766,10 @@ export async function findMemberByPhone(
     return ok({
       memberId: member.memberId,
       name: member.name,
-      phone: member.phone,
+      // Decrypt the persisted ciphertext before handing back to the UI;
+      // findByPhone is called from the POS so the cashier sees a readable
+      // number when confirming the lookup result.
+      phone: decryptPii(member.phone, 'partners.phone') ?? '',
       loyaltyTier: member.tier ?? member.loyaltyTier ?? 'bronze',
       points: member.points ?? 0,
       lifetimePoints: member.lifetimePoints ?? 0,

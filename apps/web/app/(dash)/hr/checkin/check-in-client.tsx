@@ -16,8 +16,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { serverCheckIn } from './actions';
 
 interface Props {
-  userId: string;
-  tenantId: string;
+  // userId / tenantId no longer flow through the client — serverCheckIn
+  // resolves session-side. Kept on the prop type so the parent server
+  // component can keep its current shape without churn.
+  userId?: string;
+  tenantId?: string;
   locationId: string;
   employeeId: string;
   shifts: Array<{ id: string; label: string; time: string }>;
@@ -32,7 +35,7 @@ interface GpsState {
   watchId: number | null;
 }
 
-export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts }: Props) {
+export function CheckInClient({ locationId, employeeId, shifts }: Props) {
   const t = useTranslations('hr.attendance.checkInPage');
   const attendanceT = useTranslations('hr.attendance');
   const locale = useLocale();
@@ -119,25 +122,19 @@ export function CheckInClient({ userId, tenantId, locationId, employeeId, shifts
     setSubmitting(true);
     setResult(null);
 
-    const ctx = {
-      userId,
-      tenantId,
-      locationId,
-      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
-    };
+    // ctx is no longer passed from the client — serverCheckIn resolves
+    // the session itself. We still derive gps data here because the
+    // browser geolocation API is the source of truth.
     const gpsData = gps.data
       ? { ...gps.data, source: gps.data.source ?? 'geolocation_api' }
       : undefined;
 
-    const res = await serverCheckIn(
-      {
-        employeeId,
-        shiftDefinitionId: selectedShift || undefined,
-        method: 'gps',
-        gpsData,
-      },
-      ctx,
-    );
+    const res = await serverCheckIn({
+      employeeId,
+      shiftDefinitionId: selectedShift || undefined,
+      method: 'gps',
+      gpsData,
+    });
 
     setSubmitting(false);
 

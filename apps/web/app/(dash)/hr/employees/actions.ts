@@ -74,11 +74,17 @@ function errorMessage(error: unknown) {
   return String(error);
 }
 
-export async function serverListEmployees(input: ListEmployeesInput, ctx: AuditContext) {
+export async function serverListEmployees(input: ListEmployeesInput) {
+  // ctx must come from the server-side session — previously it was a
+  // typed parameter, which let a malicious client query any tenant.
+  const ctx = await getAuditContext();
+  if (!ctx) return { ok: false as const, error: { messageKey: 'Unauthenticated' } };
   return listEmployees(input, ctx);
 }
 
-export async function serverGetEmployee(employeeId: string, ctx: AuditContext) {
+export async function serverGetEmployee(employeeId: string) {
+  const ctx = await getAuditContext();
+  if (!ctx) return { ok: false as const, error: { messageKey: 'Unauthenticated' } };
   return getEmployee(employeeId, ctx);
 }
 
