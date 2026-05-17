@@ -14,10 +14,23 @@ export function DemoOrderCart() {
 
   if (state.lines.length === 0) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center py-12 text-center">
-        <span className="text-4xl">🛒</span>
-        <p className="mt-2 text-sm text-brand-ink-3">{t('emptyCart')}</p>
-        <p className="mt-1 text-xs text-brand-ink-3">{t('addFirstProduct')}</p>
+      <div className="flex h-full flex-col items-center justify-center gap-3">
+        <svg
+          aria-hidden="true"
+          className="h-14 w-14 text-brand-ink-3/30"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
+          />
+        </svg>
+        <p className="text-sm font-medium text-brand-ink-3">{t('emptyCart')}</p>
+        <p className="text-xs text-brand-ink-3/60">{t('addFirstProduct')}</p>
       </div>
     );
   }

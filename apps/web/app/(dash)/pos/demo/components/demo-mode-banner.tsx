@@ -24,7 +24,7 @@ export function DemoModeBanner({ pendingCount }: DemoModeBannerProps) {
   const { isMasterStale: stale, masterSnapshotAge: age } = { isMasterStale, masterSnapshotAge };
 
   return (
-    <div className="fixed inset-x-0 top-0 z-[100] flex items-center justify-between gap-2 bg-brand-red px-3 py-2 text-sm font-medium text-white shadow-lg">
+    <div className="flex items-center justify-between gap-2 bg-brand-red px-3 py-2 text-sm font-medium text-white shadow-lg">
       {/* Left: demo label */}
       <div className="flex items-center gap-2">
         <span className="inline-block rounded bg-card/20 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-white">

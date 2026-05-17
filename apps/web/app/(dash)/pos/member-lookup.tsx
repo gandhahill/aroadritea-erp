@@ -8,15 +8,17 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { type FormEvent, useState, useTransition } from 'react';
+import { type FormEvent, useEffect, useState, useTransition } from 'react';
 import { type MemberLookupActionResult, lookupMemberByPhoneAction } from './actions';
 import { usePosCart } from './pos-cart-context';
 
 type FoundMember = NonNullable<Extract<MemberLookupActionResult, { ok: true }>['member']>;
 
-/** Extract the "a/n:" prefix from cart notes so we can edit it independently. */
+/** Extract the "a/n:" prefix from cart notes so we can edit it independently.
+ *  Greedy on the guest segment so back-to-back keystrokes don't accumulate a
+ *  trailing chain of partial values ("a/n: Lintang | Lintan | Linta | …"). */
 function extractGuestName(notes: string): { guest: string; rest: string } {
-  const match = notes.match(/^a\/n:\s*([^|]*?)(?:\s*\|\s*)?(.*)$/i);
+  const match = notes.match(/^a\/n:\s*([^|]+?)\s*(?:\|\s*(.*))?$/i);
   if (!match) return { guest: '', rest: notes };
   return { guest: (match[1] ?? '').trim(), rest: (match[2] ?? '').trim() };
 }
@@ -38,6 +40,12 @@ export function MemberLookup() {
   const [messageKey, setMessageKey] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [guestName, setGuestName] = useState(initialGuest);
+
+  // Keep the local input in sync with cart notes — e.g. when clearCart()
+  // wipes the cart after a successful payment, the input must reset too.
+  useEffect(() => {
+    setGuestName(initialGuest);
+  }, [initialGuest]);
 
   function commitGuestName(next: string) {
     setGuestName(next);

@@ -5,6 +5,9 @@ import { useMemo, useState, useTransition } from 'react';
 import { savePromotionAction } from './actions';
 
 type LocationOption = { id: string; code: string; type: string; label: string };
+type ProductOption = { id: string; sku: string; label: string };
+type VariantOption = { id: string; productId: string; sku: string; label: string };
+type ExpenseAccountOption = { id: string; code: string; label: string };
 
 interface Labels {
   add: string;
@@ -54,6 +57,9 @@ interface Labels {
 interface Props {
   initialPromotions: PromotionListItem[];
   locations: LocationOption[];
+  products: ProductOption[];
+  variants: VariantOption[];
+  expenseAccounts: ExpenseAccountOption[];
   labels: Labels;
 }
 
@@ -231,7 +237,14 @@ function toInput(draft: PromotionDraft): UpsertPromotionInput {
   };
 }
 
-export function PromotionsClient({ initialPromotions, locations, labels }: Props) {
+export function PromotionsClient({
+  initialPromotions,
+  locations,
+  products,
+  variants,
+  expenseAccounts,
+  labels,
+}: Props) {
   const [items, setItems] = useState(initialPromotions);
   const [draft, setDraft] = useState<PromotionDraft>(emptyDraft());
   const [message, setMessage] = useState<string | null>(null);
@@ -490,9 +503,10 @@ export function PromotionsClient({ initialPromotions, locations, labels }: Props
               value={draft.buyQty}
               onChange={(buyQty) => update({ buyQty })}
             />
-            <Field
+            <Dropdown
               label={labels.buyProductId}
               value={draft.buyProductId}
+              options={products}
               onChange={(buyProductId) => update({ buyProductId })}
             />
             <Field
@@ -500,14 +514,18 @@ export function PromotionsClient({ initialPromotions, locations, labels }: Props
               value={draft.getQty}
               onChange={(getQty) => update({ getQty })}
             />
-            <Field
+            <Dropdown
               label={labels.getProductId}
               value={draft.getProductId}
+              options={products}
               onChange={(getProductId) => update({ getProductId })}
             />
-            <Field
+            <Dropdown
               label={labels.getVariantId}
               value={draft.getVariantId}
+              options={variants.filter(
+                (v) => !draft.getProductId || v.productId === draft.getProductId,
+              )}
               onChange={(getVariantId) => update({ getVariantId })}
             />
             <Field
@@ -516,9 +534,10 @@ export function PromotionsClient({ initialPromotions, locations, labels }: Props
               onChange={(discountPercent) => update({ discountPercent })}
             />
           </div>
-          <Field
+          <Dropdown
             label={labels.expenseAccount}
             value={draft.expenseAccountCode}
+            options={expenseAccounts.map((a) => ({ id: a.code, label: a.label }))}
             onChange={(expenseAccountCode) => update({ expenseAccountCode })}
           />
         </div>
@@ -600,6 +619,37 @@ function Select({
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+/** Searchable single-select dropdown that displays a label but stores the id. */
+function Dropdown({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: Array<{ id: string; label: string }>;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-medium text-brand-ink-3">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-9 w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-2 text-sm text-brand-ink"
+      >
+        <option value="">—</option>
+        {options.map((option) => (
+          <option key={option.id} value={option.id}>
             {option.label}
           </option>
         ))}

@@ -24,6 +24,7 @@ const STATIC_ROUTES = new Set([
   'member',
   'blog',
   'karir',
+  'karier',
 ]);
 
 /** Extract localized text from a JSONB field. */

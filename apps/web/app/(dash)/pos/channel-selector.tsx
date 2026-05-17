@@ -44,7 +44,8 @@ export function ChannelSelector() {
 
   const channels = useMemo(
     () => [
-      { id: 'walk_in', label: t('walkIn'), badge: 'POS' },
+      { id: 'dine_in', label: t('dineIn'), badge: 'DIN' },
+      { id: 'take_away', label: t('takeAway'), badge: 'TA' },
       ...deliveryChannels.map((channel) => ({
         id: channel.id,
         label: channel.label,
@@ -55,8 +56,14 @@ export function ChannelSelector() {
   );
 
   useEffect(() => {
+    // Map legacy 'walk_in' onto dine_in so existing carts/orders don't
+    // reset the cashier's selection out from under them.
+    if (state.channel === 'walk_in') {
+      setChannel('dine_in');
+      return;
+    }
     if (channels.some((channel) => channel.id === state.channel)) return;
-    setChannel('walk_in');
+    setChannel('dine_in');
   }, [channels, setChannel, state.channel]);
 
   return (

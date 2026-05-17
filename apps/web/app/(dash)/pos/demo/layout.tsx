@@ -22,8 +22,7 @@ export default async function DemoPosLayout({ children }: { children: React.Reac
   return (
     <DemoModeProvider>
       <DemoCartProvider>
-        {/* Demo banner + main layout injected via children */}
-        <div className="flex min-h-screen flex-col bg-brand-cream">{children}</div>
+        <div className="flex h-full flex-col bg-brand-cream">{children}</div>
       </DemoCartProvider>
     </DemoModeProvider>
   );

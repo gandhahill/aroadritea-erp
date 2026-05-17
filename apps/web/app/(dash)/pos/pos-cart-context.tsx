@@ -70,7 +70,7 @@ const defaultState: CartState = {
   shiftId: null,
   locationId: '',
   tenantId: '',
-  channel: 'walk_in',
+  channel: 'dine_in',
   lines: [],
   payments: [],
   customer: null,

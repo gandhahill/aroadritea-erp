@@ -6,17 +6,21 @@
  */
 
 import { db } from '@erp/db';
-import { pettyCashAccounts, pettyCashTransactions } from '@erp/db/schema/accounting';
+import { accounts, pettyCashAccounts, pettyCashTransactions } from '@erp/db/schema/accounting';
+import { posSettings } from '@erp/db/schema/pos';
 import { auditLog } from '@erp/db/schema/audit';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq } from 'drizzle-orm';
+import { createJournal } from './create-journal';
 import { requirePermission } from '../iam';
 import {
   type CreatePettyCashAccountInput,
   CreatePettyCashAccountSchema,
+  type DepositPettyCashToBankInput,
+  DepositPettyCashToBankSchema,
   type ListPettyCashTransactionsInput,
   ListPettyCashTransactionsSchema,
   type RecordPettyCashExpenseInput,
@@ -391,6 +395,165 @@ export async function replenishPettyCash(
 }
 
 /**
+ * Deposit cash from the petty-cash account back into the outlet's bank
+ * account. Decreases petty cash balance and posts a journal:
+ *   DR Bank        <amount>
+ *   CR Petty Cash  <amount>
+ * The bank account used per outlet is read from posSettings.bankAccountCode
+ * (falls back to the generic 1-1200 from the seeded CoA).
+ */
+export async function depositPettyCashToBank(
+  input: DepositPettyCashToBankInput,
+  ctx: AuditContext,
+): Promise<Result<PettyCashTransactionResult>> {
+  const parsed = DepositPettyCashToBankSchema.safeParse(input);
+  if (!parsed.success) {
+    return err(
+      AppError.validation('accounting.pettyCash.validationFailed', { issues: parsed.error.issues }),
+    );
+  }
+  const { locationId, amount: amountStr, description } = parsed.data;
+
+  const permCheck = await requirePermission(ctx.userId, 'accounting.petty_cash.replenish', {
+    locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  const amount = BigInt(amountStr);
+
+  const account = await db
+    .select()
+    .from(pettyCashAccounts)
+    .where(
+      and(
+        eq(pettyCashAccounts.tenantId, ctx.tenantId),
+        eq(pettyCashAccounts.locationId, locationId),
+      ),
+    )
+    .limit(1);
+  const acct = account[0];
+  if (!acct) {
+    return err(AppError.notFound('accounting.pettyCash.accountNotFound', { locationId }));
+  }
+  if (acct.balance < amount) {
+    return err(
+      AppError.businessRule('accounting.pettyCash.insufficientBalance', {
+        balance: acct.balance.toString(),
+        requested: amountStr,
+      }),
+    );
+  }
+
+  return tryCatch(
+    async () => {
+      const txId = generateId();
+      const newBalance = acct.balance - amount;
+
+      await db
+        .update(pettyCashAccounts)
+        .set({ balance: newBalance, updatedAt: new Date(), updatedBy: ctx.userId })
+        .where(eq(pettyCashAccounts.id, acct.id));
+
+      const txRows = await db
+        .insert(pettyCashTransactions)
+        .values({
+          id: txId,
+          accountId: acct.id,
+          kind: 'deposit_to_bank',
+          amount,
+          description,
+          referenceType: 'bank_deposit',
+          createdBy: ctx.userId,
+        })
+        .returning();
+
+      await postBankDepositJournal({ tenantId: ctx.tenantId, locationId, amount }, ctx);
+
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'create',
+        entityType: 'petty_cash_transaction',
+        entityId: txId,
+        before: null,
+        after: {
+          id: txId,
+          kind: 'deposit_to_bank',
+          amount: amountStr,
+          description,
+          locationId,
+          balanceBefore: acct.balance.toString(),
+          balanceAfter: newBalance.toString(),
+        },
+        metadata: {
+          ip: ctx.ipAddress ?? null,
+          userAgent: ctx.userAgent ?? null,
+        },
+      });
+
+      return toTransactionResult(txRows[0]!);
+    },
+    (e) => {
+      if (e instanceof AppError) return e;
+      return AppError.internal('accounting.pettyCash.depositFailed', e);
+    },
+  );
+}
+
+async function postBankDepositJournal(
+  args: { tenantId: string; locationId: string; amount: bigint },
+  ctx: AuditContext,
+): Promise<void> {
+  const setting = await db
+    .select({ bankCode: posSettings.bankAccountCode })
+    .from(posSettings)
+    .where(
+      and(eq(posSettings.tenantId, args.tenantId), eq(posSettings.locationId, args.locationId)),
+    )
+    .limit(1)
+    .then((rows) => rows[0]);
+  const bankCode = setting?.bankCode ?? '1-1200';
+  const pettyCode = '1-1310';
+
+  const accountRows = await db
+    .select({ id: accounts.id, code: accounts.code })
+    .from(accounts)
+    .where(and(eq(accounts.tenantId, args.tenantId), eq(accounts.isActive, true)));
+  const byCode = new Map(accountRows.map((a) => [a.code, a.id] as const));
+  const bankId = byCode.get(bankCode);
+  const pettyId = byCode.get(pettyCode);
+  if (!bankId || !pettyId) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+  await createJournal(
+    {
+      postingDate: today,
+      locationId: args.locationId,
+      description: 'Setor kas kecil ke bank',
+      referenceType: 'manual',
+      lines: [
+        {
+          accountId: bankId,
+          locationId: args.locationId,
+          description: 'Bank — setoran dari kas kecil',
+          debit: args.amount.toString(),
+          credit: '0',
+        },
+        {
+          accountId: pettyId,
+          locationId: args.locationId,
+          description: 'Kas Kecil — disetor ke bank',
+          debit: '0',
+          credit: args.amount.toString(),
+        },
+      ],
+    },
+    ctx,
+  );
+}
+
+/**
  * Create a petty cash account for a location. One per location.
  */
 export async function createPettyCashAccount(
@@ -403,12 +566,24 @@ export async function createPettyCashAccount(
       AppError.validation('accounting.pettyCash.validationFailed', { issues: parsed.error.issues }),
     );
   }
-  const { locationId, maxLimit: maxLimitStr } = parsed.data;
+  const { locationId, maxLimit: maxLimitStr, openingBalance: openingStr } = parsed.data;
 
   const permCheck = await requirePermission(ctx.userId, 'accounting.petty_cash.manage', {
     locationId,
   });
   if (!permCheck.ok) return permCheck;
+
+  // Default opening balance to the max limit so cashier always has change
+  // ready. A caller may still pass openingBalance: "0" to open empty.
+  const openingBalance = BigInt(openingStr ?? maxLimitStr);
+  if (openingBalance > BigInt(maxLimitStr)) {
+    return err(
+      AppError.businessRule('accounting.pettyCash.openingExceedsLimit', {
+        maxLimit: maxLimitStr,
+        openingBalance: openingBalance.toString(),
+      }),
+    );
+  }
 
   const existing = await db
     .select({ id: pettyCashAccounts.id })
@@ -436,12 +611,36 @@ export async function createPettyCashAccount(
           id: acctId,
           tenantId: ctx.tenantId,
           locationId,
-          balance: 0n,
+          balance: openingBalance,
           maxLimit,
+          lastReplenishAt: openingBalance > 0n ? new Date() : null,
           createdBy: ctx.userId,
           updatedBy: ctx.userId,
         })
         .returning();
+
+      // Record the opening transaction + auto-journal the cash transfer:
+      //   DR Petty Cash 1-1310
+      //   CR Cash       1-1100
+      // The exact account codes come from posSettings (so each store can
+      // override them) with sensible SAK-ETAP defaults when missing.
+      if (openingBalance > 0n) {
+        await db.insert(pettyCashTransactions).values({
+          id: generateId(),
+          accountId: acctId,
+          kind: 'topup',
+          amount: openingBalance,
+          description: 'Pembukaan kas kecil — modal kembalian',
+          referenceType: 'opening',
+          createdBy: ctx.userId,
+        });
+
+        await postOpeningCashTransfer({
+          tenantId: ctx.tenantId,
+          locationId,
+          amount: openingBalance,
+        }, ctx);
+      }
 
       await db.insert(auditLog).values({
         id: generateId(),
@@ -455,7 +654,7 @@ export async function createPettyCashAccount(
           id: acctId,
           locationId,
           maxLimit: maxLimitStr,
-          balance: '0',
+          balance: openingBalance.toString(),
         },
         metadata: {
           ip: ctx.ipAddress ?? null,
@@ -469,5 +668,65 @@ export async function createPettyCashAccount(
       if (e instanceof AppError) return e;
       return AppError.internal('accounting.pettyCash.createFailed', e);
     },
+  );
+}
+
+/**
+ * Helper — post a Kas → Kas Kecil journal entry. Resolves the account IDs
+ * from the chart of accounts using their codes (default 1-1100 / 1-1310,
+ * overridable via posSettings.cashAccountCode). Best-effort: if either
+ * account is missing we log a warning but the petty-cash account still
+ * opens so the cashier isn't blocked.
+ */
+async function postOpeningCashTransfer(
+  args: { tenantId: string; locationId: string; amount: bigint },
+  ctx: AuditContext,
+): Promise<void> {
+  const setting = await db
+    .select({ cashCode: posSettings.cashAccountCode })
+    .from(posSettings)
+    .where(
+      and(eq(posSettings.tenantId, args.tenantId), eq(posSettings.locationId, args.locationId)),
+    )
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  const cashCode = setting?.cashCode ?? '1-1100';
+  const pettyCode = '1-1310';
+
+  const accountRows = await db
+    .select({ id: accounts.id, code: accounts.code })
+    .from(accounts)
+    .where(and(eq(accounts.tenantId, args.tenantId), eq(accounts.isActive, true)));
+  const byCode = new Map(accountRows.map((a) => [a.code, a.id] as const));
+  const cashId = byCode.get(cashCode);
+  const pettyId = byCode.get(pettyCode);
+  if (!cashId || !pettyId) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+  await createJournal(
+    {
+      postingDate: today,
+      locationId: args.locationId,
+      description: 'Pembukaan kas kecil — transfer kas ke kas kecil',
+      referenceType: 'manual',
+      lines: [
+        {
+          accountId: pettyId,
+          locationId: args.locationId,
+          description: 'Kas Kecil — modal kembalian',
+          debit: args.amount.toString(),
+          credit: '0',
+        },
+        {
+          accountId: cashId,
+          locationId: args.locationId,
+          description: 'Kas — transfer ke kas kecil',
+          debit: '0',
+          credit: args.amount.toString(),
+        },
+      ],
+    },
+    ctx,
   );
 }

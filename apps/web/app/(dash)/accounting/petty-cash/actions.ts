@@ -5,7 +5,13 @@ import { pettyCashAccounts, pettyCashTransactions } from '@erp/db/schema/account
 import { locations } from '@erp/db/schema/auth';
 import type { LocaleString } from '@erp/shared/types';
 import { getSession } from '@/lib/auth';
-import { createPettyCashAccount } from '@erp/services/accounting';
+import {
+  createPettyCashAccount,
+  depositPettyCashToBank,
+  recordPettyCashExpense,
+  replenishPettyCash,
+} from '@erp/services/accounting';
+import { revalidatePath } from 'next/cache';
 
 export interface PettyCashAccountItem {
   id: string;
@@ -90,14 +96,85 @@ export async function fetchPettyCashTransactions(
   }));
 }
 
-export async function createAccountAction(locationId: string, maxLimit: number) {
+export async function createAccountAction(
+  locationId: string,
+  maxLimit: number,
+  openingBalance: number,
+) {
   const session = await getSession();
   if (!session) throw new Error('Unauthenticated');
   const user = session.user as Record<string, unknown>;
   const tenantId = String(user.tenantId ?? 'default');
   const userId = String(user.id ?? '');
 
-  const result = await createPettyCashAccount({ locationId, maxLimit: maxLimit.toString() }, { userId, tenantId, locationId });
+  const result = await createPettyCashAccount(
+    {
+      locationId,
+      maxLimit: maxLimit.toString(),
+      openingBalance: openingBalance.toString(),
+    },
+    { userId, tenantId, locationId },
+  );
   if (!result.ok) throw new Error(result.error.messageKey);
+  revalidatePath('/accounting/petty-cash');
+  return result.value;
+}
+
+async function getActionContext() {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthenticated');
+  const user = session.user as Record<string, unknown>;
+  return {
+    userId: String(user.id ?? ''),
+    tenantId: String(user.tenantId ?? 'default'),
+  };
+}
+
+export async function replenishAction(
+  locationId: string,
+  amount: number,
+  description: string,
+) {
+  const ctx = await getActionContext();
+  const result = await replenishPettyCash(
+    { locationId, amount: amount.toString(), description: description || 'Isi ulang kas kecil' },
+    { ...ctx, locationId },
+  );
+  if (!result.ok) throw new Error(result.error.messageKey);
+  revalidatePath('/accounting/petty-cash');
+  return result.value;
+}
+
+export async function expenseAction(
+  locationId: string,
+  amount: number,
+  description: string,
+) {
+  const ctx = await getActionContext();
+  const result = await recordPettyCashExpense(
+    { locationId, amount: amount.toString(), description },
+    { ...ctx, locationId },
+  );
+  if (!result.ok) throw new Error(result.error.messageKey);
+  revalidatePath('/accounting/petty-cash');
+  return result.value;
+}
+
+export async function depositToBankAction(
+  locationId: string,
+  amount: number,
+  description: string,
+) {
+  const ctx = await getActionContext();
+  const result = await depositPettyCashToBank(
+    {
+      locationId,
+      amount: amount.toString(),
+      description: description || 'Setor kas kecil ke bank',
+    },
+    { ...ctx, locationId },
+  );
+  if (!result.ok) throw new Error(result.error.messageKey);
+  revalidatePath('/accounting/petty-cash');
   return result.value;
 }

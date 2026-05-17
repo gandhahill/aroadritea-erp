@@ -14,6 +14,7 @@
 import { sql } from 'drizzle-orm';
 import {
   bigint,
+  boolean,
   index,
   integer,
   jsonb,
@@ -69,6 +70,10 @@ export const posSettings = pgTable(
     cashAccountCode: text('cash_account_code').notNull().default('1-1300'),
     revenueAccountCode: text('revenue_account_code').notNull().default('4-1100'),
     donationTrustAccountCode: text('donation_trust_account_code').notNull().default('2-2050'),
+    // Per-outlet bank account used when petty cash is deposited back to the
+    // bank (Setor ke Bank). Defaults to the generic Bank account in COA.
+    bankAccountCode: text('bank_account_code').notNull().default('1-1200'),
+    bankAccountLabel: text('bank_account_label'),
     deliveryChannelsJson: jsonb('delivery_channels_json')
       .$type<
         Array<
@@ -86,6 +91,15 @@ export const posSettings = pgTable(
       .default(['gofood', 'grabfood', 'shopeefood']),
     deliveryNetBps: integer('delivery_net_bps').notNull().default(8000),
     receiptWidthMm: integer('receipt_width_mm').notNull().default(80),
+    receiptLabelWidthMm: integer('receipt_label_width_mm').notNull().default(40),
+    receiptLabelHeightMm: integer('receipt_label_height_mm').notNull().default(30),
+    receiptShowLogo: boolean('receipt_show_logo').notNull().default(true),
+    receiptOutletPhone: text('receipt_outlet_phone'),
+    receiptOutletAddress: text('receipt_outlet_address'),
+    receiptInstagram: text('receipt_instagram').default('@aroadri.tea'),
+    receiptTiktok: text('receipt_tiktok').default('@aroadri.tea'),
+    receiptWebsite: text('receipt_website').default('aroadritea.com'),
+    receiptFooterText: text('receipt_footer_text'),
 
     ...auditCols,
   },

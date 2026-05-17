@@ -34,11 +34,11 @@ export function DemoPosClient() {
 
   return (
     <>
-      {/* Demo mode banner */}
+      {/* Demo mode banner (inline, mirrors OfflineBanner placement) */}
       <DemoModeBanner />
 
-      {/* Main layout — padded top for banner */}
-      <div className="flex h-[calc(100vh-44px)] flex-1 flex-col pt-11 overflow-hidden">
+      {/* Main layout — mirrors real /pos shell (h-full + nested flex) */}
+      <div className="flex h-full flex-1 flex-col overflow-hidden">
         <div className="flex flex-1 gap-0 overflow-hidden">
           {/* Left: product panel */}
           <div className="flex w-1/2 flex-col border-r border-brand-cream-3 bg-card overflow-hidden">

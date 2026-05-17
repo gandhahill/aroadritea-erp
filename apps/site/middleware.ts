@@ -75,6 +75,18 @@ function shouldCanonicalizeRedirect(request: NextRequest) {
 export default function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
+  // Legacy slug redirect: /xx/karir → /xx/karier (Bahasa Indonesia spelling).
+  // Preserve the locale prefix and any query string so the redirect is
+  // idempotent and SEO-clean.
+  const karirMatch = pathname.match(/^\/(id|en|zh)\/karir(\/.*)?$/);
+  if (karirMatch) {
+    const locale = karirMatch[1]!;
+    const tail = karirMatch[2] ?? '';
+    const target = new URL(`/${locale}/karier${tail}`, request.nextUrl.origin);
+    target.search = search;
+    return NextResponse.redirect(target, 308);
+  }
+
   if (shouldCanonicalizeRedirect(request) && !hasLocalePrefix(pathname)) {
     const locale = getPreferredLocale(request);
     const localizedPathname = pathname === '/' ? `/${locale}` : `/${locale}${pathname}`;

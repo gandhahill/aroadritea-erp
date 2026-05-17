@@ -7,6 +7,7 @@
  */
 
 import { authClient } from '@/lib/auth-client';
+import { recordAuthEvent } from '@/lib/audit-auth';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, Suspense, useState } from 'react';
@@ -55,13 +56,16 @@ function LoginContent() {
 
       if (result.error) {
         setError(t('errorInvalid'));
+        void recordAuthEvent({ action: 'login_failed', email, reason: 'invalid_credentials' });
       } else {
         document.cookie = `aroadri.locale=${selectedLocale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
+        void recordAuthEvent({ action: 'login', email });
         router.push(callbackUrl);
         router.refresh();
       }
     } catch {
       setError(t('errorServer'));
+      void recordAuthEvent({ action: 'login_failed', email, reason: 'server_error' });
     } finally {
       setLoading(false);
     }

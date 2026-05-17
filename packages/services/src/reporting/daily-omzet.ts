@@ -56,6 +56,28 @@ function stripPB1FromCents(grossCents: bigint): bigint {
   return (grossCents * PB1_MULTIPLIER) / PB1_DIVISOR;
 }
 
+/**
+ * Convert whatever `db.execute()` returned (string, number, bigint, null) into
+ * a bigint. Returns 0n for null, undefined, empty string, NaN, or non-numeric.
+ */
+function toBigIntSafe(value: unknown): bigint {
+  if (value === null || value === undefined) return 0n;
+  if (typeof value === 'bigint') return value;
+  if (typeof value === 'number') return Number.isFinite(value) ? BigInt(Math.trunc(value)) : 0n;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed === '' || !/^-?\d+(\.\d+)?$/.test(trimmed)) return 0n;
+    // Drop fractional remainder (Postgres NUMERIC can return "12345.00")
+    const intPart = trimmed.split('.')[0]!;
+    try {
+      return BigInt(intPart);
+    } catch {
+      return 0n;
+    }
+  }
+  return 0n;
+}
+
 // ─── getOmzetHarian ───────────────────────────────────────────────────────
 
 export async function getOmzetHarian(
@@ -87,7 +109,11 @@ export async function getOmzetHarian(
           AND placed_at < ${dayEnd.toISOString()}
       `,
     );
-    const grossCents = (saleAgg.rows[0]?.total as unknown as bigint) ?? BigInt(0);
+    // Coerce SUM(...) carefully — node-postgres returns NUMERIC as string
+    // and BIGINT as string by default. Skip BigInt() when the value is
+    // null/empty/non-digit so we never throw "Cannot convert ... to BigInt".
+    const grossRaw = saleAgg.rows[0]?.total;
+    const grossCents = toBigIntSafe(grossRaw);
 
     // 2. Compute PB1 amounts
     const netCents = stripPB1FromCents(grossCents);
@@ -109,7 +135,7 @@ export async function getOmzetHarian(
       )
       .limit(1);
 
-    const adjCents = (adj?.amount as unknown as bigint) ?? BigInt(0);
+    const adjCents = toBigIntSafe(adj?.amount);
     const fiscalCents = netCents + adjCents;
 
     // 4. Shift count for the day (using explicit Asia/Jakarta day range)

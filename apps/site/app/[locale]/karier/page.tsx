@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 import { CareersClient } from './careers-client';
 
 export const metadata: Metadata = {
-  title: 'Karir — Aroadri Tea',
+  title: 'Karier — Aroadri Tea',
 };
 
 export const dynamic = 'force-dynamic';

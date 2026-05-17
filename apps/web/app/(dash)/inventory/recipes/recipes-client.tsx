@@ -1,5 +1,6 @@
 'use client';
 
+import { formatQty } from '@/lib/format-qty';
 import { useMemo, useState, useTransition } from 'react';
 import {
   type ProductOption,
@@ -333,7 +334,7 @@ export function RecipesClient({ initial }: Props) {
                         <span className="font-mono text-xs text-brand-ink-3">{l.ingredientSku}</span>{' '}
                         <span className="text-brand-ink">{l.ingredientName}</span>
                       </td>
-                      <td className="px-3 py-2 text-right tabular-nums">{l.qty}</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{formatQty(l.qty)}</td>
                       <td className="px-3 py-2">{l.uom}</td>
                       <td className="px-3 py-2 text-right">
                         <button

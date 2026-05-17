@@ -58,6 +58,7 @@ export function AuditTrailClient({
               'close',
               'login',
               'logout',
+              'login_failed',
             ].map((action) => (
               <option key={action} value={action}>
                 {action}

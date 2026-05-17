@@ -15,7 +15,7 @@ const NAV_LINKS = [
   { key: 'menu', href: (locale: string) => `/${locale}/menu` },
   { key: 'about', href: (locale: string) => `/${locale}/tentang` },
   { key: 'locations', href: (locale: string) => `/${locale}/lokasi` },
-  { key: 'careers', href: (locale: string) => `/${locale}/karir` },
+  { key: 'careers', href: (locale: string) => `/${locale}/karier` },
 ] as const;
 
 interface Props {

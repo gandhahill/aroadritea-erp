@@ -34,7 +34,7 @@ const STATIC_ROUTES: Array<{ slug: string; label: string; description: string }>
   { slug: '/lokasi', label: 'Lokasi', description: 'Daftar outlet & alamat.' },
   { slug: '/blog', label: 'Blog', description: 'Index posting blog (post dinamis).' },
   { slug: '/member', label: 'Member', description: 'Area member (login, registrasi, akun).' },
-  { slug: '/karir', label: 'Karir', description: 'Daftar lowongan + form lamaran (real-time dari ERP).' },
+  { slug: '/karier', label: 'Karier', description: 'Daftar lowongan + form lamaran (real-time dari ERP).' },
   { slug: '/syarat-dan-ketentuan', label: 'Syarat & Ketentuan', description: 'Halaman legal — kontennya editable via CMS Halaman.' },
   { slug: '/kebijakan-privasi', label: 'Kebijakan Privasi', description: 'Halaman legal — kontennya editable via CMS Halaman.' },
 ];

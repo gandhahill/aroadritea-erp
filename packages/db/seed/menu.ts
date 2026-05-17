@@ -199,6 +199,8 @@ const PRODUCT_IMAGE_URLS: Record<string, string> = {
   'FMT-JAS': '/photo/menu/jasmine-green-milk-tea.jpg',
   'FMT-CEY': '/photo/menu/ceylon-black-milk-tea.jpg',
   'FMT-ROY': '/photo/menu/roasted-fragrant-yellow-milk-tea.jpg',
+  // Fresh Tea line intentionally shares a single photo per the menu board
+  // layout (the brand groups them under one collective image).
   'FT-BOO': '/photo/menu/fresh-tea.jpg',
   'FT-OSM': '/photo/menu/fresh-tea.jpg',
   'FT-JAS': '/photo/menu/fresh-tea.jpg',
@@ -215,7 +217,9 @@ const PRODUCT_IMAGE_URLS: Record<string, string> = {
   'SCM-BOO': '/photo/menu/snow-cap-bamboo.jpg',
   'SCM-OSM': '/photo/menu/snow-cap-osmanthus.jpg',
   'DST-EGG-TART': '/photo/menu/egg-tart.jpg',
-  'DST-FANCY-EGG-TART': '/photo/menu/egg-tart.jpg',
+  // Fancy Egg Tart and Mousse Cake intentionally have no photo seed — the
+  // brand will upload a dedicated image via the inventory UI. The list view
+  // shows a "—" placeholder until then.
   'DST-PUDDING': '/photo/menu/pudding-bamboo.jpg',
 };
 

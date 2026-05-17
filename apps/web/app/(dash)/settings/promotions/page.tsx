@@ -23,6 +23,9 @@ export default async function PromotionsPage() {
       <PromotionsClient
         initialPromotions={data.promotions}
         locations={data.locations}
+        products={data.products}
+        variants={data.variants}
+        expenseAccounts={data.expenseAccounts}
         labels={{
           add: t('add'),
           save: t('save'),

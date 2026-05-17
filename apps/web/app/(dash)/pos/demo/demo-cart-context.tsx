@@ -33,7 +33,7 @@ interface DemoCartContextValue {
 }
 
 const defaultState: DemoCartState = {
-  channel: 'walk_in',
+  channel: 'dine_in',
   lines: [],
   payments: [],
   notes: '',

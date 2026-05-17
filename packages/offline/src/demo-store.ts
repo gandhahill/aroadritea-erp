@@ -38,7 +38,16 @@ export interface DemoCartPayment {
 }
 
 export interface DemoCartState {
-  channel: 'walk_in' | 'gofood' | 'grabfood' | 'shopeefood';
+  // `walk_in` retained as legacy alias — production POS migrated to
+  // `dine_in` / `take_away`. Stored demo carts from older sessions might
+  // still hold the old value.
+  channel:
+    | 'dine_in'
+    | 'take_away'
+    | 'walk_in'
+    | 'gofood'
+    | 'grabfood'
+    | 'shopeefood';
   lines: DemoCartLine[];
   payments: DemoCartPayment[];
   notes: string;

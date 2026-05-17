@@ -1,6 +1,7 @@
 'use client';
 
 import { authClient } from '@/lib/auth-client';
+import { recordAuthEvent } from '@/lib/audit-auth';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -17,6 +18,9 @@ export function LogoutButton({
   async function handleLogout() {
     setLoading(true);
     try {
+      // Record the audit event BEFORE we drop the session — otherwise the
+      // server action won't be able to resolve the user id from cookies.
+      await recordAuthEvent({ action: 'logout' });
       await authClient.signOut();
     } finally {
       router.push('/login');

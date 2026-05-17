@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { displayAssetUrl } from '@/lib/display-asset-url';
 import { fetchProductMasterData } from './actions';
 import { CategoryForm } from './category-form';
+import { ProductRowActions } from './row-actions';
 
 export const metadata: Metadata = {
   title: 'Produk & Menu - Aroadri ERP',
@@ -186,12 +187,18 @@ export default async function ProductsPage({ searchParams }: Props) {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Link
-                        href={`/inventory/products/${product.id}`}
-                        className="rounded-md border border-brand-cream-3 bg-card px-3 py-1.5 text-xs font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
-                      >
-                        Edit
-                      </Link>
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/inventory/products/${product.id}`}
+                          className="rounded-md border border-brand-cream-3 bg-card px-3 py-1.5 text-xs font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
+                        >
+                          Edit
+                        </Link>
+                        <ProductRowActions
+                          productId={product.id}
+                          isActive={product.isActive}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))

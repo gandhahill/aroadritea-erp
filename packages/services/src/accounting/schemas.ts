@@ -114,6 +114,16 @@ export const ReplenishPettyCashSchema = z.object({
 
 export type ReplenishPettyCashInput = z.infer<typeof ReplenishPettyCashSchema>;
 
+// --- Petty Cash — Deposit to bank ---
+
+export const DepositPettyCashToBankSchema = z.object({
+  locationId: z.string().min(1, { message: 'Location ID is required' }),
+  amount: z.string().regex(/^[1-9]\d*$/, { message: 'Amount must be a positive integer string' }),
+  description: z.string().optional().default('Setor kas kecil ke bank'),
+});
+
+export type DepositPettyCashToBankInput = z.infer<typeof DepositPettyCashToBankSchema>;
+
 // --- Petty Cash — List Transactions ---
 
 export const ListPettyCashTransactionsSchema = z.object({
@@ -131,6 +141,14 @@ export const CreatePettyCashAccountSchema = z.object({
   maxLimit: z
     .string()
     .regex(/^[1-9]\d*$/, { message: 'Max limit must be a positive integer string' }),
+  // Initial cash handed over by the company at opening time (kas → kas
+  // kecil). Defaults to maxLimit when omitted. When > 0 we post a journal:
+  //   DR Petty Cash  <openingBalance>
+  //   CR Cash        <openingBalance>
+  openingBalance: z
+    .string()
+    .regex(/^\d+$/, { message: 'Opening balance must be a non-negative integer string' })
+    .optional(),
 });
 
 export type CreatePettyCashAccountInput = z.infer<typeof CreatePettyCashAccountSchema>;

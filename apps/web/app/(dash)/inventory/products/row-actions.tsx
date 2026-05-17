@@ -1,0 +1,57 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { deactivateProductAction, reactivateProductAction } from './actions';
+
+interface Props {
+  productId: string;
+  isActive: boolean;
+}
+
+export function ProductRowActions({ productId, isActive }: Props) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+
+  function handleDeactivate() {
+    if (!confirm('Nonaktifkan produk ini? Produk yang sudah pernah dijual tidak bisa dihapus permanen — gunakan nonaktif agar histori tetap utuh.')) return;
+    const fd = new FormData();
+    fd.set('productId', productId);
+    startTransition(async () => {
+      const res = await deactivateProductAction(fd);
+      if (!res.ok) {
+        alert(res.error ?? 'Gagal menonaktifkan produk.');
+        return;
+      }
+      router.refresh();
+    });
+  }
+
+  function handleReactivate() {
+    const fd = new FormData();
+    fd.set('productId', productId);
+    startTransition(async () => {
+      const res = await reactivateProductAction(fd);
+      if (!res.ok) {
+        alert(res.error ?? 'Gagal mengaktifkan produk.');
+        return;
+      }
+      router.refresh();
+    });
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={isActive ? handleDeactivate : handleReactivate}
+      disabled={pending}
+      className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 ${
+        isActive
+          ? 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100'
+          : 'border-brand-jade/30 bg-brand-jade-light text-brand-jade hover:bg-brand-jade/15'
+      }`}
+    >
+      {pending ? '…' : isActive ? 'Nonaktifkan' : 'Aktifkan'}
+    </button>
+  );
+}

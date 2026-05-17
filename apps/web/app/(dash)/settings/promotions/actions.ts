@@ -3,6 +3,8 @@
 import { getSession } from '@/lib/auth';
 import { and, db, eq } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
+import { productVariants, products } from '@erp/db/schema/inventory';
+import { accounts } from '@erp/db/schema/accounting';
 import {
   type PromotionListItem,
   type UpsertPromotionInput,
@@ -35,28 +37,70 @@ async function getContext(): Promise<AuditContext | null> {
 
 export async function fetchPromotionPageData() {
   const ctx = await getContext();
-  if (!ctx) return { promotions: [], locations: [] };
+  if (!ctx)
+    return { promotions: [], locations: [], products: [], variants: [], expenseAccounts: [] };
 
-  const [promotionResult, locale, locationRows] = await Promise.all([
-    listPromotions(ctx),
-    getLocale(),
-    db
-      .select({
-        id: locations.id,
-        code: locations.code,
-        name: locations.name,
-        type: locations.type,
-      })
-      .from(locations)
-      .where(
-        and(
-          eq(locations.tenantId, ctx.tenantId),
-          eq(locations.status, 'active'),
-          eq(locations.type, 'store'),
-        ),
-      )
-      .orderBy(locations.code),
-  ]);
+  const [promotionResult, locale, locationRows, productRows, variantRows, expenseAccountRows] =
+    await Promise.all([
+      listPromotions(ctx),
+      getLocale(),
+      db
+        .select({
+          id: locations.id,
+          code: locations.code,
+          name: locations.name,
+          type: locations.type,
+        })
+        .from(locations)
+        .where(
+          and(
+            eq(locations.tenantId, ctx.tenantId),
+            eq(locations.status, 'active'),
+            eq(locations.type, 'store'),
+          ),
+        )
+        .orderBy(locations.code),
+      db
+        .select({
+          id: products.id,
+          sku: products.sku,
+          name: products.name,
+          isActive: products.isActive,
+        })
+        .from(products)
+        .where(and(eq(products.tenantId, ctx.tenantId), eq(products.isActive, true)))
+        .orderBy(products.sku),
+      db
+        .select({
+          id: productVariants.id,
+          productId: productVariants.productId,
+          name: productVariants.name,
+          sku: productVariants.sku,
+          isActive: productVariants.isActive,
+        })
+        .from(productVariants)
+        .where(
+          and(eq(productVariants.tenantId, ctx.tenantId), eq(productVariants.isActive, true)),
+        )
+        .orderBy(productVariants.sku),
+      db
+        .select({
+          id: accounts.id,
+          code: accounts.code,
+          name: accounts.name,
+          type: accounts.type,
+        })
+        .from(accounts)
+        .where(
+          and(
+            eq(accounts.tenantId, ctx.tenantId),
+            eq(accounts.isActive, true),
+            eq(accounts.isPostable, true),
+            eq(accounts.type, 'expense'),
+          ),
+        )
+        .orderBy(accounts.code),
+    ]);
 
   return {
     promotions: promotionResult.ok ? promotionResult.value : [],
@@ -65,6 +109,22 @@ export async function fetchPromotionPageData() {
       code: location.code,
       type: location.type,
       label: localizedName(location.name, locale) || location.code,
+    })),
+    products: productRows.map((p) => ({
+      id: p.id,
+      sku: p.sku,
+      label: `${p.sku} — ${localizedName(p.name, locale) || p.sku}`,
+    })),
+    variants: variantRows.map((v) => ({
+      id: v.id,
+      productId: v.productId,
+      sku: v.sku,
+      label: `${v.sku} — ${localizedName(v.name, locale) || v.sku}`,
+    })),
+    expenseAccounts: expenseAccountRows.map((a) => ({
+      id: a.id,
+      code: a.code,
+      label: `${a.code} — ${localizedName(a.name, locale) || a.code}`,
     })),
   };
 }
