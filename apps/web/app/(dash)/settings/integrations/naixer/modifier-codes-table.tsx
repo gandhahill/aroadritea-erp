@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import {
   type ModifierCodeItem,
+  type NaixerModifierOption,
   createModifierCode,
   deleteModifierCode,
   updateModifierCode,
@@ -16,6 +17,7 @@ import {
 interface Props {
   codes: ModifierCodeItem[];
   tenantId: string;
+  modifierOptions: NaixerModifierOption[];
 }
 
 const MODIFIER_KINDS = ['size', 'ice', 'sugar', 'topping', 'cup', 'other'];
@@ -38,7 +40,7 @@ function KindBadge({ kind }: { kind: string }) {
   );
 }
 
-export function ModifierCodesTable({ codes, tenantId }: Props) {
+export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showAddForm, setShowAddForm] = useState(false);
@@ -107,8 +109,8 @@ export function ModifierCodesTable({ codes, tenantId }: Props) {
               <td className="px-4 py-3">
                 <KindBadge kind={code.modifierKind} />
               </td>
-              <td className="px-4 py-3 font-mono text-xs text-brand-ink-3">
-                {code.modifierOptionId}
+              <td className="px-4 py-3 text-sm text-brand-ink">
+                {code.modifierOptionLabel}
               </td>
               <td className="px-4 py-3">
                 <code className="rounded bg-brand-cream-2 px-1.5 py-0.5 text-xs font-mono font-bold text-brand-ink">
@@ -178,15 +180,20 @@ export function ModifierCodesTable({ codes, tenantId }: Props) {
             </div>
             <div className="flex-1">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                Modifier Option ID
+                Modifier Option
               </label>
-              <input
-                type="text"
+              <select
                 value={newOptionId}
                 onChange={(e) => setNewOptionId(e.target.value)}
-                placeholder="e.g. option-uuid"
-                className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none"
-              />
+                className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
+              >
+                <option value="">— Pilih modifier option —</option>
+                {modifierOptions.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="w-28">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">Naixer Code</label>

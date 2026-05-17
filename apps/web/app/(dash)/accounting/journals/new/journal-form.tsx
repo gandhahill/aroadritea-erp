@@ -1,6 +1,7 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { pickLocalized } from '@/lib/pick-localized';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useMemo, useState } from 'react';
 import { uploadAttachmentAction } from '../attachments/actions';
@@ -26,6 +27,7 @@ interface Props {
 export function JournalForm({ accounts, locations }: Props) {
   const t = useTranslations('accounting.journal');
   const tc = useTranslations('common');
+  const locale = useLocale();
   const router = useRouter();
   const [state, submitAction, isPending] = useActionState(createJournalAction, null);
   const defaultLocationId = locations[0]?.id ?? '';
@@ -208,7 +210,7 @@ export function JournalForm({ accounts, locations }: Props) {
                       <option value="">{t('selectAccount')}</option>
                       {accounts.map((account) => (
                         <option key={account.id} value={account.id}>
-                          {account.code} - {account.name.id ?? account.name.en}
+                          {account.code} - {pickLocalized(account.name, locale, account.code)}
                         </option>
                       ))}
                     </select>

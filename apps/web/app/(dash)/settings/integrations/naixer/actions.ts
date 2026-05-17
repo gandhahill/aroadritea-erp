@@ -6,6 +6,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
+import { pickLocalized } from '@/lib/pick-localized';
 import { db, eq, inArray } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import {
@@ -13,8 +14,15 @@ import {
   naixerProductCodes,
   naixerQrFormatConfig,
 } from '@erp/db/schema/kitchen';
+import {
+  productModifierGroups,
+  productModifierOptions,
+  productVariants,
+  products,
+} from '@erp/db/schema/inventory';
 import { dashStrategy, pipeStrategy } from '@erp/services/kitchen';
 import { generateId } from '@erp/shared/id';
+import { getLocale } from 'next-intl/server';
 import QRCode from 'qrcode';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -22,18 +30,40 @@ import QRCode from 'qrcode';
 export interface ProductCodeItem {
   id: string;
   productId: string;
+  productLabel: string;
   variantId: string | null;
+  variantLabel: string | null;
   naixerCode: string;
   isActive: boolean;
+}
+
+export interface NaixerProductOption {
+  id: string;
+  sku: string;
+  label: string;
+}
+
+export interface NaixerVariantOption {
+  id: string;
+  productId: string;
+  sku: string;
+  label: string;
 }
 
 export interface ModifierCodeItem {
   id: string;
   modifierKind: string;
   modifierOptionId: string;
+  modifierOptionLabel: string;
   naixerCode: string;
   displayOrder: number;
   isActive: boolean;
+}
+
+export interface NaixerModifierOption {
+  id: string;
+  groupName: string;
+  label: string;
 }
 
 export interface FormatConfigItem {
@@ -65,17 +95,92 @@ async function canAccessTenant(tenantId: string): Promise<boolean> {
 
 export async function fetchProductCodes(tenantId: string): Promise<ProductCodeItem[]> {
   if (!(await canAccessTenant(tenantId))) return [];
-  return db
-    .select({
-      id: naixerProductCodes.id,
-      productId: naixerProductCodes.productId,
-      variantId: naixerProductCodes.variantId,
-      naixerCode: naixerProductCodes.naixerCode,
-      isActive: naixerProductCodes.isActive,
-    })
-    .from(naixerProductCodes)
-    .where(eq(naixerProductCodes.tenantId, tenantId))
-    .orderBy(naixerProductCodes.naixerCode);
+  const locale = await getLocale();
+  const [rows, productRows, variantRows] = await Promise.all([
+    db
+      .select({
+        id: naixerProductCodes.id,
+        productId: naixerProductCodes.productId,
+        variantId: naixerProductCodes.variantId,
+        naixerCode: naixerProductCodes.naixerCode,
+        isActive: naixerProductCodes.isActive,
+      })
+      .from(naixerProductCodes)
+      .where(eq(naixerProductCodes.tenantId, tenantId))
+      .orderBy(naixerProductCodes.naixerCode),
+    db
+      .select({ id: products.id, sku: products.sku, name: products.name })
+      .from(products)
+      .where(eq(products.tenantId, tenantId)),
+    db
+      .select({ id: productVariants.id, sku: productVariants.sku, name: productVariants.name })
+      .from(productVariants)
+      .where(eq(productVariants.tenantId, tenantId)),
+  ]);
+  const productMap = new Map(
+    productRows.map((p) => [
+      p.id,
+      `${p.sku} — ${pickLocalized(p.name, locale, p.sku)}`,
+    ] as const),
+  );
+  const variantMap = new Map(
+    variantRows.map((v) => [
+      v.id,
+      `${v.sku} — ${pickLocalized(v.name, locale, v.sku)}`,
+    ] as const),
+  );
+  return rows.map((r) => ({
+    ...r,
+    productLabel: productMap.get(r.productId) ?? r.productId,
+    variantLabel: r.variantId ? (variantMap.get(r.variantId) ?? r.variantId) : null,
+  }));
+}
+
+export async function fetchNaixerProductOptions(
+  tenantId: string,
+): Promise<{ products: NaixerProductOption[]; variants: NaixerVariantOption[] }> {
+  if (!(await canAccessTenant(tenantId))) return { products: [], variants: [] };
+  const locale = await getLocale();
+  const [productRows, variantRows] = await Promise.all([
+    db
+      .select({
+        id: products.id,
+        sku: products.sku,
+        name: products.name,
+        isActive: products.isActive,
+      })
+      .from(products)
+      .where(eq(products.tenantId, tenantId))
+      .orderBy(products.sku),
+    db
+      .select({
+        id: productVariants.id,
+        productId: productVariants.productId,
+        sku: productVariants.sku,
+        name: productVariants.name,
+        isActive: productVariants.isActive,
+      })
+      .from(productVariants)
+      .where(eq(productVariants.tenantId, tenantId))
+      .orderBy(productVariants.sku),
+  ]);
+  return {
+    products: productRows
+      .filter((p) => p.isActive)
+      .map((p) => ({
+        id: p.id,
+        sku: p.sku,
+        label: `${p.sku} — ${pickLocalized(p.name, locale, p.sku)}`,
+      })),
+    variants: variantRows
+      .filter((v) => v.isActive)
+      .map((v) => ({
+        id: v.id,
+        productId: v.productId,
+        sku: v.sku,
+        label: `${v.sku} — ${pickLocalized(v.name, locale, v.sku)}`,
+      })),
+  };
 }
 
 export async function createProductCode(
@@ -161,18 +266,54 @@ export async function deleteProductCode(id: string): Promise<ActionResult> {
 
 export async function fetchModifierCodes(tenantId: string): Promise<ModifierCodeItem[]> {
   if (!(await canAccessTenant(tenantId))) return [];
-  return db
+  const locale = await getLocale();
+  const [rows, optionRows] = await Promise.all([
+    db
+      .select({
+        id: naixerModifierCodes.id,
+        modifierKind: naixerModifierCodes.modifierKind,
+        modifierOptionId: naixerModifierCodes.modifierOptionId,
+        naixerCode: naixerModifierCodes.naixerCode,
+        displayOrder: naixerModifierCodes.displayOrder,
+        isActive: naixerModifierCodes.isActive,
+      })
+      .from(naixerModifierCodes)
+      .where(eq(naixerModifierCodes.tenantId, tenantId))
+      .orderBy(naixerModifierCodes.modifierKind, naixerModifierCodes.displayOrder),
+    db
+      .select({ id: productModifierOptions.id, name: productModifierOptions.name })
+      .from(productModifierOptions)
+      .where(eq(productModifierOptions.tenantId, tenantId)),
+  ]);
+  const optMap = new Map(
+    optionRows.map((o) => [o.id, pickLocalized(o.name, locale, o.id)] as const),
+  );
+  return rows.map((r) => ({
+    ...r,
+    modifierOptionLabel: optMap.get(r.modifierOptionId) ?? r.modifierOptionId,
+  }));
+}
+
+export async function fetchNaixerModifierOptions(
+  tenantId: string,
+): Promise<NaixerModifierOption[]> {
+  if (!(await canAccessTenant(tenantId))) return [];
+  const locale = await getLocale();
+  const rows = await db
     .select({
-      id: naixerModifierCodes.id,
-      modifierKind: naixerModifierCodes.modifierKind,
-      modifierOptionId: naixerModifierCodes.modifierOptionId,
-      naixerCode: naixerModifierCodes.naixerCode,
-      displayOrder: naixerModifierCodes.displayOrder,
-      isActive: naixerModifierCodes.isActive,
+      id: productModifierOptions.id,
+      optName: productModifierOptions.name,
+      groupName: productModifierGroups.name,
     })
-    .from(naixerModifierCodes)
-    .where(eq(naixerModifierCodes.tenantId, tenantId))
-    .orderBy(naixerModifierCodes.modifierKind, naixerModifierCodes.displayOrder);
+    .from(productModifierOptions)
+    .leftJoin(productModifierGroups, eq(productModifierOptions.groupId, productModifierGroups.id))
+    .where(eq(productModifierOptions.tenantId, tenantId))
+    .orderBy(productModifierOptions.sortOrder);
+  return rows.map((r) => ({
+    id: r.id,
+    groupName: pickLocalized(r.groupName, locale, ''),
+    label: `${pickLocalized(r.groupName, locale, '')} · ${pickLocalized(r.optName, locale, r.id)}`,
+  }));
 }
 
 export async function createModifierCode(

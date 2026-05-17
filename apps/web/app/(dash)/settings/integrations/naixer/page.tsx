@@ -6,7 +6,13 @@
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { fetchFormatConfigs, fetchModifierCodes, fetchProductCodes } from './actions';
+import {
+  fetchFormatConfigs,
+  fetchModifierCodes,
+  fetchNaixerModifierOptions,
+  fetchNaixerProductOptions,
+  fetchProductCodes,
+} from './actions';
 import { FormatConfigForm } from './format-config-form';
 import { ModifierCodesTable } from './modifier-codes-table';
 import { ProductCodesTable } from './product-codes-table';
@@ -21,11 +27,14 @@ export default async function NaixerKdsPage() {
 
   const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
 
-  const [productCodes, modifierCodes, formatConfigs] = await Promise.all([
-    fetchProductCodes(tenantId),
-    fetchModifierCodes(tenantId),
-    fetchFormatConfigs(tenantId),
-  ]);
+  const [productCodes, modifierCodes, formatConfigs, productOptions, modifierOptions] =
+    await Promise.all([
+      fetchProductCodes(tenantId),
+      fetchModifierCodes(tenantId),
+      fetchFormatConfigs(tenantId),
+      fetchNaixerProductOptions(tenantId),
+      fetchNaixerModifierOptions(tenantId),
+    ]);
 
   return (
     <div className="space-y-8">
@@ -88,13 +97,22 @@ export default async function NaixerKdsPage() {
       {/* Product Codes */}
       <section>
         <h2 className="mb-4 text-lg font-semibold text-brand-ink">Product Code Mappings</h2>
-        <ProductCodesTable codes={productCodes} tenantId={tenantId} />
+        <ProductCodesTable
+          codes={productCodes}
+          tenantId={tenantId}
+          products={productOptions.products}
+          variants={productOptions.variants}
+        />
       </section>
 
       {/* Modifier Codes */}
       <section>
         <h2 className="mb-4 text-lg font-semibold text-brand-ink">Modifier Code Mappings</h2>
-        <ModifierCodesTable codes={modifierCodes} tenantId={tenantId} />
+        <ModifierCodesTable
+          codes={modifierCodes}
+          tenantId={tenantId}
+          modifierOptions={modifierOptions}
+        />
       </section>
     </div>
   );
