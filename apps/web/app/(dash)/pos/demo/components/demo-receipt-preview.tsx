@@ -165,18 +165,105 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
         </div>
 
         {/* Footer */}
-        <div className="border-t border-brand-cream-3 p-5">
+        <div className="grid grid-cols-2 gap-2 border-t border-brand-cream-3 p-5">
+          <button
+            type="button"
+            onClick={() => printDemoReceipt(order, t('demo.notRealTransaction'))}
+            className="h-11 rounded-lg border border-brand-cream-3 bg-brand-cream-2 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-3"
+          >
+            🖨 {t('printReceipt')}
+          </button>
           <button
             type="button"
             onClick={onClose}
-            className="h-11 w-full rounded-lg border border-brand-cream-3 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-2"
+            className="h-11 rounded-lg bg-brand-red text-sm font-semibold text-white hover:bg-brand-red-dark"
           >
-            {t('cancel')}
+            {t('newOrder')}
           </button>
         </div>
       </div>
     </div>
   );
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] ?? c,
+  );
+}
+
+function printDemoReceipt(order: DemoOrder, notRealLabel: string): void {
+  const totalPaid = order.payments.reduce((sum, p) => sum + BigInt(p.amount), BigInt(0));
+  const donation = order.payments.reduce(
+    (sum, p) => sum + BigInt(p.donationAmount ?? '0'),
+    BigInt(0),
+  );
+  const change =
+    totalPaid > BigInt(order.grandTotal) + donation
+      ? totalPaid - BigInt(order.grandTotal) - donation
+      : BigInt(0);
+
+  const lineRows = order.lines
+    .map((l) => {
+      const name = escapeHtml(`${l.productName}${l.variantName ? ` (${l.variantName})` : ''}`);
+      const lineTotal = (BigInt(l.unitPrice) * BigInt(l.qty)).toString();
+      return `<tr><td>${name}<br/>${l.qty} × ${escapeHtml(formatRupiah(l.unitPrice))}</td><td class="right">${escapeHtml(formatRupiah(lineTotal))}</td></tr>`;
+    })
+    .join('');
+
+  const paymentRows = order.payments
+    .map(
+      (p) =>
+        `<div class="row"><span>${escapeHtml(p.method.toUpperCase())}</span><span>${escapeHtml(formatRupiah(p.amount))}</span></div>`,
+    )
+    .join('');
+
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(order.orderNumber)}</title>
+<style>
+@page { size: 80mm auto; margin: 4mm; }
+@media print { body { margin: 0; } .no-print { display: none !important; } }
+body { font-family: 'Courier New', monospace; }
+.wrap { position: relative; width: 80mm; font-size: 11px; color: #000; }
+.stamp { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.stamp span { transform: rotate(-25deg); font-size: 36px; font-weight: 900; letter-spacing: .25em; color: rgba(195,28,40,.18); border: 3px solid rgba(195,28,40,.25); padding: 6px 22px; }
+h1 { font-size: 14px; margin: 0; text-align: center; }
+.row { display: flex; justify-content: space-between; gap: 4px; }
+.sep { border-top: 1px dashed #000; margin: 4px 0; }
+table { width: 100%; border-collapse: collapse; }
+td { vertical-align: top; padding: 1px 0; }
+.right { text-align: right; }
+.demo-line { text-align: center; font-weight: bold; color: #c31c28; font-size: 10px; }
+</style></head><body>
+<div class="wrap">
+  <div class="stamp"><span>DEMO</span></div>
+  <h1>AROADRI TEA</h1>
+  <div class="demo-line">${escapeHtml(notRealLabel)}</div>
+  <div class="row"><span>Order</span><span>${escapeHtml(order.orderNumber)}</span></div>
+  <div class="row"><span>Channel</span><span>${escapeHtml(order.channel)}</span></div>
+  <div class="row"><span>Tgl</span><span>${escapeHtml(new Date(order.placedAt).toLocaleString('id-ID'))}</span></div>
+  ${order.notes ? `<div>Cat: ${escapeHtml(order.notes)}</div>` : ''}
+  <div class="sep"></div>
+  <table><tbody>${lineRows}</tbody></table>
+  <div class="sep"></div>
+  <div class="row"><span>Subtotal</span><span>${escapeHtml(formatRupiah(order.subtotal))}</span></div>
+  <div class="row"><span>PB1 (incl.)</span><span>${escapeHtml(formatRupiah(order.taxTotal))}</span></div>
+  <div class="row" style="font-weight:bold"><span>TOTAL</span><span>${escapeHtml(formatRupiah(order.grandTotal))}</span></div>
+  <div class="sep"></div>
+  ${paymentRows}
+  ${donation > BigInt(0) ? `<div class="row"><span>Donasi</span><span>${escapeHtml(formatRupiah(donation.toString()))}</span></div>` : ''}
+  ${change > BigInt(0) ? `<div class="row"><span>Kembali</span><span>${escapeHtml(formatRupiah(change.toString()))}</span></div>` : ''}
+  <div class="sep"></div>
+  <p style="text-align:center;font-size:10px">Terima kasih atas kunjungan Anda<br/>aroadritea.com</p>
+  <div class="demo-line">*** DEMO ORDER — NOT FOR SALE ***</div>
+</div>
+<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},250);});</script>
+</body></html>`;
+
+  const w = window.open('', '_blank', 'width=420,height=720');
+  if (!w) return;
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
 }
 
 function formatRupiah(value: string | bigint): string {

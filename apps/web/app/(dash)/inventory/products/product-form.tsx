@@ -82,14 +82,15 @@ export function ProductForm({ mode, categories, product }: Props) {
               )}
             </select>
           </Field>
-          <Field label={f('nameId')} required>
-            <input name="nameId" required defaultValue={product?.name.id ?? ''} className={INPUT} />
-          </Field>
-          <Field label={f('nameEn')}>
-            <input name="nameEn" defaultValue={product?.name.en ?? ''} className={INPUT} />
-          </Field>
-          <Field label={f('nameZh')}>
-            <input name="nameZh" defaultValue={product?.name.zh ?? ''} className={INPUT} />
+          <Field label={f('name')} required>
+            <input
+              name="nameEn"
+              required
+              defaultValue={product?.name.en ?? product?.name.id ?? ''}
+              placeholder="e.g. Brown Sugar Milk Tea"
+              className={INPUT}
+            />
+            <p className="mt-1 text-[11px] text-brand-ink-3">{f('nameHint')}</p>
           </Field>
           <Field label={f('kind')} required>
             <select
@@ -127,22 +128,13 @@ export function ProductForm({ mode, categories, product }: Props) {
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
         <h2 className="text-base font-semibold text-brand-ink">{f('descriptionSection')}</h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
+        <div className="mt-5">
           <TextArea
-            label={f('descId')}
-            name="descriptionId"
-            value={product?.description?.id ?? ''}
-          />
-          <TextArea
-            label={f('descEn')}
+            label={f('description')}
             name="descriptionEn"
-            value={product?.description?.en ?? ''}
+            value={product?.description?.en ?? product?.description?.id ?? ''}
           />
-          <TextArea
-            label={f('descZh')}
-            name="descriptionZh"
-            value={product?.description?.zh ?? ''}
-          />
+          <p className="mt-1 text-[11px] text-brand-ink-3">{f('nameHint')}</p>
         </div>
       </section>
 

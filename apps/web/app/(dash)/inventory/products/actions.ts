@@ -76,17 +76,21 @@ function positiveNumber(formData: FormData, key: string) {
 }
 
 function localeName(formData: FormData, prefix: string) {
-  const id = text(formData, `${prefix}Id`);
-  const en = optionalText(formData, `${prefix}En`) ?? id;
-  const zh = optionalText(formData, `${prefix}Zh`) ?? id;
+  // Product names are English-only (per requirement). The form posts a
+  // single `${prefix}En` field; we mirror it into id/zh so the existing
+  // JSONB `{id,en,zh}` shape and `pickLocalized()` consumers keep working.
+  // Older form posts that still include nameId/nameZh are honoured.
+  const en = text(formData, `${prefix}En`);
+  const id = optionalText(formData, `${prefix}Id`) ?? en;
+  const zh = optionalText(formData, `${prefix}Zh`) ?? en;
   return { id, en, zh };
 }
 
 function nullableLocaleDescription(formData: FormData) {
-  const id = optionalText(formData, 'descriptionId');
-  const en = optionalText(formData, 'descriptionEn') ?? id;
-  const zh = optionalText(formData, 'descriptionZh') ?? id;
-  return id ? { id, en: en ?? id, zh: zh ?? id } : undefined;
+  const en = optionalText(formData, 'descriptionEn');
+  const id = optionalText(formData, 'descriptionId') ?? en;
+  const zh = optionalText(formData, 'descriptionZh') ?? en;
+  return en ? { id: id ?? en, en, zh: zh ?? en } : undefined;
 }
 
 function errorMessage(error: unknown) {
