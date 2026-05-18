@@ -100,13 +100,24 @@ function errorMessage(error: unknown) {
   return String(error);
 }
 
-export async function fetchProductMasterData(search?: string, kind?: ProductKind): Promise<ProductMasterData> {
+export async function fetchProductMasterData(
+  search?: string,
+  kind?: ProductKind,
+): Promise<ProductMasterData> {
   const ctx = await getAuditContext();
   if (!ctx) return { products: [], total: 0, categories: [], error: 'Unauthenticated' };
 
+  // When the operator picks a specific kind tab (e.g. "Bahan Baku")
+  // honor it. When no tab is picked ("Semua") restrict to sellable
+  // items so the produk-jual catalog isn't polluted with raw materials
+  // and consumables — those live under their own tab/page.
+  const listInput = kind
+    ? { search, kind, limit: 200, offset: 0 }
+    : { search, isSellable: true, limit: 200, offset: 0 };
+
   const [categoryResult, productResult] = await Promise.all([
     listCategories(ctx),
-    listProducts({ search, kind, limit: 200, offset: 0 }, ctx),
+    listProducts(listInput, ctx),
   ]);
 
   return {

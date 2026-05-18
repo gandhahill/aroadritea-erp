@@ -395,7 +395,7 @@ export function OmzetHarianClient({
               <button
                 onClick={handleExport}
                 disabled={isPending}
-                className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg bg-brand-jade px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90 disabled:opacity-50"
               >
                 <svg
                   className="h-4 w-4"

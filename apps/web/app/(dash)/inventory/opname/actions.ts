@@ -19,6 +19,7 @@ import {
   submitOpname,
 } from '@erp/services/inventory/opname-service';
 import type { AuditContext } from '@erp/shared/types';
+import { getLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 
 function buildCtx(session: Awaited<ReturnType<typeof getSession>>): AuditContext {
@@ -145,7 +146,13 @@ export async function loadOpnameSessionAction(sessionId: string) {
   const ctx = buildCtx(session);
   await resolveLocationId(sessionId, ctx);
 
-  const result = await getOpname(sessionId, ctx);
+  const rawLocale = await getLocale().catch(() => 'id');
+  const locale = (rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id') as
+    | 'id'
+    | 'en'
+    | 'zh';
+
+  const result = await getOpname(sessionId, ctx, { locale });
   if (!result.ok) return { error: result.error.message };
   return { data: result.value };
 }

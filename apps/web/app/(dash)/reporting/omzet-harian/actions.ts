@@ -11,7 +11,13 @@ import {
   saveOmzetAdjustment,
 } from '@erp/services/reporting';
 import type { AuditContext } from '@erp/shared/types';
+import { getLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
+
+async function currentLocale(): Promise<'id' | 'en' | 'zh'> {
+  const raw = await getLocale().catch(() => 'id');
+  return raw === 'en' || raw === 'zh' ? raw : 'id';
+}
 
 async function buildCtx(locationId: string): Promise<AuditContext> {
   const session = await getSession();
@@ -26,7 +32,8 @@ async function buildCtx(locationId: string): Promise<AuditContext> {
 
 export async function serverGetOmzetHarian(params: { locationId: string; date: string }) {
   const ctx = await buildCtx(params.locationId);
-  return getOmzetHarian(params, ctx);
+  const locale = await currentLocale();
+  return getOmzetHarian({ ...params, locale }, ctx);
 }
 
 export async function serverSaveOmzetAdjustment(params: {

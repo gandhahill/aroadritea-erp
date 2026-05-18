@@ -33,6 +33,8 @@ import { createJournal } from '../accounting/create-journal';
 import { requirePermission } from '../iam';
 import { generateOpnameNumber } from './number-generator';
 
+type SupportedLocale = 'id' | 'en' | 'zh';
+
 // ─── Default COA accounts for variance JE ─────────────────────────────────
 
 const DEFAULT_INVENTORY_ACCOUNT = '1-1210'; // Persediaan Barang Dagangan
@@ -56,6 +58,8 @@ export interface OpnameLineResult {
   id: string;
   lineNo: number;
   productId: string;
+  productSku: string | null;
+  productName: string | null;
   variantId: string | null;
   uom: string;
   systemQty: string;
@@ -84,7 +88,7 @@ async function isDirector(ctx: AuditContext): Promise<boolean> {
   return rows.length > 0;
 }
 
-/** Build line result from DB row. */
+/** Build line result from DB row + optional product enrichment. */
 function buildLineResult(
   l: Pick<
     typeof stockOpnameLines.$inferSelect,
@@ -100,11 +104,14 @@ function buildLineResult(
     | 'isCounted'
     | 'notes'
   >,
+  productInfo?: { sku: string | null; name: string | null },
 ): OpnameLineResult {
   return {
     id: l.id,
     lineNo: l.lineNo,
     productId: l.productId,
+    productSku: productInfo?.sku ?? null,
+    productName: productInfo?.name ?? null,
     variantId: l.variantId ?? null,
     uom: l.uom,
     systemQty: l.systemQty,
@@ -725,7 +732,7 @@ export async function approveOpname(
     periodCode: session.periodCode,
     status: 'approved',
     notes: session.notes,
-    lines: lines.map(buildLineResult),
+    lines: lines.map((l) => buildLineResult(l)),
     journalEntryId: resultJournalId,
   });
 }
@@ -799,6 +806,7 @@ export async function cancelOpname(
 export async function getOpname(
   sessionId: string,
   ctx: AuditContext,
+  options?: { locale?: SupportedLocale },
 ): Promise<Result<OpnameResult>> {
   const session = await db
     .select()
@@ -812,11 +820,35 @@ export async function getOpname(
     return err(new AppError('NOT_FOUND', 'errors.general.notFound'));
   }
 
+  // Enrich lines with product SKU + localized name. Without this, the
+  // UI showed raw UUIDs in both the SKU and product columns.
   const lines = await db
-    .select()
+    .select({
+      id: stockOpnameLines.id,
+      lineNo: stockOpnameLines.lineNo,
+      productId: stockOpnameLines.productId,
+      variantId: stockOpnameLines.variantId,
+      uom: stockOpnameLines.uom,
+      systemQty: stockOpnameLines.systemQty,
+      countedQty: stockOpnameLines.countedQty,
+      varianceQty: stockOpnameLines.varianceQty,
+      varianceValue: stockOpnameLines.varianceValue,
+      isCounted: stockOpnameLines.isCounted,
+      notes: stockOpnameLines.notes,
+      productSku: products.sku,
+      productName: products.name,
+    })
     .from(stockOpnameLines)
+    .leftJoin(products, eq(products.id, stockOpnameLines.productId))
     .where(eq(stockOpnameLines.sessionId, sessionId))
     .orderBy(stockOpnameLines.lineNo);
+
+  const locale: SupportedLocale = options?.locale ?? 'id';
+  function pickName(name: unknown): string | null {
+    if (!name) return null;
+    const rec = name as Record<string, string>;
+    return rec[locale] ?? rec.id ?? rec.en ?? rec.zh ?? null;
+  }
 
   return ok({
     id: session.id,
@@ -825,7 +857,9 @@ export async function getOpname(
     periodCode: session.periodCode,
     status: session.status,
     notes: session.notes,
-    lines: lines.map(buildLineResult),
+    lines: lines.map((l) =>
+      buildLineResult(l, { sku: l.productSku ?? null, name: pickName(l.productName) }),
+    ),
     journalEntryId: null,
   });
 }

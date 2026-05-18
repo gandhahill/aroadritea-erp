@@ -12,12 +12,12 @@ export const metadata: Metadata = {
 type ProductKind = 'finished_good' | 'raw_material' | 'merchandise' | 'consumable' | 'service';
 
 const KIND_TABS: { value: ProductKind | 'all'; label: string }[] = [
-  { value: 'all', label: 'Semua' },
+  { value: 'all', label: 'Semua produk jual' },
   { value: 'finished_good', label: 'Produk Jual' },
-  { value: 'raw_material', label: 'Bahan Baku' },
   { value: 'merchandise', label: 'Merchandise' },
-  { value: 'consumable', label: 'Perlengkapan' },
   { value: 'service', label: 'Jasa' },
+  { value: 'raw_material', label: 'Bahan Baku' },
+  { value: 'consumable', label: 'Perlengkapan' },
 ];
 
 const KIND_LABELS: Record<ProductKind, string> = {

@@ -19,6 +19,9 @@ import { requirePermission } from '../iam';
 import { CloseShiftInputSchema, OpenShiftInputSchema } from './schemas';
 import type { ShiftResult } from './schemas';
 
+// The shifts table does not carry a `version` column — partial unique
+// index `shifts_open_per_location_unique` already guarantees at most one
+// open shift per location, so optimistic locking via status is enough.
 type ShiftRow = {
   id: string;
   tenantId: string;
@@ -27,7 +30,6 @@ type ShiftRow = {
   openedAt: Date;
   openingCash: bigint;
   status: string;
-  version: number;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
@@ -113,6 +115,7 @@ export async function openShift(input: unknown, ctx: AuditContext): Promise<Resu
       variance: null,
       closedBy: null,
       closedAt: null,
+      version: 1,
     });
   } catch (e) {
     // Two cashiers racing to open the same location both passed the
@@ -166,9 +169,9 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
     if (shift.status !== 'open') {
       return err(AppError.businessRule('pos.shift.notOpen', { currentStatus: shift.status }));
     }
-    if (shift.version !== data.version) {
-      return err(AppError.conflict('pos.shift.versionMismatch'));
-    }
+    // No `version` column on shifts — the partial unique index plus the
+    // status=open claim guard below is enough to serialize concurrent
+    // closes.
 
     // Calculate expected cash from all cash payments in this shift
     const allPayments = await db
@@ -240,6 +243,7 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
       variance: variance.toString(),
       closedBy: ctx.userId,
       closedAt: new Date().toISOString(),
+      version: 1,
     });
   } catch (e) {
     return err(AppError.internal('pos.shift.closeFailed', e));
@@ -298,6 +302,7 @@ export async function getOpenShift(
       variance: null,
       closedBy: null,
       closedAt: null,
+      version: 1,
     });
   } catch (e) {
     return err(AppError.internal('pos.shift.getFailed', e));

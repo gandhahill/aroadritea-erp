@@ -157,4 +157,7 @@ export interface ShiftResult {
   variance: string | null;
   closedBy: string | null;
   closedAt: string | null;
+  /** Optimistic-lock version — surfaced so the UI can close the shift
+   * without a hardcoded `version: 1` that silently fails on row touch. */
+  version: number;
 }

@@ -221,9 +221,11 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
                   >
                     <td className="px-4 py-2.5 text-brand-ink-3">{line.lineNo}</td>
                     <td className="px-4 py-2.5 font-mono text-xs text-brand-ink-2">
-                      {line.productId.slice(0, 12)}
+                      {line.productSku ?? line.productId.slice(0, 8)}
                     </td>
-                    <td className="px-4 py-2.5 text-brand-ink">{line.productId}</td>
+                    <td className="px-4 py-2.5 text-brand-ink">
+                      {line.productName ?? line.productSku ?? line.productId.slice(0, 8)}
+                    </td>
                     <td className="px-4 py-2.5 text-center text-brand-ink-2">{line.uom}</td>
 
                     {/* System qty */}

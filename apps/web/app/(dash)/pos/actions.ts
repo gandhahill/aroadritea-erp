@@ -66,6 +66,8 @@ export interface ShiftStatusItem {
   variance: string | null;
   closedBy: string | null;
   closedAt: string | null;
+  /** Optimistic-lock version. Required when closing the shift. */
+  version: number;
 }
 
 export interface SaleListItem {

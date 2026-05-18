@@ -12,6 +12,7 @@
 
 import { db } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
+import { locations } from '@erp/db/schema/auth';
 import { salesOrders, shifts } from '@erp/db/schema/pos';
 import { dailyRevenueAdjustments } from '@erp/db/schema/reporting/daily-revenue-adjustments';
 import { AppError } from '@erp/shared/errors';
@@ -20,6 +21,12 @@ import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
+
+/**
+ * Locale is resolved by the caller (the action layer has next-intl).
+ * Default 'id' so background callers (worker, MCP, tests) don't crash.
+ */
+type SupportedLocale = 'id' | 'en' | 'zh';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -83,7 +90,7 @@ function toBigIntSafe(value: unknown): bigint {
 // ─── getOmzetHarian ───────────────────────────────────────────────────────
 
 export async function getOmzetHarian(
-  params: { locationId: string; date: string },
+  params: { locationId: string; date: string; locale?: SupportedLocale },
   ctx: AuditContext,
 ): Promise<Result<OmzetHarianResult>> {
   const permCheck = await requirePermission(ctx.userId, 'reporting.view', {
@@ -156,10 +163,35 @@ export async function getOmzetHarian(
     );
     const shiftCnt = Number(shiftAgg.rows[0]?.cnt ?? 0);
 
+    // 5. Resolve human-readable location label so reports + the XLSX
+    //    export don't show raw UUIDs. The `name` column is a
+    //    LocaleString jsonb; fall back to `code` then ID.
+    const locRow = await db
+      .select({ name: locations.name, code: locations.code })
+      .from(locations)
+      .where(
+        and(eq(locations.tenantId, ctx.tenantId), eq(locations.id, params.locationId)),
+      )
+      .limit(1)
+      .then((rows) => rows[0]);
+
+    let locationName: string = params.locationId;
+    if (locRow) {
+      const locale: SupportedLocale = params.locale ?? 'id';
+      const nameRecord = locRow.name as Record<string, string> | null | undefined;
+      locationName =
+        nameRecord?.[locale] ??
+        nameRecord?.id ??
+        nameRecord?.en ??
+        nameRecord?.zh ??
+        locRow.code ??
+        params.locationId;
+    }
+
     return ok({
       date: params.date,
       locationId: params.locationId,
-      locationName: params.locationId, // caller maps ID → name
+      locationName,
       grossSales: grossCents.toString(),
       pb1Amount: pb1Cents.toString(),
       netOmzet: netCents.toString(),

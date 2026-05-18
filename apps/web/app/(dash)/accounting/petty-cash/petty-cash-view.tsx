@@ -1,7 +1,11 @@
 'use client';
 
 import { useMemo, useState, useTransition } from 'react';
-import type { PettyCashAccountItem, PettyCashTransactionItem } from './actions';
+import type {
+  PettyCashAccountItem,
+  PettyCashEmptyLocation,
+  PettyCashTransactionItem,
+} from './actions';
 import {
   createAccountAction,
   depositToBankAction,
@@ -32,19 +36,39 @@ function formatDate(d: Date | string): string {
 interface Props {
   accounts: PettyCashAccountItem[];
   transactions: Record<string, PettyCashTransactionItem[]>;
-  userLocationId: string;
+  emptyLocations: PettyCashEmptyLocation[];
 }
 
-export function PettyCashView({ accounts, transactions, userLocationId }: Props) {
+export function PettyCashView({ accounts, transactions, emptyLocations }: Props) {
   const router = useRouter();
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
     accounts[0]?.id ?? null,
   );
   const [filterKind, setFilterKind] = useState<string | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
+  const [isCreating, setIsCreating] = useState<string | null>(null); // locationId in progress
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [openingBalance, setOpeningBalance] = useState<string>('500000');
-  const [maxLimit, setMaxLimit] = useState<string>('500000');
+  /** Per-outlet form state — each outlet has its own plafond + modal
+   * pembukaan since allocation differs by store size (e.g., outlet
+   * besar Rp 1.000.000, outlet kecil Rp 300.000). */
+  const [forms, setForms] = useState<
+    Record<string, { maxLimit: string; openingBalance: string }>
+  >(() => {
+    const init: Record<string, { maxLimit: string; openingBalance: string }> = {};
+    for (const loc of emptyLocations) {
+      init[loc.id] = { maxLimit: '500000', openingBalance: '500000' };
+    }
+    return init;
+  });
+
+  function setForm(locationId: string, field: 'maxLimit' | 'openingBalance', value: string) {
+    setForms((prev) => ({
+      ...prev,
+      [locationId]: {
+        ...(prev[locationId] ?? { maxLimit: '500000', openingBalance: '500000' }),
+        [field]: value.replace(/\D/g, ''),
+      },
+    }));
+  }
 
   type ActionKind = 'topup' | 'expense' | 'deposit_to_bank' | null;
   const [actionModal, setActionModal] = useState<ActionKind>(null);
@@ -99,12 +123,13 @@ export function PettyCashView({ accounts, transactions, userLocationId }: Props)
     });
   }
 
-  const handleCreate = async () => {
+  const handleCreate = async (locationId: string) => {
     try {
-      setIsCreating(true);
+      setIsCreating(locationId);
       setErrorMessage(null);
-      const limitNum = Number.parseInt(maxLimit.replace(/\D/g, ''), 10) || 0;
-      const openNum = Number.parseInt(openingBalance.replace(/\D/g, ''), 10) || 0;
+      const form = forms[locationId] ?? { maxLimit: '500000', openingBalance: '500000' };
+      const limitNum = Number.parseInt(form.maxLimit, 10) || 0;
+      const openNum = Number.parseInt(form.openingBalance, 10) || 0;
       if (limitNum <= 0) {
         setErrorMessage('Plafond kas kecil wajib diisi.');
         return;
@@ -113,12 +138,12 @@ export function PettyCashView({ accounts, transactions, userLocationId }: Props)
         setErrorMessage('Modal pembukaan tidak boleh melebihi plafond.');
         return;
       }
-      await createAccountAction(userLocationId, limitNum, openNum);
+      await createAccountAction(locationId, limitNum, openNum);
       router.refresh();
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Gagal membuat akun kas kecil');
     } finally {
-      setIsCreating(false);
+      setIsCreating(null);
     }
   };
 
@@ -187,72 +212,78 @@ export function PettyCashView({ accounts, transactions, userLocationId }: Props)
           );
         })}
 
-        {accounts.length === 0 && (
-          <div className="surface-card col-span-full mx-auto max-w-md p-6">
-            <h3 className="text-base font-semibold text-brand-ink">Buka kas kecil</h3>
-            <p className="mt-1 text-sm text-brand-ink-3">
-              Perusahaan mengalokasikan maksimal <b>Rp 500.000</b> per lokasi sebagai modal
-              kembalian. Isi modal pembukaan yang diserahkan ke kasir — sistem akan otomatis
-              mencatat jurnal Kas → Kas Kecil sebesar nominal tersebut.
-            </p>
-
-            <div className="mt-4 space-y-3 text-left">
+        {/* Per-outlet "Buka kas kecil" cards for every outlet that
+            doesn't yet have an account. Plafond + opening balance are
+            independently editable per outlet — outlet besar bisa
+            Rp 1.000.000, outlet kecil Rp 300.000, dll. */}
+        {emptyLocations.map((loc) => {
+          const form = forms[loc.id] ?? { maxLimit: '500000', openingBalance: '500000' };
+          const pending = isCreating === loc.id;
+          return (
+            <div key={loc.id} className="surface-card p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-base font-semibold text-brand-ink">{loc.name}</h3>
+                <span className="rounded-full bg-brand-cream-2 px-2 py-0.5 text-[11px] font-medium text-brand-ink-3">
+                  Belum dibuka
+                </span>
+              </div>
+              <p className="mb-3 text-xs text-brand-ink-3">
+                Saat dibuka, sistem otomatis mencatat jurnal <b>DR Kas Kecil · CR Kas</b>.
+              </p>
               <label className="block">
-                <span className="text-xs font-medium uppercase tracking-wider text-brand-ink-2">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-brand-ink-2">
                   Plafond kas kecil
                 </span>
-                <div className="mt-1 flex items-center rounded-md border border-brand-cream-3 bg-card px-3 py-2">
+                <div className="mt-1 flex items-center rounded-md border border-brand-cream-3 bg-card px-3 py-1.5">
                   <span className="text-sm text-brand-ink-3">Rp</span>
                   <input
                     inputMode="numeric"
-                    value={maxLimit}
-                    onChange={(e) => setMaxLimit(e.target.value.replace(/\D/g, ''))}
+                    value={form.maxLimit}
+                    onChange={(e) => setForm(loc.id, 'maxLimit', e.target.value)}
                     placeholder="500000"
                     className="ml-2 flex-1 bg-transparent text-sm text-brand-ink focus:outline-none"
                   />
                 </div>
               </label>
-
-              <label className="block">
-                <span className="text-xs font-medium uppercase tracking-wider text-brand-ink-2">
-                  Modal pembukaan (diserahkan ke kasir)
+              <label className="mt-3 block">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-brand-ink-2">
+                  Modal pembukaan
                 </span>
-                <div className="mt-1 flex items-center rounded-md border border-brand-cream-3 bg-card px-3 py-2">
+                <div className="mt-1 flex items-center rounded-md border border-brand-cream-3 bg-card px-3 py-1.5">
                   <span className="text-sm text-brand-ink-3">Rp</span>
                   <input
                     inputMode="numeric"
-                    value={openingBalance}
-                    onChange={(e) => setOpeningBalance(e.target.value.replace(/\D/g, ''))}
+                    value={form.openingBalance}
+                    onChange={(e) => setForm(loc.id, 'openingBalance', e.target.value)}
                     placeholder="500000"
                     className="ml-2 flex-1 bg-transparent text-sm text-brand-ink focus:outline-none"
                   />
                 </div>
-                <p className="mt-1 text-[11px] text-brand-ink-3">
-                  Jurnal otomatis: DR Kas Kecil · CR Kas
-                </p>
               </label>
+              <button
+                type="button"
+                onClick={() => handleCreate(loc.id)}
+                disabled={pending}
+                className="mt-4 w-full rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {pending ? 'Membuat...' : 'Buka kas kecil'}
+              </button>
             </div>
+          );
+        })}
 
-            {errorMessage ? (
-              <p className="mt-3 text-xs text-rose-600">{errorMessage}</p>
-            ) : null}
-            <button
-              type="button"
-              onClick={handleCreate}
-              disabled={isCreating || !userLocationId}
-              className="mt-4 w-full rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isCreating ? 'Membuat...' : 'Buka kas kecil'}
-            </button>
-            {!userLocationId ? (
-              <p className="mt-2 text-xs text-brand-ink-3">
-                Sesi tidak memiliki lokasi default. Hubungi admin untuk mengisi
-                lokasi pada profil Anda.
-              </p>
-            ) : null}
+        {accounts.length === 0 && emptyLocations.length === 0 && (
+          <div className="surface-card col-span-full p-6 text-center text-sm text-brand-ink-3">
+            Tidak ada outlet aktif. Tambahkan outlet di Settings → Locations terlebih dahulu.
           </div>
         )}
       </div>
+
+      {errorMessage ? (
+        <p className="rounded-md border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700">
+          {errorMessage}
+        </p>
+      ) : null}
 
       {/* Transaction history */}
       {selectedAccount && (

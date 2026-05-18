@@ -9,7 +9,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { closeShiftAction, fetchOpenShift, openShiftAction } from './actions';
 import type { ShiftStatusItem } from './actions';
@@ -23,23 +23,36 @@ interface ShiftStatusBarProps {
 export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
   const t = useTranslations('pos');
   const router = useRouter();
+  const pathname = usePathname();
   const { setShiftId } = usePosCart();
   const [shift, setShift] = useState<ShiftStatusItem | null>(null);
   const [isPending, startTransition] = useTransition();
   const [showOpenModal, setShowOpenModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
+  const [openError, setOpenError] = useState<string | null>(null);
+  const [closeError, setCloseError] = useState<string | null>(null);
+
+  // Demo route lives under the same parent layout but uses an isolated
+  // IndexedDB sandbox (ADR-0008). The production shift bar must not
+  // appear there — otherwise clicking "Open Shift" while in demo mode
+  // creates a real shift on the production server.
+  const isDemoRoute = pathname?.startsWith('/pos/demo');
 
   // Load open shift on mount
   useEffect(() => {
+    if (isDemoRoute) return;
     startTransition(async () => {
       const s = await fetchOpenShift(locationId);
       setShift(s);
       setShiftId(s?.id ?? null);
     });
-  }, [locationId, setShiftId]);
+  }, [locationId, setShiftId, isDemoRoute]);
+
+  if (isDemoRoute) return null;
 
   // Refresh expectedCash from server every time the close modal opens
   async function openCloseModal() {
+    setCloseError(null);
     setShowCloseModal(true);
     const fresh = await fetchOpenShift(locationId);
     if (fresh) setShift(fresh);
@@ -48,13 +61,21 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
   async function handleOpenShift(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const openingCash = (form.elements.namedItem('openingCash') as HTMLInputElement).value;
+    const openingCash = (form.elements.namedItem('openingCash') as HTMLInputElement).value.replace(
+      /\D/g,
+      '',
+    );
+    setOpenError(null);
     startTransition(async () => {
       const result = await openShiftAction({ locationId, openingCash });
       if (result.ok && result.value) {
         setShift(result.value as ShiftStatusItem);
         setShiftId(result.value.id);
         setShowOpenModal(false);
+      } else if (!result.ok) {
+        const key =
+          (result.error as { messageKey?: string } | undefined)?.messageKey ?? 'shiftOpenFailed';
+        setOpenError(translateErr(t, key));
       }
     });
   }
@@ -62,19 +83,34 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
   async function handleCloseShift(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const actualCash = (form.elements.namedItem('actualCash') as HTMLInputElement).value;
+    const actualCash = (form.elements.namedItem('actualCash') as HTMLInputElement).value.replace(
+      /\D/g,
+      '',
+    );
     if (!shift) return;
+    setCloseError(null);
+
+    // Re-fetch the shift right before close so the optimistic version
+    // we send matches what's in the DB. The previous hardcoded `version: 1`
+    // silently failed for any shift whose row had been touched (e.g.,
+    // after a future re-open, edit, or migration update).
     startTransition(async () => {
+      const fresh = await fetchOpenShift(locationId);
+      const versionToSend = fresh?.version ?? shift.version ?? 1;
       const result = await closeShiftAction({
         shiftId: shift.id,
         actualCash,
-        version: 1,
+        version: versionToSend,
       });
       if (result.ok) {
         setShift(null);
         setShiftId(null);
         setShowCloseModal(false);
         router.refresh();
+      } else {
+        const key =
+          (result.error as { messageKey?: string } | undefined)?.messageKey ?? 'shiftCloseFailed';
+        setCloseError(translateErr(t, key));
       }
     });
   }
@@ -160,6 +196,11 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                   className="h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
                 />
               </div>
+              {openError && (
+                <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                  {openError}
+                </p>
+              )}
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
@@ -219,6 +260,11 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                   className="h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
                 />
               </div>
+              {closeError && (
+                <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                  {closeError}
+                </p>
+              )}
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
@@ -241,6 +287,18 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
       )}
     </>
   );
+}
+
+function translateErr(t: ReturnType<typeof useTranslations>, key: string): string {
+  // Stub: most server-side AppError messageKeys are pos.* under the
+  // pos namespace, but messages may not have entries for every key. Fall
+  // back to the raw key so the user at least sees something actionable.
+  try {
+    const localized = t(key);
+    return localized && localized !== key ? localized : key;
+  } catch {
+    return key;
+  }
 }
 
 // ─── Utility helpers ───────────────────────────────────────────────────────────

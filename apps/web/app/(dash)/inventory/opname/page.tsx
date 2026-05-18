@@ -8,8 +8,10 @@
 import { getSession } from '@/lib/auth';
 import { db } from '@erp/db';
 import { desc, eq } from '@erp/db';
+import { locations, users } from '@erp/db/schema/auth';
 import { stockOpnameSessions } from '@erp/db/schema/stock-opname';
 import type { Metadata } from 'next';
+import { getLocale } from 'next-intl/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
@@ -28,8 +30,11 @@ export default async function OpnameListPage() {
   if (!session) redirect('/login');
 
   const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
+  const locale = (await getLocale().catch(() => 'id')) as 'id' | 'en' | 'zh';
 
-  // Fetch sessions + location names
+  // Fetch sessions + JOIN users for prepared-by display name + JOIN
+  // locations for the localized outlet label. Avoid showing UUIDs in
+  // the operator UI.
   const rows = await db
     .select({
       id: stockOpnameSessions.id,
@@ -37,13 +42,28 @@ export default async function OpnameListPage() {
       sessionDate: stockOpnameSessions.sessionDate,
       periodCode: stockOpnameSessions.periodCode,
       status: stockOpnameSessions.status,
-      preparedBy: stockOpnameSessions.preparedBy,
+      preparedById: stockOpnameSessions.preparedBy,
+      preparedByName: users.displayName,
+      locationId: stockOpnameSessions.locationId,
+      locationName: locations.name,
+      locationCode: locations.code,
       createdAt: stockOpnameSessions.createdAt,
     })
     .from(stockOpnameSessions)
+    .leftJoin(users, eq(users.id, stockOpnameSessions.preparedBy))
+    .leftJoin(locations, eq(locations.id, stockOpnameSessions.locationId))
     .where(eq(stockOpnameSessions.tenantId, tenantId))
     .orderBy(desc(stockOpnameSessions.createdAt))
     .limit(50);
+
+  function pickLocationLabel(
+    name: Record<string, string> | null,
+    code: string | null,
+    id: string,
+  ): string {
+    if (name) return name[locale] ?? name.id ?? name.en ?? name.zh ?? code ?? id;
+    return code ?? id;
+  }
 
   return (
     <div className="space-y-6">
@@ -108,6 +128,7 @@ export default async function OpnameListPage() {
               <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
                 <th className="px-4 py-3 text-left font-medium text-brand-ink-2">No. Sesi</th>
                 <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Tanggal</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Outlet</th>
                 <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Periode</th>
                 <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Status</th>
                 <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Dibuat oleh</th>
@@ -125,6 +146,13 @@ export default async function OpnameListPage() {
                   <tr key={row.id} className="hover:bg-brand-cream-1/50">
                     <td className="px-4 py-3 font-medium text-brand-ink">{row.number}</td>
                     <td className="px-4 py-3 text-brand-ink-2">{String(row.sessionDate)}</td>
+                    <td className="px-4 py-3 text-brand-ink-2">
+                      {pickLocationLabel(
+                        row.locationName as Record<string, string> | null,
+                        row.locationCode,
+                        row.locationId,
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-brand-ink-2">{row.periodCode}</td>
                     <td className="px-4 py-3">
                       <span
@@ -133,7 +161,9 @@ export default async function OpnameListPage() {
                         {status.label}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-brand-ink-2">{row.preparedBy ?? '—'}</td>
+                    <td className="px-4 py-3 text-brand-ink-2">
+                      {row.preparedByName ?? row.preparedById ?? '—'}
+                    </td>
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`/inventory/opname/${row.id}`}
