@@ -112,6 +112,31 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
       refundTotal === BigInt(sale.grandTotal.toString()) &&
       data.lines.length === originalLines.length;
 
+    // ── CLAIM the order first ───────────────────────────────────────────
+    // Without this, two cashiers refunding the same order could both run
+    // the journal reversal AND restore stock twice. The atomic UPDATE
+    // returning rows lets only one caller proceed; the other gets a
+    // clean conflict before any books or stock are touched.
+    const claimedSale = await db
+      .update(salesOrders)
+      .set({
+        status: 'refunded',
+        notes: data.reason,
+        updatedBy: ctx.userId,
+        version: sale.version + 1,
+      })
+      .where(
+        and(
+          eq(salesOrders.id, data.salesOrderId),
+          eq(salesOrders.version, sale.version),
+          eq(salesOrders.status, 'paid'),
+        ),
+      )
+      .returning({ id: salesOrders.id });
+    if (!claimedSale || claimedSale.length === 0) {
+      return err(AppError.conflict('pos.refund.versionMismatch'));
+    }
+
     // ── Journal handling ────────────────────────────────────────────────
     let reversalJeId: string | null = null;
 
@@ -125,6 +150,12 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
           ctx,
         );
         if (!reversalResult.ok) {
+          // Roll the claim back so the order can be refunded again
+          // when the underlying period reopens.
+          await db
+            .update(salesOrders)
+            .set({ status: 'paid', notes: sale.notes, version: sale.version })
+            .where(eq(salesOrders.id, data.salesOrderId));
           return err(
             AppError.internal('pos.refund.journalReversalFailed', {
               originalJeId: sale.journalEntryId,
@@ -139,12 +170,20 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
           refundTotal,
           ctx,
         );
-        if (!partialResult.ok) return partialResult as Result<never>;
+        if (!partialResult.ok) {
+          await db
+            .update(salesOrders)
+            .set({ status: 'paid', notes: sale.notes, version: sale.version })
+            .where(eq(salesOrders.id, data.salesOrderId));
+          return partialResult as Result<never>;
+        }
         reversalJeId = partialResult.value;
       }
     }
 
     // ── Restore stock for refunded lines only ──────────────────────────
+    // Uses atomic SQL increment + variant-aware match to avoid the
+    // float-drift and variant-overwrite bugs that hit other modules.
     for (const rl of data.lines) {
       const line = originalLineMap.get(rl.lineId)!;
 
@@ -175,9 +214,17 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
       for (const ingredient of bomLineRows) {
         const restoreQty = (Number.parseFloat(ingredient.qty) * rl.qty).toFixed(3);
 
-        const existingLevel = await db
-          .select()
-          .from(stockLevels)
+        // BOM lines reference ingredient products directly — raw
+        // materials are tracked without variants in this schema, so
+        // matching by tenant+location+productId is correct here.
+        const incremented = await db
+          .update(stockLevels)
+          .set({
+            qtyOnHand: sql`${stockLevels.qtyOnHand} + ${restoreQty}::numeric`,
+            qtyAvailable: sql`${stockLevels.qtyAvailable} + ${restoreQty}::numeric`,
+            updatedBy: ctx.userId,
+            lastMovementAt: new Date(),
+          })
           .where(
             and(
               eq(stockLevels.tenantId, ctx.tenantId),
@@ -185,21 +232,9 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
               eq(stockLevels.productId, ingredient.ingredientId),
             ),
           )
-          .then((r) => r[0]);
+          .returning({ id: stockLevels.id });
 
-        if (existingLevel) {
-          const newOnHand =
-            Number.parseFloat(existingLevel.qtyOnHand) + Number.parseFloat(restoreQty);
-          await db
-            .update(stockLevels)
-            .set({
-              qtyOnHand: String(newOnHand),
-              qtyAvailable: String(newOnHand),
-              updatedBy: ctx.userId,
-              lastMovementAt: new Date(),
-            })
-            .where(eq(stockLevels.id, existingLevel.id));
-        } else {
+        if (!incremented || incremented.length === 0) {
           await db.insert(stockLevels).values({
             id: generateId(),
             tenantId: ctx.tenantId,
@@ -238,17 +273,6 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
         });
       }
     }
-
-    // ── Update order status ─────────────────────────────────────────────
-    await db
-      .update(salesOrders)
-      .set({
-        status: 'refunded',
-        notes: data.reason,
-        updatedBy: ctx.userId,
-        version: sale.version + 1,
-      })
-      .where(and(eq(salesOrders.id, data.salesOrderId), eq(salesOrders.version, sale.version)));
 
     // ── Audit log ───────────────────────────────────────────────────────
     await db.insert(auditLog).values({

@@ -15,7 +15,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { generatePONumber } from './number-generator';
@@ -119,23 +119,32 @@ export async function createPO(rawInput: unknown, ctx: AuditContext): Promise<Re
   }
   const input = parsed.data;
 
-  // 3. Validate supplier exists and is a supplier
+  // 3. Validate supplier exists in this tenant and is flagged as a
+  //    supplier (partners table also holds customers/members — without
+  //    the kind check a tenant could attach a customer record to a PO).
   const [supplier] = await db
-    .select({ id: partners.id })
+    .select({ id: partners.id, kind: partners.kind })
     .from(partners)
-    .where(eq(partners.id, input.supplierId))
+    .where(and(eq(partners.id, input.supplierId), eq(partners.tenantId, ctx.tenantId)))
     .limit(1);
 
   if (!supplier) {
     return err(AppError.notFound('purchasing.errors.supplier_not_found'));
   }
+  if (supplier.kind !== 'supplier') {
+    return err(
+      AppError.businessRule('purchasing.errors.partner_not_supplier', {
+        partnerKind: supplier.kind,
+      }),
+    );
+  }
 
-  // 4. Validate all products exist
+  // 4. Validate all products exist within this tenant.
   const productIds: string[] = [...new Set(input.lines.map((l: POLineInput) => l.productId))];
   const productRows = await db
     .select({ id: products.id })
     .from(products)
-    .where(inArray(products.id, productIds));
+    .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, productIds)));
 
   if (productRows.length !== productIds.length) {
     const found = new Set(productRows.map((p) => p.id));

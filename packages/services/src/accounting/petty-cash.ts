@@ -451,6 +451,17 @@ export async function depositPettyCashToBank(
     async () => {
       const txId = generateId();
 
+      // Post the journal FIRST. If the period is closed or accounts are
+      // missing this rejects without touching the petty-cash balance,
+      // keeping the cash register and the General Ledger in sync.
+      const journalRes = await postBankDepositJournal(
+        { tenantId: ctx.tenantId, locationId, amount },
+        ctx,
+      );
+      if (!journalRes.ok) {
+        throw journalRes.error;
+      }
+
       // Atomic decrement (see expense path note). Guards against
       // concurrent setor + expense draining the account below zero.
       const updated = await db
@@ -482,11 +493,10 @@ export async function depositPettyCashToBank(
           amount,
           description,
           referenceType: 'bank_deposit',
+          referenceId: journalRes.value.id,
           createdBy: ctx.userId,
         })
         .returning();
-
-      await postBankDepositJournal({ tenantId: ctx.tenantId, locationId, amount }, ctx);
 
       await db.insert(auditLog).values({
         id: generateId(),
@@ -504,6 +514,7 @@ export async function depositPettyCashToBank(
           locationId,
           balanceBefore: acct.balance.toString(),
           balanceAfter: newBalance.toString(),
+          journalEntryId: journalRes.value.id,
         },
         metadata: {
           ip: ctx.ipAddress ?? null,
@@ -523,7 +534,7 @@ export async function depositPettyCashToBank(
 async function postBankDepositJournal(
   args: { tenantId: string; locationId: string; amount: bigint },
   ctx: AuditContext,
-): Promise<void> {
+): Promise<Result<{ id: string }>> {
   const setting = await db
     .select({ bankCode: posSettings.bankAccountCode })
     .from(posSettings)
@@ -542,10 +553,17 @@ async function postBankDepositJournal(
   const byCode = new Map(accountRows.map((a) => [a.code, a.id] as const));
   const bankId = byCode.get(bankCode);
   const pettyId = byCode.get(pettyCode);
-  if (!bankId || !pettyId) return;
+  if (!bankId || !pettyId) {
+    return err(
+      AppError.businessRule('accounting.pettyCash.accountsMissing', {
+        bankCode,
+        pettyCode,
+      }),
+    );
+  }
 
   const today = new Date().toISOString().slice(0, 10);
-  await createJournal(
+  const journalRes = await createJournal(
     {
       postingDate: today,
       locationId: args.locationId,
@@ -570,6 +588,8 @@ async function postBankDepositJournal(
     },
     ctx,
   );
+  if (!journalRes.ok) return journalRes;
+  return ok({ id: journalRes.value.id });
 }
 
 /**
@@ -624,6 +644,25 @@ export async function createPettyCashAccount(
       const acctId = generateId();
       const maxLimit = BigInt(maxLimitStr);
 
+      // Auto-journal the cash transfer BEFORE creating the petty-cash
+      // account. If the period is closed or the CoA is missing the
+      // required accounts, fail fast and leave the books untouched —
+      // otherwise the account would open with a balance that has no
+      // matching journal entry in the GL.
+      //   DR Petty Cash 1-1310
+      //   CR Cash       1-1100
+      let openingJournalId: string | null = null;
+      if (openingBalance > 0n) {
+        const journalRes = await postOpeningCashTransfer(
+          { tenantId: ctx.tenantId, locationId, amount: openingBalance },
+          ctx,
+        );
+        if (!journalRes.ok) {
+          throw journalRes.error;
+        }
+        openingJournalId = journalRes.value.id;
+      }
+
       const rows = await db
         .insert(pettyCashAccounts)
         .values({
@@ -638,11 +677,6 @@ export async function createPettyCashAccount(
         })
         .returning();
 
-      // Record the opening transaction + auto-journal the cash transfer:
-      //   DR Petty Cash 1-1310
-      //   CR Cash       1-1100
-      // The exact account codes come from posSettings (so each store can
-      // override them) with sensible SAK-ETAP defaults when missing.
       if (openingBalance > 0n) {
         await db.insert(pettyCashTransactions).values({
           id: generateId(),
@@ -651,14 +685,9 @@ export async function createPettyCashAccount(
           amount: openingBalance,
           description: 'Pembukaan kas kecil — modal kembalian',
           referenceType: 'opening',
+          referenceId: openingJournalId,
           createdBy: ctx.userId,
         });
-
-        await postOpeningCashTransfer({
-          tenantId: ctx.tenantId,
-          locationId,
-          amount: openingBalance,
-        }, ctx);
       }
 
       await db.insert(auditLog).values({
@@ -700,7 +729,7 @@ export async function createPettyCashAccount(
 async function postOpeningCashTransfer(
   args: { tenantId: string; locationId: string; amount: bigint },
   ctx: AuditContext,
-): Promise<void> {
+): Promise<Result<{ id: string }>> {
   const setting = await db
     .select({ cashCode: posSettings.cashAccountCode })
     .from(posSettings)
@@ -720,10 +749,17 @@ async function postOpeningCashTransfer(
   const byCode = new Map(accountRows.map((a) => [a.code, a.id] as const));
   const cashId = byCode.get(cashCode);
   const pettyId = byCode.get(pettyCode);
-  if (!cashId || !pettyId) return;
+  if (!cashId || !pettyId) {
+    return err(
+      AppError.businessRule('accounting.pettyCash.accountsMissing', {
+        cashCode,
+        pettyCode,
+      }),
+    );
+  }
 
   const today = new Date().toISOString().slice(0, 10);
-  await createJournal(
+  const journalRes = await createJournal(
     {
       postingDate: today,
       locationId: args.locationId,
@@ -748,4 +784,6 @@ async function postOpeningCashTransfer(
     },
     ctx,
   );
+  if (!journalRes.ok) return journalRes;
+  return ok({ id: journalRes.value.id });
 }

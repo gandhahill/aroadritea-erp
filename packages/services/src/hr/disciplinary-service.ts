@@ -11,6 +11,7 @@
  */
 
 import { db } from '@erp/db';
+import { auditLog } from '@erp/db/schema/audit';
 import { disciplinaryActions } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -87,6 +88,28 @@ export async function createDisciplinaryAction(
       updatedBy: ctx.userId,
     });
 
+    // SP1/SP2/SP3 affect labor records that may lead to termination,
+    // so the issuance MUST be on the immutable audit log (ISO 38500 +
+    // UU Cipta Kerja documentation requirements).
+    await db.insert(auditLog).values({
+      id: generateId(),
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: 'create',
+      entityType: 'disciplinary_action',
+      entityId: id,
+      before: null,
+      after: {
+        employeeId: data.employeeId,
+        level: data.level,
+        reason: data.reason,
+        incidentDate: data.incidentDate,
+        status: 'issued',
+        issuedBy: ctx.userId,
+      },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+    });
+
     return ok({ id, employeeId: data.employeeId, level: data.level, status: 'issued' });
   } catch (e) {
     if (e instanceof AppError) return err(e);
@@ -129,7 +152,10 @@ export async function acknowledgeDisciplinaryAction(
       return err(AppError.notFound('hr.disciplinary.notFound', { id: data.disciplinaryId }));
     }
 
-    await db
+    // Atomic claim: only transitions from `issued` to `acknowledged`.
+    // A double-acknowledge (employee tapping twice) does NOT write a
+    // second audit row.
+    const claimed = await db
       .update(disciplinaryActions)
       .set({
         status: 'acknowledged',
@@ -137,7 +163,32 @@ export async function acknowledgeDisciplinaryAction(
         acknowledgedAt: new Date(),
         updatedBy: ctx.userId,
       })
-      .where(eq(disciplinaryActions.id, data.disciplinaryId));
+      .where(
+        and(
+          eq(disciplinaryActions.id, data.disciplinaryId),
+          eq(disciplinaryActions.status, 'issued'),
+        ),
+      )
+      .returning({ id: disciplinaryActions.id });
+    if (!claimed || claimed.length === 0) {
+      return err(
+        AppError.businessRule('hr.disciplinary.notIssued', {
+          currentStatus: action.status,
+        }),
+      );
+    }
+
+    await db.insert(auditLog).values({
+      id: generateId(),
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: 'acknowledge',
+      entityType: 'disciplinary_action',
+      entityId: data.disciplinaryId,
+      before: { status: action.status },
+      after: { status: 'acknowledged', acknowledgedBy: ctx.userId },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+    });
 
     return ok({ id: data.disciplinaryId, status: 'acknowledged' });
   } catch (e) {
@@ -211,7 +262,10 @@ export async function attachDocument(
 
   try {
     const [action] = await db
-      .select({ id: disciplinaryActions.id })
+      .select({
+        id: disciplinaryActions.id,
+        attachmentUrl: disciplinaryActions.attachmentUrl,
+      })
       .from(disciplinaryActions)
       .where(
         and(
@@ -232,6 +286,18 @@ export async function attachDocument(
         updatedBy: ctx.userId,
       })
       .where(eq(disciplinaryActions.id, input.disciplinaryId));
+
+    await db.insert(auditLog).values({
+      id: generateId(),
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: 'update',
+      entityType: 'disciplinary_action',
+      entityId: input.disciplinaryId,
+      before: { attachmentUrl: action.attachmentUrl },
+      after: { attachmentUrl: input.attachmentUrl },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+    });
 
     return ok({ id: input.disciplinaryId, attachmentUrl: input.attachmentUrl });
   } catch (e) {

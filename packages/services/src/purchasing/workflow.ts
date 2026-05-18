@@ -82,11 +82,6 @@ export async function submitPO(
   rawInput: unknown,
   ctx: AuditContext,
 ): Promise<Result<POWorkflowResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'purchasing.po.create', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = SubmitPOInputSchema.safeParse(rawInput);
   if (!parsed.success) {
     return err(
@@ -106,6 +101,12 @@ export async function submitPO(
     return err(AppError.notFound('purchasing.errors.po_not_found'));
   }
 
+  // Permission scoped to the PO's own location, not the caller's.
+  const permCheck = await requirePermission(ctx.userId, 'purchasing.po.create', {
+    locationId: po.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
   if (po.status !== 'draft') {
     return err(
       AppError.businessRule('purchasing.errors.not_draft', {
@@ -114,7 +115,7 @@ export async function submitPO(
     );
   }
 
-  await db
+  const claimed = await db
     .update(purchaseOrders)
     .set({
       status: 'submitted',
@@ -123,7 +124,17 @@ export async function submitPO(
       updatedBy: ctx.userId,
       version: po.version + 1,
     })
-    .where(and(eq(purchaseOrders.id, po.id), eq(purchaseOrders.version, po.version)));
+    .where(
+      and(
+        eq(purchaseOrders.id, po.id),
+        eq(purchaseOrders.version, po.version),
+        eq(purchaseOrders.status, 'draft'),
+      ),
+    )
+    .returning({ id: purchaseOrders.id });
+  if (!claimed || claimed.length === 0) {
+    return err(AppError.conflict('purchasing.errors.version_mismatch'));
+  }
 
   await auditRecord({
     action: 'submit',
@@ -147,11 +158,6 @@ export async function approvePO(
   rawInput: unknown,
   ctx: AuditContext,
 ): Promise<Result<POWorkflowResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'purchasing.po.approve', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = ApprovePOInputSchema.safeParse(rawInput);
   if (!parsed.success) {
     return err(
@@ -175,6 +181,14 @@ export async function approvePO(
   if (!po) {
     return err(AppError.notFound('purchasing.errors.po_not_found'));
   }
+
+  // Permission scoped to the PO's own location so a director currently
+  // checked in at outlet B cannot approve outlet A's PO unless they
+  // have approve permission on A.
+  const permCheck = await requirePermission(ctx.userId, 'purchasing.po.approve', {
+    locationId: po.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
 
   if (po.status !== 'submitted') {
     return err(
@@ -234,7 +248,11 @@ export async function approvePO(
     firstProduct.productId,
   );
 
-  // Create AP journal entry: DR Inventory/Expense, CR AP
+  // Create AP journal entry: DR Inventory/Expense, CR AP. If this
+  // fails (period closed mid-flight, account inactive, etc.) we MUST
+  // abort the approval — otherwise the PO ends up "approved" with a
+  // null journalEntryId, meaning AP is missing from the books while
+  // procurement believes the order is committed.
   const grandTotal = po.grandTotal.toString();
   const jeResult = await createJournal(
     {
@@ -264,14 +282,14 @@ export async function approvePO(
     },
     ctx,
   );
+  if (!jeResult.ok) return jeResult;
+  const journalEntryId = jeResult.value.id;
 
-  let journalEntryId: string | null = null;
-  if (jeResult.ok) {
-    journalEntryId = jeResult.value.id;
-  }
-
-  // Update PO status
-  await db
+  // CLAIM the PO atomically. If a concurrent approve already advanced
+  // the status, this UPDATE affects zero rows and we surface a
+  // version-mismatch conflict (the JE we just created is orphaned —
+  // ledger reviewers can match it via referenceId=po.id).
+  const claimed = await db
     .update(purchaseOrders)
     .set({
       status: 'approved',
@@ -281,7 +299,17 @@ export async function approvePO(
       updatedBy: ctx.userId,
       version: po.version + 1,
     })
-    .where(and(eq(purchaseOrders.id, po.id), eq(purchaseOrders.version, po.version)));
+    .where(
+      and(
+        eq(purchaseOrders.id, po.id),
+        eq(purchaseOrders.version, po.version),
+        eq(purchaseOrders.status, 'submitted'),
+      ),
+    )
+    .returning({ id: purchaseOrders.id });
+  if (!claimed || claimed.length === 0) {
+    return err(AppError.conflict('purchasing.errors.version_mismatch'));
+  }
 
   await auditRecord({
     action: 'approve',
@@ -311,11 +339,6 @@ export async function cancelPO(
   rawInput: unknown,
   ctx: AuditContext,
 ): Promise<Result<POWorkflowResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'purchasing.po.create', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = CancelPOInputSchema.safeParse(rawInput);
   if (!parsed.success) {
     return err(
@@ -335,6 +358,11 @@ export async function cancelPO(
     return err(AppError.notFound('purchasing.errors.po_not_found'));
   }
 
+  const permCheck = await requirePermission(ctx.userId, 'purchasing.po.create', {
+    locationId: po.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
   const NON_CANCELLABLE = new Set(['closed', 'cancelled', 'received']);
   if (NON_CANCELLABLE.has(po.status)) {
     return err(
@@ -353,7 +381,7 @@ export async function cancelPO(
     }
   }
 
-  await db
+  const claimedCancel = await db
     .update(purchaseOrders)
     .set({
       status: 'cancelled',
@@ -363,7 +391,17 @@ export async function cancelPO(
       updatedBy: ctx.userId,
       version: po.version + 1,
     })
-    .where(and(eq(purchaseOrders.id, po.id), eq(purchaseOrders.version, po.version)));
+    .where(
+      and(
+        eq(purchaseOrders.id, po.id),
+        eq(purchaseOrders.version, po.version),
+        eq(purchaseOrders.status, po.status),
+      ),
+    )
+    .returning({ id: purchaseOrders.id });
+  if (!claimedCancel || claimedCancel.length === 0) {
+    return err(AppError.conflict('purchasing.errors.version_mismatch'));
+  }
 
   await auditRecord({
     action: 'cancel',

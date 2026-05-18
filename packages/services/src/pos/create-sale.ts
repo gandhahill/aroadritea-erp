@@ -479,12 +479,18 @@ async function getBOMIngredients(
 async function deductIngredients(
   tenantId: string,
   locationId: string,
-  ingredients: Array<{ ingredientId: string; qty: string; uom: string }>,
+  ingredients: Array<{
+    ingredientId: string;
+    qty: string;
+    uom: string;
+  }>,
   referenceId: string,
   ctx: AuditContext,
 ): Promise<Result<void>> {
   try {
     for (const ing of ingredients) {
+      // Ingredients (raw materials) are tracked as products without
+      // variants in this schema; match by tenant+location+productId.
       const existing = await db
         .select()
         .from(stockLevels)
@@ -513,7 +519,6 @@ async function deductIngredients(
           .where(eq(stockLevels.id, existing.id));
       }
 
-      // Record stock movement
       await db.insert(stockMovements).values({
         id: generateId(),
         tenantId,
@@ -1084,7 +1089,9 @@ export async function voidSale(input: unknown, ctx: AuditContext): Promise<Resul
       return err(AppError.conflict('pos.void.versionMismatch'));
     }
 
-    await db
+    // CLAIM the order — two concurrent void attempts must produce exactly
+    // one audit log entry, not two.
+    const claimedVoid = await db
       .update(salesOrders)
       .set({
         status: 'voided',
@@ -1092,7 +1099,17 @@ export async function voidSale(input: unknown, ctx: AuditContext): Promise<Resul
         updatedBy: ctx.userId,
         version: sale.version + 1,
       })
-      .where(and(eq(salesOrders.id, data.salesOrderId), eq(salesOrders.version, sale.version)));
+      .where(
+        and(
+          eq(salesOrders.id, data.salesOrderId),
+          eq(salesOrders.version, sale.version),
+          eq(salesOrders.status, 'open'),
+        ),
+      )
+      .returning({ id: salesOrders.id });
+    if (!claimedVoid || claimedVoid.length === 0) {
+      return err(AppError.conflict('pos.void.versionMismatch'));
+    }
 
     const lines = await db
       .select()

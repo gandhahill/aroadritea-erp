@@ -11,8 +11,10 @@
 
 import { db } from '@erp/db';
 import { accounts } from '@erp/db/schema/accounting';
+import { auditLog } from '@erp/db/schema/audit';
 import { payrollLines, payrolls, salaryComponents } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray } from 'drizzle-orm';
@@ -38,11 +40,6 @@ export async function approvePayroll(
   input: ApprovePayrollInput,
   ctx: AuditContext,
 ): Promise<Result<{ payrollId: string; journalEntryId: string }>> {
-  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.approve', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = ApprovePayrollInputSchema.safeParse(input);
   if (!parsed.success) {
     return err(AppError.validation('hr.payroll.validationFailed', { issues: parsed.error.issues }));
@@ -59,6 +56,17 @@ export async function approvePayroll(
     if (!payroll) {
       throw AppError.notFound('hr.payroll.notFound', { payrollId: data.payrollId });
     }
+
+    // Permission scoped to the payroll's outlet — a director currently
+    // checked in at outlet B cannot approve outlet A's payroll without
+    // explicit permission there.
+    const permCheck = await requirePermission(ctx.userId, 'hr.payroll.approve', {
+      locationId: payroll.locationId,
+    });
+    if (!permCheck.ok) {
+      throw permCheck.error;
+    }
+
     if (payroll.status !== 'draft' && payroll.status !== 'pending_approval') {
       throw AppError.conflict('hr.payroll.cannotApprove', { status: payroll.status });
     }
@@ -173,8 +181,11 @@ export async function approvePayroll(
       throw AppError.internal('hr.payroll.jeFailed', { error: journalResult.error });
     }
 
-    // Update payroll status
-    await db
+    // Atomic claim — without this, two concurrent approvers each post a
+    // full salary expense journal entry, DOUBLING reported payroll cost.
+    // The claim guard transitions only from draft/pending_approval and
+    // returns rows so we can detect race losers.
+    const claimed = await db
       .update(payrolls)
       .set({
         status: 'approved',
@@ -183,7 +194,34 @@ export async function approvePayroll(
         journalEntryId: journalResult.value.id,
         updatedBy: ctx.userId,
       })
-      .where(eq(payrolls.id, data.payrollId));
+      .where(
+        and(
+          eq(payrolls.id, data.payrollId),
+          eq(payrolls.status, payroll.status),
+        ),
+      )
+      .returning({ id: payrolls.id });
+    if (!claimed || claimed.length === 0) {
+      throw AppError.conflict('hr.payroll.cannotApprove', { status: payroll.status });
+    }
+
+    await db.insert(auditLog).values({
+      id: generateId(),
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: 'approve',
+      entityType: 'payroll',
+      entityId: data.payrollId,
+      before: { status: payroll.status },
+      after: {
+        status: 'approved',
+        approvedBy: ctx.userId,
+        journalEntryId: journalResult.value.id,
+        totalEarnings: payroll.totalEarnings.toString(),
+        totalNet: payroll.totalNet.toString(),
+      },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+    });
 
     return ok({ payrollId: data.payrollId, journalEntryId: journalResult.value.id });
   } catch (e) {
@@ -198,11 +236,6 @@ export async function markPayrollPaid(
   input: MarkPaidInput,
   ctx: AuditContext,
 ): Promise<Result<{ payrollId: string }>> {
-  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   try {
     const [payroll] = await db
       .select()
@@ -211,14 +244,38 @@ export async function markPayrollPaid(
       .limit(1);
 
     if (!payroll) throw AppError.notFound('hr.payroll.notFound', { payrollId: input.payrollId });
+
+    const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', {
+      locationId: payroll.locationId,
+    });
+    if (!permCheck.ok) {
+      throw permCheck.error;
+    }
+
     if (payroll.status !== 'approved') {
       throw AppError.conflict('hr.payroll.cannotMarkPaid', { status: payroll.status });
     }
 
-    await db
+    const claimed = await db
       .update(payrolls)
       .set({ status: 'paid', updatedBy: ctx.userId })
-      .where(eq(payrolls.id, input.payrollId));
+      .where(and(eq(payrolls.id, input.payrollId), eq(payrolls.status, 'approved')))
+      .returning({ id: payrolls.id });
+    if (!claimed || claimed.length === 0) {
+      throw AppError.conflict('hr.payroll.cannotMarkPaid', { status: payroll.status });
+    }
+
+    await db.insert(auditLog).values({
+      id: generateId(),
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: 'mark_paid',
+      entityType: 'payroll',
+      entityId: input.payrollId,
+      before: { status: 'approved' },
+      after: { status: 'paid' },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+    });
 
     return ok({ payrollId: input.payrollId });
   } catch (e) {

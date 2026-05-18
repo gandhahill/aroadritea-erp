@@ -231,7 +231,10 @@ export async function closePeriod(
 
   return tryCatch(
     async () => {
-      await db
+      // Atomic claim: only one concurrent caller may transition the
+      // period out of `previousStatus`. Returning rows guards against
+      // double-close (and double audit logs).
+      const updated = await db
         .update(accountingPeriods)
         .set({
           status: newStatus,
@@ -240,7 +243,17 @@ export async function closePeriod(
           updatedAt: now,
           updatedBy: ctx.userId,
         })
-        .where(eq(accountingPeriods.id, period.id));
+        .where(
+          and(eq(accountingPeriods.id, period.id), eq(accountingPeriods.status, previousStatus)),
+        )
+        .returning({ id: accountingPeriods.id });
+
+      if (!updated || updated.length === 0) {
+        throw AppError.conflict('accounting.period.concurrentModification', {
+          periodCode,
+          expectedStatus: previousStatus,
+        });
+      }
 
       // 7. Audit log
       await db.insert(auditLog).values({

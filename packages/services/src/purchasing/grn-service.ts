@@ -280,11 +280,6 @@ export async function confirmGRN(
   rawInput: unknown,
   ctx: AuditContext,
 ): Promise<Result<GRNConfirmResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'purchasing.grn.create', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = ConfirmGRNInputSchema.safeParse(rawInput);
   if (!parsed.success) {
     return err(
@@ -309,6 +304,14 @@ export async function confirmGRN(
   if (!grn) {
     return err(AppError.notFound('purchasing.errors.grn_not_found'));
   }
+
+  // Permission scoped to the GRN's outlet, not the caller's current
+  // location — receiving a delivery at outlet A should never be done
+  // by a clerk logged into outlet B.
+  const permCheck = await requirePermission(ctx.userId, 'purchasing.grn.create', {
+    locationId: grn.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
 
   if (grn.status !== 'draft') {
     return err(
@@ -366,125 +369,55 @@ export async function confirmGRN(
     );
   }
 
-  // 1. Update PO line qtyReceived
+  // CLAIM the GRN first. Two concurrent confirmGRN calls would
+  // otherwise both run the stock + PO line updates, doubling on-hand
+  // qty and posting two GRNI journals.
+  const claimedGrn = await db
+    .update(goodsReceiptNotes)
+    .set({
+      status: 'confirmed',
+      updatedBy: ctx.userId,
+      version: grn.version + 1,
+    })
+    .where(
+      and(
+        eq(goodsReceiptNotes.id, grn.id),
+        eq(goodsReceiptNotes.version, grn.version),
+        eq(goodsReceiptNotes.status, 'draft'),
+      ),
+    )
+    .returning({ id: goodsReceiptNotes.id });
+  if (!claimedGrn || claimedGrn.length === 0) {
+    return err(AppError.conflict('purchasing.errors.version_mismatch'));
+  }
+
+  // Resolve accounts BEFORE any state mutation. Failing here means the
+  // CoA isn't seeded — surface the error before we corrupt stock.
+  const grniAccountId = await resolveAccountId(ctx.tenantId, GRNI_ACCOUNT_CODE);
+  if (!grniAccountId) {
+    return err(AppError.businessRule('purchasing.errors.grni_account_not_found'));
+  }
+
+  // Load PO lines once so we can compute totals and remaining qty.
   const poLines = await db
     .select()
     .from(purchaseOrderLines)
     .where(eq(purchaseOrderLines.purchaseOrderId, po.id));
   const poLineMap = new Map(poLines.map((l) => [l.id, l]));
 
-  for (const line of lines) {
-    const poLine = poLineMap.get(line.poLineId);
-    if (!poLine) continue;
-
-    const newQtyReceived =
-      Number.parseFloat(poLine.qtyReceived) + Number.parseFloat(line.qtyReceived);
-    await db
-      .update(purchaseOrderLines)
-      .set({
-        qtyReceived: newQtyReceived.toFixed(3),
-        updatedBy: ctx.userId,
-      })
-      .where(eq(purchaseOrderLines.id, poLine.id));
-
-    // Update local map for PO status check
-    poLineMap.set(poLine.id, {
-      ...poLine,
-      qtyReceived: newQtyReceived.toFixed(3),
-    });
-  }
-
-  // 2. Create stock movements (reason='purchase')
-  const movementValues = lines.map((line) => {
-    const poLine = poLineMap.get(line.poLineId);
-    return {
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      locationId: grn.locationId,
-      occurredAt: new Date(),
-      stockLocationId: null,
-      productId: line.productId,
-      variantId: line.variantId ?? null,
-      batchNo: line.batchNo ?? null,
-      expiryDate: line.expiryDate ?? null,
-      qtyDelta: line.qtyReceived,
-      uom: line.uom,
-      reason: 'purchase' as const,
-      referenceType: 'grn' as const,
-      referenceId: grn.id,
-      unitCost: poLine?.unitPrice ?? null,
-      createdBy: ctx.userId,
-      updatedBy: ctx.userId,
-    };
-  });
-
-  await db.insert(stockMovements).values(movementValues);
-
-  // 3. Update stock_levels
-  for (const line of lines) {
-    const existing = await db
-      .select()
-      .from(stockLevels)
-      .where(
-        and(
-          eq(stockLevels.tenantId, ctx.tenantId),
-          eq(stockLevels.locationId, grn.locationId),
-          eq(stockLevels.productId, line.productId),
-        ),
-      )
-      .then((r) => r[0]);
-
-    const addQty = Number.parseFloat(line.qtyReceived);
-
-    if (existing) {
-      const newOnHand = Number.parseFloat(existing.qtyOnHand) + addQty;
-      const newAvailable = Number.parseFloat(existing.qtyAvailable) + addQty;
-      await db
-        .update(stockLevels)
-        .set({
-          qtyOnHand: newOnHand.toFixed(3),
-          qtyAvailable: newAvailable.toFixed(3),
-          updatedBy: ctx.userId,
-          lastMovementAt: new Date(),
-        })
-        .where(eq(stockLevels.id, existing.id));
-    } else {
-      await db.insert(stockLevels).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        locationId: grn.locationId,
-        stockLocationId: null,
-        productId: line.productId,
-        variantId: line.variantId ?? null,
-        batchNo: line.batchNo ?? null,
-        qtyOnHand: line.qtyReceived,
-        qtyReserved: '0',
-        qtyAvailable: line.qtyReceived,
-        uom: line.uom,
-        avgUnitCost: null,
-        createdBy: ctx.userId,
-        updatedBy: ctx.userId,
-      });
-    }
-  }
-
-  // 4. Create JE: DR Inventory, CR GRNI
-  const grniAccountId = await resolveAccountId(ctx.tenantId, GRNI_ACCOUNT_CODE);
-  if (!grniAccountId) {
-    return err(AppError.businessRule('purchasing.errors.grni_account_not_found'));
-  }
-
-  // Compute total value from PO line unit prices
+  // Compute total value with bigint math (3-decimal scaling) before
+  // mutating anything. This drives the JE amount.
   let totalValue = 0n;
   for (const line of lines) {
     const poLine = poLineMap.get(line.poLineId);
     if (poLine) {
       const qty = BigInt(Math.round(Number.parseFloat(line.qtyReceived) * 1000));
-      const unitPrice = poLine.unitPrice;
-      totalValue += (qty * unitPrice) / 1000n;
+      totalValue += (qty * poLine.unitPrice) / 1000n;
     }
   }
 
+  // Post the JE FIRST. If it fails (period closed mid-flight, account
+  // inactive), roll the GRN status back so nothing else runs.
   let journalEntryId: string | null = null;
   if (totalValue > 0n) {
     const firstProduct = lines[0]!;
@@ -521,10 +454,109 @@ export async function confirmGRN(
       },
       ctx,
     );
-    if (jeResult.ok) journalEntryId = jeResult.value.id;
+    if (!jeResult.ok) {
+      await db
+        .update(goodsReceiptNotes)
+        .set({ status: 'draft', version: grn.version })
+        .where(eq(goodsReceiptNotes.id, grn.id));
+      return jeResult;
+    }
+    journalEntryId = jeResult.value.id;
   }
 
-  // 5. Determine new PO status
+  // 1. Update PO line qtyReceived using atomic SQL so concurrent GRNs
+  //    on the SAME PO don't race the value.
+  for (const line of lines) {
+    const poLine = poLineMap.get(line.poLineId);
+    if (!poLine) continue;
+
+    await db
+      .update(purchaseOrderLines)
+      .set({
+        qtyReceived: sql`(${purchaseOrderLines.qtyReceived}::numeric + ${line.qtyReceived}::numeric)`,
+        updatedBy: ctx.userId,
+      })
+      .where(eq(purchaseOrderLines.id, poLine.id));
+
+    poLineMap.set(poLine.id, {
+      ...poLine,
+      qtyReceived: (
+        Number.parseFloat(poLine.qtyReceived) + Number.parseFloat(line.qtyReceived)
+      ).toFixed(3),
+    });
+  }
+
+  // 2. Create stock movements (reason='purchase')
+  const movementValues = lines.map((line) => {
+    const poLine = poLineMap.get(line.poLineId);
+    return {
+      id: generateId(),
+      tenantId: ctx.tenantId,
+      locationId: grn.locationId,
+      occurredAt: new Date(),
+      stockLocationId: null,
+      productId: line.productId,
+      variantId: line.variantId ?? null,
+      batchNo: line.batchNo ?? null,
+      expiryDate: line.expiryDate ?? null,
+      qtyDelta: line.qtyReceived,
+      uom: line.uom,
+      reason: 'purchase' as const,
+      referenceType: 'grn' as const,
+      referenceId: grn.id,
+      unitCost: poLine?.unitPrice ?? null,
+      createdBy: ctx.userId,
+      updatedBy: ctx.userId,
+    };
+  });
+
+  await db.insert(stockMovements).values(movementValues);
+
+  // 3. Update stock_levels — variant-aware lookup; bug fix from opname.
+  for (const line of lines) {
+    const variantCondition = line.variantId
+      ? eq(stockLevels.variantId, line.variantId)
+      : eq(stockLevels.variantId, '' as unknown as string);
+
+    const incremented = await db
+      .update(stockLevels)
+      .set({
+        qtyOnHand: sql`${stockLevels.qtyOnHand} + ${line.qtyReceived}::numeric`,
+        qtyAvailable: sql`${stockLevels.qtyAvailable} + ${line.qtyReceived}::numeric`,
+        updatedBy: ctx.userId,
+        lastMovementAt: new Date(),
+      })
+      .where(
+        and(
+          eq(stockLevels.tenantId, ctx.tenantId),
+          eq(stockLevels.locationId, grn.locationId),
+          eq(stockLevels.productId, line.productId),
+          variantCondition,
+        ),
+      )
+      .returning({ id: stockLevels.id });
+
+    if (!incremented || incremented.length === 0) {
+      await db.insert(stockLevels).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        locationId: grn.locationId,
+        stockLocationId: null,
+        productId: line.productId,
+        variantId: line.variantId ?? null,
+        batchNo: line.batchNo ?? null,
+        qtyOnHand: line.qtyReceived,
+        qtyReserved: '0',
+        qtyAvailable: line.qtyReceived,
+        uom: line.uom,
+        avgUnitCost: null,
+        createdBy: ctx.userId,
+        updatedBy: ctx.userId,
+      });
+    }
+  }
+
+  // 4. Determine new PO status and update.
   const updatedPoLines = [...poLineMap.values()];
   const allFullyReceived = updatedPoLines.every(
     (l) => Number.parseFloat(l.qtyReceived) >= Number.parseFloat(l.qtyOrdered) - 0.001,
@@ -539,16 +571,6 @@ export async function confirmGRN(
       version: po.version + 1,
     })
     .where(and(eq(purchaseOrders.id, po.id), eq(purchaseOrders.version, po.version)));
-
-  // 6. Update GRN status
-  await db
-    .update(goodsReceiptNotes)
-    .set({
-      status: 'confirmed',
-      updatedBy: ctx.userId,
-      version: grn.version + 1,
-    })
-    .where(and(eq(goodsReceiptNotes.id, grn.id), eq(goodsReceiptNotes.version, grn.version)));
 
   // 7. Audit
   await auditRecord({

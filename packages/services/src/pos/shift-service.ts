@@ -191,7 +191,10 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
     const actualCash = BigInt(data.actualCash);
     const variance = actualCash - expectedCash;
 
-    await db
+    // Atomic claim — two managers closing the same shift simultaneously
+    // would otherwise both write audit rows AND record the same variance
+    // against the cashier twice.
+    const claimedClose = await db
       .update(shifts)
       .set({
         status: 'closed',
@@ -202,7 +205,11 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
         variance,
         updatedBy: ctx.userId,
       } as typeof shifts.$inferInsert)
-      .where(and(eq(shifts.id, data.shiftId)));
+      .where(and(eq(shifts.id, data.shiftId), eq(shifts.status, 'open')))
+      .returning({ id: shifts.id });
+    if (!claimedClose || claimedClose.length === 0) {
+      return err(AppError.conflict('pos.shift.versionMismatch'));
+    }
 
     await db.insert(auditLog).values({
       id: generateId(),

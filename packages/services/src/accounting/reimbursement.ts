@@ -195,11 +195,6 @@ export async function rejectReimbursement(
   }
   const { id, reason } = parsed.data;
 
-  const permCheck = await requirePermission(ctx.userId, 'accounting.reimbursement.approve', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const rows = await db
     .select()
     .from(reimbursementRequests)
@@ -210,6 +205,14 @@ export async function rejectReimbursement(
   if (!req) {
     return err(AppError.notFound('accounting.reimbursement.notFound', { id }));
   }
+
+  // Scope permission to the request's location, not the caller's
+  // current locationId — otherwise an approver at one outlet could
+  // reject another outlet's expense.
+  const permCheck = await requirePermission(ctx.userId, 'accounting.reimbursement.approve', {
+    locationId: req.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
 
   const allowed = VALID_TRANSITIONS[req.status];
   if (!allowed?.includes('rejected')) {
@@ -231,8 +234,17 @@ export async function rejectReimbursement(
           updatedAt: new Date(),
           updatedBy: ctx.userId,
         })
-        .where(eq(reimbursementRequests.id, id))
+        .where(
+          and(eq(reimbursementRequests.id, id), eq(reimbursementRequests.status, req.status)),
+        )
         .returning();
+
+      if (!updated || updated.length === 0) {
+        throw AppError.conflict('accounting.reimbursement.concurrentModification', {
+          id,
+          expectedStatus: req.status,
+        });
+      }
 
       await db.insert(auditLog).values({
         id: generateId(),
@@ -328,11 +340,6 @@ async function transitionStatus(
   ctx: AuditContext,
   permission: string,
 ): Promise<Result<ReimbursementResult>> {
-  const permCheck = await requirePermission(ctx.userId, permission, {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const rows = await db
     .select()
     .from(reimbursementRequests)
@@ -343,6 +350,13 @@ async function transitionStatus(
   if (!req) {
     return err(AppError.notFound('accounting.reimbursement.notFound', { id }));
   }
+
+  // Scope permission to the request's actual location, not the caller's
+  // current location (cross-outlet privilege escalation guard).
+  const permCheck = await requirePermission(ctx.userId, permission, {
+    locationId: req.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
 
   const allowed = VALID_TRANSITIONS[req.status];
   if (!allowed?.includes(targetStatus)) {
@@ -369,18 +383,33 @@ async function transitionStatus(
         setFields.disbursedAt = new Date();
       }
 
+      // Atomic claim: only one concurrent caller can perform the
+      // transition. Prevents double-approve / double-disburse races
+      // that would otherwise write duplicate audit rows and (for
+      // disburse) duplicate journal entries.
       const updated = await db
         .update(reimbursementRequests)
         .set(setFields)
-        .where(eq(reimbursementRequests.id, id))
+        .where(
+          and(eq(reimbursementRequests.id, id), eq(reimbursementRequests.status, req.status)),
+        )
         .returning();
+
+      if (!updated || updated.length === 0) {
+        throw AppError.conflict('accounting.reimbursement.concurrentModification', {
+          id,
+          expectedStatus: req.status,
+        });
+      }
 
       const action =
         targetStatus === 'submitted'
           ? 'submit'
           : targetStatus === 'approved'
             ? 'approve'
-            : 'update';
+            : targetStatus === 'disbursed'
+              ? 'disburse'
+              : 'update';
 
       await db.insert(auditLog).values({
         id: generateId(),

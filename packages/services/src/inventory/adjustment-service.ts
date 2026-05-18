@@ -265,11 +265,6 @@ export async function submitAdjustment(
   adjustmentId: string,
   ctx: AuditContext,
 ): Promise<Result<AdjustmentResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'inventory.adjust', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   try {
     const adj = await db
       .select()
@@ -282,6 +277,12 @@ export async function submitAdjustment(
     if (!adj) {
       return err(AppError.notFound('inventory.adjust.notFound', { adjustmentId }));
     }
+
+    const permCheck = await requirePermission(ctx.userId, 'inventory.adjust', {
+      locationId: adj.locationId,
+    });
+    if (!permCheck.ok) return permCheck;
+
     if (adj.status !== 'draft') {
       return err(
         AppError.businessRule('inventory.adjust.notDraft', {
@@ -290,10 +291,20 @@ export async function submitAdjustment(
       );
     }
 
-    await db
+    const claimed = await db
       .update(stockAdjustments)
       .set({ status: 'submitted', updatedBy: ctx.userId, version: adj.version + 1 })
-      .where(and(eq(stockAdjustments.id, adjustmentId), eq(stockAdjustments.version, adj.version)));
+      .where(
+        and(
+          eq(stockAdjustments.id, adjustmentId),
+          eq(stockAdjustments.version, adj.version),
+          eq(stockAdjustments.status, 'draft'),
+        ),
+      )
+      .returning({ id: stockAdjustments.id });
+    if (!claimed || claimed.length === 0) {
+      return err(AppError.conflict('inventory.adjust.versionMismatch'));
+    }
 
     const lines = await db
       .select()
@@ -345,13 +356,7 @@ export async function approveAdjustment(
   input: unknown,
   ctx: AuditContext,
 ): Promise<Result<AdjustmentResult>> {
-  // 1. Permission check
-  const permCheck = await requirePermission(ctx.userId, 'inventory.adjust', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
-  // 2. Validate input
+  // 1. Validate input
   const parsed = ApproveAdjustmentInputSchema.safeParse(input);
   if (!parsed.success) {
     return err(
@@ -362,14 +367,14 @@ export async function approveAdjustment(
   }
   const data = parsed.data;
 
-  // 3. Only director can approve
+  // 2. Only director can approve
   const director = await isDirector(ctx);
   if (!director) {
     return err(AppError.forbidden('inventory.adjust.notDirector'));
   }
 
   try {
-    // 4. Load adjustment + lines
+    // 3. Load adjustment + lines
     const adj = await db
       .select()
       .from(stockAdjustments)
@@ -386,6 +391,14 @@ export async function approveAdjustment(
         AppError.notFound('inventory.adjust.notFound', { adjustmentId: data.adjustmentId }),
       );
     }
+
+    // 4. Permission check — scoped to the adjustment's location so an
+    //    approver at outlet A can't approve outlet B's adjustment.
+    const permCheck = await requirePermission(ctx.userId, 'inventory.adjust', {
+      locationId: adj.locationId,
+    });
+    if (!permCheck.ok) return permCheck;
+
     if (adj.status !== 'submitted') {
       return err(
         AppError.businessRule('inventory.adjust.notSubmitted', { currentStatus: adj.status }),
@@ -429,14 +442,113 @@ export async function approveAdjustment(
       );
     }
 
-    // 6. Compute net monetary value (qty_delta × unit_cost in rupiah)
-    const netDelta = lines.reduce((sum, line) => {
-      const delta = Number.parseFloat(line.qtyDelta);
-      const cost = line.unitCost ? Number(line.unitCost) : 0; // unitCost is bigint IDR
-      return sum + delta * cost;
-    }, 0);
+    // 6. CLAIM the adjustment first via atomic optimistic UPDATE. Without
+    //    this, two concurrent approvers would each execute stock movements
+    //    + level updates (doubling inventory deltas) before either status
+    //    transition is rejected.
+    const claimed = await db
+      .update(stockAdjustments)
+      .set({
+        status: 'approved',
+        approvedBy: ctx.userId,
+        approvedAt: new Date(),
+        updatedBy: ctx.userId,
+        version: adj.version + 1,
+      })
+      .where(
+        and(
+          eq(stockAdjustments.id, data.adjustmentId),
+          eq(stockAdjustments.version, adj.version),
+          eq(stockAdjustments.status, 'submitted'),
+        ),
+      )
+      .returning({ id: stockAdjustments.id });
 
-    // 7. Create stock movements
+    if (!claimed || claimed.length === 0) {
+      return err(AppError.conflict('inventory.adjust.versionMismatch'));
+    }
+
+    // 7. Compute net monetary value (qty_delta × unit_cost in rupiah).
+    //    qtyDelta is a decimal string; unitCost is bigint rupiah. Use a
+    //    string→bigint pipeline to preserve precision (avoids JS float
+    //    artefacts for large outlets / high-cost items).
+    let netDelta = 0n;
+    for (const line of lines) {
+      if (!line.unitCost) continue;
+      // qtyDelta supports up to 3 decimal places → scale by 1000.
+      const scaled = BigInt(Math.round(Number.parseFloat(line.qtyDelta) * 1000));
+      netDelta += (scaled * line.unitCost) / 1000n;
+    }
+
+    // 8. Post the balancing journal FIRST. If the journal rejects
+    //    (period race-closed since step 5, accounts inactive, etc.),
+    //    we abort BEFORE touching inventory — keeping stock and GL in
+    //    sync. The status was claimed in step 6, so on JE failure we
+    //    roll the status back to 'submitted'.
+    let journalEntryId: string | null = null;
+    if (netDelta !== 0n) {
+      const firstLine = lines[0]!;
+      const invAccount = await resolveInventoryAccount(ctx.tenantId, firstLine.productId);
+      const absAmount = (netDelta < 0n ? -netDelta : netDelta).toString();
+
+      const journalLines =
+        netDelta < 0n
+          ? [
+              {
+                accountId: EXPENSE_ACCOUNT,
+                locationId: adj.locationId,
+                description: `${adj.reason}: ${firstLine.productId}`,
+                debit: absAmount,
+                credit: '0',
+              },
+              {
+                accountId: invAccount,
+                locationId: adj.locationId,
+                description: `Stock Adjustment ${adj.number}`,
+                debit: '0',
+                credit: absAmount,
+              },
+            ]
+          : [
+              {
+                accountId: invAccount,
+                locationId: adj.locationId,
+                description: `Stock Adjustment ${adj.number}`,
+                debit: absAmount,
+                credit: '0',
+              },
+              {
+                accountId: INCOME_ACCOUNT,
+                locationId: adj.locationId,
+                description: `${adj.reason}: gain`,
+                debit: '0',
+                credit: absAmount,
+              },
+            ];
+
+      const jeResult = await createJournal(
+        {
+          postingDate: adj.adjustmentDate,
+          locationId: adj.locationId,
+          description: `Stock Adjustment ${adj.number} — ${adj.reason}`,
+          referenceType: 'manual',
+          referenceId: adj.id,
+          lines: journalLines,
+        },
+        ctx,
+      );
+      if (!jeResult.ok) {
+        // Roll the status claim back so the adjustment can be retried.
+        await db
+          .update(stockAdjustments)
+          .set({ status: 'submitted', approvedBy: null, approvedAt: null, version: adj.version })
+          .where(eq(stockAdjustments.id, data.adjustmentId));
+        return jeResult;
+      }
+      journalEntryId = jeResult.value.id;
+    }
+
+    // 9. Insert stock movements (qty deltas — historical record).
     const movementValues = lines.map((line) => ({
       id: generateId(),
       tenantId: ctx.tenantId,
@@ -458,7 +570,8 @@ export async function approveAdjustment(
 
     await db.insert(stockMovements).values(movementValues);
 
-    // 8. Update / insert stock_levels
+    // 10. Update / insert stock_levels. Pass the qtyAfter string directly
+    //     to preserve the original decimal precision.
     for (const line of lines) {
       const variantCondition = line.variantId
         ? eq(stockLevels.variantId, line.variantId)
@@ -477,13 +590,12 @@ export async function approveAdjustment(
         )
         .then((r) => r[0]);
 
-      const newQty = Number.parseFloat(line.qtyAfter);
       if (existing) {
         await db
           .update(stockLevels)
           .set({
-            qtyOnHand: String(newQty),
-            qtyAvailable: String(newQty),
+            qtyOnHand: line.qtyAfter,
+            qtyAvailable: line.qtyAfter,
             updatedBy: ctx.userId,
             lastMovementAt: new Date(),
           })
@@ -508,88 +620,6 @@ export async function approveAdjustment(
       }
     }
 
-    // 9. Create balancing journal entry (only if net monetary value ≠ 0)
-    let journalEntryId: string | null = null;
-    if (Math.abs(netDelta) > 0.5) {
-      const firstLine = lines[0]!;
-      const invAccount = await resolveInventoryAccount(ctx.tenantId, firstLine.productId);
-      const amount = Math.round(Math.abs(netDelta) * 100);
-
-      if (netDelta < 0) {
-        // Loss: DR Beban Operasional Lainnya, CR Inventory
-        const jeResult = await createJournal(
-          {
-            postingDate: adj.adjustmentDate,
-            locationId: adj.locationId,
-            description: `Stock Adjustment ${adj.number} — ${adj.reason}`,
-            referenceType: 'manual',
-            referenceId: adj.id,
-            lines: [
-              {
-                accountId: EXPENSE_ACCOUNT,
-                locationId: adj.locationId,
-                description: `${adj.reason}: ${firstLine.productId}`,
-                debit: String(Math.abs(Math.round(netDelta))),
-                credit: '0',
-              },
-              {
-                accountId: invAccount,
-                locationId: adj.locationId,
-                description: `Stock Adjustment ${adj.number}`,
-                debit: '0',
-                credit: String(Math.abs(Math.round(netDelta))),
-              },
-            ],
-          },
-          ctx,
-        );
-        if (jeResult.ok) journalEntryId = jeResult.value.id;
-      } else {
-        // Gain: DR Inventory, CR Pendapatan Lainnya
-        const jeResult = await createJournal(
-          {
-            postingDate: adj.adjustmentDate,
-            locationId: adj.locationId,
-            description: `Stock Adjustment ${adj.number} — ${adj.reason}`,
-            referenceType: 'manual',
-            referenceId: adj.id,
-            lines: [
-              {
-                accountId: invAccount,
-                locationId: adj.locationId,
-                description: `Stock Adjustment ${adj.number}`,
-                debit: String(Math.round(netDelta)),
-                credit: '0',
-              },
-              {
-                accountId: INCOME_ACCOUNT,
-                locationId: adj.locationId,
-                description: `${adj.reason}: gain`,
-                debit: '0',
-                credit: String(Math.round(netDelta)),
-              },
-            ],
-          },
-          ctx,
-        );
-        if (jeResult.ok) journalEntryId = jeResult.value.id;
-      }
-    }
-
-    // 10. Update adjustment status
-    await db
-      .update(stockAdjustments)
-      .set({
-        status: 'approved',
-        approvedBy: ctx.userId,
-        approvedAt: new Date(),
-        updatedBy: ctx.userId,
-        version: adj.version + 1,
-      })
-      .where(
-        and(eq(stockAdjustments.id, data.adjustmentId), eq(stockAdjustments.version, adj.version)),
-      );
-
     // 11. Audit
     await db.insert(auditLog).values({
       id: generateId(),
@@ -604,7 +634,7 @@ export async function approveAdjustment(
         approvedBy: ctx.userId,
         movementCount: movementValues.length,
         journalEntryId,
-        netValue: netDelta,
+        netValue: netDelta.toString(),
       },
       metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
     });
@@ -635,11 +665,6 @@ export async function rejectAdjustment(
   input: unknown,
   ctx: AuditContext,
 ): Promise<Result<AdjustmentResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'inventory.adjust', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = RejectAdjustmentInputSchema.safeParse(input);
   if (!parsed.success) {
     return err(
@@ -672,6 +697,12 @@ export async function rejectAdjustment(
         AppError.notFound('inventory.adjust.notFound', { adjustmentId: data.adjustmentId }),
       );
     }
+
+    const permCheck = await requirePermission(ctx.userId, 'inventory.adjust', {
+      locationId: adj.locationId,
+    });
+    if (!permCheck.ok) return permCheck;
+
     if (adj.status !== 'submitted') {
       return err(
         AppError.businessRule('inventory.adjust.notSubmitted', { currentStatus: adj.status }),
@@ -681,7 +712,7 @@ export async function rejectAdjustment(
       return err(AppError.conflict('inventory.adjust.versionMismatch'));
     }
 
-    await db
+    const claimed = await db
       .update(stockAdjustments)
       .set({
         status: 'rejected',
@@ -692,8 +723,16 @@ export async function rejectAdjustment(
         version: adj.version + 1,
       })
       .where(
-        and(eq(stockAdjustments.id, data.adjustmentId), eq(stockAdjustments.version, adj.version)),
-      );
+        and(
+          eq(stockAdjustments.id, data.adjustmentId),
+          eq(stockAdjustments.version, adj.version),
+          eq(stockAdjustments.status, 'submitted'),
+        ),
+      )
+      .returning({ id: stockAdjustments.id });
+    if (!claimed || claimed.length === 0) {
+      return err(AppError.conflict('inventory.adjust.versionMismatch'));
+    }
 
     const lines = await db
       .select()

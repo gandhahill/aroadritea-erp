@@ -11,9 +11,11 @@
  */
 
 import { db } from '@erp/db';
+import { auditLog } from '@erp/db/schema/audit';
 import { salesOrders, shifts } from '@erp/db/schema/pos';
 import { dailyRevenueAdjustments } from '@erp/db/schema/reporting/daily-revenue-adjustments';
 import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, sql } from 'drizzle-orm';
@@ -119,7 +121,9 @@ export async function getOmzetHarian(
     const netCents = stripPB1FromCents(grossCents);
     const pb1Cents = grossCents - netCents;
 
-    // 3. Load existing fiscal adjustment
+    // 3. Load existing fiscal adjustment. MUST filter by tenant_id —
+    //    otherwise a multi-tenant deployment would leak adjustments
+    //    across tenants that happen to share locationId/date.
     const [adj] = await db
       .select({
         amount: dailyRevenueAdjustments.adjustmentAmount,
@@ -129,6 +133,7 @@ export async function getOmzetHarian(
       .from(dailyRevenueAdjustments)
       .where(
         and(
+          eq(dailyRevenueAdjustments.tenantId, ctx.tenantId),
           eq(dailyRevenueAdjustments.locationId, params.locationId),
           eq(dailyRevenueAdjustments.date, params.date),
         ),
@@ -188,11 +193,17 @@ export async function saveOmzetAdjustment(
   try {
     const adjCents = BigInt(params.adjustmentAmount);
 
+    // Tenant-scoped lookup — same multi-tenant guard as getOmzetHarian.
     const [existing] = await db
-      .select({ id: dailyRevenueAdjustments.id })
+      .select({
+        id: dailyRevenueAdjustments.id,
+        adjustmentAmount: dailyRevenueAdjustments.adjustmentAmount,
+        adjustmentNote: dailyRevenueAdjustments.adjustmentNote,
+      })
       .from(dailyRevenueAdjustments)
       .where(
         and(
+          eq(dailyRevenueAdjustments.tenantId, ctx.tenantId),
           eq(dailyRevenueAdjustments.locationId, params.locationId),
           eq(dailyRevenueAdjustments.date, params.date),
         ),
@@ -200,6 +211,8 @@ export async function saveOmzetAdjustment(
       .limit(1);
 
     if (existing) {
+      // Tenant guard on the UPDATE as well — defence in depth, even
+      // though `existing.id` was filtered above.
       await db
         .update(dailyRevenueAdjustments)
         .set({
@@ -207,10 +220,38 @@ export async function saveOmzetAdjustment(
           adjustmentNote: params.adjustmentNote ?? null,
           updatedBy: ctx.userId,
         })
-        .where(eq(dailyRevenueAdjustments.id, existing.id));
+        .where(
+          and(
+            eq(dailyRevenueAdjustments.id, existing.id),
+            eq(dailyRevenueAdjustments.tenantId, ctx.tenantId),
+          ),
+        );
+
+      // Fiscal adjustments feed Coretax SPT exports — every edit must
+      // be on the audit log (ISO 38500 + UU KUP record retention).
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'update',
+        entityType: 'daily_revenue_adjustment',
+        entityId: existing.id,
+        before: {
+          adjustmentAmount: existing.adjustmentAmount.toString(),
+          adjustmentNote: existing.adjustmentNote,
+        },
+        after: {
+          adjustmentAmount: adjCents.toString(),
+          adjustmentNote: params.adjustmentNote ?? null,
+          locationId: params.locationId,
+          date: params.date,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      });
     } else {
+      const newId = crypto.randomUUID();
       await db.insert(dailyRevenueAdjustments).values({
-        id: crypto.randomUUID(),
+        id: newId,
         tenantId: ctx.tenantId,
         locationId: params.locationId,
         date: params.date,
@@ -218,6 +259,23 @@ export async function saveOmzetAdjustment(
         adjustmentNote: params.adjustmentNote ?? null,
         createdBy: ctx.userId,
         updatedBy: ctx.userId,
+      });
+
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'create',
+        entityType: 'daily_revenue_adjustment',
+        entityId: newId,
+        before: null,
+        after: {
+          adjustmentAmount: adjCents.toString(),
+          adjustmentNote: params.adjustmentNote ?? null,
+          locationId: params.locationId,
+          date: params.date,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
       });
     }
 

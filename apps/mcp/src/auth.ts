@@ -6,7 +6,7 @@
  * Stored as SHA-256 hash in api_tokens table.
  */
 
-import { createHash } from 'node:crypto';
+import { createHash, randomFillSync } from 'node:crypto';
 import { db } from '@erp/db';
 import { apiTokens } from '@erp/db/schema/auth';
 import { and, eq, gt, isNull, or } from 'drizzle-orm';
@@ -61,9 +61,12 @@ export async function verifyToken(rawToken: string): Promise<TokenUser | null> {
  * Store only the SHA-256 hash in the database.
  */
 export function generateRawToken(): string {
-  const randomBytes = Buffer.alloc(32);
-  require('node:crypto').randomFillSync(randomBytes);
+  // Use the static ESM import — `require()` inside an ESM module throws
+  // ReferenceError at runtime, so this previously broke the moment the
+  // worker was bundled as ESM.
+  const buf = Buffer.alloc(32);
+  randomFillSync(buf);
   const env = process.env.NODE_ENV ?? 'development';
-  const randomPart = randomBytes.toString('base64url');
+  const randomPart = buf.toString('base64url');
   return `aroadri_${env}_${randomPart}`;
 }

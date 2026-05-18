@@ -9,6 +9,7 @@
  */
 
 import { db } from '@erp/db';
+import { auditLog } from '@erp/db/schema/audit';
 import { locations } from '@erp/db/schema/auth';
 import { customFieldDefinitions, customFieldValues } from '@erp/db/schema/customfield';
 import { attendance, employees, shiftDefinitions } from '@erp/db/schema/hr';
@@ -433,7 +434,10 @@ export async function checkOut(
         }
       }
 
-      // Update record
+      // Atomic claim — the WHERE matches only attendance rows that
+      // haven't been checked out yet, so two concurrent checkOut calls
+      // (e.g., user double-tapping or auto-resync after offline)
+      // produce one update and one orphaned conflict.
       const [updated] = await db
         .update(attendance)
         .set({
@@ -442,7 +446,7 @@ export async function checkOut(
           workedMinutes,
           updatedBy: ctx.userId,
         })
-        .where(eq(attendance.id, data.attendanceId))
+        .where(and(eq(attendance.id, data.attendanceId), isNull(attendance.checkOutAt)))
         .returning({
           id: attendance.id,
           checkOutAt: attendance.checkOutAt,
@@ -450,7 +454,9 @@ export async function checkOut(
         });
 
       if (!updated) {
-        throw AppError.internal('hr.attendance.checkOutFailed', new Error('No record updated'));
+        throw AppError.conflict('hr.attendance.alreadyCheckedOut', {
+          attendanceId: data.attendanceId,
+        });
       }
 
       return {
@@ -575,11 +581,6 @@ export async function forgiveLate(
   input: { attendanceId: string; reason: string },
   ctx: AuditContext,
 ): Promise<Result<{ id: string }>> {
-  const perm = await requirePermission(ctx.userId, 'hr.manage_attendance', {
-    locationId: ctx.locationId,
-  });
-  if (!perm.ok) return perm;
-
   if (!input.attendanceId || !input.reason || input.reason.trim().length < 3) {
     return err(AppError.validation('hr.attendance.forgiveLate.invalid'));
   }
@@ -587,18 +588,36 @@ export async function forgiveLate(
   return tryCatch(
     async () => {
       const [row] = await db
-        .select({ id: attendance.id, isLate: attendance.isLate })
+        .select({
+          id: attendance.id,
+          isLate: attendance.isLate,
+          locationId: attendance.locationId,
+          lateForgiven: attendance.lateForgiven,
+          employeeId: attendance.employeeId,
+        })
         .from(attendance)
         .where(and(eq(attendance.id, input.attendanceId), eq(attendance.tenantId, ctx.tenantId)))
         .limit(1);
       if (!row) {
         throw AppError.notFound('hr.attendance.notFound');
       }
+
+      // Permission scoped to the attendance row's location — supervisor
+      // at outlet A cannot waive late penalties for staff at outlet B.
+      const perm = await requirePermission(ctx.userId, 'hr.manage_attendance', {
+        locationId: row.locationId,
+      });
+      if (!perm.ok) {
+        throw perm.error;
+      }
+
       if (!row.isLate) {
         throw AppError.businessRule('hr.attendance.forgiveLate.notLate');
       }
 
-      await db
+      // Atomic claim — prevents two supervisors waiving the same late
+      // event in parallel (which would otherwise write two audit rows).
+      const claimed = await db
         .update(attendance)
         .set({
           lateForgiven: true,
@@ -606,7 +625,35 @@ export async function forgiveLate(
           lateForgivenReason: input.reason.trim(),
           lateForgivenAt: new Date(),
         })
-        .where(eq(attendance.id, input.attendanceId));
+        .where(
+          and(
+            eq(attendance.id, input.attendanceId),
+            eq(attendance.lateForgiven, false),
+          ),
+        )
+        .returning({ id: attendance.id });
+      if (!claimed || claimed.length === 0) {
+        throw AppError.conflict('hr.attendance.forgiveLate.alreadyForgiven');
+      }
+
+      // ISO 38500 — supervisor waivers materially affect payroll and
+      // disciplinary records, so capture before/after explicitly.
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'forgive_late',
+        entityType: 'attendance',
+        entityId: input.attendanceId,
+        before: { lateForgiven: false },
+        after: {
+          lateForgiven: true,
+          lateForgivenBy: ctx.userId,
+          lateForgivenReason: input.reason.trim(),
+          employeeId: row.employeeId,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      });
 
       return { id: input.attendanceId };
     },

@@ -147,10 +147,41 @@ export async function reverseJournal(
     partnerId: line.partnerId,
   }));
 
-  // 9. Execute: create reversal JE + update original JE + audit
+  // 9. Execute: claim original JE first, then create reversal + audit.
+  //    Order matters: if we created the reversal JE first and the
+  //    optimistic-lock UPDATE then failed (concurrent reversal), we'd
+  //    have a phantom posted reversal JE permanently corrupting the
+  //    ledger. By claiming the original first, the second attempt
+  //    fails fast before any new posting hits the books.
   return tryCatch(
     async () => {
-      // 9a. Insert reversal JE (status = 'posted' immediately)
+      // 9a. Claim original JE: status posted → reversed.
+      const claimed = await db
+        .update(journalEntries)
+        .set({
+          status: 'reversed',
+          reversedByJeId: reversalJeId,
+          updatedBy: ctx.userId,
+          updatedAt: now,
+          version: originalJe.version + 1,
+        })
+        .where(
+          and(
+            eq(journalEntries.id, journalId),
+            eq(journalEntries.version, originalJe.version),
+            eq(journalEntries.status, 'posted'),
+          ),
+        )
+        .returning({ id: journalEntries.id });
+
+      if (!claimed || claimed.length === 0) {
+        throw AppError.conflict('accounting.journal.concurrentModification', {
+          journalId,
+          expectedVersion: originalJe.version,
+        });
+      }
+
+      // 9b. Insert reversal JE (status = 'posted' immediately)
       await db.insert(journalEntries).values({
         id: reversalJeId,
         tenantId: ctx.tenantId,
@@ -171,22 +202,8 @@ export async function reverseJournal(
         updatedBy: ctx.userId,
       });
 
-      // 9b. Insert reversed lines
+      // 9c. Insert reversed lines
       await db.insert(journalLines).values(reversedLineValues);
-
-      // 9c. Update original JE: status → 'reversed', link to reversal
-      await db
-        .update(journalEntries)
-        .set({
-          status: 'reversed',
-          reversedByJeId: reversalJeId,
-          updatedBy: ctx.userId,
-          updatedAt: now,
-          version: originalJe.version + 1,
-        })
-        .where(
-          and(eq(journalEntries.id, journalId), eq(journalEntries.version, originalJe.version)),
-        );
 
       // 9d. Audit log — reversal creation
       await db.insert(auditLog).values({

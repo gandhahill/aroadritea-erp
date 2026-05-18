@@ -116,7 +116,19 @@ function buildLineResult(
   };
 }
 
-/** Upsert a single stock level row. */
+/**
+ * Upsert a single stock level row.
+ *
+ * Bug history: the lookup previously ignored `variantId`, so for any
+ * product with multiple variants the same row would be overwritten with
+ * each variant's counted qty — corrupting stock for every variant
+ * except the last one written. The match now includes the variant.
+ *
+ * Opname adjusts QUANTITY only — the weighted-average cost is not
+ * recomputed from the variance value (variance value is a P&L number,
+ * not a cost). avgUnitCost is intentionally not written on update; new
+ * rows inherit whatever default was passed.
+ */
 async function upsertStockLevel(params: {
   tenantId: string;
   locationId: string;
@@ -124,10 +136,13 @@ async function upsertStockLevel(params: {
   variantId: string | null;
   uom: string;
   qtyOnHand: string;
-  avgUnitCost: bigint | null;
   lastMovementAt: Date;
   userId: string;
 }): Promise<void> {
+  const variantMatch = params.variantId
+    ? eq(stockLevels.variantId, params.variantId)
+    : eq(stockLevels.variantId, '' as unknown as string);
+
   const existing = await db
     .select({ id: stockLevels.id })
     .from(stockLevels)
@@ -136,6 +151,7 @@ async function upsertStockLevel(params: {
         eq(stockLevels.tenantId, params.tenantId),
         eq(stockLevels.locationId, params.locationId),
         eq(stockLevels.productId, params.productId),
+        variantMatch,
       ),
     )
     .then((r) => r[0]);
@@ -146,8 +162,8 @@ async function upsertStockLevel(params: {
       .set({
         qtyOnHand: params.qtyOnHand,
         qtyAvailable: params.qtyOnHand,
-        avgUnitCost: params.avgUnitCost,
         lastMovementAt: params.lastMovementAt,
+        updatedBy: params.userId,
       })
       .where(eq(stockLevels.id, existing.id));
   } else {
@@ -161,9 +177,10 @@ async function upsertStockLevel(params: {
       qtyOnHand: params.qtyOnHand,
       qtyReserved: '0',
       qtyAvailable: params.qtyOnHand,
-      avgUnitCost: params.avgUnitCost,
+      avgUnitCost: null,
       lastMovementAt: params.lastMovementAt,
       createdBy: params.userId,
+      updatedBy: params.userId,
     });
   }
 }
@@ -536,6 +553,14 @@ export async function approveOpname(
   if (!session) {
     return err(new AppError('NOT_FOUND', 'errors.general.notFound'));
   }
+
+  // Scope permission to the session's location — a director on shift at
+  // outlet A may not approve outlet B's opname session.
+  const permCheck = await requirePermission(ctx.userId, 'inventory.opname.approve', {
+    locationId: session.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
   if (session.status !== 'submitted') {
     return err(
       new AppError('BUSINESS_RULE', 'errors.inventory.opname_wrong_status', {
@@ -552,30 +577,52 @@ export async function approveOpname(
 
   const now = new Date();
 
-  // 1. Execute stock movements + update stock_levels for lines with variance ≠ 0
+  // CLAIM the session before mutating inventory. Two concurrent
+  // approvers would otherwise both run the variance pass, doubling
+  // stock_movement rows. Returning rows confirms exclusive ownership.
+  const claimed = await db
+    .update(stockOpnameSessions)
+    .set({ status: 'approved', approvedBy: ctx.userId, approvedAt: now })
+    .where(
+      and(
+        eq(stockOpnameSessions.id, sessionId),
+        eq(stockOpnameSessions.status, 'submitted'),
+      ),
+    )
+    .returning({ id: stockOpnameSessions.id });
+  if (!claimed || claimed.length === 0) {
+    return err(
+      new AppError('CONFLICT', 'errors.inventory.opname_wrong_status', {
+        current: session.status,
+        allowed: ['submitted'],
+      }),
+    );
+  }
+
+  // 1. Execute stock movements + update stock_levels for lines with
+  //    variance ≠ 0. Use the SESSION's locationId so a director who is
+  //    currently checked-in elsewhere can't accidentally apply the
+  //    deltas to the wrong outlet.
   await Promise.all(
     lines.map(async (line) => {
       const varianceNum = Number.parseFloat(line.varianceQty ?? '0');
       if (Math.abs(varianceNum) < 0.001) return; // no variance, skip
 
-      // Upsert stock_levels
       await upsertStockLevel({
         tenantId: ctx.tenantId,
-        locationId: ctx.locationId,
+        locationId: session.locationId,
         productId: line.productId,
         variantId: line.variantId ?? null,
         uom: line.uom,
         qtyOnHand: line.countedQty ?? '0',
-        avgUnitCost: line.varianceValue ?? null,
         lastMovementAt: now,
         userId: ctx.userId,
       });
 
-      // Create stock movement
       await db.insert(stockMovements).values({
         id: generateId(),
         tenantId: ctx.tenantId,
-        locationId: ctx.locationId,
+        locationId: session.locationId,
         occurredAt: now,
         productId: line.productId,
         variantId: line.variantId ?? null,
@@ -604,7 +651,7 @@ export async function approveOpname(
     const jeResult = await createJournal(
       {
         postingDate: session.sessionDate.toString().substring(0, 10),
-        locationId: ctx.locationId,
+        locationId: session.locationId,
         description: `Stock Opname ${session.number} — surplus`,
         referenceType: 'manual',
         referenceId: sessionId,
@@ -613,13 +660,13 @@ export async function approveOpname(
             accountId: DEFAULT_INVENTORY_ACCOUNT,
             debit: totalVarianceValue.toString(),
             credit: '0',
-            locationId: ctx.locationId,
+            locationId: session.locationId,
           },
           {
             accountId: INCOME_ACCOUNT,
             debit: '0',
             credit: totalVarianceValue.toString(),
-            locationId: ctx.locationId,
+            locationId: session.locationId,
           },
         ],
       },
@@ -633,7 +680,7 @@ export async function approveOpname(
     const jeResult = await createJournal(
       {
         postingDate: session.sessionDate.toString().substring(0, 10),
-        locationId: ctx.locationId,
+        locationId: session.locationId,
         description: `Stock Opname ${session.number} — shortage`,
         referenceType: 'manual',
         referenceId: sessionId,
@@ -642,13 +689,13 @@ export async function approveOpname(
             accountId: EXPENSE_ACCOUNT,
             debit: absValue,
             credit: '0',
-            locationId: ctx.locationId,
+            locationId: session.locationId,
           },
           {
             accountId: DEFAULT_INVENTORY_ACCOUNT,
             debit: '0',
             credit: absValue,
-            locationId: ctx.locationId,
+            locationId: session.locationId,
           },
         ],
       },
@@ -658,11 +705,7 @@ export async function approveOpname(
     resultJournalId = jeResult.value.id;
   }
 
-  // 3. Update session status
-  await db
-    .update(stockOpnameSessions)
-    .set({ status: 'approved', approvedBy: ctx.userId, approvedAt: now })
-    .where(eq(stockOpnameSessions.id, sessionId));
+  // Session was already claimed above; no second status update needed.
 
   await db.insert(auditLog).values({
     id: generateId(),
