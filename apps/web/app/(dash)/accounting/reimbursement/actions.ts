@@ -4,6 +4,7 @@ import { and, db, desc, eq } from '@erp/db';
 import { reimbursementRequests } from '@erp/db/schema/accounting';
 import { locations, users } from '@erp/db/schema/auth';
 import type { LocaleString } from '@erp/shared/types';
+import { getLocale } from 'next-intl/server';
 
 export interface ReimbursementItem {
   id: string;
@@ -66,25 +67,43 @@ export async function fetchReimbursements(
       rows.flatMap((r) => [r.requesterId, r.approvedBy]).filter((id): id is string => id !== null),
     ),
   ];
+  // Tenant-scoped user + location lookups — without these, a
+  // multi-tenant deployment would leak display names + outlet labels
+  // across tenants (matches the bugs already fixed for petty-cash).
   const userRows =
     userIds.length > 0
-      ? await db.select({ id: users.id, displayName: users.displayName }).from(users)
+      ? await db
+          .select({ id: users.id, displayName: users.displayName })
+          .from(users)
+          .where(eq(users.tenantId, tenantId))
       : [];
   const userMap = new Map(userRows.map((u) => [u.id, u.displayName]));
 
   const locIds = [...new Set(rows.map((r) => r.locationId))];
   const locRows =
     locIds.length > 0
-      ? await db.select({ id: locations.id, name: locations.name }).from(locations)
+      ? await db
+          .select({ id: locations.id, name: locations.name, code: locations.code })
+          .from(locations)
+          .where(eq(locations.tenantId, tenantId))
       : [];
-  const locMap = new Map(locRows.map((l) => [l.id, l.name as LocaleString]));
+  const locale = (await getLocale().catch(() => 'id')) as 'id' | 'en' | 'zh';
+  const locMap = new Map(
+    locRows.map((l) => [l.id, { name: l.name as LocaleString, code: l.code }]),
+  );
+  function pickLocName(loc: { name: LocaleString; code: string } | undefined, fallback: string) {
+    if (!loc) return fallback;
+    return (
+      loc.name[locale] ?? loc.name.id ?? loc.name.en ?? loc.name.zh ?? loc.code ?? fallback
+    );
+  }
 
   return rows.map((r) => ({
     id: r.id,
     requesterId: r.requesterId,
     requesterName: userMap.get(r.requesterId) ?? r.requesterId,
     locationId: r.locationId,
-    locationName: locMap.get(r.locationId)?.id ?? r.locationId,
+    locationName: pickLocName(locMap.get(r.locationId), r.locationId),
     amount: r.amount.toString(),
     category: r.category,
     description: r.description,
@@ -102,13 +121,15 @@ export async function fetchReimbursements(
 
 export async function fetchLocations(tenantId: string): Promise<LocationItem[]> {
   const rows = await db
-    .select({ id: locations.id, name: locations.name })
+    .select({ id: locations.id, name: locations.name, code: locations.code })
     .from(locations)
     .where(eq(locations.tenantId, tenantId));
-  return rows.map((r) => ({
-    id: r.id,
-    name: (r.name as LocaleString)?.id ?? String(r.name),
-  }));
+  const locale = (await getLocale().catch(() => 'id')) as 'id' | 'en' | 'zh';
+  return rows.map((r) => {
+    const name = r.name as LocaleString;
+    const label = name?.[locale] ?? name?.id ?? name?.en ?? name?.zh ?? r.code;
+    return { id: r.id, name: label };
+  });
 }
 
 export async function createReimbursement(

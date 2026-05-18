@@ -60,6 +60,7 @@ export interface OpnameLineResult {
   productId: string;
   productSku: string | null;
   productName: string | null;
+  productKind: string | null;
   variantId: string | null;
   uom: string;
   systemQty: string;
@@ -104,7 +105,7 @@ function buildLineResult(
     | 'isCounted'
     | 'notes'
   >,
-  productInfo?: { sku: string | null; name: string | null },
+  productInfo?: { sku: string | null; name: string | null; kind: string | null },
 ): OpnameLineResult {
   return {
     id: l.id,
@@ -112,6 +113,7 @@ function buildLineResult(
     productId: l.productId,
     productSku: productInfo?.sku ?? null,
     productName: productInfo?.name ?? null,
+    productKind: productInfo?.kind ?? null,
     variantId: l.variantId ?? null,
     uom: l.uom,
     systemQty: l.systemQty,
@@ -234,23 +236,63 @@ export async function createOpnameDraft(
   const id = generateId();
   const now = new Date();
 
-  // Get all active products with current stock levels at this location
-  const stockRows = await db
+  // Build the opname snapshot from EVERY active inventory-tracked
+  // product, LEFT JOINing stock_levels so products that have never
+  // been tracked at this location still appear (with systemQty=0).
+  //
+  // Previously the query INNER-JOINed stock_levels, which silently
+  // dropped newly added raw materials and finished goods that hadn't
+  // moved yet — leaving the operator no way to count them.
+  //
+  // Service kind ('service') is excluded — no physical stock to count.
+  // Daily-mode sessions include only fast-mover categories (raw_material
+  // by default); monthly sessions include everything else as well.
+  const includeKinds: string[] =
+    (input.kind ?? 'monthly') === 'daily'
+      ? ['raw_material']
+      : ['raw_material', 'finished_good', 'consumable', 'merchandise'];
+
+  const productRows = await db
     .select({
-      productId: stockLevels.productId,
-      variantId: stockLevels.variantId,
-      qtyOnHand: stockLevels.qtyOnHand,
-      uom: stockLevels.uom,
+      productId: products.id,
+      uom: products.uom,
     })
-    .from(stockLevels)
-    .innerJoin(products, eq(stockLevels.productId, products.id))
+    .from(products)
     .where(
       and(
-        eq(stockLevels.tenantId, ctx.tenantId),
-        eq(stockLevels.locationId, ctx.locationId),
+        eq(products.tenantId, ctx.tenantId),
         eq(products.isActive, true),
+        inArray(products.kind, includeKinds),
       ),
-    );
+    )
+    .orderBy(products.sku);
+
+  const stockMap = new Map<string, { qtyOnHand: string; variantId: string | null }>();
+  if (productRows.length > 0) {
+    const stockRows = await db
+      .select({
+        productId: stockLevels.productId,
+        variantId: stockLevels.variantId,
+        qtyOnHand: stockLevels.qtyOnHand,
+      })
+      .from(stockLevels)
+      .where(
+        and(
+          eq(stockLevels.tenantId, ctx.tenantId),
+          eq(stockLevels.locationId, ctx.locationId),
+          inArray(
+            stockLevels.productId,
+            productRows.map((p) => p.productId),
+          ),
+        ),
+      );
+    for (const row of stockRows) {
+      stockMap.set(row.productId, {
+        qtyOnHand: row.qtyOnHand,
+        variantId: row.variantId ?? null,
+      });
+    }
+  }
 
   // Insert session
   await db.insert(stockOpnameSessions).values({
@@ -268,21 +310,25 @@ export async function createOpnameDraft(
     createdBy: ctx.userId,
   });
 
-  // Insert snapshot lines
-  const lines = stockRows.map((row, idx) => ({
-    id: generateId(),
-    sessionId: id,
-    lineNo: idx + 1,
-    productId: row.productId,
-    variantId: row.variantId ?? null,
-    uom: row.uom,
-    systemQty: row.qtyOnHand,
-    countedQty: null,
-    isCounted: false,
-    varianceQty: null,
-    varianceValue: null,
-    createdBy: ctx.userId,
-  }));
+  // Insert snapshot lines — every active product gets a line, with
+  // systemQty defaulting to '0' when no stock_levels row exists.
+  const lines = productRows.map((row, idx) => {
+    const stock = stockMap.get(row.productId);
+    return {
+      id: generateId(),
+      sessionId: id,
+      lineNo: idx + 1,
+      productId: row.productId,
+      variantId: stock?.variantId ?? null,
+      uom: row.uom,
+      systemQty: stock?.qtyOnHand ?? '0',
+      countedQty: null,
+      isCounted: false,
+      varianceQty: null,
+      varianceValue: null,
+      createdBy: ctx.userId,
+    };
+  });
 
   if (lines.length > 0) {
     await db.insert(stockOpnameLines).values(lines);
@@ -820,8 +866,9 @@ export async function getOpname(
     return err(new AppError('NOT_FOUND', 'errors.general.notFound'));
   }
 
-  // Enrich lines with product SKU + localized name. Without this, the
-  // UI showed raw UUIDs in both the SKU and product columns.
+  // Enrich lines with product SKU + localized name + kind. Without
+  // this, the UI showed raw UUIDs in both the SKU and product columns
+  // and had no way to filter by raw_material vs finished_good.
   const lines = await db
     .select({
       id: stockOpnameLines.id,
@@ -837,6 +884,7 @@ export async function getOpname(
       notes: stockOpnameLines.notes,
       productSku: products.sku,
       productName: products.name,
+      productKind: products.kind,
     })
     .from(stockOpnameLines)
     .leftJoin(products, eq(products.id, stockOpnameLines.productId))
@@ -858,7 +906,11 @@ export async function getOpname(
     status: session.status,
     notes: session.notes,
     lines: lines.map((l) =>
-      buildLineResult(l, { sku: l.productSku ?? null, name: pickName(l.productName) }),
+      buildLineResult(l, {
+        sku: l.productSku ?? null,
+        name: pickName(l.productName),
+        kind: l.productKind ?? null,
+      }),
     ),
     journalEntryId: null,
   });

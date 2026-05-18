@@ -20,6 +20,7 @@ import { DemoModeBanner } from './components/demo-mode-banner';
 import { DemoResetModal } from './components/demo-reset-modal';
 import { useDemoCart } from './demo-cart-context';
 import { DemoChannelSelector } from './demo-channel-selector';
+import { DemoMemberLookup } from './demo-member-lookup';
 import { useDemoMode } from './demo-mode-context';
 import { DemoOrderCart } from './demo-order-cart';
 import { DemoPaymentModal } from './demo-payment-modal';
@@ -95,6 +96,11 @@ export function DemoPosClient() {
                   </svg>
                 </button>
               </div>
+            </div>
+
+            {/* Member lookup + guest name (DEMO sandbox — no server) */}
+            <div className="shrink-0">
+              <DemoMemberLookup />
             </div>
 
             {/* Order lines */}

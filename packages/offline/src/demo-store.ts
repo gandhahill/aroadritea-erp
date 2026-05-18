@@ -37,6 +37,16 @@ export interface DemoCartPayment {
   roundingOption?: string;
 }
 
+/** Customer attached to the demo order. Demo never queries the real
+ * member API (would leak demo activity into production member records);
+ * the cashier instead enters details manually in the demo sandbox. */
+export interface DemoCartCustomer {
+  name: string;
+  phone?: string;
+  loyaltyTier?: string;
+  points?: number;
+}
+
 export interface DemoCartState {
   // `walk_in` retained as legacy alias — production POS migrated to
   // `dine_in` / `take_away`. Stored demo carts from older sessions might
@@ -51,6 +61,11 @@ export interface DemoCartState {
   lines: DemoCartLine[];
   payments: DemoCartPayment[];
   notes: string;
+  /** Attached member info (manual entry in demo). Cleared on payment. */
+  customer?: DemoCartCustomer | null;
+  /** "Atas nama" (a/n) guest name — printed on the receipt header even
+   * when no member is attached. */
+  guestName?: string;
 }
 
 export interface DemoOrder {
@@ -63,6 +78,10 @@ export interface DemoOrder {
   subtotal: string;
   notes: string;
   placedAt: string;
+  /** Captured at payment time so the receipt + history reflect the
+   * customer/guest the cashier attached. */
+  customer?: DemoCartCustomer | null;
+  guestName?: string;
 }
 
 // ─── Derived totals ───────────────────────────────────────────────────────────

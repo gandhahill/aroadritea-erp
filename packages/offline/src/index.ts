@@ -22,6 +22,7 @@ export type {
   DbPendingOrder,
 } from './indexeddb';
 export type {
+  DemoCartCustomer,
   DemoCartLine,
   DemoCartPayment,
   DemoCartState,

@@ -156,8 +156,8 @@ export default async function OpnameDetailPage({
         />
         <StatCard
           label="Jurnal Penyesuaian"
-          value={data.journalEntryId ? data.journalEntryId.slice(0, 8) + '…' : '—'}
-          sub={data.journalEntryId ? 'Sudah dibuat' : 'Belum dibuat'}
+          value={data.journalEntryId ? 'Tercatat' : 'Belum'}
+          sub={data.journalEntryId ? 'Lihat di Jurnal' : 'Akan dibuat saat disetujui'}
           color={data.journalEntryId ? 'text-brand-jade' : 'text-brand-ink-3'}
         />
       </div>

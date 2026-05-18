@@ -150,7 +150,26 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
         subtotal: subtotal.toString(),
         notes: state.notes,
         placedAt: new Date().toISOString(),
+        customer: state.customer ?? null,
+        guestName: state.guestName,
       };
+
+      // Persist the most recent demo order so /pos/print/demo-receipt
+      // and /pos/print/demo-label can render it in a new window with
+      // the same print layout as the real receipt/label routes. We use
+      // sessionStorage (per-tab) so two demos can run side-by-side
+      // without cross-talk.
+      if (typeof window !== 'undefined') {
+        try {
+          window.sessionStorage.setItem(
+            'aroadri:demo:lastReceipt',
+            JSON.stringify(order),
+          );
+        } catch {
+          // Quota errors are silently ignored — the on-screen preview
+          // still works without the persisted snapshot.
+        }
+      }
 
       addDemoOrder(order);
       setCompletedOrder(order);

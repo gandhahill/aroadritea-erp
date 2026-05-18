@@ -9,7 +9,12 @@
 
 'use client';
 
-import type { DemoCartLine, DemoCartPayment, DemoCartState } from '@erp/offline';
+import type {
+  DemoCartCustomer,
+  DemoCartLine,
+  DemoCartPayment,
+  DemoCartState,
+} from '@erp/offline';
 import { calcDemoTotals } from '@erp/offline';
 import { type ReactNode, createContext, useCallback, useContext, useEffect, useState } from 'react';
 
@@ -23,6 +28,9 @@ interface DemoCartContextValue {
   addPayment: (payment: Omit<DemoCartPayment, 'id'>) => void;
   removePayment: (id: string) => void;
   setNotes: (n: string) => void;
+  setCustomer: (c: DemoCartCustomer) => void;
+  clearCustomer: () => void;
+  setGuestName: (name: string) => void;
   clearCart: () => void;
   subtotal: bigint;
   totalPaid: bigint;
@@ -37,6 +45,8 @@ const defaultState: DemoCartState = {
   lines: [],
   payments: [],
   notes: '',
+  customer: null,
+  guestName: '',
 };
 
 const DemoCartContext = createContext<DemoCartContextValue | null>(null);
@@ -88,8 +98,27 @@ export function DemoCartProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, notes: n }));
   }, []);
 
+  const setCustomer = useCallback((c: DemoCartCustomer) => {
+    setState((s) => ({ ...s, customer: c }));
+  }, []);
+
+  const clearCustomer = useCallback(() => {
+    setState((s) => ({ ...s, customer: null }));
+  }, []);
+
+  const setGuestName = useCallback((name: string) => {
+    setState((s) => ({ ...s, guestName: name }));
+  }, []);
+
   const clearCart = useCallback(() => {
-    setState((s) => ({ ...s, lines: [], payments: [], notes: '' }));
+    setState((s) => ({
+      ...s,
+      lines: [],
+      payments: [],
+      notes: '',
+      customer: null,
+      guestName: '',
+    }));
   }, []);
 
   const { subtotal, taxTotal, totalPaid, remainingBalance, grandTotal, excess } =
@@ -123,6 +152,9 @@ export function DemoCartProvider({ children }: { children: ReactNode }) {
         addPayment,
         removePayment,
         setNotes,
+        setCustomer,
+        clearCustomer,
+        setGuestName,
         clearCart,
         subtotal,
         totalPaid,

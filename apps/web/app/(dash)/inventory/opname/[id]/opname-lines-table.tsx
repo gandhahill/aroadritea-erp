@@ -8,8 +8,16 @@
 'use client';
 
 import type { OpnameLineResult } from '@erp/services/inventory/opname-service';
-import { useState, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { recordCountAction } from '../actions';
+
+const KIND_LABEL: Record<string, string> = {
+  raw_material: 'Bahan Baku',
+  finished_good: 'Produk Jual',
+  consumable: 'Perlengkapan',
+  merchandise: 'Merchandise',
+  service: 'Jasa',
+};
 
 interface Props {
   lines: OpnameLineResult[];
@@ -56,6 +64,37 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
 
   // Dirty lines (changed countedQty not yet saved)
   const [dirtyLines, setDirtyLines] = useState<Map<string, string>>(new Map());
+
+  // Filter controls — by product kind + search + show-only-unposted-variance.
+  const [kindFilter, setKindFilter] = useState<string>('all');
+  const [searchQ, setSearchQ] = useState<string>('');
+  const [varianceOnly, setVarianceOnly] = useState<boolean>(false);
+
+  const allKinds = useMemo(() => {
+    const set = new Set<string>();
+    for (const l of lines) if (l.productKind) set.add(l.productKind);
+    return Array.from(set).sort();
+  }, [lines]);
+
+  const visibleLines = useMemo(() => {
+    const arr = Array.from(optLines.values());
+    return arr.filter((l) => {
+      if (kindFilter !== 'all' && l.productKind !== kindFilter) return false;
+      if (searchQ) {
+        const q = searchQ.trim().toLowerCase();
+        const sku = (l.productSku ?? '').toLowerCase();
+        const name = (l.productName ?? '').toLowerCase();
+        if (!sku.includes(q) && !name.includes(q)) return false;
+      }
+      if (varianceOnly) {
+        const variance = l.countedQty
+          ? Number.parseFloat(l.countedQty) - Number.parseFloat(l.systemQty)
+          : null;
+        if (variance === null || variance === 0) return false;
+      }
+      return true;
+    });
+  }, [optLines, kindFilter, searchQ, varianceOnly]);
 
   const [, startTransition] = useTransition();
 
@@ -129,10 +168,38 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
 
   return (
     <div>
-      {/* Table header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-brand-cream-3">
+      {/* Table header + filters */}
+      <div className="flex flex-wrap items-center gap-3 border-b border-brand-cream-3 px-4 py-3">
         <h3 className="text-sm font-semibold text-brand-ink">Daftar Produk</h3>
-        <div className="flex items-center gap-3">
+        <input
+          type="search"
+          placeholder="Cari SKU atau nama…"
+          value={searchQ}
+          onChange={(e) => setSearchQ(e.target.value)}
+          className="h-8 min-w-44 flex-1 rounded-md border border-brand-cream-3 bg-card px-2.5 text-xs"
+        />
+        <select
+          value={kindFilter}
+          onChange={(e) => setKindFilter(e.target.value)}
+          className="h-8 rounded-md border border-brand-cream-3 bg-card px-2 text-xs"
+        >
+          <option value="all">Semua Jenis</option>
+          {allKinds.map((k) => (
+            <option key={k} value={k}>
+              {KIND_LABEL[k] ?? k}
+            </option>
+          ))}
+        </select>
+        <label className="flex items-center gap-1.5 text-xs text-brand-ink-3">
+          <input
+            type="checkbox"
+            checked={varianceOnly}
+            onChange={(e) => setVarianceOnly(e.target.checked)}
+            className="h-3.5 w-3.5 rounded border-brand-cream-3"
+          />
+          Hanya yang ada selisih
+        </label>
+        <div className="ml-auto flex items-center gap-3">
           {isEditable && dirtyCount > 0 && (
             <button
               onClick={handleSaveAll}
@@ -154,7 +221,9 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
               Simpan {dirtyCount} Perubahan
             </button>
           )}
-          <span className="text-xs text-brand-ink-3">{lines.length} produk</span>
+          <span className="text-xs text-brand-ink-3">
+            {visibleLines.length} / {lines.length} produk
+          </span>
         </div>
       </div>
 
@@ -167,6 +236,9 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
               <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">SKU</th>
               <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">
                 Produk
+              </th>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">
+                Jenis
               </th>
               <th className="px-4 py-2.5 text-center text-xs font-semibold text-brand-ink-2">
                 Satuan
@@ -196,17 +268,19 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-2">
-            {lines.length === 0 ? (
+            {visibleLines.length === 0 ? (
               <tr>
                 <td
-                  colSpan={isEditable ? 9 : 9}
+                  colSpan={10}
                   className="px-4 py-12 text-center text-brand-ink-3"
                 >
-                  Belum ada baris produk.
+                  {lines.length === 0
+                    ? 'Belum ada baris produk.'
+                    : 'Tidak ada produk yang cocok dengan filter.'}
                 </td>
               </tr>
             ) : (
-              Array.from(optLines.values()).map((line) => {
+              visibleLines.map((line) => {
                 const counted = line.countedQty ? Number.parseFloat(line.countedQty) : Number.NaN;
                 const system = line.systemQty ? Number.parseFloat(line.systemQty) : Number.NaN;
                 const variance = !isNaN(counted) && !isNaN(system) ? counted - system : null;
@@ -225,6 +299,15 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
                     </td>
                     <td className="px-4 py-2.5 text-brand-ink">
                       {line.productName ?? line.productSku ?? line.productId.slice(0, 8)}
+                    </td>
+                    <td className="px-4 py-2.5 text-brand-ink-3">
+                      {line.productKind ? (
+                        <span className="rounded-full bg-brand-cream-2 px-2 py-0.5 text-xs">
+                          {KIND_LABEL[line.productKind] ?? line.productKind}
+                        </span>
+                      ) : (
+                        '—'
+                      )}
                     </td>
                     <td className="px-4 py-2.5 text-center text-brand-ink-2">{line.uom}</td>
 
