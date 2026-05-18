@@ -186,6 +186,7 @@ export async function createProductAction(
 
   if (!result.ok) return { error: errorMessage(result.error) };
   revalidatePath('/inventory/products');
+  revalidatePath('/inventory/supplies');
   return { ok: true, productId: result.value.id };
 }
 
@@ -222,6 +223,7 @@ export async function updateProductAction(
 
   if (!result.ok) return { error: errorMessage(result.error) };
   revalidatePath('/inventory/products');
+  revalidatePath('/inventory/supplies');
   revalidatePath(`/inventory/products/${productId}`);
   return { ok: true, productId };
 }
@@ -299,6 +301,7 @@ export async function deactivateProductAction(formData: FormData): Promise<Actio
   if (!result.ok) return { error: errorMessage(result.error) };
 
   revalidatePath('/inventory/products');
+  revalidatePath('/inventory/supplies');
   return { ok: true, productId };
 }
 
@@ -311,5 +314,6 @@ export async function reactivateProductAction(formData: FormData): Promise<Actio
   if (!result.ok) return { error: errorMessage(result.error) };
 
   revalidatePath('/inventory/products');
+  revalidatePath('/inventory/supplies');
   return { ok: true, productId };
 }

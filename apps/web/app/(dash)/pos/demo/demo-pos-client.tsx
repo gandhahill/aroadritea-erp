@@ -18,6 +18,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { DemoModeBanner } from './components/demo-mode-banner';
 import { DemoResetModal } from './components/demo-reset-modal';
+import { DemoShiftBar } from './components/demo-shift-bar';
 import { useDemoCart } from './demo-cart-context';
 import { DemoChannelSelector } from './demo-channel-selector';
 import { DemoMemberLookup } from './demo-member-lookup';
@@ -37,6 +38,11 @@ export function DemoPosClient() {
     <>
       {/* Demo mode banner (inline, mirrors OfflineBanner placement) */}
       <DemoModeBanner />
+
+      {/* Demo shift bar — purely sessionStorage-backed, does NOT touch
+          the real `shifts` table. Mirrors the production ShiftStatusBar
+          so cashiers practising on demo see the same open/close flow. */}
+      <DemoShiftBar />
 
       {/* Main layout — mirrors real /pos shell (h-full + nested flex) */}
       <div className="flex h-full flex-1 flex-col overflow-hidden">

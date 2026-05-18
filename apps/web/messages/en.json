@@ -519,6 +519,8 @@
     "customerDisplay": "Customer Display",
     "openingCash": "Opening Cash (IDR)",
     "actualCash": "Actual Cash (IDR)",
+    "openingCashRequired": "Opening cash is required.",
+    "actualCashRequired": "Actual cash is required.",
     "variance": "Variance",
     "varianceCash": "Cash Variance",
     "expectedCash": "Expected Cash",

@@ -34,11 +34,13 @@ function formatDate(d: string | Date): string {
 interface DisciplinaryRow {
   id: string;
   employeeId: string;
+  employeeName: string | null;
   level: string;
   reason: string;
   incidentDate: string;
   status: string;
   issuedBy: string;
+  issuedByName: string | null;
   attachmentUrl: string | null;
 }
 
@@ -288,11 +290,14 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                         {status.label}
                       </span>
                     </div>
-                    <p className="mt-2 text-sm font-medium text-brand-ink">{lvl.desc}</p>
+                    <p className="mt-2 text-sm font-medium text-brand-ink">
+                      {lvl.desc}
+                      {action.employeeName ? ` — ${action.employeeName}` : ''}
+                    </p>
                     <p className="mt-1 text-sm text-brand-ink-3">{action.reason}</p>
                     <p className="mt-1.5 text-xs text-brand-ink-3">
-                      Incident: {formatDate(action.incidentDate)} &middot; ID:{' '}
-                      {action.id.substring(0, 8)}...
+                      Insiden: {formatDate(action.incidentDate)}
+                      {action.issuedByName ? ` · Diterbitkan oleh ${action.issuedByName}` : ''}
                     </p>
                     {action.attachmentUrl && (
                       <a

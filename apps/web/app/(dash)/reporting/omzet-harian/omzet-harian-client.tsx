@@ -12,6 +12,7 @@
 import type { OmzetHarianResult } from '@erp/services/reporting';
 import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
+import { ExportXlsxButton } from '../export-button';
 import {
   serverExportOmzetHarian,
   serverGetOmzetHarian,
@@ -392,26 +393,11 @@ export function OmzetHarianClient({
               >
                 {isPending && isDirty ? 'Menyimpan...' : t('saveAdjustment')}
               </button>
-              <button
-                onClick={handleExport}
+              <ExportXlsxButton
+                onExport={handleExport}
                 disabled={isPending}
-                className="inline-flex items-center gap-2 rounded-lg bg-brand-jade px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90 disabled:opacity-50"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5v3.75"
-                  />
-                </svg>
-                {t('exportExcel')}
-              </button>
+                label={t('exportExcel')}
+              />
             </div>
           </div>
         </div>

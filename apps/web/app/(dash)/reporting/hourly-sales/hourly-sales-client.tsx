@@ -15,6 +15,7 @@ import { exportWorkbook } from '@/lib/export-workbook';
 import type { ChannelHourRow, DayHourRow, HourlySalesResult } from '@erp/services/reporting';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
+import { ExportXlsxButton } from '../export-button';
 import { fetchHourlySales } from './actions';
 
 type LocationOption = {
@@ -390,25 +391,9 @@ export function HourlySalesClient({
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-brand-ink">Penjualan Per Jam</h1>
         {data && (
-          <button
-            onClick={() => handleExportXlsx(data, selectedLocationLabel)}
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-jade px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            Export XLSX
-          </button>
+          <ExportXlsxButton
+            onExport={() => handleExportXlsx(data, selectedLocationLabel)}
+          />
         )}
       </div>
 

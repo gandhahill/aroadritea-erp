@@ -519,6 +519,8 @@
     "customerDisplay": "顾客显示屏",
     "openingCash": "备用金 (印尼盾)",
     "actualCash": "实际现金 (印尼盾)",
+    "openingCashRequired": "备用金不能为空。",
+    "actualCashRequired": "实际现金不能为空。",
     "variance": "差异",
     "varianceCash": "现金差异",
     "expectedCash": "应收现金",

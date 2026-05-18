@@ -1,6 +1,9 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
+import { db, eq } from '@erp/db';
+import { users } from '@erp/db/schema/auth';
+import { employees } from '@erp/db/schema/hr';
 import {
   acknowledgeDisciplinaryAction,
   createDisciplinaryAction,
@@ -32,7 +35,38 @@ export async function listDisciplinaryActionsAction(input: {
   status?: 'issued' | 'acknowledged' | 'escalated';
 }) {
   const ctx = await resolveCtx();
-  return listDisciplinaryActions({ limit: 50, ...input }, ctx);
+  const result = await listDisciplinaryActions({ limit: 50, ...input }, ctx);
+  if (!result.ok) return result;
+
+  // Enrich with employee + issuer names so the UI never has to render UUIDs.
+  // Tenant-scoped lookups — without these we'd leak names across tenants.
+  const [empRows, userRows] = await Promise.all([
+    db
+      .select({ id: employees.id, name: employees.name })
+      .from(employees)
+      .where(eq(employees.tenantId, ctx.tenantId)),
+    db
+      .select({ id: users.id, displayName: users.displayName })
+      .from(users)
+      .where(eq(users.tenantId, ctx.tenantId)),
+  ]);
+  const empMap = new Map(empRows.map((e) => [e.id, String(e.name ?? e.id)]));
+  const userMap = new Map(userRows.map((u) => [u.id, u.displayName ?? '']));
+
+  const enriched = result.value.map((r) => ({
+    id: r.id,
+    employeeId: r.employeeId,
+    employeeName: empMap.get(r.employeeId) ?? null,
+    level: r.level,
+    reason: r.reason,
+    incidentDate:
+      r.incidentDate instanceof Date ? r.incidentDate.toISOString() : String(r.incidentDate ?? ''),
+    status: r.status,
+    issuedBy: r.issuedBy,
+    issuedByName: userMap.get(r.issuedBy) || null,
+    attachmentUrl: r.attachmentUrl,
+  }));
+  return { ok: true as const, value: enriched };
 }
 
 export async function createDisciplinaryActionAction(

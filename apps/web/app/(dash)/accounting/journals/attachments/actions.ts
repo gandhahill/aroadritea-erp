@@ -14,6 +14,7 @@ import {
   writeJournalAttachmentFile,
 } from '@/lib/journal-attachment-storage';
 import { db, eq, journalAttachments } from '@erp/db';
+import { users } from '@erp/db/schema/auth';
 import {
   createJournalAttachment,
   deleteJournalAttachment,
@@ -40,7 +41,32 @@ export async function fetchJournalAttachments(journalEntryId: string) {
   const ctx = buildCtx(session);
   const result = await listJournalAttachments(journalEntryId, ctx);
   if (!result.ok) return { error: result.error.message };
-  return { data: result.value };
+
+  // Resolve `uploadedBy` UUIDs to display names — tenant-scoped so a
+  // stray cross-tenant user row (defense-in-depth) can't leak names.
+  const userIds = [
+    ...new Set(
+      result.value
+        .map((a) => a.uploadedBy)
+        .filter((id): id is string => typeof id === 'string' && id.length > 0),
+    ),
+  ];
+  const userMap = new Map<string, string>();
+  if (userIds.length > 0) {
+    const userRows = await db
+      .select({ id: users.id, displayName: users.displayName, email: users.email })
+      .from(users)
+      .where(eq(users.tenantId, ctx.tenantId));
+    for (const u of userRows) {
+      const label = u.displayName ?? u.email ?? '';
+      if (label) userMap.set(u.id, label);
+    }
+  }
+  const enriched = result.value.map((a) => ({
+    ...a,
+    uploadedBy: a.uploadedBy ? (userMap.get(a.uploadedBy) ?? null) : null,
+  }));
+  return { data: enriched };
 }
 
 export async function deleteAttachmentAction(attachmentId: string) {

@@ -6,6 +6,7 @@
 
 import { getSession } from '@/lib/auth';
 import { db, eq } from '@erp/db';
+import { users } from '@erp/db/schema/auth';
 import { disciplinaryActions, employees } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
@@ -19,7 +20,6 @@ export default async function DisciplinaryPage() {
 
   const user = session.user as Record<string, unknown>;
   const tenantId = String(user.tenantId ?? 'default');
-  const locationId = String(user.locationId ?? '');
 
   // Load all disciplinary actions for this tenant
   const rows = await db
@@ -37,18 +37,39 @@ export default async function DisciplinaryPage() {
     .where(eq(disciplinaryActions.tenantId, tenantId))
     .orderBy(disciplinaryActions.createdAt);
 
-  // Load active employees for the dropdown
+  // Load active employees for the dropdown — also used to resolve names.
   const empRows = await db
     .select({ id: employees.id, name: employees.name })
     .from(employees)
     .where(eq(employees.tenantId, tenantId));
+
+  // Resolve issuer (user) names — tenant-scoped to prevent cross-tenant leaks.
+  const userRows = await db
+    .select({ id: users.id, displayName: users.displayName })
+    .from(users)
+    .where(eq(users.tenantId, tenantId));
+
+  const empMap = new Map(empRows.map((e) => [e.id, String(e.name ?? e.id)]));
+  const userMap = new Map(userRows.map((u) => [u.id, u.displayName ?? '']));
+
+  const enriched = rows.map((r) => ({
+    id: r.id,
+    employeeId: r.employeeId,
+    employeeName: empMap.get(r.employeeId) ?? null,
+    level: r.level,
+    reason: r.reason,
+    incidentDate:
+      r.incidentDate instanceof Date ? r.incidentDate.toISOString() : String(r.incidentDate ?? ''),
+    status: r.status,
+    issuedBy: r.issuedBy,
+    issuedByName: userMap.get(r.issuedBy) || null,
+    attachmentUrl: r.attachmentUrl,
+  }));
 
   const employeeOptions = empRows.map((e) => ({
     value: e.id,
     label: String(e.name ?? e.id),
   }));
 
-  return (
-    <DisciplinaryClient initialActions={rows as unknown as never[]} employees={employeeOptions} />
-  );
+  return <DisciplinaryClient initialActions={enriched} employees={employeeOptions} />;
 }

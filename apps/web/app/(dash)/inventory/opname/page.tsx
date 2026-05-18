@@ -7,7 +7,7 @@
 
 import { getSession } from '@/lib/auth';
 import { db } from '@erp/db';
-import { desc, eq } from '@erp/db';
+import { and, desc, eq } from '@erp/db';
 import { locations, users } from '@erp/db/schema/auth';
 import { stockOpnameSessions } from '@erp/db/schema/stock-opname';
 import type { Metadata } from 'next';
@@ -34,7 +34,9 @@ export default async function OpnameListPage() {
 
   // Fetch sessions + JOIN users for prepared-by display name + JOIN
   // locations for the localized outlet label. Avoid showing UUIDs in
-  // the operator UI.
+  // the operator UI. Both joins are tenant-scoped so a stray cross-tenant
+  // user row (which should never happen, but defense-in-depth) can't leak
+  // a name into the table.
   const rows = await db
     .select({
       id: stockOpnameSessions.id,
@@ -44,14 +46,21 @@ export default async function OpnameListPage() {
       status: stockOpnameSessions.status,
       preparedById: stockOpnameSessions.preparedBy,
       preparedByName: users.displayName,
+      preparedByEmail: users.email,
       locationId: stockOpnameSessions.locationId,
       locationName: locations.name,
       locationCode: locations.code,
       createdAt: stockOpnameSessions.createdAt,
     })
     .from(stockOpnameSessions)
-    .leftJoin(users, eq(users.id, stockOpnameSessions.preparedBy))
-    .leftJoin(locations, eq(locations.id, stockOpnameSessions.locationId))
+    .leftJoin(
+      users,
+      and(eq(users.id, stockOpnameSessions.preparedBy), eq(users.tenantId, tenantId)),
+    )
+    .leftJoin(
+      locations,
+      and(eq(locations.id, stockOpnameSessions.locationId), eq(locations.tenantId, tenantId)),
+    )
     .where(eq(stockOpnameSessions.tenantId, tenantId))
     .orderBy(desc(stockOpnameSessions.createdAt))
     .limit(50);
@@ -162,7 +171,7 @@ export default async function OpnameListPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-brand-ink-2">
-                      {row.preparedByName ?? row.preparedById ?? '—'}
+                      {row.preparedByName ?? row.preparedByEmail ?? '—'}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Link

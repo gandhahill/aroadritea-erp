@@ -31,6 +31,12 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [openError, setOpenError] = useState<string | null>(null);
   const [closeError, setCloseError] = useState<string | null>(null);
+  // Controlled inputs — reading from DOM via `form.elements.namedItem`
+  // worked, but the previous implementation also lost values whenever
+  // the modal re-rendered (e.g., when `closeError` updated), making the
+  // "Konfirmasi" button feel like it did nothing on the second click.
+  const [openingCashInput, setOpeningCashInput] = useState('');
+  const [actualCashInput, setActualCashInput] = useState('');
 
   // Demo route lives under the same parent layout but uses an isolated
   // IndexedDB sandbox (ADR-0008). The production shift bar must not
@@ -53,18 +59,25 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
   // Refresh expectedCash from server every time the close modal opens
   async function openCloseModal() {
     setCloseError(null);
+    setActualCashInput('');
     setShowCloseModal(true);
     const fresh = await fetchOpenShift(locationId);
     if (fresh) setShift(fresh);
   }
 
+  function openOpenModal() {
+    setOpenError(null);
+    setOpeningCashInput('');
+    setShowOpenModal(true);
+  }
+
   async function handleOpenShift(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = e.currentTarget;
-    const openingCash = (form.elements.namedItem('openingCash') as HTMLInputElement).value.replace(
-      /\D/g,
-      '',
-    );
+    const openingCash = openingCashInput.replace(/\D/g, '');
+    if (!openingCash) {
+      setOpenError(translateErr(t, 'openingCashRequired'));
+      return;
+    }
     setOpenError(null);
     startTransition(async () => {
       const result = await openShiftAction({ locationId, openingCash });
@@ -72,6 +85,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
         setShift(result.value as ShiftStatusItem);
         setShiftId(result.value.id);
         setShowOpenModal(false);
+        setOpeningCashInput('');
       } else if (!result.ok) {
         const key =
           (result.error as { messageKey?: string } | undefined)?.messageKey ?? 'shiftOpenFailed';
@@ -82,12 +96,15 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
 
   async function handleCloseShift(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = e.currentTarget;
-    const actualCash = (form.elements.namedItem('actualCash') as HTMLInputElement).value.replace(
-      /\D/g,
-      '',
-    );
     if (!shift) return;
+    const actualCash = actualCashInput.replace(/\D/g, '');
+    if (!actualCash) {
+      // Empty input would fail the server-side `^\d+$` regex with a
+      // generic validation error that confused cashiers. Surface it
+      // here instead so they immediately see what's missing.
+      setCloseError(translateErr(t, 'actualCashRequired'));
+      return;
+    }
     setCloseError(null);
 
     // Re-fetch the shift right before close so the optimistic version
@@ -106,6 +123,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
         setShift(null);
         setShiftId(null);
         setShowCloseModal(false);
+        setActualCashInput('');
         router.refresh();
       } else {
         const key =
@@ -163,7 +181,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
           ) : (
             <button
               type="button"
-              onClick={() => setShowOpenModal(true)}
+              onClick={openOpenModal}
               className="h-8 rounded-md bg-brand-red px-3 text-xs font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
               disabled={isPending}
             >
@@ -193,6 +211,8 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                   inputMode="numeric"
                   placeholder="0"
                   required
+                  value={openingCashInput}
+                  onChange={(e) => setOpeningCashInput(e.target.value.replace(/\D/g, ''))}
                   className="h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
                 />
               </div>
@@ -257,6 +277,8 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                   inputMode="numeric"
                   placeholder="0"
                   required
+                  value={actualCashInput}
+                  onChange={(e) => setActualCashInput(e.target.value.replace(/\D/g, ''))}
                   className="h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
                 />
               </div>

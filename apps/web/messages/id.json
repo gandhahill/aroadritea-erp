@@ -519,6 +519,8 @@
     "customerDisplay": "Layar Customer",
     "openingCash": "Kas Awal (IDR)",
     "actualCash": "Kas Aktual (IDR)",
+    "openingCashRequired": "Nominal kas awal wajib diisi.",
+    "actualCashRequired": "Nominal kas aktual wajib diisi.",
     "variance": "Selisih",
     "varianceCash": "Selisih Kas",
     "expectedCash": "Kas Diharapkan",

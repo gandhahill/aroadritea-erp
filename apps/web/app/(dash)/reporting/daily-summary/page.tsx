@@ -7,6 +7,7 @@
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/location-options';
 import type { Metadata } from 'next';
+import { getLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchDailySummary } from './actions';
 import { DailySummaryClient } from './daily-summary-client';
@@ -31,7 +32,10 @@ export default async function DailySummaryPage({
   const user = session.user as Record<string, unknown>;
   const tenantId = (user.tenantId as string) ?? 'default';
   const sessionLocationId = user.locationId as string | undefined;
-  const locationOptions = await getActiveLocationOptions({ tenantId, locale: 'id', type: 'store' });
+  const rawLocale = await getLocale().catch(() => 'id');
+  const locale: 'id' | 'en' | 'zh' =
+    rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
+  const locationOptions = await getActiveLocationOptions({ tenantId, locale, type: 'store' });
 
   const startDate = params.startDate ?? today;
   const endDate = params.endDate ?? today;

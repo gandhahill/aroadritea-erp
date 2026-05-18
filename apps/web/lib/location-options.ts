@@ -39,13 +39,23 @@ export async function getActiveLocationOptions({
     .where(and(...conditions))
     .orderBy(asc(locations.code));
 
-  return rows.map((row) => ({
-    id: row.id,
-    code: row.code,
-    label: localize(row.name as LocalizedText, locale),
-    type: row.type,
-    address: row.address,
-  }));
+  return rows.map((row) => {
+    const localized = localize(row.name as LocalizedText | null, locale);
+    // Compose `Code · Name` so the dropdown is unambiguous when two
+    // outlets share a code/name prefix. Falls back to code-only or the
+    // raw UUID only if both fields are empty (defensive — should never
+    // happen for a valid seeded outlet).
+    const label = localized && row.code
+      ? `${row.code} · ${localized}`
+      : localized || row.code || row.id;
+    return {
+      id: row.id,
+      code: row.code,
+      label,
+      type: row.type,
+      address: row.address,
+    };
+  });
 }
 
 export function resolveDefaultLocationId(
@@ -59,6 +69,7 @@ export function resolveDefaultLocationId(
   return options[0]?.id ?? '';
 }
 
-function localize(value: LocalizedText, locale: Locale): string {
+function localize(value: LocalizedText | null | undefined, locale: Locale): string {
+  if (!value) return '';
   return value[locale] ?? value.id ?? value.en ?? value.zh ?? '';
 }

@@ -6,6 +6,7 @@
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/location-options';
 import type { Metadata } from 'next';
+import { getLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { serverGetOmzetHarian } from './actions';
 import { OmzetHarianClient } from './omzet-harian-client';
@@ -27,7 +28,12 @@ export default async function OmzetHarianPage({
   const user = session.user as Record<string, unknown>;
   const tenantId = (user.tenantId as string) ?? 'default';
   const sessionLocationId = user.locationId as string | undefined;
-  const locationOptions = await getActiveLocationOptions({ tenantId, locale: 'id', type: 'store' });
+  // Respect the user's UI locale instead of hard-coding 'id', so a director
+  // browsing in EN/ZH still sees a localized outlet label in the dropdown.
+  const rawLocale = await getLocale().catch(() => 'id');
+  const locale: 'id' | 'en' | 'zh' =
+    rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
+  const locationOptions = await getActiveLocationOptions({ tenantId, locale, type: 'store' });
   const date = params.date ?? today;
   const locationId = resolveDefaultLocationId(locationOptions, params.location, sessionLocationId);
 

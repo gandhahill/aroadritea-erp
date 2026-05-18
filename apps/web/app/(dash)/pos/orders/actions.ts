@@ -105,7 +105,10 @@ export async function fetchTodaysOrders(date?: string): Promise<{
       cashierName: users.displayName,
     })
     .from(salesOrders)
-    .leftJoin(users, eq(users.id, salesOrders.cashierId))
+    .leftJoin(
+      users,
+      and(eq(users.id, salesOrders.cashierId), eq(users.tenantId, ctx.tenantId)),
+    )
     .where(
       and(
         eq(salesOrders.tenantId, ctx.tenantId),
@@ -148,7 +151,7 @@ export async function fetchTodaysOrders(date?: string): Promise<{
       taxTotal: r.taxTotal.toString(),
       placedAt: r.placedAt.toISOString(),
       version: r.version,
-      cashierName: r.cashierName ?? r.cashierId,
+      cashierName: r.cashierName ?? '—',
       paymentMethods: paymentByOrder.get(r.id) ?? [],
     })),
   };
@@ -181,7 +184,10 @@ export async function fetchOrderDetail(orderId: string): Promise<{
       cashierName: users.displayName,
     })
     .from(salesOrders)
-    .leftJoin(users, eq(users.id, salesOrders.cashierId))
+    .leftJoin(
+      users,
+      and(eq(users.id, salesOrders.cashierId), eq(users.tenantId, ctx.tenantId)),
+    )
     .where(
       and(
         eq(salesOrders.tenantId, ctx.tenantId),
@@ -232,7 +238,7 @@ export async function fetchOrderDetail(orderId: string): Promise<{
       placedAt: row.placedAt.toISOString(),
       version: row.version,
       notes: row.notes,
-      cashierName: row.cashierName ?? row.cashierId,
+      cashierName: row.cashierName ?? '—',
       paymentMethods: paymentRows.map((p) => p.method),
       lines: lineRows.map((l) => ({
         id: l.id,

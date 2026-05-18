@@ -66,7 +66,7 @@ export async function fetchAuditTrail(filters: AuditTrailFilters): Promise<Audit
       metadata: auditLog.metadata,
     })
     .from(auditLog)
-    .leftJoin(users, eq(users.id, auditLog.userId))
+    .leftJoin(users, and(eq(users.id, auditLog.userId), eq(users.tenantId, tenantId)))
     .where(and(...conditions))
     .orderBy(desc(auditLog.createdAt))
     .limit(200);
@@ -75,7 +75,13 @@ export async function fetchAuditTrail(filters: AuditTrailFilters): Promise<Audit
     id: row.id,
     createdAt: row.createdAt.toISOString(),
     userId: row.userId,
-    userLabel: row.userName ? `${row.userName} (${row.userEmail ?? row.userId})` : row.userId,
+    // Audit log keeps the raw user ID for forensic traceability, but the
+    // human-facing label prefers display name → email → "User dihapus".
+    // Showing the UUID to operators is unhelpful and reveals internal
+    // identifiers unnecessarily.
+    userLabel: row.userName
+      ? `${row.userName}${row.userEmail ? ` (${row.userEmail})` : ''}`
+      : (row.userEmail ?? 'User dihapus'),
     action: row.action,
     entityType: row.entityType,
     entityId: row.entityId,
