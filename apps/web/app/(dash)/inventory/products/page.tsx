@@ -188,7 +188,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-brand-ink">
-                      {formatRupiah(product.defaultSellPrice)}
+                      {formatPrice(product)}
                     </td>
                     <td className="px-4 py-3 text-right text-brand-ink-3">
                       {product.variantCount}
@@ -235,4 +235,29 @@ function formatRupiah(value: string) {
     currency: 'IDR',
     maximumFractionDigits: 0,
   }).format(Number(value));
+}
+
+/**
+ * Catalog rows show per-variant pricing when variants exist:
+ *  - 1 variant: "Rp 42.000"
+ *  - 2+ variants, same price: single price
+ *  - 2+ variants, different price: "Rp 42.000 – Rp 47.000"
+ *  - 0 variants: fall back to product.defaultSellPrice
+ *
+ * This keeps the table compact while reflecting that each variant
+ * has its own price (per user request 2026-05-19).
+ */
+function formatPrice(product: {
+  defaultSellPrice: string;
+  variantCount: number;
+  variantPriceMin: string | null;
+  variantPriceMax: string | null;
+}): string {
+  if (product.variantCount === 0 || !product.variantPriceMin) {
+    return formatRupiah(product.defaultSellPrice);
+  }
+  if (product.variantPriceMin === product.variantPriceMax || !product.variantPriceMax) {
+    return formatRupiah(product.variantPriceMin);
+  }
+  return `${formatRupiah(product.variantPriceMin)} – ${formatRupiah(product.variantPriceMax)}`;
 }

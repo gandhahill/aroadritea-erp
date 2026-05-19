@@ -188,7 +188,10 @@ const MENU_PRODUCTS: MenuProduct[] = [
   ),
   dessert('DST-EGG-TART', 'Egg Tart', '蛋挞'),
   dessert('DST-FANCY-EGG-TART', 'Fancy Egg Tart', '精品蛋挞'),
-  dessert('DST-PUDDING', 'Pudding', '布丁'),
+  dessert('DST-PUDDING-BAMBOO', 'Bamboo Oolong Pudding', '竹香乌龙布丁'),
+  dessert('DST-PUDDING-OSMANTHUS', 'Osmanthus Oolong Pudding', '桂花乌龙布丁'),
+  dessert('DST-PUDDING-CEYLON', 'Ceylon Black Pudding', '锡兰红茶布丁'),
+  dessert('DST-PUDDING-ROY', 'Roasted Fragrant Yellow Pudding', '焙香黄茶布丁'),
   dessert('DST-MOUSSE-CAKE', 'Mousse Cake', '慕斯蛋糕'),
 ];
 
@@ -217,10 +220,17 @@ const PRODUCT_IMAGE_URLS: Record<string, string> = {
   'SCM-BOO': '/photo/menu/snow-cap-bamboo.jpg',
   'SCM-OSM': '/photo/menu/snow-cap-osmanthus.jpg',
   'DST-EGG-TART': '/photo/menu/egg-tart.jpg',
-  // Fancy Egg Tart and Mousse Cake intentionally have no photo seed — the
-  // brand will upload a dedicated image via the inventory UI. The list view
-  // shows a "—" placeholder until then.
-  'DST-PUDDING': '/photo/menu/pudding-bamboo.jpg',
+  // Fancy Egg Tart uses the same photo as regular Egg Tart per the user
+  // request — both desserts share the same visual treatment on the menu
+  // board and the brand has not yet provided a unique studio photo.
+  'DST-FANCY-EGG-TART': '/photo/menu/egg-tart.jpg',
+  // Pudding flavours each get their own photo from the brand-supplied
+  // source folder. Mousse Cake intentionally has no photo seed; the
+  // inventory UI shows a placeholder until the brand uploads one.
+  'DST-PUDDING-BAMBOO': '/photo/menu/pudding-bamboo.jpg',
+  'DST-PUDDING-OSMANTHUS': '/photo/menu/pudding-osmanthus.jpg',
+  'DST-PUDDING-CEYLON': '/photo/menu/pudding-ceylon.jpg',
+  'DST-PUDDING-ROY': '/photo/menu/pudding-roasted-yellow.jpg',
 };
 
 const MODIFIER_GROUPS = [

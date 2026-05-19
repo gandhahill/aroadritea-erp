@@ -22,6 +22,10 @@ export interface ProductListItem extends ProductResult {
   categoryName: { id: string; en: string; zh: string };
   imageUrl: string | null;
   variantCount: number;
+  /** Cheapest sell price across active variants (string bigint rupiah). Null when no variants. */
+  variantPriceMin: string | null;
+  /** Most expensive sell price across active variants. Null when no variants. */
+  variantPriceMax: string | null;
 }
 
 export interface ProductDetailResult extends ProductResult {
@@ -142,15 +146,21 @@ export async function listProducts(
         .limit(data.limit)
         .offset(data.offset);
 
-      // Count variants per product (batch query)
+      // Count + price-range variants per product (batch query). The price
+      // range powers the catalog table's "Rp X – Rp Y" cell so callers don't
+      // need to refetch variants just to render a price.
       const productIds = rows.map((r) => r.id);
       let variantCounts: Map<string, number> = new Map();
+      let variantPriceMins: Map<string, string> = new Map();
+      let variantPriceMaxes: Map<string, string> = new Map();
 
       if (productIds.length > 0) {
         const vcRows = await db
           .select({
             productId: productVariants.productId,
             count: sql<number>`cast(count(*) as int)`,
+            minPrice: sql<string>`min(${productVariants.sellPrice})::text`,
+            maxPrice: sql<string>`max(${productVariants.sellPrice})::text`,
           })
           .from(productVariants)
           .where(
@@ -159,6 +169,8 @@ export async function listProducts(
           .groupBy(productVariants.productId);
 
         variantCounts = new Map(vcRows.map((r) => [r.productId, r.count]));
+        variantPriceMins = new Map(vcRows.map((r) => [r.productId, r.minPrice]));
+        variantPriceMaxes = new Map(vcRows.map((r) => [r.productId, r.maxPrice]));
       }
 
       const items: ProductListItem[] = rows.map((r) => ({
@@ -185,6 +197,8 @@ export async function listProducts(
           zh: string;
         },
         variantCount: variantCounts.get(r.id) ?? 0,
+        variantPriceMin: variantPriceMins.get(r.id) ?? null,
+        variantPriceMax: variantPriceMaxes.get(r.id) ?? null,
       }));
 
       return { items, total };

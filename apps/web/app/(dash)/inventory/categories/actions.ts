@@ -96,7 +96,31 @@ export async function deleteCategoryAction(
     return { ok: false, error: `Category has ${productRow.count} active product(s). Move or deactivate them first.` };
   }
 
+  // product_categories has no `version` column — schema requires `min(1)`
+  // but no real optimistic-lock check is performed by the service.
   const result = await updateCategory({ categoryId: id, isActive: false, version: 1 }, ctx);
+  if (!result.ok) return { ok: false, error: result.error.message };
+
+  revalidatePath('/inventory/categories');
+  return { ok: true };
+}
+
+export async function updateCategoryNameAction(
+  id: string,
+  name: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const normalized = name.trim();
+  if (!normalized) return { ok: false, error: 'Category name is required.' };
+
+  const ctx = await getAuditContext();
+  const result = await updateCategory(
+    {
+      categoryId: id,
+      name: { id: normalized, en: normalized, zh: normalized },
+      version: 1,
+    },
+    ctx,
+  );
   if (!result.ok) return { ok: false, error: result.error.message };
 
   revalidatePath('/inventory/categories');

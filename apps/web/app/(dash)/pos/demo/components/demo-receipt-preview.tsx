@@ -185,7 +185,7 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
             }
             className="h-11 rounded-lg border border-brand-cream-3 bg-brand-cream-2 text-xs font-medium text-brand-ink-2 hover:bg-brand-cream-3"
           >
-            🧾 {t('printReceipt')}
+            {t('printReceipt')}
           </button>
           <button
             type="button"
@@ -194,7 +194,7 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
             }
             className="h-11 rounded-lg border border-brand-cream-3 bg-brand-cream-2 text-xs font-medium text-brand-ink-2 hover:bg-brand-cream-3"
           >
-            🏷️ Cetak Label
+            Cetak Label
           </button>
           <button
             type="button"

@@ -407,6 +407,7 @@
       "confirmDelete": "Hapus kategori ini?",
       "createFailed": "Gagal membuat kategori.",
       "deleteFailed": "Gagal menghapus kategori.",
+      "updateFailed": "Gagal memperbarui kategori.",
       "productCount": "Produk",
       "hasProducts": "Tidak bisa menghapus kategori yang masih memiliki produk aktif."
     },
@@ -1051,7 +1052,7 @@
       "noActiveLocations": "Belum ada outlet aktif",
       "howItWorks": "Cara Kerja",
       "howItWorksDesc": "Kolom C–E terisi otomatis dari data penjualan. Kolom F (Penyesuaian) untuk koreksi manual (retur, transaksi batal, dll). Export Excel untuk laporan pajak Coretax.",
-      "fiscalWarning": "⚠️ Omzet fiskal berbeda dari omzet akuntansi sebesar Rp {diff} ({direction}).",
+      "fiscalWarning": "Omzet fiskal berbeda dari omzet akuntansi sebesar Rp {diff} ({direction}).",
       "colDate": "Tanggal",
       "colLocation": "Lokasi",
       "colGross": "Gross Sales",

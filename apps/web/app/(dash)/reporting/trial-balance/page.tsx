@@ -40,7 +40,7 @@ export default async function TrialBalancePage({
         <div className="flex items-center gap-3">
           {data?.isPreliminary && (
             <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
-              ⚠ Preliminary
+              Preliminary
             </span>
           )}
           {data ? (

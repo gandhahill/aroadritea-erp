@@ -51,7 +51,7 @@ export default async function BalanceSheetPage({
             </span>
           ) : data ? (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-600">
-              ⚠ Tidak seimbang
+              Tidak seimbang
             </span>
           ) : null}
           {data ? (

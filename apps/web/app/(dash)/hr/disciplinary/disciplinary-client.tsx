@@ -306,7 +306,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                         rel="noopener noreferrer"
                         className="mt-1.5 inline-block text-xs text-brand-ember-5 hover:text-brand-ember-6"
                       >
-                        📎 Lampiran
+                        Lampiran
                       </a>
                     )}
                   </div>

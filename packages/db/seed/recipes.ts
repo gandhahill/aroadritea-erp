@@ -37,22 +37,28 @@ type LocaleString = { id: string; en: string; zh: string };
 const n = (id: string, en: string, zh: string): LocaleString => ({ id, en, zh });
 
 const RAW_MATERIALS = [
+  // Tea names are brand product names — kept in original English across
+  // all locales to avoid identity confusion at the kitchen station.
   {
     id: 'mat-tea-bamboo-oolong',
     code: 'TEA-BAMBOO-OOLONG',
-    name: n('Teh Bamboo Oolong (seduh)', 'Bamboo Oolong tea brew', '竹叶乌龙茶汤'),
+    name: n('Bamboo Oolong (seduh)', 'Bamboo Oolong tea brew', 'Bamboo Oolong 茶汤'),
     uom: 'ml',
   },
   {
     id: 'mat-tea-osmanthus-oolong',
     code: 'TEA-OSMANTHUS-OOLONG',
-    name: n('Teh Osmanthus Oolong (seduh)', 'Osmanthus Oolong tea brew', '桂花乌龙茶汤'),
+    name: n('Osmanthus Oolong (seduh)', 'Osmanthus Oolong tea brew', 'Osmanthus Oolong 茶汤'),
     uom: 'ml',
   },
   {
     id: 'mat-tea-glutinous-green',
     code: 'TEA-GLUTINOUS-GREEN',
-    name: n('Teh Hijau Ketan Wangi (seduh)', 'Glutinous Fragrant Green tea brew', '糯香绿茶茶汤'),
+    name: n(
+      'Glutinous Fragrant Green (seduh)',
+      'Glutinous Fragrant Green tea brew',
+      'Glutinous Fragrant Green 茶汤',
+    ),
     uom: 'ml',
   },
   {

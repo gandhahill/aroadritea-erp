@@ -51,7 +51,7 @@ import { TAX_RULES_SEED } from './tax-rules-seed';
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
-  console.error('❌ DATABASE_URL not set. Add it to .env and retry.');
+  console.error('DATABASE_URL not set. Add it to .env and retry.');
   process.exit(1);
 }
 
@@ -65,7 +65,7 @@ const DEFAULT_DELIVERY_CHANNELS = [
 ];
 
 async function seed() {
-  console.info('🌱 Starting seed...\n');
+  console.info('Starting seed...\n');
 
   // 1. Tenant
   const tenantId = DEFAULT_TENANT.id;
@@ -77,7 +77,7 @@ async function seed() {
       localeDefault: DEFAULT_TENANT.localeDefault,
     })
     .onConflictDoNothing();
-  console.info('✅ Tenant seeded');
+  console.info('Tenant seeded');
 
   // 2. Locations
   const locationIds = new Map<string, string>();
@@ -120,7 +120,7 @@ async function seed() {
   for (const loc of locationRows) {
     locationIds.set(loc.code, loc.id);
   }
-  console.info(`✅ ${LOCATIONS_SEED.length} locations seeded`);
+  console.info(`${LOCATIONS_SEED.length} locations seeded`);
 
   // 2b. Location GPS settings (custom fields, UI-editable)
   const gpsDefinitionIds = new Map<string, string>();
@@ -173,7 +173,7 @@ async function seed() {
         });
     }
   }
-  console.info('✅ Location GPS attendance settings seeded');
+  console.info('Location GPS attendance settings seeded');
 
   // 3. Roles
   const roleIds = new Map<string, string>();
@@ -196,7 +196,7 @@ async function seed() {
   for (const role of roleRows) {
     roleIds.set(role.code, role.id);
   }
-  console.info(`✅ ${ROLES_SEED.length} roles seeded`);
+  console.info(`${ROLES_SEED.length} roles seeded`);
 
   // 4. Permissions (with multilingual descriptions)
   const permIds = new Map<string, string>();
@@ -224,7 +224,7 @@ async function seed() {
   for (const perm of permissionRows) {
     permIds.set(perm.code, perm.id);
   }
-  console.info(`✅ ${PERMISSIONS_SEED.length} permissions seeded`);
+  console.info(`${PERMISSIONS_SEED.length} permissions seeded`);
 
   // 5. Role-Permission mapping
   let rpCount = 0;
@@ -244,7 +244,7 @@ async function seed() {
       rpCount++;
     }
   }
-  console.info(`✅ ${rpCount} role-permission mappings seeded`);
+  console.info(`${rpCount} role-permission mappings seeded`);
 
   // 6. Optional bootstrap admin user
   const bootstrapAdmin = getBootstrapAdminConfig();
@@ -275,7 +275,7 @@ async function seed() {
       .where(eq(users.email, bootstrapAdmin.email))
       .limit(1);
     const resolvedAdminId = adminRow?.id ?? adminId;
-    console.info(`✅ Bootstrap admin present (${bootstrapAdmin.email})`);
+    console.info(`Bootstrap admin present (${bootstrapAdmin.email})`);
 
     await db
       .insert(authAccounts)
@@ -293,7 +293,7 @@ async function seed() {
           updatedAt: new Date(),
         },
       });
-    console.info('✅ Bootstrap admin credential account ready');
+    console.info('Bootstrap admin credential account ready');
 
     const directorRoleId = roleIds.get(bootstrapAdmin.roleCode);
     if (directorRoleId) {
@@ -305,7 +305,7 @@ async function seed() {
           locationId: null,
         })
         .onConflictDoNothing();
-      console.info('✅ Bootstrap admin assigned director role (global)');
+      console.info('Bootstrap admin assigned director role (global)');
     }
   } else {
     console.info('ℹ️  Bootstrap admin skipped (set SEED_ADMIN_PASSWORD to create one)');
@@ -344,7 +344,7 @@ async function seed() {
     .where(
       and(eq(accounts.tenantId, tenantId), inArray(accounts.code, LEGACY_COA_CODES_TO_DEACTIVATE)),
     );
-  console.info(`✅ ${COA_SEED.length} COA accounts seeded`);
+  console.info(`${COA_SEED.length} COA accounts seeded`);
 
   // 9. Tax Rates (resolve COA codes → account IDs)
   const now = new Date();
@@ -369,7 +369,7 @@ async function seed() {
       periodCount++;
     }
   }
-  console.info(`✅ ${periodCount} accounting periods ensured`);
+  console.info(`${periodCount} accounting periods ensured`);
 
   const coaRows = await db
     .select({ id: accounts.id, code: accounts.code })
@@ -382,7 +382,7 @@ async function seed() {
     const postingAccountId = coaMap.get(rate.postingAccountCode);
     if (!postingAccountId) {
       console.warn(
-        `⚠️ Tax rate ${rate.code}: posting account ${rate.postingAccountCode} not found in COA, skipping`,
+        `Tax rate ${rate.code}: posting account ${rate.postingAccountCode} not found in COA, skipping`,
       );
       continue;
     }
@@ -412,7 +412,7 @@ async function seed() {
       });
     taxCount++;
   }
-  console.info(`✅ ${taxCount} tax rates seeded`);
+  console.info(`${taxCount} tax rates seeded`);
 
   // 10. Tax Rules (SD §19.3.2 — PPN opt-in engine)
   let ruleCount = 0;
@@ -432,17 +432,17 @@ async function seed() {
       .onConflictDoNothing();
     ruleCount++;
   }
-  console.info(`✅ ${ruleCount} tax rules seeded`);
+  console.info(`${ruleCount} tax rules seeded`);
 
   // 11. Aroadri Tea menu master data (UI-managed after bootstrap)
   const menuResult = await seedMenu(db as unknown as Database, tenantId);
   console.info(
-    `✅ ${menuResult.products} menu products, ${menuResult.categories} categories, ${menuResult.modifierGroups} modifier groups seeded`,
+    `${menuResult.products} menu products, ${menuResult.categories} categories, ${menuResult.modifierGroups} modifier groups seeded`,
   );
 
   // 11a. Recipes / BOMs (Fresh Tea, Lemon Tea, Milk Tea) from in-store photos.
   await seedRecipes(db as unknown as Database, tenantId);
-  console.info('✅ Recipes (Fresh / Lemon / Milk Tea) seeded with BOM');
+  console.info('Recipes (Fresh / Lemon / Milk Tea) seeded with BOM');
 
   // 11b. HR leave types
   let leaveTypeCount = 0;
@@ -472,7 +472,7 @@ async function seed() {
       });
     leaveTypeCount++;
   }
-  console.info(`✅ ${leaveTypeCount} leave types seeded`);
+  console.info(`${leaveTypeCount} leave types seeded`);
 
   // 11c. HR shift definitions (UI-managed after bootstrap)
   const defaultShiftLocationId = locationRows[0]?.id;
@@ -531,7 +531,7 @@ async function seed() {
       .onConflictDoNothing({ target: [posSettings.tenantId, posSettings.locationId] });
     posSettingsCount++;
   }
-  console.info(`✅ ${posSettingsCount} POS settings seeded`);
+  console.info(`${posSettingsCount} POS settings seeded`);
 
   // 13. Naixer QR + label print defaults
   let naixerConfigCount = 0;
@@ -552,7 +552,7 @@ async function seed() {
       .onConflictDoNothing();
     naixerConfigCount++;
   }
-  console.info(`✅ ${naixerConfigCount} Naixer QR format configs seeded`);
+  console.info(`${naixerConfigCount} Naixer QR format configs seeded`);
 
   // 14. Scheduled Jobs
   for (const job of SCHEDULED_JOBS_SEED) {
@@ -571,9 +571,9 @@ async function seed() {
       })
       .onConflictDoNothing();
   }
-  console.info(`✅ ${SCHEDULED_JOBS_SEED.length} scheduled jobs seeded`);
+  console.info(`${SCHEDULED_JOBS_SEED.length} scheduled jobs seeded`);
 
-  console.info('\n🎉 Seed complete!');
+  console.info('\nSeed complete!');
 }
 
 function getBootstrapAdminConfig(): {
@@ -599,6 +599,6 @@ function getBootstrapAdminConfig(): {
 }
 
 seed().catch((e) => {
-  console.error('❌ Seed failed:', e);
+  console.error('Seed failed:', e);
   process.exit(1);
 });

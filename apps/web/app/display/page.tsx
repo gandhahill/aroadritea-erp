@@ -109,7 +109,6 @@ export default function PosDisplayPage() {
           <div className="flex-1 overflow-y-auto p-8">
             {lines.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center opacity-50">
-                <span className="text-6xl mb-4">🧋</span>
                 <p className="text-2xl text-brand-ink-3">Belum ada pesanan</p>
               </div>
             ) : (

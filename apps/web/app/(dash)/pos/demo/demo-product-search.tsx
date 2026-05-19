@@ -118,71 +118,70 @@ export function DemoProductSearch() {
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2">
-            {filtered.map((product) => (
-              <div key={product.id} className="flex flex-col">
-                {/* Main product card */}
-                <div className="flex flex-1 flex-col items-center gap-1.5 rounded-xl border border-brand-cream-3 bg-card p-3 text-center transition-all hover:border-brand-red/40 hover:shadow-sm">
+            {filtered.map((product) => {
+              const hasVariants = product.variants.length > 0;
+              return (
+                <div
+                  key={product.id}
+                  className="flex min-h-[190px] flex-col gap-2 rounded-lg border border-brand-cream-3 bg-card p-3 text-left transition-shadow hover:border-brand-red/30 hover:shadow-sm"
+                >
                   {product.imageUrl ? (
                     <img
                       src={displayAssetUrl(product.imageUrl)}
                       alt={String(product.name)}
-                      className="h-16 w-16 rounded-lg object-cover"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }}
+                      className="h-16 w-full rounded-md object-cover"
                     />
-                  ) : null}
-                  <div className={`${product.imageUrl ? 'hidden' : ''} flex h-16 w-16 items-center justify-center rounded-lg bg-brand-cream-2`}>
-                    <svg
-                      className="h-8 w-8 text-brand-red/40"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    >
-                      <path d="M3 8h12v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
-                      <path d="M15 10h2a3 3 0 0 1 0 6h-2" />
-                      <path d="M7 3v3M11 3v3" strokeLinecap="round" />
-                    </svg>
-                  </div>
-                  <div className="w-full">
-                    <p className="line-clamp-2 text-xs font-medium leading-tight text-brand-ink">
-                      {String(product.name)}
-                    </p>
-                    <p className="mt-0.5 text-xs font-semibold text-brand-red">
-                      {formatRupiah(product.defaultSellPrice)}
-                    </p>
-                  </div>
-                  {product.variants.length === 0 && (
+                  ) : (
+                    <div className="flex h-16 w-full items-center justify-center rounded-md bg-brand-cream-2">
+                      <svg
+                        className="h-8 w-8 text-brand-red/40"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                      >
+                        <path d="M3 8h12v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+                        <path d="M15 10h2a3 3 0 0 1 0 6h-2" />
+                        <path d="M7 3v3M11 3v3" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                  )}
+                  <p className="w-full text-xs font-medium leading-tight text-brand-ink">
+                    {String(product.name)}
+                  </p>
+                  {hasVariants ? (
+                    <div className="mt-auto grid grid-cols-2 gap-1">
+                      {product.variants.map((v) => {
+                        const vName: string = String(v.name);
+                        return (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onClick={() => handleAddVariant(product, v)}
+                            title={`${vName} - ${formatRupiah(v.sellPrice)}`}
+                            className="min-h-9 rounded-md border border-brand-cream-3 bg-brand-cream-2 px-2 py-1 text-left text-[10px] font-medium leading-tight text-brand-ink-2 hover:border-brand-red/40 hover:text-brand-red"
+                          >
+                            <span className="line-clamp-1 block">{vName}</span>
+                            <span className="block text-[10px] font-semibold text-brand-red">
+                              {formatRupiah(v.sellPrice)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
                     <button
                       type="button"
                       onClick={() => handleAddVariant(product)}
-                      className="mt-1 rounded border border-brand-cream-3 bg-brand-cream-2 px-2 py-1 text-[10px] font-semibold text-brand-red hover:border-brand-red/40"
+                      className="mt-auto flex min-h-9 items-center justify-between rounded-md border border-brand-cream-3 bg-brand-cream-2 px-2 py-1 text-xs font-semibold text-brand-red hover:border-brand-red/40"
                     >
-                      {t('addProduct')}
+                      <span>{formatRupiah(product.defaultSellPrice)}</span>
+                      <span className="text-brand-ink-3">+</span>
                     </button>
                   )}
                 </div>
-
-                {/* Variant pills — shown if product has variants */}
-                {product.variants.length > 0 && (
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {product.variants.map((v) => {
-                      const vName: string = String(v.name);
-                      return (
-                        <button
-                          key={v.id}
-                          type="button"
-                          onClick={() => handleAddVariant(product, v)}
-                          className="rounded border border-brand-cream-3 bg-brand-cream-2 px-1.5 py-0.5 text-[10px] text-brand-ink-2 transition-colors hover:border-brand-red/40 hover:text-brand-red"
-                          title={`${vName} — ${formatRupiah(v.sellPrice)}`}
-                        >
-                          {vName}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

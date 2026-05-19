@@ -48,7 +48,6 @@ export default function OfflinePage() {
       </head>
       <body>
         <div className="container">
-          <div className="icon">📡</div>
           <h1>Offline Mode</h1>
           <p>
             Koneksi internet terputus.
@@ -58,7 +57,7 @@ export default function OfflinePage() {
             secara otomatis saat koneksi kembali.
           </p>
           <div className="pending">
-            💾 Pesanan tersimpan di perangkat — aman dari kehilangan data.
+            Pesanan tersimpan di perangkat — aman dari kehilangan data.
           </div>
         </div>
       </body>

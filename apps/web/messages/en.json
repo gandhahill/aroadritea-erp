@@ -407,6 +407,7 @@
       "confirmDelete": "Delete this category?",
       "createFailed": "Failed to create category.",
       "deleteFailed": "Failed to delete category.",
+      "updateFailed": "Failed to update category.",
       "productCount": "Products",
       "hasProducts": "Cannot delete a category that still has active products."
     },
@@ -1209,7 +1210,7 @@
       "noActiveLocations": "No active outlets",
       "howItWorks": "How It Works",
       "howItWorksDesc": "Columns C–E are auto-filled from sales data. Column F (Adjustment) is for manual corrections (returns, cancelled transactions, etc). Export Excel for Coretax tax reporting.",
-      "fiscalWarning": "⚠️ Fiscal omzet differs from accounting omzet by Rp {diff} ({direction}).",
+      "fiscalWarning": "Fiscal omzet differs from accounting omzet by Rp {diff} ({direction}).",
       "colDate": "Date",
       "colLocation": "Location",
       "colGross": "Gross Sales",

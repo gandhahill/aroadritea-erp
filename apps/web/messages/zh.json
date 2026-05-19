@@ -443,6 +443,7 @@
       "confirmDelete": "要删除这个分类吗？",
       "createFailed": "创建分类失败。",
       "deleteFailed": "删除分类失败。",
+      "updateFailed": "更新分类失败。",
       "productCount": "产品",
       "hasProducts": "无法删除仍有活动产品的分类。"
     }
@@ -1169,7 +1170,7 @@
       "noActiveLocations": "暂无启用门店",
       "howItWorks": "工作原理",
       "howItWorksDesc": "C–E列自动填充销售数据。F列（调整金额）用于手动校正（退货、取消交易等）。导出Excel用于Coretax税务申报。",
-      "fiscalWarning": "⚠️ 财政应税收入与会计收入相差 Rp {diff}（{direction}）。",
+      "fiscalWarning": "财政应税收入与会计收入相差 Rp {diff}（{direction}）。",
       "colDate": "日期",
       "colLocation": "地点",
       "colGross": "总销售额",
