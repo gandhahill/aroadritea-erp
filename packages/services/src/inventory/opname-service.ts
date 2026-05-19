@@ -895,7 +895,10 @@ export async function getOpname(
       productKind: products.kind,
     })
     .from(stockOpnameLines)
-    .leftJoin(products, eq(products.id, stockOpnameLines.productId))
+    .leftJoin(
+      products,
+      and(eq(products.id, stockOpnameLines.productId), eq(products.tenantId, ctx.tenantId)),
+    )
     .where(eq(stockOpnameLines.sessionId, sessionId))
     .orderBy(stockOpnameLines.lineNo);
 

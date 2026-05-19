@@ -249,7 +249,10 @@ export async function getDailySummary(
       })
       .from(salesOrderLines)
       .innerJoin(salesOrders, eq(salesOrderLines.salesOrderId, salesOrders.id))
-      .leftJoin(products, eq(salesOrderLines.productId, products.id))
+      .leftJoin(
+        products,
+        and(eq(salesOrderLines.productId, products.id), eq(products.tenantId, ctx.tenantId)),
+      )
       .where(inArray(salesOrderLines.salesOrderId, paidSaleIds))
       .groupBy(salesOrderLines.productId, salesOrders.channel, products.name, products.categoryId)
       .orderBy(sql`sum(${salesOrderLines.lineSubtotal}) DESC`)

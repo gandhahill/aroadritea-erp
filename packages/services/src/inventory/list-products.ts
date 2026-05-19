@@ -130,7 +130,13 @@ export async function listProducts(
           categoryName: productCategories.name,
         })
         .from(products)
-        .leftJoin(productCategories, eq(products.categoryId, productCategories.id))
+        .leftJoin(
+          productCategories,
+          and(
+            eq(products.categoryId, productCategories.id),
+            eq(productCategories.tenantId, ctx.tenantId),
+          ),
+        )
         .where(whereClause)
         .orderBy(products.sku)
         .limit(data.limit)
@@ -230,7 +236,13 @@ export async function getProduct(
           categoryName: productCategories.name,
         })
         .from(products)
-        .leftJoin(productCategories, eq(products.categoryId, productCategories.id))
+        .leftJoin(
+          productCategories,
+          and(
+            eq(products.categoryId, productCategories.id),
+            eq(productCategories.tenantId, ctx.tenantId),
+          ),
+        )
         .where(and(eq(products.tenantId, ctx.tenantId), eq(products.id, productId)))
         .limit(1);
 
@@ -238,11 +250,17 @@ export async function getProduct(
         throw AppError.notFound('inventory.product.notFound', { productId });
       }
 
-      // Fetch variants
+      // Fetch variants — tenant-scoped (variants live under a product but
+      // a stray join could still leak a cross-tenant row).
       const variants = await db
         .select()
         .from(productVariants)
-        .where(eq(productVariants.productId, productId))
+        .where(
+          and(
+            eq(productVariants.productId, productId),
+            eq(productVariants.tenantId, ctx.tenantId),
+          ),
+        )
         .orderBy(productVariants.sortOrder);
 
       const result: ProductDetailResult = {
