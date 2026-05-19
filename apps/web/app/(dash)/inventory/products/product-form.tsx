@@ -14,9 +14,11 @@ interface Props {
   mode: 'create' | 'edit';
   categories: ProductCategoryOption[];
   product?: ProductFormInitial | null;
+  /** When creating a new product, pre-select this kind (used by /inventory/supplies). */
+  defaultKind?: ProductKind;
 }
 
-export function ProductForm({ mode, categories, product }: Props) {
+export function ProductForm({ mode, categories, product, defaultKind }: Props) {
   const router = useRouter();
   const t = useTranslations('inventory.products');
   const f = useTranslations('inventory.products.form');
@@ -96,7 +98,7 @@ export function ProductForm({ mode, categories, product }: Props) {
             <select
               name="kind"
               required
-              defaultValue={product?.kind ?? 'finished_good'}
+              defaultValue={product?.kind ?? defaultKind ?? 'finished_good'}
               className={INPUT}
             >
               {KIND_OPTIONS.map((option) => (

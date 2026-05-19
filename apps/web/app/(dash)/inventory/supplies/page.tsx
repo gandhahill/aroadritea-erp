@@ -100,7 +100,7 @@ export default async function SuppliesPage({ searchParams }: Props) {
           </p>
         </div>
         <Link
-          href="/inventory/products/new"
+          href="/inventory/products/new?kind=raw_material"
           className="inline-flex items-center justify-center rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark"
         >
           Tambah item
