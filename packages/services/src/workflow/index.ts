@@ -122,10 +122,18 @@ export async function createInstance(
   ctx: AuditContext,
 ): Promise<Result<{ instanceId: string }>> {
   try {
+    // Tenant-scope the definition lookup — otherwise a caller from
+    // tenant A could trigger a workflow defined for tenant B by passing
+    // the foreign definitionId.
     const def = await db
       .select()
       .from(workflowDefinitions)
-      .where(eq(workflowDefinitions.id, input.definitionId))
+      .where(
+        and(
+          eq(workflowDefinitions.id, input.definitionId),
+          eq(workflowDefinitions.tenantId, ctx.tenantId),
+        ),
+      )
       .limit(1)
       .then((r) => r[0]);
 
@@ -222,7 +230,12 @@ async function resolveStep(
     const instance = await db
       .select()
       .from(workflowInstances)
-      .where(eq(workflowInstances.id, input.instanceId))
+      .where(
+        and(
+          eq(workflowInstances.id, input.instanceId),
+          eq(workflowInstances.tenantId, ctx.tenantId),
+        ),
+      )
       .limit(1)
       .then((r) => r[0]);
 

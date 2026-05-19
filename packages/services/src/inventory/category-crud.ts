@@ -168,10 +168,17 @@ export async function updateCategory(
 
   return tryCatch(
     async () => {
+      // Tenant-scope the update too (defense-in-depth, even though the
+      // existing-row fetch above already verified ownership).
       const [updated] = await db
         .update(productCategories)
         .set(updates)
-        .where(eq(productCategories.id, data.categoryId))
+        .where(
+          and(
+            eq(productCategories.id, data.categoryId),
+            eq(productCategories.tenantId, ctx.tenantId),
+          ),
+        )
         .returning();
 
       if (!updated) {

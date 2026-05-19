@@ -84,10 +84,14 @@ export async function queueOrderItems(
   });
   if (!permCheck.ok) return permCheck;
 
+  // Tenant-scope the order lookup. Without it a caller from tenant A
+  // could queue lines from tenant B's order into A's kitchen display.
   const [order] = await db
     .select()
     .from(salesOrders)
-    .where(eq(salesOrders.id, input.salesOrderId))
+    .where(
+      and(eq(salesOrders.id, input.salesOrderId), eq(salesOrders.tenantId, ctx.tenantId)),
+    )
     .limit(1);
 
   if (!order) {
@@ -178,7 +182,9 @@ export async function updateKdsStatus(
   const [item] = await db
     .select()
     .from(kdsOrderItems)
-    .where(eq(kdsOrderItems.id, input.kdsItemId))
+    .where(
+      and(eq(kdsOrderItems.id, input.kdsItemId), eq(kdsOrderItems.tenantId, ctx.tenantId)),
+    )
     .limit(1);
 
   if (!item) {
