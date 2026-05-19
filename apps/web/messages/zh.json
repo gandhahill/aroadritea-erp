@@ -446,6 +446,26 @@
       "updateFailed": "更新分类失败。",
       "productCount": "产品",
       "hasProducts": "无法删除仍有活动产品的分类。"
+    },
+    "stockPerOutlet": {
+      "title": "门店库存",
+      "subtitle": "按门店查看当前库存。使用上方按钮通过盘点或调整来修改库存。",
+      "empty": "该类别下暂无产品。",
+      "untracked": "—",
+      "opnameLink": "打开盘点",
+      "adjustLink": "快速调整",
+      "kinds": {
+        "all": "全部",
+        "finishedGood": "成品",
+        "rawMaterial": "原材料",
+        "consumable": "耗材",
+        "merchandise": "周边"
+      },
+      "columns": {
+        "sku": "SKU",
+        "name": "名称",
+        "uom": "单位"
+      }
     }
   },
   "nav": {

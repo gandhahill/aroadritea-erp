@@ -43,6 +43,7 @@ import { LEAVE_TYPES_SEED } from './leave-types-seed';
 import { LOCATION_GPS_FIELDS, LOCATION_GPS_VALUES } from './location-gps';
 import { seedMenu } from './menu';
 import { seedRecipes } from './recipes';
+import { seedInitialStock } from './stock-initial';
 import { NAIXER_QR_FORMAT_DEFAULTS } from './naixer-seed';
 import { SCHEDULED_JOBS_SEED } from './scheduled-jobs-seed';
 import { SHIFT_DEFINITIONS_SEED } from './shift-definitions-seed';
@@ -443,6 +444,11 @@ async function seed() {
   // 11a. Recipes / BOMs (Fresh Tea, Lemon Tea, Milk Tea) from in-store photos.
   await seedRecipes(db as unknown as Database, tenantId);
   console.info('Recipes (Fresh / Lemon / Milk Tea) seeded with BOM');
+
+  // 11a-bis. Initial stock per outlet — desserts + raw materials.
+  // Idempotent: onConflictDoNothing on (tenant, location, product, variant, batch).
+  const stockResult = await seedInitialStock(db as unknown as Database, tenantId);
+  console.info(`Initial stock attempts: ${stockResult.inserted}`);
 
   // 11b. HR leave types
   let leaveTypeCount = 0;

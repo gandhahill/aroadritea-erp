@@ -411,6 +411,26 @@
       "productCount": "Products",
       "hasProducts": "Cannot delete a category that still has active products."
     },
+    "stockPerOutlet": {
+      "title": "Stock per Outlet",
+      "subtitle": "Current stock summary by outlet. Use the buttons above to adjust stock via opname or adjustment.",
+      "empty": "No products in this category yet.",
+      "untracked": "—",
+      "opnameLink": "Open Opname",
+      "adjustLink": "Quick Adjustment",
+      "kinds": {
+        "all": "All",
+        "finishedGood": "Finished Goods",
+        "rawMaterial": "Raw Material",
+        "consumable": "Consumable",
+        "merchandise": "Merchandise"
+      },
+      "columns": {
+        "sku": "SKU",
+        "name": "Name",
+        "uom": "UOM"
+      }
+    },
     "opname": {
       "title": "Stock Opname",
       "subtitle": "Manage stock opname sessions and inventory adjustments.",

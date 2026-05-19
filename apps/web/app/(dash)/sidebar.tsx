@@ -196,6 +196,7 @@ export function Sidebar() {
         { label: t('productsMenu'), href: '/inventory/products', icon: <></> },
         { label: 'Bahan & Perlengkapan', href: '/inventory/supplies', icon: <></> },
         { label: 'Kategori', href: '/inventory/categories', icon: <></> },
+        { label: 'Stok per Outlet', href: '/inventory/stock', icon: <></> },
         { label: t('recipes'), href: '/inventory/recipes', icon: <></> },
         { label: t('stockOpname'), href: '/inventory/opname', icon: <></> },
         { label: t('inventoryVariance'), href: '/inventory/variance', icon: <></> },

@@ -411,6 +411,26 @@
       "productCount": "Produk",
       "hasProducts": "Tidak bisa menghapus kategori yang masih memiliki produk aktif."
     },
+    "stockPerOutlet": {
+      "title": "Stok per Outlet",
+      "subtitle": "Ringkasan stok terkini per outlet. Klik tombol di atas untuk menyesuaikan stok via opname atau adjustment.",
+      "empty": "Belum ada produk pada kategori ini.",
+      "untracked": "—",
+      "opnameLink": "Buka Opname",
+      "adjustLink": "Adjustment Cepat",
+      "kinds": {
+        "all": "Semua",
+        "finishedGood": "Produk Jadi",
+        "rawMaterial": "Bahan Baku",
+        "consumable": "Perlengkapan",
+        "merchandise": "Merchandise"
+      },
+      "columns": {
+        "sku": "SKU",
+        "name": "Nama",
+        "uom": "UOM"
+      }
+    },
     "opname": {
       "title": "Stock Opname",
       "subtitle": "Kelola sesi stock opname dan penyesuaian inventaris.",
