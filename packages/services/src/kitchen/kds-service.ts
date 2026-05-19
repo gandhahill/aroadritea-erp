@@ -259,7 +259,10 @@ export async function listKdsItems(
   });
   if (!permCheck.ok) return permCheck;
 
-  const conditions = [eq(kdsOrderItems.locationId, input.locationId)];
+  const conditions = [
+    eq(kdsOrderItems.tenantId, ctx.tenantId),
+    eq(kdsOrderItems.locationId, input.locationId),
+  ];
   if (input.status) {
     conditions.push(eq(kdsOrderItems.status, input.status));
   }
@@ -306,7 +309,9 @@ export async function getKdsStats(
       count: sql<number>`count(*)::int`,
     })
     .from(kdsOrderItems)
-    .where(eq(kdsOrderItems.locationId, locationId))
+    .where(
+      and(eq(kdsOrderItems.tenantId, ctx.tenantId), eq(kdsOrderItems.locationId, locationId)),
+    )
     .groupBy(kdsOrderItems.status);
 
   const stats: KdsStatsResult = {
@@ -341,7 +346,12 @@ export async function cancelOrderItems(
   const items = await db
     .select({ id: kdsOrderItems.id, status: kdsOrderItems.status })
     .from(kdsOrderItems)
-    .where(eq(kdsOrderItems.salesOrderId, salesOrderId));
+    .where(
+      and(
+        eq(kdsOrderItems.tenantId, ctx.tenantId),
+        eq(kdsOrderItems.salesOrderId, salesOrderId),
+      ),
+    );
 
   let cancelled = 0;
   for (const item of items) {
@@ -355,7 +365,7 @@ export async function cancelOrderItems(
         updatedAt: new Date(),
         updatedBy: ctx.userId,
       })
-      .where(eq(kdsOrderItems.id, item.id));
+      .where(and(eq(kdsOrderItems.id, item.id), eq(kdsOrderItems.tenantId, ctx.tenantId)));
     cancelled++;
   }
 
