@@ -188,112 +188,124 @@
   },
   "legal": {
     "terms": {
-      "title": "Syarat & Ketentuan",
-      "updated": "Berlaku sejak 15 Mei 2026",
-      "intro": "Dokumen ini mengatur penggunaan website, pendaftaran member, kartu digital, poin, voucher, dan layanan pelanggan Aroadri Tea. Dengan membuat akun atau memakai benefit member, Anda menyatakan telah membaca dan menyetujui ketentuan ini.",
+      "title": "Syarat dan Ketentuan Penggunaan",
+      "updated": "Berlaku efektif sejak 15 Mei 2026",
+      "intro": "Syarat dan Ketentuan Penggunaan ini (selanjutnya disebut \"Syarat dan Ketentuan\") merupakan perjanjian yang sah dan mengikat secara hukum antara Anda (selanjutnya disebut \"Member\" atau \"Pengguna\") dengan PT. Gandha Hill Catering Management Indonesia (selanjutnya disebut \"Perseroan\"), pemegang hak atas brand Aroadri Tea. Dengan melakukan pendaftaran akun, mengakses, dan/atau menggunakan layanan apa pun yang disediakan, Pengguna dianggap telah membaca, memahami, menyetujui, dan tunduk pada Syarat dan Ketentuan ini sebagaimana diatur dalam Pasal 1320 Kitab Undang-Undang Hukum Perdata mengenai syarat sahnya suatu perjanjian.",
       "sections": [
         {
-          "title": "Pihak dan ruang lingkup",
-          "body": "Layanan member disediakan oleh PT. Gandha Hill Catering Management Indonesia untuk brand Aroadri Tea. Ketentuan ini berlaku untuk pendaftaran member, penggunaan nomor telepon saat transaksi di outlet, kartu digital, poin, voucher, promosi, komunikasi akun, dan fitur lain yang terhubung dengan sistem Aroadri Tea."
+          "title": "1. Definisi dan Pihak",
+          "body": "(1) \"Perseroan\" adalah PT. Gandha Hill Catering Management Indonesia, suatu perseroan terbatas yang didirikan berdasarkan hukum Negara Republik Indonesia, berkedudukan di Daerah Istimewa Yogyakarta, sebagai pemilik dan pengelola brand Aroadri Tea beserta seluruh saluran penjualan, sistem, dan layanan turunannya. (2) \"Layanan\" mencakup namun tidak terbatas pada website resmi, program keanggotaan (membership), kartu digital, poin, voucher, promosi, pemesanan via outlet, layanan purnajual, serta seluruh sistem teknologi pendukungnya. (3) \"Member\" adalah orang perseorangan yang telah mendaftar dan terdaftar pada sistem Perseroan. (4) Pengguna dengan ini menyatakan secara tegas bahwa Pengguna cakap dan berwenang menurut hukum untuk mengikatkan diri pada Syarat dan Ketentuan ini."
         },
         {
-          "title": "Kelayakan dan pendaftaran akun",
-          "body": "Member wajib memberikan data yang benar, aktif, dan dapat dihubungi. Aroadri Tea dapat menolak, menunda, atau menonaktifkan pendaftaran apabila data tidak valid, terindikasi duplikasi, disalahgunakan, atau digunakan untuk tindakan yang merugikan pelanggan lain, outlet, maupun sistem."
+          "title": "2. Pendaftaran, Kelayakan, dan Pernyataan Member",
+          "body": "(1) Member dengan ini menyatakan dan menjamin bahwa seluruh data yang diberikan adalah benar, akurat, terbaru, dan lengkap. (2) Member berkewajiban memutakhirkan data apabila terjadi perubahan. (3) Perseroan berhak, atas kebijakannya sendiri (sole discretion), untuk menolak, menangguhkan, membatasi, atau menonaktifkan pendaftaran tanpa pemberitahuan terlebih dahulu apabila ditemukan: (a) data palsu, ganda, atau tidak dapat diverifikasi; (b) indikasi penyalahgunaan, kecurangan (fraud), atau itikad tidak baik; (c) pelanggaran terhadap Syarat dan Ketentuan ini; atau (d) hal lain yang dianggap merugikan Perseroan, Member lain, atau pihak ketiga."
         },
         {
-          "title": "Penggunaan member di outlet",
-          "body": "Saat transaksi, kasir dapat menanyakan apakah pelanggan memiliki member. Jika ada, pelanggan menyebutkan nomor telepon terdaftar, lalu kasir mencari data member dan mengonfirmasi nama pelanggan sebelum mencatat poin, voucher, atau benefit terkait transaksi tersebut."
+          "title": "3. Penggunaan Layanan di Outlet",
+          "body": "(1) Untuk memperoleh manfaat keanggotaan pada saat transaksi di outlet, Member wajib menyebutkan nomor telepon yang terdaftar dan memberikan konfirmasi nama yang sesuai pada sistem. (2) Pencatatan poin, voucher, dan benefit lain hanya dapat dilakukan pada transaksi yang sah dan tervalidasi pada sistem point of sale (POS) Perseroan pada saat transaksi berlangsung. (3) Permintaan klaim retroaktif terhadap transaksi yang telah selesai dan/atau telah ditutup pembukuannya tidak diakomodasi, kecuali Perseroan menemukan kesalahan pencatatan dari pihak Perseroan."
         },
         {
-          "title": "Poin, voucher, dan promosi",
-          "body": "Poin, voucher, tier, hadiah, masa berlaku, minimum transaksi, pengecualian produk, dan mekanisme penukaran mengikuti program yang sedang berlaku. Benefit tidak dapat diuangkan, dipindahtangankan tanpa persetujuan Aroadri Tea, atau diklaim apabila transaksi dibatalkan, direfund, dicurigai fraud, atau tidak memenuhi syarat promosi."
+          "title": "4. Poin, Voucher, dan Program Loyalti",
+          "body": "(1) Mekanisme perolehan, masa berlaku, ketentuan penukaran, batas minimum transaksi, dan pengecualian poin/voucher tunduk pada program yang sedang berlaku sebagaimana dipublikasikan Perseroan. (2) Seluruh benefit bersifat: (a) non-tunai (tidak dapat ditukar dengan uang); (b) personal (tidak dapat dipindahtangankan tanpa persetujuan tertulis Perseroan); dan (c) bersyarat (dapat dibatalkan apabila transaksi yang menjadi dasar perolehan dibatalkan, di-refund, atau terindikasi fraud). (3) Perseroan berhak mengubah, menangguhkan, atau mengakhiri program loyalti dengan pemberitahuan yang wajar."
         },
         {
-          "title": "Keamanan akun dan larangan penggunaan",
-          "body": "Member bertanggung jawab menjaga akses email, nomor telepon, dan kata sandi. Dilarang membuat akun palsu, memakai identitas orang lain, melakukan manipulasi transaksi, scraping, reverse engineering, percobaan akses tidak sah, atau tindakan yang mengganggu operasional website, ERP, POS, maupun layanan outlet."
+          "title": "5. Keamanan Akun dan Kewajiban Member",
+          "body": "(1) Member bertanggung jawab penuh atas kerahasiaan kredensial akun, termasuk kata sandi dan one-time password (OTP). (2) Member dilarang: (a) menggunakan akun untuk tujuan melawan hukum; (b) mendaftarkan identitas pihak lain tanpa kuasa yang sah; (c) melakukan manipulasi transaksi, scraping, reverse engineering, dekompilasi, atau percobaan akses tanpa izin pada sistem Perseroan; (d) menyebarkan malware atau melakukan tindakan yang mengganggu integritas layanan; atau (e) melakukan tindakan yang melanggar Undang-Undang Nomor 11 Tahun 2008 tentang Informasi dan Transaksi Elektronik beserta perubahannya. (3) Setiap aktivitas yang terjadi melalui akun Member menjadi tanggung jawab Member kecuali Member dapat membuktikan sebaliknya kepada Perseroan."
         },
         {
-          "title": "Koreksi transaksi dan gangguan layanan",
-          "body": "Apabila terjadi selisih poin, voucher, status member, atau gangguan sistem, Aroadri Tea berhak melakukan verifikasi terhadap struk, riwayat transaksi, log sistem, dan data outlet. Koreksi dapat dilakukan apabila ditemukan kekeliruan pencatatan atau penyalahgunaan."
+          "title": "6. Verifikasi, Koreksi, dan Audit",
+          "body": "(1) Perseroan berhak melakukan verifikasi dan audit terhadap struk, riwayat transaksi, log sistem, dan data terkait dalam rangka pemeriksaan integritas program loyalti dan kepatuhan terhadap Syarat dan Ketentuan ini. (2) Apabila ditemukan kekeliruan pencatatan, penyalahgunaan, atau pelanggaran, Perseroan berhak: (a) melakukan koreksi data dan/atau penyesuaian poin/voucher; (b) menangguhkan atau menonaktifkan akun; (c) menarik kembali benefit yang telah diberikan; dan/atau (d) mengambil tindakan hukum yang diperlukan."
         },
         {
-          "title": "Pembatasan tanggung jawab",
-          "body": "Aroadri Tea berupaya menjaga layanan tetap tersedia dan akurat, namun tidak menjamin website atau fitur member selalu bebas gangguan. Sepanjang diperbolehkan hukum yang berlaku, tanggung jawab Aroadri Tea dibatasi pada perbaikan data, pemulihan benefit yang valid, atau solusi operasional yang wajar."
+          "title": "7. Pembatasan Tanggung Jawab",
+          "body": "(1) Perseroan berupaya menyediakan Layanan dengan kewajaran komersial namun tidak menjamin bahwa Layanan akan selalu bebas gangguan, kesalahan, atau keterlambatan. (2) Sepanjang diizinkan oleh peraturan perundang-undangan yang berlaku, Perseroan tidak bertanggung jawab atas kerugian tidak langsung, konsekuensial, insidental, kehilangan keuntungan, kehilangan data, atau kehilangan kesempatan usaha yang timbul dari penggunaan atau ketidakmampuan menggunakan Layanan. (3) Tanggung jawab Perseroan dibatasi pada pemulihan benefit yang sah dan/atau perbaikan data sesuai prosedur internal Perseroan."
         },
         {
-          "title": "Perubahan ketentuan",
-          "body": "Aroadri Tea dapat memperbarui ketentuan ini untuk menyesuaikan operasional, program promosi, kebutuhan keamanan, atau kewajiban hukum. Versi terbaru akan dipublikasikan di website dan berlaku sejak tanggal efektif yang tercantum."
+          "title": "8. Perubahan Syarat dan Ketentuan",
+          "body": "(1) Perseroan berhak setiap saat menambah, mengurangi, atau mengubah Syarat dan Ketentuan ini sesuai kebutuhan operasional, perubahan regulasi, atau pertimbangan keamanan. (2) Perubahan akan diberlakukan sejak tanggal efektif yang dicantumkan dan dipublikasikan pada website resmi Perseroan. (3) Penggunaan Layanan secara berlanjut setelah perubahan diberlakukan dianggap sebagai persetujuan Member terhadap versi terbaru."
         },
         {
-          "title": "Kekayaan intelektual",
-          "body": "Seluruh konten website, logo, desain, nama brand, resep, materi promosi, dan komponen sistem Aroadri Tea merupakan hak milik PT. Gandha Hill Catering Management Indonesia atau pemberi lisensinya. Member tidak diperkenankan menyalin, mereproduksi, mendistribusikan, atau membuat karya turunan dari materi tersebut tanpa persetujuan tertulis."
+          "title": "9. Hak Kekayaan Intelektual",
+          "body": "(1) Seluruh hak kekayaan intelektual atas brand, logo, nama dagang, desain, materi promosi, perangkat lunak, resep, dan konten lain yang terkait Aroadri Tea dilindungi oleh Undang-Undang Nomor 28 Tahun 2014 tentang Hak Cipta, Undang-Undang Nomor 20 Tahun 2016 tentang Merek dan Indikasi Geografis, serta peraturan terkait lainnya. (2) Member dilarang menyalin, memperbanyak, mendistribusikan, menampilkan ke publik, memodifikasi, atau membuat karya turunan tanpa izin tertulis Perseroan. (3) Setiap pelanggaran dapat diproses secara perdata maupun pidana sesuai peraturan perundang-undangan yang berlaku."
         },
         {
-          "title": "Pengguna di bawah umur",
-          "body": "Layanan member ditujukan untuk pengguna berusia 17 tahun ke atas atau yang memiliki identitas resmi. Jika ditemukan pendaftaran di bawah umur tanpa persetujuan wali, Aroadri Tea berhak menonaktifkan akun dan menghapus data terkait sesuai ketentuan UU PDP."
+          "title": "10. Member di Bawah Umur",
+          "body": "(1) Layanan ini diperuntukkan bagi pengguna yang telah berusia 17 (tujuh belas) tahun atau telah dewasa secara hukum. (2) Pendaftaran oleh anak di bawah umur sebagaimana didefinisikan dalam Pasal 1 angka 5 Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi memerlukan persetujuan dari orang tua atau wali yang sah. (3) Apabila ditemukan pendaftaran tanpa persetujuan dimaksud, Perseroan berhak menonaktifkan akun dan menghapus data tanpa pemberitahuan terlebih dahulu."
         },
         {
-          "title": "Penyelesaian sengketa",
-          "body": "Apabila terjadi perselisihan terkait layanan member, kedua pihak akan berupaya menyelesaikan secara musyawarah terlebih dahulu. Jika tidak tercapai kesepakatan, sengketa akan diselesaikan melalui pengadilan yang berwenang di wilayah hukum Daerah Istimewa Yogyakarta, Indonesia."
+          "title": "11. Force Majeure",
+          "body": "Perseroan tidak bertanggung jawab atas keterlambatan atau kegagalan pelaksanaan Layanan yang disebabkan oleh peristiwa di luar kendali wajar Perseroan, termasuk namun tidak terbatas pada bencana alam, kebakaran, kerusuhan, sabotase, serangan siber, gangguan jaringan publik, pemadaman listrik, pandemi, kebijakan pemerintah, atau peristiwa force majeure lain yang diakui dalam yurisprudensi Indonesia."
         },
         {
-          "title": "Hukum yang berlaku dan kontak",
-          "body": "Ketentuan ini tunduk pada hukum Republik Indonesia, khususnya UU No. 11 Tahun 2008 tentang ITE beserta perubahannya, UU No. 8 Tahun 1999 tentang Perlindungan Konsumen, dan UU No. 27 Tahun 2022 tentang Perlindungan Data Pribadi. Pertanyaan, komplain, koreksi data, atau permintaan terkait akun dapat dikirim melalui email resmi atau kanal sosial Aroadri Tea (@aroadri.tea di Instagram dan TikTok)."
+          "title": "12. Penyelesaian Sengketa",
+          "body": "(1) Setiap perselisihan yang timbul dari atau berkaitan dengan Syarat dan Ketentuan ini akan diselesaikan secara musyawarah untuk mufakat dalam jangka waktu 30 (tiga puluh) hari kalender sejak pemberitahuan tertulis disampaikan oleh salah satu pihak. (2) Apabila penyelesaian secara musyawarah tidak tercapai, para pihak sepakat untuk menyelesaikan sengketa melalui Pengadilan Negeri Yogyakarta sebagai forum yang berwenang dan eksklusif."
+        },
+        {
+          "title": "13. Hukum yang Berlaku dan Kontak",
+          "body": "(1) Syarat dan Ketentuan ini tunduk pada dan ditafsirkan menurut hukum Negara Republik Indonesia, secara khusus namun tidak terbatas pada: (a) Kitab Undang-Undang Hukum Perdata (Burgerlijk Wetboek); (b) Undang-Undang Nomor 11 Tahun 2008 tentang Informasi dan Transaksi Elektronik sebagaimana telah diubah dengan Undang-Undang Nomor 1 Tahun 2024; (c) Undang-Undang Nomor 8 Tahun 1999 tentang Perlindungan Konsumen; dan (d) Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi. (2) Pemberitahuan resmi, korespondensi, atau permintaan terkait Syarat dan Ketentuan ini dapat disampaikan kepada Perseroan melalui kanal resmi yang tertera di website atau saluran sosial Aroadri Tea."
         }
       ]
     },
     "privacy": {
-      "title": "Kebijakan Privasi",
-      "updated": "Berlaku sejak 15 Mei 2026",
-      "intro": "Kebijakan ini menjelaskan bagaimana Aroadri Tea mengumpulkan, menggunakan, menyimpan, melindungi, dan menghapus data pribadi member sesuai prinsip perlindungan data pribadi di Indonesia, termasuk UU No. 27 Tahun 2022 tentang Perlindungan Data Pribadi dan regulasi sistem elektronik yang berlaku.",
+      "title": "Kebijakan Pelindungan Data Pribadi",
+      "updated": "Berlaku efektif sejak 15 Mei 2026",
+      "intro": "Kebijakan Pelindungan Data Pribadi ini (selanjutnya disebut \"Kebijakan\") merupakan komitmen PT. Gandha Hill Catering Management Indonesia (selanjutnya disebut \"Pengendali Data Pribadi\" atau \"Perseroan\") dalam melaksanakan kewajiban hukum sebagaimana diamanatkan oleh Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi (selanjutnya disebut \"UU PDP\") beserta peraturan pelaksanaannya, Undang-Undang Nomor 11 Tahun 2008 tentang Informasi dan Transaksi Elektronik sebagaimana telah diubah, dan Peraturan Pemerintah Nomor 71 Tahun 2019 tentang Penyelenggaraan Sistem dan Transaksi Elektronik. Kebijakan ini menjadi satu kesatuan yang tidak terpisahkan dari Syarat dan Ketentuan Penggunaan Layanan Aroadri Tea.",
       "sections": [
         {
-          "title": "Identitas pengendali data",
-          "body": "Pengendali data untuk layanan member Aroadri Tea adalah PT. Gandha Hill Catering Management Indonesia. Data diproses untuk kepentingan operasional outlet, layanan pelanggan, program loyalti, audit transaksi, keamanan sistem, dan kepatuhan hukum."
+          "title": "1. Identitas Pengendali Data Pribadi",
+          "body": "(1) Yang bertindak selaku Pengendali Data Pribadi dalam Kebijakan ini adalah PT. Gandha Hill Catering Management Indonesia, suatu perseroan terbatas yang didirikan dan tunduk pada hukum Negara Republik Indonesia, berkedudukan di Daerah Istimewa Yogyakarta, dan merupakan pengelola brand Aroadri Tea. (2) Pengendali Data Pribadi bertanggung jawab menentukan tujuan dan kendali atas pemrosesan Data Pribadi sebagaimana dimaksud dalam Pasal 1 angka 4 UU PDP."
         },
         {
-          "title": "Data yang dikumpulkan",
-          "body": "Data yang dapat dikumpulkan meliputi nama, email, nomor telepon, kota, tanggal lahir apabila diberikan, kredensial akun yang telah diamankan, status email, kartu digital, poin, voucher, preferensi bahasa, riwayat transaksi terkait member, log persetujuan, perangkat atau browser, alamat IP, dan catatan layanan pelanggan."
+          "title": "2. Definisi Data Pribadi dan Subjek Data",
+          "body": "(1) \"Data Pribadi\" adalah data tentang orang perseorangan yang teridentifikasi atau dapat diidentifikasi secara tersendiri atau dikombinasi dengan informasi lainnya baik secara langsung maupun tidak langsung melalui sistem elektronik atau nonelektronik, sebagaimana dimaksud dalam Pasal 1 angka 1 UU PDP. (2) \"Subjek Data Pribadi\" atau \"Member\" adalah orang perseorangan yang melekat Data Pribadi padanya."
         },
         {
-          "title": "Dasar dan tujuan pemrosesan",
-          "body": "Data diproses berdasarkan persetujuan member, kebutuhan pelaksanaan layanan member, kepentingan sah untuk keamanan dan audit, serta kewajiban hukum pembukuan. Data digunakan untuk verifikasi akun, pencarian member oleh kasir melalui nomor telepon, pencatatan poin, penerbitan voucher, penyelesaian komplain, pencegahan fraud, dan komunikasi yang relevan dengan akun atau layanan."
+          "title": "3. Jenis Data Pribadi yang Diproses",
+          "body": "(1) Data Pribadi yang bersifat umum: nama lengkap, alamat email, nomor telepon, kota domisili, tanggal lahir (apabila diberikan), preferensi bahasa, riwayat transaksi, status keanggotaan, poin, voucher, alamat IP, log perangkat, dan catatan komunikasi layanan pelanggan. (2) Data Pribadi yang bersifat spesifik sebagaimana dimaksud dalam Pasal 4 ayat (2) UU PDP tidak dikumpulkan secara aktif dari Member melalui Layanan, dan apabila terlanjur diberikan akan diperlakukan dengan tingkat perlindungan paling tinggi sesuai ketentuan UU PDP."
         },
         {
-          "title": "Pembagian data",
-          "body": "Data dapat diakses oleh personel Aroadri Tea yang berwenang dan penyedia layanan yang membantu operasional sistem, seperti hosting, database, email transaksional, keamanan, analitik internal, dan backup. Aroadri Tea tidak menjual data pribadi member. Pembagian data kepada pihak lain hanya dilakukan apabila diperlukan untuk layanan, diwajibkan hukum, atau disetujui member."
+          "title": "4. Dasar Pemrosesan dan Tujuan",
+          "body": "(1) Pemrosesan Data Pribadi dilaksanakan berdasarkan satu atau lebih dasar hukum yang sah sebagaimana diatur dalam Pasal 20 ayat (2) UU PDP, antara lain: (a) persetujuan yang sah dan eksplisit dari Subjek Data Pribadi; (b) pelaksanaan perjanjian Layanan; (c) pemenuhan kewajiban hukum Pengendali; (d) pelaksanaan tugas dalam rangka kepentingan umum sebatas yang relevan; dan (e) kepentingan sah Pengendali dengan tetap memperhatikan hak dan kebebasan Subjek Data Pribadi. (2) Tujuan pemrosesan mencakup verifikasi akun, pencatatan transaksi, pelaksanaan program loyalti, penyelesaian sengketa, audit keuangan, pencegahan kecurangan, kepatuhan pelaporan pajak, dan komunikasi yang relevan."
         },
         {
-          "title": "Keamanan data",
-          "body": "Aroadri Tea menerapkan pembatasan akses berbasis role, autentikasi, audit log, enkripsi atau hashing untuk data sensitif sesuai desain sistem, backup, dan pemantauan error. Tidak ada metode keamanan yang mutlak bebas risiko, namun setiap insiden yang berdampak pada data pribadi akan ditangani sesuai prosedur dan ketentuan hukum yang berlaku."
+          "title": "5. Hak Subjek Data Pribadi",
+          "body": "Sesuai Pasal 5 sampai dengan Pasal 14 UU PDP, Member memiliki hak: (a) memperoleh informasi yang jelas tentang identitas Pengendali, dasar hukum, dan tujuan pemrosesan; (b) melengkapi, memperbarui, dan/atau memperbaiki Data Pribadi tentang dirinya; (c) memperoleh akses dan salinan Data Pribadi tentang dirinya; (d) mengakhiri pemrosesan, menghapus, dan/atau memusnahkan Data Pribadi tentang dirinya; (e) menarik kembali persetujuan pemrosesan Data Pribadi; (f) mengajukan keberatan atas pemrosesan yang menimbulkan keputusan berdasarkan profil dan/atau pemrosesan otomatis; (g) menunda atau membatasi pemrosesan Data Pribadi secara proporsional; (h) menuntut ganti rugi atas pelanggaran pemrosesan; dan (i) mendapatkan, memanfaatkan, dan mengirimkan Data Pribadi miliknya dalam format yang lazim digunakan."
         },
         {
-          "title": "Penyimpanan dan retensi",
-          "body": "Data member disimpan selama akun aktif atau selama diperlukan untuk layanan, audit transaksi, pembukuan, penyelesaian sengketa, keamanan, dan kewajiban hukum. Data yang tidak lagi diperlukan akan dihapus, dianonimkan, atau dibatasi penggunaannya sesuai kemampuan teknis dan kewajiban retensi."
+          "title": "6. Pembagian Data dan Pemroses Data Pribadi",
+          "body": "(1) Pengendali dapat menugaskan Pemroses Data Pribadi (data processor) yang mendukung operasional Layanan, antara lain penyedia cloud hosting, database terkelola, email transaksional, jaringan distribusi konten, layanan keamanan siber, dan backup off-site. (2) Setiap Pemroses terikat secara kontraktual untuk melaksanakan pemrosesan sesuai instruksi Pengendali dan menjaga kerahasiaan Data Pribadi sebagaimana dimaksud Pasal 51 UU PDP. (3) Perseroan tidak memperjualbelikan Data Pribadi Member. (4) Pengungkapan kepada pihak ketiga di luar Pemroses hanya dilakukan apabila diwajibkan oleh hukum atau atas dasar permintaan resmi otoritas yang berwenang."
         },
         {
-          "title": "Hak member",
-          "body": "Member dapat meminta akses, koreksi, pembaruan, pembatasan pemrosesan, penarikan persetujuan, atau penghapusan akun melalui kanal resmi Aroadri Tea. Permintaan dapat ditolak atau dibatasi apabila bertentangan dengan kewajiban hukum, pembukuan, investigasi fraud, keamanan, atau hak pihak lain."
+          "title": "7. Keamanan Data Pribadi",
+          "body": "(1) Pengendali menerapkan langkah teknis dan organisasional sesuai prinsip akuntabilitas dalam Pasal 16 UU PDP, mencakup: (a) pembatasan akses berbasis peran (role-based access control); (b) autentikasi multi-faktor untuk akun internal yang menangani Data Pribadi; (c) enkripsi dan/atau hashing Data Pribadi sensitif; (d) audit log yang tidak dapat diubah; (e) pencadangan (backup) berkala dengan retensi yang terdokumentasi; dan (f) pemantauan insiden dan kerentanan. (2) Subjek Data Pribadi memahami bahwa tidak ada metode pengamanan elektronik yang sepenuhnya bebas risiko, dan Pengendali tidak menjamin pengamanan dalam keadaan yang berada di luar kendali wajar Pengendali."
         },
         {
-          "title": "Cookie dan teknologi serupa",
-          "body": "Website dapat memakai cookie atau penyimpanan lokal untuk menjaga sesi, preferensi bahasa, keamanan, dan pengalaman pengguna. Beberapa cookie diperlukan agar login, pendaftaran, dan fitur member berjalan dengan benar."
+          "title": "8. Penyimpanan, Retensi, dan Penghapusan",
+          "body": "(1) Data Pribadi disimpan selama: (a) akun Member aktif; (b) diperlukan untuk pelaksanaan Layanan dan/atau pemenuhan kewajiban perundang-undangan, termasuk kewajiban pembukuan sesuai Pasal 11 Kitab Undang-Undang Hukum Dagang; (c) diperlukan untuk pembelaan hak dan kepentingan hukum Pengendali; atau (d) sebagaimana ditetapkan oleh otoritas yang berwenang. (2) Setelah masa retensi berakhir, Pengendali akan menghapus, memusnahkan, atau menganonimkan Data Pribadi sesuai prinsip Pasal 43 UU PDP."
         },
         {
-          "title": "Notifikasi insiden data",
-          "body": "Apabila terjadi pelanggaran keamanan yang berdampak signifikan terhadap data pribadi member, Aroadri Tea akan memberitahu member yang terdampak dan lembaga terkait sesuai tenggat waktu dan mekanisme yang diatur dalam UU PDP dan Peraturan Pemerintah yang berlaku, termasuk langkah mitigasi yang diambil."
+          "title": "9. Notifikasi Pelanggaran Pelindungan Data Pribadi",
+          "body": "(1) Dalam hal terjadi kegagalan Pelindungan Data Pribadi sebagaimana dimaksud Pasal 46 UU PDP, Pengendali akan: (a) memberitahukan secara tertulis kepada Subjek Data Pribadi dan Lembaga Pelindungan Data Pribadi paling lambat 3 (tiga) hari kalender sejak terjadinya kegagalan diketahui; (b) menjelaskan jenis Data Pribadi yang terdampak, waktu dan cara terjadinya, serta upaya penanganan dan pemulihan yang dilakukan; dan (c) melakukan langkah mitigasi dan pemulihan tepat waktu."
         },
         {
-          "title": "Transfer data lintas batas",
-          "body": "Data member dapat diproses oleh penyedia layanan teknis yang infrastrukturnya berada di luar Indonesia (cloud hosting, database terkelola, CDN). Aroadri Tea memastikan penyedia tersebut menerapkan standar perlindungan yang setara atau lebih tinggi dari ketentuan UU PDP Indonesia dan hanya memproses data sesuai instruksi pengendali data."
+          "title": "10. Transfer Data Pribadi Lintas Batas Negara",
+          "body": "(1) Apabila pemrosesan Data Pribadi memerlukan transfer ke yurisdiksi di luar wilayah Indonesia, Pengendali memastikan negara penerima memiliki tingkat pelindungan yang setara atau lebih tinggi dari UU PDP, atau menerapkan klausul kontraktual yang mengikat sesuai Pasal 56 UU PDP. (2) Apabila kedua syarat di atas tidak terpenuhi, transfer hanya dilakukan dengan persetujuan eksplisit Subjek Data Pribadi setelah diberikan informasi yang cukup."
         },
         {
-          "title": "Data anak",
-          "body": "Layanan ini tidak ditujukan untuk anak di bawah 17 tahun. Aroadri Tea tidak secara sengaja mengumpulkan data pribadi anak. Apabila orang tua atau wali mengetahui bahwa anaknya telah memberikan data pribadi tanpa persetujuan, dapat menghubungi Aroadri Tea untuk penghapusan data tersebut."
+          "title": "11. Cookie dan Teknologi Pelacakan Serupa",
+          "body": "(1) Website Perseroan menggunakan cookie dan/atau penyimpanan lokal untuk: (a) menjaga sesi otentikasi; (b) menyimpan preferensi bahasa; (c) memenuhi langkah keamanan; dan (d) menjaga kelancaran fitur Layanan. (2) Cookie yang bersifat esensial (strictly necessary) tidak dapat dinonaktifkan tanpa berisiko membuat Layanan tidak berfungsi. (3) Member dapat mengelola atau menghapus cookie melalui pengaturan peramban sesuai pilihan masing-masing."
         },
         {
-          "title": "Perubahan kebijakan dan kontak",
-          "body": "Kebijakan ini dapat diperbarui dari waktu ke waktu sesuai perubahan operasional, teknologi, atau regulasi. Versi terbaru selalu tersedia di website. Pertanyaan, permintaan akses, koreksi, atau penghapusan data pribadi dapat dikirim melalui email resmi atau kanal sosial Aroadri Tea (@aroadri.tea di Instagram dan TikTok)."
+          "title": "12. Data Anak",
+          "body": "(1) Pemrosesan Data Pribadi anak dilakukan dengan tetap memperhatikan Pasal 25 UU PDP yang mensyaratkan persetujuan khusus dari orang tua atau wali yang sah. (2) Layanan tidak diperuntukkan bagi anak di bawah 17 (tujuh belas) tahun. (3) Apabila terdeteksi pendaftaran tanpa persetujuan dimaksud, Pengendali akan menghapus data dimaksud paling lambat 14 (empat belas) hari kalender setelah diketahui."
+        },
+        {
+          "title": "13. Pelaksanaan Hak dan Pengaduan",
+          "body": "(1) Permohonan pelaksanaan hak sebagaimana dimaksud pada Pasal 5 Kebijakan ini, termasuk akses, koreksi, pembatasan, penarikan persetujuan, dan penghapusan Data Pribadi, dapat diajukan melalui kanal resmi Aroadri Tea. (2) Pengendali akan menanggapi permohonan paling lambat dalam jangka waktu 3 x 24 (tiga kali dua puluh empat) jam sebagaimana dimaksud Pasal 13 UU PDP, dengan kemungkinan perpanjangan yang wajar untuk verifikasi identitas. (3) Apabila Subjek Data Pribadi menilai pemrosesan tidak sesuai ketentuan, Subjek Data Pribadi berhak mengajukan pengaduan kepada Lembaga Pelindungan Data Pribadi sebagaimana diatur Pasal 58 sampai dengan Pasal 65 UU PDP."
+        },
+        {
+          "title": "14. Perubahan Kebijakan dan Hukum yang Berlaku",
+          "body": "(1) Pengendali dapat memutakhirkan Kebijakan ini dari waktu ke waktu sesuai perubahan operasional, teknologi, atau perubahan peraturan perundang-undangan. (2) Versi terbaru akan dipublikasikan pada website Perseroan dengan mencantumkan tanggal efektif berlaku. (3) Kebijakan ini tunduk pada dan ditafsirkan menurut hukum Negara Republik Indonesia."
         }
       ]
     }
