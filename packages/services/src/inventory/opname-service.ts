@@ -29,17 +29,23 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray } from 'drizzle-orm';
+import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
 import { createJournal } from '../accounting/create-journal';
 import { requirePermission } from '../iam';
 import { generateOpnameNumber } from './number-generator';
 
 type SupportedLocale = 'id' | 'en' | 'zh';
 
-// ─── Default COA accounts for variance JE ─────────────────────────────────
+// ─── Default COA codes for variance JE ────────────────────────────────────
+//
+// COA *codes* — resolved to UUIDs at posting time via
+// `resolveAccountIdsByCodes`. createJournal validates accountId against
+// accounts.id (UUID), so passing the code directly would fail with
+// `accountNotFound`.
 
-const DEFAULT_INVENTORY_ACCOUNT = '1-1210'; // Persediaan Barang Dagangan
-const EXPENSE_ACCOUNT = '6-1110'; // Beban Operasional Lainnya (shortage)
-const INCOME_ACCOUNT = '4-2020'; // Pendapatan Lainnya (surplus)
+const DEFAULT_INVENTORY_CODE = '1-1210'; // Persediaan Barang Dagangan
+const EXPENSE_CODE = '6-1110'; // Beban Operasional Lainnya (shortage)
+const INCOME_CODE = '4-2020'; // Pendapatan Lainnya (surplus)
 
 // ─── Return types ─────────────────────────────────────────────────────────────
 
@@ -714,63 +720,87 @@ export async function approveOpname(
 
   let resultJournalId: string | null = null;
 
-  if (totalVarianceValue > BigInt(0)) {
-    // Surplus (positive = more stock than system showed)
-    const jeResult = await createJournal(
-      {
-        postingDate: session.sessionDate.toString().substring(0, 10),
-        locationId: session.locationId,
-        description: `Stock Opname ${session.number} — surplus`,
-        referenceType: 'manual',
-        referenceId: sessionId,
-        lines: [
-          {
-            accountId: DEFAULT_INVENTORY_ACCOUNT,
-            debit: totalVarianceValue.toString(),
-            credit: '0',
-            locationId: session.locationId,
-          },
-          {
-            accountId: INCOME_ACCOUNT,
-            debit: '0',
-            credit: totalVarianceValue.toString(),
-            locationId: session.locationId,
-          },
-        ],
-      },
-      ctx,
-    );
-    if (!jeResult.ok) return jeResult;
-    resultJournalId = jeResult.value.id;
-  } else if (totalVarianceValue < BigInt(0)) {
-    // Shortage (negative = less stock than system showed)
-    const absValue = (totalVarianceValue * BigInt(-1)).toString();
-    const jeResult = await createJournal(
-      {
-        postingDate: session.sessionDate.toString().substring(0, 10),
-        locationId: session.locationId,
-        description: `Stock Opname ${session.number} — shortage`,
-        referenceType: 'manual',
-        referenceId: sessionId,
-        lines: [
-          {
-            accountId: EXPENSE_ACCOUNT,
-            debit: absValue,
-            credit: '0',
-            locationId: session.locationId,
-          },
-          {
-            accountId: DEFAULT_INVENTORY_ACCOUNT,
-            debit: '0',
-            credit: absValue,
-            locationId: session.locationId,
-          },
-        ],
-      },
-      ctx,
-    );
-    if (!jeResult.ok) return jeResult;
-    resultJournalId = jeResult.value.id;
+  if (totalVarianceValue !== BigInt(0)) {
+    // Resolve codes to UUIDs once (both shortage and surplus need the
+    // inventory account + one of expense/income).
+    const codeMap = await resolveAccountIdsByCodes(ctx.tenantId, [
+      DEFAULT_INVENTORY_CODE,
+      EXPENSE_CODE,
+      INCOME_CODE,
+    ]);
+    const inventoryAccountId = codeMap.get(DEFAULT_INVENTORY_CODE);
+    const expenseAccountId = codeMap.get(EXPENSE_CODE);
+    const incomeAccountId = codeMap.get(INCOME_CODE);
+    if (!inventoryAccountId || !expenseAccountId || !incomeAccountId) {
+      return err(
+        AppError.businessRule('inventory.opname.varianceAccountsMissing', {
+          missing: [
+            !inventoryAccountId ? DEFAULT_INVENTORY_CODE : null,
+            !expenseAccountId ? EXPENSE_CODE : null,
+            !incomeAccountId ? INCOME_CODE : null,
+          ].filter(Boolean),
+        }),
+      );
+    }
+
+    if (totalVarianceValue > BigInt(0)) {
+      // Surplus (positive = more stock than system showed)
+      const jeResult = await createJournal(
+        {
+          postingDate: session.sessionDate.toString().substring(0, 10),
+          locationId: session.locationId,
+          description: `Stock Opname ${session.number} — surplus`,
+          referenceType: 'manual',
+          referenceId: sessionId,
+          lines: [
+            {
+              accountId: inventoryAccountId,
+              debit: totalVarianceValue.toString(),
+              credit: '0',
+              locationId: session.locationId,
+            },
+            {
+              accountId: incomeAccountId,
+              debit: '0',
+              credit: totalVarianceValue.toString(),
+              locationId: session.locationId,
+            },
+          ],
+        },
+        ctx,
+      );
+      if (!jeResult.ok) return jeResult;
+      resultJournalId = jeResult.value.id;
+    } else {
+      // Shortage (negative = less stock than system showed)
+      const absValue = (totalVarianceValue * BigInt(-1)).toString();
+      const jeResult = await createJournal(
+        {
+          postingDate: session.sessionDate.toString().substring(0, 10),
+          locationId: session.locationId,
+          description: `Stock Opname ${session.number} — shortage`,
+          referenceType: 'manual',
+          referenceId: sessionId,
+          lines: [
+            {
+              accountId: expenseAccountId,
+              debit: absValue,
+              credit: '0',
+              locationId: session.locationId,
+            },
+            {
+              accountId: inventoryAccountId,
+              debit: '0',
+              credit: absValue,
+              locationId: session.locationId,
+            },
+          ],
+        },
+        ctx,
+      );
+      if (!jeResult.ok) return jeResult;
+      resultJournalId = jeResult.value.id;
+    }
   }
 
   // Session was already claimed above; no second status update needed.

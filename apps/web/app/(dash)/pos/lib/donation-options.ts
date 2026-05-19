@@ -1,6 +1,6 @@
 'use client';
 
-export type RoundingOption = 'donate' | 'round_up' | 'no_donation';
+export type RoundingOption = 'donate' | 'round_up' | 'custom' | 'no_donation';
 
 export interface DonationChoice {
   type: RoundingOption;
@@ -17,7 +17,24 @@ export interface DonationResult {
 
 const ROUNDING_THRESHOLD = 100n;
 
-export function calculateDonation(changeAmount: bigint, option: RoundingOption): DonationResult {
+/**
+ * Calculate the donation result for a chosen option.
+ *
+ * - `donate`     — entire change goes to donation (cashReturned = 0).
+ * - `round_up`   — donate the remainder above the nearest 1.000 (or 100
+ *                  when change &lt; 1.000); cashReturned is the rounded
+ *                  amount.
+ * - `custom`     — donate `customAmount` (clamped to [0, changeAmount]);
+ *                  cashReturned is the remainder.
+ * - `no_donation`— no donation; cashReturned = changeAmount.
+ *
+ * `customAmount` is ignored for the non-custom options.
+ */
+export function calculateDonation(
+  changeAmount: bigint,
+  option: RoundingOption,
+  customAmount: bigint = 0n,
+): DonationResult {
   if (changeAmount <= 0n) {
     return {
       choice: { type: option, amount: 0n, description: 'Tidak ada kembalian' },
@@ -66,6 +83,22 @@ export function calculateDonation(changeAmount: bigint, option: RoundingOption):
     };
   }
 
+  if (option === 'custom') {
+    // Clamp to [0, changeAmount] — the cashier UI should already do
+    // this, but defensive math here keeps the JE balanced.
+    const clamped = customAmount < 0n ? 0n : customAmount > changeAmount ? changeAmount : customAmount;
+    const description =
+      clamped === 0n
+        ? 'Donasi nominal khusus'
+        : `Donasi nominal ${formatRp(clamped)}`;
+    return {
+      choice: { type: 'custom', amount: clamped, description },
+      originalChange: changeAmount,
+      cashReturned: changeAmount - clamped,
+      donatedAmount: clamped,
+    };
+  }
+
   return {
     choice: { type: 'no_donation', amount: 0n, description: 'Tidak berdonasi' },
     originalChange: changeAmount,
@@ -74,8 +107,13 @@ export function calculateDonation(changeAmount: bigint, option: RoundingOption):
   };
 }
 
+/**
+ * Returns the canonical preset donation options. The `custom` option
+ * shows a placeholder result; the UI then renders a numeric input so the
+ * cashier can type any amount up to the change.
+ */
 export function getDonationOptions(changeAmount: bigint): DonationResult[] {
-  return (['donate', 'round_up', 'no_donation'] as RoundingOption[]).map((option) =>
+  return (['donate', 'round_up', 'custom', 'no_donation'] as RoundingOption[]).map((option) =>
     calculateDonation(changeAmount, option),
   );
 }

@@ -636,6 +636,8 @@
       "shopeefood": "ShopeeFood"
     },
     "donationChoice": "Donasi Kembalian",
+    "customDonationLabel": "Jumlah donasi (Rp)",
+    "customDonationHint": "Ketik jumlah donasi yang diinginkan. Sisa kembalian akan diberikan secara tunai.",
     "offline": {
       "offlineMessage": "Offline — {count} transaksi belum tersinkron",
       "pendingMessage": "{count} transaksi pending sinkronisasi",

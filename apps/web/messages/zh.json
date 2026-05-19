@@ -636,6 +636,8 @@
       "shopeefood": "ShopeeFood"
     },
     "donationChoice": "捐赠找零",
+    "customDonationLabel": "捐赠金额（Rp）",
+    "customDonationHint": "请输入顾客愿意捐赠的金额，剩余找零将以现金返还。",
     "offline": {
       "offlineMessage": "离线 — {count} 笔交易尚未同步",
       "pendingMessage": "{count} 笔交易待同步",

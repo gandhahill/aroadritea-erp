@@ -48,11 +48,11 @@ const PaymentInputSchema = z.object({
   reference: z.string().optional(),
   /** SD §25.11 — donation amount (donated instead of given as change). */
   donationAmount: z.string().regex(/^\d+$/).optional(),
-  /** SD §25.11 — 'donate' | 'round_up' | 'no_donation' */
-  roundingOption: z.enum(['donate', 'round_up', 'no_donation']).optional(),
+  /** SD §25.11 — 'donate' | 'round_up' | 'custom' | 'no_donation' */
+  roundingOption: z.enum(['donate', 'round_up', 'custom', 'no_donation']).optional(),
 });
 
-export const RoundingOptionSchema = z.enum(['donate', 'round_up', 'no_donation']);
+export const RoundingOptionSchema = z.enum(['donate', 'round_up', 'custom', 'no_donation']);
 export type RoundingOption = z.infer<typeof RoundingOptionSchema>;
 
 export const CreateSaleInputSchema = z.object({

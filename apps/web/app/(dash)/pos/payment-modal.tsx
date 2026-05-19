@@ -47,6 +47,8 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   const [splitPayments, setSplitPayments] = useState<SplitPayment[]>([]);
 
   const [donationChoice, setDonationChoice] = useState<RoundingOption>('no_donation');
+  /** Custom donation amount entered by the cashier when `donationChoice === 'custom'`. */
+  const [customDonationInput, setCustomDonationInput] = useState('');
   const paymentMethods = useMemo(() => {
     if (state.channel === 'walk_in') return [...BASE_PAYMENT_METHODS];
     return [...BASE_PAYMENT_METHODS, { id: state.channel, badge: channelBadge(state.channel) }];
@@ -104,10 +106,22 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
     // SD §25.11 — resolve donation. Works for any payment method when the
     // customer has overpaid; the excess is recorded against the donation
     // trust account instead of being given back as change.
-    const donationResult =
+    let donationResult =
       excess > BigInt(0) && donationChoice !== 'no_donation'
         ? getDonationOptions(excess).find((o) => o.choice.type === donationChoice)
         : undefined;
+    // For the `custom` option, recompute with the cashier-entered amount —
+    // the preset entry from getDonationOptions always carries 0n for custom.
+    if (donationResult && donationChoice === 'custom') {
+      const customAmount = parseMoney(customDonationInput);
+      if (customAmount <= BigInt(0)) {
+        // No custom amount typed — fall through as if no donation.
+        donationResult = undefined;
+      } else {
+        const { calculateDonation } = await import('./lib/donation-options');
+        donationResult = calculateDonation(excess, 'custom', customAmount);
+      }
+    }
 
     // Build payments array — existing payments from cart + split list
     const payments = [
@@ -336,7 +350,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
             </div>
           )}
 
-          {/* SD §25.11 — Donation choice (only for cash with change) */}
+          {/* SD §25.11 — Donation choice (any payment with overpay) */}
           {isFullyPaid && donationOptions.length > 0 && (
             <div>
               <p className="mb-2 text-xs font-medium uppercase tracking-widest text-brand-ink-3">
@@ -367,6 +381,34 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
                   </button>
                 ))}
               </div>
+              {donationChoice === 'custom' && (
+                <div className="mt-2 rounded-lg border border-brand-red/40 bg-brand-red/5 px-3 py-2.5">
+                  <label
+                    htmlFor="customDonationInput"
+                    className="text-xs font-medium uppercase tracking-widest text-brand-red"
+                  >
+                    {t('customDonationLabel')}
+                  </label>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <span className="text-sm font-medium text-brand-ink-3">Rp</span>
+                    <input
+                      id="customDonationInput"
+                      type="text"
+                      inputMode="numeric"
+                      value={customDonationInput}
+                      onChange={(e) => setCustomDonationInput(e.target.value.replace(/\D/g, ''))}
+                      placeholder="0"
+                      className="flex-1 rounded-md border border-brand-cream-3 bg-card px-3 py-1.5 text-sm font-medium text-brand-ink focus:border-brand-red focus:outline-none"
+                    />
+                    <span className="text-xs text-brand-ink-3">
+                      / {formatRupiah(excess.toString())}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] text-brand-ink-3">
+                    {t('customDonationHint')}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

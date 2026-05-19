@@ -636,6 +636,8 @@
       "shopeefood": "ShopeeFood"
     },
     "donationChoice": "Donate Change",
+    "customDonationLabel": "Donation amount (Rp)",
+    "customDonationHint": "Type the amount the customer wants to donate. The remaining change is given in cash.",
     "offline": {
       "offlineMessage": "Offline — {count} transactions pending sync",
       "pendingMessage": "{count} transactions pending sync",

@@ -46,6 +46,8 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
   const [completedOrder, setCompletedOrder] = useState<DemoOrder | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [donationChoice, setDonationChoice] = useState<RoundingOption>('no_donation');
+  /** Custom donation amount entered by the cashier when `donationChoice === 'custom'`. */
+  const [customDonationInput, setCustomDonationInput] = useState('');
 
   const totalBig = BigInt(grandTotal);
   const paidBig = state.payments.reduce((sum, p) => sum + parseMoney(p.amount), BigInt(0));
@@ -106,10 +108,19 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
         BigInt(0),
       );
       const taxTotal = (totalBig * BigInt(10)) / BigInt(110);
-      const donationResult =
+      let donationResult =
         excess > BigInt(0) && donationChoice !== 'no_donation'
           ? getDonationOptions(excess).find((option) => option.choice.type === donationChoice)
           : undefined;
+      if (donationResult && donationChoice === 'custom') {
+        const customAmount = parseMoney(customDonationInput);
+        if (customAmount <= BigInt(0)) {
+          donationResult = undefined;
+        } else {
+          const { calculateDonation } = await import('../lib/donation-options');
+          donationResult = calculateDonation(excess, 'custom', customAmount);
+        }
+      }
 
       const payments: typeof state.payments = [
         ...state.payments,
@@ -343,6 +354,34 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
                   </button>
                 ))}
               </div>
+              {donationChoice === 'custom' && (
+                <div className="mt-2 rounded-lg border border-brand-red/40 bg-brand-red/5 px-3 py-2.5">
+                  <label
+                    htmlFor="demoCustomDonationInput"
+                    className="text-xs font-medium uppercase tracking-widest text-brand-red"
+                  >
+                    {t('customDonationLabel')}
+                  </label>
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <span className="text-sm font-medium text-brand-ink-3">Rp</span>
+                    <input
+                      id="demoCustomDonationInput"
+                      type="text"
+                      inputMode="numeric"
+                      value={customDonationInput}
+                      onChange={(e) => setCustomDonationInput(e.target.value.replace(/\D/g, ''))}
+                      placeholder="0"
+                      className="flex-1 rounded-md border border-brand-cream-3 bg-card px-3 py-1.5 text-sm font-medium text-brand-ink focus:border-brand-red focus:outline-none"
+                    />
+                    <span className="text-xs text-brand-ink-3">
+                      / {formatRupiah(excess.toString())}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] text-brand-ink-3">
+                    {t('customDonationHint')}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

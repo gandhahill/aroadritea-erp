@@ -36,6 +36,7 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray } from 'drizzle-orm';
+import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
 import { createJournal } from '../accounting/create-journal';
 import { requirePermission } from '../iam';
 import { generateAdjustmentNumber } from './number-generator';
@@ -46,11 +47,15 @@ import {
   RejectAdjustmentInputSchema,
 } from './schemas';
 
-// ─── Default COA accounts ─────────────────────────────────────────────────────
+// ─── Default COA codes ────────────────────────────────────────────────────────
+//
+// These are COA *codes* (e.g. "1-1210") for legibility. At journal-posting
+// time they get resolved to `accounts.id` UUIDs via
+// `resolveAccountIdsByCodes` so `createJournal` receives valid UUIDs.
 
-const DEFAULT_INVENTORY_ACCOUNT = '1-1210'; // Persediaan Barang Dagangan
-const EXPENSE_ACCOUNT = '6-1110'; // Beban Operasional Lainnya (loss)
-const INCOME_ACCOUNT = '4-2020'; // Pendapatan Lainnya (gain)
+const DEFAULT_INVENTORY_CODE = '1-1210'; // Persediaan Barang Dagangan
+const EXPENSE_CODE = '6-1110'; // Beban Operasional Lainnya (loss)
+const INCOME_CODE = '4-2020'; // Pendapatan Lainnya (gain)
 
 // ─── Return types ─────────────────────────────────────────────────────────────
 
@@ -96,15 +101,28 @@ async function isDirector(ctx: AuditContext): Promise<boolean> {
   return rows.length > 0;
 }
 
-/** Resolve the inventory account ID for a product. Falls back to DEFAULT_INVENTORY_ACCOUNT. */
-async function resolveInventoryAccount(tenantId: string, productId: string): Promise<string> {
+/**
+ * Resolve the inventory account UUID for a product. Falls back to the
+ * tenant's `1-1210` (Persediaan Barang Dagangan) account.
+ *
+ * Returns null when neither the product-level account nor the default
+ * code can be resolved (callers should treat that as a configuration
+ * error, not silently swallow it).
+ */
+async function resolveInventoryAccount(
+  tenantId: string,
+  productId: string,
+): Promise<string | null> {
   const row = await db
     .select({ inventoryAccountId: products.inventoryAccountId })
     .from(products)
     .where(and(eq(products.tenantId, tenantId), eq(products.id, productId)))
     .then((r) => r[0]);
 
-  return row?.inventoryAccountId ?? DEFAULT_INVENTORY_ACCOUNT;
+  if (row?.inventoryAccountId) return row.inventoryAccountId;
+
+  const map = await resolveAccountIdsByCodes(tenantId, [DEFAULT_INVENTORY_CODE]);
+  return map.get(DEFAULT_INVENTORY_CODE) ?? null;
 }
 
 // ─── Build result from DB rows ───────────────────────────────────────────────
@@ -489,13 +507,43 @@ export async function approveAdjustment(
     if (netDelta !== 0n) {
       const firstLine = lines[0]!;
       const invAccount = await resolveInventoryAccount(ctx.tenantId, firstLine.productId);
+      if (!invAccount) {
+        // Roll the status claim back so the adjustment can be retried
+        // after the operator wires up the inventory account.
+        await db
+          .update(stockAdjustments)
+          .set({ status: 'submitted', approvedBy: null, approvedAt: null, version: adj.version })
+          .where(eq(stockAdjustments.id, data.adjustmentId));
+        return err(
+          AppError.businessRule('inventory.adjust.inventoryAccountMissing', {
+            code: DEFAULT_INVENTORY_CODE,
+          }),
+        );
+      }
+
+      // Resolve the offsetting code (loss/gain) to its UUID. Without this
+      // the caller would pass `'6-1110'` to createJournal which expects
+      // accounts.id (UUID) → `accountNotFound`.
+      const offsetCode = netDelta < 0n ? EXPENSE_CODE : INCOME_CODE;
+      const codeMap = await resolveAccountIdsByCodes(ctx.tenantId, [offsetCode]);
+      const offsetAccountId = codeMap.get(offsetCode);
+      if (!offsetAccountId) {
+        await db
+          .update(stockAdjustments)
+          .set({ status: 'submitted', approvedBy: null, approvedAt: null, version: adj.version })
+          .where(eq(stockAdjustments.id, data.adjustmentId));
+        return err(
+          AppError.businessRule('inventory.adjust.offsetAccountMissing', { code: offsetCode }),
+        );
+      }
+
       const absAmount = (netDelta < 0n ? -netDelta : netDelta).toString();
 
       const journalLines =
         netDelta < 0n
           ? [
               {
-                accountId: EXPENSE_ACCOUNT,
+                accountId: offsetAccountId,
                 locationId: adj.locationId,
                 description: `${adj.reason}: ${firstLine.productId}`,
                 debit: absAmount,
@@ -518,7 +566,7 @@ export async function approveAdjustment(
                 credit: '0',
               },
               {
-                accountId: INCOME_ACCOUNT,
+                accountId: offsetAccountId,
                 locationId: adj.locationId,
                 description: `${adj.reason}: gain`,
                 debit: '0',
