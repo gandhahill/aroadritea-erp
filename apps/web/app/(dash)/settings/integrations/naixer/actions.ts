@@ -7,7 +7,7 @@
 
 import { getSession } from '@/lib/auth';
 import { pickLocalized } from '@/lib/pick-localized';
-import { db, eq, inArray } from '@erp/db';
+import { and, db, eq, inArray } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import {
   naixerModifierCodes,
@@ -306,7 +306,13 @@ export async function fetchNaixerModifierOptions(
       groupName: productModifierGroups.name,
     })
     .from(productModifierOptions)
-    .leftJoin(productModifierGroups, eq(productModifierOptions.groupId, productModifierGroups.id))
+    .leftJoin(
+      productModifierGroups,
+      and(
+        eq(productModifierOptions.groupId, productModifierGroups.id),
+        eq(productModifierGroups.tenantId, tenantId),
+      ),
+    )
     .where(eq(productModifierOptions.tenantId, tenantId))
     .orderBy(productModifierOptions.sortOrder);
   return rows.map((r) => ({

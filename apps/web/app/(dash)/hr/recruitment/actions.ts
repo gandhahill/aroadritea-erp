@@ -90,7 +90,10 @@ export async function fetchApplicants(openingId?: string): Promise<ApplicantRow[
       openingTitle: jobOpenings.title,
     })
     .from(jobApplicants)
-    .leftJoin(jobOpenings, eq(jobApplicants.openingId, jobOpenings.id))
+    .leftJoin(
+      jobOpenings,
+      and(eq(jobApplicants.openingId, jobOpenings.id), eq(jobOpenings.tenantId, ctx.tenantId)),
+    )
     .where(and(...conditions))
     .orderBy(desc(jobApplicants.appliedAt))
     .limit(500);

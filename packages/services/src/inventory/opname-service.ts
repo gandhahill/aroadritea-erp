@@ -217,11 +217,19 @@ export async function createOpnameDraft(
   });
   if (!permCheck.ok) return permCheck;
 
-  // Period must be open
+  // Period must be open. Code is unique PER TENANT (`periods_tenant_code_idx`),
+  // so we must filter by tenant — otherwise the query could pick up another
+  // tenant's period with the same code (e.g. '2026-05') and either reject a
+  // valid request or accept one against a closed period.
   const period = await db
     .select({ id: accountingPeriods.id, status: accountingPeriods.status })
     .from(accountingPeriods)
-    .where(eq(accountingPeriods.code, input.periodCode))
+    .where(
+      and(
+        eq(accountingPeriods.tenantId, ctx.tenantId),
+        eq(accountingPeriods.code, input.periodCode),
+      ),
+    )
     .then((r) => r[0]);
 
   if (!period) {
