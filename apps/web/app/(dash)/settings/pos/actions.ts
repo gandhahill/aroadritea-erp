@@ -37,6 +37,15 @@ export interface PosSettingItem {
   donationTrustAccountCode: string;
   deliveryChannels: DeliveryChannelSetting[];
   receiptWidthMm: number;
+  /** Printer device name as registered in the cashier OS (Print Bridge / kiosk hint). */
+  receiptPrinterName: string | null;
+  /** Label printer device name. Falls back to receipt printer when null. */
+  labelPrinterName: string | null;
+  /**
+   * When true, Chrome is launched with `--kiosk-printing` and the
+   * auto-print pages skip the preview-dialog delay.
+   */
+  kioskPrintingEnabled: boolean;
 }
 
 export interface AccountOption {
@@ -138,6 +147,9 @@ export async function fetchPosSettings(): Promise<PosSettingItem[]> {
         deliveryChannelsJson: posSettings.deliveryChannelsJson,
         deliveryNetBps: posSettings.deliveryNetBps,
         receiptWidthMm: posSettings.receiptWidthMm,
+        receiptPrinterName: posSettings.receiptPrinterName,
+        labelPrinterName: posSettings.labelPrinterName,
+        kioskPrintingEnabled: posSettings.kioskPrintingEnabled,
       })
       .from(posSettings)
       .where(eq(posSettings.tenantId, ctx.tenantId)),
@@ -157,6 +169,9 @@ export async function fetchPosSettings(): Promise<PosSettingItem[]> {
       donationTrustAccountCode: setting?.donationTrustAccountCode ?? '2-2050',
       deliveryChannels: normalizeChannels(setting?.deliveryChannelsJson),
       receiptWidthMm: setting?.receiptWidthMm ?? 80,
+      receiptPrinterName: setting?.receiptPrinterName ?? null,
+      labelPrinterName: setting?.labelPrinterName ?? null,
+      kioskPrintingEnabled: setting?.kioskPrintingEnabled ?? false,
     };
   });
 }
@@ -205,6 +220,9 @@ export async function updatePosSetting(
     donationTrustAccountCode: string;
     deliveryChannels: DeliveryChannelSetting[];
     receiptWidthMm: number;
+    receiptPrinterName?: string | null;
+    labelPrinterName?: string | null;
+    kioskPrintingEnabled?: boolean;
   },
 ): Promise<ActionResult> {
   const ctx = await requireContext();
@@ -267,6 +285,12 @@ export async function updatePosSetting(
     return { success: false, error: 'Receipt width must be between 40 and 120 mm' };
   }
 
+  const normalizePrinterName = (raw: string | null | undefined): string | null => {
+    if (!raw) return null;
+    const trimmed = raw.trim();
+    return trimmed.length > 0 ? trimmed.slice(0, 120) : null;
+  };
+
   const values = {
     pb1TaxCode: data.pb1TaxCode.trim() || 'PB1',
     cashAccountCode: data.cashAccountCode.trim() || '1-1300',
@@ -277,6 +301,9 @@ export async function updatePosSetting(
       channels.reduce((sum, channel) => sum + channel.netBps, 0) / channels.length,
     ),
     receiptWidthMm,
+    receiptPrinterName: normalizePrinterName(data.receiptPrinterName),
+    labelPrinterName: normalizePrinterName(data.labelPrinterName),
+    kioskPrintingEnabled: Boolean(data.kioskPrintingEnabled),
     updatedAt: new Date(),
     updatedBy: ctx.userId || null,
   };

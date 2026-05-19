@@ -314,7 +314,10 @@ td { vertical-align: top; padding: 1px 0; }
           <div className="r-pickup">{order.number.split('-').pop() ?? order.number}</div>
         </div>
       </div>
-      <ReceiptAutoPrint />
+      <ReceiptAutoPrint
+        kioskPrinting={setting?.kioskPrintingEnabled ?? false}
+        printerName={setting?.receiptPrinterName ?? null}
+      />
     </>
   );
 }

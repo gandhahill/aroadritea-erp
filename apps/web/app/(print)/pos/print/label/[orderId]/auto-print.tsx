@@ -2,10 +2,23 @@
 
 import { useEffect } from 'react';
 
-export function LabelAutoPrint() {
+interface Props {
+  /** See ReceiptAutoPrint for semantics. */
+  kioskPrinting?: boolean;
+  printerName?: string | null;
+}
+
+export function LabelAutoPrint({ kioskPrinting = false, printerName }: Props = {}) {
   useEffect(() => {
-    const id = window.setTimeout(() => window.print(), 250);
+    const delay = kioskPrinting ? 0 : 250;
+    const id = window.setTimeout(() => window.print(), delay);
     return () => window.clearTimeout(id);
-  }, []);
-  return null;
+  }, [kioskPrinting]);
+  return (
+    <span
+      hidden
+      data-printer={printerName ?? ''}
+      data-kiosk={kioskPrinting ? 'true' : 'false'}
+    />
+  );
 }

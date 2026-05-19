@@ -78,6 +78,8 @@ export default async function LabelPrintPage({ params }: Props) {
     .select({
       labelWidthMm: posSettings.receiptLabelWidthMm,
       labelHeightMm: posSettings.receiptLabelHeightMm,
+      labelPrinterName: posSettings.labelPrinterName,
+      kioskPrintingEnabled: posSettings.kioskPrintingEnabled,
     })
     .from(posSettings)
     .where(eq(posSettings.locationId, order.locationId))
@@ -220,7 +222,10 @@ body { font-family: 'Arial', sans-serif; }
           </div>
         ))}
       </div>
-      <LabelAutoPrint />
+      <LabelAutoPrint
+        kioskPrinting={setting?.kioskPrintingEnabled ?? false}
+        printerName={setting?.labelPrinterName ?? null}
+      />
     </>
   );
 }

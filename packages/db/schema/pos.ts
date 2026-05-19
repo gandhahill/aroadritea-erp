@@ -101,6 +101,22 @@ export const posSettings = pgTable(
     receiptWebsite: text('receipt_website').default('aroadritea.com'),
     receiptFooterText: text('receipt_footer_text'),
 
+    // Print routing (#16): the cashier OS may have two thermal printers
+    // attached — a wide receipt printer and a small cup-label printer.
+    // The configured name is matched by the local Print Bridge agent (Phase 2);
+    // when the browser is launched with `--kiosk-printing` (Phase 1), these
+    // columns serve as documentation for the operator selecting the OS default.
+    receiptPrinterName: text('receipt_printer_name'),
+    labelPrinterName: text('label_printer_name'),
+    /**
+     * When true, the receipt/label auto-print pages skip the 250 ms delay
+     * and call `window.print()` immediately. The cashier Chrome must be
+     * launched with `--kiosk-printing` so the dialog is suppressed.
+     * Default false — keep the preview dialog visible until the operator
+     * explicitly opts in from the POS settings UI.
+     */
+    kioskPrintingEnabled: boolean('kiosk_printing_enabled').notNull().default(false),
+
     ...auditCols,
   },
   (t) => [

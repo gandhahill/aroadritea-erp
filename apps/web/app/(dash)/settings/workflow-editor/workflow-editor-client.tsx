@@ -40,6 +40,41 @@ const OPERATORS = [
 
 const APPROVER_ROLES = ['store_manager', 'director', 'owner', 'hr_manager', 'finance'] as const;
 
+/**
+ * Fields available per entity type. Switching the condition row's field
+ * from free-text to a dropdown stops users typing typos like "grandtotal"
+ * when the service expects camelCase `grandTotal`. Add new fields here
+ * once the corresponding service exposes them in the workflow evaluator.
+ */
+const FIELD_BY_ENTITY: Record<string, Array<{ value: string; label: string }>> = {
+  purchase_order: [
+    { value: 'grandTotal', label: 'Grand total (Rp)' },
+    { value: 'subtotal', label: 'Subtotal (Rp)' },
+    { value: 'supplierId', label: 'Supplier ID' },
+    { value: 'locationId', label: 'Location ID' },
+  ],
+  leave_request: [
+    { value: 'dayCount', label: 'Jumlah hari' },
+    { value: 'leaveTypeCode', label: 'Tipe cuti (kode)' },
+    { value: 'employeeId', label: 'Employee ID' },
+  ],
+  stock_adjustment: [
+    { value: 'reason', label: 'Alasan (waste/damage/...)' },
+    { value: 'locationId', label: 'Location ID' },
+    { value: 'lineCount', label: 'Jumlah baris' },
+  ],
+  reimbursement_request: [
+    { value: 'amount', label: 'Nominal (Rp)' },
+    { value: 'categoryCode', label: 'Kategori (kode)' },
+    { value: 'employeeId', label: 'Employee ID' },
+  ],
+  journal_entry: [
+    { value: 'totalDebit', label: 'Total debit (Rp)' },
+    { value: 'postingDate', label: 'Tanggal posting' },
+    { value: 'locationId', label: 'Location ID' },
+  ],
+};
+
 interface Props {
   initialDefinitions: WorkflowDefinitionItem[];
   ctx: AuditContext;
@@ -640,15 +675,46 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                       </p>
                     ) : (
                       <div className="space-y-2">
-                        {form.conditions.map((cond, idx) => (
+                        {form.conditions.map((cond, idx) => {
+                          const entityFields =
+                            FIELD_BY_ENTITY[form.entityType] ?? [];
+                          // When the chosen entity exposes a known field
+                          // list, drive the field input as a dropdown so
+                          // users can't accidentally type typos. If the
+                          // entity isn't in the map yet (or the saved
+                          // condition predates it), fall through to a free-
+                          // text input so legacy rules stay editable.
+                          const fieldInKnownList = entityFields.some(
+                            (f) => f.value === cond.field,
+                          );
+                          const showDropdown =
+                            entityFields.length > 0 && (cond.field === '' || fieldInKnownList);
+                          return (
                           <div key={idx} className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              value={cond.field}
-                              placeholder="field (e.g. grandTotal)"
-                              onChange={(e) => updateCondition(idx, { field: e.target.value })}
-                              className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-                            />
+                            {showDropdown ? (
+                              <select
+                                value={cond.field}
+                                onChange={(e) =>
+                                  updateCondition(idx, { field: e.target.value })
+                                }
+                                className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+                              >
+                                <option value="">— pilih field —</option>
+                                {entityFields.map((f) => (
+                                  <option key={f.value} value={f.value}>
+                                    {f.label} ({f.value})
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <input
+                                type="text"
+                                value={cond.field}
+                                placeholder="field (e.g. grandTotal)"
+                                onChange={(e) => updateCondition(idx, { field: e.target.value })}
+                                className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+                              />
+                            )}
                             <select
                               value={cond.op}
                               onChange={(e) => updateCondition(idx, { op: e.target.value })}
@@ -687,7 +753,8 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                               </svg>
                             </button>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>

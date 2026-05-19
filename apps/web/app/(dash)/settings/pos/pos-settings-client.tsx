@@ -28,6 +28,9 @@ function toDraft(setting: PosSettingItem): Draft {
     donationTrustAccountCode: setting.donationTrustAccountCode,
     deliveryChannels: setting.deliveryChannels.map((channel) => ({ ...channel })),
     receiptWidthMm: setting.receiptWidthMm,
+    receiptPrinterName: setting.receiptPrinterName ?? '',
+    labelPrinterName: setting.labelPrinterName ?? '',
+    kioskPrintingEnabled: setting.kioskPrintingEnabled,
   };
 }
 
@@ -207,6 +210,61 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
                 <span className="block text-[11px] text-brand-ink-3">
                   Default 80 mm / 8 cm, bisa disesuaikan printer.
                 </span>
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs font-medium text-brand-ink-2">Printer Struk (OS)</span>
+                <input
+                  value={draft.receiptPrinterName ?? ''}
+                  placeholder="contoh: EPSON TM-T82"
+                  onChange={(event) =>
+                    updateDraft(setting.locationId, {
+                      receiptPrinterName: event.target.value,
+                    })
+                  }
+                  className={inputClass}
+                />
+                <span className="block text-[11px] text-brand-ink-3">
+                  Nama printer thermal struk pada OS kasir.
+                </span>
+              </label>
+              <label className="space-y-1">
+                <span className="text-xs font-medium text-brand-ink-2">Printer Label (OS)</span>
+                <input
+                  value={draft.labelPrinterName ?? ''}
+                  placeholder="contoh: XPrinter XP-365B"
+                  onChange={(event) =>
+                    updateDraft(setting.locationId, {
+                      labelPrinterName: event.target.value,
+                    })
+                  }
+                  className={inputClass}
+                />
+                <span className="block text-[11px] text-brand-ink-3">
+                  Nama printer label cup pada OS kasir (opsional).
+                </span>
+              </label>
+            </div>
+
+            <div className="mt-3 rounded-md border border-brand-cream-3 bg-brand-cream-1 p-3">
+              <label className="flex items-start gap-3 text-sm">
+                <input
+                  type="checkbox"
+                  checked={draft.kioskPrintingEnabled ?? false}
+                  onChange={(event) =>
+                    updateDraft(setting.locationId, {
+                      kioskPrintingEnabled: event.target.checked,
+                    })
+                  }
+                  className="mt-0.5 h-4 w-4 rounded border-brand-cream-3"
+                />
+                <div>
+                  <div className="font-semibold text-brand-ink">Mode Kiosk Printing</div>
+                  <p className="mt-0.5 text-[11px] text-brand-ink-3">
+                    Lewati dialog pratinjau printer dan langsung cetak. Jalankan Chrome dengan
+                    flag <code className="rounded bg-brand-cream-3 px-1 font-mono">--kiosk-printing</code>
+                    {' '}agar dialog tertutup; tanpa flag itu browser tetap menampilkan pratinjau.
+                  </p>
+                </div>
               </label>
             </div>
 
