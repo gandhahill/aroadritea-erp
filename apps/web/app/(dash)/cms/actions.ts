@@ -50,7 +50,7 @@ export async function fetchCmsPage(id: string) {
   const session = await getSession();
   if (!session) return null;
   const ctx = buildCtx(session);
-  const result = await getPage(id);
+  const result = await getPage(id, ctx.tenantId);
   if (!result.ok) return null;
   return result.value;
 }
@@ -116,7 +116,8 @@ export async function fetchCmsPosts(options?: { kind?: string; status?: string }
 export async function fetchCmsPost(id: string) {
   const session = await getSession();
   if (!session) return null;
-  const result = await getPost(id);
+  const ctx = buildCtx(session);
+  const result = await getPost(id, ctx.tenantId);
   if (!result.ok) return null;
   return result.value;
 }

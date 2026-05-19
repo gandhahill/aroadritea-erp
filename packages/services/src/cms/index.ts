@@ -112,10 +112,19 @@ export type CreateFaqInput = z.infer<typeof CreateFaqSchema>;
 
 // ─── Pages ──────────────────────────────────────────────────────────────────
 
-/** Get a single page by ID. */
-export async function getPage(id: string): Promise<Result<Record<string, unknown>>> {
+/** Get a single page by ID, scoped to the caller's tenant. */
+export async function getPage(
+  id: string,
+  tenantId: string,
+): Promise<Result<Record<string, unknown>>> {
   try {
-    const row = await db.select().from(cmsPages).where(eq(cmsPages.id, id)).limit(1);
+    // Tenant-scope the lookup — otherwise any authenticated user could
+    // read another tenant's CMS page if they knew its UUID.
+    const row = await db
+      .select()
+      .from(cmsPages)
+      .where(and(eq(cmsPages.id, id), eq(cmsPages.tenantId, tenantId)))
+      .limit(1);
     if (!row[0]) return err(AppError.notFound('cms.page.notFound'));
     return ok(row[0]);
   } catch (e) {
@@ -208,10 +217,12 @@ export async function updatePage(
   }
   const { id, ...data } = parsed.data;
   try {
-    await db
+    const claimed = await db
       .update(cmsPages)
       .set({ ...data, updatedBy: ctx.userId })
-      .where(eq(cmsPages.id, id));
+      .where(and(eq(cmsPages.id, id), eq(cmsPages.tenantId, ctx.tenantId)))
+      .returning({ id: cmsPages.id });
+    if (claimed.length === 0) return err(AppError.notFound('cms.page.notFound'));
     return ok({ id });
   } catch (e) {
     return err(AppError.internal('cms.page.updateFailed', e));
@@ -230,10 +241,12 @@ export async function publishPage(
   const { id, action } = parsed.data;
   const newStatus = action === 'publish' ? 'published' : action;
   try {
-    await db
+    const claimed = await db
       .update(cmsPages)
       .set({ status: newStatus, updatedBy: ctx.userId })
-      .where(eq(cmsPages.id, id));
+      .where(and(eq(cmsPages.id, id), eq(cmsPages.tenantId, ctx.tenantId)))
+      .returning({ id: cmsPages.id });
+    if (claimed.length === 0) return err(AppError.notFound('cms.page.notFound'));
     return ok({ id, status: newStatus });
   } catch (e) {
     return err(AppError.internal('cms.page.publishFailed', e));
@@ -243,10 +256,16 @@ export async function publishPage(
 /** Soft-delete a CMS page. */
 export async function deletePage(id: string, ctx: AuditContext): Promise<Result<void>> {
   try {
-    await db
+    // Tenant-scope the archive — without it any authenticated user could
+    // archive another tenant's CMS page by guessing its UUID.
+    const claimed = await db
       .update(cmsPages)
       .set({ status: 'archived', updatedBy: ctx.userId })
-      .where(eq(cmsPages.id, id));
+      .where(and(eq(cmsPages.id, id), eq(cmsPages.tenantId, ctx.tenantId)))
+      .returning({ id: cmsPages.id });
+    if (claimed.length === 0) {
+      return err(AppError.notFound('cms.page.notFound'));
+    }
     return ok(undefined);
   } catch (e) {
     return err(AppError.internal('cms.page.deleteFailed', e));
@@ -255,10 +274,19 @@ export async function deletePage(id: string, ctx: AuditContext): Promise<Result<
 
 // ─── Posts ─────────────────────────────────────────────────────────────────
 
-/** Get a single post by ID. */
-export async function getPost(id: string): Promise<Result<Record<string, unknown>>> {
+/** Get a single post by ID, scoped to the caller's tenant. */
+export async function getPost(
+  id: string,
+  tenantId: string,
+): Promise<Result<Record<string, unknown>>> {
   try {
-    const row = await db.select().from(cmsPosts).where(eq(cmsPosts.id, id)).limit(1);
+    // Tenant-scope the lookup — otherwise any authenticated user could
+    // read another tenant's CMS post if they knew its UUID.
+    const row = await db
+      .select()
+      .from(cmsPosts)
+      .where(and(eq(cmsPosts.id, id), eq(cmsPosts.tenantId, tenantId)))
+      .limit(1);
     if (!row[0]) return err(AppError.notFound('cms.post.notFound'));
     return ok(row[0]);
   } catch (e) {
@@ -370,10 +398,12 @@ export async function updatePost(
   }
   const { id, ...data } = parsed.data;
   try {
-    await db
+    const claimed = await db
       .update(cmsPosts)
       .set({ ...data, updatedBy: ctx.userId })
-      .where(eq(cmsPosts.id, id));
+      .where(and(eq(cmsPosts.id, id), eq(cmsPosts.tenantId, ctx.tenantId)))
+      .returning({ id: cmsPosts.id });
+    if (claimed.length === 0) return err(AppError.notFound('cms.post.notFound'));
     return ok({ id });
   } catch (e) {
     return err(AppError.internal('cms.post.updateFailed', e));
@@ -392,23 +422,29 @@ export async function publishPost(
   const { id, action } = parsed.data;
   const newStatus = action === 'publish' ? 'published' : action;
   try {
-    await db
+    const claimed = await db
       .update(cmsPosts)
       .set({ status: newStatus, updatedBy: ctx.userId })
-      .where(eq(cmsPosts.id, id));
+      .where(and(eq(cmsPosts.id, id), eq(cmsPosts.tenantId, ctx.tenantId)))
+      .returning({ id: cmsPosts.id });
+    if (claimed.length === 0) return err(AppError.notFound('cms.post.notFound'));
     return ok({ id, status: newStatus });
   } catch (e) {
     return err(AppError.internal('cms.post.publishFailed', e));
   }
 }
 
-/** Soft-delete a blog post. */
+/** Soft-delete a blog post (tenant-scoped). */
 export async function deletePost(id: string, ctx: AuditContext): Promise<Result<void>> {
   try {
-    await db
+    const claimed = await db
       .update(cmsPosts)
       .set({ status: 'archived', updatedBy: ctx.userId })
-      .where(eq(cmsPosts.id, id));
+      .where(and(eq(cmsPosts.id, id), eq(cmsPosts.tenantId, ctx.tenantId)))
+      .returning({ id: cmsPosts.id });
+    if (claimed.length === 0) {
+      return err(AppError.notFound('cms.post.notFound'));
+    }
     return ok(undefined);
   } catch (e) {
     return err(AppError.internal('cms.post.deleteFailed', e));
