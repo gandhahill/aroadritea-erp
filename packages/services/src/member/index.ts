@@ -754,7 +754,10 @@ export async function findMemberByPhone(
         tier: memberLoyalty.tier,
       })
       .from(partners)
-      .leftJoin(memberLoyalty, eq(memberLoyalty.memberId, partners.id))
+      .leftJoin(
+        memberLoyalty,
+        and(eq(memberLoyalty.memberId, partners.id), eq(memberLoyalty.tenantId, tenantId)),
+      )
       .where(
         and(
           eq(partners.tenantId, tenantId),

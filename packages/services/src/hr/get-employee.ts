@@ -162,8 +162,17 @@ export async function getEmployee(
           leaveTypeName: leaveTypes.name,
         })
         .from(leaveBalances)
-        .leftJoin(leaveTypes, eq(leaveBalances.leaveTypeId, leaveTypes.id))
-        .where(and(eq(leaveBalances.employeeId, employeeId), eq(leaveBalances.year, year)));
+        .leftJoin(
+          leaveTypes,
+          and(eq(leaveBalances.leaveTypeId, leaveTypes.id), eq(leaveTypes.tenantId, ctx.tenantId)),
+        )
+        .where(
+          and(
+            eq(leaveBalances.employeeId, employeeId),
+            eq(leaveBalances.year, year),
+            eq(leaveBalances.tenantId, ctx.tenantId),
+          ),
+        );
 
       const leaveBalances_: LeaveBalanceRow[] = balanceRows.map((r) => ({
         leaveTypeId: r.leaveTypeId,
@@ -194,8 +203,16 @@ export async function getEmployee(
           leaveTypeName: leaveTypes.name,
         })
         .from(leaveRequests)
-        .leftJoin(leaveTypes, eq(leaveRequests.leaveTypeId, leaveTypes.id))
-        .where(eq(leaveRequests.employeeId, employeeId))
+        .leftJoin(
+          leaveTypes,
+          and(eq(leaveRequests.leaveTypeId, leaveTypes.id), eq(leaveTypes.tenantId, ctx.tenantId)),
+        )
+        .where(
+          and(
+            eq(leaveRequests.employeeId, employeeId),
+            eq(leaveRequests.tenantId, ctx.tenantId),
+          ),
+        )
         .orderBy(desc(leaveRequests.createdAt))
         .limit(6);
 
