@@ -102,10 +102,23 @@ export function groupDisplayItems(rows: RawDisplayRow[]): {
 
 // ─── Service ────────────────────────────────────────────────────────────────
 
-export async function getDisplayQueue(locationId: string): Promise<Result<DisplayQueue>> {
+export async function getDisplayQueue(
+  locationId: string,
+  tenantId?: string,
+): Promise<Result<DisplayQueue>> {
   if (!locationId) {
     return err(AppError.validation('display.errors.location_required'));
   }
+
+  // The customer display kiosk is a stateless read-only screen, so it
+  // doesn't have an auth session. We accept an optional `tenantId` so
+  // multi-tenant deployments can still scope; callers that don't pass
+  // one (single-tenant kiosk) get the legacy locationId-only filter.
+  const conditions = [
+    eq(kdsOrderItems.locationId, locationId),
+    inArray(kdsOrderItems.status, ['queued', 'making', 'ready']),
+  ];
+  if (tenantId) conditions.push(eq(kdsOrderItems.tenantId, tenantId));
 
   const rows = await db
     .select({
@@ -118,12 +131,7 @@ export async function getDisplayQueue(locationId: string): Promise<Result<Displa
       readyAt: kdsOrderItems.readyAt,
     })
     .from(kdsOrderItems)
-    .where(
-      and(
-        eq(kdsOrderItems.locationId, locationId),
-        inArray(kdsOrderItems.status, ['queued', 'making', 'ready']),
-      ),
-    )
+    .where(and(...conditions))
     .orderBy(asc(kdsOrderItems.pickupNumber));
 
   const grouped = groupDisplayItems(rows);
