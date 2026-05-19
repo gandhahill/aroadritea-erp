@@ -8,6 +8,7 @@ import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { DonutChart, HorizontalBarChart, TrendLineChart, VerticalBarChart } from './charts';
 
 export const metadata: Metadata = {
   title: 'Business Intelligence',
@@ -357,27 +358,16 @@ export default async function BusinessIntelligencePage() {
         </Panel>
 
         <Panel title={t('topProducts')}>
-          <div className="space-y-2">
-            {[...topProducts.entries()]
+          <HorizontalBarChart
+            data={[...topProducts.entries()]
               .sort((a, b) => Number(b[1].nominal - a[1].nominal))
               .slice(0, 10)
-              .map(([id, value], index) => (
-                <div
-                  key={id}
-                  className="flex items-center justify-between gap-3 rounded-md bg-brand-cream-1 px-3 py-2"
-                >
-                  <div>
-                    <div className="text-sm font-semibold text-brand-ink">
-                      {index + 1}. {value.name}
-                    </div>
-                    <div className="text-xs text-brand-ink-3">{value.qty} qty</div>
-                  </div>
-                  <div className="text-sm font-semibold text-brand-red">
-                    {formatIdr(value.nominal)}
-                  </div>
-                </div>
-              ))}
-          </div>
+              .map(([, value]) => ({
+                label: value.name,
+                value: Number(value.nominal),
+              }))}
+            height={260}
+          />
         </Panel>
       </section>
 
@@ -401,44 +391,39 @@ export default async function BusinessIntelligencePage() {
 
       <section className="grid gap-4 xl:grid-cols-3">
         <Panel title="Tren 7 hari (omzet harian)">
-          <BarChart
+          <TrendLineChart
             data={trendData.map((row) => ({
               label: row.date.slice(5),
-              value: Number(row.gross / 100n),
-              sub: `${row.orders} order`,
+              value: Number(row.gross),
+              orders: row.orders,
             }))}
           />
         </Panel>
 
         <Panel title="Channel mix (bulan ini)">
-          <BarChart
+          <DonutChart
             data={channelMix.map((c) => ({
               label: c.label,
-              value: Number(c.gross / 100n),
-              sub: `${c.orders} order`,
+              value: Number(c.gross),
             }))}
           />
         </Panel>
 
         <Panel title="Member vs walk-in (bulan ini)">
-          <div className="space-y-2">
-            <StackBar
-              left={{ label: 'Member', value: Number(memberSplit.memberGross / 100n) }}
-              right={{ label: 'Tamu', value: Number(memberSplit.guestGross / 100n) }}
-            />
-            <div className="grid grid-cols-2 gap-2 text-xs text-brand-ink-3">
-              <div>
-                Member: {memberSplit.memberOrders} order ·{' '}
-                <span className="text-brand-ink">
-                  {formatIdr(memberSplit.memberGross)}
-                </span>
-              </div>
-              <div>
-                Tamu: {memberSplit.guestOrders} order ·{' '}
-                <span className="text-brand-ink">
-                  {formatIdr(memberSplit.guestGross)}
-                </span>
-              </div>
+          <DonutChart
+            data={[
+              { label: 'Member', value: Number(memberSplit.memberGross) },
+              { label: 'Tamu', value: Number(memberSplit.guestGross) },
+            ]}
+          />
+          <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-brand-ink-3">
+            <div>
+              Member: {memberSplit.memberOrders} order ·{' '}
+              <span className="text-brand-ink">{formatIdr(memberSplit.memberGross)}</span>
+            </div>
+            <div>
+              Tamu: {memberSplit.guestOrders} order ·{' '}
+              <span className="text-brand-ink">{formatIdr(memberSplit.guestGross)}</span>
             </div>
           </div>
         </Panel>
@@ -450,12 +435,12 @@ export default async function BusinessIntelligencePage() {
           Distribusi transaksi per jam. Membantu menjadwalkan staff.
         </p>
         <div className="mt-3">
-          <BarChart
+          <VerticalBarChart
             data={hourlyToday.map((h) => ({
-              label: `${String(h.hour).padStart(2, '0')}:00`,
-              value: Number(h.gross / 100n),
-              sub: `${h.orders} order`,
+              label: `${String(h.hour).padStart(2, '0')}`,
+              value: Number(h.gross),
             }))}
+            height={240}
           />
         </div>
       </section>
