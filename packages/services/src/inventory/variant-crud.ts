@@ -172,7 +172,11 @@ export async function updateVariant(
         .update(productVariants)
         .set(updates)
         .where(
-          and(eq(productVariants.id, data.variantId), eq(productVariants.version, data.version)),
+          and(
+            eq(productVariants.id, data.variantId),
+            eq(productVariants.tenantId, ctx.tenantId),
+            eq(productVariants.version, data.version),
+          ),
         )
         .returning();
 
