@@ -522,16 +522,23 @@ export async function submitOpname(
     );
   }
 
-  // Fetch avgUnitCost for all products
+  // Fetch avgUnitCost for all products — both the product list and the
+  // stock-level join are tenant-scoped so a stray row from another
+  // tenant can't poison the cost map (defense-in-depth — the IDs come
+  // from a tenant-scoped session already).
   const productIds = [...new Set(lines.map((l) => l.productId))];
   const productCosts = await db
     .select({ id: products.id, avgUnitCost: stockLevels.avgUnitCost })
     .from(products)
     .leftJoin(
       stockLevels,
-      and(eq(stockLevels.productId, products.id), eq(stockLevels.locationId, ctx.locationId)),
+      and(
+        eq(stockLevels.productId, products.id),
+        eq(stockLevels.locationId, ctx.locationId),
+        eq(stockLevels.tenantId, ctx.tenantId),
+      ),
     )
-    .where(inArray(products.id, productIds));
+    .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, productIds)));
 
   const costMap = new Map<string, bigint>();
   for (const p of productCosts) {
