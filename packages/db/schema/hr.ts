@@ -81,6 +81,7 @@ export const employees = pgTable(
     // Payroll (references employment_contracts)
     currentContractId: text('current_contract_id'), // FK employment_contracts
 
+    ...versionCol,
     ...auditCols,
   },
   (table) => [
@@ -181,9 +182,7 @@ export const jobOpenings = pgTable(
 
     ...auditCols,
   },
-  (table) => [
-    index('job_openings_tenant_status_idx').on(table.tenantId, table.status),
-  ],
+  (table) => [index('job_openings_tenant_status_idx').on(table.tenantId, table.status)],
 );
 
 /**

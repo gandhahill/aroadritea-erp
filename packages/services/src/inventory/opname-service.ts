@@ -21,7 +21,6 @@
 import { db } from '@erp/db';
 import { accountingPeriods } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
-import { roles, userRoles } from '@erp/db/schema/auth';
 import { products, stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import { stockOpnameLines, stockOpnameSessions } from '@erp/db/schema/stock-opname';
 import { AppError } from '@erp/shared/errors';
@@ -78,22 +77,6 @@ export interface OpnameLineResult {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/** Check if a user has the director role for the tenant. */
-async function isDirector(ctx: AuditContext): Promise<boolean> {
-  const rows = await db
-    .select({ roleCode: roles.code })
-    .from(userRoles)
-    .innerJoin(roles, eq(userRoles.roleId, roles.id))
-    .where(
-      and(
-        eq(userRoles.userId, ctx.userId),
-        eq(roles.tenantId, ctx.tenantId),
-        eq(roles.code, 'director'),
-      ),
-    );
-  return rows.length > 0;
-}
 
 /** Build line result from DB row + optional product enrichment. */
 function buildLineResult(
@@ -611,11 +594,6 @@ export async function approveOpname(
   sessionId: string,
   ctx: AuditContext,
 ): Promise<Result<OpnameResult>> {
-  const director = await isDirector(ctx);
-  if (!director) {
-    return err(new AppError('FORBIDDEN', 'errors.permission'));
-  }
-
   const session = await db
     .select()
     .from(stockOpnameSessions)
@@ -657,12 +635,7 @@ export async function approveOpname(
   const claimed = await db
     .update(stockOpnameSessions)
     .set({ status: 'approved', approvedBy: ctx.userId, approvedAt: now })
-    .where(
-      and(
-        eq(stockOpnameSessions.id, sessionId),
-        eq(stockOpnameSessions.status, 'submitted'),
-      ),
-    )
+    .where(and(eq(stockOpnameSessions.id, sessionId), eq(stockOpnameSessions.status, 'submitted')))
     .returning({ id: stockOpnameSessions.id });
   if (!claimed || claimed.length === 0) {
     return err(

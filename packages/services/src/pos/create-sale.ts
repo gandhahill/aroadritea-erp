@@ -564,6 +564,8 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
   });
   if (!permCheck.ok) return permCheck;
 
+  let claimedIdempotencyId: string | null = null;
+
   try {
     // 3. Validate shift is open
     const shift = await db
@@ -605,6 +607,12 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
           }),
         );
       }
+      return err(
+        AppError.conflict('pos.createSale.idempotencyInProgress', {
+          idempotencyKey: data.idempotencyKey,
+          responseStatus: existingIdempotency.responseStatus,
+        }),
+      );
     }
 
     // 5. Validate products/variants
@@ -803,7 +811,36 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     const saleId = generateId();
     const saleNumber = await generateSaleNumber(ctx.tenantId, data.locationId);
 
-    // 9. BOM ingredient deduction (for all non-service lines)
+    // 9. Claim idempotency before any stock/order/accounting mutation.
+    const expiryAt = new Date();
+    expiryAt.setHours(expiryAt.getHours() + 24);
+    const idempotencyId = generateId();
+    const claimRows = await db
+      .insert(idempotencyRecords)
+      .values({
+        id: idempotencyId,
+        idempotencyKey: data.idempotencyKey,
+        locationId: data.locationId,
+        responseStatus: 102,
+        responseBody: { status: 'processing' } as never,
+        createdAt: new Date(),
+        expiresAt: expiryAt,
+      })
+      .onConflictDoNothing({
+        target: [idempotencyRecords.idempotencyKey, idempotencyRecords.locationId],
+      })
+      .returning({ id: idempotencyRecords.id });
+
+    if (!claimRows[0]) {
+      return err(
+        AppError.conflict('pos.createSale.idempotencyInProgress', {
+          idempotencyKey: data.idempotencyKey,
+        }),
+      );
+    }
+    claimedIdempotencyId = idempotencyId;
+
+    // 10. BOM ingredient deduction (for all non-service lines)
     for (const line of data.lines) {
       const p = productMap.get(line.productId);
       if (p?.kind === 'service') continue; // skip service items
@@ -963,26 +1000,48 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     if (jeResult.ok) {
       journalEntryId = jeResult.value.id;
       const postResult = await autoPostJournalEntry(journalEntryId, ctx);
-      if (!postResult.ok) return err(postResult.error);
+      if (!postResult.ok) {
+        if (claimedIdempotencyId) {
+          await db
+            .update(idempotencyRecords)
+            .set({
+              responseStatus: 500,
+              responseBody: { error: 'journal_auto_post_failed' } as never,
+            })
+            .where(eq(idempotencyRecords.id, claimedIdempotencyId));
+          claimedIdempotencyId = null;
+        }
+        return err(postResult.error);
+      }
       // Update sales_order with JE reference
       await db.update(salesOrders).set({ journalEntryId }).where(eq(salesOrders.id, saleId));
     } else {
+      if (claimedIdempotencyId) {
+        await db
+          .update(idempotencyRecords)
+          .set({
+            responseStatus: 500,
+            responseBody: { error: 'journal_create_failed' } as never,
+          })
+          .where(eq(idempotencyRecords.id, claimedIdempotencyId));
+        claimedIdempotencyId = null;
+      }
       return err(jeResult.error);
     }
 
     // 14. Idempotency record
-    const expiryAt = new Date();
-    expiryAt.setHours(expiryAt.getHours() + 24);
-
-    await db.insert(idempotencyRecords).values({
-      id: existingIdempotency?.id ?? generateId(),
-      idempotencyKey: data.idempotencyKey,
-      locationId: data.locationId,
-      responseStatus: 200,
-      responseBody: { id: saleId } as never,
-      createdAt: new Date(),
-      expiresAt: expiryAt,
-    });
+    if (!claimedIdempotencyId) {
+      return err(AppError.internal('pos.createSale.idempotencyClaimMissing'));
+    }
+    await db
+      .update(idempotencyRecords)
+      .set({
+        responseStatus: 200,
+        responseBody: { id: saleId } as never,
+        expiresAt: expiryAt,
+      })
+      .where(eq(idempotencyRecords.id, claimedIdempotencyId));
+    claimedIdempotencyId = null;
 
     // 15. Audit log
     await db.insert(auditLog).values({
@@ -1050,6 +1109,15 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
 
     return ok(result);
   } catch (e) {
+    if (claimedIdempotencyId) {
+      await db
+        .update(idempotencyRecords)
+        .set({
+          responseStatus: 500,
+          responseBody: { error: 'sale_create_failed' } as never,
+        })
+        .where(eq(idempotencyRecords.id, claimedIdempotencyId));
+    }
     return err(AppError.internal('pos.createSale.failed', e));
   }
 }

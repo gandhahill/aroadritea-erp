@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-19 (Sonnet 4.7) | 🟨 IN_PROGRESS | Overnight sweep 2026-05-19: 12 commits — UUID→name sweep, demo POS parity (member, atas nama, struk, label), demo shift bar (sessionStorage), close-shift fix (controlled inputs), supplies separated to /inventory/supplies, XLSX export unified via ExportXlsxButton, locale-aware location pickers, opname auto-include all products, opname period tenant-scope, CMS getPage/Post/update/publish/delete tenant-scope, workflow+KDS+category+variant tenant-scope, products/categories/variants joins tenant-scope, member+leave joins, supplies preselects raw_material kind + isSellable=false defaults, sellable-kind whitelist on products list. Full typecheck green across 10 packages. |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-19 21:32 WIB (Codex) | 🟨 IN_PROGRESS | Current sweep: security/SoT fixes across uploads, CRM PII/audit, host redirects, RBAC approval gates, PO approval race, POS idempotency, POS sync status mapping, HR employee optimistic lock, notification channel permission/audit, custom-field tenant/soft-delete/search, and attendance location scoping. Verification: full typecheck PASS, services tests 533/533 PASS, web/site/mcp builds PASS; global lint still fails on pre-existing repo debt. |
 
 ---
 

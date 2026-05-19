@@ -127,6 +127,20 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
   - Authenticated route-load smoke with admin session returned HTTP 200 with no login fallback/application-error marker for `/pos`, `/pos/demo`, `/docs`, `/settings/permissions`, `/inventory/products`, `/settings/promotions`, `/reporting/business-intelligence`, `/accounting/journals/new`, `/accounting/coa`, `/tax/rates`, `/tax/rules`, `/hr/checkin`, `/hr/leave`, `/account`, `/audit`, and `/settings/scheduled-jobs`.
   - HR check-in and scheduled-jobs page localized markers were smoke-checked in ID/EN/ZH.
   - `pnpm audit --audit-level moderate` returned "No known vulnerabilities found" locally after GitHub showed a Dependabot banner on push.
+- 2026-05-19 21:22 local security/SoT sweep:
+  - Created security-scan artifacts under `C:\tmp\codex-security-scans\ERP\d906c5e_20260519-204934\artifacts\` (`threat_model.md`, `runtime_inventory.md`, `exhaustive-file-checklist.md`) and repository threat model at `C:\tmp\codex-security-scans\ERP\threat_model.md`.
+  - Hardened uploads with area allowlist, image-only public upload validation, sidecar metadata, tenant/uploader metadata, and area-specific read/write permissions.
+  - Added a guard so upload metadata sidecar `.json` files cannot be served through the public/private upload read endpoint.
+  - Encrypted CRM complaint phone storage, decrypted on read, scoped resolve/compensation to complaint location, and added complaint/compensation audit rows.
+  - Restricted production redirect origin construction in web/site middleware to configured public origins instead of trusting forwarded host blindly.
+  - Removed hardcoded `director` role checks from inventory adjustment, stock opname, and purchasing approval paths; added missing `inventory.adjust.approve`, `inventory.opname`, and `inventory.opname.approve` seed permissions.
+  - Fixed PO approval race by claiming approval authority before creating AP journal, rolling back the soft lock if accounting rejects, and rejecting missing inventory account UUIDs instead of passing a COA code as account id.
+  - Fixed POS idempotency race by claiming the idempotency key before stock/order/payment/journal side effects, marking processing/failure/success states, and returning service HTTP status from `/api/sync/pos`.
+  - Added HR employee `version` column + migration and enforced optimistic locking/location-scoped permission on employee update/deactivate, with deactivate audit trail.
+  - Hardened notification channels with service-level `settings.manage`, tenant-scoped update/readback, and masked create/update audit rows; updated web and MCP callers.
+  - Hardened custom fields with tenant-scoped update/delete, soft-delete instead of hard delete, deleted-row filters, JSONB-safe search operators, and delete audit trail.
+  - Hardened attendance check-in/out by verifying active employee records, scoping permission/GPS/shift/record writes to employee or attendance location, and filtering list results by non-deleted rows/location.
+  - Targeted typechecks passed after these patches: `@erp/services`, `@erp/db`, `@erp/web`, `@erp/site`, and `@erp/mcp` as applicable per touched package.
 
 ## Plan
 
@@ -147,7 +161,7 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 
 ## Next Step
 
-Continue the SoT mismatch sweep from `docs/TRACEABILITY-AUDIT.md`: pick the remaining `PARTIAL` rows with highest operational risk, starting with hardcoded-copy i18n migration, MCP write-tool expansion for newly added CRUD surfaces, POS receipt/label print parity, and PII encryption verification. For each fix, run targeted typecheck/test/build, then add authenticated browser/route smoke evidence before moving T-0167 to done.
+Continue from the 2026-05-19 sweep by running broader verification (`pnpm -r typecheck`, `pnpm --filter @erp/services test`, and at least web/mcp build if time permits). If those pass, continue the SoT mismatch sweep from `docs/TRACEABILITY-AUDIT.md` on the remaining `PARTIAL` rows: hardcoded-copy i18n migration, MCP write-tool expansion for CRUD surfaces, POS receipt/label print parity, and deeper PII encryption verification.
 
 ## Test Status
 
@@ -185,3 +199,15 @@ Continue the SoT mismatch sweep from `docs/TRACEABILITY-AUDIT.md`: pick the rema
   - PM2 processes are online; internal site/web/MCP health checks passed.
   - External public smoke passed for site/member/legal/PWA assets.
   - Authenticated ERP route-load smoke passed for 16 critical ERP routes.
+- 2026-05-19 21:22 local targeted verification PASS:
+  - `pnpm --filter @erp/services typecheck` passed after service-layer security/logic patches.
+  - `pnpm --filter @erp/db typecheck` passed after HR schema/migration/IAM seed changes.
+  - `pnpm --filter @erp/web typecheck` passed after upload/POS sync/settings notification caller changes.
+  - `pnpm --filter @erp/site typecheck` passed after middleware origin hardening.
+  - `pnpm --filter @erp/mcp typecheck` passed after notification-channel MCP caller alignment.
+- 2026-05-19 21:32 broader local verification:
+  - `pnpm -r typecheck` PASS across 10 workspace projects.
+  - `pnpm --filter @erp/services test` PASS: 25 files, 533 tests.
+  - `pnpm --filter @erp/site build` PASS and `pnpm --filter @erp/mcp build` PASS.
+  - `pnpm --filter @erp/web build` PASS after rerun with a longer timeout.
+  - `pnpm lint` FAIL remains pre-existing broad repo debt: 214 errors / 499 warnings across old files. A targeted Biome write/check over the 19 touched source files fixed 9 files and left only warnings in touched scope.

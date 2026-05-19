@@ -7,11 +7,12 @@
  */
 
 import { db } from '@erp/db';
+import { auditLog } from '@erp/db/schema/audit';
 import { customFieldDefinitions, customFieldValues } from '@erp/db/schema/customfield';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, like, or, sql } from 'drizzle-orm';
+import { and, eq, isNull, like, or, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // ─── Data type enum ──────────────────────────────────────────────────────────
@@ -94,6 +95,7 @@ export async function createDefinition(
           eq(customFieldDefinitions.tenantId, ctx.tenantId),
           eq(customFieldDefinitions.entityType, input.entityType),
           eq(customFieldDefinitions.key, input.key),
+          isNull(customFieldDefinitions.deletedAt),
         ),
       )
       .limit(1);
@@ -146,6 +148,7 @@ export async function listDefinitions(
         and(
           eq(customFieldDefinitions.tenantId, ctx.tenantId),
           eq(customFieldDefinitions.entityType, entityType),
+          isNull(customFieldDefinitions.deletedAt),
         ),
       )
       .orderBy(customFieldDefinitions.displayOrder);
@@ -180,7 +183,13 @@ export async function updateDefinition(
     const existing = await db
       .select()
       .from(customFieldDefinitions)
-      .where(eq(customFieldDefinitions.id, input.id))
+      .where(
+        and(
+          eq(customFieldDefinitions.id, input.id),
+          eq(customFieldDefinitions.tenantId, ctx.tenantId),
+          isNull(customFieldDefinitions.deletedAt),
+        ),
+      )
       .limit(1);
 
     if (!existing[0])
@@ -197,8 +206,14 @@ export async function updateDefinition(
         isIndexed: input.isIndexed ?? existing[0].isIndexed,
         displayOrder: input.displayOrder ?? existing[0].displayOrder,
         updatedBy: ctx.userId,
+        updatedAt: new Date(),
       })
-      .where(eq(customFieldDefinitions.id, input.id));
+      .where(
+        and(
+          eq(customFieldDefinitions.id, input.id),
+          eq(customFieldDefinitions.tenantId, ctx.tenantId),
+        ),
+      );
 
     return ok(undefined);
   } catch (e) {
@@ -216,10 +231,48 @@ export async function deleteDefinition(id: string, ctx: AuditContext): Promise<R
   if (!permCheck.ok) return permCheck;
 
   try {
-    // Delete values first (no FK cascade in all DBs)
-    await db.delete(customFieldValues).where(eq(customFieldValues.definitionId, id));
+    const existing = await db
+      .select()
+      .from(customFieldDefinitions)
+      .where(
+        and(
+          eq(customFieldDefinitions.id, id),
+          eq(customFieldDefinitions.tenantId, ctx.tenantId),
+          isNull(customFieldDefinitions.deletedAt),
+        ),
+      )
+      .limit(1);
 
-    await db.delete(customFieldDefinitions).where(eq(customFieldDefinitions.id, id));
+    if (!existing[0]) return err(AppError.notFound('customfield.definitionNotFound', { id }));
+
+    const deletedAt = new Date();
+    await db
+      .update(customFieldValues)
+      .set({ deletedAt, updatedBy: ctx.userId, updatedAt: deletedAt })
+      .where(eq(customFieldValues.definitionId, id));
+
+    await db
+      .update(customFieldDefinitions)
+      .set({ deletedAt, updatedBy: ctx.userId, updatedAt: deletedAt })
+      .where(
+        and(eq(customFieldDefinitions.id, id), eq(customFieldDefinitions.tenantId, ctx.tenantId)),
+      );
+
+    await db.insert(auditLog).values({
+      id: crypto.randomUUID(),
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: 'delete',
+      entityType: 'custom_field_definition',
+      entityId: id,
+      before: {
+        entityType: existing[0].entityType,
+        key: existing[0].key,
+        dataType: existing[0].dataType,
+      },
+      after: { deletedAt: deletedAt.toISOString() },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+    });
 
     return ok(undefined);
   } catch (e) {
@@ -249,6 +302,7 @@ export async function setValue(
         and(
           eq(customFieldDefinitions.id, input.definitionId),
           eq(customFieldDefinitions.tenantId, ctx.tenantId),
+          isNull(customFieldDefinitions.deletedAt),
         ),
       )
       .limit(1)
@@ -305,7 +359,12 @@ export async function setValue(
     if (existing[0]) {
       await db
         .update(customFieldValues)
-        .set({ value: input.value as never, updatedBy: ctx.userId })
+        .set({
+          value: input.value as never,
+          deletedAt: null,
+          updatedBy: ctx.userId,
+          updatedAt: new Date(),
+        })
         .where(
           and(
             eq(customFieldValues.definitionId, input.definitionId),
@@ -367,6 +426,7 @@ export async function getValuesByEntity(
         and(
           eq(customFieldDefinitions.tenantId, ctx.tenantId),
           eq(customFieldDefinitions.entityType, entityType),
+          isNull(customFieldDefinitions.deletedAt),
         ),
       )
       .orderBy(customFieldDefinitions.displayOrder);
@@ -380,6 +440,7 @@ export async function getValuesByEntity(
       .where(
         and(
           eq(customFieldValues.entityId, entityId),
+          isNull(customFieldValues.deletedAt),
           sql`${customFieldValues.definitionId} IN (${sql.join(
             defIds.map((id) => sql`${id}`),
             sql`, `,
@@ -416,7 +477,14 @@ export async function search(
     const def = await db
       .select()
       .from(customFieldDefinitions)
-      .where(eq(customFieldDefinitions.id, input.definitionId))
+      .where(
+        and(
+          eq(customFieldDefinitions.id, input.definitionId),
+          eq(customFieldDefinitions.tenantId, ctx.tenantId),
+          eq(customFieldDefinitions.entityType, input.entityType),
+          isNull(customFieldDefinitions.deletedAt),
+        ),
+      )
       .limit(1)
       .then((r) => r[0]);
 
@@ -429,29 +497,55 @@ export async function search(
 
     switch (input.op) {
       case 'eq':
-        whereClause = sql`${customFieldValues.value} = ${JSON.stringify(val)}`;
+        whereClause = sql`${customFieldValues.value} = ${JSON.stringify(val)}::jsonb`;
         break;
       case 'ne':
-        whereClause = sql`${customFieldValues.value} != ${JSON.stringify(val)}`;
+        whereClause = sql`${customFieldValues.value} != ${JSON.stringify(val)}::jsonb`;
         break;
-      case 'gt':
-        whereClause = sql`(${customFieldValues.value} #>> '{}')::numeric > ${Number(val)}`;
+      case 'gt': {
+        const numericVal = Number(val);
+        if (!Number.isFinite(numericVal)) {
+          return err(AppError.validation('customfield.numericOperatorRequiresNumber'));
+        }
+        whereClause = sql`(${customFieldValues.value} #>> '{}')::numeric > ${numericVal}`;
         break;
-      case 'gte':
-        whereClause = sql`(${customFieldValues.value} #>> '{}')::numeric >= ${Number(val)}`;
+      }
+      case 'gte': {
+        const numericVal = Number(val);
+        if (!Number.isFinite(numericVal)) {
+          return err(AppError.validation('customfield.numericOperatorRequiresNumber'));
+        }
+        whereClause = sql`(${customFieldValues.value} #>> '{}')::numeric >= ${numericVal}`;
         break;
-      case 'lt':
-        whereClause = sql`(${customFieldValues.value} #>> '{}')::numeric < ${Number(val)}`;
+      }
+      case 'lt': {
+        const numericVal = Number(val);
+        if (!Number.isFinite(numericVal)) {
+          return err(AppError.validation('customfield.numericOperatorRequiresNumber'));
+        }
+        whereClause = sql`(${customFieldValues.value} #>> '{}')::numeric < ${numericVal}`;
         break;
-      case 'lte':
-        whereClause = sql`(${customFieldValues.value} #>> '{}')::numeric <= ${Number(val)}`;
+      }
+      case 'lte': {
+        const numericVal = Number(val);
+        if (!Number.isFinite(numericVal)) {
+          return err(AppError.validation('customfield.numericOperatorRequiresNumber'));
+        }
+        whereClause = sql`(${customFieldValues.value} #>> '{}')::numeric <= ${numericVal}`;
         break;
+      }
       case 'contains':
-        whereClause = sql`(${customFieldValues.value} #>> '{}') LIKE ${`%${String(val)}%`}`;
+        whereClause = sql`(${customFieldValues.value} #>> '{}') ILIKE ${`%${String(val)}%`}`;
         break;
       case 'in':
         if (Array.isArray(val)) {
-          whereClause = sql`${customFieldValues.value} = ANY(${JSON.stringify(val)})`;
+          whereClause =
+            val.length === 0
+              ? sql`false`
+              : sql`${customFieldValues.value} IN (${sql.join(
+                  val.map((item) => sql`${JSON.stringify(item)}::jsonb`),
+                  sql`, `,
+                )})`;
         } else {
           return err(AppError.validation('customfield.inOperatorRequiresArray'));
         }
@@ -471,6 +565,8 @@ export async function search(
         and(
           eq(customFieldDefinitions.tenantId, ctx.tenantId),
           eq(customFieldDefinitions.entityType, input.entityType),
+          isNull(customFieldDefinitions.deletedAt),
+          isNull(customFieldValues.deletedAt),
           eq(customFieldValues.definitionId, input.definitionId),
           whereClause,
         ),

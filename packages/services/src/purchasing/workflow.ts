@@ -8,13 +8,12 @@
 
 import { db } from '@erp/db';
 import { accountingPeriods, accounts } from '@erp/db/schema/accounting';
-import { roles, userRoles } from '@erp/db/schema/auth';
 import { products } from '@erp/db/schema/inventory';
 import { purchaseOrderLines, purchaseOrders } from '@erp/db/schema/purchasing';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
@@ -39,7 +38,7 @@ async function resolveAccountId(tenantId: string, code: string): Promise<string 
 async function resolveInventoryAccountForProduct(
   tenantId: string,
   productId: string,
-): Promise<string> {
+): Promise<string | null> {
   const [row] = await db
     .select({ inventoryAccountId: products.inventoryAccountId })
     .from(products)
@@ -49,22 +48,7 @@ async function resolveInventoryAccountForProduct(
   if (row?.inventoryAccountId) return row.inventoryAccountId;
 
   const fallback = await resolveAccountId(tenantId, DEFAULT_INVENTORY_ACCOUNT_CODE);
-  return fallback ?? DEFAULT_INVENTORY_ACCOUNT_CODE;
-}
-
-async function isDirector(ctx: AuditContext): Promise<boolean> {
-  const rows = await db
-    .select({ roleCode: roles.code })
-    .from(userRoles)
-    .innerJoin(roles, eq(userRoles.roleId, roles.id))
-    .where(
-      and(
-        eq(userRoles.userId, ctx.userId),
-        eq(roles.tenantId, ctx.tenantId),
-        eq(roles.code, 'director'),
-      ),
-    );
-  return rows.length > 0;
+  return fallback;
 }
 
 // ─── Result types ───────────────────────────────────────────────────────────
@@ -167,11 +151,6 @@ export async function approvePO(
     );
   }
 
-  const director = await isDirector(ctx);
-  if (!director) {
-    return err(AppError.forbidden('purchasing.errors.not_director'));
-  }
-
   const [po] = await db
     .select()
     .from(purchaseOrders)
@@ -247,18 +226,52 @@ export async function approvePO(
     ctx.tenantId,
     firstProduct.productId,
   );
+  if (!invAccountId) {
+    return err(
+      AppError.businessRule('purchasing.errors.inventory_account_not_found', {
+        code: DEFAULT_INVENTORY_ACCOUNT_CODE,
+      }),
+    );
+  }
 
-  // Create AP journal entry: DR Inventory/Expense, CR AP. If this
-  // fails (period closed mid-flight, account inactive, etc.) we MUST
-  // abort the approval — otherwise the PO ends up "approved" with a
-  // null journalEntryId, meaning AP is missing from the books while
-  // procurement believes the order is committed.
+  if (po.approvedBy) {
+    return err(AppError.conflict('purchasing.errors.approval_in_progress'));
+  }
+
+  // Claim approval authority before creating accounting artifacts. This
+  // prevents concurrent approvers from creating duplicate AP journals
+  // while the PO still appears submitted.
+  const approvalClaimedAt = new Date();
+  const approvalClaim = await db
+    .update(purchaseOrders)
+    .set({
+      approvedBy: ctx.userId,
+      approvedAt: approvalClaimedAt,
+      updatedBy: ctx.userId,
+      version: po.version + 1,
+    })
+    .where(
+      and(
+        eq(purchaseOrders.tenantId, ctx.tenantId),
+        eq(purchaseOrders.id, po.id),
+        eq(purchaseOrders.version, po.version),
+        eq(purchaseOrders.status, 'submitted'),
+        isNull(purchaseOrders.approvedBy),
+      ),
+    )
+    .returning({ id: purchaseOrders.id });
+  if (!approvalClaim || approvalClaim.length === 0) {
+    return err(AppError.conflict('purchasing.errors.version_mismatch'));
+  }
+
+  // Create AP journal entry after the approval soft lock. If accounting
+  // rejects it, the lock is rolled back before returning.
   const grandTotal = po.grandTotal.toString();
   const jeResult = await createJournal(
     {
       postingDate: po.orderDate,
       locationId: po.locationId,
-      description: `Purchase Order ${po.number} — AP recognition`,
+      description: `Purchase Order ${po.number} - AP recognition`,
       referenceType: 'purchase',
       referenceId: po.id,
       lines: [
@@ -282,32 +295,48 @@ export async function approvePO(
     },
     ctx,
   );
-  if (!jeResult.ok) return jeResult;
+  if (!jeResult.ok) {
+    await db
+      .update(purchaseOrders)
+      .set({
+        approvedBy: null,
+        approvedAt: null,
+        updatedBy: ctx.userId,
+        version: po.version,
+      })
+      .where(
+        and(
+          eq(purchaseOrders.tenantId, ctx.tenantId),
+          eq(purchaseOrders.id, po.id),
+          eq(purchaseOrders.version, po.version + 1),
+          eq(purchaseOrders.status, 'submitted'),
+          eq(purchaseOrders.approvedBy, ctx.userId),
+        ),
+      );
+    return jeResult;
+  }
   const journalEntryId = jeResult.value.id;
 
-  // CLAIM the PO atomically. If a concurrent approve already advanced
-  // the status, this UPDATE affects zero rows and we surface a
-  // version-mismatch conflict (the JE we just created is orphaned —
-  // ledger reviewers can match it via referenceId=po.id).
-  const claimed = await db
+  // Finalize the approval only if this caller still owns the soft lock.
+  const finalized = await db
     .update(purchaseOrders)
     .set({
       status: 'approved',
-      approvedBy: ctx.userId,
-      approvedAt: new Date(),
       journalEntryId,
       updatedBy: ctx.userId,
-      version: po.version + 1,
+      version: po.version + 2,
     })
     .where(
       and(
+        eq(purchaseOrders.tenantId, ctx.tenantId),
         eq(purchaseOrders.id, po.id),
-        eq(purchaseOrders.version, po.version),
+        eq(purchaseOrders.version, po.version + 1),
         eq(purchaseOrders.status, 'submitted'),
+        eq(purchaseOrders.approvedBy, ctx.userId),
       ),
     )
     .returning({ id: purchaseOrders.id });
-  if (!claimed || claimed.length === 0) {
+  if (!finalized || finalized.length === 0) {
     return err(AppError.conflict('purchasing.errors.version_mismatch'));
   }
 
@@ -372,11 +401,17 @@ export async function cancelPO(
     );
   }
 
-  // Approved POs: only creator or director can cancel
+  if (po.status === 'submitted' && po.approvedBy) {
+    return err(AppError.conflict('purchasing.errors.approval_in_progress'));
+  }
+
+  // Approved POs: only creator or users with approval authority can cancel.
   if (po.status === 'approved') {
     const isCreator = po.createdBy === ctx.userId;
-    const director = await isDirector(ctx);
-    if (!isCreator && !director) {
+    const approvePerm = await requirePermission(ctx.userId, 'purchasing.po.approve', {
+      locationId: po.locationId,
+    });
+    if (!isCreator && !approvePerm.ok) {
       return err(AppError.forbidden('purchasing.errors.cancel_not_authorized'));
     }
   }

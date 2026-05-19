@@ -81,6 +81,7 @@ export async function POST(req: NextRequest) {
       .where(
         and(
           eq(salesOrders.idempotencyKey, idempotencyKey),
+          eq(salesOrders.tenantId, ctx.tenantId),
           eq(salesOrders.locationId, input.locationId),
         ),
       )
@@ -99,7 +100,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid createdAtClient timestamp' }, { status: 400 });
     }
 
-    const diffHours = (Date.now() - clientTime.getTime()) / (1000 * 60 * 60);
+    const nowMs = new Date().getTime();
+    const diffHours = (nowMs - clientTime.getTime()) / (1000 * 60 * 60);
+    if (diffHours < -5 / 60) {
+      return NextResponse.json(
+        { error: 'Client timestamp is too far in the future' },
+        { status: 422 },
+      );
+    }
     if (diffHours > 24) {
       return NextResponse.json(
         { error: 'Client timestamp too old (max 24 hours)' },
@@ -114,7 +122,7 @@ export async function POST(req: NextRequest) {
           error: result.error.messageKey,
           details: result.error.details,
         },
-        { status: 422 },
+        { status: result.error.httpStatus },
       );
     }
 

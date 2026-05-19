@@ -2,13 +2,29 @@ import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
-const ALLOWED_AREAS = new Set([
+export const ALLOWED_UPLOAD_AREAS = [
   'product-images',
   'cms-images',
   'reimbursement',
   'disciplinary',
   'general',
-]);
+] as const;
+
+export type UploadArea = (typeof ALLOWED_UPLOAD_AREAS)[number];
+
+const ALLOWED_AREAS = new Set<string>(ALLOWED_UPLOAD_AREAS);
+const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif']);
+
+export interface UploadMetadata {
+  tenantId: string;
+  uploadedBy: string;
+  area: UploadArea;
+  visibility: 'public' | 'private';
+  originalName: string;
+  mimeType: string;
+  fileSize: number;
+  uploadedAt: string;
+}
 
 export interface StoredUpload {
   key: string;
@@ -24,11 +40,17 @@ export function validateUploadArea(area: string): string {
   return clean;
 }
 
+export function parseUploadArea(area: string): UploadArea | null {
+  const clean = area.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+  return ALLOWED_AREAS.has(clean) ? (clean as UploadArea) : null;
+}
+
 export function assertUploadFile(file: File, imageOnly = false) {
   if (!file.size || file.size > MAX_UPLOAD_BYTES) {
     throw new Error('invalid-size');
   }
-  if (imageOnly && !file.type.startsWith('image/')) {
+  const ext = path.extname(sanitizeFileName(file.name)).toLowerCase();
+  if (imageOnly && (!file.type.startsWith('image/') || !IMAGE_EXTENSIONS.has(ext))) {
     throw new Error('invalid-type');
   }
 }
@@ -37,19 +59,35 @@ export async function storeUpload({
   file,
   area,
   visibility,
+  tenantId,
+  uploadedBy,
 }: {
   file: File;
-  area: string;
+  area: UploadArea;
   visibility: 'public' | 'private';
+  tenantId: string;
+  uploadedBy: string;
 }): Promise<StoredUpload> {
-  const cleanArea = validateUploadArea(area);
+  const cleanArea = area;
   const safeName = sanitizeFileName(file.name);
   const ext = path.extname(safeName);
   const fileName = `${Date.now()}-${crypto.randomUUID()}${ext}`;
   const key = `${visibility}/${cleanArea}/${fileName}`;
   const targetDir = path.join(uploadRoot(), visibility, cleanArea);
   await mkdir(targetDir, { recursive: true });
-  await writeFile(path.join(targetDir, fileName), Buffer.from(await file.arrayBuffer()));
+  const targetPath = path.join(targetDir, fileName);
+  await writeFile(targetPath, Buffer.from(await file.arrayBuffer()));
+  const metadata: UploadMetadata = {
+    tenantId,
+    uploadedBy,
+    area,
+    visibility,
+    originalName: safeName,
+    mimeType: file.type || 'application/octet-stream',
+    fileSize: file.size,
+    uploadedAt: new Date().toISOString(),
+  };
+  await writeFile(`${targetPath}.json`, JSON.stringify(metadata, null, 2));
   return {
     key,
     url: `/api/uploads/${key}`,
@@ -64,14 +102,21 @@ export async function readUpload(keyParts: string[]) {
   if ((visibility !== 'public' && visibility !== 'private') || !area || !fileName) {
     throw new Error('invalid-key');
   }
-  const cleanArea = validateUploadArea(area);
+  const cleanArea = parseUploadArea(area);
+  if (!cleanArea) throw new Error('invalid-key');
   const cleanFileName = sanitizeFileName(fileName);
+  if (cleanFileName.toLowerCase().endsWith('.json')) throw new Error('invalid-key');
   const filePath = path.join(uploadRoot(), visibility, cleanArea, cleanFileName);
   const root = path.resolve(uploadRoot());
   const resolved = path.resolve(filePath);
-  if (!resolved.startsWith(root)) throw new Error('invalid-key');
-  const [bytes, info] = await Promise.all([readFile(resolved), stat(resolved)]);
-  return { bytes, info, visibility };
+  if (!(resolved === root || resolved.startsWith(`${root}${path.sep}`)))
+    throw new Error('invalid-key');
+  const [bytes, info, metadata] = await Promise.all([
+    readFile(resolved),
+    stat(resolved),
+    readUploadMetadata(resolved),
+  ]);
+  return { bytes, info, visibility, area: cleanArea, metadata };
 }
 
 function uploadRoot(): string {
@@ -81,4 +126,23 @@ function uploadRoot(): string {
 function sanitizeFileName(value: string): string {
   const base = path.basename(value || 'file');
   return base.replace(/[^a-zA-Z0-9._-]/g, '-').slice(0, 160) || 'file';
+}
+
+async function readUploadMetadata(filePath: string): Promise<UploadMetadata | null> {
+  try {
+    const raw = await readFile(`${filePath}.json`, 'utf8');
+    const parsed = JSON.parse(raw) as Partial<UploadMetadata>;
+    if (
+      !parsed ||
+      typeof parsed.tenantId !== 'string' ||
+      typeof parsed.uploadedBy !== 'string' ||
+      typeof parsed.area !== 'string' ||
+      typeof parsed.visibility !== 'string'
+    ) {
+      return null;
+    }
+    return parsed as UploadMetadata;
+  } catch {
+    return null;
+  }
 }

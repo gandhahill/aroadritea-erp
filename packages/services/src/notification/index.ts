@@ -8,15 +8,17 @@
 
 import { and, db, desc, eq, isNull, sql } from '@erp/db';
 import { notificationChannels } from '@erp/db';
+import { auditLog } from '@erp/db/schema/audit';
 import { rolePermissions, userRoles, users } from '@erp/db/schema/auth';
-import { userNotifications } from '@erp/db/schema/notification';
 import { permissions } from '@erp/db/schema/auth';
+import { userNotifications } from '@erp/db/schema/notification';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
 import { requirePermission } from '../iam';
+import { maskPii } from '../security/pii';
 
 const ChannelTypeSchema = z.enum(['email', 'whatsapp', 'telegram']);
 const PurposeSchema = z.enum(['all', 'outage', 'stock_alert']);
@@ -63,12 +65,15 @@ async function canManage(ctx: AuditContext): Promise<Result<void>> {
 }
 
 export async function listNotificationChannels(
-  tenantId: string,
+  ctx: AuditContext,
 ): Promise<Result<NotificationChannelResult[]>> {
+  const perm = await canManage(ctx);
+  if (!perm.ok) return perm;
+
   const rows = await db
     .select()
     .from(notificationChannels)
-    .where(eq(notificationChannels.tenantId, tenantId))
+    .where(eq(notificationChannels.tenantId, ctx.tenantId))
     .orderBy(notificationChannels.label);
 
   return ok(rows.map(toResult));
@@ -96,10 +101,28 @@ export async function createNotificationChannel(
     updatedBy: ctx.userId,
   });
 
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'create',
+    entityType: 'notification_channel',
+    entityId: id,
+    before: null,
+    after: {
+      label: parsed.data.label,
+      channelType: parsed.data.channelType,
+      purpose: parsed.data.purpose,
+      isActive: parsed.data.isActive,
+      targetMasked: maskPii(parsed.data.target),
+    },
+    metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+  });
+
   const rows = await db
     .select()
     .from(notificationChannels)
-    .where(eq(notificationChannels.id, id))
+    .where(and(eq(notificationChannels.id, id), eq(notificationChannels.tenantId, ctx.tenantId)))
     .limit(1);
   const row = rows[0];
   if (!row) return err(AppError.internal('notification.channel.createReadbackFailed'));
@@ -119,13 +142,44 @@ export async function updateNotificationChannel(
     return err(AppError.validation('notification.channel.invalidInput', parsed.error.flatten()));
   }
 
+  const [existing] = await db
+    .select()
+    .from(notificationChannels)
+    .where(and(eq(notificationChannels.id, id), eq(notificationChannels.tenantId, ctx.tenantId)))
+    .limit(1);
+
+  if (!existing) return err(AppError.notFound('notification.channel.notFound', { id }));
+
   const rows = await db
     .update(notificationChannels)
     .set({ ...parsed.data, updatedAt: new Date(), updatedBy: ctx.userId })
-    .where(eq(notificationChannels.id, id))
+    .where(and(eq(notificationChannels.id, id), eq(notificationChannels.tenantId, ctx.tenantId)))
     .returning();
 
   if (!rows[0]) return err(AppError.notFound('notification.channel.notFound', { id }));
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'update',
+    entityType: 'notification_channel',
+    entityId: id,
+    before: {
+      label: existing.label,
+      channelType: existing.channelType,
+      purpose: existing.purpose,
+      isActive: existing.isActive,
+      targetMasked: maskPii(existing.target),
+    },
+    after: {
+      label: rows[0].label,
+      channelType: rows[0].channelType,
+      purpose: rows[0].purpose,
+      isActive: rows[0].isActive,
+      targetMasked: maskPii(rows[0].target),
+    },
+    metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+  });
   return ok(toResult(rows[0]));
 }
 
@@ -228,10 +282,7 @@ export async function listUserNotifications(
   return rows;
 }
 
-export async function countUnreadNotifications(
-  tenantId: string,
-  userId: string,
-): Promise<number> {
+export async function countUnreadNotifications(tenantId: string, userId: string): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`cast(count(*) as int)` })
     .from(userNotifications)
@@ -263,10 +314,7 @@ export async function markNotificationRead(
     );
 }
 
-export async function markAllNotificationsRead(
-  tenantId: string,
-  userId: string,
-): Promise<void> {
+export async function markAllNotificationsRead(tenantId: string, userId: string): Promise<void> {
   await db
     .update(userNotifications)
     .set({ readAt: new Date(), updatedAt: new Date() })

@@ -110,30 +110,14 @@ function shiftTimeToDate(startTime: string, referenceDate: Date): Date {
   const m = parts[1] ?? 0;
   const wibDate = new Date(referenceDate.getTime() + 7 * 60 * 60 * 1000);
   return new Date(
-    Date.UTC(
-      wibDate.getUTCFullYear(),
-      wibDate.getUTCMonth(),
-      wibDate.getUTCDate(),
-      h - 7,
-      m,
-      0,
-      0,
-    ),
+    Date.UTC(wibDate.getUTCFullYear(), wibDate.getUTCMonth(), wibDate.getUTCDate(), h - 7, m, 0, 0),
   );
 }
 
 function wibDayBounds(referenceDate: Date): { start: Date; end: Date } {
   const wibDate = new Date(referenceDate.getTime() + 7 * 60 * 60 * 1000);
   const start = new Date(
-    Date.UTC(
-      wibDate.getUTCFullYear(),
-      wibDate.getUTCMonth(),
-      wibDate.getUTCDate(),
-      -7,
-      0,
-      0,
-      0,
-    ),
+    Date.UTC(wibDate.getUTCFullYear(), wibDate.getUTCMonth(), wibDate.getUTCDate(), -7, 0, 0, 0),
   );
   const end = new Date(start.getTime() + 24 * 60 * 60 * 1000 - 1);
   return { start, end };
@@ -208,11 +192,6 @@ export async function checkIn(
   input: CheckInInput,
   ctx: AuditContext,
 ): Promise<Result<CheckInResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'hr.attendance.write', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = CheckInInputSchema.safeParse(input);
   if (!parsed.success) {
     return err(
@@ -223,6 +202,36 @@ export async function checkIn(
 
   return tryCatch(
     async () => {
+      const [employee] = await db
+        .select({
+          id: employees.id,
+          locationId: employees.locationId,
+          status: employees.status,
+        })
+        .from(employees)
+        .where(
+          and(
+            eq(employees.id, data.employeeId),
+            eq(employees.tenantId, ctx.tenantId),
+            isNull(employees.deletedAt),
+          ),
+        )
+        .limit(1);
+
+      if (!employee) {
+        throw AppError.notFound('hr.employee.notFound', { employeeId: data.employeeId });
+      }
+      if (employee.status === 'terminated') {
+        throw AppError.businessRule('hr.attendance.employeeTerminated', {
+          employeeId: data.employeeId,
+        });
+      }
+
+      const permCheck = await requirePermission(ctx.userId, 'hr.attendance.write', {
+        locationId: employee.locationId,
+      });
+      if (!permCheck.ok) throw permCheck.error;
+
       // 1. Derive shift definition
       let shiftDef = null;
       if (data.shiftDefinitionId) {
@@ -233,6 +242,7 @@ export async function checkIn(
             and(
               eq(shiftDefinitions.id, data.shiftDefinitionId),
               eq(shiftDefinitions.tenantId, ctx.tenantId),
+              eq(shiftDefinitions.locationId, employee.locationId),
               eq(shiftDefinitions.isActive, true),
               isNull(shiftDefinitions.deletedAt),
             ),
@@ -258,6 +268,8 @@ export async function checkIn(
           and(
             eq(attendance.employeeId, data.employeeId),
             eq(attendance.tenantId, ctx.tenantId),
+            eq(attendance.locationId, employee.locationId),
+            isNull(attendance.deletedAt),
             sql`${attendance.checkInAt} >= ${todayStart}`,
             sql`${attendance.checkInAt} <= ${todayEnd}`,
           ),
@@ -283,10 +295,10 @@ export async function checkIn(
           });
         }
 
-        const locationGps = await getLocationGpsConfig(ctx.tenantId, ctx.locationId);
+        const locationGps = await getLocationGpsConfig(ctx.tenantId, employee.locationId);
         if (!locationGps) {
           throw AppError.validation('hr.attendance.gpsLocationNotConfigured', {
-            locationId: ctx.locationId,
+            locationId: employee.locationId,
             message: 'GPS coordinates for this location are not configured.',
           });
         }
@@ -320,7 +332,7 @@ export async function checkIn(
         .values({
           id: attId,
           tenantId: ctx.tenantId,
-          locationId: ctx.locationId,
+          locationId: employee.locationId,
           createdBy: ctx.userId,
           updatedBy: ctx.userId,
           employeeId: data.employeeId,
@@ -369,11 +381,6 @@ export async function checkOut(
   input: CheckOutInput,
   ctx: AuditContext,
 ): Promise<Result<CheckOutResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'hr.attendance.write', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = CheckOutInputSchema.safeParse(input);
   if (!parsed.success) {
     return err(
@@ -399,6 +406,11 @@ export async function checkOut(
           attendanceId: data.attendanceId,
         });
       }
+
+      const permCheck = await requirePermission(ctx.userId, 'hr.attendance.write', {
+        locationId: existing.locationId,
+      });
+      if (!permCheck.ok) throw permCheck.error;
 
       const performedAt = data.performedAt ? new Date(data.performedAt) : new Date();
 
@@ -445,8 +457,15 @@ export async function checkOut(
           checkOutGps: data.gpsData ?? null,
           workedMinutes,
           updatedBy: ctx.userId,
+          updatedAt: new Date(),
         })
-        .where(and(eq(attendance.id, data.attendanceId), isNull(attendance.checkOutAt)))
+        .where(
+          and(
+            eq(attendance.id, data.attendanceId),
+            eq(attendance.tenantId, ctx.tenantId),
+            isNull(attendance.checkOutAt),
+          ),
+        )
         .returning({
           id: attendance.id,
           checkOutAt: attendance.checkOutAt,
@@ -509,6 +528,8 @@ export async function listAttendance(
   return tryCatch(
     async () => {
       const conditions = [eq(attendance.tenantId, ctx.tenantId)];
+      if (ctx.locationId) conditions.push(eq(attendance.locationId, ctx.locationId));
+      conditions.push(isNull(attendance.deletedAt));
       if (input.employeeId) conditions.push(eq(attendance.employeeId, input.employeeId));
       if (input.dateFrom) conditions.push(sql`${attendance.checkInAt} >= ${input.dateFrom}`);
       if (input.dateTo) conditions.push(sql`${attendance.checkInAt} <= ${input.dateTo}`);
@@ -625,12 +646,7 @@ export async function forgiveLate(
           lateForgivenReason: input.reason.trim(),
           lateForgivenAt: new Date(),
         })
-        .where(
-          and(
-            eq(attendance.id, input.attendanceId),
-            eq(attendance.lateForgiven, false),
-          ),
-        )
+        .where(and(eq(attendance.id, input.attendanceId), eq(attendance.lateForgiven, false)))
         .returning({ id: attendance.id });
       if (!claimed || claimed.length === 0) {
         throw AppError.conflict('hr.attendance.forgiveLate.alreadyForgiven');

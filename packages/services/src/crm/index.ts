@@ -9,6 +9,7 @@
 
 import { db } from '@erp/db';
 import { accounts, partners } from '@erp/db/schema/accounting';
+import { auditLog } from '@erp/db/schema/audit';
 import { cmsSettings } from '@erp/db/schema/cms';
 import { complaintCompensations, complaints } from '@erp/db/schema/crm';
 import { memberLoyalty, memberPointsTransactions, memberVouchers } from '@erp/db/schema/member';
@@ -186,7 +187,7 @@ export async function logComplaint(
       locationId: ctx.locationId,
       memberId: input.memberId ?? null,
       customerName: input.customerName ?? null,
-      customerPhone: input.customerPhone ?? null,
+      customerPhone: encryptPii(input.customerPhone, 'complaints.customerPhone'),
       orderId: input.orderId ?? null,
       orderNumber: input.orderNumber ?? null,
       occurredAt: new Date(input.occurredAt),
@@ -195,6 +196,25 @@ export async function logComplaint(
       priority: input.priority ?? 'medium',
       createdBy: ctx.userId,
       updatedBy: ctx.userId,
+    });
+    await db.insert(auditLog).values({
+      id: generateId(),
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: 'create',
+      entityType: 'complaint',
+      entityId: id,
+      before: null,
+      after: {
+        memberId: input.memberId ?? null,
+        customerName: input.customerName ?? null,
+        orderNumber: input.orderNumber ?? null,
+        category: input.category,
+        priority: input.priority ?? 'medium',
+        status: 'open',
+        piiFields: input.customerPhone ? ['customerPhone'] : [],
+      },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
     });
     return ok({ id });
   } catch (e) {
@@ -213,8 +233,9 @@ export async function listComplaints(
   },
   ctx: AuditContext,
 ): Promise<Result<{ items: Record<string, unknown>[]; nextCursor?: string }>> {
+  const requestedLocationId = input.locationId ?? ctx.locationId;
   const permCheck = await requirePermission(ctx.userId, 'crm.listComplaints', {
-    locationId: ctx.locationId,
+    locationId: requestedLocationId,
   });
   if (!permCheck.ok) return permCheck;
 
@@ -225,7 +246,7 @@ export async function listComplaints(
       .where(
         and(
           eq(complaints.tenantId, ctx.tenantId),
-          input.locationId ? eq(complaints.locationId, input.locationId) : undefined,
+          requestedLocationId ? eq(complaints.locationId, requestedLocationId) : undefined,
           input.status ? eq(complaints.status, input.status) : undefined,
           input.from ? gte(complaints.occurredAt, new Date(input.from)) : undefined,
         ),
@@ -237,7 +258,13 @@ export async function listComplaints(
     const items = hasMore ? rows.slice(0, -1) : rows;
     const nextCursor = hasMore ? (items[items.length - 1]?.id as string) : undefined;
 
-    return ok({ items: items as Record<string, unknown>[], nextCursor });
+    return ok({
+      items: items.map((item) => ({
+        ...item,
+        customerPhone: decryptPii(item.customerPhone, 'complaints.customerPhone'),
+      })) as Record<string, unknown>[],
+      nextCursor,
+    });
   } catch (e) {
     return err(AppError.internal('crm.listComplaints.failed', e));
   }
@@ -252,20 +279,20 @@ export async function resolveComplaint(
   },
   ctx: AuditContext,
 ): Promise<Result<void>> {
-  const permCheck = await requirePermission(ctx.userId, 'crm.resolveComplaint', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   try {
     const existing = await db
       .select()
       .from(complaints)
-      .where(eq(complaints.id, input.complaintId))
+      .where(and(eq(complaints.tenantId, ctx.tenantId), eq(complaints.id, input.complaintId)))
       .then((r) => r[0]);
 
     if (!existing)
       return err(AppError.notFound('crm.complaintNotFound', { id: input.complaintId }));
+
+    const permCheck = await requirePermission(ctx.userId, 'crm.resolveComplaint', {
+      locationId: existing.locationId,
+    });
+    if (!permCheck.ok) return permCheck;
 
     await db
       .update(complaints)
@@ -276,7 +303,27 @@ export async function resolveComplaint(
         resolvedAt: ['resolved', 'closed'].includes(input.status) ? new Date() : null,
         updatedBy: ctx.userId,
       })
-      .where(eq(complaints.id, input.complaintId));
+      .where(and(eq(complaints.tenantId, ctx.tenantId), eq(complaints.id, input.complaintId)));
+
+    await db.insert(auditLog).values({
+      id: generateId(),
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: 'update',
+      entityType: 'complaint',
+      entityId: input.complaintId,
+      before: {
+        status: existing.status,
+        assignedTo: existing.assignedTo,
+        resolutionNotes: existing.resolutionNotes,
+      },
+      after: {
+        status: input.status,
+        assignedTo: input.assignedTo ?? existing.assignedTo,
+        resolutionNotes: input.resolutionNotes ?? existing.resolutionNotes,
+      },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+    });
 
     return ok(undefined);
   } catch (e) {
@@ -300,21 +347,23 @@ export async function awardCompensation(
   },
   ctx: AuditContext,
 ): Promise<Result<{ id: string; journalEntryId?: string }>> {
-  const permCheck = await requirePermission(ctx.userId, 'crm.awardCompensation', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   try {
     // Verify complaint exists
     const complaint = await db
       .select()
       .from(complaints)
-      .where(eq(complaints.id, input.complaintId))
+      .where(and(eq(complaints.tenantId, ctx.tenantId), eq(complaints.id, input.complaintId)))
       .then((r) => r[0]);
 
     if (!complaint)
       return err(AppError.notFound('crm.complaintNotFound', { id: input.complaintId }));
+
+    const locationId = complaint.locationId ?? ctx.locationId;
+    const scopedCtx = { ...ctx, locationId };
+    const permCheck = await requirePermission(ctx.userId, 'crm.awardCompensation', {
+      locationId,
+    });
+    if (!permCheck.ok) return permCheck;
 
     // For cash/refund → create journal entry
     let jeId: string | undefined;
@@ -327,28 +376,28 @@ export async function awardCompensation(
       const jeResult = await createJournal(
         {
           postingDate,
-          locationId: ctx.locationId,
+          locationId,
           description: `Compensation refund — complaint ${input.complaintId}`,
           referenceType: 'manual',
           referenceId: input.complaintId,
           lines: [
             {
               accountId: expenseAccount.value,
-              locationId: ctx.locationId,
+              locationId,
               description: `Compensation ${input.description ?? input.kind}`,
               debit: String(input.value),
               credit: '0',
             },
             {
               accountId: cashAccount.value,
-              locationId: ctx.locationId,
+              locationId,
               description: `Compensation refund`,
               debit: '0',
               credit: String(input.value),
             },
           ],
         },
-        ctx,
+        scopedCtx,
       );
       if (jeResult.ok) jeId = jeResult.value.id;
     }
@@ -379,7 +428,7 @@ export async function awardCompensation(
     await db.insert(complaintCompensations).values({
       id: compId,
       tenantId: ctx.tenantId,
-      locationId: ctx.locationId,
+      locationId,
       complaintId: input.complaintId,
       kind: input.kind,
       value: input.value,
@@ -388,6 +437,23 @@ export async function awardCompensation(
       approvedBy: ctx.userId,
       createdBy: ctx.userId,
       updatedBy: ctx.userId,
+    });
+
+    await db.insert(auditLog).values({
+      id: generateId(),
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: 'create',
+      entityType: 'complaint_compensation',
+      entityId: compId,
+      before: null,
+      after: {
+        complaintId: input.complaintId,
+        kind: input.kind,
+        value: input.value,
+        journalEntryId: jeId ?? null,
+      },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
     });
 
     return ok({ id: compId, journalEntryId: jeId });

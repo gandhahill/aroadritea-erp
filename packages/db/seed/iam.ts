@@ -68,99 +68,442 @@ export const ROLES_SEED = [
 // === PERMISSIONS — grouped by module, with multilingual descriptions ===
 export const PERMISSIONS_SEED = [
   // System wildcard
-  { code: '*.*', module: 'system', description: n('Akses penuh seluruh sistem', 'Full system access', '完整系统访问权限') },
+  {
+    code: '*.*',
+    module: 'system',
+    description: n('Akses penuh seluruh sistem', 'Full system access', '完整系统访问权限'),
+  },
   // IAM
-  { code: 'iam.manage_users', module: 'iam', description: n('Kelola pengguna (buat/ubah/nonaktifkan)', 'Manage users (create/edit/deactivate)', '管理用户（创建/编辑/停用）') },
-  { code: 'iam.manage_roles', module: 'iam', description: n('Kelola role dan hak akses', 'Manage roles and access rights', '管理角色和访问权限') },
-  { code: 'iam.manage_permissions', module: 'iam', description: n('Atur permission per role', 'Set permissions per role', '设置每个角色的权限') },
-  { code: 'iam.manage_locations', module: 'iam', description: n('Kelola lokasi/outlet', 'Manage locations/outlets', '管理地点/门店') },
+  {
+    code: 'iam.manage_users',
+    module: 'iam',
+    description: n(
+      'Kelola pengguna (buat/ubah/nonaktifkan)',
+      'Manage users (create/edit/deactivate)',
+      '管理用户（创建/编辑/停用）',
+    ),
+  },
+  {
+    code: 'iam.manage_roles',
+    module: 'iam',
+    description: n(
+      'Kelola role dan hak akses',
+      'Manage roles and access rights',
+      '管理角色和访问权限',
+    ),
+  },
+  {
+    code: 'iam.manage_permissions',
+    module: 'iam',
+    description: n('Atur permission per role', 'Set permissions per role', '设置每个角色的权限'),
+  },
+  {
+    code: 'iam.manage_locations',
+    module: 'iam',
+    description: n('Kelola lokasi/outlet', 'Manage locations/outlets', '管理地点/门店'),
+  },
   // Accounting
-  { code: 'accounting.view', module: 'accounting', description: n('Lihat data akuntansi', 'View accounting data', '查看会计数据') },
-  { code: 'accounting.journal.create', module: 'accounting', description: n('Buat jurnal baru', 'Create new journal entry', '创建新日记账') },
-  { code: 'accounting.journal.post', module: 'accounting', description: n('Posting jurnal ke buku besar', 'Post journal to ledger', '将日记账过账到总账') },
-  { code: 'accounting.journal.reverse', module: 'accounting', description: n('Balik jurnal yang sudah posting', 'Reverse posted journal', '冲销已过账的日记账') },
-  { code: 'accounting.period.open', module: 'accounting', description: n('Buka periode akuntansi', 'Open accounting period', '打开会计期间') },
-  { code: 'accounting.period.close', module: 'accounting', description: n('Tutup periode akuntansi', 'Close accounting period', '关闭会计期间') },
-  { code: 'accounting.coa.manage', module: 'accounting', description: n('Kelola chart of accounts', 'Manage chart of accounts', '管理会计科目表') },
-  { code: 'accounting.reports', module: 'accounting', description: n('Lihat laporan keuangan', 'View financial reports', '查看财务报表') },
-  { code: 'accounting.petty_cash.view', module: 'accounting', description: n('Lihat kas kecil', 'View petty cash', '查看零用金') },
-  { code: 'accounting.petty_cash.expense', module: 'accounting', description: n('Catat pengeluaran kas kecil', 'Record petty cash expense', '记录零用金支出') },
-  { code: 'accounting.petty_cash.replenish', module: 'accounting', description: n('Isi ulang kas kecil', 'Replenish petty cash', '补充零用金') },
-  { code: 'accounting.petty_cash.manage', module: 'accounting', description: n('Kelola kas kecil (buat/tutup)', 'Manage petty cash (create/close)', '管理零用金（创建/关闭）') },
-  { code: 'accounting.reimbursement.create', module: 'accounting', description: n('Ajukan reimbursement', 'Submit reimbursement', '提交报销') },
-  { code: 'accounting.reimbursement.approve', module: 'accounting', description: n('Setujui reimbursement', 'Approve reimbursement', '批准报销') },
-  { code: 'accounting.reimbursement.disburse', module: 'accounting', description: n('Cairkan reimbursement', 'Disburse reimbursement', '发放报销') },
-  { code: 'accounting.reimbursement.view', module: 'accounting', description: n('Lihat data reimbursement', 'View reimbursement data', '查看报销数据') },
+  {
+    code: 'accounting.view',
+    module: 'accounting',
+    description: n('Lihat data akuntansi', 'View accounting data', '查看会计数据'),
+  },
+  {
+    code: 'accounting.journal.create',
+    module: 'accounting',
+    description: n('Buat jurnal baru', 'Create new journal entry', '创建新日记账'),
+  },
+  {
+    code: 'accounting.journal.post',
+    module: 'accounting',
+    description: n('Posting jurnal ke buku besar', 'Post journal to ledger', '将日记账过账到总账'),
+  },
+  {
+    code: 'accounting.journal.reverse',
+    module: 'accounting',
+    description: n(
+      'Balik jurnal yang sudah posting',
+      'Reverse posted journal',
+      '冲销已过账的日记账',
+    ),
+  },
+  {
+    code: 'accounting.period.open',
+    module: 'accounting',
+    description: n('Buka periode akuntansi', 'Open accounting period', '打开会计期间'),
+  },
+  {
+    code: 'accounting.period.close',
+    module: 'accounting',
+    description: n('Tutup periode akuntansi', 'Close accounting period', '关闭会计期间'),
+  },
+  {
+    code: 'accounting.coa.manage',
+    module: 'accounting',
+    description: n('Kelola chart of accounts', 'Manage chart of accounts', '管理会计科目表'),
+  },
+  {
+    code: 'accounting.reports',
+    module: 'accounting',
+    description: n('Lihat laporan keuangan', 'View financial reports', '查看财务报表'),
+  },
+  {
+    code: 'accounting.petty_cash.view',
+    module: 'accounting',
+    description: n('Lihat kas kecil', 'View petty cash', '查看零用金'),
+  },
+  {
+    code: 'accounting.petty_cash.expense',
+    module: 'accounting',
+    description: n('Catat pengeluaran kas kecil', 'Record petty cash expense', '记录零用金支出'),
+  },
+  {
+    code: 'accounting.petty_cash.replenish',
+    module: 'accounting',
+    description: n('Isi ulang kas kecil', 'Replenish petty cash', '补充零用金'),
+  },
+  {
+    code: 'accounting.petty_cash.manage',
+    module: 'accounting',
+    description: n(
+      'Kelola kas kecil (buat/tutup)',
+      'Manage petty cash (create/close)',
+      '管理零用金（创建/关闭）',
+    ),
+  },
+  {
+    code: 'accounting.reimbursement.create',
+    module: 'accounting',
+    description: n('Ajukan reimbursement', 'Submit reimbursement', '提交报销'),
+  },
+  {
+    code: 'accounting.reimbursement.approve',
+    module: 'accounting',
+    description: n('Setujui reimbursement', 'Approve reimbursement', '批准报销'),
+  },
+  {
+    code: 'accounting.reimbursement.disburse',
+    module: 'accounting',
+    description: n('Cairkan reimbursement', 'Disburse reimbursement', '发放报销'),
+  },
+  {
+    code: 'accounting.reimbursement.view',
+    module: 'accounting',
+    description: n('Lihat data reimbursement', 'View reimbursement data', '查看报销数据'),
+  },
   // Tax
-  { code: 'tax.view', module: 'tax', description: n('Lihat data pajak', 'View tax data', '查看税务数据') },
-  { code: 'tax.manage_rates', module: 'tax', description: n('Kelola tarif pajak', 'Manage tax rates', '管理税率') },
-  { code: 'tax.export', module: 'tax', description: n('Export laporan pajak', 'Export tax reports', '导出税务报表') },
+  {
+    code: 'tax.view',
+    module: 'tax',
+    description: n('Lihat data pajak', 'View tax data', '查看税务数据'),
+  },
+  {
+    code: 'tax.manage_rates',
+    module: 'tax',
+    description: n('Kelola tarif pajak', 'Manage tax rates', '管理税率'),
+  },
+  {
+    code: 'tax.export',
+    module: 'tax',
+    description: n('Export laporan pajak', 'Export tax reports', '导出税务报表'),
+  },
   // POS
-  { code: 'pos.transact', module: 'pos', description: n('Buat transaksi POS', 'Create POS transaction', '创建POS交易') },
-  { code: 'pos.void', module: 'pos', description: n('Void/batalkan transaksi', 'Void transaction', '作废交易') },
-  { code: 'pos.refund', module: 'pos', description: n('Refund transaksi', 'Refund transaction', '退款交易') },
-  { code: 'pos.demo.use', module: 'pos', description: n('Gunakan mode demo POS', 'Use POS demo mode', '使用POS演示模式') },
-  { code: 'pos.shift.open', module: 'pos', description: n('Buka shift kasir', 'Open cashier shift', '开启收银班次') },
-  { code: 'pos.shift.close', module: 'pos', description: n('Tutup shift kasir', 'Close cashier shift', '关闭收银班次') },
+  {
+    code: 'pos.transact',
+    module: 'pos',
+    description: n('Buat transaksi POS', 'Create POS transaction', '创建POS交易'),
+  },
+  {
+    code: 'pos.void',
+    module: 'pos',
+    description: n('Void/batalkan transaksi', 'Void transaction', '作废交易'),
+  },
+  {
+    code: 'pos.refund',
+    module: 'pos',
+    description: n('Refund transaksi', 'Refund transaction', '退款交易'),
+  },
+  {
+    code: 'pos.demo.use',
+    module: 'pos',
+    description: n('Gunakan mode demo POS', 'Use POS demo mode', '使用POS演示模式'),
+  },
+  {
+    code: 'pos.shift.open',
+    module: 'pos',
+    description: n('Buka shift kasir', 'Open cashier shift', '开启收银班次'),
+  },
+  {
+    code: 'pos.shift.close',
+    module: 'pos',
+    description: n('Tutup shift kasir', 'Close cashier shift', '关闭收银班次'),
+  },
   // Promotion
-  { code: 'promotion.view', module: 'promotion', description: n('Lihat promosi', 'View promotions', '查看促销') },
-  { code: 'promotion.manage', module: 'promotion', description: n('Kelola promosi (buat/ubah/nonaktifkan)', 'Manage promotions (create/edit/deactivate)', '管理促销（创建/编辑/停用）') },
+  {
+    code: 'promotion.view',
+    module: 'promotion',
+    description: n('Lihat promosi', 'View promotions', '查看促销'),
+  },
+  {
+    code: 'promotion.manage',
+    module: 'promotion',
+    description: n(
+      'Kelola promosi (buat/ubah/nonaktifkan)',
+      'Manage promotions (create/edit/deactivate)',
+      '管理促销（创建/编辑/停用）',
+    ),
+  },
   // Inventory
-  { code: 'inventory.view', module: 'inventory', description: n('Lihat stok & inventaris', 'View stock & inventory', '查看库存') },
-  { code: 'inventory.product.read', module: 'inventory', description: n('Lihat produk', 'View products', '查看产品') },
-  { code: 'inventory.product.create', module: 'inventory', description: n('Buat produk baru', 'Create new product', '创建新产品') },
-  { code: 'inventory.product.update', module: 'inventory', description: n('Ubah produk', 'Update product', '修改产品') },
-  { code: 'inventory.category.read', module: 'inventory', description: n('Lihat kategori produk', 'View product categories', '查看产品分类') },
-  { code: 'inventory.category.create', module: 'inventory', description: n('Buat kategori produk', 'Create product category', '创建产品分类') },
-  { code: 'inventory.category.update', module: 'inventory', description: n('Ubah kategori produk', 'Update product category', '修改产品分类') },
-  { code: 'inventory.adjust', module: 'inventory', description: n('Penyesuaian stok', 'Stock adjustment', '库存调整') },
-  { code: 'inventory.transfer', module: 'inventory', description: n('Transfer stok antar outlet', 'Transfer stock between outlets', '门店间调拨') },
-  { code: 'inventory.writeoff', module: 'inventory', description: n('Write-off / hapus stok', 'Write-off stock', '库存报废') },
+  {
+    code: 'inventory.view',
+    module: 'inventory',
+    description: n('Lihat stok & inventaris', 'View stock & inventory', '查看库存'),
+  },
+  {
+    code: 'inventory.product.read',
+    module: 'inventory',
+    description: n('Lihat produk', 'View products', '查看产品'),
+  },
+  {
+    code: 'inventory.product.create',
+    module: 'inventory',
+    description: n('Buat produk baru', 'Create new product', '创建新产品'),
+  },
+  {
+    code: 'inventory.product.update',
+    module: 'inventory',
+    description: n('Ubah produk', 'Update product', '修改产品'),
+  },
+  {
+    code: 'inventory.category.read',
+    module: 'inventory',
+    description: n('Lihat kategori produk', 'View product categories', '查看产品分类'),
+  },
+  {
+    code: 'inventory.category.create',
+    module: 'inventory',
+    description: n('Buat kategori produk', 'Create product category', '创建产品分类'),
+  },
+  {
+    code: 'inventory.category.update',
+    module: 'inventory',
+    description: n('Ubah kategori produk', 'Update product category', '修改产品分类'),
+  },
+  {
+    code: 'inventory.adjust',
+    module: 'inventory',
+    description: n('Penyesuaian stok', 'Stock adjustment', '库存调整'),
+  },
+  {
+    code: 'inventory.transfer',
+    module: 'inventory',
+    description: n('Transfer stok antar outlet', 'Transfer stock between outlets', '门店间调拨'),
+  },
+  {
+    code: 'inventory.writeoff',
+    module: 'inventory',
+    description: n('Write-off / hapus stok', 'Write-off stock', '库存报废'),
+  },
+  {
+    code: 'inventory.adjust.approve',
+    module: 'inventory',
+    description: n(
+      'Setujui penyesuaian stok',
+      'Approve stock adjustments',
+      'Approve stock adjustments',
+    ),
+  },
+  {
+    code: 'inventory.opname',
+    module: 'inventory',
+    description: n('Kelola stock opname', 'Manage stock opname', 'Manage stock opname'),
+  },
+  {
+    code: 'inventory.opname.approve',
+    module: 'inventory',
+    description: n('Setujui stock opname', 'Approve stock opname', 'Approve stock opname'),
+  },
   // Purchasing
-  { code: 'purchasing.view', module: 'purchasing', description: n('Lihat data pembelian', 'View purchasing data', '查看采购数据') },
-  { code: 'purchasing.po.create', module: 'purchasing', description: n('Buat purchase order', 'Create purchase order', '创建采购订单') },
-  { code: 'purchasing.po.approve', module: 'purchasing', description: n('Setujui purchase order', 'Approve purchase order', '批准采购订单') },
-  { code: 'purchasing.grn.create', module: 'purchasing', description: n('Catat penerimaan barang', 'Record goods received', '记录收货') },
+  {
+    code: 'purchasing.view',
+    module: 'purchasing',
+    description: n('Lihat data pembelian', 'View purchasing data', '查看采购数据'),
+  },
+  {
+    code: 'purchasing.po.create',
+    module: 'purchasing',
+    description: n('Buat purchase order', 'Create purchase order', '创建采购订单'),
+  },
+  {
+    code: 'purchasing.po.approve',
+    module: 'purchasing',
+    description: n('Setujui purchase order', 'Approve purchase order', '批准采购订单'),
+  },
+  {
+    code: 'purchasing.grn.create',
+    module: 'purchasing',
+    description: n('Catat penerimaan barang', 'Record goods received', '记录收货'),
+  },
   // HR
-  { code: 'hr.view', module: 'hr', description: n('Lihat data HR', 'View HR data', '查看人事数据') },
-  { code: 'hr.employee.read', module: 'hr', description: n('Lihat data karyawan', 'View employee data', '查看员工数据') },
-  { code: 'hr.employee.write', module: 'hr', description: n('Edit data karyawan', 'Edit employee data', '编辑员工数据') },
-  { code: 'hr.manage_employees', module: 'hr', description: n('Kelola karyawan (onboard/offboard)', 'Manage employees (onboard/offboard)', '管理员工（入职/离职）') },
-  { code: 'hr.manage_attendance', module: 'hr', description: n('Kelola presensi', 'Manage attendance', '管理考勤') },
-  { code: 'hr.attendance.read', module: 'hr', description: n('Lihat data presensi', 'View attendance data', '查看考勤数据') },
-  { code: 'hr.attendance.write', module: 'hr', description: n('Catat presensi', 'Record attendance', '记录考勤') },
-  { code: 'hr.approve_leave', module: 'hr', description: n('Setujui cuti', 'Approve leave', '批准休假') },
-  { code: 'hr.disciplinary.read', module: 'hr', description: n('Lihat data SP/disiplin', 'View disciplinary data', '查看纪律数据') },
-  { code: 'hr.disciplinary.write', module: 'hr', description: n('Buat/kelola SP', 'Create/manage warnings', '创建/管理警告') },
+  {
+    code: 'hr.view',
+    module: 'hr',
+    description: n('Lihat data HR', 'View HR data', '查看人事数据'),
+  },
+  {
+    code: 'hr.employee.read',
+    module: 'hr',
+    description: n('Lihat data karyawan', 'View employee data', '查看员工数据'),
+  },
+  {
+    code: 'hr.employee.write',
+    module: 'hr',
+    description: n('Edit data karyawan', 'Edit employee data', '编辑员工数据'),
+  },
+  {
+    code: 'hr.manage_employees',
+    module: 'hr',
+    description: n(
+      'Kelola karyawan (onboard/offboard)',
+      'Manage employees (onboard/offboard)',
+      '管理员工（入职/离职）',
+    ),
+  },
+  {
+    code: 'hr.manage_attendance',
+    module: 'hr',
+    description: n('Kelola presensi', 'Manage attendance', '管理考勤'),
+  },
+  {
+    code: 'hr.attendance.read',
+    module: 'hr',
+    description: n('Lihat data presensi', 'View attendance data', '查看考勤数据'),
+  },
+  {
+    code: 'hr.attendance.write',
+    module: 'hr',
+    description: n('Catat presensi', 'Record attendance', '记录考勤'),
+  },
+  {
+    code: 'hr.approve_leave',
+    module: 'hr',
+    description: n('Setujui cuti', 'Approve leave', '批准休假'),
+  },
+  {
+    code: 'hr.disciplinary.read',
+    module: 'hr',
+    description: n('Lihat data SP/disiplin', 'View disciplinary data', '查看纪律数据'),
+  },
+  {
+    code: 'hr.disciplinary.write',
+    module: 'hr',
+    description: n('Buat/kelola SP', 'Create/manage warnings', '创建/管理警告'),
+  },
   // Payroll
-  { code: 'hr.payroll.write', module: 'payroll', description: n('Proses penggajian', 'Process payroll', '处理工资') },
-  { code: 'hr.payroll.approve', module: 'payroll', description: n('Setujui payroll', 'Approve payroll', '批准工资') },
+  {
+    code: 'hr.payroll.write',
+    module: 'payroll',
+    description: n('Proses penggajian', 'Process payroll', '处理工资'),
+  },
+  {
+    code: 'hr.payroll.approve',
+    module: 'payroll',
+    description: n('Setujui payroll', 'Approve payroll', '批准工资'),
+  },
   // CRM
-  { code: 'crm.view', module: 'crm', description: n('Lihat data CRM', 'View CRM data', '查看CRM数据') },
-  { code: 'crm.manage_members', module: 'crm', description: n('Kelola data member', 'Manage member data', '管理会员数据') },
-  { code: 'crm.logComplaint', module: 'crm', description: n('Catat keluhan', 'Log complaint', '记录投诉') },
-  { code: 'crm.listComplaints', module: 'crm', description: n('Lihat daftar keluhan', 'View complaint list', '查看投诉列表') },
-  { code: 'crm.resolveComplaint', module: 'crm', description: n('Selesaikan keluhan', 'Resolve complaint', '解决投诉') },
-  { code: 'crm.awardCompensation', module: 'crm', description: n('Berikan kompensasi', 'Award compensation', '给予补偿') },
+  {
+    code: 'crm.view',
+    module: 'crm',
+    description: n('Lihat data CRM', 'View CRM data', '查看CRM数据'),
+  },
+  {
+    code: 'crm.manage_members',
+    module: 'crm',
+    description: n('Kelola data member', 'Manage member data', '管理会员数据'),
+  },
+  {
+    code: 'crm.logComplaint',
+    module: 'crm',
+    description: n('Catat keluhan', 'Log complaint', '记录投诉'),
+  },
+  {
+    code: 'crm.listComplaints',
+    module: 'crm',
+    description: n('Lihat daftar keluhan', 'View complaint list', '查看投诉列表'),
+  },
+  {
+    code: 'crm.resolveComplaint',
+    module: 'crm',
+    description: n('Selesaikan keluhan', 'Resolve complaint', '解决投诉'),
+  },
+  {
+    code: 'crm.awardCompensation',
+    module: 'crm',
+    description: n('Berikan kompensasi', 'Award compensation', '给予补偿'),
+  },
   // Member
-  { code: 'member.signup', module: 'member', description: n('Pendaftaran member (publik)', 'Member signup (public)', '会员注册（公开）') },
+  {
+    code: 'member.signup',
+    module: 'member',
+    description: n('Pendaftaran member (publik)', 'Member signup (public)', '会员注册（公开）'),
+  },
   // Settings
-  { code: 'settings.manage', module: 'settings', description: n('Kelola pengaturan sistem', 'Manage system settings', '管理系统设置') },
+  {
+    code: 'settings.manage',
+    module: 'settings',
+    description: n('Kelola pengaturan sistem', 'Manage system settings', '管理系统设置'),
+  },
   // Workflow
-  { code: 'workflow.approve', module: 'workflow', description: n('Setujui workflow', 'Approve workflow', '批准工作流') },
-  { code: 'workflow.view', module: 'workflow', description: n('Lihat workflow', 'View workflow', '查看工作流') },
+  {
+    code: 'workflow.approve',
+    module: 'workflow',
+    description: n('Setujui workflow', 'Approve workflow', '批准工作流'),
+  },
+  {
+    code: 'workflow.view',
+    module: 'workflow',
+    description: n('Lihat workflow', 'View workflow', '查看工作流'),
+  },
   // Kitchen
-  { code: 'kitchen.view', module: 'kitchen', description: n('Lihat KDS / dapur', 'View KDS / kitchen', '查看厨房显示') },
+  {
+    code: 'kitchen.view',
+    module: 'kitchen',
+    description: n('Lihat KDS / dapur', 'View KDS / kitchen', '查看厨房显示'),
+  },
   // Reporting
-  { code: 'reporting.view', module: 'reporting', description: n('Lihat laporan', 'View reports', '查看报表') },
-  { code: 'reporting.export', module: 'reporting', description: n('Export laporan', 'Export reports', '导出报表') },
+  {
+    code: 'reporting.view',
+    module: 'reporting',
+    description: n('Lihat laporan', 'View reports', '查看报表'),
+  },
+  {
+    code: 'reporting.export',
+    module: 'reporting',
+    description: n('Export laporan', 'Export reports', '导出报表'),
+  },
   // Audit
-  { code: 'audit.view', module: 'audit', description: n('Lihat audit trail', 'View audit trail', '查看审计日志') },
+  {
+    code: 'audit.view',
+    module: 'audit',
+    description: n('Lihat audit trail', 'View audit trail', '查看审计日志'),
+  },
   // CMS
-  { code: 'cms.manage', module: 'cms', description: n('Kelola konten website', 'Manage website content', '管理网站内容') },
+  {
+    code: 'cms.manage',
+    module: 'cms',
+    description: n('Kelola konten website', 'Manage website content', '管理网站内容'),
+  },
   // Docs (in-app operations manual)
-  { code: 'docs.view', module: 'docs', description: n('Lihat panduan operasi', 'View operations docs', '查看操作指南') },
-  { code: 'docs.edit', module: 'docs', description: n('Ubah panduan operasi', 'Edit operations docs', '编辑操作指南') },
+  {
+    code: 'docs.view',
+    module: 'docs',
+    description: n('Lihat panduan operasi', 'View operations docs', '查看操作指南'),
+  },
+  {
+    code: 'docs.edit',
+    module: 'docs',
+    description: n('Ubah panduan operasi', 'Edit operations docs', '编辑操作指南'),
+  },
 ];
 
 // === ROLE → PERMISSION MAPPING (SoT §3.2 + §3.4) ===
@@ -190,6 +533,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'inventory.category.create',
     'inventory.category.update',
     'inventory.adjust',
+    'inventory.opname',
     'inventory.transfer',
     'purchasing.view',
     'purchasing.po.create',
@@ -260,6 +604,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'inventory.category.create',
     'inventory.category.update',
     'inventory.adjust',
+    'inventory.opname',
     'accounting.petty_cash.view',
     'accounting.petty_cash.expense',
     'accounting.reimbursement.view',

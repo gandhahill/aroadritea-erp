@@ -1,6 +1,22 @@
 import { getSession } from '@/lib/auth';
-import { assertUploadFile, storeUpload, validateUploadArea } from '@/lib/upload-storage';
+import {
+  type UploadArea,
+  assertUploadFile,
+  parseUploadArea,
+  storeUpload,
+} from '@/lib/upload-storage';
+import { requirePermission } from '@erp/services/iam';
 import { NextResponse } from 'next/server';
+
+const UPLOAD_WRITE_PERMISSION: Record<UploadArea, string> = {
+  'product-images': 'inventory.product.update',
+  'cms-images': 'cms.manage',
+  reimbursement: 'accounting.reimbursement.create',
+  disciplinary: 'hr.disciplinary.write',
+  general: 'settings.manage',
+};
+
+const PUBLIC_UPLOAD_AREAS = new Set<UploadArea>(['product-images', 'cms-images']);
 
 export async function POST(request: Request) {
   const session = await getSession();
@@ -12,14 +28,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
   }
 
-  const area = validateUploadArea(String(formData.get('area') ?? 'general'));
+  const area = parseUploadArea(String(formData.get('area') ?? 'general'));
+  if (!area) return NextResponse.json({ error: 'Invalid upload area' }, { status: 400 });
+
   const visibility =
     String(formData.get('visibility') ?? 'private') === 'public' ? 'public' : 'private';
   const imageOnly = String(formData.get('imageOnly') ?? 'false') === 'true';
 
+  if (visibility === 'public' && (!PUBLIC_UPLOAD_AREAS.has(area) || !imageOnly)) {
+    return NextResponse.json(
+      { error: 'Public uploads must be approved image assets' },
+      { status: 400 },
+    );
+  }
+
+  const user = session.user as Record<string, unknown>;
+  const userId = String(user.id ?? '');
+  const tenantId = String(user.tenantId ?? '');
+  if (!userId || !tenantId) {
+    return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+  }
+
+  const permission = await requirePermission(userId, UPLOAD_WRITE_PERMISSION[area]);
+  if (!permission.ok) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
   try {
     assertUploadFile(file, imageOnly);
-    const stored = await storeUpload({ file, area, visibility });
+    const stored = await storeUpload({ file, area, visibility, tenantId, uploadedBy: userId });
     return NextResponse.json(stored);
   } catch (error) {
     return NextResponse.json(

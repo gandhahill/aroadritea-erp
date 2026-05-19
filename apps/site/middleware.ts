@@ -43,16 +43,26 @@ function configuredOrigin(value: string | undefined, fallback: string) {
 function getPublicOrigin(request: NextRequest) {
   const forwardedHost = request.headers.get('x-forwarded-host');
   const host = forwardedHost ?? request.headers.get('host');
+  const fallback =
+    process.env.NODE_ENV === 'production' ? PRODUCTION_SITE_ORIGIN : request.nextUrl.origin;
 
   if (host && !isLoopbackHost(host) && !isLoopbackHost(request.nextUrl.host)) {
     const proto =
       request.headers.get('x-forwarded-proto') ?? request.nextUrl.protocol.replace(':', '');
-    return `${proto}://${host}`;
+    const candidate = configuredOrigin(`${proto}://${host}`, fallback);
+    if (process.env.NODE_ENV !== 'production' || isAllowedProductionOrigin(candidate, fallback)) {
+      return candidate;
+    }
   }
 
-  const fallback =
-    process.env.NODE_ENV === 'production' ? PRODUCTION_SITE_ORIGIN : request.nextUrl.origin;
   return configuredOrigin(process.env.NEXT_PUBLIC_SITE_URL, fallback);
+}
+
+function isAllowedProductionOrigin(origin: string, fallback: string) {
+  return new Set([
+    PRODUCTION_SITE_ORIGIN,
+    configuredOrigin(process.env.NEXT_PUBLIC_SITE_URL, fallback),
+  ]).has(origin);
 }
 
 function hasLocalePrefix(pathname: string) {

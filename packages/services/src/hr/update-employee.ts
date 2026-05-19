@@ -21,11 +21,6 @@ export async function updateEmployee(
   input: UpdateEmployeeInput,
   ctx: AuditContext,
 ): Promise<Result<{ id: string }>> {
-  const permCheck = await requirePermission(ctx.userId, 'hr.employee.write', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = UpdateEmployeeInputSchema.safeParse(input);
   if (!parsed.success) {
     return err(
@@ -36,14 +31,43 @@ export async function updateEmployee(
 
   return tryCatch(
     async () => {
+      const [existing] = await db
+        .select({
+          id: employees.id,
+          locationId: employees.locationId,
+          version: employees.version,
+        })
+        .from(employees)
+        .where(and(eq(employees.id, employeeId), eq(employees.tenantId, ctx.tenantId)))
+        .limit(1);
+
+      if (!existing) {
+        throw AppError.notFound('hr.employee.notFound');
+      }
+
+      const permCheck = await requirePermission(ctx.userId, 'hr.employee.write', {
+        locationId: existing.locationId,
+      });
+      if (!permCheck.ok) throw permCheck.error;
+
+      if (existing.version !== version) {
+        throw AppError.conflict('hr.employee.versionMismatch', {
+          expected: existing.version,
+          actual: version,
+        });
+      }
+
       const setCols: Record<string, unknown> = {
         updatedBy: ctx.userId,
+        updatedAt: new Date(),
+        version: version + 1,
       };
 
       if (data.name !== undefined) setCols.name = data.name;
       if (data.email !== undefined) setCols.email = data.email;
       if (data.phone !== undefined) setCols.phone = encryptPii(data.phone, 'employees.phone');
-      if (data.address !== undefined) setCols.address = encryptPii(data.address, 'employees.address');
+      if (data.address !== undefined)
+        setCols.address = encryptPii(data.address, 'employees.address');
       if (data.position !== undefined) setCols.position = data.position;
       if (data.department !== undefined) setCols.department = data.department;
       if (data.status !== undefined) setCols.status = data.status;
@@ -65,11 +89,17 @@ export async function updateEmployee(
       const [updated] = await db
         .update(employees)
         .set(setCols)
-        .where(and(eq(employees.id, employeeId), eq(employees.tenantId, ctx.tenantId)))
+        .where(
+          and(
+            eq(employees.id, employeeId),
+            eq(employees.tenantId, ctx.tenantId),
+            eq(employees.version, version),
+          ),
+        )
         .returning({ id: employees.id });
 
       if (!updated) {
-        throw AppError.notFound('hr.employee.notFound');
+        throw AppError.conflict('hr.employee.versionMismatch');
       }
 
       // SD §15 — log only non-PII field changes. The encrypted columns
@@ -128,20 +158,57 @@ export async function deactivateEmployee(
   employeeId: string,
   ctx: AuditContext,
 ): Promise<Result<{ id: string }>> {
-  const permCheck = await requirePermission(ctx.userId, 'hr.employee.write', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   return tryCatch(
     async () => {
+      const [existing] = await db
+        .select({
+          id: employees.id,
+          locationId: employees.locationId,
+          status: employees.status,
+          version: employees.version,
+        })
+        .from(employees)
+        .where(and(eq(employees.id, employeeId), eq(employees.tenantId, ctx.tenantId)))
+        .limit(1);
+
+      if (!existing) throw AppError.notFound('hr.employee.notFound');
+
+      const permCheck = await requirePermission(ctx.userId, 'hr.employee.write', {
+        locationId: existing.locationId,
+      });
+      if (!permCheck.ok) throw permCheck.error;
+
       const [updated] = await db
         .update(employees)
-        .set({ status: 'terminated', updatedBy: ctx.userId })
-        .where(and(eq(employees.id, employeeId), eq(employees.tenantId, ctx.tenantId)))
+        .set({
+          status: 'terminated',
+          updatedBy: ctx.userId,
+          updatedAt: new Date(),
+          version: existing.version + 1,
+        })
+        .where(
+          and(
+            eq(employees.id, employeeId),
+            eq(employees.tenantId, ctx.tenantId),
+            eq(employees.version, existing.version),
+          ),
+        )
         .returning({ id: employees.id });
 
-      if (!updated) throw AppError.notFound('hr.employee.notFound');
+      if (!updated) throw AppError.conflict('hr.employee.versionMismatch');
+
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'deactivate',
+        entityType: 'employee',
+        entityId: updated.id,
+        before: { status: existing.status },
+        after: { status: 'terminated' },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      });
+
       return { id: updated.id };
     },
     (e) => {

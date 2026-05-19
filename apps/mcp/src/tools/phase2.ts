@@ -1350,7 +1350,11 @@ export const operationsTools = [
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: settings.manage');
 
       const { listNotificationChannels } = await import('@erp/services/notification');
-      const result = await listNotificationChannels(ctx.tenantId);
+      const result = await listNotificationChannels({
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      });
       return serializeResult(result);
     },
   },

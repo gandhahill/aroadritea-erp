@@ -23,7 +23,6 @@
 import { db } from '@erp/db';
 import { accountingPeriods } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
-import { roles, userRoles } from '@erp/db/schema/auth';
 import {
   products,
   stockAdjustmentLines,
@@ -84,22 +83,6 @@ export interface AdjustmentLineResult {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/** Check if a user has the director role for the tenant. */
-async function isDirector(ctx: AuditContext): Promise<boolean> {
-  const rows = await db
-    .select({ roleCode: roles.code })
-    .from(userRoles)
-    .innerJoin(roles, eq(userRoles.roleId, roles.id))
-    .where(
-      and(
-        eq(userRoles.userId, ctx.userId),
-        eq(roles.tenantId, ctx.tenantId),
-        eq(roles.code, 'director'),
-      ),
-    );
-  return rows.length > 0;
-}
 
 /**
  * Resolve the inventory account UUID for a product. Falls back to the
@@ -385,12 +368,6 @@ export async function approveAdjustment(
   }
   const data = parsed.data;
 
-  // 2. Only director can approve
-  const director = await isDirector(ctx);
-  if (!director) {
-    return err(AppError.forbidden('inventory.adjust.notDirector'));
-  }
-
   try {
     // 3. Load adjustment + lines
     const adj = await db
@@ -412,7 +389,7 @@ export async function approveAdjustment(
 
     // 4. Permission check — scoped to the adjustment's location so an
     //    approver at outlet A can't approve outlet B's adjustment.
-    const permCheck = await requirePermission(ctx.userId, 'inventory.adjust', {
+    const permCheck = await requirePermission(ctx.userId, 'inventory.adjust.approve', {
       locationId: adj.locationId,
     });
     if (!permCheck.ok) return permCheck;
@@ -723,11 +700,6 @@ export async function rejectAdjustment(
   }
   const data = parsed.data;
 
-  const director = await isDirector(ctx);
-  if (!director) {
-    return err(AppError.forbidden('inventory.adjust.notDirector'));
-  }
-
   try {
     const adj = await db
       .select()
@@ -746,7 +718,7 @@ export async function rejectAdjustment(
       );
     }
 
-    const permCheck = await requirePermission(ctx.userId, 'inventory.adjust', {
+    const permCheck = await requirePermission(ctx.userId, 'inventory.adjust.approve', {
       locationId: adj.locationId,
     });
     if (!permCheck.ok) return permCheck;

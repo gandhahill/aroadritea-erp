@@ -27,7 +27,7 @@ async function getContext() {
 export async function fetchNotificationChannels() {
   const ctx = await getContext();
   if (!ctx) return [];
-  const result = await listNotificationChannels(ctx.tenantId);
+  const result = await listNotificationChannels(ctx);
   return result.ok ? result.value : [];
 }
 
