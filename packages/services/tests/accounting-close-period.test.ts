@@ -30,7 +30,14 @@ vi.mock('@erp/db', () => ({
       set: (...sArgs: unknown[]) => {
         updateCalls.push(sArgs);
         return {
-          where: () => Promise.resolve(),
+          where: () => {
+            // Support both `.where(...)` and `.where(...).returning(...)` —
+            // claim-first writes append `.returning()` so they can confirm
+            // a row was actually affected before writing the audit log.
+            const result: any = Promise.resolve([{ id: 'mock-id' }]);
+            result.returning = () => Promise.resolve([{ id: 'mock-id' }]);
+            return result;
+          },
         };
       },
     }),

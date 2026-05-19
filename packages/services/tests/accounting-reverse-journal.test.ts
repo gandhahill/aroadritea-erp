@@ -38,7 +38,13 @@ vi.mock('@erp/db', () => ({
     }),
     update: (..._args: unknown[]) => ({
       set: (..._sArgs: unknown[]) => ({
-        where: () => Promise.resolve(),
+        where: () => {
+          // Support `.where(...)` and `.where(...).returning(...)` for the
+          // claim-first reverse pattern.
+          const result: any = Promise.resolve([{ id: 'mock-id' }]);
+          result.returning = () => Promise.resolve([{ id: 'mock-id' }]);
+          return result;
+        },
       }),
     }),
     insert: (..._args: unknown[]) => ({

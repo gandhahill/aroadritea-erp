@@ -39,7 +39,12 @@ vi.mock('@erp/db', () => ({
       set: (data: unknown) => ({
         where: () => {
           _updates.push(data);
-          return Promise.resolve({});
+          // Support both `.where(...)` and `.where(...).returning(...)`
+          // call shapes — the latter is needed for claim-first updates
+          // that confirm a row was actually affected.
+          const result: any = Promise.resolve([{ id: 'mock-id' }]);
+          result.returning = () => Promise.resolve([{ id: 'mock-id' }]);
+          return result;
         },
       }),
     }),
@@ -121,7 +126,8 @@ describe('createDisciplinaryAction', () => {
       ctxt(),
     );
     expect(result.ok).toBe(true);
-    expect(_insertData.length).toBe(1);
+    // Two inserts: 1) disciplinary_actions row, 2) audit_log row.
+    expect(_insertData.length).toBe(2);
     const row = _insertData[0] as Record<string, unknown>;
     expect(row.employeeId).toBe('emp-1');
     expect(row.level).toBe('SP1');
@@ -140,7 +146,7 @@ describe('createDisciplinaryAction', () => {
       },
       ctxt(),
     );
-    expect(_insertData.length).toBe(1);
+    expect(_insertData.length).toBe(2);
     const row = _insertData[0] as Record<string, unknown>;
     expect(row.attachmentUrl).toBe('https://storage.example.com/sp2.pdf');
   });

@@ -525,70 +525,58 @@ describe('Sales order total calculation', () => {
 // ─── RefundSaleInputSchema ─────────────────────────────────────────────────────
 
 describe('RefundSaleInputSchema', () => {
+  // Tests upgraded after partial refunds were added (requires `lines` and
+  // a non-empty `reason`).
+  const validBase = {
+    salesOrderId: 'so-001',
+    reason: 'Pelanggan batal',
+    version: 1,
+    lines: [{ lineId: 'line-1', qty: 1 }],
+  };
+
   it('accepts valid input with all fields', () => {
-    const result = RefundSaleInputSchema.safeParse({
-      salesOrderId: 'so-001',
-      reason: 'Pelanggan batal',
-      version: 1,
-    });
+    const result = RefundSaleInputSchema.safeParse(validBase);
     expect(result.success).toBe(true);
   });
 
-  it('accepts input without optional reason', () => {
-    const result = RefundSaleInputSchema.safeParse({
-      salesOrderId: 'so-001',
-      version: 1,
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects empty salesOrderId', () => {
-    const result = RefundSaleInputSchema.safeParse({
-      salesOrderId: '',
-      version: 1,
-    });
+  it('rejects missing reason (now required)', () => {
+    const { reason: _reason, ...rest } = validBase;
+    const result = RefundSaleInputSchema.safeParse(rest);
     expect(result.success).toBe(false);
   });
 
-  it('rejects empty reason when provided (min length)', () => {
-    const result = RefundSaleInputSchema.safeParse({
-      salesOrderId: 'so-001',
-      reason: '',
-      version: 1,
-    });
+  it('rejects empty salesOrderId', () => {
+    const result = RefundSaleInputSchema.safeParse({ ...validBase, salesOrderId: '' });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects empty reason (min length)', () => {
+    const result = RefundSaleInputSchema.safeParse({ ...validBase, reason: '' });
     expect(result.success).toBe(false);
   });
 
   it('rejects reason exceeding max length', () => {
-    const result = RefundSaleInputSchema.safeParse({
-      salesOrderId: 'so-001',
-      reason: 'a'.repeat(256),
-      version: 1,
-    });
+    const result = RefundSaleInputSchema.safeParse({ ...validBase, reason: 'a'.repeat(256) });
     expect(result.success).toBe(false);
   });
 
   it('rejects non-integer version', () => {
-    const result = RefundSaleInputSchema.safeParse({
-      salesOrderId: 'so-001',
-      version: 1.5,
-    });
+    const result = RefundSaleInputSchema.safeParse({ ...validBase, version: 1.5 });
     expect(result.success).toBe(false);
   });
 
   it('rejects version <= 0', () => {
-    const result = RefundSaleInputSchema.safeParse({
-      salesOrderId: 'so-001',
-      version: 0,
-    });
+    const result = RefundSaleInputSchema.safeParse({ ...validBase, version: 0 });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects empty lines array (now required)', () => {
+    const result = RefundSaleInputSchema.safeParse({ ...validBase, lines: [] });
     expect(result.success).toBe(false);
   });
 
   it('accepts version 1', () => {
-    const result = RefundSaleInputSchema.safeParse({
-      salesOrderId: 'so-001',
-      version: 1,
-    });
+    const result = RefundSaleInputSchema.safeParse({ ...validBase, version: 1 });
     expect(result.success).toBe(true);
   });
 });

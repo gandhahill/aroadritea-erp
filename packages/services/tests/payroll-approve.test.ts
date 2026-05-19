@@ -70,9 +70,16 @@ vi.mock('@erp/db', () => ({
       set: (data: unknown) => ({
         where: () => {
           _updates.push(data);
-          return Promise.resolve({});
+          // Support both `.where(...)` and `.where(...).returning(...)`
+          // call shapes — the latter is needed for claim-first updates.
+          const result: any = Promise.resolve([{ id: 'mock-id' }]);
+          result.returning = () => Promise.resolve([{ id: 'mock-id' }]);
+          return result;
         },
       }),
+    }),
+    insert: () => ({
+      values: () => Promise.resolve({}),
     }),
   },
 }));
