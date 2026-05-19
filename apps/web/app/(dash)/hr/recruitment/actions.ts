@@ -1,7 +1,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, db, desc, eq } from '@erp/db';
+import { and, db, desc, eq, isNull } from '@erp/db';
 import { jobApplicants, jobOpenings } from '@erp/db/schema/hr';
 import { requirePermission } from '@erp/services/iam';
 import { encryptPii } from '@erp/services/security/pii';
@@ -76,7 +76,12 @@ export async function fetchOpenings(): Promise<OpeningRow[]> {
 export async function fetchApplicants(openingId?: string): Promise<ApplicantRow[]> {
   const ctx = await buildCtx();
   if (!ctx) return [];
-  const conditions = [eq(jobApplicants.tenantId, ctx.tenantId)];
+  // Hide soft-deleted rows. The schema's auditCols includes deletedAt;
+  // we only show null = active applicants in the pipeline.
+  const conditions = [
+    eq(jobApplicants.tenantId, ctx.tenantId),
+    isNull(jobApplicants.deletedAt),
+  ];
   if (openingId) conditions.push(eq(jobApplicants.openingId, openingId));
 
   const rows = await db
@@ -208,6 +213,72 @@ export async function setApplicantStageAction(input: {
   await db
     .update(jobApplicants)
     .set({ stage: input.stage, updatedBy: ctx.userId, updatedAt: new Date() })
+    .where(
+      and(
+        eq(jobApplicants.id, input.applicantId),
+        eq(jobApplicants.tenantId, ctx.tenantId),
+      ),
+    );
+  revalidatePath('/hr/recruitment');
+  return { ok: true };
+}
+
+/**
+ * Update a candidate's editable fields (name/email/phone/resume/notes).
+ * Phone is re-encrypted on change to keep PII at-rest properly wrapped.
+ */
+export async function updateApplicantAction(input: {
+  applicantId: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  resumeUrl?: string | null;
+  notes?: string | null;
+}): Promise<{ ok: boolean; error?: string }> {
+  const ctx = await buildCtx();
+  if (!ctx) return { ok: false, error: 'Unauthenticated' };
+  const perm = await requirePermission(ctx.userId, 'hr.employee.write');
+  if (!perm.ok) return { ok: false, error: 'Forbidden' };
+
+  if (!input.name.trim()) return { ok: false, error: 'Nama wajib diisi.' };
+
+  await db
+    .update(jobApplicants)
+    .set({
+      name: input.name.trim(),
+      email: input.email?.trim() || null,
+      phone: encryptPii(input.phone ?? undefined, 'job_applicants.phone'),
+      resumeUrl: input.resumeUrl?.trim() || null,
+      notes: input.notes?.trim() || null,
+      updatedBy: ctx.userId,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(jobApplicants.id, input.applicantId),
+        eq(jobApplicants.tenantId, ctx.tenantId),
+      ),
+    );
+  revalidatePath('/hr/recruitment');
+  return { ok: true };
+}
+
+/**
+ * Soft-delete a candidate by setting deletedAt (auditCols column).
+ * Stops the row from appearing in fetchApplicants while keeping
+ * audit history intact.
+ */
+export async function deleteApplicantAction(input: {
+  applicantId: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const ctx = await buildCtx();
+  if (!ctx) return { ok: false, error: 'Unauthenticated' };
+  const perm = await requirePermission(ctx.userId, 'hr.employee.write');
+  if (!perm.ok) return { ok: false, error: 'Forbidden' };
+
+  await db
+    .update(jobApplicants)
+    .set({ deletedAt: new Date(), updatedBy: ctx.userId, updatedAt: new Date() })
     .where(
       and(
         eq(jobApplicants.id, input.applicantId),

@@ -6,7 +6,9 @@ import {
   type OpeningRow,
   createApplicantAction,
   createOpeningAction,
+  deleteApplicantAction,
   setApplicantStageAction,
+  updateApplicantAction,
   updateOpeningStatusAction,
 } from './actions';
 
@@ -176,6 +178,70 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
       setApplicants((prev) =>
         prev.map((a) => (a.id === applicantId ? { ...a, stage } : a)),
       );
+    });
+  }
+
+  // Edit / delete state — small inline editor without a modal to keep
+  // the pipeline list in view while updating a candidate row.
+  const [editingApplicantId, setEditingApplicantId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    resumeUrl: '',
+    notes: '',
+  });
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  function startEdit(a: ApplicantRow) {
+    setEditingApplicantId(a.id);
+    setEditForm({
+      name: a.name,
+      email: a.email ?? '',
+      phone: '',
+      resumeUrl: '',
+      notes: '',
+    });
+  }
+
+  function saveEdit() {
+    if (!editingApplicantId) return;
+    setErr(null);
+    const id = editingApplicantId;
+    startTransition(async () => {
+      const res = await updateApplicantAction({
+        applicantId: id,
+        name: editForm.name,
+        email: editForm.email || null,
+        phone: editForm.phone || null,
+        resumeUrl: editForm.resumeUrl || null,
+        notes: editForm.notes || null,
+      });
+      if (!res.ok) {
+        setErr(res.error ?? 'Gagal menyimpan perubahan kandidat.');
+        return;
+      }
+      setApplicants((prev) =>
+        prev.map((a) =>
+          a.id === id
+            ? { ...a, name: editForm.name, email: editForm.email || null }
+            : a,
+        ),
+      );
+      setEditingApplicantId(null);
+    });
+  }
+
+  function confirmDelete(applicantId: string) {
+    setErr(null);
+    startTransition(async () => {
+      const res = await deleteApplicantAction({ applicantId });
+      if (!res.ok) {
+        setErr(res.error ?? 'Gagal menghapus kandidat.');
+        return;
+      }
+      setApplicants((prev) => prev.filter((a) => a.id !== applicantId));
+      setConfirmDeleteId(null);
     });
   }
 
@@ -415,49 +481,134 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                 <th className="px-3 py-2">Email</th>
                 <th className="px-3 py-2">Diterima</th>
                 <th className="px-3 py-2">Tahap</th>
+                {canManage ? <th className="px-3 py-2 text-right">Aksi</th> : null}
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-3">
               {filteredApplicants.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-3 py-6 text-center text-brand-ink-3">
+                  <td colSpan={canManage ? 6 : 5} className="px-3 py-6 text-center text-brand-ink-3">
                     Belum ada kandidat untuk filter ini.
                   </td>
                 </tr>
               ) : (
-                filteredApplicants.map((a) => (
-                  <tr key={a.id}>
-                    <td className="px-3 py-2 font-medium text-brand-ink">{a.name}</td>
-                    <td className="px-3 py-2 text-brand-ink-3">{a.openingTitle}</td>
-                    <td className="px-3 py-2 text-brand-ink-3">{a.email ?? '—'}</td>
-                    <td className="px-3 py-2 text-brand-ink-3">
-                      {a.appliedAt.slice(0, 10)}
-                    </td>
-                    <td className="px-3 py-2">
+                filteredApplicants.map((a) => {
+                  const isEditing = editingApplicantId === a.id;
+                  return (
+                    <tr key={a.id}>
+                      <td className="px-3 py-2 font-medium text-brand-ink">
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={editForm.name}
+                            onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+                            className={INPUT}
+                          />
+                        ) : (
+                          a.name
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-brand-ink-3">{a.openingTitle}</td>
+                      <td className="px-3 py-2 text-brand-ink-3">
+                        {isEditing ? (
+                          <input
+                            type="email"
+                            value={editForm.email}
+                            onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
+                            className={INPUT}
+                          />
+                        ) : (
+                          (a.email ?? '—')
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-brand-ink-3">
+                        {a.appliedAt.slice(0, 10)}
+                      </td>
+                      <td className="px-3 py-2">
+                        {canManage ? (
+                          <select
+                            value={a.stage}
+                            onChange={(e) =>
+                              setStage(a.id, e.target.value as ApplicantRow['stage'])
+                            }
+                            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STAGE_COLOR[a.stage] ?? STAGE_COLOR.applied}`}
+                          >
+                            {STAGES.map((s) => (
+                              <option key={s} value={s}>
+                                {STAGE_LABEL[s]}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span
+                            className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${STAGE_COLOR[a.stage] ?? STAGE_COLOR.applied}`}
+                          >
+                            {STAGE_LABEL[a.stage] ?? a.stage}
+                          </span>
+                        )}
+                      </td>
                       {canManage ? (
-                        <select
-                          value={a.stage}
-                          onChange={(e) =>
-                            setStage(a.id, e.target.value as ApplicantRow['stage'])
-                          }
-                          className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STAGE_COLOR[a.stage] ?? STAGE_COLOR.applied}`}
-                        >
-                          {STAGES.map((s) => (
-                            <option key={s} value={s}>
-                              {STAGE_LABEL[s]}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${STAGE_COLOR[a.stage] ?? STAGE_COLOR.applied}`}
-                        >
-                          {STAGE_LABEL[a.stage] ?? a.stage}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                        <td className="px-3 py-2 text-right">
+                          {isEditing ? (
+                            <span className="inline-flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={saveEdit}
+                                disabled={busy || !editForm.name.trim()}
+                                className="rounded bg-brand-red px-2 py-1 text-xs font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
+                              >
+                                Simpan
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEditingApplicantId(null)}
+                                className="rounded border border-brand-cream-3 px-2 py-1 text-xs font-semibold text-brand-ink-3 hover:bg-brand-cream-2"
+                              >
+                                Batal
+                              </button>
+                            </span>
+                          ) : confirmDeleteId === a.id ? (
+                            <span className="inline-flex items-center gap-2">
+                              <span className="text-xs text-brand-ink-3">Hapus?</span>
+                              <button
+                                type="button"
+                                onClick={() => confirmDelete(a.id)}
+                                disabled={busy}
+                                className="rounded bg-rose-500 px-2 py-1 text-xs font-semibold text-white hover:bg-rose-600"
+                              >
+                                Ya
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="rounded border border-brand-cream-3 px-2 py-1 text-xs font-semibold text-brand-ink-3 hover:bg-brand-cream-2"
+                              >
+                                Tidak
+                              </button>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => startEdit(a)}
+                                className="text-xs text-brand-ink-2 hover:underline"
+                              >
+                                Ubah
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setConfirmDeleteId(a.id)}
+                                className="text-xs text-brand-red hover:underline"
+                              >
+                                Hapus
+                              </button>
+                            </span>
+                          )}
+                        </td>
+                      ) : null}
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
