@@ -146,10 +146,18 @@ export function ProductSearch() {
           <div className="grid grid-cols-3 gap-2">
             {products.map((product) => {
               const hasVariants = product.variants.length > 0;
+              // Out-of-stock guard: `null` qtyAvailable means the product
+              // isn't tracked at the location level (e.g. teas whose stock
+              // is consumed via BOM ingredients), so don't block those.
+              // "0" or negative means we have a stock record and it's empty.
+              const productOutOfStock =
+                product.qtyAvailable !== null && Number(product.qtyAvailable) <= 0;
               return (
                 <div
                   key={product.id}
-                  className="flex min-h-[190px] flex-col gap-2 rounded-lg border border-brand-cream-3 bg-card p-3 text-left transition-shadow hover:border-brand-red/30 hover:shadow-sm"
+                  className={`flex min-h-[190px] flex-col gap-2 rounded-lg border border-brand-cream-3 bg-card p-3 text-left transition-shadow hover:border-brand-red/30 hover:shadow-sm ${
+                    productOutOfStock ? 'opacity-60' : ''
+                  }`}
                 >
                   {/* Product image */}
                   {product.imageUrl ? (
@@ -175,29 +183,48 @@ export function ProductSearch() {
                   )}
                   <p className="w-full text-xs font-medium leading-tight text-brand-ink">
                     {product.name}
+                    {productOutOfStock && !hasVariants ? (
+                      <span className="ml-1 rounded bg-rose-100 px-1 text-[9px] font-semibold uppercase text-rose-700">
+                        {t('outOfStock')}
+                      </span>
+                    ) : null}
                   </p>
                   {hasVariants ? (
                     <div className="mt-auto grid grid-cols-2 gap-1">
-                      {product.variants.map((variant) => (
-                        <button
-                          key={variant.id}
-                          type="button"
-                          onClick={() => handleAddProduct(product, variant)}
-                          title={`${variant.name} - ${formatRupiah(variant.sellPrice)}`}
-                          className="min-h-9 rounded-md border border-brand-cream-3 bg-brand-cream-2 px-2 py-1 text-left text-[10px] font-medium leading-tight text-brand-ink-2 hover:border-brand-red/40 hover:text-brand-red"
-                        >
-                          <span className="line-clamp-1 block">{variant.name}</span>
-                          <span className="block text-[10px] font-semibold text-brand-red">
-                            {formatRupiah(variant.sellPrice)}
-                          </span>
-                        </button>
-                      ))}
+                      {product.variants.map((variant) => {
+                        const variantOutOfStock =
+                          variant.qtyAvailable !== null && Number(variant.qtyAvailable) <= 0;
+                        const disabled = variantOutOfStock || productOutOfStock;
+                        return (
+                          <button
+                            key={variant.id}
+                            type="button"
+                            disabled={disabled}
+                            onClick={() => !disabled && handleAddProduct(product, variant)}
+                            title={
+                              disabled
+                                ? t('outOfStock')
+                                : `${variant.name} - ${formatRupiah(variant.sellPrice)}`
+                            }
+                            className="min-h-9 rounded-md border border-brand-cream-3 bg-brand-cream-2 px-2 py-1 text-left text-[10px] font-medium leading-tight text-brand-ink-2 hover:border-brand-red/40 hover:text-brand-red disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-brand-cream-3 disabled:hover:text-brand-ink-2"
+                          >
+                            <span className="line-clamp-1 block">
+                              {variant.name}
+                              {disabled ? ` · ${t('outOfStock')}` : ''}
+                            </span>
+                            <span className="block text-[10px] font-semibold text-brand-red">
+                              {formatRupiah(variant.sellPrice)}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   ) : (
                     <button
                       type="button"
-                      onClick={() => handleAddProduct(product)}
-                      className="mt-auto flex min-h-9 items-center justify-between rounded-md border border-brand-cream-3 bg-brand-cream-2 px-2 py-1 text-xs font-semibold text-brand-red hover:border-brand-red/40"
+                      disabled={productOutOfStock}
+                      onClick={() => !productOutOfStock && handleAddProduct(product)}
+                      className="mt-auto flex min-h-9 items-center justify-between rounded-md border border-brand-cream-3 bg-brand-cream-2 px-2 py-1 text-xs font-semibold text-brand-red hover:border-brand-red/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-brand-cream-3"
                     >
                       <span>{formatRupiah(product.defaultSellPrice)}</span>
                       <span className="text-brand-ink-3">+</span>

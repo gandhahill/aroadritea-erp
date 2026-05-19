@@ -15,6 +15,7 @@ import {
   productModifierOptions,
   productVariants,
   products,
+  stockLevels,
 } from '@erp/db/schema/inventory';
 import { posSettings, salesOrders, shifts } from '@erp/db/schema/pos';
 import { promotions } from '@erp/db/schema/promotion';
@@ -44,6 +45,13 @@ export interface ProductListItem {
   imageUrl: string | null;
   kind: string;
   variants: VariantItem[];
+  /**
+   * Stock available at the current shift's outlet. `null` means the product
+   * is untracked (no `stock_levels` row exists for this product+location);
+   * the POS treats untracked products as always available. `"0"` means
+   * out of stock and the POS disables the add button.
+   */
+  qtyAvailable: string | null;
 }
 
 export interface VariantItem {
@@ -52,6 +60,8 @@ export interface VariantItem {
   sku: string;
   sellPrice: string;
   attributes: Record<string, string>;
+  /** Same null/"0" convention as ProductListItem.qtyAvailable, scoped to this variant. */
+  qtyAvailable: string | null;
 }
 
 export interface ShiftStatusItem {
@@ -287,21 +297,59 @@ export async function fetchProducts(params: {
   const categoryMap = new Map<string, NameRecord>(
     categoryRows.map((c) => [c.id, c.name as NameRecord]),
   );
+
+  // Stock per outlet (current shift location). A row in stock_levels with
+  // qtyAvailable > 0 = available; qtyAvailable = 0 = out of stock; no row at
+  // all = untracked (treat as available). We keep two maps: one keyed by
+  // productId (no variant) and one keyed by `${productId}::${variantId}`
+  // so the UI can disable per variant. Aggregated across batches.
+  const productLevelStock = new Map<string, number>();
+  const variantLevelStock = new Map<string, number>();
+  if (productIds.length > 0 && ctx.locationId) {
+    const levelRows = await db
+      .select({
+        productId: stockLevels.productId,
+        variantId: stockLevels.variantId,
+        qtyAvailable: sql<string>`sum(${stockLevels.qtyAvailable})::text`,
+      })
+      .from(stockLevels)
+      .where(
+        and(
+          eq(stockLevels.tenantId, ctx.tenantId),
+          eq(stockLevels.locationId, ctx.locationId),
+          inArray(stockLevels.productId, productIds),
+        ),
+      )
+      .groupBy(stockLevels.productId, stockLevels.variantId);
+
+    for (const row of levelRows) {
+      const qty = Number(row.qtyAvailable ?? '0');
+      if (row.variantId) {
+        variantLevelStock.set(`${row.productId}::${row.variantId}`, qty);
+      } else {
+        productLevelStock.set(row.productId, qty);
+      }
+    }
+  }
+
   const variantsByProduct = new Map<string, VariantItem[]>();
   for (const v of variantRows) {
     const variantItems = variantsByProduct.get(v.productId) ?? [];
+    const qty = variantLevelStock.get(`${v.productId}::${v.id}`);
     variantItems.push({
       id: v.id,
       name: localizeName(v.name, locale, 'Default'),
       sku: v.sku,
       sellPrice: v.sellPrice.toString(),
       attributes: v.attributes ?? {},
+      qtyAvailable: qty !== undefined ? String(qty) : null,
     });
     variantsByProduct.set(v.productId, variantItems);
   }
 
   return productRows.map((p) => {
     const catName = categoryMap.get(p.categoryId);
+    const productQty = productLevelStock.get(p.id);
     return {
       id: p.id,
       sku: p.sku,
@@ -312,6 +360,7 @@ export async function fetchProducts(params: {
       imageUrl: p.imageUrl,
       kind: p.kind,
       variants: variantsByProduct.get(p.id) ?? [],
+      qtyAvailable: productQty !== undefined ? String(productQty) : null,
     };
   });
 }

@@ -532,6 +532,7 @@
     "orderNumber": "Order No.",
     "searchProduct": "Search product...",
     "noProductSelected": "Select a product to add",
+    "outOfStock": "Out of stock",
     "qty": "Qty",
     "unitPrice": "Unit Price",
     "lineTotal": "Subtotal",

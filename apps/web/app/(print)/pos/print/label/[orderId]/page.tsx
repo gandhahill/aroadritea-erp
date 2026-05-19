@@ -15,9 +15,25 @@ import { products } from '@erp/db/schema/inventory';
 import { posSettings, salesOrderLines, salesOrders } from '@erp/db/schema/pos';
 import { getLocale } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
+import QRCode from 'qrcode';
 import { LabelAutoPrint } from './auto-print';
 
 export const dynamic = 'force-dynamic';
+
+/**
+ * Render a QR code as an inline SVG string server-side. The pickup-number
+ * payload is small enough that error correction "M" is plenty; the SVG is
+ * inlined so the print stylesheet doesn't have to wait for an &lt;img&gt; load.
+ */
+async function renderQrSvg(payload: string, sizePx: number): Promise<string> {
+  return QRCode.toString(payload, {
+    type: 'svg',
+    margin: 0,
+    errorCorrectionLevel: 'M',
+    width: sizePx,
+    color: { dark: '#000', light: '#0000' },
+  });
+}
 
 interface Props {
   params: Promise<{ orderId: string }>;
@@ -79,6 +95,13 @@ export default async function LabelPrintPage({ params }: Props) {
   const guest = customer?.name ?? extractGuestName(order.notes);
   const pickupNumber = order.number.split('-').pop() ?? order.number;
 
+  // QR payload — pickup number is the human-readable barcode. Cashiers
+  // and runners scan the label to look up the order in 1 second.
+  const qrPayload = order.number;
+  // Pre-rasterise the QR to SVG once per print job — the same image is
+  // reused for every cup label, so 1 round-trip beats N.
+  const qrSvg = await renderQrSvg(qrPayload, 64);
+
   // Expand: one printable label per cup (qty)
   const labels: Array<{
     key: string;
@@ -138,7 +161,12 @@ body { font-family: 'Arial', sans-serif; }
   box-sizing: border-box;
   border: 1px dashed #ccc;
   overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-gap: 1mm;
+  align-items: start;
 }
+.label .body { min-width: 0; }
 .label .top { display: flex; justify-content: space-between; align-items: baseline; }
 .label .order { font-size: 8px; color: #555; }
 .label .pickup { font-size: 12px; font-weight: 900; }
@@ -146,31 +174,49 @@ body { font-family: 'Arial', sans-serif; }
 .label .mod { font-size: 8px; color: #222; margin-top: 0.5mm; }
 .label .guest { font-size: 9px; margin-top: 1mm; font-weight: 700; }
 .label .extra { font-size: 7px; color: #444; margin-top: 0.5mm; }
+.label .qr { width: 12mm; height: 12mm; }
+.label .qr svg { width: 100%; height: 100%; display: block; }
 `,
         }}
       />
       <div>
         {labels.length === 0 ? (
           <div className="label">
-            <div className="top">
-              <span className="order">{order.number}</span>
-              <span className="pickup">#{pickupNumber}</span>
+            <div className="body">
+              <div className="top">
+                <span className="order">{order.number}</span>
+                <span className="pickup">#{pickupNumber}</span>
+              </div>
+              <div className="name">—</div>
             </div>
-            <div className="name">—</div>
+            <div
+              className="qr"
+              aria-label={`QR ${qrPayload}`}
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: server-rendered SVG from `qrcode` lib
+              dangerouslySetInnerHTML={{ __html: qrSvg }}
+            />
           </div>
         ) : null}
         {labels.map((label) => (
           <div className="label" key={label.key}>
-            <div className="top">
-              <span className="order">
-                {order.number} · {label.index}/{label.total}
-              </span>
-              <span className="pickup">#{pickupNumber}</span>
+            <div className="body">
+              <div className="top">
+                <span className="order">
+                  {order.number} · {label.index}/{label.total}
+                </span>
+                <span className="pickup">#{pickupNumber}</span>
+              </div>
+              <div className="name">{label.name}</div>
+              {label.modifier ? <div className="mod">{label.modifier}</div> : null}
+              {guest ? <div className="guest">a/n {guest}</div> : null}
+              {label.lineNotes ? <div className="extra">{label.lineNotes}</div> : null}
             </div>
-            <div className="name">{label.name}</div>
-            {label.modifier ? <div className="mod">{label.modifier}</div> : null}
-            {guest ? <div className="guest">a/n {guest}</div> : null}
-            {label.lineNotes ? <div className="extra">{label.lineNotes}</div> : null}
+            <div
+              className="qr"
+              aria-label={`QR ${qrPayload}`}
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: server-rendered SVG from `qrcode` lib
+              dangerouslySetInnerHTML={{ __html: qrSvg }}
+            />
           </div>
         ))}
       </div>

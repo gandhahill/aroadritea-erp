@@ -1,6 +1,7 @@
 'use client';
 
 import type { DemoOrder } from '@erp/offline';
+import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'aroadri:demo:lastReceipt';
@@ -52,6 +53,7 @@ function buildLabels(order: DemoOrder): LabelEntry[] {
 
 export function DemoLabelClient() {
   const [order, setOrder] = useState<DemoOrder | null>(null);
+  const [qrSvg, setQrSvg] = useState<string>('');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -63,11 +65,30 @@ export function DemoLabelClient() {
     }
   }, []);
 
+  // Render the QR client-side once the order loads. We wait for the QR
+  // before triggering the print dialog so the label includes the SVG.
   useEffect(() => {
     if (!order) return;
+    let cancelled = false;
+    void QRCode.toString(`DEMO-${order.orderNumber}`, {
+      type: 'svg',
+      margin: 0,
+      errorCorrectionLevel: 'M',
+      width: 64,
+      color: { dark: '#000', light: '#0000' },
+    }).then((svg) => {
+      if (!cancelled) setQrSvg(svg);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [order]);
+
+  useEffect(() => {
+    if (!order || !qrSvg) return;
     const id = window.setTimeout(() => window.print(), 250);
     return () => window.clearTimeout(id);
-  }, [order]);
+  }, [order, qrSvg]);
 
   if (!order) {
     return (
@@ -107,6 +128,10 @@ body { font-family: 'Arial', sans-serif; }
   border: 1px dashed #ccc;
   overflow: hidden;
   position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-gap: 1mm;
+  align-items: start;
 }
 .label::after {
   content: 'DEMO';
@@ -118,6 +143,7 @@ body { font-family: 'Arial', sans-serif; }
   color: rgba(214, 38, 46, 0.45);
   letter-spacing: 1px;
 }
+.label .body { min-width: 0; }
 .label .top { display: flex; justify-content: space-between; align-items: baseline; }
 .label .order { font-size: 8px; color: #555; }
 .label .pickup { font-size: 12px; font-weight: 900; }
@@ -125,31 +151,49 @@ body { font-family: 'Arial', sans-serif; }
 .label .mod { font-size: 8px; color: #222; margin-top: 0.5mm; }
 .label .guest { font-size: 9px; margin-top: 1mm; font-weight: 700; }
 .label .extra { font-size: 7px; color: #444; margin-top: 0.5mm; }
+.label .qr { width: 12mm; height: 12mm; }
+.label .qr svg { width: 100%; height: 100%; display: block; }
 `,
         }}
       />
       <div>
         {labels.length === 0 ? (
           <div className="label">
-            <div className="top">
-              <span className="order">{order.orderNumber}</span>
-              <span className="pickup">#{pickupNumber}</span>
+            <div className="body">
+              <div className="top">
+                <span className="order">{order.orderNumber}</span>
+                <span className="pickup">#{pickupNumber}</span>
+              </div>
+              <div className="name">—</div>
             </div>
-            <div className="name">—</div>
+            <div
+              className="qr"
+              aria-label={`QR DEMO-${order.orderNumber}`}
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: client-rendered SVG from `qrcode` lib
+              dangerouslySetInnerHTML={{ __html: qrSvg }}
+            />
           </div>
         ) : null}
         {labels.map((label) => (
           <div className="label" key={label.key}>
-            <div className="top">
-              <span className="order">
-                {order.orderNumber} · {label.index}/{label.total}
-              </span>
-              <span className="pickup">#{pickupNumber}</span>
+            <div className="body">
+              <div className="top">
+                <span className="order">
+                  {order.orderNumber} · {label.index}/{label.total}
+                </span>
+                <span className="pickup">#{pickupNumber}</span>
+              </div>
+              <div className="name">{label.name}</div>
+              {label.modifier ? <div className="mod">{label.modifier}</div> : null}
+              {guest ? <div className="guest">a/n {guest}</div> : null}
+              {label.lineNotes ? <div className="extra">{label.lineNotes}</div> : null}
             </div>
-            <div className="name">{label.name}</div>
-            {label.modifier ? <div className="mod">{label.modifier}</div> : null}
-            {guest ? <div className="guest">a/n {guest}</div> : null}
-            {label.lineNotes ? <div className="extra">{label.lineNotes}</div> : null}
+            <div
+              className="qr"
+              aria-label={`QR DEMO-${order.orderNumber}`}
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: client-rendered SVG from `qrcode` lib
+              dangerouslySetInnerHTML={{ __html: qrSvg }}
+            />
           </div>
         ))}
       </div>

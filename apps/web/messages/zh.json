@@ -532,6 +532,7 @@
     "orderNumber": "订单号",
     "searchProduct": "搜索产品...",
     "noProductSelected": "请选择要添加的产品",
+    "outOfStock": "缺货",
     "qty": "数量",
     "unitPrice": "单价",
     "lineTotal": "小计",

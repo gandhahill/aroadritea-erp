@@ -532,6 +532,7 @@
     "orderNumber": "No. Pesanan",
     "searchProduct": "Cari produk...",
     "noProductSelected": "Pilih produk untuk menambahkan",
+    "outOfStock": "Habis",
     "qty": "Jml",
     "unitPrice": "Harga Satuan",
     "lineTotal": "Subtotal",
