@@ -74,7 +74,10 @@ export async function fetchRecipes(): Promise<{
       productSku: products.sku,
     })
     .from(boms)
-    .leftJoin(products, eq(boms.productId, products.id))
+    .leftJoin(
+      products,
+      and(eq(boms.productId, products.id), eq(products.tenantId, c.tenantId)),
+    )
     .where(and(eq(boms.tenantId, c.tenantId), isNull(boms.deletedAt)));
 
   const counts = await db
@@ -135,7 +138,10 @@ export async function fetchRecipeLines(bomId: string): Promise<RecipeLineRow[]> 
       ingredientName: products.name,
     })
     .from(bomLines)
-    .leftJoin(products, eq(bomLines.ingredientId, products.id))
+    .leftJoin(
+      products,
+      and(eq(bomLines.ingredientId, products.id), eq(products.tenantId, c.tenantId)),
+    )
     .where(eq(bomLines.bomId, bomId));
   return rows
     .sort((a, b) => a.lineNo - b.lineNo)

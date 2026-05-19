@@ -89,8 +89,14 @@ export async function fetchPurchasingDashboard(): Promise<PurchasingDashboardDat
         lineId: purchaseOrderLines.id,
       })
       .from(purchaseOrders)
-      .leftJoin(partners, eq(purchaseOrders.supplierId, partners.id))
-      .leftJoin(locations, eq(purchaseOrders.locationId, locations.id))
+      .leftJoin(
+        partners,
+        and(eq(purchaseOrders.supplierId, partners.id), eq(partners.tenantId, ctx.tenantId)),
+      )
+      .leftJoin(
+        locations,
+        and(eq(purchaseOrders.locationId, locations.id), eq(locations.tenantId, ctx.tenantId)),
+      )
       .leftJoin(purchaseOrderLines, eq(purchaseOrderLines.purchaseOrderId, purchaseOrders.id))
       .where(eq(purchaseOrders.tenantId, ctx.tenantId))
       .orderBy(desc(purchaseOrders.orderDate), desc(purchaseOrders.createdAt)),

@@ -6,6 +6,7 @@
 
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/location-options';
+import { getLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { NewOpnameForm } from './new-opname-form';
 
@@ -16,7 +17,10 @@ export default async function NewOpnamePage() {
   const user = session.user as Record<string, unknown>;
   const tenantId = (user.tenantId as string) ?? 'default';
   const sessionLocationId = user.locationId as string | undefined;
-  const locationOptions = await getActiveLocationOptions({ tenantId, locale: 'id' });
+  const rawLocale = await getLocale().catch(() => 'id');
+  const locale: 'id' | 'en' | 'zh' =
+    rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
+  const locationOptions = await getActiveLocationOptions({ tenantId, locale });
   const defaultLocationId = resolveDefaultLocationId(locationOptions, undefined, sessionLocationId);
 
   return <NewOpnameForm locationOptions={locationOptions} defaultLocationId={defaultLocationId} />;

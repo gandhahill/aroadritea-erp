@@ -7,6 +7,7 @@
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/location-options';
 import type { Metadata } from 'next';
+import { getLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchHourlySales } from './actions';
 import { HourlySalesClient } from './hourly-sales-client';
@@ -31,7 +32,10 @@ export default async function HourlySalesPage({
   const tenantId = (user.tenantId as string | undefined) ?? 'default';
   const sessionLocationId = user.locationId as string | undefined;
   const today = new Date().toISOString().slice(0, 10);
-  const locationOptions = await getActiveLocationOptions({ tenantId, type: 'store' });
+  const rawLocale = await getLocale().catch(() => 'id');
+  const locale: 'id' | 'en' | 'zh' =
+    rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
+  const locationOptions = await getActiveLocationOptions({ tenantId, locale, type: 'store' });
 
   const startDate = params.startDate ?? today;
   const endDate = params.endDate ?? today;

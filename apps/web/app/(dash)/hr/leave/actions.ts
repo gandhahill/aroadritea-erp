@@ -109,8 +109,14 @@ export async function fetchLeaveDashboard(): Promise<LeaveDashboardData | null> 
         reason: leaveRequests.reason,
       })
       .from(leaveRequests)
-      .leftJoin(employees, eq(leaveRequests.employeeId, employees.id))
-      .leftJoin(leaveTypes, eq(leaveRequests.leaveTypeId, leaveTypes.id))
+      .leftJoin(
+        employees,
+        and(eq(leaveRequests.employeeId, employees.id), eq(employees.tenantId, ctx.tenantId)),
+      )
+      .leftJoin(
+        leaveTypes,
+        and(eq(leaveRequests.leaveTypeId, leaveTypes.id), eq(leaveTypes.tenantId, ctx.tenantId)),
+      )
       .where(eq(leaveRequests.tenantId, ctx.tenantId))
       .orderBy(desc(leaveRequests.createdAt))
       .limit(50),
@@ -125,8 +131,14 @@ export async function fetchLeaveDashboard(): Promise<LeaveDashboardData | null> 
         pendingDays: leaveBalances.pendingDays,
       })
       .from(leaveBalances)
-      .leftJoin(employees, eq(leaveBalances.employeeId, employees.id))
-      .leftJoin(leaveTypes, eq(leaveBalances.leaveTypeId, leaveTypes.id))
+      .leftJoin(
+        employees,
+        and(eq(leaveBalances.employeeId, employees.id), eq(employees.tenantId, ctx.tenantId)),
+      )
+      .leftJoin(
+        leaveTypes,
+        and(eq(leaveBalances.leaveTypeId, leaveTypes.id), eq(leaveTypes.tenantId, ctx.tenantId)),
+      )
       .where(eq(leaveBalances.tenantId, ctx.tenantId))
       .orderBy(desc(leaveBalances.year))
       .limit(100),

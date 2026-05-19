@@ -1,6 +1,7 @@
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
 import type { Metadata } from 'next';
+import { getLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchDonationReport } from './actions';
 import { DonationsClient } from './donations-client';
@@ -23,7 +24,10 @@ export default async function DonationsPage({
   const user = session.user as Record<string, unknown>;
   const tenantId = (user.tenantId as string | undefined) ?? 'default';
   const today = new Date().toISOString().slice(0, 10);
-  const locationOptions = await getActiveLocationOptions({ tenantId, type: 'store' });
+  const rawLocale = await getLocale().catch(() => 'id');
+  const locale: 'id' | 'en' | 'zh' =
+    rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
+  const locationOptions = await getActiveLocationOptions({ tenantId, locale, type: 'store' });
 
   const startDate = params.startDate ?? today;
   const endDate = params.endDate ?? today;

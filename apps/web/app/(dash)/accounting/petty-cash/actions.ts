@@ -134,7 +134,22 @@ export async function fetchPettyCashTransactions(
   accountId: string,
   limit = 50,
 ): Promise<PettyCashTransactionItem[]> {
-  // JOIN against users so the UI shows display names, not UUIDs.
+  const session = await getSession();
+  const tenantId = String((session?.user as Record<string, unknown> | undefined)?.tenantId ?? 'default');
+
+  // Look up the parent account first so we can tenant-scope the
+  // transactions query — otherwise `accountId` from URL params could be
+  // pointed at another tenant's account.
+  const [account] = await db
+    .select({ id: pettyCashAccounts.id })
+    .from(pettyCashAccounts)
+    .where(and(eq(pettyCashAccounts.id, accountId), eq(pettyCashAccounts.tenantId, tenantId)))
+    .limit(1);
+  if (!account) return [];
+
+  // JOIN against users so the UI shows display names, not UUIDs. The
+  // join is tenant-scoped so a stray cross-tenant `users` row can't
+  // leak a name into the petty-cash history (defense-in-depth).
   const rows = await db
     .select({
       id: pettyCashTransactions.id,
@@ -146,7 +161,10 @@ export async function fetchPettyCashTransactions(
       createdAt: pettyCashTransactions.createdAt,
     })
     .from(pettyCashTransactions)
-    .leftJoin(users, eq(users.id, pettyCashTransactions.createdBy))
+    .leftJoin(
+      users,
+      and(eq(users.id, pettyCashTransactions.createdBy), eq(users.tenantId, tenantId)),
+    )
     .where(eq(pettyCashTransactions.accountId, accountId))
     .orderBy(desc(pettyCashTransactions.createdAt))
     .limit(limit);
@@ -156,7 +174,8 @@ export async function fetchPettyCashTransactions(
     kind: r.kind,
     amount: r.amount.toString(),
     description: r.description,
-    createdByName: r.createdByName ?? r.createdById ?? null,
+    // Resolved name only — never expose the raw UUID to operators.
+    createdByName: r.createdByName ?? null,
     createdAt: r.createdAt ?? new Date(0),
   }));
 }

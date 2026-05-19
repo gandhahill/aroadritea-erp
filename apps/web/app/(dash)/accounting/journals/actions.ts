@@ -225,7 +225,11 @@ export async function fetchJournalFormData(): Promise<JournalFormData> {
         ),
       )
       .orderBy(asc(accounts.code)),
-    getActiveLocationOptions({ tenantId: ctx.tenantId, locale: 'id' }),
+    (async () => {
+      const raw = await getLocale().catch(() => 'id');
+      const locale: 'id' | 'en' | 'zh' = raw === 'en' || raw === 'zh' ? raw : 'id';
+      return getActiveLocationOptions({ tenantId: ctx.tenantId, locale });
+    })(),
   ]);
 
   return {
