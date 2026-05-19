@@ -100,6 +100,12 @@ function errorMessage(error: unknown) {
   return String(error);
 }
 
+// Kinds that belong on the "Produk & Menu" page (i.e. things actually
+// sold to customers). Raw materials and consumables live under
+// /inventory/supplies — even if their isSellable flag was set true by
+// accident, this whitelist keeps them out of the customer-facing list.
+const SELLABLE_KINDS: ProductKind[] = ['finished_good', 'merchandise', 'service'];
+
 export async function fetchProductMasterData(
   search?: string,
   kind?: ProductKind,
@@ -120,10 +126,17 @@ export async function fetchProductMasterData(
     listProducts(listInput, ctx),
   ]);
 
+  // Post-fetch whitelist when no kind filter was applied — guards against
+  // raw_material/consumable rows that have isSellable=true by mistake.
+  const rawProducts = productResult.ok ? productResult.value.items : [];
+  const products = kind
+    ? rawProducts
+    : rawProducts.filter((p) => SELLABLE_KINDS.includes(p.kind as ProductKind));
+
   return {
     categories: categoryResult.ok ? categoryResult.value : [],
-    products: productResult.ok ? productResult.value.items : [],
-    total: productResult.ok ? productResult.value.total : 0,
+    products,
+    total: kind ? (productResult.ok ? productResult.value.total : 0) : products.length,
     error: !categoryResult.ok
       ? errorMessage(categoryResult.error)
       : !productResult.ok
