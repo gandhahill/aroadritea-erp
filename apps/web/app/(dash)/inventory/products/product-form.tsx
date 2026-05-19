@@ -173,12 +173,18 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
           <Toggle
             name="isSellable"
             label={f('isSellable')}
-            defaultChecked={product?.isSellable ?? true}
+            defaultChecked={
+              product?.isSellable ??
+              (defaultKind === 'raw_material' || defaultKind === 'consumable' ? false : true)
+            }
           />
           <Toggle
             name="isPurchasable"
             label={f('isPurchasable')}
-            defaultChecked={product?.isPurchasable ?? false}
+            defaultChecked={
+              product?.isPurchasable ??
+              (defaultKind === 'raw_material' || defaultKind === 'consumable' ? true : false)
+            }
           />
           <Toggle
             name="trackBatch"
