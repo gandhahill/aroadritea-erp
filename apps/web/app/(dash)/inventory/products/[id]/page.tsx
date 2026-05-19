@@ -47,12 +47,23 @@ export default async function ProductDetailPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
-        <Link
-          href="/inventory/products"
-          className="text-sm font-medium text-brand-ink-3 transition-colors hover:text-brand-ink"
-        >
-          Kembali ke Produk & Menu
-        </Link>
+        {/* Adapt the back link to the originating list — supplies for
+            raw_material/consumable, otherwise the menu master. */}
+        {product && (product.kind === 'raw_material' || product.kind === 'consumable') ? (
+          <Link
+            href="/inventory/supplies"
+            className="text-sm font-medium text-brand-ink-3 transition-colors hover:text-brand-ink"
+          >
+            Kembali ke Bahan &amp; Perlengkapan
+          </Link>
+        ) : (
+          <Link
+            href="/inventory/products"
+            className="text-sm font-medium text-brand-ink-3 transition-colors hover:text-brand-ink"
+          >
+            Kembali ke Produk &amp; Menu
+          </Link>
+        )}
         <h1 className="mt-3 text-2xl font-bold text-brand-ink">
           {product ? product.name.id : 'Produk tidak bisa dimuat'}
         </h1>
