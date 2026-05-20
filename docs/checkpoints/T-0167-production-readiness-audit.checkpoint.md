@@ -257,6 +257,7 @@ Continue the broader T-0167 sweep from `docs/TRACEABILITY-AUDIT.md` on remaining
   - Local `pnpm --filter @erp/mcp build` PASS.
   - Commit `a7e5285` was pushed, pulled on VPS, rebuilt for `@erp/web` and `@erp/mcp`, and PM2 `aroadri-web`/`aroadri-mcp` were reloaded/saved.
   - Production smoke PASS with admin session: `/hr/payroll` and `/accounting/assets` returned HTTP 200; `https://erp.aroadritea.com/api/healthz` and `https://erp.aroadritea.com/mcp/healthz` returned HTTP 200.
+  - VPS repo hygiene PASS: old untracked generated migration `packages/db/migrations/0000_flippant_dakota_north.sql` was moved to `/root/aroadri-untracked-backup/0000_flippant_dakota_north.sql.20260520`; VPS `git status --short` is clean.
 - 2026-05-20 16:38 local verification:
   - `pnpm -r typecheck` PASS across 10 workspace projects after member, HR, and fixed-asset changes.
   - `pnpm -r test` PASS: shared 58 tests and services 25 files / 534 tests.
