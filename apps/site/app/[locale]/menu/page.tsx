@@ -25,6 +25,18 @@ interface MenuItem {
   price: string;
 }
 
+const PUBLIC_MENU_IMAGE_URLS: Record<string, string> = {
+  'FMT-BOO': '/photo/menu/bamboo-oolong-milk-tea.jpg',
+  'FMT-OSM': '/photo/menu/osmanthus-oolong-milk-tea.jpg',
+  'FMT-GLU': '/photo/menu/glutinous-fragrant-milk-tea.jpg',
+  'FT-BOO': '/photo/menu/fresh-tea.jpg',
+  'FT-GLU': '/photo/menu/fresh-tea.jpg',
+  'FT-OSM': '/photo/menu/fresh-tea.jpg',
+  'LFT-BOO': '/photo/menu/bamboo-oolong-lemon-tea.jpg',
+  'LFT-GLU': '/photo/menu/glutinous-fragrant-lemon-tea.jpg',
+  'LFT-OSM': '/photo/menu/osmanthus-oolong-lemon-tea.jpg',
+};
+
 export const dynamic = 'force-dynamic';
 
 export default async function MenuPage({ params }: Props) {
@@ -212,7 +224,7 @@ async function getPublicMenu(locale: Locale): Promise<MenuCategory[]> {
       description: row.productDescription
         ? localized(row.productDescription as LocalizedText, locale)
         : null,
-      imageUrl: row.imageUrl,
+      imageUrl: PUBLIC_MENU_IMAGE_URLS[row.productSku] ?? row.imageUrl,
       price:
         prices.length > 0
           ? formatPriceRange(prices, locale)

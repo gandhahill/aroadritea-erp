@@ -199,6 +199,9 @@ export async function postJournal(
             credit: l.credit,
             taxCode: l.taxCode,
             partnerId: l.partnerId,
+            dueDate: l.dueDate,
+            reminderDaysBefore: l.reminderDaysBefore,
+            expectedLossRateBps: l.expectedLossRateBps,
           }),
         ),
       };

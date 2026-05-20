@@ -10,10 +10,21 @@ const BRAND_CREAM = '#FAF7F2';
 const BRAND_INK = '#1A1A1A';
 const BRAND_INK_2 = '#4A4A4A';
 const BRAND_CREAM_3 = '#E8E2D9';
+type EmailLocale = 'id' | 'en' | 'zh';
 
-function baseLayout(content: string): string {
+function publicSiteUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    process.env.PUBLIC_SITE_URL ??
+    process.env.SITE_URL ??
+    'https://aroadritea.com'
+  ).replace(/\/$/, '');
+}
+
+function baseLayout(content: string, locale: EmailLocale = 'id'): string {
+  const logoUrl = `${publicSiteUrl()}/brand/logo-primary.png`;
   return `<!DOCTYPE html>
-<html lang="id">
+<html lang="${locale === 'zh' ? 'zh-CN' : locale}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,6 +38,7 @@ function baseLayout(content: string): string {
           <!-- Header -->
           <tr>
             <td style="background-color:${BRAND_RED};padding:24px 32px;text-align:center;">
+              <img src="${logoUrl}" width="120" height="120" alt="Aroadri Tea" style="display:block;margin:0 auto 12px;border:0;outline:none;text-decoration:none;width:120px;height:auto;">
               <h1 style="margin:0;font-size:24px;font-weight:700;color:#ffffff;letter-spacing:1px;">Aroadri Tea</h1>
             </td>
           </tr>
@@ -54,26 +66,50 @@ function baseLayout(content: string): string {
 </html>`;
 }
 
-export function buildOtpEmailHtml(code: string, expiryMinutes: number): string {
+export function buildOtpEmailHtml(
+  code: string,
+  expiryMinutes: number,
+  locale: EmailLocale = 'id',
+): string {
+  const copy = {
+    id: {
+      title: 'Kode Verifikasi OTP',
+      intro: 'Gunakan kode di bawah ini untuk memverifikasi akun Aroadri Tea Anda.',
+      expiry: `Kode ini berlaku selama <strong>${expiryMinutes} menit</strong>.`,
+      warning: 'Jangan bagikan kode ini kepada siapapun. Tim Aroadri Tea tidak akan pernah meminta kode OTP Anda.',
+    },
+    en: {
+      title: 'OTP Verification Code',
+      intro: 'Use the code below to verify your Aroadri Tea account.',
+      expiry: `This code is valid for <strong>${expiryMinutes} minutes</strong>.`,
+      warning: 'Do not share this code with anyone. The Aroadri Tea team will never ask for your OTP code.',
+    },
+    zh: {
+      title: 'OTP验证码',
+      intro: '请使用以下验证码验证您的 Aroadri Tea 账户。',
+      expiry: `此验证码有效期为 <strong>${expiryMinutes} 分钟</strong>。`,
+      warning: '请勿向任何人透露此验证码。Aroadri Tea 团队绝不会索取您的 OTP 验证码。',
+    },
+  }[locale];
   const content = `
-    <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:${BRAND_INK};">Kode Verifikasi OTP</h2>
+    <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:${BRAND_INK};">${copy.title}</h2>
     <p style="margin:0 0 24px;font-size:14px;color:${BRAND_INK_2};line-height:1.6;">
-      Gunakan kode di bawah ini untuk memverifikasi akun Aroadri Tea Anda.
+      ${copy.intro}
     </p>
     <div style="background-color:${BRAND_CREAM};border:2px dashed ${BRAND_CREAM_3};border-radius:8px;padding:20px;text-align:center;margin:0 0 24px;">
       <p style="margin:0;font-size:36px;font-weight:800;letter-spacing:8px;color:${BRAND_RED};">${code}</p>
     </div>
     <p style="margin:0 0 8px;font-size:13px;color:${BRAND_INK_2};line-height:1.5;">
-      Kode ini berlaku selama <strong>${expiryMinutes} menit</strong>.
+      ${copy.expiry}
     </p>
     <p style="margin:0;font-size:13px;color:${BRAND_INK_2};line-height:1.5;">
-      Jangan bagikan kode ini kepada siapapun. Tim Aroadri Tea tidak akan pernah meminta kode OTP Anda.
+      ${copy.warning}
     </p>
   `;
-  return baseLayout(content);
+  return baseLayout(content, locale);
 }
 
-export function buildWelcomeEmailHtml(memberName: string): string {
+export function buildWelcomeEmailHtml(memberName: string, locale: EmailLocale = 'id'): string {
   const content = `
     <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:${BRAND_INK};">Selamat Datang, ${memberName}!</h2>
     <p style="margin:0 0 16px;font-size:14px;color:${BRAND_INK_2};line-height:1.6;">
@@ -91,10 +127,14 @@ export function buildWelcomeEmailHtml(memberName: string): string {
       Kunjungi outlet terdekat kami dan sebutkan nomor telepon terdaftar saat bertransaksi.
     </p>
   `;
-  return baseLayout(content);
+  return baseLayout(content, locale);
 }
 
-export function buildPasswordResetEmailHtml(resetUrl: string, expiryMinutes: number): string {
+export function buildPasswordResetEmailHtml(
+  resetUrl: string,
+  expiryMinutes: number,
+  locale: EmailLocale = 'id',
+): string {
   const content = `
     <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:${BRAND_INK};">Reset Password</h2>
     <p style="margin:0 0 24px;font-size:14px;color:${BRAND_INK_2};line-height:1.6;">
@@ -112,5 +152,5 @@ export function buildPasswordResetEmailHtml(resetUrl: string, expiryMinutes: num
       Jika Anda tidak merasa meminta reset password, abaikan email ini.
     </p>
   `;
-  return baseLayout(content);
+  return baseLayout(content, locale);
 }

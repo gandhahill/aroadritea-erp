@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useMemo, useState } from 'react';
-import { createAssetAction, runDepreciationAction } from './actions';
+import { createAssetAction, runDepreciationAction, updateAssetCategoryAction } from './actions';
 import type { AssetPageData } from './actions';
 
 const INPUT =
@@ -29,6 +29,7 @@ export function AssetsClient({
   total,
   categories,
   locations,
+  accountOptions,
   initialLocationId,
   initialStatus,
   today,
@@ -42,6 +43,24 @@ export function AssetsClient({
   const selectedCategory = useMemo(
     () => categories.find((category) => category.id === categoryId) ?? categories[0],
     [categories, categoryId],
+  );
+  const fixedAssetAccounts = useMemo(
+    () =>
+      accountOptions.filter(
+        (account) => account.type === 'asset' && account.subtype === 'fixed_asset',
+      ),
+    [accountOptions],
+  );
+  const accumulatedAccounts = useMemo(
+    () =>
+      accountOptions.filter(
+        (account) => account.type === 'asset' && account.subtype === 'contra_asset',
+      ),
+    [accountOptions],
+  );
+  const depreciationExpenseAccounts = useMemo(
+    () => accountOptions.filter((account) => account.type === 'expense'),
+    [accountOptions],
   );
 
   useEffect(() => {
@@ -318,7 +337,114 @@ export function AssetsClient({
           </button>
         </div>
       </form>
+
+      <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
+        <div>
+          <h2 className="text-base font-semibold text-brand-ink">{t('categorySettings')}</h2>
+          <p className="mt-1 text-sm text-brand-ink-3">{t('categorySettingsDescription')}</p>
+        </div>
+        <div className="mt-5 space-y-3">
+          {categories.map((category) => (
+            <form
+              key={category.id}
+              action={updateAssetCategoryAction}
+              className="grid gap-3 rounded-lg border border-brand-cream-3 bg-brand-cream-1 p-3 md:grid-cols-2 xl:grid-cols-[1.2fr_0.8fr_1fr_1fr_1fr_auto]"
+            >
+              <input type="hidden" name="categoryId" value={category.id} />
+              <div>
+                <div className="font-semibold text-brand-ink">{pickName(category.name)}</div>
+                <div className="mt-0.5 text-xs text-brand-ink-3">{category.code}</div>
+              </div>
+              <label className="space-y-1">
+                <span className="text-xs font-medium text-brand-ink-3">
+                  {t('usefulLifeMonths')}
+                </span>
+                <input
+                  name="defaultUsefulLifeMonths"
+                  type="number"
+                  min={1}
+                  max={600}
+                  defaultValue={category.defaultUsefulLifeMonths}
+                  className={INPUT}
+                />
+              </label>
+              <SelectAccount
+                label={t('assetAccount')}
+                name="assetAccountId"
+                accounts={fixedAssetAccounts}
+                defaultValue={category.assetAccountId}
+                pickName={pickName}
+              />
+              <SelectAccount
+                label={t('accumulatedAccount')}
+                name="accumulatedDepreciationAccountId"
+                accounts={accumulatedAccounts}
+                defaultValue={category.accumulatedDepreciationAccountId}
+                pickName={pickName}
+              />
+              <SelectAccount
+                label={t('expenseAccount')}
+                name="depreciationExpenseAccountId"
+                accounts={depreciationExpenseAccounts}
+                defaultValue={category.depreciationExpenseAccountId}
+                pickName={pickName}
+              />
+              <div className="grid gap-2 md:col-span-2 xl:col-span-1">
+                <label className="space-y-1">
+                  <span className="text-xs font-medium text-brand-ink-3">
+                    {t('defaultMethod')}
+                  </span>
+                  <select
+                    name="defaultDepreciationMethod"
+                    defaultValue={category.defaultDepreciationMethod}
+                    className={INPUT}
+                  >
+                    {METHOD_VALUES.map((method) => (
+                      <option key={method} value={method}>
+                        {t(`methods.${method}`)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark"
+                >
+                  {t('saveCategory')}
+                </button>
+              </div>
+            </form>
+          ))}
+        </div>
+      </section>
     </div>
+  );
+}
+
+function SelectAccount({
+  label,
+  name,
+  accounts,
+  defaultValue,
+  pickName,
+}: {
+  label: string;
+  name: string;
+  accounts: Array<{ id: string; code: string; name: Record<string, string> }>;
+  defaultValue: string;
+  pickName: (name: Record<string, string>) => string;
+}) {
+  return (
+    <label className="space-y-1">
+      <span className="text-xs font-medium text-brand-ink-3">{label}</span>
+      <select name={name} defaultValue={defaultValue} className={INPUT}>
+        {accounts.map((account) => (
+          <option key={account.id} value={account.id}>
+            {account.code} - {pickName(account.name)}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 

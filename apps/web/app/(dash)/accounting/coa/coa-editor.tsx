@@ -99,6 +99,7 @@ export function COAEditor({ tree }: Props) {
   const t = useTranslations('accounting.coa');
   const tc = useTranslations('common');
   const [draft, setDraft] = useState<COAAccountDraft>(blankDraft);
+  const [replacementAccountId, setReplacementAccountId] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const accounts = useMemo(() => flatten(tree), [tree]);
@@ -125,10 +126,14 @@ export function COAEditor({ tree }: Props) {
   async function remove() {
     if (!draft.id) return;
     setMessage(null);
-    const result = await deleteCOAAccount({ id: draft.id });
-    setMessage(result.success ? t('deactivated') : result.error);
+    const result = await deleteCOAAccount({
+      id: draft.id,
+      replacementAccountId: replacementAccountId || null,
+    });
+    setMessage(result.success ? (result.message ?? t('deactivated')) : result.error);
     if (result.success) {
       setDraft(blankDraft);
+      setReplacementAccountId('');
       startTransition(() => window.location.reload());
     }
   }
@@ -147,6 +152,7 @@ export function COAEditor({ tree }: Props) {
           onChange={(event) => {
             const node = accounts.find((account) => account.id === event.target.value);
             setDraft(node ? toDraft(node) : blankDraft);
+            setReplacementAccountId('');
             setMessage(null);
           }}
           className="h-10 min-w-72 rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink"
@@ -295,14 +301,43 @@ export function COAEditor({ tree }: Props) {
           {t('saveAccount')}
         </button>
         {draft.id && (
-          <button
-            type="button"
-            onClick={remove}
-            disabled={isPending}
-            className="rounded-md border border-brand-red px-4 py-2 text-sm font-semibold text-brand-red hover:bg-brand-red/5 disabled:opacity-60"
-          >
-            {tc('actions.deactivate')}
-          </button>
+          <div className="flex flex-col gap-2 rounded-md border border-brand-cream-3 bg-brand-cream-1 p-3">
+            <label className="text-xs font-semibold text-brand-ink-3">
+              Akun pengganti untuk konfigurasi dan jurnal draft
+              <select
+                value={replacementAccountId}
+                onChange={(event) => setReplacementAccountId(event.target.value)}
+                className="mt-1 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink"
+              >
+                <option value="">Tidak ada</option>
+                {accounts
+                  .filter(
+                    (account) =>
+                      account.id !== draft.id &&
+                      account.isActive &&
+                      account.isPostable &&
+                      account.type === draft.type,
+                  )
+                  .map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.code} - {account.name.id ?? account.name.en ?? account.code}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <p className="max-w-xl text-xs leading-5 text-brand-ink-3">
+              Akun yang belum pernah dipakai jurnal akan dihapus dari daftar. Akun yang sudah
+              memiliki histori jurnal hanya dinonaktifkan agar audit dan laporan lama tetap utuh.
+            </p>
+            <button
+              type="button"
+              onClick={remove}
+              disabled={isPending}
+              className="self-start rounded-md border border-brand-red px-4 py-2 text-sm font-semibold text-brand-red hover:bg-brand-red/5 disabled:opacity-60"
+            >
+              Hapus aman
+            </button>
+          </div>
         )}
       </div>
     </section>

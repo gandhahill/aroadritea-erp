@@ -34,7 +34,7 @@ export function PublicFooter({
     <footer className="border-t border-brand-red/10 bg-brand-ink text-brand-cream">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1.2fr_0.8fr]">
         <div className="flex items-center gap-4">
-          <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white p-2 shadow-soft">
+          <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-cream p-2 shadow-soft">
             <img src="/brand/logo-primary.png" alt="" className="h-full w-full object-contain" />
           </span>
           <div>

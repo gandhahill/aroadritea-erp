@@ -9,8 +9,9 @@ export {
   SubmitPOInputSchema,
   ApprovePOInputSchema,
   CancelPOInputSchema,
+  TrackShipmentInputSchema,
 } from './schemas';
-export type { CreatePOInput, POLineInput } from './schemas';
+export type { CreatePOInput, POLineInput, TrackShipmentInput } from './schemas';
 export { createGRN, confirmGRN } from './grn-service';
 export type { GRNResult, GRNLineResult, GRNConfirmResult } from './grn-service';
 export {
@@ -19,3 +20,5 @@ export {
   ConfirmGRNInputSchema,
 } from './grn-schemas';
 export type { CreateGRNInput, GRNLineInput, ConfirmGRNInput } from './grn-schemas';
+export { trackPurchaseOrderShipment } from './shipment-tracking';
+export type { ShipmentTrackingResult } from './shipment-tracking';

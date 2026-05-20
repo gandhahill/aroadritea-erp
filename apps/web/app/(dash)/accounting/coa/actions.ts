@@ -7,8 +7,15 @@
 
 import { getSession } from '@/lib/auth';
 import { auditLog, db } from '@erp/db';
-import { and, eq, isNull } from '@erp/db';
-import { accounts } from '@erp/db/schema/accounting';
+import { and, count, eq, isNull, sql } from '@erp/db';
+import {
+  accounts,
+  fixedAssetCategories,
+  journalEntries,
+  journalLines,
+  taxRates,
+} from '@erp/db/schema/accounting';
+import { products } from '@erp/db/schema/inventory';
 import { requirePermission } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
@@ -38,7 +45,9 @@ export interface COAAccountDraft {
   isActive: boolean;
 }
 
-export type COAActionResult = { success: true; id: string } | { success: false; error: string };
+export type COAActionResult =
+  | { success: true; id: string; message?: string }
+  | { success: false; error: string };
 
 async function requireCOAContext() {
   const session = await getSession();
@@ -195,11 +204,15 @@ export async function saveCOAAccount(input: COAAccountDraft): Promise<COAActionR
   }
 }
 
-export async function deleteCOAAccount(input: { id: string }): Promise<COAActionResult> {
+export async function deleteCOAAccount(input: {
+  id: string;
+  replacementAccountId?: string | null;
+}): Promise<COAActionResult> {
   const ctx = await requireCOAContext();
   if (!ctx) return { success: false, error: 'Forbidden' };
 
   const id = input.id.trim();
+  const replacementAccountId = input.replacementAccountId?.trim() || null;
   const [before] = await db
     .select()
     .from(accounts)
@@ -216,12 +229,39 @@ export async function deleteCOAAccount(input: { id: string }): Promise<COAAction
     return { success: false, error: 'Akun masih memiliki sub-akun. Hapus atau pindahkan sub-akun terlebih dahulu.' };
   }
 
+  if (replacementAccountId === id) {
+    return { success: false, error: 'Akun pengganti tidak boleh sama dengan akun yang dihapus.' };
+  }
+
+  let replacement: typeof accounts.$inferSelect | null = null;
+  if (replacementAccountId) {
+    const [row] = await db
+      .select()
+      .from(accounts)
+      .where(
+        and(
+          eq(accounts.tenantId, ctx.tenantId),
+          eq(accounts.id, replacementAccountId),
+          eq(accounts.isActive, true),
+          isNull(accounts.deletedAt),
+        ),
+      )
+      .limit(1);
+    if (!row) return { success: false, error: 'Akun pengganti tidak ditemukan atau tidak aktif.' };
+    if (!row.isPostable) return { success: false, error: 'Akun pengganti harus postable.' };
+    replacement = row;
+
+    await replaceDraftAndConfigurationReferences(ctx.tenantId, id, replacementAccountId);
+  }
+
+  const journalUsage = await countJournalLineUsage(ctx.tenantId, id);
   const deletedAt = new Date();
+  const canDelete = journalUsage === 0;
   await db
     .update(accounts)
     .set({
       isActive: false,
-      deletedAt,
+      deletedAt: canDelete ? deletedAt : null,
       updatedAt: deletedAt,
       updatedBy: ctx.userId,
     })
@@ -231,12 +271,91 @@ export async function deleteCOAAccount(input: { id: string }): Promise<COAAction
     id: generateId(),
     tenantId: ctx.tenantId,
     userId: ctx.userId,
-    action: 'delete',
+    action: canDelete ? 'delete' : 'deactivate',
     entityType: 'account',
     entityId: id,
     before: before as never,
-    after: { deletedAt: deletedAt.toISOString(), isActive: false } as never,
+    after: {
+      deletedAt: canDelete ? deletedAt.toISOString() : null,
+      isActive: false,
+      replacementAccountId: replacement?.id ?? null,
+      remainingJournalLineCount: journalUsage,
+    } as never,
   });
   revalidatePath('/accounting/coa');
-  return { success: true, id };
+  return {
+    success: true,
+    id,
+    message: canDelete
+      ? 'Akun dihapus karena tidak pernah dipakai di jurnal.'
+      : replacement
+        ? 'Referensi konfigurasi dan jurnal draft sudah dipindahkan. Akun tetap disimpan nonaktif karena masih memiliki histori jurnal posted/reversed.'
+        : 'Akun dinonaktifkan. Histori jurnal masih ada sehingga akun tidak dihapus dari arsip audit.',
+  };
+}
+
+async function countJournalLineUsage(tenantId: string, accountId: string): Promise<number> {
+  const [row] = await db
+    .select({ c: count() })
+    .from(journalLines)
+    .innerJoin(journalEntries, eq(journalEntries.id, journalLines.journalEntryId))
+    .where(and(eq(journalEntries.tenantId, tenantId), eq(journalLines.accountId, accountId)));
+  return Number(row?.c ?? 0);
+}
+
+async function replaceDraftAndConfigurationReferences(
+  tenantId: string,
+  accountId: string,
+  replacementAccountId: string,
+) {
+  await db.execute(sql`
+    UPDATE journal_lines AS jl
+    SET account_id = ${replacementAccountId}
+    FROM journal_entries AS je
+    WHERE jl.journal_entry_id = je.id
+      AND je.tenant_id = ${tenantId}
+      AND je.status = 'draft'
+      AND jl.account_id = ${accountId}
+  `);
+
+  await db
+    .update(taxRates)
+    .set({ postingAccountId: replacementAccountId, updatedAt: new Date() })
+    .where(eq(taxRates.postingAccountId, accountId));
+
+  await db
+    .update(fixedAssetCategories)
+    .set({ assetAccountId: replacementAccountId, updatedAt: new Date() })
+    .where(and(eq(fixedAssetCategories.tenantId, tenantId), eq(fixedAssetCategories.assetAccountId, accountId)));
+  await db
+    .update(fixedAssetCategories)
+    .set({ accumulatedDepreciationAccountId: replacementAccountId, updatedAt: new Date() })
+    .where(
+      and(
+        eq(fixedAssetCategories.tenantId, tenantId),
+        eq(fixedAssetCategories.accumulatedDepreciationAccountId, accountId),
+      ),
+    );
+  await db
+    .update(fixedAssetCategories)
+    .set({ depreciationExpenseAccountId: replacementAccountId, updatedAt: new Date() })
+    .where(
+      and(
+        eq(fixedAssetCategories.tenantId, tenantId),
+        eq(fixedAssetCategories.depreciationExpenseAccountId, accountId),
+      ),
+    );
+
+  await db
+    .update(products)
+    .set({ cogsAccountId: replacementAccountId, updatedAt: new Date() })
+    .where(and(eq(products.tenantId, tenantId), eq(products.cogsAccountId, accountId)));
+  await db
+    .update(products)
+    .set({ revenueAccountId: replacementAccountId, updatedAt: new Date() })
+    .where(and(eq(products.tenantId, tenantId), eq(products.revenueAccountId, accountId)));
+  await db
+    .update(products)
+    .set({ inventoryAccountId: replacementAccountId, updatedAt: new Date() })
+    .where(and(eq(products.tenantId, tenantId), eq(products.inventoryAccountId, accountId)));
 }

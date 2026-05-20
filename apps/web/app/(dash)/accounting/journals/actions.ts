@@ -14,6 +14,7 @@ import {
   accounts,
   journalEntries,
   journalLines,
+  partners,
 } from '@erp/db/schema/accounting';
 import { locations } from '@erp/db/schema/auth';
 import { createJournal } from '@erp/services/accounting';
@@ -49,6 +50,9 @@ export interface JournalLineDetail {
   debit: string;
   credit: string;
   locationId: string;
+  partnerName: string | null;
+  dueDate: string | null;
+  reminderDaysBefore: number | null;
 }
 
 export interface JournalDetail {
@@ -81,9 +85,16 @@ export interface JournalFormLocation {
   label: string;
 }
 
+export interface JournalFormPartner {
+  id: string;
+  name: string;
+  kind: string;
+}
+
 export interface JournalFormData {
   accounts: JournalFormAccount[];
   locations: JournalFormLocation[];
+  partners: JournalFormPartner[];
 }
 
 export interface JournalCreateState {
@@ -111,6 +122,9 @@ type JournalImportGroup = {
     description?: string;
     debit: string;
     credit: string;
+    partnerId?: string;
+    dueDate?: string;
+    reminderDaysBefore?: number;
   }>;
 };
 
@@ -294,12 +308,12 @@ export async function fetchJournalList(): Promise<JournalListItem[]> {
 
 export async function fetchJournalFormData(): Promise<JournalFormData> {
   const ctx = await getContext();
-  if (!ctx) return { accounts: [], locations: [] };
+  if (!ctx) return { accounts: [], locations: [], partners: [] };
 
   const perm = await requirePermission(ctx.userId, 'accounting.view');
-  if (!perm.ok) return { accounts: [], locations: [] };
+  if (!perm.ok) return { accounts: [], locations: [], partners: [] };
 
-  const [accountRows, locations] = await Promise.all([
+  const [accountRows, partnerRows, locations] = await Promise.all([
     db
       .select({
         id: accounts.id,
@@ -316,6 +330,11 @@ export async function fetchJournalFormData(): Promise<JournalFormData> {
         ),
       )
       .orderBy(asc(accounts.code)),
+    db
+      .select({ id: partners.id, name: partners.name, kind: partners.kind })
+      .from(partners)
+      .where(and(eq(partners.tenantId, ctx.tenantId), eq(partners.isActive, true)))
+      .orderBy(asc(partners.name)),
     (async () => {
       const raw = await getLocale().catch(() => 'id');
       const locale: 'id' | 'en' | 'zh' = raw === 'en' || raw === 'zh' ? raw : 'id';
@@ -328,6 +347,7 @@ export async function fetchJournalFormData(): Promise<JournalFormData> {
       ...account,
       name: account.name as Record<string, string>,
     })),
+    partners: partnerRows,
     locations,
   };
 }
@@ -349,6 +369,11 @@ export async function createJournalAction(
     const credit = money(formData, `credit-${index}`);
     const description = optionalText(formData, `lineDescription-${index}`);
     const lineLocationId = text(formData, `lineLocationId-${index}`) || locationId;
+    const partnerId = optionalText(formData, `partnerId-${index}`);
+    const dueDate = optionalText(formData, `dueDate-${index}`);
+    const reminderRaw = optionalText(formData, `reminderDaysBefore-${index}`);
+    const reminderDaysBefore =
+      reminderRaw === undefined ? undefined : Number.parseInt(reminderRaw, 10);
 
     if (!accountId && debit === '0' && credit === '0' && !description) continue;
     lines.push({
@@ -357,6 +382,11 @@ export async function createJournalAction(
       description,
       debit,
       credit,
+      partnerId,
+      dueDate,
+      reminderDaysBefore: typeof reminderDaysBefore === 'number' && Number.isFinite(reminderDaysBefore)
+        ? Math.max(0, Math.min(365, reminderDaysBefore))
+        : undefined,
     });
   }
 
@@ -504,8 +534,12 @@ export async function fetchJournalDetail(journalId: string): Promise<JournalDeta
       debit: journalLines.debit,
       credit: journalLines.credit,
       locationId: journalLines.locationId,
+      partnerName: partners.name,
+      dueDate: journalLines.dueDate,
+      reminderDaysBefore: journalLines.reminderDaysBefore,
     })
     .from(journalLines)
+    .leftJoin(partners, and(eq(partners.id, journalLines.partnerId), eq(partners.tenantId, ctx.tenantId)))
     .where(eq(journalLines.journalEntryId, journalId));
 
   // Fetch account details for display
@@ -544,6 +578,9 @@ export async function fetchJournalDetail(journalId: string): Promise<JournalDeta
         debit: String(l.debit),
         credit: String(l.credit),
         locationId: l.locationId,
+        partnerName: l.partnerName,
+        dueDate: l.dueDate ? String(l.dueDate) : null,
+        reminderDaysBefore: l.reminderDaysBefore,
       };
     }),
   };

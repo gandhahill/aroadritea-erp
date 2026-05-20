@@ -1,38 +1,38 @@
-# TASK.md — Active Implementation Tasks
+﻿# TASK.md â€” Active Implementation Tasks
 
 > **Single source of truth runtime** for all implementation tasks being worked on (or to be worked on) by AI developers.
 >
 > AI **must** update this file before and after working. If the token limit ends mid-session, the next AI reads this file + relevant checkpoint to continue exactly from the stopping point.
 >
-> Full rules: `SYSTEM-DESIGN.md §37`.
+> Full rules: `SYSTEM-DESIGN.md Â§37`.
 
 ---
 
 ## Status Legend
 
-- 🟦 **PENDING** — scoped, not yet started
-- 🟨 **IN_PROGRESS** — in progress, active checkpoint exists
-- 🟩 **DONE** — completed, commit link available
-- 🟥 **BLOCKED** — stalled, blocker notes present
-- ⚪ **RESCHEDULED** — moved to a later scoped task, reason in Note column
+- ðŸŸ¦ **PENDING** â€” scoped, not yet started
+- ðŸŸ¨ **IN_PROGRESS** â€” in progress, active checkpoint exists
+- ðŸŸ© **DONE** â€” completed, commit link available
+- ðŸŸ¥ **BLOCKED** â€” stalled, blocker notes present
+- âšª **RESCHEDULED** â€” moved to a later scoped task, reason in Note column
 
 ---
 
 ## Active Tasks
 
-> Only those with 🟨 or 🟥 status. Move to Done when finished.
+> Only those with ðŸŸ¨ or ðŸŸ¥ status. Move to Done when finished.
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-20 17:19 WIB (Codex) | 🟨 IN_PROGRESS | Current sweep: fixed member Turnstile fallback, hardened HR employee outlet/global isolation, added fixed-asset register/depreciation journals, fixed MCP public health host allow-list, added fixed-asset MCP tools, and added payroll bonus inputs with payroll JE deduction aggregation fix. Verification: local typecheck/test/build PASS; commits `b0ce01e`, `35a7c7e`, and `a7e5285` pushed and deployed to VPS; production smoke PASS for payroll, assets, ERP health, and MCP health. |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-20 22:00 WIB (Codex) | IN_PROGRESS | Current sweep: added AP/AR due dates/reminders/aging allowance, fixed-asset category account UI and journal reversal sync, safe COA delete replacement flow, BinderByte shipment tracking with quota cache, multilingual OTP email with logo, automatic member completion after OTP, purchasing i18n/docs, and demo receipt parity. Verification: local `pnpm -r typecheck`, `pnpm -r test`, `pnpm -r build`, i18n parity, browser-native message scan, and ADR-0006 class scan PASS. Pending: commit/deploy/VPS smoke plus external-evidence rows (printer, restore drill, Coretax/PPh, external alerts, purchasing return/QC). |
 
 ---
 
-## Done This Sprint (≤ 7 days)
+## Done This Sprint (â‰¤ 7 days)
 
 > After 7 days, move to `docs/checkpoints/archive/` and delete from here.
 
-### Phase 1 — Foundation + Accounting + Reporting + Tax + MCP + Infra
+### Phase 1 â€” Foundation + Accounting + Reporting + Tax + MCP + Infra
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
@@ -55,7 +55,7 @@
 | T-0015 | Service `accounting.closePeriod` + getPeriodStatus | Antigravity | 2026-05-07 | verified | 19 tests pass, typecheck clean |
 | T-0016 | Audit log schema (immutable, indexed, MCP-queryable) | Antigravity | 2026-05-07 | wip(T-0016) | |
 | T-0016b | Service `audit.record` (audit log write) | Claude Opus 4.6 | 2026-05-09 | 33c822f | 292 tests pass, typecheck clean |
-| T-0017 | UI `apps/web/(dash)/accounting/coa/` — COA browser tree + sidebar nav | Antigravity | 2026-05-08 | verified | typecheck clean, 152 tests pass |
+| T-0017 | UI `apps/web/(dash)/accounting/coa/` â€” COA browser tree + sidebar nav | Antigravity | 2026-05-08 | verified | typecheck clean, 152 tests pass |
 | T-0018 | UI Journals list + detail page (table, search, filters, detail view) | Antigravity | 2026-05-08 | verified | typecheck clean, 152 tests pass |
 | T-0019 | Service `tax.listRates` + `getRateByCode` + seed 6 tarif | Antigravity | 2026-05-07 | verified | 9 tests pass, typecheck clean |
 | T-0019b | Schema `tax_rules` + seed default rules (6 rules) | Antigravity | 2026-05-07 | verified | schema added, seed runner updated, typecheck clean |
@@ -71,9 +71,9 @@
 | T-0028 | Docker Compose + Dockerfile + Caddyfile + CI/CD | Antigravity | 2026-05-09 | verified | typecheck clean |
 | T-0029 | CI workflow (lint, typecheck, test, build) | Antigravity | 2026-05-09 | included in T-0028 | |
 | T-0030 | Resilience tests scripts (4/8 Phase 1 scenarios) | Antigravity | 2026-05-09 | verified | scripts created |
-| T-0031 | UI Settings → Scheduled Jobs (list, toggle, edit cron) | Antigravity | 2026-05-09 | verified | typecheck clean |
+| T-0031 | UI Settings â†’ Scheduled Jobs (list, toggle, edit cron) | Antigravity | 2026-05-09 | verified | typecheck clean |
 
-### Phase 2 — POS + Inventory + BOM + Purchasing
+### Phase 2 â€” POS + Inventory + BOM + Purchasing
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
@@ -81,8 +81,8 @@
 | T-0051 | Schema stock_locations, stock_movements, stock_levels | Antigravity | 2026-05-09 | included in T-0050 | |
 | T-0052 | Schema BOM + bom_lines + bom_substitutes | Antigravity | 2026-05-09 | included in T-0050 | |
 | T-0053 | Service inventory CRUD products + variants + categories | Antigravity | 2026-05-09 | verified | typecheck clean |
-| T-0054 | Service inventory.adjust (workflow approval) | Claude Opus 4.6 | 2026-05-09 | wip(T-0054) | createDraft → submit → approve → reject |
-| T-0055 | Service inventory.transfer (2-step) | Claude Opus 4.6 | 2026-05-09 | included in T-0054 | Ship → receive workflow |
+| T-0054 | Service inventory.adjust (workflow approval) | Claude Opus 4.6 | 2026-05-09 | wip(T-0054) | createDraft â†’ submit â†’ approve â†’ reject |
+| T-0055 | Service inventory.transfer (2-step) | Claude Opus 4.6 | 2026-05-09 | included in T-0054 | Ship â†’ receive workflow |
 | T-0056 | Schema sales_orders + lines + payments + refunds + shifts | Antigravity | 2026-05-09 | verified | typecheck clean |
 | T-0057 | Service pos.createSale + shift services | Claude Opus 4.6 | 2026-05-09 | 5226328 | 263 tests pass |
 | T-0058 | Service pos.refund | Claude Opus 4.6 | 2026-05-09 | 2ac4c2e | 282 tests pass |
@@ -92,7 +92,7 @@
 | T-0064 | Service purchasing.createPO + workflow approval | Claude Opus 4.6 | 2026-05-11 | ac09649 | 351 tests pass, typecheck clean |
 | T-0065 | Service purchasing.createGRN + confirmGRN + JE generator | Claude Opus 4.6 | 2026-05-11 | 2a585d8 | 385 tests pass, typecheck clean |
 
-### Phase 2.5 — Stock Opname + Petty Cash + Reimbursement
+### Phase 2.5 â€” Stock Opname + Petty Cash + Reimbursement
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
@@ -104,7 +104,7 @@
 | T-0072 | UI reimbursement | Claude Opus 4.6 | 2026-05-10 | wip(T-0072) | |
 | T-0073 | Schema stock_opname_sessions + stock_opname_lines + stock_movement_manual | Claude Opus 4.6 | 2026-05-10 | fe2f2c8 | |
 | T-0074 | Service import master Excel (Sheet 1) + movement log (Sheet 2) | Claude Opus 4.6 | 2026-05-10 | eb3e8ed | |
-| T-0075 | Service stock opname session flow (generate → count → variance → approve) | Claude Opus 4.6 | 2026-05-10 | fe2f2c8 | |
+| T-0075 | Service stock opname session flow (generate â†’ count â†’ variance â†’ approve) | Claude Opus 4.6 | 2026-05-10 | fe2f2c8 | |
 | T-0076 | UI stock opname (session create + input fisik + approve variance) | Claude Opus 4.6 | 2026-05-10 | 68e4782 | |
 | T-0077 | UI inventory variance dashboard + report (service + UI + XLSX export) | Claude Opus 4.6 | 2026-05-10 | 4dab99f | |
 | T-0079 | Service journal attachments (upload + download) + MCP tools | Claude Opus 4.6 | 2026-05-10 | wip(T-0079) | 4 service + 2 MCP tools |
@@ -116,22 +116,22 @@
 | T-0085e | Service reporting.hourlySales + groupBy logic | Claude Opus 4.6 | 2026-05-11 | feat(T-0085e) | 3 files, 8 tests |
 | T-0085f | UI reporting/hourly-sales (heatmap + table + export XLSX) | Claude Opus 4.6 | 2026-05-11 | feat(T-0085f) | 4 files, typecheck clean |
 | T-0085g | MCP tool reporting.get_hourly_sales | Claude Opus 4.6 | 2026-05-11 | feat(T-0085g) | |
-| T-0085h | Donation report — service + UI + MCP tool | Claude Opus 4.6 | 2026-05-10 | c3a40d1 | |
-| T-0085j | Omzet Harian PB1-exclusive export (SD §25.5b, SoT §21.3b) | Claude Opus 4.6 | 2026-05-13 | e07bc00 | Schema, service, UI, XLSX, MCP tool |
+| T-0085h | Donation report â€” service + UI + MCP tool | Claude Opus 4.6 | 2026-05-10 | c3a40d1 | |
+| T-0085j | Omzet Harian PB1-exclusive export (SD Â§25.5b, SoT Â§21.3b) | Claude Opus 4.6 | 2026-05-13 | e07bc00 | Schema, service, UI, XLSX, MCP tool |
 
-### Phase 3 — Kitchen + KDS + Customer Display
+### Phase 3 â€” Kitchen + KDS + Customer Display
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
 | T-0081 | Service kitchen.generateQrPayload (strategy pattern dash/pipe) | Claude Opus 4.6 | 2026-05-11 | 90996f4 | 31 tests, strategy pattern |
-| T-0082 | UI Settings → Integrations → Naixer KDS | Claude Opus 4.6 | 2026-05-11 | 88b8456 | CRUD + format config |
+| T-0082 | UI Settings â†’ Integrations â†’ Naixer KDS | Claude Opus 4.6 | 2026-05-11 | 88b8456 | CRUD + format config |
 | T-0083 | Script seed-naixer-codes.ts (CSV import) | Claude Opus 4.6 | 2026-05-11 | 6fe303c | 22 tests, dry-run support |
 | T-0084 | KDS Aroadri (production status: queued/making/ready) | Claude Opus 4.6 | 2026-05-11 | dadf8b4 | 26 tests, schema + service |
 | T-0085i | Customer-facing display service (SSE) | Claude Opus 4.6 | 2026-05-11 | deb48bc | 11 tests, SSE + grouping |
 | T-0086 | Schema naixer_product_codes + naixer_modifier_codes + naixer_qr_format_config | Claude Opus 4.6 | 2026-05-11 | 85654de | 3 tables + seed |
 | T-0087 | POS Demo mode UI + IndexedDB sandbox | Claude Opus 4.6 | 2026-05-11 | 36d028a | 19 files, typecheck clean |
 
-### Phase 4 — HR + Payroll + Attendance
+### Phase 4 â€” HR + Payroll + Attendance
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
@@ -141,7 +141,7 @@
 | T-0103 | Payroll approval + mark-paid + MCP tools + UI | Claude Opus 4.6 | 2026-05-11 | 959e9fe | Digital payslip UI is shipped; PDF export is optional enhancement |
 | T-0104 | Warning letter SP1/SP2/SP3 (service + MCP + UI) | Claude Opus 4.6 | 2026-05-11 | f8150d3 | |
 
-### Phase 5 — Public Website + CMS + Member + CRM + Loyalty
+### Phase 5 â€” Public Website + CMS + Member + CRM + Loyalty
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
@@ -156,13 +156,13 @@
 | T-0128 | Service loyalty (points, tiers, vouchers) | Claude Opus 4.6 | 2026-05-13 | 1c23017 | loyalty earn in pos.createSale + redeemLoyaltyPoints |
 | T-0129 | UI cms admin at `apps/web/(dash)/cms/` (CRUD form) | Claude Opus 4.6 | 2026-05-12 | 2aa4f35 | Structured content editor shipped; advanced block editing is optional enhancement |
 
-### Phase 6 — MCP Expansion + Custom Field + Workflow Engine
+### Phase 6 â€” MCP Expansion + Custom Field + Workflow Engine
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
 | T-0150 | Schema custom_field_definitions + custom_field_values | Claude Opus 4.6 | 2026-05-12 | 9e22eb9 | |
 | T-0151 | Service customfield CRUD + value validation | Claude Opus 4.6 | 2026-05-12 | 9e22eb9 | |
-| T-0152 | UI Settings → Custom Fields | Claude Opus 4.6 | 2026-05-13 | b912783 | Entity tabs, CRUD modal, optimistic updates |
+| T-0152 | UI Settings â†’ Custom Fields | Claude Opus 4.6 | 2026-05-13 | b912783 | Entity tabs, CRUD modal, optimistic updates |
 | T-0153 | Schema workflow_definitions + instances + steps | Claude Opus 4.6 | 2026-05-12 | 9e22eb9 | |
 | T-0154 | Service workflow engine (rule eval + step execution) | Claude Opus 4.6 | 2026-05-12 | 9e22eb9 | |
 | T-0155 | UI workflow definition editor | Claude Opus 4.6 | 2026-05-13 | 2f432bd | Condition builder, steps editor, JSON preview tab |
@@ -184,15 +184,15 @@
 > Filled during initial scoping. AI picks from here when no Active Task can be continued.
 > Completed tasks are moved to Done This Sprint and **removed from here**.
 
-_(no items — all backlog tasks completed)_
+_(no items â€” all backlog tasks completed)_
 
 ---
 
 ## Effort Estimate
 
-- **S** (Small): ≤ 1 AI session work day
-- **M** (Medium): 1–2 days
-- **L** (Large): 3–5 days
+- **S** (Small): â‰¤ 1 AI session work day
+- **M** (Medium): 1â€“2 days
+- **L** (Large): 3â€“5 days
 - **XL** (Extra Large): > 5 days, must be split before starting
 
 ---
@@ -200,11 +200,11 @@ _(no items — all backlog tasks completed)_
 ## File Update Rules
 
 1. **Add new task to Backlog**: AI that discovers a new need (e.g., from user discussion) adds entry to the Backlog section of the appropriate phase.
-2. **Start a task**: move from Backlog → Active, fill in `Owner`, `Started`, `Last Updated`, create new checkpoint file at `docs/checkpoints/<id>-<slug>.checkpoint.md`.
+2. **Start a task**: move from Backlog â†’ Active, fill in `Owner`, `Started`, `Last Updated`, create new checkpoint file at `docs/checkpoints/<id>-<slug>.checkpoint.md`.
 3. **Update while working**: after writing 100+ lines of code or completing one Plan sub-step, update `Last Updated` in the table + fill in checkpoint.
 4. **When stopping (token limit)**: **MANDATORY** write `## Next step` explicit and executable in checkpoint. Commit code with message `wip(T-XXXX): <brief>`.
-5. **When done**: move to Done This Sprint, remove from Backlog & Active. Delete checkpoint from `docs/checkpoints/` after ≤ 7 days (or move to `archive/`).
-6. **BLOCKED**: stay in Active with 🟥, fill Note column with blocker + tag who needs to decide.
+5. **When done**: move to Done This Sprint, remove from Backlog & Active. Delete checkpoint from `docs/checkpoints/` after â‰¤ 7 days (or move to `archive/`).
+6. **BLOCKED**: stay in Active with ðŸŸ¥, fill Note column with blocker + tag who needs to decide.
 
 ## ID Format
 
@@ -212,4 +212,4 @@ _(no items — all backlog tasks completed)_
 
 ## AI Handoff
 
-- AI starting a new session: check Active → if there is IN_PROGRESS with `Last Updated` > 1 hour idle, may take over by updating `Owner`. If < 1 hour, **do not take over** (assume another session is still active).
+- AI starting a new session: check Active â†’ if there is IN_PROGRESS with `Last Updated` > 1 hour idle, may take over by updating `Owner`. If < 1 hour, **do not take over** (assume another session is still active).

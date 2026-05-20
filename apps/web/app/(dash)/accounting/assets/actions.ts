@@ -2,6 +2,8 @@
 
 import { getSession } from '@/lib/auth';
 import { type LocationOption, getActiveLocationOptions } from '@/lib/location-options';
+import { and, asc, db, eq, isNull } from '@erp/db';
+import { accounts } from '@erp/db/schema/accounting';
 import {
   type FixedAssetCategoryItem,
   type FixedAssetListItem,
@@ -9,6 +11,7 @@ import {
   listFixedAssetCategories,
   listFixedAssets,
   runFixedAssetDepreciation,
+  updateFixedAssetCategory,
 } from '@erp/services/accounting';
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale } from 'next-intl/server';
@@ -28,6 +31,15 @@ export interface AssetPageData {
   total: number;
   categories: FixedAssetCategoryItem[];
   locations: LocationOption[];
+  accountOptions: AssetAccountOption[];
+}
+
+export interface AssetAccountOption {
+  id: string;
+  code: string;
+  name: Record<string, string>;
+  type: string;
+  subtype: string;
 }
 
 async function getAuditContext(): Promise<AuditContext | null> {
@@ -72,7 +84,7 @@ export async function fetchAssetPageData(input?: {
   status?: 'active' | 'fully_depreciated' | 'disposed';
 }): Promise<AssetPageData> {
   const ctx = await getAuditContext();
-  if (!ctx) return { assets: [], total: 0, categories: [], locations: [] };
+  if (!ctx) return { assets: [], total: 0, categories: [], locations: [], accountOptions: [] };
   const locale = (await getLocale().catch(() => 'id')) as 'id' | 'en' | 'zh';
   const [assetResult, categoryResult, locations] = await Promise.all([
     listFixedAssets({ locationId: input?.locationId, status: input?.status }, ctx),
@@ -87,7 +99,30 @@ export async function fetchAssetPageData(input?: {
     total: assetResult.value.total,
     categories: categoryResult.value,
     locations,
+    accountOptions: await getFixedAssetAccountOptions(ctx.tenantId),
   };
+}
+
+async function getFixedAssetAccountOptions(tenantId: string): Promise<AssetAccountOption[]> {
+  const rows = await db
+    .select({
+      id: accounts.id,
+      code: accounts.code,
+      name: accounts.name,
+      type: accounts.type,
+      subtype: accounts.subtype,
+    })
+    .from(accounts)
+    .where(
+      and(
+        eq(accounts.tenantId, tenantId),
+        eq(accounts.isPostable, true),
+        eq(accounts.isActive, true),
+        isNull(accounts.deletedAt),
+      ),
+    )
+    .orderBy(asc(accounts.code));
+  return rows.map((row) => ({ ...row, name: row.name as Record<string, string> }));
 }
 
 export async function createAssetAction(
@@ -154,4 +189,30 @@ export async function runDepreciationAction(
     journalEntryId: result.value.journalEntryId,
     totalAmount: result.value.totalAmount,
   };
+}
+
+export async function updateAssetCategoryAction(formData: FormData): Promise<void> {
+  const ctx = await getAuditContext();
+  if (!ctx) return;
+
+  const result = await updateFixedAssetCategory(
+    {
+      id: text(formData, 'categoryId'),
+      defaultUsefulLifeMonths: intValue(formData, 'defaultUsefulLifeMonths', 48),
+      defaultDepreciationMethod:
+        (text(formData, 'defaultDepreciationMethod') as
+          | 'straight_line'
+          | 'declining_balance'
+          | 'double_declining_balance'
+          | 'sum_of_years_digits'
+          | 'units_of_production') || 'straight_line',
+      assetAccountId: text(formData, 'assetAccountId'),
+      accumulatedDepreciationAccountId: text(formData, 'accumulatedDepreciationAccountId'),
+      depreciationExpenseAccountId: text(formData, 'depreciationExpenseAccountId'),
+    },
+    ctx,
+  );
+  if (!result.ok) return;
+
+  revalidatePath('/accounting/assets');
 }

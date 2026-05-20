@@ -78,7 +78,7 @@ export default async function JournalDetailPage({
         {/* Metadata grid */}
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <MetaItem label="Posting Date" value={journal.postingDate} />
-          <MetaItem label="Reference Type" value={journal.referenceType ?? '—'} />
+          <MetaItem label="Reference Type" value={journal.referenceType ?? '-'} />
           <MetaItem label="Location" value={journal.locationId} />
           <MetaItem label="Version" value={`v${journal.version}`} />
         </div>
@@ -97,6 +97,12 @@ export default async function JournalDetailPage({
               </th>
               <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                 Description
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+                Partner
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+                Due Date
               </th>
               <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                 Debit
@@ -119,19 +125,34 @@ export default async function JournalDetailPage({
                     </span>
                   </div>
                 </td>
-                <td className="px-6 py-3 text-brand-ink-2">{line.description ?? '—'}</td>
+                <td className="px-6 py-3 text-brand-ink-2">{line.description ?? '-'}</td>
+                <td className="px-6 py-3 text-brand-ink-2">{line.partnerName ?? '-'}</td>
+                <td className="px-6 py-3 text-brand-ink-2">
+                  {line.dueDate ? (
+                    <span>
+                      {line.dueDate}
+                      {line.reminderDaysBefore !== null ? (
+                        <span className="block text-xs text-brand-ink-3">
+                          H-{line.reminderDaysBefore}
+                        </span>
+                      ) : null}
+                    </span>
+                  ) : (
+                    '-'
+                  )}
+                </td>
                 <td className="px-6 py-3 text-right font-mono tabular-nums">
                   {BigInt(line.debit) > 0n ? (
                     <span className="text-brand-jade font-medium">{formatRp(line.debit)}</span>
                   ) : (
-                    <span className="text-brand-ink-3">—</span>
+                    <span className="text-brand-ink-3">-</span>
                   )}
                 </td>
                 <td className="px-6 py-3 text-right font-mono tabular-nums">
                   {BigInt(line.credit) > 0n ? (
                     <span className="text-brand-clay font-medium">{formatRp(line.credit)}</span>
                   ) : (
-                    <span className="text-brand-ink-3">—</span>
+                    <span className="text-brand-ink-3">-</span>
                   )}
                 </td>
               </tr>
@@ -139,7 +160,7 @@ export default async function JournalDetailPage({
           </tbody>
           <tfoot>
             <tr className="border-t-2 border-brand-cream-3 bg-brand-cream/30 font-semibold">
-              <td className="px-6 py-3 text-brand-ink" colSpan={2}>
+              <td className="px-6 py-3 text-brand-ink" colSpan={4}>
                 Total
               </td>
               <td className="px-6 py-3 text-right font-mono tabular-nums text-brand-jade">

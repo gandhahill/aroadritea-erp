@@ -47,3 +47,42 @@ export const CancelPOInputSchema = z.object({
   poId: z.string().min(1),
   reason: z.string().min(1, 'cancellation reason is required'),
 });
+
+export const TrackShipmentInputSchema = z.object({
+  poId: z.string().min(1),
+  courierCode: z.enum([
+    'jne',
+    'pos',
+    'jnt',
+    'jnt_cargo',
+    'sicepat',
+    'tiki',
+    'anteraja',
+    'wahana',
+    'ninja',
+    'lion',
+    'pcp',
+    'jet',
+    'rex',
+    'first',
+    'ide',
+    'shopee',
+    'kgx',
+    'sap',
+    'jx',
+    'rpx',
+    'lazada',
+    'indah',
+    'dakota',
+    'kurir_rekomendasi',
+  ]),
+  awb: z.string().trim().min(3).max(64),
+  phoneLast5: z
+    .string()
+    .trim()
+    .regex(/^\d{5}$/)
+    .optional()
+    .or(z.literal('')),
+});
+
+export type TrackShipmentInput = z.infer<typeof TrackShipmentInputSchema>;

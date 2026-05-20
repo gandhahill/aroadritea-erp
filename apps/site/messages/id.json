@@ -32,19 +32,19 @@
         "name": "Fresh Milk Tea",
         "description": "Milk tea berbasis oolong, jasmine green, ceylon black, dan roasted fragrant yellow tea.",
         "price": "Regular Rp42k-43k · Large Rp47k-49k",
-        "items": "Bamboo Oolong Milk Tea, Osmanthus Oolong Milk Tea, Glutinous Fragrant Milk Tea, Jasmine Green Milk Tea, Ceylon Black Milk Tea, Roasted Fragrant Yellow Milk Tea"
+        "items": "Bamboo Oolong Milk Tea, Osmanthus Oolong Milk Tea, Glutinous Fragrant Green Milk Tea, Jasmine Green Milk Tea, Ceylon Black Milk Tea, Roasted Fragrant Yellow Milk Tea"
       },
       {
         "name": "Fresh Tea",
         "description": "Teh tanpa susu dengan profil floral, roasted, dan grain aroma.",
         "price": "Regular mulai Rp32k · Large mulai Rp42k",
-        "items": "Bamboo Oolong Tea, Osmanthus Oolong Tea, Jasmine Green Tea, Ceylon Black Tea, Roasted Fragrant Yellow Tea, Glutinous Fragrant Tea, Buckwheat Biluochun Tea"
+        "items": "Bamboo Oolong Fresh Tea, Osmanthus Oolong Fresh Tea, Jasmine Green Fresh Tea, Ceylon Black Fresh Tea, Roasted Fragrant Yellow Fresh Tea, Glutinous Fragrant Green Fresh Tea, Buckwheat Biluochun Fresh Tea"
       },
       {
         "name": "Lemon Fresh Tea",
         "description": "Fresh tea dengan lemon untuk rasa yang ringan, wangi, dan menyegarkan.",
         "price": "Regular Rp43k-45k · Large Rp47k-49k",
-        "items": "Glutinous Fragrant Lemon Tea, Bamboo Oolong Lemon Tea, Osmanthus Oolong Lemon Tea, Roasted Fragrant Yellow Lemon Tea, Jasmine Green Lemon Tea, Buckwheat Biluochun Lemon Tea"
+        "items": "Glutinous Fragrant Green Lemon Tea, Bamboo Oolong Lemon Tea, Osmanthus Oolong Lemon Tea, Roasted Fragrant Yellow Lemon Tea, Jasmine Green Lemon Tea, Buckwheat Biluochun Lemon Tea"
       },
       {
         "name": "Snow Cap Milk Tea",

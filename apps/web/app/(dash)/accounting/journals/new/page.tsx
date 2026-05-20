@@ -33,7 +33,7 @@ export default async function NewJournalPage() {
         </div>
       ) : null}
 
-      <JournalForm accounts={data.accounts} locations={data.locations} />
+      <JournalForm accounts={data.accounts} locations={data.locations} partners={data.partners} />
     </div>
   );
 }

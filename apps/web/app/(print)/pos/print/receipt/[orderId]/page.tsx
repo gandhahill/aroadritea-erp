@@ -183,8 +183,8 @@ body { font-family: 'Courier New', 'Consolas', monospace; }
 .r-item-name { word-wrap: break-word; overflow-wrap: anywhere; max-width: 100%; }
 .r-pickup { border: 1.5px solid #000; padding: 4px 8px; margin-top: 6px; font-size: 14px; font-weight: 900; display: inline-block; min-width: 30mm; }
 .r-social { display: flex; justify-content: center; gap: 8px; margin-top: 3px; font-size: 10px; }
-.r-social .ig::before { content: '\\1F4F7'; margin-right: 3px; }
-.r-social .tt::before { content: '\\266B'; margin-right: 3px; }
+.r-social .ig::before { content: 'IG'; margin-right: 3px; font-weight: 700; }
+.r-social .tt::before { content: 'TT'; margin-right: 3px; font-weight: 700; }
 table { width: 100%; border-collapse: collapse; }
 td { vertical-align: top; padding: 1px 0; }
 .r-right { text-align: right; }

@@ -28,6 +28,7 @@ export async function signupAction(formData: FormData) {
   const birthDate = String(formData.get('birthDate') ?? '');
   const city = String(formData.get('city') ?? '');
   const password = String(formData.get('password') ?? '');
+  const locale = String(formData.get('locale') ?? 'id');
   const challengeToken = String(formData.get('cf-turnstile-response') ?? '').trim();
   const fallbackToken = String(formData.get('turnstileToken') ?? '').trim();
   const turnstileToken = challengeToken || fallbackToken || 'captcha-unreachable';
@@ -37,6 +38,7 @@ export async function signupAction(formData: FormData) {
     { email, phone, name, birthDate, city, password, consentGiven: consent, turnstileToken },
     undefined, // ip from headers
     undefined, // userAgent
+    locale,
   );
 
   if (!result.ok) {
@@ -85,14 +87,45 @@ export async function verifyOtpAction(token: string, code: string) {
   return { success: true };
 }
 
+export async function verifyAndCompleteSignupAction(token: string, code: string) {
+  const verifyResult = await verifySignupOtp({ token, code });
+  if (!verifyResult.ok) return { success: false, error: String(verifyResult.error) };
+
+  const result = await completeSignup(
+    { token, consentGiven: true },
+    undefined,
+    undefined,
+    { userId: 'member', tenantId: 'default', locationId: 'default' },
+  );
+
+  if (!result.ok) return { success: false, error: String(result.error) };
+
+  const cookieStore = await cookies();
+  cookieStore.set(MEMBER_SESSION_COOKIE, result.value.sessionToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 30 * 24 * 60 * 60,
+  });
+
+  return { success: true };
+}
+
 export async function completeSignupAction(formData: FormData, token: string) {
-  const name = String(formData.get('name') ?? '');
-  const birthDate = String(formData.get('birthDate') ?? '');
-  const city = String(formData.get('city') ?? '');
+  const name = String(formData.get('name') ?? '').trim();
+  const birthDate = String(formData.get('birthDate') ?? '').trim();
+  const city = String(formData.get('city') ?? '').trim();
   const consent = formData.get('consentGiven') === 'on';
 
   const result = await completeSignup(
-    { token, name, birthDate, city, consentGiven: consent },
+    {
+      token,
+      ...(name ? { name } : {}),
+      ...(birthDate ? { birthDate } : {}),
+      ...(city ? { city } : {}),
+      consentGiven: consent,
+    },
     undefined,
     undefined,
     { userId: 'member', tenantId: 'default', locationId: 'default' },

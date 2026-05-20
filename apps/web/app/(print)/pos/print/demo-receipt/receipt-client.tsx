@@ -119,7 +119,11 @@ body { font-family: 'Courier New', 'Consolas', monospace; }
 .r-bold { font-weight: 700; }
 .r-brand { font-family: 'Montserrat', 'Arial Black', sans-serif; font-size: 16px; font-weight: 900; letter-spacing: 1px; }
 .r-tiny { font-size: 9px; }
+.r-logo { width: 18mm; height: auto; margin: 0 auto 1mm; display: block; }
 .r-pickup { border: 1.5px solid #000; padding: 4px 8px; margin-top: 6px; font-size: 14px; font-weight: 900; display: inline-block; min-width: 30mm; }
+.r-social { display: flex; justify-content: center; gap: 8px; margin-top: 3px; font-size: 10px; }
+.r-social .ig::before { content: 'IG'; margin-right: 3px; font-weight: 700; }
+.r-social .tt::before { content: 'TT'; margin-right: 3px; font-weight: 700; }
 table { width: 100%; border-collapse: collapse; }
 td { vertical-align: top; padding: 1px 0; }
 .r-right { text-align: right; }
@@ -127,6 +131,7 @@ td { vertical-align: top; padding: 1px 0; }
         }}
       />
       <div className="receipt">
+        <img className="r-logo" src="/logo-primary.png" alt="" />
         <div className="r-center r-brand">AROADRI TEA</div>
         <div className="r-center r-tiny">[DEMO MODE — Tidak Ditagih]</div>
 
@@ -221,7 +226,15 @@ td { vertical-align: top; padding: 1px 0; }
 
         <div className="r-sep" />
 
-        <div className="r-center r-tiny">Struk DEMO — tidak masuk pembukuan</div>
+        <div className="r-center r-tiny">Terima kasih atas kunjungan Anda</div>
+        <div className="r-social">
+          <span className="ig">@aroadri.tea</span>
+          <span className="tt">@aroadri.tea</span>
+        </div>
+        <div className="r-center r-tiny">aroadritea.com</div>
+        <div className="r-center r-tiny" style={{ marginTop: '3px' }}>
+          Struk DEMO - tidak masuk pembukuan
+        </div>
 
         <div className="r-center" style={{ marginTop: '6px' }}>
           <div className="r-tiny">No. Antrian</div>

@@ -32,19 +32,19 @@
         "name": "Fresh Milk Tea",
         "description": "以乌龙、茉莉绿茶、锡兰红茶和焙香黄茶为基础的奶茶。",
         "price": "Regular Rp42k-43k · Large Rp47k-49k",
-        "items": "Bamboo Oolong Milk Tea, Osmanthus Oolong Milk Tea, Glutinous Fragrant Milk Tea, Jasmine Green Milk Tea, Ceylon Black Milk Tea, Roasted Fragrant Yellow Milk Tea"
+        "items": "Bamboo Oolong Milk Tea, Osmanthus Oolong Milk Tea, Glutinous Fragrant Green Milk Tea, Jasmine Green Milk Tea, Ceylon Black Milk Tea, Roasted Fragrant Yellow Milk Tea"
       },
       {
         "name": "Fresh Tea",
         "description": "无奶鲜茶，呈现花香、焙香与谷物香。",
         "price": "Regular Rp32k 起 · Large Rp42k 起",
-        "items": "Bamboo Oolong Tea, Osmanthus Oolong Tea, Jasmine Green Tea, Ceylon Black Tea, Roasted Fragrant Yellow Tea, Glutinous Fragrant Tea, Buckwheat Biluochun Tea"
+        "items": "Bamboo Oolong Fresh Tea, Osmanthus Oolong Fresh Tea, Jasmine Green Fresh Tea, Ceylon Black Fresh Tea, Roasted Fragrant Yellow Fresh Tea, Glutinous Fragrant Green Fresh Tea, Buckwheat Biluochun Fresh Tea"
       },
       {
         "name": "Lemon Fresh Tea",
         "description": "加入柠檬的鲜茶，口感清爽明亮。",
         "price": "Regular Rp43k-45k · Large Rp47k-49k",
-        "items": "Glutinous Fragrant Lemon Tea, Bamboo Oolong Lemon Tea, Osmanthus Oolong Lemon Tea, Roasted Fragrant Yellow Lemon Tea, Jasmine Green Lemon Tea, Buckwheat Biluochun Lemon Tea"
+        "items": "Glutinous Fragrant Green Lemon Tea, Bamboo Oolong Lemon Tea, Osmanthus Oolong Lemon Tea, Roasted Fragrant Yellow Lemon Tea, Jasmine Green Lemon Tea, Buckwheat Biluochun Lemon Tea"
       },
       {
         "name": "Snow Cap Milk Tea",

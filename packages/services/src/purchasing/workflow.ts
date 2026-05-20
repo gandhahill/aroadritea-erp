@@ -7,13 +7,14 @@
  */
 
 import { db } from '@erp/db';
-import { accountingPeriods, accounts } from '@erp/db/schema/accounting';
+import { accountingPeriods, accounts, partners } from '@erp/db/schema/accounting';
+import { cmsSettings } from '@erp/db/schema/cms';
 import { products } from '@erp/db/schema/inventory';
 import { purchaseOrderLines, purchaseOrders } from '@erp/db/schema/purchasing';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
@@ -23,6 +24,7 @@ import { ApprovePOInputSchema, CancelPOInputSchema, SubmitPOInputSchema } from '
 
 const AP_ACCOUNT_CODE = '2-1010'; // Utang Usaha
 const DEFAULT_INVENTORY_ACCOUNT_CODE = '1-1210'; // Persediaan Barang Dagangan
+const AP_SETTING_KEY = 'accounting.payables.accountIds';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -49,6 +51,37 @@ async function resolveInventoryAccountForProduct(
 
   const fallback = await resolveAccountId(tenantId, DEFAULT_INVENTORY_ACCOUNT_CODE);
   return fallback;
+}
+
+async function resolvePayablesAccountId(tenantId: string): Promise<string | null> {
+  const [setting] = await db
+    .select({ value: cmsSettings.value })
+    .from(cmsSettings)
+    .where(and(eq(cmsSettings.tenantId, tenantId), eq(cmsSettings.key, AP_SETTING_KEY)))
+    .limit(1);
+
+  const configuredIds = Array.isArray(setting?.value)
+    ? setting.value.filter((value): value is string => typeof value === 'string')
+    : [];
+
+  if (configuredIds.length > 0) {
+    const rows = await db
+      .select({ id: accounts.id })
+      .from(accounts)
+      .where(
+        and(
+          eq(accounts.tenantId, tenantId),
+          eq(accounts.isActive, true),
+          eq(accounts.isPostable, true),
+          isNull(accounts.deletedAt),
+          inArray(accounts.id, configuredIds),
+        ),
+      )
+      .limit(1);
+    if (rows[0]?.id) return rows[0].id;
+  }
+
+  return resolveAccountId(tenantId, AP_ACCOUNT_CODE);
 }
 
 // ─── Result types ───────────────────────────────────────────────────────────
@@ -215,10 +248,17 @@ export async function approvePO(
   }
 
   // Resolve AP account ID
-  const apAccountId = await resolveAccountId(ctx.tenantId, AP_ACCOUNT_CODE);
+  const apAccountId = await resolvePayablesAccountId(ctx.tenantId);
   if (!apAccountId) {
     return err(AppError.businessRule('purchasing.errors.ap_account_not_found'));
   }
+
+  const [supplier] = await db
+    .select({ paymentTermsDays: partners.paymentTermsDays })
+    .from(partners)
+    .where(and(eq(partners.tenantId, ctx.tenantId), eq(partners.id, po.supplierId)))
+    .limit(1);
+  const apDueDate = addDays(po.orderDate, supplier?.paymentTermsDays ?? 0);
 
   // Resolve inventory account per first product (simplified: single DR line)
   const firstProduct = lines[0]!;
@@ -290,6 +330,8 @@ export async function approvePO(
           debit: '0',
           credit: grandTotal,
           partnerId: po.supplierId,
+          dueDate: apDueDate,
+          reminderDaysBefore: 7,
         },
       ],
     },
@@ -452,4 +494,10 @@ export async function cancelPO(
     number: po.number,
     status: 'cancelled',
   });
+}
+
+function addDays(date: string, days: number): string {
+  const value = new Date(`${date.slice(0, 10)}T00:00:00.000Z`);
+  value.setUTCDate(value.getUTCDate() + Math.max(0, days));
+  return value.toISOString().slice(0, 10);
 }

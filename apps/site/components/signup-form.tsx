@@ -55,6 +55,7 @@ export function SignupForm({ locale }: Props) {
       <p className="mt-2 text-sm leading-6 text-brand-ink-3">{t('subtitle')}</p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+        <input type="hidden" name="locale" value={locale} />
         {error && (
           <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}

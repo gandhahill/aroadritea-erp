@@ -100,7 +100,7 @@ export default async function MemberAccountPage({ params }: Props) {
               return (
                 <div
                   key={item.id as string}
-                  className="flex items-center justify-between rounded-lg border border-brand-cream-3 bg-white px-4 py-3"
+                  className="flex items-center justify-between rounded-lg border border-brand-cream-3 bg-brand-cream px-4 py-3"
                 >
                   <div>
                     <p className="text-sm font-medium text-brand-ink">

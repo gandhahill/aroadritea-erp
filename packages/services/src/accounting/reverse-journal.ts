@@ -30,6 +30,10 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 import type { JournalEntryResult, JournalLineResult } from './create-journal';
+import {
+  validateFixedAssetDepreciationJournalCanReverse,
+  voidFixedAssetDepreciationForJournal,
+} from './fixed-assets';
 import { generateJournalNumber } from './number-generator';
 import { type ReverseJournalInput, ReverseJournalInputSchema } from './schemas';
 
@@ -128,6 +132,11 @@ export async function reverseJournal(
     return err(AppError.internal('accounting.journal.noLines', { journalId }));
   }
 
+  if (originalJe.referenceType === 'fixed_asset_depreciation') {
+    const fixedAssetCheck = await validateFixedAssetDepreciationJournalCanReverse(journalId, ctx);
+    if (!fixedAssetCheck.ok) return fixedAssetCheck;
+  }
+
   // 7. Generate reversal JE ID and number
   const reversalJeId = generateId();
   const reversalNumber = await generateJournalNumber(ctx.tenantId, postingDate);
@@ -145,6 +154,9 @@ export async function reverseJournal(
     credit: line.debit, // swap: original debit → reversal credit
     taxCode: line.taxCode,
     partnerId: line.partnerId,
+    dueDate: null,
+    reminderDaysBefore: null,
+    expectedLossRateBps: null,
   }));
 
   // 9. Execute: claim original JE first, then create reversal + audit.
@@ -251,6 +263,15 @@ export async function reverseJournal(
         },
       });
 
+      if (originalJe.referenceType === 'fixed_asset_depreciation') {
+        const fixedAssetResult = await voidFixedAssetDepreciationForJournal(
+          journalId,
+          reversalJeId,
+          ctx,
+        );
+        if (!fixedAssetResult.ok) throw fixedAssetResult.error;
+      }
+
       // Build result (return the NEW reversal JE)
       const result: JournalEntryResult = {
         id: reversalJeId,
@@ -273,6 +294,9 @@ export async function reverseJournal(
             credit: lv.credit,
             taxCode: lv.taxCode,
             partnerId: lv.partnerId,
+            dueDate: lv.dueDate,
+            reminderDaysBefore: lv.reminderDaysBefore,
+            expectedLossRateBps: lv.expectedLossRateBps,
           }),
         ),
       };

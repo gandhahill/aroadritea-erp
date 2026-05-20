@@ -127,11 +127,16 @@ export const journalLines = pgTable(
     credit: bigint('credit', { mode: 'bigint' }).notNull().default(sql`0`),
     taxCode: text('tax_code'),
     partnerId: text('partner_id'),
+    dueDate: date('due_date'),
+    reminderDaysBefore: integer('reminder_days_before'),
+    reminderSentAt: timestamp('reminder_sent_at', { withTimezone: true }),
+    expectedLossRateBps: integer('expected_loss_rate_bps'),
   },
   (t) => [
     index('jl_journal_entry_idx').on(t.journalEntryId),
     index('jl_account_idx').on(t.accountId),
     index('jl_partner_idx').on(t.partnerId),
+    index('jl_due_date_idx').on(t.dueDate),
     check(
       'jl_debit_credit_exclusive',
       sql`(debit > 0 AND credit = 0) OR (debit = 0 AND credit > 0)`,

@@ -113,6 +113,8 @@ export function Sidebar() {
         { label: t('coa'), href: '/accounting/coa', icon: <></> },
         { label: t('journals'), href: '/accounting/journals', icon: <></> },
         { label: t('fixedAssets'), href: '/accounting/assets', icon: <></> },
+        { label: t('payables'), href: '/accounting/payables', icon: <></> },
+        { label: t('receivables'), href: '/accounting/receivables', icon: <></> },
         { label: t('periods'), href: '/accounting/periods', icon: <></> },
         { label: t('pettyCash'), href: '/accounting/petty-cash', icon: <></> },
         { label: t('reimbursement'), href: '/accounting/reimbursement', icon: <></> },

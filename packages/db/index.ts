@@ -82,6 +82,7 @@ export {
   grnLines,
   purchaseInvoices,
   purchaseInvoiceLines,
+  shipmentTrackingRequests,
 } from './schema/purchasing';
 
 // Schema — Scheduled Jobs

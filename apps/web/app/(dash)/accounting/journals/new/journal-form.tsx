@@ -5,7 +5,12 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useMemo, useState } from 'react';
 import { uploadAttachmentAction } from '../attachments/actions';
-import { type JournalFormAccount, type JournalFormLocation, createJournalAction } from '../actions';
+import {
+  type JournalFormAccount,
+  type JournalFormLocation,
+  type JournalFormPartner,
+  createJournalAction,
+} from '../actions';
 
 const INPUT =
   'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
@@ -17,14 +22,18 @@ interface LineDraft {
   description: string;
   debit: string;
   credit: string;
+  partnerId: string;
+  dueDate: string;
+  reminderDaysBefore: string;
 }
 
 interface Props {
   accounts: JournalFormAccount[];
   locations: JournalFormLocation[];
+  partners: JournalFormPartner[];
 }
 
-export function JournalForm({ accounts, locations }: Props) {
+export function JournalForm({ accounts, locations, partners }: Props) {
   const t = useTranslations('accounting.journal');
   const tc = useTranslations('common');
   const locale = useLocale();
@@ -40,6 +49,9 @@ export function JournalForm({ accounts, locations }: Props) {
       description: '',
       debit: '',
       credit: '',
+      partnerId: '',
+      dueDate: '',
+      reminderDaysBefore: '',
     },
     {
       key: 1,
@@ -48,6 +60,9 @@ export function JournalForm({ accounts, locations }: Props) {
       description: '',
       debit: '',
       credit: '',
+      partnerId: '',
+      dueDate: '',
+      reminderDaysBefore: '',
     },
   ]);
 
@@ -119,6 +134,9 @@ export function JournalForm({ accounts, locations }: Props) {
         description: '',
         debit: '',
         credit: '',
+        partnerId: '',
+        dueDate: '',
+        reminderDaysBefore: '',
       },
     ]);
   }
@@ -190,6 +208,9 @@ export function JournalForm({ accounts, locations }: Props) {
               <tr>
                 <th className="px-4 py-3">{tc('labels.account')}</th>
                 <th className="px-4 py-3">{tc('labels.description')}</th>
+                <th className="px-4 py-3">{t('partner')}</th>
+                <th className="px-4 py-3">{t('dueDate')}</th>
+                <th className="px-4 py-3">{t('reminderDaysBefore')}</th>
                 <th className="px-4 py-3">{tc('labels.location')}</th>
                 <th className="px-4 py-3 text-right">{t('debit')}</th>
                 <th className="px-4 py-3 text-right">{t('credit')}</th>
@@ -221,6 +242,43 @@ export function JournalForm({ accounts, locations }: Props) {
                       value={line.description}
                       onChange={(event) =>
                         updateLine(line.key, { description: event.target.value })
+                      }
+                      className={INPUT}
+                    />
+                  </td>
+                  <td className="min-w-52 px-4 py-3">
+                    <select
+                      name={`partnerId-${index}`}
+                      value={line.partnerId}
+                      onChange={(event) => updateLine(line.key, { partnerId: event.target.value })}
+                      className={INPUT}
+                    >
+                      <option value="">{t('noPartner')}</option>
+                      {partners.map((partner) => (
+                        <option key={partner.id} value={partner.id}>
+                          {partner.name} ({partner.kind})
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="min-w-40 px-4 py-3">
+                    <input
+                      name={`dueDate-${index}`}
+                      type="date"
+                      value={line.dueDate}
+                      onChange={(event) => updateLine(line.key, { dueDate: event.target.value })}
+                      className={INPUT}
+                    />
+                  </td>
+                  <td className="min-w-28 px-4 py-3">
+                    <input
+                      name={`reminderDaysBefore-${index}`}
+                      type="number"
+                      min={0}
+                      max={365}
+                      value={line.reminderDaysBefore}
+                      onChange={(event) =>
+                        updateLine(line.key, { reminderDaysBefore: event.target.value })
                       }
                       className={INPUT}
                     />
@@ -276,7 +334,7 @@ export function JournalForm({ accounts, locations }: Props) {
             </tbody>
             <tfoot className="bg-brand-cream-1 text-sm font-semibold text-brand-ink">
               <tr>
-                <td className="px-4 py-3" colSpan={3}>
+                  <td className="px-4 py-3" colSpan={6}>
                   Total
                 </td>
                 <td className="px-4 py-3 text-right">{formatRupiah(totals.debit)}</td>

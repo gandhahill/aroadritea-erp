@@ -12,6 +12,7 @@ import {
   backupHandler,
   isrRevalidateHandler,
   outageMonitorHandler,
+  partyLedgerReminderHandler,
   payrollBatchHandler,
   stockLowAlertHandler,
 } from './jobs/index';
@@ -19,6 +20,7 @@ import type {
   BackupJobData,
   IsrRevalidateJobData,
   OutageMonitorJobData,
+  PartyLedgerReminderJobData,
   PayrollJobData,
   StockAlertJobData,
 } from './jobs/index';
@@ -35,6 +37,8 @@ const handlerMap: Record<string, JobHandler> = {
   'stock-low-alert': (data) => stockLowAlertHandler(data as unknown as StockAlertJobData),
   'isr-revalidate': (data) => isrRevalidateHandler(data as unknown as IsrRevalidateJobData),
   'outage-monitor': (data) => outageMonitorHandler(data as unknown as OutageMonitorJobData),
+  'party-ledger-reminders': (data) =>
+    partyLedgerReminderHandler(data as unknown as PartyLedgerReminderJobData),
 };
 
 // --- Sync state ---

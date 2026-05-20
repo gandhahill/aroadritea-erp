@@ -19,6 +19,12 @@ export const JournalLineInputSchema = z.object({
   credit: z.string().regex(/^\d+$/, { message: 'Credit must be a non-negative integer string' }),
   taxCode: z.string().optional(),
   partnerId: z.string().optional(),
+  dueDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Due date must be YYYY-MM-DD' })
+    .optional(),
+  reminderDaysBefore: z.number().int().min(0).max(365).optional(),
+  expectedLossRateBps: z.number().int().min(0).max(10000).optional(),
 });
 
 export type JournalLineInput = z.infer<typeof JournalLineInputSchema>;
@@ -243,6 +249,17 @@ export const CreateFixedAssetSchema = z.object({
 });
 
 export type CreateFixedAssetInput = z.input<typeof CreateFixedAssetSchema>;
+
+export const UpdateFixedAssetCategorySchema = z.object({
+  id: z.string().min(1),
+  defaultUsefulLifeMonths: z.number().int().min(1).max(600),
+  defaultDepreciationMethod: DepreciationMethodSchema,
+  assetAccountId: z.string().min(1),
+  accumulatedDepreciationAccountId: z.string().min(1),
+  depreciationExpenseAccountId: z.string().min(1),
+});
+
+export type UpdateFixedAssetCategoryInput = z.input<typeof UpdateFixedAssetCategorySchema>;
 
 export const ListFixedAssetsSchema = z.object({
   locationId: z.string().optional(),

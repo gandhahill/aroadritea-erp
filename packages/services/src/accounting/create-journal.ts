@@ -57,6 +57,9 @@ export interface JournalLineResult {
   credit: bigint;
   taxCode: string | null;
   partnerId: string | null;
+  dueDate: string | null;
+  reminderDaysBefore: number | null;
+  expectedLossRateBps: number | null;
 }
 
 // --- Service function ---
@@ -237,6 +240,9 @@ export async function createJournal(
         credit: line.credit,
         taxCode: line.taxCode ?? null,
         partnerId: line.partnerId ?? null,
+        dueDate: line.dueDate ?? null,
+        reminderDaysBefore: line.reminderDaysBefore ?? null,
+        expectedLossRateBps: line.expectedLossRateBps ?? null,
       }));
 
       await db.insert(journalLines).values(lineValues);
@@ -286,6 +292,9 @@ export async function createJournal(
           credit: lv.credit,
           taxCode: lv.taxCode,
           partnerId: lv.partnerId,
+          dueDate: lv.dueDate,
+          reminderDaysBefore: lv.reminderDaysBefore,
+          expectedLossRateBps: lv.expectedLossRateBps,
         })),
       };
 

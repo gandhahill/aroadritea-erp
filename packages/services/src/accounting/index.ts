@@ -80,9 +80,11 @@ export {
   CreateFixedAssetSchema,
   ListFixedAssetsSchema,
   RunFixedAssetDepreciationSchema,
+  UpdateFixedAssetCategorySchema,
   type CreateFixedAssetInput,
   type ListFixedAssetsInput,
   type RunFixedAssetDepreciationInput,
+  type UpdateFixedAssetCategoryInput,
   type DepreciationMethod,
 } from './schemas';
 export {
@@ -90,6 +92,9 @@ export {
   listFixedAssets,
   listFixedAssetCategories,
   runFixedAssetDepreciation,
+  updateFixedAssetCategory,
+  validateFixedAssetDepreciationJournalCanReverse,
+  voidFixedAssetDepreciationForJournal,
   type FixedAssetCategoryItem,
   type FixedAssetListItem,
   type DepreciationRunResult,

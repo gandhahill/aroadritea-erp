@@ -12,7 +12,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext, LocaleString } from '@erp/shared/types';
-import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, lt, sql } from 'drizzle-orm';
 import { can, requirePermission } from '../iam';
 import { createJournal } from './create-journal';
 import { postJournal } from './post-journal';
@@ -24,6 +24,8 @@ import {
   ListFixedAssetsSchema,
   type RunFixedAssetDepreciationInput,
   RunFixedAssetDepreciationSchema,
+  type UpdateFixedAssetCategoryInput,
+  UpdateFixedAssetCategorySchema,
 } from './schemas';
 
 type FixedAssetRow = typeof fixedAssets.$inferSelect;
@@ -34,6 +36,9 @@ export interface FixedAssetCategoryItem {
   id: string;
   code: string;
   name: LocaleString;
+  assetAccountId: string;
+  accumulatedDepreciationAccountId: string;
+  depreciationExpenseAccountId: string;
   assetAccountCode: string;
   accumulatedDepreciationAccountCode: string;
   depreciationExpenseAccountCode: string;
@@ -122,6 +127,9 @@ export async function listFixedAssetCategories(
         id: row.id,
         code: row.code,
         name: row.name as LocaleString,
+        assetAccountId: row.assetAccountId,
+        accumulatedDepreciationAccountId: row.accumulatedDepreciationAccountId,
+        depreciationExpenseAccountId: row.depreciationExpenseAccountId,
         assetAccountCode: accountCodeById.get(row.assetAccountId) ?? '',
         accumulatedDepreciationAccountCode:
           accountCodeById.get(row.accumulatedDepreciationAccountId) ?? '',
@@ -131,6 +139,122 @@ export async function listFixedAssetCategories(
       }));
     },
     (e) => AppError.internal('accounting.fixedAsset.categoryListFailed', e),
+  );
+}
+
+export async function updateFixedAssetCategory(
+  input: UpdateFixedAssetCategoryInput,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
+  const parsed = UpdateFixedAssetCategorySchema.safeParse(input);
+  if (!parsed.success) {
+    return err(
+      AppError.validation('accounting.fixedAsset.validationFailed', {
+        issues: parsed.error.issues,
+      }),
+    );
+  }
+  const data = parsed.data;
+
+  const permCheck = await requirePermission(ctx.userId, 'accounting.fixed_asset.manage', {
+    locationId: ctx.locationId || GLOBAL_FIXED_ASSET_VIEW_PROBE.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  return tryCatch(
+    async () => {
+      const [category] = await db
+        .select()
+        .from(fixedAssetCategories)
+        .where(
+          and(
+            eq(fixedAssetCategories.tenantId, ctx.tenantId),
+            eq(fixedAssetCategories.id, data.id),
+            isNull(fixedAssetCategories.deletedAt),
+          ),
+        )
+        .limit(1);
+      if (!category) throw AppError.notFound('accounting.fixedAsset.categoryNotFound');
+
+      const accountRows = await db
+        .select({
+          id: accounts.id,
+          type: accounts.type,
+          subtype: accounts.subtype,
+          isActive: accounts.isActive,
+          isPostable: accounts.isPostable,
+        })
+        .from(accounts)
+        .where(
+          and(
+            eq(accounts.tenantId, ctx.tenantId),
+            inArray(accounts.id, [
+              data.assetAccountId,
+              data.accumulatedDepreciationAccountId,
+              data.depreciationExpenseAccountId,
+            ]),
+            isNull(accounts.deletedAt),
+          ),
+        );
+      const accountById = new Map(accountRows.map((account) => [account.id, account]));
+      validateFixedAssetCategoryAccount(
+        accountById.get(data.assetAccountId),
+        'asset',
+        'fixed_asset',
+      );
+      validateFixedAssetCategoryAccount(
+        accountById.get(data.accumulatedDepreciationAccountId),
+        'asset',
+        'contra_asset',
+      );
+      validateFixedAssetCategoryAccount(
+        accountById.get(data.depreciationExpenseAccountId),
+        'expense',
+      );
+
+      await db
+        .update(fixedAssetCategories)
+        .set({
+          defaultUsefulLifeMonths: data.defaultUsefulLifeMonths,
+          defaultDepreciationMethod: data.defaultDepreciationMethod,
+          assetAccountId: data.assetAccountId,
+          accumulatedDepreciationAccountId: data.accumulatedDepreciationAccountId,
+          depreciationExpenseAccountId: data.depreciationExpenseAccountId,
+          updatedAt: new Date(),
+          updatedBy: ctx.userId,
+          version: category.version + 1,
+        })
+        .where(
+          and(
+            eq(fixedAssetCategories.tenantId, ctx.tenantId),
+            eq(fixedAssetCategories.id, data.id),
+            eq(fixedAssetCategories.version, category.version),
+          ),
+        );
+
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'update',
+        entityType: 'fixed_asset_category',
+        entityId: category.id,
+        before: {
+          defaultUsefulLifeMonths: category.defaultUsefulLifeMonths,
+          defaultDepreciationMethod: category.defaultDepreciationMethod,
+          assetAccountId: category.assetAccountId,
+          accumulatedDepreciationAccountId: category.accumulatedDepreciationAccountId,
+          depreciationExpenseAccountId: category.depreciationExpenseAccountId,
+        },
+        after: data,
+      });
+
+      return { id: category.id };
+    },
+    (e) => {
+      if (e instanceof AppError) return e;
+      return AppError.internal('accounting.fixedAsset.categoryUpdateFailed', e);
+    },
   );
 }
 
@@ -493,6 +617,203 @@ export async function runFixedAssetDepreciation(
   );
 }
 
+export async function validateFixedAssetDepreciationJournalCanReverse(
+  journalEntryId: string,
+  ctx: AuditContext,
+): Promise<Result<void>> {
+  return tryCatch(
+    async () => {
+      const run = await findPostedDepreciationRunByJournal(journalEntryId, ctx.tenantId);
+      if (!run) return;
+
+      const lines = await db
+        .select({ assetId: fixedAssetDepreciationLines.assetId })
+        .from(fixedAssetDepreciationLines)
+        .where(eq(fixedAssetDepreciationLines.runId, run.id));
+      if (lines.length === 0) return;
+
+      const assetIds = lines.map((line) => line.assetId);
+      const [laterRun] = await db
+        .select({ id: fixedAssetDepreciationRuns.id })
+        .from(fixedAssetDepreciationLines)
+        .innerJoin(
+          fixedAssetDepreciationRuns,
+          eq(fixedAssetDepreciationRuns.id, fixedAssetDepreciationLines.runId),
+        )
+        .where(
+          and(
+            eq(fixedAssetDepreciationRuns.tenantId, ctx.tenantId),
+            eq(fixedAssetDepreciationRuns.status, 'posted'),
+            inArray(fixedAssetDepreciationLines.assetId, assetIds),
+            sql`${fixedAssetDepreciationRuns.postingDate} > ${run.postingDate}`,
+          ),
+        )
+        .limit(1);
+
+      if (laterRun) {
+        throw AppError.businessRule('accounting.fixedAsset.reverseLatestRunFirst', {
+          journalEntryId,
+          runId: run.id,
+        });
+      }
+    },
+    (e) => {
+      if (e instanceof AppError) return e;
+      return AppError.internal('accounting.fixedAsset.reversePrecheckFailed', e);
+    },
+  );
+}
+
+export async function voidFixedAssetDepreciationForJournal(
+  journalEntryId: string,
+  reversalJournalEntryId: string,
+  ctx: AuditContext,
+): Promise<Result<void>> {
+  return tryCatch(
+    async () => {
+      const run = await findPostedDepreciationRunByJournal(journalEntryId, ctx.tenantId);
+      if (!run) return;
+
+      const preflight = await validateFixedAssetDepreciationJournalCanReverse(journalEntryId, ctx);
+      if (!preflight.ok) throw preflight.error;
+
+      const lines = await db
+        .select({
+          id: fixedAssetDepreciationLines.id,
+          assetId: fixedAssetDepreciationLines.assetId,
+          amount: fixedAssetDepreciationLines.amount,
+          asset: fixedAssets,
+        })
+        .from(fixedAssetDepreciationLines)
+        .innerJoin(
+          fixedAssets,
+          and(
+            eq(fixedAssets.id, fixedAssetDepreciationLines.assetId),
+            eq(fixedAssets.tenantId, ctx.tenantId),
+          ),
+        )
+        .where(eq(fixedAssetDepreciationLines.runId, run.id));
+
+      for (const line of lines) {
+        const newAccumulated =
+          line.asset.accumulatedDepreciation > line.amount
+            ? line.asset.accumulatedDepreciation - line.amount
+            : 0n;
+        const previousDate = await findPreviousPostedDepreciationDate(
+          line.assetId,
+          run.id,
+          run.postingDate,
+          ctx.tenantId,
+        );
+        const bookValueAfter = line.asset.acquisitionCost - newAccumulated;
+        const nextStatus =
+          line.asset.status === 'disposed'
+            ? 'disposed'
+            : bookValueAfter <= line.asset.salvageValue
+              ? 'fully_depreciated'
+              : 'active';
+
+        await db
+          .update(fixedAssets)
+          .set({
+            accumulatedDepreciation: newAccumulated,
+            lastDepreciationDate: previousDate,
+            status: nextStatus,
+            updatedAt: new Date(),
+            updatedBy: ctx.userId,
+            version: line.asset.version + 1,
+          })
+          .where(and(eq(fixedAssets.id, line.assetId), eq(fixedAssets.tenantId, ctx.tenantId)));
+      }
+
+      await db
+        .update(fixedAssetDepreciationRuns)
+        .set({
+          status: 'void',
+          notes: run.notes
+            ? `${run.notes}\nVoided by reversal journal ${reversalJournalEntryId}.`
+            : `Voided by reversal journal ${reversalJournalEntryId}.`,
+          updatedAt: new Date(),
+          updatedBy: ctx.userId,
+          version: run.version + 1,
+        })
+        .where(
+          and(
+            eq(fixedAssetDepreciationRuns.id, run.id),
+            eq(fixedAssetDepreciationRuns.tenantId, ctx.tenantId),
+            eq(fixedAssetDepreciationRuns.status, 'posted'),
+          ),
+        );
+
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'void_depreciation',
+        entityType: 'fixed_asset_depreciation_run',
+        entityId: run.id,
+        before: {
+          status: 'posted',
+          journalEntryId,
+          totalAmount: run.totalAmount.toString(),
+        },
+        after: {
+          status: 'void',
+          reversalJournalEntryId,
+          assetCount: lines.length,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      });
+    },
+    (e) => {
+      if (e instanceof AppError) return e;
+      return AppError.internal('accounting.fixedAsset.voidDepreciationFailed', e);
+    },
+  );
+}
+
+async function findPostedDepreciationRunByJournal(journalEntryId: string, tenantId: string) {
+  const [run] = await db
+    .select()
+    .from(fixedAssetDepreciationRuns)
+    .where(
+      and(
+        eq(fixedAssetDepreciationRuns.tenantId, tenantId),
+        eq(fixedAssetDepreciationRuns.journalEntryId, journalEntryId),
+        eq(fixedAssetDepreciationRuns.status, 'posted'),
+      ),
+    )
+    .limit(1);
+  return run ?? null;
+}
+
+async function findPreviousPostedDepreciationDate(
+  assetId: string,
+  excludedRunId: string,
+  beforePostingDate: string,
+  tenantId: string,
+) {
+  const [row] = await db
+    .select({
+      postingDate: sql<string | null>`max(${fixedAssetDepreciationRuns.postingDate})`,
+    })
+    .from(fixedAssetDepreciationLines)
+    .innerJoin(
+      fixedAssetDepreciationRuns,
+      eq(fixedAssetDepreciationRuns.id, fixedAssetDepreciationLines.runId),
+    )
+    .where(
+      and(
+        eq(fixedAssetDepreciationRuns.tenantId, tenantId),
+        eq(fixedAssetDepreciationRuns.status, 'posted'),
+        eq(fixedAssetDepreciationLines.assetId, assetId),
+        sql`${fixedAssetDepreciationRuns.id} <> ${excludedRunId}`,
+        lt(fixedAssetDepreciationRuns.postingDate, beforePostingDate),
+      ),
+    );
+  return row?.postingDate ?? null;
+}
+
 function toFixedAssetListItem(
   asset: FixedAssetRow,
   category: { code: string; name: LocaleString },
@@ -628,4 +949,27 @@ function monthsBetween(from: string | Date, to: string): number {
   return (
     (end.getUTCFullYear() - start.getUTCFullYear()) * 12 + end.getUTCMonth() - start.getUTCMonth()
   );
+}
+
+function validateFixedAssetCategoryAccount(
+  account:
+    | {
+        type: string;
+        subtype: string;
+        isActive: boolean;
+        isPostable: boolean;
+      }
+    | undefined,
+  expectedType: string,
+  expectedSubtype?: string,
+) {
+  if (!account || !account.isActive || !account.isPostable) {
+    throw AppError.businessRule('accounting.fixedAsset.invalidCategoryAccount');
+  }
+  if (account.type !== expectedType) {
+    throw AppError.businessRule('accounting.fixedAsset.invalidCategoryAccount');
+  }
+  if (expectedSubtype && account.subtype !== expectedSubtype) {
+    throw AppError.businessRule('accounting.fixedAsset.invalidCategoryAccount');
+  }
 }

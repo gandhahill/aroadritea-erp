@@ -14,7 +14,7 @@ import {
   purchaseOrders,
   taxRates,
 } from '@erp/db';
-import { createPO } from '@erp/services/purchasing';
+import { createPO, trackPurchaseOrderShipment } from '@erp/services/purchasing';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
 
@@ -28,6 +28,11 @@ export interface PurchasingDashboardData {
     orderDate: string;
     grandTotal: string;
     lineCount: number;
+    shippingCourierCode: string | null;
+    shippingAwb: string | null;
+    shippingTrackingStatus: string | null;
+    shippingTrackingSyncedAt: string | null;
+    shippingTrackingError: string | null;
   }>;
   suppliers: Array<{
     id: string;
@@ -86,6 +91,11 @@ export async function fetchPurchasingDashboard(): Promise<PurchasingDashboardDat
         locationName: locations.name,
         orderDate: purchaseOrders.orderDate,
         grandTotal: purchaseOrders.grandTotal,
+        shippingCourierCode: purchaseOrders.shippingCourierCode,
+        shippingAwb: purchaseOrders.shippingAwb,
+        shippingTrackingStatus: purchaseOrders.shippingTrackingStatus,
+        shippingTrackingSyncedAt: purchaseOrders.shippingTrackingSyncedAt,
+        shippingTrackingError: purchaseOrders.shippingTrackingError,
         lineId: purchaseOrderLines.id,
       })
       .from(purchaseOrders)
@@ -130,6 +140,13 @@ export async function fetchPurchasingDashboard(): Promise<PurchasingDashboardDat
       orderDate: row.orderDate,
       grandTotal: String(row.grandTotal),
       lineCount: row.lineId ? 1 : 0,
+      shippingCourierCode: row.shippingCourierCode,
+      shippingAwb: row.shippingAwb,
+      shippingTrackingStatus: row.shippingTrackingStatus,
+      shippingTrackingSyncedAt: row.shippingTrackingSyncedAt
+        ? row.shippingTrackingSyncedAt.toISOString()
+        : null,
+      shippingTrackingError: row.shippingTrackingError,
     });
   }
 
@@ -271,5 +288,24 @@ export async function createPurchaseOrderAction(
   if (!result.ok) return { success: false, error: result.error.message };
 
   revalidatePath('/purchasing');
+  return { success: true };
+}
+
+export async function syncPurchaseShipmentAction(formData: FormData): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  if (!ctx) return { success: false, error: 'Sesi login tidak valid.' };
+
+  const result = await trackPurchaseOrderShipment(
+    {
+      poId: String(formData.get('poId') ?? ''),
+      courierCode: String(formData.get('courierCode') ?? '') as never,
+      awb: String(formData.get('awb') ?? ''),
+      phoneLast5: String(formData.get('phoneLast5') ?? ''),
+    },
+    ctx,
+  );
+
+  revalidatePath('/purchasing');
+  if (!result.ok) return { success: false, error: result.error.messageKey };
   return { success: true };
 }

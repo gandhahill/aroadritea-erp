@@ -13,9 +13,11 @@
 import { sql } from 'drizzle-orm';
 import {
   bigint,
+  boolean,
   date,
   index,
   integer,
+  jsonb,
   numeric,
   pgTable,
   text,
@@ -57,6 +59,17 @@ export const purchaseOrders = pgTable(
 
     // Reference to generated journal entry (AP journal)
     journalEntryId: text('journal_entry_id'), // FK journal_entries
+
+    // Shipment tracking cache (BinderByte). Stored on PO so the UI never
+    // burns the monthly API quota just by opening the purchasing page.
+    shippingCourierCode: text('shipping_courier_code'),
+    shippingAwb: text('shipping_awb'),
+    shippingPhoneLast5: text('shipping_phone_last5'),
+    shippingTrackingStatus: text('shipping_tracking_status'),
+    shippingTrackingSummary: jsonb('shipping_tracking_summary'),
+    shippingTrackingHistory: jsonb('shipping_tracking_history'),
+    shippingTrackingSyncedAt: timestamp('shipping_tracking_synced_at', { withTimezone: true }),
+    shippingTrackingError: text('shipping_tracking_error'),
 
     ...versionCol,
     ...auditCols,
@@ -229,5 +242,27 @@ export const purchaseInvoiceLines = pgTable(
   (t) => [
     index('purchase_invoice_lines_inv_idx').on(t.invoiceId),
     index('purchase_invoice_lines_product_idx').on(t.productId),
+  ],
+);
+
+export const shipmentTrackingRequests = pgTable(
+  'shipment_tracking_requests',
+  {
+    ...pk,
+    ...tenantCol,
+    purchaseOrderId: text('purchase_order_id').notNull(),
+    courierCode: text('courier_code').notNull(),
+    awb: text('awb').notNull(),
+    phoneLast5: text('phone_last5'),
+    requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),
+    success: boolean('success').notNull().default(false),
+    httpStatus: integer('http_status'),
+    responseJson: jsonb('response_json'),
+    errorMessage: text('error_message'),
+    ...auditCols,
+  },
+  (t) => [
+    index('shipment_tracking_req_tenant_month_idx').on(t.tenantId, t.requestedAt),
+    index('shipment_tracking_req_po_idx').on(t.purchaseOrderId),
   ],
 );

@@ -179,10 +179,11 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 15. [x] Patch 2026-05-20 user-reported production issues for legal i18n, quick adjustment, POS settings, menu images, journal CSV import, BOM auto-deduct flexibility, and safe unused-master deletion.
 16. [x] Patch 2026-05-20 continuation issues for member Turnstile fallback, HR outlet/global employee isolation, fixed asset register/depreciation journals, and MCP public health host allow-list; deploy and smoke on VPS.
 17. [x] Patch fixed-asset MCP tools plus payroll bonus input and payroll statutory deduction JE aggregation; deploy and smoke on VPS.
+18. [x] Patch AP/AR due-date reminders, receivable aging allowance, fixed-asset category account UI, BinderByte shipment tracking, multilingual OTP email logo, member OTP completion, purchasing i18n, and demo receipt parity.
 
 ## Next Step
 
-Continue the broader T-0167 sweep from `docs/TRACEABILITY-AUDIT.md` on remaining `PARTIAL` rows, especially deeper PII encryption verification, absence automation, print parity, and real browser CRUD smoke for high-risk modules.
+Deploy the current local patch set to VPS after review/commit, run database migration `0020_purchase_shipment_tracking.sql`, then smoke these routes with an authenticated admin session: `/accounting/payables`, `/accounting/receivables`, `/accounting/assets`, `/purchasing`, `/accounting/journals/new`, `/pos/print/demo-receipt`, and public `/id/member/daftar` + OTP completion. After deployment, continue remaining `PARTIAL` rows that require external evidence: return/QC purchasing workflow, restore drill, physical printer smoke, Coretax/PPh formal validation, and external alert delivery.
 
 ## Test Status
 
@@ -258,6 +259,13 @@ Continue the broader T-0167 sweep from `docs/TRACEABILITY-AUDIT.md` on remaining
   - Commit `a7e5285` was pushed, pulled on VPS, rebuilt for `@erp/web` and `@erp/mcp`, and PM2 `aroadri-web`/`aroadri-mcp` were reloaded/saved.
   - Production smoke PASS with admin session: `/hr/payroll` and `/accounting/assets` returned HTTP 200; `https://erp.aroadritea.com/api/healthz` and `https://erp.aroadritea.com/mcp/healthz` returned HTTP 200.
   - VPS repo hygiene PASS: old untracked generated migration `packages/db/migrations/0000_flippant_dakota_north.sql` was moved to `/root/aroadri-untracked-backup/0000_flippant_dakota_north.sql.20260520`; VPS `git status --short` is clean.
+- 2026-05-20 22:00 local verification:
+  - `pnpm -r typecheck` PASS across 10 workspace projects after AP/AR, BinderByte, fixed-asset category settings, member OTP, and receipt changes.
+  - `pnpm -r test` PASS: shared 58 tests and services 25 files / 535 tests.
+  - `pnpm -r build` PASS for worker, MCP, site, and web; route list includes `/accounting/payables`, `/accounting/receivables`, `/accounting/assets`, `/purchasing`, and member signup/OTP routes.
+  - Web/site ID/EN/ZH message key parity PASS: `apps/web/messages` 1373 keys / 0 missing; `apps/site/messages` 120 keys / 0 missing.
+  - Browser-native message scan PASS for executable code; only explanatory comments remain in `apps/web/components/confirm-dialog.tsx`.
+  - ADR-0006 generic class scan PASS for production UI; only the rule comment remains in `apps/web/app/globals.css`.
 - 2026-05-20 16:38 local verification:
   - `pnpm -r typecheck` PASS across 10 workspace projects after member, HR, and fixed-asset changes.
   - `pnpm -r test` PASS: shared 58 tests and services 25 files / 534 tests.

@@ -54,7 +54,7 @@ export default function LoginPage() {
               name="email"
               required
               placeholder={t('emailPlaceholder')}
-              className="h-10 w-full rounded-lg border border-brand-cream-3 bg-white px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
+              className="h-10 w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
             />
           </label>
           <label className="block space-y-1">
@@ -64,7 +64,7 @@ export default function LoginPage() {
               name="password"
               required
               placeholder={t('passwordPlaceholder')}
-              className="h-10 w-full rounded-lg border border-brand-cream-3 bg-white px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
+              className="h-10 w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
             />
           </label>
           <button

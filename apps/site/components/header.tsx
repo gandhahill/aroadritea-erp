@@ -46,7 +46,7 @@ export function PublicHeader({ locale, brand, tagline, chineseTea, labels, isLog
           className="group flex min-w-0 items-center gap-3 rounded-[8px] focus-visible:outline-none focus-visible:shadow-focus"
           aria-label={brand}
         >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-1 shadow-soft">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-cream p-1 shadow-soft">
             <img src="/brand/logo-primary.png" alt="" className="h-full w-full object-contain" />
           </span>
           <span className="min-w-0">

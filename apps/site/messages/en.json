@@ -32,19 +32,19 @@
         "name": "Fresh Milk Tea",
         "description": "Milk tea based on oolong, jasmine green, ceylon black, and roasted fragrant yellow tea.",
         "price": "Regular IDR 42k-43k · Large IDR 47k-49k",
-        "items": "Bamboo Oolong Milk Tea, Osmanthus Oolong Milk Tea, Glutinous Fragrant Milk Tea, Jasmine Green Milk Tea, Ceylon Black Milk Tea, Roasted Fragrant Yellow Milk Tea"
+        "items": "Bamboo Oolong Milk Tea, Osmanthus Oolong Milk Tea, Glutinous Fragrant Green Milk Tea, Jasmine Green Milk Tea, Ceylon Black Milk Tea, Roasted Fragrant Yellow Milk Tea"
       },
       {
         "name": "Fresh Tea",
         "description": "Milk-free tea with floral, roasted, and grain aroma profiles.",
         "price": "Regular from IDR 32k · Large from IDR 42k",
-        "items": "Bamboo Oolong Tea, Osmanthus Oolong Tea, Jasmine Green Tea, Ceylon Black Tea, Roasted Fragrant Yellow Tea, Glutinous Fragrant Tea, Buckwheat Biluochun Tea"
+        "items": "Bamboo Oolong Fresh Tea, Osmanthus Oolong Fresh Tea, Jasmine Green Fresh Tea, Ceylon Black Fresh Tea, Roasted Fragrant Yellow Fresh Tea, Glutinous Fragrant Green Fresh Tea, Buckwheat Biluochun Fresh Tea"
       },
       {
         "name": "Lemon Fresh Tea",
         "description": "Fresh tea with lemon for a lighter, brighter cup.",
         "price": "Regular IDR 43k-45k · Large IDR 47k-49k",
-        "items": "Glutinous Fragrant Lemon Tea, Bamboo Oolong Lemon Tea, Osmanthus Oolong Lemon Tea, Roasted Fragrant Yellow Lemon Tea, Jasmine Green Lemon Tea, Buckwheat Biluochun Lemon Tea"
+        "items": "Glutinous Fragrant Green Lemon Tea, Bamboo Oolong Lemon Tea, Osmanthus Oolong Lemon Tea, Roasted Fragrant Yellow Lemon Tea, Jasmine Green Lemon Tea, Buckwheat Biluochun Lemon Tea"
       },
       {
         "name": "Snow Cap Milk Tea",

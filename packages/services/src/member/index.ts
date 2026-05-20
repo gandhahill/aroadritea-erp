@@ -68,9 +68,9 @@ export const RetryOtpInputSchema = z.object({
 
 export const CompleteSignupInputSchema = z.object({
   token: z.string().min(1),
-  name: z.string().min(2).max(100),
-  birthDate: z.string().optional(),
-  city: z.string().optional(),
+  name: z.string().trim().min(2).max(100).optional(),
+  birthDate: z.string().trim().min(10).optional(),
+  city: z.string().trim().min(1).optional(),
   password: z.string().min(8).max(128).optional(),
   consentGiven: z.boolean().refine((v) => v === true, 'Consent is required'),
 });
@@ -177,7 +177,17 @@ async function verifyTurnstile(token: string, ipAddress?: string): Promise<boole
   }
 }
 
-async function sendSignupOtp(email: string, code: string): Promise<Result<void>> {
+type EmailLocale = 'id' | 'en' | 'zh';
+
+function normalizeEmailLocale(locale?: string): EmailLocale {
+  return locale === 'en' || locale === 'zh' ? locale : 'id';
+}
+
+async function sendSignupOtp(
+  email: string,
+  code: string,
+  locale: EmailLocale,
+): Promise<Result<void>> {
   const smtpHost = process.env.SMTP_HOST;
   const configuredPort = Number.parseInt(process.env.SMTP_PORT ?? '587', 10);
   const smtpPort = Number.isFinite(configuredPort) ? configuredPort : 587;
@@ -215,9 +225,19 @@ async function sendSignupOtp(email: string, code: string): Promise<Result<void>>
     await transporter.sendMail({
       from: smtpFrom.includes('<') ? smtpFrom : `${smtpFromName} <${smtpFrom}>`,
       to: email,
-      subject: 'Kode OTP Aroadri Tea',
-      text: `Kode OTP Aroadri Tea Anda: ${code}. Kode berlaku ${OTP_EXPIRY_MINUTES} menit. Jangan bagikan kode ini kepada siapapun.`,
-      html: buildOtpEmailHtml(code, OTP_EXPIRY_MINUTES),
+      subject:
+        locale === 'en'
+          ? 'Your Aroadri Tea OTP Code'
+          : locale === 'zh'
+            ? 'Aroadri Tea OTP验证码'
+            : 'Kode OTP Aroadri Tea',
+      text:
+        locale === 'en'
+          ? `Your Aroadri Tea OTP code: ${code}. This code is valid for ${OTP_EXPIRY_MINUTES} minutes. Do not share it with anyone.`
+          : locale === 'zh'
+            ? `您的 Aroadri Tea OTP 验证码：${code}。验证码有效期 ${OTP_EXPIRY_MINUTES} 分钟，请勿分享给任何人。`
+            : `Kode OTP Aroadri Tea Anda: ${code}. Kode berlaku ${OTP_EXPIRY_MINUTES} menit. Jangan bagikan kode ini kepada siapapun.`,
+      html: buildOtpEmailHtml(code, OTP_EXPIRY_MINUTES, locale),
     });
 
     return ok(undefined);
@@ -240,6 +260,7 @@ export async function initiateSignup(
   input: SignupInput,
   ipAddress?: string,
   userAgent?: string,
+  locale?: string,
 ): Promise<Result<{ token: string }>> {
   const parsed = SignupInputSchema.safeParse(input);
   if (!parsed.success) {
@@ -372,7 +393,7 @@ export async function initiateSignup(
     payloadJson,
   });
 
-  const sendResult = await sendSignupOtp(data.email, code);
+  const sendResult = await sendSignupOtp(data.email, code, normalizeEmailLocale(locale));
   if (!sendResult.ok) return sendResult;
 
   await db.insert(memberSignupAttempts).values({
@@ -492,6 +513,9 @@ export async function completeSignup(
   const otpRecord = otpRecords[0];
   if (!otpRecord) return err(AppError.notFound('member.completeSignup.tokenInvalid'));
   if (!otpRecord.consumedAt) return err(AppError.conflict('member.completeSignup.otpNotVerified'));
+  if (new Date() > otpRecord.tokenExpiresAt) {
+    return err(AppError.conflict('member.completeSignup.tokenExpired'));
+  }
 
   const email = otpRecord.recipient;
 

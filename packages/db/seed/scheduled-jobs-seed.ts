@@ -44,4 +44,13 @@ export const SCHEDULED_JOBS_SEED = [
     jobData: {},
     enabled: false,
   },
+  {
+    name: 'party-ledger-reminders',
+    label: 'scheduledJobs.partyLedgerReminders.label',
+    description: 'scheduledJobs.partyLedgerReminders.description',
+    cronExpression: '0 0 1 * * *', // daily 08:00 WIB = 01:00 UTC
+    timezone: 'Asia/Jakarta',
+    jobData: {},
+    enabled: true,
+  },
 ] as const;

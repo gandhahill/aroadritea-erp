@@ -108,10 +108,15 @@ const MENU_PRODUCTS: MenuProduct[] = [
     'cold',
     'hot',
   ]),
-  tea('FMT-GLU', 'FRESH_MILK_TEA', 'Glutinous Fragrant Milk Tea', '糯香奶茶', 43000, 49000, [
-    'cold',
-    'hot',
-  ]),
+  tea(
+    'FMT-GLU',
+    'FRESH_MILK_TEA',
+    'Glutinous Fragrant Green Milk Tea',
+    '糯香绿奶茶',
+    43000,
+    49000,
+    ['cold', 'hot'],
+  ),
   tea('FMT-JAS', 'FRESH_MILK_TEA', 'Jasmine Green Milk Tea', '茉莉绿奶茶', 43000, 49000, [
     'cold',
     'hot',
@@ -129,22 +134,58 @@ const MENU_PRODUCTS: MenuProduct[] = [
     49000,
     ['cold', 'hot'],
   ),
-  tea('FT-BOO', 'FRESH_TEA', 'Bamboo Oolong Tea', '竹香乌龙茶', 32000, 42000, ['cold', 'hot']),
-  tea('FT-OSM', 'FRESH_TEA', 'Osmanthus Oolong Tea', '桂花乌龙茶', 32000, 42000, ['cold', 'hot']),
-  tea('FT-JAS', 'FRESH_TEA', 'Jasmine Green Tea', '茉莉绿茶', 33000, 43000, ['cold', 'hot']),
-  tea('FT-CEY', 'FRESH_TEA', 'Ceylon Black Tea', '锡兰红茶', 33000, 43000, ['cold', 'hot']),
-  tea('FT-ROY', 'FRESH_TEA', 'Roasted Fragrant Yellow Tea', '焙香黄茶', 32000, 42000, [
+  tea('FT-BOO', 'FRESH_TEA', 'Bamboo Oolong Fresh Tea', '竹香乌龙鲜茶', 32000, 42000, [
     'cold',
     'hot',
   ]),
-  tea('FT-GLU', 'FRESH_TEA', 'Glutinous Fragrant Tea', '糯香茶', 33000, 43000, ['cold', 'hot']),
-  tea('FT-BIL', 'FRESH_TEA', 'Buckwheat Biluochun Tea', '荞麦碧螺春茶', 35000, 45000, [
+  tea(
+    'FT-OSM',
+    'FRESH_TEA',
+    'Osmanthus Oolong Fresh Tea',
+    '桂花乌龙鲜茶',
+    32000,
+    42000,
+    ['cold', 'hot'],
+  ),
+  tea('FT-JAS', 'FRESH_TEA', 'Jasmine Green Fresh Tea', '茉莉绿鲜茶', 33000, 43000, [
     'cold',
     'hot',
   ]),
-  tea('LFT-GLU', 'LEMON_FRESH_TEA', 'Glutinous Fragrant Lemon Tea', '糯香柠檬茶', 43000, 47000, [
+  tea('FT-CEY', 'FRESH_TEA', 'Ceylon Black Fresh Tea', '锡兰红鲜茶', 33000, 43000, [
     'cold',
+    'hot',
   ]),
+  tea('FT-ROY', 'FRESH_TEA', 'Roasted Fragrant Yellow Fresh Tea', '焙香黄鲜茶', 32000, 42000, [
+    'cold',
+    'hot',
+  ]),
+  tea(
+    'FT-GLU',
+    'FRESH_TEA',
+    'Glutinous Fragrant Green Fresh Tea',
+    '糯香绿鲜茶',
+    33000,
+    43000,
+    ['cold', 'hot'],
+  ),
+  tea(
+    'FT-BIL',
+    'FRESH_TEA',
+    'Buckwheat Biluochun Fresh Tea',
+    '荞麦碧螺春鲜茶',
+    35000,
+    45000,
+    ['cold', 'hot'],
+  ),
+  tea(
+    'LFT-GLU',
+    'LEMON_FRESH_TEA',
+    'Glutinous Fragrant Green Lemon Tea',
+    '糯香绿柠檬茶',
+    43000,
+    47000,
+    ['cold'],
+  ),
   tea('LFT-BOO', 'LEMON_FRESH_TEA', 'Bamboo Oolong Lemon Tea', '竹香乌龙柠檬茶', 43000, 47000, [
     'cold',
   ]),
