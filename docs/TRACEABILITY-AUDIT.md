@@ -2,7 +2,7 @@
 
 Audit date: 2026-05-15
 Task: T-0167 Production readiness audit and critical fixes
-Scope: `SOURCE-OF-TRUTH.md` v1.6 and `SYSTEM-DESIGN.md` v2.0 against the current codebase through deployed commit `35d6add`.
+Scope: `SOURCE-OF-TRUTH.md` v1.6 and `SYSTEM-DESIGN.md` v2.0 against the current codebase through deployed commit `794f15b`.
 
 ## Status Legend
 
@@ -226,6 +226,21 @@ Commit `35d6add` was pushed to GitHub and deployed on the VPS under `/home/aroad
 7. Authenticated ERP smoke using admin session returned HTTP 200 with no login fallback or application-error marker for `/pos`, `/pos/demo`, `/docs`, `/settings/permissions`, `/inventory/products`, `/settings/promotions`, `/reporting/business-intelligence`, `/accounting/journals/new`, `/accounting/coa`, `/tax/rates`, `/tax/rules`, `/hr/checkin`, `/hr/leave`, `/account`, `/audit`, and `/settings/scheduled-jobs`.
 8. HR check-in and scheduled-jobs pages were smoke-checked in ID/EN/ZH for localized markers.
 9. `pnpm audit --audit-level moderate` reported no known vulnerabilities locally, despite GitHub's post-push Dependabot banner; the GitHub advisory still needs direct Dependabot review if it remains open.
+
+## T-0167 Deploy Evidence - 2026-05-20 22:45 WIB
+
+Commit `794f15b` was pushed to GitHub and deployed on the VPS under `/home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp`.
+
+### Deployment Verification
+
+1. Remote `git pull --ff-only` completed from `f2fe695` to `794f15b`.
+2. Remote `pnpm --filter @erp/db migrate` passed after sourcing `.env`; migration `0020_purchase_shipment_tracking.sql` applied.
+3. Remote `pnpm --filter @erp/db seed` passed; scheduled jobs, menu products, fixed-asset categories, and related master data were refreshed idempotently.
+4. Remote builds passed for `@erp/web`, `@erp/site`, `@erp/mcp`, and `@erp/worker`.
+5. PM2 reload/save completed; site, web, MCP, and worker processes are online.
+6. Public health smoke returned HTTP 200 for `https://aroadritea.com/api/healthz`, `https://erp.aroadritea.com/api/healthz`, and `https://erp.aroadritea.com/mcp/healthz`.
+7. Public route smoke returned HTTP 200 for `https://erp.aroadritea.com/login` and `https://aroadritea.com/id/member/daftar`.
+8. Protected ERP route smoke returned HTTP 307 redirects, not 404/application-error, for `/accounting/payables`, `/accounting/receivables`, `/accounting/assets`, `/purchasing`, `/accounting/journals/new`, and `/pos/print/demo-receipt`.
 
 ## Next Implementation Order
 

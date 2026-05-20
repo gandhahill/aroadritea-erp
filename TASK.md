@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-20 22:00 WIB (Codex) | IN_PROGRESS | Current sweep: added AP/AR due dates/reminders/aging allowance, fixed-asset category account UI and journal reversal sync, safe COA delete replacement flow, BinderByte shipment tracking with quota cache, multilingual OTP email with logo, automatic member completion after OTP, purchasing i18n/docs, and demo receipt parity. Verification: local `pnpm -r typecheck`, `pnpm -r test`, `pnpm -r build`, i18n parity, browser-native message scan, and ADR-0006 class scan PASS. Pending: commit/deploy/VPS smoke plus external-evidence rows (printer, restore drill, Coretax/PPh, external alerts, purchasing return/QC). |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-20 22:45 WIB (Codex) | IN_PROGRESS | Current sweep deployed in commit `794f15b`: AP/AR due dates/reminders/aging allowance, fixed-asset category account UI and journal reversal sync, safe COA delete replacement flow, BinderByte shipment tracking with quota cache, multilingual OTP email with logo, automatic member completion after OTP, purchasing i18n/docs, and demo receipt parity. Verification: local `pnpm -r typecheck`, `pnpm -r test`, `pnpm -r build`, i18n parity, browser-native message scan, ADR-0006 class scan, VPS migrate/seed/build/reload, and public health/route smoke PASS. Pending only external-evidence rows: physical printer, restore drill, Coretax/PPh formal validation, external alerts, and purchasing return/QC. |
 
 ---
 

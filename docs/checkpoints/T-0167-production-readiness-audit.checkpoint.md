@@ -183,7 +183,7 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 
 ## Next Step
 
-Deploy the current local patch set to VPS after review/commit, run database migration `0020_purchase_shipment_tracking.sql`, then smoke these routes with an authenticated admin session: `/accounting/payables`, `/accounting/receivables`, `/accounting/assets`, `/purchasing`, `/accounting/journals/new`, `/pos/print/demo-receipt`, and public `/id/member/daftar` + OTP completion. After deployment, continue remaining `PARTIAL` rows that require external evidence: return/QC purchasing workflow, restore drill, physical printer smoke, Coretax/PPh formal validation, and external alert delivery.
+Continue remaining `PARTIAL` rows that require external or physical evidence: return/QC purchasing workflow, restore drill, physical printer smoke, Coretax/PPh formal validation, and external alert delivery. If production credentials/session are available, add authenticated browser CRUD smoke for `/accounting/payables`, `/accounting/receivables`, `/accounting/assets`, `/purchasing`, `/accounting/journals/new`, `/pos/print/demo-receipt`, and public `/id/member/daftar` + OTP completion.
 
 ## Test Status
 
@@ -266,6 +266,13 @@ Deploy the current local patch set to VPS after review/commit, run database migr
   - Web/site ID/EN/ZH message key parity PASS: `apps/web/messages` 1373 keys / 0 missing; `apps/site/messages` 120 keys / 0 missing.
   - Browser-native message scan PASS for executable code; only explanatory comments remain in `apps/web/components/confirm-dialog.tsx`.
   - ADR-0006 generic class scan PASS for production UI; only the rule comment remains in `apps/web/app/globals.css`.
+- 2026-05-20 22:45 deployment verification PASS:
+  - Commit `794f15b` was pushed to `origin/master`, pulled on VPS, and deployed from `/home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp`.
+  - VPS `pnpm --filter @erp/db migrate` PASS after sourcing `.env`; migration `0020_purchase_shipment_tracking.sql` applied.
+  - VPS `pnpm --filter @erp/db seed` PASS; scheduled jobs, menu products, and fixed-asset categories seeded.
+  - VPS builds PASS for `@erp/web`, `@erp/site`, `@erp/mcp`, and `@erp/worker`; PM2 reload/save completed and all four processes are online.
+  - Public health smoke PASS: `https://aroadritea.com/api/healthz`, `https://erp.aroadritea.com/api/healthz`, and `https://erp.aroadritea.com/mcp/healthz` returned HTTP 200.
+  - Public unauthenticated route smoke PASS: `/login` and `/id/member/daftar` returned HTTP 200; protected ERP routes `/accounting/payables`, `/accounting/receivables`, `/accounting/assets`, `/purchasing`, `/accounting/journals/new`, and `/pos/print/demo-receipt` returned HTTP 307 redirects instead of 404/application-error.
 - 2026-05-20 16:38 local verification:
   - `pnpm -r typecheck` PASS across 10 workspace projects after member, HR, and fixed-asset changes.
   - `pnpm -r test` PASS: shared 58 tests and services 25 files / 534 tests.
