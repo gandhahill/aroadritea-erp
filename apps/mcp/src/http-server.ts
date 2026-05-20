@@ -32,12 +32,33 @@ const DEFAULT_ALLOWED = [
   `127.0.0.1:${PORT}`,
   `[::1]:${PORT}`,
 ];
+
+function hostFromPublicUrl(value: string | undefined): string[] {
+  if (!value) return [];
+
+  try {
+    const url = new URL(value);
+    return [url.host.toLowerCase()].filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+const PUBLIC_ALLOWED = [
+  ...hostFromPublicUrl(process.env.MCP_SERVER_URL),
+  ...hostFromPublicUrl(process.env.NEXT_PUBLIC_WEB_URL),
+  ...hostFromPublicUrl(process.env.BETTER_AUTH_URL),
+];
+
 const ALLOWED_HOSTS = new Set(
   (process.env.MCP_HTTP_ALLOWED_HOSTS ?? '')
     .split(',')
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean)
-    .concat(DEFAULT_ALLOWED.map((s) => s.toLowerCase())),
+    .concat(
+      DEFAULT_ALLOWED.map((s) => s.toLowerCase()),
+      PUBLIC_ALLOWED,
+    ),
 );
 
 const app = new Hono();
