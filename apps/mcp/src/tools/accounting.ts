@@ -17,10 +17,13 @@ import { isActive } from '@erp/db/schema/common';
 import * as accounting from '@erp/services/accounting';
 import type {
   ClosePeriodInput,
+  CreateFixedAssetInput,
   CreateJournalInput,
   GetPeriodStatusInput,
+  ListFixedAssetsInput,
   PostJournalInput,
   ReverseJournalInput,
+  RunFixedAssetDepreciationInput,
 } from '@erp/services/accounting';
 import { type PermissionContext, can } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
@@ -208,6 +211,89 @@ export async function closePeriodHandler(
   return serializeResult(result);
 }
 
+export async function listFixedAssetCategoriesHandler(
+  input: z.infer<typeof ListFixedAssetCategoriesSchema>,
+  ctx: McpContext,
+) {
+  const result = await accounting.listFixedAssetCategories({
+    userId: ctx.userId,
+    tenantId: ctx.tenantId,
+    locationId: input.location_id ?? ctx.locationId ?? 'system',
+  });
+
+  return serializeResult(result);
+}
+
+export async function listFixedAssetsHandler(
+  input: z.infer<typeof ListFixedAssetsMcpSchema>,
+  ctx: McpContext,
+) {
+  const params: ListFixedAssetsInput = {
+    locationId: input.location_id,
+    status: input.status,
+    limit: input.limit,
+    offset: input.offset,
+  };
+
+  const result = await accounting.listFixedAssets(params, {
+    userId: ctx.userId,
+    tenantId: ctx.tenantId,
+    locationId: input.location_id ?? ctx.locationId ?? 'system',
+  });
+
+  return serializeResult(result);
+}
+
+export async function createFixedAssetHandler(
+  input: z.infer<typeof CreateFixedAssetMcpSchema>,
+  ctx: McpContext,
+) {
+  const params: CreateFixedAssetInput = {
+    locationId: input.location_id,
+    categoryId: input.category_id,
+    code: input.code,
+    name: input.name,
+    acquisitionDate: input.acquisition_date,
+    inServiceDate: input.in_service_date,
+    acquisitionCost: input.acquisition_cost,
+    salvageValue: input.salvage_value,
+    usefulLifeMonths: input.useful_life_months,
+    depreciationMethod: input.depreciation_method,
+    depreciationRateBps: input.depreciation_rate_bps,
+    productionCapacity: input.production_capacity,
+    notes: input.notes,
+  };
+
+  const result = await accounting.createFixedAsset(params, {
+    userId: ctx.userId,
+    tenantId: ctx.tenantId,
+    locationId: input.location_id,
+  });
+
+  return serializeResult(result);
+}
+
+export async function runFixedAssetDepreciationHandler(
+  input: z.infer<typeof RunFixedAssetDepreciationMcpSchema>,
+  ctx: McpContext,
+) {
+  const params: RunFixedAssetDepreciationInput = {
+    locationId: input.location_id,
+    postingDate: input.posting_date,
+    assetIds: input.asset_ids,
+    unitsUsedByAssetId: input.units_used_by_asset_id,
+    notes: input.notes,
+  };
+
+  const result = await accounting.runFixedAssetDepreciation(params, {
+    userId: ctx.userId,
+    tenantId: ctx.tenantId,
+    locationId: input.location_id,
+  });
+
+  return serializeResult(result);
+}
+
 // --- Schemas (exported for tool registry) ---
 
 export const ListAccountsSchema = z.object({
@@ -254,6 +340,58 @@ export const GetPeriodStatusSchema = z.object({
 export const ClosePeriodSchema = z.object({
   period_code: z.string(),
   force: z.boolean().optional().default(false),
+});
+
+const DepreciationMethodMcpSchema = z.enum([
+  'straight_line',
+  'declining_balance',
+  'double_declining_balance',
+  'sum_of_years_digits',
+  'units_of_production',
+]);
+
+export const ListFixedAssetCategoriesSchema = z.object({
+  location_id: z.string().optional(),
+});
+
+export const ListFixedAssetsMcpSchema = z.object({
+  location_id: z.string().optional(),
+  status: z.enum(['active', 'fully_depreciated', 'disposed']).optional(),
+  limit: z.number().int().min(1).max(200).optional().default(100),
+  offset: z.number().int().min(0).optional().default(0),
+});
+
+export const CreateFixedAssetMcpSchema = z.object({
+  location_id: z.string().min(1),
+  category_id: z.string().min(1),
+  code: z.string().min(1).max(64),
+  name: z.string().min(1).max(160),
+  acquisition_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Acquisition date must be YYYY-MM-DD' }),
+  in_service_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'In-service date must be YYYY-MM-DD' }),
+  acquisition_cost: z.string().regex(/^[1-9]\d*$/, { message: 'Cost must be a rupiah string' }),
+  salvage_value: z.string().regex(/^\d+$/).optional().default('0'),
+  useful_life_months: z.number().int().min(1).max(600),
+  depreciation_method: DepreciationMethodMcpSchema,
+  depreciation_rate_bps: z.number().int().min(1).max(10000).optional(),
+  production_capacity: z
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .optional(),
+  notes: z.string().max(1000).optional(),
+});
+
+export const RunFixedAssetDepreciationMcpSchema = z.object({
+  location_id: z.string().min(1),
+  posting_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Posting date must be YYYY-MM-DD' }),
+  asset_ids: z.array(z.string().min(1)).optional(),
+  units_used_by_asset_id: z.record(z.string(), z.string().regex(/^[1-9]\d*$/)).optional(),
+  notes: z.string().max(1000).optional(),
 });
 
 const LocaleNameSchema = z.object({
@@ -408,14 +546,26 @@ export async function deleteAccountHandler(
   const [before] = await db
     .select()
     .from(accounts)
-    .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.id, input.id), isNull(accounts.deletedAt)))
+    .where(
+      and(
+        eq(accounts.tenantId, ctx.tenantId),
+        eq(accounts.id, input.id),
+        isNull(accounts.deletedAt),
+      ),
+    )
     .limit(1);
   if (!before) return mcpError('NOT_FOUND', `Account ${input.id} not found`);
 
   const [child] = await db
     .select({ id: accounts.id })
     .from(accounts)
-    .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.parentId, input.id), isNull(accounts.deletedAt)))
+    .where(
+      and(
+        eq(accounts.tenantId, ctx.tenantId),
+        eq(accounts.parentId, input.id),
+        isNull(accounts.deletedAt),
+      ),
+    )
     .limit(1);
   if (child) return mcpError('BUSINESS_RULE', 'Account still has child accounts.');
 
@@ -458,6 +608,32 @@ export const accountingTools = [
     handler: getPeriodStatusHandler,
   },
   { name: 'accounting.close_period', schema: ClosePeriodSchema, handler: closePeriodHandler },
+  {
+    name: 'accounting.list_fixed_asset_categories',
+    schema: ListFixedAssetCategoriesSchema,
+    handler: listFixedAssetCategoriesHandler,
+    description: 'List fixed asset categories and their configured asset/depreciation accounts.',
+  },
+  {
+    name: 'accounting.list_fixed_assets',
+    schema: ListFixedAssetsMcpSchema,
+    handler: listFixedAssetsHandler,
+    description: 'List fixed assets with book value and depreciation status.',
+  },
+  {
+    name: 'accounting.create_fixed_asset',
+    schema: CreateFixedAssetMcpSchema,
+    handler: createFixedAssetHandler,
+    description:
+      'Create a fixed asset through the same permission, audit, and validation engine as the UI.',
+  },
+  {
+    name: 'accounting.run_fixed_asset_depreciation',
+    schema: RunFixedAssetDepreciationMcpSchema,
+    handler: runFixedAssetDepreciationHandler,
+    description:
+      'Run fixed asset depreciation for an outlet and create the synchronized accounting journal.',
+  },
   {
     name: 'accounting.get_journal_with_attachments',
     schema: GetJournalWithAttachmentsSchema,

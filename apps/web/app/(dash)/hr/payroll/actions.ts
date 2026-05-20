@@ -27,6 +27,12 @@ export async function runPayrollAction(input: {
   periodStart: string;
   periodEnd: string;
   locationId: string;
+  additionalEarnings?: Array<{
+    employeeId: string;
+    componentCode?: string;
+    amount: string;
+    notes?: string;
+  }>;
 }) {
   const ctx = await resolveCtx(input.locationId);
   return runPayroll(input, ctx);

@@ -253,6 +253,29 @@ describe('approvePayroll — JE creation', () => {
     expect(call.postingDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
+  it('sums statutory deduction credits across all employee lines', async () => {
+    _selResults = [
+      [payrollRow()],
+      [
+        lineRow('SALARY_BASE', 'earning', 7_000_000),
+        lineRow('SALARY_BASE', 'earning', 7_000_000),
+        lineRow('PPh21', 'deduction', 300_000),
+        lineRow('PPh21', 'deduction', 200_000),
+        lineRow('BPJS_KES', 'deduction', 70_000),
+        lineRow('BPJS_KES', 'deduction', 70_000),
+        lineRow('BPJS_TK', 'deduction', 140_000),
+        lineRow('BPJS_TK', 'deduction', 140_000),
+      ],
+      ACCTS,
+    ];
+    await approvePayroll({ payrollId: 'p1' }, ctxt());
+    const { createJournal } = await import('../src/accounting/create-journal');
+    const call = createJournal.mock.calls[0]![0] as { lines: Record<string, unknown>[] };
+    expect(call.lines.find((line) => line.accountId === 'LS2201')?.credit).toBe('500000');
+    expect(call.lines.find((line) => line.accountId === 'LS2202')?.credit).toBe('140000');
+    expect(call.lines.find((line) => line.accountId === 'LS2203')?.credit).toBe('280000');
+  });
+
   it('omits PPh21 credit line when zero deduction', async () => {
     _selResults = [[payrollRow()], [lineRow('BASE', 'earning', 14_000_000)], [ACCTS[0], ACCTS[4]]];
     await approvePayroll({ payrollId: 'p1' }, ctxt());

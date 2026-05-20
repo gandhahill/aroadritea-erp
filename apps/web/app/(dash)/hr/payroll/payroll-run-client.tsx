@@ -24,6 +24,7 @@ interface Props {
   locations: { value: string; label: string }[];
   existingPayrolls: PayrollRunRow[];
   defaultLocationId: string;
+  employees: { id: string; name: string; locationId: string }[];
 }
 
 function formatMoney(v: string): string {
@@ -53,7 +54,12 @@ const STATUS_COLOR: Record<string, { bg: string; text: string; label: string }> 
   cancelled: { bg: 'bg-rose-50', text: 'text-rose-500', label: 'Dibatalkan' },
 };
 
-export function PayrollRunClient({ locations, existingPayrolls, defaultLocationId }: Props) {
+export function PayrollRunClient({
+  locations,
+  existingPayrolls,
+  defaultLocationId,
+  employees,
+}: Props) {
   const router = useRouter();
   const [periodCode, setPeriodCode] = useState(() => {
     const d = new Date();
@@ -63,6 +69,7 @@ export function PayrollRunClient({ locations, existingPayrolls, defaultLocationI
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [bonusByEmployeeId, setBonusByEmployeeId] = useState<Record<string, string>>({});
 
   const periodStart = `${periodCode}-01`;
   const periodEnd = (() => {
@@ -70,6 +77,25 @@ export function PayrollRunClient({ locations, existingPayrolls, defaultLocationI
     const last = new Date(y ?? 2000, (m ?? 1) - 1, 0).getDate();
     return `${periodCode}-${String(last).padStart(2, '0')}`;
   })();
+  const selectedEmployees = employees.filter((employee) => employee.locationId === locationId);
+  const additionalEarnings = selectedEmployees
+    .map((employee) => {
+      const amount = (bonusByEmployeeId[employee.id] ?? '').replace(/\D/g, '');
+      return amount && Number.parseInt(amount, 10) > 0
+        ? {
+            employeeId: employee.id,
+            componentCode: 'BONUS',
+            amount,
+            notes: `Bonus payroll ${periodCode}`,
+          }
+        : null;
+    })
+    .filter(
+      (
+        earning,
+      ): earning is { employeeId: string; componentCode: string; amount: string; notes: string } =>
+        earning !== null,
+    );
 
   const handleRun = async () => {
     if (!locationId) {
@@ -85,6 +111,7 @@ export function PayrollRunClient({ locations, existingPayrolls, defaultLocationI
       periodStart: `${periodStart}T00:00:00Z`,
       periodEnd: `${periodEnd}T23:59:59Z`,
       locationId,
+      additionalEarnings,
     });
 
     setSubmitting(false);
@@ -106,8 +133,14 @@ export function PayrollRunClient({ locations, existingPayrolls, defaultLocationI
         <h2 className="mb-4 text-base font-semibold text-brand-ink">Run Payroll</h2>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">Period</label>
+            <label
+              htmlFor="payroll-period"
+              className="mb-1.5 block text-sm font-medium text-brand-ink-2"
+            >
+              Period
+            </label>
             <input
+              id="payroll-period"
               type="month"
               value={periodCode}
               onChange={(e) => setPeriodCode(e.target.value)}
@@ -118,8 +151,14 @@ export function PayrollRunClient({ locations, existingPayrolls, defaultLocationI
             </p>
           </div>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">Location</label>
+            <label
+              htmlFor="payroll-location"
+              className="mb-1.5 block text-sm font-medium text-brand-ink-2"
+            >
+              Location
+            </label>
             <select
+              id="payroll-location"
               value={locationId}
               onChange={(e) => setLocationId(e.target.value)}
               className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
@@ -132,6 +171,52 @@ export function PayrollRunClient({ locations, existingPayrolls, defaultLocationI
               ))}
             </select>
           </div>
+        </div>
+
+        <div className="mt-5 rounded-lg border border-brand-cream-3 bg-brand-cream-1/40 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-brand-ink">Bonus per karyawan</h3>
+              <p className="mt-1 text-xs text-brand-ink-3">
+                Nominal ini masuk komponen BONUS, ikut total penghasilan, dan tersinkron ke jurnal
+                saat payroll disetujui.
+              </p>
+            </div>
+            <span className="rounded-full bg-brand-jade/10 px-3 py-1 text-xs font-medium text-brand-jade">
+              {additionalEarnings.length} bonus
+            </span>
+          </div>
+
+          {locationId && selectedEmployees.length === 0 ? (
+            <p className="mt-4 rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink-3">
+              Belum ada karyawan aktif pada outlet ini.
+            </p>
+          ) : null}
+
+          {selectedEmployees.length > 0 ? (
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {selectedEmployees.map((employee) => (
+                <label key={employee.id} className="block">
+                  <span className="mb-1 block text-xs font-medium text-brand-ink-2">
+                    {employee.name}
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={bonusByEmployeeId[employee.id] ?? ''}
+                    onChange={(event) =>
+                      setBonusByEmployeeId((current) => ({
+                        ...current,
+                        [employee.id]: event.target.value.replace(/\D/g, ''),
+                      }))
+                    }
+                    placeholder="0"
+                    className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
+                  />
+                </label>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         {error && (
@@ -147,6 +232,7 @@ export function PayrollRunClient({ locations, existingPayrolls, defaultLocationI
         )}
 
         <button
+          type="button"
           onClick={handleRun}
           disabled={submitting || !locationId}
           className="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6 disabled:cursor-not-allowed disabled:opacity-50"
@@ -202,6 +288,7 @@ export function PayrollRunClient({ locations, existingPayrolls, defaultLocationI
                         >
                           Detail
                           <svg
+                            aria-hidden="true"
                             className="h-3.5 w-3.5"
                             fill="none"
                             viewBox="0 0 24 24"

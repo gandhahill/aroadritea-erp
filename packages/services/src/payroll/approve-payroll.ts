@@ -92,9 +92,9 @@ export async function approvePayroll(
       if (row.componentKind === 'earning') {
         totalEarnings += row.line.amount;
       }
-      if (row.componentCode === 'PPh21') totalPPh21 = row.line.amount;
-      if (row.componentCode === 'BPJS_KES') totalBpjsKes = row.line.amount;
-      if (row.componentCode === 'BPJS_TK') totalBpjsTk = row.line.amount;
+      if (row.componentCode === 'PPh21') totalPPh21 += row.line.amount;
+      if (row.componentCode === 'BPJS_KES') totalBpjsKes += row.line.amount;
+      if (row.componentCode === 'BPJS_TK') totalBpjsTk += row.line.amount;
     }
 
     // Look up account IDs by code (SD §21.8)
@@ -194,12 +194,7 @@ export async function approvePayroll(
         journalEntryId: journalResult.value.id,
         updatedBy: ctx.userId,
       })
-      .where(
-        and(
-          eq(payrolls.id, data.payrollId),
-          eq(payrolls.status, payroll.status),
-        ),
-      )
+      .where(and(eq(payrolls.id, data.payrollId), eq(payrolls.status, payroll.status)))
       .returning({ id: payrolls.id });
     if (!claimed || claimed.length === 0) {
       throw AppError.conflict('hr.payroll.cannotApprove', { status: payroll.status });

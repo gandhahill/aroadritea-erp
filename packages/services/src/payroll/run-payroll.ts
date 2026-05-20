@@ -70,9 +70,20 @@ export const RunPayrollInputSchema = z.object({
   periodStart: z.string().datetime(),
   periodEnd: z.string().datetime(),
   locationId: z.string().min(1),
+  additionalEarnings: z
+    .array(
+      z.object({
+        employeeId: z.string().min(1),
+        componentCode: z.string().min(1).max(64).default('BONUS'),
+        amount: z.string().regex(/^[1-9]\d*$/),
+        notes: z.string().max(240).optional(),
+      }),
+    )
+    .optional()
+    .default([]),
 });
 
-export type RunPayrollInput = z.infer<typeof RunPayrollInputSchema>;
+export type RunPayrollInput = z.input<typeof RunPayrollInputSchema>;
 
 export interface RunPayrollResult {
   payrollId: string;
@@ -142,6 +153,7 @@ export async function runPayroll(
       if (empRows.length === 0) {
         throw AppError.validation('hr.payroll.noEmployees', { locationId: data.locationId });
       }
+      const employeeIdSet = new Set(empRows.map((employee) => employee.id));
 
       // 3. Fetch active contracts
       const contractIds = empRows
@@ -172,12 +184,57 @@ export async function runPayroll(
           percentage: salaryComponents.percentage,
           isTaxable: salaryComponents.isTaxable,
           isBpjsBase: salaryComponents.isBpjsBase,
+          isActive: salaryComponents.isActive,
           name: salaryComponents.name,
         })
         .from(salaryComponents)
         .where(eq(salaryComponents.tenantId, ctx.tenantId));
 
       const componentMap = new Map(components.map((c) => [c.code, c]));
+      const getComponent = (code: string) => {
+        const component = componentMap.get(code);
+        if (!component || !component.isActive) {
+          throw AppError.internal('hr.payroll.missingSalaryComponent', { code });
+        }
+        return component;
+      };
+      for (const code of ['SALARY_BASE', 'PPh21', 'BPJS_KES', 'BPJS_TK']) {
+        getComponent(code);
+      }
+
+      const additionalEarningsByEmployeeId = new Map<
+        string,
+        Array<{
+          code: string;
+          amount: bigint;
+          isTaxable: boolean;
+          isBpjsBase: boolean;
+          notes?: string;
+        }>
+      >();
+      for (const earning of data.additionalEarnings) {
+        if (!employeeIdSet.has(earning.employeeId)) {
+          throw AppError.validation('hr.payroll.adjustmentEmployeeNotInLocation', {
+            employeeId: earning.employeeId,
+            locationId: data.locationId,
+          });
+        }
+        const component = getComponent(earning.componentCode);
+        if (component.kind !== 'earning') {
+          throw AppError.validation('hr.payroll.invalidAdditionalEarningComponent', {
+            componentCode: earning.componentCode,
+          });
+        }
+        const list = additionalEarningsByEmployeeId.get(earning.employeeId) ?? [];
+        list.push({
+          code: component.code,
+          amount: BigInt(earning.amount),
+          isTaxable: component.isTaxable,
+          isBpjsBase: component.isBpjsBase,
+          notes: earning.notes,
+        });
+        additionalEarningsByEmployeeId.set(earning.employeeId, list);
+      }
 
       // 5. Fetch attendance for the period
       const periodStart = new Date(data.periodStart);
@@ -240,7 +297,7 @@ export async function runPayroll(
           isBpjsBase: true,
           isTaxable: true,
           dependentsCount: 0,
-          additionalEarnings: [],
+          additionalEarnings: additionalEarningsByEmployeeId.get(emp.id) ?? [],
           lateMinutes: att.lateMinutes,
           lateCount: att.lateCount,
           absentCount: att.absentDays,
@@ -255,13 +312,13 @@ export async function runPayroll(
 
         // Build payroll lines
         for (const line of result.lines) {
-          const comp = componentMap.get(line.componentCode);
+          const comp = getComponent(line.componentCode);
           allLines.push({
             id: generateId(),
             tenantId: ctx.tenantId,
             payrollId: '', // set below
             employeeId: emp.id,
-            salaryComponentId: comp?.id ?? '',
+            salaryComponentId: comp.id,
             amount: line.amount,
             baseAmount: line.baseAmount,
             percentageApplied:

@@ -41,6 +41,7 @@ export interface PayrollEarning {
   amount: bigint; // IDR amount
   isTaxable: boolean;
   isBpjsBase: boolean;
+  notes?: string;
 }
 
 export interface PayrollLine {
@@ -166,7 +167,7 @@ export function calculatePayroll(ctx: PayrollEmployeeContext): PayrollResult {
       amount: earning.amount,
       baseAmount: earning.amount,
       percentageApplied: null,
-      notes: '',
+      notes: earning.notes ?? '',
     });
     earnings.push(earning.amount);
     if (earning.isTaxable) taxableEarnings.push(earning.amount);

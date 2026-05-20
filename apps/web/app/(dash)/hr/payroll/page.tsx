@@ -11,7 +11,7 @@
 import { getSession } from '@/lib/auth';
 import { and, db, eq, isNull } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
-import { payrolls } from '@erp/db/schema/hr';
+import { employees, payrolls } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { PayrollRunClient } from './payroll-run-client';
@@ -53,6 +53,22 @@ export default async function PayrollPage() {
     .where(eq(payrolls.tenantId, tenantId))
     .orderBy(payrolls.periodStart);
 
+  const employeeRows = await db
+    .select({
+      id: employees.id,
+      name: employees.name,
+      locationId: employees.locationId,
+    })
+    .from(employees)
+    .where(
+      and(
+        eq(employees.tenantId, tenantId),
+        eq(employees.status, 'active'),
+        isNull(employees.deletedAt),
+      ),
+    )
+    .orderBy(employees.name);
+
   const locations_ = locRows.map((l) => {
     const name = l.name as { id?: string; en?: string; zh?: string } | null;
     const label = [l.code, name?.id ?? name?.en ?? name?.zh].filter(Boolean).join(' - ');
@@ -82,6 +98,11 @@ export default async function PayrollPage() {
           journalEntryId: p.journalEntryId ?? null,
         }))}
         defaultLocationId={locationId}
+        employees={employeeRows.map((employee) => ({
+          id: employee.id,
+          name: employee.name,
+          locationId: employee.locationId,
+        }))}
       />
     </div>
   );
