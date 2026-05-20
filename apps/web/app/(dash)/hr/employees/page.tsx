@@ -10,6 +10,7 @@ import type { AuditContext } from '@erp/shared/types';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
+import { fetchEmployeeLocationOptions } from './actions';
 import { EmployeeListClient } from './employee-list-client';
 
 export const metadata: Metadata = { title: 'Employees' };
@@ -24,7 +25,7 @@ const STATUS_COLOR: Record<string, { bg: string; text: string }> = {
 export default async function EmployeesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; locationId?: string; page?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect('/login');
@@ -39,21 +40,24 @@ export default async function EmployeesPage({
   const params = await searchParams;
   const q = params.q ?? '';
   const status = params.status ?? '';
+  const locationId = params.locationId ?? '';
   const page = Math.max(1, Number.parseInt(params.page ?? '1', 10));
   const limit = 20;
   const offset = (page - 1) * limit;
 
-  const result = await listEmployees(
-    {
-      search: q || undefined,
-      status: status
-        ? (status as 'probation' | 'active' | 'on_leave' | 'terminated')
-        : undefined,
-      limit,
-      offset,
-    },
-    ctx,
-  );
+  const [result, locationOptions] = await Promise.all([
+    listEmployees(
+      {
+        search: q || undefined,
+        status: status ? (status as 'probation' | 'active' | 'on_leave' | 'terminated') : undefined,
+        locationId: locationId || undefined,
+        limit,
+        offset,
+      },
+      ctx,
+    ),
+    fetchEmployeeLocationOptions(),
+  ]);
   if (!result.ok) {
     throw new Error(result.error.message ?? result.error.messageKey ?? 'Failed to load employees');
   }
@@ -67,6 +71,9 @@ export default async function EmployeesPage({
     on_leave: t('statusOnLeave'),
     terminated: t('statusTerminated'),
   };
+  const locationNameById = new Map(
+    locationOptions.map((location) => [location.id, location.label]),
+  );
 
   return (
     <div className="space-y-6">
@@ -101,6 +108,7 @@ export default async function EmployeesPage({
         rows={rows.map((r) => ({
           ...r,
           hireDate: r.hireDate.toISOString(),
+          locationName: r.locationId ? (locationNameById.get(r.locationId) ?? r.locationId) : '-',
           statusLabel: statusLabel[r.status] ?? r.status,
           statusColor: STATUS_COLOR[r.status] ?? {
             bg: 'bg-brand-cream-2',
@@ -118,7 +126,12 @@ export default async function EmployeesPage({
         totalPages={totalPages}
         initialQ={q}
         initialStatus={status}
+        initialLocationId={locationId}
         statusOptions={Object.entries(statusLabel).map(([value, label]) => ({ value, label }))}
+        locationOptions={locationOptions.map((location) => ({
+          value: location.id,
+          label: location.label,
+        }))}
       />
     </div>
   );

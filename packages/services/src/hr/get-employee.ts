@@ -18,7 +18,7 @@ import { AppError } from '@erp/shared/errors';
 import { type Result, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, sql } from 'drizzle-orm';
-import { requirePermission } from '../iam';
+import { can, requirePermission } from '../iam';
 import { decryptPii } from '../security/pii';
 
 export interface EmployeeContract {
@@ -94,11 +94,6 @@ export async function getEmployee(
   employeeId: string,
   ctx: AuditContext,
 ): Promise<Result<EmployeeDetailResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'hr.employee.read', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   return tryCatch(
     async () => {
       const [row] = await db
@@ -109,6 +104,15 @@ export async function getEmployee(
 
       if (!row) {
         throw AppError.notFound('hr.employee.notFound', { employeeId });
+      }
+
+      const globalProbe = { locationId: '__global_hr_employee_read__' };
+      const hasGlobalRead = await can(ctx.userId, 'hr.employee.read', globalProbe);
+      if (!hasGlobalRead) {
+        const permCheck = await requirePermission(ctx.userId, 'hr.employee.read', {
+          locationId: row.locationId ?? globalProbe.locationId,
+        });
+        if (!permCheck.ok) throw permCheck.error;
       }
 
       // Contract history
@@ -124,7 +128,12 @@ export async function getEmployee(
           createdAt: employmentContracts.createdAt,
         })
         .from(employmentContracts)
-        .where(eq(employmentContracts.employeeId, employeeId))
+        .where(
+          and(
+            eq(employmentContracts.tenantId, ctx.tenantId),
+            eq(employmentContracts.employeeId, employeeId),
+          ),
+        )
         .orderBy(desc(employmentContracts.startDate));
 
       // Attendance summary (current year)
@@ -208,10 +217,7 @@ export async function getEmployee(
           and(eq(leaveRequests.leaveTypeId, leaveTypes.id), eq(leaveTypes.tenantId, ctx.tenantId)),
         )
         .where(
-          and(
-            eq(leaveRequests.employeeId, employeeId),
-            eq(leaveRequests.tenantId, ctx.tenantId),
-          ),
+          and(eq(leaveRequests.employeeId, employeeId), eq(leaveRequests.tenantId, ctx.tenantId)),
         )
         .orderBy(desc(leaveRequests.createdAt))
         .limit(6);

@@ -77,7 +77,23 @@ export {
 export {
   CreateJournalAttachmentSchema,
   type CreateJournalAttachmentInput,
+  CreateFixedAssetSchema,
+  ListFixedAssetsSchema,
+  RunFixedAssetDepreciationSchema,
+  type CreateFixedAssetInput,
+  type ListFixedAssetsInput,
+  type RunFixedAssetDepreciationInput,
+  type DepreciationMethod,
 } from './schemas';
+export {
+  createFixedAsset,
+  listFixedAssets,
+  listFixedAssetCategories,
+  runFixedAssetDepreciation,
+  type FixedAssetCategoryItem,
+  type FixedAssetListItem,
+  type DepreciationRunResult,
+} from './fixed-assets';
 export {
   resolveAccountIdByCode,
   resolveAccountIdsByCodes,

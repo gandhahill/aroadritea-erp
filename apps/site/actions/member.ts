@@ -28,9 +28,9 @@ export async function signupAction(formData: FormData) {
   const birthDate = String(formData.get('birthDate') ?? '');
   const city = String(formData.get('city') ?? '');
   const password = String(formData.get('password') ?? '');
-  const turnstileToken = String(
-    formData.get('turnstileToken') ?? formData.get('cf-turnstile-response') ?? '',
-  );
+  const challengeToken = String(formData.get('cf-turnstile-response') ?? '').trim();
+  const fallbackToken = String(formData.get('turnstileToken') ?? '').trim();
+  const turnstileToken = challengeToken || fallbackToken || 'captcha-unreachable';
   const consent = formData.get('consentGiven') === 'on';
 
   const result = await initiateSignup(
@@ -42,10 +42,16 @@ export async function signupAction(formData: FormData) {
   if (!result.ok) {
     console.error('Signup failed:', result.error.messageKey, result.error.details);
     if (result.error.code === 'VALIDATION_FAILED' && result.error.details) {
-      return { success: false, error: `${String(result.error)} - Details: ${JSON.stringify(result.error.details)}` };
+      return {
+        success: false,
+        error: `${String(result.error)} - Details: ${JSON.stringify(result.error.details)}`,
+      };
     }
     // Return full details for debugging
-    return { success: false, error: `${String(result.error)} - ${JSON.stringify(result.error.details)}` };
+    return {
+      success: false,
+      error: `${String(result.error)} - ${JSON.stringify(result.error.details)}`,
+    };
   }
   return { success: true, token: result.value.token };
 }

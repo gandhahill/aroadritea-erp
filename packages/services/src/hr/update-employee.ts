@@ -50,6 +50,13 @@ export async function updateEmployee(
       });
       if (!permCheck.ok) throw permCheck.error;
 
+      if (data.locationId !== undefined && data.locationId !== existing.locationId) {
+        const targetPermCheck = await requirePermission(ctx.userId, 'hr.employee.write', {
+          locationId: data.locationId,
+        });
+        if (!targetPermCheck.ok) throw targetPermCheck.error;
+      }
+
       if (existing.version !== version) {
         throw AppError.conflict('hr.employee.versionMismatch', {
           expected: existing.version,
@@ -70,6 +77,7 @@ export async function updateEmployee(
         setCols.address = encryptPii(data.address, 'employees.address');
       if (data.position !== undefined) setCols.position = data.position;
       if (data.department !== undefined) setCols.department = data.department;
+      if (data.locationId !== undefined) setCols.locationId = data.locationId;
       if (data.status !== undefined) setCols.status = data.status;
       if (data.contractType !== undefined) setCols.contractType = data.contractType;
       if (data.workSchedule !== undefined) setCols.workSchedule = data.workSchedule;
@@ -111,6 +119,7 @@ export async function updateEmployee(
         'email',
         'position',
         'department',
+        'locationId',
         'status',
         'contractType',
         'workSchedule',

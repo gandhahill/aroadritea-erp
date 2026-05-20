@@ -308,6 +308,139 @@ export const reimbursementRequests = pgTable(
 );
 
 // ================================================================
+// FIXED ASSET CATEGORIES — SoT §10.4
+// ================================================================
+
+export const fixedAssetCategories = pgTable(
+  'fixed_asset_categories',
+  {
+    ...pk,
+    ...tenantCol,
+    code: text('code').notNull(),
+    name: jsonb('name').notNull(),
+    assetAccountId: text('asset_account_id').notNull(),
+    accumulatedDepreciationAccountId: text('accumulated_depreciation_account_id').notNull(),
+    depreciationExpenseAccountId: text('depreciation_expense_account_id').notNull(),
+    defaultUsefulLifeMonths: integer('default_useful_life_months').notNull(),
+    defaultDepreciationMethod: text('default_depreciation_method')
+      .notNull()
+      .default('straight_line'),
+    isActive: boolean('is_active').notNull().default(true),
+    ...auditCols,
+    ...versionCol,
+  },
+  (t) => [
+    uniqueIndex('fixed_asset_cat_tenant_code_idx').on(t.tenantId, t.code),
+    index('fixed_asset_cat_tenant_active_idx').on(t.tenantId, t.isActive),
+    check('fixed_asset_cat_life_positive', sql`default_useful_life_months > 0`),
+    check(
+      'fixed_asset_cat_method_check',
+      sql`default_depreciation_method IN ('straight_line', 'declining_balance', 'double_declining_balance', 'sum_of_years_digits', 'units_of_production')`,
+    ),
+  ],
+);
+
+// ================================================================
+// FIXED ASSETS — SoT §10.4
+// ================================================================
+
+export const fixedAssets = pgTable(
+  'fixed_assets',
+  {
+    ...pk,
+    ...tenantCol,
+    locationId: text('location_id').notNull(),
+    categoryId: text('category_id').notNull(),
+    code: text('code').notNull(),
+    name: text('name').notNull(),
+    acquisitionDate: date('acquisition_date').notNull(),
+    inServiceDate: date('in_service_date').notNull(),
+    acquisitionCost: bigint('acquisition_cost', { mode: 'bigint' }).notNull(),
+    salvageValue: bigint('salvage_value', { mode: 'bigint' }).notNull().default(sql`0`),
+    usefulLifeMonths: integer('useful_life_months').notNull(),
+    depreciationMethod: text('depreciation_method').notNull().default('straight_line'),
+    depreciationRateBps: integer('depreciation_rate_bps'),
+    productionCapacity: bigint('production_capacity', { mode: 'bigint' }),
+    accumulatedDepreciation: bigint('accumulated_depreciation', { mode: 'bigint' })
+      .notNull()
+      .default(sql`0`),
+    lastDepreciationDate: date('last_depreciation_date'),
+    status: text('status').notNull().default('active'),
+    disposalDate: date('disposal_date'),
+    disposalAmount: bigint('disposal_amount', { mode: 'bigint' }),
+    disposalJournalEntryId: text('disposal_journal_entry_id'),
+    notes: text('notes'),
+    ...auditCols,
+    ...versionCol,
+  },
+  (t) => [
+    uniqueIndex('fixed_assets_tenant_code_idx').on(t.tenantId, t.code),
+    index('fixed_assets_tenant_location_idx').on(t.tenantId, t.locationId),
+    index('fixed_assets_category_idx').on(t.categoryId),
+    index('fixed_assets_status_idx').on(t.status),
+    check('fixed_asset_cost_positive', sql`acquisition_cost > 0`),
+    check('fixed_asset_salvage_non_negative', sql`salvage_value >= 0`),
+    check('fixed_asset_life_positive', sql`useful_life_months > 0`),
+    check('fixed_asset_status_check', sql`status IN ('active', 'fully_depreciated', 'disposed')`),
+    check(
+      'fixed_asset_method_check',
+      sql`depreciation_method IN ('straight_line', 'declining_balance', 'double_declining_balance', 'sum_of_years_digits', 'units_of_production')`,
+    ),
+  ],
+);
+
+// ================================================================
+// FIXED ASSET DEPRECIATION RUNS — auto-journal batch header
+// ================================================================
+
+export const fixedAssetDepreciationRuns = pgTable(
+  'fixed_asset_depreciation_runs',
+  {
+    ...pk,
+    ...tenantCol,
+    locationId: text('location_id').notNull(),
+    periodId: text('period_id').notNull(),
+    postingDate: date('posting_date').notNull(),
+    status: text('status').notNull().default('posted'),
+    totalAmount: bigint('total_amount', { mode: 'bigint' }).notNull(),
+    journalEntryId: text('journal_entry_id'),
+    notes: text('notes'),
+    ...auditCols,
+    ...versionCol,
+  },
+  (t) => [
+    index('fixed_asset_dep_runs_tenant_period_idx').on(t.tenantId, t.periodId),
+    index('fixed_asset_dep_runs_location_idx').on(t.locationId),
+    index('fixed_asset_dep_runs_journal_idx').on(t.journalEntryId),
+    check('fixed_asset_dep_runs_amount_non_negative', sql`total_amount >= 0`),
+    check('fixed_asset_dep_runs_status_check', sql`status IN ('posted', 'void')`),
+  ],
+);
+
+// ================================================================
+// FIXED ASSET DEPRECIATION LINES — per-asset schedule result
+// ================================================================
+
+export const fixedAssetDepreciationLines = pgTable(
+  'fixed_asset_depreciation_lines',
+  {
+    ...pk,
+    runId: text('run_id').notNull(),
+    assetId: text('asset_id').notNull(),
+    amount: bigint('amount', { mode: 'bigint' }).notNull(),
+    accumulatedAfter: bigint('accumulated_after', { mode: 'bigint' }).notNull(),
+    bookValueAfter: bigint('book_value_after', { mode: 'bigint' }).notNull(),
+    unitsUsed: bigint('units_used', { mode: 'bigint' }),
+    ...auditCols,
+  },
+  (t) => [
+    uniqueIndex('fixed_asset_dep_lines_run_asset_idx').on(t.runId, t.assetId),
+    index('fixed_asset_dep_lines_asset_idx').on(t.assetId),
+    check('fixed_asset_dep_lines_amount_positive', sql`amount > 0`),
+  ],
+);
+
+// ================================================================
 // JOURNAL ATTACHMENTS — SD §25.10
 // ================================================================
 
@@ -402,6 +535,62 @@ export const reimbursementRequestsRelations = relations(reimbursementRequests, (
     relationName: 'approver',
   }),
 }));
+
+export const fixedAssetCategoriesRelations = relations(fixedAssetCategories, ({ one, many }) => ({
+  assetAccount: one(accounts, {
+    fields: [fixedAssetCategories.assetAccountId],
+    references: [accounts.id],
+    relationName: 'fixed_asset_category_asset_account',
+  }),
+  accumulatedDepreciationAccount: one(accounts, {
+    fields: [fixedAssetCategories.accumulatedDepreciationAccountId],
+    references: [accounts.id],
+    relationName: 'fixed_asset_category_accumulated_account',
+  }),
+  depreciationExpenseAccount: one(accounts, {
+    fields: [fixedAssetCategories.depreciationExpenseAccountId],
+    references: [accounts.id],
+    relationName: 'fixed_asset_category_expense_account',
+  }),
+  assets: many(fixedAssets),
+}));
+
+export const fixedAssetsRelations = relations(fixedAssets, ({ one, many }) => ({
+  category: one(fixedAssetCategories, {
+    fields: [fixedAssets.categoryId],
+    references: [fixedAssetCategories.id],
+  }),
+  depreciationLines: many(fixedAssetDepreciationLines),
+}));
+
+export const fixedAssetDepreciationRunsRelations = relations(
+  fixedAssetDepreciationRuns,
+  ({ one, many }) => ({
+    period: one(accountingPeriods, {
+      fields: [fixedAssetDepreciationRuns.periodId],
+      references: [accountingPeriods.id],
+    }),
+    journalEntry: one(journalEntries, {
+      fields: [fixedAssetDepreciationRuns.journalEntryId],
+      references: [journalEntries.id],
+    }),
+    lines: many(fixedAssetDepreciationLines),
+  }),
+);
+
+export const fixedAssetDepreciationLinesRelations = relations(
+  fixedAssetDepreciationLines,
+  ({ one }) => ({
+    run: one(fixedAssetDepreciationRuns, {
+      fields: [fixedAssetDepreciationLines.runId],
+      references: [fixedAssetDepreciationRuns.id],
+    }),
+    asset: one(fixedAssets, {
+      fields: [fixedAssetDepreciationLines.assetId],
+      references: [fixedAssets.id],
+    }),
+  }),
+);
 
 export const journalAttachmentsRelations = relations(journalAttachments, ({ one }) => ({
   journalEntry: one(journalEntries, {

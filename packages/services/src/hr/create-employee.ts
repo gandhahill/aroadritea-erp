@@ -6,8 +6,8 @@
  */
 
 import { db } from '@erp/db';
-import { roles, userRoles, users } from '@erp/db/schema/auth';
 import { auditLog } from '@erp/db/schema/audit';
+import { roles, userRoles, users } from '@erp/db/schema/auth';
 import { employees } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -23,11 +23,6 @@ export async function createEmployee(
   input: CreateEmployeeInput,
   ctx: AuditContext,
 ): Promise<Result<{ id: string }>> {
-  const permCheck = await requirePermission(ctx.userId, 'hr.employee.write', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = CreateEmployeeInputSchema.safeParse(input);
   if (!parsed.success) {
     return err(
@@ -35,6 +30,22 @@ export async function createEmployee(
     );
   }
   const data = parsed.data;
+  const targetLocationId = data.locationId ?? ctx.locationId;
+  if (!targetLocationId) {
+    return err(AppError.validation('hr.employee.locationRequired'));
+  }
+
+  const permCheck = await requirePermission(ctx.userId, 'hr.employee.write', {
+    locationId: targetLocationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  if (data.loginScope === 'global') {
+    const globalPermCheck = await requirePermission(ctx.userId, 'hr.employee.write', {
+      locationId: '__global_hr_employee_write__',
+    });
+    if (!globalPermCheck.ok) return globalPermCheck;
+  }
 
   return tryCatch(
     async () => {
@@ -45,7 +56,7 @@ export async function createEmployee(
         .values({
           id: empId,
           tenantId: ctx.tenantId,
-          locationId: ctx.locationId,
+          locationId: targetLocationId,
           createdBy: ctx.userId,
           updatedBy: ctx.userId,
           nik: encryptPii(data.nik, 'employees.nik') ?? '',
@@ -111,7 +122,11 @@ export async function createEmployee(
           createdBy: ctx.userId,
           updatedBy: ctx.userId,
         });
-        await db.insert(userRoles).values({ userId, roleId: role.id });
+        await db.insert(userRoles).values({
+          userId,
+          roleId: role.id,
+          locationId: data.loginScope === 'global' ? null : targetLocationId,
+        });
       }
 
       // SD §15 — every employee create writes an audit row. Don't log
@@ -133,6 +148,8 @@ export async function createEmployee(
           department: data.department ?? null,
           contractType: data.contractType,
           hireDate: data.hireDate,
+          locationId: targetLocationId,
+          loginScope: data.password && data.roleCode ? data.loginScope : null,
         },
         metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
       });

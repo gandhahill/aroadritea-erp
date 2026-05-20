@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-20 11:30 WIB (Codex) | 🟨 IN_PROGRESS | Current sweep: user-reported production fixes for legal i18n/numbering, inventory adjustment route, POS settings fallback, menu image seed parity, journal CSV import/template, flexible BOM auto-deduct, and safe hard-delete for unused product/material masters. Verification: targeted typechecks PASS, services tests 161 PASS, web/site builds PASS; global lint still fails on pre-existing repo debt. |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-20 16:38 WIB (Codex) | 🟨 IN_PROGRESS | Current sweep: fixed member Turnstile fallback, hardened HR employee outlet/global isolation, added fixed-asset register and depreciation journals with selectable methods. Verification: `pnpm -r typecheck` PASS, `pnpm -r test` PASS (services 534), web/site builds PASS; global lint still has pre-existing warnings/debt. |
 
 ---
 

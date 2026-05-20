@@ -34,8 +34,23 @@ export const CreateJournalInputSchema = z.object({
   locationId: z.string().min(1, { message: 'Location ID is required' }),
   /** Human-readable description / memo. */
   description: z.string().min(1, { message: 'Description is required' }),
-  /** Optional reference type (e.g., 'sales', 'purchase', 'payroll', 'manual'). */
-  referenceType: z.enum(['sales', 'purchase', 'payroll', 'manual']).optional(),
+  /** Optional reference type for manual and automatic journals. */
+  referenceType: z
+    .enum([
+      'sales',
+      'sales_order',
+      'purchase',
+      'payroll',
+      'manual',
+      'stock_adjustment',
+      'stock_transfer',
+      'grn',
+      'bank_deposit',
+      'opening',
+      'voucher_redeem',
+      'fixed_asset_depreciation',
+    ])
+    .optional(),
   /** Optional reference entity ID. */
   referenceId: z.string().optional(),
   /** Journal lines — minimum 2 required. */
@@ -197,3 +212,53 @@ export const CreateJournalAttachmentSchema = z.object({
 });
 
 export type CreateJournalAttachmentInput = z.infer<typeof CreateJournalAttachmentSchema>;
+
+export const DepreciationMethodSchema = z.enum([
+  'straight_line',
+  'declining_balance',
+  'double_declining_balance',
+  'sum_of_years_digits',
+  'units_of_production',
+]);
+
+export type DepreciationMethod = z.infer<typeof DepreciationMethodSchema>;
+
+export const CreateFixedAssetSchema = z.object({
+  locationId: z.string().min(1),
+  categoryId: z.string().min(1),
+  code: z.string().min(1).max(64),
+  name: z.string().min(1).max(160),
+  acquisitionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  inServiceDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  acquisitionCost: z.string().regex(/^[1-9]\d*$/),
+  salvageValue: z.string().regex(/^\d+$/).optional().default('0'),
+  usefulLifeMonths: z.number().int().min(1).max(600),
+  depreciationMethod: DepreciationMethodSchema,
+  depreciationRateBps: z.number().int().min(1).max(10000).optional(),
+  productionCapacity: z
+    .string()
+    .regex(/^[1-9]\d*$/)
+    .optional(),
+  notes: z.string().max(1000).optional(),
+});
+
+export type CreateFixedAssetInput = z.input<typeof CreateFixedAssetSchema>;
+
+export const ListFixedAssetsSchema = z.object({
+  locationId: z.string().optional(),
+  status: z.enum(['active', 'fully_depreciated', 'disposed']).optional(),
+  limit: z.number().int().min(1).max(200).optional().default(100),
+  offset: z.number().int().min(0).optional().default(0),
+});
+
+export type ListFixedAssetsInput = z.input<typeof ListFixedAssetsSchema>;
+
+export const RunFixedAssetDepreciationSchema = z.object({
+  locationId: z.string().min(1),
+  postingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  assetIds: z.array(z.string().min(1)).optional(),
+  unitsUsedByAssetId: z.record(z.string(), z.string().regex(/^[1-9]\d*$/)).optional(),
+  notes: z.string().max(1000).optional(),
+});
+
+export type RunFixedAssetDepreciationInput = z.infer<typeof RunFixedAssetDepreciationSchema>;

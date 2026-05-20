@@ -151,6 +151,14 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
   - Added `bom_lines.auto_deduct` migration/schema and recipe UI control. POS sale/refund now only deducts/restores BOM lines marked auto-deduct and skips lines whose recipe UOM does not match the stock-level UOM.
   - Added safe hard-delete for product/menu/material masters that have no transactional usage and no non-zero stock, while blocking deletion if historical sales, purchases, stock movements, opname/adjustment/transfer lines, BOM usage, KDS mappings, or promo usage exist.
   - Seeded `inventory.product.delete` permission for management/director roles.
+- 2026-05-20 16:38 local continuation:
+  - Fixed member signup Turnstile fallback so missing/late `cf-turnstile-response` no longer fails as `member.signup.validationFailed`; the server now prefers the real Cloudflare field and falls back to the explicit `captcha-unreachable` OTP path.
+  - Hardened HR employee scoping: `listEmployees` and `getEmployee` now distinguish global HR access from outlet-scoped access, filter scoped users to their outlet by default, and tenant-scope related contract reads.
+  - Added outlet selection for new employees and made provisioned ERP login roles location-scoped by default, with an explicit global scope option that requires global HR write permission.
+  - Added fixed-asset register and depreciation module: schema/migration, seeded asset categories mapped to COA accounts, service validation, selectable depreciation methods, audit logs, and `/accounting/assets` UI.
+  - Depreciation runs calculate eligible active assets per location, skip assets already depreciated for the period, create a balanced journal with `referenceType=fixed_asset_depreciation`, post it, and persist run/line history.
+  - Updated accounting journal reference-type validation to include existing automatic journal sources (`sales_order`, `stock_adjustment`, `stock_transfer`, `grn`, `opening`, `bank_deposit`, `voucher_redeem`, and `fixed_asset_depreciation`), preventing auto-journal validation mismatch.
+  - Updated `docs/TRACEABILITY-AUDIT.md` so SoT 10.4 fixed assets moves from partial to implemented evidence.
 
 ## Plan
 
@@ -167,12 +175,12 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 11. [x] Commit, push, deploy latest local critical fixes, run production migrations, and smoke test live site/web/MCP.
 12. [x] Commit, push, deploy ERP static asset middleware patch, then live re-smoke favicon/PWA assets.
 13. [x] Commit/push/deploy the 23:31 local sweep and run authenticated ERP route-load smoke with admin session across POS production, POS demo, docs, permissions, product master, promotions, BI, journals, HR check-in/leave, account settings, audit trail, and scheduled jobs.
-14. [ ] Continue deeper SoT mismatch sweep for remaining partial modules, especially hardcoded-copy i18n migration, MCP write-tool coverage, print parity, PII encryption verification, absence automation, and real browser CRUD smoke.
+14. [ ] Continue deeper SoT mismatch sweep for remaining partial modules, especially hardcoded-copy i18n migration, MCP write-tool coverage, print parity, PII encryption verification, absence automation, fixed-asset MCP tools, and real browser CRUD smoke.
 15. [x] Patch 2026-05-20 user-reported production issues for legal i18n, quick adjustment, POS settings, menu images, journal CSV import, BOM auto-deduct flexibility, and safe unused-master deletion.
 
 ## Next Step
 
-Deploy the 2026-05-20 patch set to production if this session stops before deployment: pull the pushed commit on the VPS, run `pnpm db:migrate`, `pnpm db:seed`, `pnpm --filter @erp/web build`, `pnpm --filter @erp/site build`, reload PM2, then smoke `/settings/pos`, `/inventory/adjust`, `/accounting/journals/import`, public ID/EN/ZH legal pages, and menu images. After deployment, continue the broader T-0167 sweep from `docs/TRACEABILITY-AUDIT.md` on remaining `PARTIAL` rows.
+Commit and push the 2026-05-20 continuation patch if this session stops before deployment. Then deploy on the VPS: pull the pushed commit, run `pnpm db:migrate`, `pnpm db:seed`, `pnpm --filter @erp/web build`, `pnpm --filter @erp/site build`, reload PM2, then smoke `/accounting/assets`, `/hr/employees`, `/hr/employees/new`, `/id/member/daftar`, `/settings/pos`, `/inventory/adjust`, `/accounting/journals/import`, public ID/EN/ZH legal pages, and menu images. After deployment, continue the broader T-0167 sweep from `docs/TRACEABILITY-AUDIT.md` on remaining `PARTIAL` rows.
 
 ## Test Status
 
@@ -230,3 +238,9 @@ Deploy the 2026-05-20 patch set to production if this session stops before deplo
   - `pnpm --filter @erp/web build` PASS after rerun with a longer timeout; output includes `/inventory/adjust` and `/accounting/journals/import`.
   - Menu image parity script PASS: 27 products, 27 image mappings, 4 pudding products, 0 missing mappings, 0 missing files.
   - `pnpm lint` still FAILS globally on pre-existing repo debt outside this patch set; touched-file Biome check is clean.
+- 2026-05-20 16:38 local verification:
+  - `pnpm -r typecheck` PASS across 10 workspace projects after member, HR, and fixed-asset changes.
+  - `pnpm -r test` PASS: shared 58 tests and services 25 files / 534 tests.
+  - Targeted `pnpm exec biome check --write ...` PASS over touched TS/TSX/JSON files; only warnings remain, mainly pre-existing SVG/title/button/no-non-null patterns in touched legacy files.
+  - `pnpm --filter @erp/web build` PASS; route list includes `/accounting/assets`.
+  - `pnpm --filter @erp/site build` PASS; member signup route builds for ID/EN/ZH.

@@ -10,9 +10,10 @@ const INPUT =
 
 interface EmployeeFormProps {
   assignableRoles?: Array<{ code: string; label: string }>;
+  locationOptions?: Array<{ id: string; label: string }>;
 }
 
-export function EmployeeForm({ assignableRoles = [] }: EmployeeFormProps) {
+export function EmployeeForm({ assignableRoles = [], locationOptions = [] }: EmployeeFormProps) {
   const router = useRouter();
   const t = useTranslations('hr.employees');
   const f = useTranslations('hr.employees.form');
@@ -41,6 +42,21 @@ export function EmployeeForm({ assignableRoles = [] }: EmployeeFormProps) {
       </Section>
 
       <Section title={f('employmentSection')}>
+        <label className="space-y-1.5">
+          <span className="text-sm font-medium text-brand-ink">{f('location')}</span>
+          <select
+            name="locationId"
+            required
+            defaultValue={locationOptions[0]?.id ?? ''}
+            className={INPUT}
+          >
+            {locationOptions.map((location) => (
+              <option key={location.id} value={location.id}>
+                {location.label}
+              </option>
+            ))}
+          </select>
+        </label>
         <Field label={f('position')} name="position" required />
         <Field label={f('department')} name="department" />
         <Field label={f('hireDate')} name="hireDate" type="date" required />
@@ -50,6 +66,13 @@ export function EmployeeForm({ assignableRoles = [] }: EmployeeFormProps) {
           <select name="contractType" required defaultValue="pkwt" className={INPUT}>
             <option value="pkwt">PKWT</option>
             <option value="pkwtt">PKWTT</option>
+          </select>
+        </label>
+        <label className="space-y-1.5">
+          <span className="text-sm font-medium text-brand-ink">{f('loginScope')}</span>
+          <select name="loginScope" defaultValue="same_location" className={INPUT}>
+            <option value="same_location">{f('loginScopeSameLocation')}</option>
+            <option value="global">{f('loginScopeGlobal')}</option>
           </select>
         </label>
         <label className="space-y-1.5">

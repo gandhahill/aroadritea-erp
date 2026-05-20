@@ -20,11 +20,11 @@ import type { AuditContext } from '@erp/shared/types';
  * All reads are server-side (site app); writes go through this service.
  */
 import { and, asc, count, desc, eq, gte, inArray, sql } from 'drizzle-orm';
-import { z } from 'zod';
 import nodemailer from 'nodemailer';
+import { z } from 'zod';
+import { decryptPii, encryptPii, encryptPiiForLookup } from '../security/pii';
 import { buildOtpEmailHtml } from './email-templates';
 import { hashMemberPassword, verifyMemberPassword } from './password';
-import { decryptPii, encryptPii, encryptPiiForLookup } from '../security/pii';
 
 // ─── Rate limiting constants ───────────────────────────────────────────────
 
@@ -47,7 +47,11 @@ export const SignupInputSchema = z.object({
   city: z.string().min(1, 'City is required'),
   password: z.string().min(8).max(128),
   consentGiven: z.boolean().refine((v) => v === true, 'Consent is required'),
-  turnstileToken: z.string().min(1), // Cloudflare Turnstile token
+  turnstileToken: z.preprocess((value) => {
+    if (typeof value !== 'string') return 'captcha-unreachable';
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : 'captcha-unreachable';
+  }, z.string().min(1)), // Cloudflare Turnstile token or explicit unreachable-provider sentinel
 });
 
 export const VerifyOtpInputSchema = z.object({
@@ -243,15 +247,16 @@ export async function initiateSignup(
       AppError.validation('member.signup.validationFailed', { issues: parsed.error.issues }),
     );
   }
-  const normalizedPhone = normalizeMemberPhone(input.phone);
-  const phoneCandidates = buildPhoneLookupCandidates(input.phone);
+  const data = parsed.data;
+  const normalizedPhone = normalizeMemberPhone(data.phone);
+  const phoneCandidates = buildPhoneLookupCandidates(data.phone);
 
-  const turnstileValid = await verifyTurnstile(input.turnstileToken, ipAddress);
+  const turnstileValid = await verifyTurnstile(data.turnstileToken, ipAddress);
   if (!turnstileValid) {
     await db.insert(memberSignupAttempts).values({
       id: crypto.randomUUID(),
-      email: input.email,
-      phone: normalizedPhone || input.phone,
+      email: data.email,
+      phone: normalizedPhone || data.phone,
       ipAddress,
       userAgent,
       outcome: 'failed_captcha',
@@ -279,7 +284,7 @@ export async function initiateSignup(
 
   // Check email not already registered. partners.email is encrypted at
   // rest (SD §25.1) so we compare against the deterministic ciphertext.
-  const emailCipherSignup = encryptPiiForLookup(input.email, 'partners.email');
+  const emailCipherSignup = encryptPiiForLookup(data.email, 'partners.email');
   const existing = await db
     .select({ id: partners.id })
     .from(partners)
@@ -295,8 +300,8 @@ export async function initiateSignup(
   if (existing[0]) {
     await db.insert(memberSignupAttempts).values({
       id: crypto.randomUUID(),
-      email: input.email,
-      phone: normalizedPhone || input.phone,
+      email: data.email,
+      phone: normalizedPhone || data.phone,
       ipAddress,
       userAgent,
       outcome: 'email_exists',
@@ -328,8 +333,8 @@ export async function initiateSignup(
   if (existingPhone[0]) {
     await db.insert(memberSignupAttempts).values({
       id: crypto.randomUUID(),
-      email: input.email,
-      phone: normalizedPhone || input.phone,
+      email: data.email,
+      phone: normalizedPhone || data.phone,
       ipAddress,
       userAgent,
       outcome: 'phone_exists',
@@ -343,14 +348,14 @@ export async function initiateSignup(
   const codeHash = hashOtp(code);
   const expiresAt = minutesFromNow(OTP_EXPIRY_MINUTES);
   const tokenExpiresAt = minutesFromNow(TOKEN_EXPIRY_MINUTES);
-  const passwordHash = await hashMemberPassword(input.password);
+  const passwordHash = await hashMemberPassword(data.password);
 
   // Store signup payload in encrypted JSON (for later account creation)
   const payloadJson = JSON.stringify({
-    name: input.name,
-    phone: normalizedPhone || input.phone,
-    birthDate: input.birthDate,
-    city: input.city,
+    name: data.name,
+    phone: normalizedPhone || data.phone,
+    birthDate: data.birthDate,
+    city: data.city,
     passwordHash,
   });
 
@@ -358,7 +363,7 @@ export async function initiateSignup(
     id: crypto.randomUUID(),
     purpose: 'signup',
     channel: 'email',
-    recipient: input.email,
+    recipient: data.email,
     codeHash,
     expiresAt,
     attempts: 0,
@@ -367,13 +372,13 @@ export async function initiateSignup(
     payloadJson,
   });
 
-  const sendResult = await sendSignupOtp(input.email, code);
+  const sendResult = await sendSignupOtp(data.email, code);
   if (!sendResult.ok) return sendResult;
 
   await db.insert(memberSignupAttempts).values({
     id: crypto.randomUUID(),
-    email: input.email,
-    phone: normalizedPhone || input.phone,
+    email: data.email,
+    phone: normalizedPhone || data.phone,
     ipAddress,
     userAgent,
     outcome: 'otp_sent',
@@ -659,7 +664,9 @@ export async function loginMember(
 ): Promise<Result<{ memberId: string; sessionToken: string }>> {
   const parsed = LoginInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(AppError.validation('member.login.validationFailed', { issues: parsed.error.issues }));
+    return err(
+      AppError.validation('member.login.validationFailed', { issues: parsed.error.issues }),
+    );
   }
 
   const { email, password } = parsed.data;
@@ -669,7 +676,12 @@ export async function loginMember(
   // ciphertext, so a direct equality match still works.
   const emailCipher = encryptPiiForLookup(email.toLowerCase().trim(), 'partners.email');
   const [partner] = await db
-    .select({ id: partners.id, name: partners.name, isActive: partners.isActive, isMember: partners.isMember })
+    .select({
+      id: partners.id,
+      name: partners.name,
+      isActive: partners.isActive,
+      isMember: partners.isMember,
+    })
     .from(partners)
     .where(
       and(

@@ -11,7 +11,7 @@ import { AppError } from '@erp/shared/errors';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, ilike, inArray, or, sql } from 'drizzle-orm';
-import { requirePermission } from '../iam';
+import { can, requirePermission } from '../iam';
 import { decryptPii, encryptPiiForLookup } from '../security/pii';
 import { type ListEmployeesInput, ListEmployeesInputSchema } from './schemas';
 
@@ -39,11 +39,6 @@ export async function listEmployees(
   input: ListEmployeesInput,
   ctx: AuditContext,
 ): Promise<Result<{ items: EmployeeListItem[]; total: number }>> {
-  const permCheck = await requirePermission(ctx.userId, 'hr.employee.read', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = ListEmployeesInputSchema.safeParse(input);
   if (!parsed.success) {
     return err(
@@ -51,6 +46,21 @@ export async function listEmployees(
     );
   }
   const data = parsed.data;
+  const globalProbe = { locationId: '__global_hr_employee_read__' };
+  const hasGlobalRead = await can(ctx.userId, 'hr.employee.read', globalProbe);
+  const effectiveLocationId = data.locationId ?? (hasGlobalRead ? undefined : ctx.locationId);
+
+  if (data.locationId) {
+    const permCheck = await requirePermission(ctx.userId, 'hr.employee.read', {
+      locationId: data.locationId,
+    });
+    if (!permCheck.ok) return permCheck;
+  } else if (!hasGlobalRead) {
+    const permCheck = await requirePermission(ctx.userId, 'hr.employee.read', {
+      locationId: ctx.locationId,
+    });
+    if (!permCheck.ok) return permCheck;
+  }
 
   return tryCatch(
     async () => {
@@ -62,8 +72,8 @@ export async function listEmployees(
       if (data.department) {
         conditions.push(eq(employees.department, data.department));
       }
-      if (data.locationId) {
-        conditions.push(eq(employees.locationId, data.locationId));
+      if (effectiveLocationId) {
+        conditions.push(eq(employees.locationId, effectiveLocationId));
       }
       if (data.search) {
         const q = `%${data.search}%`;
@@ -125,7 +135,13 @@ export async function listEmployees(
         const contractRows = await db
           .select({ id: employmentContracts.id, baseSalary: employmentContracts.baseSalary })
           .from(employmentContracts)
-          .where(and(inArray(employmentContracts.id, contractIds), eq(employmentContracts.isActive, true)));
+          .where(
+            and(
+              eq(employmentContracts.tenantId, ctx.tenantId),
+              inArray(employmentContracts.id, contractIds),
+              eq(employmentContracts.isActive, true),
+            ),
+          );
         contractSalaries = new Map(contractRows.map((r) => [r.id, String(r.baseSalary)]));
       }
 

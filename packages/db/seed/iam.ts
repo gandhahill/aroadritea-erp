@@ -191,6 +191,29 @@ export const PERMISSIONS_SEED = [
     module: 'accounting',
     description: n('Lihat data reimbursement', 'View reimbursement data', '查看报销数据'),
   },
+  {
+    code: 'accounting.fixed_asset.view',
+    module: 'accounting',
+    description: n(
+      'Lihat daftar aset tetap',
+      'View fixed asset register',
+      'View fixed asset register',
+    ),
+  },
+  {
+    code: 'accounting.fixed_asset.manage',
+    module: 'accounting',
+    description: n('Kelola aset tetap', 'Manage fixed assets', 'Manage fixed assets'),
+  },
+  {
+    code: 'accounting.fixed_asset.depreciate',
+    module: 'accounting',
+    description: n(
+      'Jalankan penyusutan aset tetap',
+      'Run fixed asset depreciation',
+      'Run fixed asset depreciation',
+    ),
+  },
   // Tax
   {
     code: 'tax.view',
@@ -527,6 +550,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'accounting.petty_cash.replenish',
     'accounting.reimbursement.view',
     'accounting.reimbursement.create',
+    'accounting.fixed_asset.view',
     'pos.transact',
     'pos.void',
     'pos.refund',
@@ -586,6 +610,9 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'accounting.reimbursement.create',
     'accounting.reimbursement.approve',
     'accounting.reimbursement.disburse',
+    'accounting.fixed_asset.view',
+    'accounting.fixed_asset.manage',
+    'accounting.fixed_asset.depreciate',
     'tax.view',
     'tax.manage_rates',
     'tax.export',

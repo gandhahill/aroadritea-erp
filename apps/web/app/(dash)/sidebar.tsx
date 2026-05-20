@@ -112,6 +112,7 @@ export function Sidebar() {
       children: [
         { label: t('coa'), href: '/accounting/coa', icon: <></> },
         { label: t('journals'), href: '/accounting/journals', icon: <></> },
+        { label: t('fixedAssets'), href: '/accounting/assets', icon: <></> },
         { label: t('periods'), href: '/accounting/periods', icon: <></> },
         { label: t('pettyCash'), href: '/accounting/petty-cash', icon: <></> },
         { label: t('reimbursement'), href: '/accounting/reimbursement', icon: <></> },
@@ -332,19 +333,45 @@ export function Sidebar() {
   };
 
   return (
-    <aside className={`flex flex-col border-r border-brand-cream-3 bg-card transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-56'}`}>
+    <aside
+      className={`flex flex-col border-r border-brand-cream-3 bg-card transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-56'}`}
+    >
       {/* Logo */}
-      <div className={`flex h-14 items-center border-b border-brand-cream-3 px-4 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+      <div
+        className={`flex h-14 items-center border-b border-brand-cream-3 px-4 ${isCollapsed ? 'justify-center' : 'justify-between'}`}
+      >
         <div className="flex items-center gap-3 overflow-hidden">
-          <img src="/logo-primary.png" alt="Aroadri Tea" width={28} height={28} className="h-7 w-7 shrink-0" />
-          {!isCollapsed && <span className="font-display text-base font-semibold text-brand-ink shrink-0">ERP</span>}
+          <img
+            src="/logo-primary.png"
+            alt="Aroadri Tea"
+            width={28}
+            height={28}
+            className="h-7 w-7 shrink-0"
+          />
+          {!isCollapsed && (
+            <span className="font-display text-base font-semibold text-brand-ink shrink-0">
+              ERP
+            </span>
+          )}
         </div>
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={`shrink-0 p-1 text-brand-ink-3 hover:text-brand-ink hover:bg-brand-cream-2 rounded-md transition-colors ${isCollapsed ? 'hidden' : 'block'}`}
-          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
         </button>
       </div>
       {isCollapsed && (
@@ -353,7 +380,19 @@ export function Sidebar() {
           className="mx-auto mt-2 p-1.5 text-brand-ink-3 hover:text-brand-ink hover:bg-brand-cream-2 rounded-md transition-colors"
           title="Expand Sidebar"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m9 18 6-6-6-6" />
+          </svg>
         </button>
       )}
 
@@ -441,7 +480,9 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className={`border-t border-brand-cream-3 px-4 py-3 whitespace-nowrap overflow-hidden transition-opacity ${isCollapsed ? 'opacity-0' : 'opacity-100'}`}>
+      <div
+        className={`border-t border-brand-cream-3 px-4 py-3 whitespace-nowrap overflow-hidden transition-opacity ${isCollapsed ? 'opacity-0' : 'opacity-100'}`}
+      >
         <p className="brand-wordmark text-[10px] uppercase tracking-widest text-brand-ink-3">
           Aroadri Tea ERP
         </p>

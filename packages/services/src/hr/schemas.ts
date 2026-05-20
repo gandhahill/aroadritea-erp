@@ -28,6 +28,7 @@ export type ListEmployeesInput = z.infer<typeof ListEmployeesInputSchema>;
 // ─── Create Employee ────────────────────────────────────────────────────────
 
 export const CreateEmployeeInputSchema = z.object({
+  locationId: z.string().min(1).optional(),
   nik: z.string().min(1).max(32),
   name: z.string().min(1).max(128),
   email: z.string().email(),
@@ -51,14 +52,16 @@ export const CreateEmployeeInputSchema = z.object({
    */
   password: z.string().min(8).max(72).optional(),
   roleCode: z.string().min(1).optional(),
+  loginScope: z.enum(['same_location', 'global']).optional().default('same_location'),
 });
 
-export type CreateEmployeeInput = z.infer<typeof CreateEmployeeInputSchema>;
+export type CreateEmployeeInput = z.input<typeof CreateEmployeeInputSchema>;
 
 // ─── Update Employee ───────────────────────────────────────────────────────
 
 export const UpdateEmployeeInputSchema = z.object({
   employeeId: z.string().min(1),
+  locationId: z.string().min(1).optional(),
   name: z.string().min(1).max(128).optional(),
   email: z.string().email().optional(),
   phone: z.string().optional(),

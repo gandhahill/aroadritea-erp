@@ -8,18 +8,26 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
+import { type LocationOption, getActiveLocationOptions } from '@/lib/location-options';
 import { and, db, eq } from '@erp/db';
 import { roles } from '@erp/db/schema/auth';
 import { createEmployee, deactivateEmployee, updateEmployee } from '@erp/services/hr';
 import { getEmployee, listEmployees } from '@erp/services/hr';
-import type { CreateEmployeeInput, ListEmployeesInput, UpdateEmployeeInput } from '@erp/services/hr';
+import type {
+  CreateEmployeeInput,
+  ListEmployeesInput,
+  UpdateEmployeeInput,
+} from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
+import { getLocale } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 
 export interface RoleOption {
   code: string;
   label: string;
 }
+
+export type EmployeeLocationOption = LocationOption;
 
 export async function fetchAssignableRoles(): Promise<RoleOption[]> {
   const ctx = await getAuditContext();
@@ -34,6 +42,13 @@ export async function fetchAssignableRoles(): Promise<RoleOption[]> {
     const label = nameField?.id ?? nameField?.en ?? row.code;
     return { code: row.code, label };
   });
+}
+
+export async function fetchEmployeeLocationOptions(): Promise<EmployeeLocationOption[]> {
+  const ctx = await getAuditContext();
+  if (!ctx) return [];
+  const locale = (await getLocale().catch(() => 'id')) as 'id' | 'en' | 'zh';
+  return getActiveLocationOptions({ tenantId: ctx.tenantId, locale });
 }
 
 export interface CreateEmployeeState {
@@ -102,6 +117,7 @@ export async function createEmployeeAction(
     nik: text(formData, 'nik'),
     name: text(formData, 'name'),
     email: text(formData, 'email'),
+    locationId: optionalText(formData, 'locationId'),
     phone: optionalText(formData, 'phone'),
     address: optionalText(formData, 'address'),
     position: text(formData, 'position'),
@@ -122,6 +138,7 @@ export async function createEmployeeAction(
     emergencyContactPhone: optionalText(formData, 'emergencyContactPhone'),
     password: optionalText(formData, 'password'),
     roleCode: optionalText(formData, 'roleCode'),
+    loginScope: text(formData, 'loginScope') === 'global' ? 'global' : 'same_location',
   };
 
   const result = await createEmployee(input, ctx);
@@ -146,6 +163,7 @@ export async function updateEmployeeAction(
     version,
     name: optionalText(formData, 'name'),
     email: optionalText(formData, 'email'),
+    locationId: optionalText(formData, 'locationId'),
     phone: optionalText(formData, 'phone'),
     address: optionalText(formData, 'address'),
     position: optionalText(formData, 'position'),

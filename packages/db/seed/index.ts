@@ -30,6 +30,7 @@ import { naixerQrFormatConfig } from '../schema/kitchen';
 import { posSettings } from '../schema/pos';
 import { scheduledJobs } from '../schema/scheduled-jobs';
 import { COA_SEED, LEGACY_COA_CODES_TO_DEACTIVATE } from './coa';
+import { seedFixedAssetCategories } from './fixed-assets';
 import {
   DEFAULT_TENANT,
   DEV_ADMIN_USER,
@@ -42,11 +43,11 @@ import {
 import { LEAVE_TYPES_SEED } from './leave-types-seed';
 import { LOCATION_GPS_FIELDS, LOCATION_GPS_VALUES } from './location-gps';
 import { seedMenu } from './menu';
-import { seedRecipes } from './recipes';
-import { seedInitialStock } from './stock-initial';
 import { NAIXER_QR_FORMAT_DEFAULTS } from './naixer-seed';
+import { seedRecipes } from './recipes';
 import { SCHEDULED_JOBS_SEED } from './scheduled-jobs-seed';
 import { SHIFT_DEFINITIONS_SEED } from './shift-definitions-seed';
+import { seedInitialStock } from './stock-initial';
 import { TAX_RATES_SEED } from './tax-rates';
 import { TAX_RULES_SEED } from './tax-rules-seed';
 
@@ -346,6 +347,12 @@ async function seed() {
       and(eq(accounts.tenantId, tenantId), inArray(accounts.code, LEGACY_COA_CODES_TO_DEACTIVATE)),
     );
   console.info(`${COA_SEED.length} COA accounts seeded`);
+
+  const fixedAssetCategoryResult = await seedFixedAssetCategories(
+    db as unknown as Database,
+    tenantId,
+  );
+  console.info(`${fixedAssetCategoryResult.seeded} fixed asset categories seeded`);
 
   // 9. Tax Rates (resolve COA codes → account IDs)
   const now = new Date();

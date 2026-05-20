@@ -31,6 +31,10 @@ export {
   pettyCashAccounts,
   pettyCashTransactions,
   reimbursementRequests,
+  fixedAssetCategories,
+  fixedAssets,
+  fixedAssetDepreciationRuns,
+  fixedAssetDepreciationLines,
   taxRates,
   taxRules,
 } from './schema/accounting';

@@ -104,7 +104,10 @@ export function SignupForm({ locale }: Props) {
         </div>
 
         <div>
-          <label htmlFor="member-birthDate" className="mb-1 block text-sm font-medium text-brand-ink">
+          <label
+            htmlFor="member-birthDate"
+            className="mb-1 block text-sm font-medium text-brand-ink"
+          >
             {t('birthDate')}
           </label>
           <input
@@ -176,6 +179,7 @@ export function SignupForm({ locale }: Props) {
               defer
               onError={() => setTurnstileBlocked(true)}
             />
+            <input name="turnstileToken" type="hidden" value="captcha-unreachable" />
             <div className="cf-turnstile" data-sitekey={turnstileSiteKey} />
           </>
         ) : turnstileSiteKey && turnstileBlocked ? (

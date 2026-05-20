@@ -7,7 +7,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 
 interface EmployeeRow {
@@ -20,6 +20,7 @@ interface EmployeeRow {
   statusColor: { bg: string; text: string };
   position: string;
   department: string | null;
+  locationName: string;
   hireDate: string;
   contractLabel: string;
   contractType: string;
@@ -32,7 +33,9 @@ interface Props {
   totalPages: number;
   initialQ: string;
   initialStatus: string;
+  initialLocationId: string;
   statusOptions: { value: string; label: string }[];
+  locationOptions: { value: string; label: string }[];
 }
 
 export function EmployeeListClient({
@@ -42,19 +45,21 @@ export function EmployeeListClient({
   totalPages,
   initialQ,
   initialStatus,
+  initialLocationId,
   statusOptions,
+  locationOptions,
 }: Props) {
   const t = useTranslations('hr.employees');
   const locale = useLocale();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [q, setQ] = useState(initialQ);
 
-  const applyFilter = (newQ: string, newStatus: string, newPage: number) => {
+  const applyFilter = (newQ: string, newStatus: string, newLocationId: string, newPage: number) => {
     const params = new URLSearchParams();
     if (newQ) params.set('q', newQ);
     if (newStatus) params.set('status', newStatus);
+    if (newLocationId) params.set('locationId', newLocationId);
     if (newPage > 1) params.set('page', String(newPage));
     startTransition(() => {
       router.push(`/hr/employees${params.size > 0 ? '?' + params.toString() : ''}`);
@@ -84,7 +89,7 @@ export function EmployeeListClient({
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') applyFilter(q, initialStatus, 1);
+              if (e.key === 'Enter') applyFilter(q, initialStatus, initialLocationId, 1);
             }}
             placeholder={t('searchPlaceholder')}
             className="w-full rounded-lg border border-brand-cream-3 bg-card pl-10 pr-4 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
@@ -93,11 +98,24 @@ export function EmployeeListClient({
 
         <select
           value={initialStatus}
-          onChange={(e) => applyFilter(q, e.target.value, 1)}
+          onChange={(e) => applyFilter(q, e.target.value, initialLocationId, 1)}
           className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
         >
           <option value="">{t('status')}</option>
           {statusOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={initialLocationId}
+          onChange={(e) => applyFilter(q, initialStatus, e.target.value, 1)}
+          className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
+        >
+          <option value="">{t('allLocations')}</option>
+          {locationOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>
@@ -137,6 +155,9 @@ export function EmployeeListClient({
                 <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
                   {t('department')}
                 </th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('location')}
+                </th>
                 <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('status')}</th>
                 <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
                   {t('contractType')}
@@ -144,7 +165,9 @@ export function EmployeeListClient({
                 <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
                   {t('hireDate')}
                 </th>
-                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('actions')}</th>
+                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                  {t('actions')}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
@@ -164,6 +187,7 @@ export function EmployeeListClient({
                   <td className="px-4 py-3 font-mono text-xs text-brand-ink-2">{row.nik}</td>
                   <td className="px-4 py-3 text-brand-ink">{row.position}</td>
                   <td className="px-4 py-3 text-brand-ink-2">{row.department ?? '—'}</td>
+                  <td className="px-4 py-3 text-brand-ink-2">{row.locationName}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${row.statusColor.bg} ${row.statusColor.text}`}
@@ -206,19 +230,17 @@ export function EmployeeListClient({
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-brand-ink-3">
-            {t('pageStatus', { page, totalPages, total })}
-          </p>
+          <p className="text-sm text-brand-ink-3">{t('pageStatus', { page, totalPages, total })}</p>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => applyFilter(q, initialStatus, page - 1)}
+              onClick={() => applyFilter(q, initialStatus, initialLocationId, page - 1)}
               disabled={page <= 1}
               className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink disabled:cursor-not-allowed disabled:opacity-40 hover:bg-brand-cream-1"
             >
               {t('prev')}
             </button>
             <button
-              onClick={() => applyFilter(q, initialStatus, page + 1)}
+              onClick={() => applyFilter(q, initialStatus, initialLocationId, page + 1)}
               disabled={page >= totalPages}
               className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink disabled:cursor-not-allowed disabled:opacity-40 hover:bg-brand-cream-1"
             >

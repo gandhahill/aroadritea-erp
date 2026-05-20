@@ -37,7 +37,7 @@ Important: this matrix is intentionally skeptical. A feature with code but no cu
 | SoT 9 | Purchasing: PO, approval, supplier, GRN, return/QC | PARTIAL | purchasing schema/services/UI | Supplier and PO UI exist; return/QC and complete payable flow need deeper verification. |
 | SoT 10 | Accounting: COA seed, journals, GL, trial balance, balance sheet, P&L, cashflow/equity, per-location reports | FULL | accounting/reporting services/UI/MCP | Complete COA multi-language CRUD implemented. |
 | SoT 10.2 | Petty cash plafon, replenishment, bank recon monthly | FULL | petty cash schema/service/UI | Petty cash creation and limits workflow completed. |
-| SoT 10.4 | Fixed assets and straight-line depreciation | PARTIAL | COA supports assets; accounting can journal | Dedicated fixed asset register/depreciation schedule UI not confirmed. |
+| SoT 10.4 | Fixed assets and selectable depreciation methods | IMPLEMENTED | `fixed_assets`, `fixed_asset_categories`, `fixed_asset_depreciation_runs`, `/accounting/assets`, posted depreciation journals | Straight-line remains the seeded default per SoT; UI also supports declining balance, double declining balance, sum-of-years digits, and units of production for management choice. |
 | SoT 11 | Tax: PPN opt-in, PPN in/out, PPh 21/23/25/29, final UMKM, Coretax export | PARTIAL | tax engine, payroll PPh21, PB1/omzet export | PPh 23/25/29 and latest Coretax layout require deeper formal verification. |
 | SoT 12 | HR: employees, contracts, attendance, leave, payroll, disciplinary | PARTIAL | HR schema/services/UI | User-facing docs incomplete; employee data encryption-at-rest must be verified. |
 | SoT 13 | CRM: member profile, points, vouchers, complaints, compensation | PARTIAL | member/crm/loyalty services/UI | Voucher redemption and member lifecycle need end-to-end POS smoke. |
@@ -65,7 +65,7 @@ Important: this matrix is intentionally skeptical. A feature with code but no cu
 | SD 1-6 | Modular monolith with apps/site, apps/web, apps/mcp, worker, packages | FULL | repository layout | Keep memory budget verified during build/deploy. |
 | SD 7 | TypeScript strict, Result/AppError service layer, no HTTP in service | PARTIAL | services package patterns | Some server actions still contain business mapping; need deeper static audit. |
 | SD 8 | Audit columns, tenant/location dimension, soft delete | PARTIAL | common schema helpers | Need automated schema audit to catch tables missing audit/location columns. |
-| SD 9 | Core database schema for all modules | PARTIAL | schema files | Promotion schema added locally; fixed assets/recon/complete docs settings still incomplete. |
+| SD 9 | Core database schema for all modules | PARTIAL | schema files | Promotion and fixed-assets schema added locally; recon/complete docs settings still incomplete. |
 | SD 10 | Minimal API only where needed | PARTIAL | sync/upload/member APIs | Upload API added locally; authorization and private file serving must be tested. |
 | SD 11 | AuthZ via DB permission engine; no hardcoded role checks | PARTIAL | IAM service/UI | Need `rg` audit for `role ===` and route-level gaps before marking full. |
 | SD 12 | Multi-location dimension and active-location filtering | PARTIAL | locations schema, local settings UI | Seed overwrite must be fixed; export/name localization pass in progress. |

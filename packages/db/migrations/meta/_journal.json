@@ -134,6 +134,13 @@
       "when": 1779200100000,
       "tag": "0018_bom_line_auto_deduct",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1779200200000,
+      "tag": "0019_fixed_assets",
+      "breakpoints": true
     }
   ]
 }
