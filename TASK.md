@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-20 16:38 WIB (Codex) | 🟨 IN_PROGRESS | Current sweep: fixed member Turnstile fallback, hardened HR employee outlet/global isolation, added fixed-asset register and depreciation journals with selectable methods. Verification: `pnpm -r typecheck` PASS, `pnpm -r test` PASS (services 534), web/site builds PASS; global lint still has pre-existing warnings/debt. |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-20 16:58 WIB (Codex) | 🟨 IN_PROGRESS | Current sweep: fixed member Turnstile fallback, hardened HR employee outlet/global isolation, added fixed-asset register and depreciation journals with selectable methods, fixed MCP public health host allow-list. Verification: local typecheck/test/build PASS; commits `b0ce01e` and `35a7c7e` pushed and deployed to VPS; production authenticated smoke PASS for assets, HR employees, POS settings, inventory adjust, journal import, POS, POS demo, member signup page, and MCP health. |
 
 ---
 

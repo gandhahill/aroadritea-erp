@@ -177,10 +177,11 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 13. [x] Commit/push/deploy the 23:31 local sweep and run authenticated ERP route-load smoke with admin session across POS production, POS demo, docs, permissions, product master, promotions, BI, journals, HR check-in/leave, account settings, audit trail, and scheduled jobs.
 14. [ ] Continue deeper SoT mismatch sweep for remaining partial modules, especially hardcoded-copy i18n migration, MCP write-tool coverage, print parity, PII encryption verification, absence automation, fixed-asset MCP tools, and real browser CRUD smoke.
 15. [x] Patch 2026-05-20 user-reported production issues for legal i18n, quick adjustment, POS settings, menu images, journal CSV import, BOM auto-deduct flexibility, and safe unused-master deletion.
+16. [x] Patch 2026-05-20 continuation issues for member Turnstile fallback, HR outlet/global employee isolation, fixed asset register/depreciation journals, and MCP public health host allow-list; deploy and smoke on VPS.
 
 ## Next Step
 
-Commit and push the 2026-05-20 continuation patch if this session stops before deployment. Then deploy on the VPS: pull the pushed commit, run `pnpm db:migrate`, `pnpm db:seed`, `pnpm --filter @erp/web build`, `pnpm --filter @erp/site build`, reload PM2, then smoke `/accounting/assets`, `/hr/employees`, `/hr/employees/new`, `/id/member/daftar`, `/settings/pos`, `/inventory/adjust`, `/accounting/journals/import`, public ID/EN/ZH legal pages, and menu images. After deployment, continue the broader T-0167 sweep from `docs/TRACEABILITY-AUDIT.md` on remaining `PARTIAL` rows.
+Continue the broader T-0167 sweep from `docs/TRACEABILITY-AUDIT.md` on remaining `PARTIAL` rows, especially MCP write-tool coverage for fixed assets, deeper PII encryption verification, absence/payroll bonus UI follow-through, and real browser CRUD smoke for high-risk modules.
 
 ## Test Status
 
@@ -238,6 +239,15 @@ Commit and push the 2026-05-20 continuation patch if this session stops before d
   - `pnpm --filter @erp/web build` PASS after rerun with a longer timeout; output includes `/inventory/adjust` and `/accounting/journals/import`.
   - Menu image parity script PASS: 27 products, 27 image mappings, 4 pudding products, 0 missing mappings, 0 missing files.
   - `pnpm lint` still FAILS globally on pre-existing repo debt outside this patch set; touched-file Biome check is clean.
+- 2026-05-20 16:58 deployment verification PASS:
+  - Local `pnpm -r typecheck` PASS across 10 workspace projects.
+  - Local `pnpm -r test` PASS: services suite 25 files / 534 tests.
+  - Local `pnpm --filter @erp/web build` and `pnpm --filter @erp/site build` PASS; local `pnpm --filter @erp/mcp typecheck` PASS after MCP host allow-list patch.
+  - Commit `b0ce01e` was pushed, pulled on VPS, migrated, seeded, rebuilt for `@erp/web` and `@erp/site`, and PM2 was reloaded/saved. `pnpm install --frozen-lockfile` prompted interactively and was skipped because lockfile did not change.
+  - Commit `35a7c7e` was pushed, pulled on VPS, `@erp/mcp` typecheck/build passed, and `aroadri-mcp` PM2 process was reloaded/saved.
+  - Production internal health smoke PASS: `127.0.0.1:3000/api/healthz`, `127.0.0.1:3001/api/healthz`, and `127.0.0.1:3002/healthz` returned HTTP 200.
+  - Production public smoke PASS: `https://aroadritea.com/api/healthz`, `https://erp.aroadritea.com/api/healthz`, and `https://erp.aroadritea.com/mcp/healthz` returned HTTP 200.
+  - Production authenticated route smoke PASS with admin session: `/accounting/assets`, `/hr/employees`, `/hr/employees/new`, `/settings/pos`, `/inventory/adjust`, `/accounting/journals/import`, `/pos`, `/pos/demo`, and public `/id/member/daftar` returned HTTP 200.
 - 2026-05-20 16:38 local verification:
   - `pnpm -r typecheck` PASS across 10 workspace projects after member, HR, and fixed-asset changes.
   - `pnpm -r test` PASS: shared 58 tests and services 25 files / 534 tests.
