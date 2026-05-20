@@ -275,6 +275,15 @@ export const PERMISSIONS_SEED = [
     description: n('Ubah produk', 'Update product', '修改产品'),
   },
   {
+    code: 'inventory.product.delete',
+    module: 'inventory',
+    description: n(
+      'Hapus permanen produk yang belum pernah digunakan',
+      'Permanently delete unused products',
+      '永久删除未使用产品',
+    ),
+  },
+  {
     code: 'inventory.category.read',
     module: 'inventory',
     description: n('Lihat kategori produk', 'View product categories', '查看产品分类'),
@@ -529,6 +538,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'inventory.product.read',
     'inventory.product.create',
     'inventory.product.update',
+    'inventory.product.delete',
     'inventory.category.read',
     'inventory.category.create',
     'inventory.category.update',

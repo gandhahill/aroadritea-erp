@@ -9,16 +9,17 @@ import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
 import { pickLocalized } from '@/lib/pick-localized';
 import { and, asc, db, desc, eq, inArray } from '@erp/db';
-import { getLocale } from 'next-intl/server';
 import {
   accountingPeriods,
   accounts,
   journalEntries,
   journalLines,
 } from '@erp/db/schema/accounting';
+import { locations } from '@erp/db/schema/auth';
 import { createJournal } from '@erp/services/accounting';
 import { requirePermission } from '@erp/services/iam';
 import type { AuditContext } from '@erp/shared/types';
+import { getLocale } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 
 export interface JournalListItem {
@@ -91,6 +92,28 @@ export interface JournalCreateState {
   journalId?: string;
 }
 
+export interface JournalImportState {
+  ok?: boolean;
+  error?: string;
+  importedCount?: number;
+}
+
+type CsvRow = Record<string, string>;
+
+type JournalImportGroup = {
+  postingDate: string;
+  locationId: string;
+  description: string;
+  referenceId?: string;
+  lines: Array<{
+    accountId: string;
+    locationId: string;
+    description?: string;
+    debit: string;
+    credit: string;
+  }>;
+};
+
 async function getContext() {
   const session = await getSession();
   if (!session?.user) return null;
@@ -131,6 +154,74 @@ function errorMessage(error: unknown) {
     return String((error as { message: unknown }).message);
   }
   return String(error);
+}
+
+function parseCsv(textValue: string): CsvRow[] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
+  let inQuotes = false;
+
+  for (let index = 0; index < textValue.length; index++) {
+    const char = textValue[index];
+    const next = textValue[index + 1];
+    if (char === '"' && inQuotes && next === '"') {
+      cell += '"';
+      index++;
+      continue;
+    }
+    if (char === '"') {
+      inQuotes = !inQuotes;
+      continue;
+    }
+    if (char === ',' && !inQuotes) {
+      row.push(cell);
+      cell = '';
+      continue;
+    }
+    if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && next === '\n') index++;
+      row.push(cell);
+      if (row.some((value) => value.trim().length > 0)) rows.push(row);
+      row = [];
+      cell = '';
+      continue;
+    }
+    cell += char;
+  }
+
+  row.push(cell);
+  if (row.some((value) => value.trim().length > 0)) rows.push(row);
+  if (rows.length < 2) return [];
+
+  const headerRow = rows[0];
+  if (!headerRow) return [];
+  const headers = headerRow.map((header) => header.trim().toLowerCase());
+  return rows.slice(1).map((values) => {
+    const record: CsvRow = {};
+    headers.forEach((header, index) => {
+      record[header] = String(values[index] ?? '').trim();
+    });
+    return record;
+  });
+}
+
+function parseRupiah(value: string): string {
+  const raw = value.trim();
+  if (!raw) return '0';
+  const clean = raw.replace(/rp/gi, '').replace(/\s/g, '');
+  let normalized = clean;
+  if (clean.includes(',') && clean.includes('.')) {
+    normalized = clean.replace(/\./g, '').split(',')[0] ?? '0';
+  } else if (clean.includes(',')) {
+    normalized = clean.split(',')[0] ?? '0';
+  } else if (/^\d{1,3}(\.\d{3})+$/.test(clean)) {
+    normalized = clean.replace(/\./g, '');
+  } else if (clean.includes('.')) {
+    normalized = clean.split('.')[0] ?? '0';
+  }
+  const digits = normalized.replace(/[^\d]/g, '');
+  return digits || '0';
 }
 
 /**
@@ -284,6 +375,105 @@ export async function createJournalAction(
   if (!result.ok) return { error: errorMessage(result.error) };
   revalidatePath('/accounting/journals');
   return { ok: true, journalId: result.value.id };
+}
+
+export async function importJournalCsvAction(
+  _prev: JournalImportState | null,
+  formData: FormData,
+): Promise<JournalImportState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+
+  const file = formData.get('file');
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: 'CSV file is required.' };
+  }
+  if (file.size > 1024 * 1024) {
+    return { error: 'CSV file is too large. Maximum size is 1 MB.' };
+  }
+
+  const rows = parseCsv(await file.text());
+  if (rows.length === 0) return { error: 'CSV has no data rows.' };
+
+  const [accountRows, locationRows] = await Promise.all([
+    db
+      .select({ id: accounts.id, code: accounts.code })
+      .from(accounts)
+      .where(
+        and(
+          eq(accounts.tenantId, ctx.tenantId),
+          eq(accounts.isActive, true),
+          eq(accounts.isPostable, true),
+        ),
+      ),
+    db
+      .select({ id: locations.id, code: locations.code })
+      .from(locations)
+      .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.status, 'active'))),
+  ]);
+
+  const accountByCode = new Map(accountRows.map((account) => [account.code, account.id]));
+  const locationByKey = new Map<string, string>();
+  for (const location of locationRows) {
+    locationByKey.set(location.id, location.id);
+    locationByKey.set(location.code, location.id);
+  }
+
+  const groups = new Map<string, JournalImportGroup>();
+
+  for (const [index, row] of rows.entries()) {
+    const lineNumber = index + 2;
+    const postingDate = row.posting_date ?? '';
+    const locationKey = row.location_id || row.location_code || '';
+    const accountCode = row.account_code ?? '';
+    const locationId = locationByKey.get(locationKey);
+    const accountId = accountByCode.get(accountCode);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(postingDate)) {
+      return { error: `Row ${lineNumber}: posting_date must be YYYY-MM-DD.` };
+    }
+    if (!locationId) return { error: `Row ${lineNumber}: location not found.` };
+    if (!accountId) return { error: `Row ${lineNumber}: account_code not found.` };
+
+    const description = row.description || `Imported journal ${postingDate}`;
+    const referenceId = row.reference_id || undefined;
+    const key = [postingDate, locationId, description, referenceId ?? ''].join('::');
+    const group = groups.get(key) ?? {
+      postingDate,
+      locationId,
+      description,
+      referenceId,
+      lines: [],
+    };
+
+    group.lines.push({
+      accountId,
+      locationId,
+      description: row.line_description || undefined,
+      debit: parseRupiah(row.debit ?? ''),
+      credit: parseRupiah(row.credit ?? ''),
+    });
+    groups.set(key, group);
+  }
+
+  let importedCount = 0;
+  for (const group of groups.values()) {
+    const result = await createJournal(
+      {
+        postingDate: group.postingDate,
+        locationId: group.locationId,
+        description: group.description,
+        referenceType: 'manual',
+        referenceId: group.referenceId,
+        lines: group.lines,
+      },
+      { ...ctx, locationId: group.locationId },
+    );
+    if (!result.ok) return { error: errorMessage(result.error) };
+    importedCount++;
+  }
+
+  revalidatePath('/accounting/journals');
+  return { ok: true, importedCount };
 }
 
 /**

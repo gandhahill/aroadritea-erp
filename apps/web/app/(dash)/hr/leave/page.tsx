@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import {
   createLeaveRequestAction,
   decideLeaveRequestAction,
@@ -15,12 +15,13 @@ export const metadata: Metadata = {
 
 export default async function LeavePage() {
   const locale = await getLocale();
+  const t = await getTranslations('hr.leave');
   const data = await fetchLeaveDashboard();
 
   if (!data) {
     return (
       <div className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
-        Anda tidak memiliki akses HR.
+        {t('noAccess')}
       </div>
     );
   }
@@ -29,44 +30,44 @@ export default async function LeavePage() {
     <div className="space-y-6">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">HR</p>
-        <h1 className="mt-2 text-2xl font-bold text-brand-ink">Leave</h1>
+        <h1 className="mt-2 text-2xl font-bold text-brand-ink">{t('title')}</h1>
         <p className="mt-1 max-w-2xl text-sm text-brand-ink-3">
-          Pantau jenis cuti, saldo cuti karyawan, dan pengajuan cuti terbaru.
+          {t('subtitle')}
         </p>
       </div>
 
       <section className="grid gap-4 md:grid-cols-3">
-        <Metric title="Jenis cuti" value={data.types.length} />
-        <Metric title="Pengajuan terbaru" value={data.requests.length} />
-        <Metric title="Saldo tercatat" value={data.balances.length} />
+        <Metric title={t('typesCount')} value={data.types.length} />
+        <Metric title={t('recentRequests')} value={data.requests.length} />
+        <Metric title={t('balancesCount')} value={data.balances.length} />
       </section>
 
-      <Panel title="Kelola Jenis Cuti">
+      <Panel title={t('manage')}>
         <form
           action={saveLeaveTypeAction}
           className="mb-4 grid gap-3 rounded-lg border border-brand-cream-3 bg-brand-cream-1 p-4 md:grid-cols-6"
         >
-          <Field name="code" label="Kode" placeholder="annual" required />
-          <Field name="nameId" label="Nama ID" placeholder="Cuti Tahunan" required />
-          <Field name="nameEn" label="Nama EN" placeholder="Annual Leave" />
-          <Field name="nameZh" label="Nama ZH" placeholder="年假" />
-          <Field name="annualQuotaDays" label="Kuota/tahun" type="number" defaultValue="0" />
+          <Field name="code" label={t('code')} placeholder="annual" required />
+          <Field name="nameId" label={t('nameId')} placeholder="Cuti Tahunan" required />
+          <Field name="nameEn" label={t('nameEn')} placeholder="Annual Leave" />
+          <Field name="nameZh" label={t('nameZh')} placeholder="年假" />
+          <Field name="annualQuotaDays" label={t('annualQuotaDays')} type="number" defaultValue="0" />
           <div className="flex flex-wrap items-end gap-3">
-            <Check name="isPaid" label="Dibayar" defaultChecked />
-            <Check name="requiresApproval" label="Approval" defaultChecked />
-            <Check name="isActive" label="Aktif" defaultChecked />
+            <Check name="isPaid" label={t('isPaid')} defaultChecked />
+            <Check name="requiresApproval" label={t('requiresApproval')} defaultChecked />
+            <Check name="isActive" label={t('isActive')} defaultChecked />
             <button
               type="submit"
               className="rounded-md bg-brand-red px-3 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark"
             >
-              Tambah
+              {t('addType')}
             </button>
           </div>
         </form>
 
         <div className="space-y-3">
           {data.types.length === 0 ? (
-            <p className="text-sm text-brand-ink-3">Belum ada jenis cuti.</p>
+            <p className="text-sm text-brand-ink-3">{t('emptyTypes')}</p>
           ) : (
             data.types.map((type) => (
               <form
@@ -75,42 +76,42 @@ export default async function LeavePage() {
                 className="grid gap-3 rounded-lg border border-brand-cream-3 bg-card p-4 md:grid-cols-7"
               >
                 <input type="hidden" name="id" value={type.id} />
-                <Field name="code" label="Kode" defaultValue={type.code} required />
+                <Field name="code" label={t('code')} defaultValue={type.code} required />
                 <Field
                   name="nameId"
-                  label="Nama ID"
+                  label={t('nameId')}
                   defaultValue={type.name.id ?? pickName(type.name, locale)}
                   required
                 />
-                <Field name="nameEn" label="Nama EN" defaultValue={type.name.en ?? ''} />
-                <Field name="nameZh" label="Nama ZH" defaultValue={type.name.zh ?? ''} />
+                <Field name="nameEn" label={t('nameEn')} defaultValue={type.name.en ?? ''} />
+                <Field name="nameZh" label={t('nameZh')} defaultValue={type.name.zh ?? ''} />
                 <Field
                   name="annualQuotaDays"
-                  label="Kuota/tahun"
+                  label={t('annualQuotaDays')}
                   type="number"
                   defaultValue={String(type.annualQuotaDays)}
                 />
                 <div className="flex flex-wrap items-end gap-3">
-                  <Check name="isPaid" label="Dibayar" defaultChecked={type.isPaid} />
+                  <Check name="isPaid" label={t('isPaid')} defaultChecked={type.isPaid} />
                   <Check
                     name="requiresApproval"
-                    label="Approval"
+                    label={t('requiresApproval')}
                     defaultChecked={type.requiresApproval}
                   />
-                  <Check name="isActive" label="Aktif" defaultChecked={type.isActive} />
+                  <Check name="isActive" label={t('isActive')} defaultChecked={type.isActive} />
                 </div>
                 <div className="flex items-end gap-2">
                   <button
                     type="submit"
                     className="rounded-md bg-brand-red px-3 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark"
                   >
-                    Simpan
+                    {t('saveType')}
                   </button>
                   <button
                     formAction={deleteLeaveTypeAction}
                     className="rounded-md border border-brand-cream-3 px-3 py-2 text-xs font-semibold text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red"
                   >
-                    Hapus
+                    {t('deleteType')}
                   </button>
                 </div>
               </form>
@@ -119,13 +120,13 @@ export default async function LeavePage() {
         </div>
       </Panel>
 
-      <Panel title="Pengajuan Cuti">
+      <Panel title={t('requestHeader')}>
         <form
           action={createLeaveRequestAction}
           className="mb-4 grid gap-3 rounded-lg border border-brand-cream-3 bg-brand-cream-1 p-4 md:grid-cols-6"
         >
           <label className="space-y-1 md:col-span-2">
-            <span className="text-xs font-medium text-brand-ink-3">Karyawan</span>
+            <span className="text-xs font-medium text-brand-ink-3">{t('employee')}</span>
             <select
               name="employeeId"
               required
@@ -133,7 +134,7 @@ export default async function LeavePage() {
               className="h-9 w-full rounded-md border border-brand-cream-3 bg-card px-2.5 text-sm text-brand-ink"
             >
               <option value="" disabled>
-                Pilih karyawan…
+                {t('chooseEmployee')}
               </option>
               {data.employees.map((emp) => (
                 <option key={emp.id} value={emp.id}>
@@ -143,7 +144,7 @@ export default async function LeavePage() {
             </select>
           </label>
           <label className="space-y-1 md:col-span-2">
-            <span className="text-xs font-medium text-brand-ink-3">Jenis cuti</span>
+            <span className="text-xs font-medium text-brand-ink-3">{t('type')}</span>
             <select
               name="leaveTypeId"
               required
@@ -151,7 +152,7 @@ export default async function LeavePage() {
               className="h-9 w-full rounded-md border border-brand-cream-3 bg-card px-2.5 text-sm text-brand-ink"
             >
               <option value="" disabled>
-                Pilih jenis…
+                {t('chooseType')}
               </option>
               {data.activeLeaveTypes.map((type) => (
                 <option key={type.id} value={type.id}>
@@ -160,15 +161,15 @@ export default async function LeavePage() {
               ))}
             </select>
           </label>
-          <Field name="startDate" label="Mulai" type="date" required />
-          <Field name="endDate" label="Selesai" type="date" required />
+          <Field name="startDate" label={t('start')} type="date" required />
+          <Field name="endDate" label={t('end')} type="date" required />
           <label className="space-y-1 md:col-span-6">
-            <span className="text-xs font-medium text-brand-ink-3">Alasan (opsional)</span>
+            <span className="text-xs font-medium text-brand-ink-3">{t('reasonOptional')}</span>
             <textarea
               name="reason"
               rows={2}
               className="w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink"
-              placeholder="Misal: keperluan keluarga, sakit, dll."
+              placeholder={t('reasonPlaceholder')}
             />
           </label>
           <div className="md:col-span-6 flex justify-end">
@@ -176,7 +177,7 @@ export default async function LeavePage() {
               type="submit"
               className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
             >
-              Ajukan cuti
+              {t('submitRequest')}
             </button>
           </div>
         </form>
@@ -185,19 +186,19 @@ export default async function LeavePage() {
           <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
             <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
               <tr>
-                <th className="px-4 py-3">Karyawan</th>
-                <th className="px-4 py-3">Jenis</th>
-                <th className="px-4 py-3">Tanggal</th>
-                <th className="px-4 py-3">Hari</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Aksi</th>
+                <th className="px-4 py-3">{t('employee')}</th>
+                <th className="px-4 py-3">{t('type')}</th>
+                <th className="px-4 py-3">{t('date')}</th>
+                <th className="px-4 py-3">{t('days')}</th>
+                <th className="px-4 py-3">{t('status')}</th>
+                <th className="px-4 py-3">{t('action')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-3 bg-card">
               {data.requestsFull.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-6 text-center text-brand-ink-3">
-                    Belum ada pengajuan.
+                    {t('noRequestsTable')}
                   </td>
                 </tr>
               ) : (
@@ -212,7 +213,7 @@ export default async function LeavePage() {
                     </td>
                     <td className="px-4 py-3 text-brand-ink">{req.totalDays}</td>
                     <td className="px-4 py-3">
-                      <StatusBadge status={req.status} />
+                      <StatusBadge status={req.status} t={t} />
                     </td>
                     <td className="px-4 py-3">
                       {data.canApprove && req.status === 'pending' ? (
@@ -224,7 +225,7 @@ export default async function LeavePage() {
                               type="submit"
                               className="rounded-md bg-brand-jade px-2.5 py-1 text-xs font-semibold text-white hover:opacity-90"
                             >
-                              Setujui
+                              {t('approve')}
                             </button>
                           </form>
                           <form action={decideLeaveRequestAction}>
@@ -233,14 +234,14 @@ export default async function LeavePage() {
                             <input
                               type="text"
                               name="rejectReason"
-                              placeholder="Alasan tolak"
+                              placeholder={t('rejectReason')}
                               className="h-7 w-32 rounded-md border border-brand-cream-3 bg-card px-2 text-[11px]"
                             />
                             <button
                               type="submit"
                               className="ml-1 rounded-md border border-rose-300 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50"
                             >
-                              Tolak
+                              {t('reject')}
                             </button>
                           </form>
                         </div>
@@ -252,7 +253,7 @@ export default async function LeavePage() {
                             type="submit"
                             className="text-xs text-brand-ink-3 hover:text-brand-red"
                           >
-                            Hapus
+                            {t('deleteType')}
                           </button>
                         </form>
                       ) : null}
@@ -265,9 +266,9 @@ export default async function LeavePage() {
         </div>
       </Panel>
 
-      <Panel title="Saldo Cuti">
+      <Panel title={t('balance')}>
         <Table
-          headers={['Karyawan', 'Jenis', 'Tahun', 'Total', 'Terpakai', 'Pending']}
+          headers={[t('employee'), t('type'), t('year'), t('total'), t('used'), t('pending')]}
           rows={data.balances.map((balance) => [
             balance.employeeName ?? '-',
             pickName(balance.leaveTypeName, locale),
@@ -392,12 +393,12 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, t }: { status: string; t: any }) {
   const map: Record<string, { label: string; cls: string }> = {
-    pending: { label: 'Menunggu', cls: 'bg-brand-gold/10 text-brand-gold' },
-    approved: { label: 'Disetujui', cls: 'bg-brand-jade/10 text-brand-jade' },
-    rejected: { label: 'Ditolak', cls: 'bg-rose-50 text-rose-600' },
-    cancelled: { label: 'Dibatalkan', cls: 'bg-brand-cream-2 text-brand-ink-3' },
+    pending: { label: t('statusPending'), cls: 'bg-brand-gold/10 text-brand-gold' },
+    approved: { label: t('statusApproved'), cls: 'bg-brand-jade/10 text-brand-jade' },
+    rejected: { label: t('statusRejected'), cls: 'bg-rose-50 text-rose-600' },
+    cancelled: { label: t('statusCancelled'), cls: 'bg-brand-cream-2 text-brand-ink-3' },
   };
   const e = map[status] ?? { label: status, cls: 'bg-brand-cream-2 text-brand-ink-3' };
   return (

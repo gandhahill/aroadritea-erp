@@ -627,12 +627,18 @@ describe('Refund stock restoration', () => {
     expect(newOnHand).toBe(5.03);
   });
 
-  it('upsert: if stock level does not exist, insert with restoreQty', () => {
-    const existingLevel = null;
-    const restoreQty = '0.030';
+  it('skips restore when stock level does not exist', () => {
+    const existingLevel = null as { uom: string } | null;
+    const shouldRestore = Boolean(existingLevel);
     expect(existingLevel).toBeNull();
-    // New insert would use restoreQty as qtyOnHand/qtyAvailable
-    expect(restoreQty).toBe('0.030');
+    expect(shouldRestore).toBe(false);
+  });
+
+  it('skips restore when BOM UOM differs from stock UOM', () => {
+    const bomLine = { ingredientId: 'sugar', qty: '25.000', uom: 'ml' };
+    const stockLevel = { productId: 'sugar', uom: 'bottle' };
+    expect(stockLevel.productId).toBe(bomLine.ingredientId);
+    expect(stockLevel.uom === bomLine.uom).toBe(false);
   });
 });
 

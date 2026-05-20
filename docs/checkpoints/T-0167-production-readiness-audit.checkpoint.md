@@ -141,6 +141,16 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
   - Hardened custom fields with tenant-scoped update/delete, soft-delete instead of hard delete, deleted-row filters, JSONB-safe search operators, and delete audit trail.
   - Hardened attendance check-in/out by verifying active employee records, scoping permission/GPS/shift/record writes to employee or attendance location, and filtering list results by non-deleted rows/location.
   - Targeted typechecks passed after these patches: `@erp/services`, `@erp/db`, `@erp/web`, `@erp/site`, and `@erp/mcp` as applicable per touched package.
+- 2026-05-20 11:30 local user-feedback sweep:
+  - Fixed public legal page parity: EN/ZH Terms and Privacy now mirror the Indonesian section structure, and legal page rendering strips embedded `1.` numbering so the visual `01/02/...` index is not duplicated.
+  - Added `/inventory/adjust` quick adjustment route wired through the inventory adjustment service so the "adjustment cepat" stock link no longer 404s and still preserves permission/audit/workflow behavior.
+  - Hardened `/settings/pos` against production schemas missing newer receipt/label printer columns by falling back to the base POS settings column set, preventing the reported server-side digest crash.
+  - Expanded POS settings and quick-adjust i18n keys across ID/EN/ZH, and kept message key parity for the touched scopes.
+  - Reconciled menu seed to available photo assets: removed unphotographed mousse cake from bootstrap stock/menu, verified 27 products have 27 image mappings, and confirmed 4 pudding products exist with real image files in both site and web public folders.
+  - Added accounting journal CSV import UI at `/accounting/journals/import` plus downloadable CSV template route at `/accounting/journals/import/template`; imports group rows into balanced journals through `createJournal`.
+  - Added `bom_lines.auto_deduct` migration/schema and recipe UI control. POS sale/refund now only deducts/restores BOM lines marked auto-deduct and skips lines whose recipe UOM does not match the stock-level UOM.
+  - Added safe hard-delete for product/menu/material masters that have no transactional usage and no non-zero stock, while blocking deletion if historical sales, purchases, stock movements, opname/adjustment/transfer lines, BOM usage, KDS mappings, or promo usage exist.
+  - Seeded `inventory.product.delete` permission for management/director roles.
 
 ## Plan
 
@@ -158,10 +168,11 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 12. [x] Commit, push, deploy ERP static asset middleware patch, then live re-smoke favicon/PWA assets.
 13. [x] Commit/push/deploy the 23:31 local sweep and run authenticated ERP route-load smoke with admin session across POS production, POS demo, docs, permissions, product master, promotions, BI, journals, HR check-in/leave, account settings, audit trail, and scheduled jobs.
 14. [ ] Continue deeper SoT mismatch sweep for remaining partial modules, especially hardcoded-copy i18n migration, MCP write-tool coverage, print parity, PII encryption verification, absence automation, and real browser CRUD smoke.
+15. [x] Patch 2026-05-20 user-reported production issues for legal i18n, quick adjustment, POS settings, menu images, journal CSV import, BOM auto-deduct flexibility, and safe unused-master deletion.
 
 ## Next Step
 
-Continue from the 2026-05-19 sweep by running broader verification (`pnpm -r typecheck`, `pnpm --filter @erp/services test`, and at least web/mcp build if time permits). If those pass, continue the SoT mismatch sweep from `docs/TRACEABILITY-AUDIT.md` on the remaining `PARTIAL` rows: hardcoded-copy i18n migration, MCP write-tool expansion for CRUD surfaces, POS receipt/label print parity, and deeper PII encryption verification.
+Deploy the 2026-05-20 patch set to production if this session stops before deployment: pull the pushed commit on the VPS, run `pnpm db:migrate`, `pnpm db:seed`, `pnpm --filter @erp/web build`, `pnpm --filter @erp/site build`, reload PM2, then smoke `/settings/pos`, `/inventory/adjust`, `/accounting/journals/import`, public ID/EN/ZH legal pages, and menu images. After deployment, continue the broader T-0167 sweep from `docs/TRACEABILITY-AUDIT.md` on remaining `PARTIAL` rows.
 
 ## Test Status
 
@@ -211,3 +222,11 @@ Continue from the 2026-05-19 sweep by running broader verification (`pnpm -r typ
   - `pnpm --filter @erp/site build` PASS and `pnpm --filter @erp/mcp build` PASS.
   - `pnpm --filter @erp/web build` PASS after rerun with a longer timeout.
   - `pnpm lint` FAIL remains pre-existing broad repo debt: 214 errors / 499 warnings across old files. A targeted Biome write/check over the 19 touched source files fixed 9 files and left only warnings in touched scope.
+- 2026-05-20 11:30 local verification:
+  - `pnpm exec biome check --write` PASS over the touched source/test/message files.
+  - `pnpm --filter @erp/db typecheck`, `pnpm --filter @erp/services typecheck`, `pnpm --filter @erp/web typecheck`, and `pnpm --filter @erp/site typecheck` PASS.
+  - `pnpm --filter @erp/services exec vitest run tests/accounting-create-journal.test.ts tests/inventory-adjust-transfer.test.ts tests/pos.test.ts` PASS: 3 files, 161 tests.
+  - `pnpm --filter @erp/site build` PASS.
+  - `pnpm --filter @erp/web build` PASS after rerun with a longer timeout; output includes `/inventory/adjust` and `/accounting/journals/import`.
+  - Menu image parity script PASS: 27 products, 27 image mappings, 4 pudding products, 0 missing mappings, 0 missing files.
+  - `pnpm lint` still FAILS globally on pre-existing repo debt outside this patch set; touched-file Biome check is clean.

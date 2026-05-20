@@ -246,6 +246,8 @@ export const bomLines = pgTable(
 
     isOptional: boolean('is_optional').notNull().default(false),
     // e.g., toppings are optional BOM components
+    autoDeduct: boolean('auto_deduct').notNull().default(true),
+    // false when recipe UOM is a production guide only (e.g. ml) while stock is counted in bottles
 
     ...auditCols,
   },

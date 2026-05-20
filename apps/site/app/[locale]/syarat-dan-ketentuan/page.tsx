@@ -49,17 +49,20 @@ function LegalArticle({
         <h1 className="mt-4 text-4xl font-black text-brand-ink md:text-5xl">{title}</h1>
         <p className="mt-5 max-w-3xl text-base leading-7 text-brand-ink-2">{intro}</p>
         <div className="mt-10 divide-y divide-brand-red/10 border-y border-brand-red/10">
-          {sections.map((section, index) => (
-            <section key={section.title} className="grid gap-4 py-7 md:grid-cols-[72px_1fr]">
-              <p className="font-display text-2xl font-black text-brand-red">
-                {String(index + 1).padStart(2, '0')}
-              </p>
-              <div>
-                <h2 className="text-xl font-black text-brand-ink">{section.title}</h2>
-                <p className="mt-3 text-sm leading-7 text-brand-ink-2">{section.body}</p>
-              </div>
-            </section>
-          ))}
+          {sections.map((section, index) => {
+            const sectionTitle = section.title.replace(/^\d+\.\s*/, '');
+            return (
+              <section key={section.title} className="grid gap-4 py-7 md:grid-cols-[72px_1fr]">
+                <p className="font-display text-2xl font-black text-brand-red">
+                  {String(index + 1).padStart(2, '0')}
+                </p>
+                <div>
+                  <h2 className="text-xl font-black text-brand-ink">{sectionTitle}</h2>
+                  <p className="mt-3 text-sm leading-7 text-brand-ink-2">{section.body}</p>
+                </div>
+              </section>
+            );
+          })}
         </div>
       </article>
     </div>

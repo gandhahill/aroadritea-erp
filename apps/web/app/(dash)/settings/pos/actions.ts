@@ -56,6 +56,20 @@ export interface AccountOption {
 }
 
 type ActionResult = { success: boolean; error?: string };
+type PosSettingRow = {
+  id: string;
+  locationId: string;
+  pb1TaxCode: string;
+  cashAccountCode: string;
+  revenueAccountCode: string;
+  donationTrustAccountCode: string;
+  deliveryChannelsJson: unknown;
+  deliveryNetBps: number;
+  receiptWidthMm: number;
+  receiptPrinterName: string | null;
+  labelPrinterName: string | null;
+  kioskPrintingEnabled: boolean;
+};
 
 function getLocationName(name: unknown, fallback: string): string {
   const value = name as { id?: string; en?: string; zh?: string } | null;
@@ -102,6 +116,59 @@ function normalizeChannels(channels: unknown): DeliveryChannelSetting[] {
   return [...result.values()];
 }
 
+function isMissingPrinterColumn(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /receipt_printer_name|label_printer_name|kiosk_printing_enabled|column .* does not exist/i.test(
+    message,
+  );
+}
+
+async function fetchPosSettingRows(tenantId: string): Promise<PosSettingRow[]> {
+  try {
+    return await db
+      .select({
+        id: posSettings.id,
+        locationId: posSettings.locationId,
+        pb1TaxCode: posSettings.pb1TaxCode,
+        cashAccountCode: posSettings.cashAccountCode,
+        revenueAccountCode: posSettings.revenueAccountCode,
+        donationTrustAccountCode: posSettings.donationTrustAccountCode,
+        deliveryChannelsJson: posSettings.deliveryChannelsJson,
+        deliveryNetBps: posSettings.deliveryNetBps,
+        receiptWidthMm: posSettings.receiptWidthMm,
+        receiptPrinterName: posSettings.receiptPrinterName,
+        labelPrinterName: posSettings.labelPrinterName,
+        kioskPrintingEnabled: posSettings.kioskPrintingEnabled,
+      })
+      .from(posSettings)
+      .where(eq(posSettings.tenantId, tenantId));
+  } catch (error) {
+    if (!isMissingPrinterColumn(error)) throw error;
+
+    const rows = await db
+      .select({
+        id: posSettings.id,
+        locationId: posSettings.locationId,
+        pb1TaxCode: posSettings.pb1TaxCode,
+        cashAccountCode: posSettings.cashAccountCode,
+        revenueAccountCode: posSettings.revenueAccountCode,
+        donationTrustAccountCode: posSettings.donationTrustAccountCode,
+        deliveryChannelsJson: posSettings.deliveryChannelsJson,
+        deliveryNetBps: posSettings.deliveryNetBps,
+        receiptWidthMm: posSettings.receiptWidthMm,
+      })
+      .from(posSettings)
+      .where(eq(posSettings.tenantId, tenantId));
+
+    return rows.map((row) => ({
+      ...row,
+      receiptPrinterName: null,
+      labelPrinterName: null,
+      kioskPrintingEnabled: false,
+    }));
+  }
+}
+
 async function requireContext() {
   const session = await getSession();
   if (!session?.user) return null;
@@ -136,23 +203,7 @@ export async function fetchPosSettings(): Promise<PosSettingItem[]> {
         ),
       )
       .orderBy(locations.code),
-    db
-      .select({
-        id: posSettings.id,
-        locationId: posSettings.locationId,
-        pb1TaxCode: posSettings.pb1TaxCode,
-        cashAccountCode: posSettings.cashAccountCode,
-        revenueAccountCode: posSettings.revenueAccountCode,
-        donationTrustAccountCode: posSettings.donationTrustAccountCode,
-        deliveryChannelsJson: posSettings.deliveryChannelsJson,
-        deliveryNetBps: posSettings.deliveryNetBps,
-        receiptWidthMm: posSettings.receiptWidthMm,
-        receiptPrinterName: posSettings.receiptPrinterName,
-        labelPrinterName: posSettings.labelPrinterName,
-        kioskPrintingEnabled: posSettings.kioskPrintingEnabled,
-      })
-      .from(posSettings)
-      .where(eq(posSettings.tenantId, ctx.tenantId)),
+    fetchPosSettingRows(ctx.tenantId),
   ]);
 
   const settingsByLocation = new Map(settingRows.map((row) => [row.locationId, row]));
@@ -291,7 +342,7 @@ export async function updatePosSetting(
     return trimmed.length > 0 ? trimmed.slice(0, 120) : null;
   };
 
-  const values = {
+  const baseValues = {
     pb1TaxCode: data.pb1TaxCode.trim() || 'PB1',
     cashAccountCode: data.cashAccountCode.trim() || '1-1300',
     revenueAccountCode: data.revenueAccountCode.trim() || '4-1100',
@@ -301,11 +352,15 @@ export async function updatePosSetting(
       channels.reduce((sum, channel) => sum + channel.netBps, 0) / channels.length,
     ),
     receiptWidthMm,
+    updatedAt: new Date(),
+    updatedBy: ctx.userId || null,
+  };
+
+  const values = {
+    ...baseValues,
     receiptPrinterName: normalizePrinterName(data.receiptPrinterName),
     labelPrinterName: normalizePrinterName(data.labelPrinterName),
     kioskPrintingEnabled: Boolean(data.kioskPrintingEnabled),
-    updatedAt: new Date(),
-    updatedBy: ctx.userId || null,
   };
 
   try {
@@ -333,6 +388,44 @@ export async function updatePosSetting(
     revalidatePath('/settings/pos');
     return { success: true };
   } catch (err) {
+    if (isMissingPrinterColumn(err)) {
+      try {
+        const [existing] = await db
+          .select({ id: posSettings.id })
+          .from(posSettings)
+          .where(
+            and(eq(posSettings.tenantId, ctx.tenantId), eq(posSettings.locationId, locationId)),
+          )
+          .limit(1);
+
+        if (existing) {
+          await db
+            .update(posSettings)
+            .set(baseValues)
+            .where(and(eq(posSettings.id, existing.id), eq(posSettings.tenantId, ctx.tenantId)));
+        } else {
+          await db.insert(posSettings).values({
+            id: generateId(),
+            tenantId: ctx.tenantId,
+            locationId,
+            ...baseValues,
+            createdBy: ctx.userId || null,
+          });
+        }
+
+        revalidatePath('/settings/pos');
+        return {
+          success: true,
+          error:
+            'Printer settings need database migration 0016_pos_printer_profiles before they can be saved.',
+        };
+      } catch (fallbackErr) {
+        return {
+          success: false,
+          error: fallbackErr instanceof Error ? fallbackErr.message : 'Unknown error',
+        };
+      }
+    }
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }

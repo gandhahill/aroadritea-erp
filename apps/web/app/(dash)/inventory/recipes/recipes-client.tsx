@@ -1,6 +1,7 @@
 'use client';
 
 import { formatQty } from '@/lib/format-qty';
+import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import {
   type ProductOption,
@@ -25,6 +26,7 @@ const INPUT =
   'h-9 w-full rounded-md border border-brand-cream-3 bg-card px-2.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20';
 
 export function RecipesClient({ initial }: Props) {
+  const tc = useTranslations('common.labels');
   const [recipes, setRecipes] = useState(initial.recipes);
   const [selectedBomId, setSelectedBomId] = useState<string | null>(
     initial.recipes[0]?.bomId ?? null,
@@ -42,6 +44,7 @@ export function RecipesClient({ initial }: Props) {
     qty: '',
     uom: '',
     isOptional: false,
+    autoDeduct: true,
   });
 
   const filtered = useMemo(() => {
@@ -79,10 +82,11 @@ export function RecipesClient({ initial }: Props) {
         setErr(res.error ?? 'Gagal membuat resep.');
         return;
       }
+      const bomId = res.id;
       const product = initial.finishedGoods.find((p) => p.id === newRecipe.productId);
       setRecipes((prev) => [
         {
-          bomId: res.id!,
+          bomId,
           productId: newRecipe.productId,
           productSku: product?.sku ?? '—',
           productName: product?.name ?? '—',
@@ -93,8 +97,8 @@ export function RecipesClient({ initial }: Props) {
         },
         ...prev,
       ]);
-      setSelectedBomId(res.id!);
-      setLinesByBom((prev) => ({ ...prev, [res.id!]: [] }));
+      setSelectedBomId(bomId);
+      setLinesByBom((prev) => ({ ...prev, [bomId]: [] }));
       setShowNew(false);
       setNewRecipe({ productId: '', description: '' });
     });
@@ -115,6 +119,7 @@ export function RecipesClient({ initial }: Props) {
         qty: newLine.qty,
         uom: newLine.uom || ingredient?.uom || 'pcs',
         isOptional: newLine.isOptional,
+        autoDeduct: newLine.autoDeduct,
       });
       if (!res.ok) {
         setErr(res.error ?? 'Gagal menambah bahan.');
@@ -125,7 +130,7 @@ export function RecipesClient({ initial }: Props) {
       setRecipes((prev) =>
         prev.map((r) => (r.bomId === selectedBomId ? { ...r, lineCount: rows.length } : r)),
       );
-      setNewLine({ ingredientId: '', qty: '', uom: '', isOptional: false });
+      setNewLine({ ingredientId: '', qty: '', uom: '', isOptional: false, autoDeduct: true });
     });
   }
 
@@ -222,22 +227,19 @@ export function RecipesClient({ initial }: Props) {
             </li>
           ) : (
             filtered.map((r) => (
-              <li
-                key={r.bomId}
-                onClick={() => selectRecipe(r.bomId)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') selectRecipe(r.bomId);
-                }}
-                role="button"
-                tabIndex={0}
-                className={`cursor-pointer border-b border-brand-cream-3 px-3 py-2 text-sm last:border-0 ${
-                  selectedBomId === r.bomId ? 'bg-brand-red/5' : 'hover:bg-brand-cream-1'
-                }`}
-              >
-                <p className="font-medium text-brand-ink">{r.productName}</p>
-                <p className="text-[11px] text-brand-ink-3">
-                  {r.productSku} · {r.lineCount} bahan
-                </p>
+              <li key={r.bomId} className="border-b border-brand-cream-3 last:border-0">
+                <button
+                  type="button"
+                  onClick={() => selectRecipe(r.bomId)}
+                  className={`w-full px-3 py-2 text-left text-sm ${
+                    selectedBomId === r.bomId ? 'bg-brand-red/5' : 'hover:bg-brand-cream-1'
+                  }`}
+                >
+                  <p className="font-medium text-brand-ink">{r.productName}</p>
+                  <p className="text-[11px] text-brand-ink-3">
+                    {r.productSku} · {r.lineCount} bahan
+                  </p>
+                </button>
               </li>
             ))
           )}
@@ -301,6 +303,15 @@ export function RecipesClient({ initial }: Props) {
               >
                 + Bahan
               </button>
+              <label className="flex items-center gap-2 text-xs font-medium text-brand-ink-2 md:col-span-2">
+                <input
+                  type="checkbox"
+                  checked={newLine.autoDeduct}
+                  onChange={(e) => setNewLine((p) => ({ ...p, autoDeduct: e.target.checked }))}
+                  className="h-4 w-4 rounded border-brand-cream-3 text-brand-red"
+                />
+                Kurangi stok otomatis saat POS terjual
+              </label>
             </div>
 
             <table className="w-full text-sm">
@@ -310,19 +321,20 @@ export function RecipesClient({ initial }: Props) {
                   <th className="px-3 py-2">Bahan</th>
                   <th className="px-3 py-2 text-right">Qty</th>
                   <th className="px-3 py-2">UOM</th>
+                  <th className="px-3 py-2">Auto</th>
                   <th className="px-3 py-2" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-cream-3">
                 {!selectedLines ? (
                   <tr>
-                    <td colSpan={5} className="px-3 py-4 text-center text-xs text-brand-ink-3">
+                    <td colSpan={6} className="px-3 py-4 text-center text-xs text-brand-ink-3">
                       Memuat bahan…
                     </td>
                   </tr>
                 ) : selectedLines.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-3 py-4 text-center text-xs text-brand-ink-3">
+                    <td colSpan={6} className="px-3 py-4 text-center text-xs text-brand-ink-3">
                       Belum ada bahan. Tambahkan di atas.
                     </td>
                   </tr>
@@ -331,11 +343,16 @@ export function RecipesClient({ initial }: Props) {
                     <tr key={l.id}>
                       <td className="px-3 py-2 text-xs text-brand-ink-3">{l.lineNo}</td>
                       <td className="px-3 py-2">
-                        <span className="font-mono text-xs text-brand-ink-3">{l.ingredientSku}</span>{' '}
+                        <span className="font-mono text-xs text-brand-ink-3">
+                          {l.ingredientSku}
+                        </span>{' '}
                         <span className="text-brand-ink">{l.ingredientName}</span>
                       </td>
                       <td className="px-3 py-2 text-right tabular-nums">{formatQty(l.qty)}</td>
                       <td className="px-3 py-2">{l.uom}</td>
+                      <td className="px-3 py-2 text-xs text-brand-ink-3">
+                        {l.autoDeduct ? tc('yes') : tc('no')}
+                      </td>
                       <td className="px-3 py-2 text-right">
                         <button
                           type="button"

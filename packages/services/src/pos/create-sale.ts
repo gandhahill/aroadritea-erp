@@ -466,7 +466,7 @@ async function getBOMIngredients(
       uom: bomLines.uom,
     })
     .from(bomLines)
-    .where(eq(bomLines.bomId, bom.id));
+    .where(and(eq(bomLines.bomId, bom.id), eq(bomLines.autoDeduct, true)));
 
   return lines.map((l) => ({
     ingredientId: l.ingredientId,
@@ -504,6 +504,9 @@ async function deductIngredients(
         .then((r) => r[0]);
 
       if (existing) {
+        if (existing.uom !== ing.uom) {
+          continue;
+        }
         // Atomic decrement via SQL so two concurrent sales can't lose a
         // unit each. GREATEST clamps to zero in case the row drifted
         // below the deduction quantity (SoT §25.9 mandates warn-only
@@ -517,6 +520,8 @@ async function deductIngredients(
             lastMovementAt: new Date(),
           })
           .where(eq(stockLevels.id, existing.id));
+      } else {
+        continue;
       }
 
       await db.insert(stockMovements).values({

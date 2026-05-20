@@ -5,6 +5,7 @@
 
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchJournalList } from './actions';
@@ -18,7 +19,10 @@ export default async function JournalsPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const journals = await fetchJournalList();
+  const [journals, t] = await Promise.all([
+    fetchJournalList(),
+    getTranslations('accounting.journal'),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -26,14 +30,24 @@ export default async function JournalsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-brand-ink">Jurnal Umum</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            Lihat dan kelola entri jurnal umum.
-          </p>
+          <p className="mt-1 text-sm text-brand-ink-3">Lihat dan kelola entri jurnal umum.</p>
         </div>
         <div className="flex items-center gap-3">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
             {journals.length} entri
           </span>
+          <Link
+            href="/accounting/journals/import/template"
+            className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
+          >
+            {t('downloadTemplate')}
+          </Link>
+          <Link
+            href="/accounting/journals/import"
+            className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
+          >
+            {t('importCsv')}
+          </Link>
           <Link
             href="/accounting/journals/new"
             className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark"

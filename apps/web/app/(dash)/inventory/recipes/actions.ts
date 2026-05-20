@@ -2,7 +2,7 @@
 
 import { getSession } from '@/lib/auth';
 import { and, db, eq, isNull, sql } from '@erp/db';
-import { boms, bomLines, products } from '@erp/db/schema/inventory';
+import { bomLines, boms, products } from '@erp/db/schema/inventory';
 import { requirePermission } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
@@ -45,6 +45,7 @@ export interface RecipeLineRow {
   qty: string;
   uom: string;
   isOptional: boolean;
+  autoDeduct: boolean;
 }
 
 function pickName(name: unknown, fallback: string): string {
@@ -74,10 +75,7 @@ export async function fetchRecipes(): Promise<{
       productSku: products.sku,
     })
     .from(boms)
-    .leftJoin(
-      products,
-      and(eq(boms.productId, products.id), eq(products.tenantId, c.tenantId)),
-    )
+    .leftJoin(products, and(eq(boms.productId, products.id), eq(products.tenantId, c.tenantId)))
     .where(and(eq(boms.tenantId, c.tenantId), isNull(boms.deletedAt)));
 
   const counts = await db
@@ -104,10 +102,22 @@ export async function fetchRecipes(): Promise<{
 
   const finishedGoods: ProductOption[] = productRows
     .filter((p) => p.kind === 'finished_good')
-    .map((p) => ({ id: p.id, sku: p.sku, name: pickName(p.name, p.sku), uom: p.uom, kind: p.kind }));
+    .map((p) => ({
+      id: p.id,
+      sku: p.sku,
+      name: pickName(p.name, p.sku),
+      uom: p.uom,
+      kind: p.kind,
+    }));
   const ingredients: ProductOption[] = productRows
     .filter((p) => p.kind === 'raw_material' || p.kind === 'consumable' || p.kind === 'merchandise')
-    .map((p) => ({ id: p.id, sku: p.sku, name: pickName(p.name, p.sku), uom: p.uom, kind: p.kind }));
+    .map((p) => ({
+      id: p.id,
+      sku: p.sku,
+      name: pickName(p.name, p.sku),
+      uom: p.uom,
+      kind: p.kind,
+    }));
 
   const recipes: RecipeRow[] = bomRows.map((b) => ({
     bomId: b.id,
@@ -134,6 +144,7 @@ export async function fetchRecipeLines(bomId: string): Promise<RecipeLineRow[]> 
       qty: bomLines.qty,
       uom: bomLines.uom,
       isOptional: bomLines.isOptional,
+      autoDeduct: bomLines.autoDeduct,
       ingredientSku: products.sku,
       ingredientName: products.name,
     })
@@ -154,6 +165,7 @@ export async function fetchRecipeLines(bomId: string): Promise<RecipeLineRow[]> 
       qty: String(r.qty ?? '0'),
       uom: r.uom,
       isOptional: r.isOptional,
+      autoDeduct: r.autoDeduct,
     }));
 }
 
@@ -190,6 +202,7 @@ export async function addRecipeLineAction(input: {
   qty: string;
   uom: string;
   isOptional?: boolean;
+  autoDeduct?: boolean;
 }): Promise<{ ok: boolean; error?: string }> {
   const c = await ctx();
   if (!c) return { ok: false, error: 'Unauthenticated' };
@@ -215,6 +228,7 @@ export async function addRecipeLineAction(input: {
     qty: input.qty,
     uom: input.uom,
     isOptional: input.isOptional ?? false,
+    autoDeduct: input.autoDeduct ?? true,
   });
   revalidatePath('/inventory/recipes');
   return { ok: true };
@@ -232,9 +246,7 @@ export async function deleteRecipeLineAction(
   return { ok: true };
 }
 
-export async function deleteRecipeAction(
-  bomId: string,
-): Promise<{ ok: boolean; error?: string }> {
+export async function deleteRecipeAction(bomId: string): Promise<{ ok: boolean; error?: string }> {
   const c = await ctx();
   if (!c) return { ok: false, error: 'Unauthenticated' };
   const perm = await requirePermission(c.userId, 'inventory.product.update');

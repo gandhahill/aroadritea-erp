@@ -6,6 +6,7 @@
 export { createProduct, type ProductResult } from './create-product';
 export { updateProduct } from './update-product';
 export { deactivateProduct, reactivateProduct } from './deactivate-product';
+export { deleteProductPermanently } from './delete-product';
 export {
   listProducts,
   getProduct,

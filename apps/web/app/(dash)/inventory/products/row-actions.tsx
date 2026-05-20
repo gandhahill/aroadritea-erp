@@ -1,9 +1,9 @@
 'use client';
 
+import { ConfirmDialog, InlineAlert } from '@/components/confirm-dialog';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { ConfirmDialog, InlineAlert } from '@/components/confirm-dialog';
-import { deactivateProductAction, reactivateProductAction } from './actions';
+import { deactivateProductAction, deleteProductAction, reactivateProductAction } from './actions';
 
 interface Props {
   productId: string;
@@ -53,6 +53,27 @@ export function ProductRowActions({ productId, isActive }: Props) {
     });
   }
 
+  function runDelete() {
+    const fd = new FormData();
+    fd.set('productId', productId);
+    startTransition(async () => {
+      const res = await deleteProductAction(fd);
+      if (!res.ok) {
+        setErrorMessage(res.error ?? 'Gagal menghapus produk.');
+        return;
+      }
+      router.refresh();
+    });
+  }
+
+  function handleDelete() {
+    setConfirmAction({
+      message:
+        'Hapus permanen produk ini? Hanya produk yang belum pernah dijual, dipakai, dibeli, masuk stok, atau tercatat di transaksi yang dapat dihapus.',
+      onConfirm: runDelete,
+    });
+  }
+
   return (
     <div className="flex flex-col items-end gap-2">
       <button
@@ -67,17 +88,21 @@ export function ProductRowActions({ productId, isActive }: Props) {
       >
         {pending ? '…' : isActive ? 'Nonaktifkan' : 'Aktifkan'}
       </button>
+      <button
+        type="button"
+        onClick={handleDelete}
+        disabled={pending}
+        className="rounded-md border border-rose-200 bg-card px-3 py-1.5 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-50 disabled:opacity-50"
+      >
+        Hapus
+      </button>
       {errorMessage && (
-        <InlineAlert
-          message={errorMessage}
-          tone="error"
-          onDismiss={() => setErrorMessage(null)}
-        />
+        <InlineAlert message={errorMessage} tone="error" onDismiss={() => setErrorMessage(null)} />
       )}
       {confirmAction && (
         <ConfirmDialog
           message={confirmAction.message}
-          confirmLabel="Nonaktifkan"
+          confirmLabel="Lanjutkan"
           cancelLabel="Batal"
           tone="danger"
           onConfirm={() => {

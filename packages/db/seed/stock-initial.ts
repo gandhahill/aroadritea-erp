@@ -1,6 +1,6 @@
 /**
  * Initial stock seeding — dessert SKUs that are stocked physically
- * (egg tart, pudding flavours, mousse cake) per outlet.
+ * (egg tart and pudding flavours) per outlet.
  *
  * Tea drinks are intentionally NOT seeded here: they are produced
  * on demand from raw materials via BOM, so their stock_levels rows
@@ -12,11 +12,11 @@
  * inventory UI after physical opname.
  */
 
+import { generateId } from '@erp/shared/id';
 import { and, eq } from 'drizzle-orm';
 import type { Database } from '../client';
 import { locations } from '../schema/auth';
 import { products, stockLevels } from '../schema/inventory';
-import { generateId } from '@erp/shared/id';
 
 interface StockSeedRule {
   /** Product SKU as defined in menu.ts / recipes.ts. */
@@ -39,7 +39,6 @@ const DESSERT_STOCK: StockSeedRule[] = [
   { sku: 'DST-PUDDING-OSMANTHUS', qtyOnHand: '12', uom: 'pcs' },
   { sku: 'DST-PUDDING-CEYLON', qtyOnHand: '12', uom: 'pcs' },
   { sku: 'DST-PUDDING-ROY', qtyOnHand: '12', uom: 'pcs' },
-  { sku: 'DST-MOUSSE-CAKE', qtyOnHand: '10', uom: 'pcs' },
 ];
 
 /**

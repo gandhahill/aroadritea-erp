@@ -25,11 +25,7 @@
  */
 
 import { db } from '@erp/db';
-import {
-  accountingPeriods,
-  journalEntries,
-  journalLines,
-} from '@erp/db/schema/accounting';
+import { accountingPeriods, journalEntries, journalLines } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
 import { bomLines, boms, stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import { salesOrderLines, salesOrders } from '@erp/db/schema/pos';
@@ -90,9 +86,7 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
     for (const rl of data.lines) {
       const ol = originalLineMap.get(rl.lineId);
       if (!ol) {
-        return err(
-          AppError.validation('pos.refund.lineNotFound', { lineId: rl.lineId }),
-        );
+        return err(AppError.validation('pos.refund.lineNotFound', { lineId: rl.lineId }));
       }
       const originalQty = Math.round(Number(ol.qty));
       if (rl.qty > originalQty) {
@@ -165,11 +159,7 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
         }
         reversalJeId = reversalResult.value.id;
       } else {
-        const partialResult = await createPartialReversalJe(
-          sale,
-          refundTotal,
-          ctx,
-        );
+        const partialResult = await createPartialReversalJe(sale, refundTotal, ctx);
         if (!partialResult.ok) {
           await db
             .update(salesOrders)
@@ -185,7 +175,8 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
     // Uses atomic SQL increment + variant-aware match to avoid the
     // float-drift and variant-overwrite bugs that hit other modules.
     for (const rl of data.lines) {
-      const line = originalLineMap.get(rl.lineId)!;
+      const line = originalLineMap.get(rl.lineId);
+      if (!line) continue;
 
       const bom = await db
         .select({ id: boms.id })
@@ -209,10 +200,24 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
           uom: bomLines.uom,
         })
         .from(bomLines)
-        .where(eq(bomLines.bomId, bom.id));
+        .where(and(eq(bomLines.bomId, bom.id), eq(bomLines.autoDeduct, true)));
 
       for (const ingredient of bomLineRows) {
         const restoreQty = (Number.parseFloat(ingredient.qty) * rl.qty).toFixed(3);
+
+        const [currentLevel] = await db
+          .select({ id: stockLevels.id, uom: stockLevels.uom })
+          .from(stockLevels)
+          .where(
+            and(
+              eq(stockLevels.tenantId, ctx.tenantId),
+              eq(stockLevels.locationId, sale.locationId),
+              eq(stockLevels.productId, ingredient.ingredientId),
+            ),
+          )
+          .limit(1);
+
+        if (!currentLevel || currentLevel.uom !== ingredient.uom) continue;
 
         // BOM lines reference ingredient products directly — raw
         // materials are tracked without variants in this schema, so
@@ -229,29 +234,12 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
             and(
               eq(stockLevels.tenantId, ctx.tenantId),
               eq(stockLevels.locationId, sale.locationId),
-              eq(stockLevels.productId, ingredient.ingredientId),
+              eq(stockLevels.id, currentLevel.id),
             ),
           )
           .returning({ id: stockLevels.id });
 
-        if (!incremented || incremented.length === 0) {
-          await db.insert(stockLevels).values({
-            id: generateId(),
-            tenantId: ctx.tenantId,
-            locationId: sale.locationId,
-            productId: ingredient.ingredientId,
-            variantId: null,
-            batchNo: null,
-            qtyOnHand: restoreQty,
-            qtyAvailable: restoreQty,
-            qtyReserved: '0',
-            uom: ingredient.uom,
-            avgUnitCost: null,
-            lastMovementAt: new Date(),
-            createdBy: ctx.userId,
-            updatedBy: ctx.userId,
-          });
-        }
+        if (!incremented || incremented.length === 0) continue;
 
         await db.insert(stockMovements).values({
           id: generateId(),
@@ -332,6 +320,10 @@ async function createPartialReversalJe(
   refundTotal: bigint,
   ctx: AuditContext,
 ): Promise<Result<string>> {
+  if (!sale.journalEntryId) {
+    return err(AppError.internal('pos.refund.missingJournalEntry'));
+  }
+  const originalJournalEntryId = sale.journalEntryId;
   const postingDate = new Date().toISOString().slice(0, 10);
   const periodCode = postingDate.substring(0, 7);
 
@@ -339,10 +331,7 @@ async function createPartialReversalJe(
     .select()
     .from(accountingPeriods)
     .where(
-      and(
-        eq(accountingPeriods.tenantId, ctx.tenantId),
-        eq(accountingPeriods.code, periodCode),
-      ),
+      and(eq(accountingPeriods.tenantId, ctx.tenantId), eq(accountingPeriods.code, periodCode)),
     )
     .then((r) => r[0]);
 
@@ -361,7 +350,7 @@ async function createPartialReversalJe(
   const originalJeLines = await db
     .select()
     .from(journalLines)
-    .where(eq(journalLines.journalEntryId, sale.journalEntryId!));
+    .where(eq(journalLines.journalEntryId, originalJournalEntryId));
 
   if (originalJeLines.length === 0) {
     return err(AppError.internal('pos.refund.noJournalLines'));
@@ -388,17 +377,25 @@ async function createPartialReversalJe(
     if (diff > 0n) {
       let maxIdx = 0;
       for (let i = 1; i < scaledLines.length; i++) {
-        if (scaledLines[i]!.credit > scaledLines[maxIdx]!.credit) maxIdx = i;
+        const current = scaledLines[i];
+        const max = scaledLines[maxIdx];
+        if (current && max && current.credit > max.credit) maxIdx = i;
       }
-      scaledLines[maxIdx]!.credit += diff;
+      const target = scaledLines[maxIdx];
+      if (!target) return err(AppError.internal('pos.refund.noJournalLines'));
+      target.credit += diff;
       totalCredit += diff;
     } else {
       const absDiff = -diff;
       let maxIdx = 0;
       for (let i = 1; i < scaledLines.length; i++) {
-        if (scaledLines[i]!.debit > scaledLines[maxIdx]!.debit) maxIdx = i;
+        const current = scaledLines[i];
+        const max = scaledLines[maxIdx];
+        if (current && max && current.debit > max.debit) maxIdx = i;
       }
-      scaledLines[maxIdx]!.debit += absDiff;
+      const target = scaledLines[maxIdx];
+      if (!target) return err(AppError.internal('pos.refund.noJournalLines'));
+      target.debit += absDiff;
       totalDebit += absDiff;
     }
   }

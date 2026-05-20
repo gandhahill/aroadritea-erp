@@ -113,7 +113,7 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
   if (settings.length === 0) {
     return (
       <div className="rounded-lg border border-brand-cream-3 px-4 py-8 text-center text-sm text-brand-ink-3">
-        Belum ada lokasi. Seed lokasi terlebih dahulu sebelum mengatur POS.
+        {t('noLocations')}
       </div>
     );
   }
@@ -142,13 +142,13 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
                 disabled={isPending}
                 className="rounded-md bg-brand-red px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
               >
-                {isSaving ? 'Menyimpan...' : 'Simpan'}
+                {isSaving ? t('saving') : t('save')}
               </button>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-4">
               <label className="space-y-1">
-                <span className="text-xs font-medium text-brand-ink-2">Kode Pajak PB1/PBJT</span>
+                <span className="text-xs font-medium text-brand-ink-2">{t('pb1TaxCode')}</span>
                 <input
                   value={draft.pb1TaxCode}
                   onChange={(event) =>
@@ -157,16 +157,16 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
                   className={inputClass}
                 />
               </label>
-              <label className="space-y-1">
-                <span className="text-xs font-medium text-brand-ink-2">Akun Kas/Settlement</span>
+              <div className="space-y-1">
+                <span className="text-xs font-medium text-brand-ink-2">{t('cashAccount')}</span>
                 <AccountSelect
                   value={draft.cashAccountCode}
                   options={accountOptions}
                   onChange={(value) => updateDraft(setting.locationId, { cashAccountCode: value })}
                 />
-              </label>
-              <label className="space-y-1">
-                <span className="text-xs font-medium text-brand-ink-2">Akun Pendapatan</span>
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs font-medium text-brand-ink-2">{t('revenueAccount')}</span>
                 <AccountSelect
                   value={draft.revenueAccountCode}
                   options={accountOptions}
@@ -174,9 +174,9 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
                     updateDraft(setting.locationId, { revenueAccountCode: value })
                   }
                 />
-              </label>
-              <label className="space-y-1">
-                <span className="text-xs font-medium text-brand-ink-2">Akun Donasi</span>
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs font-medium text-brand-ink-2">{t('donationAccount')}</span>
                 <AccountSelect
                   value={draft.donationTrustAccountCode}
                   options={accountOptions}
@@ -186,12 +186,12 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
                     })
                   }
                 />
-              </label>
+              </div>
             </div>
 
             <div className="mt-4 grid gap-4 lg:grid-cols-3">
               <label className="space-y-1">
-                <span className="text-xs font-medium text-brand-ink-2">Lebar Struk Thermal</span>
+                <span className="text-xs font-medium text-brand-ink-2">{t('receiptWidth')}</span>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -207,15 +207,13 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
                   />
                   <span className="text-sm text-brand-ink-3">mm</span>
                 </div>
-                <span className="block text-[11px] text-brand-ink-3">
-                  Default 80 mm / 8 cm, bisa disesuaikan printer.
-                </span>
+                <span className="block text-[11px] text-brand-ink-3">{t('receiptWidthHint')}</span>
               </label>
               <label className="space-y-1">
-                <span className="text-xs font-medium text-brand-ink-2">Printer Struk (OS)</span>
+                <span className="text-xs font-medium text-brand-ink-2">{t('receiptPrinter')}</span>
                 <input
                   value={draft.receiptPrinterName ?? ''}
-                  placeholder="contoh: EPSON TM-T82"
+                  placeholder={t('receiptPrinterPlaceholder')}
                   onChange={(event) =>
                     updateDraft(setting.locationId, {
                       receiptPrinterName: event.target.value,
@@ -224,14 +222,14 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
                   className={inputClass}
                 />
                 <span className="block text-[11px] text-brand-ink-3">
-                  Nama printer thermal struk pada OS kasir.
+                  {t('receiptPrinterHint')}
                 </span>
               </label>
               <label className="space-y-1">
-                <span className="text-xs font-medium text-brand-ink-2">Printer Label (OS)</span>
+                <span className="text-xs font-medium text-brand-ink-2">{t('labelPrinter')}</span>
                 <input
                   value={draft.labelPrinterName ?? ''}
-                  placeholder="contoh: XPrinter XP-365B"
+                  placeholder={t('labelPrinterPlaceholder')}
                   onChange={(event) =>
                     updateDraft(setting.locationId, {
                       labelPrinterName: event.target.value,
@@ -239,9 +237,7 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
                   }
                   className={inputClass}
                 />
-                <span className="block text-[11px] text-brand-ink-3">
-                  Nama printer label cup pada OS kasir (opsional).
-                </span>
+                <span className="block text-[11px] text-brand-ink-3">{t('labelPrinterHint')}</span>
               </label>
             </div>
 
@@ -258,11 +254,13 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
                   className="mt-0.5 h-4 w-4 rounded border-brand-cream-3"
                 />
                 <div>
-                  <div className="font-semibold text-brand-ink">Mode Kiosk Printing</div>
+                  <div className="font-semibold text-brand-ink">{t('kioskPrinting')}</div>
                   <p className="mt-0.5 text-[11px] text-brand-ink-3">
-                    Lewati dialog pratinjau printer dan langsung cetak. Jalankan Chrome dengan
-                    flag <code className="rounded bg-brand-cream-3 px-1 font-mono">--kiosk-printing</code>
-                    {' '}agar dialog tertutup; tanpa flag itu browser tetap menampilkan pratinjau.
+                    {t('kioskPrintingHintBefore')}{' '}
+                    <code className="rounded bg-brand-cream-3 px-1 font-mono">
+                      --kiosk-printing
+                    </code>{' '}
+                    {t('kioskPrintingHintAfter')}
                   </p>
                 </div>
               </label>
@@ -271,17 +269,15 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
             <div className="mt-5 rounded-lg border border-brand-cream-3 bg-brand-cream-1 p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-sm font-semibold text-brand-ink">Channel delivery</h3>
-                  <p className="mt-0.5 text-xs text-brand-ink-3">
-                    Atur nama channel dan komisi masing-masing platform.
-                  </p>
+                  <h3 className="text-sm font-semibold text-brand-ink">{t('deliveryChannels')}</h3>
+                  <p className="mt-0.5 text-xs text-brand-ink-3">{t('deliveryChannelsHint')}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => addChannel(setting.locationId)}
                   className="rounded-md border border-brand-cream-3 bg-brand-cream px-3 py-1.5 text-xs font-semibold text-brand-ink hover:border-brand-red/40 hover:text-brand-red"
                 >
-                  Tambah channel
+                  {t('addChannel')}
                 </button>
               </div>
 
@@ -292,7 +288,9 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
                     className="grid gap-3 rounded-md border border-brand-cream-3 bg-card p-3 lg:grid-cols-[1fr_1.4fr_0.9fr_0.9fr_auto_auto]"
                   >
                     <label className="space-y-1">
-                      <span className="text-[11px] font-medium text-brand-ink-3">Kode</span>
+                      <span className="text-[11px] font-medium text-brand-ink-3">
+                        {t('channelCode')}
+                      </span>
                       <input
                         value={channel.id}
                         onChange={(event) =>
@@ -304,7 +302,9 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
                       />
                     </label>
                     <label className="space-y-1">
-                      <span className="text-[11px] font-medium text-brand-ink-3">Nama tampil</span>
+                      <span className="text-[11px] font-medium text-brand-ink-3">
+                        {t('channelLabel')}
+                      </span>
                       <input
                         value={channel.label}
                         onChange={(event) =>
@@ -316,7 +316,9 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
                       />
                     </label>
                     <label className="space-y-1">
-                      <span className="text-[11px] font-medium text-brand-ink-3">Net %</span>
+                      <span className="text-[11px] font-medium text-brand-ink-3">
+                        {t('netPercent')}
+                      </span>
                       <input
                         type="number"
                         min={0}
@@ -332,7 +334,9 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
                       />
                     </label>
                     <label className="space-y-1">
-                      <span className="text-[11px] font-medium text-brand-ink-3">Komisi %</span>
+                      <span className="text-[11px] font-medium text-brand-ink-3">
+                        {t('commissionPercent')}
+                      </span>
                       <input
                         type="number"
                         min={0}
@@ -358,14 +362,14 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
                         }
                         className="h-4 w-4 rounded border-brand-cream-3 text-brand-red"
                       />
-                      Aktif
+                      {t('active')}
                     </label>
                     <button
                       type="button"
                       onClick={() => removeChannel(setting.locationId, channel.id)}
                       className="self-end rounded-md border border-brand-cream-3 px-3 py-2 text-xs font-semibold text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red"
                     >
-                      Hapus
+                      {t('deleteChannel')}
                     </button>
                   </div>
                 ))}

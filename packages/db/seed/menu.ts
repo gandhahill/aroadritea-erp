@@ -192,7 +192,6 @@ const MENU_PRODUCTS: MenuProduct[] = [
   dessert('DST-PUDDING-OSMANTHUS', 'Osmanthus Oolong Pudding', '桂花乌龙布丁'),
   dessert('DST-PUDDING-CEYLON', 'Ceylon Black Pudding', '锡兰红茶布丁'),
   dessert('DST-PUDDING-ROY', 'Roasted Fragrant Yellow Pudding', '焙香黄茶布丁'),
-  dessert('DST-MOUSSE-CAKE', 'Mousse Cake', '慕斯蛋糕'),
 ];
 
 const PRODUCT_IMAGE_URLS: Record<string, string> = {
@@ -225,8 +224,8 @@ const PRODUCT_IMAGE_URLS: Record<string, string> = {
   // board and the brand has not yet provided a unique studio photo.
   'DST-FANCY-EGG-TART': '/photo/menu/egg-tart.jpg',
   // Pudding flavours each get their own photo from the brand-supplied
-  // source folder. Mousse Cake intentionally has no photo seed; the
-  // inventory UI shows a placeholder until the brand uploads one.
+  // source folder. Products without official source photos are not
+  // bootstrapped here to avoid public/menu placeholders.
   'DST-PUDDING-BAMBOO': '/photo/menu/pudding-bamboo.jpg',
   'DST-PUDDING-OSMANTHUS': '/photo/menu/pudding-osmanthus.jpg',
   'DST-PUDDING-CEYLON': '/photo/menu/pudding-ceylon.jpg',

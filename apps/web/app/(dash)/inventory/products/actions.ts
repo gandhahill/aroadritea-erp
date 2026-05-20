@@ -6,6 +6,7 @@ import {
   createProduct,
   createVariant,
   deactivateProduct,
+  deleteProductPermanently,
   getProduct,
   listCategories,
   listProducts,
@@ -324,6 +325,19 @@ export async function reactivateProductAction(formData: FormData): Promise<Actio
 
   const productId = text(formData, 'productId');
   const result = await reactivateProduct(productId, ctx);
+  if (!result.ok) return { error: errorMessage(result.error) };
+
+  revalidatePath('/inventory/products');
+  revalidatePath('/inventory/supplies');
+  return { ok: true, productId };
+}
+
+export async function deleteProductAction(formData: FormData): Promise<ActionState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+
+  const productId = text(formData, 'productId');
+  const result = await deleteProductPermanently(productId, ctx);
   if (!result.ok) return { error: errorMessage(result.error) };
 
   revalidatePath('/inventory/products');
