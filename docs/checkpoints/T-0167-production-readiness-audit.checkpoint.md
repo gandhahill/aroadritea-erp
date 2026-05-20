@@ -175,13 +175,14 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 11. [x] Commit, push, deploy latest local critical fixes, run production migrations, and smoke test live site/web/MCP.
 12. [x] Commit, push, deploy ERP static asset middleware patch, then live re-smoke favicon/PWA assets.
 13. [x] Commit/push/deploy the 23:31 local sweep and run authenticated ERP route-load smoke with admin session across POS production, POS demo, docs, permissions, product master, promotions, BI, journals, HR check-in/leave, account settings, audit trail, and scheduled jobs.
-14. [ ] Continue deeper SoT mismatch sweep for remaining partial modules, especially hardcoded-copy i18n migration, MCP write-tool coverage, print parity, PII encryption verification, absence automation, fixed-asset MCP tools, and real browser CRUD smoke.
+14. [ ] Continue deeper SoT mismatch sweep for remaining partial modules, especially hardcoded-copy i18n migration, print parity, PII encryption verification, absence automation, and real browser CRUD smoke.
 15. [x] Patch 2026-05-20 user-reported production issues for legal i18n, quick adjustment, POS settings, menu images, journal CSV import, BOM auto-deduct flexibility, and safe unused-master deletion.
 16. [x] Patch 2026-05-20 continuation issues for member Turnstile fallback, HR outlet/global employee isolation, fixed asset register/depreciation journals, and MCP public health host allow-list; deploy and smoke on VPS.
+17. [x] Patch fixed-asset MCP tools plus payroll bonus input and payroll statutory deduction JE aggregation; deploy and smoke on VPS.
 
 ## Next Step
 
-Continue the broader T-0167 sweep from `docs/TRACEABILITY-AUDIT.md` on remaining `PARTIAL` rows, especially MCP write-tool coverage for fixed assets, deeper PII encryption verification, absence/payroll bonus UI follow-through, and real browser CRUD smoke for high-risk modules.
+Continue the broader T-0167 sweep from `docs/TRACEABILITY-AUDIT.md` on remaining `PARTIAL` rows, especially deeper PII encryption verification, absence automation, print parity, and real browser CRUD smoke for high-risk modules.
 
 ## Test Status
 
@@ -248,6 +249,14 @@ Continue the broader T-0167 sweep from `docs/TRACEABILITY-AUDIT.md` on remaining
   - Production internal health smoke PASS: `127.0.0.1:3000/api/healthz`, `127.0.0.1:3001/api/healthz`, and `127.0.0.1:3002/healthz` returned HTTP 200.
   - Production public smoke PASS: `https://aroadritea.com/api/healthz`, `https://erp.aroadritea.com/api/healthz`, and `https://erp.aroadritea.com/mcp/healthz` returned HTTP 200.
   - Production authenticated route smoke PASS with admin session: `/accounting/assets`, `/hr/employees`, `/hr/employees/new`, `/settings/pos`, `/inventory/adjust`, `/accounting/journals/import`, `/pos`, `/pos/demo`, and public `/id/member/daftar` returned HTTP 200.
+- 2026-05-20 17:19 fixed-asset MCP and payroll bonus verification PASS:
+  - Local `pnpm --filter @erp/services typecheck`, `pnpm --filter @erp/web typecheck`, and `pnpm --filter @erp/mcp typecheck` PASS.
+  - Local payroll regression tests PASS: `tests/payroll-approve.test.ts` and `tests/payroll-engine.test.ts` (33 tests).
+  - Local full services test PASS: 25 files / 535 tests.
+  - Local `pnpm --filter @erp/web build` PASS; route list includes `/hr/payroll` and `/accounting/assets`.
+  - Local `pnpm --filter @erp/mcp build` PASS.
+  - Commit `a7e5285` was pushed, pulled on VPS, rebuilt for `@erp/web` and `@erp/mcp`, and PM2 `aroadri-web`/`aroadri-mcp` were reloaded/saved.
+  - Production smoke PASS with admin session: `/hr/payroll` and `/accounting/assets` returned HTTP 200; `https://erp.aroadritea.com/api/healthz` and `https://erp.aroadritea.com/mcp/healthz` returned HTTP 200.
 - 2026-05-20 16:38 local verification:
   - `pnpm -r typecheck` PASS across 10 workspace projects after member, HR, and fixed-asset changes.
   - `pnpm -r test` PASS: shared 58 tests and services 25 files / 534 tests.

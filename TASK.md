@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-20 17:13 WIB (Codex) | 🟨 IN_PROGRESS | Current sweep: fixed member Turnstile fallback, hardened HR employee outlet/global isolation, added fixed-asset register/depreciation journals, fixed MCP public health host allow-list, added fixed-asset MCP tools, and added payroll bonus inputs with payroll JE deduction aggregation fix. Verification: local typecheck/test/build PASS; earlier commits `b0ce01e`/`35a7c7e` deployed to VPS; second sweep ready for commit/deploy. |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-20 17:19 WIB (Codex) | 🟨 IN_PROGRESS | Current sweep: fixed member Turnstile fallback, hardened HR employee outlet/global isolation, added fixed-asset register/depreciation journals, fixed MCP public health host allow-list, added fixed-asset MCP tools, and added payroll bonus inputs with payroll JE deduction aggregation fix. Verification: local typecheck/test/build PASS; commits `b0ce01e`, `35a7c7e`, and `a7e5285` pushed and deployed to VPS; production smoke PASS for payroll, assets, ERP health, and MCP health. |
 
 ---
 
