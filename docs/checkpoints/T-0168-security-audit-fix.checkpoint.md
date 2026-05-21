@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-05-21 19:24 WIB
-- **Last updated**: 2026-05-21 19:45 WIB
+- **Last updated**: 2026-05-21 19:51 WIB
 - **Status**: IN_PROGRESS
 - **Phase**: Cross-cutting production readiness and security audit
 - **Branch**: master
@@ -28,8 +28,8 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 
 1. [x] Jalankan Fase 0 baseline dan dokumentasikan status awal.
 2. [x] Audit dan perbaiki flow member forgot password serta error `member.completeSignup.createFailed` bila masih terkait.
-3. [ ] Sweep trigger email dan perbaiki gap trigger/template multilingual.
-4. [ ] Perbaiki AP/AR reminder query dan tambahkan regresi.
+3. [x] Sweep trigger email dan perbaiki gap trigger/template multilingual.
+4. [x] Perbaiki AP/AR reminder query dan tambahkan regresi.
 5. [ ] Perbaiki scroll halaman manual sales.
 6. [ ] Pastikan dropdown outlet mengecualikan kantor.
 7. [ ] Baca ulang Excel Malioboro Mei dan selaraskan seed kode barang/produk/stok.
@@ -44,6 +44,7 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 - Fase 0 baseline selesai dan dicatat di `docs/audit/00-baseline.md`.
 - `pnpm typecheck` PASS, `pnpm test` PASS (593 tests), `pnpm lint` baseline FAIL (316 errors, 482 warnings), `pnpm audit --prod` PASS.
 - Member forgot-password flow ditambahkan: request reset, complete reset, single-use token, session revocation, multilingual email, site pages, login link, dan 3 regresi service.
+- AP/AR reminder worker diperbaiki: predicate tanggal diganti ke date arithmetic PostgreSQL yang aman, timezone Asia/Jakarta, join akun/partner tenant-safe, dan channel email `party_ledger` bisa dikonfigurasi.
 
 ## Decisions
 
@@ -55,13 +56,15 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 
 ## Next step
 
-Lanjut sweep trigger email dan AP/AR reminder failure: baca `apps/worker/src/jobs`, `packages/services/src/notification`, dan modul AP/AR sebelum patch query.
+Lanjut perbaiki halaman input penjualan manual yang tidak bisa discroll, lalu sweep dropdown outlet agar kantor tidak muncul.
 
 ## Test status
 
 - **Unit**: baseline `pnpm test` PASS (593 tests)
 - **Focused**: `pnpm --filter @erp/services test -- member-password-reset` PASS (3 tests)
+- **Focused**: `pnpm --filter @erp/services test -- notification-channel` PASS (1 test)
 - **Focused typecheck**: `pnpm --filter @erp/services typecheck` PASS; `pnpm --filter @erp/site typecheck` PASS
+- **Focused typecheck**: `pnpm --filter @erp/worker typecheck` PASS; `pnpm --filter @erp/web typecheck` PASS
 - **Integration**: belum dijalankan untuk T-0168
 - **E2E**: belum dijalankan untuk T-0168
 
@@ -81,12 +84,17 @@ Lanjut sweep trigger email dan AP/AR reminder failure: baca `apps/worker/src/job
 | `apps/site/app/[locale]/member/reset-password/page.tsx` | Added | Reset password route |
 | `apps/site/app/[locale]/member/masuk/page.tsx` | Updated | Forgot password link |
 | `apps/site/messages/*.json` | Updated | ID/EN/ZH reset-password i18n |
+| `apps/worker/src/jobs/party-ledger-reminders.ts` | Updated | Fix due-date predicate, tenant-safe joins, email channel trigger |
+| `packages/services/src/notification/index.ts` | Updated | Add `party_ledger` notification purpose |
+| `apps/web/app/(dash)/settings/notifications/*` | Updated | Expose party ledger email purpose |
+| `packages/services/tests/notification-channel.test.ts` | Added | Regression for party ledger channel purpose |
 
 ## Commits So Far
 
 | SHA | Message | Date |
 |-----|---------|------|
 | `5970cfc` | `docs(audit): record T-0168 baseline [INT-000]` | 2026-05-21 |
+| `e52d7e7` | `fix(member): add password reset flow [BUG-001]` | 2026-05-21 |
 
 ## Handoff Notes
 

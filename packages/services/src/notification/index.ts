@@ -21,7 +21,7 @@ import { requirePermission } from '../iam';
 import { maskPii } from '../security/pii';
 
 const ChannelTypeSchema = z.enum(['email', 'whatsapp', 'telegram']);
-const PurposeSchema = z.enum(['all', 'outage', 'stock_alert']);
+const PurposeSchema = z.enum(['all', 'outage', 'stock_alert', 'party_ledger']);
 
 export const CreateNotificationChannelSchema = z.object({
   label: z.string().min(1).max(120),

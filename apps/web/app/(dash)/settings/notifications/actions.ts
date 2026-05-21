@@ -46,7 +46,11 @@ export async function createNotificationChannelAction(
         | 'whatsapp'
         | 'telegram',
       target: String(formData.get('target') ?? '').trim(),
-      purpose: String(formData.get('purpose') ?? 'all') as 'all' | 'outage' | 'stock_alert',
+      purpose: String(formData.get('purpose') ?? 'all') as
+        | 'all'
+        | 'outage'
+        | 'stock_alert'
+        | 'party_ledger',
       isActive: formData.get('isActive') === 'on',
     },
     ctx,

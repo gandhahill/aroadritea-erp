@@ -59,6 +59,7 @@ export function NotificationChannelForm() {
           <option value="all">Semua notifikasi</option>
           <option value="outage">Gangguan sistem</option>
           <option value="stock_alert">Peringatan stok</option>
+          <option value="party_ledger">Reminder utang/piutang</option>
         </select>
       </label>
       <label className="flex items-center gap-2 text-sm font-medium text-brand-ink">
