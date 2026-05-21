@@ -18,11 +18,6 @@ export const metadata: Metadata = {
 type Audience = 'staff' | 'management' | 'developer';
 
 const AUDIENCES: Audience[] = ['staff', 'management', 'developer'];
-const AUDIENCE_LABEL: Record<Audience, string> = {
-  staff: 'Karyawan',
-  management: 'Manajemen',
-  developer: 'Developer',
-};
 
 type Block =
   | {
@@ -271,7 +266,7 @@ export default async function DocsPage({
                         : 'text-brand-ink-2 hover:text-brand-ink'
                     }`}
                   >
-                    {AUDIENCE_LABEL[a]}
+                    {t(`audiences.${a}` as any)}
                   </Link>
                 ))}
               </div>

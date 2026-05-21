@@ -1733,6 +1733,11 @@
       "saved": "Docs berhasil disimpan.",
       "saveFailed": "Docs gagal disimpan.",
       "unauthorized": "Sesi tidak valid. Silakan login ulang."
+    },
+    "audiences": {
+      "staff": "Karyawan",
+      "management": "Manajemen",
+      "developer": "Developer"
     }
   },
   "dashboard": {
@@ -1829,7 +1834,7 @@
       "classification": "Klasifikasi",
       "priority": "Prioritas",
       "owner": "Penanggung jawab",
-      "storageUrl": "Link Dokumen",
+      "storageUrl": "Upload",
       "tags": "Tag",
       "summary": "Ringkasan",
       "status": "Status"

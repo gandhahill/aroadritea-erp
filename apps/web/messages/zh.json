@@ -290,10 +290,10 @@
       "allowanceTitle": "Allowance for doubtful accounts",
       "allowanceHelp": "The allowance estimate is calculated from net receivable aging based on due dates. Rates use basis points, e.g. 100 = 1%.",
       "saveAllowance": "Save allowance rates",
-      "days1To30": "1-30 ?",
-      "days31To60": "31-60 ?",
-      "over60": ">60 ?",
-      "noPartner": "?????",
+      "days1To30": "1-30 days",
+      "days31To60": "31-60 days",
+      "over60": ">60 days",
+      "noPartner": "No partner",
       "allowanceRateLabel": "{bucket} bps"
     },
     "period": {
@@ -372,37 +372,37 @@
         "missingMasterData": "供应商、启用的地点或可采购商品尚未准备好。请先补全资料再创建采购订单。"
       }
     },
-    "eyebrow": "??",
-    "dashboardTitle": "??????",
-    "dashboardSubtitle": "???????????????????????????? GRN ??????????????",
-    "newPo": "+ ????",
-    "purchaseOrder": "????",
-    "draftSubmitted": "??/???",
-    "addSupplierHelp": "?????????????????",
-    "supplierSaved": "???????",
-    "supplierName": "?????",
-    "phone": "??",
-    "paymentTermsDays": "??????",
-    "address": "??",
-    "supplierPkp": "PKP ???",
-    "saving": "???...",
-    "contactMissing": "???????",
-    "searchPlaceholder": "???????????...",
-    "allStatuses": "????",
-    "fromDate": "????",
-    "toDate": "????",
+    "eyebrow": "Purchasing",
+    "dashboardTitle": "Purchasing & suppliers",
+    "dashboardSubtitle": "Manage suppliers, purchase orders, PO payables, and shipment tracking. Goods receipt still uses GRN so stock and journals stay traceable.",
+    "newPo": "+ Purchase Order",
+    "purchaseOrder": "Purchase Order",
+    "draftSubmitted": "Draft/Submitted",
+    "addSupplierHelp": "Suppliers are used when creating purchase orders and recording purchases.",
+    "supplierSaved": "Supplier saved.",
+    "supplierName": "Supplier name",
+    "phone": "Phone",
+    "paymentTermsDays": "Payment term days",
+    "address": "Address",
+    "supplierPkp": "PKP supplier",
+    "saving": "Saving...",
+    "contactMissing": "Contact is not filled yet",
+    "searchPlaceholder": "Search number, supplier, location...",
+    "allStatuses": "All statuses",
+    "fromDate": "From date",
+    "toDate": "To date",
     "filteredCount": "{filtered} / {total}",
-    "number": "??",
-    "location": "??",
-    "date": "??",
-    "total": "??",
-    "status": "??",
-    "shipmentTracking": "??",
-    "emptyFilter": "??????????????",
-    "awb": "???",
-    "phoneLast5": "??? 5 ?",
-    "syncTracking": "??",
-    "notSynced": "???"
+    "number": "Number",
+    "location": "Location",
+    "date": "Date",
+    "total": "Total",
+    "status": "Status",
+    "shipmentTracking": "Shipment",
+    "emptyFilter": "No purchase orders match the filter.",
+    "awb": "Tracking number",
+    "phoneLast5": "Phone 5",
+    "syncTracking": "Sync",
+    "notSynced": "Not synced"
   },
   "scheduledJobs": {
     "title": "定时任务",
@@ -525,7 +525,7 @@
         "kindMerchandise": "商品",
         "kindConsumable": "消耗品",
         "kindService": "服务",
-        "taxCodeNone": "??"
+        "taxCodeNone": "No tax"
       },
       "variants": {
         "add": "添加规格",
@@ -533,40 +533,40 @@
         "deactivate": "停用",
         "activate": "启用"
       },
-      "eyebrow": "??",
-      "suppliesLink": "?????",
-      "sellableDescriptionPrefix": "??????????????????????????",
-      "sellableDescriptionSuffix": "????????",
-      "all": "??",
-      "productsSold": "????",
-      "rawMaterial": "??",
-      "merchandise": "??",
-      "consumable": "??",
-      "service": "??",
-      "searchLabel": "????",
-      "searchInputPlaceholder": "SKU ?????",
-      "count": "{count} ???",
+      "eyebrow": "Inventory",
+      "suppliesLink": "Raw materials & supplies",
+      "sellableDescriptionPrefix": "Manage customer-facing products - drinks, food, merchandise, and services.",
+      "sellableDescriptionSuffix": "are managed on a separate page.",
+      "all": "All",
+      "productsSold": "Sellable products",
+      "rawMaterial": "Raw material",
+      "merchandise": "Merchandise",
+      "consumable": "Supplies",
+      "service": "Service",
+      "searchLabel": "Search products",
+      "searchInputPlaceholder": "SKU or product name",
+      "count": "{count} products",
       "sku": "SKU",
-      "photo": "??",
-      "name": "??",
-      "category": "??",
-      "kind": "??",
-      "price": "??",
-      "variant": "??",
-      "status": "??",
-      "active": "??",
-      "inactive": "??",
-      "edit": "??",
-      "suppliesTitle": "?????",
-      "suppliesDescriptionPrefix": "?????????????????????????????????????",
-      "sellableLink": "????",
-      "suppliesDescriptionSuffix": "????????",
-      "addItem": "????",
-      "searchSupplies": "???? / ??",
-      "searchItemPlaceholder": "SKU ?????",
-      "itemCount": "{count} ???",
-      "costPrice": "?? / ???",
-      "suppliesEmpty": "????????"
+      "photo": "Photo",
+      "name": "Name",
+      "category": "Category",
+      "kind": "Type",
+      "price": "Price",
+      "variant": "Variants",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "edit": "Edit",
+      "suppliesTitle": "Raw Materials & Supplies",
+      "suppliesDescriptionPrefix": "Recipe ingredients and operational supplies (cups, straws, lids, packaging). Items here do not appear at cashier.",
+      "sellableLink": "Sellable products",
+      "suppliesDescriptionSuffix": "are managed on a separate page.",
+      "addItem": "Add item",
+      "searchSupplies": "Search materials / supplies",
+      "searchItemPlaceholder": "SKU or item name",
+      "itemCount": "{count} items",
+      "costPrice": "COGS / Purchase",
+      "suppliesEmpty": "No raw materials or supplies found."
     },
     "opname": {
       "title": "库存盘点",
@@ -582,23 +582,23 @@
         "notesLabel": "备注",
         "notesPlaceholder": "此会话的可选备注...",
         "noLocations": "暂无活跃位置",
-        "location": "??",
-        "kind": "????",
-        "dailyTitle": "??????",
-        "dailyDesc": "????????????????????",
-        "weeklyTitle": "??",
-        "weeklyDesc": "???????????",
-        "monthlyTitle": "??????",
-        "monthlyDesc": "?????????????????",
-        "sessionDate": "????",
-        "periodCode": "????",
-        "periodPlaceholder": "???2026-05",
-        "periodHint": "???????????????????2026-05",
-        "locationRequired": "??????",
-        "sessionDateRequired": "????????",
-        "periodCodeRequired": "????????",
-        "createFailed": "????????",
-        "errorPrefix": "??"
+        "location": "Location",
+        "kind": "Opname Type",
+        "dailyTitle": "Daily (closing)",
+        "dailyDesc": "Tangible fast items: cups, straws, lids, and quick supplies.",
+        "weeklyTitle": "Weekly",
+        "weeklyDesc": "Products and toppings counted each week.",
+        "monthlyTitle": "Monthly (full)",
+        "monthlyDesc": "Tea, raw materials, cups, straws, and all supplies.",
+        "sessionDate": "Session Date",
+        "periodCode": "Period Code",
+        "periodPlaceholder": "example: 2026-05",
+        "periodHint": "Accounting period used for opname adjustment journals. Example: 2026-05",
+        "locationRequired": "Location is required",
+        "sessionDateRequired": "Session date is required",
+        "periodCodeRequired": "Period code is required",
+        "createFailed": "Failed to create opname session",
+        "errorPrefix": "Error"
       },
       "detail": {
         "productList": "产品列表",
@@ -692,7 +692,24 @@
         "opening_balance": "期初余额",
         "other": "其他"
       }
-    }
+    },
+    "suppliesLink": "管理耗材",
+    "sellableDescriptionPrefix": "管理销售给顾客的成品（菜单项）。每件商品必须有一个",
+    "sellableDescriptionSuffix": "类别以便出现在销售点（POS）上。",
+    "productsSold": "销售产品",
+    "searchLabel": "搜索产品",
+    "searchInputPlaceholder": "按名称或SKU搜索...",
+    "count": "{count} 件商品",
+    "suppliesTitle": "耗材与原材料",
+    "suppliesDescriptionPrefix": "管理库存中的原材料、包装及其他非卖品。这些物品可以被",
+    "sellableLink": "成品",
+    "suppliesDescriptionSuffix": "作为配方的一部分进行消耗。",
+    "addItem": "添加物品",
+    "searchSupplies": "搜索耗材/原材料",
+    "searchItemPlaceholder": "按名称或SKU搜索...",
+    "itemCount": "{count} 件商品",
+    "costPrice": "成本价/单位",
+    "suppliesEmpty": "未找到耗材商品。"
   },
   "nav": {
     "dashboard": "仪表盘",
@@ -761,10 +778,10 @@
     "promotions": "促销",
     "loyalty": "会员积分",
     "attendancePolicy": "考勤政策",
-    "supplies": "?????",
-    "categories": "??",
-    "stockByOutlet": "????",
-    "correspondence": "????"
+    "supplies": "Supplies",
+    "categories": "Categories",
+    "stockByOutlet": "Stock by Outlet",
+    "correspondence": "Correspondence"
   },
   "pos": {
     "manualSales": {
@@ -1086,29 +1103,42 @@
       "statusOnTime": "准时",
       "statusLate": "迟到",
       "checkInPage": {
-        "location": "??",
+        "location": "Location",
         "status": {
-          "accurate": "??",
-          "lowAccuracy": "????",
-          "gettingLocation": "??????...",
-          "denied": "???",
-          "error": "??",
-          "notStarted": "???"
+          "accurate": "准确",
+          "lowAccuracy": "精度低",
+          "gettingLocation": "获取位置中...",
+          "denied": "已拒绝",
+          "error": "错误",
+          "notStarted": "未开始"
         },
         "actions": {
-          "requestPermissionAgain": "????????",
-          "checkingIn": "????..."
+          "requestPermissionAgain": "重新请求位置权限",
+          "checkingIn": "签到中..."
         },
         "messages": {
-          "geolocationUnsupported": "????????????",
-          "locationPermissionDenied": "?????????????????????",
-          "employeeMissing": "??????????????????",
-          "checkedInLate": "???????? {minutes} ???",
-          "checkedInOnTime": "?????????",
-          "checkInFailed": "?????????",
-          "noShift": "?????????????????????",
-          "noEmployeeLinked": "???????????????????"
-        }
+          "geolocationUnsupported": "此浏览器不支持地理定位。",
+          "locationPermissionDenied": "位置权限被拒绝。请在浏览器中启用位置访问。",
+          "employeeMissing": "未找到员工数据。请使用员工账号登录。",
+          "checkedInLate": "已签到。迟到 {minutes} 分钟。",
+          "checkedInOnTime": "签到成功。准时。",
+          "checkInFailed": "签到失败。请重试。",
+          "noShift": "没有可用班次。请联系管理员激活班次主数据。",
+          "noEmployeeLinked": "此账号未绑定员工数据。请联系管理员。"
+        },
+        "kind": "考勤类型",
+        "dailyTitle": "每日考勤",
+        "dailyDesc": "记录每天上下班的打卡时间，基于GPS位置进行验证。",
+        "weeklyDesc": "为整周排班或设置考勤状态。",
+        "monthlyTitle": "月度考勤总结",
+        "monthlyDesc": "查看当月考勤记录的详细摘要及任何扣款。",
+        "sessionDate": "会话日期",
+        "periodCode": "考勤周期",
+        "periodPlaceholder": "例如：2026-05",
+        "periodHint": "请输入要查看的考勤周期（例如：2026-05）。",
+        "locationRequired": "必须提供位置信息",
+        "sessionDateRequired": "必须提供会话日期",
+        "periodCodeRequired": "必须提供周期代码"
       }
     },
     "leave": {
@@ -1450,12 +1480,12 @@
       "netPercent": "净额 %",
       "commissionPercent": "佣金 %",
       "active": "启用",
-      "detectPrinters": "?????",
-      "detectingPrinters": "???...",
-      "detectedPrinters": "????????",
-      "printerDetectFailed": "??????????????? Print Bridge ???????????????",
-      "printerManualOption": "????",
-      "printerBridgeHint": "???????????? Print Bridge ?????????????????????????????????"
+      "detectPrinters": "检测打印机",
+      "detectingPrinters": "检测中...",
+      "detectedPrinters": "检测到的打印机",
+      "printerDetectFailed": "无法自动检测打印机。请确保本地Print Bridge正在运行，或手动输入打印机名称。",
+      "printerManualOption": "手动输入",
+      "printerBridgeHint": "自动检测使用收银台的本地Print Bridge。普通浏览器不允许网站在没有本地网桥的情况下读取操作系统打印机列表。"
     },
     "promotions": {
       "title": "促销",
@@ -1590,23 +1620,23 @@
       "openShifts": "未关班次",
       "activeLocations": "启用门店",
       "period": "期间",
-      "shiftCount": "{count} ???",
-      "avgTicket": "?????",
-      "refundRate": "???",
-      "trend7Days": "7 ?????????",
-      "channelMix": "????????",
-      "memberVsGuest": "?? vs ????????",
-      "guest": "??",
-      "memberOrders": "???{count} ? ?",
-      "guestOrders": "???{count} ? ?",
-      "hourlyToday": "?????{date}?",
-      "hourlyHelp": "???????????????????",
-      "noData": "?????",
+      "shiftCount": "{count} 个班次",
+      "avgTicket": "平均客单价",
+      "refundRate": "退款率",
+      "trend7Days": "7天趋势（每日营业额）",
+      "channelMix": "渠道组合（本月）",
+      "memberVsGuest": "会员 vs 散客（本月）",
+      "guest": "散客",
+      "memberOrders": "会员：{count} 笔订单 ?",
+      "guestOrders": "散客：{count} 笔订单 ?",
+      "hourlyToday": "今日分时（{date}）",
+      "hourlyHelp": "每小时交易分布，有助于员工排班。",
+      "noData": "暂无数据。",
       "channels": {
-        "walkIn": "??",
+        "walkIn": "到店",
         "other": "{channel}"
       },
-      "member": "??"
+      "member": "会员"
     }
   },
   "opname": {
@@ -1729,148 +1759,178 @@
       "docTitle": "页面标题",
       "docSubtitle": "摘要",
       "body": "指南正文",
-      "markdownHelp": "使用 ## 作为章节标题，### 作为小节，1. 作为步骤，- 作为清单。内部链接可写为 ?标签: /页面路径?。",
+      "markdownHelp": "使用 ## 作为部分标题，### 作为小节，1. 作为顺序步骤，- 作为清单。内部链接可以写成 [标签](/路径)。",
       "saved": "指南已保存。",
       "saveFailed": "指南保存失败。",
       "unauthorized": "会话已失效，请重新登录。"
+    },
+    "audiences": {
+      "staff": "员工",
+      "management": "管理层",
+      "developer": "开发者"
     }
   },
   "dashboard": {
-    "fallbackUser": "??",
-    "subtitle": "??????????????",
-    "quickLinksTitle": "????",
+    "fallbackUser": "用户",
+    "subtitle": "今日摘要及主要模块的快捷方式。",
+    "quickLinksTitle": "快捷方式",
     "greetings": {
-      "morning": "???",
-      "afternoon": "???",
-      "evening": "???",
-      "night": "???"
+      "morning": "早上好",
+      "afternoon": "下午好",
+      "evening": "傍晚好",
+      "night": "晚上好"
     },
     "kpis": {
-      "todayGross": "?????",
-      "monthGross": "?????",
-      "transactions": "{count} ???",
-      "openShifts": "??????",
-      "activePos": "POS ???",
-      "lateToday": "????",
-      "notForgiven": "???",
-      "openPo": "??????",
-      "activeEmployees": "????",
-      "accountingPeriod": "????",
-      "open": "???",
-      "notOpened": "???"
+      "todayGross": "今日营业额",
+      "monthGross": "本月营业额",
+      "transactions": "{count} 笔交易",
+      "openShifts": "开启的班次",
+      "activePos": "活跃POS",
+      "lateToday": "今日迟到",
+      "notForgiven": "未豁免迟到",
+      "openPo": "未结PO",
+      "activeEmployees": "在职员工",
+      "accountingPeriod": "会计期间",
+      "open": "已开启",
+      "notOpened": "未开启"
     },
     "quickLinks": {
       "pos": {
-        "title": "POS ??",
-        "description": "????????????"
+        "title": "POS收银",
+        "description": "开始您班次的销售交易。"
       },
       "checkin": {
-        "title": "??",
-        "description": "?? GPS ????????????"
+        "title": "考勤打卡",
+        "description": "使用GPS进行今日上下班打卡。"
       },
       "manualJournal": {
-        "title": "????",
-        "description": "??????????????"
+        "title": "手工日记账",
+        "description": "记录附有凭证的一般日记账。"
       },
       "products": {
-        "title": "?????",
-        "description": "??????????????"
+        "title": "产品与菜单",
+        "description": "管理产品、类别、价格和图片。"
       },
       "opname": {
-        "title": "????",
-        "description": "???/?????????"
+        "title": "库存盘点",
+        "description": "进行每日/月度盘点并记录差异。"
       },
       "purchaseOrder": {
-        "title": "???",
-        "description": "??????????????"
+        "title": "采购订单",
+        "description": "向供应商创建PO并跟踪收货。"
       },
       "payroll": {
-        "title": "??",
-        "description": "? 8 ??????????????"
+        "title": "薪资核算",
+        "description": "在每月8号计算薪水，自动扣除考勤缺勤。"
       },
       "bi": {
-        "title": "????",
-        "description": "??? KPI??????????????"
+        "title": "商业智能",
+        "description": "监控营业额、渠道、热门产品和现金差异等KPI。"
       },
       "audit": {
-        "title": "????",
-        "description": "??????????????"
+        "title": "审计跟踪",
+        "description": "查看数据更改历史记录以进行内部控制。"
       },
       "permissions": {
-        "title": "?????",
-        "description": "????????????"
+        "title": "权限和角色",
+        "description": "管理用户的角色和访问权限。"
       }
     }
   },
   "correspondence": {
-    "eyebrow": "??",
-    "title": "????",
-    "subtitle": "??????????????????????????????????",
-    "newRecord": "?????",
-    "register": "?????",
-    "open": "??",
-    "back": "??????",
-    "empty": "?????",
-    "total": "{count} ???",
-    "saved": "??????",
-    "deleted": "??????",
-    "notFound": "??????",
-    "unassigned": "???",
-    "tagsPlaceholder": "??, ???, ??",
+    "eyebrow": "行政管理",
+    "title": "信件函件",
+    "subtitle": "注册收件、发件和内部备忘录，包括状态、责任人、截止日期和审计跟踪。",
+    "newRecord": "登记新信件",
+    "register": "信件登记",
+    "open": "打开",
+    "back": "返回信件函件",
+    "empty": "暂无信件。",
+    "total": "{count} 封信件",
+    "saved": "信件已成功更新。",
+    "deleted": "信件已成功归档。",
+    "notFound": "未找到该信件。",
+    "unassigned": "未分配",
+    "tagsPlaceholder": "法律, 供应商, 税务",
     "fields": {
-      "location": "??",
-      "direction": "??",
-      "documentNo": "????",
-      "subject": "??",
-      "counterparty": "???",
-      "documentDate": "????",
-      "dueDate": "????",
-      "channel": "??",
-      "classification": "??",
-      "priority": "???",
-      "owner": "???",
-      "storageUrl": "????",
-      "tags": "??",
-      "summary": "??",
-      "status": "??"
+      "location": "位置",
+      "direction": "方向",
+      "documentNo": "信件编号",
+      "subject": "主题",
+      "counterparty": "相关方",
+      "documentDate": "信件日期",
+      "dueDate": "截止日期",
+      "channel": "渠道",
+      "classification": "分类",
+      "priority": "优先级",
+      "owner": "负责人",
+      "storageUrl": "上传",
+      "tags": "标签",
+      "summary": "摘要",
+      "status": "状态"
     },
     "filters": {
-      "all": "??"
+      "all": "全部"
     },
     "directions": {
-      "incoming": "??",
-      "outgoing": "??",
-      "internal": "??"
+      "incoming": "收件",
+      "outgoing": "发件",
+      "internal": "内部"
     },
     "channels": {
-      "physical": "??",
-      "email": "????",
+      "physical": "实物",
+      "email": "电子邮件",
       "whatsapp": "WhatsApp",
-      "courier": "??",
-      "other": "??"
+      "courier": "快递",
+      "other": "其他"
     },
     "classifications": {
-      "general": "??",
-      "legal": "??",
-      "finance": "??",
-      "hr": "??",
-      "procurement": "??",
-      "tax": "??",
-      "other": "??"
+      "general": "一般",
+      "legal": "法律",
+      "finance": "财务",
+      "hr": "人力资源",
+      "procurement": "采购",
+      "tax": "税务",
+      "other": "其他"
     },
     "priorities": {
-      "low": "?",
-      "normal": "??",
-      "high": "?",
-      "urgent": "??"
+      "low": "低",
+      "normal": "正常",
+      "high": "高",
+      "urgent": "紧急"
     },
     "statuses": {
-      "draft": "??",
-      "registered": "???",
-      "in_progress": "???",
-      "sent": "???",
-      "closed": "???",
-      "archived": "???"
+      "draft": "草稿",
+      "registered": "已登记",
+      "in_progress": "处理中",
+      "sent": "已发送",
+      "closed": "已完成",
+      "archived": "已归档"
     }
+  },
+  "purchase": {
+    "suppliers": {
+      "noPartner": "没有选择合作伙伴"
+    },
+    "dashboardTitle": "采购仪表板",
+    "dashboardSubtitle": "从这里监控您的采购订单和商品接收。",
+    "newPo": "+ 新建采购订单",
+    "purchaseOrder": "采购订单",
+    "draftSubmitted": "草稿/已提交",
+    "addSupplierHelp": "在此处添加新供应商的详细信息。",
+    "supplierSaved": "供应商已成功保存。",
+    "supplierName": "供应商名称",
+    "paymentTermsDays": "付款期限（天）",
+    "supplierPkp": "是否为PKP（一般纳税人）",
+    "saving": "保存中...",
+    "contactMissing": "联系信息缺失",
+    "searchPlaceholder": "按名称搜索供应商...",
+    "allStatuses": "所有状态",
+    "fromDate": "开始日期",
+    "toDate": "结束日期",
+    "emptyFilter": "未找到符合筛选条件的采购订单。",
+    "awb": "运单号",
+    "phoneLast5": "电话（后5位）",
+    "notSynced": "未同步"
   }
 }

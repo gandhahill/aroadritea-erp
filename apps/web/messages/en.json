@@ -1733,6 +1733,11 @@
       "saved": "Docs saved.",
       "saveFailed": "Could not save docs.",
       "unauthorized": "Session expired. Please sign in again."
+    },
+    "audiences": {
+      "staff": "Staff",
+      "management": "Management",
+      "developer": "Developer"
     }
   },
   "dashboard": {
@@ -1829,7 +1834,7 @@
       "classification": "Classification",
       "priority": "Priority",
       "owner": "Owner",
-      "storageUrl": "Document Link",
+      "storageUrl": "Upload",
       "tags": "Tags",
       "summary": "Summary",
       "status": "Status"

@@ -37,7 +37,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
   };
 
   return (
-    <div className="min-h-full space-y-6 pb-24">
+    <div className="h-full w-full overflow-y-auto space-y-6 pb-24 px-4 pt-4">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
           {t('eyebrow')}
