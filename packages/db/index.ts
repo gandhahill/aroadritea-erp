@@ -165,6 +165,9 @@ export type {
   PromotionStatus,
 } from './schema/promotion';
 
+// Schema — Correspondence
+export { correspondenceRecords } from './schema/correspondence';
+
 // Schema — Notifications
 export {
   notificationChannels,

@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-05-21 19:24 WIB
-- **Last updated**: 2026-05-21 20:13 WIB
+- **Last updated**: 2026-05-21 20:24 WIB
 - **Status**: IN_PROGRESS
 - **Phase**: Cross-cutting production readiness and security audit
 - **Branch**: master
@@ -33,8 +33,8 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 5. [x] Perbaiki scroll halaman manual sales.
 6. [x] Pastikan dropdown outlet mengecualikan kantor.
 7. [x] Baca ulang Excel Malioboro Mei dan selaraskan seed kode barang/produk/stok.
-8. [ ] Tambah modul surat menyurat sesuai SoT/SD.
-9. [ ] Tambah panduan setup printer di docs dan halaman panduan bila ada.
+8. [x] Tambah modul surat menyurat sesuai SoT/SD.
+9. [x] Tambah panduan setup printer di docs dan halaman panduan bila ada.
 10. [ ] Jalankan audit keamanan Fase 1-5, commit atomik, dan verifikasi akhir.
 
 ## Done so far
@@ -48,6 +48,8 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 - Scroll dashboard/manual sales diperbaiki dengan `h-dvh`, `min-h-0`, dan padding bawah halaman supaya form + histori tetap bisa diakses.
 - Dropdown outlet operasional untuk POS manual, stock opname, quick adjustment, purchase order, POS settings, dan Naixer sudah dibatasi ke lokasi aktif bertipe `store`; lokasi kantor tetap tersedia untuk modul yang memang memerlukan lokasi administrasi seperti accounting asset/journal/HR.
 - Excel `D:\KERJA\Aroadri Tea\2026\05\Malioboro Mall Mei.xlsx` dibaca ulang. Seed minggu 1 Egg Tart dikoreksi dari 45 ke 60, semua 52 kode menu manager dimasukkan ke atribut variant `managerInventoryCode`, dan import movement sekarang menerima kode manager Excel maupun SKU internal serta menolak variant code yang tidak ditemukan.
+- Modul surat menyurat ditambahkan: SoT/SD, migration/schema `correspondence_records`, permission seed, service CRUD soft-delete dengan audit trail, UI register/detail, sidebar, dan i18n ID/EN/ZH.
+- Panduan printer di halaman Docs diperluas untuk printer detection, Print Bridge, dan `--kiosk-printing`; runbook printer sudah menjadi referensi teknis lengkap.
 
 ## Decisions
 
@@ -59,7 +61,7 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 
 ## Next step
 
-Tambahkan modul surat menyurat: update SoT/SD ringkas, tambah schema/migration/service/UI/permission/i18n/audit trail, lalu verifikasi typecheck/test fokus.
+Lanjut Fase 1 audit keamanan: buat `docs/audit/01-attack-surface.md` dengan entry-point, trust boundary, dan alur data sensitif, lalu lanjut static findings.
 
 ## Test status
 
@@ -71,6 +73,8 @@ Tambahkan modul surat menyurat: update SoT/SD ringkas, tambah schema/migration/s
 - **Focused typecheck**: `pnpm --filter @erp/web typecheck` PASS; `pnpm --filter @erp/services typecheck` PASS after manual-sales/outlet-scope patch
 - **Focused typecheck**: `pnpm --filter @erp/db typecheck` PASS; `pnpm --filter @erp/services typecheck` PASS after Malioboro seed/import patch
 - **Focused**: `pnpm --filter @erp/services test -- inventory-import-code` PASS (2 tests)
+- **Focused typecheck**: `pnpm --filter @erp/db typecheck` PASS; `pnpm --filter @erp/services typecheck` PASS; `pnpm --filter @erp/web typecheck` PASS after correspondence/docs patch
+- **Focused**: `pnpm --filter @erp/services test -- correspondence` PASS (2 tests)
 - **Integration**: belum dijalankan untuk T-0168
 - **E2E**: belum dijalankan untuk T-0168
 
@@ -106,6 +110,15 @@ Tambahkan modul surat menyurat: update SoT/SD ringkas, tambah schema/migration/s
 | `packages/db/schema/stock-opname.ts` | Updated | Stock opname kind comments include daily/weekly/monthly |
 | `packages/services/src/inventory/import-service.ts` | Updated | Import variant matching accepts manager codes and rejects unknown variants |
 | `packages/services/tests/inventory-import-code.test.ts` | Added | Regression for manager-code variant matching |
+| `SOURCE-OF-TRUTH.md` | Updated | Add surat menyurat business requirement |
+| `SYSTEM-DESIGN.md` | Updated | Add correspondence technical module spec |
+| `packages/db/schema/correspondence.ts` | Added | Correspondence register schema |
+| `packages/db/migrations/0022_correspondence_records.sql` | Added | Correspondence table migration |
+| `packages/services/src/correspondence/index.ts` | Added | Correspondence CRUD service with audit trail |
+| `packages/services/tests/correspondence.test.ts` | Added | Correspondence schema regression |
+| `apps/web/app/(dash)/correspondence/*` | Added | Correspondence list/detail UI and server actions |
+| `apps/web/messages/*.json` | Updated | Correspondence i18n ID/EN/ZH |
+| `apps/web/app/(dash)/docs/docs-content.ts` | Updated | Printer setup steps in in-app guide |
 
 ## Commits So Far
 
@@ -115,6 +128,7 @@ Tambahkan modul surat menyurat: update SoT/SD ringkas, tambah schema/migration/s
 | `e52d7e7` | `fix(member): add password reset flow [BUG-001]` | 2026-05-21 |
 | `e603514` | `fix(worker): repair party ledger reminders [BUG-002]` | 2026-05-21 |
 | `f2547f5` | `fix(web): keep outlet selectors store-only [BUG-003]` | 2026-05-21 |
+| `ffa0b8d` | `fix(inventory): align Malioboro manager codes [BUG-004]` | 2026-05-21 |
 
 ## Handoff Notes
 

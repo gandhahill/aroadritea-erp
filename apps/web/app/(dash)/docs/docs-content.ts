@@ -344,6 +344,8 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           'Pengaturan operasional dipakai agar ERP bisa menyesuaikan kebutuhan outlet tanpa edit source code. Jika terjadi error, catat bukti yang cukup supaya root cause bisa ditelusuri.',
         steps: [
           'Gunakan POS Settings untuk ukuran struk, posting akuntansi POS, channel, dan kebutuhan printer.',
+          'Di POS Settings, tekan Detect printers untuk mengambil daftar printer dari Print Bridge lokal; jika tidak tersedia, isi nama printer OS secara manual.',
+          'Untuk direct print tanpa preview browser, jalankan Chrome kasir dengan flag --kiosk-printing dan aktifkan Mode Kiosk Printing di POS Settings outlet.',
           'Gunakan Naixer KDS untuk mapping QR dan format label KDS.',
           'Gunakan Notifications untuk penerima alert operasional.',
           'Gunakan Scheduled Jobs untuk jadwal backup, payroll, stock alert, dan revalidasi cache bila sudah dikonfigurasi.',
@@ -354,6 +356,8 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
         ],
         checks: [
           'Ukuran struk dan label harus disesuaikan dengan printer outlet.',
+          'Dropdown printer hanya muncul jika Print Bridge kasir berjalan di perangkat lokal.',
+          'Kiosk printing bawaan browser hanya aman untuk satu printer default; gunakan Print Bridge untuk routing struk dan label ke printer berbeda.',
           'Label Naixer KDS mendukung 6x4 cm dan 4x3 cm landscape.',
           'Perubahan job otomatis harus diuji supaya tidak mengirim alert palsu atau melewatkan proses penting.',
         ],
@@ -715,6 +719,8 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           'Operational settings let ERP adapt to outlets without source-code changes. When errors happen, capture enough evidence before fixing.',
         steps: [
           'Use POS Settings for receipt width, POS accounting posting, channels, and printer needs.',
+          'In POS Settings, click Detect printers to load the local Print Bridge printer list; if it is unavailable, type the OS printer name manually.',
+          'For direct printing without browser preview, launch cashier Chrome with --kiosk-printing and enable Kiosk Printing Mode in outlet POS Settings.',
           'Use Naixer KDS for QR mapping and label formats.',
           'Use Notifications for operational alert recipients.',
           'Use Scheduled Jobs for backup, payroll, stock alert, and cache jobs when configured.',
@@ -725,6 +731,8 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
         ],
         checks: [
           'Receipt and label sizes must match the outlet printer.',
+          'Printer dropdowns appear only when the cashier Print Bridge is running on the local device.',
+          'Built-in browser kiosk printing is safe for one default printer; use Print Bridge to route receipts and labels to different printers.',
           'Naixer KDS labels support 6x4 cm and 4x3 cm landscape.',
           'Automated jobs must be tested to avoid false alerts or missed tasks.',
         ],

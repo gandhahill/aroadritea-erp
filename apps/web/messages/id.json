@@ -762,7 +762,8 @@
     "docsSettings": "Edit Docs",
     "supplies": "Bahan & Perlengkapan",
     "categories": "Kategori",
-    "stockByOutlet": "Stok per Outlet"
+    "stockByOutlet": "Stok per Outlet",
+    "correspondence": "Surat Menyurat"
   },
   "pos": {
     "title": "Kasir",
@@ -1785,6 +1786,77 @@
         "title": "Permission & role",
         "description": "Atur role dan akses per pengguna."
       }
+    }
+  },
+  "correspondence": {
+    "eyebrow": "Administrasi",
+    "title": "Surat Menyurat",
+    "subtitle": "Register surat masuk, surat keluar, dan memo internal dengan status, penanggung jawab, jatuh tempo, dan audit trail.",
+    "newRecord": "Catat Surat Baru",
+    "register": "Register Surat",
+    "open": "Buka",
+    "back": "Kembali ke surat menyurat",
+    "empty": "Belum ada surat.",
+    "total": "{count} surat",
+    "saved": "Surat berhasil diperbarui.",
+    "deleted": "Surat berhasil diarsipkan.",
+    "notFound": "Surat tidak ditemukan.",
+    "unassigned": "Belum ditugaskan",
+    "tagsPlaceholder": "legal, vendor, pajak",
+    "fields": {
+      "location": "Lokasi",
+      "direction": "Arah",
+      "documentNo": "Nomor Surat",
+      "subject": "Perihal",
+      "counterparty": "Pihak terkait",
+      "documentDate": "Tanggal Surat",
+      "dueDate": "Jatuh Tempo",
+      "channel": "Kanal",
+      "classification": "Klasifikasi",
+      "priority": "Prioritas",
+      "owner": "Penanggung jawab",
+      "storageUrl": "Link Dokumen",
+      "tags": "Tag",
+      "summary": "Ringkasan",
+      "status": "Status"
+    },
+    "filters": {
+      "all": "Semua"
+    },
+    "directions": {
+      "incoming": "Masuk",
+      "outgoing": "Keluar",
+      "internal": "Internal"
+    },
+    "channels": {
+      "physical": "Fisik",
+      "email": "Email",
+      "whatsapp": "WhatsApp",
+      "courier": "Kurir",
+      "other": "Lainnya"
+    },
+    "classifications": {
+      "general": "Umum",
+      "legal": "Legal",
+      "finance": "Keuangan",
+      "hr": "HR",
+      "procurement": "Procurement",
+      "tax": "Pajak",
+      "other": "Lainnya"
+    },
+    "priorities": {
+      "low": "Rendah",
+      "normal": "Normal",
+      "high": "Tinggi",
+      "urgent": "Mendesak"
+    },
+    "statuses": {
+      "draft": "Draf",
+      "registered": "Teregistrasi",
+      "in_progress": "Diproses",
+      "sent": "Terkirim",
+      "closed": "Selesai",
+      "archived": "Diarsipkan"
     }
   }
 }

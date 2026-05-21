@@ -25,7 +25,7 @@
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
 | T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-21 14:32 WIB (Codex) | IN_PROGRESS | Commit `1419720` deployed to VPS. Migration `0021`, seed, web/site/MCP/worker builds, and PM2 reload/save passed. Public health routes return 200; protected ERP smoke routes return 307 redirects without app-error; requested menu image assets return 200. DB reset was not run because migration/seed updated stale paths without data loss. |
-| T-0168 | Security audit and overnight operational fixes | Codex | 2026-05-21 19:24 WIB | 2026-05-21 20:13 WIB (Codex) | IN_PROGRESS | Baseline `5970cfc`, member reset `e52d7e7`, AP/AR reminder `e603514`, outlet scope `f2547f5`. Malioboro Excel seed/import fixed locally; next: correspondence module. |
+| T-0168 | Security audit and overnight operational fixes | Codex | 2026-05-21 19:24 WIB | 2026-05-21 20:24 WIB (Codex) | IN_PROGRESS | Baseline `5970cfc`, member reset `e52d7e7`, AP/AR reminder `e603514`, outlet scope `f2547f5`, Malioboro seed `ffa0b8d`. Correspondence + printer guide fixed locally; next: Fase 1 attack surface audit. |
 
 ---
 

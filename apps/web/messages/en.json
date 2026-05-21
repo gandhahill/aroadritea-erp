@@ -762,7 +762,8 @@
     "docsSettings": "Edit Docs",
     "supplies": "Supplies",
     "categories": "Categories",
-    "stockByOutlet": "Stock by Outlet"
+    "stockByOutlet": "Stock by Outlet",
+    "correspondence": "Correspondence"
   },
   "pos": {
     "title": "Point of Sale",
@@ -1785,6 +1786,77 @@
         "title": "Permissions & roles",
         "description": "Manage roles and user access."
       }
+    }
+  },
+  "correspondence": {
+    "eyebrow": "Administration",
+    "title": "Correspondence",
+    "subtitle": "Register incoming letters, outgoing letters, and internal memos with status, owner, due date, and audit trail.",
+    "newRecord": "Register New Letter",
+    "register": "Correspondence Register",
+    "open": "Open",
+    "back": "Back to correspondence",
+    "empty": "No correspondence yet.",
+    "total": "{count} letters",
+    "saved": "Correspondence updated.",
+    "deleted": "Correspondence archived.",
+    "notFound": "Correspondence not found.",
+    "unassigned": "Unassigned",
+    "tagsPlaceholder": "legal, vendor, tax",
+    "fields": {
+      "location": "Location",
+      "direction": "Direction",
+      "documentNo": "Document No.",
+      "subject": "Subject",
+      "counterparty": "Counterparty",
+      "documentDate": "Document Date",
+      "dueDate": "Due Date",
+      "channel": "Channel",
+      "classification": "Classification",
+      "priority": "Priority",
+      "owner": "Owner",
+      "storageUrl": "Document Link",
+      "tags": "Tags",
+      "summary": "Summary",
+      "status": "Status"
+    },
+    "filters": {
+      "all": "All"
+    },
+    "directions": {
+      "incoming": "Incoming",
+      "outgoing": "Outgoing",
+      "internal": "Internal"
+    },
+    "channels": {
+      "physical": "Physical",
+      "email": "Email",
+      "whatsapp": "WhatsApp",
+      "courier": "Courier",
+      "other": "Other"
+    },
+    "classifications": {
+      "general": "General",
+      "legal": "Legal",
+      "finance": "Finance",
+      "hr": "HR",
+      "procurement": "Procurement",
+      "tax": "Tax",
+      "other": "Other"
+    },
+    "priorities": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "statuses": {
+      "draft": "Draft",
+      "registered": "Registered",
+      "in_progress": "In Progress",
+      "sent": "Sent",
+      "closed": "Closed",
+      "archived": "Archived"
     }
   }
 }

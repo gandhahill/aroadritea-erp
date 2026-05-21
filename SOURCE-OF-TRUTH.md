@@ -1239,6 +1239,21 @@ Fitur donasi memungkinkan pelanggan membulatkan kembalian atau menyisihkan sejum
 
 ---
 
+### 21.11 Surat Menyurat & Register Dokumen Administrasi
+
+ERP wajib menyediakan modul surat menyurat untuk kebutuhan administrasi internal, legal, pajak, procurement, HR, dan keuangan.
+
+| Fitur | Detail |
+|---|---|
+| **Register Surat** | Catat surat masuk, surat keluar, dan memo internal. Nomor surat unik per tenant. |
+| **Metadata Wajib** | Lokasi, arah surat, nomor surat, perihal, pihak terkait, tanggal surat, jatuh tempo, kanal, klasifikasi, prioritas, status, penanggung jawab. |
+| **Status Workflow** | `draft`, `registered`, `in_progress`, `sent`, `closed`, `archived`. |
+| **Lampiran** | File surat dapat ditautkan via URL storage/upload yang sudah ada; isi dokumen tidak disimpan langsung di database. |
+| **Audit Trail** | Setiap create, update, dan archive/delete wajib tercatat di `audit_log` dengan before/after. |
+| **Akses** | Permission terpisah: `correspondence.view`, `correspondence.create`, `correspondence.update`, `correspondence.delete`. |
+
+---
+
 ### 21.8 PIC & Komunikasi
 - **PIC dari sisi perusahaan**: **user sendiri** (Lintang Maulana Zulfan).
 - **Kanal komunikasi proyek**: **WhatsApp**.

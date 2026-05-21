@@ -17,6 +17,7 @@
     "./cms": "./src/cms/index.ts",
     "./member": "./src/member/index.ts",
     "./promotion": "./src/promotion/index.ts",
+    "./correspondence": "./src/correspondence/index.ts",
     "./scheduled-jobs": "./src/scheduled-jobs/index.ts",
     "./security/pii": "./src/security/pii.ts",
     "./customfield": "./src/customfield/index.ts",

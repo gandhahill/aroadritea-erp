@@ -2013,6 +2013,18 @@ Member data (lihat SoT §13.1) di `partners` (kind=customer + is_member).
 #### Komplain
 - `complaints (id, customer_id, location_id, occurred_at, description, status)` + `complaint_compensations (complaint_id, kind: 'product_replacement' | 'voucher' | 'refund', amount, journal_entry_id)`.
 
+### 21.10 Correspondence / Surat Menyurat (Administration)
+
+Modul administrasi untuk surat masuk, surat keluar, dan memo internal.
+
+- Tabel utama: `correspondence_records`.
+- Kolom wajib: `tenant_id`, `location_id`, `direction`, `document_no`, `subject`, `document_date`, `status`, audit columns, dan `version`.
+- Metadata opsional: `counterparty`, `due_date`, `channel`, `classification`, `priority`, `owner_user_id`, `summary`, `storage_url`, `tags`.
+- `document_no` unik per tenant agar nomor surat tidak ganda.
+- Semua mutasi melewati service layer dan permission engine: `correspondence.view/create/update/delete`.
+- Delete bersifat soft-delete + status `archived`; data historis tetap tersedia untuk audit.
+- UI tidak boleh menampilkan UUID sebagai identitas utama; tampilkan `document_no` dan `subject`.
+
 ---
 
 ## 22. Error Handling & Logging
