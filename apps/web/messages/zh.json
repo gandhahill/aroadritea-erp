@@ -541,7 +541,7 @@
       "productsSold": "可售产品",
       "rawMaterial": "原材料",
       "merchandise": "周边",
-      "consumable": "Supplies",
+      "consumable": "耗材",
       "service": "服务",
       "searchLabel": "搜索产品",
       "searchInputPlaceholder": "SKU或产品名称",
@@ -1103,7 +1103,7 @@
       "statusOnTime": "准时",
       "statusLate": "迟到",
       "checkInPage": {
-        "location": "Location",
+        "location": "位置",
         "status": {
           "accurate": "准确",
           "lowAccuracy": "精度低",

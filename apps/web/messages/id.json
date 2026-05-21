@@ -7,7 +7,7 @@
       "edit": "Ubah",
       "create": "Buat Baru",
       "search": "Cari",
-      "filter": "Filter",
+      "filter": "Saring",
       "export": "Ekspor",
       "print": "Cetak",
       "confirm": "Konfirmasi",
@@ -1227,7 +1227,7 @@
       "statusCancelled": "Dibatalkan"
     },
     "payroll": {
-      "title": "Payroll",
+      "title": "Penggajian",
       "run": "Jalankan Payroll",
       "period": "Periode",
       "status": "Status",
@@ -1286,7 +1286,7 @@
       "confirmDelete": "Yakin ingin menghapus halaman ini?",
       "types": {
         "page": "Halaman",
-        "landing": "Landing Page",
+        "landing": "Halaman Utama",
         "legal": "Hukum"
       }
     },
@@ -1295,7 +1295,7 @@
       "subtitle": "Kelola berita, promo, resep, dan event.",
       "create": "Buat Post",
       "createNew": "Buat Post Baru",
-      "editPost": "Edit Post",
+      "editPost": "Edit Artikel",
       "createFirst": "Buat post pertama untuk blog atau promo.",
       "empty": "Belum ada post",
       "delete": "Hapus Post",
@@ -1360,7 +1360,7 @@
       "empty": "Tidak ada data penjualan pada periode ini"
     },
     "bi": {
-      "eyebrow": "Business Intelligence",
+      "eyebrow": "Kecerdasan Bisnis",
       "title": "Dashboard Manajemen",
       "subtitle": "Ringkasan performa outlet periode {from} sampai {to}.",
       "gross": "Penjualan Kotor",
@@ -1443,7 +1443,7 @@
   "settings": {
     "title": "Pengaturan",
     "permissions": {
-      "title": "Permissions",
+      "title": "Hak Akses",
       "subtitle": "Buat role baru, ubah nama role, lalu centang permission yang dibutuhkan.",
       "noAccess": "Akun ini tidak memiliki akses untuk mengatur permission.",
       "addRole": "Tambah Role",
@@ -1527,7 +1527,7 @@
       "address": "Alamat",
       "active": "Aktif",
       "inactive": "Nonaktif",
-      "store": "Outlet",
+      "store": "Gerai",
       "office": "Kantor",
       "warehouse": "Gudang",
       "saved": "Lokasi berhasil disimpan.",
@@ -1690,7 +1690,7 @@
     "passwordTooShort": "Kata sandi baru minimal 12 karakter."
   },
   "audit": {
-    "title": "Audit Trail",
+    "title": "Jejak Audit",
     "subtitle": "Telusuri perubahan penting di seluruh modul ERP: siapa melakukan apa, kapan, dan data apa yang berubah.",
     "entityType": "Jenis data",
     "action": "Aksi",
@@ -1719,9 +1719,9 @@
   "docs": {
     "badge": "Panduan Operasional",
     "toc": "Daftar isi",
-    "edit": "Edit docs",
+    "edit": "Edit panduan",
     "editor": {
-      "eyebrow": "CMS Docs",
+      "eyebrow": "CMS Panduan",
       "title": "Edit halaman Docs ERP",
       "subtitle": "Ubah panduan, tutorial, dan instruksi kerja dari UI. Perubahan yang disimpan langsung menjadi sumber tampilan halaman Docs, tanpa edit source code.",
       "save": "Simpan Docs",
@@ -1737,7 +1737,7 @@
     "audiences": {
       "staff": "Karyawan",
       "management": "Manajemen",
-      "developer": "Developer"
+      "developer": "Pengembang"
     }
   },
   "dashboard": {
@@ -1786,19 +1786,19 @@
         "description": "Hitung stok harian/bulanan dan rekam selisih."
       },
       "purchaseOrder": {
-        "title": "Purchase order",
+        "title": "Pesanan Pembelian",
         "description": "Buat PO ke supplier dan lacak penerimaan barang."
       },
       "payroll": {
-        "title": "Payroll",
+        "title": "Penggajian",
         "description": "Hitung gaji tanggal 8 dengan potongan presensi otomatis."
       },
       "bi": {
-        "title": "Business Intelligence",
+        "title": "Kecerdasan Bisnis",
         "description": "KPI omzet, channel, produk teratas, varians kas."
       },
       "audit": {
-        "title": "Audit trail",
+        "title": "Jejak Audit",
         "description": "Riwayat perubahan data untuk kontrol internal."
       },
       "permissions": {
@@ -1859,7 +1859,7 @@
       "legal": "Legal",
       "finance": "Keuangan",
       "hr": "HR",
-      "procurement": "Procurement",
+      "procurement": "Pengadaan",
       "tax": "Pajak",
       "other": "Lainnya"
     },
