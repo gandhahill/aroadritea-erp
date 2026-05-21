@@ -5,6 +5,7 @@ import {
   fetchCorrespondenceDetail,
   updateCorrespondenceAction,
 } from '../actions';
+import { FileUploadField } from '@/components/file-upload-field';
 
 export const dynamic = 'force-dynamic';
 
@@ -132,9 +133,14 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
               ))}
             </select>
           </Field>
-          <Field label={t('fields.storageUrl')}>
-            <input name="storageUrl" className={INPUT} defaultValue={record.storageUrl ?? ''} />
-          </Field>
+          <FileUploadField
+            label={t('fields.storageUrl')}
+            hiddenName="storageUrl"
+            value={record.storageUrl}
+            area="correspondence"
+            visibility="private"
+            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx"
+          />
           <Field label={t('fields.tags')}>
             <input name="tags" className={INPUT} defaultValue={record.tags.join(', ')} />
           </Field>

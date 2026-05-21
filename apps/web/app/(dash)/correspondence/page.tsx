@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { createCorrespondenceAction, fetchCorrespondencePageData } from './actions';
+import { FileUploadField } from '@/components/file-upload-field';
 
 export const dynamic = 'force-dynamic';
 
@@ -108,9 +109,13 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
               ))}
             </select>
           </Field>
-          <Field label={t('fields.storageUrl')}>
-            <input name="storageUrl" className={INPUT} placeholder="https://..." />
-          </Field>
+          <FileUploadField
+            label={t('fields.storageUrl')}
+            hiddenName="storageUrl"
+            area="correspondence"
+            visibility="private"
+            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx"
+          />
           <Field label={t('fields.tags')}>
             <input name="tags" className={INPUT} placeholder={t('tagsPlaceholder')} />
           </Field>
