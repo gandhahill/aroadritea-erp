@@ -6,6 +6,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import { resolveIngredientDeductionDecision } from '../src/pos/create-sale';
 import {
   ChannelSchema,
   CloseShiftInputSchema,
@@ -673,6 +674,39 @@ describe('Refund stock restoration', () => {
     const stockLevel = { productId: 'sugar', uom: 'bottle' };
     expect(stockLevel.productId).toBe(bomLine.ingredientId);
     expect(stockLevel.uom === bomLine.uom).toBe(false);
+  });
+});
+
+describe('Ingredient stock deduction guard', () => {
+  it('deducts only when tracked stock has the same unit and enough quantity', () => {
+    const decision = resolveIngredientDeductionDecision(
+      { uom: 'ml', qtyOnHand: '500.000', qtyAvailable: '500.000' },
+      { uom: 'ml', qty: '150.000' },
+    );
+
+    expect(decision).toEqual({ action: 'deduct' });
+  });
+
+  it('skips auto deduction when recipe unit differs from stock unit', () => {
+    const decision = resolveIngredientDeductionDecision(
+      { uom: 'bottle', qtyOnHand: '2.000', qtyAvailable: '2.000' },
+      { uom: 'ml', qty: '30.000' },
+    );
+
+    expect(decision).toEqual({ action: 'skip', reason: 'untracked_or_uom_mismatch' });
+  });
+
+  it('rejects tracked matching-unit stock that is insufficient instead of clamping to zero', () => {
+    const decision = resolveIngredientDeductionDecision(
+      { uom: 'pcs', qtyOnHand: '1.000', qtyAvailable: '1.000' },
+      { uom: 'pcs', qty: '2.000' },
+    );
+
+    expect(decision).toEqual({
+      action: 'insufficient',
+      qtyOnHand: '1.000',
+      qtyAvailable: '1.000',
+    });
   });
 });
 

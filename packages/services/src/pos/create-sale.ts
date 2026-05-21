@@ -478,6 +478,111 @@ async function getBOMIngredients(
   }));
 }
 
+type IngredientStockRow = {
+  id: string;
+  uom: string;
+  qtyOnHand: string | null;
+  qtyAvailable: string | null;
+};
+
+type IngredientDeduction = {
+  stockLevelId: string;
+  tenantId: string;
+  locationId: string;
+  ingredientId: string;
+  qty: string;
+  uom: string;
+  referenceId: string;
+};
+
+type IngredientDeductionDecision =
+  | { action: 'deduct' }
+  | { action: 'skip'; reason: 'untracked_or_uom_mismatch' }
+  | { action: 'insufficient'; qtyOnHand: string | null; qtyAvailable: string | null };
+
+function parseQtyToMilli(value: string | number | null | undefined): bigint | null {
+  if (value === null || value === undefined) return null;
+  const raw = String(value).trim();
+  if (!/^-?\d+(\.\d+)?$/.test(raw)) return null;
+  const sign = raw.startsWith('-') ? -1n : 1n;
+  const unsigned = raw.replace(/^-/, '');
+  const [wholeRaw, fractionRaw = ''] = unsigned.split('.');
+  const whole = BigInt(wholeRaw || '0') * 1000n;
+  const fraction = BigInt(fractionRaw.padEnd(3, '0').slice(0, 3) || '0');
+  return sign * (whole + fraction);
+}
+
+export function resolveIngredientDeductionDecision(
+  stock: Pick<IngredientStockRow, 'uom' | 'qtyOnHand' | 'qtyAvailable'>,
+  ingredient: Pick<IngredientDeduction, 'qty' | 'uom'>,
+): IngredientDeductionDecision {
+  if (stock.uom !== ingredient.uom) {
+    return { action: 'skip', reason: 'untracked_or_uom_mismatch' };
+  }
+
+  const required = parseQtyToMilli(ingredient.qty);
+  const onHand = parseQtyToMilli(stock.qtyOnHand);
+  const available = parseQtyToMilli(stock.qtyAvailable);
+  if (required === null || onHand === null || available === null) {
+    return { action: 'insufficient', qtyOnHand: stock.qtyOnHand, qtyAvailable: stock.qtyAvailable };
+  }
+
+  if (onHand < required || available < required) {
+    return { action: 'insufficient', qtyOnHand: stock.qtyOnHand, qtyAvailable: stock.qtyAvailable };
+  }
+
+  return { action: 'deduct' };
+}
+
+async function compensateIngredientDeductions(
+  deductions: IngredientDeduction[],
+  ctx: AuditContext,
+  recordMovement: boolean,
+): Promise<void> {
+  for (const deduction of [...deductions].reverse()) {
+    await db
+      .update(stockLevels)
+      .set({
+        qtyOnHand: sql`${stockLevels.qtyOnHand} + ${deduction.qty}::numeric`,
+        qtyAvailable: sql`${stockLevels.qtyAvailable} + ${deduction.qty}::numeric`,
+        updatedBy: ctx.userId,
+        lastMovementAt: new Date(),
+      })
+      .where(eq(stockLevels.id, deduction.stockLevelId));
+
+    if (recordMovement) {
+      await db.insert(stockMovements).values({
+        id: generateId(),
+        tenantId: deduction.tenantId,
+        locationId: deduction.locationId,
+        occurredAt: new Date(),
+        stockLocationId: null as unknown as string,
+        productId: deduction.ingredientId,
+        variantId: null,
+        batchNo: null,
+        qtyDelta: deduction.qty as unknown as ReturnType<typeof String>,
+        uom: deduction.uom,
+        reason: 'sale_rollback',
+        referenceType: 'sales_order',
+        referenceId: deduction.referenceId,
+        unitCost: null,
+        createdBy: ctx.userId,
+        updatedBy: ctx.userId,
+      });
+    }
+  }
+}
+
+function insufficientStockError(ingredient: IngredientDeduction, stock?: IngredientStockRow) {
+  return AppError.businessRule('pos.createSale.insufficientStock', {
+    ingredientId: ingredient.ingredientId,
+    requiredQty: ingredient.qty,
+    uom: ingredient.uom,
+    qtyOnHand: stock?.qtyOnHand ?? null,
+    qtyAvailable: stock?.qtyAvailable ?? null,
+  });
+}
+
 /** Deduct ingredients from stock_levels. */
 async function deductIngredients(
   tenantId: string,
@@ -489,13 +594,17 @@ async function deductIngredients(
   }>,
   referenceId: string,
   ctx: AuditContext,
-): Promise<Result<void>> {
+): Promise<Result<IngredientDeduction[]>> {
+  const appliedDeductions: IngredientDeduction[] = [];
   try {
     for (const ing of ingredients) {
-      // Ingredients (raw materials) are tracked as products without
-      // variants in this schema; match by tenant+location+productId.
       const existing = await db
-        .select()
+        .select({
+          id: stockLevels.id,
+          uom: stockLevels.uom,
+          qtyOnHand: stockLevels.qtyOnHand,
+          qtyAvailable: stockLevels.qtyAvailable,
+        })
         .from(stockLevels)
         .where(
           and(
@@ -506,48 +615,75 @@ async function deductIngredients(
         )
         .then((r) => r[0]);
 
-      if (existing) {
-        if (existing.uom !== ing.uom) {
-          continue;
-        }
-        // Atomic decrement via SQL so two concurrent sales can't lose a
-        // unit each. GREATEST clamps to zero in case the row drifted
-        // below the deduction quantity (SoT §25.9 mandates warn-only
-        // negative-stock handling, not hard block).
-        await db
-          .update(stockLevels)
-          .set({
-            qtyOnHand: sql`GREATEST(0::numeric, ${stockLevels.qtyOnHand} - ${ing.qty})`,
-            qtyAvailable: sql`GREATEST(0::numeric, ${stockLevels.qtyAvailable} - ${ing.qty})`,
-            updatedBy: ctx.userId,
-            lastMovementAt: new Date(),
-          })
-          .where(eq(stockLevels.id, existing.id));
-      } else {
-        continue;
-      }
+      if (!existing) continue;
 
-      await db.insert(stockMovements).values({
-        id: generateId(),
+      const deduction: IngredientDeduction = {
+        stockLevelId: existing.id,
         tenantId,
         locationId,
-        occurredAt: new Date(),
-        stockLocationId: null as unknown as string,
-        productId: ing.ingredientId,
-        variantId: null,
-        batchNo: null,
-        qtyDelta: `-${ing.qty}` as unknown as ReturnType<typeof String>,
+        ingredientId: ing.ingredientId,
+        qty: ing.qty,
         uom: ing.uom,
-        reason: 'sale',
-        referenceType: 'sales_order',
         referenceId,
-        unitCost: null,
-        createdBy: ctx.userId,
-        updatedBy: ctx.userId,
-      });
+      };
+      const decision = resolveIngredientDeductionDecision(existing, deduction);
+      if (decision.action === 'skip') continue;
+      if (decision.action === 'insufficient') {
+        await compensateIngredientDeductions(appliedDeductions, ctx, false);
+        return err(insufficientStockError(deduction, existing));
+      }
+
+      const updated = await db
+        .update(stockLevels)
+        .set({
+          qtyOnHand: sql`${stockLevels.qtyOnHand} - ${ing.qty}::numeric`,
+          qtyAvailable: sql`${stockLevels.qtyAvailable} - ${ing.qty}::numeric`,
+          updatedBy: ctx.userId,
+          lastMovementAt: new Date(),
+        })
+        .where(
+          and(
+            eq(stockLevels.id, existing.id),
+            sql`${stockLevels.qtyOnHand} >= ${ing.qty}::numeric`,
+            sql`${stockLevels.qtyAvailable} >= ${ing.qty}::numeric`,
+          ),
+        )
+        .returning({ id: stockLevels.id });
+
+      if (!updated[0]) {
+        await compensateIngredientDeductions(appliedDeductions, ctx, false);
+        return err(insufficientStockError(deduction, existing));
+      }
+
+      appliedDeductions.push(deduction);
     }
-    return ok(undefined);
+
+    if (appliedDeductions.length > 0) {
+      await db.insert(stockMovements).values(
+        appliedDeductions.map((deduction) => ({
+          id: generateId(),
+          tenantId: deduction.tenantId,
+          locationId: deduction.locationId,
+          occurredAt: new Date(),
+          stockLocationId: null as unknown as string,
+          productId: deduction.ingredientId,
+          variantId: null,
+          batchNo: null,
+          qtyDelta: `-${deduction.qty}` as unknown as ReturnType<typeof String>,
+          uom: deduction.uom,
+          reason: 'sale',
+          referenceType: 'sales_order',
+          referenceId: deduction.referenceId,
+          unitCost: null,
+          createdBy: ctx.userId,
+          updatedBy: ctx.userId,
+        })),
+      );
+    }
+
+    return ok(appliedDeductions);
   } catch (e) {
+    await compensateIngredientDeductions(appliedDeductions, ctx, false);
     return err(AppError.internal('pos.createSale.ingredientDeductionFailed', e));
   }
 }
@@ -573,6 +709,12 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
   if (!permCheck.ok) return permCheck;
 
   let claimedIdempotencyId: string | null = null;
+  let appliedStockDeductions: IngredientDeduction[] = [];
+  const rollbackAppliedStockDeductions = async () => {
+    if (appliedStockDeductions.length === 0) return;
+    await compensateIngredientDeductions(appliedStockDeductions, ctx, true);
+    appliedStockDeductions = [];
+  };
 
   try {
     // 3. Validate shift is open
@@ -870,9 +1012,10 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
         ctx,
       );
       if (!deductResult.ok) {
-        // Log but don't fail — stock deduction is best-effort for POS
-        // (stock levels may not have been initialized for raw materials)
+        await rollbackAppliedStockDeductions();
+        return err(deductResult.error);
       }
+      appliedStockDeductions.push(...deductResult.value);
     }
     // 10. Insert sales_order
     await db.insert(salesOrders).values({
@@ -1043,6 +1186,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
             .where(eq(idempotencyRecords.id, claimedIdempotencyId));
           claimedIdempotencyId = null;
         }
+        await rollbackAppliedStockDeductions();
         return err(postResult.error);
       }
       // Update sales_order with JE reference
@@ -1058,11 +1202,13 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
           .where(eq(idempotencyRecords.id, claimedIdempotencyId));
         claimedIdempotencyId = null;
       }
+      await rollbackAppliedStockDeductions();
       return err(jeResult.error);
     }
 
     // 14. Idempotency record
     if (!claimedIdempotencyId) {
+      await rollbackAppliedStockDeductions();
       return err(AppError.internal('pos.createSale.idempotencyClaimMissing'));
     }
     await db
@@ -1161,6 +1307,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
 
     return ok(result);
   } catch (e) {
+    await rollbackAppliedStockDeductions().catch(() => undefined);
     if (claimedIdempotencyId) {
       await db
         .update(idempotencyRecords)
