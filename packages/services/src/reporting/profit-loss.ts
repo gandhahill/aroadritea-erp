@@ -57,7 +57,11 @@ export async function profitLoss(
   input: ProfitLossInput,
   ctx: AuditContext,
 ): Promise<Result<ProfitLossResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'accounting.view');
+  const permCheck = await requirePermission(
+    ctx.userId,
+    'accounting.view',
+    input.locationId ? { locationId: input.locationId } : undefined,
+  );
   if (!permCheck.ok) return permCheck;
 
   return tryCatch(

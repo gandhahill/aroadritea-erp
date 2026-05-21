@@ -56,7 +56,11 @@ export async function trialBalance(
   input: TrialBalanceInput,
   ctx: AuditContext,
 ): Promise<Result<TrialBalanceResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'accounting.view');
+  const permCheck = await requirePermission(
+    ctx.userId,
+    'accounting.view',
+    input.locationId ? { locationId: input.locationId } : undefined,
+  );
   if (!permCheck.ok) return permCheck;
 
   return tryCatch(

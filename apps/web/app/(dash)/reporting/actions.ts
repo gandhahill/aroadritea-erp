@@ -11,19 +11,26 @@ import { balanceSheet as bsService } from '@erp/services/reporting';
 import { profitLoss as plService } from '@erp/services/reporting';
 import type { AuditContext } from '@erp/shared/types';
 
-async function makeCtx(tenantIdHint: string): Promise<AuditContext> {
+async function makeCtx(): Promise<AuditContext | null> {
   const session = await getSession();
   const user = (session?.user ?? {}) as Record<string, unknown>;
+  const userId = String(user.id ?? '');
+  const tenantId = String(user.tenantId ?? '');
+  if (!userId || !tenantId) return null;
+
   return {
-    userId: String(user.id ?? 'system'),
-    tenantId: String(user.tenantId ?? tenantIdHint),
+    userId,
+    tenantId,
     locationId: String(user.locationId ?? ''),
     ipAddress: '127.0.0.1',
   };
 }
 
-export async function fetchTrialBalance(tenantId: string, asOf: string, locationId?: string) {
-  const result = await tbService({ asOf, locationId }, await makeCtx(tenantId));
+export async function fetchTrialBalance(_tenantId: string, asOf: string, locationId?: string) {
+  const ctx = await makeCtx();
+  if (!ctx) return null;
+
+  const result = await tbService({ asOf, locationId }, ctx);
   if (!result.ok) return null;
 
   return {
@@ -39,8 +46,11 @@ export async function fetchTrialBalance(tenantId: string, asOf: string, location
   };
 }
 
-export async function fetchBalanceSheet(tenantId: string, asOf: string, locationId?: string) {
-  const result = await bsService({ asOf, locationId }, await makeCtx(tenantId));
+export async function fetchBalanceSheet(_tenantId: string, asOf: string, locationId?: string) {
+  const ctx = await makeCtx();
+  if (!ctx) return null;
+
+  const result = await bsService({ asOf, locationId }, ctx);
   if (!result.ok) return null;
 
   const serializeSection = (s: typeof result.value.assets) => ({
@@ -67,12 +77,15 @@ export async function fetchBalanceSheet(tenantId: string, asOf: string, location
 }
 
 export async function fetchProfitLoss(
-  tenantId: string,
+  _tenantId: string,
   from: string,
   to: string,
   locationId?: string,
 ) {
-  const result = await plService({ from, to, locationId }, await makeCtx(tenantId));
+  const ctx = await makeCtx();
+  if (!ctx) return null;
+
+  const result = await plService({ from, to, locationId }, ctx);
   if (!result.ok) return null;
 
   const serializeSection = (s: typeof result.value.revenue) => ({
