@@ -33,14 +33,14 @@ const BRAND_EMBER_5 = 'var(--color-brand-ember-5, #d97757)';
 const BRAND_INK_3 = 'var(--color-brand-ink-3, #6b6b6b)';
 const PIE_PALETTE = [BRAND_RED, BRAND_JADE, BRAND_EMBER_5, BRAND_EMBER_3, BRAND_INK_3];
 
-const formatRupiahShort = (value: number): string => {
+const formatRupiahShort = (value: number, locale: string): string => {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}jt`;
   if (value >= 1_000) return `${(value / 1_000).toFixed(0)}rb`;
-  return new Intl.NumberFormat('id-ID').format(value);
+  return new Intl.NumberFormat(locale).format(value);
 };
 
-const formatRupiahFull = (value: number): string =>
-  new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
+const formatRupiahFull = (value: number, locale: string): string =>
+  new Intl.NumberFormat(locale, { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
 
 interface TrendDatum {
   label: string;
@@ -48,9 +48,21 @@ interface TrendDatum {
   orders?: number;
 }
 
-export function TrendLineChart({ data, height = 220 }: { data: TrendDatum[]; height?: number }) {
+interface ChartProps<T> {
+  data: T[];
+  height?: number;
+  locale?: string;
+  noDataLabel?: string;
+}
+
+export function TrendLineChart({
+  data,
+  height = 220,
+  locale = 'id-ID',
+  noDataLabel = '-',
+}: ChartProps<TrendDatum>) {
   if (data.length === 0) {
-    return <p className="text-xs text-brand-ink-3">Belum ada data.</p>;
+    return <p className="text-xs text-brand-ink-3">{noDataLabel}</p>;
   }
   return (
     <div style={{ width: '100%', height }}>
@@ -58,9 +70,9 @@ export function TrendLineChart({ data, height = 220 }: { data: TrendDatum[]; hei
         <LineChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
           <XAxis dataKey="label" tick={{ fontSize: 10, fill: BRAND_INK_3 }} />
-          <YAxis tickFormatter={formatRupiahShort} tick={{ fontSize: 10, fill: BRAND_INK_3 }} />
+          <YAxis tickFormatter={(value) => formatRupiahShort(Number(value), locale)} tick={{ fontSize: 10, fill: BRAND_INK_3 }} />
           <Tooltip
-            formatter={(value) => formatRupiahFull(Number(value))}
+            formatter={(value) => formatRupiahFull(Number(value), locale)}
             labelStyle={{ color: BRAND_INK_3, fontSize: 12 }}
           />
           <Line
@@ -83,9 +95,14 @@ interface BarDatum {
   sub?: string;
 }
 
-export function HorizontalBarChart({ data, height = 240 }: { data: BarDatum[]; height?: number }) {
+export function HorizontalBarChart({
+  data,
+  height = 240,
+  locale = 'id-ID',
+  noDataLabel = '-',
+}: ChartProps<BarDatum>) {
   if (data.length === 0) {
-    return <p className="text-xs text-brand-ink-3">Belum ada data.</p>;
+    return <p className="text-xs text-brand-ink-3">{noDataLabel}</p>;
   }
   return (
     <div style={{ width: '100%', height }}>
@@ -96,7 +113,7 @@ export function HorizontalBarChart({ data, height = 240 }: { data: BarDatum[]; h
           margin={{ top: 4, right: 16, left: 8, bottom: 0 }}
         >
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(0,0,0,0.06)" />
-          <XAxis type="number" tickFormatter={formatRupiahShort} tick={{ fontSize: 10, fill: BRAND_INK_3 }} />
+          <XAxis type="number" tickFormatter={(value) => formatRupiahShort(Number(value), locale)} tick={{ fontSize: 10, fill: BRAND_INK_3 }} />
           <YAxis
             type="category"
             dataKey="label"
@@ -104,7 +121,7 @@ export function HorizontalBarChart({ data, height = 240 }: { data: BarDatum[]; h
             tick={{ fontSize: 10, fill: BRAND_INK_3 }}
           />
           <Tooltip
-            formatter={(value) => formatRupiahFull(Number(value))}
+            formatter={(value) => formatRupiahFull(Number(value), locale)}
             labelStyle={{ color: BRAND_INK_3, fontSize: 12 }}
           />
           <Bar dataKey="value" fill={BRAND_RED} radius={[0, 4, 4, 0]} />
@@ -114,9 +131,14 @@ export function HorizontalBarChart({ data, height = 240 }: { data: BarDatum[]; h
   );
 }
 
-export function VerticalBarChart({ data, height = 200 }: { data: BarDatum[]; height?: number }) {
+export function VerticalBarChart({
+  data,
+  height = 200,
+  locale = 'id-ID',
+  noDataLabel = '-',
+}: ChartProps<BarDatum>) {
   if (data.length === 0) {
-    return <p className="text-xs text-brand-ink-3">Belum ada data.</p>;
+    return <p className="text-xs text-brand-ink-3">{noDataLabel}</p>;
   }
   return (
     <div style={{ width: '100%', height }}>
@@ -127,9 +149,9 @@ export function VerticalBarChart({ data, height = 200 }: { data: BarDatum[]; hei
         >
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
           <XAxis dataKey="label" tick={{ fontSize: 9, fill: BRAND_INK_3 }} interval={0} />
-          <YAxis tickFormatter={formatRupiahShort} tick={{ fontSize: 10, fill: BRAND_INK_3 }} />
+          <YAxis tickFormatter={(value) => formatRupiahShort(Number(value), locale)} tick={{ fontSize: 10, fill: BRAND_INK_3 }} />
           <Tooltip
-            formatter={(value) => formatRupiahFull(Number(value))}
+            formatter={(value) => formatRupiahFull(Number(value), locale)}
             labelStyle={{ color: BRAND_INK_3, fontSize: 12 }}
           />
           <Bar dataKey="value" fill={BRAND_RED} radius={[4, 4, 0, 0]} />
@@ -144,10 +166,15 @@ interface PieDatum {
   value: number;
 }
 
-export function DonutChart({ data, height = 220 }: { data: PieDatum[]; height?: number }) {
+export function DonutChart({
+  data,
+  height = 220,
+  locale = 'id-ID',
+  noDataLabel = '-',
+}: ChartProps<PieDatum>) {
   const total = data.reduce((s, d) => s + d.value, 0);
   if (total === 0) {
-    return <p className="text-xs text-brand-ink-3">Belum ada data.</p>;
+    return <p className="text-xs text-brand-ink-3">{noDataLabel}</p>;
   }
   return (
     <div style={{ width: '100%', height }}>
@@ -165,7 +192,7 @@ export function DonutChart({ data, height = 220 }: { data: PieDatum[]; height?: 
               <Cell key={index} fill={PIE_PALETTE[index % PIE_PALETTE.length]} />
             ))}
           </Pie>
-          <Tooltip formatter={(value) => formatRupiahFull(Number(value))} />
+          <Tooltip formatter={(value) => formatRupiahFull(Number(value), locale)} />
           <Legend
             wrapperStyle={{ fontSize: 11, color: BRAND_INK_3 }}
             iconSize={10}

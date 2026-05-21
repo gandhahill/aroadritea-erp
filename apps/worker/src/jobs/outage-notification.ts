@@ -94,7 +94,7 @@ function buildAlertMessage(
   const duration = formatDuration(Date.now() - since.getTime());
   return {
     subject: `[ALERT] Aroadri ERP — ${service.toUpperCase()} DOWN`,
-    body: `⚠️ OUTAGE ALERT\n\nService: ${service}\nURL: ${url}\nDown since: ${since.toISOString()} (${duration})\nLast error: ${lastError}\nDetected at: ${ts}\n\nPlease check the service immediately.`,
+    body: `OUTAGE ALERT\n\nService: ${service}\nURL: ${url}\nDown since: ${since.toISOString()} (${duration})\nLast error: ${lastError}\nDetected at: ${ts}\n\nPlease check the service immediately.`,
   };
 }
 
@@ -102,7 +102,7 @@ function buildRecoveryMessage(service: string, url: string, durationMs: number):
   const ts = new Date().toISOString();
   return {
     subject: `[RECOVERED] Aroadri ERP — ${service.toUpperCase()} back online`,
-    body: `✅ SERVICE RECOVERED\n\nService: ${service}\nURL: ${url}\nDowntime: ${formatDuration(durationMs)}\nRecovered at: ${ts}\n\nThe service is now responding normally.`,
+    body: `SERVICE RECOVERED\n\nService: ${service}\nURL: ${url}\nDowntime: ${formatDuration(durationMs)}\nRecovered at: ${ts}\n\nThe service is now responding normally.`,
   };
 }
 
@@ -372,3 +372,7 @@ async function sendAlerts(
     }
   }
 }
+
+
+
+

@@ -180,8 +180,6 @@
       "code": "Kode OTP",
       "verify": "Verifikasi",
       "verifying": "Memverifikasi...",
-      "completeTitle": "Lengkapi Data",
-      "completeSubmit": "Simpan dan masuk",
       "completing": "Mendaftarkan...",
       "invalidToken": "Token tidak valid. Silakan daftar ulang."
     }

@@ -289,7 +289,12 @@
       "saveDueDate": "Save",
       "allowanceTitle": "Allowance for doubtful accounts",
       "allowanceHelp": "The allowance estimate is calculated from net receivable aging based on due dates. Rates use basis points, e.g. 100 = 1%.",
-      "saveAllowance": "Save allowance rates"
+      "saveAllowance": "Save allowance rates",
+      "days1To30": "1-30 days",
+      "days31To60": "31-60 days",
+      "over60": ">60 days",
+      "noPartner": "No partner",
+      "allowanceRateLabel": "{bucket} bps"
     },
     "period": {
       "title": "Accounting Periods",
@@ -514,14 +519,49 @@
         "kindRawMaterial": "Raw material",
         "kindMerchandise": "Merchandise",
         "kindConsumable": "Consumable",
-        "kindService": "Service"
+        "kindService": "Service",
+        "taxCodeNone": "No tax"
       },
       "variants": {
         "add": "Add variant",
         "empty": "No variants yet.",
         "deactivate": "Deactivate",
         "activate": "Activate"
-      }
+      },
+      "eyebrow": "Inventory",
+      "suppliesLink": "Raw materials & supplies",
+      "sellableDescriptionPrefix": "Manage customer-facing products - drinks, food, merchandise, and services.",
+      "sellableDescriptionSuffix": "are managed on a separate page.",
+      "all": "All",
+      "productsSold": "Sellable products",
+      "rawMaterial": "Raw material",
+      "merchandise": "Merchandise",
+      "consumable": "Supplies",
+      "service": "Service",
+      "searchLabel": "Search products",
+      "searchInputPlaceholder": "SKU or product name",
+      "count": "{count} products",
+      "sku": "SKU",
+      "photo": "Photo",
+      "name": "Name",
+      "category": "Category",
+      "kind": "Type",
+      "price": "Price",
+      "variant": "Variants",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "edit": "Edit",
+      "suppliesTitle": "Raw Materials & Supplies",
+      "suppliesDescriptionPrefix": "Recipe ingredients and operational supplies (cups, straws, lids, packaging). Items here do not appear at cashier.",
+      "sellableLink": "Sellable products",
+      "suppliesDescriptionSuffix": "are managed on a separate page.",
+      "addItem": "Add item",
+      "searchSupplies": "Search materials / supplies",
+      "searchItemPlaceholder": "SKU or item name",
+      "itemCount": "{count} items",
+      "costPrice": "COGS / Purchase",
+      "suppliesEmpty": "No raw materials or supplies found."
     },
     "categories": {
       "title": "Product Categories",
@@ -696,7 +736,10 @@
     "permissions": "Permissions",
     "customFields": "Custom Fields",
     "workflowEditor": "Workflow Editor",
-    "docsSettings": "Edit Docs"
+    "docsSettings": "Edit Docs",
+    "supplies": "Supplies",
+    "categories": "Categories",
+    "stockByOutlet": "Stock by Outlet"
   },
   "pos": {
     "title": "Point of Sale",
@@ -1339,7 +1382,13 @@
       "channelLabel": "Display name",
       "netPercent": "Net %",
       "commissionPercent": "Commission %",
-      "active": "Active"
+      "active": "Active",
+      "detectPrinters": "Detect printers",
+      "detectingPrinters": "Detecting...",
+      "detectedPrinters": "Detected printers",
+      "printerDetectFailed": "Automatic printer detection failed. Make sure the local Print Bridge is running, or enter the printer name manually.",
+      "printerManualOption": "Manual entry",
+      "printerBridgeHint": "Automatic detection uses a local Print Bridge on the cashier device. Standard browsers do not allow websites to read OS printer lists without a local bridge."
     },
     "promotions": {
       "title": "Promotions",
@@ -1448,7 +1497,24 @@
       "operations": "Operations",
       "openShifts": "Open shifts",
       "activeLocations": "Active outlets",
-      "period": "Period"
+      "period": "Period",
+      "shiftCount": "{count} shifts",
+      "avgTicket": "Average ticket",
+      "refundRate": "Refund rate",
+      "trend7Days": "7-day trend (daily sales)",
+      "channelMix": "Channel mix (this month)",
+      "memberVsGuest": "Member vs walk-in (this month)",
+      "guest": "Guest",
+      "memberOrders": "Member: {count} orders ?",
+      "guestOrders": "Guest: {count} orders ?",
+      "hourlyToday": "Hourly today ({date})",
+      "hourlyHelp": "Hourly transaction distribution to support staff scheduling.",
+      "noData": "No data yet.",
+      "channels": {
+        "walkIn": "Walk-in",
+        "other": "{channel}"
+      },
+      "member": "Member"
     },
     "omzetHarian": {
       "title": "Daily Revenue",
@@ -1600,6 +1666,73 @@
       "saved": "Docs saved.",
       "saveFailed": "Could not save docs.",
       "unauthorized": "Session expired. Please sign in again."
+    }
+  },
+  "dashboard": {
+    "fallbackUser": "User",
+    "subtitle": "Today's summary and shortcuts to key modules.",
+    "quickLinksTitle": "Shortcuts",
+    "greetings": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening",
+      "night": "Good night"
+    },
+    "kpis": {
+      "todayGross": "Today's sales",
+      "monthGross": "This month's sales",
+      "transactions": "{count} transactions",
+      "openShifts": "Open shifts",
+      "activePos": "Active POS",
+      "lateToday": "Late today",
+      "notForgiven": "Not forgiven",
+      "openPo": "Outstanding PO",
+      "activeEmployees": "Active employees",
+      "accountingPeriod": "Accounting period",
+      "open": "Open",
+      "notOpened": "Not opened"
+    },
+    "quickLinks": {
+      "pos": {
+        "title": "POS cashier",
+        "description": "Start sales transactions for your shift."
+      },
+      "checkin": {
+        "title": "Attendance",
+        "description": "Clock in or out for today's shift with GPS."
+      },
+      "manualJournal": {
+        "title": "Manual journal",
+        "description": "Record general journals with evidence attachments."
+      },
+      "products": {
+        "title": "Products & menu",
+        "description": "Manage products, categories, prices, and images."
+      },
+      "opname": {
+        "title": "Stock opname",
+        "description": "Count daily/monthly stock and record variances."
+      },
+      "purchaseOrder": {
+        "title": "Purchase order",
+        "description": "Create supplier POs and track goods receipt."
+      },
+      "payroll": {
+        "title": "Payroll",
+        "description": "Calculate payroll for the 8th with attendance deductions."
+      },
+      "bi": {
+        "title": "Business Intelligence",
+        "description": "Sales KPIs, channel mix, top products, and cash variance."
+      },
+      "audit": {
+        "title": "Audit trail",
+        "description": "Data-change history for internal control."
+      },
+      "permissions": {
+        "title": "Permissions & roles",
+        "description": "Manage roles and user access."
+      }
     }
   }
 }

@@ -71,6 +71,10 @@ export function middleware(request: NextRequest) {
     '/sw.js',
     '/workbox-',
     '/icons/',
+    '/photo/',
+    '/brand/',
+    '/images/',
+    '/uploads/',
     '/logo-primary.png',
   ];
   if (publicPaths.some((p) => pathname.startsWith(p))) {
@@ -89,6 +93,8 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!login|api/auth|api/healthz|_next/static|_next/image|favicon.ico|favicon.svg|logo-primary.png|manifest.json|sw.js|workbox-|icons/).*)',
+    '/((?!login|api/auth|api/healthz|_next/static|_next/image|favicon.ico|favicon.svg|logo-primary.png|manifest.json|sw.js|workbox-|icons/|photo/|brand/|images/|uploads/).*)',
   ],
 };
+
+

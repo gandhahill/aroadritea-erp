@@ -20,7 +20,7 @@ export interface PartyLedgerAccountOption {
 
 export interface PartyLedgerRow {
   partnerId: string | null;
-  partnerName: string;
+  partnerName: string | null;
   total: string;
   current: string;
   days1To30: string;
@@ -222,7 +222,7 @@ export async function getPartyLedgerData(kind: PartyLedgerKind): Promise<PartyLe
       byPartner.get(key) ??
       ({
         partnerId: line.partnerId,
-        partnerName: line.partnerName ?? 'Tanpa partner',
+        partnerName: line.partnerName,
         total: '0',
         current: '0',
         days1To30: '0',

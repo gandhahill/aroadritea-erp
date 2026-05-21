@@ -23,18 +23,18 @@ config({ path: resolve(process.cwd(), 'packages/db/.env') });
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
-  console.error('❌ DATABASE_URL is not set.');
+  console.error('ERROR DATABASE_URL is not set.');
   process.exit(1);
 }
 
 if (process.env.NODE_ENV === 'production' && process.env.ALLOW_PROD_DB_RESET !== '1') {
-  console.error('❌ Refusing to reset a production database without ALLOW_PROD_DB_RESET=1.');
+  console.error('ERROR Refusing to reset a production database without ALLOW_PROD_DB_RESET=1.');
   process.exit(2);
 }
 
 if (process.env.CONFIRM_DB_RESET !== 'YES') {
   console.error(
-    '❌ Set CONFIRM_DB_RESET=YES to proceed. This drops the public schema and all data.',
+    'ERROR Set CONFIRM_DB_RESET=YES to proceed. This drops the public schema and all data.',
   );
   process.exit(3);
 }
@@ -47,7 +47,7 @@ const host = (() => {
   }
 })();
 
-console.info(`⚠️  Resetting database on host: ${host}`);
+console.info(`WARNING Resetting database on host: ${host}`);
 console.info('   DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
 
 const sql = neon(DATABASE_URL);
@@ -56,10 +56,12 @@ try {
   await sql`DROP SCHEMA IF EXISTS public CASCADE`;
   await sql`CREATE SCHEMA public`;
   await sql`GRANT ALL ON SCHEMA public TO public`;
-  console.info('✅ Schema reset complete. Next steps:');
+  console.info('Schema reset complete. Next steps:');
   console.info('     pnpm --filter @erp/db db:migrate');
   console.info('     pnpm --filter @erp/db db:seed');
 } catch (error) {
-  console.error('❌ Reset failed:', error);
+  console.error('ERROR Reset failed:', error);
   process.exit(4);
 }
+
+

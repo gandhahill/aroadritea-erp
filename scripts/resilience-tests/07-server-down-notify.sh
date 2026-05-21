@@ -53,7 +53,7 @@ ELAPSED=0
 MAX_WAIT=30
 while [ $ELAPSED -lt $MAX_WAIT ]; do
   if curl -sf "$HEALTHZ_URL" > /dev/null 2>&1; then
-    echo "  ✅ $SERVICE is back up after ${ELAPSED}s"
+    echo "  OK $SERVICE is back up after ${ELAPSED}s"
     break
   fi
   sleep 1
@@ -62,7 +62,8 @@ done
 
 echo ""
 echo "═══════════════════════════════════════════════════════════"
-echo "  ℹ TEST RESULT: Manual verification required"
+echo "  INFO TEST RESULT: Manual verification required"
 echo "  Check: worker logs for health alert entries"
 echo "  Check: admin email/WA for notification (if configured)"
 echo "═══════════════════════════════════════════════════════════"
+

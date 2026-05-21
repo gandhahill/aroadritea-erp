@@ -11,12 +11,12 @@ These scripts validate the RTO ≤ 2 minute and RPO = 0 (for POS) guarantees per
 |---|------------------------------------|-------|-------------|----------------------------|
 | 1 | Offline POS order                  | 2     | ⏳ Deferred | `01-offline-pos-order.sh`  |
 | 2 | Network reconnect sync             | 2     | ⏳ Deferred | `02-reconnect-sync.sh`     |
-| 3 | Stop container + restart           | 1     | ✅ Ready    | `03-container-restart.sh`  |
-| 4 | OOM kill simulation                | 1     | ✅ Ready    | `04-oom-kill.sh`           |
+| 3 | Stop container + restart           | 1     | OK Ready    | `03-container-restart.sh`  |
+| 4 | OOM kill simulation                | 1     | OK Ready    | `04-oom-kill.sh`           |
 | 5 | Reboot POS device                  | 2     | ⏳ Deferred | `05-reboot-device.sh`      |
 | 6 | Idempotency double-submit          | 2     | ⏳ Deferred | `06-idempotency.sh`        |
-| 7 | Server down notification           | 1     | ✅ Ready    | `07-server-down-notify.sh` |
-| 8 | DB connection drop                 | 1     | ✅ Ready    | `08-db-reconnect.sh`       |
+| 7 | Server down notification           | 1     | OK Ready    | `07-server-down-notify.sh` |
+| 8 | DB connection drop                 | 1     | OK Ready    | `08-db-reconnect.sh`       |
 
 ## Usage
 
@@ -39,3 +39,5 @@ These scripts validate the RTO ≤ 2 minute and RPO = 0 (for POS) guarantees per
 - Tests 1, 2, 5, 6 require POS PWA which is Phase 2 work
 - Run tests on staging environment only, never on production
 - Tests 3 and 4 will cause brief downtime
+
+

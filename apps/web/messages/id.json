@@ -289,7 +289,12 @@
       "saveDueDate": "Simpan",
       "allowanceTitle": "Cadangan kerugian piutang",
       "allowanceHelp": "Estimasi cadangan dihitung dari aging piutang bersih berdasarkan due date. Rate memakai basis point, contoh 100 = 1%.",
-      "saveAllowance": "Simpan rate cadangan"
+      "saveAllowance": "Simpan rate cadangan",
+      "days1To30": "1-30 hari",
+      "days31To60": "31-60 hari",
+      "over60": ">60 hari",
+      "noPartner": "Tanpa partner",
+      "allowanceRateLabel": "{bucket} bps"
     },
     "period": {
       "title": "Periode Akuntansi",
@@ -514,14 +519,49 @@
         "kindRawMaterial": "Bahan baku",
         "kindMerchandise": "Merchandise",
         "kindConsumable": "Perlengkapan habis pakai",
-        "kindService": "Jasa"
+        "kindService": "Jasa",
+        "taxCodeNone": "Tanpa pajak"
       },
       "variants": {
         "add": "Tambah varian",
         "empty": "Belum ada varian.",
         "deactivate": "Nonaktifkan",
         "activate": "Aktifkan"
-      }
+      },
+      "eyebrow": "Inventory",
+      "suppliesLink": "Bahan baku & perlengkapan",
+      "sellableDescriptionPrefix": "Kelola produk yang dijual ke pelanggan - minuman, makanan, merchandise, dan jasa.",
+      "sellableDescriptionSuffix": "dikelola di halaman terpisah.",
+      "all": "Semua",
+      "productsSold": "Produk jual",
+      "rawMaterial": "Bahan baku",
+      "merchandise": "Merchandise",
+      "consumable": "Perlengkapan",
+      "service": "Jasa",
+      "searchLabel": "Cari produk",
+      "searchInputPlaceholder": "SKU atau nama produk",
+      "count": "{count} produk",
+      "sku": "SKU",
+      "photo": "Foto",
+      "name": "Nama",
+      "category": "Kategori",
+      "kind": "Jenis",
+      "price": "Harga",
+      "variant": "Varian",
+      "status": "Status",
+      "active": "Aktif",
+      "inactive": "Nonaktif",
+      "edit": "Edit",
+      "suppliesTitle": "Bahan Baku & Perlengkapan",
+      "suppliesDescriptionPrefix": "Daftar bahan baku resep dan perlengkapan operasional (cup, sedotan, tutup, kemasan). Item di sini tidak muncul di kasir.",
+      "sellableLink": "Produk yang dijual",
+      "suppliesDescriptionSuffix": "ada di halaman terpisah.",
+      "addItem": "Tambah item",
+      "searchSupplies": "Cari bahan / perlengkapan",
+      "searchItemPlaceholder": "SKU atau nama item",
+      "itemCount": "{count} item",
+      "costPrice": "HPP / Beli",
+      "suppliesEmpty": "Belum ada bahan baku atau perlengkapan."
     },
     "categories": {
       "title": "Kategori Produk",
@@ -696,7 +736,10 @@
     "permissions": "Permissions",
     "customFields": "Bidang Kustom",
     "workflowEditor": "Workflow Editor",
-    "docsSettings": "Edit Docs"
+    "docsSettings": "Edit Docs",
+    "supplies": "Bahan & Perlengkapan",
+    "categories": "Kategori",
+    "stockByOutlet": "Stok per Outlet"
   },
   "pos": {
     "title": "Kasir",
@@ -1267,7 +1310,24 @@
       "operations": "Operasional",
       "openShifts": "Shift terbuka",
       "activeLocations": "Outlet aktif",
-      "period": "Periode"
+      "period": "Periode",
+      "shiftCount": "{count} shift",
+      "avgTicket": "Rata-rata transaksi",
+      "refundRate": "Rasio refund",
+      "trend7Days": "Tren 7 hari (omzet harian)",
+      "channelMix": "Komposisi channel (bulan ini)",
+      "memberVsGuest": "Member vs walk-in (bulan ini)",
+      "guest": "Tamu",
+      "memberOrders": "Member: {count} order ?",
+      "guestOrders": "Tamu: {count} order ?",
+      "hourlyToday": "Per jam hari ini ({date})",
+      "hourlyHelp": "Distribusi transaksi per jam untuk membantu jadwal staf.",
+      "noData": "Belum ada data.",
+      "channels": {
+        "walkIn": "Walk-in",
+        "other": "{channel}"
+      },
+      "member": "Member"
     },
     "omzetHarian": {
       "title": "Omzet Harian",
@@ -1475,7 +1535,13 @@
       "channelLabel": "Nama tampil",
       "netPercent": "Net %",
       "commissionPercent": "Komisi %",
-      "active": "Aktif"
+      "active": "Aktif",
+      "detectPrinters": "Deteksi printer",
+      "detectingPrinters": "Mendeteksi...",
+      "detectedPrinters": "Printer terdeteksi",
+      "printerDetectFailed": "Tidak bisa mendeteksi printer otomatis. Pastikan Print Bridge lokal aktif, atau isi nama printer manual.",
+      "printerManualOption": "Isi manual",
+      "printerBridgeHint": "Deteksi otomatis memakai Print Bridge lokal di kasir. Browser biasa tidak mengizinkan website membaca daftar printer OS tanpa bridge lokal."
     },
     "promotions": {
       "title": "Promosi",
@@ -1600,6 +1666,73 @@
       "saved": "Docs berhasil disimpan.",
       "saveFailed": "Docs gagal disimpan.",
       "unauthorized": "Sesi tidak valid. Silakan login ulang."
+    }
+  },
+  "dashboard": {
+    "fallbackUser": "Pengguna",
+    "subtitle": "Ringkasan hari ini dan jalan pintas ke modul utama.",
+    "quickLinksTitle": "Jalan pintas",
+    "greetings": {
+      "morning": "Selamat pagi",
+      "afternoon": "Selamat siang",
+      "evening": "Selamat sore",
+      "night": "Selamat malam"
+    },
+    "kpis": {
+      "todayGross": "Omzet hari ini",
+      "monthGross": "Omzet bulan ini",
+      "transactions": "{count} transaksi",
+      "openShifts": "Shift terbuka",
+      "activePos": "POS aktif",
+      "lateToday": "Telat hari ini",
+      "notForgiven": "Belum dispensasi",
+      "openPo": "PO outstanding",
+      "activeEmployees": "Karyawan aktif",
+      "accountingPeriod": "Periode akuntansi",
+      "open": "Terbuka",
+      "notOpened": "Belum dibuka"
+    },
+    "quickLinks": {
+      "pos": {
+        "title": "Kasir POS",
+        "description": "Mulai transaksi penjualan untuk shift Anda."
+      },
+      "checkin": {
+        "title": "Presensi",
+        "description": "Clock-in/out shift hari ini dengan GPS."
+      },
+      "manualJournal": {
+        "title": "Jurnal manual",
+        "description": "Catat jurnal umum dengan lampiran bukti."
+      },
+      "products": {
+        "title": "Produk & menu",
+        "description": "Atur produk, kategori, harga, dan gambar."
+      },
+      "opname": {
+        "title": "Stock opname",
+        "description": "Hitung stok harian/bulanan dan rekam selisih."
+      },
+      "purchaseOrder": {
+        "title": "Purchase order",
+        "description": "Buat PO ke supplier dan lacak penerimaan barang."
+      },
+      "payroll": {
+        "title": "Payroll",
+        "description": "Hitung gaji tanggal 8 dengan potongan presensi otomatis."
+      },
+      "bi": {
+        "title": "Business Intelligence",
+        "description": "KPI omzet, channel, produk teratas, varians kas."
+      },
+      "audit": {
+        "title": "Audit trail",
+        "description": "Riwayat perubahan data untuk kontrol internal."
+      },
+      "permissions": {
+        "title": "Permission & role",
+        "description": "Atur role dan akses per pengguna."
+      }
     }
   }
 }

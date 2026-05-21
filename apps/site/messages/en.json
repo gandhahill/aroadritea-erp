@@ -180,8 +180,6 @@
       "code": "OTP code",
       "verify": "Verify",
       "verifying": "Verifying...",
-      "completeTitle": "Complete Profile",
-      "completeSubmit": "Save and sign in",
       "completing": "Creating account...",
       "invalidToken": "Invalid token. Please register again."
     }

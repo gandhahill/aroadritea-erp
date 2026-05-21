@@ -19,7 +19,7 @@ import type { AuditContext } from '@erp/shared/types';
  * Member registration, OTP authentication, session management, loyalty.
  * All reads are server-side (site app); writes go through this service.
  */
-import { and, asc, count, desc, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, inArray, or, sql } from 'drizzle-orm';
 import nodemailer from 'nodemailer';
 import { z } from 'zod';
 import { decryptPii, encryptPii, encryptPiiForLookup } from '../security/pii';
@@ -111,6 +111,37 @@ function generateToken(): string {
 
 function minutesFromNow(minutes: number): Date {
   return new Date(Date.now() + minutes * 60 * 1000);
+}
+
+function sanitizeCause(cause: unknown): Record<string, unknown> {
+  if (cause instanceof Error) {
+    return {
+      name: cause.name,
+      message: cause.message,
+      ...(cause.cause ? { cause: String(cause.cause) } : {}),
+    };
+  }
+  return { message: String(cause) };
+}
+
+function internalWithDetails(messageKey: string, cause: unknown): AppError {
+  return new AppError('INTERNAL', messageKey, sanitizeCause(cause), cause);
+}
+
+function assertPiiEncryptionConfigured(): Result<true> {
+  try {
+    encryptPii('pii-preflight@example.invalid', 'partners.email');
+    return ok(true);
+  } catch (error) {
+    return err(internalWithDetails('member.signup.piiEncryptionNotConfigured', error));
+  }
+}
+
+function parseOptionalBirthDate(value: string | null | undefined): Date | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  const date = new Date(trimmed);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 export function normalizeMemberPhone(phone: string): string {
@@ -269,6 +300,10 @@ export async function initiateSignup(
     );
   }
   const data = parsed.data;
+  const piiReady = assertPiiEncryptionConfigured();
+  if (!piiReady.ok) return err(piiReady.error);
+
+  const email = data.email.trim().toLowerCase();
   const normalizedPhone = normalizeMemberPhone(data.phone);
   const phoneCandidates = buildPhoneLookupCandidates(data.phone);
 
@@ -276,7 +311,7 @@ export async function initiateSignup(
   if (!turnstileValid) {
     await db.insert(memberSignupAttempts).values({
       id: crypto.randomUUID(),
-      email: data.email,
+      email,
       phone: normalizedPhone || data.phone,
       ipAddress,
       userAgent,
@@ -305,14 +340,14 @@ export async function initiateSignup(
 
   // Check email not already registered. partners.email is encrypted at
   // rest (SD §25.1) so we compare against the deterministic ciphertext.
-  const emailCipherSignup = encryptPiiForLookup(data.email, 'partners.email');
+  const emailCipherSignup = encryptPiiForLookup(email, 'partners.email');
   const existing = await db
     .select({ id: partners.id })
     .from(partners)
     .where(
       and(
         eq(partners.tenantId, 'default'),
-        eq(partners.email, emailCipherSignup ?? ''),
+        or(eq(partners.email, emailCipherSignup ?? ''), sql`lower(${partners.email}) = ${email}`),
         eq(partners.kind, 'customer'),
       ),
     )
@@ -321,7 +356,7 @@ export async function initiateSignup(
   if (existing[0]) {
     await db.insert(memberSignupAttempts).values({
       id: crypto.randomUUID(),
-      email: data.email,
+      email,
       phone: normalizedPhone || data.phone,
       ipAddress,
       userAgent,
@@ -345,7 +380,7 @@ export async function initiateSignup(
             eq(partners.tenantId, 'default'),
             eq(partners.kind, 'customer'),
             eq(partners.isMember, true),
-            inArray(partners.phone, phoneCipherCandidates),
+            or(inArray(partners.phone, phoneCipherCandidates), inArray(partners.phone, phoneCandidates)),
           ),
         )
         .limit(1)
@@ -354,7 +389,7 @@ export async function initiateSignup(
   if (existingPhone[0]) {
     await db.insert(memberSignupAttempts).values({
       id: crypto.randomUUID(),
-      email: data.email,
+      email,
       phone: normalizedPhone || data.phone,
       ipAddress,
       userAgent,
@@ -384,7 +419,7 @@ export async function initiateSignup(
     id: crypto.randomUUID(),
     purpose: 'signup',
     channel: 'email',
-    recipient: data.email,
+    recipient: email,
     codeHash,
     expiresAt,
     attempts: 0,
@@ -393,12 +428,12 @@ export async function initiateSignup(
     payloadJson,
   });
 
-  const sendResult = await sendSignupOtp(data.email, code, normalizeEmailLocale(locale));
+  const sendResult = await sendSignupOtp(email, code, normalizeEmailLocale(locale));
   if (!sendResult.ok) return sendResult;
 
   await db.insert(memberSignupAttempts).values({
     id: crypto.randomUUID(),
-    email: data.email,
+    email,
     phone: normalizedPhone || data.phone,
     ipAddress,
     userAgent,
@@ -517,7 +552,10 @@ export async function completeSignup(
     return err(AppError.conflict('member.completeSignup.tokenExpired'));
   }
 
-  const email = otpRecord.recipient;
+  const piiReady = assertPiiEncryptionConfigured();
+  if (!piiReady.ok) return err(piiReady.error);
+
+  const email = otpRecord.recipient.trim().toLowerCase();
 
   // Parse stored payload
   let storedPayload: Record<string, string> = {};
@@ -534,6 +572,7 @@ export async function completeSignup(
     : storedPayload.passwordHash || '';
   const birthDate = input.birthDate || storedPayload.birthDate;
   const city = input.city || storedPayload.city;
+  const parsedBirthDate = parseOptionalBirthDate(birthDate);
 
   if (!passwordHash) {
     return err(AppError.validation('member.completeSignup.passwordMissing'));
@@ -545,6 +584,7 @@ export async function completeSignup(
     // SD §25.1 / UU PDP: partners.email + partners.phone stored
     // encrypted at rest. Use deterministic encryptPiiForLookup for the
     // dedup query so the same plaintext yields the same ciphertext.
+    const tenantId = ctx?.tenantId ?? 'default';
     const emailCipher = encryptPiiForLookup(email, 'partners.email');
     const phoneCipher = phone ? encryptPii(phone, 'partners.phone') : null;
     const existingPartner = await db
@@ -552,8 +592,8 @@ export async function completeSignup(
       .from(partners)
       .where(
         and(
-          eq(partners.tenantId, 'default'),
-          eq(partners.email, emailCipher ?? ''),
+          eq(partners.tenantId, tenantId),
+          or(eq(partners.email, emailCipher ?? ''), sql`lower(${partners.email}) = ${email}`),
           eq(partners.kind, 'customer'),
         ),
       )
@@ -567,7 +607,7 @@ export async function completeSignup(
           .set({
             name,
             phone: phoneCipher ?? existingPartner[0].phone,
-            birthDate: birthDate ? new Date(birthDate) : null,
+            birthDate: parsedBirthDate,
             city: city || null,
             isMember: true,
             updatedBy: ctx?.userId,
@@ -578,12 +618,12 @@ export async function completeSignup(
       memberId = crypto.randomUUID();
       await db.insert(partners).values({
         id: memberId,
-        tenantId: 'default',
+        tenantId,
         name,
         kind: 'customer',
         email: emailCipher,
         phone: phoneCipher,
-        birthDate: birthDate ? new Date(birthDate) : null,
+        birthDate: parsedBirthDate,
         city: city || null,
         isMember: true,
         createdBy: ctx?.userId,
@@ -591,7 +631,7 @@ export async function completeSignup(
       });
     }
   } catch (e) {
-    return err(AppError.internal('member.completeSignup.createFailed', e));
+    return err(internalWithDetails('member.completeSignup.createFailed', e));
   }
 
   try {
@@ -1067,3 +1107,5 @@ export async function getMemberVouchers(
     return err(AppError.internal('member.vouchers.listFailed', e));
   }
 }
+
+

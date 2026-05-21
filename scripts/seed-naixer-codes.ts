@@ -60,7 +60,7 @@ CSV format (modifiers):
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
-  console.error('❌ DATABASE_URL not set. Add it to .env and retry.');
+  console.error('ERROR DATABASE_URL not set. Add it to .env and retry.');
   process.exit(1);
 }
 
@@ -75,7 +75,7 @@ try {
   csvContent = readFileSync(fullPath, 'utf-8');
 } catch (e: unknown) {
   const msg = e instanceof Error ? e.message : String(e);
-  console.error(`❌ Cannot read file: ${fullPath}\n   ${msg}`);
+  console.error(`ERROR Cannot read file: ${fullPath}\n   ${msg}`);
   process.exit(1);
 }
 
@@ -84,7 +84,7 @@ try {
 async function getDefaultTenantId(): Promise<string> {
   const [tenant] = await db.select({ id: tenants.id }).from(tenants).limit(1);
   if (!tenant) {
-    console.error('❌ No tenant found in database. Run seed first.');
+    console.error('ERROR No tenant found in database. Run seed first.');
     process.exit(1);
   }
   return tenant.id;
@@ -96,14 +96,14 @@ async function importProducts(csv: string): Promise<void> {
   const { rows, errors } = parseProductCodesCsv(csv);
 
   if (errors.length > 0) {
-    console.error('⚠️  Parse errors:');
+    console.error('WARNING Parse errors:');
     for (const err of errors) {
       console.error(`   Line ${err.line}: ${err.message}`);
     }
   }
 
   if (rows.length === 0) {
-    console.error('❌ No valid rows to import.');
+    console.error('ERROR No valid rows to import.');
     process.exit(1);
   }
 
@@ -160,7 +160,7 @@ async function importProducts(csv: string): Promise<void> {
     }
   }
 
-  console.info(`\n✅ Product codes: ${inserted} inserted, ${updated} updated`);
+  console.info(`\nProduct codes: ${inserted} inserted, ${updated} updated`);
 }
 
 // ─── Import modifiers ───────────────────────────────────────────────────────
@@ -169,14 +169,14 @@ async function importModifiers(csv: string): Promise<void> {
   const { rows, errors } = parseModifierCodesCsv(csv);
 
   if (errors.length > 0) {
-    console.error('⚠️  Parse errors:');
+    console.error('WARNING Parse errors:');
     for (const err of errors) {
       console.error(`   Line ${err.line}: ${err.message}`);
     }
   }
 
   if (rows.length === 0) {
-    console.error('❌ No valid rows to import.');
+    console.error('ERROR No valid rows to import.');
     process.exit(1);
   }
 
@@ -233,7 +233,7 @@ async function importModifiers(csv: string): Promise<void> {
     }
   }
 
-  console.info(`\n✅ Modifier codes: ${inserted} inserted, ${updated} updated`);
+  console.info(`\nModifier codes: ${inserted} inserted, ${updated} updated`);
 }
 
 // ─── Main ───────────────────────────────────────────────────────────────────
@@ -250,10 +250,14 @@ async function main(): Promise<void> {
     await importModifiers(csvContent);
   }
 
-  console.info('\n🎉 Import complete!');
+  console.info('
+Import complete!');
 }
 
 main().catch((e) => {
-  console.error('❌ Import failed:', e);
+  console.error('ERROR Import failed:', e);
   process.exit(1);
 });
+
+
+

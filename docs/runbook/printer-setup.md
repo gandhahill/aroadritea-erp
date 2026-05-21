@@ -26,10 +26,14 @@ the OS printer dialog to confirm.
 2. Open **Settings → POS** (path `/settings/pos`).
 3. For each outlet:
    - **Lebar Struk Thermal**: typically 80 (mm).
-   - **Printer Struk (OS)**: paste the OS printer name (e.g.
-     `EPSON_TM-T82`).
-   - **Printer Label (OS)**: paste the label printer name (e.g.
-     `XP-365B`). Leave blank if only one printer is in use.
+   - Click **Detect printers**. If the local Print Bridge is running,
+     the receipt and label printer fields become dropdowns populated
+     from the cashier PC.
+   - **Printer Struk (OS)**: select the receipt printer (e.g.
+     `EPSON_TM-T82`) or type it manually if bridge detection is not
+     available.
+   - **Printer Label (OS)**: select the label printer (e.g. `XP-365B`)
+     or leave blank if only one printer is in use.
 4. Click "Simpan".
 
 ## Step 3 — Enable kiosk printing (skip print preview)
@@ -64,23 +68,28 @@ For a cashier-friendly silent print, do this once per cashier PC:
      printer is set; otherwise the OS user must manually select the
      label device in the dialog (kiosk limitation).
 
-## Phase 2 — Local Print Bridge (future)
+## Optional — Local Print Bridge
 
 Kiosk printing is single-device by design. For per-route routing
 (receipt → printer A, label → printer B) without operator intervention,
 deploy the **Print Bridge** agent on the cashier PC:
 
-- Listens on `http://127.0.0.1:9100`.
-- Two endpoints: `POST /print/receipt`, `POST /print/label`.
-- Each endpoint takes the rendered HTML and forwards to the configured
-  OS printer name (we already store these in `pos_settings`).
-- ERP detects bridge presence (single `OPTIONS /` ping at POS load).
-  When present, the POS POSTs to the bridge instead of opening the
-  print windows.
+- Listens on `http://127.0.0.1:7913` by default.
+- `GET /printers` returns either `["Printer A"]` or
+  `{ "printers": [{ "name": "Printer A" }] }`.
+- The ERP POS settings page tries `NEXT_PUBLIC_PRINT_BRIDGE_URL`,
+  `https://127.0.0.1:7913`, `http://127.0.0.1:7913`,
+  `https://localhost:7913`, and `http://localhost:7913`, then shows a
+  dropdown when printers are detected.
+- Future bridge builds may also expose `POST /print/receipt` and
+  `POST /print/label` to bypass browser windows entirely while routing
+  to the configured OS printer names.
 - Distribution: Tauri-packaged ~5 MB exe, installed via MSI for Windows
   cashier PCs.
 
-Phase 2 is on the roadmap (T-0170+); not blocking the v1 launch.
+Without the bridge, browser security rules do not allow the ERP page to
+enumerate OS printers directly; manual printer-name input remains the
+fallback.
 
 ## Troubleshooting
 

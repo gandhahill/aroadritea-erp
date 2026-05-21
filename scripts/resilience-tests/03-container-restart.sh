@@ -19,21 +19,21 @@ echo "════════════════════════�
 
 # 1. Verify container is running
 echo ""
-echo "[1/5] Verifying $SERVICE is running..."
+echo "  OK $SERVICE is running..."
 if ! docker compose -f "$COMPOSE_FILE" ps "$SERVICE" | grep -q "Up"; then
-  echo "  ❌ FAIL: $SERVICE is not running. Start it first."
+  echo "  ERROR FAIL: $SERVICE is not running. Start it first."
   exit 1
 fi
-echo "  ✅ $SERVICE is running"
+echo "  OK $SERVICE is running"
 
 # 2. Verify health endpoint
 echo ""
 echo "[2/5] Checking health endpoint..."
 if ! curl -sf "$HEALTHZ_URL" > /dev/null 2>&1; then
-  echo "  ❌ FAIL: $HEALTHZ_URL is not responding"
+  echo "  ERROR FAIL: $HEALTHZ_URL is not responding"
   exit 1
 fi
-echo "  ✅ Health endpoint OK"
+echo "  OK Health endpoint OK"
 
 # 3. Stop the container
 echo ""
@@ -46,9 +46,9 @@ echo "  ⏱ Container stopped at $(date)"
 echo ""
 echo "[4/5] Verifying $SERVICE is down..."
 if curl -sf "$HEALTHZ_URL" > /dev/null 2>&1; then
-  echo "  ⚠ WARNING: Health endpoint still responding after stop"
+  echo "  WARNING: Health endpoint still responding after stop"
 fi
-echo "  ✅ $SERVICE is confirmed down"
+echo "  OK $SERVICE is confirmed down"
 
 # 5. Restart and measure recovery time
 echo ""
@@ -62,11 +62,11 @@ while [ $ELAPSED -lt $MAX_WAIT ]; do
     echo ""
     echo "═══════════════════════════════════════════════════════════"
     if [ $RECOVERY_TIME -le 30 ]; then
-      echo "  ✅ PASS: Recovery time = ${RECOVERY_TIME}s (target: ≤ 30s)"
+      echo "  OK PASS: Recovery time = ${RECOVERY_TIME}s (target: ≤ 30s)"
     elif [ $RECOVERY_TIME -le 120 ]; then
-      echo "  ⚠ WARN: Recovery time = ${RECOVERY_TIME}s (target: ≤ 30s, RTO: ≤ 120s)"
+      echo "  WARNING WARN: Recovery time = ${RECOVERY_TIME}s (target: ≤ 30s, RTO: ≤ 120s)"
     else
-      echo "  ❌ FAIL: Recovery time = ${RECOVERY_TIME}s (exceeds RTO 120s)"
+      echo "  ERROR FAIL: Recovery time = ${RECOVERY_TIME}s (exceeds RTO 120s)"
     fi
     echo "═══════════════════════════════════════════════════════════"
     exit 0
@@ -78,6 +78,7 @@ done
 
 echo ""
 echo "═══════════════════════════════════════════════════════════"
-echo "  ❌ FAIL: $SERVICE did not recover within ${MAX_WAIT}s"
+echo "  ERROR FAIL: $SERVICE did not recover within ${MAX_WAIT}s"
 echo "═══════════════════════════════════════════════════════════"
 exit 1
+

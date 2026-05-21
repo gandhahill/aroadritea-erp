@@ -1,6 +1,7 @@
 'use client';
 
 import { FileUploadField } from '@/components/file-upload-field';
+import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect } from 'react';
@@ -20,6 +21,7 @@ interface Props {
 
 export function ProductForm({ mode, categories, product, defaultKind }: Props) {
   const router = useRouter();
+  const locale = useLocale();
   const t = useTranslations('inventory.products');
   const f = useTranslations('inventory.products.form');
   const action = mode === 'create' ? createProductAction : updateProductAction;
@@ -78,7 +80,7 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
               ) : (
                 categories.map((category) => (
                   <option key={category.id} value={category.id}>
-                    {category.code} - {category.name.id}
+                    {category.code} - {localized(category.name, locale)}
                   </option>
                 ))
               )}
@@ -109,10 +111,21 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
             </select>
           </Field>
           <Field label={f('uom')} required>
-            <input name="uom" required defaultValue={product?.uom ?? 'pcs'} className={INPUT} />
+            <select name="uom" required defaultValue={product?.uom ?? 'pcs'} className={INPUT}>
+              {['pcs', 'cup', 'botol', 'ml', 'liter', 'gram', 'kg', 'pack', 'box'].map((uom) => (
+                <option key={uom} value={uom}>
+                  {uom}
+                </option>
+              ))}
+            </select>
           </Field>
           <Field label={f('taxCode')}>
-            <input name="taxCode" defaultValue={product?.taxCode ?? ''} className={INPUT} />
+            <select name="taxCode" defaultValue={product?.taxCode ?? ''} className={INPUT}>
+              <option value="">{f('taxCodeNone')}</option>
+              <option value="PB1">PB1</option>
+              <option value="PPN_OUT">PPN_OUT</option>
+              <option value="PPN_IN">PPN_IN</option>
+            </select>
           </Field>
         </div>
         <div className="mt-4">
@@ -220,6 +233,11 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
       </div>
     </form>
   );
+}
+
+function localized(value: { id?: string; en?: string; zh?: string }, locale: string): string {
+  const key = locale === 'zh' ? 'zh' : locale === 'en' ? 'en' : 'id';
+  return value[key] ?? value.id ?? value.en ?? value.zh ?? '';
 }
 
 function Field({

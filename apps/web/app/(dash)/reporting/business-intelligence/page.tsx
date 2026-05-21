@@ -18,9 +18,9 @@ function ymd(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-function formatIdr(value: bigint | string): string {
+function formatIdr(value: bigint | string, locale: string): string {
   const numeric = typeof value === 'bigint' ? Number(value) : Number(value);
-  return new Intl.NumberFormat('id-ID', {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: 'IDR',
     maximumFractionDigits: 0,
@@ -31,10 +31,10 @@ function toBigInt(value: string | null | undefined): bigint {
   return value && /^\-?\d+$/.test(value) ? BigInt(value) : 0n;
 }
 
-function humanChannel(channel: string): string {
+function humanChannel(channel: string, t: Awaited<ReturnType<typeof getTranslations>>): string {
   switch (channel) {
     case 'walk_in':
-      return 'Walk-in';
+      return t('channels.walkIn');
     case 'gofood':
       return 'GoFood';
     case 'grabfood':
@@ -42,7 +42,7 @@ function humanChannel(channel: string): string {
     case 'shopeefood':
       return 'ShopeeFood';
     default:
-      return channel;
+      return t('channels.other', { channel });
   }
 }
 
@@ -177,7 +177,7 @@ export default async function BusinessIntelligencePage() {
     .groupBy(salesOrders.channel);
   const channelMix = channelRows
     .map((r) => ({
-      label: humanChannel(r.channel),
+      label: humanChannel(r.channel, t),
       gross: BigInt(r.gross ?? 0) * 100n,
       orders: Number(r.orders),
     }))
@@ -301,14 +301,14 @@ export default async function BusinessIntelligencePage() {
       </div>
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <Kpi title={t('gross')} value={formatIdr(totals.gross)} />
-        <Kpi title={t('netRevenue')} value={formatIdr(totals.netRevenue)} />
+        <Kpi title={t('gross')} value={formatIdr(totals.gross, locale)} />
+        <Kpi title={t('netRevenue')} value={formatIdr(totals.netRevenue, locale)} />
         <Kpi title={t('orders')} value={String(totals.orderCount)} />
-        <Kpi title={t('weeklyGross')} value={formatIdr(weeklyGross)} />
-        <Kpi title={t('pb1')} value={formatIdr(totals.pb1)} />
-        <Kpi title={t('deliveryCommission')} value={formatIdr(totals.deliveryCommission)} />
-        <Kpi title={t('refunds')} value={`${formatIdr(totals.refunds)} / ${totals.refundCount}`} />
-        <Kpi title={t('cashVariance')} value={formatIdr(totals.cashVariance)} />
+        <Kpi title={t('weeklyGross')} value={formatIdr(weeklyGross, locale)} />
+        <Kpi title={t('pb1')} value={formatIdr(totals.pb1, locale)} />
+        <Kpi title={t('deliveryCommission')} value={formatIdr(totals.deliveryCommission, locale)} />
+        <Kpi title={t('refunds')} value={`${formatIdr(totals.refunds, locale)} / ${totals.refundCount}`} />
+        <Kpi title={t('cashVariance')} value={formatIdr(totals.cashVariance, locale)} />
       </section>
 
       <section className="grid gap-4 xl:grid-cols-3">
@@ -326,10 +326,10 @@ export default async function BusinessIntelligencePage() {
                     </div>
                     <div className="text-right">
                       <div className="font-semibold text-brand-red">
-                        {formatIdr(data.grossSales)}
+                        {formatIdr(data.grossSales, locale)}
                       </div>
                       <div className="text-xs text-brand-ink-3">
-                        {data.shiftSummary.length} shift
+                        {t('shiftCount', { count: data.shiftSummary.length })}
                       </div>
                     </div>
                   </div>
@@ -350,7 +350,7 @@ export default async function BusinessIntelligencePage() {
                 >
                   <span className="text-sm font-medium uppercase text-brand-ink-2">{method}</span>
                   <span className="text-sm font-semibold text-brand-ink">
-                    {formatIdr(value.total)} ({value.count})
+                    {formatIdr(value.total, locale)} ({value.count})
                   </span>
                 </div>
               ))}
@@ -367,6 +367,8 @@ export default async function BusinessIntelligencePage() {
                 value: Number(value.nominal),
               }))}
             height={260}
+            locale={locale}
+            noDataLabel={t('noData')}
           />
         </Panel>
       </section>
@@ -376,9 +378,9 @@ export default async function BusinessIntelligencePage() {
         <div className="mt-3 grid gap-3 md:grid-cols-4">
           <Kpi title={t('openShifts')} value={String(totals.openShifts)} compact />
           <Kpi title={t('activeLocations')} value={String(locations.length)} compact />
-          <Kpi title="Avg ticket" value={formatIdr(avgTicket)} compact />
+          <Kpi title={t('avgTicket')} value={formatIdr(avgTicket, locale)} compact />
           <Kpi
-            title="Refund rate"
+            title={t('refundRate')}
             value={
               totals.orderCount > 0
                 ? `${((totals.refundCount / totals.orderCount) * 100).toFixed(1)}%`
@@ -390,49 +392,57 @@ export default async function BusinessIntelligencePage() {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-3">
-        <Panel title="Tren 7 hari (omzet harian)">
+        <Panel title={t('trend7Days')}>
           <TrendLineChart
             data={trendData.map((row) => ({
               label: row.date.slice(5),
               value: Number(row.gross),
               orders: row.orders,
             }))}
+            locale={locale}
+            noDataLabel={t('noData')}
           />
         </Panel>
 
-        <Panel title="Channel mix (bulan ini)">
+        <Panel title={t('channelMix')}>
           <DonutChart
             data={channelMix.map((c) => ({
               label: c.label,
               value: Number(c.gross),
             }))}
+            locale={locale}
+            noDataLabel={t('noData')}
           />
         </Panel>
 
-        <Panel title="Member vs walk-in (bulan ini)">
+        <Panel title={t('memberVsGuest')}>
           <DonutChart
             data={[
-              { label: 'Member', value: Number(memberSplit.memberGross) },
-              { label: 'Tamu', value: Number(memberSplit.guestGross) },
+              { label: t('member'), value: Number(memberSplit.memberGross) },
+              { label: t('guest'), value: Number(memberSplit.guestGross) },
             ]}
+            locale={locale}
+            noDataLabel={t('noData')}
           />
           <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-brand-ink-3">
             <div>
-              Member: {memberSplit.memberOrders} order ·{' '}
-              <span className="text-brand-ink">{formatIdr(memberSplit.memberGross)}</span>
+              {t('memberOrders', { count: memberSplit.memberOrders })}{' '}
+              <span className="text-brand-ink">{formatIdr(memberSplit.memberGross, locale)}</span>
             </div>
             <div>
-              Tamu: {memberSplit.guestOrders} order ·{' '}
-              <span className="text-brand-ink">{formatIdr(memberSplit.guestGross)}</span>
+              {t('guestOrders', { count: memberSplit.guestOrders })}{' '}
+              <span className="text-brand-ink">{formatIdr(memberSplit.guestGross, locale)}</span>
             </div>
           </div>
         </Panel>
       </section>
 
       <section className="rounded-lg border border-brand-cream-3 bg-card p-4">
-        <h2 className="text-lg font-semibold text-brand-ink">Hourly hari ini ({today})</h2>
+        <h2 className="text-lg font-semibold text-brand-ink">
+          {t('hourlyToday', { date: today })}
+        </h2>
         <p className="mt-1 text-xs text-brand-ink-3">
-          Distribusi transaksi per jam. Membantu menjadwalkan staff.
+          {t('hourlyHelp')}
         </p>
         <div className="mt-3">
           <VerticalBarChart
@@ -441,57 +451,11 @@ export default async function BusinessIntelligencePage() {
               value: Number(h.gross),
             }))}
             height={240}
+            locale={locale}
+            noDataLabel={t('noData')}
           />
         </div>
       </section>
-    </div>
-  );
-}
-
-interface BarRow {
-  label: string;
-  value: number;
-  sub?: string;
-}
-
-function BarChart({ data }: { data: BarRow[] }) {
-  const max = Math.max(1, ...data.map((d) => d.value));
-  if (data.length === 0)
-    return <p className="text-xs text-brand-ink-3">Belum ada data.</p>;
-  return (
-    <div className="space-y-1.5">
-      {data.map((row) => (
-        <div key={row.label} className="grid grid-cols-[80px_1fr_auto] items-center gap-2 text-xs">
-          <span className="font-medium text-brand-ink-2">{row.label}</span>
-          <div className="h-3 overflow-hidden rounded-full bg-brand-cream-2">
-            <div
-              className="h-full rounded-full bg-brand-red"
-              style={{ width: `${(row.value / max) * 100}%` }}
-            />
-          </div>
-          <span className="text-right tabular-nums text-brand-ink">
-            {new Intl.NumberFormat('id-ID').format(row.value)}
-            {row.sub ? <span className="ml-1 text-brand-ink-3">· {row.sub}</span> : null}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function StackBar({
-  left,
-  right,
-}: {
-  left: { label: string; value: number };
-  right: { label: string; value: number };
-}) {
-  const total = Math.max(1, left.value + right.value);
-  const lp = (left.value / total) * 100;
-  return (
-    <div className="flex h-3 w-full overflow-hidden rounded-full bg-brand-cream-2">
-      <div className="bg-brand-red" style={{ width: `${lp}%` }} />
-      <div className="bg-brand-jade" style={{ width: `${100 - lp}%` }} />
     </div>
   );
 }

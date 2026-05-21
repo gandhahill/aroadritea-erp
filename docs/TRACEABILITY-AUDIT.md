@@ -242,6 +242,37 @@ Commit `794f15b` was pushed to GitHub and deployed on the VPS under `/home/aroad
 7. Public route smoke returned HTTP 200 for `https://erp.aroadritea.com/login` and `https://aroadritea.com/id/member/daftar`.
 8. Protected ERP route smoke returned HTTP 307 redirects, not 404/application-error, for `/accounting/payables`, `/accounting/receivables`, `/accounting/assets`, `/purchasing`, `/accounting/journals/new`, and `/pos/print/demo-receipt`.
 
+## T-0167 Local Evidence - 2026-05-21 09:25 WIB
+
+This pass focused on the user's latest production issues: missing ERP menu photos, member completion failure, purchase-order load failure, high-risk i18n surfaces, UI UUID/account-label leakage, finite-choice dropdowns, and printer selection usability.
+
+### Fixed / Improved In This Pass
+
+1. Production PO digest `2276648720` root cause was traced to unapplied shipment-tracking columns. Migration metadata now registers `0020_purchase_shipment_tracking`, and the production DB migration was applied successfully.
+2. Menu image serving was hardened without destructive DB reset: seed was rerun to refresh product image paths, and ERP middleware now treats `/photo`, `/brand`, `/images`, and `/uploads` as public asset paths instead of redirecting them behind login.
+3. `member.completeSignup.createFailed` was hardened with fail-fast PII encryption configuration checks, normalized OTP email lookup, legacy plaintext duplicate fallback checks, safer birth-date parsing, and sanitized internal create-failure details.
+4. The obsolete public member "complete data" OTP copy was removed from ID/EN/ZH messages because signup now completes from the original registration payload after OTP verification.
+5. High-risk i18n sweep completed for the user-cited surfaces: BI dashboard/charts, AP/AR account labels, sidebar inventory entries, dashboard copy, product/supply list copy, and product form labels.
+6. Product/category/supply display now chooses localized master-data names by active locale on the swept inventory pages.
+7. AP/AR account labels now render code + localized account name instead of raw UUID or internal subtype fallbacks.
+8. Product form text fields with finite options were converted to dropdowns for stock unit and tax code.
+9. POS settings printer fields now auto-detect local Print Bridge printers and show dropdown choices, with manual input fallback when the local bridge is unavailable.
+10. App/package/script emoji scan was cleaned, and browser-native `alert/confirm/prompt` scan only finds comments in the replacement dialog component.
+
+### Verification
+
+1. `pnpm -r typecheck` PASS across 10 workspace projects.
+2. `pnpm -r test` PASS: shared 58 tests and services 535 tests.
+3. `pnpm -r build` PASS for worker, MCP, site, and web.
+4. i18n key parity PASS: `apps/web/messages` 1476 keys / 0 missing; `apps/site/messages` 118 keys / 0 missing.
+5. Native-dialog scan PASS: no runtime `alert`, `confirm`, or `prompt` calls in `apps` or `packages`.
+6. Emoji scan PASS over `apps`, `packages`, and `scripts`.
+
+### Remaining Non-FULL Risks
+
+1. Some traceability rows cannot honestly be marked FULL without external evidence: physical receipt/label printer smoke, local Print Bridge integration on cashier Windows, production OTP email receipt, restore drill, external alert delivery, Coretax/PPh formal validation, and legal counsel review.
+2. Older hardcoded UI copy still exists in legacy pages outside the high-risk sweep. Key parity is clean, but absolute "every visible string is translated" requires a larger page-by-page migration and browser smoke pass.
+
 ## Next Implementation Order
 
 1. Continue the next sweep on remaining enterprise gaps: hardcoded i18n copy migration, absence scheduling, print parity, PII encryption verification, and MCP write-tool expansion.

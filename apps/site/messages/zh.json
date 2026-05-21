@@ -180,8 +180,6 @@
       "code": "OTP 验证码",
       "verify": "验证",
       "verifying": "正在验证...",
-      "completeTitle": "完善资料",
-      "completeSubmit": "保存并登录",
       "completing": "正在创建账户...",
       "invalidToken": "Token 无效，请重新注册。"
     }

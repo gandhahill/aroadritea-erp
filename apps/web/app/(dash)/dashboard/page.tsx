@@ -15,6 +15,7 @@ import { payments, salesOrders, shifts } from '@erp/db/schema/pos';
 import { purchaseOrders } from '@erp/db/schema/purchasing';
 import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
+import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
@@ -22,11 +23,11 @@ export const metadata: Metadata = {
   title: 'Dashboard - Aroadri ERP',
 };
 
-function rupiah(value: bigint | string | number | null | undefined): string {
+function rupiah(value: bigint | string | number | null | undefined, locale: string): string {
   if (value === null || value === undefined) return 'Rp 0';
   const n = typeof value === 'bigint' ? Number(value) : Number(value);
   if (!Number.isFinite(n)) return 'Rp 0';
-  return new Intl.NumberFormat('id-ID', {
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: 'IDR',
     maximumFractionDigits: 0,
@@ -121,70 +122,59 @@ async function loadKpis(tenantId: string) {
 
 interface QuickLink {
   href: string;
-  title: string;
-  description: string;
+  key: string;
   permission?: string;
 }
 
 const QUICK_LINKS: QuickLink[] = [
   {
     href: '/pos',
-    title: 'Kasir POS',
-    description: 'Mulai transaksi penjualan untuk shift Anda.',
+    key: 'pos',
     permission: 'pos.transact',
   },
   {
     href: '/hr/checkin',
-    title: 'Presensi',
-    description: 'Clock-in/out shift hari ini dengan GPS.',
+    key: 'checkin',
     permission: 'hr.attendance.write',
   },
   {
     href: '/accounting/journals/new',
-    title: 'Jurnal manual',
-    description: 'Catat jurnal umum dengan lampiran bukti.',
+    key: 'manualJournal',
     permission: 'accounting.journal.create',
   },
   {
     href: '/inventory/products',
-    title: 'Produk & menu',
-    description: 'Atur produk, kategori, harga, dan gambar.',
+    key: 'products',
     permission: 'inventory.product.read',
   },
   {
     href: '/inventory/opname',
-    title: 'Stock opname',
-    description: 'Hitung stok harian/bulanan dan rekam selisih.',
+    key: 'opname',
     permission: 'inventory.adjust',
   },
   {
     href: '/purchasing/po/new',
-    title: 'Purchase order',
-    description: 'Buat PO ke supplier dan lacak penerimaan barang.',
+    key: 'purchaseOrder',
     permission: 'purchasing.po.create',
   },
   {
     href: '/hr/payroll',
-    title: 'Payroll',
-    description: 'Hitung gaji tanggal 8 dengan potongan presensi otomatis.',
+    key: 'payroll',
     permission: 'hr.view',
   },
   {
     href: '/reporting/business-intelligence',
-    title: 'Business Intelligence',
-    description: 'KPI omzet, channel, produk teratas, varians kas.',
+    key: 'bi',
     permission: 'reporting.view',
   },
   {
     href: '/audit',
-    title: 'Audit trail',
-    description: 'Riwayat perubahan data — internal control.',
+    key: 'audit',
     permission: 'audit.view',
   },
   {
     href: '/settings/permissions',
-    title: 'Permission & role',
-    description: 'Atur role dan akses per pengguna.',
+    key: 'permissions',
     permission: 'settings.manage',
   },
 ];
@@ -195,7 +185,9 @@ export default async function DashboardPage() {
   const user = session.user as Record<string, unknown>;
   const tenantId = String(user.tenantId ?? 'default');
   const userId = String(user.id ?? '');
-  const displayName = String(user.displayName ?? user.email ?? 'Pengguna');
+  const locale = await getLocale();
+  const t = await getTranslations('dashboard');
+  const displayName = String(user.displayName ?? user.email ?? t('fallbackUser'));
 
   const kpis = await loadKpis(tenantId);
 
@@ -210,12 +202,12 @@ export default async function DashboardPage() {
   const now = new Date();
   const hello =
     now.getHours() < 11
-      ? 'Selamat pagi'
+      ? t('greetings.morning')
       : now.getHours() < 15
-        ? 'Selamat siang'
+        ? t('greetings.afternoon')
         : now.getHours() < 19
-          ? 'Selamat sore'
-          : 'Selamat malam';
+          ? t('greetings.evening')
+          : t('greetings.night');
 
   return (
     <div className="space-y-6">
@@ -227,30 +219,38 @@ export default async function DashboardPage() {
           {hello}, {displayName.split(' ')[0]}.
         </h1>
         <p className="mt-1 text-sm text-brand-ink-3">
-          Ringkasan hari ini dan jalan pintas ke modul utama.
+          {t('subtitle')}
         </p>
       </header>
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <Kpi title="Omzet hari ini" value={rupiah(kpis.todayGross)} subtitle={`${kpis.todayOrders} transaksi`} />
-        <Kpi title="Omzet bulan ini" value={rupiah(kpis.monthGross)} />
-        <Kpi title="Shift terbuka" value={String(kpis.openShifts)} subtitle="POS aktif" />
         <Kpi
-          title="Telat hari ini"
-          value={String(kpis.lateToday)}
-          subtitle="(belum dispensasi)"
+          title={t('kpis.todayGross')}
+          value={rupiah(kpis.todayGross, locale)}
+          subtitle={t('kpis.transactions', { count: kpis.todayOrders })}
         />
-        <Kpi title="PO outstanding" value={String(kpis.openPos)} />
-        <Kpi title="Karyawan aktif" value={String(kpis.activeEmployees)} />
+        <Kpi title={t('kpis.monthGross')} value={rupiah(kpis.monthGross, locale)} />
         <Kpi
-          title="Periode akuntansi"
+          title={t('kpis.openShifts')}
+          value={String(kpis.openShifts)}
+          subtitle={t('kpis.activePos')}
+        />
+        <Kpi
+          title={t('kpis.lateToday')}
+          value={String(kpis.lateToday)}
+          subtitle={t('kpis.notForgiven')}
+        />
+        <Kpi title={t('kpis.openPo')} value={String(kpis.openPos)} />
+        <Kpi title={t('kpis.activeEmployees')} value={String(kpis.activeEmployees)} />
+        <Kpi
+          title={t('kpis.accountingPeriod')}
           value={kpis.openPeriod ?? '—'}
-          subtitle={kpis.openPeriod ? 'terbuka' : 'belum dibuka'}
+          subtitle={kpis.openPeriod ? t('kpis.open') : t('kpis.notOpened')}
         />
       </section>
 
       <section>
-        <h2 className="text-base font-semibold text-brand-ink">Jalan pintas</h2>
+        <h2 className="text-base font-semibold text-brand-ink">{t('quickLinksTitle')}</h2>
         <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {links.map((link) => (
             <Link
@@ -258,8 +258,12 @@ export default async function DashboardPage() {
               href={link.href}
               className="rounded-xl border border-brand-cream-3 bg-card p-4 shadow-sm transition-colors hover:border-brand-red/40 hover:bg-brand-cream-1"
             >
-              <p className="text-sm font-semibold text-brand-ink">{link.title}</p>
-              <p className="mt-1 text-xs text-brand-ink-3">{link.description}</p>
+              <p className="text-sm font-semibold text-brand-ink">
+                {t(`quickLinks.${link.key}.title`)}
+              </p>
+              <p className="mt-1 text-xs text-brand-ink-3">
+                {t(`quickLinks.${link.key}.description`)}
+              </p>
             </Link>
           ))}
         </div>

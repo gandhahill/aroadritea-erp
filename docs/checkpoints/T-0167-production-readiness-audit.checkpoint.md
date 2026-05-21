@@ -159,6 +159,16 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
   - Depreciation runs calculate eligible active assets per location, skip assets already depreciated for the period, create a balanced journal with `referenceType=fixed_asset_depreciation`, post it, and persist run/line history.
   - Updated accounting journal reference-type validation to include existing automatic journal sources (`sales_order`, `stock_adjustment`, `stock_transfer`, `grn`, `opening`, `bank_deposit`, `voucher_redeem`, and `fixed_asset_depreciation`), preventing auto-journal validation mismatch.
   - Updated `docs/TRACEABILITY-AUDIT.md` so SoT 10.4 fixed assets moves from partial to implemented evidence.
+- 2026-05-21 09:25 local continuation:
+  - Fixed production PO crash root cause for digest `2276648720`: migration metadata now includes `0020_purchase_shipment_tracking`, and production DB was migrated so purchase shipment columns exist.
+  - Seed was rerun against production to refresh menu image mappings; web middleware now allows `/photo`, `/brand`, `/images`, and `/uploads` as public static asset paths so ERP menu images are not redirected to login.
+  - Fixed `member.completeSignup.createFailed` hardening: member signup now fails fast when `PII_ENCRYPTION_KEY` is missing, normalizes OTP email lookup, tolerates legacy plaintext member rows during duplicate checks, parses optional birth date safely, and returns sanitized create-failure details.
+  - Removed the obsolete public member "complete data" translation keys after OTP because the signup payload is now completed directly from the original registration form.
+  - Migrated high-risk i18n surfaces requested by the user: dashboard, sidebar inventory labels, BI dashboard/chart copy, AP/AR account labels, product/supply list copy, and product form dropdown labels.
+  - Product form now uses dropdowns for common stock units and tax code instead of free-text where the domain has a finite option set.
+  - POS settings now attempts local Print Bridge printer discovery and exposes detected printer names as dropdown choices, with manual fallback when the bridge is not running.
+  - Removed remaining emoji output from worker outage notifications, seed/reset helpers, Naixer seed script, and resilience test scripts.
+  - Verification passed locally: `pnpm -r typecheck`, `pnpm -r test` (shared 58, services 535), `pnpm -r build`, i18n key parity 0 missing for web/site, browser-native dialog scan only finds comments in the replacement component, and emoji scan finds no app/package/script markers.
 
 ## Plan
 
@@ -175,7 +185,7 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 11. [x] Commit, push, deploy latest local critical fixes, run production migrations, and smoke test live site/web/MCP.
 12. [x] Commit, push, deploy ERP static asset middleware patch, then live re-smoke favicon/PWA assets.
 13. [x] Commit/push/deploy the 23:31 local sweep and run authenticated ERP route-load smoke with admin session across POS production, POS demo, docs, permissions, product master, promotions, BI, journals, HR check-in/leave, account settings, audit trail, and scheduled jobs.
-14. [ ] Continue deeper SoT mismatch sweep for remaining partial modules, especially hardcoded-copy i18n migration, print parity, PII encryption verification, absence automation, and real browser CRUD smoke.
+14. [ ] Continue deeper SoT mismatch sweep for remaining partial modules, especially full legacy hardcoded-copy migration, print parity with physical printers, PII encryption production environment verification after reload, absence automation, and real browser CRUD smoke.
 15. [x] Patch 2026-05-20 user-reported production issues for legal i18n, quick adjustment, POS settings, menu images, journal CSV import, BOM auto-deduct flexibility, and safe unused-master deletion.
 16. [x] Patch 2026-05-20 continuation issues for member Turnstile fallback, HR outlet/global employee isolation, fixed asset register/depreciation journals, and MCP public health host allow-list; deploy and smoke on VPS.
 17. [x] Patch fixed-asset MCP tools plus payroll bonus input and payroll statutory deduction JE aggregation; deploy and smoke on VPS.
@@ -183,7 +193,7 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 
 ## Next Step
 
-Continue remaining `PARTIAL` rows that require external or physical evidence: return/QC purchasing workflow, restore drill, physical printer smoke, Coretax/PPh formal validation, and external alert delivery. If production credentials/session are available, add authenticated browser CRUD smoke for `/accounting/payables`, `/accounting/receivables`, `/accounting/assets`, `/purchasing`, `/accounting/journals/new`, `/pos/print/demo-receipt`, and public `/id/member/daftar` + OTP completion.
+Commit and push the 2026-05-21 local patch set, deploy it on the VPS with `pnpm --filter @erp/db migrate`, `pnpm --filter @erp/db seed`, production builds, and `pm2 reload ecosystem.config.cjs --env production --update-env`; then smoke-test image URLs, `/purchasing`, `/settings/pos`, `/reporting/business-intelligence`, `/accounting/payables`, `/accounting/receivables`, and public member signup/OTP pages.
 
 ## Test Status
 

@@ -61,9 +61,9 @@ run_test 8 "DB Connection Drop"             "08-db-reconnect.sh"
 echo "╔═══════════════════════════════════════════════════════════╗"
 echo "║   RESULTS                                                ║"
 echo "╠═══════════════════════════════════════════════════════════╣"
-echo "║   ✅ Passed:  $PASS                                       ║"
-echo "║   ❌ Failed:  $FAIL                                       ║"
-echo "║   ⏳ Skipped: $SKIP (Phase 2)                             ║"
+echo "    OK Passed:  $PASS"
+echo "    ERROR Failed:  $FAIL"
+echo "    Skipped: $SKIP (Phase 2)"
 echo "╚═══════════════════════════════════════════════════════════╝"
 echo ""
 echo "Finished at: $(date)"
@@ -72,3 +72,5 @@ if [ $FAIL -gt 0 ]; then
   exit 1
 fi
 exit 0
+
+

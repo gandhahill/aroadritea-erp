@@ -197,9 +197,9 @@ export function Sidebar() {
       ),
       children: [
         { label: t('productsMenu'), href: '/inventory/products', icon: <></> },
-        { label: 'Bahan & Perlengkapan', href: '/inventory/supplies', icon: <></> },
-        { label: 'Kategori', href: '/inventory/categories', icon: <></> },
-        { label: 'Stok per Outlet', href: '/inventory/stock', icon: <></> },
+        { label: t('supplies'), href: '/inventory/supplies', icon: <></> },
+        { label: t('categories'), href: '/inventory/categories', icon: <></> },
+        { label: t('stockByOutlet'), href: '/inventory/stock', icon: <></> },
         { label: t('recipes'), href: '/inventory/recipes', icon: <></> },
         { label: t('stockOpname'), href: '/inventory/opname', icon: <></> },
         { label: t('inventoryVariance'), href: '/inventory/variance', icon: <></> },

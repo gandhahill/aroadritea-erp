@@ -26,9 +26,9 @@ echo ""
 echo "[1/5] Verifying $SERVICE is healthy with DB connection..."
 HEALTH_RESPONSE=$(curl -sf "$HEALTHZ_URL" 2>/dev/null || echo "FAIL")
 if echo "$HEALTH_RESPONSE" | grep -qi "ok\|healthy"; then
-  echo "  ✅ Health check OK — DB connected"
+  echo "  OK Health check OK - DB connected"
 else
-  echo "  ❌ FAIL: Health check failed before test: $HEALTH_RESPONSE"
+  echo "  ERROR FAIL: Health check failed before test: $HEALTH_RESPONSE"
   exit 1
 fi
 
@@ -38,11 +38,11 @@ echo "[2/5] Resolving DB host from container environment..."
 CONTAINER_ID=$(docker compose -f "$COMPOSE_FILE" ps -q "$SERVICE" 2>/dev/null)
 DB_URL=$(docker exec "$CONTAINER_ID" printenv DATABASE_URL 2>/dev/null || echo "")
 if [ -z "$DB_URL" ]; then
-  echo "  ⚠ Cannot read DATABASE_URL from container. Using network pause instead."
+  echo "  WARNING Cannot read DATABASE_URL from container. Using network pause instead."
   USE_PAUSE=true
 else
   # Extract host from postgres://user:pass@host:port/db
-  DB_HOST=$(echo "$DB_URL" | sed -n 's|.*@\([^:/?]*\).*|\1|p')
+  DB_HOST=$(echo "$DB_URL" | sed -n 's|.*@\([^:/ERROR]*\).*|\1|p')
   echo "  DB Host: $DB_HOST"
   USE_PAUSE=false
 fi
@@ -63,9 +63,9 @@ else
   docker exec "$CONTAINER_ID" sh -c "
     apk add --no-cache iptables > /dev/null 2>&1 || true
     iptables -A OUTPUT -d $DB_HOST -j DROP 2>/dev/null || true
-  " 2>/dev/null || echo "  ⚠ Could not install iptables in container, using pause fallback"
+  " 2>/dev/null || echo "  WARNING Could not install iptables in container, using pause fallback"
 
-  if [ $? -ne 0 ]; then
+  if [ $ERROR -ne 0 ]; then
     docker pause "$CONTAINER_ID"
     sleep "$DB_BLOCK_DURATION"
     docker unpause "$CONTAINER_ID"
@@ -91,11 +91,11 @@ while [ $ELAPSED -lt $MAX_RECOVERY_WAIT ]; do
     echo ""
     echo "═══════════════════════════════════════════════════════════"
     if [ $RECOVERY_TIME -le 5 ]; then
-      echo "  ✅ PASS: DB reconnected in ${RECOVERY_TIME}s (target: ≤ 5s)"
+      echo "  OK PASS: DB reconnected in ${RECOVERY_TIME}s (target: ≤ 5s)"
     elif [ $RECOVERY_TIME -le 15 ]; then
-      echo "  ⚠ WARN: DB reconnected in ${RECOVERY_TIME}s (target: ≤ 5s)"
+      echo "  WARNING WARN: DB reconnected in ${RECOVERY_TIME}s (target: ≤ 5s)"
     else
-      echo "  ❌ FAIL: DB reconnected in ${RECOVERY_TIME}s (exceeds target)"
+      echo "  ERROR FAIL: DB reconnected in ${RECOVERY_TIME}s (exceeds target)"
     fi
     echo "═══════════════════════════════════════════════════════════"
     exit 0
@@ -107,6 +107,8 @@ done
 
 echo ""
 echo "═══════════════════════════════════════════════════════════"
-echo "  ❌ FAIL: $SERVICE did not reconnect to DB within ${MAX_RECOVERY_WAIT}s"
+echo "  ERROR FAIL: $SERVICE did not reconnect to DB within ${MAX_RECOVERY_WAIT}s"
 echo "═══════════════════════════════════════════════════════════"
 exit 1
+
+
