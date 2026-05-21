@@ -157,6 +157,8 @@ T-0168 selesai. Follow-up yang masih perlu keputusan/manual verification ada di 
 | `1741a4d` | `docs(guides): cover POS discounts and evidence flows [BUG-009]` | 2026-05-22 |
 | `0ea52eb` | `fix(pos): reject oversold tracked ingredients [INT-002]` | 2026-05-22 |
 | `c8c5d68` | `docs(audit): record static findings [SEC-000]` | 2026-05-22 |
+| `2f00ce4` | `docs(audit): publish T-0168 final report [SEC-000]` | 2026-05-22 |
+| `7e19c36` | `docs(audit): record production deploy verification [SEC-000]` | 2026-05-22 |
 
 ## Handoff Notes
 
