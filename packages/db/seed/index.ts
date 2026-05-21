@@ -1,10 +1,10 @@
-/**
- * Seed runner — inserts all seed data into the database.
+﻿/**
+ * Seed runner â€” inserts all seed data into the database.
  * Usage: pnpm --filter @erp/db seed
  *
  * Requires DATABASE_URL in .env. Seeds are idempotent. UI-managed business
  * configuration is created only when missing and is not overwritten on rerun.
- * Order: tenants → locations → roles → permissions → role_permissions → optional bootstrap admin → COA
+ * Order: tenants â†’ locations â†’ roles â†’ permissions â†’ role_permissions â†’ optional bootstrap admin â†’ COA
  */
 
 import { generateId } from '@erp/shared/id';
@@ -354,7 +354,7 @@ async function seed() {
   );
   console.info(`${fixedAssetCategoryResult.seeded} fixed asset categories seeded`);
 
-  // 9. Tax Rates (resolve COA codes → account IDs)
+  // 9. Tax Rates (resolve COA codes â†’ account IDs)
   const now = new Date();
   const periodYears = [now.getFullYear(), now.getFullYear() + 1];
   let periodCount = 0;
@@ -422,7 +422,7 @@ async function seed() {
   }
   console.info(`${taxCount} tax rates seeded`);
 
-  // 10. Tax Rules (SD §19.3.2 — PPN opt-in engine)
+  // 10. Tax Rules (SD Â§19.3.2 â€” PPN opt-in engine)
   let ruleCount = 0;
   for (const rule of TAX_RULES_SEED) {
     await db
@@ -452,7 +452,7 @@ async function seed() {
   await seedRecipes(db as unknown as Database, tenantId);
   console.info('Recipes (Fresh / Lemon / Milk Tea) seeded with BOM');
 
-  // 11a-bis. Initial stock per outlet — desserts + raw materials.
+  // 11a-bis. Initial stock per outlet â€” desserts + raw materials.
   // Idempotent: onConflictDoNothing on (tenant, location, product, variant, batch).
   const stockResult = await seedInitialStock(db as unknown as Database, tenantId);
   console.info(`Initial stock attempts: ${stockResult.inserted}`);
@@ -522,7 +522,7 @@ async function seed() {
       shiftDefinitionCount++;
     }
   }
-  console.info(`âœ… ${shiftDefinitionCount} shift definitions seeded`);
+  console.info(`OK ${shiftDefinitionCount} shift definitions seeded`);
 
   // 12. POS operational settings (UI-managed after bootstrap)
   let posSettingsCount = 0;
