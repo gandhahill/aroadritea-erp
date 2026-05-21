@@ -14,7 +14,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import { requirePermission } from '../iam';
 import {
@@ -262,7 +262,14 @@ export async function listManualSalesLocations(ctx: AuditContext) {
   const rows = await db
     .select({ id: locations.id, code: locations.code, name: locations.name })
     .from(locations)
-    .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.status, 'active')))
+    .where(
+      and(
+        eq(locations.tenantId, ctx.tenantId),
+        eq(locations.status, 'active'),
+        eq(locations.type, 'store'),
+        isNull(locations.deletedAt),
+      ),
+    )
     .orderBy(locations.code);
   return rows;
 }

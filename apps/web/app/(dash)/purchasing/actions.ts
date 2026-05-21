@@ -176,7 +176,13 @@ export async function fetchPurchaseOrderFormData(): Promise<PurchaseOrderFormDat
     db
       .select({ id: locations.id, name: locations.name })
       .from(locations)
-      .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.status, 'active')))
+      .where(
+        and(
+          eq(locations.tenantId, ctx.tenantId),
+          eq(locations.status, 'active'),
+          eq(locations.type, 'store'),
+        ),
+      )
       .orderBy(asc(locations.code)),
     db
       .select({

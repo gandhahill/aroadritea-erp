@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-05-21 19:24 WIB
-- **Last updated**: 2026-05-21 19:51 WIB
+- **Last updated**: 2026-05-21 20:08 WIB
 - **Status**: IN_PROGRESS
 - **Phase**: Cross-cutting production readiness and security audit
 - **Branch**: master
@@ -30,8 +30,8 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 2. [x] Audit dan perbaiki flow member forgot password serta error `member.completeSignup.createFailed` bila masih terkait.
 3. [x] Sweep trigger email dan perbaiki gap trigger/template multilingual.
 4. [x] Perbaiki AP/AR reminder query dan tambahkan regresi.
-5. [ ] Perbaiki scroll halaman manual sales.
-6. [ ] Pastikan dropdown outlet mengecualikan kantor.
+5. [x] Perbaiki scroll halaman manual sales.
+6. [x] Pastikan dropdown outlet mengecualikan kantor.
 7. [ ] Baca ulang Excel Malioboro Mei dan selaraskan seed kode barang/produk/stok.
 8. [ ] Tambah modul surat menyurat sesuai SoT/SD.
 9. [ ] Tambah panduan setup printer di docs dan halaman panduan bila ada.
@@ -45,6 +45,8 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 - `pnpm typecheck` PASS, `pnpm test` PASS (593 tests), `pnpm lint` baseline FAIL (316 errors, 482 warnings), `pnpm audit --prod` PASS.
 - Member forgot-password flow ditambahkan: request reset, complete reset, single-use token, session revocation, multilingual email, site pages, login link, dan 3 regresi service.
 - AP/AR reminder worker diperbaiki: predicate tanggal diganti ke date arithmetic PostgreSQL yang aman, timezone Asia/Jakarta, join akun/partner tenant-safe, dan channel email `party_ledger` bisa dikonfigurasi.
+- Scroll dashboard/manual sales diperbaiki dengan `h-dvh`, `min-h-0`, dan padding bawah halaman supaya form + histori tetap bisa diakses.
+- Dropdown outlet operasional untuk POS manual, stock opname, quick adjustment, purchase order, POS settings, dan Naixer sudah dibatasi ke lokasi aktif bertipe `store`; lokasi kantor tetap tersedia untuk modul yang memang memerlukan lokasi administrasi seperti accounting asset/journal/HR.
 
 ## Decisions
 
@@ -56,7 +58,7 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 
 ## Next step
 
-Lanjut perbaiki halaman input penjualan manual yang tidak bisa discroll, lalu sweep dropdown outlet agar kantor tidak muncul.
+Baca ulang Excel Malioboro Mei (`D:\KERJA\Aroadri Tea\2026\05\Malioboro Mall Mei.xlsx`) menggunakan bundled spreadsheet runtime, lalu selaraskan seed kode barang/produk/stok.
 
 ## Test status
 
@@ -65,6 +67,7 @@ Lanjut perbaiki halaman input penjualan manual yang tidak bisa discroll, lalu sw
 - **Focused**: `pnpm --filter @erp/services test -- notification-channel` PASS (1 test)
 - **Focused typecheck**: `pnpm --filter @erp/services typecheck` PASS; `pnpm --filter @erp/site typecheck` PASS
 - **Focused typecheck**: `pnpm --filter @erp/worker typecheck` PASS; `pnpm --filter @erp/web typecheck` PASS
+- **Focused typecheck**: `pnpm --filter @erp/web typecheck` PASS; `pnpm --filter @erp/services typecheck` PASS after manual-sales/outlet-scope patch
 - **Integration**: belum dijalankan untuk T-0168
 - **E2E**: belum dijalankan untuk T-0168
 
@@ -88,6 +91,13 @@ Lanjut perbaiki halaman input penjualan manual yang tidak bisa discroll, lalu sw
 | `packages/services/src/notification/index.ts` | Updated | Add `party_ledger` notification purpose |
 | `apps/web/app/(dash)/settings/notifications/*` | Updated | Expose party ledger email purpose |
 | `packages/services/tests/notification-channel.test.ts` | Added | Regression for party ledger channel purpose |
+| `apps/web/app/(dash)/layout.tsx` | Updated | Dashboard scroll container uses viewport-safe height/min-height |
+| `apps/web/app/(dash)/pos/manual-sales/manual-sales-client.tsx` | Updated | Manual sales page has bottom scroll breathing room |
+| `packages/services/src/pos/manual-sales.ts` | Updated | Manual sales location list is outlet/store-only |
+| `apps/web/app/(dash)/inventory/opname/new/page.tsx` | Updated | Opname outlet dropdown excludes office locations |
+| `apps/web/app/(dash)/inventory/adjust/actions.ts` | Updated | Quick adjustment outlet dropdown excludes office locations |
+| `apps/web/app/(dash)/purchasing/actions.ts` | Updated | PO destination dropdown excludes office locations |
+| `apps/web/app/(dash)/settings/integrations/naixer/actions.ts` | Updated | Naixer format config limited to outlet/store locations |
 
 ## Commits So Far
 
@@ -95,6 +105,7 @@ Lanjut perbaiki halaman input penjualan manual yang tidak bisa discroll, lalu sw
 |-----|---------|------|
 | `5970cfc` | `docs(audit): record T-0168 baseline [INT-000]` | 2026-05-21 |
 | `e52d7e7` | `fix(member): add password reset flow [BUG-001]` | 2026-05-21 |
+| `e603514` | `fix(worker): repair party ledger reminders [BUG-002]` | 2026-05-21 |
 
 ## Handoff Notes
 

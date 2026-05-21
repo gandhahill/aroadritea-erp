@@ -76,7 +76,7 @@ export async function fetchQuickAdjustData(): Promise<QuickAdjustData> {
   const locale = rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
 
   const [locations, productRows] = await Promise.all([
-    getActiveLocationOptions({ tenantId: ctx.tenantId, locale }),
+    getActiveLocationOptions({ tenantId: ctx.tenantId, locale, type: 'store' }),
     db
       .select({
         id: products.id,

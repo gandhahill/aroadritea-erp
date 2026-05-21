@@ -415,7 +415,13 @@ export async function fetchFormatConfigs(tenantId: string): Promise<FormatConfig
   const locs = await db
     .select({ id: locations.id, name: locations.name, code: locations.code })
     .from(locations)
-    .where(eq(locations.tenantId, tenantId));
+    .where(
+      and(
+        eq(locations.tenantId, tenantId),
+        eq(locations.status, 'active'),
+        eq(locations.type, 'store'),
+      ),
+    );
   const locationIds = locs.map((loc) => loc.id);
 
   if (locationIds.length === 0) return [];
@@ -464,7 +470,13 @@ export async function updateFormatConfig(
   const allowedLocations = await db
     .select({ id: locations.id })
     .from(locations)
-    .where(eq(locations.tenantId, tenantId));
+    .where(
+      and(
+        eq(locations.tenantId, tenantId),
+        eq(locations.status, 'active'),
+        eq(locations.type, 'store'),
+      ),
+    );
   const allowedLocationIds = new Set(allowedLocations.map((loc) => loc.id));
 
   const [current] = await db

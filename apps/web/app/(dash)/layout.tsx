@@ -32,12 +32,12 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-dvh min-h-0 overflow-hidden">
       {/* Sidebar navigation */}
       <Sidebar />
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         {/* Top bar */}
         <header className="flex h-14 items-center justify-end border-b border-brand-cream-3 bg-card px-6 shrink-0">
           <div className="flex items-center gap-3">
@@ -66,7 +66,9 @@ export default async function DashboardLayout({
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-brand-cream p-6">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto bg-brand-cream p-4 sm:p-6">
+          {children}
+        </main>
       </div>
     </div>
   );
