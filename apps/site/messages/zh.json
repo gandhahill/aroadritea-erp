@@ -146,7 +146,8 @@
       "submitting": "验证中...",
       "noAccount": "还没有账户？",
       "register": "注册会员",
-      "error": "邮箱或密码无效。"
+      "error": "邮箱或密码无效。",
+      "forgotPassword": "忘记密码？"
     },
     "signup": {
       "title": "注册会员",
@@ -182,6 +183,33 @@
       "verifying": "正在验证...",
       "completing": "正在创建账户...",
       "invalidToken": "Token 无效，请重新注册。"
+    },
+    "passwordReset": {
+      "request": {
+        "title": "忘记密码",
+        "subtitle": "请输入会员邮箱。如果账号存在，我们会发送密码重置链接。",
+        "email": "邮箱",
+        "emailPlaceholder": "email@example.com",
+        "submit": "发送重置链接",
+        "submitting": "发送中...",
+        "sent": "如果该邮箱已注册为会员，重置链接已发送。请检查收件箱或垃圾邮件。",
+        "error": "暂时无法处理密码重置请求，请稍后再试。",
+        "backToLogin": "返回登录"
+      },
+      "complete": {
+        "title": "重置密码",
+        "subtitle": "为您的 Aroadri Tea 会员账号设置新密码。",
+        "password": "新密码",
+        "passwordConfirm": "确认新密码",
+        "passwordPlaceholder": "至少 8 个字符",
+        "passwordConfirmPlaceholder": "再次输入新密码",
+        "submit": "保存新密码",
+        "submitting": "保存中...",
+        "success": "密码已更新。请使用新密码登录。",
+        "login": "会员登录",
+        "error": "重置链接无效或已过期。",
+        "invalidToken": "重置链接无效。请重新申请密码重置。"
+      }
     }
   },
   "legal": {

@@ -67,6 +67,14 @@ export default function LoginPage() {
               className="h-10 w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
             />
           </label>
+          <div className="text-right">
+            <a
+              href={`/${locale}/member/lupa-password`}
+              className="text-xs font-semibold text-brand-red hover:underline"
+            >
+              {t('forgotPassword')}
+            </a>
+          </div>
           <button
             type="submit"
             disabled={pending}

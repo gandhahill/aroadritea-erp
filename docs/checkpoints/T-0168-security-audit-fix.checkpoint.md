@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-05-21 19:24 WIB
-- **Last updated**: 2026-05-21 19:34 WIB
+- **Last updated**: 2026-05-21 19:45 WIB
 - **Status**: IN_PROGRESS
 - **Phase**: Cross-cutting production readiness and security audit
 - **Branch**: master
@@ -27,7 +27,7 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 ## Plan
 
 1. [x] Jalankan Fase 0 baseline dan dokumentasikan status awal.
-2. [ ] Audit dan perbaiki flow member forgot password serta error `member.completeSignup.createFailed` bila masih terkait.
+2. [x] Audit dan perbaiki flow member forgot password serta error `member.completeSignup.createFailed` bila masih terkait.
 3. [ ] Sweep trigger email dan perbaiki gap trigger/template multilingual.
 4. [ ] Perbaiki AP/AR reminder query dan tambahkan regresi.
 5. [ ] Perbaiki scroll halaman manual sales.
@@ -43,6 +43,7 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 - Checkpoint dibuat sebelum baseline dan sebelum edit kode fitur.
 - Fase 0 baseline selesai dan dicatat di `docs/audit/00-baseline.md`.
 - `pnpm typecheck` PASS, `pnpm test` PASS (593 tests), `pnpm lint` baseline FAIL (316 errors, 482 warnings), `pnpm audit --prod` PASS.
+- Member forgot-password flow ditambahkan: request reset, complete reset, single-use token, session revocation, multilingual email, site pages, login link, dan 3 regresi service.
 
 ## Decisions
 
@@ -54,11 +55,13 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 
 ## Next step
 
-Audit dan perbaiki flow member forgot password serta cek error `member.completeSignup.createFailed`: baca `packages/services/src/member`, `apps/site/actions/member.ts`, dan route member terkait, lalu tambahkan regresi sebelum patch.
+Lanjut sweep trigger email dan AP/AR reminder failure: baca `apps/worker/src/jobs`, `packages/services/src/notification`, dan modul AP/AR sebelum patch query.
 
 ## Test status
 
 - **Unit**: baseline `pnpm test` PASS (593 tests)
+- **Focused**: `pnpm --filter @erp/services test -- member-password-reset` PASS (3 tests)
+- **Focused typecheck**: `pnpm --filter @erp/services typecheck` PASS; `pnpm --filter @erp/site typecheck` PASS
 - **Integration**: belum dijalankan untuk T-0168
 - **E2E**: belum dijalankan untuk T-0168
 
@@ -70,12 +73,20 @@ Audit dan perbaiki flow member forgot password serta cek error `member.completeS
 | `docs/checkpoints/T-0168-security-audit-fix.checkpoint.md` | Added | New checkpoint |
 | `docs/audit/00-baseline.md` | Added | Fase 0 baseline summary |
 | `docs/audit/00-*.txt` | Added | Raw baseline command logs |
+| `packages/services/src/member/index.ts` | Updated | Password reset service + welcome email trigger |
+| `packages/services/tests/member-password-reset.test.ts` | Added | Reset token/service regression |
+| `apps/site/actions/member.ts` | Updated | Password reset actions |
+| `apps/site/components/password-reset-*.tsx` | Added | Reset request/complete forms |
+| `apps/site/app/[locale]/member/lupa-password/page.tsx` | Added | Forgot password route |
+| `apps/site/app/[locale]/member/reset-password/page.tsx` | Added | Reset password route |
+| `apps/site/app/[locale]/member/masuk/page.tsx` | Updated | Forgot password link |
+| `apps/site/messages/*.json` | Updated | ID/EN/ZH reset-password i18n |
 
 ## Commits So Far
 
 | SHA | Message | Date |
 |-----|---------|------|
-| _(belum ada)_ | | |
+| `5970cfc` | `docs(audit): record T-0168 baseline [INT-000]` | 2026-05-21 |
 
 ## Handoff Notes
 

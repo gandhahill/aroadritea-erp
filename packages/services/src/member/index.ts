@@ -19,11 +19,15 @@ import type { AuditContext } from '@erp/shared/types';
  * Member registration, OTP authentication, session management, loyalty.
  * All reads are server-side (site app); writes go through this service.
  */
-import { and, asc, count, desc, eq, gte, inArray, or, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, inArray, isNull, or, sql } from 'drizzle-orm';
 import nodemailer from 'nodemailer';
 import { z } from 'zod';
 import { decryptPii, encryptPii, encryptPiiForLookup } from '../security/pii';
-import { buildOtpEmailHtml } from './email-templates';
+import {
+  buildOtpEmailHtml,
+  buildPasswordResetEmailHtml,
+  buildWelcomeEmailHtml,
+} from './email-templates';
 import { hashMemberPassword, verifyMemberPassword } from './password';
 
 // ─── Rate limiting constants ───────────────────────────────────────────────
@@ -32,6 +36,7 @@ const OTP_EXPIRY_MINUTES = 10;
 const OTP_MAX_ATTEMPTS = 5;
 const RATE_LIMIT_SIGNUP_PER_IP = 3; // per hour
 const TOKEN_EXPIRY_MINUTES = 30;
+const PASSWORD_RESET_EXPIRY_MINUTES = 30;
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
@@ -75,10 +80,22 @@ export const CompleteSignupInputSchema = z.object({
   consentGiven: z.boolean().refine((v) => v === true, 'Consent is required'),
 });
 
+export const RequestPasswordResetInputSchema = z.object({
+  email: z.string().email().max(254),
+  locale: z.enum(['id', 'en', 'zh']).optional().default('id'),
+});
+
+export const CompletePasswordResetInputSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(8).max(128),
+});
+
 export type SignupInput = z.infer<typeof SignupInputSchema>;
 export type VerifyOtpInput = z.infer<typeof VerifyOtpInputSchema>;
 export type RetryOtpInput = z.infer<typeof RetryOtpInputSchema>;
 export type CompleteSignupInput = z.infer<typeof CompleteSignupInputSchema>;
+export type RequestPasswordResetInput = z.infer<typeof RequestPasswordResetInputSchema>;
+export type CompletePasswordResetInput = z.infer<typeof CompletePasswordResetInputSchema>;
 
 export const MemberPhoneLookupInputSchema = z.object({
   phone: z.string().min(8).max(32),
@@ -214,11 +231,26 @@ function normalizeEmailLocale(locale?: string): EmailLocale {
   return locale === 'en' || locale === 'zh' ? locale : 'id';
 }
 
-async function sendSignupOtp(
-  email: string,
-  code: string,
-  locale: EmailLocale,
-): Promise<Result<void>> {
+function publicSiteBaseUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    process.env.PUBLIC_SITE_URL ??
+    process.env.SITE_URL ??
+    'https://aroadritea.com'
+  ).replace(/\/$/, '');
+}
+
+interface TransactionalEmailInput {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+  missingConfigKey: string;
+  sendFailedKey: string;
+  devLog?: string;
+}
+
+async function sendTransactionalEmail(input: TransactionalEmailInput): Promise<Result<void>> {
   const smtpHost = process.env.SMTP_HOST;
   const configuredPort = Number.parseInt(process.env.SMTP_PORT ?? '587', 10);
   const smtpPort = Number.isFinite(configuredPort) ? configuredPort : 587;
@@ -229,9 +261,9 @@ async function sendSignupOtp(
 
   if (!smtpHost || !smtpUser || !smtpPass || !smtpFrom) {
     if (process.env.NODE_ENV === 'production') {
-      return err(AppError.internal('member.signup.otpProviderNotConfigured'));
+      return err(AppError.internal(input.missingConfigKey));
     }
-    console.info(`[member] Development OTP for ${email}: ${code}`);
+    if (input.devLog) console.info(input.devLog);
     return ok(undefined);
   }
 
@@ -245,9 +277,6 @@ async function sendSignupOtp(
       requireTLS: smtpPort === 587,
       auth: { user: smtpUser, pass: smtpPass },
       tls: { rejectUnauthorized: false },
-      // ISO 22301 — bound the SMTP handshake/send window so a stuck
-      // mail relay can't pin the signup request indefinitely. 15s is
-      // the typical upper bound for HestiaCP SMTP (ADR-0011).
       connectionTimeout: 10_000,
       greetingTimeout: 10_000,
       socketTimeout: 15_000,
@@ -255,33 +284,101 @@ async function sendSignupOtp(
 
     await transporter.sendMail({
       from: smtpFrom.includes('<') ? smtpFrom : `${smtpFromName} <${smtpFrom}>`,
-      to: email,
-      subject:
-        locale === 'en'
-          ? 'Your Aroadri Tea OTP Code'
-          : locale === 'zh'
-            ? 'Aroadri Tea OTP验证码'
-            : 'Kode OTP Aroadri Tea',
-      text:
-        locale === 'en'
-          ? `Your Aroadri Tea OTP code: ${code}. This code is valid for ${OTP_EXPIRY_MINUTES} minutes. Do not share it with anyone.`
-          : locale === 'zh'
-            ? `您的 Aroadri Tea OTP 验证码：${code}。验证码有效期 ${OTP_EXPIRY_MINUTES} 分钟，请勿分享给任何人。`
-            : `Kode OTP Aroadri Tea Anda: ${code}. Kode berlaku ${OTP_EXPIRY_MINUTES} menit. Jangan bagikan kode ini kepada siapapun.`,
-      html: buildOtpEmailHtml(code, OTP_EXPIRY_MINUTES, locale),
+      to: input.to,
+      subject: input.subject,
+      text: input.text,
+      html: input.html,
     });
 
     return ok(undefined);
   } catch (error) {
     return err(
-      AppError.internal('member.signup.otpSendFailed', {
+      AppError.internal(input.sendFailedKey, {
         error: error instanceof Error ? error.message : String(error),
       }),
     );
   }
 }
 
+async function sendSignupOtp(
+  email: string,
+  code: string,
+  locale: EmailLocale,
+): Promise<Result<void>> {
+  return sendTransactionalEmail({
+    to: email,
+    subject:
+      locale === 'en'
+        ? 'Your Aroadri Tea OTP Code'
+        : locale === 'zh'
+          ? 'Aroadri Tea OTP Verification Code'
+          : 'Kode OTP Aroadri Tea',
+    text:
+      locale === 'en'
+        ? `Your Aroadri Tea OTP code: ${code}. This code is valid for ${OTP_EXPIRY_MINUTES} minutes. Do not share it with anyone.`
+        : locale === 'zh'
+          ? `Your Aroadri Tea OTP code: ${code}. This code is valid for ${OTP_EXPIRY_MINUTES} minutes. Do not share it with anyone.`
+          : `Kode OTP Aroadri Tea Anda: ${code}. Kode berlaku ${OTP_EXPIRY_MINUTES} menit. Jangan bagikan kode ini kepada siapapun.`,
+    html: buildOtpEmailHtml(code, OTP_EXPIRY_MINUTES, locale),
+    missingConfigKey: 'member.signup.otpProviderNotConfigured',
+    sendFailedKey: 'member.signup.otpSendFailed',
+    devLog: `[member] Development OTP for ${email}: ${code}`,
+  });
+}
+
 // ─── Signup ─────────────────────────────────────────────────────────────────
+
+async function sendPasswordResetEmail(
+  email: string,
+  token: string,
+  locale: EmailLocale,
+): Promise<Result<void>> {
+  const resetUrl = `${publicSiteBaseUrl()}/${locale}/member/reset-password?token=${encodeURIComponent(token)}`;
+  return sendTransactionalEmail({
+    to: email,
+    subject:
+      locale === 'en'
+        ? 'Reset your Aroadri Tea password'
+        : locale === 'zh'
+          ? 'Reset your Aroadri Tea password'
+          : 'Reset password Aroadri Tea',
+    text:
+      locale === 'en'
+        ? `Open this link to reset your Aroadri Tea password. It is valid for ${PASSWORD_RESET_EXPIRY_MINUTES} minutes: ${resetUrl}`
+        : locale === 'zh'
+          ? `Open this link to reset your Aroadri Tea password. It is valid for ${PASSWORD_RESET_EXPIRY_MINUTES} minutes: ${resetUrl}`
+          : `Buka tautan ini untuk mereset password Aroadri Tea Anda. Tautan berlaku ${PASSWORD_RESET_EXPIRY_MINUTES} menit: ${resetUrl}`,
+    html: buildPasswordResetEmailHtml(resetUrl, PASSWORD_RESET_EXPIRY_MINUTES, locale),
+    missingConfigKey: 'member.passwordReset.emailProviderNotConfigured',
+    sendFailedKey: 'member.passwordReset.emailSendFailed',
+    devLog: `[member] Development password reset link for ${email}: ${resetUrl}`,
+  });
+}
+
+async function sendWelcomeEmail(
+  email: string,
+  memberName: string,
+  locale: EmailLocale,
+): Promise<Result<void>> {
+  return sendTransactionalEmail({
+    to: email,
+    subject:
+      locale === 'en'
+        ? 'Welcome to Aroadri Tea'
+        : locale === 'zh'
+          ? 'Welcome to Aroadri Tea'
+          : 'Selamat datang di Aroadri Tea',
+    text:
+      locale === 'en'
+        ? `Welcome, ${memberName}. Your Aroadri Tea member account is active.`
+        : locale === 'zh'
+          ? `Welcome, ${memberName}. Your Aroadri Tea member account is active.`
+          : `Selamat datang, ${memberName}. Akun member Aroadri Tea Anda sudah aktif.`,
+    html: buildWelcomeEmailHtml(memberName, locale),
+    missingConfigKey: 'member.welcome.emailProviderNotConfigured',
+    sendFailedKey: 'member.welcome.emailSendFailed',
+  });
+}
 
 /**
  * Step 1 of member signup: validate input, rate-limit, send OTP.
@@ -413,6 +510,7 @@ export async function initiateSignup(
     birthDate: data.birthDate,
     city: data.city,
     passwordHash,
+    locale: normalizeEmailLocale(locale),
   });
 
   await db.insert(memberOtpCodes).values({
@@ -704,10 +802,181 @@ export async function completeSignup(
       .where(eq(memberSignupAttempts.id, recentAttempt[0].id));
   }
 
+  const welcomeLocale = normalizeEmailLocale(storedPayload.locale);
+  await sendWelcomeEmail(email, name, welcomeLocale);
+
   return ok({ memberId, sessionToken });
 }
 
 // ─── Login ───────────────────────────────────────────────────────────────────
+
+export async function requestMemberPasswordReset(
+  input: RequestPasswordResetInput,
+  ipAddress?: string,
+  userAgent?: string,
+): Promise<Result<{ sent: boolean }>> {
+  const parsed = RequestPasswordResetInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return err(
+      AppError.validation('member.passwordReset.validationFailed', {
+        issues: parsed.error.issues,
+      }),
+    );
+  }
+
+  const email = parsed.data.email.trim().toLowerCase();
+  const locale = normalizeEmailLocale(parsed.data.locale);
+  const emailCipher = encryptPiiForLookup(email, 'partners.email');
+
+  const [partner] = await db
+    .select({
+      id: partners.id,
+      isActive: partners.isActive,
+      isMember: partners.isMember,
+    })
+    .from(partners)
+    .where(
+      and(
+        eq(partners.tenantId, 'default'),
+        or(eq(partners.email, emailCipher ?? ''), sql`lower(${partners.email}) = ${email}`),
+        eq(partners.kind, 'customer'),
+      ),
+    )
+    .limit(1);
+
+  await db.insert(memberSignupAttempts).values({
+    id: crypto.randomUUID(),
+    email,
+    ipAddress,
+    userAgent,
+    outcome: 'password_reset_requested',
+    partnerId: partner?.id,
+  });
+
+  if (!partner || !partner.isActive || !partner.isMember) {
+    return ok({ sent: true });
+  }
+
+  const [credential] = await db
+    .select({ id: memberCredentials.id })
+    .from(memberCredentials)
+    .where(eq(memberCredentials.memberId, partner.id))
+    .limit(1);
+
+  if (!credential) {
+    return ok({ sent: true });
+  }
+
+  const token = generateToken();
+  const expiresAt = minutesFromNow(PASSWORD_RESET_EXPIRY_MINUTES);
+
+  await db
+    .update(memberOtpCodes)
+    .set({ consumedAt: new Date() })
+    .where(
+      and(
+        eq(memberOtpCodes.recipient, email),
+        eq(memberOtpCodes.purpose, 'reset'),
+        isNull(memberOtpCodes.consumedAt),
+      ),
+    );
+
+  await db.insert(memberOtpCodes).values({
+    id: crypto.randomUUID(),
+    purpose: 'reset',
+    channel: 'email',
+    recipient: email,
+    codeHash: hashOtp(token),
+    expiresAt,
+    attempts: 0,
+    token,
+    tokenExpiresAt: expiresAt,
+    payloadJson: JSON.stringify({ memberId: partner.id, locale }),
+  });
+
+  const sendResult = await sendPasswordResetEmail(email, token, locale);
+  if (!sendResult.ok) return err(sendResult.error);
+
+  return ok({ sent: true });
+}
+
+export async function completeMemberPasswordReset(
+  input: CompletePasswordResetInput,
+): Promise<Result<{ reset: boolean }>> {
+  const parsed = CompletePasswordResetInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return err(
+      AppError.validation('member.passwordReset.completeValidationFailed', {
+        issues: parsed.error.issues,
+      }),
+    );
+  }
+
+  const { token, password } = parsed.data;
+  const [otpRecord] = await db
+    .select()
+    .from(memberOtpCodes)
+    .where(and(eq(memberOtpCodes.token, token), eq(memberOtpCodes.purpose, 'reset')))
+    .limit(1);
+
+  if (!otpRecord || otpRecord.consumedAt) {
+    return err(AppError.notFound('member.passwordReset.tokenInvalid'));
+  }
+  if (new Date() > otpRecord.tokenExpiresAt || new Date() > otpRecord.expiresAt) {
+    return err(AppError.conflict('member.passwordReset.tokenExpired'));
+  }
+  if (otpRecord.codeHash !== hashOtp(token)) {
+    return err(AppError.conflict('member.passwordReset.tokenInvalid'));
+  }
+
+  const email = otpRecord.recipient.trim().toLowerCase();
+  const emailCipher = encryptPiiForLookup(email, 'partners.email');
+  const [partner] = await db
+    .select({ id: partners.id, isActive: partners.isActive, isMember: partners.isMember })
+    .from(partners)
+    .where(
+      and(
+        eq(partners.tenantId, 'default'),
+        or(eq(partners.email, emailCipher ?? ''), sql`lower(${partners.email}) = ${email}`),
+        eq(partners.kind, 'customer'),
+      ),
+    )
+    .limit(1);
+
+  if (!partner || !partner.isActive || !partner.isMember) {
+    return err(AppError.notFound('member.passwordReset.tokenInvalid'));
+  }
+
+  const passwordHash = await hashMemberPassword(password);
+  const [credential] = await db
+    .select({ id: memberCredentials.id })
+    .from(memberCredentials)
+    .where(eq(memberCredentials.memberId, partner.id))
+    .limit(1);
+
+  if (credential) {
+    await db
+      .update(memberCredentials)
+      .set({ passwordHash, passwordUpdatedAt: new Date(), updatedBy: 'member' })
+      .where(eq(memberCredentials.id, credential.id));
+  } else {
+    await db.insert(memberCredentials).values({
+      id: crypto.randomUUID(),
+      memberId: partner.id,
+      passwordHash,
+      createdBy: 'member',
+      updatedBy: 'member',
+    });
+  }
+
+  await db.delete(memberSessions).where(eq(memberSessions.memberId, partner.id));
+  await db
+    .update(memberOtpCodes)
+    .set({ consumedAt: new Date() })
+    .where(and(eq(memberOtpCodes.id, otpRecord.id), isNull(memberOtpCodes.consumedAt)));
+
+  return ok({ reset: true });
+}
 
 const LoginInputSchema = z.object({
   email: z.string().email(),

@@ -146,7 +146,8 @@
       "submitting": "Verifying...",
       "noAccount": "Don't have an account?",
       "register": "Join Member",
-      "error": "Invalid email or password."
+      "error": "Invalid email or password.",
+      "forgotPassword": "Forgot password?"
     },
     "signup": {
       "title": "Join Member",
@@ -182,6 +183,33 @@
       "verifying": "Verifying...",
       "completing": "Creating account...",
       "invalidToken": "Invalid token. Please register again."
+    },
+    "passwordReset": {
+      "request": {
+        "title": "Forgot Password",
+        "subtitle": "Enter your member email. If the account exists, we will send a password reset link.",
+        "email": "Email",
+        "emailPlaceholder": "email@example.com",
+        "submit": "Send Reset Link",
+        "submitting": "Sending...",
+        "sent": "If the email is registered as a member, a reset link has been sent. Please check your inbox or spam folder.",
+        "error": "We could not process the reset request. Please try again.",
+        "backToLogin": "Back to login"
+      },
+      "complete": {
+        "title": "Reset Password",
+        "subtitle": "Create a new password for your Aroadri Tea member account.",
+        "password": "New password",
+        "passwordConfirm": "Confirm new password",
+        "passwordPlaceholder": "At least 8 characters",
+        "passwordConfirmPlaceholder": "Repeat the new password",
+        "submit": "Save New Password",
+        "submitting": "Saving...",
+        "success": "Your password has been updated. Please sign in with the new password.",
+        "login": "Member Login",
+        "error": "The reset link is invalid or has expired.",
+        "invalidToken": "The reset link is invalid. Please request a new password reset."
+      }
     }
   },
   "legal": {

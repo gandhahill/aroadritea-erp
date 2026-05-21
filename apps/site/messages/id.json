@@ -146,7 +146,8 @@
       "submitting": "Memverifikasi...",
       "noAccount": "Belum punya akun?",
       "register": "Daftar Member",
-      "error": "Email atau kata sandi tidak valid."
+      "error": "Email atau kata sandi tidak valid.",
+      "forgotPassword": "Lupa password?"
     },
     "signup": {
       "title": "Daftar Member",
@@ -182,6 +183,33 @@
       "verifying": "Memverifikasi...",
       "completing": "Mendaftarkan...",
       "invalidToken": "Token tidak valid. Silakan daftar ulang."
+    },
+    "passwordReset": {
+      "request": {
+        "title": "Lupa Password",
+        "subtitle": "Masukkan email member Anda. Jika akun ditemukan, kami akan mengirim link reset password.",
+        "email": "Email",
+        "emailPlaceholder": "email@contoh.com",
+        "submit": "Kirim Link Reset",
+        "submitting": "Mengirim...",
+        "sent": "Jika email terdaftar sebagai member, link reset password sudah dikirim. Silakan cek inbox atau folder spam.",
+        "error": "Permintaan reset password belum berhasil. Silakan coba lagi.",
+        "backToLogin": "Kembali ke halaman masuk"
+      },
+      "complete": {
+        "title": "Reset Password",
+        "subtitle": "Buat password baru untuk akun member Aroadri Tea Anda.",
+        "password": "Password baru",
+        "passwordConfirm": "Konfirmasi password baru",
+        "passwordPlaceholder": "Minimal 8 karakter",
+        "passwordConfirmPlaceholder": "Ulangi password baru",
+        "submit": "Simpan Password Baru",
+        "submitting": "Menyimpan...",
+        "success": "Password berhasil diperbarui. Silakan masuk dengan password baru Anda.",
+        "login": "Masuk Member",
+        "error": "Link reset password tidak valid atau sudah kedaluwarsa.",
+        "invalidToken": "Link reset password tidak valid. Silakan ajukan reset password ulang."
+      }
     }
   },
   "legal": {

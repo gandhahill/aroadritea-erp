@@ -5,6 +5,7 @@
 'use server';
 
 import {
+  completeMemberPasswordReset,
   completeSignup,
   destroyMemberSession,
   getMemberLoyalty,
@@ -12,6 +13,7 @@ import {
   getPointsHistory,
   initiateSignup,
   loginMember,
+  requestMemberPasswordReset,
   validateMemberSession,
   verifySignupOtp,
 } from '@erp/services/member';
@@ -72,6 +74,34 @@ export async function loginAction(formData: FormData) {
     path: '/',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   });
+
+  return { success: true };
+}
+
+export async function requestPasswordResetAction(formData: FormData) {
+  const email = String(formData.get('email') ?? '');
+  const locale = String(formData.get('locale') ?? 'id');
+
+  const result = await requestMemberPasswordReset({ email, locale: locale as 'id' | 'en' | 'zh' });
+  if (!result.ok) {
+    return { success: false, error: 'Permintaan reset password belum berhasil. Silakan coba lagi.' };
+  }
+
+  return { success: true };
+}
+
+export async function resetPasswordAction(formData: FormData, token: string) {
+  const password = String(formData.get('password') ?? '');
+  const passwordConfirm = String(formData.get('passwordConfirm') ?? '');
+
+  if (password !== passwordConfirm) {
+    return { success: false, error: 'Konfirmasi password tidak sama.' };
+  }
+
+  const result = await completeMemberPasswordReset({ token, password });
+  if (!result.ok) {
+    return { success: false, error: 'Link reset password tidak valid atau sudah kedaluwarsa.' };
+  }
 
   return { success: true };
 }
