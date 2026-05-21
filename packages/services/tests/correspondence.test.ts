@@ -36,4 +36,14 @@ describe('correspondence schemas', () => {
     expect(createParsed.success).toBe(false);
     expect(listParsed.success).toBe(false);
   });
+
+  it('filters accounting evidence through the finance classification', () => {
+    const parsed = ListCorrespondenceInputSchema.safeParse({
+      direction: 'internal',
+      classification: 'finance',
+      status: 'registered',
+    });
+
+    expect(parsed.success).toBe(true);
+  });
 });

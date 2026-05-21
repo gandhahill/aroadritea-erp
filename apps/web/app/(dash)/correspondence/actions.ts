@@ -86,6 +86,7 @@ export async function fetchCorrespondencePageData(searchParams: {
   page?: string;
   status?: string;
   direction?: string;
+  classification?: string;
 }): Promise<CorrespondencePageData> {
   const session = await getSession();
   if (!session) redirect('/login');
@@ -98,6 +99,7 @@ export async function fetchCorrespondencePageData(searchParams: {
       {
         status: searchParams.status as never,
         direction: searchParams.direction as never,
+        classification: searchParams.classification as never,
         limit: pageSize,
         offset: (page - 1) * pageSize,
       },

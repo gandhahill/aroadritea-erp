@@ -69,6 +69,7 @@ export const UpdateCorrespondenceInputSchema = CreateCorrespondenceInputSchema.p
 export const ListCorrespondenceInputSchema = z.object({
   status: CorrespondenceStatusSchema.optional(),
   direction: CorrespondenceDirectionSchema.optional(),
+  classification: CorrespondenceClassificationSchema.optional(),
   locationId: z.string().optional(),
   limit: z.number().int().min(1).max(100).default(25),
   offset: z.number().int().min(0).default(0),
@@ -202,6 +203,7 @@ export async function listCorrespondence(
       const conditions = [eq(correspondenceRecords.tenantId, ctx.tenantId), isNull(correspondenceRecords.deletedAt)];
       if (data.status) conditions.push(eq(correspondenceRecords.status, data.status));
       if (data.direction) conditions.push(eq(correspondenceRecords.direction, data.direction));
+      if (data.classification) conditions.push(eq(correspondenceRecords.classification, data.classification));
       if (locationScope) conditions.push(eq(correspondenceRecords.locationId, locationScope));
       const whereClause = and(...conditions);
       const [{ count = 0 } = { count: 0 }] = await db

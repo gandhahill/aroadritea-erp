@@ -132,6 +132,11 @@ export function Sidebar() {
       children: [
         { label: t('coa'), href: '/accounting/coa', icon: <></> },
         { label: t('journals'), href: '/accounting/journals', icon: <></> },
+        {
+          label: t('accountingEvidence'),
+          href: '/correspondence?classification=finance&direction=internal',
+          icon: <></>,
+        },
         { label: t('fixedAssets'), href: '/accounting/assets', icon: <></> },
         { label: t('payables'), href: '/accounting/payables', icon: <></> },
         { label: t('receivables'), href: '/accounting/receivables', icon: <></> },

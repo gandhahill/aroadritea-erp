@@ -14,7 +14,14 @@ const PRIORITIES = ['low', 'normal', 'high', 'urgent'] as const;
 const STATUSES = ['draft', 'registered', 'in_progress', 'sent', 'closed', 'archived'] as const;
 
 interface PageProps {
-  searchParams: Promise<{ page?: string; status?: string; direction?: string; error?: string; deleted?: string }>;
+  searchParams: Promise<{
+    page?: string;
+    status?: string;
+    direction?: string;
+    classification?: string;
+    error?: string;
+    deleted?: string;
+  }>;
 }
 
 export default async function CorrespondencePage({ searchParams }: PageProps) {
@@ -133,7 +140,7 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
             {DIRECTIONS.map((direction) => (
               <FilterLink
                 key={direction}
-                href={`/correspondence?direction=${direction}`}
+                href={`/correspondence?direction=${direction}${params.classification ? `&classification=${params.classification}` : ''}`}
                 active={params.direction === direction}
               >
                 {t(`directions.${direction}`)}
@@ -189,10 +196,10 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
             {totalPages}
           </span>
           <div className="flex items-center gap-2">
-            <PageLink page={data.page - 1} disabled={data.page <= 1}>
+            <PageLink page={data.page - 1} disabled={data.page <= 1} params={params}>
               {pagination('previous')}
             </PageLink>
-            <PageLink page={data.page + 1} disabled={data.page >= totalPages}>
+            <PageLink page={data.page + 1} disabled={data.page >= totalPages} params={params}>
               {pagination('next')}
             </PageLink>
           </div>
@@ -267,17 +274,24 @@ function FilterLink({
 function PageLink({
   page,
   disabled,
+  params,
   children,
 }: {
   page: number;
   disabled: boolean;
+  params: Awaited<PageProps['searchParams']>;
   children: React.ReactNode;
 }) {
   if (disabled) {
     return <span className="rounded-md border border-brand-cream-3 px-3 py-1.5 opacity-50">{children}</span>;
   }
+  const query = new URLSearchParams();
+  query.set('page', String(page));
+  if (params.status) query.set('status', params.status);
+  if (params.direction) query.set('direction', params.direction);
+  if (params.classification) query.set('classification', params.classification);
   return (
-    <Link href={`/correspondence?page=${page}`} className="rounded-md border border-brand-cream-3 px-3 py-1.5">
+    <Link href={`/correspondence?${query.toString()}`} className="rounded-md border border-brand-cream-3 px-3 py-1.5">
       {children}
     </Link>
   );

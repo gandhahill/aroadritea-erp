@@ -709,6 +709,7 @@
     "docs": "Docs",
     "coa": "Chart of Accounts",
     "journals": "Journal Entries",
+    "accountingEvidence": "Transaction Evidence",
     "fixedAssets": "Fixed Assets",
     "payables": "Payables",
     "receivables": "Receivables",
