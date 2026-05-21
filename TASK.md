@@ -25,7 +25,6 @@
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
 | T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-21 14:32 WIB (Codex) | IN_PROGRESS | Commit `1419720` deployed to VPS. Migration `0021`, seed, web/site/MCP/worker builds, and PM2 reload/save passed. Public health routes return 200; protected ERP smoke routes return 307 redirects without app-error; requested menu image assets return 200. DB reset was not run because migration/seed updated stale paths without data loss. |
-| T-0168 | Security audit and overnight operational fixes | Codex | 2026-05-21 19:24 WIB | 2026-05-21 20:43 WIB (Codex) | IN_PROGRESS | Baseline `5970cfc`, member reset `e52d7e7`, AP/AR reminder `e603514`, outlet scope `f2547f5`, Malioboro seed `ffa0b8d`, correspondence `8a103f7`. Fase 1 attack surface docs drafted; next: Fase 2 static findings. |
 
 ---
 
@@ -38,6 +37,7 @@
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
 | T-0166 | Fix ERP sidebar 404 links, Docs page, and language switcher | Codex | 2026-05-15 | 3eab86b + bdb1b73 | Production smoke passed: protected routes redirect to login instead of 404; standalone PM2 runtime fixed; CSS assets 200 |
+| T-0168 | Security audit and overnight operational fixes | Codex | 2026-05-22 | `5970cfc`..`c8c5d68` | Baseline, member reset, AP/AR reminders, outlet filtering, Malioboro seed alignment, correspondence/evidence inbox, POS manual discounts, old POS parity, static security findings, and final audit report. Typecheck/test/build pass; lint remains documented baseline debt. |
 | T-0001 | Scaffold pnpm workspace + apps/web baseline + packages skeleton | Claude Opus 4.6 | 2026-05-06 | (initial) | |
 | T-0002 | Drizzle ORM config + IAM schema (8 tables, relations) | Antigravity | 2026-05-06 | wip(T-0002) | |
 | T-0003 | Tailwind v4 + brand tokens + globals.css + login UI | Antigravity | 2026-05-06 | wip(T-0003) | |

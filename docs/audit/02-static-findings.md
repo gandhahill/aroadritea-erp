@@ -10,7 +10,7 @@
 | Command | Status | Notes |
 |---|---|---|
 | `pnpm -r typecheck` | PASS | All 10 workspace packages completed typecheck. |
-| `pnpm lint` | FAIL baseline | Biome reported 325 errors and 487 warnings across 548 checked files. Dominant class is formatting/import/a11y legacy debt, not a newly introduced runtime error. |
+| `pnpm lint` | FAIL baseline | Final rerun reported 332 errors and 488 warnings across 550 checked files. Dominant class is formatting/import/a11y legacy debt, not a newly introduced runtime error. |
 | `pnpm audit --prod` | PASS | No known production dependency vulnerabilities reported. |
 | Dangerous browser-native messages grep | PASS | `alert/confirm/prompt` matches are limited to replacement component comments and sanitizer test payloads. |
 
@@ -48,4 +48,3 @@
 ## Conclusion
 
 Static analysis did not find unresolved Critical findings. High-impact findings discovered during this phase were fixed or converted to explicit recommendations where the remaining work needs architecture/runtime change rather than a safe local patch.
-

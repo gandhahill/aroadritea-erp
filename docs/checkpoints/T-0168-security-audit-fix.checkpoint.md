@@ -2,8 +2,8 @@
 
 - **Owner**: Codex
 - **Started**: 2026-05-21 19:24 WIB
-- **Last updated**: 2026-05-21 20:43 WIB
-- **Status**: IN_PROGRESS
+- **Last updated**: 2026-05-22 01:08 WIB
+- **Status**: DONE
 - **Phase**: Cross-cutting production readiness and security audit
 - **Branch**: master
 
@@ -12,17 +12,17 @@
 Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalankan audit keamanan, bug fungsional, dan integritas data secara bertahap sesuai prompt user. Rujukan utama: `SOURCE-OF-TRUTH.md`, `SYSTEM-DESIGN.md`, `AGENTS.md`, `CLAUDE.md`, ADR-0001, ADR-0004, ADR-0006, ADR-0008, ADR-0009, ADR-0011, dan ADR lain yang relevan saat modul disentuh.
 
 **Kriteria selesai (Definition of Done):**
-- [ ] Fase 0 baseline tercatat di `docs/audit/00-baseline.md`.
-- [ ] Fitur lupa password member tersedia, single-use/expired, email multilingual, dan dites.
-- [ ] Trigger email kritis dicek, gap diperbaiki atau didokumentasikan.
-- [ ] AP/AR reminder query tidak gagal dan punya regresi.
-- [ ] Halaman input penjualan manual bisa discroll.
-- [ ] Dropdown outlet tidak menampilkan kantor.
-- [ ] Seed inventory Malioboro Mei selaras dengan Excel manajer inventory.
-- [ ] Modul surat menyurat tersedia dengan CRUD, i18n, permission, audit trail.
-- [ ] Panduan setup printer mencakup kiosk/direct print.
-- [ ] Audit Fase 1-5 menghasilkan dokumen sesuai prompt dan temuan kritis/high diperbaiki atau punya REC.
-- [ ] `pnpm typecheck`, `pnpm test`, `pnpm lint`, dan `pnpm build` diverifikasi sesuai status akhir.
+- [x] Fase 0 baseline tercatat di `docs/audit/00-baseline.md`.
+- [x] Fitur lupa password member tersedia, single-use/expired, email multilingual, dan dites.
+- [x] Trigger email kritis dicek, gap diperbaiki atau didokumentasikan.
+- [x] AP/AR reminder query tidak gagal dan punya regresi.
+- [x] Halaman input penjualan manual bisa discroll.
+- [x] Dropdown outlet tidak menampilkan kantor.
+- [x] Seed inventory Malioboro Mei selaras dengan Excel manajer inventory.
+- [x] Modul surat menyurat tersedia dengan CRUD, i18n, permission, audit trail.
+- [x] Panduan setup printer mencakup kiosk/direct print.
+- [x] Audit Fase 1-5 menghasilkan dokumen sesuai prompt dan temuan kritis/high diperbaiki atau punya REC.
+- [x] `pnpm typecheck`, `pnpm test`, `pnpm lint`, dan `pnpm build` diverifikasi sesuai status akhir.
 
 ## Plan
 
@@ -35,7 +35,7 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 7. [x] Baca ulang Excel Malioboro Mei dan selaraskan seed kode barang/produk/stok.
 8. [x] Tambah modul surat menyurat sesuai SoT/SD.
 9. [x] Tambah panduan setup printer di docs dan halaman panduan bila ada.
-10. [ ] Jalankan audit keamanan Fase 1-5, commit atomik, dan verifikasi akhir.
+10. [x] Jalankan audit keamanan Fase 1-5, commit atomik, dan verifikasi akhir.
 
 ## Done so far
 
@@ -51,6 +51,12 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 - Modul surat menyurat ditambahkan: SoT/SD, migration/schema `correspondence_records`, permission seed, service CRUD soft-delete dengan audit trail, UI register/detail, sidebar, dan i18n ID/EN/ZH.
 - Panduan printer di halaman Docs diperluas untuk printer detection, Print Bridge, dan `--kiosk-printing`; runbook printer sudah menjadi referensi teknis lengkap.
 - Fase 1 audit dibuat: `docs/audit/01-attack-surface.md`, `docs/audit/security-runtime-inventory.md`, dan `docs/audit/repository-coverage-ledger.md`.
+- Fase 2 static findings dibuat: `docs/audit/02-static-findings.md` plus raw logs.
+- High-impact findings fixed: CMS sanitizer `6694f87`, reporting scope `8303341`, POS tracked stock guard `0ea52eb`.
+- POS manual discount governance ditambahkan `074f2d6` dan panduan/runbook diperluas `1741a4d`.
+- Accounting transaction evidence surfaced via correspondence finance filter `b70f810`.
+- Old POS photos reviewed and shortcut parity added `0b9e4ea`; remaining hardware/business gaps documented in `docs/runbook/pos-legacy-parity.md`.
+- Final report dibuat: `docs/audit/AUDIT-REPORT.md`.
 
 ## Decisions
 
@@ -62,7 +68,7 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 
 ## Next step
 
-Lanjut Fase 2 audit keamanan: jalankan static sweep sesuai prompt (`typecheck`, `lint`, `audit`, dan `rg` pola berbahaya), tulis `docs/audit/02-static-findings.md`, lalu perbaiki temuan high-impact satu per satu dengan tes regresi.
+T-0168 selesai. Follow-up yang masih perlu keputusan/manual verification ada di `docs/audit/AUDIT-REPORT.md` bagian Rekomendasi Follow-up: terutama POS atomic write path, lint cleanup branch, decimal quantity utility, dan smoke test printer/cash-drawer di perangkat outlet.
 
 ## Test status
 
@@ -76,7 +82,11 @@ Lanjut Fase 2 audit keamanan: jalankan static sweep sesuai prompt (`typecheck`, 
 - **Focused**: `pnpm --filter @erp/services test -- inventory-import-code` PASS (2 tests)
 - **Focused typecheck**: `pnpm --filter @erp/db typecheck` PASS; `pnpm --filter @erp/services typecheck` PASS; `pnpm --filter @erp/web typecheck` PASS after correspondence/docs patch
 - **Focused**: `pnpm --filter @erp/services test -- correspondence` PASS (2 tests)
-- **Integration**: belum dijalankan untuk T-0168
+- **Full typecheck**: `pnpm -r typecheck` PASS (10 workspace packages)
+- **Full test**: `pnpm -r test` PASS (614 tests: 65 shared + 549 services)
+- **Build**: `pnpm build` PASS (worker, MCP, site, web)
+- **Lint**: `pnpm lint` FAIL baseline (332 errors, 488 warnings)
+- **Integration**: build and focused service regressions passed; hardware/printer smoke remains manual
 - **E2E**: belum dijalankan untuk T-0168
 
 ## Files Touched
@@ -134,6 +144,16 @@ Lanjut Fase 2 audit keamanan: jalankan static sweep sesuai prompt (`typecheck`, 
 | `f2547f5` | `fix(web): keep outlet selectors store-only [BUG-003]` | 2026-05-21 |
 | `ffa0b8d` | `fix(inventory): align Malioboro manager codes [BUG-004]` | 2026-05-21 |
 | `8a103f7` | `feat(admin): add correspondence register [BUG-005]` | 2026-05-21 |
+| `0b1f0ca` | `docs(audit): map attack surface [SEC-000]` | 2026-05-21 |
+| `6694f87` | `fix(site): sanitize public CMS HTML [SEC-001]` | 2026-05-21 |
+| `c1e29e7` | `fix(shared): keep money math in bigint [INT-001]` | 2026-05-21 |
+| `8303341` | `fix(reporting): scope financial report access [SEC-002]` | 2026-05-21 |
+| `074f2d6` | `feat(pos): add governed manual discounts [BUG-006]` | 2026-05-22 |
+| `b70f810` | `feat(accounting): surface transaction evidence inbox [BUG-007]` | 2026-05-22 |
+| `0b9e4ea` | `feat(pos): add legacy operation shortcuts [BUG-008]` | 2026-05-22 |
+| `1741a4d` | `docs(guides): cover POS discounts and evidence flows [BUG-009]` | 2026-05-22 |
+| `0ea52eb` | `fix(pos): reject oversold tracked ingredients [INT-002]` | 2026-05-22 |
+| `c8c5d68` | `docs(audit): record static findings [SEC-000]` | 2026-05-22 |
 
 ## Handoff Notes
 
