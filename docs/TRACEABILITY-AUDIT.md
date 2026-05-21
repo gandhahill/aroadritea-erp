@@ -273,6 +273,24 @@ This pass focused on the user's latest production issues: missing ERP menu photo
 1. Some traceability rows cannot honestly be marked FULL without external evidence: physical receipt/label printer smoke, local Print Bridge integration on cashier Windows, production OTP email receipt, restore drill, external alert delivery, Coretax/PPh formal validation, and legal counsel review.
 2. Older hardcoded UI copy still exists in legacy pages outside the high-risk sweep. Key parity is clean, but absolute "every visible string is translated" requires a larger page-by-page migration and browser smoke pass.
 
+## T-0167 Deploy Evidence - 2026-05-21 09:52 WIB
+
+Commits `ef73015` and `eca9fd5` were pushed to GitHub and deployed on the VPS under `/home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp`.
+
+### Deployment Verification
+
+1. Remote `git pull --ff-only` completed from `a12ee1c` to `eca9fd5`.
+2. Production `.env` was repaired to include `PII_ENCRYPTION_KEY`, verified through dotenv without printing the secret.
+3. Remote `pnpm --filter @erp/db migrate` passed and migration metadata now includes `0020_purchase_shipment_tracking`.
+4. Remote `pnpm --filter @erp/db seed` passed; product/menu image mappings were refreshed idempotently.
+5. Remote builds passed for `@erp/web`, `@erp/site`, `@erp/mcp`, and `@erp/worker`.
+6. PM2 reload/save completed; `aroadri-site`, `aroadri-web`, `aroadri-mcp`, and `aroadri-worker` are online.
+7. Internal health smoke passed for site, web with DB status ok, and MCP.
+8. Public health smoke returned HTTP 200 for `https://aroadritea.com/api/healthz`, `https://erp.aroadritea.com/api/healthz`, and `https://erp.aroadritea.com/mcp/healthz`.
+9. Public member signup pages returned HTTP 200 for ID/EN/ZH.
+10. All user-reported ERP menu image URLs returned HTTP 200 image/jpeg: Bamboo Oolong Milk Tea, Glutinous Fragrant Green Milk Tea, Osmanthus Oolong Milk Tea, Fresh Tea fallback, Bamboo Oolong Lemon Tea, Glutinous Fragrant Green Lemon Tea, and Osmanthus Oolong Lemon Tea.
+11. Authenticated ERP smoke returned HTTP 200 with no login fallback and no application-error/digest marker for `/purchasing`, `/settings/pos`, `/reporting/business-intelligence`, `/accounting/payables`, `/accounting/receivables`, `/inventory/products`, and `/dashboard`.
+
 ## Next Implementation Order
 
 1. Continue the next sweep on remaining enterprise gaps: hardcoded i18n copy migration, absence scheduling, print parity, PII encryption verification, and MCP write-tool expansion.

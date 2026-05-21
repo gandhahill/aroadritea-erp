@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-21 09:25 WIB (Codex) | IN_PROGRESS | Local verification passed for PO digest migration metadata repair, member `completeSignup` PII fail-fast fix, public menu-photo serving middleware, high-risk BI/dashboard/sidebar/AP-AR/product i18n pass, product form dropdowns, and kiosk printer autodetect/dropdown. Awaiting commit, deploy, and production smoke. |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-21 09:52 WIB (Codex) | IN_PROGRESS | Deployed commits `ef73015` + `eca9fd5`; production migrate/seed/build/reload passed. Public image URLs and member pages return 200; authenticated smoke for purchasing, POS settings, BI, AP/AR, products, and dashboard returns 200 without application-error/digest markers. Remaining traceability gaps require external/manual evidence or deeper legacy page-by-page migration. |
 
 ---
 

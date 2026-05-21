@@ -169,6 +169,15 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
   - POS settings now attempts local Print Bridge printer discovery and exposes detected printer names as dropdown choices, with manual fallback when the bridge is not running.
   - Removed remaining emoji output from worker outage notifications, seed/reset helpers, Naixer seed script, and resilience test scripts.
   - Verification passed locally: `pnpm -r typecheck`, `pnpm -r test` (shared 58, services 535), `pnpm -r build`, i18n key parity 0 missing for web/site, browser-native dialog scan only finds comments in the replacement component, and emoji scan finds no app/package/script markers.
+- 2026-05-21 09:52 deploy and production smoke:
+  - Commit `ef73015` and follow-up cleanup commit `eca9fd5` were pushed to `origin/master` and pulled on the production VPS.
+  - Production `.env` was repaired to include `PII_ENCRYPTION_KEY`; PM2 was reloaded with `--update-env`, removing the production prerequisite that caused member completion failures.
+  - VPS `pnpm --filter @erp/db migrate` PASS and applied the shipment tracking migration metadata state successfully.
+  - VPS `pnpm --filter @erp/db seed` PASS; menu image mappings and current seed data refreshed idempotently.
+  - VPS builds PASS for `@erp/web`, `@erp/site`, `@erp/mcp`, and `@erp/worker`; PM2 reload/save completed and all four processes are online.
+  - Internal health PASS for site, web with DB status ok, and MCP.
+  - Public health/member/image smoke PASS: site health, ERP health, MCP health, ID/EN/ZH member signup pages, and all user-reported ERP menu image URLs returned HTTP 200.
+  - Authenticated ERP smoke PASS after valid JSON login: `/purchasing`, `/settings/pos`, `/reporting/business-intelligence`, `/accounting/payables`, `/accounting/receivables`, `/inventory/products`, and `/dashboard` returned HTTP 200 with no login fallback and no `Application error`/server exception/digest marker.
 
 ## Plan
 
@@ -193,7 +202,7 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 
 ## Next Step
 
-Commit and push the 2026-05-21 local patch set, deploy it on the VPS with `pnpm --filter @erp/db migrate`, `pnpm --filter @erp/db seed`, production builds, and `pm2 reload ecosystem.config.cjs --env production --update-env`; then smoke-test image URLs, `/purchasing`, `/settings/pos`, `/reporting/business-intelligence`, `/accounting/payables`, `/accounting/receivables`, and public member signup/OTP pages.
+Continue remaining `PARTIAL` rows that require external or deeper evidence: physical printer/Print Bridge smoke, real OTP email completion by inbox, restore drill, external alert delivery, Coretax/PPh formal validation, purchasing return/QC workflow, and complete legacy hardcoded-copy migration with page-by-page browser smoke.
 
 ## Test Status
 
