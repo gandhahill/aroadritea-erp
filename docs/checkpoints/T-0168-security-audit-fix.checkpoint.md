@@ -57,6 +57,8 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 - Accounting transaction evidence surfaced via correspondence finance filter `b70f810`.
 - Old POS photos reviewed and shortcut parity added `0b9e4ea`; remaining hardware/business gaps documented in `docs/runbook/pos-legacy-parity.md`.
 - Final report dibuat: `docs/audit/AUDIT-REPORT.md`.
+- Production deploy verification selesai: remote head `2f00ce4`, migration/seed/build/PM2 reload/health checks PASS. Evidence: `docs/audit/03-deployment-verification.md`.
+- Security note: `pm2 jlist` exposes runtime environment secrets; values are not documented, but credential rotation is recommended after this audit window.
 
 ## Decisions
 
@@ -68,7 +70,7 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 
 ## Next step
 
-T-0168 selesai. Follow-up yang masih perlu keputusan/manual verification ada di `docs/audit/AUDIT-REPORT.md` bagian Rekomendasi Follow-up: terutama POS atomic write path, lint cleanup branch, decimal quantity utility, dan smoke test printer/cash-drawer di perangkat outlet.
+T-0168 selesai. Follow-up yang masih perlu keputusan/manual verification ada di `docs/audit/AUDIT-REPORT.md` bagian Rekomendasi Follow-up: terutama POS atomic write path, lint cleanup branch, decimal quantity utility, smoke test printer/cash-drawer di perangkat outlet, dan rotasi credential produksi.
 
 ## Test status
 
@@ -85,6 +87,7 @@ T-0168 selesai. Follow-up yang masih perlu keputusan/manual verification ada di 
 - **Full typecheck**: `pnpm -r typecheck` PASS (10 workspace packages)
 - **Full test**: `pnpm -r test` PASS (614 tests: 65 shared + 549 services)
 - **Build**: `pnpm build` PASS (worker, MCP, site, web)
+- **Deploy**: VPS pull/install/migrate/seed/build/PM2 reload/save PASS; site/web/MCP health endpoints PASS
 - **Lint**: `pnpm lint` FAIL baseline (332 errors, 488 warnings)
 - **Integration**: build and focused service regressions passed; hardware/printer smoke remains manual
 - **E2E**: belum dijalankan untuk T-0168

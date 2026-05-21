@@ -11,7 +11,7 @@
 | Critical | 0 | 0 | 0 |
 | High | 3 | 3 | 0 |
 | Medium | 2 | 1 | 1 |
-| Low | 3 | 0 | 3 |
+| Low | 4 | 0 | 4 |
 
 Audit T-0168 menyelesaikan perbaikan operasional overnight dan security/data-integrity pass awal. Tidak ada temuan Critical yang tersisa. Semua temuan High yang dipromosikan sudah diperbaiki dengan test regresi.
 
@@ -22,6 +22,7 @@ Status verifikasi akhir:
 | `pnpm -r typecheck` | PASS | 10/10 workspace packages typecheck. |
 | `pnpm -r test` | PASS | 614 tests pass: 65 shared + 549 services. |
 | `pnpm build` | PASS | Worker, MCP, site, and web production builds completed. |
+| VPS deploy | PASS | `git pull`, install, migrate, seed, build, PM2 reload/save, and health checks completed on production. |
 | `pnpm lint` | FAIL baseline | 332 errors / 488 warnings. Mostly legacy formatting/import/a11y debt. Not hidden; tracked as REC-002. |
 | Browser-native messages grep | PASS | No production `alert/confirm/prompt`; only replacement-component comments and sanitizer test payloads. |
 
@@ -97,6 +98,13 @@ Status verifikasi akhir:
 - **Status:** Deferred
 - **Alasan:** `JSON.parse` is client-local demo state, not a trust-boundary issue. Add a graceful empty-state later for malformed demo storage.
 
+#### [REC-005] Rotate production secrets exposed by PM2 environment inspection
+
+- **Lokasi:** VPS runtime environment / PM2 process metadata
+- **Kategori:** ISO 27001 secret handling
+- **Status:** Deferred to operator action
+- **Alasan:** `pm2 jlist` prints process environment variables, including production secrets. Values are intentionally not copied into this report, but credentials should be rotated after this audit window and routine status checks should use `pm2 status --no-color` or health endpoints.
+
 ## Operational Fixes Included
 
 | ID | Commit | Summary |
@@ -131,6 +139,7 @@ Status verifikasi akhir:
 3. **[REC-003] Decimal quantity utility:** move inventory quantity math to a shared Decimal/string helper.
 4. **Physical verification:** printer auto-detection/dropdown, cash drawer, and outlet label/receipt hardware require on-device smoke testing.
 5. **Gift card decision:** old POS had purchase-gift/gift-card affordance; enable POS sale only after finance defines liability/revenue recognition accounts.
+6. **Credential rotation:** rotate production secrets exposed by PM2 environment inspection during deployment verification.
 
 ## Lampiran
 
@@ -138,6 +147,6 @@ Status verifikasi akhir:
 - Attack surface map: `docs/audit/01-attack-surface.md`
 - Static findings: `docs/audit/02-static-findings.md`
 - Guide coverage: `docs/audit/guide-coverage.md`
+- Deployment verification: `docs/audit/03-deployment-verification.md`
 - Runtime inventory: `docs/audit/security-runtime-inventory.md`
 - Coverage ledger: `docs/audit/repository-coverage-ledger.md`
-
