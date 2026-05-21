@@ -45,6 +45,9 @@ Step-by-step recovery / operational procedures.
 - **[pos-offline-recovery.md](./runbook/pos-offline-recovery.md)** — Resync POS PWA after extended offline. _(NEW 2026-05-19)_
 - **[i18n.md](./runbook/i18n.md)** — Add a translation key + locale consistency. _(NEW 2026-05-19)_
 - **[printer-setup.md](./runbook/printer-setup.md)** — Kiosk printing + per-outlet printer profiles. _(NEW 2026-05-19)_
+- **[pos-discretionary-discounts.md](./runbook/pos-discretionary-discounts.md)** — One-off POS discounts with reason, audit trail, and promotion-owner notification. _(NEW 2026-05-22)_
+- **[accounting-evidence-inbox.md](./runbook/accounting-evidence-inbox.md)** — Register WhatsApp/director transaction proof until journaled. _(NEW 2026-05-22)_
+- **[pos-legacy-parity.md](./runbook/pos-legacy-parity.md)** — Old POS photo feature mapping and controlled differences. _(NEW 2026-05-22)_
 
 ## Checkpoints — `checkpoints/`
 
@@ -57,4 +60,4 @@ to `checkpoints/archive/`.
 
 ---
 
-**Last reviewed:** 2026-05-19 — overnight audit added README + missing runbooks per the docs-audit report.
+**Last reviewed:** 2026-05-22 — guide coverage updated for manual POS discounts, accounting evidence inbox, and old POS parity.
