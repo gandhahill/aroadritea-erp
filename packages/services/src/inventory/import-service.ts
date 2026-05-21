@@ -84,6 +84,26 @@ export interface MovementImportResult {
   errors: ImportError[];
 }
 
+export function normalizeInventoryImportCode(value: string): string {
+  return value.replace(/\s+/g, ' ').trim().toUpperCase();
+}
+
+export function variantMatchesImportCode(
+  input: string,
+  variant: { sku: string; attributes: Record<string, string> | null },
+): boolean {
+  const normalized = normalizeInventoryImportCode(input);
+  const attributes = variant.attributes ?? {};
+  const candidates = [
+    variant.sku,
+    attributes.managerInventoryCode,
+    ...(attributes.managerInventoryAliases ?? '').split('|'),
+  ]
+    .filter((value): value is string => Boolean(value?.trim()))
+    .map(normalizeInventoryImportCode);
+  return candidates.includes(normalized);
+}
+
 // ─── Category Keyword Map ──────────────────────────────────────────────────────
 
 /**
@@ -497,19 +517,33 @@ export async function importMovementsFromExcel(
     // Resolve variant by SKU if provided
     let variantId: string | null = null;
     if (row.VARIANT_SKU?.trim()) {
-      const variant = await db
-        .select({ id: productVariants.id })
+      const variantRows = await db
+        .select({
+          id: productVariants.id,
+          sku: productVariants.sku,
+          attributes: productVariants.attributes,
+        })
         .from(productVariants)
         .where(
           and(
             eq(productVariants.tenantId, tenantId),
             eq(productVariants.productId, product.id),
-            eq(productVariants.sku, row.VARIANT_SKU.trim()),
           ),
         )
-        .limit(1)
-        .then((r) => r[0]);
-      variantId = variant?.id ?? null;
+        .then((r) => r);
+      const variant = variantRows.find((item) =>
+        variantMatchesImportCode(row.VARIANT_SKU ?? '', item),
+      );
+      if (!variant) {
+        errors.push({
+          row: rowNum,
+          field: 'VARIANT_SKU',
+          message: `Variant SKU "${row.VARIANT_SKU.trim()}" not found for SKU "${row.KODE.trim()}"`,
+        });
+        skipped++;
+        continue;
+      }
+      variantId = variant.id;
     }
 
     // qtyDelta: positive = stock in, negative = stock out

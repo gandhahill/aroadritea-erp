@@ -37,11 +37,10 @@ export const stockOpnameSessions = pgTable(
     status: text('status').notNull().default('draft'),
     // 'draft' | 'in_progress' | 'submitted' | 'approved' | 'cancelled'
 
-    // SD §25.9 — opname frequency. `daily` = closing-shift count for
-    // tangible fast-moving items (cup, sedotan, susu); `monthly` = full
-    // periodic count covering all products.
+    // SD §25.9 — opname frequency. `daily` = closing-shift cup count,
+    // `weekly` = menu/dessert spot count, and `monthly` = full count.
     kind: text('kind').notNull().default('monthly'),
-    // 'daily' | 'monthly'
+    // 'daily' | 'weekly' | 'monthly'
 
     preparedBy: text('prepared_by'), // FK users
     preparedAt: timestamp('prepared_at', { withTimezone: true }),

@@ -81,6 +81,72 @@ interface MenuProduct {
   temperatures?: Temperature[];
 }
 
+interface ManagerVariantCode {
+  code: string;
+  aliases?: string[];
+}
+
+const managerKey = (sku: string, size: string, temperature: Temperature) =>
+  `${sku}:${size}:${temperature}`;
+
+const MANAGER_INVENTORY_VARIANT_CODES: Record<string, ManagerVariantCode> = {
+  [managerKey('FMT-BOO', 'regular', 'cold')]: { code: 'BOMT - R' },
+  [managerKey('FMT-BOO', 'large', 'cold')]: { code: 'BOMT - L' },
+  [managerKey('FT-BOO', 'regular', 'cold')]: { code: 'BOFT - RC' },
+  [managerKey('FT-BOO', 'regular', 'hot')]: { code: 'BOFT - RH' },
+  [managerKey('FT-BOO', 'large', 'cold')]: { code: 'BOFT - LC' },
+  [managerKey('FT-BOO', 'large', 'hot')]: { code: 'BOFT - LH' },
+  [managerKey('LFT-BOO', 'regular', 'cold')]: { code: 'BOLFT - R' },
+  [managerKey('LFT-BOO', 'large', 'cold')]: { code: 'BOLFT - L' },
+  [managerKey('FMT-OSM', 'regular', 'cold')]: { code: 'OOMT - R' },
+  [managerKey('FMT-OSM', 'large', 'cold')]: { code: 'OOMT - L' },
+  [managerKey('FT-OSM', 'regular', 'cold')]: { code: 'OOFT - RC' },
+  [managerKey('FT-OSM', 'regular', 'hot')]: { code: 'OOFT - RH' },
+  [managerKey('FT-OSM', 'large', 'cold')]: { code: 'OOFT - LC' },
+  [managerKey('FT-OSM', 'large', 'hot')]: { code: 'OOFT - LH' },
+  [managerKey('LFT-OSM', 'regular', 'cold')]: { code: 'OOLFT - R' },
+  [managerKey('LFT-OSM', 'large', 'cold')]: { code: 'OOLFT - L' },
+  [managerKey('FMT-GLU', 'regular', 'cold')]: { code: 'GFMT - R' },
+  [managerKey('FMT-GLU', 'large', 'cold')]: { code: 'GFMT - L' },
+  [managerKey('LFT-GLU', 'regular', 'cold')]: { code: 'GFLFT - R' },
+  [managerKey('LFT-GLU', 'large', 'cold')]: {
+    code: 'GFLRT - L',
+    aliases: ['GFLFT - L'],
+  },
+  [managerKey('FT-GLU', 'regular', 'cold')]: { code: 'GFFT - RC' },
+  [managerKey('FT-GLU', 'regular', 'hot')]: { code: 'GFFT - RH' },
+  [managerKey('FT-GLU', 'large', 'cold')]: { code: 'GFFT - LC' },
+  [managerKey('FT-GLU', 'large', 'hot')]: { code: 'GFFT - LH' },
+  [managerKey('FMT-JAS', 'regular', 'cold')]: { code: 'JGMT - R' },
+  [managerKey('FMT-JAS', 'large', 'cold')]: { code: 'JGMT - L' },
+  [managerKey('FT-JAS', 'regular', 'cold')]: { code: 'JGFT - RC' },
+  [managerKey('FT-JAS', 'regular', 'hot')]: { code: 'JGFT - RH' },
+  [managerKey('FT-JAS', 'large', 'cold')]: { code: 'JGFT -  LC', aliases: ['JGFT - LC'] },
+  [managerKey('FT-JAS', 'large', 'hot')]: { code: 'JGFT -  LH', aliases: ['JGFT - LH'] },
+  [managerKey('LFT-JAS', 'regular', 'cold')]: { code: 'JGLFT - R' },
+  [managerKey('LFT-JAS', 'large', 'cold')]: { code: 'JGLFT - L' },
+  [managerKey('FMT-ROY', 'regular', 'cold')]: { code: 'RFYMT - R' },
+  [managerKey('FMT-ROY', 'large', 'cold')]: { code: 'RFYMT - L' },
+  [managerKey('FT-ROY', 'regular', 'cold')]: { code: 'RFYFT - RC' },
+  [managerKey('FT-ROY', 'regular', 'hot')]: { code: 'RFYFT - RH' },
+  [managerKey('FT-ROY', 'large', 'cold')]: { code: 'RFYFT - LC' },
+  [managerKey('FT-ROY', 'large', 'hot')]: { code: 'RFYFT - LH' },
+  [managerKey('LFT-ROY', 'regular', 'cold')]: { code: 'RFYLFT - R' },
+  [managerKey('LFT-ROY', 'large', 'cold')]: { code: 'RFYLFT - L' },
+  [managerKey('FMT-CEY', 'regular', 'cold')]: { code: 'CBMT - R' },
+  [managerKey('FMT-CEY', 'large', 'cold')]: { code: 'CBMT - L' },
+  [managerKey('FT-CEY', 'regular', 'cold')]: { code: 'CBFT - RC' },
+  [managerKey('FT-CEY', 'regular', 'hot')]: { code: 'CBFT - RH' },
+  [managerKey('FT-CEY', 'large', 'cold')]: { code: 'CBFT - LC' },
+  [managerKey('FT-CEY', 'large', 'hot')]: { code: 'CBFT - LH' },
+  [managerKey('FT-BIL', 'regular', 'cold')]: { code: 'BBFT - RC' },
+  [managerKey('FT-BIL', 'regular', 'hot')]: { code: 'BBFT - RH' },
+  [managerKey('FT-BIL', 'large', 'cold')]: { code: 'BBFT - LC' },
+  [managerKey('FT-BIL', 'large', 'hot')]: { code: 'BBFT - LH' },
+  [managerKey('LFT-BIL', 'regular', 'cold')]: { code: 'BBLFT - R' },
+  [managerKey('LFT-BIL', 'large', 'cold')]: { code: 'BBLFT - L' },
+};
+
 const categoryDescriptions: Record<CategoryCode, LocaleString> = {
   TEA: n(
     'Kategori induk teh Aroadri Tea.',
@@ -605,12 +671,21 @@ function createVariants(product: MenuProduct, currentProductId: string) {
   let sortOrder = 1;
   for (const size of sizes) {
     for (const temperature of temperatures) {
+      const managerCode =
+        MANAGER_INVENTORY_VARIANT_CODES[managerKey(product.sku, size.code, temperature)];
+      const attributes: Record<string, string> = { size: size.code, temperature };
+      if (managerCode) {
+        attributes.managerInventoryCode = managerCode.code;
+        if (managerCode.aliases?.length) {
+          attributes.managerInventoryAliases = managerCode.aliases.join('|');
+        }
+      }
       rows.push({
         id: `${currentProductId}-${size.code}-${temperature}`,
         sku: `${product.sku}-${size.code.toUpperCase()}-${temperature.toUpperCase()}`,
         name: variantName(size.label, temperature),
         sellPrice: size.price,
-        attributes: { size: size.code, temperature },
+        attributes,
         sortOrder,
       });
       sortOrder++;

@@ -59,7 +59,7 @@ const WEEKLY_USAGE = [
       'TOP-BARLEY-PEARL': 1,
       'TOP-CRYSTAL-PEARL': 5,
       'TOP-CHEESE-PEARL': 5,
-      'DST-EGG-TART': 45,
+      'DST-EGG-TART': 60,
       'INV-LEMON-PIECE': 22,
     },
   },

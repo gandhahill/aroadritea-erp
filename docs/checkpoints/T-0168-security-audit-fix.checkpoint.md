@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-05-21 19:24 WIB
-- **Last updated**: 2026-05-21 20:08 WIB
+- **Last updated**: 2026-05-21 20:13 WIB
 - **Status**: IN_PROGRESS
 - **Phase**: Cross-cutting production readiness and security audit
 - **Branch**: master
@@ -32,7 +32,7 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 4. [x] Perbaiki AP/AR reminder query dan tambahkan regresi.
 5. [x] Perbaiki scroll halaman manual sales.
 6. [x] Pastikan dropdown outlet mengecualikan kantor.
-7. [ ] Baca ulang Excel Malioboro Mei dan selaraskan seed kode barang/produk/stok.
+7. [x] Baca ulang Excel Malioboro Mei dan selaraskan seed kode barang/produk/stok.
 8. [ ] Tambah modul surat menyurat sesuai SoT/SD.
 9. [ ] Tambah panduan setup printer di docs dan halaman panduan bila ada.
 10. [ ] Jalankan audit keamanan Fase 1-5, commit atomik, dan verifikasi akhir.
@@ -47,6 +47,7 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 - AP/AR reminder worker diperbaiki: predicate tanggal diganti ke date arithmetic PostgreSQL yang aman, timezone Asia/Jakarta, join akun/partner tenant-safe, dan channel email `party_ledger` bisa dikonfigurasi.
 - Scroll dashboard/manual sales diperbaiki dengan `h-dvh`, `min-h-0`, dan padding bawah halaman supaya form + histori tetap bisa diakses.
 - Dropdown outlet operasional untuk POS manual, stock opname, quick adjustment, purchase order, POS settings, dan Naixer sudah dibatasi ke lokasi aktif bertipe `store`; lokasi kantor tetap tersedia untuk modul yang memang memerlukan lokasi administrasi seperti accounting asset/journal/HR.
+- Excel `D:\KERJA\Aroadri Tea\2026\05\Malioboro Mall Mei.xlsx` dibaca ulang. Seed minggu 1 Egg Tart dikoreksi dari 45 ke 60, semua 52 kode menu manager dimasukkan ke atribut variant `managerInventoryCode`, dan import movement sekarang menerima kode manager Excel maupun SKU internal serta menolak variant code yang tidak ditemukan.
 
 ## Decisions
 
@@ -58,7 +59,7 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 
 ## Next step
 
-Baca ulang Excel Malioboro Mei (`D:\KERJA\Aroadri Tea\2026\05\Malioboro Mall Mei.xlsx`) menggunakan bundled spreadsheet runtime, lalu selaraskan seed kode barang/produk/stok.
+Tambahkan modul surat menyurat: update SoT/SD ringkas, tambah schema/migration/service/UI/permission/i18n/audit trail, lalu verifikasi typecheck/test fokus.
 
 ## Test status
 
@@ -68,6 +69,8 @@ Baca ulang Excel Malioboro Mei (`D:\KERJA\Aroadri Tea\2026\05\Malioboro Mall Mei
 - **Focused typecheck**: `pnpm --filter @erp/services typecheck` PASS; `pnpm --filter @erp/site typecheck` PASS
 - **Focused typecheck**: `pnpm --filter @erp/worker typecheck` PASS; `pnpm --filter @erp/web typecheck` PASS
 - **Focused typecheck**: `pnpm --filter @erp/web typecheck` PASS; `pnpm --filter @erp/services typecheck` PASS after manual-sales/outlet-scope patch
+- **Focused typecheck**: `pnpm --filter @erp/db typecheck` PASS; `pnpm --filter @erp/services typecheck` PASS after Malioboro seed/import patch
+- **Focused**: `pnpm --filter @erp/services test -- inventory-import-code` PASS (2 tests)
 - **Integration**: belum dijalankan untuk T-0168
 - **E2E**: belum dijalankan untuk T-0168
 
@@ -98,6 +101,11 @@ Baca ulang Excel Malioboro Mei (`D:\KERJA\Aroadri Tea\2026\05\Malioboro Mall Mei
 | `apps/web/app/(dash)/inventory/adjust/actions.ts` | Updated | Quick adjustment outlet dropdown excludes office locations |
 | `apps/web/app/(dash)/purchasing/actions.ts` | Updated | PO destination dropdown excludes office locations |
 | `apps/web/app/(dash)/settings/integrations/naixer/actions.ts` | Updated | Naixer format config limited to outlet/store locations |
+| `packages/db/seed/malioboro-may-inventory.ts` | Updated | Correct Egg Tart week 1 usage from manager Excel |
+| `packages/db/seed/menu.ts` | Updated | Store manager Excel menu codes on product variants |
+| `packages/db/schema/stock-opname.ts` | Updated | Stock opname kind comments include daily/weekly/monthly |
+| `packages/services/src/inventory/import-service.ts` | Updated | Import variant matching accepts manager codes and rejects unknown variants |
+| `packages/services/tests/inventory-import-code.test.ts` | Added | Regression for manager-code variant matching |
 
 ## Commits So Far
 
@@ -106,6 +114,7 @@ Baca ulang Excel Malioboro Mei (`D:\KERJA\Aroadri Tea\2026\05\Malioboro Mall Mei
 | `5970cfc` | `docs(audit): record T-0168 baseline [INT-000]` | 2026-05-21 |
 | `e52d7e7` | `fix(member): add password reset flow [BUG-001]` | 2026-05-21 |
 | `e603514` | `fix(worker): repair party ledger reminders [BUG-002]` | 2026-05-21 |
+| `f2547f5` | `fix(web): keep outlet selectors store-only [BUG-003]` | 2026-05-21 |
 
 ## Handoff Notes
 
