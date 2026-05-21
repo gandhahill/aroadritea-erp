@@ -99,6 +99,11 @@ export async function updateProduct(
   if (data.description !== undefined) updates.description = data.description;
   if (data.categoryId !== undefined) updates.categoryId = data.categoryId;
   if (data.kind !== undefined) updates.kind = data.kind;
+  if (data.opnameFrequency !== undefined) updates.opnameFrequency = data.opnameFrequency;
+  if (data.opnameFrequencies !== undefined) {
+    updates.opnameFrequencies = data.opnameFrequencies;
+    updates.opnameFrequency = data.opnameFrequencies[0] ?? 'monthly';
+  }
   if (data.uom !== undefined) updates.uom = data.uom;
   if (data.isSellable !== undefined) updates.isSellable = data.isSellable;
   if (data.isPurchasable !== undefined) updates.isPurchasable = data.isPurchasable;
@@ -149,6 +154,8 @@ export async function updateProduct(
         name: updated.name as { id: string; en: string; zh: string },
         categoryId: updated.categoryId,
         kind: updated.kind,
+        opnameFrequency: updated.opnameFrequency,
+        opnameFrequencies: updated.opnameFrequencies,
         uom: updated.uom,
         isSellable: updated.isSellable,
         isPurchasable: updated.isPurchasable,

@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-21 09:52 WIB (Codex) | IN_PROGRESS | Deployed commits `ef73015` + `eca9fd5`; production migrate/seed/build/reload passed. Public image URLs and member pages return 200; authenticated smoke for purchasing, POS settings, BI, AP/AR, products, and dashboard returns 200 without application-error/digest markers. Remaining traceability gaps require external/manual evidence or deeper legacy page-by-page migration. |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-21 14:15 WIB (Codex) | IN_PROGRESS | Local patch adds manual legacy-POS sales closing with journals/report sync, stock-opname daily/weekly/monthly item buckets, Malioboro May inventory seed staging, pagination on major high-volume lists, multilingual member emails, and traceability status cleanup (`FULL`/`VERIFY` only). Local typecheck/test/build passed; deployment/reset DB not run in this pass. |
 
 ---
 

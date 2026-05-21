@@ -30,7 +30,7 @@ function baseLayout(content: string, locale: EmailLocale = 'id'): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aroadri Tea</title>
 </head>
-<body style="margin:0;padding:0;background-color:${BRAND_CREAM};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:${BRAND_CREAM};font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${BRAND_CREAM};">
     <tr>
       <td align="center" style="padding:32px 16px;">
@@ -38,8 +38,10 @@ function baseLayout(content: string, locale: EmailLocale = 'id'): string {
           <!-- Header -->
           <tr>
             <td style="background-color:${BRAND_RED};padding:24px 32px;text-align:center;">
-              <img src="${logoUrl}" width="120" height="120" alt="Aroadri Tea" style="display:block;margin:0 auto 12px;border:0;outline:none;text-decoration:none;width:120px;height:auto;">
-              <h1 style="margin:0;font-size:24px;font-weight:700;color:#ffffff;letter-spacing:1px;">Aroadri Tea</h1>
+              <div style="display:inline-block;background-color:#ffffff;border-radius:999px;padding:12px;margin:0 auto 14px;">
+                <img src="${logoUrl}" width="104" height="104" alt="Aroadri Tea" style="display:block;border:0;outline:none;text-decoration:none;width:104px;height:auto;">
+              </div>
+              <h1 style="margin:0;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:28px;font-weight:800;color:#ffffff;letter-spacing:0;">AROADRI TEA</h1>
             </td>
           </tr>
           <!-- Content -->
@@ -110,21 +112,54 @@ export function buildOtpEmailHtml(
 }
 
 export function buildWelcomeEmailHtml(memberName: string, locale: EmailLocale = 'id'): string {
+  const copy = {
+    id: {
+      title: `Selamat Datang, ${memberName}!`,
+      intro:
+        'Akun member Aroadri Tea Anda telah aktif. Nikmati berbagai benefit eksklusif sebagai member kami.',
+      benefitsTitle: 'Benefit Member:',
+      benefits: [
+        'Kumpulkan poin setiap transaksi',
+        'Voucher eksklusif &amp; promo khusus',
+        'Naik tier untuk benefit lebih banyak',
+      ],
+      closing:
+        'Kunjungi outlet terdekat kami dan sebutkan nomor telepon terdaftar saat bertransaksi.',
+    },
+    en: {
+      title: `Welcome, ${memberName}!`,
+      intro:
+        'Your Aroadri Tea member account is active. Enjoy exclusive benefits as our member.',
+      benefitsTitle: 'Member Benefits:',
+      benefits: [
+        'Earn points on every transaction',
+        'Exclusive vouchers and special promotions',
+        'Move up tiers for more benefits',
+      ],
+      closing:
+        'Visit the nearest outlet and mention your registered phone number when ordering.',
+    },
+    zh: {
+      title: `欢迎，${memberName}!`,
+      intro: '您的 Aroadri Tea 会员账户已启用。欢迎享受会员专属权益。',
+      benefitsTitle: '会员权益：',
+      benefits: ['每次消费累积积分', '专属优惠券和特别促销', '升级等级以获得更多权益'],
+      closing: '请到最近门店消费，并在结账时提供已注册的手机号码。',
+    },
+  }[locale];
   const content = `
-    <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:${BRAND_INK};">Selamat Datang, ${memberName}!</h2>
+    <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:${BRAND_INK};">${copy.title}</h2>
     <p style="margin:0 0 16px;font-size:14px;color:${BRAND_INK_2};line-height:1.6;">
-      Akun member Aroadri Tea Anda telah aktif. Nikmati berbagai benefit eksklusif sebagai member kami.
+      ${copy.intro}
     </p>
     <div style="background-color:${BRAND_CREAM};border-radius:8px;padding:16px;margin:0 0 24px;">
-      <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:${BRAND_INK};">Benefit Member:</p>
+      <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:${BRAND_INK};">${copy.benefitsTitle}</p>
       <ul style="margin:0;padding-left:20px;font-size:13px;color:${BRAND_INK_2};line-height:1.8;">
-        <li>Kumpulkan poin setiap transaksi</li>
-        <li>Voucher eksklusif &amp; promo khusus</li>
-        <li>Naik tier untuk benefit lebih banyak</li>
+        ${copy.benefits.map((benefit) => `<li>${benefit}</li>`).join('')}
       </ul>
     </div>
     <p style="margin:0;font-size:13px;color:${BRAND_INK_2};line-height:1.5;">
-      Kunjungi outlet terdekat kami dan sebutkan nomor telepon terdaftar saat bertransaksi.
+      ${copy.closing}
     </p>
   `;
   return baseLayout(content, locale);
@@ -135,21 +170,46 @@ export function buildPasswordResetEmailHtml(
   expiryMinutes: number,
   locale: EmailLocale = 'id',
 ): string {
+  const copy = {
+    id: {
+      title: 'Reset Password',
+      intro:
+        'Kami menerima permintaan untuk mereset password akun Aroadri Tea Anda. Klik tombol di bawah untuk membuat password baru.',
+      cta: 'Reset Password',
+      expiry: `Link ini berlaku selama <strong>${expiryMinutes} menit</strong>.`,
+      warning: 'Jika Anda tidak merasa meminta reset password, abaikan email ini.',
+    },
+    en: {
+      title: 'Reset Password',
+      intro:
+        'We received a request to reset your Aroadri Tea account password. Click the button below to create a new password.',
+      cta: 'Reset Password',
+      expiry: `This link is valid for <strong>${expiryMinutes} minutes</strong>.`,
+      warning: 'If you did not request a password reset, you can ignore this email.',
+    },
+    zh: {
+      title: '重置密码',
+      intro: '我们收到了重置您 Aroadri Tea 账户密码的请求。请点击下方按钮创建新密码。',
+      cta: '重置密码',
+      expiry: `此链接有效期为 <strong>${expiryMinutes} 分钟</strong>。`,
+      warning: '如果您没有申请重置密码，请忽略此邮件。',
+    },
+  }[locale];
   const content = `
-    <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:${BRAND_INK};">Reset Password</h2>
+    <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;color:${BRAND_INK};">${copy.title}</h2>
     <p style="margin:0 0 24px;font-size:14px;color:${BRAND_INK_2};line-height:1.6;">
-      Kami menerima permintaan untuk mereset password akun Aroadri Tea Anda. Klik tombol di bawah untuk membuat password baru.
+      ${copy.intro}
     </p>
     <div style="text-align:center;margin:0 0 24px;">
       <a href="${resetUrl}" style="display:inline-block;background-color:${BRAND_RED};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:12px 32px;border-radius:8px;">
-        Reset Password
+        ${copy.cta}
       </a>
     </div>
     <p style="margin:0 0 8px;font-size:13px;color:${BRAND_INK_2};line-height:1.5;">
-      Link ini berlaku selama <strong>${expiryMinutes} menit</strong>.
+      ${copy.expiry}
     </p>
     <p style="margin:0;font-size:13px;color:${BRAND_INK_2};line-height:1.5;">
-      Jika Anda tidak merasa meminta reset password, abaikan email ini.
+      ${copy.warning}
     </p>
   `;
   return baseLayout(content, locale);

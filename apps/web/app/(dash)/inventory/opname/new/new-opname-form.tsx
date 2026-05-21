@@ -1,16 +1,22 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useActionState, useState } from 'react';
 import { createOpnameSessionAction } from '../actions';
+
+type OpnameKind = 'daily' | 'weekly' | 'monthly';
 
 const EMPTY_FORM = {
   locationId: '',
   sessionDate: '',
   periodCode: '',
   notes: '',
-  kind: 'monthly' as 'daily' | 'monthly',
+  kind: 'monthly' as OpnameKind,
 };
+
+const INPUT =
+  'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5 disabled:opacity-60';
 
 interface Props {
   locationOptions: Array<{ id: string; label: string; code: string }>;
@@ -19,6 +25,8 @@ interface Props {
 
 export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
   const router = useRouter();
+  const t = useTranslations('inventory.opname.newSession');
+  const actions = useTranslations('common.actions');
   const [form, setForm] = useState({ ...EMPTY_FORM, locationId: defaultLocationId });
   const [state, submitAction, isPending] = useActionState(submitOpname, null);
 
@@ -28,19 +36,25 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
       sessionDate: formData.get('sessionDate') as string,
       periodCode: formData.get('periodCode') as string,
       notes: formData.get('notes') as string,
-      kind: (formData.get('kind') as 'daily' | 'monthly') ?? 'monthly',
+      kind: (formData.get('kind') as OpnameKind) ?? 'monthly',
     };
 
-    if (!params.locationId) return { error: 'Lokasi wajib dipilih' };
-    if (!params.sessionDate) return { error: 'Tanggal sesi wajib diisi' };
-    if (!params.periodCode) return { error: 'Kode periode wajib diisi' };
+    if (!params.locationId) return { error: t('locationRequired') };
+    if (!params.sessionDate) return { error: t('sessionDateRequired') };
+    if (!params.periodCode) return { error: t('periodCodeRequired') };
 
     const result = await createOpnameSessionAction(params);
     if (result.error) return { error: result.error };
-    if (!result.data) return { error: 'Gagal membuat sesi opname' };
+    if (!result.data) return { error: t('createFailed') };
     router.push(`/inventory/opname/${result.data.id}`);
     return null;
   }
+
+  const kindOptions = [
+    { value: 'daily', title: t('dailyTitle'), desc: t('dailyDesc') },
+    { value: 'weekly', title: t('weeklyTitle'), desc: t('weeklyDesc') },
+    { value: 'monthly', title: t('monthlyTitle'), desc: t('monthlyDesc') },
+  ] as const;
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
@@ -59,19 +73,17 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
           </svg>
-          Kembali
+          {t('back')}
         </button>
-        <h1 className="text-2xl font-bold text-brand-ink">Buat Sesi Opname</h1>
-        <p className="mt-1 text-sm text-brand-ink-3">
-          Buat sesi stock opname baru. Sistem akan mem-snapshot stok saat ini sebagai baseline.
-        </p>
+        <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
+        <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle')}</p>
       </div>
 
       <div className="rounded-xl border border-brand-cream-3 bg-card p-6 shadow-sm">
         <form action={submitAction} className="space-y-5">
           <div className="space-y-1.5">
             <label htmlFor="locationId" className="block text-sm font-medium text-brand-ink">
-              Lokasi <span className="text-rose-500">*</span>
+              {t('location')} <span className="text-rose-500">*</span>
             </label>
             <select
               id="locationId"
@@ -80,10 +92,10 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
               onChange={(e) => setForm((f) => ({ ...f, locationId: e.target.value }))}
               required
               disabled={locationOptions.length === 0}
-              className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5 disabled:opacity-60"
+              className={INPUT}
             >
               {locationOptions.length === 0 ? (
-                <option value="">Belum ada lokasi aktif</option>
+                <option value="">{t('noLocations')}</option>
               ) : (
                 locationOptions.map((location) => (
                   <option key={location.id} value={location.id}>
@@ -96,23 +108,10 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
 
           <div className="space-y-1.5">
             <label className="block text-sm font-medium text-brand-ink">
-              Jenis Opname <span className="text-rose-500">*</span>
+              {t('kind')} <span className="text-rose-500">*</span>
             </label>
-            <div className="grid grid-cols-2 gap-2">
-              {(
-                [
-                  {
-                    value: 'daily',
-                    title: 'Harian (closing)',
-                    desc: 'Item wujud — cup, sedotan, susu, dll.',
-                  },
-                  {
-                    value: 'monthly',
-                    title: 'Bulanan (menyeluruh)',
-                    desc: 'Semua produk & bahan baku.',
-                  },
-                ] as const
-              ).map((opt) => (
+            <div className="grid gap-2 sm:grid-cols-3">
+              {kindOptions.map((opt) => (
                 <label
                   key={opt.value}
                   className={`cursor-pointer rounded-lg border p-3 text-sm transition-colors ${
@@ -138,7 +137,7 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
 
           <div className="space-y-1.5">
             <label htmlFor="sessionDate" className="block text-sm font-medium text-brand-ink">
-              Tanggal Sesi <span className="text-rose-500">*</span>
+              {t('sessionDate')} <span className="text-rose-500">*</span>
             </label>
             <input
               id="sessionDate"
@@ -147,49 +146,47 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
               value={form.sessionDate}
               onChange={(e) => setForm((f) => ({ ...f, sessionDate: e.target.value }))}
               required
-              className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
+              className={INPUT}
             />
           </div>
 
           <div className="space-y-1.5">
             <label htmlFor="periodCode" className="block text-sm font-medium text-brand-ink">
-              Kode Periode <span className="text-rose-500">*</span>
+              {t('periodCode')} <span className="text-rose-500">*</span>
             </label>
             <input
               id="periodCode"
               name="periodCode"
               type="text"
-              placeholder="contoh: 2026-05"
+              placeholder={t('periodPlaceholder')}
               value={form.periodCode}
               onChange={(e) => setForm((f) => ({ ...f, periodCode: e.target.value }))}
               required
-              className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
+              className={INPUT}
             />
-            <p className="text-xs text-brand-ink-3">
-              Periode akuntansi untuk menjurnal penyesuaian opname. Contoh: 2026-05
-            </p>
+            <p className="text-xs text-brand-ink-3">{t('periodHint')}</p>
           </div>
 
           <div className="space-y-1.5">
             <label htmlFor="notes" className="block text-sm font-medium text-brand-ink">
-              Catatan
+              {t('notesLabel')}
             </label>
             <textarea
               id="notes"
               name="notes"
               rows={3}
-              placeholder="Catatan opsional untuk sesi ini..."
+              placeholder={t('notesPlaceholder')}
               value={form.notes}
               onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-              className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
+              className={INPUT}
             />
           </div>
 
-          {state?.error && (
+          {state?.error ? (
             <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-              <strong>Error:</strong> {state.error}
+              <strong>{t('errorPrefix')}:</strong> {state.error}
             </div>
-          )}
+          ) : null}
 
           <div className="flex items-center justify-end gap-3 pt-2">
             <button
@@ -197,14 +194,14 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
               onClick={() => router.back()}
               className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink transition-colors hover:bg-brand-cream-1"
             >
-              Batal
+              {actions('cancel')}
             </button>
             <button
               type="submit"
               disabled={isPending || locationOptions.length === 0}
               className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6 disabled:opacity-50"
             >
-              {isPending ? 'Memproses...' : 'Buat Sesi'}
+              {isPending ? t('creating') : t('createBtn')}
             </button>
           </div>
         </form>

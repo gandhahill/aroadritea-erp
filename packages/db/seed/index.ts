@@ -42,6 +42,7 @@ import {
 } from './iam';
 import { LEAVE_TYPES_SEED } from './leave-types-seed';
 import { LOCATION_GPS_FIELDS, LOCATION_GPS_VALUES } from './location-gps';
+import { seedMalioboroMayInventory } from './malioboro-may-inventory';
 import { seedMenu } from './menu';
 import { NAIXER_QR_FORMAT_DEFAULTS } from './naixer-seed';
 import { seedRecipes } from './recipes';
@@ -456,6 +457,14 @@ async function seed() {
   // Idempotent: onConflictDoNothing on (tenant, location, product, variant, batch).
   const stockResult = await seedInitialStock(db as unknown as Database, tenantId);
   console.info(`Initial stock attempts: ${stockResult.inserted}`);
+
+  const malioboroInventoryResult = await seedMalioboroMayInventory(
+    db as unknown as Database,
+    tenantId,
+  );
+  console.info(
+    `Malioboro May inventory seed: ${malioboroInventoryResult.products} products, ${malioboroInventoryResult.movements} staged movements`,
+  );
 
   // 11b. HR leave types
   let leaveTypeCount = 0;

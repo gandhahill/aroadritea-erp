@@ -42,17 +42,12 @@ export async function signupAction(formData: FormData) {
   );
 
   if (!result.ok) {
-    console.error('Signup failed:', result.error.messageKey, result.error.details);
-    if (result.error.code === 'VALIDATION_FAILED' && result.error.details) {
-      return {
-        success: false,
-        error: `${String(result.error)} - Details: ${JSON.stringify(result.error.details)}`,
-      };
-    }
-    // Return full details for debugging
     return {
       success: false,
-      error: `${String(result.error)} - ${JSON.stringify(result.error.details)}`,
+      error:
+        result.error.code === 'VALIDATION_FAILED'
+          ? 'Data pendaftaran belum lengkap atau tidak valid.'
+          : 'Pendaftaran belum berhasil. Silakan coba lagi.',
     };
   }
   return { success: true, token: result.value.token };
@@ -98,7 +93,9 @@ export async function verifyAndCompleteSignupAction(token: string, code: string)
     { userId: 'member', tenantId: 'default', locationId: 'default' },
   );
 
-  if (!result.ok) return { success: false, error: String(result.error) };
+  if (!result.ok) {
+    return { success: false, error: 'Akun belum berhasil dibuat. Silakan coba lagi.' };
+  }
 
   const cookieStore = await cookies();
   cookieStore.set(MEMBER_SESSION_COOKIE, result.value.sessionToken, {
@@ -131,7 +128,9 @@ export async function completeSignupAction(formData: FormData, token: string) {
     { userId: 'member', tenantId: 'default', locationId: 'default' },
   );
 
-  if (!result.ok) return { success: false, error: String(result.error) };
+  if (!result.ok) {
+    return { success: false, error: 'Akun belum berhasil dibuat. Silakan coba lagi.' };
+  }
 
   // Set session cookie
   const cookieStore = await cookies();

@@ -2,17 +2,20 @@
 
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import type { AuditTrailFilters, AuditTrailRow } from './actions';
+import type { AuditTrailFilters, AuditTrailPageData } from './actions';
 
 export function AuditTrailClient({
-  rows,
+  data,
   filters,
 }: {
-  rows: AuditTrailRow[];
+  data: AuditTrailPageData;
   filters: AuditTrailFilters;
 }) {
   const t = useTranslations('audit');
+  const pagination = useTranslations('common.pagination');
   const router = useRouter();
+  const rows = data.rows;
+  const totalPages = Math.max(1, Math.ceil(data.total / data.pageSize));
 
   function applyFilters(formData: FormData) {
     const params = new URLSearchParams();
@@ -116,7 +119,9 @@ export function AuditTrailClient({
                       </span>
                     </td>
                     <td className="px-4 py-3 text-brand-ink">{row.entityType}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-brand-ink-3">{row.entityId}</td>
+                    <td className="px-4 py-3 text-xs text-brand-ink-3">
+                      {maskIdentifier(row.entityId)}
+                    </td>
                     <td className="px-4 py-3">
                       <FieldDiff before={row.before} after={row.after} />
                       {row.metadata ? (
@@ -140,9 +145,43 @@ export function AuditTrailClient({
             </tbody>
           </table>
         </div>
+        <div className="flex flex-col gap-3 border-t border-brand-cream-3 px-4 py-3 text-xs text-brand-ink-3 sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            {t('latest', { count: data.total })} - {pagination('page')} {data.page}{' '}
+            {pagination('of')} {totalPages}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={data.page <= 1}
+              onClick={() => goToPage(data.page - 1)}
+              className="rounded-md border border-brand-cream-3 px-3 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream disabled:text-brand-ink-3 disabled:opacity-50"
+            >
+              {pagination('previous')}
+            </button>
+            <button
+              type="button"
+              disabled={data.page >= totalPages}
+              onClick={() => goToPage(data.page + 1)}
+              className="rounded-md border border-brand-cream-3 px-3 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream disabled:text-brand-ink-3 disabled:opacity-50"
+            >
+              {pagination('next')}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
+
+  function goToPage(page: number) {
+    const params = new URLSearchParams();
+    for (const key of ['entityType', 'action', 'actor', 'from', 'to'] as const) {
+      const value = filters[key];
+      if (value) params.set(key, value);
+    }
+    params.set('page', String(page));
+    router.push(`/audit?${params.toString()}`);
+  }
 }
 
 /**
@@ -244,6 +283,14 @@ function renderValue(value: unknown): string {
   } catch {
     return '[object]';
   }
+}
+
+function maskIdentifier(value: string): string {
+  if (!value) return '-';
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
+    return 'internal-record';
+  }
+  return value.length > 24 ? `${value.slice(0, 21)}...` : value;
 }
 
 function FilterInput({

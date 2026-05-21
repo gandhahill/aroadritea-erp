@@ -15,6 +15,7 @@ import { sql } from 'drizzle-orm';
 import {
   bigint,
   boolean,
+  date,
   index,
   integer,
   jsonb,
@@ -122,6 +123,47 @@ export const posSettings = pgTable(
   (t) => [
     uniqueIndex('pos_settings_tenant_location_idx').on(t.tenantId, t.locationId),
     index('pos_settings_location_idx').on(t.locationId),
+  ],
+);
+
+export const manualSalesClosings = pgTable(
+  'manual_sales_closings',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    number: text('number').notNull(),
+    salesDate: date('sales_date').notNull(),
+    channel: text('channel').notNull().default('walk_in'),
+    paymentMethod: text('payment_method').notNull().default('cash'),
+
+    transactionCount: integer('transaction_count').notNull().default(0),
+    grossSales: bigint('gross_sales', { mode: 'bigint' }).notNull().default(sql`0`),
+    discountTotal: bigint('discount_total', { mode: 'bigint' }).notNull().default(sql`0`),
+    taxTotal: bigint('tax_total', { mode: 'bigint' }).notNull().default(sql`0`),
+    netRevenue: bigint('net_revenue', { mode: 'bigint' }).notNull().default(sql`0`),
+
+    sourceReference: text('source_reference'),
+    notes: text('notes'),
+    status: text('status').notNull().default('posted'),
+    journalEntryId: text('journal_entry_id'),
+
+    ...versionCol,
+    ...auditCols,
+  },
+  (t) => [
+    uniqueIndex('manual_sales_closings_tenant_number_idx').on(t.tenantId, t.number),
+    uniqueIndex('manual_sales_closings_source_idx').on(
+      t.tenantId,
+      t.locationId,
+      t.salesDate,
+      t.channel,
+      t.paymentMethod,
+      t.sourceReference,
+    ),
+    index('manual_sales_closings_location_date_idx').on(t.tenantId, t.locationId, t.salesDate),
+    index('manual_sales_closings_journal_idx').on(t.journalEntryId),
   ],
 );
 

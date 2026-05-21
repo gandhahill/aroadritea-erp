@@ -69,6 +69,7 @@ export {
   salesOrderLines,
   payments,
   posSettings,
+  manualSalesClosings,
   refunds,
   refundLines,
   idempotencyRecords,

@@ -13,7 +13,7 @@
 import { db } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
 import { locations } from '@erp/db/schema/auth';
-import { salesOrders, shifts } from '@erp/db/schema/pos';
+import { manualSalesClosings, salesOrders, shifts } from '@erp/db/schema/pos';
 import { dailyRevenueAdjustments } from '@erp/db/schema/reporting/daily-revenue-adjustments';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -122,7 +122,20 @@ export async function getOmzetHarian(
     // and BIGINT as string by default. Skip BigInt() when the value is
     // null/empty/non-digit so we never throw "Cannot convert ... to BigInt".
     const grossRaw = saleAgg.rows[0]?.total;
-    const grossCents = toBigIntSafe(grossRaw);
+    const manualAgg = await db
+      .select({
+        total: sql<bigint>`COALESCE(SUM((${manualSalesClosings.grossSales} - ${manualSalesClosings.discountTotal}) * 100), 0::bigint)`,
+      })
+      .from(manualSalesClosings)
+      .where(
+        and(
+          eq(manualSalesClosings.tenantId, ctx.tenantId),
+          eq(manualSalesClosings.locationId, params.locationId),
+          eq(manualSalesClosings.status, 'posted'),
+          eq(manualSalesClosings.salesDate, params.date),
+        ),
+      );
+    const grossCents = toBigIntSafe(grossRaw) + toBigIntSafe(manualAgg[0]?.total);
 
     // 2. Compute PB1 amounts
     const netCents = stripPB1FromCents(grossCents);

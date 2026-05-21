@@ -74,6 +74,12 @@ export const products = pgTable(
     // 'finished_good' | 'raw_material' | 'merchandise' | 'consumable' | 'service'
 
     uom: text('uom').notNull().default('pcs'), // pcs, kg, liter, g, ml
+    opnameFrequency: text('opname_frequency').notNull().default('monthly'),
+    // 'daily' | 'weekly' | 'monthly'
+    opnameFrequencies: jsonb('opname_frequencies')
+      .$type<Array<'daily' | 'weekly' | 'monthly'>>()
+      .notNull()
+      .default(['monthly']),
 
     isSellable: boolean('is_sellable').notNull().default(true),
     isPurchasable: boolean('is_purchasable').notNull().default(false),
@@ -106,6 +112,7 @@ export const products = pgTable(
     uniqueIndex('products_tenant_sku_idx').on(t.tenantId, t.sku),
     index('products_category_idx').on(t.categoryId),
     index('products_kind_idx').on(t.kind),
+    index('products_opname_frequency_idx').on(t.opnameFrequency),
     index('products_tenant_idx').on(t.tenantId),
   ],
 );

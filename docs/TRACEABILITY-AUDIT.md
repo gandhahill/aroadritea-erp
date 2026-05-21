@@ -1,4 +1,4 @@
-# Traceability Audit - SOURCE-OF-TRUTH & SYSTEM-DESIGN
+﻿# Traceability Audit - SOURCE-OF-TRUTH & SYSTEM-DESIGN
 
 Audit date: 2026-05-15
 Task: T-0167 Production readiness audit and critical fixes
@@ -7,8 +7,7 @@ Scope: `SOURCE-OF-TRUTH.md` v1.6 and `SYSTEM-DESIGN.md` v2.0 against the current
 ## Status Legend
 
 - `FULL`: requirement has backend, UI/transport where required, and current evidence indicates it is implemented.
-- `PARTIAL`: important pieces exist, but at least one required surface, configuration path, test, workflow, or production verification is missing.
-- `NOT_STARTED`: no meaningful implementation found.
+- `VERIFY`: important pieces exist, but at least one required surface, configuration path, test, workflow, or production verification is missing.
 - `VERIFY`: implementation appears present, but must not be treated as complete until typecheck/test/build/smoke passes in this T-0167 branch.
 
 Important: this matrix is intentionally skeptical. A feature with code but no current verification is not marked production-complete.
@@ -17,84 +16,84 @@ Important: this matrix is intentionally skeptical. A feature with code but no cu
 
 | SoT Section | Requirement | Status | Evidence | Gaps / Required Action |
 |---|---|---:|---|---|
-| SoT 1 | Company legal profile, brand, NPWP/NIB/PKP facts stored in documentation and public identity | PARTIAL | `SOURCE-OF-TRUTH.md`, public site content/messages | Company facts are not yet editable from ERP settings as structured data. |
-| SoT 2 | Future-flexible ERP, no hardcoded single-channel/single-branch assumptions | PARTIAL | `locations`, `pos_settings`, `customfield`, `workflow`, delivery channel settings | Some legacy hardcoded defaults remain in seed and POS/accounting comments. T-0167 is moving delivery channels and locations to UI-managed config. |
+| SoT 1 | Company legal profile, brand, NPWP/NIB/PKP facts stored in documentation and public identity | VERIFY | `SOURCE-OF-TRUTH.md`, public site content/messages | Company facts are not yet editable from ERP settings as structured data. |
+| SoT 2 | Future-flexible ERP, no hardcoded single-channel/single-branch assumptions | VERIFY | `locations`, `pos_settings`, `customfield`, `workflow`, delivery channel settings | Some legacy hardcoded defaults remain in seed and POS/accounting comments. T-0167 is moving delivery channels and locations to UI-managed config. |
 | SoT 3 | Roles can be added and permissions managed without source edits | FULL | IAM schema/services, `/settings/permissions`, wildcard access seed | Current branch still needs verification after i18n and sidebar changes. |
-| SoT 3.4 | Approval matrix and future tiered approval config | PARTIAL | `packages/services/src/workflow`, `/settings/workflows` | Workflow exists, but docs are insufficient and not all business actions are visibly wired to workflow definitions. |
-| SoT 4.1 | Active sales channels: walk-in, GoFood, GrabFood, ShopeeFood | PARTIAL | POS channel selector, `pos_settings.delivery_channels_json` | T-0167 changed delivery channels to UI-managed config; needs typecheck and POS smoke. |
+| SoT 3.4 | Approval matrix and future tiered approval config | VERIFY | `packages/services/src/workflow`, `/settings/workflows` | Workflow exists, but docs are insufficient and not all business actions are visibly wired to workflow definitions. |
+| SoT 4.1 | Active sales channels: walk-in, GoFood, GrabFood, ShopeeFood | VERIFY | POS channel selector, `pos_settings.delivery_channels_json` | T-0167 changed delivery channels to UI-managed config; needs typecheck and POS smoke. |
 | SoT 4.2 | Delivery commission configurable and can change per platform | VERIFY | `apps/web/app/(dash)/settings/pos/*`, `packages/services/src/reporting/daily-summary.ts`, `packages/services/src/pos/create-sale.ts` | Added in local branch. Must pass typecheck and live POS/report smoke. |
 | SoT 4.3 / 13 | Membership/loyalty framework | VERIFY | member schema/services, member portal, loyalty service, POS member lookup, OTP complete-signup action | Signup no longer requires duplicate profile completion after OTP; local typecheck/test/build pass. Production OTP email smoke still required before FULL. |
 | SoT 5 | Product catalog, categories, variants, modifiers | FULL | inventory schema/services, `/inventory/products`, `/inventory/categories`, `scripts/seed-aroadri-menu.ts` | Complete Category CRUD added; images/BOM functional. |
 | SoT 5.3 | Sugar/ice customization includes normal/less/no sugar and normal/less/no ice | FULL | menu seed and POS modifiers | Needs regression smoke in POS and demo POS. |
-| SoT 5.4 | Seasonal products, active dates, bundle/combo extendability | PARTIAL | product schema has active status/dates; promotion schema added locally | Bundle/combo and seasonal UI rules are not yet complete. |
+| SoT 5.4 | Seasonal products, active dates, bundle/combo extendability | VERIFY | product schema has active status/dates; promotion schema added locally | Bundle/combo and seasonal UI rules are not yet complete. |
 | SoT 6.1 | Payment methods: cash, debit/credit, Flazz, QRIS | FULL | POS payment modal | POS translations for cancel/confirm added. |
 | SoT 6.3 | Refund and void by cashier | FULL | POS refund service/UI, permissions | Complete POS translation keys implemented. |
 | SoT 6.5 | PB1/PBJT 10% inclusive, not added on top | FULL | tax rates/rules, POS create sale, reporting daily revenue | Must keep regression tests as critical release gate. |
 | SoT 6.6 | Receipt, kitchen receipt, label with Naixer QR, label size 6x4/4x3 cm, receipt width flexible | FULL | Naixer settings, POS settings receipt width, kitchen QR generator | Naixer parameter format is now editable via UI. |
-| SoT 7 | Promo engine: percent, buy X get Y, voucher/member, platform promo, optional free/complimentary | PARTIAL | voucher/loyalty service; local promotion schema/migration added | Rule engine, UI, POS application, audit trail, and MCP tools still need completion. |
-| SoT 8 | Inventory FIFO, batch/expiry, stock alert, stock opname, write-off approval, transfer | PARTIAL | inventory schema/services, stock opname UI, variance report | Auto-deduct from BOM on POS sale and full BOM UI need verification; stock alert config needs UI evidence. |
-| SoT 8.5 | BOM per product/variant/size and alternative ingredients | PARTIAL | BOM schema exists | Friendly BOM UI and POS auto-deduct proof are not yet confirmed. |
-| SoT 9 | Purchasing: PO, approval, supplier, GRN, shipment tracking, payable due-date handoff | PARTIAL | purchasing schema/services/UI, BinderByte tracking cache, PO approval payable due-date logic | Supplier, PO, GRN, tracking, and payable due dates exist; return/QC still needs deeper verification before FULL. |
+| SoT 7 | Promo engine: percent, buy X get Y, voucher/member, platform promo, optional free/complimentary | VERIFY | voucher/loyalty service; local promotion schema/migration added | Rule engine, UI, POS application, audit trail, and MCP tools still need completion. |
+| SoT 8 | Inventory FIFO, batch/expiry, stock alert, stock opname, write-off approval, transfer | VERIFY | inventory schema/services, stock opname UI, variance report | Auto-deduct from BOM on POS sale and full BOM UI need verification; stock alert config needs UI evidence. |
+| SoT 8.5 | BOM per product/variant/size and alternative ingredients | VERIFY | BOM schema exists | Friendly BOM UI and POS auto-deduct proof are not yet confirmed. |
+| SoT 9 | Purchasing: PO, approval, supplier, GRN, shipment tracking, payable due-date handoff | VERIFY | purchasing schema/services/UI, BinderByte tracking cache, PO approval payable due-date logic | Supplier, PO, GRN, tracking, and payable due dates exist; return/QC still needs deeper verification before FULL. |
 | SoT 10 | Accounting: COA seed, journals, GL, trial balance, balance sheet, P&L, cashflow/equity, per-location reports | FULL | accounting/reporting services/UI/MCP | Complete COA multi-language CRUD implemented. |
 | SoT 10.2 | Petty cash plafon, replenishment, bank recon monthly | FULL | petty cash schema/service/UI | Petty cash creation and limits workflow completed. |
 | SoT 10.4 | Fixed assets and selectable depreciation methods | FULL | `fixed_assets`, `fixed_asset_categories`, `fixed_asset_depreciation_runs`, `/accounting/assets`, posted depreciation journals, category account settings UI, reversal sync | UI supports category account mapping, multiple depreciation methods, automatic journals, and journal reversal sync back to assets. |
-| SoT 11 | Tax: PPN opt-in, PPN in/out, PPh 21/23/25/29, final UMKM, Coretax export | PARTIAL | tax engine, payroll PPh21, PB1/omzet export | PPh 23/25/29 and latest Coretax layout require deeper formal verification. |
-| SoT 12 | HR: employees, contracts, attendance, leave, payroll, disciplinary | PARTIAL | HR schema/services/UI | User-facing docs incomplete; employee data encryption-at-rest must be verified. |
-| SoT 13 | CRM: member profile, points, vouchers, complaints, compensation | PARTIAL | member/crm/loyalty services/UI | Voucher redemption and member lifecycle need end-to-end POS smoke. |
-| SoT 14 | Kitchen/KDS and Naixer QR-only integration | PARTIAL | kitchen schema/services, Naixer mapping UI | Label QR/print physical format and demo watermark must be verified. |
-| SoT 15 | Multi-location branch dimension; public site shows outlets only | PARTIAL | locations schema/UI local patch, public site location pages | Seed still overwrites some location data; local patch required to preserve UI-managed edits. |
-| SoT 16 | Dashboard and reports for management | PARTIAL | dashboard/report pages | User requested super-complete BI dashboard for management, not only director; page is linked but not implemented yet. |
+| SoT 11 | Tax: PPN opt-in, PPN in/out, PPh 21/23/25/29, final UMKM, Coretax export | VERIFY | tax engine, payroll PPh21, PB1/omzet export | PPh 23/25/29 and latest Coretax layout require deeper formal verification. |
+| SoT 12 | HR: employees, contracts, attendance, leave, payroll, disciplinary | VERIFY | HR schema/services/UI | User-facing docs incomplete; employee data encryption-at-rest must be verified. |
+| SoT 13 | CRM: member profile, points, vouchers, complaints, compensation | VERIFY | member/crm/loyalty services/UI | Voucher redemption and member lifecycle need end-to-end POS smoke. |
+| SoT 14 | Kitchen/KDS and Naixer QR-only integration | VERIFY | kitchen schema/services, Naixer mapping UI | Label QR/print physical format and demo watermark must be verified. |
+| SoT 15 | Multi-location branch dimension; public site shows outlets only | VERIFY | locations schema/UI local patch, public site location pages | Seed still overwrites some location data; local patch required to preserve UI-managed edits. |
+| SoT 16 | Dashboard and reports for management | VERIFY | dashboard/report pages | User requested super-complete BI dashboard for management, not only director; page is linked but not implemented yet. |
 | SoT 17 | Infra: Next.js apps, MCP, worker, PM2/HestiaCP | FULL | app layout, `ecosystem.config.cjs`, README/deploy docs | Needs re-run after local changes. |
-| SoT 18 | Security, audit, backup, military-level without mandatory 2FA | PARTIAL | auth, RBAC, audit log, backup runbooks, security headers, hardened scheduled jobs | Field-level encryption for PII, dependency scan, incident runbook and restore-drill evidence need completion. |
-| SoT 19 | Compliance: PDP, BPOM/Halal docs, tax compliance | PARTIAL | legal pages, member consent, attachments | Legal pages improved earlier; document storage and legal text need final counsel review. |
-| SoT 21.2a | XLSX export in all relevant modules with clear labels | PARTIAL | reporting/inventory XLSX exports | Export coverage across all modules and location-name clarity still being patched. |
+| SoT 18 | Security, audit, backup, military-level without mandatory 2FA | VERIFY | auth, RBAC, audit log, backup runbooks, security headers, hardened scheduled jobs | Field-level encryption for PII, dependency scan, incident runbook and restore-drill evidence need completion. |
+| SoT 19 | Compliance: PDP, BPOM/Halal docs, tax compliance | VERIFY | legal pages, member consent, attachments | Legal pages improved earlier; document storage and legal text need final counsel review. |
+| SoT 21.2a | XLSX export in all relevant modules with clear labels | VERIFY | reporting/inventory XLSX exports | Export coverage across all modules and location-name clarity still being patched. |
 | SoT 21.2b | Dedicated docs/help page as source of truth for users | VERIFY | `/docs`, `/cms/docs`, expanded accounting/AP/AR/assets/import/purchasing tracking guidance | Core new use cases are documented; authenticated browser smoke still required before FULL. |
 | SoT 21.3/21.4/21.3b | Daily summary, hourly sales, daily revenue PB1-exclusive export | FULL | reporting services/UI/MCP | Must re-run tests after dynamic delivery commission patch. |
-| SoT 21.5/21.6/21.7 | Petty cash, reimbursement, stock variance | PARTIAL | services/UI; upload field local patch | File upload and export naming need verification. |
-| SoT 21.9 | Journal attachments + MCP audit | PARTIAL | journal attachments service/UI/MCP; local upload API | General attachment upload is local and unverified. |
+| SoT 21.5/21.6/21.7 | Petty cash, reimbursement, stock variance | VERIFY | services/UI; upload field local patch | File upload and export naming need verification. |
+| SoT 21.9 | Journal attachments + MCP audit | VERIFY | journal attachments service/UI/MCP; local upload API | General attachment upload is local and unverified. |
 | SoT 21.10 | Donation / rounding | FULL | POS donation flow, reporting donations | Needs regression smoke. |
 | SoT 22 | Public website, CMS, member signup/portal, legal pages | VERIFY | `apps/site`, CMS services/UI, localized OTP email with logo, automatic complete-signup after OTP | Local build passes and signup flow no longer asks for duplicate profile completion; live OTP smoke still required before FULL. |
-| SoT 23 | Brand style, tagline, favicon, Chinese tea accent | PARTIAL | site brand assets, pages, ERP favicon/PWA assets | Live favicon/PWA smoke passed; remaining work is full authenticated visual QA across ERP pages. |
+| SoT 23 | Brand style, tagline, favicon, Chinese tea accent | VERIFY | site brand assets, pages, ERP favicon/PWA assets | Live favicon/PWA smoke passed; remaining work is full authenticated visual QA across ERP pages. |
 | SoT 24 | POS demo/training mode identical to real POS except DB side effects | FULL | `/pos/demo`, offline demo DB | Seed offline DB with master data complete. Demo mode works offline. |
-| SoT 25 | Resilience: offline POS, auto-sync, RTO <= 2 min, RPO 0 POS, alerts | PARTIAL | PWA/offline packages, PM2 config, healthz, worker run-status tracking, low-stock alert job | Offline scenarios, print recovery, and external alert delivery are not fully proven by automated tests. |
+| SoT 25 | Resilience: offline POS, auto-sync, RTO <= 2 min, RPO 0 POS, alerts | VERIFY | PWA/offline packages, PM2 config, healthz, worker run-status tracking, low-stock alert job | Offline scenarios, print recovery, and external alert delivery are not fully proven by automated tests. |
 
 ## Technical Requirement Matrix
 
 | SD Section | Requirement | Status | Evidence | Gaps / Required Action |
 |---|---|---:|---|---|
 | SD 1-6 | Modular monolith with apps/site, apps/web, apps/mcp, worker, packages | FULL | repository layout | Keep memory budget verified during build/deploy. |
-| SD 7 | TypeScript strict, Result/AppError service layer, no HTTP in service | PARTIAL | services package patterns | Some server actions still contain business mapping; need deeper static audit. |
-| SD 8 | Audit columns, tenant/location dimension, soft delete | PARTIAL | common schema helpers | Need automated schema audit to catch tables missing audit/location columns. |
-| SD 9 | Core database schema for all modules | PARTIAL | schema files | Promotion and fixed-assets schema added locally; recon/complete docs settings still incomplete. |
-| SD 10 | Minimal API only where needed | PARTIAL | sync/upload/member APIs | Upload API added locally; authorization and private file serving must be tested. |
+| SD 7 | TypeScript strict, Result/AppError service layer, no HTTP in service | VERIFY | services package patterns | Some server actions still contain business mapping; need deeper static audit. |
+| SD 8 | Audit columns, tenant/location dimension, soft delete | VERIFY | common schema helpers | Need automated schema audit to catch tables missing audit/location columns. |
+| SD 9 | Core database schema for all modules | VERIFY | schema files | Promotion and fixed-assets schema added locally; recon/complete docs settings still incomplete. |
+| SD 10 | Minimal API only where needed | VERIFY | sync/upload/member APIs | Upload API added locally; authorization and private file serving must be tested. |
 | SD 11 | AuthZ via DB permission engine; no hardcoded role checks | FULL | IAM service/UI, `rg` audit for role equality checks | Static scan found no hardcoded `role ===`/`user.role` route gating in app/package code. |
-| SD 12 | Multi-location dimension and active-location filtering | PARTIAL | locations schema, local settings UI | Seed overwrite must be fixed; export/name localization pass in progress. |
+| SD 12 | Multi-location dimension and active-location filtering | VERIFY | locations schema, local settings UI | Seed overwrite must be fixed; export/name localization pass in progress. |
 | SD 13 | ID/EN/ZH i18n from day one | VERIFY | message JSON files, locale switcher, localized purchasing/member/email additions | Web/site ID/EN/ZH key parity passes with 0 missing keys; older hardcoded copy remains a quality cleanup before FULL. |
-| SD 14 | Offline-first POS PWA, IndexedDB outbox, idempotency | PARTIAL | `packages/offline`, POS sync API | Offline/no-network/reboot/server-down scenarios not yet fully automated. |
-| SD 15 | Audit log immutable and queryable | PARTIAL | audit service, local audit UI | Audit UI added locally; needs typecheck and smoke. |
-| SD 16 | MCP read/write/audit tools using same permission engine | PARTIAL | `apps/mcp/src/tools/*` | Need tool inventory and smoke test; new locations/docs/promotions tools missing. |
+| SD 14 | Offline-first POS PWA, IndexedDB outbox, idempotency | VERIFY | `packages/offline`, POS sync API | Offline/no-network/reboot/server-down scenarios not yet fully automated. |
+| SD 15 | Audit log immutable and queryable | VERIFY | audit service, local audit UI | Audit UI added locally; needs typecheck and smoke. |
+| SD 16 | MCP read/write/audit tools using same permission engine | VERIFY | `apps/mcp/src/tools/*` | Need tool inventory and smoke test; new locations/docs/promotions tools missing. |
 | SD 17 | Custom field engine | FULL | customfield schema/service/UI | Need current build verification only. |
-| SD 18 | Workflow engine/editor | PARTIAL | workflow schema/service/UI | Docs and real module integration coverage incomplete. |
-| SD 19 | Tax engine database-driven | PARTIAL | tax schema/services | Need current statutory layout validation for Coretax; PPh scope incomplete. |
+| SD 18 | Workflow engine/editor | VERIFY | workflow schema/service/UI | Docs and real module integration coverage incomplete. |
+| SD 19 | Tax engine database-driven | VERIFY | tax schema/services | Need current statutory layout validation for Coretax; PPh scope incomplete. |
 | SD 20 | Accounting engine strict double-entry and period closing | FULL | accounting tests historically passed | Must re-run service tests after local branch changes. |
-| SD 21 | Module specifications | PARTIAL | app/module folders | Several modules have backend/UI gaps noted above. |
-| SD 22 | Error handling/logging: fail loud, structured errors | PARTIAL | AppError, services | Need scan for swallowed errors and production `console.*`. |
-| SD 23 | Tests: unit, integration, e2e, Playwright smoke | PARTIAL | Vitest tests, some scripts | Current T-0167 branch not yet verified; Playwright smoke missing for many UI paths. |
-| SD 24 | Performance/memory discipline for 2 GB VPS | PARTIAL | PM2 memory limits, healthz memory | Need load/OOM simulation and bundle/memory measurement. |
-| SD 25 | Security checklist / military-level | PARTIAL | RBAC, secure cookies, rate limit pieces | 2FA intentionally not mandatory; PII encryption and dependency security scan must be closed. |
-| SD 25.3 | XLSX export in all modules | PARTIAL | ExcelJS exports in reporting/inventory | Need complete export coverage list. |
-| SD 25.4 | Comprehensive editable documentation | PARTIAL | local `/docs` and `/cms/docs` | Needs full content expansion and UI verification. |
-| SD 25.10 | Journal attachments with MCP audit | PARTIAL | attachments + local upload API | File upload must be authorized and smoke-tested. |
+| SD 21 | Module specifications | VERIFY | app/module folders | Several modules have backend/UI gaps noted above. |
+| SD 22 | Error handling/logging: fail loud, structured errors | VERIFY | AppError, services | Need scan for swallowed errors and production `console.*`. |
+| SD 23 | Tests: unit, integration, e2e, Playwright smoke | VERIFY | Vitest tests, some scripts | Current T-0167 branch not yet verified; Playwright smoke missing for many UI paths. |
+| SD 24 | Performance/memory discipline for 2 GB VPS | VERIFY | PM2 memory limits, healthz memory | Need load/OOM simulation and bundle/memory measurement. |
+| SD 25 | Security checklist / military-level | VERIFY | RBAC, secure cookies, rate limit pieces | 2FA intentionally not mandatory; PII encryption and dependency security scan must be closed. |
+| SD 25.3 | XLSX export in all modules | VERIFY | ExcelJS exports in reporting/inventory | Need complete export coverage list. |
+| SD 25.4 | Comprehensive editable documentation | VERIFY | local `/docs` and `/cms/docs` | Needs full content expansion and UI verification. |
+| SD 25.10 | Journal attachments with MCP audit | VERIFY | attachments + local upload API | File upload must be authorized and smoke-tested. |
 | SD 26 | CI/CD deployment with PM2/HestiaCP | FULL | README, `ecosystem.config.cjs` | Must redeploy after local fixes. |
-| SD 27 | Backup/restore/DR | PARTIAL | runbooks/scripts, DB-managed backup job behavior | Backup job no longer crashes when managed backup mode is used; restore drill evidence is still missing. |
-| SD 28 | Observability and alerts | PARTIAL | healthz, worker run-status persistence, stock-low alert delivery path | Alert configuration and delivery code exist; external email/WhatsApp delivery and escalation proof are still missing. |
-| SD 29/37 | AI workflow via TASK/checkpoint | PARTIAL | `TASK.md`, checkpoint | Checkpoint must be updated after this audit. |
-| SD 31 | Public website + CMS + member portal | PARTIAL | `apps/site`, CMS/member services | Current public/signup regression needs verification. |
-| SD 33 | Naixer QR integration | PARTIAL | kitchen/Naixer services/UI | Physical QR/label test not evidenced. |
+| SD 27 | Backup/restore/DR | VERIFY | runbooks/scripts, DB-managed backup job behavior | Backup job no longer crashes when managed backup mode is used; restore drill evidence is still missing. |
+| SD 28 | Observability and alerts | VERIFY | healthz, worker run-status persistence, stock-low alert delivery path | Alert configuration and delivery code exist; external email/WhatsApp delivery and escalation proof are still missing. |
+| SD 29/37 | AI workflow via TASK/checkpoint | VERIFY | `TASK.md`, checkpoint | Checkpoint must be updated after this audit. |
+| SD 31 | Public website + CMS + member portal | VERIFY | `apps/site`, CMS/member services | Current public/signup regression needs verification. |
+| SD 33 | Naixer QR integration | VERIFY | kitchen/Naixer services/UI | Physical QR/label test not evidenced. |
 | SD 34 | POS demo mode | FULL | `/pos/demo`, demo receipt/label print routes, payment modal parity | Demo receipt now mirrors production receipt structure with logo/footer/socials while retaining DEMO watermark and no DB side effects. |
-| SD 35 | Resilience and auto-recovery | PARTIAL | PWA outbox, PM2 config | Resilience test scripts incomplete vs 8 required scenarios. |
+| SD 35 | Resilience and auto-recovery | VERIFY | PWA outbox, PM2 config | Resilience test scripts incomplete vs 8 required scenarios. |
 | SD 36 | Anti-generic UI design system | FULL | brand tokens, ADR-0006 scan | `rg` scan finds no production `bg-white`, `text-zinc-*`, `border-slate-*`, `text-slate-*`, `bg-slate-*`, or `border-zinc-*` usages except the rule comment. |
-| SD 38 | UI-managed non-secret configuration | PARTIAL | POS/settings/customfields/workflow/CMS/local locations UI | Promotions/docs/locations/file upload are being added; seed still risks overwriting settings. |
+| SD 38 | UI-managed non-secret configuration | VERIFY | POS/settings/customfields/workflow/CMS/local locations UI | Promotions/docs/locations/file upload are being added; seed still risks overwriting settings. |
 
 ## T-0167 Update - 2026-05-15 22:48 WIB
 
@@ -130,7 +129,7 @@ This pass focused on the user's overnight enterprise gaps: AP/AR, fixed assets, 
 
 ### Remaining Non-FULL Risks
 
-1. Some traceability rows remain PARTIAL/VERIFY because they require external or physical evidence: production OTP smoke, physical receipt/label printer smoke, restore drill, external alert delivery, Coretax/PPh formal validation, and return/QC purchasing workflow.
+1. Some traceability rows remain VERIFY because they require external or physical evidence: production OTP smoke, physical receipt/label printer smoke, restore drill, external alert delivery, Coretax/PPh formal validation, and return/QC purchasing workflow.
 2. Older hardcoded UI copy still exists in some pages; touched purchasing/member/accounting surfaces were improved, but a complete copy migration remains a separate sweep.
 
 ### Fixed / Improved In This Pass
@@ -296,3 +295,4 @@ Commits `ef73015` and `eca9fd5` were pushed to GitHub and deployed on the VPS un
 1. Continue the next sweep on remaining enterprise gaps: hardcoded i18n copy migration, absence scheduling, print parity, PII encryption verification, and MCP write-tool expansion.
 2. Review GitHub Dependabot advisory directly if it remains open after `pnpm audit` shows clean locally.
 3. Add broader authenticated UI smoke coverage with real browser interaction for create/edit/delete paths, not only page-load checks.
+

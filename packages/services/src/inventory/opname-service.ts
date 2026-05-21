@@ -27,7 +27,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
 import { createJournal } from '../accounting/create-journal';
 import { requirePermission } from '../iam';
@@ -196,8 +196,8 @@ export async function createOpnameDraft(
     sessionDate: string; // YYYY-MM-DD
     periodCode: string;
     notes?: string;
-    /** 'daily' for closing-shift fast-mover counts; 'monthly' for full counts. */
-    kind?: 'daily' | 'monthly';
+    /** Product-level opname bucket: daily, weekly, or monthly. */
+    kind?: 'daily' | 'weekly' | 'monthly';
   },
   ctx: AuditContext,
 ): Promise<Result<OpnameResult>> {
@@ -244,10 +244,8 @@ export async function createOpnameDraft(
   // Service kind ('service') is excluded — no physical stock to count.
   // Daily-mode sessions include only fast-mover categories (raw_material
   // by default); monthly sessions include everything else as well.
-  const includeKinds: string[] =
-    (input.kind ?? 'monthly') === 'daily'
-      ? ['raw_material']
-      : ['raw_material', 'finished_good', 'consumable', 'merchandise'];
+  const sessionKind = input.kind ?? 'monthly';
+  const includeKinds = ['raw_material', 'finished_good', 'consumable', 'merchandise'];
 
   const productRows = await db
     .select({
@@ -259,6 +257,7 @@ export async function createOpnameDraft(
       and(
         eq(products.tenantId, ctx.tenantId),
         eq(products.isActive, true),
+        sql`${products.opnameFrequencies} ? ${sessionKind}`,
         inArray(products.kind, includeKinds),
       ),
     )
@@ -300,7 +299,7 @@ export async function createOpnameDraft(
     sessionDate: input.sessionDate,
     periodCode: input.periodCode,
     status: 'draft',
-    kind: input.kind ?? 'monthly',
+    kind: sessionKind,
     preparedBy: ctx.userId,
     preparedAt: now,
     notes: input.notes ?? null,

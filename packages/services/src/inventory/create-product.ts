@@ -30,6 +30,8 @@ export interface ProductResult {
   name: { id: string; en: string; zh: string };
   categoryId: string;
   kind: string;
+  opnameFrequency: string;
+  opnameFrequencies: Array<'daily' | 'weekly' | 'monthly'>;
   uom: string;
   isSellable: boolean;
   isPurchasable: boolean;
@@ -109,6 +111,8 @@ export async function createProduct(
         description: data.description ?? null,
         categoryId: data.categoryId,
         kind: data.kind,
+        opnameFrequency: data.opnameFrequencies[0] ?? data.opnameFrequency,
+        opnameFrequencies: data.opnameFrequencies,
         uom: data.uom,
         isSellable: data.isSellable,
         isPurchasable: data.isPurchasable,
@@ -147,6 +151,8 @@ export async function createProduct(
         name: data.name,
         categoryId: data.categoryId,
         kind: data.kind,
+        opnameFrequency: data.opnameFrequencies[0] ?? data.opnameFrequency,
+        opnameFrequencies: data.opnameFrequencies,
         uom: data.uom,
         isSellable: data.isSellable,
         isPurchasable: data.isPurchasable,

@@ -201,6 +201,11 @@ export async function seedRecipes(db: Database, tenantId: string) {
 
   // ── 1. Raw material products (ingredients) ──
   for (const raw of RAW_MATERIALS) {
+    const rawOpnameFrequencies =
+      raw.code.startsWith('TEA-') || raw.code === 'LEMON-FRESH'
+        ? (['weekly', 'monthly'] as const)
+        : (['monthly'] as const);
+
     await db
       .insert(products)
       .values({
@@ -210,6 +215,8 @@ export async function seedRecipes(db: Database, tenantId: string) {
         name: raw.name,
         categoryId: rawCategoryId,
         kind: 'raw_material',
+        opnameFrequency: rawOpnameFrequencies[0],
+        opnameFrequencies: [...rawOpnameFrequencies],
         uom: raw.uom,
         isActive: true,
         isSellable: false,
@@ -223,6 +230,8 @@ export async function seedRecipes(db: Database, tenantId: string) {
           sku: raw.code,
           name: raw.name,
           categoryId: rawCategoryId,
+          opnameFrequency: rawOpnameFrequencies[0],
+          opnameFrequencies: [...rawOpnameFrequencies],
           isActive: true,
           updatedAt: new Date(),
         },
@@ -259,6 +268,8 @@ export async function seedRecipes(db: Database, tenantId: string) {
           sku: productSku,
           name: productName,
           kind: 'finished_good',
+          opnameFrequency: 'monthly',
+          opnameFrequencies: [],
           uom: 'cup',
           categoryId: category?.id ?? rawCategoryId, // fallback to raw
           isActive: true,
@@ -273,6 +284,8 @@ export async function seedRecipes(db: Database, tenantId: string) {
             sku: productSku,
             name: productName,
             categoryId: category?.id ?? rawCategoryId,
+            opnameFrequency: 'monthly',
+            opnameFrequencies: [],
             isActive: true,
             updatedAt: new Date(),
           },

@@ -14,6 +14,8 @@ export interface ProductFormInitial {
   description: { id: string; en: string; zh: string } | null;
   categoryId: string;
   kind: string;
+  opnameFrequency: string;
+  opnameFrequencies: Array<'daily' | 'weekly' | 'monthly'>;
   uom: string;
   isSellable: boolean;
   isPurchasable: boolean;

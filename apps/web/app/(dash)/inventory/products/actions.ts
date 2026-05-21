@@ -19,6 +19,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
 
 type ProductKind = 'finished_good' | 'raw_material' | 'merchandise' | 'consumable' | 'service';
+type OpnameFrequency = 'daily' | 'weekly' | 'monthly';
 
 export interface ProductMasterData {
   products: ProductListItem[];
@@ -69,6 +70,21 @@ function productKind(formData: FormData): ProductKind {
     return value;
   }
   return 'finished_good';
+}
+
+function opnameFrequency(formData: FormData): OpnameFrequency {
+  const value = text(formData, 'opnameFrequency');
+  if (value === 'daily' || value === 'weekly' || value === 'monthly') return value;
+  return 'monthly';
+}
+
+function opnameFrequencies(formData: FormData): OpnameFrequency[] {
+  const values = formData.getAll('opnameFrequencies').map((value) => String(value));
+  const valid = values.filter(
+    (value): value is OpnameFrequency =>
+      value === 'daily' || value === 'weekly' || value === 'monthly',
+  );
+  return [...new Set(valid)];
 }
 
 function positiveNumber(formData: FormData, key: string) {
@@ -184,6 +200,8 @@ export async function createProductAction(
       description: nullableLocaleDescription(formData),
       categoryId: text(formData, 'categoryId'),
       kind: productKind(formData),
+      opnameFrequency: opnameFrequency(formData),
+      opnameFrequencies: opnameFrequencies(formData),
       uom: text(formData, 'uom') || 'pcs',
       isSellable: formData.get('isSellable') === 'on',
       isPurchasable: formData.get('isPurchasable') === 'on',
@@ -220,6 +238,8 @@ export async function updateProductAction(
       description: nullableLocaleDescription(formData) ?? null,
       categoryId: text(formData, 'categoryId'),
       kind: productKind(formData),
+      opnameFrequency: opnameFrequency(formData),
+      opnameFrequencies: opnameFrequencies(formData),
       uom: text(formData, 'uom') || 'pcs',
       isSellable: formData.get('isSellable') === 'on',
       isPurchasable: formData.get('isPurchasable') === 'on',

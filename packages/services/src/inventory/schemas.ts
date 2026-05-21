@@ -23,6 +23,10 @@ const ImageReferenceSchema = z
     message: 'Image reference must be an absolute URL or public path',
   });
 
+export const OpnameFrequencySchema = z.enum(['daily', 'weekly', 'monthly']);
+export type OpnameFrequency = z.infer<typeof OpnameFrequencySchema>;
+export const OpnameFrequenciesSchema = z.array(OpnameFrequencySchema).default(['monthly']);
+
 // ─── Product Category ─────────────────────────────────────────────────────────
 
 export const CreateCategoryInputSchema = z.object({
@@ -56,6 +60,8 @@ export const CreateProductInputSchema = z.object({
     .enum(['finished_good', 'raw_material', 'merchandise', 'consumable', 'service'])
     .optional()
     .default('finished_good'),
+  opnameFrequency: OpnameFrequencySchema.optional().default('monthly'),
+  opnameFrequencies: OpnameFrequenciesSchema.optional().default(['monthly']),
   uom: z.string().min(1).max(16).optional().default('pcs'),
   isSellable: z.boolean().optional().default(true),
   isPurchasable: z.boolean().optional().default(false),
@@ -83,6 +89,8 @@ export const UpdateProductInputSchema = z.object({
   kind: z
     .enum(['finished_good', 'raw_material', 'merchandise', 'consumable', 'service'])
     .optional(),
+  opnameFrequency: OpnameFrequencySchema.optional(),
+  opnameFrequencies: OpnameFrequenciesSchema.optional(),
   uom: z.string().min(1).max(16).optional(),
   isSellable: z.boolean().optional(),
   isPurchasable: z.boolean().optional(),

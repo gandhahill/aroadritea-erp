@@ -361,6 +361,9 @@ export async function seedMenu(db: Database, tenantId: string) {
 
     const defaultSellPrice = product.single ?? product.regular ?? 0;
     const isTeaDrink = product.categoryCode !== 'DESSERT';
+    const opnameFrequencies =
+      product.categoryCode === 'DESSERT' ? (['weekly', 'monthly'] as const) : ([] as const);
+    const opnameFrequency = opnameFrequencies[0] ?? 'monthly';
     const imageUrl = PRODUCT_IMAGE_URLS[product.sku] ?? null;
 
     await db
@@ -374,6 +377,8 @@ export async function seedMenu(db: Database, tenantId: string) {
         imageUrl,
         categoryId,
         kind: 'finished_good',
+        opnameFrequency,
+        opnameFrequencies: [...opnameFrequencies],
         uom: 'pcs',
         isSellable: true,
         isPurchasable: false,
@@ -387,6 +392,8 @@ export async function seedMenu(db: Database, tenantId: string) {
           description: product.description,
           imageUrl,
           categoryId,
+          opnameFrequency,
+          opnameFrequencies: [...opnameFrequencies],
           isSellable: true,
           isPurchasable: false,
           defaultSellPrice: money(defaultSellPrice),

@@ -34,6 +34,11 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
     { value: 'consumable', label: f('kindConsumable') },
     { value: 'service', label: f('kindService') },
   ];
+  const OPNAME_FREQUENCY_OPTIONS = [
+    { value: 'daily', label: f('opnameDaily') },
+    { value: 'weekly', label: f('opnameWeekly') },
+    { value: 'monthly', label: f('opnameMonthly') },
+  ] as const;
 
   useEffect(() => {
     if (!state?.ok || !state.productId) return;
@@ -118,6 +123,31 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
                 </option>
               ))}
             </select>
+          </Field>
+          <Field label={f('opnameFrequency')}>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {OPNAME_FREQUENCY_OPTIONS.map((option) => {
+                const selected =
+                  product?.opnameFrequencies?.includes(option.value) ??
+                  (option.value === 'monthly');
+                return (
+                  <label
+                    key={option.value}
+                    className="flex items-center gap-2 rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm font-medium text-brand-ink"
+                  >
+                    <input
+                      type="checkbox"
+                      name="opnameFrequencies"
+                      value={option.value}
+                      defaultChecked={selected}
+                      className="h-4 w-4 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
+                    />
+                    {option.label}
+                  </label>
+                );
+              })}
+            </div>
+            <p className="mt-1 text-[11px] text-brand-ink-3">{f('opnameFrequencyHint')}</p>
           </Field>
           <Field label={f('taxCode')}>
             <select name="taxCode" defaultValue={product?.taxCode ?? ''} className={INPUT}>

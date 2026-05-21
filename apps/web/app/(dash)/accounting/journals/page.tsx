@@ -8,6 +8,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import type { ReactNode } from 'react';
 import { fetchJournalList } from './actions';
 import { JournalTable } from './journal-table';
 
@@ -15,14 +16,22 @@ export const metadata: Metadata = {
   title: 'Journal Entries',
 };
 
-export default async function JournalsPage() {
+export default async function JournalsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ page?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect('/login');
 
+  const params = await searchParams;
+  const page = Number.parseInt(params?.page ?? '1', 10);
   const [journals, t] = await Promise.all([
-    fetchJournalList(),
+    fetchJournalList(Number.isFinite(page) ? page : 1),
     getTranslations('accounting.journal'),
   ]);
+  const pagination = await getTranslations('common.pagination');
+  const totalPages = Math.max(1, Math.ceil(journals.total / journals.pageSize));
 
   return (
     <div className="space-y-6">
@@ -34,7 +43,7 @@ export default async function JournalsPage() {
         </div>
         <div className="flex items-center gap-3">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
-            {journals.length} entri
+            {journals.total} entri
           </span>
           <Link
             href="/accounting/journals/import/template"
@@ -58,7 +67,46 @@ export default async function JournalsPage() {
       </div>
 
       {/* Table */}
-      <JournalTable journals={journals} />
+      <JournalTable journals={journals.items} />
+      <div className="flex flex-col gap-3 rounded-lg border border-brand-cream-3 bg-card px-4 py-3 text-sm text-brand-ink-3 sm:flex-row sm:items-center sm:justify-between">
+        <span>
+          {pagination('page')} {journals.page} {pagination('of')} {totalPages}
+        </span>
+        <div className="flex items-center gap-2">
+          <PageLink page={journals.page - 1} disabled={journals.page <= 1}>
+            {pagination('previous')}
+          </PageLink>
+          <PageLink page={journals.page + 1} disabled={journals.page >= totalPages}>
+            {pagination('next')}
+          </PageLink>
+        </div>
+      </div>
     </div>
+  );
+}
+
+function PageLink({
+  page,
+  disabled,
+  children,
+}: {
+  page: number;
+  disabled: boolean;
+  children: ReactNode;
+}) {
+  if (disabled) {
+    return (
+      <span className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-brand-ink-3 opacity-50">
+        {children}
+      </span>
+    );
+  }
+  return (
+    <Link
+      href={`/accounting/journals?page=${page}`}
+      className="rounded-md border border-brand-cream-3 px-3 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream"
+    >
+      {children}
+    </Link>
   );
 }

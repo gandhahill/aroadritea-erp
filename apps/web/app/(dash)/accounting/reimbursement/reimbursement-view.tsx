@@ -342,12 +342,19 @@ function ReimbursementViewInner({
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [actionError, setActionError] = useState('');
   const [actionSuccess, setActionSuccess] = useState('');
+  const [page, setPage] = useState(1);
   const [isPending, startTransition] = useTransition();
 
   const filtered = useMemo(() => {
     if (!filterStatus) return items;
     return items.filter((r) => r.status === filterStatus);
   }, [items, filterStatus]);
+  const pageSize = 25;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const visibleItems = filtered.slice(
+    (Math.min(page, totalPages) - 1) * pageSize,
+    Math.min(page, totalPages) * pageSize,
+  );
 
   const selected = useMemo(
     () => items.find((r) => r.id === selectedId) ?? null,
@@ -454,7 +461,10 @@ function ReimbursementViewInner({
             return (
               <button
                 key={s}
-                onClick={() => setFilterStatus(s === 'all' ? null : s)}
+                onClick={() => {
+                  setFilterStatus(s === 'all' ? null : s);
+                  setPage(1);
+                }}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                   isActive
                     ? 'bg-brand-red text-white'
@@ -492,7 +502,7 @@ function ReimbursementViewInner({
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-2">
-            {filtered.map((r) => {
+            {visibleItems.map((r) => {
               const style = STATUS_STYLES[r.status] ?? {
                 bg: 'bg-brand-cream-2',
                 text: 'text-brand-ink-2',
@@ -537,6 +547,29 @@ function ReimbursementViewInner({
             )}
           </tbody>
         </table>
+      </div>
+      <div className="flex flex-col gap-3 rounded-lg border border-brand-cream-3 bg-card px-4 py-3 text-xs text-brand-ink-3 sm:flex-row sm:items-center sm:justify-between">
+        <span>
+          {filtered.length} pengajuan - Halaman {Math.min(page, totalPages)} dari {totalPages}
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={page <= 1}
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+            className="rounded-md border border-brand-cream-3 px-3 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream disabled:text-brand-ink-3 disabled:opacity-50"
+          >
+            Sebelumnya
+          </button>
+          <button
+            type="button"
+            disabled={page >= totalPages}
+            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+            className="rounded-md border border-brand-cream-3 px-3 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream disabled:text-brand-ink-3 disabled:opacity-50"
+          >
+            Berikutnya
+          </button>
+        </div>
       </div>
 
       {/* Detail panel + action buttons */}

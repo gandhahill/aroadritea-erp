@@ -8,7 +8,7 @@
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
 import { pickLocalized } from '@/lib/pick-localized';
-import { and, asc, db, desc, eq, inArray } from '@erp/db';
+import { and, asc, db, desc, eq, inArray, sql } from '@erp/db';
 import {
   accountingPeriods,
   accounts,
@@ -241,11 +241,26 @@ function parseRupiah(value: string): string {
 /**
  * Fetch journal entries list for a tenant, ordered by most recent.
  */
-export async function fetchJournalList(): Promise<JournalListItem[]> {
+export interface JournalListPage {
+  items: JournalListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export async function fetchJournalList(page = 1): Promise<JournalListPage> {
   const ctx = await getContext();
-  if (!ctx) return [];
+  if (!ctx) return { items: [], total: 0, page: 1, pageSize: 50 };
   const perm = await requirePermission(ctx.userId, 'accounting.view');
-  if (!perm.ok) return [];
+  if (!perm.ok) return { items: [], total: 0, page: 1, pageSize: 50 };
+  const pageSize = 50;
+  const currentPage = Math.max(1, Number.isFinite(page) ? page : 1);
+  const whereClause = eq(journalEntries.tenantId, ctx.tenantId);
+
+  const [{ count = 0 } = { count: 0 }] = await db
+    .select({ count: sql<number>`cast(count(*) as int)` })
+    .from(journalEntries)
+    .where(whereClause);
 
   const rows = await db
     .select({
@@ -260,11 +275,12 @@ export async function fetchJournalList(): Promise<JournalListItem[]> {
       createdAt: journalEntries.createdAt,
     })
     .from(journalEntries)
-    .where(eq(journalEntries.tenantId, ctx.tenantId))
+    .where(whereClause)
     .orderBy(desc(journalEntries.createdAt))
-    .limit(100);
+    .limit(pageSize)
+    .offset((currentPage - 1) * pageSize);
 
-  if (rows.length === 0) return [];
+  if (rows.length === 0) return { items: [], total: count, page: currentPage, pageSize };
 
   const ids = rows.map((r) => r.id);
   const lines = await db
@@ -298,12 +314,17 @@ export async function fetchJournalList(): Promise<JournalListItem[]> {
     linesByJournal.set(line.journalEntryId, arr);
   }
 
-  return rows.map((r) => ({
-    ...r,
-    totalDebit: String(r.totalDebit),
-    createdAt: r.createdAt ?? new Date(0),
-    linesPreview: linesByJournal.get(r.id) ?? [],
-  }));
+  return {
+    items: rows.map((r) => ({
+      ...r,
+      totalDebit: String(r.totalDebit),
+      createdAt: r.createdAt ?? new Date(0),
+      linesPreview: linesByJournal.get(r.id) ?? [],
+    })),
+    total: count,
+    page: currentPage,
+    pageSize,
+  };
 }
 
 export async function fetchJournalFormData(): Promise<JournalFormData> {

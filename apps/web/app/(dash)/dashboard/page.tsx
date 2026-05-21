@@ -11,7 +11,7 @@ import { getSession } from '@/lib/auth';
 import { and, db, eq, gte, isNull, sql } from '@erp/db';
 import { accountingPeriods } from '@erp/db/schema/accounting';
 import { attendance, employees } from '@erp/db/schema/hr';
-import { payments, salesOrders, shifts } from '@erp/db/schema/pos';
+import { manualSalesClosings, payments, salesOrders, shifts } from '@erp/db/schema/pos';
 import { purchaseOrders } from '@erp/db/schema/purchasing';
 import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
@@ -52,6 +52,19 @@ async function loadKpis(tenantId: string) {
         gte(salesOrders.placedAt, startOfToday),
       ),
     );
+  const [todayManualSales] = await db
+    .select({
+      gross: sql<bigint>`coalesce(sum(${manualSalesClosings.grossSales} - ${manualSalesClosings.discountTotal}), 0)`,
+      orders: sql<number>`cast(coalesce(sum(case when ${manualSalesClosings.transactionCount} > 0 then ${manualSalesClosings.transactionCount} else 1 end), 0) as int)`,
+    })
+    .from(manualSalesClosings)
+    .where(
+      and(
+        eq(manualSalesClosings.tenantId, tenantId),
+        eq(manualSalesClosings.status, 'posted'),
+        gte(manualSalesClosings.salesDate, startOfToday.toISOString().slice(0, 10)),
+      ),
+    );
 
   const [monthSales] = await db
     .select({ gross: sql<bigint>`coalesce(sum(${salesOrders.grandTotal}), 0)` })
@@ -61,6 +74,18 @@ async function loadKpis(tenantId: string) {
         eq(salesOrders.tenantId, tenantId),
         eq(salesOrders.status, 'paid'),
         gte(salesOrders.placedAt, startOfMonth),
+      ),
+    );
+  const [monthManualSales] = await db
+    .select({
+      gross: sql<bigint>`coalesce(sum(${manualSalesClosings.grossSales} - ${manualSalesClosings.discountTotal}), 0)`,
+    })
+    .from(manualSalesClosings)
+    .where(
+      and(
+        eq(manualSalesClosings.tenantId, tenantId),
+        eq(manualSalesClosings.status, 'posted'),
+        gte(manualSalesClosings.salesDate, startOfMonth.toISOString().slice(0, 10)),
       ),
     );
 
@@ -109,9 +134,9 @@ async function loadKpis(tenantId: string) {
     .limit(1);
 
   return {
-    todayGross: todaySales?.gross ?? 0n,
-    todayOrders: todaySales?.orders ?? 0,
-    monthGross: monthSales?.gross ?? 0n,
+    todayGross: (todaySales?.gross ?? 0n) + (todayManualSales?.gross ?? 0n),
+    todayOrders: (todaySales?.orders ?? 0) + (todayManualSales?.orders ?? 0),
+    monthGross: (monthSales?.gross ?? 0n) + (monthManualSales?.gross ?? 0n),
     openShifts: openShifts?.count ?? 0,
     openPos: openPos?.count ?? 0,
     lateToday: lateToday?.count ?? 0,

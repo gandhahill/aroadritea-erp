@@ -51,7 +51,7 @@ export async function createOpnameSessionAction(params: {
   sessionDate: string;
   periodCode: string;
   notes?: string;
-  kind?: 'daily' | 'monthly';
+  kind?: 'daily' | 'weekly' | 'monthly';
 }) {
   const session = await getSession();
   if (!session) redirect('/login');

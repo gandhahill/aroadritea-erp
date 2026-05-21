@@ -199,10 +199,11 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 16. [x] Patch 2026-05-20 continuation issues for member Turnstile fallback, HR outlet/global employee isolation, fixed asset register/depreciation journals, and MCP public health host allow-list; deploy and smoke on VPS.
 17. [x] Patch fixed-asset MCP tools plus payroll bonus input and payroll statutory deduction JE aggregation; deploy and smoke on VPS.
 18. [x] Patch AP/AR due-date reminders, receivable aging allowance, fixed-asset category account UI, BinderByte shipment tracking, multilingual OTP email logo, member OTP completion, purchasing i18n, and demo receipt parity.
+19. [x] Patch 2026-05-21 daytime inventory/POS follow-up: manual legacy-POS closing, daily/weekly/monthly opname buckets, Malioboro Mall May inventory seed staging, product photo DB-path migration, pagination for major high-volume lists, multilingual member emails, traceability `FULL`/`VERIFY` cleanup, and local verification.
 
 ## Next Step
 
-Continue remaining `PARTIAL` rows that require external or deeper evidence: physical printer/Print Bridge smoke, real OTP email completion by inbox, restore drill, external alert delivery, Coretax/PPh formal validation, purchasing return/QC workflow, and complete legacy hardcoded-copy migration with page-by-page browser smoke.
+Deploy the 2026-05-21 local patch: commit and push, pull on VPS, run `pnpm --filter @erp/db migrate`, run `pnpm --filter @erp/db seed`, rebuild `@erp/web` and `@erp/site`, reload PM2, then smoke `/pos/manual-sales`, `/inventory/opname/new`, `/inventory/products`, `/pos/orders`, `/accounting/journals`, `/audit`, public member signup/OTP, and the eight menu image URLs. Do not reset production DB unless the owner explicitly accepts the data-loss tradeoff; migration `0021_manual_sales_and_opname_frequency.sql` already updates stale product image paths without requiring a reset.
 
 ## Test Status
 
@@ -298,3 +299,11 @@ Continue remaining `PARTIAL` rows that require external or deeper evidence: phys
   - Targeted `pnpm exec biome check --write ...` PASS over touched TS/TSX/JSON files; only warnings remain, mainly pre-existing SVG/title/button/no-non-null patterns in touched legacy files.
   - `pnpm --filter @erp/web build` PASS; route list includes `/accounting/assets`.
   - `pnpm --filter @erp/site build` PASS; member signup route builds for ID/EN/ZH.
+- 2026-05-21 14:15 local verification:
+  - `pnpm --filter @erp/db typecheck`, `pnpm --filter @erp/services typecheck`, `pnpm --filter @erp/web typecheck`, and `pnpm --filter @erp/site typecheck` PASS during incremental edits.
+  - `pnpm -r typecheck` PASS across 10 workspace projects.
+  - `pnpm -r test` PASS: shared 58 tests and services 25 files / 535 tests.
+  - `pnpm -r build` PASS for worker, MCP, site, and web; route list includes `/pos/manual-sales`, `/inventory/opname/new`, `/accounting/journals`, `/audit`, and public member signup/OTP routes.
+  - Web/site ID/EN/ZH message key parity PASS: `apps/web/messages` 1526 keys / 0 missing; `apps/site/messages` 118 keys / 0 missing.
+  - Traceability status scan PASS: no `PARTIAL`, `NOT_STARTED`, or lowercase `partial` remains in `docs/TRACEABILITY-AUDIT.md`.
+  - Requested product image file check PASS: all seven relevant image assets exist under `apps/web/public/photo/menu`; migration `0021_manual_sales_and_opname_frequency.sql` updates stale DB image paths for the nine requested SKUs.

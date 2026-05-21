@@ -3,6 +3,11 @@
  */
 
 export { createSale, voidSale } from './create-sale';
+export {
+  createManualSalesClosing,
+  listManualSalesClosings,
+  listManualSalesLocations,
+} from './manual-sales';
 export { refundSale } from './refund-sale';
 export { openShift, closeShift, getOpenShift } from './shift-service';
 
@@ -22,6 +27,7 @@ export {
   OpenShiftInputSchema,
   CloseShiftInputSchema,
   CreateSaleInputSchema,
+  CreateManualSalesClosingInputSchema,
   VoidSaleInputSchema,
   RefundSaleInputSchema,
   ShiftStatusSchema,
@@ -29,6 +35,7 @@ export {
   type OpenShiftInput,
   type CloseShiftInput,
   type CreateSaleInput,
+  type CreateManualSalesClosingInput,
   type VoidSaleInput,
   type RefundSaleInput,
   type RefundLineInput,
@@ -37,4 +44,5 @@ export {
   type SaleLineResult,
   type PaymentResult,
   type ShiftResult,
+  type ManualSalesClosingResult,
 } from './schemas';

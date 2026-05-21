@@ -73,6 +73,20 @@ export type CreateSaleInput = z.infer<typeof CreateSaleInputSchema>;
 export type LineInput = z.infer<typeof LineInputSchema>;
 export type PaymentInput = z.infer<typeof PaymentInputSchema>;
 
+export const CreateManualSalesClosingInputSchema = z.object({
+  locationId: z.string().min(1),
+  salesDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  channel: ChannelSchema.default('walk_in'),
+  paymentMethod: z.string().regex(/^[a-z0-9_-]{2,32}$/).default('cash'),
+  grossSales: z.string().regex(/^\d+$/),
+  discountTotal: z.string().regex(/^\d+$/).optional().default('0'),
+  transactionCount: z.number().int().min(0).optional().default(0),
+  sourceReference: z.string().max(120).optional(),
+  notes: z.string().max(1000).optional(),
+});
+
+export type CreateManualSalesClosingInput = z.infer<typeof CreateManualSalesClosingInputSchema>;
+
 // ─── Void (cancel before payment) ────────────────────────────────────────────
 
 export const VoidSaleInputSchema = z.object({
@@ -160,4 +174,23 @@ export interface ShiftResult {
   /** Optimistic-lock version — surfaced so the UI can close the shift
    * without a hardcoded `version: 1` that silently fails on row touch. */
   version: number;
+}
+
+export interface ManualSalesClosingResult {
+  id: string;
+  number: string;
+  salesDate: string;
+  locationId: string;
+  channel: string;
+  paymentMethod: string;
+  transactionCount: number;
+  grossSales: string;
+  discountTotal: string;
+  taxTotal: string;
+  netRevenue: string;
+  sourceReference: string | null;
+  notes: string | null;
+  status: string;
+  journalEntryId: string | null;
+  createdAt: string;
 }

@@ -55,6 +55,7 @@ export const CreateJournalInputSchema = z.object({
       'opening',
       'voucher_redeem',
       'fixed_asset_depreciation',
+      'manual_sales_closing',
     ])
     .optional(),
   /** Optional reference entity ID. */

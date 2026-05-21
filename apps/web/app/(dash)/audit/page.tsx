@@ -16,9 +16,10 @@ export default async function AuditTrailPage({
     actor?: string;
     from?: string;
     to?: string;
+    page?: string;
   }>;
 }) {
   const filters = await searchParams;
-  const rows = await fetchAuditTrail(filters);
-  return <AuditTrailClient rows={rows} filters={filters} />;
+  const data = await fetchAuditTrail(filters);
+  return <AuditTrailClient data={data} filters={filters} />;
 }

@@ -13,7 +13,14 @@
 
 import { db } from '@erp/db';
 import { products } from '@erp/db/schema/inventory';
-import { payments, posSettings, salesOrderLines, salesOrders, shifts } from '@erp/db/schema/pos';
+import {
+  manualSalesClosings,
+  payments,
+  posSettings,
+  salesOrderLines,
+  salesOrders,
+  shifts,
+} from '@erp/db/schema/pos';
 import { type Result, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm';
@@ -148,6 +155,19 @@ export async function getDailySummary(
 
   const paidSaleIds = paidSaleRows.map((s) => s.id);
 
+  const manualSaleRows = await db
+    .select()
+    .from(manualSalesClosings)
+    .where(
+      and(
+        eq(manualSalesClosings.locationId, params.locationId),
+        eq(manualSalesClosings.tenantId, ctx.tenantId),
+        eq(manualSalesClosings.status, 'posted'),
+        gte(manualSalesClosings.salesDate, params.startDate),
+        lte(manualSalesClosings.salesDate, params.endDate),
+      ),
+    );
+
   // ── Refunded sales in range ──────────────────────────────────────────────────
   const refundSaleRows = await db
     .select()
@@ -163,9 +183,15 @@ export async function getDailySummary(
     );
 
   // ── Aggregate totals ──────────────────────────────────────────────────────────
-  const grossSales = paidSaleRows.reduce((s, r) => s + r.subtotal, 0n);
-  const discountTotal = paidSaleRows.reduce((s, r) => s + r.discountTotal, 0n);
-  const taxTotal = paidSaleRows.reduce((s, r) => s + r.taxTotal, 0n);
+  const grossSales =
+    paidSaleRows.reduce((s, r) => s + r.subtotal, 0n) +
+    manualSaleRows.reduce((s, r) => s + r.grossSales, 0n);
+  const discountTotal =
+    paidSaleRows.reduce((s, r) => s + r.discountTotal, 0n) +
+    manualSaleRows.reduce((s, r) => s + r.discountTotal, 0n);
+  const taxTotal =
+    paidSaleRows.reduce((s, r) => s + r.taxTotal, 0n) +
+    manualSaleRows.reduce((s, r) => s + r.taxTotal, 0n);
   const netSales = grossSales - discountTotal;
 
   const [setting] = await db
@@ -181,6 +207,10 @@ export async function getDailySummary(
     const channel = deliveryChannels.get(sale.channel);
     if (!channel?.enabled) return sum;
     return sum + (sale.subtotal * BigInt(channel.commissionBps)) / 10000n;
+  }, 0n) + manualSaleRows.reduce((sum, sale) => {
+    const channel = deliveryChannels.get(sale.channel);
+    if (!channel?.enabled) return sum;
+    return sum + (sale.grossSales * BigInt(channel.commissionBps)) / 10000n;
   }, 0n);
   const netRevenue = netSales - commissionDelivery;
 
@@ -205,6 +235,19 @@ export async function getDailySummary(
       txCount: Number(r.txCount),
       total: r.total.toString(),
     }));
+  }
+  for (const manual of manualSaleRows) {
+    const existing = paymentBreakdown.find((row) => row.method === manual.paymentMethod);
+    if (existing) {
+      existing.txCount += manual.transactionCount || 1;
+      existing.total = (BigInt(existing.total) + manual.grossSales - manual.discountTotal).toString();
+    } else {
+      paymentBreakdown.push({
+        method: manual.paymentMethod,
+        txCount: manual.transactionCount || 1,
+        total: (manual.grossSales - manual.discountTotal).toString(),
+      });
+    }
   }
 
   // ── Shift summary ─────────────────────────────────────────────────────────────

@@ -77,6 +77,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
 
   const [stageFilter, setStageFilter] = useState<string | null>(null);
   const [openingFilter, setOpeningFilter] = useState<string | null>(null);
+  const [applicantPage, setApplicantPage] = useState(1);
 
   const filteredApplicants = useMemo(() => {
     return applicants.filter(
@@ -85,6 +86,12 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
         (!openingFilter || a.openingId === openingFilter),
     );
   }, [applicants, stageFilter, openingFilter]);
+  const applicantPageSize = 25;
+  const applicantTotalPages = Math.max(1, Math.ceil(filteredApplicants.length / applicantPageSize));
+  const visibleApplicants = filteredApplicants.slice(
+    (Math.min(applicantPage, applicantTotalPages) - 1) * applicantPageSize,
+    Math.min(applicantPage, applicantTotalPages) * applicantPageSize,
+  );
 
   function submitOpening() {
     setErr(null);
@@ -448,7 +455,10 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
           <div className="flex gap-2">
             <select
               value={openingFilter ?? ''}
-              onChange={(e) => setOpeningFilter(e.target.value || null)}
+              onChange={(e) => {
+                setOpeningFilter(e.target.value || null);
+                setApplicantPage(1);
+              }}
               className="rounded-md border border-brand-cream-3 bg-card px-2 py-1 text-xs"
             >
               <option value="">Semua lowongan</option>
@@ -460,7 +470,10 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
             </select>
             <select
               value={stageFilter ?? ''}
-              onChange={(e) => setStageFilter(e.target.value || null)}
+              onChange={(e) => {
+                setStageFilter(e.target.value || null);
+                setApplicantPage(1);
+              }}
               className="rounded-md border border-brand-cream-3 bg-card px-2 py-1 text-xs"
             >
               <option value="">Semua tahap</option>
@@ -492,7 +505,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                   </td>
                 </tr>
               ) : (
-                filteredApplicants.map((a) => {
+                visibleApplicants.map((a) => {
                   const isEditing = editingApplicantId === a.id;
                   return (
                     <tr key={a.id}>
@@ -612,6 +625,30 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
               )}
             </tbody>
           </table>
+        </div>
+        <div className="mt-3 flex flex-col gap-3 border-t border-brand-cream-3 pt-3 text-xs text-brand-ink-3 sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            {filteredApplicants.length} kandidat - Halaman{' '}
+            {Math.min(applicantPage, applicantTotalPages)} dari {applicantTotalPages}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={applicantPage <= 1}
+              onClick={() => setApplicantPage((page) => Math.max(1, page - 1))}
+              className="rounded-md border border-brand-cream-3 px-3 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream disabled:text-brand-ink-3 disabled:opacity-50"
+            >
+              Sebelumnya
+            </button>
+            <button
+              type="button"
+              disabled={applicantPage >= applicantTotalPages}
+              onClick={() => setApplicantPage((page) => Math.min(applicantTotalPages, page + 1))}
+              className="rounded-md border border-brand-cream-3 px-3 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream disabled:text-brand-ink-3 disabled:opacity-50"
+            >
+              Berikutnya
+            </button>
+          </div>
         </div>
       </section>
     </div>

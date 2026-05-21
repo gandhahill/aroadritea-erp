@@ -1,7 +1,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, db, desc, eq, gte, ilike, lte } from '@erp/db';
+import { and, db, desc, eq, gte, ilike, lte, sql } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
 import { users } from '@erp/db/schema/auth';
 import { requirePermission } from '@erp/services/iam';
@@ -26,9 +26,17 @@ export interface AuditTrailFilters {
   actor?: string;
   from?: string;
   to?: string;
+  page?: string;
 }
 
-export async function fetchAuditTrail(filters: AuditTrailFilters): Promise<AuditTrailRow[]> {
+export interface AuditTrailPageData {
+  rows: AuditTrailRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export async function fetchAuditTrail(filters: AuditTrailFilters): Promise<AuditTrailPageData> {
   const session = await getSession();
   if (!session) redirect('/login');
 
@@ -36,7 +44,10 @@ export async function fetchAuditTrail(filters: AuditTrailFilters): Promise<Audit
   const tenantId = String(user.tenantId ?? 'default');
   const userId = String(user.id ?? '');
   const permission = await requirePermission(userId, 'audit.view');
-  if (!permission.ok) return [];
+  if (!permission.ok) return { rows: [], total: 0, page: 1, pageSize: 50 };
+  const pageSize = 50;
+  const parsedPage = Number.parseInt(filters.page ?? '1', 10);
+  const currentPage = Math.max(1, Number.isFinite(parsedPage) ? parsedPage : 1);
 
   const conditions = [eq(auditLog.tenantId, tenantId)];
 
@@ -50,6 +61,12 @@ export async function fetchAuditTrail(filters: AuditTrailFilters): Promise<Audit
     toDate.setDate(toDate.getDate() + 1);
     conditions.push(lte(auditLog.createdAt, toDate));
   }
+  const whereClause = and(...conditions);
+
+  const [{ count = 0 } = { count: 0 }] = await db
+    .select({ count: sql<number>`cast(count(*) as int)` })
+    .from(auditLog)
+    .where(whereClause);
 
   const rows = await db
     .select({
@@ -67,11 +84,13 @@ export async function fetchAuditTrail(filters: AuditTrailFilters): Promise<Audit
     })
     .from(auditLog)
     .leftJoin(users, and(eq(users.id, auditLog.userId), eq(users.tenantId, tenantId)))
-    .where(and(...conditions))
+    .where(whereClause)
     .orderBy(desc(auditLog.createdAt))
-    .limit(200);
+    .limit(pageSize)
+    .offset((currentPage - 1) * pageSize);
 
-  return rows.map((row) => ({
+  return {
+    rows: rows.map((row) => ({
     id: row.id,
     createdAt: row.createdAt.toISOString(),
     userId: row.userId,
@@ -88,5 +107,9 @@ export async function fetchAuditTrail(filters: AuditTrailFilters): Promise<Audit
     before: row.before,
     after: row.after,
     metadata: row.metadata,
-  }));
+    })),
+    total: count,
+    page: currentPage,
+    pageSize,
+  };
 }

@@ -28,6 +28,8 @@ export default async function ProductDetailPage({ params }: Props) {
         description: data.product.description,
         categoryId: data.product.categoryId,
         kind: data.product.kind,
+        opnameFrequency: data.product.opnameFrequency,
+        opnameFrequencies: data.product.opnameFrequencies,
         uom: data.product.uom,
         isSellable: data.product.isSellable,
         isPurchasable: data.product.isPurchasable,

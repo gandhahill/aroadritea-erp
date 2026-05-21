@@ -11,7 +11,7 @@
 
 import { getSession } from '@/lib/auth';
 import { pickLocalized } from '@/lib/pick-localized';
-import { and, db, desc, eq, gte, inArray, lte } from '@erp/db';
+import { and, db, desc, eq, gte, inArray, lte, sql } from '@erp/db';
 import { users } from '@erp/db/schema/auth';
 import { products } from '@erp/db/schema/inventory';
 import { payments, salesOrderLines, salesOrders } from '@erp/db/schema/pos';
@@ -77,18 +77,44 @@ function dayWindowJakarta(date: string): { start: Date; end: Date } {
   return { start, end };
 }
 
-export async function fetchTodaysOrders(date?: string): Promise<{
+export async function fetchTodaysOrders(date?: string, page = 1): Promise<{
   ok: boolean;
   rows: OrderListRow[];
   locationId: string | null;
+  total: number;
+  page: number;
+  pageSize: number;
   error?: string;
 }> {
   const session = await resolveCtx();
-  if (!session) return { ok: false, rows: [], locationId: null, error: 'Unauthenticated' };
+  if (!session) {
+    return {
+      ok: false,
+      rows: [],
+      locationId: null,
+      total: 0,
+      page: 1,
+      pageSize: 50,
+      error: 'Unauthenticated',
+    };
+  }
   const { ctx, locationId } = session;
 
   const targetDate = date ?? new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
   const { start, end } = dayWindowJakarta(targetDate);
+  const pageSize = 50;
+  const currentPage = Math.max(1, Number.isFinite(page) ? page : 1);
+  const whereClause = and(
+    eq(salesOrders.tenantId, ctx.tenantId),
+    eq(salesOrders.locationId, locationId),
+    gte(salesOrders.placedAt, start),
+    lte(salesOrders.placedAt, end),
+  );
+
+  const [{ count = 0 } = { count: 0 }] = await db
+    .select({ count: sql<number>`cast(count(*) as int)` })
+    .from(salesOrders)
+    .where(whereClause);
 
   const orderRows = await db
     .select({
@@ -109,16 +135,10 @@ export async function fetchTodaysOrders(date?: string): Promise<{
       users,
       and(eq(users.id, salesOrders.cashierId), eq(users.tenantId, ctx.tenantId)),
     )
-    .where(
-      and(
-        eq(salesOrders.tenantId, ctx.tenantId),
-        eq(salesOrders.locationId, locationId),
-        gte(salesOrders.placedAt, start),
-        lte(salesOrders.placedAt, end),
-      ),
-    )
+    .where(whereClause)
     .orderBy(desc(salesOrders.placedAt))
-    .limit(200);
+    .limit(pageSize)
+    .offset((currentPage - 1) * pageSize);
 
   const ids = orderRows.map((r) => r.id);
   // payments has no tenant_id column (it inherits scope from the parent
@@ -141,6 +161,9 @@ export async function fetchTodaysOrders(date?: string): Promise<{
   return {
     ok: true,
     locationId,
+    total: count,
+    page: currentPage,
+    pageSize,
     rows: orderRows.map((r) => ({
       id: r.id,
       number: r.number,
