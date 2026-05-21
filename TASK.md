@@ -25,6 +25,7 @@
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
 | T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-21 14:32 WIB (Codex) | IN_PROGRESS | Commit `1419720` deployed to VPS. Migration `0021`, seed, web/site/MCP/worker builds, and PM2 reload/save passed. Public health routes return 200; protected ERP smoke routes return 307 redirects without app-error; requested menu image assets return 200. DB reset was not run because migration/seed updated stale paths without data loss. |
+| T-0168 | Security audit and overnight operational fixes | Codex | 2026-05-21 19:24 WIB | 2026-05-21 19:34 WIB (Codex) | IN_PROGRESS | Fase 0 baseline done: typecheck PASS, test PASS (593), lint baseline FAIL (316 errors/482 warnings), prod audit PASS. Next: member forgot password and operational fixes before Fase 1. |
 
 ---
 
