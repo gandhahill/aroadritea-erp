@@ -24,7 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-21 14:15 WIB (Codex) | IN_PROGRESS | Local patch adds manual legacy-POS sales closing with journals/report sync, stock-opname daily/weekly/monthly item buckets, Malioboro May inventory seed staging, pagination on major high-volume lists, multilingual member emails, and traceability status cleanup (`FULL`/`VERIFY` only). Local typecheck/test/build passed; deployment/reset DB not run in this pass. |
+| T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-21 14:32 WIB (Codex) | IN_PROGRESS | Commit `1419720` deployed to VPS. Migration `0021`, seed, web/site/MCP/worker builds, and PM2 reload/save passed. Public health routes return 200; protected ERP smoke routes return 307 redirects without app-error; requested menu image assets return 200. DB reset was not run because migration/seed updated stale paths without data loss. |
 
 ---
 

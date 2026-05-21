@@ -307,3 +307,12 @@ Deploy the 2026-05-21 local patch: commit and push, pull on VPS, run `pnpm --fil
   - Web/site ID/EN/ZH message key parity PASS: `apps/web/messages` 1526 keys / 0 missing; `apps/site/messages` 118 keys / 0 missing.
   - Traceability status scan PASS: no `PARTIAL`, `NOT_STARTED`, or lowercase `partial` remains in `docs/TRACEABILITY-AUDIT.md`.
   - Requested product image file check PASS: all seven relevant image assets exist under `apps/web/public/photo/menu`; migration `0021_manual_sales_and_opname_frequency.sql` updates stale DB image paths for the nine requested SKUs.
+- 2026-05-21 14:32 deployment verification PASS:
+  - Commit `1419720` pushed to `origin/master`, pulled on VPS, and deployed from `/home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp`.
+  - VPS `pnpm --filter @erp/db migrate` PASS; migration `0021_manual_sales_and_opname_frequency.sql` applied.
+  - VPS `pnpm --filter @erp/db seed` PASS; output includes `Malioboro May inventory seed: 13 products, 42 staged movements`.
+  - VPS builds PASS for `@erp/web`, `@erp/site`, `@erp/mcp`, and `@erp/worker`; PM2 reload/save completed and all four processes are online.
+  - Public health smoke PASS: `https://aroadritea.com/api/healthz`, `https://erp.aroadritea.com/api/healthz`, and `https://erp.aroadritea.com/mcp/healthz` returned HTTP 200.
+  - Public route smoke PASS: `/id/member/daftar` and `/id/member/verifikasi-otp` returned HTTP 200; protected ERP routes `/pos/manual-sales`, `/inventory/opname/new`, `/pos/orders`, `/accounting/journals`, and `/audit` returned HTTP 307 redirects instead of 404/application-error.
+  - Product image smoke PASS: seven requested ERP image URLs under `/photo/menu/*` returned HTTP 200.
+  - Deployment note: sourcing `.env` printed `line 45: n: command not found`, but migration/seed/build/reload completed successfully. Inspect and clean the malformed `.env` line in the next maintenance pass.
