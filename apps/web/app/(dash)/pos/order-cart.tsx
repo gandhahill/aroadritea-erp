@@ -7,11 +7,12 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 import { type CartLine, usePosCart } from './pos-cart-context';
 
 export function OrderCart() {
   const t = useTranslations('pos');
-  const { state, updateLineQty, removeLine, updateLineNotes } = usePosCart();
+  const { state, updateLineQty, removeLine, updateLineNotes, updateLineDiscount } = usePosCart();
 
   if (state.lines.length === 0) {
     return (
@@ -46,6 +47,7 @@ export function OrderCart() {
           onQtyChange={(qty) => updateLineQty(line.id, qty)}
           onRemove={() => removeLine(line.id)}
           onNotesChange={(notes) => updateLineNotes(line.id, notes)}
+          onDiscountChange={(discount, reason) => updateLineDiscount(line.id, discount, reason)}
         />
       ))}
     </ul>
@@ -58,14 +60,19 @@ function CartLineItem({
   onQtyChange,
   onRemove,
   onNotesChange,
+  onDiscountChange,
 }: {
   line: CartLine;
   lineNo: number;
   onQtyChange: (qty: number) => void;
   onRemove: () => void;
   onNotesChange: (notes: string) => void;
+  onDiscountChange: (discount: string, reason: string) => void;
 }) {
   const t = useTranslations('pos');
+  const [discountOpen, setDiscountOpen] = useState(Boolean(line.lineDiscountReason));
+  const [discountInput, setDiscountInput] = useState(line.lineDiscount ?? '0');
+  const [reasonInput, setReasonInput] = useState(line.lineDiscountReason ?? '');
 
   const lineTotal = BigInt(line.unitPrice) * BigInt(line.qty);
   const lineDiscount = BigInt(line.lineDiscount ?? '0');
@@ -119,24 +126,104 @@ function CartLineItem({
         </div>
 
         {/* Remove button */}
-        <button
-          type="button"
-          onClick={onRemove}
-          className="flex h-8 w-8 items-center justify-center rounded-md text-brand-ink-3 hover:bg-red-50 hover:text-red-500"
-          aria-label={t('removeLine')}
-        >
-          <svg
-            aria-hidden="true"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setDiscountOpen((open) => !open)}
+            className="h-8 rounded-md border border-brand-cream-3 px-2 text-xs font-medium text-brand-ink-2 hover:border-brand-red/40 hover:text-brand-red"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+            {t('discount')}
+          </button>
+          <button
+            type="button"
+            onClick={onRemove}
+            className="flex h-8 w-8 items-center justify-center rounded-md text-brand-ink-3 hover:bg-red-50 hover:text-red-500"
+            aria-label={t('removeLine')}
+          >
+            <svg
+              aria-hidden="true"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>
+
+      {discountOpen && (
+        <div className="rounded-lg border border-brand-cream-3 bg-brand-cream-2 p-2">
+          <div className="grid gap-2 sm:grid-cols-[1fr_1.2fr_auto]">
+            <label className="flex flex-col gap-1">
+              <span className="text-[11px] font-medium uppercase text-brand-ink-3">
+                {t('manualDiscountAmount')}
+              </span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={discountInput}
+                onChange={(e) => {
+                  const next = clampDiscount(e.target.value.replace(/\D/g, ''), lineTotal);
+                  setDiscountInput(next);
+                  onDiscountChange(next, reasonInput);
+                }}
+                className="h-8 rounded-md border border-brand-cream-3 bg-card px-2 text-xs font-medium text-brand-ink focus:border-brand-red focus:outline-none"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-[11px] font-medium uppercase text-brand-ink-3">
+                {t('manualDiscountReason')}
+              </span>
+              <input
+                type="text"
+                value={reasonInput}
+                onChange={(e) => {
+                  setReasonInput(e.target.value);
+                  onDiscountChange(discountInput, e.target.value);
+                }}
+                placeholder={t('manualDiscountReasonPlaceholder')}
+                maxLength={255}
+                className="h-8 rounded-md border border-brand-cream-3 bg-card px-2 text-xs font-medium text-brand-ink placeholder:text-brand-ink-3/50 focus:border-brand-red focus:outline-none"
+              />
+            </label>
+            <div className="flex items-end gap-1">
+              {[5, 10, 15, 20].map((percent) => (
+                <button
+                  type="button"
+                  key={percent}
+                  onClick={() => {
+                    const next = ((lineTotal * BigInt(percent)) / BigInt(100)).toString();
+                    setDiscountInput(next);
+                    onDiscountChange(next, reasonInput);
+                  }}
+                  className="h-8 rounded-md border border-brand-cream-3 bg-card px-2 text-[11px] font-semibold text-brand-ink-2 hover:border-brand-red/40 hover:text-brand-red"
+                >
+                  {percent}%
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => {
+                  setDiscountInput('0');
+                  setReasonInput('');
+                  onDiscountChange('0', '');
+                }}
+                className="h-8 rounded-md border border-brand-cream-3 bg-card px-2 text-[11px] font-semibold text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red"
+              >
+                {t('clearDiscount')}
+              </button>
+            </div>
+          </div>
+          {BigInt(discountInput || '0') > BigInt(0) && !reasonInput.trim() && (
+            <p className="mt-1 text-[11px] font-medium text-brand-red">
+              {t('manualDiscountReasonRequired')}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Notes */}
       <input
@@ -149,6 +236,12 @@ function CartLineItem({
       />
     </li>
   );
+}
+
+function clampDiscount(value: string, max: bigint): string {
+  const parsed = /^\d+$/.test(value) ? BigInt(value) : BigInt(0);
+  if (parsed > max) return max.toString();
+  return parsed.toString();
 }
 
 function formatRupiah(value: string | bigint): string {

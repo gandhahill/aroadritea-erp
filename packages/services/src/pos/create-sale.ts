@@ -55,6 +55,7 @@ import {
   salesOrders,
   shifts,
 } from '@erp/db/schema/pos';
+import { promotionApplications } from '@erp/db/schema/promotion';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
@@ -63,6 +64,7 @@ import { and, eq, inArray, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import { earnLoyaltyPoints } from '../crm';
 import { requirePermission } from '../iam';
+import { notifyByPermission } from '../notification';
 import { type DonationResult, type RoundingOption, calculateDonation } from './donation';
 import {
   CreateSaleInputSchema,
@@ -79,6 +81,7 @@ const DEFAULT_PB1_TAX_CODE = 'PB1';
 const DEFAULT_CASH_ACCOUNT_CODE = '1-1300';
 const DEFAULT_REVENUE_ACCOUNT_CODE = '4-1100';
 const DEFAULT_DONATION_TRUST_ACCOUNT_CODE = '2-2050';
+const MANUAL_DISCOUNT_PROMOTION_ID = 'manual-pos-discount';
 const DEFAULT_DELIVERY_CHANNELS = [
   { id: 'gofood', label: 'GoFood', netBps: 8000, enabled: true },
   { id: 'grabfood', label: 'GrabFood', netBps: 8000, enabled: true },
@@ -766,6 +769,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       lineDiscount: bigint;
       lineTax: bigint;
       lineTotal: bigint;
+      lineDiscountReason: string | null;
       modifierJson: unknown | null;
       notes: string | null;
     }> = [];
@@ -801,6 +805,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
         lineDiscount,
         lineTax,
         lineTotal,
+        lineDiscountReason: line.lineDiscountReason ?? null,
         modifierJson: line.modifierJson ?? null,
         notes: line.notes ?? null,
       });
@@ -911,6 +916,28 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       updatedBy: ctx.userId,
     }));
     await db.insert(salesOrderLines).values(orderLines);
+
+    const manualDiscountApplications = lineResults
+      .map((lr, idx) => ({ ...lr, lineId: orderLines[idx]?.id ?? null }))
+      .filter((lr) => lr.lineDiscount > BigInt(0) && lr.lineId && lr.lineDiscountReason);
+
+    if (manualDiscountApplications.length > 0) {
+      await db.insert(promotionApplications).values(
+        manualDiscountApplications.map((lr) => ({
+          id: generateId(),
+          tenantId: ctx.tenantId,
+          promotionId: MANUAL_DISCOUNT_PROMOTION_ID,
+          salesOrderId: saleId,
+          lineId: lr.lineId,
+          benefitType: 'manual_line_discount',
+          discountAmount: lr.lineDiscount.toString(),
+          reason: lr.lineDiscountReason,
+          approvedBy: ctx.userId,
+          createdBy: ctx.userId,
+          updatedBy: ctx.userId,
+        })),
+      );
+    }
 
     // 12. Insert payments
     const paymentRecords = normalizedPaymentRecords.map((p) => ({
@@ -1061,16 +1088,36 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
         number: saleNumber,
         channel: data.channel,
         subtotal: totalSubtotal.toString(),
+        discountTotal: totalDiscount.toString(),
         taxTotal: totalTax.toString(),
         grandTotal: totalGrand.toString(),
         lineCount: lineResults.length,
         paymentCount: data.payments.length,
+        manualDiscountCount: manualDiscountApplications.length,
       },
       metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
     });
 
     // 15b. Loyalty points — earn for member customers
     // Points calculated on net (after discounts), in cents (× 100)
+    if (manualDiscountApplications.length > 0) {
+      const totalManualDiscount = manualDiscountApplications.reduce(
+        (sum, row) => sum + row.lineDiscount,
+        BigInt(0),
+      );
+      notifyByPermission({
+        tenantId: ctx.tenantId,
+        kind: 'promotion',
+        title: `Diskon manual POS ${saleNumber}`,
+        body: `${manualDiscountApplications.length} baris diskon manual dengan total ${totalManualDiscount.toString()} tercatat untuk review promosi.`,
+        link: `/pos/orders?sale=${saleId}`,
+        permission: 'promotion.manage',
+        extraUserIds: [ctx.userId],
+      }).catch(() => {
+        // Review notification is best-effort; sale posting must remain non-blocking.
+      });
+    }
+
     if (data.customerId && totalGrand > BigInt(0)) {
       earnLoyaltyPoints(data.customerId, totalGrand * BigInt(100), saleId, ctx).catch(() => {
         // Non-fatal: do not fail the sale if loyalty earning fails

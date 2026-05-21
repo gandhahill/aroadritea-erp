@@ -20,6 +20,9 @@ export default function PosPage() {
   const t = useTranslations('pos');
   const { state, grandTotal, remainingBalance } = usePosCart();
   const [showPayment, setShowPayment] = useState(false);
+  const hasInvalidManualDiscount = state.lines.some(
+    (line) => BigInt(line.lineDiscount ?? '0') > BigInt(0) && !line.lineDiscountReason?.trim(),
+  );
 
   return (
     <div className="flex h-full flex-1 gap-0 overflow-hidden">
@@ -77,12 +80,22 @@ export default function PosPage() {
           <button
             type="button"
             onClick={() => setShowPayment(true)}
-            disabled={state.lines.length === 0 || !state.shiftId || grandTotal <= BigInt(0)}
+            disabled={
+              state.lines.length === 0 ||
+              !state.shiftId ||
+              grandTotal <= BigInt(0) ||
+              hasInvalidManualDiscount
+            }
             className="h-12 w-full rounded-lg bg-brand-red text-sm font-semibold text-white hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
             style={{ transition: 'all 220ms cubic-bezier(0.16, 1, 0.3, 1)' }}
           >
             {t('payNow')}
           </button>
+          {hasInvalidManualDiscount && (
+            <p className="mt-2 text-center text-xs font-medium text-brand-red">
+              {t('manualDiscountReasonRequired')}
+            </p>
+          )}
           {!state.shiftId && (
             <p className="mt-2 text-center text-xs font-medium text-brand-red">
               {t('shiftRequired')}

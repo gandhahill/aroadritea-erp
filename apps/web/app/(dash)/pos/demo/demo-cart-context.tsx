@@ -25,6 +25,7 @@ interface DemoCartContextValue {
   updateLineQty: (lineId: string, qty: number) => void;
   removeLine: (lineId: string) => void;
   updateLineNotes: (lineId: string, notes: string) => void;
+  updateLineDiscount: (lineId: string, discount: string, reason: string) => void;
   addPayment: (payment: Omit<DemoCartPayment, 'id'>) => void;
   removePayment: (id: string) => void;
   setNotes: (n: string) => void;
@@ -80,6 +81,21 @@ export function DemoCartProvider({ children }: { children: ReactNode }) {
     setState((s) => ({
       ...s,
       lines: s.lines.map((l) => (l.id === lineId ? { ...l, notes } : l)),
+    }));
+  }, []);
+
+  const updateLineDiscount = useCallback((lineId: string, discount: string, reason: string) => {
+    setState((s) => ({
+      ...s,
+      lines: s.lines.map((l) =>
+        l.id === lineId
+          ? {
+              ...l,
+              lineDiscount: /^\d+$/.test(discount) ? discount : '0',
+              lineDiscountReason: reason.trim() || undefined,
+            }
+          : l,
+      ),
     }));
   }, []);
 
@@ -149,6 +165,7 @@ export function DemoCartProvider({ children }: { children: ReactNode }) {
         updateLineQty,
         removeLine,
         updateLineNotes,
+        updateLineDiscount,
         addPayment,
         removePayment,
         setNotes,

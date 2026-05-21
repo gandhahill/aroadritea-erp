@@ -308,6 +308,40 @@ describe('CreateSaleInputSchema', () => {
       expect(result.data.notes).toBe('Extra shot espresso');
     }
   });
+
+  it('requires a reason when cashier applies a manual line discount', () => {
+    const result = CreateSaleInputSchema.safeParse({
+      shiftId: 'shift-001',
+      channel: 'walk_in',
+      locationId: 'loc-001',
+      idempotencyKey: 'key-discount-reason',
+      lines: [{ productId: 'prod-001', qty: 1, unitPrice: '33000', lineDiscount: '3000' }],
+      payments: [{ method: 'cash', amount: '30000' }],
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it('accepts manual line discount when a governance reason is supplied', () => {
+    const result = CreateSaleInputSchema.safeParse({
+      shiftId: 'shift-001',
+      channel: 'walk_in',
+      locationId: 'loc-001',
+      idempotencyKey: 'key-discount-reason-ok',
+      lines: [
+        {
+          productId: 'prod-001',
+          qty: 1,
+          unitPrice: '33000',
+          lineDiscount: '3000',
+          lineDiscountReason: 'Director approved one-off service recovery',
+        },
+      ],
+      payments: [{ method: 'cash', amount: '30000' }],
+    });
+
+    expect(result.success).toBe(true);
+  });
 });
 
 // ─── Schema: VoidSaleInput ─────────────────────────────────────────────────────

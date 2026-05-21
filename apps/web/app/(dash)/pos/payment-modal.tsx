@@ -158,6 +158,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
       qty: l.qty,
       unitPrice: l.unitPrice,
       lineDiscount: l.lineDiscount,
+      lineDiscountReason: l.lineDiscountReason,
       modifierJson: l.modifierJson,
       notes: l.notes,
     }));

@@ -38,8 +38,17 @@ const LineInputSchema = z.object({
   qty: z.number().int().positive(),
   unitPrice: z.string().regex(/^\d+$/), // bigint rupiah (inclusive PB1)
   lineDiscount: z.string().regex(/^\d+$/).optional().default('0'),
+  lineDiscountReason: z.string().trim().min(3).max(255).optional(),
   modifierJson: z.record(z.string(), z.unknown()).optional(),
   notes: z.string().optional(),
+}).superRefine((line, ctx) => {
+  if (BigInt(line.lineDiscount ?? '0') > BigInt(0) && !line.lineDiscountReason) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['lineDiscountReason'],
+      message: 'Manual discount reason is required',
+    });
+  }
 });
 
 const PaymentInputSchema = z.object({

@@ -26,6 +26,8 @@ export interface DemoCartLine {
   unitPrice: string; // bigint string
   modifierJson?: Record<string, unknown>;
   notes?: string;
+  lineDiscount?: string;
+  lineDiscountReason?: string;
 }
 
 export interface DemoCartPayment {
@@ -99,10 +101,7 @@ export function calcDemoTotals(state: DemoCartState): {
     (sum, l) => sum + BigInt(l.unitPrice) * BigInt(l.qty),
     BigInt(0),
   );
-  const totalDiscount = state.lines.reduce(
-    (sum, l) => sum + BigInt((l as { lineDiscount?: string }).lineDiscount ?? '0'),
-    BigInt(0),
-  );
+  const totalDiscount = state.lines.reduce((sum, l) => sum + BigInt(l.lineDiscount ?? '0'), BigInt(0));
   const subtotalAfterDiscount = subtotal - totalDiscount;
   // PB1 is inclusive — back-out tax: tax = subtotal * 10 / 110
   const taxTotal = (subtotalAfterDiscount * BigInt(10)) / BigInt(110);

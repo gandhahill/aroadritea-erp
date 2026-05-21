@@ -33,6 +33,9 @@ export function DemoPosClient() {
   const { demoOrderHistory } = useDemoMode();
   const [showPayment, setShowPayment] = useState(false);
   const [showReset, setShowReset] = useState(false);
+  const hasInvalidManualDiscount = state.lines.some(
+    (line) => BigInt(line.lineDiscount ?? '0') > BigInt(0) && !line.lineDiscountReason?.trim(),
+  );
 
   return (
     <>
@@ -136,12 +139,19 @@ export function DemoPosClient() {
               <button
                 type="button"
                 onClick={() => setShowPayment(true)}
-                disabled={state.lines.length === 0 || grandTotal <= BigInt(0)}
+                disabled={
+                  state.lines.length === 0 || grandTotal <= BigInt(0) || hasInvalidManualDiscount
+                }
                 className="h-12 w-full rounded-lg bg-brand-red text-sm font-semibold text-white hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
                 style={{ transition: 'all 220ms cubic-bezier(0.16, 1, 0.3, 1)' }}
               >
                 {t('payNow')}
               </button>
+              {hasInvalidManualDiscount && (
+                <p className="mt-2 text-center text-xs font-medium text-brand-red">
+                  {t('manualDiscountReasonRequired')}
+                </p>
+              )}
             </div>
           </div>
         </div>

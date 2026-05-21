@@ -18,6 +18,7 @@ export interface CartLine {
   modifierJson?: Record<string, unknown>;
   notes?: string;
   lineDiscount?: string;
+  lineDiscountReason?: string;
 }
 
 export interface CartPayment {
@@ -54,6 +55,7 @@ interface PosCartContextValue {
   updateLineQty: (lineId: string, qty: number) => void;
   removeLine: (lineId: string) => void;
   updateLineNotes: (lineId: string, notes: string) => void;
+  updateLineDiscount: (lineId: string, discount: string, reason: string) => void;
   setCustomer: (customer: CartCustomer) => void;
   clearCustomer: () => void;
   addPayment: (payment: Omit<CartPayment, 'id'>) => void;
@@ -127,6 +129,21 @@ export function PosCartProvider({
     }));
   }, []);
 
+  const updateLineDiscount = useCallback((lineId: string, discount: string, reason: string) => {
+    setState((s) => ({
+      ...s,
+      lines: s.lines.map((l) =>
+        l.id === lineId
+          ? {
+              ...l,
+              lineDiscount: /^\d+$/.test(discount) ? discount : '0',
+              lineDiscountReason: reason.trim() || undefined,
+            }
+          : l,
+      ),
+    }));
+  }, []);
+
   const setCustomer = useCallback((customer: CartCustomer) => {
     setState((s) => ({ ...s, customer }));
   }, []);
@@ -195,6 +212,7 @@ export function PosCartProvider({
         updateLineQty,
         removeLine,
         updateLineNotes,
+        updateLineDiscount,
         setCustomer,
         clearCustomer,
         addPayment,

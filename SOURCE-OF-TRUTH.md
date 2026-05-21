@@ -232,12 +232,14 @@ Mengacu jawaban Q22 + tampilan KDS Naixer:
 - ✅ Voucher / kupon
 - ✅ Diskon member (saat loyalty aktif)
 - ✅ Promo platform (GoFood, GrabFood)
+- ✅ Diskon manual sekali pakai di POS (harus beralasan dan masuk notifikasi review promosi)
 - ❌ Happy hour — tidak diminta saat ini
-- ❌ Diskon nominal flat — tidak diminta saat ini
+- ❌ Diskon nominal flat sebagai program promosi permanen — tidak diminta saat ini
 
 ### 7.2 Aturan Promosi
 - Pembuat & pengaktif promosi: **Direktur**
 - **Belum ada** batas waktu, kuota, atau syarat minimum pembelian — tetapi sistem harus **dapat menambah** ketiga aturan tersebut sebagai fitur (per perintah user).
+- Kasir boleh memasukkan diskon manual yang tidak ada di daftar promosi hanya untuk kasus operasional sekali pakai. Diskon manual wajib memiliki alasan tertulis, tercatat di audit, masuk total diskon POS, dan mengirim notifikasi kepada pengguna yang berwenang mengelola promosi agar dapat direview setelah transaksi.
 
 > **Implikasi desain**: model promosi gunakan engine rule-based: `condition + scope + benefit + lifecycle (start/end/quota)`. Aktif/non-aktif via toggle.
 

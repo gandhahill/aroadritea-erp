@@ -1729,6 +1729,7 @@ Setiap laporan dapat di-render dalam id/en/zh.
 #### Diskon / Promosi
 - Engine `promotions.apply(orderDraft)` → mengembalikan diskon yang berlaku.
 - Validasi: tanggal aktif, kuota, syarat min. Saat ini SoT §7.2 menyatakan tidak ada batas waktu/kuota/min — engine harus menerima null sebagai "tidak ada batas".
+- Diskon manual POS di luar daftar promosi boleh dimasukkan kasir per line item sebagai nominal atau hasil persen cepat. Server wajib mewajibkan `line_discount_reason` bila `line_discount > 0`, menghitung PB1 setelah diskon, mencatat aplikasi diskon manual untuk audit, dan mengirim in-app notification ke pemegang permission `promotion.manage` agar diskon tersebut direview tanpa membuat promo permanen palsu.
 
 #### Refund
 - Approver: Kasir (lihat SoT §6.3).

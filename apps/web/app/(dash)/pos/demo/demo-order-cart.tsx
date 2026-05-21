@@ -1,16 +1,17 @@
 /**
- * Demo Order Cart — shows the current demo cart lines + totals.
+ * Demo Order Cart - shows the current demo cart lines + totals.
  * Mirrors production `order-cart.tsx` but uses `useDemoCart`.
  */
 
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 import { useDemoCart } from './demo-cart-context';
 
 export function DemoOrderCart() {
   const t = useTranslations('pos');
-  const { state, updateLineQty, removeLine } = useDemoCart();
+  const { state, updateLineQty, removeLine, updateLineDiscount } = useDemoCart();
 
   if (state.lines.length === 0) {
     return (
@@ -38,87 +39,141 @@ export function DemoOrderCart() {
   return (
     <div className="flex flex-col gap-0.5 p-3">
       {state.lines.map((line) => (
-        <div
+        <DemoLineItem
           key={line.id}
-          className="flex items-center gap-2 rounded-lg border border-brand-cream-3 bg-card px-3 py-2"
-        >
-          {/* Product info */}
-          <div className="flex-1 min-w-0">
-            <p className="truncate text-sm font-medium text-brand-ink">
-              {line.productName}
-              {line.variantName && (
-                <span className="ml-1 text-xs text-brand-ink-3">({line.variantName})</span>
-              )}
-            </p>
-            <p className="text-xs text-brand-ink-3">
-              {formatRupiah(line.unitPrice)} × {line.qty}
-            </p>
-          </div>
+          line={line}
+          onQtyChange={(qty) => updateLineQty(line.id, Math.max(1, qty))}
+          onRemove={() => removeLine(line.id)}
+          onDiscountChange={(discount, reason) => updateLineDiscount(line.id, discount, reason)}
+        />
+      ))}
+    </div>
+  );
+}
 
-          {/* Line total */}
-          <div className="text-right">
-            <p className="text-sm font-semibold text-brand-ink">
-              {formatRupiah((BigInt(line.unitPrice) * BigInt(line.qty)).toString())}
-            </p>
-          </div>
+function DemoLineItem({
+  line,
+  onQtyChange,
+  onRemove,
+  onDiscountChange,
+}: {
+  line: ReturnType<typeof useDemoCart>['state']['lines'][number];
+  onQtyChange: (qty: number) => void;
+  onRemove: () => void;
+  onDiscountChange: (discount: string, reason: string) => void;
+}) {
+  const t = useTranslations('pos');
+  const [discountOpen, setDiscountOpen] = useState(Boolean(line.lineDiscountReason));
+  const [discountInput, setDiscountInput] = useState(line.lineDiscount ?? '0');
+  const [reasonInput, setReasonInput] = useState(line.lineDiscountReason ?? '');
+  const lineSubtotal = BigInt(line.unitPrice) * BigInt(line.qty);
+  const lineDiscount = BigInt(line.lineDiscount ?? '0');
+  const lineTotal = lineSubtotal - lineDiscount;
 
-          {/* Qty controls */}
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => updateLineQty(line.id, line.qty - 1)}
-              className="flex h-6 w-6 items-center justify-center rounded border border-brand-cream-3 text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red"
-              aria-label="decrease"
-            >
-              <svg
-                aria-hidden="true"
-                className="h-3 w-3"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
+  return (
+    <div className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2">
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-brand-ink">
+            {line.productName}
+            {line.variantName && (
+              <span className="ml-1 text-xs text-brand-ink-3">({line.variantName})</span>
+            )}
+          </p>
+          <p className="text-xs text-brand-ink-3">
+            {formatRupiah(line.unitPrice)} x {line.qty}
+          </p>
+        </div>
+
+        <div className="text-right">
+          <p className="text-sm font-semibold text-brand-ink">{formatRupiah(lineTotal.toString())}</p>
+          {lineDiscount > BigInt(0) && (
+            <p className="text-xs text-brand-red line-through">
+              {formatRupiah(lineSubtotal.toString())}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onQtyChange(line.qty - 1)}
+            className="flex h-6 w-6 items-center justify-center rounded border border-brand-cream-3 text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red"
+            aria-label="decrease"
+          >
+            -
+          </button>
+          <span className="w-6 text-center text-xs font-semibold text-brand-ink">{line.qty}</span>
+          <button
+            type="button"
+            onClick={() => onQtyChange(line.qty + 1)}
+            className="flex h-6 w-6 items-center justify-center rounded border border-brand-cream-3 text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red"
+            aria-label="increase"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            onClick={() => setDiscountOpen((open) => !open)}
+            className="ml-1 h-6 rounded border border-brand-cream-3 px-2 text-[11px] font-medium text-brand-ink-2 hover:border-brand-red/40 hover:text-brand-red"
+          >
+            {t('discount')}
+          </button>
+          <button
+            type="button"
+            onClick={onRemove}
+            className="flex h-6 w-6 items-center justify-center rounded text-red-400 hover:bg-red-50 hover:text-red-600"
+            aria-label="remove"
+          >
+            x
+          </button>
+        </div>
+      </div>
+
+      {discountOpen && (
+        <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_1.2fr_auto]">
+          <input
+            type="text"
+            inputMode="numeric"
+            value={discountInput}
+            aria-label={t('manualDiscountAmount')}
+            onChange={(event) => {
+              const next = clampDiscount(event.target.value.replace(/\D/g, ''), lineSubtotal);
+              setDiscountInput(next);
+              onDiscountChange(next, reasonInput);
+            }}
+            className="h-8 rounded-md border border-brand-cream-3 bg-brand-cream-2 px-2 text-xs font-medium text-brand-ink focus:border-brand-red focus:outline-none"
+          />
+          <input
+            type="text"
+            value={reasonInput}
+            aria-label={t('manualDiscountReason')}
+            placeholder={t('manualDiscountReasonPlaceholder')}
+            maxLength={255}
+            onChange={(event) => {
+              setReasonInput(event.target.value);
+              onDiscountChange(discountInput, event.target.value);
+            }}
+            className="h-8 rounded-md border border-brand-cream-3 bg-brand-cream-2 px-2 text-xs font-medium text-brand-ink placeholder:text-brand-ink-3/50 focus:border-brand-red focus:outline-none"
+          />
+          <div className="flex gap-1">
+            {[5, 10, 15].map((percent) => (
+              <button
+                type="button"
+                key={percent}
+                onClick={() => {
+                  const next = ((lineSubtotal * BigInt(percent)) / BigInt(100)).toString();
+                  setDiscountInput(next);
+                  onDiscountChange(next, reasonInput);
+                }}
+                className="h-8 rounded-md border border-brand-cream-3 px-2 text-[11px] font-semibold text-brand-ink-2 hover:border-brand-red/40 hover:text-brand-red"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
-              </svg>
-            </button>
-            <span className="w-6 text-center text-xs font-semibold text-brand-ink">{line.qty}</span>
-            <button
-              type="button"
-              onClick={() => updateLineQty(line.id, line.qty + 1)}
-              className="flex h-6 w-6 items-center justify-center rounded border border-brand-cream-3 text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red"
-              aria-label="increase"
-            >
-              <svg
-                aria-hidden="true"
-                className="h-3 w-3"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m7-7H5" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={() => removeLine(line.id)}
-              className="ml-1 flex h-6 w-6 items-center justify-center rounded text-red-400 hover:bg-red-50 hover:text-red-600"
-              aria-label="remove"
-            >
-              <svg
-                aria-hidden="true"
-                className="h-3.5 w-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+                {percent}%
+              </button>
+            ))}
           </div>
         </div>
-      ))}
+      )}
     </div>
   );
 }
@@ -131,4 +186,10 @@ function formatRupiah(value: string): string {
     currency: 'IDR',
     maximumFractionDigits: 0,
   }).format(num);
+}
+
+function clampDiscount(value: string, max: bigint): string {
+  const parsed = /^\d+$/.test(value) ? BigInt(value) : BigInt(0);
+  if (parsed > max) return max.toString();
+  return parsed.toString();
 }
