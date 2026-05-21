@@ -8,6 +8,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getPublishedPageBySlug } from '@erp/services/cms';
+import { sanitizeCmsHtml } from '@erp/shared/sanitize-html';
 import type { SiteLocale } from '../../../i18n';
 
 interface Props {
@@ -67,7 +68,7 @@ export default async function CmsPage({ params }: Props) {
 
   const page = result.value;
   const title = localize(page.title, locale as SiteLocale);
-  const content = localize(page.content, locale as SiteLocale);
+  const content = sanitizeCmsHtml(localize(page.content, locale as SiteLocale));
 
   return (
     <div className="px-4 py-14 sm:px-6">

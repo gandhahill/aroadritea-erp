@@ -3,6 +3,7 @@
  */
 
 import { getPublishedPostBySlug } from '@erp/services/cms';
+import { sanitizeCmsHtml } from '@erp/shared/sanitize-html';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import type { SiteLocale } from '../../../../i18n';
@@ -40,7 +41,7 @@ export default async function BlogPostPage({ params }: Props) {
 
   const post = result.value;
   const title = localize(post.title, locale as SiteLocale);
-  const content = localize(post.content, locale as SiteLocale);
+  const content = sanitizeCmsHtml(localize(post.content, locale as SiteLocale));
   const cover = post.coverImageUrl ? String(post.coverImageUrl) : null;
 
   return (
@@ -56,7 +57,7 @@ export default async function BlogPostPage({ params }: Props) {
         <h1 className="text-3xl font-black text-brand-ink md:text-4xl">{title}</h1>
         <div
           className="prose prose-brand mt-6 max-w-none text-brand-ink-2"
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: CMS-authored HTML
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized CMS HTML
           dangerouslySetInnerHTML={{ __html: content }}
         />
       </article>

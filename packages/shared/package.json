@@ -10,6 +10,7 @@
     "./id": "./src/id/index.ts",
     "./date": "./src/date/index.ts",
     "./types": "./src/types/index.ts",
+    "./sanitize-html": "./src/security/sanitize-cms-html.ts",
     "./i18n-keys": "./src/i18n-keys/index.ts",
     "./ports/*": "./src/ports/*.ts"
   },
