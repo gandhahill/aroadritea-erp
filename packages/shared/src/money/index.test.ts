@@ -50,6 +50,12 @@ describe('money', () => {
     it('multiply', () => expect(multiply(1000n, 1.1)).toBe(1100n));
     it('divide', () => expect(divide(1000n, 4)).toBe(250n));
     it('divide throws on zero', () => expect(() => divide(1000n, 0)).toThrow());
+    it('multiply keeps bigint precision above Number.MAX_SAFE_INTEGER', () => {
+      expect(multiply(999999999999999999n, 1.1)).toBe(1099999999999999999n);
+    });
+    it('divide keeps bigint precision above Number.MAX_SAFE_INTEGER', () => {
+      expect(divide(999999999999999999n, 3)).toBe(333333333333333333n);
+    });
     it('sum', () => expect(sum([100n, 200n, 300n])).toBe(600n));
     it('sum empty array', () => expect(sum([])).toBe(ZERO));
     it('abs positive', () => expect(abs(100n)).toBe(100n));
@@ -99,6 +105,11 @@ describe('money', () => {
       // Base 100000, PPN 11% (1100 bps)
       // Tax = 100000 * 1100 / 10000 = 11000
       expect(calculateExclusiveTax(100000n, 1100)).toBe(11000n);
+    });
+
+    it('keeps tax precision for large IDR values', () => {
+      expect(extractInclusiveTax(999999999999999999n, 1100)).toBe(99099099099099099n);
+      expect(calculateExclusiveTax(999999999999999999n, 1100)).toBe(110000000000000000n);
     });
   });
 });

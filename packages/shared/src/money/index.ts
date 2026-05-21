@@ -17,7 +17,7 @@ export const formatRupiah = (m: Money, locale = 'id-ID'): string =>
     style: 'currency',
     currency: 'IDR',
     maximumFractionDigits: 0,
-  }).format(Number(m));
+  }).format(m);
 
 // --- Constants ---
 
@@ -28,9 +28,43 @@ export const ZERO: Money = 0n;
 export const add = (a: Money, b: Money): Money => a + b;
 export const subtract = (a: Money, b: Money): Money => a - b;
 
+function roundDivide(numerator: bigint, denominator: bigint): bigint {
+  if (denominator === 0n) throw new Error('Cannot divide by zero');
+  const sign = (numerator < 0n) !== (denominator < 0n) ? -1n : 1n;
+  const n = numerator < 0n ? -numerator : numerator;
+  const d = denominator < 0n ? -denominator : denominator;
+  const quotient = n / d;
+  const remainder = n % d;
+  const rounded = remainder * 2n >= d ? quotient + 1n : quotient;
+  return sign * rounded;
+}
+
+function decimalToRatio(value: number): { numerator: bigint; denominator: bigint } {
+  if (!Number.isFinite(value)) throw new Error('Money factor must be finite');
+  const text = value.toString().toLowerCase();
+  const sign = text.startsWith('-') ? -1n : 1n;
+  const unsigned = text.replace(/^-/, '');
+  const [coefficient, exponentRaw] = unsigned.split('e');
+  const exponent = exponentRaw ? Number.parseInt(exponentRaw, 10) : 0;
+  const [whole, fraction = ''] = (coefficient ?? '0').split('.');
+  const digits = `${whole}${fraction}`.replace(/^0+(?=\d)/, '') || '0';
+  let numerator = BigInt(digits) * sign;
+  let denominator = 10n ** BigInt(fraction.length);
+
+  if (exponent > 0) {
+    numerator *= 10n ** BigInt(exponent);
+  } else if (exponent < 0) {
+    denominator *= 10n ** BigInt(-exponent);
+  }
+
+  return { numerator, denominator };
+}
+
 /** Multiply money by a scalar (quantity, rate). Rounds to nearest rupiah. */
-export const multiply = (amount: Money, factor: number): Money =>
-  BigInt(Math.round(Number(amount) * factor));
+export const multiply = (amount: Money, factor: number): Money => {
+  const ratio = decimalToRatio(factor);
+  return roundDivide(amount * ratio.numerator, ratio.denominator);
+};
 
 /**
  * Divide money by a divisor. Rounds to nearest rupiah.
@@ -38,7 +72,8 @@ export const multiply = (amount: Money, factor: number): Money =>
  */
 export const divide = (amount: Money, divisor: number): Money => {
   if (divisor === 0) throw new Error('Cannot divide money by zero');
-  return BigInt(Math.round(Number(amount) / divisor));
+  const ratio = decimalToRatio(divisor);
+  return roundDivide(amount * ratio.denominator, ratio.numerator);
 };
 
 /** Sum an array of Money values. Returns ZERO for empty arrays. */
@@ -74,7 +109,7 @@ export const equals = (a: Money, b: Money): boolean => a === b;
  * @returns tax amount in rupiah (rounded)
  */
 export const extractInclusiveTax = (inclusivePrice: Money, rateBps: number): Money =>
-  BigInt(Math.round((Number(inclusivePrice) * rateBps) / (10_000 + rateBps)));
+  roundDivide(inclusivePrice * BigInt(rateBps), BigInt(10_000 + rateBps));
 
 /**
  * Calculate tax on top of a base price (exclusive).
@@ -84,4 +119,4 @@ export const extractInclusiveTax = (inclusivePrice: Money, rateBps: number): Mon
  * @returns tax amount in rupiah (rounded)
  */
 export const calculateExclusiveTax = (basePrice: Money, rateBps: number): Money =>
-  BigInt(Math.round((Number(basePrice) * rateBps) / 10_000));
+  roundDivide(basePrice * BigInt(rateBps), 10_000n);
