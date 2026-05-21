@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-05-21 19:24 WIB
-- **Last updated**: 2026-05-21 20:24 WIB
+- **Last updated**: 2026-05-21 20:43 WIB
 - **Status**: IN_PROGRESS
 - **Phase**: Cross-cutting production readiness and security audit
 - **Branch**: master
@@ -50,6 +50,7 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 - Excel `D:\KERJA\Aroadri Tea\2026\05\Malioboro Mall Mei.xlsx` dibaca ulang. Seed minggu 1 Egg Tart dikoreksi dari 45 ke 60, semua 52 kode menu manager dimasukkan ke atribut variant `managerInventoryCode`, dan import movement sekarang menerima kode manager Excel maupun SKU internal serta menolak variant code yang tidak ditemukan.
 - Modul surat menyurat ditambahkan: SoT/SD, migration/schema `correspondence_records`, permission seed, service CRUD soft-delete dengan audit trail, UI register/detail, sidebar, dan i18n ID/EN/ZH.
 - Panduan printer di halaman Docs diperluas untuk printer detection, Print Bridge, dan `--kiosk-printing`; runbook printer sudah menjadi referensi teknis lengkap.
+- Fase 1 audit dibuat: `docs/audit/01-attack-surface.md`, `docs/audit/security-runtime-inventory.md`, dan `docs/audit/repository-coverage-ledger.md`.
 
 ## Decisions
 
@@ -61,7 +62,7 @@ Menuntaskan perbaikan operasional terbaru untuk Aroadri Tea ERP, lalu menjalanka
 
 ## Next step
 
-Lanjut Fase 1 audit keamanan: buat `docs/audit/01-attack-surface.md` dengan entry-point, trust boundary, dan alur data sensitif, lalu lanjut static findings.
+Lanjut Fase 2 audit keamanan: jalankan static sweep sesuai prompt (`typecheck`, `lint`, `audit`, dan `rg` pola berbahaya), tulis `docs/audit/02-static-findings.md`, lalu perbaiki temuan high-impact satu per satu dengan tes regresi.
 
 ## Test status
 
@@ -119,6 +120,9 @@ Lanjut Fase 1 audit keamanan: buat `docs/audit/01-attack-surface.md` dengan entr
 | `apps/web/app/(dash)/correspondence/*` | Added | Correspondence list/detail UI and server actions |
 | `apps/web/messages/*.json` | Updated | Correspondence i18n ID/EN/ZH |
 | `apps/web/app/(dash)/docs/docs-content.ts` | Updated | Printer setup steps in in-app guide |
+| `docs/audit/01-attack-surface.md` | Added | Fase 1 trust boundary and data flow map |
+| `docs/audit/security-runtime-inventory.md` | Added | Repository-wide runtime inventory for security scan |
+| `docs/audit/repository-coverage-ledger.md` | Added | Coverage ledger for repository-wide scan |
 
 ## Commits So Far
 
@@ -129,6 +133,7 @@ Lanjut Fase 1 audit keamanan: buat `docs/audit/01-attack-surface.md` dengan entr
 | `e603514` | `fix(worker): repair party ledger reminders [BUG-002]` | 2026-05-21 |
 | `f2547f5` | `fix(web): keep outlet selectors store-only [BUG-003]` | 2026-05-21 |
 | `ffa0b8d` | `fix(inventory): align Malioboro manager codes [BUG-004]` | 2026-05-21 |
+| `8a103f7` | `feat(admin): add correspondence register [BUG-005]` | 2026-05-21 |
 
 ## Handoff Notes
 
