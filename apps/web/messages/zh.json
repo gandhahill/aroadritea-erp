@@ -727,8 +727,8 @@
     "coa": "会计科目表",
     "journals": "日记账",
     "accountingEvidence": "交易凭证",
-    "payables": "Payables",
-    "receivables": "Receivables",
+    "payables": "应付账款",
+    "receivables": "应收账款",
     "fixedAssets": "固定资产",
     "periods": "会计期间",
     "pettyCash": "零用金",
@@ -778,10 +778,10 @@
     "promotions": "促销",
     "loyalty": "会员积分",
     "attendancePolicy": "考勤政策",
-    "supplies": "Supplies",
-    "categories": "Categories",
-    "stockByOutlet": "Stock by Outlet",
-    "correspondence": "Correspondence"
+    "supplies": "物料与消耗品",
+    "categories": "分类",
+    "stockByOutlet": "各门店库存",
+    "correspondence": "公函"
   },
   "pos": {
     "manualSales": {
