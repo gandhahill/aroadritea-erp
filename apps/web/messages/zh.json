@@ -797,6 +797,14 @@
       "total": "{count} 条收班记录"
     },
     "title": "收银台",
+    "operations": {
+      "orders": "订单",
+      "manualClosing": "旧POS收班",
+      "stock": "库存",
+      "reports": "报表",
+      "promos": "促销",
+      "settings": "POS设置"
+    },
     "openShift": "开班",
     "closeShift": "收班",
     "shiftOpen": "已开班",

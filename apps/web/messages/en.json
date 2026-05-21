@@ -768,6 +768,14 @@
   },
   "pos": {
     "title": "Point of Sale",
+    "operations": {
+      "orders": "Orders",
+      "manualClosing": "Legacy POS Closing",
+      "stock": "Stock",
+      "reports": "Reports",
+      "promos": "Promos",
+      "settings": "POS Settings"
+    },
     "manualSales": {
       "eyebrow": "Legacy POS",
       "title": "Manual Sales Entry",

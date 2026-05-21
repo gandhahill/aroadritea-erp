@@ -768,6 +768,14 @@
   },
   "pos": {
     "title": "Kasir",
+    "operations": {
+      "orders": "Pesanan",
+      "manualClosing": "Closing POS Lama",
+      "stock": "Stok",
+      "reports": "Laporan",
+      "promos": "Promosi",
+      "settings": "Pengaturan POS"
+    },
     "manualSales": {
       "eyebrow": "POS Lama",
       "title": "Input Penjualan Manual",

@@ -8,6 +8,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { useState } from 'react';
 import { ChannelSelector } from './channel-selector';
 import { MemberLookup } from './member-lookup';
@@ -25,7 +26,17 @@ export default function PosPage() {
   );
 
   return (
-    <div className="flex h-full flex-1 gap-0 overflow-hidden">
+    <div className="flex h-full flex-1 flex-col overflow-hidden">
+      <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-brand-cream-3 bg-card px-3 py-2">
+        <QuickLink href="/pos/orders">{t('operations.orders')}</QuickLink>
+        <QuickLink href="/pos/manual-sales">{t('operations.manualClosing')}</QuickLink>
+        <QuickLink href="/inventory/stock">{t('operations.stock')}</QuickLink>
+        <QuickLink href="/reporting/business-intelligence">{t('operations.reports')}</QuickLink>
+        <QuickLink href="/settings/promotions">{t('operations.promos')}</QuickLink>
+        <QuickLink href="/settings/pos">{t('operations.settings')}</QuickLink>
+      </div>
+
+      <div className="flex min-h-0 flex-1 gap-0 overflow-hidden">
       {/* Left: product panel */}
       <div className="flex w-1/2 flex-col border-r border-brand-cream-3 bg-card overflow-hidden">
         {/* Channel selector */}
@@ -108,7 +119,19 @@ export default function PosPage() {
       {showPayment && (
         <PaymentModal grandTotal={grandTotal.toString()} onClose={() => setShowPayment(false)} />
       )}
+      </div>
     </div>
+  );
+}
+
+function QuickLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="whitespace-nowrap rounded-md border border-brand-cream-3 bg-brand-cream-2 px-3 py-1.5 text-xs font-semibold text-brand-ink-2 hover:border-brand-red/40 hover:text-brand-red"
+    >
+      {children}
+    </Link>
   );
 }
 
