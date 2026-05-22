@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations, useLocale } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import {
   type RosterAssignment,
@@ -16,7 +17,6 @@ interface Props {
   canManage: boolean;
 }
 
-const DAYS_ID = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 
 function daysOfWeek(weekStart: string): string[] {
   return Array.from({ length: 7 }, (_, i) => {
@@ -27,6 +27,9 @@ function daysOfWeek(weekStart: string): string[] {
 }
 
 export function ScheduleGrid({ weekStart, options, initialAssignments, canManage }: Props) {
+  const t = useTranslations('hr.schedule');
+  const tc = useTranslations('common');
+  const locale = useLocale();
   const dates = useMemo(() => daysOfWeek(weekStart), [weekStart]);
   const [assignments, setAssignments] = useState(initialAssignments);
   const [busy, startTransition] = useTransition();
@@ -114,16 +117,16 @@ export function ScheduleGrid({ weekStart, options, initialAssignments, canManage
           href={`/hr/schedule?week=${prevWeek}`}
           className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink-2 hover:bg-brand-cream-1"
         >
-          ← Minggu sebelumnya
+          &larr; {t('prevWeek')}
         </Link>
         <p className="text-sm font-semibold text-brand-ink">
-          Minggu {weekStart} — {dates[6]}
+          {t('weekOf')} {weekStart} &mdash; {dates[6]}
         </p>
         <Link
           href={`/hr/schedule?week=${nextWeek}`}
           className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink-2 hover:bg-brand-cream-1"
         >
-          Minggu berikutnya →
+          {t('nextWeek')} &rarr;
         </Link>
       </div>
 
@@ -138,9 +141,9 @@ export function ScheduleGrid({ weekStart, options, initialAssignments, canManage
           <thead className="bg-brand-cream-1 text-left text-xs uppercase tracking-widest text-brand-ink-3">
             <tr>
               <th className="sticky left-0 z-10 bg-brand-cream-1 px-3 py-2">Karyawan</th>
-              {dates.map((date, i) => (
+              {dates.map((date) => (
                 <th key={date} className="px-3 py-2 text-center">
-                  <div>{DAYS_ID[i]}</div>
+                  <div className="capitalize">{new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(new Date(`${date}T12:00:00Z`))}</div>
                   <div className="text-[10px] font-normal text-brand-ink-3">{date.slice(5)}</div>
                 </th>
               ))}
@@ -204,7 +207,7 @@ export function ScheduleGrid({ weekStart, options, initialAssignments, canManage
             {options.employees.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-3 py-6 text-center text-brand-ink-3">
-                  Belum ada karyawan aktif.
+                  {t('emptyEmployees')}
                 </td>
               </tr>
             ) : null}

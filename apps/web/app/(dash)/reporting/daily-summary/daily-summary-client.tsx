@@ -227,6 +227,7 @@ export function DailySummaryClient({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialData.error ?? null);
   const t = useTranslations('reporting.dailySummary');
+  const tc = useTranslations('common');
 
   async function handleSearch() {
     if (!locationId) {
@@ -338,7 +339,7 @@ export function DailySummaryClient({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                 />
               </svg>
-              Memuat...
+              {tc('actions.loading')}
             </>
           ) : (
             t('show')
@@ -395,48 +396,48 @@ export function DailySummaryClient({
           {/* 6 main metrics */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <MetricCard
-              label="Gross Sales"
+              label={t('grossSales')}
               value={formatIDR(report.grossSales)}
               color="text-brand-ink"
             />
             <MetricCard
-              label="Total Diskon"
+              label={t('totalDiscount')}
               value={formatIDR(report.discountTotal)}
               color="text-rose-500"
-              sub="Dikurangi dari gross"
+              sub={t('deductedFromGross')}
             />
             <MetricCard
-              label="Net Sales"
+              label={t('netSales')}
               value={formatIDR(report.netSales)}
               color="text-brand-ink"
-              sub="Gross − Diskon"
+              sub={t('grossMinusDiscount')}
             />
             <MetricCard
-              label="PB1 (Pajak)"
+              label={t('taxPb1')}
               value={formatIDR(report.taxTotal)}
               color="text-brand-gold"
-              sub="10% PBJT inclusive"
+              sub={t('taxInclusive')}
             />
             <MetricCard
-              label="Komisi Delivery"
+              label={t('deliveryCommission')}
               value={formatIDR(report.commissionDelivery)}
               color="text-rose-500"
-              sub="20% dari ch. delivery"
+              sub={t('fromDelivery')}
             />
             <MetricCard
-              label="Net Revenue"
+              label={t('netRevenue')}
               value={formatIDR(report.netRevenue)}
               color="text-brand-jade"
-              sub="Net sales − komisi"
+              sub={t('netMinusCommission')}
             />
             <MetricCard
-              label="Refund Total"
+              label={t('refundTotal')}
               value={formatIDR(report.refundTotal)}
               color="text-rose-500"
-              sub={`${report.refundCount} transaksi`}
+              sub={t('transactions', { count: report.refundCount })}
             />
             <MetricCard
-              label="Refund Count"
+              label={t('refundCount')}
               value={String(report.refundCount)}
               color="text-brand-ink"
             />
@@ -453,13 +454,13 @@ export function DailySummaryClient({
                 <thead>
                   <tr className="border-b border-brand-cream-3">
                     <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">
-                      {t('method')}
+                      {tc('fields.method')}
                     </th>
                     <th className="px-4 py-2.5 text-right text-xs font-semibold text-brand-ink-2">
-                      {t('txCount')}
+                      {tc('fields.txCount')}
                     </th>
                     <th className="px-4 py-2.5 text-right text-xs font-semibold text-brand-ink-2">
-                      {t('total')}
+                      {tc('fields.totalAmount')}
                     </th>
                   </tr>
                 </thead>
@@ -509,7 +510,7 @@ export function DailySummaryClient({
 
             {/* Donut chart */}
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-              <h3 className="mb-4 text-sm font-semibold text-brand-ink">Distribusi Pembayaran</h3>
+              <h3 className="mb-4 text-sm font-semibold text-brand-ink">{t('paymentDistribution')}</h3>
               <DonutChart
                 segments={report.paymentBreakdown.map((row, idx) => ({
                   label: row.method,
@@ -524,7 +525,7 @@ export function DailySummaryClient({
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
               <div className="border-b border-brand-cream-3 bg-brand-cream-1 px-4 py-3">
-                <h3 className="text-sm font-semibold text-brand-ink">Top 10 Produk (by Nominal)</h3>
+                <h3 className="text-sm font-semibold text-brand-ink">{t('top10Products')}</h3>
               </div>
               <table className="w-full text-sm">
                 <thead>
@@ -577,7 +578,7 @@ export function DailySummaryClient({
 
             {/* Bar chart */}
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-              <h3 className="mb-4 text-sm font-semibold text-brand-ink">Top 5 Produk</h3>
+              <h3 className="mb-4 text-sm font-semibold text-brand-ink">{t('top5Products')}</h3>
               <BarChart
                 items={report.topProducts.slice(0, 5).map((row, idx) => ({
                   label: row.productName.slice(0, 24),
@@ -592,7 +593,7 @@ export function DailySummaryClient({
           {report.shiftSummary.length > 0 && (
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
               <div className="border-b border-brand-cream-3 bg-brand-cream-1 px-4 py-3">
-                <h3 className="text-sm font-semibold text-brand-ink">Ringkasan Shift</h3>
+                <h3 className="text-sm font-semibold text-brand-ink">{t('shiftSummary', { defaultMessage: 'Ringkasan Shift' })}</h3>
               </div>
               <table className="w-full text-sm">
                 <thead>

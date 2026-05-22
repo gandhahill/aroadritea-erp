@@ -13,14 +13,15 @@ export function VariantManager({
   variants,
 }: { productId: string; variants: VariantResult[] }) {
   const tc = useTranslations('common');
+  const tp = useTranslations('inventory.products');
   const [state, submitAction, isPending] = useActionState(createVariantAction, null);
 
   return (
     <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
       <div className="flex flex-col gap-1">
-        <h2 className="text-base font-semibold text-brand-ink">{tc('inventory.products.variantPrice')}</h2>
+        <h2 className="text-base font-semibold text-brand-ink">{tp('variantPrice')}</h2>
         <p className="text-sm text-brand-ink-3">
-          Gunakan untuk Regular/Large dan Hot/Cold. Harga varian dipakai POS saat tersedia.
+          {tp('variantDesc')}
         </p>
       </div>
 
@@ -28,19 +29,19 @@ export function VariantManager({
         <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
           <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
             <tr>
-              <th className="px-4 py-3">SKU</th>
-              <th className="px-4 py-3">Nama</th>
-              <th className="px-4 py-3">Atribut</th>
-              <th className="px-4 py-3 text-right">Harga</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Aksi</th>
+              <th className="px-4 py-3">{tc('fields.sku')}</th>
+              <th className="px-4 py-3">{tc('fields.name')}</th>
+              <th className="px-4 py-3">{tc('fields.attributes')}</th>
+              <th className="px-4 py-3 text-right">{tc('fields.price')}</th>
+              <th className="px-4 py-3">{tc('fields.status')}</th>
+              <th className="px-4 py-3 text-right">{tc('fields.actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-3 bg-card">
             {variants.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-6 text-center text-brand-ink-3">
-                  Belum ada varian.
+                  {tp('emptyVariants')}
                 </td>
               </tr>
             ) : (
@@ -89,50 +90,60 @@ export function VariantManager({
       <form action={submitAction} className="mt-5 grid gap-4 lg:grid-cols-6">
         <input type="hidden" name="productId" value={productId} />
         <label className="space-y-1.5 lg:col-span-1">
-          <span className="text-sm font-medium text-brand-ink">SKU varian</span>
+          <span className="text-sm font-medium text-brand-ink">{tp('skuVariant')}</span>
           <input name="variantSku" required className={INPUT} />
         </label>
         <label className="space-y-1.5 lg:col-span-2">
-          <span className="text-sm font-medium text-brand-ink">Nama varian</span>
+          <span className="text-sm font-medium text-brand-ink">{tp('variantName')}</span>
           <input name="variantNameId" required placeholder="Regular Cold" className={INPUT} />
           <input type="hidden" name="variantNameEn" value="" />
           <input type="hidden" name="variantNameZh" value="" />
         </label>
-        <label className="space-y-1.5">
-          <span className="text-sm font-medium text-brand-ink">Ukuran</span>
+        <label className="space-y-1.5 lg:col-span-1">
+          <span className="text-sm font-medium text-brand-ink">{tp('size')}</span>
           <select name="size" className={INPUT}>
             <option value="">-</option>
-            <option value="regular">Regular</option>
-            <option value="large">Large</option>
+            <option value="Regular">Regular</option>
+            <option value="Large">Large</option>
+            <option value="Small">Small</option>
           </select>
         </label>
-        <label className="space-y-1.5">
-          <span className="text-sm font-medium text-brand-ink">Suhu</span>
-          <select name="temperature" className={INPUT}>
+        <label className="space-y-1.5 lg:col-span-1">
+          <span className="text-sm font-medium text-brand-ink">{tp('temp')}</span>
+          <select name="temp" className={INPUT}>
             <option value="">-</option>
-            <option value="cold">Cold</option>
-            <option value="hot">Hot</option>
+            <option value="Hot">Hot</option>
+            <option value="Cold">Cold</option>
+            <option value="Warm">Warm</option>
+            <option value="Ice">Ice</option>
           </select>
         </label>
-        <label className="space-y-1.5">
-          <span className="text-sm font-medium text-brand-ink">Harga jual</span>
-          <input name="variantSellPrice" inputMode="numeric" required className={INPUT} />
+        <label className="space-y-1.5 lg:col-span-1">
+          <span className="text-sm font-medium text-brand-ink">{tp('sellingPrice')}</span>
+          <input name="variantSellPrice" type="number" required min={0} className={INPUT} />
         </label>
-        <label className="space-y-1.5">
-          <span className="text-sm font-medium text-brand-ink">Harga modal</span>
-          <input name="variantCostPrice" inputMode="numeric" defaultValue="0" className={INPUT} />
+        <label className="space-y-1.5 lg:col-span-1">
+          <span className="text-sm font-medium text-brand-ink">{tp('costPrice')}</span>
+          <input
+            name="variantCostPrice"
+            type="number"
+            required
+            min={0}
+            defaultValue={0}
+            className={INPUT}
+          />
         </label>
-        <label className="space-y-1.5">
-          <span className="text-sm font-medium text-brand-ink">Urutan</span>
-          <input name="variantSortOrder" type="number" min={0} defaultValue="0" className={INPUT} />
+        <label className="space-y-1.5 lg:col-span-1">
+          <span className="text-sm font-medium text-brand-ink">{tp('order')}</span>
+          <input name="variantSortOrder" type="number" required min={0} defaultValue={0} className={INPUT} />
         </label>
-        <div className="flex items-end">
+        <div className="flex items-end lg:col-span-2">
           <button
             type="submit"
             disabled={isPending}
-            className="w-full rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-ember-6 disabled:opacity-50"
+            className="w-full rounded-lg bg-brand-red px-4 py-2 font-semibold text-white shadow-sm hover:bg-brand-red-dark disabled:opacity-70"
           >
-            {isPending ? 'Menyimpan...' : 'Tambah varian'}
+            {isPending ? tc('actions.saving') : tp('addVariant')}
           </button>
         </div>
       </form>

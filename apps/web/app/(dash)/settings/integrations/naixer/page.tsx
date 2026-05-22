@@ -21,8 +21,11 @@ export const metadata: Metadata = {
   title: 'Naixer KDS — Integrations — Settings',
 };
 
+import { getTranslations } from 'next-intl/server';
+
 export default async function NaixerKdsPage() {
   const session = await getSession();
+  const t = await getTranslations('settings.naixer');
   if (!session) redirect('/login');
 
   const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
@@ -41,10 +44,9 @@ export default async function NaixerKdsPage() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Naixer KDS Integration</h1>
+          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Manage product code mappings, modifier code mappings, and QR format configuration for
-            the Naixer tea machine.
+            {t('subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-3">

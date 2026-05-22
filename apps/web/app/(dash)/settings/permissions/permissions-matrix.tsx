@@ -134,25 +134,25 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
         </div>
         <div className="grid gap-3 md:grid-cols-[1fr_1.3fr_1.3fr_1.3fr_auto]">
           <Input
-            label="Kode"
+            label={tc('fields.code')}
             value={newRole.code}
             onChange={(value) => setNewRole((current) => ({ ...current, code: value }))}
             placeholder="store_supervisor"
           />
           <Input
-            label="Nama ID"
+            label={tc('fields.nameId')}
             value={newRole.id}
             onChange={(value) => setNewRole((current) => ({ ...current, id: value }))}
             placeholder="Supervisor Outlet"
           />
           <Input
-            label="Nama EN"
+            label={tc('fields.nameEn')}
             value={newRole.en}
             onChange={(value) => setNewRole((current) => ({ ...current, en: value }))}
             placeholder="Store Supervisor"
           />
           <Input
-            label="Nama ZH"
+            label={tc('fields.nameZh')}
             value={newRole.zh}
             onChange={(value) => setNewRole((current) => ({ ...current, zh: value }))}
             placeholder="门店主管"
@@ -181,12 +181,12 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
               >
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-ink-3">
-                    Kode
+                    {tc('fields.code')}
                   </p>
                   <p className="mt-2 font-mono text-xs font-semibold text-brand-ink">{role.code}</p>
                 </div>
                 <Input
-                  label="Nama ID"
+                  label={tc('fields.nameId')}
                   value={draft.id}
                   onChange={(value) =>
                     setRoleDrafts((current) => ({
@@ -196,7 +196,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                   }
                 />
                 <Input
-                  label="Nama EN"
+                  label={tc('fields.nameEn')}
                   value={draft.en}
                   onChange={(value) =>
                     setRoleDrafts((current) => ({
@@ -206,7 +206,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                   }
                 />
                 <Input
-                  label="Nama ZH"
+                  label={tc('fields.nameZh')}
                   value={draft.zh}
                   onChange={(value) =>
                     setRoleDrafts((current) => ({

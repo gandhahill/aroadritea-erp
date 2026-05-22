@@ -51,6 +51,7 @@ interface Props {
 }
 
 export function DisciplinaryClient({ initialActions, employees }: Props) {
+  const t = useTranslations('hr.disciplinary');
   const tc = useTranslations('common');
   const [isPending, startTransition] = useTransition();
   const [filterLevel, setFilterLevel] = useState('');
@@ -121,16 +122,16 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Surat Peringatan</h1>
+          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            SP1 / SP2 / SP3 — disciplinary record management
+            {t('subtitle')}
           </p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
           className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6"
         >
-          {showForm ? tc('labels.cancel') : '+ Buat SP'}
+          {showForm ? tc('labels.cancel') : t('create')}
         </button>
       </div>
 
@@ -235,7 +236,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
           onChange={(e) => setFilterLevel(e.target.value)}
           className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink"
         >
-          <option value="">Semua Tingkat</option>
+          <option value="">{t('allLevels')}</option>
           <option value="SP1">SP1</option>
           <option value="SP2">SP2</option>
           <option value="SP3">SP3</option>
@@ -245,7 +246,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
           onChange={(e) => setFilterStatus(e.target.value)}
           className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink"
         >
-          <option value="">Semua Status</option>
+          <option value="">{t('allStatus')}</option>
           <option value="issued">Diterbitkan</option>
           <option value="acknowledged">Ditekankan</option>
           <option value="escalated">Dieselakan</option>
@@ -255,14 +256,14 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
           disabled={isPending}
           className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm text-brand-ink hover:bg-brand-cream-1 disabled:opacity-50"
         >
-          {isPending ? 'Memuat...' : 'Filter'}
+          {isPending ? tc('actions.loading') : t('filterBtn')}
         </button>
       </div>
 
       {/* List */}
       {actions.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-brand-cream-3 bg-card py-12 text-center">
-          <p className="text-sm text-brand-ink-3">Belum ada surat peringatan.</p>
+          <p className="text-sm text-brand-ink-3">{t('empty')}</p>
         </div>
       ) : (
         <div className="space-y-3">

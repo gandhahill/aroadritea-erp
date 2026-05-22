@@ -105,6 +105,27 @@
       "showing": "Menampilkan",
       "show": "Tampilkan",
       "rows": "baris"
+    },
+    "fields": {
+      "code": "Kode",
+      "nameId": "Nama (ID)",
+      "nameEn": "Nama (EN)",
+      "nameZh": "Nama (ZH)",
+      "type": "Tipe",
+      "subtype": "Subtipe",
+      "normalBalance": "Saldo Normal",
+      "parent": "Induk",
+      "method": "Metode",
+      "txCount": "Jumlah Transaksi",
+      "totalAmount": "Total",
+      "startDate": "Tanggal Mulai",
+      "endDate": "Tanggal Selesai",
+      "sku": "SKU",
+      "name": "Nama",
+      "attributes": "Atribut",
+      "price": "Harga",
+      "status": "Status",
+      "actions": "Aksi"
     }
   },
   "auth": {
@@ -878,9 +899,18 @@
       "searchSupplies": "Cari bahan / perlengkapan",
       "searchItemPlaceholder": "SKU atau nama item",
       "itemCount": "{count} item",
-      "costPrice": "HPP / Beli",
+      "costPrice": "Harga modal",
       "suppliesEmpty": "Belum ada bahan baku atau perlengkapan.",
-      "variantPrice": "Harga Varian"
+      "variantPrice": "Harga Varian",
+      "variantDesc": "Gunakan untuk Regular/Large dan Hot/Cold. Harga varian dipakai POS saat tersedia.",
+      "emptyVariants": "Belum ada varian.",
+      "skuVariant": "SKU varian",
+      "variantName": "Nama varian",
+      "size": "Ukuran",
+      "temp": "Suhu",
+      "sellingPrice": "Harga jual",
+      "order": "Urutan",
+      "addVariant": "Tambah varian"
     },
     "categories": {
       "title": "Kategori Produk",
@@ -1807,7 +1837,7 @@
       }
     },
     "disciplinary": {
-      "title": "Pelanggaran & Disipliner",
+      "title": "Surat Peringatan",
       "add": "Buat SP",
       "createTitle": "Buat Surat Peringatan Baru",
       "selectEmployee": "Pilih Karyawan",
@@ -1825,7 +1855,10 @@
       "statusPending": "Menunggu",
       "statusAcknowledged": "Dikonfirmasi",
       "noRecords": "Belum ada surat peringatan",
-      "subtitle": "Catat SP, pelanggaran SOP, dan catatan indisipliner."
+      "subtitle": "SP1/SP2/SP3 — disciplinary record management",
+      "empty": "Belum ada surat peringatan.",
+      "create": "+ Buat SP",
+      "filterBtn": "Filter"
     },
     "fields": {
       "required": "Wajib diisi",
@@ -1833,7 +1866,11 @@
     },
     "schedule": {
       "title": "Jadwal Shift Mingguan",
-      "subtitle": "Atur shift dan hari libur per karyawan. Klik sel untuk menambah / menghapus penugasan."
+      "subtitle": "Atur shift dan hari libur per karyawan. Klik sel untuk menambah / menghapus penugasan.",
+      "emptyEmployees": "Belum ada karyawan aktif.",
+      "prevWeek": "Minggu sebelumnya",
+      "nextWeek": "Minggu berikutnya",
+      "weekOf": "Minggu"
     }
   },
   "workflow": {
@@ -1935,8 +1972,8 @@
       "tax": "PB1 (Pajak)",
       "deliveryComm": "Komisi Delivery (20%)",
       "netRevenue": "Net Revenue",
-      "refundTotal": "Total Refund",
-      "refundCount": "Jumlah Refund",
+      "refundTotal": "Refund Total",
+      "refundCount": "Refund Count",
       "preliminary": "Preliminary",
       "yes": "Ya",
       "no": "Tidak",
@@ -1963,7 +2000,19 @@
       "endDate": "Tanggal Selesai",
       "noActiveOutletsOption": "Belum ada outlet aktif",
       "show": "Tampilkan",
-      "loading": "Memuat..."
+      "loading": "Memuat...",
+      "emptyOutlets": "Belum ada outlet aktif",
+      "paymentDistribution": "Distribusi Pembayaran",
+      "top10Products": "Top 10 Produk (by Nominal)",
+      "top5Products": "Top 5 Produk (by Qty)",
+      "deductedFromGross": "Dikurangi dari gross",
+      "grossMinusDiscount": "Gross − Diskon",
+      "taxPb1": "PB1 (Pajak)",
+      "taxInclusive": "10% PBJT inclusive",
+      "deliveryCommission": "Komisi Delivery",
+      "fromDelivery": "20% dari ch. delivery",
+      "netMinusCommission": "Net sales − komisi",
+      "transactions": "{count} transaksi"
     },
     "donations": {
       "title": "Laporan Donasi",
@@ -2378,6 +2427,10 @@
         "addProductMapping": "Tambah pemetaan produk",
         "addModifierMapping": "Tambah pemetaan modifier"
       }
+    },
+    "naixer": {
+      "title": "Integrasi Naixer KDS",
+      "subtitle": "Pengaturan koneksi dengan Naixer KDS berbasis QR Code."
     }
   },
   "shell": {

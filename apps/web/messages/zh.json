@@ -105,6 +105,27 @@
       "showing": "显示",
       "show": "显示",
       "rows": "行"
+    },
+    "fields": {
+      "code": "编码",
+      "nameId": "名称 (ID)",
+      "nameEn": "名称 (EN)",
+      "nameZh": "名称 (ZH)",
+      "type": "类型",
+      "subtype": "子类型",
+      "normalBalance": "正常余额",
+      "parent": "上级",
+      "method": "方法",
+      "txCount": "交易数量",
+      "totalAmount": "总计",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "sku": "SKU",
+      "name": "名称",
+      "attributes": "属性",
+      "price": "价格",
+      "status": "状态",
+      "actions": "操作"
     }
   },
   "auth": {
@@ -899,9 +920,18 @@
       "searchSupplies": "搜索原材料/耗材",
       "searchItemPlaceholder": "SKU或物品名称",
       "itemCount": "{count} 件物品",
-      "costPrice": "成本/采购价",
+      "costPrice": "成本价",
       "suppliesEmpty": "未找到原材料或耗材。",
-      "variantPrice": "多规格价格"
+      "variantPrice": "变体价格",
+      "variantDesc": "用于常规/大杯和热/冷杯。 POS 提供变体价格。",
+      "emptyVariants": "暂无变体。",
+      "skuVariant": "变体SKU",
+      "variantName": "变体名称",
+      "size": "大小",
+      "temp": "温度",
+      "sellingPrice": "售价",
+      "order": "排序",
+      "addVariant": "添加变体"
     },
     "opname": {
       "title": "库存盘点",
@@ -1780,7 +1810,7 @@
       }
     },
     "disciplinary": {
-      "title": "纪律与违规",
+      "title": "警告信",
       "add": "发出警告",
       "createTitle": "创建纪律处分通知",
       "selectEmployee": "选择员工",
@@ -1798,7 +1828,10 @@
       "statusPending": "待确认",
       "statusAcknowledged": "已确认",
       "noRecords": "暂无纪律记录",
-      "subtitle": "记录警告，违反标准作业程序和纪律处分说明。"
+      "subtitle": "SP1/SP2/SP3 — 纪律记录管理",
+      "empty": "暂无警告信。",
+      "create": "+ 创建警告信",
+      "filterBtn": "筛选"
     },
     "fields": {
       "required": "必填项",
@@ -1806,7 +1839,11 @@
     },
     "schedule": {
       "title": "每周排班表",
-      "subtitle": "管理每位员工的班次和休息日。点击单元格以添加/删除分配。"
+      "subtitle": "管理每位员工的班次和休息日。点击单元格以添加/删除分配。",
+      "emptyEmployees": "暂无活跃员工。",
+      "prevWeek": "上周",
+      "nextWeek": "下周",
+      "weekOf": "星期"
     }
   },
   "display": {
@@ -2089,6 +2126,10 @@
         "addProductMapping": "添加产品映射",
         "addModifierMapping": "添加修饰符映射"
       }
+    },
+    "naixer": {
+      "title": "Naixer KDS 集成",
+      "subtitle": "基于二维码的 Naixer KDS 连接设置。"
     }
   },
   "workflow": {
@@ -2216,7 +2257,7 @@
       "deliveryComm": "外卖佣金 (20%)",
       "netRevenue": "净收入",
       "refundTotal": "退款总额",
-      "refundCount": "退款笔数",
+      "refundCount": "退款数量",
       "preliminary": "初步",
       "yes": "是",
       "no": "否",
@@ -2243,7 +2284,19 @@
       "endDate": "结束日期",
       "noActiveOutletsOption": "没有激活的门店",
       "show": "显示",
-      "loading": "加载中..."
+      "loading": "加载中...",
+      "emptyOutlets": "暂无活跃门店",
+      "paymentDistribution": "付款分布",
+      "top10Products": "前10名产品（按金额）",
+      "top5Products": "前5名产品（按数量）",
+      "deductedFromGross": "从总销售额扣除",
+      "grossMinusDiscount": "总销售额 - 折扣",
+      "taxPb1": "PB1（税）",
+      "taxInclusive": "包含 10% PBJT",
+      "deliveryCommission": "外卖佣金",
+      "fromDelivery": "外卖渠道的 20%",
+      "netMinusCommission": "净销售额 - 佣金",
+      "transactions": "{count} 笔交易"
     },
     "donations": {
       "title": "捐款报告",
