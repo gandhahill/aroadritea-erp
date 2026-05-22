@@ -119,6 +119,7 @@
   },
   "accounting": {
     "journal": {
+      "exportExcel": "导出Excel",
       "title": "日记账",
       "create": "创建凭证",
       "post": "过账",

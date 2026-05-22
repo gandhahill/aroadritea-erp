@@ -119,6 +119,7 @@
   },
   "accounting": {
     "journal": {
+      "exportExcel": "Export Excel",
       "title": "General Journal",
       "create": "Create Journal Entry",
       "post": "Post",

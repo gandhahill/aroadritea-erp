@@ -119,6 +119,7 @@
   },
   "accounting": {
     "journal": {
+      "exportExcel": "Ekspor Excel",
       "title": "Jurnal Umum",
       "create": "Buat Jurnal",
       "post": "Posting",
