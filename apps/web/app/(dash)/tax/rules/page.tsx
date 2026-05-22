@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import {
   deleteTaxRuleAction,
   fetchTaxRuleOptions,
@@ -13,16 +13,16 @@ export const metadata: Metadata = {
 
 export default async function TaxRulesPage() {
   const locale = await getLocale();
+  const t = await getTranslations('tax.rules');
   const [rows, taxOptions] = await Promise.all([fetchTaxRules(), fetchTaxRuleOptions()]);
 
   return (
     <div className="space-y-6">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">Tax</p>
-        <h1 className="mt-2 text-2xl font-bold text-brand-ink">Tax Rules</h1>
+        <h1 className="mt-2 text-2xl font-bold text-brand-ink">{t('title')}</h1>
         <p className="mt-1 max-w-2xl text-sm text-brand-ink-3">
-          Rule pajak menentukan PBJT/PPN berdasarkan channel, segmen pelanggan, kategori produk,
-          atau default global.
+          {t('subtitle')}
         </p>
       </div>
 
@@ -34,14 +34,14 @@ export default async function TaxRulesPage() {
           name="scopeKind"
           className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm"
         >
-          <option value="global_default">Global default</option>
-          <option value="channel">Channel</option>
-          <option value="customer_segment">Customer segment</option>
-          <option value="product_category">Product category</option>
+          <option value="global_default">{t('scope.global_default')}</option>
+          <option value="channel">{t('scope.channel')}</option>
+          <option value="customer_segment">{t('scope.customer_segment')}</option>
+          <option value="product_category">{t('scope.product_category')}</option>
         </select>
         <input
           name="scopeId"
-          placeholder="Scope ID, kosong untuk global"
+          placeholder={t('placeholders.scopeId')}
           className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm"
         />
         <select
@@ -73,13 +73,13 @@ export default async function TaxRulesPage() {
         />
         <label className="inline-flex items-center gap-2 text-sm text-brand-ink-2">
           <input name="isAppliedDefault" type="checkbox" defaultChecked />
-          Default diterapkan
+          {t('defaultApplied')}
         </label>
         <button
           type="submit"
           className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90"
         >
-          Simpan rule
+          {t('saveRule')}
         </button>
       </form>
 
@@ -87,42 +87,42 @@ export default async function TaxRulesPage() {
         <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
           <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
             <tr>
-              <th className="px-4 py-3">Scope</th>
-              <th className="px-4 py-3">Tax</th>
-              <th className="px-4 py-3">Default</th>
-              <th className="px-4 py-3 text-right">Priority</th>
-              <th className="px-4 py-3">Effective</th>
-              <th className="px-4 py-3">Aksi</th>
+              <th className="px-4 py-3">{t('columns.scope')}</th>
+              <th className="px-4 py-3">{t('columns.tax')}</th>
+              <th className="px-4 py-3">{t('columns.default')}</th>
+              <th className="px-4 py-3 text-right">{t('columns.priority')}</th>
+              <th className="px-4 py-3">{t('columns.effective')}</th>
+              <th className="px-4 py-3">{t('columns.actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-3 bg-card">
             {rows.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-brand-ink-3">
-                  Belum ada tax rule.
+                  {t('empty')}
                 </td>
               </tr>
             ) : (
               rows.map((rule) => (
                 <tr key={rule.id}>
                   <td className="px-4 py-3">
-                    <p className="font-semibold text-brand-ink">{rule.scopeKind}</p>
-                    <p className="text-xs text-brand-ink-3">{rule.scopeId ?? 'global'}</p>
+                    <p className="font-semibold text-brand-ink">{t(`scope.${rule.scopeKind}`)}</p>
+                    <p className="text-xs text-brand-ink-3">{rule.scopeId ?? t('global')}</p>
                   </td>
                   <td className="px-4 py-3">
                     <p className="font-mono text-xs font-semibold text-brand-ink">{rule.taxCode}</p>
                     <p className="text-xs text-brand-ink-3">{pickName(rule.taxName, locale)}</p>
                   </td>
-                  <td className="px-4 py-3">{rule.isAppliedDefault ? 'Ya' : 'Tidak'}</td>
+                  <td className="px-4 py-3">{rule.isAppliedDefault ? t('yes') : t('no')}</td>
                   <td className="px-4 py-3 text-right">{rule.priority}</td>
                   <td className="px-4 py-3 text-brand-ink-3">
-                    {formatDate(rule.effectiveFrom, locale)} -{' '}
-                    {formatDate(rule.effectiveUntil, locale)}
+                    {formatDate(rule.effectiveFrom, locale, t('onwards'))} -{' '}
+                    {formatDate(rule.effectiveUntil, locale, t('onwards'))}
                   </td>
                   <td className="px-4 py-3">
                     <details>
                       <summary className="cursor-pointer text-xs font-semibold text-brand-red">
-                        Edit
+                        {t('edit')}
                       </summary>
                       <form action={saveTaxRuleAction} className="mt-3 grid min-w-80 gap-2">
                         <input type="hidden" name="id" value={rule.id} />
@@ -131,10 +131,10 @@ export default async function TaxRulesPage() {
                           defaultValue={rule.scopeKind}
                           className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs"
                         >
-                          <option value="global_default">Global default</option>
-                          <option value="channel">Channel</option>
-                          <option value="customer_segment">Customer segment</option>
-                          <option value="product_category">Product category</option>
+                          <option value="global_default">{t('scope.global_default')}</option>
+                          <option value="channel">{t('scope.channel')}</option>
+                          <option value="customer_segment">{t('scope.customer_segment')}</option>
+                          <option value="product_category">{t('scope.product_category')}</option>
                         </select>
                         <input
                           name="scopeId"
@@ -176,19 +176,19 @@ export default async function TaxRulesPage() {
                             type="checkbox"
                             defaultChecked={rule.isAppliedDefault}
                           />
-                          Default
+                          {t('columns.default')}
                         </label>
                         <button
                           type="submit"
                           className="rounded bg-brand-red px-3 py-1.5 text-xs font-semibold text-white"
                         >
-                          Simpan
+                          {t('save')}
                         </button>
                       </form>
                       <form action={deleteTaxRuleAction} className="mt-2">
                         <input type="hidden" name="id" value={rule.id} />
                         <button type="submit" className="text-xs font-semibold text-brand-red">
-                          Hapus
+                          {t('delete')}
                         </button>
                       </form>
                     </details>
@@ -208,8 +208,8 @@ function pickName(name: Record<string, string> | null, locale: string) {
   return name[locale] ?? name.id ?? name.en ?? name.zh ?? '-';
 }
 
-function formatDate(value: string | null, locale: string) {
-  if (!value) return 'seterusnya';
+function formatDate(value: string | null, locale: string, tOnwards: string) {
+  if (!value) return tOnwards;
   const intlLocale = locale === 'zh' ? 'zh-CN' : locale === 'en' ? 'en-US' : 'id-ID';
   return new Intl.DateTimeFormat(intlLocale, { dateStyle: 'medium' }).format(new Date(value));
 }

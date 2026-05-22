@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { forgiveLateAction } from './actions';
+import { useTranslations } from 'next-intl';
 
 interface AttendanceRow {
   id: string;
@@ -63,6 +64,7 @@ export function AttendanceListClient({
   initialDateTo,
   employees,
 }: Props) {
+  const t = useTranslations('hr.attendance');
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [forgiveId, setForgiveId] = useState<string | null>(null);
@@ -121,7 +123,7 @@ export function AttendanceListClient({
           }
           className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
         >
-          <option value="">Semua Karyawan</option>
+          <option value="">{t('allEmployees')}</option>
           {employees.map((e) => (
             <option key={e.value} value={e.value}>
               {e.label}
@@ -130,7 +132,7 @@ export function AttendanceListClient({
         </select>
 
         <div className="flex items-center gap-2 text-sm text-brand-ink-3">
-          <span>Dari</span>
+          <span>{t('from')}</span>
           <input
             type="date"
             value={initialDateFrom}
@@ -144,7 +146,7 @@ export function AttendanceListClient({
             }
             className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
           />
-          <span>Sampai</span>
+          <span>{t('to')}</span>
           <input
             type="date"
             value={initialDateTo}
@@ -177,21 +179,21 @@ export function AttendanceListClient({
               d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
             />
           </svg>
-          <h3 className="mt-3 text-base font-semibold text-brand-ink">Belum ada presensi</h3>
-          <p className="mt-1 text-sm text-brand-ink-3">Riwayat clock-in/out akan tampil di sini.</p>
+          <h3 className="mt-3 text-base font-semibold text-brand-ink">{t('emptyTitle')}</h3>
+          <p className="mt-1 text-sm text-brand-ink-3">{t('emptySubtitle')}</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Karyawan</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Shift</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Masuk</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Pulang</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Metode</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Telat</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Jam kerja</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.employee')}</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.shift')}</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.checkIn')}</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.checkOut')}</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.method')}</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.late')}</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.workedHours')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
@@ -213,15 +215,15 @@ export function AttendanceListClient({
                           className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade/10 px-2.5 py-0.5 text-xs font-medium text-brand-jade"
                           title={row.lateForgivenReason ?? ''}
                         >
-                          +{row.lateMinutes}m (dispensasi)
+                          {t('forgiven', { minutes: row.lateMinutes })}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-medium text-rose-500">
-                          +{row.lateMinutes}m
+                          {t('lateMinutesDisplay', { minutes: row.lateMinutes })}
                         </span>
                       )
                     ) : (
-                      <span className="text-xs text-brand-jade">Tepat Waktu</span>
+                      <span className="text-xs text-brand-jade">{t('onTime')}</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-brand-ink-2">{formatMinutes(row.workedMinutes)}</td>
@@ -236,7 +238,7 @@ export function AttendanceListClient({
                         }}
                         className="rounded-md border border-brand-cream-3 px-2.5 py-1 text-xs font-semibold text-brand-ink-2 hover:border-brand-jade/40 hover:text-brand-jade"
                       >
-                        Dispensasi
+                        {t('forgiveBtn')}
                       </button>
                     ) : null}
                   </td>
@@ -251,16 +253,15 @@ export function AttendanceListClient({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-md rounded-xl bg-card p-5 shadow-xl">
             <h3 className="text-base font-semibold text-brand-ink">
-              Beri dispensasi keterlambatan
+              {t('forgiveModalTitle')}
             </h3>
             <p className="mt-1 text-sm text-brand-ink-3">
-              Catat alasan agar audit trail jelas. Setelah dispensasi, kejadian ini tidak dihitung
-              untuk denda payroll.
+              {t('forgiveModalDesc')}
             </p>
             <textarea
               value={forgiveReason}
               onChange={(event) => setForgiveReason(event.target.value)}
-              placeholder="Mis. shift dimajukan dadakan oleh manajer."
+              placeholder={t('forgiveReasonPlaceholder')}
               className="mt-3 h-24 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
             />
             {forgiveErr ? <p className="mt-1 text-xs text-rose-600">{forgiveErr}</p> : null}
@@ -270,7 +271,7 @@ export function AttendanceListClient({
                 onClick={() => setForgiveId(null)}
                 className="rounded-md border border-brand-cream-3 px-3 py-2 text-sm font-semibold text-brand-ink-3 hover:bg-brand-cream-1"
               >
-                Batal
+                {t('cancel')}
               </button>
               <button
                 type="button"
@@ -278,7 +279,7 @@ export function AttendanceListClient({
                 disabled={forgiving}
                 className="rounded-md bg-brand-red px-3 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
               >
-                {forgiving ? 'Menyimpan...' : 'Konfirmasi'}
+                {forgiving ? t('saving') : t('confirm')}
               </button>
             </div>
           </div>
@@ -289,7 +290,7 @@ export function AttendanceListClient({
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-brand-ink-3">
-            Halaman {page} dari {totalPages} — {total} entri
+            {t('pagination', { page, total: totalPages, count: total })}
           </p>
           <div className="flex items-center gap-2">
             <button
@@ -297,14 +298,14 @@ export function AttendanceListClient({
               disabled={page <= 1}
               className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink disabled:cursor-not-allowed disabled:opacity-40 hover:bg-brand-cream-1"
             >
-              ← Sebelumnya
+              {t('prev')}
             </button>
             <button
               onClick={() => applyFilter({ page: page + 1 })}
               disabled={page >= totalPages}
               className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink disabled:cursor-not-allowed disabled:opacity-40 hover:bg-brand-cream-1"
             >
-              Berikutnya →
+              {t('next')}
             </button>
           </div>
         </div>

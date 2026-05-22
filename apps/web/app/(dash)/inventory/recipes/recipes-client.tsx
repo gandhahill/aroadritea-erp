@@ -26,6 +26,7 @@ const INPUT =
   'h-9 w-full rounded-md border border-brand-cream-3 bg-card px-2.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20';
 
 export function RecipesClient({ initial }: Props) {
+  const t = useTranslations('inventory.recipes');
   const tc = useTranslations('common.labels');
   const [recipes, setRecipes] = useState(initial.recipes);
   const [selectedBomId, setSelectedBomId] = useState<string | null>(
@@ -73,13 +74,13 @@ export function RecipesClient({ initial }: Props) {
   function submitNewRecipe() {
     setErr(null);
     if (!newRecipe.productId) {
-      setErr('Pilih produk jadi.');
+      setErr(t('errors.selectProduct'));
       return;
     }
     startTransition(async () => {
       const res = await createRecipeAction(newRecipe);
       if (!res.ok || !res.id) {
-        setErr(res.error ?? 'Gagal membuat resep.');
+        setErr(res.error ?? t('errors.createFailed'));
         return;
       }
       const bomId = res.id;
@@ -107,8 +108,9 @@ export function RecipesClient({ initial }: Props) {
   function submitNewLine() {
     if (!selectedBomId) return;
     setErr(null);
-    if (!newLine.ingredientId || !newLine.qty) {
-      setErr('Pilih bahan dan isi qty.');
+    const qtyNum = parseFloat(newLine.qty);
+    if (!newLine.ingredientId || !Number.isFinite(qtyNum) || qtyNum <= 0) {
+      setErr(t('errors.selectIngredient'));
       return;
     }
     startTransition(async () => {
@@ -122,7 +124,7 @@ export function RecipesClient({ initial }: Props) {
         autoDeduct: newLine.autoDeduct,
       });
       if (!res.ok) {
-        setErr(res.error ?? 'Gagal menambah bahan.');
+        setErr(res.error ?? t('errors.addFailed'));
         return;
       }
       const rows = await fetchRecipeLines(selectedBomId);
@@ -140,7 +142,7 @@ export function RecipesClient({ initial }: Props) {
     startTransition(async () => {
       const res = await deleteRecipeLineAction(lineId);
       if (!res.ok) {
-        setErr(res.error ?? 'Gagal menghapus bahan.');
+        setErr(res.error ?? t('errors.deleteLineFailed'));
         return;
       }
       const rows = await fetchRecipeLines(selectedBomId);
@@ -156,7 +158,7 @@ export function RecipesClient({ initial }: Props) {
     startTransition(async () => {
       const res = await deleteRecipeAction(bomId);
       if (!res.ok) {
-        setErr(res.error ?? 'Gagal menghapus resep.');
+        setErr(res.error ?? t('errors.deleteFailed'));
         return;
       }
       setRecipes((prev) => prev.filter((r) => r.bomId !== bomId));
@@ -171,7 +173,7 @@ export function RecipesClient({ initial }: Props) {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Cari produk…"
+            placeholder={t('searchPlaceholder')}
             className={INPUT}
           />
           <button
@@ -179,7 +181,7 @@ export function RecipesClient({ initial }: Props) {
             onClick={() => setShowNew((v) => !v)}
             className="shrink-0 rounded-md bg-brand-red px-3 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark"
           >
-            {showNew ? 'Batal' : '+ Resep'}
+            {showNew ? t('cancel') : t('newRecipe')}
           </button>
         </div>
 
@@ -196,7 +198,7 @@ export function RecipesClient({ initial }: Props) {
               onChange={(e) => setNewRecipe((p) => ({ ...p, productId: e.target.value }))}
               className={INPUT}
             >
-              <option value="">Pilih produk jadi…</option>
+              <option value="">{t('selectProduct')}</option>
               {initial.finishedGoods.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.sku} — {p.name}
@@ -206,7 +208,7 @@ export function RecipesClient({ initial }: Props) {
             <input
               value={newRecipe.description}
               onChange={(e) => setNewRecipe((p) => ({ ...p, description: e.target.value }))}
-              placeholder="Catatan (opsional)"
+              placeholder={t('notePlaceholder')}
               className={INPUT}
             />
             <button
@@ -215,7 +217,7 @@ export function RecipesClient({ initial }: Props) {
               disabled={busy}
               className="w-full rounded-md bg-brand-red px-3 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
             >
-              {busy ? 'Menyimpan…' : 'Buat resep'}
+              {busy ? t('saving') : t('createRecipe')}
             </button>
           </div>
         ) : null}
@@ -223,7 +225,7 @@ export function RecipesClient({ initial }: Props) {
         <ul className="max-h-[60vh] overflow-y-auto rounded-lg border border-brand-cream-3 bg-card">
           {filtered.length === 0 ? (
             <li className="px-3 py-6 text-center text-xs text-brand-ink-3">
-              {recipes.length === 0 ? 'Belum ada resep.' : 'Tidak ditemukan.'}
+              {recipes.length === 0 ? t('noRecipes') : t('notFound')}
             </li>
           ) : (
             filtered.map((r) => (
@@ -237,7 +239,7 @@ export function RecipesClient({ initial }: Props) {
                 >
                   <p className="font-medium text-brand-ink">{r.productName}</p>
                   <p className="text-[11px] text-brand-ink-3">
-                    {r.productSku} · {r.lineCount} bahan
+                    {r.productSku} · {r.lineCount} {t('ingredientsList')}
                   </p>
                 </button>
               </li>
@@ -250,13 +252,13 @@ export function RecipesClient({ initial }: Props) {
         {selectedBomId ? (
           <div className="rounded-xl border border-brand-cream-3 bg-card p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-brand-ink">Bahan resep</h2>
+              <h2 className="text-base font-semibold text-brand-ink">{t('recipeIngredients')}</h2>
               <button
                 type="button"
                 onClick={() => removeRecipe(selectedBomId)}
                 className="text-xs text-brand-ink-3 hover:text-brand-red"
               >
-                Hapus resep
+                {t('deleteRecipe')}
               </button>
             </div>
 
@@ -273,7 +275,7 @@ export function RecipesClient({ initial }: Props) {
                 }}
                 className={INPUT}
               >
-                <option value="">Pilih bahan…</option>
+                <option value="">{t('selectIngredient')}</option>
                 {initial.ingredients.map((i) => (
                   <option key={i.id} value={i.id}>
                     {i.sku} — {i.name} ({i.uom})
@@ -286,13 +288,13 @@ export function RecipesClient({ initial }: Props) {
                 min="0"
                 value={newLine.qty}
                 onChange={(e) => setNewLine((p) => ({ ...p, qty: e.target.value }))}
-                placeholder="Qty"
+                placeholder={t('qty')}
                 className={INPUT}
               />
               <input
                 value={newLine.uom}
                 onChange={(e) => setNewLine((p) => ({ ...p, uom: e.target.value }))}
-                placeholder="UOM"
+                placeholder={t('uom')}
                 className={INPUT}
               />
               <button
@@ -301,7 +303,7 @@ export function RecipesClient({ initial }: Props) {
                 disabled={busy}
                 className="rounded-md bg-brand-red px-3 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
               >
-                + Bahan
+                {t('addIngredient')}
               </button>
               <label className="flex items-center gap-2 text-xs font-medium text-brand-ink-2 md:col-span-2">
                 <input
@@ -310,7 +312,7 @@ export function RecipesClient({ initial }: Props) {
                   onChange={(e) => setNewLine((p) => ({ ...p, autoDeduct: e.target.checked }))}
                   className="h-4 w-4 rounded border-brand-cream-3 text-brand-red"
                 />
-                Kurangi stok otomatis saat POS terjual
+                {t('autoDeductLabel')}
               </label>
             </div>
 
@@ -318,10 +320,10 @@ export function RecipesClient({ initial }: Props) {
               <thead className="bg-brand-cream-1 text-left text-xs uppercase tracking-wider text-brand-ink-3">
                 <tr>
                   <th className="px-3 py-2">#</th>
-                  <th className="px-3 py-2">Bahan</th>
-                  <th className="px-3 py-2 text-right">Qty</th>
-                  <th className="px-3 py-2">UOM</th>
-                  <th className="px-3 py-2">Auto</th>
+                  <th className="px-3 py-2">{t('columns.ingredient')}</th>
+                  <th className="px-3 py-2 text-right">{t('columns.qty')}</th>
+                  <th className="px-3 py-2">{t('columns.uom')}</th>
+                  <th className="px-3 py-2">{t('columns.auto')}</th>
                   <th className="px-3 py-2" />
                 </tr>
               </thead>
@@ -329,13 +331,13 @@ export function RecipesClient({ initial }: Props) {
                 {!selectedLines ? (
                   <tr>
                     <td colSpan={6} className="px-3 py-4 text-center text-xs text-brand-ink-3">
-                      Memuat bahan…
+                      {t('loadingIngredients')}
                     </td>
                   </tr>
                 ) : selectedLines.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-3 py-4 text-center text-xs text-brand-ink-3">
-                      Belum ada bahan. Tambahkan di atas.
+                      {t('noIngredients')}
                     </td>
                   </tr>
                 ) : (
@@ -359,7 +361,7 @@ export function RecipesClient({ initial }: Props) {
                           onClick={() => removeLine(l.id)}
                           className="text-xs text-brand-ink-3 hover:text-brand-red"
                         >
-                          Hapus
+                          {tc('delete')}
                         </button>
                       </td>
                     </tr>
@@ -370,7 +372,7 @@ export function RecipesClient({ initial }: Props) {
           </div>
         ) : (
           <div className="rounded-xl border border-dashed border-brand-cream-3 p-10 text-center text-sm text-brand-ink-3">
-            Pilih resep di sebelah kiri untuk mengedit bahan.
+            {t('selectRecipePrompt')}
           </div>
         )}
       </section>

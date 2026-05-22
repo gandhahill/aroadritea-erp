@@ -10,6 +10,7 @@
 import { exportWorkbook } from '@/lib/export-workbook';
 import type { DailySummaryResult } from '@erp/services/reporting';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { ExportXlsxButton } from '../export-button';
 import { fetchDailySummary } from './actions';
 
@@ -223,6 +224,7 @@ export function DailySummaryClient({
   const [data, setData] = useState<DailySummaryResult | null>(initialData.data ?? null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialData.error ?? null);
+  const t = useTranslations('reporting.dailySummary');
 
   async function handleSearch() {
     if (!locationId) {
@@ -241,7 +243,7 @@ export function DailySummaryClient({
         setData(result.data);
       }
     } catch (err) {
-      setError('Gagal memuat data. Silakan coba lagi.');
+      setError(t('loadFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -258,7 +260,7 @@ export function DailySummaryClient({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Ringkasan Harian</h1>
+          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
           <p className="mt-1 text-sm text-brand-ink-3">Laporan penjualan harian per lokasi.</p>
         </div>
         {report && <ExportXlsxButton onExport={() => exportXLSX(report, selectedLocationLabel)} />}
@@ -365,7 +367,7 @@ export function DailySummaryClient({
               d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"
             />
           </svg>
-          <h3 className="mt-3 text-base font-semibold text-brand-ink">Pilih tanggal dan lokasi</h3>
+          <h3 className="mt-3 text-base font-semibold text-brand-ink">{t('selectDateLocation')}</h3>
           <p className="mt-1 text-sm text-brand-ink-3">
             Klik "Tampilkan" untuk melihat ringkasan harian.
           </p>
@@ -445,7 +447,7 @@ export function DailySummaryClient({
             {/* Payment table */}
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
               <div className="border-b border-brand-cream-3 bg-brand-cream-1 px-4 py-3">
-                <h3 className="text-sm font-semibold text-brand-ink">Rincian Pembayaran</h3>
+                <h3 className="text-sm font-semibold text-brand-ink">{t('paymentDetails')}</h3>
               </div>
               <table className="w-full text-sm">
                 <thead>
@@ -465,7 +467,7 @@ export function DailySummaryClient({
                   {report.paymentBreakdown.length === 0 ? (
                     <tr>
                       <td colSpan={3} className="px-4 py-8 text-center text-brand-ink-3">
-                        Tidak ada pembayaran
+                        {t('noPayments')}
                       </td>
                     </tr>
                   ) : (

@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   type OrderDetail,
   type OrderListRow,
@@ -39,13 +40,13 @@ function formatTime(iso: string): string {
   });
 }
 
-function channelLabel(channel: string): string {
+function channelLabel(channel: string, t: any): string {
   switch (channel) {
     case 'dine_in':
     case 'walk_in':
-      return 'Dine In';
+      return t('typeDineIn');
     case 'take_away':
-      return 'Take Away';
+      return t('typeTakeaway');
     case 'gofood':
       return 'GoFood';
     case 'grabfood':
@@ -61,16 +62,16 @@ function channelLabel(channel: string): string {
   }
 }
 
-function statusBadge(status: string): { label: string; cls: string } {
+function statusBadge(status: string, t: any): { label: string; cls: string } {
   switch (status) {
     case 'paid':
-      return { label: 'Lunas', cls: 'bg-brand-jade-light text-brand-jade' };
+      return { label: t('statusPaid_label'), cls: 'bg-brand-jade-light text-brand-jade' };
     case 'open':
-      return { label: 'Terbuka', cls: 'bg-brand-cream-2 text-brand-ink-3' };
+      return { label: t('statusPending_label'), cls: 'bg-brand-cream-2 text-brand-ink-3' };
     case 'refunded':
-      return { label: 'Refund', cls: 'bg-brand-clay-light text-brand-clay' };
+      return { label: t('statusRefunded_label'), cls: 'bg-brand-clay-light text-brand-clay' };
     case 'voided':
-      return { label: 'Void', cls: 'bg-rose-100 text-rose-700' };
+      return { label: t('statusVoided_label'), cls: 'bg-rose-100 text-rose-700' };
     default:
       return { label: status, cls: 'bg-brand-cream-2 text-brand-ink-3' };
   }
@@ -86,6 +87,8 @@ export function OrdersClient({ rows }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, startSubmit] = useTransition();
   const [refundLines, setRefundLines] = useState<Map<string, number>>(new Map());
+
+  const t = useTranslations('pos.orders');
 
   async function openDetail(orderId: string) {
     setSelectedId(orderId);
@@ -168,7 +171,7 @@ export function OrdersClient({ rows }: Props) {
   if (rows.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-brand-cream-3 bg-card p-10 text-center text-sm text-brand-ink-3">
-        Belum ada pesanan untuk tanggal ini.
+        {t('empty')}
       </div>
     );
   }
@@ -179,20 +182,20 @@ export function OrdersClient({ rows }: Props) {
         <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
           <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
             <tr>
-              <th className="px-4 py-3">No. Pesanan</th>
-              <th className="px-4 py-3">Jam</th>
-              <th className="px-4 py-3">Channel</th>
+              <th className="px-4 py-3">{t('table.orderNo')}</th>
+              <th className="px-4 py-3">{t('table.time')}</th>
+              <th className="px-4 py-3">{t('table.channel')}</th>
               <th className="px-4 py-3">Kasir</th>
               <th className="px-4 py-3">Metode</th>
-              <th className="px-4 py-3 text-right">Total</th>
-              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3 text-right">{t('table.total')}</th>
+              <th className="px-4 py-3">{t('table.status')}</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-3">
             {rows.map((r) => {
               const isSelected = selectedId === r.id;
-              const status = statusBadge(r.status);
+              const status = statusBadge(r.status, t);
               return (
                 <tr
                   key={r.id}
@@ -208,7 +211,7 @@ export function OrdersClient({ rows }: Props) {
                   <td className="px-4 py-2.5 font-mono text-xs text-brand-ink">{r.number}</td>
                   <td className="px-4 py-2.5 text-xs text-brand-ink-2">{formatTime(r.placedAt)}</td>
                   <td className="px-4 py-2.5 text-xs text-brand-ink-2">
-                    {channelLabel(r.channel)}
+                    {channelLabel(r.channel, t)}
                   </td>
                   <td className="px-4 py-2.5 text-xs text-brand-ink-2">{r.cashierName}</td>
                   <td className="px-4 py-2.5 text-xs text-brand-ink-2">
@@ -233,7 +236,7 @@ export function OrdersClient({ rows }: Props) {
                         openDetail(r.id);
                       }}
                     >
-                      Lihat
+                      {t('detail')}
                     </button>
                   </td>
                 </tr>
@@ -261,7 +264,7 @@ export function OrdersClient({ rows }: Props) {
                 <p className="text-xs uppercase tracking-widest text-brand-ink-3">Pesanan</p>
                 <p className="font-mono text-base font-semibold text-brand-ink">{detail.number}</p>
                 <p className="mt-0.5 text-xs text-brand-ink-3">
-                  {channelLabel(detail.channel)} · {detail.cashierName} ·{' '}
+                  {channelLabel(detail.channel, t)} · {detail.cashierName} ·{' '}
                   {formatTime(detail.placedAt)}
                 </p>
               </div>

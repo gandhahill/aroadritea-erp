@@ -9,6 +9,7 @@ import { db, desc, eq, sql } from '@erp/db';
 import { attendance, employees, shiftDefinitions } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { AttendanceListClient } from './attendance-list-client';
 
 export const metadata: Metadata = { title: 'Attendance' };
@@ -98,12 +99,14 @@ export default async function AttendancePage({
     .where(eq(employees.tenantId, tenantId))
     .orderBy(employees.name);
 
+  const t = await getTranslations('hr.attendance');
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Presensi</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">Riwayat clock-in/out — {total} entri</p>
+          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
+          <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle', { total })}</p>
         </div>
       </div>
 

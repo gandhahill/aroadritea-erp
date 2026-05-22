@@ -94,7 +94,9 @@
       "of": "dari",
       "next": "Berikutnya",
       "previous": "Sebelumnya",
-      "showing": "Menampilkan"
+      "showing": "Menampilkan",
+      "show": "Tampilkan",
+      "rows": "baris"
     }
   },
   "auth": {
@@ -121,7 +123,25 @@
     "journal": {
       "exportExcel": "Ekspor Excel",
       "title": "Jurnal Umum",
-      "create": "Buat Jurnal",
+      "subtitle": "Lihat dan kelola entri jurnal umum.",
+      "entryCount": "{count} entri",
+      "create": "Jurnal Baru",
+      "table": {
+        "searchPlaceholder": "Cari no. jurnal atau deskripsi",
+        "reset": "Reset",
+        "all": "Semua",
+        "noNumber": "No. Jurnal",
+        "date": "Tanggal",
+        "description": "Deskripsi",
+        "type": "Tipe",
+        "amount": "Nominal",
+        "status": "Status",
+        "empty": "Tidak ada jurnal",
+        "emptyHint": "Coba ubah filter atau kata kunci pencarian.",
+        "account": "Akun",
+        "debit": "Debit",
+        "credit": "Kredit"
+      },
       "post": "Posting",
       "reverse": "Balik",
       "postingDate": "Tanggal Posting",
@@ -306,27 +326,77 @@
     },
     "reimbursement": {
       "title": "Reimbursement",
-      "subtitle": "Ajukan dan kelola reimbursement.",
+      "subtitle": "Ajukan dan kelola pengajuan dana reimbursement.",
       "empty": "Belum ada pengajuan reimbursement.",
       "saveDraft": "Simpan Draf",
-      "details": "Detail Reimbursement",
+      "details": "Detail Pengajuan",
       "approvedNotPaid": "Disetujui (Belum Cair)",
       "approvedBy": "Disetujui oleh",
       "submitting": "Mengirim...",
       "submitRequest": "Ajukan",
       "approving": "Menyetujui...",
       "approveRequest": "Setujui",
-      "submitSuccess": "Pengajuan berhasil disetujui.",
+      "submitSuccess": "Pengajuan berhasil diajukan.",
+      "approveSuccess": "Pengajuan berhasil disetujui.",
+      "rejectSuccess": "Pengajuan berhasil ditolak.",
+      "disburseSuccess": "Pengajuan berhasil dicairkan.",
       "errors": {
         "invalidAmount": "Masukkan jumlah yang valid.",
         "noDescription": "Masukkan keterangan.",
-        "noLocation": "Pilih lokasi."
+        "noLocation": "Pilih lokasi.",
+        "failed": "Terjadi kesalahan."
       },
-      "selectLocation": "Pilih lokasi..."
+      "selectLocation": "Pilih lokasi...",
+      "category": "Kategori",
+      "date": "Tanggal",
+      "requester": "Pemohon",
+      "location": "Lokasi",
+      "description": "Keterangan",
+      "amount": "Jumlah",
+      "statusLabel": "Status",
+      "attachment": "Lampiran",
+      "rejectReason": "Alasan Penolakan",
+      "dateSubmitted": "Tanggal Pengajuan",
+      "dateApproved": "Tanggal Persetujuan",
+      "dateDisbursed": "Tanggal Pencairan",
+      "pendingApproval": "Menunggu Persetujuan",
+      "totalRequests": "Total Pengajuan",
+      "newRequest": "Pengajuan Baru",
+      "createTitle": "Pengajuan Reimbursement",
+      "rejectTitle": "Tolak Pengajuan",
+      "modalRejectReason": "Alasan Penolakan",
+      "modalRejectPlaceholder": "Jelaskan alasan penolakan...",
+      "modalRejecting": "Menolak...",
+      "modalReject": "Tolak",
+      "cancel": "Batal",
+      "close": "Tutup",
+      "status": {
+        "draft": "Draf",
+        "submitted": "Diajukan",
+        "approved": "Disetujui",
+        "disbursed": "Dicairkan",
+        "rejected": "Ditolak",
+        "all": "Semua"
+      },
+      "categories": {
+        "operational": "Operasional",
+        "supplies": "Perlengkapan",
+        "emergency": "Darurat",
+        "other": "Lainnya"
+      },
+      "disburse": "Cairkan",
+      "disbursing": "Mencairkan...",
+      "alreadyDisbursed": "Pengajuan telah dicairkan.",
+      "alreadyRejected": "Pengajuan telah ditolak.",
+      "pagination": "{count} pengajuan - Halaman {current} dari {total}",
+      "prev": "Sebelumnya",
+      "next": "Berikutnya",
+      "descPlaceholder": "Jelaskan alasan pengajuan...",
+      "saving": "Menyimpan..."
     },
     "pettyCash": {
       "title": "Kas Kecil",
-      "subtitle": "Pantau saldo kas kecil per lokasi dan riwayat transaksi.",
+      "subtitle": "Pantau saldo kas kecil per lokasi dan riwayat transaksi. Setiap outlet dapat diatur plafond & modal pembukaan yang berbeda.",
       "balance": "Saldo",
       "plafond": "Plafond",
       "lowBalance": "Saldo Rendah",
@@ -340,7 +410,39 @@
       "description": "Keterangan",
       "amount": "Jumlah",
       "noTransactions": "Belum ada transaksi.",
-      "noAccounts": "Belum ada kas kecil. Hubungi admin untuk membuat akun kas kecil."
+      "noAccounts": "Tidak ada outlet aktif. Tambahkan outlet di Settings → Locations terlebih dahulu.",
+      "depositToBank": "Setor ke Bank",
+      "notOpened": "Belum dibuka",
+      "openInfo": "Saat dibuka, sistem otomatis mencatat jurnal <b>DR Kas Kecil · CR Kas</b>.",
+      "openPlafond": "Plafond kas kecil",
+      "openBalance": "Modal pembukaan",
+      "openSubmit": "Buka kas kecil",
+      "openSubmitting": "Membuat...",
+      "modalNominal": "Nominal",
+      "modalNote": "Keterangan",
+      "modalNoteRequired": "Keterangan *",
+      "modalNoteOptional": "Keterangan (opsional)",
+      "modalCancel": "Batal",
+      "modalSubmit": "Simpan",
+      "modalSubmitting": "Menyimpan...",
+      "modalTopupTitle": "Isi Ulang Kas Kecil",
+      "modalTopupInfo": "Jurnal otomatis: DR Kas Kecil · CR Kas",
+      "modalTopupPlaceholder": "Tambah modal kembalian",
+      "modalExpenseTitle": "Catat Pengeluaran",
+      "modalExpenseInfo": "Saldo kas kecil akan berkurang.",
+      "modalExpensePlaceholder": "Beli galon air, dsb",
+      "modalDepositTitle": "Setor ke Bank",
+      "modalDepositInfo": "Jurnal otomatis: DR Bank · CR Kas Kecil",
+      "modalDepositPlaceholder": "Setor ke Bank Mandiri a/n outlet",
+      "errors": {
+        "nominalRequired": "Nominal wajib diisi.",
+        "exceedsBalance": "Nominal melebihi saldo kas kecil.",
+        "noteRequired": "Keterangan pengeluaran wajib diisi.",
+        "failed": "Gagal mencatat transaksi.",
+        "plafondRequired": "Plafond kas kecil wajib diisi.",
+        "balanceExceedsPlafond": "Modal pembukaan tidak boleh melebihi plafond.",
+        "createFailed": "Gagal membuat akun kas kecil"
+      }
     },
     "bankRecon": {
       "title": "Rekonsiliasi Bank",
@@ -563,6 +665,45 @@
     "notFound": "Jadwal tidak ditemukan"
   },
   "inventory": {
+    "recipes": {
+      "title": "Resep (BOM)",
+      "subtitle": "Atur komposisi bahan baku per produk jadi. Sistem memakai resep ini untuk auto-deduct stok bahan saat POS menjual produk.",
+      "searchPlaceholder": "Cari produk…",
+      "cancel": "Batal",
+      "newRecipe": "+ Resep",
+      "selectProduct": "Pilih produk jadi…",
+      "notePlaceholder": "Catatan (opsional)",
+      "saving": "Menyimpan…",
+      "createRecipe": "Buat resep",
+      "noRecipes": "Belum ada resep.",
+      "notFound": "Tidak ditemukan.",
+      "ingredientsList": "bahan",
+      "recipeIngredients": "Bahan resep",
+      "deleteRecipe": "Hapus resep",
+      "selectIngredient": "Pilih bahan…",
+      "qty": "Qty",
+      "uom": "UOM",
+      "addIngredient": "+ Bahan",
+      "autoDeductLabel": "Kurangi stok otomatis saat POS terjual",
+      "noIngredients": "Belum ada bahan. Tambahkan di atas.",
+      "loadingIngredients": "Memuat bahan…",
+      "selectRecipePrompt": "Pilih resep di sebelah kiri untuk mengedit bahan.",
+      "columns": {
+        "ingredient": "Bahan",
+        "qty": "Qty",
+        "uom": "UOM",
+        "auto": "Auto"
+      },
+      "errors": {
+        "selectProduct": "Pilih produk jadi.",
+        "createFailed": "Gagal membuat resep.",
+        "selectIngredient": "Pilih bahan dan isi qty.",
+        "qtyPositive": "Qty harus angka positif.",
+        "addFailed": "Gagal menambah bahan.",
+        "deleteLineFailed": "Gagal menghapus bahan.",
+        "deleteFailed": "Gagal menghapus resep."
+      }
+    },
     "variance": {
       "title": "Laporan Selisih Stok",
       "subtitle": "Laporan selisih stok (variance) hasil dari proses opname.",
@@ -985,12 +1126,42 @@
   "pos": {
     "title": "Kasir",
     "operations": {
-      "orders": "Pesanan",
+      "orders": "Riwayat Pesanan",
       "manualClosing": "Closing POS Lama",
       "stock": "Stok",
       "reports": "Laporan",
       "promos": "Promosi",
       "settings": "Pengaturan POS"
+    },
+    "orders": {
+      "title": "Riwayat Pesanan",
+      "subtitle": "Daftar transaksi penjualan untuk lokasi ini. Klik baris untuk melihat detail dan, jika diizinkan, void atau refund.",
+      "date": "Tanggal",
+      "show": "Tampilkan",
+      "unauthenticated": "Sesi belum terautentikasi atau lokasi default belum diset di profil Anda.",
+      "loadFailed": "Gagal memuat data pesanan.",
+      "export": "Ekspor CSV",
+      "exporting": "Mengekspor...",
+      "table": {
+        "orderNo": "No. Pesanan",
+        "time": "Waktu",
+        "status": "Status",
+        "type": "Tipe",
+        "channel": "Kanal",
+        "total": "Total",
+        "action": "Aksi"
+      },
+      "statusPaid_label": "Dibayar",
+      "statusRefunded_label": "Dikembalikan",
+      "statusVoided_label": "Batal",
+      "statusPending_label": "Menunggu",
+      "typeDineIn": "Dine In",
+      "typeTakeaway": "Takeaway",
+      "typeDelivery": "Delivery",
+      "channelPos": "POS",
+      "channelOnline": "Online",
+      "detail": "Detail",
+      "empty": "Belum ada pesanan pada tanggal ini."
     },
     "manualSales": {
       "eyebrow": "POS Lama",
@@ -1201,6 +1372,37 @@
       "step3": "Ajukan",
       "step4": "Setujui"
     },
+    "subtitle": "Kelola sesi stock opname dan penyesuaian inventaris.",
+    "emptyTitle": "Belum ada sesi opname",
+    "emptySubtitle": "Buat sesi pertama untuk memulai stock opname.",
+    "productList": "Daftar Produk",
+    "searchPlaceholder": "Cari SKU atau nama…",
+    "varianceOnly": "Hanya selisih",
+    "saveChanges": "Simpan {count} baris",
+    "productsCount": "produk",
+    "emptyList": "Belum ada produk",
+    "noMatchFilter": "Tidak ada produk yang cocok",
+    "saveAction": "Simpan",
+    "columns": {
+      "sessionNo": "No. Sesi",
+      "date": "Tanggal",
+      "outlet": "Outlet",
+      "period": "Periode",
+      "status": "Status",
+      "createdBy": "Dibuat oleh",
+      "actions": "Aksi",
+      "no": "No.",
+      "sku": "SKU",
+      "product": "Produk",
+      "kind": "Jenis",
+      "uom": "UOM",
+      "systemQty": "Sistem",
+      "countedQty": "Dihitung",
+      "variance": "Selisih",
+      "varianceValue": "Nilai Selisih",
+      "action": "Aksi"
+    },
+    "view": "Lihat",
     "status": {
       "draft": "Draf",
       "in_progress": "Sedang Berlangsung",
@@ -1241,6 +1443,65 @@
   "hr": {
     "nav": "HR & Gaji",
     "title": "Sumber Daya Manusia",
+    "recruitment": {
+      "title": "Rekrutmen",
+      "subtitle": "Kelola lowongan dan pipeline kandidat. Tahap: Applied → Screening → Interview → Offer → Hired (atau Rejected / Withdrawn).",
+      "openings": "Lowongan",
+      "addOpening": "Tambah lowongan",
+      "cancel": "Batal",
+      "titleField": "Judul",
+      "titlePlaceholder": "Mis. Barista outlet Yogyakarta",
+      "departmentField": "Departemen",
+      "headcountField": "Headcount",
+      "requirementsField": "Persyaratan",
+      "saveOpening": "Simpan lowongan",
+      "saving": "Menyimpan...",
+      "emptyOpenings": "Belum ada lowongan.",
+      "columns": {
+        "title": "Judul",
+        "department": "Departemen",
+        "applicants": "Kandidat",
+        "status": "Status",
+        "actions": "Aksi"
+      },
+      "addApplicant": "+ Kandidat",
+      "addApplicantTitle": "Tambah kandidat untuk: ",
+      "namePlaceholder": "Nama",
+      "emailPlaceholder": "Email",
+      "phonePlaceholder": "Telepon (akan dienkripsi)",
+      "notesPlaceholder": "Catatan / link CV",
+      "saveApplicant": "Simpan kandidat",
+      "pipeline": "Pipeline kandidat",
+      "allOpenings": "Semua lowongan",
+      "allStages": "Semua tahap",
+      "applicantsColumns": {
+        "name": "Nama",
+        "opening": "Lowongan",
+        "email": "Email",
+        "applied": "Diterima",
+        "stage": "Tahap",
+        "actions": "Aksi"
+      },
+      "emptyApplicants": "Belum ada kandidat untuk filter ini.",
+      "save": "Simpan",
+      "delete": "Hapus",
+      "confirmDelete": "Hapus?",
+      "yes": "Ya",
+      "no": "Tidak",
+      "edit": "Ubah",
+      "pagination": "{count} kandidat - Halaman {page} dari {total}",
+      "prev": "Sebelumnya",
+      "next": "Berikutnya",
+      "stages": {
+        "applied": "Applied",
+        "screening": "Screening",
+        "interview": "Interview",
+        "offer": "Offer",
+        "hired": "Hired",
+        "rejected": "Rejected",
+        "withdrawn": "Withdrawn"
+      }
+    },
     "employees": {
       "title": "Karyawan",
       "description": "Kelola data karyawan, kontrak, presensi, cuti, dan payroll.",
@@ -1349,6 +1610,32 @@
       "noRecords": "Belum ada data kehadiran",
       "statusOnTime": "Tepat Waktu",
       "statusLate": "Terlambat",
+      "subtitle": "Riwayat clock-in/out — {total} entri",
+      "allEmployees": "Semua Karyawan",
+      "from": "Dari",
+      "to": "Sampai",
+      "emptySubtitle": "Riwayat clock-in/out akan tampil di sini.",
+      "columns": {
+        "employee": "Karyawan",
+        "shift": "Shift",
+        "checkIn": "Masuk",
+        "checkOut": "Pulang",
+        "method": "Metode",
+        "late": "Telat",
+        "workedHours": "Jam kerja"
+      },
+      "forgiven": "+{minutes}m (dispensasi)",
+      "lateMinutesDisplay": "+{minutes}m",
+      "forgiveBtn": "Dispensasi",
+      "forgiveModalTitle": "Beri dispensasi keterlambatan",
+      "forgiveModalDesc": "Catat alasan agar audit trail jelas. Setelah dispensasi, kejadian ini tidak dihitung untuk denda payroll.",
+      "forgiveReasonPlaceholder": "Mis. shift dimajukan dadakan oleh manajer.",
+      "cancel": "Batal",
+      "confirm": "Konfirmasi",
+      "saving": "Menyimpan...",
+      "pagination": "Halaman {page} dari {total} — {count} entri",
+      "prev": "← Sebelumnya",
+      "next": "Berikutnya →",
       "checkInPage": {
         "location": "Lokasi",
         "status": {
@@ -1450,11 +1737,64 @@
       "totalEmployees": "Total Karyawan",
       "totalGross": "Total Gaji Bruto",
       "totalNet": "Total Gaji Net",
-      "statusDraft": "Draf",
-      "statusApproved": "Disetujui",
-      "statusPaid": "Dibayar",
       "statusCancelled": "Dibatalkan",
-      "noPayrolls": "Belum ada data payroll"
+      "noPayrolls": "Belum ada data payroll",
+      "subtitle": "Jalankan payroll — menghitung PPh 21 TER, BPJS, dan denda telat.",
+      "form": {
+        "title": "Jalankan Payroll",
+        "period": "Periode",
+        "location": "Lokasi",
+        "selectLocation": "Pilih lokasi",
+        "bonusTitle": "Bonus per karyawan",
+        "bonusDesc": "Nominal ini masuk komponen BONUS, ikut total penghasilan, dan tersinkron ke jurnal saat payroll disetujui.",
+        "bonusCount": "{count} bonus",
+        "noEmployees": "Belum ada karyawan aktif pada outlet ini.",
+        "runBtn": "Run Payroll",
+        "runningBtn": "Running...",
+        "success": "Payroll untuk {period} dibuat. {empCount} karyawan, total {totalNet}.",
+        "errorLocation": "Silakan pilih lokasi terlebih dahulu."
+      },
+      "history": {
+        "title": "Riwayat Payroll",
+        "period": "Periode",
+        "status": "Status",
+        "employees": "Karyawan",
+        "totalNet": "Total Net",
+        "actions": "Aksi",
+        "detail": "Detail",
+        "empty": "Belum ada riwayat payroll."
+      },
+      "statusDraft_label": "Draf",
+      "statusPending_label": "Menunggu",
+      "statusApproved_label": "Disetujui",
+      "statusPaid_label": "Dibayar",
+      "statusCancelled_label": "Dibatalkan",
+      "detail": {
+        "title": "Detail Payroll",
+        "notFound": "Payroll tidak ditemukan.",
+        "back": "← Kembali ke Payroll",
+        "backSimple": "← Kembali",
+        "summary": {
+          "employees": "Total Karyawan",
+          "earnings": "Total Pendapatan",
+          "deductions": "Total Potongan",
+          "net": "Total Bersih"
+        },
+        "actions": {
+          "approve": "Setujui Payroll",
+          "markPaid": "Tandai Dibayar",
+          "approveHelp": "Persetujuan Direktur akan membuat jurnal otomatis.",
+          "paidHelp": "Tandai dibayar setelah kas dikeluarkan."
+        },
+        "table": {
+          "component": "Komponen",
+          "type": "Tipe",
+          "amount": "Jumlah",
+          "earning": "Pendapatan",
+          "deduction": "Potongan"
+        },
+        "journalLink": "Jurnal:"
+      }
     },
     "disciplinary": {
       "title": "Surat Peringatan",
@@ -1555,6 +1895,60 @@
     "confirmDelete": "Yakin hapus workflow ini? Instance yang berjalan akan tetap ada."
   },
   "reporting": {
+    "trialBalance": {
+      "title": "Neraca Saldo",
+      "subtitle": "Neraca Saldo per",
+      "preliminary": "Preliminary",
+      "exportName": "Trial Balance",
+      "columns": {
+        "code": "Kode",
+        "account": "Akun",
+        "type": "Tipe",
+        "debit": "Debit",
+        "credit": "Kredit",
+        "balance": "Saldo"
+      },
+      "total": "Total",
+      "empty": "Belum ada data untuk tanggal ini."
+    },
+    "balanceSheet": {
+      "title": "Neraca",
+      "subtitle": "Posisi keuangan per",
+      "preliminary": "Preliminary",
+      "exportName": "Balance Sheet",
+      "assets": "Aset",
+      "liabilities": "Kewajiban",
+      "equity": "Ekuitas",
+      "totalAssets": "Total Aset",
+      "totalLiabilitiesAndEquity": "Total Kewajiban & Ekuitas",
+      "notBalanced": "Tidak Seimbang",
+      "notBalancedDesc": "Total Aset tidak sama dengan Total Kewajiban + Ekuitas.",
+      "difference": "Selisih",
+      "retainedEarnings": "Laba Ditahan / (Rugi)",
+      "empty": "Belum ada data neraca untuk tanggal ini.",
+      "columns": {
+        "account": "Akun",
+        "amount": "Nominal",
+        "total": "Total"
+      }
+    },
+    "profitLoss": {
+      "title": "Laba / Rugi",
+      "subtitle": "Performa Keuangan periode",
+      "preliminary": "Preliminary",
+      "exportName": "Profit & Loss",
+      "revenue": "Pendapatan",
+      "cogs": "Harga Pokok Penjualan (HPP)",
+      "grossProfit": "Laba Kotor",
+      "expenses": "Beban Operasional",
+      "netProfit": "Laba / (Rugi) Bersih",
+      "empty": "Belum ada data laba/rugi untuk periode ini.",
+      "columns": {
+        "account": "Akun",
+        "amount": "Nominal",
+        "total": "Total"
+      }
+    },
     "dailySummary": {
       "title": "Ringkasan Harian",
       "loadFailed": "Gagal memuat data. Silakan coba lagi.",
@@ -2207,6 +2601,147 @@
       "sent": "Terkirim",
       "closed": "Selesai",
       "archived": "Diarsipkan"
+    }
+  },
+  "cms": {
+    "pages": {
+      "title": "Halaman",
+      "subtitle": "Kelola halaman statis situs (beranda, tentang, menu, dll.)",
+      "createPage": "Buat Halaman",
+      "staticRoutesTitle": "Halaman bawaan (file-based)",
+      "staticRoutesSubtitle": "Rute publik yang sudah aktif. Konten halaman legal di bawah ini bisa diubah dari tabel CMS Halaman (slug yang sama akan menimpa konten default).",
+      "columns": {
+        "slug": "Slug",
+        "page": "Halaman",
+        "description": "Keterangan",
+        "preview": "Pratinjau",
+        "titleId": "Judul (ID)",
+        "type": "Tipe",
+        "status": "Status",
+        "navbar": "Navbar",
+        "updatedAt": "Diperbarui"
+      },
+      "static": {
+        "home": "Beranda",
+        "homeDesc": "Landing page utama (file-based).",
+        "menu": "Menu",
+        "menuDesc": "Daftar menu publik.",
+        "about": "Tentang",
+        "aboutDesc": "Profil perusahaan & cerita brand.",
+        "locations": "Lokasi",
+        "locationsDesc": "Daftar outlet & alamat.",
+        "blog": "Blog",
+        "blogDesc": "Index posting blog (post dinamis).",
+        "member": "Member",
+        "memberDesc": "Area member (login, registrasi, akun).",
+        "career": "Karier",
+        "careerDesc": "Daftar lowongan + form lamaran (real-time dari ERP).",
+        "terms": "Syarat & Ketentuan",
+        "termsDesc": "Halaman legal — kontennya editable via CMS Halaman.",
+        "privacy": "Kebijakan Privasi",
+        "privacyDesc": "Halaman legal — kontennya editable via CMS Halaman.",
+        "open": "Buka"
+      },
+      "empty": "Belum ada halaman",
+      "emptyHint": "Buat halaman pertama untuk situs Anda.",
+      "types": {
+        "page": "Halaman",
+        "landing": "Landing",
+        "legal": "Hukum"
+      },
+      "status": {
+        "draft": "Draf",
+        "review": "Ulasan",
+        "published": "Dipublikasikan",
+        "archived": "Diarsipkan"
+      }
+    },
+    "posts": {
+      "title": "Post & Berita",
+      "subtitle": "Kelola konten dinamis seperti blog, pengumuman, dan artikel.",
+      "createPost": "Buat Post",
+      "filters": {
+        "allTypes": "Semua Tipe",
+        "allStatuses": "Semua Status"
+      },
+      "columns": {
+        "title": "Judul",
+        "slug": "Slug",
+        "type": "Tipe",
+        "status": "Status",
+        "author": "Penulis",
+        "updatedAt": "Diperbarui"
+      },
+      "types": {
+        "news": "Berita",
+        "promo": "Promo",
+        "recipe": "Resep",
+        "event": "Acara"
+      },
+      "status": {
+        "draft": "Draf",
+        "review": "Ulasan",
+        "published": "Dipublikasikan",
+        "archived": "Diarsipkan"
+      },
+      "empty": "Belum ada post",
+      "emptyHint": "Buat post atau berita pertama Anda."
+    }
+    }
+  },
+  "tax": {
+    "rates": {
+      "title": "Tarif Pajak",
+      "subtitle": "Tarif PB1/PBJT, PPN, dan pajak lain tersimpan di database agar tidak hardcoded di kode.",
+      "code": "Kode",
+      "name": "Nama",
+      "rate": "Tarif",
+      "calculation": "Perhitungan",
+      "account": "Akun posting",
+      "effective": "Berlaku",
+      "status": "Status",
+      "active": "Aktif",
+      "inactive": "Nonaktif",
+      "inclusive": "Inclusive",
+      "exclusive": "Exclusive",
+      "empty": "Belum ada tarif pajak.",
+      "actions": "Aksi",
+      "selectAccount": "Pilih akun posting",
+      "save": "Simpan",
+      "create": "Simpan tarif",
+      "edit": "Edit",
+      "deactivate": "Nonaktifkan"
+    },
+    "rules": {
+      "title": "Tax Rules",
+      "subtitle": "Rule pajak menentukan PBJT/PPN berdasarkan channel, segmen pelanggan, kategori produk, atau default global.",
+      "scope": {
+        "global_default": "Global default",
+        "channel": "Channel",
+        "customer_segment": "Customer segment",
+        "product_category": "Product category"
+      },
+      "placeholders": {
+        "scopeId": "Scope ID, kosong untuk global"
+      },
+      "defaultApplied": "Default diterapkan",
+      "saveRule": "Simpan rule",
+      "empty": "Belum ada tax rule.",
+      "columns": {
+        "scope": "Scope",
+        "tax": "Tax",
+        "default": "Default",
+        "priority": "Priority",
+        "effective": "Effective",
+        "actions": "Aksi"
+      },
+      "yes": "Ya",
+      "no": "Tidak",
+      "onwards": "seterusnya",
+      "global": "global",
+      "edit": "Edit",
+      "save": "Simpan",
+      "delete": "Hapus"
     }
   }
 }

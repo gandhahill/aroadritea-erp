@@ -5,14 +5,15 @@
 import { getSession } from '@/lib/auth';
 import { pickLocalized } from '@/lib/pick-localized';
 import type { Metadata } from 'next';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchTrialBalance } from '../actions';
 import { ExportXlsxButton } from '../export-button';
 
-export const metadata: Metadata = {
-  title: 'Trial Balance',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('reporting.trialBalance');
+  return { title: t('title') };
+}
 
 export default async function TrialBalancePage({
   searchParams,
@@ -27,20 +28,21 @@ export default async function TrialBalancePage({
   const asOf = params.asOf ?? new Date().toISOString().slice(0, 10);
   const data = await fetchTrialBalance(tenantId, asOf, params.locationId);
   const locale = await getLocale();
+  const t = await getTranslations('reporting.trialBalance');
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Neraca Saldo</h1>
+          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Neraca Saldo per <span className="font-medium text-brand-ink">{asOf}</span>
+            {t('subtitle')} <span className="font-medium text-brand-ink">{asOf}</span>
           </p>
         </div>
         <div className="flex items-center gap-3">
           {data?.isPreliminary && (
             <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
-              Preliminary
+              {t('preliminary')}
             </span>
           )}
           {data ? (
@@ -48,9 +50,16 @@ export default async function TrialBalancePage({
               filename={`trial-balance-${asOf}.xlsx`}
               sheets={[
                 {
-                  name: 'Trial Balance',
+                  name: t('exportName'),
                   rows: [
-                    ['Code', 'Account', 'Type', 'Total Debit', 'Total Credit', 'Balance'],
+                    [
+                      t('columns.code'),
+                      t('columns.account'),
+                      t('columns.type'),
+                      t('columns.debit'),
+                      t('columns.credit'),
+                      t('columns.balance')
+                    ],
                     ...data.lines.map((l) => [
                       l.accountCode,
                       pickLocalized(l.accountName, locale),
@@ -59,7 +68,7 @@ export default async function TrialBalancePage({
                       Number(l.totalCredit),
                       Number(l.balance),
                     ]),
-                    ['', 'TOTAL', '', Number(data.totalDebit), Number(data.totalCredit), ''],
+                    ['', t('total'), '', Number(data.totalDebit), Number(data.totalCredit), ''],
                   ],
                 },
               ]}
@@ -74,22 +83,22 @@ export default async function TrialBalancePage({
             <thead>
               <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                  Kode
+                  {t('columns.code')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                  Akun
+                  {t('columns.account')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                  Tipe
+                  {t('columns.type')}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                  Debit
+                  {t('columns.debit')}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                  Kredit
+                  {t('columns.credit')}
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                  Saldo
+                  {t('columns.balance')}
                 </th>
               </tr>
             </thead>
@@ -120,7 +129,7 @@ export default async function TrialBalancePage({
             <tfoot>
               <tr className="border-t-2 border-brand-cream-3 bg-brand-cream/30 font-semibold">
                 <td className="px-4 py-3 text-brand-ink" colSpan={3}>
-                  Total
+                  {t('total')}
                 </td>
                 <td className="px-4 py-3 text-right font-mono tabular-nums text-brand-jade">
                   {fmtRp(data.totalDebit)}
@@ -134,7 +143,7 @@ export default async function TrialBalancePage({
           </table>
         </div>
       ) : (
-        <EmptyState message="Belum ada data untuk tanggal ini." />
+        <EmptyState message={t('empty')} />
       )}
     </div>
   );

@@ -13,6 +13,7 @@ import {
   expenseAction,
   replenishAction,
 } from './actions';
+import { useTranslations } from 'next-intl';
 
 function formatRupiah(amount: string): string {
   const n = Number(amount);
@@ -40,6 +41,7 @@ interface Props {
 }
 
 export function PettyCashView({ accounts, transactions, emptyLocations }: Props) {
+  const t = useTranslations('accounting.pettyCash');
   const router = useRouter();
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
     accounts[0]?.id ?? null,
@@ -90,11 +92,11 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
     if (!acct) return;
     const amountNum = Number.parseInt(actionAmount.replace(/\D/g, ''), 10) || 0;
     if (amountNum <= 0) {
-      setActionError('Nominal wajib diisi.');
+      setActionError(t('errors.nominalRequired'));
       return;
     }
     if (actionModal !== 'topup' && amountNum > Number(acct.balance)) {
-      setActionError('Nominal melebihi saldo kas kecil.');
+      setActionError(t('errors.exceedsBalance'));
       return;
     }
     setActionError(null);
@@ -104,7 +106,7 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
           await replenishAction(acct.locationId, amountNum, actionNote || 'Isi ulang kas kecil');
         } else if (actionModal === 'expense') {
           if (!actionNote.trim()) {
-            setActionError('Keterangan pengeluaran wajib diisi.');
+            setActionError(t('errors.noteRequired'));
             return;
           }
           await expenseAction(acct.locationId, amountNum, actionNote);
@@ -112,13 +114,13 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
           await depositToBankAction(
             acct.locationId,
             amountNum,
-            actionNote || 'Setor kas kecil ke bank',
+            actionNote || t('depositToBank'),
           );
         }
         setActionModal(null);
         router.refresh();
       } catch (err) {
-        setActionError(err instanceof Error ? err.message : 'Gagal mencatat transaksi.');
+        setActionError(err instanceof Error ? err.message : t('errors.failed'));
       }
     });
   }
@@ -131,17 +133,17 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
       const limitNum = Number.parseInt(form.maxLimit, 10) || 0;
       const openNum = Number.parseInt(form.openingBalance, 10) || 0;
       if (limitNum <= 0) {
-        setErrorMessage('Plafond kas kecil wajib diisi.');
+        setErrorMessage(t('errors.plafondRequired'));
         return;
       }
       if (openNum > limitNum) {
-        setErrorMessage('Modal pembukaan tidak boleh melebihi plafond.');
+        setErrorMessage(t('errors.balanceExceedsPlafond'));
         return;
       }
       await createAccountAction(locationId, limitNum, openNum);
       router.refresh();
     } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : 'Gagal membuat akun kas kecil');
+      setErrorMessage(err instanceof Error ? err.message : t('errors.createFailed'));
     } finally {
       setIsCreating(null);
     }
@@ -184,14 +186,14 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                 <span className="text-sm font-medium text-brand-ink-2">{acct.locationName}</span>
                 {acct.isLowBalance && (
                   <span className="rounded-full bg-brand-clay-light px-2 py-0.5 text-xs font-medium text-brand-clay">
-                    Saldo Rendah
+                    {t('lowBalance')}
                   </span>
                 )}
               </div>
               <p className="mt-2 text-2xl font-bold text-brand-ink">{formatRupiah(acct.balance)}</p>
               <div className="mt-3">
                 <div className="flex items-center justify-between text-xs text-brand-ink-3">
-                  <span>Plafond: {formatRupiah(acct.maxLimit)}</span>
+                  <span>{t('plafond')}: {formatRupiah(acct.maxLimit)}</span>
                   <span>{Math.round(pct)}%</span>
                 </div>
                 <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-brand-cream-2">
@@ -205,7 +207,7 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
               </div>
               {acct.lastReplenishAt && (
                 <p className="mt-2 text-xs text-brand-ink-3">
-                  Isi ulang terakhir: {formatDate(acct.lastReplenishAt)}
+                  {t('lastReplenish')}: {formatDate(acct.lastReplenishAt)}
                 </p>
               )}
             </button>
@@ -224,15 +226,13 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-base font-semibold text-brand-ink">{loc.name}</h3>
                 <span className="rounded-full bg-brand-cream-2 px-2 py-0.5 text-[11px] font-medium text-brand-ink-3">
-                  Belum dibuka
+                  {t('notOpened')}
                 </span>
               </div>
-              <p className="mb-3 text-xs text-brand-ink-3">
-                Saat dibuka, sistem otomatis mencatat jurnal <b>DR Kas Kecil · CR Kas</b>.
-              </p>
+              <p className="mb-3 text-xs text-brand-ink-3" dangerouslySetInnerHTML={{ __html: t('openInfo') }} />
               <label className="block">
                 <span className="text-[11px] font-medium uppercase tracking-wider text-brand-ink-2">
-                  Plafond kas kecil
+                  {t('openPlafond')}
                 </span>
                 <div className="mt-1 flex items-center rounded-md border border-brand-cream-3 bg-card px-3 py-1.5">
                   <span className="text-sm text-brand-ink-3">Rp</span>
@@ -247,7 +247,7 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
               </label>
               <label className="mt-3 block">
                 <span className="text-[11px] font-medium uppercase tracking-wider text-brand-ink-2">
-                  Modal pembukaan
+                  {t('openBalance')}
                 </span>
                 <div className="mt-1 flex items-center rounded-md border border-brand-cream-3 bg-card px-3 py-1.5">
                   <span className="text-sm text-brand-ink-3">Rp</span>
@@ -266,7 +266,7 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                 disabled={pending}
                 className="mt-4 w-full rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {pending ? 'Membuat...' : 'Buka kas kecil'}
+                {pending ? t('openSubmitting') : t('openSubmit')}
               </button>
             </div>
           );
@@ -274,7 +274,7 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
 
         {accounts.length === 0 && emptyLocations.length === 0 && (
           <div className="surface-card col-span-full p-6 text-center text-sm text-brand-ink-3">
-            Tidak ada outlet aktif. Tambahkan outlet di Settings → Locations terlebih dahulu.
+            {t('noAccounts')}
           </div>
         )}
       </div>
@@ -290,7 +290,7 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-semibold text-brand-ink">
-              Riwayat Transaksi — {selectedAccount.locationName}
+              {t('history')} — {selectedAccount.locationName}
             </h2>
             <div className="flex flex-wrap gap-2">
               <button
@@ -298,21 +298,21 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                 onClick={() => openActionModal('topup')}
                 className="rounded-md border border-brand-jade/30 bg-brand-jade-light px-3 py-1.5 text-xs font-semibold text-brand-jade hover:bg-brand-jade/15"
               >
-                + Isi Ulang
+                + {t('topup')}
               </button>
               <button
                 type="button"
                 onClick={() => openActionModal('expense')}
                 className="rounded-md border border-brand-clay-light bg-brand-clay-light px-3 py-1.5 text-xs font-semibold text-brand-clay hover:bg-brand-clay/15"
               >
-                − Pengeluaran
+                − {t('expense')}
               </button>
               <button
                 type="button"
                 onClick={() => openActionModal('deposit_to_bank')}
                 className="rounded-md border border-brand-ink/15 bg-brand-cream-2 px-3 py-1.5 text-xs font-semibold text-brand-ink hover:bg-brand-cream-3"
               >
-                ↗ Setor ke Bank
+                ↗ {t('depositToBank')}
               </button>
             </div>
           </div>
@@ -322,12 +322,12 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
               const isActive = kind === 'all' ? !filterKind : filterKind === kind;
               const label =
                 kind === 'all'
-                  ? 'Semua'
+                  ? t('all')
                   : kind === 'topup'
-                    ? 'Isi Ulang'
+                    ? t('topup')
                     : kind === 'expense'
-                      ? 'Pengeluaran'
-                      : 'Setor Bank';
+                      ? t('expense')
+                      : t('depositToBank');
               return (
                 <button
                   key={kind}
@@ -348,10 +348,10 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
-                  <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Tanggal</th>
-                  <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Jenis</th>
-                  <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Keterangan</th>
-                  <th className="px-4 py-3 text-right font-medium text-brand-ink-2">Jumlah</th>
+                  <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('date')}</th>
+                  <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('type')}</th>
+                  <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('description')}</th>
+                  <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('amount')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-cream-2">
@@ -359,11 +359,11 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                   const isIncoming = tx.kind === 'topup';
                   const kindLabel =
                     tx.kind === 'topup'
-                      ? 'Isi Ulang'
+                      ? t('topup')
                       : tx.kind === 'expense'
-                        ? 'Pengeluaran'
+                        ? t('expense')
                         : tx.kind === 'deposit_to_bank'
-                          ? 'Setor Bank'
+                          ? t('depositToBank')
                           : tx.kind;
                   const badgeColor =
                     tx.kind === 'topup'
@@ -396,7 +396,7 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                 {txList.length === 0 && (
                   <tr>
                     <td colSpan={4} className="px-4 py-8 text-center text-sm text-brand-ink-3">
-                      Belum ada transaksi.
+                      {t('noTransactions')}
                     </td>
                   </tr>
                 )}
@@ -418,23 +418,23 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
             <div className="border-b border-brand-cream-3 px-5 py-4">
               <h3 className="text-base font-semibold text-brand-ink">
                 {actionModal === 'topup'
-                  ? 'Isi Ulang Kas Kecil'
+                  ? t('modalTopupTitle')
                   : actionModal === 'expense'
-                    ? 'Catat Pengeluaran'
-                    : 'Setor ke Bank'}
+                    ? t('modalExpenseTitle')
+                    : t('modalDepositTitle')}
               </h3>
               <p className="mt-0.5 text-xs text-brand-ink-3">
                 {actionModal === 'topup'
-                  ? 'Jurnal otomatis: DR Kas Kecil · CR Kas'
+                  ? t('modalTopupInfo')
                   : actionModal === 'expense'
-                    ? 'Saldo kas kecil akan berkurang.'
-                    : 'Jurnal otomatis: DR Bank · CR Kas Kecil'}
+                    ? t('modalExpenseInfo')
+                    : t('modalDepositInfo')}
               </p>
             </div>
             <div className="space-y-3 p-5">
               <label className="block">
                 <span className="text-xs font-medium uppercase tracking-wider text-brand-ink-2">
-                  Nominal
+                  {t('modalNominal')}
                 </span>
                 <div className="mt-1 flex items-center rounded-md border border-brand-cream-3 bg-card px-3 py-2">
                   <span className="text-sm text-brand-ink-3">Rp</span>
@@ -450,7 +450,7 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
               </label>
               <label className="block">
                 <span className="text-xs font-medium uppercase tracking-wider text-brand-ink-2">
-                  Keterangan{actionModal === 'expense' ? ' *' : ' (opsional)'}
+                  {actionModal === 'expense' ? t('modalNoteRequired') : t('modalNoteOptional')}
                 </span>
                 <input
                   type="text"
@@ -458,10 +458,10 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                   onChange={(e) => setActionNote(e.target.value)}
                   placeholder={
                     actionModal === 'topup'
-                      ? 'Tambah modal kembalian'
+                      ? t('modalTopupPlaceholder')
                       : actionModal === 'expense'
-                        ? 'Beli galon air, dsb'
-                        : 'Setor ke Bank Mandiri a/n outlet'
+                        ? t('modalExpensePlaceholder')
+                        : t('modalDepositPlaceholder')
                   }
                   className="mt-1 h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink focus:outline-none"
                 />
@@ -475,7 +475,7 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                 disabled={actionPending}
                 className="h-10 rounded-md border border-brand-cream-3 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-2 disabled:opacity-50"
               >
-                Batal
+                {t('modalCancel')}
               </button>
               <button
                 type="button"
@@ -483,7 +483,7 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                 disabled={actionPending}
                 className="h-10 rounded-md bg-brand-red text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
               >
-                {actionPending ? 'Menyimpan…' : 'Simpan'}
+                {actionPending ? t('modalSubmitting') : t('modalSubmit')}
               </button>
             </div>
           </div>

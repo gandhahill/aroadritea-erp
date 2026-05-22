@@ -12,8 +12,10 @@ interface Opening {
   headcount: number;
   closeDate: string | null;
 }
+import { useTranslations } from 'next-intl';
 
 export function CareersClient() {
+  const t = useTranslations('careers');
   const [openings, setOpenings] = useState<Opening[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +36,7 @@ export function CareersClient() {
       })
       .catch(() => {
         if (cancelled) return;
-        setError('Gagal memuat daftar lowongan.');
+        setError(t('errors.fetchFailed'));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -46,7 +48,7 @@ export function CareersClient() {
 
   async function submitApplication() {
     if (!activeOpening || !form.name.trim()) {
-      setError('Isi nama dulu, ya.');
+      setError(t('errors.nameRequired'));
       return;
     }
     setSubmitting(true);
@@ -59,25 +61,24 @@ export function CareersClient() {
       });
       const data: { ok?: boolean; error?: string } = await res.json();
       if (!data.ok) {
-        setError(data.error ?? 'Gagal mengirim aplikasi.');
+        setError(data.error ?? t('errors.submitFailed'));
         return;
       }
       setSubmitted(activeOpening.title);
       setForm({ name: '', email: '', phone: '', notes: '' });
       setActiveOpening(null);
     } catch {
-      setError('Gangguan jaringan. Coba lagi sebentar.');
+      setError(t('errors.network'));
     } finally {
       setSubmitting(false);
     }
   }
 
-  if (loading) return <p className="text-sm text-brand-ink-3">Memuat lowongan…</p>;
+  if (loading) return <p className="text-sm text-brand-ink-3">{t('loading')}</p>;
   if (openings.length === 0)
     return (
       <p className="rounded-lg border border-brand-cream-3 bg-card p-6 text-sm text-brand-ink-2">
-        Belum ada lowongan terbuka. Tetap pantau halaman ini, ya — kami sering membuka lowongan
-        barista, kasir, dan back office.
+        {t('empty')}
       </p>
     );
 
@@ -85,8 +86,10 @@ export function CareersClient() {
     <div className="space-y-4">
       {submitted ? (
         <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          Terima kasih! Aplikasi untuk <b>{submitted}</b> sudah masuk. Tim HR akan menghubungi via
-          email/WhatsApp.
+          {t.markup('success', {
+            title: () => <b>{submitted}</b>,
+            b: (chunks) => <b>{chunks}</b>,
+          })}
         </div>
       ) : null}
       {error ? (
@@ -102,7 +105,7 @@ export function CareersClient() {
               <div>
                 <h2 className="text-lg font-bold text-brand-ink">{o.title}</h2>
                 <p className="text-xs uppercase tracking-widest text-brand-ink-3">
-                  {o.department ?? 'Operasional'} · {o.headcount} posisi
+                  {o.department ?? t('operational')} · {o.headcount} {t('positions')}
                 </p>
               </div>
               <button
@@ -110,7 +113,7 @@ export function CareersClient() {
                 onClick={() => setActiveOpening((cur) => (cur?.id === o.id ? null : o))}
                 className="rounded-full bg-brand-red px-4 py-1.5 text-xs font-bold text-brand-cream hover:bg-brand-red-dark"
               >
-                {activeOpening?.id === o.id ? 'Tutup form' : 'Daftar'}
+                {activeOpening?.id === o.id ? t('closeForm') : t('apply')}
               </button>
             </div>
             {o.summary ? (
@@ -119,7 +122,7 @@ export function CareersClient() {
             {o.requirements ? (
               <div className="mt-3 rounded-md bg-brand-cream-1 px-3 py-2 text-sm text-brand-ink-2 whitespace-pre-line">
                 <p className="text-xs font-semibold uppercase tracking-widest text-brand-ink-3">
-                  Persyaratan
+                  {t('requirements')}
                 </p>
                 <p className="mt-1">{o.requirements}</p>
               </div>
@@ -134,26 +137,26 @@ export function CareersClient() {
               >
                 <input
                   required
-                  placeholder="Nama lengkap"
+                  placeholder={t('form.name')}
                   value={form.name}
                   onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                   className="rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm"
                 />
                 <input
                   type="email"
-                  placeholder="Email"
+                  placeholder={t('form.email')}
                   value={form.email}
                   onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
                   className="rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm"
                 />
                 <input
-                  placeholder="WhatsApp (08…)"
+                  placeholder={t('form.phone')}
                   value={form.phone}
                   onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
                   className="rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm md:col-span-2"
                 />
                 <textarea
-                  placeholder="Pengalaman / link CV / pesan singkat"
+                  placeholder={t('form.notes')}
                   value={form.notes}
                   onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
                   rows={3}
@@ -165,7 +168,7 @@ export function CareersClient() {
                     disabled={submitting}
                     className="rounded-full bg-brand-red px-5 py-2 text-sm font-bold text-brand-cream hover:bg-brand-red-dark disabled:opacity-60"
                   >
-                    {submitting ? 'Mengirim…' : 'Kirim lamaran'}
+                    {submitting ? t('form.submitting') : t('form.submit')}
                   </button>
                 </div>
               </form>

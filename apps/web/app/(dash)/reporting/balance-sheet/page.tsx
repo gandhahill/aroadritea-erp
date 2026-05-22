@@ -5,14 +5,15 @@
 import { getSession } from '@/lib/auth';
 import { pickLocalized } from '@/lib/pick-localized';
 import type { Metadata } from 'next';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchBalanceSheet } from '../actions';
 import { ExportXlsxButton } from '../export-button';
 
-export const metadata: Metadata = {
-  title: 'Balance Sheet',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('reporting.balanceSheet');
+  return { title: t('title') };
+}
 
 export default async function BalanceSheetPage({
   searchParams,
@@ -27,14 +28,15 @@ export default async function BalanceSheetPage({
   const asOf = params.asOf ?? new Date().toISOString().slice(0, 10);
   const data = await fetchBalanceSheet(tenantId, asOf, params.locationId);
   const locale = await getLocale();
+  const t = await getTranslations('reporting.balanceSheet');
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Neraca</h1>
+          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Neraca per <span className="font-medium text-brand-ink">{asOf}</span>
+            {t('subtitle')} <span className="font-medium text-brand-ink">{asOf}</span>
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -47,11 +49,10 @@ export default async function BalanceSheetPage({
                   clipRule="evenodd"
                 />
               </svg>
-              Seimbang
             </span>
           ) : data ? (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-medium text-rose-600">
-              Tidak seimbang
+              {t('notBalanced')}
             </span>
           ) : null}
           {data ? (
@@ -59,48 +60,48 @@ export default async function BalanceSheetPage({
               filename={`balance-sheet-${asOf}.xlsx`}
               sheets={[
                 {
-                  name: 'Assets',
+                  name: t('assets'),
                   rows: [
-                    ['Code', 'Name', 'Balance (IDR)'],
+                    [t('columns.account'), '', t('columns.amount')],
                     ...data.assets.accounts.map((a) => [
                       a.accountCode,
                       pickLocalized(a.accountName, locale),
                       Number(a.balance),
                     ]),
-                    ['', 'TOTAL ASSETS', Number(data.assets.total)],
+                    ['', t('totalAssets'), Number(data.assets.total)],
                   ],
                 },
                 {
-                  name: 'Liabilities',
+                  name: t('liabilities'),
                   rows: [
-                    ['Code', 'Name', 'Balance (IDR)'],
+                    [t('columns.account'), '', t('columns.amount')],
                     ...data.liabilities.accounts.map((a) => [
                       a.accountCode,
                       pickLocalized(a.accountName, locale),
                       Number(a.balance),
                     ]),
-                    ['', 'TOTAL LIABILITIES', Number(data.liabilities.total)],
+                    ['', t('total'), Number(data.liabilities.total)],
                   ],
                 },
                 {
-                  name: 'Equity',
+                  name: t('equity'),
                   rows: [
-                    ['Code', 'Name', 'Balance (IDR)'],
+                    [t('columns.account'), '', t('columns.amount')],
                     ...data.equity.accounts.map((a) => [
                       a.accountCode,
                       pickLocalized(a.accountName, locale),
                       Number(a.balance),
                     ]),
-                    ['', 'Retained Earnings', Number(data.retainedEarnings)],
-                    ['', 'TOTAL EQUITY', Number(data.totalEquityWithRetained)],
+                    ['', t('retainedEarnings'), Number(data.retainedEarnings)],
+                    ['', t('total'), Number(data.totalEquityWithRetained)],
                   ],
                 },
                 {
                   name: 'Summary',
                   rows: [
                     ['As Of', asOf],
-                    ['Total Assets', Number(data.assets.total)],
-                    ['Total Liabilities + Equity', Number(data.totalLiabilitiesAndEquity)],
+                    [t('totalAssets'), Number(data.assets.total)],
+                    [t('totalLiabilitiesAndEquity'), Number(data.totalLiabilitiesAndEquity)],
                     ['Balanced?', data.isBalanced ? 'YES' : 'NO'],
                     ['Preliminary?', data.isPreliminary ? 'YES' : 'NO'],
                   ],
@@ -116,40 +117,40 @@ export default async function BalanceSheetPage({
           {/* Left: Assets */}
           <div className="space-y-4">
             <SectionCard
-              title="Aset"
-              subtitle="Assets"
+              title={t('assets')}
               accounts={data.assets.accounts}
               total={data.assets.total}
               colorClass="text-brand-jade"
               locale={locale}
+              totalLabel={t('total')}
             />
           </div>
 
           {/* Right: Liabilities + Equity */}
           <div className="space-y-4">
             <SectionCard
-              title="Kewajiban"
-              subtitle="Liabilities"
+              title={t('liabilities')}
               accounts={data.liabilities.accounts}
               total={data.liabilities.total}
               colorClass="text-brand-clay"
               locale={locale}
+              totalLabel={t('total')}
             />
             <SectionCard
-              title="Ekuitas"
-              subtitle="Equity"
+              title={t('equity')}
               accounts={data.equity.accounts}
               total={data.equity.total}
               colorClass="text-brand-gold"
-              extraLines={[{ label: 'Laba Ditahan', value: data.retainedEarnings }]}
+              extraLines={[{ label: t('retainedEarnings'), value: data.retainedEarnings }]}
               locale={locale}
+              totalLabel={t('total')}
             />
 
             {/* Totals */}
             <div className="surface-card p-4">
               <div className="flex items-center justify-between border-t-2 border-brand-cream-3 pt-3">
                 <span className="text-sm font-semibold text-brand-ink">
-                  Total Kewajiban + Ekuitas
+                  {t('totalLiabilitiesAndEquity')}
                 </span>
                 <span className="font-mono text-sm font-bold tabular-nums text-brand-ink">
                   {fmtRp(data.totalLiabilitiesAndEquity)}
@@ -159,7 +160,7 @@ export default async function BalanceSheetPage({
           </div>
         </div>
       ) : (
-        <EmptyState />
+        <EmptyState message={t('empty')} />
       )}
     </div>
   );
@@ -169,9 +170,9 @@ export default async function BalanceSheetPage({
 
 interface SectionCardProps {
   title: string;
-  subtitle: string;
   accounts: Array<{ accountCode: string; accountName: Record<string, string>; balance: string }>;
   total: string;
+  totalLabel?: string;
   colorClass: string;
   extraLines?: Array<{ label: string; value: string }>;
   locale?: string;
@@ -179,9 +180,9 @@ interface SectionCardProps {
 
 function SectionCard({
   title,
-  subtitle,
   accounts,
   total,
+  totalLabel,
   colorClass,
   extraLines,
   locale,
@@ -190,7 +191,6 @@ function SectionCard({
     <div className="surface-card overflow-hidden">
       <div className="border-b border-brand-cream-2 px-4 py-3">
         <h2 className="text-base font-semibold text-brand-ink">{title}</h2>
-        <p className="text-xs text-brand-ink-3">{subtitle}</p>
       </div>
       <div className="divide-y divide-brand-cream-2">
         {accounts.map((acct) => (
@@ -224,7 +224,7 @@ function SectionCard({
         ))}
       </div>
       <div className="border-t-2 border-brand-cream-3 px-4 py-3 flex items-center justify-between bg-brand-cream/30">
-        <span className="text-sm font-semibold text-brand-ink">Total {title}</span>
+        <span className="text-sm font-semibold text-brand-ink">{totalLabel} {title}</span>
         <span className={`font-mono text-sm font-bold tabular-nums ${colorClass}`}>
           {fmtRp(total)}
         </span>
@@ -242,10 +242,10 @@ function fmtRp(val: string): string {
   return sign + 'Rp ' + Math.abs(n).toLocaleString('id-ID');
 }
 
-function EmptyState() {
+function EmptyState({ message }: { message: string }) {
   return (
     <div className="surface-card flex flex-col items-center justify-center py-16 text-brand-ink-3">
-      <p className="text-sm font-medium">Belum ada data untuk tanggal ini.</p>
+      <p className="text-sm font-medium">{message}</p>
     </div>
   );
 }

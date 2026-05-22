@@ -36,7 +36,7 @@ async function getContext(requiredPermission: 'tax.view' | 'tax.manage_rates') {
   return { userId, tenantId };
 }
 
-export async function fetchTaxRates(): Promise<TaxRateRow[]> {
+export async function fetchTaxRates(locale: string): Promise<TaxRateRow[]> {
   const ctx = await getContext('tax.view');
   if (!ctx) return [];
 
@@ -62,7 +62,7 @@ export async function fetchTaxRates(): Promise<TaxRateRow[]> {
   return rows.map((row) => {
     const accountName = row.accountName as Record<string, string> | null;
     const postingAccount = row.accountCode
-      ? `${row.accountCode} - ${accountName?.id ?? accountName?.en ?? row.accountCode}`
+      ? `${row.accountCode} - ${accountName?.[locale] ?? accountName?.id ?? accountName?.en ?? row.accountCode}`
       : '-';
 
     return {
@@ -80,7 +80,7 @@ export async function fetchTaxRates(): Promise<TaxRateRow[]> {
   });
 }
 
-export async function fetchTaxAccountOptions(): Promise<TaxAccountOption[]> {
+export async function fetchTaxAccountOptions(locale: string): Promise<TaxAccountOption[]> {
   const ctx = await getContext('tax.manage_rates');
   if (!ctx) return [];
 
@@ -99,7 +99,7 @@ export async function fetchTaxAccountOptions(): Promise<TaxAccountOption[]> {
 
   return rows.map((row) => {
     const name = row.name as Record<string, string>;
-    return { id: row.id, label: `${row.code} - ${name.id ?? name.en ?? row.code}` };
+    return { id: row.id, label: `${row.code} - ${name[locale] ?? name.id ?? name.en ?? row.code}` };
   });
 }
 

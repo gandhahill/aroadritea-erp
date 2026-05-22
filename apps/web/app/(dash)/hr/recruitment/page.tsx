@@ -9,6 +9,7 @@ import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchApplicants, fetchOpenings } from './actions';
+import { getTranslations } from 'next-intl/server';
 import { RecruitmentClient } from './recruitment-client';
 
 export const metadata: Metadata = { title: 'Rekrutmen' };
@@ -23,13 +24,14 @@ export default async function RecruitmentPage() {
   const [openings, applicants] = await Promise.all([fetchOpenings(), fetchApplicants()]);
   const canManage = await can(userId, 'hr.employee.write');
 
+  const t = await getTranslations('hr.recruitment');
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand-ink">Rekrutmen</h1>
+        <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
         <p className="mt-1 max-w-3xl text-sm text-brand-ink-3">
-          Kelola lowongan dan pipeline kandidat. Tahap: Applied → Screening → Interview → Offer →
-          Hired (atau Rejected / Withdrawn).
+          {t('subtitle')}
         </p>
       </div>
 

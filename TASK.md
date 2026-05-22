@@ -1,4 +1,4 @@
-﻿# TASK.md â€” Active Implementation Tasks
+# TASK.md â€” Active Implementation Tasks
 
 > **Single source of truth runtime** for all implementation tasks being worked on (or to be worked on) by AI developers.
 >
@@ -195,19 +195,6 @@ _(no items â€” all backlog tasks completed)_
 - **M** (Medium): 1â€“2 days
 - **L** (Large): 3â€“5 days
 - **XL** (Extra Large): > 5 days, must be split before starting
-
----
-
-## File Update Rules
-
-1. **Add new task to Backlog**: AI that discovers a new need (e.g., from user discussion) adds entry to the Backlog section of the appropriate phase.
-2. **Start a task**: move from Backlog â†’ Active, fill in `Owner`, `Started`, `Last Updated`, create new checkpoint file at `docs/checkpoints/<id>-<slug>.checkpoint.md`.
-3. **Update while working**: after writing 100+ lines of code or completing one Plan sub-step, update `Last Updated` in the table + fill in checkpoint.
-4. **When stopping (token limit)**: **MANDATORY** write `## Next step` explicit and executable in checkpoint. Commit code with message `wip(T-XXXX): <brief>`.
-5. **When done**: move to Done This Sprint, remove from Backlog & Active. Delete checkpoint from `docs/checkpoints/` after â‰¤ 7 days (or move to `archive/`).
-6. **BLOCKED**: stay in Active with ðŸŸ¥, fill Note column with blocker + tag who needs to decide.
-
-## ID Format
 
 - `T-NNNN` (4 digits, zero-padded), global increment. Avoid skipping.
 

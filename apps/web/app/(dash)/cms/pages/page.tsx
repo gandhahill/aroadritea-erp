@@ -2,12 +2,16 @@ import { getSession } from '@/lib/auth';
 /**
  * CMS Pages — List page (SD §31.3)
  */
+import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchCmsPages } from '../actions';
 
-export const metadata: Metadata = { title: 'Pages — CMS' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('cms.pages');
+  return { title: `${t('title')} — CMS` };
+}
 
 const STATUS_COLORS: Record<string, string> = {
   draft: 'bg-brand-cream-2 text-brand-ink-3',
@@ -16,10 +20,10 @@ const STATUS_COLORS: Record<string, string> = {
   archived: 'bg-brand-ink/5 text-brand-ink-3',
 };
 
-const TYPE_LABELS: Record<string, string> = {
-  page: 'Halaman',
-  landing: 'Landing',
-  legal: 'Hukum',
+const TYPE_KEYS: Record<string, string> = {
+  page: 'page',
+  landing: 'landing',
+  legal: 'legal',
 };
 
 /**
@@ -27,28 +31,16 @@ const TYPE_LABELS: Record<string, string> = {
  * edit them — they live as page.tsx files under apps/site/app/[locale]/.
  * Listed here so admins are aware they exist alongside DB-driven content.
  */
-const STATIC_ROUTES: Array<{ slug: string; label: string; description: string }> = [
-  { slug: '/', label: 'Beranda', description: 'Landing page utama (file-based).' },
-  { slug: '/menu', label: 'Menu', description: 'Daftar menu publik.' },
-  { slug: '/tentang', label: 'Tentang', description: 'Profil perusahaan & cerita brand.' },
-  { slug: '/lokasi', label: 'Lokasi', description: 'Daftar outlet & alamat.' },
-  { slug: '/blog', label: 'Blog', description: 'Index posting blog (post dinamis).' },
-  { slug: '/member', label: 'Member', description: 'Area member (login, registrasi, akun).' },
-  {
-    slug: '/karier',
-    label: 'Karier',
-    description: 'Daftar lowongan + form lamaran (real-time dari ERP).',
-  },
-  {
-    slug: '/syarat-dan-ketentuan',
-    label: 'Syarat & Ketentuan',
-    description: 'Halaman legal — kontennya editable via CMS Halaman.',
-  },
-  {
-    slug: '/kebijakan-privasi',
-    label: 'Kebijakan Privasi',
-    description: 'Halaman legal — kontennya editable via CMS Halaman.',
-  },
+const STATIC_ROUTES: Array<{ slug: string; key: string }> = [
+  { slug: '/', key: 'home' },
+  { slug: '/menu', key: 'menu' },
+  { slug: '/tentang', key: 'about' },
+  { slug: '/lokasi', key: 'locations' },
+  { slug: '/blog', key: 'blog' },
+  { slug: '/member', key: 'member' },
+  { slug: '/karier', key: 'career' },
+  { slug: '/syarat-dan-ketentuan', key: 'terms' },
+  { slug: '/kebijakan-privasi', key: 'privacy' },
 ];
 
 export default async function CmsPagesPage() {
@@ -56,15 +48,16 @@ export default async function CmsPagesPage() {
   if (!session) redirect('/login');
 
   const pages = await fetchCmsPages();
+  const t = await getTranslations('cms.pages');
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Halaman</h1>
+          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Kelola halaman statis situs (beranda, tentang, menu, dll.)
+            {t('subtitle')}
           </p>
         </div>
         <Link
@@ -80,7 +73,7 @@ export default async function CmsPagesPage() {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          Buat Halaman
+          {t('createPage')}
         </Link>
       </div>
 
@@ -88,10 +81,9 @@ export default async function CmsPagesPage() {
       <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
         <div className="mb-3 flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-brand-ink">Halaman bawaan (file-based)</p>
+            <p className="text-sm font-semibold text-brand-ink">{t('staticRoutesTitle')}</p>
             <p className="text-xs text-brand-ink-3">
-              Rute publik yang sudah aktif. Konten halaman legal di bawah ini bisa diubah dari tabel
-              CMS Halaman (slug yang sama akan menimpa konten default).
+              {t('staticRoutesSubtitle')}
             </p>
           </div>
         </div>
@@ -99,10 +91,10 @@ export default async function CmsPagesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-3 text-left text-xs uppercase tracking-wider text-brand-ink-3">
-                <th className="py-2 pr-3">Slug</th>
-                <th className="py-2 pr-3">Halaman</th>
-                <th className="py-2 pr-3">Keterangan</th>
-                <th className="py-2 pr-3">Pratinjau</th>
+                <th className="py-2 pr-3">{t('columns.slug')}</th>
+                <th className="py-2 pr-3">{t('columns.page')}</th>
+                <th className="py-2 pr-3">{t('columns.description')}</th>
+                <th className="py-2 pr-3">{t('columns.preview')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-3">
@@ -113,8 +105,8 @@ export default async function CmsPagesPage() {
                       {route.slug}
                     </code>
                   </td>
-                  <td className="py-2 pr-3 font-medium text-brand-ink">{route.label}</td>
-                  <td className="py-2 pr-3 text-brand-ink-3">{route.description}</td>
+                  <td className="py-2 pr-3 font-medium text-brand-ink">{t(`static.${route.key}`)}</td>
+                  <td className="py-2 pr-3 text-brand-ink-3">{t(`static.${route.key}Desc`)}</td>
                   <td className="py-2 pr-3">
                     <a
                       href={`https://aroadritea.com${route.slug === '/' ? '' : route.slug}`}
@@ -122,7 +114,7 @@ export default async function CmsPagesPage() {
                       rel="noopener noreferrer"
                       className="text-xs font-semibold text-brand-red hover:underline"
                     >
-                      Buka
+                      {t('static.open')}
                     </a>
                   </td>
                 </tr>
@@ -149,30 +141,30 @@ export default async function CmsPagesPage() {
                 d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
               />
             </svg>
-            <p className="mt-3 text-sm font-medium text-brand-ink-2">Belum ada halaman</p>
-            <p className="mt-1 text-xs text-brand-ink-3">Buat halaman pertama untuk situs Anda.</p>
+            <p className="mt-3 text-sm font-medium text-brand-ink-2">{t('empty')}</p>
+            <p className="mt-1 text-xs text-brand-ink-3">{t('emptyHint')}</p>
           </div>
         ) : (
           <table className="w-full">
             <thead>
               <tr className="border-b border-brand-cream-3 text-left">
                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
-                  Judul (ID)
+                  {t('columns.titleId')}
                 </th>
                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
-                  Slug
+                  {t('columns.slug')}
                 </th>
                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
-                  Tipe
+                  {t('columns.type')}
                 </th>
                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
-                  Status
+                  {t('columns.status')}
                 </th>
                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
-                  Navbar
+                  {t('columns.navbar')}
                 </th>
                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
-                  Diperbarui
+                  {t('columns.updatedAt')}
                 </th>
                 <th className="px-4 py-3"></th>
               </tr>
@@ -195,15 +187,14 @@ export default async function CmsPagesPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="rounded bg-brand-cream-2 px-2 py-0.5 text-xs font-medium text-brand-ink-2">
-                        {TYPE_LABELS[(page.type as string) ?? 'page'] ?? (page.type as string)}
+                        {t(`types.${TYPE_KEYS[(page.type as string) ?? 'page'] ?? (page.type as string)}`)}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span
                         className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[(page.status as string) ?? 'draft']}`}
                       >
-                        {(page.status as string)?.charAt(0).toUpperCase() +
-                          ((page.status as string) ?? '').slice(1)}
+                        {t(`status.${(page.status as string) ?? 'draft'}`)}
                       </span>
                     </td>
                     <td className="px-4 py-3">

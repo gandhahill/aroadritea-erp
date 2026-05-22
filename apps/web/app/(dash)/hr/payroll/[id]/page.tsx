@@ -9,11 +9,15 @@ import { getSession } from '@/lib/auth';
 import { db, eq } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import { employees, payrollLines, payrolls, salaryComponents } from '@erp/db/schema/hr';
-import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
+import type { Metadata } from 'next';
 import { approvePayrollAction, markPayrollPaidAction } from '../actions';
 
-export const metadata: Metadata = { title: 'Payroll Detail' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('hr.payroll');
+  return { title: t('detail.title') };
+}
 
 function fmtMoney(v: bigint | string): string {
   const num = typeof v === 'string' ? Number.parseInt(v, 10) : Number(v);
@@ -61,18 +65,20 @@ export default async function PayrollDetailPage({ params }: Props) {
   const locationId = String(user.locationId ?? '');
   const userId = String(user.id ?? 'system');
 
+  const t = await getTranslations('hr.payroll');
+
   // Load payroll
   const [payroll] = await db.select().from(payrolls).where(eq(payrolls.id, id)).limit(1);
 
   if (!payroll) {
     return (
       <div className="rounded-xl border border-brand-cream-3 bg-card p-8 text-center">
-        <p className="text-brand-ink-3">Payroll not found.</p>
+        <p className="text-brand-ink-3">{t('detail.notFound')}</p>
         <a
           href="/hr/payroll"
           className="mt-4 inline-block text-sm text-brand-ember-5 hover:text-brand-ember-6"
         >
-          ← Back to Payroll
+          {t('detail.back')}
         </a>
       </div>
     );
@@ -139,11 +145,11 @@ export default async function PayrollDetailPage({ params }: Props) {
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-brand-ink">Payroll Detail</h1>
+            <h1 className="text-2xl font-bold text-brand-ink">{t('detail.title')}</h1>
             <span
               className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColor(status)}`}
             >
-              {statusLabel(status)}
+              {t(`status${status.charAt(0).toUpperCase() + status.slice(1).replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase())}_label` as any)}
             </span>
           </div>
           <p className="mt-1 text-sm text-brand-ink-3">
@@ -154,17 +160,17 @@ export default async function PayrollDetailPage({ params }: Props) {
           href="/hr/payroll"
           className="inline-flex items-center gap-1.5 text-sm text-brand-ember-5 hover:text-brand-ember-6"
         >
-          ← Back
+          {t('detail.backSimple')}
         </a>
       </div>
 
       {/* Summary */}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: 'Total Employees', value: String(payroll.totalEmployees) },
-          { label: 'Total Earnings', value: fmtMoney(payroll.totalEarnings) },
-          { label: 'Total Deductions', value: fmtMoney(payroll.totalDeductions) },
-          { label: 'Total Net', value: fmtMoney(payroll.totalNet), highlight: true },
+          { label: t('detail.summary.employees'), value: String(payroll.totalEmployees) },
+          { label: t('detail.summary.earnings'), value: fmtMoney(payroll.totalEarnings) },
+          { label: t('detail.summary.deductions'), value: fmtMoney(payroll.totalDeductions) },
+          { label: t('detail.summary.net'), value: fmtMoney(payroll.totalNet), highlight: true },
         ].map((s) => (
           <div
             key={s.label}
@@ -201,7 +207,7 @@ export default async function PayrollDetailPage({ params }: Props) {
                   type="submit"
                   className="inline-flex items-center gap-2 rounded-lg bg-brand-jade px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90"
                 >
-                  Approve Payroll
+                  {t('detail.actions.approve')}
                 </button>
               )}
               {canMarkPaid && (
@@ -209,13 +215,13 @@ export default async function PayrollDetailPage({ params }: Props) {
                   type="submit"
                   className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6"
                 >
-                  Mark as Paid
+                  {t('detail.actions.markPaid')}
                 </button>
               )}
               <p className="text-sm text-brand-ink-3">
                 {canApprove
-                  ? 'Director approval will generate journal entries.'
-                  : 'Mark as paid after cash disbursement.'}
+                  ? t('detail.actions.approveHelp')
+                  : t('detail.actions.paidHelp')}
               </p>
             </div>
           </form>
@@ -239,11 +245,13 @@ export default async function PayrollDetailPage({ params }: Props) {
               <thead>
                 <tr className="border-b border-brand-cream-2">
                   <th className="px-5 py-2 text-left text-xs font-medium text-brand-ink-3">
-                    Component
+                    {t('detail.table.component')}
                   </th>
-                  <th className="px-5 py-2 text-left text-xs font-medium text-brand-ink-3">Type</th>
+                  <th className="px-5 py-2 text-left text-xs font-medium text-brand-ink-3">
+                    {t('detail.table.type')}
+                  </th>
                   <th className="px-5 py-2 text-right text-xs font-medium text-brand-ink-3">
-                    Amount
+                    {t('detail.table.amount')}
                   </th>
                 </tr>
               </thead>
@@ -255,7 +263,7 @@ export default async function PayrollDetailPage({ params }: Props) {
                       <span
                         className={`text-xs font-medium ${line.kind === 'earning' ? 'text-brand-jade' : 'text-brand-rose-4'}`}
                       >
-                        {line.kind === 'earning' ? 'Earning' : 'Deduction'}
+                        {line.kind === 'earning' ? t('detail.table.earning') : t('detail.table.deduction')}
                       </span>
                     </td>
                     <td
@@ -275,7 +283,7 @@ export default async function PayrollDetailPage({ params }: Props) {
       {/* Journal entry link */}
       {payroll.journalEntryId && (
         <div className="text-sm text-brand-ink-3">
-          Journal Entry:{' '}
+          {t('detail.journalLink')}{' '}
           <a
             href={`/accounting/journals/${payroll.journalEntryId}`}
             className="text-brand-ember-5 hover:text-brand-ember-6"

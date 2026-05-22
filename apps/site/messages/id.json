@@ -335,5 +335,31 @@
         }
       ]
     }
+  },
+  "careers": {
+    "title": "Bergabung dengan tim Aroadri Tea",
+    "subtitle": "Kami terus mencari teman baru untuk outlet di Yogyakarta dan tim back office. Lihat lowongan terbuka di bawah, lalu kirim aplikasi langsung dari halaman ini.",
+    "loading": "Memuat lowongan…",
+    "empty": "Belum ada lowongan terbuka. Tetap pantau halaman ini, ya — kami sering membuka lowongan barista, kasir, dan back office.",
+    "success": "Terima kasih! Aplikasi untuk <b>{title}</b> sudah masuk. Tim HR akan menghubungi via email/WhatsApp.",
+    "operational": "Operasional",
+    "positions": "posisi",
+    "closeForm": "Tutup form",
+    "apply": "Daftar",
+    "requirements": "Persyaratan",
+    "form": {
+      "name": "Nama lengkap",
+      "email": "Email",
+      "phone": "WhatsApp (08…)",
+      "notes": "Pengalaman / link CV / pesan singkat",
+      "submit": "Kirim lamaran",
+      "submitting": "Mengirim…"
+    },
+    "errors": {
+      "fetchFailed": "Gagal memuat daftar lowongan.",
+      "nameRequired": "Isi nama dulu, ya.",
+      "submitFailed": "Gagal mengirim aplikasi.",
+      "network": "Gangguan jaringan. Coba lagi sebentar."
+    }
   }
 }

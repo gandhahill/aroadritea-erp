@@ -14,6 +14,7 @@ import { locations } from '@erp/db/schema/auth';
 import { employees, payrolls } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { PayrollRunClient } from './payroll-run-client';
 
 export const metadata: Metadata = { title: 'Payroll' };
@@ -75,12 +76,14 @@ export default async function PayrollPage() {
     return { value: l.id, label: label || l.id };
   });
 
+  const t = await getTranslations('hr.payroll');
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand-ink">Payroll</h1>
+        <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
         <p className="mt-1 text-sm text-brand-ink-3">
-          Run payroll — calculates PPh 21 TER, BPJS, late penalty.
+          {t('subtitle')}
         </p>
       </div>
 

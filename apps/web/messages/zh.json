@@ -94,7 +94,9 @@
       "of": "共",
       "next": "下一页",
       "previous": "上一页",
-      "showing": "显示"
+      "showing": "显示",
+      "show": "显示",
+      "rows": "行"
     }
   },
   "auth": {
@@ -120,8 +122,26 @@
   "accounting": {
     "journal": {
       "exportExcel": "导出Excel",
-      "title": "日记账",
-      "create": "创建凭证",
+      "title": "普通日记账",
+      "subtitle": "查看和管理普通日记账分录。",
+      "entryCount": "{count} 条分录",
+      "create": "新建日记账",
+      "table": {
+        "searchPlaceholder": "搜索日记账编号或描述",
+        "reset": "重置",
+        "all": "全部",
+        "noNumber": "日记账编号",
+        "date": "日期",
+        "description": "描述",
+        "type": "类型",
+        "amount": "金额",
+        "status": "状态",
+        "empty": "未找到日记账",
+        "emptyHint": "请尝试更改筛选条件或搜索关键字。",
+        "account": "科目",
+        "debit": "借方",
+        "credit": "贷方"
+      },
       "post": "过账",
       "reverse": "冲销",
       "postingDate": "过账日期",
@@ -306,7 +326,7 @@
     },
     "pettyCash": {
       "title": "零用金",
-      "subtitle": "按门店监控零用金余额和交易记录。",
+      "subtitle": "按门店监控零用金余额和交易记录。每个网点可以设置不同的限额和期初余额。",
       "balance": "余额",
       "plafond": "限额",
       "lowBalance": "余额不足",
@@ -320,7 +340,39 @@
       "description": "说明",
       "amount": "金额",
       "noTransactions": "暂无交易记录。",
-      "noAccounts": "暂无零用金账户。请联系管理员创建。"
+      "noAccounts": "暂无营业网点。请先在设置 → 地点中添加网点。",
+      "depositToBank": "存入银行",
+      "notOpened": "未开通",
+      "openInfo": "开通时，系统会自动记录一条 <b>借: 零用金 · 贷: 现金</b> 的日记账。",
+      "openPlafond": "零用金限额",
+      "openBalance": "期初余额",
+      "openSubmit": "开通零用金",
+      "openSubmitting": "创建中...",
+      "modalNominal": "金额",
+      "modalNote": "说明",
+      "modalNoteRequired": "说明 *",
+      "modalNoteOptional": "说明 (可选)",
+      "modalCancel": "取消",
+      "modalSubmit": "保存",
+      "modalSubmitting": "保存中...",
+      "modalTopupTitle": "补充零用金",
+      "modalTopupInfo": "自动日记账：借: 零用金 · 贷: 现金",
+      "modalTopupPlaceholder": "添加找零备用金",
+      "modalExpenseTitle": "记录支出",
+      "modalExpenseInfo": "零用金余额将减少。",
+      "modalExpensePlaceholder": "购买饮用水等",
+      "modalDepositTitle": "存入银行",
+      "modalDepositInfo": "自动日记账：借: 银行 · 贷: 零用金",
+      "modalDepositPlaceholder": "存入Mandiri银行",
+      "errors": {
+        "nominalRequired": "金额必填。",
+        "exceedsBalance": "金额不能超过零用金余额。",
+        "noteRequired": "支出说明必填。",
+        "failed": "记录交易失败。",
+        "plafondRequired": "零用金限额必填。",
+        "balanceExceedsPlafond": "期初余额不能超过限额。",
+        "createFailed": "创建零用金账户失败。"
+      }
     },
     "bankAccounts": {
       "title": "银行账户",
@@ -441,20 +493,70 @@
       "subtitle": "提交和管理报销申请。",
       "empty": "暂无报销申请。",
       "saveDraft": "保存草稿",
-      "details": "报销详情",
+      "details": "申请详情",
       "approvedNotPaid": "已批准（未支付）",
       "approvedBy": "批准人",
       "submitting": "提交中...",
       "submitRequest": "提交",
       "approving": "审批中...",
       "approveRequest": "批准",
-      "submitSuccess": "申请已批准。",
+      "submitSuccess": "申请已提交。",
+      "approveSuccess": "申请已批准。",
+      "rejectSuccess": "申请已拒绝。",
+      "disburseSuccess": "申请已支付。",
       "errors": {
         "invalidAmount": "请输入有效金额。",
         "noDescription": "请输入说明。",
-        "noLocation": "请选择位置。"
+        "noLocation": "请选择位置。",
+        "failed": "发生错误。"
       },
-      "selectLocation": "选择位置..."
+      "selectLocation": "选择位置...",
+      "category": "类别",
+      "date": "日期",
+      "requester": "申请人",
+      "location": "地点",
+      "description": "说明",
+      "amount": "金额",
+      "statusLabel": "状态",
+      "attachment": "附件",
+      "rejectReason": "拒绝原因",
+      "dateSubmitted": "提交日期",
+      "dateApproved": "批准日期",
+      "dateDisbursed": "支付日期",
+      "pendingApproval": "待审批",
+      "totalRequests": "申请总额",
+      "newRequest": "新申请",
+      "createTitle": "报销申请",
+      "rejectTitle": "拒绝申请",
+      "modalRejectReason": "拒绝原因",
+      "modalRejectPlaceholder": "解释拒绝原因...",
+      "modalRejecting": "拒绝中...",
+      "modalReject": "拒绝",
+      "cancel": "取消",
+      "close": "关闭",
+      "status": {
+        "draft": "草稿",
+        "submitted": "已提交",
+        "approved": "已批准",
+        "disbursed": "已支付",
+        "rejected": "已拒绝",
+        "all": "全部"
+      },
+      "categories": {
+        "operational": "运营",
+        "supplies": "耗材",
+        "emergency": "紧急",
+        "other": "其他"
+      },
+      "disburse": "支付",
+      "disbursing": "支付中...",
+      "alreadyDisbursed": "申请已支付。",
+      "alreadyRejected": "申请已拒绝。",
+      "pagination": "{count} 个申请 - 第 {current} 页，共 {total} 页",
+      "prev": "上一页",
+      "next": "下一页",
+      "descPlaceholder": "解释申请原因...",
+      "saving": "保存中..."
     }
   },
   "purchasing": {
@@ -584,6 +686,45 @@
     "notFound": "计划未找到"
   },
   "inventory": {
+    "recipes": {
+      "title": "配方 (BOM)",
+      "subtitle": "设置每个成品的原料组成。POS系统在销售时使用此配方自动扣减库存。",
+      "searchPlaceholder": "搜索产品…",
+      "cancel": "取消",
+      "newRecipe": "+ 配方",
+      "selectProduct": "选择成品…",
+      "notePlaceholder": "备注 (可选)",
+      "saving": "保存中…",
+      "createRecipe": "创建配方",
+      "noRecipes": "暂无配方。",
+      "notFound": "未找到。",
+      "ingredientsList": "种原料",
+      "recipeIngredients": "配方原料",
+      "deleteRecipe": "删除配方",
+      "selectIngredient": "选择原料…",
+      "qty": "数量",
+      "uom": "单位",
+      "addIngredient": "+ 原料",
+      "autoDeductLabel": "销售时自动扣减库存",
+      "noIngredients": "暂无原料。请在上方添加。",
+      "loadingIngredients": "加载原料中…",
+      "selectRecipePrompt": "在左侧选择配方以编辑原料。",
+      "columns": {
+        "ingredient": "原料",
+        "qty": "数量",
+        "uom": "单位",
+        "auto": "自动"
+      },
+      "errors": {
+        "selectProduct": "请选择成品。",
+        "createFailed": "创建配方失败。",
+        "selectIngredient": "请选择原料并填写数量。",
+        "qtyPositive": "数量必须为正数。",
+        "addFailed": "添加原料失败。",
+        "deleteLineFailed": "删除原料失败。",
+        "deleteFailed": "删除配方失败。"
+      }
+    },
     "variance": {
       "title": "库存差异报告",
       "subtitle": "库存盘点产生的差异报告。",
@@ -1022,6 +1163,45 @@
     "variance": "差异"
   },
   "pos": {
+    "title": "收银",
+    "operations": {
+      "orders": "订单历史",
+      "manualClosing": "旧POS收班",
+      "stock": "库存",
+      "reports": "报表",
+      "promos": "促销",
+      "settings": "POS设置"
+    },
+    "orders": {
+      "title": "订单历史",
+      "subtitle": "当前门店的销售交易列表。点击行以查看详情，如有权限可进行作废或退款。",
+      "date": "日期",
+      "show": "显示",
+      "unauthenticated": "会话未验证，或个人资料中未设置默认门店。",
+      "loadFailed": "加载订单数据失败。",
+      "export": "导出CSV",
+      "exporting": "正在导出...",
+      "table": {
+        "orderNo": "订单号",
+        "time": "时间",
+        "status": "状态",
+        "type": "类型",
+        "channel": "渠道",
+        "total": "总计",
+        "action": "操作"
+      },
+      "statusPaid_label": "已支付",
+      "statusRefunded_label": "已退款",
+      "statusVoided_label": "已作废",
+      "statusPending_label": "待处理",
+      "typeDineIn": "堂食",
+      "typeTakeaway": "外带",
+      "typeDelivery": "外送",
+      "channelPos": "POS",
+      "channelOnline": "在线",
+      "detail": "详情",
+      "empty": "该日期没有找到订单。"
+    },
     "manualSales": {
       "eyebrow": "旧POS",
       "title": "手动销售录入",
@@ -1230,8 +1410,67 @@
     "tagline": "企业资源规划"
   },
   "hr": {
-    "nav": "人力资源",
+    "nav": "人事和薪资",
     "title": "人力资源",
+    "recruitment": {
+      "title": "招聘",
+      "subtitle": "管理招聘职位和候选人流程。阶段：已申请 → 筛选 → 面试 → 录用 → 已入职（或拒绝/放弃）。",
+      "openings": "招聘职位",
+      "addOpening": "添加职位",
+      "cancel": "取消",
+      "titleField": "标题",
+      "titlePlaceholder": "例如：日惹门店咖啡师",
+      "departmentField": "部门",
+      "headcountField": "招聘人数",
+      "requirementsField": "要求",
+      "saveOpening": "保存职位",
+      "saving": "保存中...",
+      "emptyOpenings": "暂无职位。",
+      "columns": {
+        "title": "标题",
+        "department": "部门",
+        "applicants": "候选人",
+        "status": "状态",
+        "actions": "操作"
+      },
+      "addApplicant": "+ 候选人",
+      "addApplicantTitle": "添加候选人：",
+      "namePlaceholder": "姓名",
+      "emailPlaceholder": "邮箱",
+      "phonePlaceholder": "电话（将被加密）",
+      "notesPlaceholder": "备注 / 简历链接",
+      "saveApplicant": "保存候选人",
+      "pipeline": "候选人流程",
+      "allOpenings": "所有职位",
+      "allStages": "所有阶段",
+      "applicantsColumns": {
+        "name": "姓名",
+        "opening": "职位",
+        "email": "邮箱",
+        "applied": "申请时间",
+        "stage": "阶段",
+        "actions": "操作"
+      },
+      "emptyApplicants": "没有符合条件的候选人。",
+      "save": "保存",
+      "delete": "删除",
+      "confirmDelete": "删除？",
+      "yes": "是",
+      "no": "否",
+      "edit": "编辑",
+      "pagination": "共 {count} 名候选人 - 第 {page} 页 / 共 {total} 页",
+      "prev": "上一页",
+      "next": "下一页",
+      "stages": {
+        "applied": "已申请",
+        "screening": "筛选",
+        "interview": "面试",
+        "offer": "录用",
+        "hired": "已入职",
+        "rejected": "拒绝",
+        "withdrawn": "放弃"
+      }
+    },
     "employees": {
       "description": "管理员工资料、合同、考勤、休假和薪资。",
       "count": "{count} 名员工",
@@ -1340,6 +1579,32 @@
       "noRecords": "暂无考勤记录",
       "statusOnTime": "准时",
       "statusLate": "迟到",
+      "subtitle": "签到/签退记录 — 共 {total} 条",
+      "allEmployees": "所有员工",
+      "from": "从",
+      "to": "至",
+      "emptySubtitle": "签到/签退记录将显示在这里。",
+      "columns": {
+        "employee": "员工",
+        "shift": "班次",
+        "checkIn": "签到",
+        "checkOut": "签退",
+        "method": "方式",
+        "late": "迟到",
+        "workedHours": "工作时长"
+      },
+      "forgiven": "+{minutes}分钟 (已豁免)",
+      "lateMinutesDisplay": "+{minutes}分钟",
+      "forgiveBtn": "豁免",
+      "forgiveModalTitle": "豁免迟到",
+      "forgiveModalDesc": "记录原因以供审计追踪。豁免后，此次迟到将不计入薪资扣款。",
+      "forgiveReasonPlaceholder": "例如：经理临时提前了班次。",
+      "cancel": "取消",
+      "confirm": "确认",
+      "saving": "保存中...",
+      "pagination": "第 {page} 页，共 {total} 页 — 共 {count} 条",
+      "prev": "← 上一页",
+      "next": "下一页 →",
       "checkInPage": {
         "location": "位置",
         "status": {
@@ -1454,11 +1719,64 @@
       "totalEmployees": "员工总数",
       "totalGross": "总毛工资",
       "totalNet": "总净工资",
-      "statusDraft": "草稿",
-      "statusApproved": "已批准",
-      "statusPaid": "已支付",
       "statusCancelled": "已取消",
-      "noPayrolls": "暂无工资单"
+      "noPayrolls": "暂无工资单",
+      "subtitle": "运行薪资计算 — 计算个人所得税 (PPh 21 TER)、社保 (BPJS) 和迟到扣款。",
+      "form": {
+        "title": "运行薪资计算",
+        "period": "期间",
+        "location": "位置",
+        "selectLocation": "选择位置",
+        "bonusTitle": "每位员工的奖金",
+        "bonusDesc": "该金额进入奖金部分，影响总收入，并在薪资审批时同步到会计凭证。",
+        "bonusCount": "{count} 个奖金",
+        "noEmployees": "该位置没有在职员工。",
+        "runBtn": "运行计算",
+        "runningBtn": "运行中...",
+        "success": "已生成 {period} 的薪资单。{empCount} 名员工，总净额 {totalNet}。",
+        "errorLocation": "请先选择位置。"
+      },
+      "history": {
+        "title": "薪资单历史记录",
+        "period": "期间",
+        "status": "状态",
+        "employees": "员工人数",
+        "totalNet": "总净额",
+        "actions": "操作",
+        "detail": "详情",
+        "empty": "暂无历史记录。"
+      },
+      "statusDraft_label": "草稿",
+      "statusPending_label": "待处理",
+      "statusApproved_label": "已批准",
+      "statusPaid_label": "已支付",
+      "statusCancelled_label": "已取消",
+      "detail": {
+        "title": "薪资单详情",
+        "notFound": "未找到薪资单。",
+        "back": "← 返回薪资单",
+        "backSimple": "← 返回",
+        "summary": {
+          "employees": "总员工数",
+          "earnings": "总收入",
+          "deductions": "总扣除",
+          "net": "总净额"
+        },
+        "actions": {
+          "approve": "批准薪资单",
+          "markPaid": "标记为已支付",
+          "approveHelp": "主管批准将自动生成会计凭证。",
+          "paidHelp": "现金发放后标记为已支付。"
+        },
+        "table": {
+          "component": "项目",
+          "type": "类型",
+          "amount": "金额",
+          "earning": "收入",
+          "deduction": "扣除"
+        },
+        "journalLink": "会计凭证："
+      }
     },
     "disciplinary": {
       "title": "纪律处分",
@@ -1849,6 +2167,60 @@
     "confirmDelete": "删除此工作流？运行中的实例将继续存在。"
   },
   "reporting": {
+    "trialBalance": {
+      "title": "试算平衡表",
+      "subtitle": "试算平衡表截至",
+      "preliminary": "初步",
+      "exportName": "试算平衡表",
+      "columns": {
+        "code": "代码",
+        "account": "账户",
+        "type": "类型",
+        "debit": "借方",
+        "credit": "贷方",
+        "balance": "余额"
+      },
+      "total": "总计",
+      "empty": "该日期无数据。"
+    },
+    "balanceSheet": {
+      "title": "资产负债表",
+      "subtitle": "财务状况截至",
+      "preliminary": "初步",
+      "exportName": "资产负债表",
+      "assets": "资产",
+      "liabilities": "负债",
+      "equity": "所有者权益",
+      "totalAssets": "资产总计",
+      "totalLiabilitiesAndEquity": "负债和所有者权益总计",
+      "notBalanced": "不平衡",
+      "notBalancedDesc": "资产总计不等于负债加所有者权益。",
+      "difference": "差额",
+      "retainedEarnings": "留存收益 / (亏损)",
+      "empty": "该日期无资产负债表数据。",
+      "columns": {
+        "account": "账户",
+        "amount": "金额",
+        "total": "总计"
+      }
+    },
+    "profitLoss": {
+      "title": "利润表",
+      "subtitle": "财务表现在此期间",
+      "preliminary": "初步",
+      "exportName": "利润表",
+      "revenue": "营业收入",
+      "cogs": "主营业务成本 (COGS)",
+      "grossProfit": "毛利",
+      "expenses": "营业费用",
+      "netProfit": "净利润 / (亏损)",
+      "empty": "此期间无利润表数据。",
+      "columns": {
+        "account": "账户",
+        "amount": "金额",
+        "total": "总计"
+      }
+    },
     "omzetHarian": {
       "title": "每日营业收入",
       "subtitle": "PB1专用营业额，含手动财政调整。",
@@ -2003,6 +2375,37 @@
       "step3": "提交",
       "step4": "批准"
     },
+    "subtitle": "管理库存盘点会话和库存调整。",
+    "emptyTitle": "暂无盘点会话",
+    "emptySubtitle": "创建第一个会话以开始库存盘点。",
+    "productList": "产品列表",
+    "searchPlaceholder": "搜索SKU或名称…",
+    "varianceOnly": "仅显示差异",
+    "saveChanges": "保存 {count} 行",
+    "productsCount": "件产品",
+    "emptyList": "暂无产品",
+    "noMatchFilter": "没有匹配的产品",
+    "saveAction": "保存",
+    "columns": {
+      "sessionNo": "会话编号",
+      "date": "日期",
+      "outlet": "门店",
+      "period": "期间",
+      "status": "状态",
+      "createdBy": "创建人",
+      "actions": "操作",
+      "no": "序号",
+      "sku": "SKU",
+      "product": "产品",
+      "kind": "类型",
+      "uom": "单位",
+      "systemQty": "系统库存",
+      "countedQty": "实盘数量",
+      "variance": "差异",
+      "varianceValue": "差异金额",
+      "action": "操作"
+    },
+    "view": "查看",
     "status": {
       "draft": "草稿",
       "in_progress": "进行中",
@@ -2285,5 +2688,146 @@
     "awb": "运单号",
     "phoneLast5": "电话（后5位）",
     "notSynced": "未同步"
+  },
+  "cms": {
+    "pages": {
+      "title": "页面",
+      "subtitle": "管理静态网站页面（首页、关于、菜单等）",
+      "createPage": "创建页面",
+      "staticRoutesTitle": "内置页面 (基于文件)",
+      "staticRoutesSubtitle": "活跃的公共路由。下面的法律页面内容可以通过 CMS 页面表进行覆盖（相同的 slug 替换默认内容）。",
+      "columns": {
+        "slug": "标识 (Slug)",
+        "page": "页面",
+        "description": "描述",
+        "preview": "预览",
+        "titleId": "标题 (ID)",
+        "type": "类型",
+        "status": "状态",
+        "navbar": "导航栏",
+        "updatedAt": "更新于"
+      },
+      "static": {
+        "home": "主页",
+        "homeDesc": "主着陆页（基于文件）。",
+        "menu": "菜单",
+        "menuDesc": "公共菜单列表。",
+        "about": "关于",
+        "aboutDesc": "公司简介和品牌故事。",
+        "locations": "位置",
+        "locationsDesc": "网点和地址列表。",
+        "blog": "博客",
+        "blogDesc": "博客文章索引（动态文章）。",
+        "member": "会员",
+        "memberDesc": "会员专区（登录、注册、账户）。",
+        "career": "职业",
+        "careerDesc": "职位空缺和申请表（ERP 实时同步）。",
+        "terms": "条款与条件",
+        "termsDesc": "法律页面 — 内容可通过 CMS 页面编辑。",
+        "privacy": "隐私政策",
+        "privacyDesc": "法律页面 — 内容可通过 CMS 页面编辑。",
+        "open": "打开"
+      },
+      "empty": "暂无页面",
+      "emptyHint": "为您的网站创建第一个页面。",
+      "types": {
+        "page": "页面",
+        "landing": "着陆页",
+        "legal": "法律"
+      },
+      "status": {
+        "draft": "草稿",
+        "review": "审核",
+        "published": "已发布",
+        "archived": "已归档"
+      }
+    },
+    "posts": {
+      "title": "文章与新闻",
+      "subtitle": "管理动态内容，如博客、公告和文章。",
+      "createPost": "创建文章",
+      "filters": {
+        "allTypes": "所有类型",
+        "allStatuses": "所有状态"
+      },
+      "columns": {
+        "title": "标题",
+        "slug": "标识 (Slug)",
+        "type": "类型",
+        "status": "状态",
+        "author": "作者",
+        "updatedAt": "更新于"
+      },
+      "types": {
+        "news": "新闻",
+        "promo": "促销",
+        "recipe": "食谱",
+        "event": "活动"
+      },
+      "status": {
+        "draft": "草稿",
+        "review": "审核",
+        "published": "已发布",
+        "archived": "已归档"
+      },
+      "empty": "暂无文章",
+      "emptyHint": "创建您的第一篇文章或新闻。"
+    }
+    }
+  },
+  "tax": {
+    "rates": {
+      "title": "税率",
+      "subtitle": "PB1/PBJT、增值税和其他税率保存在数据库中，代码不写死税率。",
+      "code": "代码",
+      "name": "名称",
+      "rate": "税率",
+      "calculation": "计算",
+      "account": "入账科目",
+      "effective": "生效",
+      "status": "状态",
+      "active": "启用",
+      "inactive": "停用",
+      "inclusive": "价内",
+      "exclusive": "价外",
+      "empty": "暂无税率。",
+      "actions": "操作",
+      "selectAccount": "选择入账科目",
+      "save": "保存",
+      "create": "保存税率",
+      "edit": "编辑",
+      "deactivate": "停用"
+    },
+    "rules": {
+      "title": "税务规则",
+      "subtitle": "税务规则根据渠道、客户群体、产品类别或全局默认来决定PBJT/增值税。",
+      "scope": {
+        "global_default": "全局默认",
+        "channel": "渠道",
+        "customer_segment": "客户群体",
+        "product_category": "产品类别"
+      },
+      "placeholders": {
+        "scopeId": "作用域ID，为空则为全局"
+      },
+      "defaultApplied": "应用默认",
+      "saveRule": "保存规则",
+      "empty": "暂无税务规则。",
+      "columns": {
+        "scope": "作用域",
+        "tax": "税费",
+        "default": "默认",
+        "priority": "优先级",
+        "effective": "生效",
+        "actions": "操作"
+      },
+      "yes": "是",
+      "no": "否",
+      "onwards": "起",
+      "global": "全局",
+      "edit": "编辑",
+      "save": "保存",
+      "delete": "删除"
+    }
   }
 }

@@ -335,5 +335,31 @@
         }
       ]
     }
+  },
+  "careers": {
+    "title": "Join the Aroadri Tea team",
+    "subtitle": "We are always looking for new friends for our Yogyakarta outlets and back office team. See open positions below and apply directly from this page.",
+    "loading": "Loading openings…",
+    "empty": "No open positions right now. Keep an eye on this page — we frequently hire baristas, cashiers, and back office staff.",
+    "success": "Thank you! Your application for <b>{title}</b> has been received. Our HR team will contact you via email/WhatsApp.",
+    "operational": "Operational",
+    "positions": "positions",
+    "closeForm": "Close form",
+    "apply": "Apply",
+    "requirements": "Requirements",
+    "form": {
+      "name": "Full name",
+      "email": "Email",
+      "phone": "WhatsApp number",
+      "notes": "Experience / CV link / short message",
+      "submit": "Submit application",
+      "submitting": "Submitting…"
+    },
+    "errors": {
+      "fetchFailed": "Failed to load job openings.",
+      "nameRequired": "Please fill in your name first.",
+      "submitFailed": "Failed to submit application.",
+      "network": "Network error. Please try again in a moment."
+    }
   }
 }

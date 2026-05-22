@@ -11,6 +11,7 @@ import {
   updateApplicantAction,
   updateOpeningStatusAction,
 } from './actions';
+import { useTranslations } from 'next-intl';
 
 const STAGES: Array<
   'applied' | 'screening' | 'interview' | 'offer' | 'hired' | 'rejected' | 'withdrawn'
@@ -46,6 +47,7 @@ const INPUT =
   'w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20';
 
 export function RecruitmentClient({ initialOpenings, initialApplicants, canManage }: Props) {
+  const t = useTranslations('hr.recruitment');
   const [openings, setOpenings] = useState(initialOpenings);
   const [applicants, setApplicants] = useState(initialApplicants);
   const [busy, startTransition] = useTransition();
@@ -255,14 +257,14 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-brand-ink">Lowongan</h2>
+          <h2 className="text-base font-semibold text-brand-ink">{t('openings')}</h2>
           {canManage ? (
             <button
               type="button"
               onClick={() => setShowNewOpening((v) => !v)}
               className="rounded-md bg-brand-red px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-red-dark"
             >
-              {showNewOpening ? 'Batal' : 'Tambah lowongan'}
+              {showNewOpening ? t('cancel') : t('addOpening')}
             </button>
           ) : null}
         </div>
@@ -271,18 +273,18 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
           <div className="mb-4 grid gap-3 rounded-lg border border-brand-cream-3 bg-brand-cream-1 p-3 md:grid-cols-2">
             <label className="space-y-1 md:col-span-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-brand-ink-3">
-                Judul
+                {t('titleField')}
               </span>
               <input
                 value={newOpening.title}
                 onChange={(e) => setNewOpening((p) => ({ ...p, title: e.target.value }))}
-                placeholder="Mis. Barista outlet Yogyakarta"
+                placeholder={t('titlePlaceholder')}
                 className={INPUT}
               />
             </label>
             <label className="space-y-1">
               <span className="text-xs font-semibold uppercase tracking-wide text-brand-ink-3">
-                Departemen
+                {t('departmentField')}
               </span>
               <input
                 value={newOpening.department}
@@ -292,7 +294,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
             </label>
             <label className="space-y-1">
               <span className="text-xs font-semibold uppercase tracking-wide text-brand-ink-3">
-                Headcount
+                {t('headcountField')}
               </span>
               <input
                 type="number"
@@ -306,7 +308,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
             </label>
             <label className="space-y-1 md:col-span-2">
               <span className="text-xs font-semibold uppercase tracking-wide text-brand-ink-3">
-                Persyaratan
+                {t('requirementsField')}
               </span>
               <textarea
                 value={newOpening.requirements}
@@ -322,7 +324,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                 disabled={busy}
                 className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
               >
-                {busy ? 'Menyimpan...' : 'Simpan lowongan'}
+                {busy ? t('saving') : t('saveOpening')}
               </button>
             </div>
           </div>
@@ -332,18 +334,18 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
           <table className="w-full text-sm">
             <thead className="bg-brand-cream-1 text-left text-xs uppercase tracking-wider text-brand-ink-3">
               <tr>
-                <th className="px-3 py-2">Judul</th>
-                <th className="px-3 py-2">Departemen</th>
-                <th className="px-3 py-2 text-center">Kandidat</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Aksi</th>
+                <th className="px-3 py-2">{t('columns.title')}</th>
+                <th className="px-3 py-2">{t('columns.department')}</th>
+                <th className="px-3 py-2 text-center">{t('columns.applicants')}</th>
+                <th className="px-3 py-2">{t('columns.status')}</th>
+                <th className="px-3 py-2">{t('columns.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-3">
               {openings.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-3 py-6 text-center text-brand-ink-3">
-                    Belum ada lowongan.
+                    {t('emptyOpenings')}
                   </td>
                 </tr>
               ) : (
@@ -376,7 +378,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                         onClick={() => setShowNewApplicant((v) => (v === o.id ? null : o.id))}
                         className="rounded-md border border-brand-cream-3 px-2.5 py-1 text-xs font-semibold text-brand-ink-2 hover:border-brand-red/40 hover:text-brand-red disabled:opacity-40"
                       >
-                        + Kandidat
+                        {t('addApplicant')}
                       </button>
                     </td>
                   </tr>
@@ -389,31 +391,31 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
         {showNewApplicant ? (
           <div className="mt-3 grid gap-3 rounded-lg border border-brand-cream-3 bg-brand-cream-1 p-3 md:grid-cols-2">
             <p className="md:col-span-2 text-xs font-semibold uppercase tracking-wide text-brand-ink-3">
-              Tambah kandidat untuk:{' '}
+              {t('addApplicantTitle')}
               <span className="text-brand-ink">
                 {openings.find((o) => o.id === showNewApplicant)?.title}
               </span>
             </p>
             <input
-              placeholder="Nama"
+              placeholder={t('namePlaceholder')}
               value={newApplicant.name}
               onChange={(e) => setNewApplicant((p) => ({ ...p, name: e.target.value }))}
               className={INPUT}
             />
             <input
-              placeholder="Email"
+              placeholder={t('emailPlaceholder')}
               value={newApplicant.email}
               onChange={(e) => setNewApplicant((p) => ({ ...p, email: e.target.value }))}
               className={INPUT}
             />
             <input
-              placeholder="Telepon (akan dienkripsi)"
+              placeholder={t('phonePlaceholder')}
               value={newApplicant.phone}
               onChange={(e) => setNewApplicant((p) => ({ ...p, phone: e.target.value }))}
               className={INPUT}
             />
             <textarea
-              placeholder="Catatan / link CV"
+              placeholder={t('notesPlaceholder')}
               value={newApplicant.notes}
               onChange={(e) => setNewApplicant((p) => ({ ...p, notes: e.target.value }))}
               className={INPUT}
@@ -426,7 +428,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                 disabled={busy}
                 className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
               >
-                {busy ? 'Menyimpan...' : 'Simpan kandidat'}
+                {busy ? t('saving') : t('saveApplicant')}
               </button>
             </div>
           </div>
@@ -435,7 +437,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-4">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <h2 className="text-base font-semibold text-brand-ink">Pipeline kandidat</h2>
+          <h2 className="text-base font-semibold text-brand-ink">{t('pipeline')}</h2>
           <div className="flex gap-2">
             <select
               value={openingFilter ?? ''}
@@ -445,7 +447,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
               }}
               className="rounded-md border border-brand-cream-3 bg-card px-2 py-1 text-xs"
             >
-              <option value="">Semua lowongan</option>
+              <option value="">{t('allOpenings')}</option>
               {openings.map((o) => (
                 <option key={o.id} value={o.id}>
                   {o.title}
@@ -460,10 +462,10 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
               }}
               className="rounded-md border border-brand-cream-3 bg-card px-2 py-1 text-xs"
             >
-              <option value="">Semua tahap</option>
+              <option value="">{t('allStages')}</option>
               {STAGES.map((s) => (
                 <option key={s} value={s}>
-                  {STAGE_LABEL[s]}
+                  {t(`stages.${s}`)}
                 </option>
               ))}
             </select>
@@ -473,12 +475,12 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
           <table className="w-full text-sm">
             <thead className="bg-brand-cream-1 text-left text-xs uppercase tracking-wider text-brand-ink-3">
               <tr>
-                <th className="px-3 py-2">Nama</th>
-                <th className="px-3 py-2">Lowongan</th>
-                <th className="px-3 py-2">Email</th>
-                <th className="px-3 py-2">Diterima</th>
-                <th className="px-3 py-2">Tahap</th>
-                {canManage ? <th className="px-3 py-2 text-right">Aksi</th> : null}
+                <th className="px-3 py-2">{t('applicantsColumns.name')}</th>
+                <th className="px-3 py-2">{t('applicantsColumns.opening')}</th>
+                <th className="px-3 py-2">{t('applicantsColumns.email')}</th>
+                <th className="px-3 py-2">{t('applicantsColumns.applied')}</th>
+                <th className="px-3 py-2">{t('applicantsColumns.stage')}</th>
+                {canManage ? <th className="px-3 py-2 text-right">{t('applicantsColumns.actions')}</th> : null}
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-3">
@@ -488,7 +490,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                     colSpan={canManage ? 6 : 5}
                     className="px-3 py-6 text-center text-brand-ink-3"
                   >
-                    Belum ada kandidat untuk filter ini.
+                    {t('emptyApplicants')}
                   </td>
                 </tr>
               ) : (
@@ -533,7 +535,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                           >
                             {STAGES.map((s) => (
                               <option key={s} value={s}>
-                                {STAGE_LABEL[s]}
+                                {t(`stages.${s}`)}
                               </option>
                             ))}
                           </select>
@@ -541,7 +543,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                           <span
                             className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${STAGE_COLOR[a.stage] ?? STAGE_COLOR.applied}`}
                           >
-                            {STAGE_LABEL[a.stage] ?? a.stage}
+                            {t(`stages.${a.stage}`)}
                           </span>
                         )}
                       </td>
@@ -555,33 +557,33 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                                 disabled={busy || !editForm.name.trim()}
                                 className="rounded bg-brand-red px-2 py-1 text-xs font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
                               >
-                                Simpan
+                                {t('save')}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setEditingApplicantId(null)}
                                 className="rounded border border-brand-cream-3 px-2 py-1 text-xs font-semibold text-brand-ink-3 hover:bg-brand-cream-2"
                               >
-                                Batal
+                                {t('cancel')}
                               </button>
                             </span>
                           ) : confirmDeleteId === a.id ? (
                             <span className="inline-flex items-center gap-2">
-                              <span className="text-xs text-brand-ink-3">Hapus?</span>
+                              <span className="text-xs text-brand-ink-3">{t('confirmDelete')}</span>
                               <button
                                 type="button"
                                 onClick={() => confirmDelete(a.id)}
                                 disabled={busy}
                                 className="rounded bg-rose-500 px-2 py-1 text-xs font-semibold text-white hover:bg-rose-600"
                               >
-                                Ya
+                                {t('yes')}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setConfirmDeleteId(null)}
                                 className="rounded border border-brand-cream-3 px-2 py-1 text-xs font-semibold text-brand-ink-3 hover:bg-brand-cream-2"
                               >
-                                Tidak
+                                {t('no')}
                               </button>
                             </span>
                           ) : (
@@ -591,14 +593,14 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                                 onClick={() => startEdit(a)}
                                 className="text-xs text-brand-ink-2 hover:underline"
                               >
-                                Ubah
+                                {t('edit')}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setConfirmDeleteId(a.id)}
                                 className="text-xs text-brand-red hover:underline"
                               >
-                                Hapus
+                                {t('delete')}
                               </button>
                             </span>
                           )}
@@ -613,8 +615,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
         </div>
         <div className="mt-3 flex flex-col gap-3 border-t border-brand-cream-3 pt-3 text-xs text-brand-ink-3 sm:flex-row sm:items-center sm:justify-between">
           <span>
-            {filteredApplicants.length} kandidat - Halaman{' '}
-            {Math.min(applicantPage, applicantTotalPages)} dari {applicantTotalPages}
+            {t('pagination', { count: filteredApplicants.length, page: Math.min(applicantPage, applicantTotalPages), total: applicantTotalPages })}
           </span>
           <div className="flex items-center gap-2">
             <button
@@ -623,7 +624,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
               onClick={() => setApplicantPage((page) => Math.max(1, page - 1))}
               className="rounded-md border border-brand-cream-3 px-3 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream disabled:text-brand-ink-3 disabled:opacity-50"
             >
-              Sebelumnya
+              {t('prev')}
             </button>
             <button
               type="button"
@@ -631,7 +632,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
               onClick={() => setApplicantPage((page) => Math.min(applicantTotalPages, page + 1))}
               className="rounded-md border border-brand-cream-3 px-3 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream disabled:text-brand-ink-3 disabled:opacity-50"
             >
-              Berikutnya
+              {t('next')}
             </button>
           </div>
         </div>

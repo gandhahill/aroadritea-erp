@@ -5,14 +5,15 @@
 import { getSession } from '@/lib/auth';
 import { pickLocalized } from '@/lib/pick-localized';
 import type { Metadata } from 'next';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchProfitLoss } from '../actions';
 import { ExportXlsxButton } from '../export-button';
 
-export const metadata: Metadata = {
-  title: 'Profit & Loss',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('reporting.profitLoss');
+  return { title: t('title') };
+}
 
 export default async function ProfitLossPage({
   searchParams,
@@ -30,14 +31,15 @@ export default async function ProfitLossPage({
   const to = params.to ?? today;
   const data = await fetchProfitLoss(tenantId, from, to, params.locationId);
   const locale = await getLocale();
+  const t = await getTranslations('reporting.profitLoss');
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Laba Rugi</h1>
+          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Profit & Loss: <span className="font-medium text-brand-ink">{from}</span> —{' '}
+            {t('subtitle')} <span className="font-medium text-brand-ink">{from}</span> —{' '}
             <span className="font-medium text-brand-ink">{to}</span>
           </p>
         </div>
@@ -46,39 +48,39 @@ export default async function ProfitLossPage({
             filename={`profit-loss-${from}_to_${to}.xlsx`}
             sheets={[
               {
-                name: 'Revenue',
+                name: t('revenue'),
                 rows: [
-                  ['Code', 'Name', 'Balance (IDR)'],
+                  [t('columns.account'), '', t('columns.amount')],
                   ...data.revenue.lines.map((l) => [
                     l.accountCode,
                     pickLocalized(l.accountName, locale),
                     Number(l.balance),
                   ]),
-                  ['', 'TOTAL REVENUE', Number(data.revenue.total)],
+                  ['', t('total'), Number(data.revenue.total)],
                 ],
               },
               {
-                name: 'COGS',
+                name: t('cogs'),
                 rows: [
-                  ['Code', 'Name', 'Balance (IDR)'],
+                  [t('columns.account'), '', t('columns.amount')],
                   ...data.cogs.lines.map((l) => [
                     l.accountCode,
                     pickLocalized(l.accountName, locale),
                     Number(l.balance),
                   ]),
-                  ['', 'TOTAL COGS', Number(data.cogs.total)],
+                  ['', t('total'), Number(data.cogs.total)],
                 ],
               },
               {
-                name: 'Expenses',
+                name: t('expenses'),
                 rows: [
-                  ['Code', 'Name', 'Balance (IDR)'],
+                  [t('columns.account'), '', t('columns.amount')],
                   ...data.expenses.lines.map((l) => [
                     l.accountCode,
                     pickLocalized(l.accountName, locale),
                     Number(l.balance),
                   ]),
-                  ['', 'TOTAL EXPENSES', Number(data.expenses.total)],
+                  ['', t('total'), Number(data.expenses.total)],
                 ],
               },
               {
@@ -86,11 +88,11 @@ export default async function ProfitLossPage({
                 rows: [
                   ['From', from],
                   ['To', to],
-                  ['Revenue', Number(data.revenue.total)],
-                  ['COGS', Number(data.cogs.total)],
-                  ['Gross Profit', Number(data.grossProfit)],
-                  ['Expenses', Number(data.expenses.total)],
-                  ['Net Income', Number(data.netIncome)],
+                  [t('revenue'), Number(data.revenue.total)],
+                  [t('cogs'), Number(data.cogs.total)],
+                  [t('grossProfit'), Number(data.grossProfit)],
+                  [t('expenses'), Number(data.expenses.total)],
+                  [t('netProfit'), Number(data.netIncome)],
                 ],
               },
             ]}
@@ -102,27 +104,29 @@ export default async function ProfitLossPage({
         <div className="space-y-4">
           {/* Revenue */}
           <PLSection
-            title="Pendapatan"
-            subtitle="Revenue"
+            title={t('revenue')}
             lines={data.revenue.lines}
             total={data.revenue.total}
             colorClass="text-brand-jade"
+            locale={locale}
+            totalLabel={t('total')}
           />
 
           {/* COGS */}
           <PLSection
-            title="Harga Pokok Penjualan"
-            subtitle="Cost of Goods Sold"
+            title={t('cogs')}
             lines={data.cogs.lines}
             total={data.cogs.total}
             colorClass="text-brand-clay"
+            locale={locale}
+            totalLabel={t('total')}
           />
 
           {/* Gross Profit */}
           <div className="surface-card p-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-brand-ink">
-                Laba Kotor (Gross Profit)
+                {t('grossProfit')}
               </span>
               <span
                 className={`font-mono text-base font-bold tabular-nums ${Number.parseInt(data.grossProfit) >= 0 ? 'text-brand-jade' : 'text-brand-clay'}`}
@@ -134,19 +138,19 @@ export default async function ProfitLossPage({
 
           {/* Expenses */}
           <PLSection
-            title="Beban Operasional"
-            subtitle="Operating Expenses"
+            title={t('expenses')}
             lines={data.expenses.lines}
             total={data.expenses.total}
             colorClass="text-brand-clay"
+            locale={locale}
+            totalLabel={t('total')}
           />
 
           {/* Net Income */}
           <div className="surface-elevated p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-brand-ink">Laba / Rugi Bersih</h3>
-                <p className="text-xs text-brand-ink-3">Net Income</p>
+                <h3 className="text-base font-bold text-brand-ink">{t('netProfit')}</h3>
               </div>
               <span
                 className={`font-mono text-xl font-bold tabular-nums ${Number.parseInt(data.netIncome) >= 0 ? 'text-brand-jade' : 'text-brand-clay'}`}
@@ -157,7 +161,7 @@ export default async function ProfitLossPage({
           </div>
         </div>
       ) : (
-        <EmptyState />
+        <EmptyState message={t('empty')} />
       )}
     </div>
   );
@@ -167,18 +171,18 @@ export default async function ProfitLossPage({
 
 interface PLSectionProps {
   title: string;
-  subtitle: string;
   lines: Array<{ accountCode: string; accountName: Record<string, string>; balance: string }>;
   total: string;
   colorClass: string;
+  locale?: string;
+  totalLabel?: string;
 }
 
-function PLSection({ title, subtitle, lines, total, colorClass }: PLSectionProps) {
+function PLSection({ title, lines, total, colorClass, locale, totalLabel }: PLSectionProps) {
   return (
     <div className="surface-card overflow-hidden">
       <div className="border-b border-brand-cream-2 px-4 py-3">
         <h2 className="text-sm font-semibold text-brand-ink">{title}</h2>
-        <p className="text-xs text-brand-ink-3">{subtitle}</p>
       </div>
       <div className="divide-y divide-brand-cream-2">
         {lines.length === 0 ? (
@@ -194,7 +198,7 @@ function PLSection({ title, subtitle, lines, total, colorClass }: PLSectionProps
                   {line.accountCode}
                 </span>
                 <span className="text-sm text-brand-ink">
-                  {pickLocalized(line.accountName, undefined, line.accountCode)}
+                  {pickLocalized(line.accountName, locale, line.accountCode)}
                 </span>
               </div>
               <span className={`font-mono text-sm tabular-nums ${colorClass}`}>
@@ -205,7 +209,7 @@ function PLSection({ title, subtitle, lines, total, colorClass }: PLSectionProps
         )}
       </div>
       <div className="border-t-2 border-brand-cream-3 px-4 py-3 flex items-center justify-between bg-brand-cream/30">
-        <span className="text-sm font-semibold text-brand-ink">Total {title}</span>
+        <span className="text-sm font-semibold text-brand-ink">{totalLabel} {title}</span>
         <span className={`font-mono text-sm font-bold tabular-nums ${colorClass}`}>
           {fmtRp(total)}
         </span>
@@ -223,10 +227,10 @@ function fmtRp(val: string): string {
   return sign + 'Rp ' + Math.abs(n).toLocaleString('id-ID');
 }
 
-function EmptyState() {
+function EmptyState({ message }: { message: string }) {
   return (
     <div className="surface-card flex flex-col items-center justify-center py-16 text-brand-ink-3">
-      <p className="text-sm font-medium">Belum ada data untuk periode ini.</p>
+      <p className="text-sm font-medium">{message}</p>
     </div>
   );
 }

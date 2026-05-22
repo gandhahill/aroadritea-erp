@@ -11,6 +11,7 @@ import {
   rejectReimbursement,
   submitReimbursement,
 } from './actions';
+import { useTranslations } from 'next-intl';
 
 function formatRupiah(amount: string): string {
   const n = Number(amount);
@@ -29,38 +30,17 @@ function formatDate(d: Date | string): string {
   });
 }
 
-const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  draft: { bg: 'bg-brand-cream-2', text: 'text-brand-ink-2', label: 'Draf' },
-  submitted: { bg: 'bg-brand-gold-light', text: 'text-brand-gold', label: 'Diajukan' },
-  approved: { bg: 'bg-brand-jade-light', text: 'text-brand-jade', label: 'Disetujui' },
-  disbursed: { bg: 'bg-brand-jade-light', text: 'text-brand-jade', label: 'Dicairkan' },
-  rejected: { bg: 'bg-brand-clay-light', text: 'text-brand-clay', label: 'Ditolak' },
+const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
+  draft: { bg: 'bg-brand-cream-2', text: 'text-brand-ink-2' },
+  submitted: { bg: 'bg-brand-gold-light', text: 'text-brand-gold' },
+  approved: { bg: 'bg-brand-jade-light', text: 'text-brand-jade' },
+  disbursed: { bg: 'bg-brand-jade-light', text: 'text-brand-jade' },
+  rejected: { bg: 'bg-brand-clay-light', text: 'text-brand-clay' },
 };
 
-const CATEGORY_LABELS: Record<string, string> = {
-  operational: 'Operasional',
-  supplies: 'Perlengkapan',
-  emergency: 'Darurat',
-  other: 'Lainnya',
-};
-
-const CATEGORY_OPTIONS = [
-  { value: 'operational', label: 'Operasional' },
-  { value: 'supplies', label: 'Perlengkapan' },
-  { value: 'emergency', label: 'Darurat' },
-  { value: 'other', label: 'Lainnya' },
-];
+const CATEGORY_OPTIONS = ['operational', 'supplies', 'emergency', 'other'] as const;
 
 const STATUS_FILTERS = ['all', 'draft', 'submitted', 'approved', 'disbursed', 'rejected'] as const;
-
-const STATUS_FILTER_LABELS: Record<string, string> = {
-  all: 'Semua',
-  draft: 'Draf',
-  submitted: 'Diajukan',
-  approved: 'Disetujui',
-  disbursed: 'Dicairkan',
-  rejected: 'Ditolak',
-};
 
 // --- Create Form Modal ---
 interface CreateModalProps {
@@ -72,6 +52,7 @@ interface CreateModalProps {
 }
 
 function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: CreateModalProps) {
+  const t = useTranslations('accounting.reimbursement');
   const [isPending, startTransition] = useTransition();
   const [locationId, setLocationId] = useState(locations[0]?.id ?? '');
   const [amount, setAmount] = useState('');
@@ -87,15 +68,15 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
 
     const amountNum = Number.parseFloat(amount.replace(/[^\d]/g, ''));
     if (!locationId) {
-      setError('Pilih lokasi.');
+      setError(t('errors.noLocation'));
       return;
     }
     if (!amountNum || amountNum <= 0) {
-      setError('Masukkan jumlah yang valid.');
+      setError(t('errors.invalidAmount'));
       return;
     }
     if (!description.trim()) {
-      setError('Masukkan keterangan.');
+      setError(t('errors.noDescription'));
       return;
     }
 
@@ -115,7 +96,7 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
       if (result.success) {
         onSuccess();
       } else {
-        setError(result.error ?? 'Terjadi kesalahan.');
+        setError(result.error ?? t('errors.failed'));
       }
     });
   };
@@ -129,7 +110,7 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="surface-card w-full max-w-md space-y-5 p-6 shadow-xl">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-brand-ink">Pengajuan Reimbursement</h2>
+          <h2 className="text-lg font-semibold text-brand-ink">{t('createTitle')}</h2>
           <button onClick={onClose} className="text-brand-ink-3 hover:text-brand-ink">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
@@ -144,13 +125,13 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-brand-ink-3">Lokasi</label>
+            <label className="block text-xs font-medium text-brand-ink-3">{t('location')}</label>
             <select
               value={locationId}
               onChange={(e) => setLocationId(e.target.value)}
               className="mt-1 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
             >
-              <option value="">Pilih lokasi...</option>
+              <option value="">{t('selectLocation')}</option>
               {locations.map((loc) => (
                 <option key={loc.id} value={loc.id}>
                   {loc.name}
@@ -160,7 +141,7 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-brand-ink-3">Jumlah (Rp)</label>
+            <label className="block text-xs font-medium text-brand-ink-3">{t('amount')} (Rp)</label>
             <input
               type="text"
               value={amount}
@@ -171,33 +152,33 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-brand-ink-3">Kategori</label>
+            <label className="block text-xs font-medium text-brand-ink-3">{t('category')}</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="mt-1 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
             >
               {CATEGORY_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
+                <option key={opt} value={opt}>
+                  {t(`categories.${opt}`)}
                 </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-brand-ink-3">Keterangan</label>
+            <label className="block text-xs font-medium text-brand-ink-3">{t('description')}</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              placeholder="Jelaskan alasan pengajuan..."
+              placeholder={t('descPlaceholder')}
               className="mt-1 w-full resize-none rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
             />
           </div>
 
           <FileUploadField
-            label="Lampiran"
+            label={t('attachment')}
             hiddenName="attachmentUrl"
             value={attachmentUrl}
             area="reimbursement"
@@ -220,14 +201,14 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
               onClick={onClose}
               className="rounded-md border border-brand-cream-3 px-4 py-2 text-sm text-brand-ink-2 hover:bg-brand-cream-2"
             >
-              Batal
+              {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={isPending}
               className="rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
             >
-              {isPending ? 'Menyimpan...' : 'Simpan Draf'}
+              {isPending ? t('saving') : t('saveDraft')}
             </button>
           </div>
         </form>
@@ -244,19 +225,20 @@ interface RejectModalProps {
 }
 
 function RejectModal({ onConfirm, onClose, isPending }: RejectModalProps) {
+  const t = useTranslations('accounting.reimbursement');
   const [reason, setReason] = useState('');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="surface-card w-full max-w-sm space-y-4 p-6 shadow-xl">
-        <h2 className="text-lg font-semibold text-brand-ink">Tolak Pengajuan</h2>
+        <h2 className="text-lg font-semibold text-brand-ink">{t('rejectTitle')}</h2>
         <div>
-          <label className="block text-xs font-medium text-brand-ink-3">Alasan Penolakan</label>
+          <label className="block text-xs font-medium text-brand-ink-3">{t('modalRejectReason')}</label>
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             rows={3}
-            placeholder="Jelaskan alasan penolakan..."
+            placeholder={t('modalRejectPlaceholder')}
             className="mt-1 w-full resize-none rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
           />
         </div>
@@ -265,14 +247,14 @@ function RejectModal({ onConfirm, onClose, isPending }: RejectModalProps) {
             onClick={onClose}
             className="rounded-md border border-brand-cream-3 px-4 py-2 text-sm text-brand-ink-2 hover:bg-brand-cream-2"
           >
-            Batal
+            {t('cancel')}
           </button>
           <button
             onClick={() => onConfirm(reason)}
             disabled={!reason.trim() || isPending}
             className="rounded-md bg-brand-clay px-4 py-2 text-sm font-medium text-white hover:bg-brand-clay/80 disabled:opacity-50"
           >
-            {isPending ? 'Menolak...' : 'Tolak'}
+            {isPending ? t('modalRejecting') : t('modalReject')}
           </button>
         </div>
       </div>
@@ -336,6 +318,7 @@ function ReimbursementViewInner({
   onRefresh,
   isRefreshing,
 }: ReimbursementViewInnerProps) {
+  const t = useTranslations('accounting.reimbursement');
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -384,7 +367,7 @@ function ReimbursementViewInner({
         onRefresh();
         setTimeout(() => setActionSuccess(''), 3000);
       } else {
-        setActionError(result.error ?? 'Terjadi kesalahan.');
+        setActionError(result.error ?? t('errors.failed'));
       }
     });
   };
@@ -393,7 +376,7 @@ function ReimbursementViewInner({
     if (!selectedId) return;
     handleAction(
       () => submitReimbursement(selectedId, tenantId, userId),
-      'Pengajuan berhasil diajukan.',
+      t('submitSuccess'),
     );
   };
 
@@ -401,7 +384,7 @@ function ReimbursementViewInner({
     if (!selectedId) return;
     handleAction(
       () => approveReimbursement(selectedId, tenantId, userId),
-      'Pengajuan berhasil disetujui.',
+      t('approveSuccess'),
     );
   };
 
@@ -409,7 +392,7 @@ function ReimbursementViewInner({
     if (!selectedId) return;
     handleAction(
       () => rejectReimbursement(selectedId, reason, tenantId, userId),
-      'Pengajuan berhasil ditolak.',
+      t('rejectSuccess'),
     );
   };
 
@@ -417,7 +400,7 @@ function ReimbursementViewInner({
     if (!selectedId) return;
     handleAction(
       () => disburseReimbursement(selectedId, tenantId, userId),
-      'Pengajuan berhasil dicairkan.',
+      t('disburseSuccess'),
     );
   };
 
@@ -426,15 +409,15 @@ function ReimbursementViewInner({
       {/* Summary cards */}
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="surface-card p-5">
-          <span className="text-sm font-medium text-brand-ink-2">Menunggu Persetujuan</span>
+          <span className="text-sm font-medium text-brand-ink-2">{t('pendingApproval')}</span>
           <p className="mt-2 text-2xl font-bold text-brand-gold">{summary.pending}</p>
         </div>
         <div className="surface-card p-5">
-          <span className="text-sm font-medium text-brand-ink-2">Disetujui (Belum Cair)</span>
+          <span className="text-sm font-medium text-brand-ink-2">{t('approvedNotPaid')}</span>
           <p className="mt-2 text-2xl font-bold text-brand-jade">{summary.approved}</p>
         </div>
         <div className="surface-card p-5">
-          <span className="text-sm font-medium text-brand-ink-2">Total Pengajuan</span>
+          <span className="text-sm font-medium text-brand-ink-2">{t('totalRequests')}</span>
           <p className="mt-2 text-2xl font-bold text-brand-ink">
             {formatRupiah(summary.totalAmount.toString())}
           </p>
@@ -471,7 +454,7 @@ function ReimbursementViewInner({
                     : 'bg-brand-cream-2 text-brand-ink-2 hover:bg-brand-cream-3'
                 }`}
               >
-                {STATUS_FILTER_LABELS[s]}
+                {t(`status.${s}`)}
               </button>
             );
           })}
@@ -483,7 +466,7 @@ function ReimbursementViewInner({
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Pengajuan Baru
+          {t('newRequest')}
         </button>
       </div>
 
@@ -492,13 +475,13 @@ function ReimbursementViewInner({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Tanggal</th>
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Pemohon</th>
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Lokasi</th>
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Kategori</th>
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Keterangan</th>
-              <th className="px-4 py-3 text-right font-medium text-brand-ink-2">Jumlah</th>
-              <th className="px-4 py-3 text-center font-medium text-brand-ink-2">Status</th>
+              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('date')}</th>
+              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('requester')}</th>
+              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('location')}</th>
+              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('category')}</th>
+              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('description')}</th>
+              <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('amount')}</th>
+              <th className="px-4 py-3 text-center font-medium text-brand-ink-2">{t('statusLabel')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-2">
@@ -506,7 +489,6 @@ function ReimbursementViewInner({
               const style = STATUS_STYLES[r.status] ?? {
                 bg: 'bg-brand-cream-2',
                 text: 'text-brand-ink-2',
-                label: 'Draf',
               };
               return (
                 <tr
@@ -520,7 +502,7 @@ function ReimbursementViewInner({
                   <td className="px-4 py-3 text-brand-ink">{r.requesterName}</td>
                   <td className="px-4 py-3 text-brand-ink-2">{r.locationName}</td>
                   <td className="px-4 py-3 text-brand-ink-2">
-                    {CATEGORY_LABELS[r.category] ?? r.category}
+                    {t(`categories.${r.category}`)}
                   </td>
                   <td className="max-w-[200px] truncate px-4 py-3 text-brand-ink">
                     {r.description}
@@ -532,7 +514,7 @@ function ReimbursementViewInner({
                     <span
                       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${style.bg} ${style.text}`}
                     >
-                      {style.label}
+                      {t(`status.${r.status}`)}
                     </span>
                   </td>
                 </tr>
@@ -541,7 +523,7 @@ function ReimbursementViewInner({
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-8 text-center text-sm text-brand-ink-3">
-                  Belum ada pengajuan reimbursement.
+                  {t('empty')}
                 </td>
               </tr>
             )}
@@ -550,7 +532,7 @@ function ReimbursementViewInner({
       </div>
       <div className="flex flex-col gap-3 rounded-lg border border-brand-cream-3 bg-card px-4 py-3 text-xs text-brand-ink-3 sm:flex-row sm:items-center sm:justify-between">
         <span>
-          {filtered.length} pengajuan - Halaman {Math.min(page, totalPages)} dari {totalPages}
+          {t('pagination', { count: filtered.length, current: Math.min(page, totalPages), total: totalPages })}
         </span>
         <div className="flex items-center gap-2">
           <button
@@ -559,7 +541,7 @@ function ReimbursementViewInner({
             onClick={() => setPage((current) => Math.max(1, current - 1))}
             className="rounded-md border border-brand-cream-3 px-3 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream disabled:text-brand-ink-3 disabled:opacity-50"
           >
-            Sebelumnya
+            {t('prev')}
           </button>
           <button
             type="button"
@@ -567,7 +549,7 @@ function ReimbursementViewInner({
             onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
             className="rounded-md border border-brand-cream-3 px-3 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream disabled:text-brand-ink-3 disabled:opacity-50"
           >
-            Berikutnya
+            {t('next')}
           </button>
         </div>
       </div>
@@ -576,44 +558,44 @@ function ReimbursementViewInner({
       {selected && (
         <div className="surface-card space-y-4 p-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-brand-ink">Detail Pengajuan</h3>
+            <h3 className="text-lg font-semibold text-brand-ink">{t('details')}</h3>
             <button
               onClick={() => setSelectedId(null)}
               className="text-sm text-brand-ink-3 hover:text-brand-ink"
             >
-              Tutup
+              {t('close')}
             </button>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <span className="text-xs font-medium text-brand-ink-3">Pemohon</span>
+              <span className="text-xs font-medium text-brand-ink-3">{t('requester')}</span>
               <p className="mt-1 text-sm text-brand-ink">{selected.requesterName}</p>
             </div>
             <div>
-              <span className="text-xs font-medium text-brand-ink-3">Lokasi</span>
+              <span className="text-xs font-medium text-brand-ink-3">{t('location')}</span>
               <p className="mt-1 text-sm text-brand-ink">{selected.locationName}</p>
             </div>
             <div>
-              <span className="text-xs font-medium text-brand-ink-3">Kategori</span>
+              <span className="text-xs font-medium text-brand-ink-3">{t('category')}</span>
               <p className="mt-1 text-sm text-brand-ink">
-                {CATEGORY_LABELS[selected.category] ?? selected.category}
+                {t(`categories.${selected.category}`)}
               </p>
             </div>
             <div>
-              <span className="text-xs font-medium text-brand-ink-3">Jumlah</span>
+              <span className="text-xs font-medium text-brand-ink-3">{t('amount')}</span>
               <p className="mt-1 text-sm font-medium text-brand-ink">
                 {formatRupiah(selected.amount)}
               </p>
             </div>
             <div className="sm:col-span-2">
-              <span className="text-xs font-medium text-brand-ink-3">Keterangan</span>
+              <span className="text-xs font-medium text-brand-ink-3">{t('description')}</span>
               <p className="mt-1 text-sm text-brand-ink">{selected.description}</p>
             </div>
 
             {selected.attachmentName && (
               <div className="sm:col-span-2">
-                <span className="text-xs font-medium text-brand-ink-3">Lampiran</span>
+                <span className="text-xs font-medium text-brand-ink-3">{t('attachment')}</span>
                 {selected.attachmentUrl ? (
                   <a
                     href={selected.attachmentUrl}
@@ -630,50 +612,49 @@ function ReimbursementViewInner({
             )}
 
             <div>
-              <span className="text-xs font-medium text-brand-ink-3">Status</span>
+              <span className="text-xs font-medium text-brand-ink-3">{t('statusLabel')}</span>
               <p className="mt-1">
                 {(() => {
                   const style = STATUS_STYLES[selected.status] ?? {
                     bg: 'bg-brand-cream-2',
                     text: 'text-brand-ink-2',
-                    label: 'Draf',
                   };
                   return (
                     <span
                       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${style.bg} ${style.text}`}
                     >
-                      {style.label}
+                      {t(`status.${selected.status}`)}
                     </span>
                   );
                 })()}
               </p>
             </div>
             <div>
-              <span className="text-xs font-medium text-brand-ink-3">Tanggal Pengajuan</span>
+              <span className="text-xs font-medium text-brand-ink-3">{t('dateSubmitted')}</span>
               <p className="mt-1 text-sm text-brand-ink">{formatDate(selected.createdAt)}</p>
             </div>
 
             {selected.approverName && (
               <div>
-                <span className="text-xs font-medium text-brand-ink-3">Disetujui oleh</span>
+                <span className="text-xs font-medium text-brand-ink-3">{t('approvedBy')}</span>
                 <p className="mt-1 text-sm text-brand-ink">{selected.approverName}</p>
               </div>
             )}
             {selected.approvedAt && (
               <div>
-                <span className="text-xs font-medium text-brand-ink-3">Tanggal Persetujuan</span>
+                <span className="text-xs font-medium text-brand-ink-3">{t('dateApproved')}</span>
                 <p className="mt-1 text-sm text-brand-ink">{formatDate(selected.approvedAt)}</p>
               </div>
             )}
             {selected.disbursedAt && (
               <div>
-                <span className="text-xs font-medium text-brand-ink-3">Tanggal Pencairan</span>
+                <span className="text-xs font-medium text-brand-ink-3">{t('dateDisbursed')}</span>
                 <p className="mt-1 text-sm text-brand-ink">{formatDate(selected.disbursedAt)}</p>
               </div>
             )}
             {selected.rejectionReason && (
               <div className="sm:col-span-2">
-                <span className="text-xs font-medium text-brand-ink-3">Alasan Penolakan</span>
+                <span className="text-xs font-medium text-brand-ink-3">{t('rejectReason')}</span>
                 <p className="mt-1 text-sm text-brand-clay">{selected.rejectionReason}</p>
               </div>
             )}
@@ -687,7 +668,7 @@ function ReimbursementViewInner({
                 disabled={isPending}
                 className="rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
               >
-                {isPending ? 'Mengirim...' : 'Ajukan'}
+                {isPending ? t('submitting') : t('submitRequest')}
               </button>
             )}
             {selected.status === 'submitted' && (
@@ -697,14 +678,14 @@ function ReimbursementViewInner({
                   disabled={isPending}
                   className="rounded-md bg-brand-jade px-4 py-2 text-sm font-medium text-white hover:bg-brand-jade/80 disabled:opacity-50"
                 >
-                  {isPending ? 'Menyetujui...' : 'Setujui'}
+                  {isPending ? t('approving') : t('approveRequest')}
                 </button>
                 <button
                   onClick={() => setShowRejectModal(true)}
                   disabled={isPending}
                   className="rounded-md border border-brand-clay px-4 py-2 text-sm font-medium text-brand-clay hover:bg-brand-clay-light disabled:opacity-50"
                 >
-                  Tolak
+                  {t('modalReject')}
                 </button>
               </>
             )}
@@ -714,12 +695,12 @@ function ReimbursementViewInner({
                 disabled={isPending}
                 className="rounded-md bg-brand-gold px-4 py-2 text-sm font-medium text-white hover:bg-brand-gold/80 disabled:opacity-50"
               >
-                {isPending ? 'Mencairkan...' : 'Cairkan'}
+                {isPending ? t('disbursing') : t('disburse')}
               </button>
             )}
             {(selected.status === 'disbursed' || selected.status === 'rejected') && (
               <p className="text-sm text-brand-ink-3">
-                Pengajuan telah {selected.status === 'disbursed' ? 'dicairkan' : 'ditolak'}.
+                {selected.status === 'disbursed' ? t('alreadyDisbursed') : t('alreadyRejected')}
               </p>
             )}
           </div>

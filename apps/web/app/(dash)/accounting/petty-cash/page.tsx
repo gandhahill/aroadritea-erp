@@ -1,6 +1,7 @@
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import {
   fetchEmptyPettyCashLocations,
   fetchPettyCashAccounts,
@@ -27,13 +28,14 @@ export default async function PettyCashPage() {
     transactions[acct.id] = await fetchPettyCashTransactions(acct.id);
   }
 
+  const t = await getTranslations('accounting.pettyCash');
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand-ink">Kas Kecil</h1>
+        <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
         <p className="mt-1 text-sm text-brand-ink-3">
-          Pantau saldo kas kecil per lokasi dan riwayat transaksi. Setiap outlet dapat diatur
-          plafond & modal pembukaan yang berbeda.
+          {t('subtitle')}
         </p>
       </div>
 

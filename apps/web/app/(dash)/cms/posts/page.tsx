@@ -2,12 +2,16 @@ import { getSession } from '@/lib/auth';
 /**
  * CMS Posts — List page (SD §31.3)
  */
+import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchCmsPosts } from '../actions';
 
-export const metadata: Metadata = { title: 'Posts — CMS' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('cms.posts');
+  return { title: `${t('title')} — CMS` };
+}
 
 const STATUS_COLORS: Record<string, string> = {
   draft: 'bg-brand-cream-2 text-brand-ink-3',
@@ -16,11 +20,11 @@ const STATUS_COLORS: Record<string, string> = {
   archived: 'bg-brand-ink/5 text-brand-ink-3',
 };
 
-const KIND_LABELS: Record<string, string> = {
-  news: 'Berita',
-  promo: 'Promo',
-  recipe: 'Resep',
-  event: 'Event',
+const KIND_KEYS: Record<string, string> = {
+  news: 'news',
+  promo: 'promo',
+  recipe: 'recipe',
+  event: 'event',
 };
 
 export default async function CmsPostsPage() {
@@ -28,14 +32,15 @@ export default async function CmsPostsPage() {
   if (!session) redirect('/login');
 
   const posts = await fetchCmsPosts();
+  const t = await getTranslations('cms.posts');
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Posts</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">Kelola berita, promo, resep, dan event.</p>
+          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
+          <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle')}</p>
         </div>
         <Link
           href="/cms/posts/new"
@@ -50,7 +55,7 @@ export default async function CmsPostsPage() {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          Buat Post
+          {t('createPost')}
         </Link>
       </div>
 
@@ -71,9 +76,9 @@ export default async function CmsPostsPage() {
                 d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
               />
             </svg>
-            <p className="mt-3 text-sm font-medium text-brand-ink-2">Belum ada post</p>
+            <p className="mt-3 text-sm font-medium text-brand-ink-2">{t('empty')}</p>
             <p className="mt-1 text-xs text-brand-ink-3">
-              Buat post pertama untuk blog atau promo.
+              {t('emptyHint')}
             </p>
           </div>
         ) : (
@@ -81,22 +86,22 @@ export default async function CmsPostsPage() {
             <thead>
               <tr className="border-b border-brand-cream-3 text-left">
                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
-                  Judul
+                  {t('columns.title')}
                 </th>
                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
-                  Kategori
+                  {t('columns.type')}
                 </th>
                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
-                  Slug
+                  {t('columns.slug')}
                 </th>
                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
-                  Status
+                  {t('columns.status')}
                 </th>
                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   Tags
                 </th>
                 <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
-                  Diperbarui
+                  {t('columns.updatedAt')}
                 </th>
                 <th className="px-4 py-3"></th>
               </tr>
@@ -114,7 +119,7 @@ export default async function CmsPostsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="rounded bg-brand-cream-2 px-2 py-0.5 text-xs font-medium text-brand-ink-2">
-                        {KIND_LABELS[(post.kind as string) ?? 'news'] ?? (post.kind as string)}
+                        {t(`types.${KIND_KEYS[(post.kind as string) ?? 'news'] ?? (post.kind as string)}`)}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -126,8 +131,7 @@ export default async function CmsPostsPage() {
                       <span
                         className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[(post.status as string) ?? 'draft']}`}
                       >
-                        {(post.status as string)?.charAt(0).toUpperCase() +
-                          ((post.status as string) ?? '').slice(1)}
+                        {t(`status.${(post.status as string) ?? 'draft'}`)}
                       </span>
                     </td>
                     <td className="px-4 py-3">

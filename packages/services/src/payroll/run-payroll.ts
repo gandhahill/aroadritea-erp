@@ -22,6 +22,7 @@ import {
 } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import { auditLog } from '@erp/db/schema/audit';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, sql } from 'drizzle-orm';
@@ -356,6 +357,26 @@ export async function runPayroll(
         line.payrollId = payrollId;
       }
       await db.insert(payrollLines).values(allLines);
+
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'run_payroll',
+        entityType: 'payroll',
+        entityId: payrollId,
+        before: null,
+        after: {
+          id: payrollId,
+          periodCode: data.periodCode,
+          locationId: data.locationId,
+          totalEmployees: empRows.length,
+          totalEarnings,
+          totalDeductions,
+          totalNet,
+        } as never,
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      });
 
       return {
         payrollId,

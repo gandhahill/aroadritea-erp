@@ -94,7 +94,9 @@
       "of": "of",
       "next": "Next",
       "previous": "Previous",
-      "showing": "Showing"
+      "showing": "Showing",
+      "show": "Show",
+      "rows": "rows"
     }
   },
   "auth": {
@@ -121,7 +123,25 @@
     "journal": {
       "exportExcel": "Export Excel",
       "title": "General Journal",
-      "create": "Create Journal Entry",
+      "subtitle": "View and manage general journal entries.",
+      "entryCount": "{count} entries",
+      "create": "New Journal",
+      "table": {
+        "searchPlaceholder": "Search journal no or description",
+        "reset": "Reset",
+        "all": "All",
+        "noNumber": "Journal No.",
+        "date": "Date",
+        "description": "Description",
+        "type": "Type",
+        "amount": "Amount",
+        "status": "Status",
+        "empty": "No journals found",
+        "emptyHint": "Try changing the filter or search keywords.",
+        "account": "Account",
+        "debit": "Debit",
+        "credit": "Credit"
+      },
       "post": "Post",
       "reverse": "Reverse",
       "postingDate": "Posting Date",
@@ -306,27 +326,77 @@
     },
     "reimbursement": {
       "title": "Reimbursement",
-      "subtitle": "Submit and manage reimbursements.",
+      "subtitle": "Submit and manage reimbursement requests.",
       "empty": "No reimbursement requests yet.",
       "saveDraft": "Save Draft",
-      "details": "Reimbursement Details",
-      "approvedNotPaid": "Approved (Not Paid)",
+      "details": "Request Details",
+      "approvedNotPaid": "Approved (Not Disbursed)",
       "approvedBy": "Approved by",
       "submitting": "Submitting...",
       "submitRequest": "Submit",
       "approving": "Approving...",
       "approveRequest": "Approve",
-      "submitSuccess": "Request approved successfully.",
+      "submitSuccess": "Request submitted successfully.",
+      "approveSuccess": "Request approved successfully.",
+      "rejectSuccess": "Request rejected successfully.",
+      "disburseSuccess": "Request disbursed successfully.",
       "errors": {
         "invalidAmount": "Enter a valid amount.",
         "noDescription": "Enter a description.",
-        "noLocation": "Select a location."
+        "noLocation": "Select a location.",
+        "failed": "An error occurred."
       },
-      "selectLocation": "Select location..."
+      "selectLocation": "Select location...",
+      "category": "Category",
+      "date": "Date",
+      "requester": "Requester",
+      "location": "Location",
+      "description": "Description",
+      "amount": "Amount",
+      "statusLabel": "Status",
+      "attachment": "Attachment",
+      "rejectReason": "Rejection Reason",
+      "dateSubmitted": "Submission Date",
+      "dateApproved": "Approval Date",
+      "dateDisbursed": "Disbursement Date",
+      "pendingApproval": "Pending Approval",
+      "totalRequests": "Total Requests",
+      "newRequest": "New Request",
+      "createTitle": "Reimbursement Request",
+      "rejectTitle": "Reject Request",
+      "modalRejectReason": "Rejection Reason",
+      "modalRejectPlaceholder": "Explain reason for rejection...",
+      "modalRejecting": "Rejecting...",
+      "modalReject": "Reject",
+      "cancel": "Cancel",
+      "close": "Close",
+      "status": {
+        "draft": "Draft",
+        "submitted": "Submitted",
+        "approved": "Approved",
+        "disbursed": "Disbursed",
+        "rejected": "Rejected",
+        "all": "All"
+      },
+      "categories": {
+        "operational": "Operational",
+        "supplies": "Supplies",
+        "emergency": "Emergency",
+        "other": "Other"
+      },
+      "disburse": "Disburse",
+      "disbursing": "Disbursing...",
+      "alreadyDisbursed": "Request has been disbursed.",
+      "alreadyRejected": "Request has been rejected.",
+      "pagination": "{count} requests - Page {current} of {total}",
+      "prev": "Previous",
+      "next": "Next",
+      "descPlaceholder": "Explain the reason...",
+      "saving": "Saving..."
     },
     "pettyCash": {
       "title": "Petty Cash",
-      "subtitle": "Monitor petty cash balance per location and transaction history.",
+      "subtitle": "Monitor petty cash balance per location and transaction history. Each outlet can have a different limit & opening balance.",
       "balance": "Balance",
       "plafond": "Limit",
       "lowBalance": "Low Balance",
@@ -340,7 +410,39 @@
       "description": "Description",
       "amount": "Amount",
       "noTransactions": "No transactions yet.",
-      "noAccounts": "No petty cash accounts. Contact admin to create one."
+      "noAccounts": "No active outlets. Add an outlet in Settings → Locations first.",
+      "depositToBank": "Deposit to Bank",
+      "notOpened": "Not opened",
+      "openInfo": "When opened, the system automatically records a <b>DR Petty Cash · CR Cash</b> journal.",
+      "openPlafond": "Petty cash limit",
+      "openBalance": "Opening balance",
+      "openSubmit": "Open petty cash",
+      "openSubmitting": "Creating...",
+      "modalNominal": "Amount",
+      "modalNote": "Note",
+      "modalNoteRequired": "Note *",
+      "modalNoteOptional": "Note (optional)",
+      "modalCancel": "Cancel",
+      "modalSubmit": "Save",
+      "modalSubmitting": "Saving...",
+      "modalTopupTitle": "Replenish Petty Cash",
+      "modalTopupInfo": "Automatic journal: DR Petty Cash · CR Cash",
+      "modalTopupPlaceholder": "Add change money",
+      "modalExpenseTitle": "Record Expense",
+      "modalExpenseInfo": "Petty cash balance will decrease.",
+      "modalExpensePlaceholder": "Buy water, etc",
+      "modalDepositTitle": "Deposit to Bank",
+      "modalDepositInfo": "Automatic journal: DR Bank · CR Petty Cash",
+      "modalDepositPlaceholder": "Deposit to Bank Mandiri",
+      "errors": {
+        "nominalRequired": "Amount is required.",
+        "exceedsBalance": "Amount exceeds petty cash balance.",
+        "noteRequired": "Expense note is required.",
+        "failed": "Failed to record transaction.",
+        "plafondRequired": "Petty cash limit is required.",
+        "balanceExceedsPlafond": "Opening balance cannot exceed the limit.",
+        "createFailed": "Failed to create petty cash account."
+      }
     },
     "bankRecon": {
       "title": "Bank Reconciliation",
@@ -563,6 +665,45 @@
     "notFound": "Schedule not found"
   },
   "inventory": {
+    "recipes": {
+      "title": "Recipes (BOM)",
+      "subtitle": "Set raw material composition per finished product. The system uses these recipes to auto-deduct ingredient stock when POS sells the product.",
+      "searchPlaceholder": "Search product…",
+      "cancel": "Cancel",
+      "newRecipe": "+ Recipe",
+      "selectProduct": "Select finished product…",
+      "notePlaceholder": "Notes (optional)",
+      "saving": "Saving…",
+      "createRecipe": "Create recipe",
+      "noRecipes": "No recipes yet.",
+      "notFound": "Not found.",
+      "ingredientsList": "ingredients",
+      "recipeIngredients": "Recipe ingredients",
+      "deleteRecipe": "Delete recipe",
+      "selectIngredient": "Select ingredient…",
+      "qty": "Qty",
+      "uom": "UOM",
+      "addIngredient": "+ Ingredient",
+      "autoDeductLabel": "Auto-deduct stock on POS sale",
+      "noIngredients": "No ingredients yet. Add above.",
+      "loadingIngredients": "Loading ingredients…",
+      "selectRecipePrompt": "Select a recipe on the left to edit ingredients.",
+      "columns": {
+        "ingredient": "Ingredient",
+        "qty": "Qty",
+        "uom": "UOM",
+        "auto": "Auto"
+      },
+      "errors": {
+        "selectProduct": "Please select a finished product.",
+        "createFailed": "Failed to create recipe.",
+        "selectIngredient": "Select ingredient and fill qty.",
+        "qtyPositive": "Qty must be a positive number.",
+        "addFailed": "Failed to add ingredient.",
+        "deleteLineFailed": "Failed to delete ingredient.",
+        "deleteFailed": "Failed to delete recipe."
+      }
+    },
     "variance": {
       "title": "Stock Variance Report",
       "subtitle": "Stock variance analysis from opname processes.",
@@ -986,12 +1127,42 @@
   "pos": {
     "title": "Point of Sale",
     "operations": {
-      "orders": "Orders",
+      "orders": "Order History",
       "manualClosing": "Legacy POS Closing",
       "stock": "Stock",
       "reports": "Reports",
       "promos": "Promos",
       "settings": "POS Settings"
+    },
+    "orders": {
+      "title": "Order History",
+      "subtitle": "List of sales transactions for this location. Click a row to view details and, if permitted, void or refund.",
+      "date": "Date",
+      "show": "Show",
+      "unauthenticated": "Session is not authenticated or default location is not set in your profile.",
+      "loadFailed": "Failed to load order data.",
+      "export": "Export CSV",
+      "exporting": "Exporting...",
+      "table": {
+        "orderNo": "Order No.",
+        "time": "Time",
+        "status": "Status",
+        "type": "Type",
+        "channel": "Channel",
+        "total": "Total",
+        "action": "Action"
+      },
+      "statusPaid_label": "Paid",
+      "statusRefunded_label": "Refunded",
+      "statusVoided_label": "Voided",
+      "statusPending_label": "Pending",
+      "typeDineIn": "Dine In",
+      "typeTakeaway": "Takeaway",
+      "typeDelivery": "Delivery",
+      "channelPos": "POS",
+      "channelOnline": "Online",
+      "detail": "Detail",
+      "empty": "No orders found for this date."
     },
     "manualSales": {
       "eyebrow": "Legacy POS",
@@ -1194,6 +1365,65 @@
   "hr": {
     "nav": "HR & Payroll",
     "title": "Human Resources",
+    "recruitment": {
+      "title": "Recruitment",
+      "subtitle": "Manage job openings and candidate pipeline. Stages: Applied → Screening → Interview → Offer → Hired (or Rejected / Withdrawn).",
+      "openings": "Job Openings",
+      "addOpening": "Add opening",
+      "cancel": "Cancel",
+      "titleField": "Title",
+      "titlePlaceholder": "e.g. Barista at Yogyakarta outlet",
+      "departmentField": "Department",
+      "headcountField": "Headcount",
+      "requirementsField": "Requirements",
+      "saveOpening": "Save opening",
+      "saving": "Saving...",
+      "emptyOpenings": "No job openings yet.",
+      "columns": {
+        "title": "Title",
+        "department": "Department",
+        "applicants": "Candidates",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "addApplicant": "+ Candidate",
+      "addApplicantTitle": "Add candidate for: ",
+      "namePlaceholder": "Name",
+      "emailPlaceholder": "Email",
+      "phonePlaceholder": "Phone (will be encrypted)",
+      "notesPlaceholder": "Notes / resume link",
+      "saveApplicant": "Save candidate",
+      "pipeline": "Candidate Pipeline",
+      "allOpenings": "All openings",
+      "allStages": "All stages",
+      "applicantsColumns": {
+        "name": "Name",
+        "opening": "Opening",
+        "email": "Email",
+        "applied": "Applied",
+        "stage": "Stage",
+        "actions": "Actions"
+      },
+      "emptyApplicants": "No candidates match this filter.",
+      "save": "Save",
+      "delete": "Delete",
+      "confirmDelete": "Delete?",
+      "yes": "Yes",
+      "no": "No",
+      "edit": "Edit",
+      "pagination": "{count} candidates - Page {page} of {total}",
+      "prev": "Previous",
+      "next": "Next",
+      "stages": {
+        "applied": "Applied",
+        "screening": "Screening",
+        "interview": "Interview",
+        "offer": "Offer",
+        "hired": "Hired",
+        "rejected": "Rejected",
+        "withdrawn": "Withdrawn"
+      }
+    },
     "employees": {
       "title": "Employees",
       "description": "Manage employee records, contracts, attendance, leave, and payroll.",
@@ -1302,6 +1532,32 @@
       "noRecords": "No attendance records",
       "statusOnTime": "On Time",
       "statusLate": "Late",
+      "subtitle": "Clock-in/out history — {total} entries",
+      "allEmployees": "All Employees",
+      "from": "From",
+      "to": "To",
+      "emptySubtitle": "Clock-in/out history will appear here.",
+      "columns": {
+        "employee": "Employee",
+        "shift": "Shift",
+        "checkIn": "Check In",
+        "checkOut": "Check Out",
+        "method": "Method",
+        "late": "Late",
+        "workedHours": "Worked Hrs"
+      },
+      "forgiven": "+{minutes}m (forgiven)",
+      "lateMinutesDisplay": "+{minutes}m",
+      "forgiveBtn": "Forgive",
+      "forgiveModalTitle": "Forgive Lateness",
+      "forgiveModalDesc": "Record a reason for the audit trail. Once forgiven, this incident will not count towards payroll deductions.",
+      "forgiveReasonPlaceholder": "e.g., Shift was abruptly moved up by the manager.",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "saving": "Saving...",
+      "pagination": "Page {page} of {total} — {count} entries",
+      "prev": "← Previous",
+      "next": "Next →",
       "checkInPage": {
         "location": "Location",
         "status": {
@@ -1403,11 +1659,64 @@
       "totalEmployees": "Total Employees",
       "totalGross": "Total Gross",
       "totalNet": "Total Net",
-      "statusDraft": "Draft",
-      "statusApproved": "Approved",
-      "statusPaid": "Paid",
       "statusCancelled": "Cancelled",
-      "noPayrolls": "No payroll records"
+      "noPayrolls": "No payroll records",
+      "subtitle": "Run payroll — calculates PPh 21 TER, BPJS, and late penalties.",
+      "form": {
+        "title": "Run Payroll",
+        "period": "Period",
+        "location": "Location",
+        "selectLocation": "Select location",
+        "bonusTitle": "Bonus per employee",
+        "bonusDesc": "This amount enters the BONUS component, affects total income, and syncs to journals when payroll is approved.",
+        "bonusCount": "{count} bonuses",
+        "noEmployees": "No active employees at this location.",
+        "runBtn": "Run Payroll",
+        "runningBtn": "Running...",
+        "success": "Payroll for {period} created. {empCount} employees, total {totalNet}.",
+        "errorLocation": "Please select a location."
+      },
+      "history": {
+        "title": "Payroll History",
+        "period": "Period",
+        "status": "Status",
+        "employees": "Employees",
+        "totalNet": "Total Net",
+        "actions": "Actions",
+        "detail": "Detail",
+        "empty": "No payroll history yet."
+      },
+      "statusDraft_label": "Draft",
+      "statusPending_label": "Pending",
+      "statusApproved_label": "Approved",
+      "statusPaid_label": "Paid",
+      "statusCancelled_label": "Cancelled",
+      "detail": {
+        "title": "Payroll Detail",
+        "notFound": "Payroll not found.",
+        "back": "← Back to Payroll",
+        "backSimple": "← Back",
+        "summary": {
+          "employees": "Total Employees",
+          "earnings": "Total Earnings",
+          "deductions": "Total Deductions",
+          "net": "Total Net"
+        },
+        "actions": {
+          "approve": "Approve Payroll",
+          "markPaid": "Mark as Paid",
+          "approveHelp": "Director approval will generate journal entries.",
+          "paidHelp": "Mark as paid after cash disbursement."
+        },
+        "table": {
+          "component": "Component",
+          "type": "Type",
+          "amount": "Amount",
+          "earning": "Earning",
+          "deduction": "Deduction"
+        },
+        "journalLink": "Journal Entry:"
+      }
     },
     "disciplinary": {
       "title": "Disciplinary Actions",
@@ -1798,6 +2107,60 @@
     "confirmDelete": "Delete this workflow? Running instances will remain."
   },
   "reporting": {
+    "trialBalance": {
+      "title": "Trial Balance",
+      "subtitle": "Trial Balance as of",
+      "preliminary": "Preliminary",
+      "exportName": "Trial Balance",
+      "columns": {
+        "code": "Code",
+        "account": "Account",
+        "type": "Type",
+        "debit": "Debit",
+        "credit": "Credit",
+        "balance": "Balance"
+      },
+      "total": "Total",
+      "empty": "No data for this date."
+    },
+    "balanceSheet": {
+      "title": "Balance Sheet",
+      "subtitle": "Financial position as of",
+      "preliminary": "Preliminary",
+      "exportName": "Balance Sheet",
+      "assets": "Assets",
+      "liabilities": "Liabilities",
+      "equity": "Equity",
+      "totalAssets": "Total Assets",
+      "totalLiabilitiesAndEquity": "Total Liabilities & Equity",
+      "notBalanced": "Not Balanced",
+      "notBalancedDesc": "Total Assets does not equal Total Liabilities + Equity.",
+      "difference": "Difference",
+      "retainedEarnings": "Retained Earnings / (Loss)",
+      "empty": "No balance sheet data for this date.",
+      "columns": {
+        "account": "Account",
+        "amount": "Amount",
+        "total": "Total"
+      }
+    },
+    "profitLoss": {
+      "title": "Profit & Loss",
+      "subtitle": "Financial performance for the period",
+      "preliminary": "Preliminary",
+      "exportName": "Profit & Loss",
+      "revenue": "Revenue",
+      "cogs": "Cost of Goods Sold (COGS)",
+      "grossProfit": "Gross Profit",
+      "expenses": "Operating Expenses",
+      "netProfit": "Net Profit / (Loss)",
+      "empty": "No profit/loss data for this period.",
+      "columns": {
+        "account": "Account",
+        "amount": "Amount",
+        "total": "Total"
+      }
+    },
     "dailySummary": {
       "title": "Daily Summary",
       "loadFailed": "Failed to load data. Please try again.",
@@ -1952,6 +2315,37 @@
       "step3": "Submit",
       "step4": "Approve"
     },
+    "subtitle": "Manage stock opname sessions and inventory adjustments.",
+    "emptyTitle": "No opname sessions yet",
+    "emptySubtitle": "Create the first session to start stock opname.",
+    "productList": "Product List",
+    "searchPlaceholder": "Search SKU or name…",
+    "varianceOnly": "Variance only",
+    "saveChanges": "Save {count} lines",
+    "productsCount": "products",
+    "emptyList": "No products yet",
+    "noMatchFilter": "No matching products",
+    "saveAction": "Save",
+    "columns": {
+      "sessionNo": "Session No.",
+      "date": "Date",
+      "outlet": "Outlet",
+      "period": "Period",
+      "status": "Status",
+      "createdBy": "Created By",
+      "actions": "Actions",
+      "no": "No.",
+      "sku": "SKU",
+      "product": "Product",
+      "kind": "Kind",
+      "uom": "UOM",
+      "systemQty": "System",
+      "countedQty": "Counted",
+      "variance": "Variance",
+      "varianceValue": "Variance Value",
+      "action": "Action"
+    },
+    "view": "View",
     "status": {
       "draft": "Draft",
       "in_progress": "In Progress",
@@ -2208,6 +2602,147 @@
       "sent": "Sent",
       "closed": "Closed",
       "archived": "Archived"
+    }
+  },
+  "cms": {
+    "pages": {
+      "title": "Pages",
+      "subtitle": "Manage static site pages (home, about, menu, etc.)",
+      "createPage": "Create Page",
+      "staticRoutesTitle": "Built-in Pages (file-based)",
+      "staticRoutesSubtitle": "Active public routes. Legal pages content below can be overridden via CMS Pages table (same slug replaces default content).",
+      "columns": {
+        "slug": "Slug",
+        "page": "Page",
+        "description": "Description",
+        "preview": "Preview",
+        "titleId": "Title (ID)",
+        "type": "Type",
+        "status": "Status",
+        "navbar": "Navbar",
+        "updatedAt": "Updated At"
+      },
+      "static": {
+        "home": "Home",
+        "homeDesc": "Main landing page (file-based).",
+        "menu": "Menu",
+        "menuDesc": "Public menu list.",
+        "about": "About",
+        "aboutDesc": "Company profile & brand story.",
+        "locations": "Locations",
+        "locationsDesc": "List of outlets & addresses.",
+        "blog": "Blog",
+        "blogDesc": "Blog post index (dynamic posts).",
+        "member": "Member",
+        "memberDesc": "Member area (login, register, account).",
+        "career": "Career",
+        "careerDesc": "Job vacancies + application form (real-time from ERP).",
+        "terms": "Terms & Conditions",
+        "termsDesc": "Legal page — content editable via CMS Pages.",
+        "privacy": "Privacy Policy",
+        "privacyDesc": "Legal page — content editable via CMS Pages.",
+        "open": "Open"
+      },
+      "empty": "No pages yet",
+      "emptyHint": "Create your first page for your site.",
+      "types": {
+        "page": "Page",
+        "landing": "Landing",
+        "legal": "Legal"
+      },
+      "status": {
+        "draft": "Draft",
+        "review": "Review",
+        "published": "Published",
+        "archived": "Archived"
+      }
+    },
+    "posts": {
+      "title": "Posts & News",
+      "subtitle": "Manage dynamic content like blogs, announcements, and articles.",
+      "createPost": "Create Post",
+      "filters": {
+        "allTypes": "All Types",
+        "allStatuses": "All Statuses"
+      },
+      "columns": {
+        "title": "Title",
+        "slug": "Slug",
+        "type": "Type",
+        "status": "Status",
+        "author": "Author",
+        "updatedAt": "Updated At"
+      },
+      "types": {
+        "news": "News",
+        "promo": "Promo",
+        "recipe": "Recipe",
+        "event": "Event"
+      },
+      "status": {
+        "draft": "Draft",
+        "review": "Review",
+        "published": "Published",
+        "archived": "Archived"
+      },
+      "empty": "No posts yet",
+      "emptyHint": "Create your first post or news."
+    }
+    }
+  },
+  "tax": {
+    "rates": {
+      "title": "Tax Rates",
+      "subtitle": "PB1/PBJT, VAT, and other tax rates live in the database so code never hardcodes tax values.",
+      "code": "Code",
+      "name": "Name",
+      "rate": "Rate",
+      "calculation": "Calculation",
+      "account": "Posting account",
+      "effective": "Effective",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "inclusive": "Inclusive",
+      "exclusive": "Exclusive",
+      "empty": "No tax rates yet.",
+      "actions": "Actions",
+      "selectAccount": "Select posting account",
+      "save": "Save",
+      "create": "Save rate",
+      "edit": "Edit",
+      "deactivate": "Deactivate"
+    },
+    "rules": {
+      "title": "Tax Rules",
+      "subtitle": "Tax rules determine VAT/PBJT based on channel, customer segment, product category, or global default.",
+      "scope": {
+        "global_default": "Global default",
+        "channel": "Channel",
+        "customer_segment": "Customer segment",
+        "product_category": "Product category"
+      },
+      "placeholders": {
+        "scopeId": "Scope ID, blank for global"
+      },
+      "defaultApplied": "Default applied",
+      "saveRule": "Save rule",
+      "empty": "No tax rules yet.",
+      "columns": {
+        "scope": "Scope",
+        "tax": "Tax",
+        "default": "Default",
+        "priority": "Priority",
+        "effective": "Effective",
+        "actions": "Actions"
+      },
+      "yes": "Yes",
+      "no": "No",
+      "onwards": "onwards",
+      "global": "global",
+      "edit": "Edit",
+      "save": "Save",
+      "delete": "Delete"
     }
   }
 }

@@ -43,7 +43,7 @@ export function Pagination({
     <div className="flex flex-col gap-3 rounded-lg border border-brand-cream-3 bg-card px-4 py-3 text-sm text-brand-ink-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <span>Tampilkan</span>
+          <span>{t('show')}</span>
           <select
             value={pageSize}
             onChange={handlePageSizeChange}
@@ -55,7 +55,7 @@ export function Pagination({
               </option>
             ))}
           </select>
-          <span>baris</span>
+          <span>{t('rows')}</span>
         </div>
         <span className="hidden text-brand-cream-3 sm:inline">|</span>
         <span>

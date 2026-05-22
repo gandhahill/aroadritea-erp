@@ -12,7 +12,12 @@ import { redirect } from 'next/navigation';
 import { fetchDailySummary } from './actions';
 import { DailySummaryClient } from './daily-summary-client';
 
-export const metadata: Metadata = { title: 'Ringkasan Harian' };
+import { getTranslations } from 'next-intl/server';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('reporting.dailySummary');
+  return { title: t('title') };
+}
 
 export default async function DailySummaryPage({
   searchParams,
@@ -44,6 +49,7 @@ export default async function DailySummaryPage({
     sessionLocationId,
   );
 
+  const t = await getTranslations('reporting.dailySummary');
   const data = locationId
     ? await fetchDailySummary({
         locationId,
@@ -51,7 +57,7 @@ export default async function DailySummaryPage({
         endDate,
         cashierId: params.cashierId,
       })
-    : { error: 'Belum ada outlet aktif untuk laporan harian.' };
+    : { error: t('noActiveOutlets') };
 
   return (
     <DailySummaryClient

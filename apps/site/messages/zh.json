@@ -335,5 +335,31 @@
         }
       ]
     }
+  },
+  "careers": {
+    "title": "加入 Aroadri Tea 团队",
+    "subtitle": "我们一直在为日惹的门店和后台团队寻找新朋友。查看下方的空缺职位，并直接通过此页面提交申请。",
+    "loading": "正在加载职位…",
+    "empty": "目前没有空缺职位。请随时关注此页面——我们经常招聘咖啡师、收银员和后台人员。",
+    "success": "谢谢！您对 <b>{title}</b> 的申请已收到。我们的HR团队将通过电子邮件/WhatsApp与您联系。",
+    "operational": "运营部",
+    "positions": "个职位",
+    "closeForm": "关闭表单",
+    "apply": "申请",
+    "requirements": "要求",
+    "form": {
+      "name": "全名",
+      "email": "电子邮件",
+      "phone": "WhatsApp号码",
+      "notes": "经验 / 简历链接 / 简短留言",
+      "submit": "提交申请",
+      "submitting": "提交中…"
+    },
+    "errors": {
+      "fetchFailed": "无法加载职位空缺。",
+      "nameRequired": "请先填写您的姓名。",
+      "submitFailed": "无法提交申请。",
+      "network": "网络错误。请稍后再试。"
+    }
   }
 }

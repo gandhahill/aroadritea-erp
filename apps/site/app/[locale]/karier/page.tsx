@@ -4,24 +4,35 @@
  */
 
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { CareersClient } from './careers-client';
 
-export const metadata: Metadata = {
-  title: 'Karier — Aroadri Tea',
+type Props = {
+  params: Promise<{ locale: string }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'careers' });
+  return {
+    title: `${t('title')} — Aroadri Tea`,
+  };
+}
 
 export const dynamic = 'force-dynamic';
 
-export default function CareersPage() {
+export default async function CareersPage({ params }: Props) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'careers' });
+
   return (
     <div className="px-4 py-14 sm:px-6">
       <article className="mx-auto max-w-4xl">
         <h1 className="text-4xl font-black text-brand-ink md:text-5xl">
-          Bergabung dengan tim Aroadri Tea
+          {t('title')}
         </h1>
         <p className="mt-4 max-w-2xl text-base text-brand-ink-2">
-          Kami terus mencari teman baru untuk outlet di Yogyakarta dan tim back office. Lihat
-          lowongan terbuka di bawah, lalu kirim aplikasi langsung dari halaman ini.
+          {t('subtitle')}
         </p>
         <div className="mt-8">
           <CareersClient />

@@ -7,6 +7,7 @@
 
 import Link from 'next/link';
 import { Fragment, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import type { JournalListItem } from './actions';
 
 // --- Status badge config ---
@@ -21,6 +22,7 @@ interface JournalTableProps {
 }
 
 export function JournalTable({ journals }: JournalTableProps) {
+  const t = useTranslations('accounting.journal.table');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [dateFrom, setDateFrom] = useState('');
@@ -73,7 +75,7 @@ export function JournalTable({ journals }: JournalTableProps) {
               <input
                 id="journal-search"
                 type="text"
-                aria-label="Search by number or description"
+                aria-label={t('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full rounded-md border border-brand-cream-3 bg-brand-cream py-2 pl-9 pr-4 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20 transition-colors"
@@ -106,7 +108,7 @@ export function JournalTable({ journals }: JournalTableProps) {
                   }}
                   className="rounded-md border border-brand-cream-3 px-2 py-1.5 text-xs text-brand-ink-3 hover:bg-brand-cream-2"
                 >
-                  Reset
+                  {t('reset')}
                 </button>
               )}
             </div>
@@ -123,7 +125,7 @@ export function JournalTable({ journals }: JournalTableProps) {
                   : 'border-brand-cream-3 text-brand-ink-3 hover:bg-brand-cream-2'
               }`}
             >
-              Semua ({journals.length})
+              {t('all')} ({journals.length})
             </button>
             {(['draft', 'posted', 'reversed'] as const).map((status) => {
               const style = STATUS_STYLES[status];
@@ -153,22 +155,22 @@ export function JournalTable({ journals }: JournalTableProps) {
           <thead>
             <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                No. Jurnal
+                {t('noNumber')}
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Tanggal
+                {t('date')}
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Deskripsi
+                {t('description')}
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Tipe
+                {t('type')}
               </th>
               <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Nominal
+                {t('amount')}
               </th>
               <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Status
+                {t('status')}
               </th>
             </tr>
           </thead>
@@ -191,8 +193,8 @@ export function JournalTable({ journals }: JournalTableProps) {
                         d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
                       />
                     </svg>
-                    <p className="text-sm font-medium">Tidak ada jurnal</p>
-                    <p className="mt-1 text-xs">Coba ubah filter atau kata kunci pencarian.</p>
+                    <p className="text-sm font-medium">{t('empty')}</p>
+                    <p className="mt-1 text-xs">{t('emptyHint')}</p>
                   </div>
                 </td>
               </tr>
@@ -243,9 +245,9 @@ export function JournalTable({ journals }: JournalTableProps) {
                             <table className="w-full text-xs">
                               <thead className="bg-brand-cream-1 text-brand-ink-3">
                                 <tr>
-                                  <th className="px-3 py-1.5 text-left font-medium">Akun</th>
-                                  <th className="px-3 py-1.5 text-right font-medium">Debit</th>
-                                  <th className="px-3 py-1.5 text-right font-medium">Kredit</th>
+                                  <th className="px-3 py-1.5 text-left font-medium">{t('account')}</th>
+                                  <th className="px-3 py-1.5 text-right font-medium">{t('debit')}</th>
+                                  <th className="px-3 py-1.5 text-right font-medium">{t('credit')}</th>
                                 </tr>
                               </thead>
                               <tbody>
