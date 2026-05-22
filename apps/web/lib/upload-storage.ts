@@ -50,8 +50,13 @@ export function assertUploadFile(file: File, imageOnly = false) {
     throw new Error('invalid-size');
   }
   const ext = path.extname(sanitizeFileName(file.name)).toLowerCase();
-  if (imageOnly && (!file.type.startsWith('image/') || !IMAGE_EXTENSIONS.has(ext))) {
-    throw new Error('invalid-type');
+  if (imageOnly) {
+    if (!IMAGE_EXTENSIONS.has(ext)) {
+      throw new Error('invalid-type');
+    }
+    if (file.type && file.type !== 'application/octet-stream' && !file.type.startsWith('image/')) {
+      throw new Error('invalid-type');
+    }
   }
 }
 

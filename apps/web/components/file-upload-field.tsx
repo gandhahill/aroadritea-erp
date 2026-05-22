@@ -51,8 +51,8 @@ export function FileUploadField({
       setUrl(payload.url);
       setFileName(payload.fileName ?? file.name);
       onChange?.(payload.url, payload.fileName ?? file.name);
-    } catch {
-      setError(t('uploadFailed'));
+    } catch (err) {
+      setError(`${t('uploadFailed')} (${err instanceof Error ? err.message : String(err)})`);
     } finally {
       setUploading(false);
     }

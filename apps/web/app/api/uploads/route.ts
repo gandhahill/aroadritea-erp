@@ -24,9 +24,10 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const file = formData.get('file');
-  if (!(file instanceof File)) {
+  if (!file || typeof file !== 'object' || !('name' in file) || !('size' in file)) {
     return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
   }
+  const uploadFile = file as File;
 
   const area = parseUploadArea(String(formData.get('area') ?? 'general'));
   if (!area) return NextResponse.json({ error: 'Invalid upload area' }, { status: 400 });
@@ -53,8 +54,8 @@ export async function POST(request: Request) {
   if (!permission.ok) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   try {
-    assertUploadFile(file, imageOnly);
-    const stored = await storeUpload({ file, area, visibility, tenantId, uploadedBy: userId });
+    assertUploadFile(uploadFile, imageOnly);
+    const stored = await storeUpload({ file: uploadFile, area, visibility, tenantId, uploadedBy: userId });
     return NextResponse.json(stored);
   } catch (error) {
     return NextResponse.json(
