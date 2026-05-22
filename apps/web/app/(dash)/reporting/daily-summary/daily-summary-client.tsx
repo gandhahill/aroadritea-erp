@@ -10,7 +10,7 @@
 import { exportWorkbook } from '@/lib/export-workbook';
 import type { DailySummaryResult } from '@erp/services/reporting';
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { ExportXlsxButton } from '../export-button';
 import { fetchDailySummary } from './actions';
 
@@ -32,9 +32,9 @@ function formatQty(v: number | null | undefined): string {
   return v.toLocaleString('id-ID');
 }
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale: string = 'id-ID'): string {
   if (!iso) return '—';
-  return new Intl.DateTimeFormat('id-ID', {
+  return new Intl.DateTimeFormat(locale, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -228,6 +228,7 @@ export function DailySummaryClient({
   const [error, setError] = useState<string | null>(initialData.error ?? null);
   const t = useTranslations('reporting.dailySummary');
   const tc = useTranslations('common');
+  const locale = useLocale();
 
   async function handleSearch() {
     if (!locationId) {
@@ -382,9 +383,9 @@ export function DailySummaryClient({
           <div className="rounded-lg border border-brand-cream-3 bg-card px-4 py-3">
             <p className="text-sm text-brand-ink-3">
               {t('period')}:{' '}
-              <span className="font-medium text-brand-ink">{formatDate(report.period.start)}</span>
+              <span className="font-medium text-brand-ink">{formatDate(report.period.start, locale)}</span>
               {' s/d '}
-              <span className="font-medium text-brand-ink">{formatDate(report.period.end)}</span>
+              <span className="font-medium text-brand-ink">{formatDate(report.period.end, locale)}</span>
               {report.isPreliminary && (
                 <span className="ml-2 inline-flex items-center rounded-full bg-brand-gold/10 px-2 py-0.5 text-xs font-medium text-brand-gold">
                   Preliminary

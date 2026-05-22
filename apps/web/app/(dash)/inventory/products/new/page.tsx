@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { fetchProductMasterData } from '../actions';
 import { ProductForm } from '../product-form';
+import { getTranslations } from 'next-intl/server';
 
 export const metadata: Metadata = {
   title: 'Tambah Produk - Aroadri ERP',
@@ -23,11 +24,11 @@ export default async function NewProductPage({
   const data = await fetchProductMasterData();
 
   const backHref = isSupply ? '/inventory/supplies' : '/inventory/products';
-  const backLabel = isSupply ? 'Kembali ke Bahan & Perlengkapan' : 'Kembali ke Produk & Menu';
-  const title = isSupply ? 'Tambah bahan / perlengkapan' : 'Tambah produk';
-  const subtitle = isSupply
-    ? 'Buat bahan baku atau perlengkapan baru (cup, sedotan, dll.). Item ini tidak akan muncul di kasir.'
-    : 'Buat produk/menu baru. Varian Regular/Large dan Hot/Cold bisa ditambahkan setelah produk tersimpan.';
+  const t = await getTranslations('inventory.products');
+
+  const backLabel = isSupply ? t('backToSupplies') : t('backToProducts');
+  const title = isSupply ? t('addSupply') : t('addProduct');
+  const subtitle = isSupply ? t('addSupplyDesc') : t('addProductDesc');
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">

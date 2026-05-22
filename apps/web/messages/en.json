@@ -910,7 +910,16 @@
       "temp": "Temperature",
       "sellingPrice": "Selling Price",
       "order": "Order",
-      "addVariant": "Add variant"
+      "addVariant": "Add variant",
+      "backToSupplies": "Back to Supplies",
+      "backToProducts": "Back to Products & Menu",
+      "addSupply": "Add Supply",
+      "addSupplyDesc": "Create a new supply item.",
+      "addProduct": "Add Product",
+      "addProductDesc": "Create a new product/menu.",
+      "editProduct": "Edit Product",
+      "editProductDesc": "Edit product data, prices, images, and POS variants.",
+      "loadFailed": "Product failed to load"
     },
     "categories": {
       "title": "Product Categories",
@@ -2078,7 +2087,15 @@
     },
     "naixer": {
       "title": "Naixer KDS Integration",
-      "subtitle": "Connection settings for QR Code based Naixer KDS."
+      "subtitle": "Connection settings for QR Code based Naixer KDS.",
+      "emptyConfigs": "No format configurations found. Run the seed to create defaults.",
+      "qrFormat": "QR Format",
+      "formatBDash": "Format B — Dash (default)",
+      "formatAPipe": "Format A — Pipe (vendor)",
+      "labelSize": "Label Size",
+      "includeOrderId": "Include Order ID",
+      "parameterOrder": "Parameter Order",
+      "previewLabel": "Preview Label"
     }
   },
   "workflow": {

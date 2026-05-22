@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
 import {
@@ -14,6 +14,7 @@ import {
 export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
   const t = useTranslations('settings.permissions');
   const tc = useTranslations('common');
+  const locale = useLocale();
   const router = useRouter();
   const [grants, setGrants] = useState(matrix.grants);
   const [pending, startTransition] = useTransition();
@@ -270,7 +271,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                         </p>
                         {desc && (
                           <p className="mt-0.5 text-[11px] text-brand-ink-3">
-                            {desc.id ?? desc.en ?? ''}
+                            {desc[locale] ?? desc.id ?? desc.en ?? ''}
                           </p>
                         )}
                       </td>

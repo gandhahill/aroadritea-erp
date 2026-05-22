@@ -6,6 +6,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { type FormatConfigItem, previewQrPayload, updateFormatConfig } from './actions';
 
 interface Props {
@@ -42,6 +43,8 @@ export function FormatConfigForm({ configs }: Props) {
     payload: string;
     qrDataUrl: string;
   } | null>(null);
+  const t = useTranslations('settings.naixer');
+  const tc = useTranslations('common');
 
   async function handleUpdate(
     id: string,
@@ -70,7 +73,7 @@ export function FormatConfigForm({ configs }: Props) {
   if (configs.length === 0) {
     return (
       <div className="rounded-lg border border-brand-cream-3 px-4 py-8 text-center text-sm text-brand-ink-3">
-        No format configurations found. Run the seed to create defaults.
+        {t('emptyConfigs', { fallback: 'No format configurations found.' })}
       </div>
     );
   }
@@ -96,7 +99,7 @@ export function FormatConfigForm({ configs }: Props) {
                     : 'bg-brand-cream-2 text-brand-ink-3'
                 }`}
               >
-                {config.isActive ? 'Active' : 'Inactive'}
+                {config.isActive ? tc('status.active', { fallback: 'Active' }) : tc('status.inactive', { fallback: 'Inactive' })}
               </span>
             </div>
 
@@ -107,7 +110,7 @@ export function FormatConfigForm({ configs }: Props) {
                   htmlFor={`naixer-format-${config.id}`}
                   className="mb-1 block text-xs font-medium text-brand-ink-2"
                 >
-                  QR Format
+                  {t('qrFormat', { fallback: 'QR Format' })}
                 </label>
                 <select
                   id={`naixer-format-${config.id}`}
@@ -116,15 +119,15 @@ export function FormatConfigForm({ configs }: Props) {
                   disabled={isPending}
                   className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none disabled:opacity-50"
                 >
-                  <option value="dash">Format B — Dash (default)</option>
-                  <option value="pipe">Format A — Pipe (vendor)</option>
+                  <option value="dash">{t('formatBDash', { fallback: 'Format B — Dash (default)' })}</option>
+                  <option value="pipe">{t('formatAPipe', { fallback: 'Format A — Pipe (vendor)' })}</option>
                 </select>
               </div>
 
               {/* Label Size */}
               <fieldset className="lg:col-span-2">
                 <legend className="mb-1 block text-xs font-medium text-brand-ink-2">
-                  Label Size
+                  {t('labelSize', { fallback: 'Label Size' })}
                 </legend>
                 <div className="flex flex-wrap gap-2">
                   <button
@@ -194,7 +197,7 @@ export function FormatConfigForm({ configs }: Props) {
 
               {/* Include Order ID */}
               <div>
-                <p className="mb-1 block text-xs font-medium text-brand-ink-2">Include Order ID</p>
+                <p className="mb-1 block text-xs font-medium text-brand-ink-2">{t('includeOrderId', { fallback: 'Include Order ID' })}</p>
                 <div className="flex items-center gap-2 pt-1.5">
                   <button
                     type="button"
@@ -216,14 +219,14 @@ export function FormatConfigForm({ configs }: Props) {
                     />
                   </button>
                   <span className="text-sm text-brand-ink-2">
-                    {config.includeOrderId ? 'Yes' : 'No'}
+                    {config.includeOrderId ? tc('common.yes', { fallback: 'Yes' }) : tc('common.no', { fallback: 'No' })}
                   </span>
                 </div>
               </div>
 
               {/* Parameter Order */}
               <div>
-                <p className="mb-1 block text-xs font-medium text-brand-ink-2">Parameter Order</p>
+                <p className="mb-1 block text-xs font-medium text-brand-ink-2">{t('parameterOrder', { fallback: 'Parameter Order' })}</p>
                 <div className="flex flex-col gap-1 pt-0.5">
                   <input
                     type="text"
@@ -262,7 +265,7 @@ export function FormatConfigForm({ configs }: Props) {
                 disabled={isPending}
                 className="rounded border border-brand-red px-3 py-1 text-xs font-medium text-brand-red hover:bg-brand-red/5 disabled:opacity-50"
               >
-                Preview Label
+                {t('previewLabel', { fallback: 'Preview Label' })}
               </button>
               {preview?.configId === config.id && (
                 <div className="flex flex-wrap items-center gap-3">

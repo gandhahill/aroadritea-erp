@@ -28,7 +28,7 @@
     },
     "status": {
       "active": "Aktif",
-      "inactive": "Nonaktif",
+      "inactive": "Tidak Aktif",
       "draft": "Draf",
       "in_progress": "Sedang Berlangsung",
       "submitted": "Diajukan",
@@ -910,7 +910,16 @@
       "temp": "Suhu",
       "sellingPrice": "Harga jual",
       "order": "Urutan",
-      "addVariant": "Tambah varian"
+      "addVariant": "Tambah varian",
+      "backToSupplies": "Kembali ke Bahan & Perlengkapan",
+      "backToProducts": "Kembali ke Produk & Menu",
+      "addSupply": "Tambah bahan / perlengkapan",
+      "addSupplyDesc": "Buat bahan baku atau perlengkapan baru (cup, sedotan, dll.). Item ini tidak akan muncul di kasir.",
+      "addProduct": "Tambah produk",
+      "addProductDesc": "Buat produk/menu baru. Varian Regular/Large dan Hot/Cold bisa ditambahkan setelah produk tersimpan.",
+      "editProduct": "Edit Produk",
+      "editProductDesc": "Edit data produk, harga default, gambar, dan varian POS.",
+      "loadFailed": "Produk tidak bisa dimuat"
     },
     "categories": {
       "title": "Kategori Produk",
@@ -2430,7 +2439,15 @@
     },
     "naixer": {
       "title": "Integrasi Naixer KDS",
-      "subtitle": "Pengaturan koneksi dengan Naixer KDS berbasis QR Code."
+      "subtitle": "Pengaturan koneksi dengan Naixer KDS berbasis QR Code.",
+      "emptyConfigs": "Konfigurasi format tidak ditemukan.",
+      "qrFormat": "Format QR",
+      "formatBDash": "Format B — Dash (default)",
+      "formatAPipe": "Format A — Pipe (vendor)",
+      "labelSize": "Ukuran Label",
+      "includeOrderId": "Sertakan Order ID",
+      "parameterOrder": "Urutan Parameter",
+      "previewLabel": "Pratinjau Label"
     }
   },
   "shell": {

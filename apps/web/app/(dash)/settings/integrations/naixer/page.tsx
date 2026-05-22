@@ -51,10 +51,10 @@ export default async function NaixerKdsPage() {
         </div>
         <div className="flex items-center gap-3">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
-            {productCodes.filter((p) => p.isActive).length} products
+            {productCodes.filter((p) => p.isActive).length} {t('products')}
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-cream-2 px-3 py-1 text-xs font-medium text-brand-ink-3">
-            {modifierCodes.filter((m) => m.isActive).length} modifiers
+            {modifierCodes.filter((m) => m.isActive).length} {t('modifiers')}
           </span>
         </div>
       </div>
@@ -77,12 +77,10 @@ export default async function NaixerKdsPage() {
             />
           </svg>
           <div>
-            <p className="text-sm font-medium text-brand-ink">QR Code Integration</p>
+            <p className="text-sm font-medium text-brand-ink">{t('bannerTitle')}</p>
             <p className="mt-0.5 text-xs text-brand-ink-2">
-              Each product and modifier must be mapped to a Naixer vendor code. Cup labels include a
-              scannable Naixer QR, pickup number, order time, and product details. Format B (dash)
-              is the default: e.g.{' '}
-              <code className="rounded bg-brand-cream-2 px-1 py-0.5 text-[11px] font-mono">
+              {t('bannerDesc')}
+              <code className="mx-1 rounded bg-brand-cream-2 px-1 py-0.5 text-[11px] font-mono">
                 T003-C01-S02-W01
               </code>
             </p>
@@ -92,13 +90,13 @@ export default async function NaixerKdsPage() {
 
       {/* Format Config */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-brand-ink">QR Format Configuration</h2>
+        <h2 className="mb-4 text-lg font-semibold text-brand-ink">{t('formatConfig')}</h2>
         <FormatConfigForm configs={formatConfigs} />
       </section>
 
       {/* Product Codes */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-brand-ink">Product Code Mappings</h2>
+        <h2 className="mb-4 text-lg font-semibold text-brand-ink">{t('productMappings')}</h2>
         <ProductCodesTable
           codes={productCodes}
           tenantId={tenantId}
@@ -109,7 +107,7 @@ export default async function NaixerKdsPage() {
 
       {/* Modifier Codes */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-brand-ink">Modifier Code Mappings</h2>
+        <h2 className="mb-4 text-lg font-semibold text-brand-ink">{t('modifierMappings')}</h2>
         <ModifierCodesTable
           codes={modifierCodes}
           tenantId={tenantId}

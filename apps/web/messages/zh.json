@@ -28,7 +28,7 @@
     },
     "status": {
       "active": "活跃",
-      "inactive": "停用",
+      "inactive": "不活跃",
       "draft": "草稿",
       "posted": "已过账",
       "reversed": "已冲销",
@@ -931,7 +931,16 @@
       "temp": "温度",
       "sellingPrice": "售价",
       "order": "排序",
-      "addVariant": "添加变体"
+      "addVariant": "添加变体",
+      "backToSupplies": "返回物料和用品",
+      "backToProducts": "返回产品和菜单",
+      "addSupply": "添加物料/用品",
+      "addSupplyDesc": "创建新的物料或用品。",
+      "addProduct": "添加产品",
+      "addProductDesc": "创建新产品/菜单。",
+      "editProduct": "编辑产品",
+      "editProductDesc": "编辑产品数据、价格、图像和 POS 变量。",
+      "loadFailed": "产品加载失败"
     },
     "opname": {
       "title": "库存盘点",
@@ -2129,7 +2138,15 @@
     },
     "naixer": {
       "title": "Naixer KDS 集成",
-      "subtitle": "基于二维码的 Naixer KDS 连接设置。"
+      "subtitle": "基于二维码的 Naixer KDS 连接设置。",
+      "emptyConfigs": "未找到格式配置。",
+      "qrFormat": "二维码格式",
+      "formatBDash": "格式 B — 破折号 (默认)",
+      "formatAPipe": "格式 A — 竖线 (供应商)",
+      "labelSize": "标签大小",
+      "includeOrderId": "包括订单号",
+      "parameterOrder": "参数顺序",
+      "previewLabel": "预览标签"
     }
   },
   "workflow": {

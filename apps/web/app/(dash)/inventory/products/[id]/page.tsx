@@ -14,8 +14,12 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+import { getTranslations, getLocale } from 'next-intl/server';
+
 export default async function ProductDetailPage({ params }: Props) {
   const { id } = await params;
+  const t = await getTranslations('inventory.products');
+  const locale = await getLocale();
   const data = await fetchProductDetail(id);
 
   if (!data.product && !data.error) notFound();
@@ -56,21 +60,21 @@ export default async function ProductDetailPage({ params }: Props) {
             href="/inventory/supplies"
             className="text-sm font-medium text-brand-ink-3 transition-colors hover:text-brand-ink"
           >
-            Kembali ke Bahan &amp; Perlengkapan
+            {t('backToSupplies')}
           </Link>
         ) : (
           <Link
             href="/inventory/products"
             className="text-sm font-medium text-brand-ink-3 transition-colors hover:text-brand-ink"
           >
-            Kembali ke Produk &amp; Menu
+            {t('backToProducts')}
           </Link>
         )}
         <h1 className="mt-3 text-2xl font-bold text-brand-ink">
-          {product ? product.name.id : 'Produk tidak bisa dimuat'}
+          {product ? ((product.name as Record<string, string>)[locale] ?? product.name.id) : t('loadFailed')}
         </h1>
         <p className="mt-1 text-sm text-brand-ink-3">
-          Edit data produk, harga default, gambar, dan varian POS.
+          {t('editProductDesc')}
         </p>
       </div>
 
