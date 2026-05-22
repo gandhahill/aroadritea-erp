@@ -6,9 +6,12 @@ import { ProductForm } from '../product-form';
 import type { ProductFormInitial } from '../product-types';
 import { VariantManager } from '../variant-manager';
 
-export const metadata: Metadata = {
-  title: 'Edit Produk - Aroadri ERP',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('inventory.products');
+  return {
+    title: `${t('editProduct')} - Aroadri ERP`,
+  };
+}
 
 interface Props {
   params: Promise<{ id: string }>;

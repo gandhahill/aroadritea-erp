@@ -82,7 +82,10 @@
       "exportExcel": "Ekspor Excel",
       "add": "Tambah",
       "save": "Simpan",
-      "edit": "Edit"
+      "edit": "Edit",
+      "attachmentsOptional": "Lampiran (opsional)",
+      "chooseEmployee": "Pilih Karyawan",
+      "selectEmployee": "Pilih Karyawan"
     },
     "errors": {
       "required": "Wajib diisi",
@@ -879,6 +882,7 @@
         "kindService": "Jasa",
         "taxCodeNone": "Tanpa pajak"
       },
+
       "variants": {
         "add": "Tambah varian",
         "empty": "Belum ada varian.",
@@ -1887,6 +1891,9 @@
       "empty": "Belum ada surat peringatan.",
       "create": "+ Buat SP",
       "filterBtn": "Filter",
+      "reasonPlaceholder": "Jelaskan pelanggaran yang dilakukan karyawan...",
+      "attachment": "Lampiran",
+      "publish": "Terbitkan",
       "createNew": "Buat Surat Peringatan Baru",
       "sp1Desc": "SP1 — Surat Peringatan 1",
       "sp2Desc": "SP2 — Surat Peringatan 2",
@@ -2732,7 +2739,6 @@
       "staticRoutesTitle": "Halaman bawaan (file-based)",
       "staticRoutesSubtitle": "Rute publik yang sudah aktif. Konten halaman legal di bawah ini bisa diubah dari tabel CMS Halaman (slug yang sama akan menimpa konten default).",
       "columns": {
-        "slug": "Slug",
         "page": "Halaman",
         "description": "Keterangan",
         "preview": "Pratinjau",
@@ -2740,7 +2746,11 @@
         "type": "Tipe",
         "status": "Status",
         "navbar": "Navbar",
-        "updatedAt": "Diperbarui"
+        "updatedAt": "Diperbarui",
+        "slug": "Slug",
+        "slugHint": "Slug tidak dapat diubah.",
+        "displayOrder": "Urutan Tampilan",
+        "showInNavbar": "Tampilkan di Navbar"
       },
       "static": {
         "home": "Beranda",
@@ -2882,6 +2892,6 @@
     "type": "Tipe",
     "subtype": "Subtipe",
     "normalBalance": "Saldo Normal",
-    "parent": "Induk (Parent)"
+    "parent": "Parent"
   }
 }

@@ -634,7 +634,7 @@ export function DailySummaryClient({
                           {shift.cashierName}
                         </td>
                         <td className="px-4 py-2.5 text-brand-ink-3">
-                          {formatDate(shift.openedAt)}
+                          {formatDate(shift.openedAt, locale)}
                         </td>
                         <td className="px-4 py-2.5 text-right text-brand-ink">
                           {formatIDR(shift.openingCash)}

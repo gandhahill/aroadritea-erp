@@ -82,7 +82,10 @@
       "exportExcel": "Export Excel",
       "add": "Add",
       "save": "Save",
-      "edit": "Edit"
+      "edit": "Edit",
+      "attachmentsOptional": "Attachments (optional)",
+      "chooseEmployee": "Select Employee",
+      "selectEmployee": "Select Employee"
     },
     "errors": {
       "required": "Required",
@@ -879,6 +882,7 @@
         "kindService": "Service",
         "taxCodeNone": "No tax"
       },
+
       "variants": {
         "add": "Add variant",
         "empty": "No variants yet.",
@@ -1809,6 +1813,9 @@
       "empty": "No warning letters.",
       "create": "+ Create Letter",
       "filterBtn": "Filter",
+      "reasonPlaceholder": "Explain the violation...",
+      "attachment": "Attachment",
+      "publish": "Publish",
       "createNew": "Create New Disciplinary Action",
       "sp1Desc": "SP1 — Disciplinary Letter 1",
       "sp2Desc": "SP2 — Disciplinary Letter 2",
@@ -2733,7 +2740,6 @@
       "staticRoutesTitle": "Built-in Pages (file-based)",
       "staticRoutesSubtitle": "Active public routes. Legal pages content below can be overridden via CMS Pages table (same slug replaces default content).",
       "columns": {
-        "slug": "Slug",
         "page": "Page",
         "description": "Description",
         "preview": "Preview",
@@ -2741,7 +2747,11 @@
         "type": "Type",
         "status": "Status",
         "navbar": "Navbar",
-        "updatedAt": "Updated At"
+        "updatedAt": "Updated At",
+        "slug": "Slug",
+        "slugHint": "Slug cannot be changed.",
+        "displayOrder": "Display Order",
+        "showInNavbar": "Show in Navbar"
       },
       "static": {
         "home": "Home",

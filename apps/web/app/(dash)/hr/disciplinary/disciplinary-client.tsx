@@ -153,7 +153,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                   required
                   className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none"
                 >
-                  <option value="">Pilih {tc('employee')}</option>
+                  <option value="">{t('selectEmployee')}</option>
                   {employees.map((e) => (
                     <option key={e.value} value={e.value}>
                       {e.label}
@@ -163,7 +163,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">
-                  Tingkat *
+                  {t('level')} *
                 </label>
                 <select
                   value={level}
@@ -177,7 +177,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">
-                  Tanggal Kejadian *
+                  {t('incidentDate')} *
                 </label>
                 <input
                   type="date"
@@ -188,7 +188,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                 />
               </div>
               <FileUploadField
-                label="Lampiran"
+                label={t('attachment')}
                 hiddenName="attachmentUrl"
                 value={attachmentUrl}
                 area="disciplinary"
@@ -197,11 +197,11 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">Alasan *</label>
+              <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">{t('reason')} *</label>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Jelaskan pelanggaran yang dilakukan karyawan..."
+                placeholder={t('reasonPlaceholder')}
                 rows={3}
                 required
                 className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none"
@@ -223,7 +223,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
               type="submit"
               className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6"
             >
-              Terbitkan {level}
+              {t('publish')}
             </button>
           </form>
         </div>

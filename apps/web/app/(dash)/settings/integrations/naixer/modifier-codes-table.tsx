@@ -100,7 +100,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
           <tr className="border-b border-brand-cream-3 bg-brand-cream">
             <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('modifierKind', { fallback: 'Jenis' })}</th>
             <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('modifierOptionId', { fallback: 'ID Opsi Modifier' })}</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('naixerCode', { fallback: 'Kode Naixer' })}</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('naixerCode')}</th>
             <th className="px-4 py-3 text-center font-medium text-brand-ink-2">{t('displayOrder', { fallback: 'Urutan' })}</th>
             <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{tc('fields.status', { fallback: 'Status' })}</th>
             <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{tc('fields.actions', { fallback: 'Aksi' })}</th>
@@ -197,7 +197,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
               </select>
             </div>
             <div className="w-28">
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('naixerCode', { fallback: 'Naixer Code' })}</label>
+              <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('naixerCode')}</label>
               <input
                 type="text"
                 value={newNaixerCode}

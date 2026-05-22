@@ -80,8 +80,8 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
         <thead>
           <tr className="border-b border-brand-cream-3 bg-brand-cream">
             <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('product', { fallback: 'Produk' })}</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('variant', { fallback: 'Varian' })}</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('naixerCode', { fallback: 'Kode Naixer' })}</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('variant')}</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('naixerCode')}</th>
             <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{tc('fields.status', { fallback: 'Status' })}</th>
             <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{tc('fields.actions', { fallback: 'Aksi' })}</th>
           </tr>
@@ -91,7 +91,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
             <tr key={code.id} className="border-b border-brand-cream-3 last:border-0">
               <td className="px-4 py-3 text-sm text-brand-ink">{code.productLabel}</td>
               <td className="px-4 py-3 text-xs text-brand-ink-3">
-                {code.variantLabel ?? t('allVariants', { fallback: '(semua varian)' })}
+                {code.variantLabel ?? t('allVariants')}
               </td>
               <td className="px-4 py-3">
                 <code className="rounded bg-brand-cream-2 px-1.5 py-0.5 text-xs font-mono font-bold text-brand-ink">
@@ -169,7 +169,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
             </div>
             <div className="flex-1">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                {t('variantOptional', { fallback: 'Varian (opsional)' })}
+                {t('variantOptional')}
               </label>
               <select
                 value={newVariantId}
@@ -177,7 +177,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
                 disabled={!newProductId}
                 className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none disabled:opacity-50"
               >
-                <option value="">{t('allVariants', { fallback: '(semua varian)' })}</option>
+                <option value="">{t('allVariants')}</option>
                 {variants
                   .filter((v) => !newProductId || v.productId === newProductId)
                   .map((v) => (
@@ -188,7 +188,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
               </select>
             </div>
             <div className="w-32">
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('naixerCode', { fallback: 'Naixer Code' })}</label>
+              <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('naixerCode')}</label>
               <input
                 type="text"
                 value={newNaixerCode}

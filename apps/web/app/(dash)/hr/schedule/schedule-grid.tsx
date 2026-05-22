@@ -140,7 +140,7 @@ export function ScheduleGrid({ weekStart, options, initialAssignments, canManage
         <table className="w-full text-sm">
           <thead className="bg-brand-cream-1 text-left text-xs uppercase tracking-widest text-brand-ink-3">
             <tr>
-              <th className="sticky left-0 z-10 bg-brand-cream-1 px-3 py-2">{tc('employee', { fallback: 'Karyawan' }) || 'Karyawan'}</th>
+              <th className="sticky left-0 z-10 bg-brand-cream-1 px-3 py-2">{tc('employee')}</th>
               {dates.map((date) => (
                 <th key={date} className="px-3 py-2 text-center">
                   <div className="capitalize">{new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(new Date(`${date}T12:00:00Z`))}</div>
