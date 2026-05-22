@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getLocale } from 'next-intl/server';
 
 import { fetchAccountingPeriods } from './actions';
+import { OpenPeriodButton, ClosePeriodButton } from './periods-client';
 
 export const metadata: Metadata = {
   title: 'Accounting Periods - Aroadri ERP',
@@ -26,6 +27,18 @@ const PAGE_COPY = {
     draft: 'draft',
     posted: 'posted',
     reversed: 'reversed',
+    periodAction: {
+      openPeriod: 'Buka Periode',
+      openPeriodSubtitle: 'Buat periode akuntansi baru. Pastikan tidak ada duplikasi kode periode.',
+      closePeriod: 'Tutup Periode',
+      confirmClose: 'Konfirmasi Penutupan',
+      confirmCloseMessage: 'Apakah Anda yakin ingin menutup periode ini?',
+      forceClose: 'Tutup Paksa',
+      draftWarning: 'Peringatan: Masih ada {count} jurnal berstatus draft di periode ini.',
+      code: 'Kode Periode (YYYY-MM)',
+      startDate: 'Tanggal Mulai',
+      endDate: 'Tanggal Selesai'
+    }
   },
   en: {
     title: 'Accounting Periods',
@@ -45,6 +58,18 @@ const PAGE_COPY = {
     draft: 'draft',
     posted: 'posted',
     reversed: 'reversed',
+    periodAction: {
+      openPeriod: 'Open Period',
+      openPeriodSubtitle: 'Create a new accounting period. Ensure there are no duplicate period codes.',
+      closePeriod: 'Close Period',
+      confirmClose: 'Confirm Close',
+      confirmCloseMessage: 'Are you sure you want to close this period?',
+      forceClose: 'Force Close',
+      draftWarning: 'Warning: There are {count} draft journals in this period.',
+      code: 'Period Code (YYYY-MM)',
+      startDate: 'Start Date',
+      endDate: 'End Date'
+    }
   },
   zh: {
     title: '会计期间',
@@ -63,6 +88,18 @@ const PAGE_COPY = {
     draft: '草稿',
     posted: '已过账',
     reversed: '已冲销',
+    periodAction: {
+      openPeriod: '开立期间',
+      openPeriodSubtitle: '创建一个新的会计期间。确保没有重复的期间代码。',
+      closePeriod: '结账',
+      confirmClose: '确认结账',
+      confirmCloseMessage: '您确定要结束此期间吗？',
+      forceClose: '强制结账',
+      draftWarning: '警告：此期间还有 {count} 个草稿凭证。',
+      code: '期间代码 (YYYY-MM)',
+      startDate: '开始日期',
+      endDate: '结束日期'
+    }
   },
 } as const;
 
@@ -106,7 +143,10 @@ export default async function AccountingPeriodsPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
             Accounting
           </p>
-          <h1 className="font-display text-3xl font-semibold text-brand-ink">{copy.title}</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="font-display text-3xl font-semibold text-brand-ink">{copy.title}</h1>
+            <OpenPeriodButton copy={{ period: copy.periodAction }} />
+          </div>
           <p className="max-w-3xl text-sm leading-6 text-brand-muted">{copy.subtitle}</p>
         </div>
 
@@ -147,6 +187,7 @@ export default async function AccountingPeriodsPage() {
                     <th className="px-4 py-3 font-semibold">{copy.status}</th>
                     <th className="px-4 py-3 font-semibold">{copy.journals}</th>
                     <th className="px-4 py-3 font-semibold">{copy.closedAt}</th>
+                    <th className="px-4 py-3 font-semibold">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-brand-ink/10">
@@ -171,6 +212,15 @@ export default async function AccountingPeriodsPage() {
                       </td>
                       <td className="px-4 py-3 text-brand-muted">
                         {row.closedAt ? formatDate(row.closedAt, locale) : copy.notClosed}
+                      </td>
+                      <td className="px-4 py-3">
+                        {row.status !== 'closed' && (
+                          <ClosePeriodButton 
+                            periodCode={row.code}
+                            draftCount={row.draftCount}
+                            copy={{ period: copy.periodAction }}
+                          />
+                        )}
                       </td>
                     </tr>
                   ))}

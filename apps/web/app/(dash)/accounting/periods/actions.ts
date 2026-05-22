@@ -4,6 +4,9 @@ import { getSession } from '@/lib/auth';
 import { and, db, desc, eq, inArray, sql } from '@erp/db';
 import { accountingPeriods, journalEntries } from '@erp/db/schema/accounting';
 import { requirePermission } from '@erp/services/iam';
+import { closePeriod, openPeriod } from '@erp/services/accounting';
+import type { OpenPeriodInput, ClosePeriodInput } from '@erp/services/accounting';
+import { revalidatePath } from 'next/cache';
 
 export interface AccountingPeriodRow {
   id: string;
@@ -80,4 +83,42 @@ export async function fetchAccountingPeriods(): Promise<AccountingPeriodRow[]> {
       reversedCount: 0,
     }),
   }));
+}
+
+export async function openPeriodAction(input: OpenPeriodInput) {
+  const session = await getSession();
+  if (!session?.user) return { ok: false, error: 'Unauthorized' };
+
+  const user = session.user as Record<string, unknown>;
+  const ctx = {
+    userId: String(user.id ?? ''),
+    tenantId: String(user.tenantId ?? 'default'),
+    locationId: 'global',
+  };
+
+  const result = await openPeriod(input, ctx);
+  if (result.ok) {
+    revalidatePath('/accounting/periods');
+    return { ok: true, data: result.value };
+  }
+  return { ok: false, error: result.error.message };
+}
+
+export async function closePeriodAction(input: ClosePeriodInput) {
+  const session = await getSession();
+  if (!session?.user) return { ok: false, error: 'Unauthorized' };
+
+  const user = session.user as Record<string, unknown>;
+  const ctx = {
+    userId: String(user.id ?? ''),
+    tenantId: String(user.tenantId ?? 'default'),
+    locationId: 'global',
+  };
+
+  const result = await closePeriod(input, ctx);
+  if (result.ok) {
+    revalidatePath('/accounting/periods');
+    return { ok: true, data: result.value };
+  }
+  return { ok: false, error: result.error.message };
 }

@@ -12,17 +12,23 @@ export {
   type PeriodStatusResult,
 } from './close-period';
 export {
+  openPeriod,
+  type OpenPeriodResult,
+} from './open-period';
+export {
   CreateJournalInputSchema,
   JournalLineInputSchema,
   PostJournalInputSchema,
   ReverseJournalInputSchema,
   ClosePeriodInputSchema,
+  OpenPeriodInputSchema,
   GetPeriodStatusInputSchema,
   type CreateJournalInput,
   type JournalLineInput,
   type PostJournalInput,
   type ReverseJournalInput,
   type ClosePeriodInput,
+  type OpenPeriodInput,
   type GetPeriodStatusInput,
 } from './schemas';
 export { generateJournalNumber } from './number-generator';

@@ -116,6 +116,22 @@ export const GetPeriodStatusInputSchema = z.object({
 
 export type GetPeriodStatusInput = z.infer<typeof GetPeriodStatusInputSchema>;
 
+// --- Open Period ---
+
+export const OpenPeriodInputSchema = z.object({
+  periodCode: z.string().regex(/^\d{4}-\d{2}$/, {
+    message: 'Period code must be YYYY-MM',
+  }),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'Start date must be YYYY-MM-DD',
+  }),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'End date must be YYYY-MM-DD',
+  }),
+});
+
+export type OpenPeriodInput = z.infer<typeof OpenPeriodInputSchema>;
+
 // --- Petty Cash — Record Expense ---
 
 export const RecordPettyCashExpenseSchema = z.object({
