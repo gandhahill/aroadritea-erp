@@ -197,13 +197,13 @@ export const PERMISSIONS_SEED = [
     description: n(
       'Lihat daftar aset tetap',
       'View fixed asset register',
-      'View fixed asset register',
+      '查看固定资产列表',
     ),
   },
   {
     code: 'accounting.fixed_asset.manage',
     module: 'accounting',
-    description: n('Kelola aset tetap', 'Manage fixed assets', 'Manage fixed assets'),
+    description: n('Kelola aset tetap', 'Manage fixed assets', '管理固定资产'),
   },
   {
     code: 'accounting.fixed_asset.depreciate',
@@ -211,7 +211,21 @@ export const PERMISSIONS_SEED = [
     description: n(
       'Jalankan penyusutan aset tetap',
       'Run fixed asset depreciation',
-      'Run fixed asset depreciation',
+      '运行固定资产折旧',
+    ),
+  },
+  {
+    code: 'accounting.bank_recon.view',
+    module: 'accounting',
+    description: n('Lihat rekonsiliasi bank', 'View bank reconciliation', '查看银行对账'),
+  },
+  {
+    code: 'accounting.bank_recon.manage',
+    module: 'accounting',
+    description: n(
+      'Kelola rekonsiliasi bank',
+      'Manage bank reconciliation',
+      '管理银行对账',
     ),
   },
   // Tax
@@ -342,18 +356,18 @@ export const PERMISSIONS_SEED = [
     description: n(
       'Setujui penyesuaian stok',
       'Approve stock adjustments',
-      'Approve stock adjustments',
+      '批准库存调整',
     ),
   },
   {
     code: 'inventory.opname',
     module: 'inventory',
-    description: n('Kelola stock opname', 'Manage stock opname', 'Manage stock opname'),
+    description: n('Kelola stock opname', 'Manage stock opname', '管理库存盘点'),
   },
   {
     code: 'inventory.opname.approve',
     module: 'inventory',
-    description: n('Setujui stock opname', 'Approve stock opname', 'Approve stock opname'),
+    description: n('Setujui stock opname', 'Approve stock opname', '批准库存盘点'),
   },
   // Purchasing
   {
@@ -506,6 +520,11 @@ export const PERMISSIONS_SEED = [
     module: 'settings',
     description: n('Kelola pengaturan sistem', 'Manage system settings', '管理系统设置'),
   },
+  {
+    code: 'settings.bank_accounts.manage',
+    module: 'settings',
+    description: n('Kelola akun bank', 'Manage bank accounts', '管理银行账户'),
+  },
   // Workflow
   {
     code: 'workflow.approve',
@@ -572,6 +591,9 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'accounting.reimbursement.view',
     'accounting.reimbursement.create',
     'accounting.fixed_asset.view',
+    'accounting.bank_recon.view',
+    'accounting.bank_recon.manage',
+    'settings.bank_accounts.manage',
     'pos.transact',
     'pos.void',
     'pos.refund',
@@ -638,6 +660,9 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'accounting.fixed_asset.view',
     'accounting.fixed_asset.manage',
     'accounting.fixed_asset.depreciate',
+    'accounting.bank_recon.view',
+    'accounting.bank_recon.manage',
+    'settings.bank_accounts.manage',
     'tax.view',
     'tax.manage_rates',
     'tax.export',

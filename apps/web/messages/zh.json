@@ -321,6 +321,116 @@
       "noTransactions": "暂无交易记录。",
       "noAccounts": "暂无零用金账户。请联系管理员创建。"
     },
+    "bankAccounts": {
+      "title": "银行账户",
+      "subtitle": "管理公司银行账户、币种和关联科目。",
+      "name": "账户名称",
+      "bank": "银行",
+      "accountNumber": "账号",
+      "currency": "币种",
+      "glAccount": "总账科目",
+      "add": "添加银行账户",
+      "save": "保存账户",
+      "empty": "暂无银行账户。",
+      "deactivate": "停用",
+      "confirmDeactivate": "停用此银行账户？",
+      "edit": "编辑账户"
+    },
+    "bankRecon": {
+      "title": "银行对账",
+      "subtitle": "从CSV导入银行对账单并与已过账的日记账匹配。对账为手动操作。",
+      "importBtn": "导入银行对账单",
+      "bankAccount": "银行账户",
+      "selectBankAccount": "选择银行账户",
+      "statementDate": "对账单日期",
+      "openingBalance": "期初余额",
+      "closingBalance": "期末余额",
+      "notes": "备注",
+      "status": {
+        "draft": "草稿",
+        "inProgress": "处理中",
+        "reconciled": "已对账"
+      },
+      "match": "匹配",
+      "unmatch": "取消匹配",
+      "matched": "已匹配",
+      "unmatched": "未匹配",
+      "created": "已创建日记账",
+      "createJournal": "创建日记账",
+      "finalize": "完成对账",
+      "finalizing": "处理中...",
+      "finalized": "对账已完成。",
+      "empty": "暂无银行对账记录。",
+      "suggestMatches": "查找匹配",
+      "suggesting": "查找中...",
+      "suggested": "找到 {count} 个匹配项。",
+      "noSuggestions": "未找到匹配项。",
+      "back": "返回",
+      "delete": "删除",
+      "deleteConfirm": "确认删除此对账单？所有行和匹配记录将被移除。",
+      "deleteSuccess": "对账单已删除。",
+      "deleteFailed": "删除对账单失败。",
+      "exportExcel": "导出Excel",
+      "import": {
+        "title": "导入银行对账单",
+        "subtitle": "上传银行对账单CSV，或使用手动输入逐行添加。",
+        "back": "返回",
+        "file": "CSV文件",
+        "location": "位置",
+        "selectLocation": "选择位置",
+        "submit": "导入",
+        "submitting": "导入中...",
+        "success": "成功导入 {count} 行。",
+        "failed": "导入银行对账单失败。",
+        "missingMasterData": "活动银行账户或位置不可用。",
+        "templateHint": "CSV格式：日期 (YYYY-MM-DD)，描述，借入，贷出，余额。逗号分隔。",
+        "downloadTemplate": "下载CSV模板",
+        "pdfHint": "银行对账单通常为PDF格式。您可以将数据复制到CSV模板中，或手动输入。",
+        "orManual": "或手动输入",
+        "manualTitle": "手动输入",
+        "manualSubtitle": "逐行添加银行对账单记录。适合从PDF银行对账单复制。",
+        "addLine": "+ 添加行",
+        "removeLine": "移除行",
+        "transactionDate": "日期",
+        "description": "描述",
+        "debitAmount": "借入",
+        "creditAmount": "贷出",
+        "runningBalance": "余额",
+        "noLines": "暂无行记录。点击“+ 添加行”开始。"
+      },
+      "detail": {
+        "eyebrow": "银行对账",
+        "matchedCount": "{matched} / {total} 行已匹配",
+        "allMatched": "所有行已匹配。点击“完成对账”以关闭。",
+        "unmatchedWarning": "有 {count} 行未匹配。",
+        "selectJournal": "选择日记账...",
+        "noJournalSuggestion": "未找到匹配的日记账。",
+        "matchSuccess": "成功匹配行。",
+        "unmatchSuccess": "成功取消匹配。",
+        "journalCreated": "成功创建日记账并匹配行。"
+      },
+      "summary": {
+        "matched": "已匹配",
+        "unmatched": "未匹配",
+        "total": "总行数"
+      },
+      "columns": {
+        "date": "日期",
+        "description": "描述",
+        "debit": "借入",
+        "credit": "贷出",
+        "balance": "余额",
+        "matchStatus": "状态",
+        "journal": "日记账",
+        "actions": "操作"
+      }
+    },
+    "nav": {
+      "accounting": "会计",
+      "purchasing": "采购",
+      "inventory": "库存",
+      "settings": "设置"
+    },
     "reimbursement": {
       "title": "报销",
       "subtitle": "提交和管理报销申请。",
@@ -617,8 +727,57 @@
         "noData": "无数据",
         "selectDateLocation": "选择日期和位置",
         "noSurplus": "无盈余",
-        "noSessions": "暂无已批准的盘点会话。",
-        "noProducts": "无产品数据。"
+        "emptySessions": "暂无已批准的盘点会话。",
+        "emptyProducts": "无产品数据。",
+        "startDate": "开始日期",
+        "endDate": "结束日期",
+        "location": "位置",
+        "allLocations": "所有位置",
+        "show": "显示",
+        "loading": "加载中...",
+        "errorLoading": "加载差异数据失败",
+        "surplus": "盘盈",
+        "shortage": "盘亏",
+        "emptyState": {
+          "title": "未发现差异",
+          "subtitle": "所选日期范围内未找到库存差异记录。"
+        },
+        "export": {
+          "title": "差异报告",
+          "period": "期间",
+          "location": "位置",
+          "summary": "摘要",
+          "totalSessions": "会话总数",
+          "totalProducts": "产品总数",
+          "totalLines": "总行数",
+          "linesWithVariance": "有差异行数",
+          "totalVarianceValue": "差异总金额",
+          "totalSurplus": "盘盈总额",
+          "totalShortage": "盘亏总额",
+          "avgVarianceRate": "平均差异率",
+          "summarySheet": "摘要",
+          "sessionsSheet": "会话",
+          "productsSheet": "产品"
+        },
+        "columns": {
+          "sessionNo": "会话号",
+          "date": "日期",
+          "period": "期间",
+          "location": "位置",
+          "totalLines": "总行数",
+          "countedLines": "已盘点行数",
+          "linesWithVariance": "有差异行数",
+          "netVarianceQty": "净差异数量",
+          "varianceValue": "差异金额",
+          "productId": "产品 ID",
+          "productName": "产品名称",
+          "sku": "SKU",
+          "systemQty": "系统数量",
+          "countedQty": "盘点数量",
+          "varianceQty": "差异数量",
+          "varianceRate": "差异率",
+          "worstSession": "最大差异会话"
+        }
       }
     },
     "categories": {
@@ -666,7 +825,8 @@
         "sku": "SKU",
         "name": "名称",
         "uom": "单位"
-      }
+      },
+      "exportExcel": "导出 Excel"
     },
     "adjust": {
       "title": "快速库存调整",
@@ -781,7 +941,9 @@
     "supplies": "物料与消耗品",
     "categories": "分类",
     "stockByOutlet": "各门店库存",
-    "correspondence": "公函"
+    "correspondence": "公函",
+    "bankReconciliation": "银行对账",
+    "bankAccounts": "银行账户"
   },
   "pos": {
     "manualSales": {
@@ -1319,6 +1481,27 @@
   },
   "settings": {
     "title": "设置",
+    "bankAccounts": {
+      "title": "银行账户",
+      "subtitle": "管理用于对账和现金记录的银行账户列表。",
+      "add": "添加银行账户",
+      "edit": "编辑银行账户",
+      "bankName": "银行名称",
+      "accountNumber": "账号",
+      "accountHolder": "账户持有人",
+      "linkedCoa": "关联COA科目",
+      "selectCoa": "从COA选择科目...",
+      "status": "活动状态",
+      "save": "保存",
+      "saving": "保存中...",
+      "saveSuccess": "银行账户已保存。",
+      "saveFailed": "保存银行账户失败。",
+      "empty": "尚未配置银行账户。",
+      "delete": "删除",
+      "deleteConfirm": "确认删除此银行账户配置？",
+      "deleteSuccess": "银行账户已成功删除。",
+      "deleteFailed": "删除银行账户失败。"
+    },
     "customFields": {
       "title": "自定义字段",
       "subtitle": "为每个模块添加和管理自定义列。",

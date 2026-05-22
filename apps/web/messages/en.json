@@ -340,6 +340,95 @@
       "amount": "Amount",
       "noTransactions": "No transactions yet.",
       "noAccounts": "No petty cash accounts. Contact admin to create one."
+    },
+    "bankRecon": {
+      "title": "Bank Reconciliation",
+      "subtitle": "Import bank statements from CSV and match with posted journals. Reconciliation is manual.",
+      "importBtn": "Import Bank Statement",
+      "bankAccount": "Bank Account",
+      "selectBankAccount": "Select bank account",
+      "statementDate": "Statement Date",
+      "openingBalance": "Opening Balance",
+      "closingBalance": "Closing Balance",
+      "notes": "Notes",
+      "status": {
+        "draft": "Draft",
+        "inProgress": "In Progress",
+        "reconciled": "Reconciled"
+      },
+      "match": "Match",
+      "unmatch": "Unmatch",
+      "matched": "Matched",
+      "unmatched": "Unmatched",
+      "created": "Journal Created",
+      "createJournal": "Create Journal",
+      "finalize": "Finalize Reconciliation",
+      "finalizing": "Finalizing...",
+      "finalized": "Reconciliation completed.",
+      "empty": "No bank reconciliation yet.",
+      "suggestMatches": "Find Matches",
+      "suggesting": "Searching...",
+      "suggested": "{count} matches found.",
+      "noSuggestions": "No matches found.",
+      "back": "Back",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this statement? All lines and matches will be removed.",
+      "deleteSuccess": "Statement deleted.",
+      "deleteFailed": "Failed to delete statement.",
+      "exportExcel": "Export Excel",
+      "import": {
+        "title": "Import Bank Statement",
+        "subtitle": "Upload bank statement CSV, or use manual input to add lines one by one.",
+        "back": "Back",
+        "file": "CSV File",
+        "location": "Location",
+        "selectLocation": "Select location",
+        "submit": "Import",
+        "submitting": "Importing...",
+        "success": "{count} lines imported successfully.",
+        "failed": "Failed to import bank statement.",
+        "missingMasterData": "Active bank account or location is unavailable.",
+        "templateHint": "CSV format: Date (YYYY-MM-DD), Description, Debit, Credit, Balance. Comma separated.",
+        "downloadTemplate": "Download CSV Template",
+        "pdfHint": "Bank statements are usually in PDF format. You can copy the data into the CSV template or input it manually.",
+        "orManual": "or manual input",
+        "manualTitle": "Manual Input",
+        "manualSubtitle": "Add bank statement lines one by one. Useful for copying from PDF bank statements.",
+        "addLine": "+ Add Line",
+        "removeLine": "Remove line",
+        "transactionDate": "Date",
+        "description": "Description",
+        "debitAmount": "Debit (In)",
+        "creditAmount": "Credit (Out)",
+        "runningBalance": "Balance",
+        "noLines": "No lines yet. Click \"+ Add Line\" to start."
+      },
+      "detail": {
+        "eyebrow": "Bank Reconciliation",
+        "matchedCount": "{matched} of {total} lines matched",
+        "allMatched": "All lines matched. Click \"Finalize Reconciliation\" to close.",
+        "unmatchedWarning": "{count} lines unmatched.",
+        "selectJournal": "Select journal...",
+        "noJournalSuggestion": "No matching journal found.",
+        "matchSuccess": "Line matched successfully.",
+        "unmatchSuccess": "Match removed successfully.",
+        "journalCreated": "Journal created and line matched successfully."
+      },
+      "summary": {
+        "matched": "Matched",
+        "unmatched": "Unmatched",
+        "total": "Total Lines"
+      },
+      "columns": {
+        "date": "Date",
+        "description": "Description",
+        "debit": "Debit (In)",
+        "credit": "Credit (Out)",
+        "balance": "Balance",
+        "matchStatus": "Status",
+        "journal": "Journal",
+        "actions": "Actions"
+      }
     }
   },
   "purchasing": {
@@ -613,7 +702,8 @@
         "sku": "SKU",
         "name": "Name",
         "uom": "UOM"
-      }
+      },
+      "exportExcel": "Export Excel"
     },
     "opname": {
       "title": "Stock Opname",
@@ -664,8 +754,57 @@
         "noData": "No data",
         "selectDateLocation": "Select date and location",
         "noSurplus": "No surplus",
-        "noSessions": "No approved opname sessions yet.",
-        "noProducts": "No product data."
+        "emptySessions": "No approved opname sessions yet.",
+        "emptyProducts": "No product data found.",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "location": "Location",
+        "allLocations": "All Locations",
+        "show": "Show",
+        "loading": "Loading...",
+        "errorLoading": "Failed to load variance data",
+        "surplus": "Surplus",
+        "shortage": "Shortage",
+        "emptyState": {
+          "title": "No variance found",
+          "subtitle": "No variance records found in the selected date range."
+        },
+        "export": {
+          "title": "Variance Report",
+          "period": "Period",
+          "location": "Location",
+          "summary": "Summary",
+          "totalSessions": "Total Sessions",
+          "totalProducts": "Total Products",
+          "totalLines": "Total Lines",
+          "linesWithVariance": "Lines with Variance",
+          "totalVarianceValue": "Total Variance Value",
+          "totalSurplus": "Total Surplus",
+          "totalShortage": "Total Shortage",
+          "avgVarianceRate": "Average Variance Rate",
+          "summarySheet": "Summary",
+          "sessionsSheet": "Sessions",
+          "productsSheet": "Products"
+        },
+        "columns": {
+          "sessionNo": "Session No.",
+          "date": "Date",
+          "period": "Period",
+          "location": "Location",
+          "totalLines": "Total Lines",
+          "countedLines": "Counted Lines",
+          "linesWithVariance": "Lines with Variance",
+          "netVarianceQty": "Net Variance Qty",
+          "varianceValue": "Variance Value",
+          "productId": "Product ID",
+          "productName": "Product Name",
+          "sku": "SKU",
+          "systemQty": "System Qty",
+          "countedQty": "Counted Qty",
+          "varianceQty": "Variance Qty",
+          "varianceRate": "Variance Rate",
+          "worstSession": "Worst Session"
+        }
       }
     },
     "adjust": {
@@ -764,7 +903,9 @@
     "supplies": "Supplies",
     "categories": "Categories",
     "stockByOutlet": "Stock by Outlet",
-    "correspondence": "Correspondence"
+    "correspondence": "Correspondence",
+    "bankReconciliation": "Bank Recon",
+    "bankAccounts": "Bank Accounts"
   },
   "pos": {
     "title": "Point of Sale",
@@ -1304,6 +1445,27 @@
         "saveRole": "Failed to save role",
         "deleteRole": "Failed to delete role"
       }
+    },
+    "bankAccounts": {
+      "title": "Bank Accounts",
+      "subtitle": "Manage list of bank accounts used for reconciliation and cash recording.",
+      "add": "Add Bank Account",
+      "edit": "Edit Bank Account",
+      "bankName": "Bank Name",
+      "accountNumber": "Account Number",
+      "accountHolder": "Account Holder",
+      "linkedCoa": "COA Account",
+      "selectCoa": "Select account from COA...",
+      "status": "Active Status",
+      "save": "Save",
+      "saving": "Saving...",
+      "saveSuccess": "Bank account saved successfully.",
+      "saveFailed": "Failed to save bank account.",
+      "empty": "No bank accounts configured yet.",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this bank account configuration?",
+      "deleteSuccess": "Bank account deleted successfully.",
+      "deleteFailed": "Failed to delete bank account."
     },
     "notifications": {
       "section": "Settings",

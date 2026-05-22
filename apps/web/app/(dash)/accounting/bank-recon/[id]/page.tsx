@@ -1,0 +1,99 @@
+import { getSession } from '@/lib/auth';
+import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import { notFound, redirect } from 'next/navigation';
+import { fetchStatementDetails } from '../actions';
+import { DetailClient } from './detail-client';
+
+export const metadata: Metadata = {
+  title: 'Bank Reconciliation Detail - Settings',
+};
+
+export default async function BankReconDetailPage({ params }: { params: { id: string } }) {
+  const session = await getSession();
+  if (!session) redirect('/login');
+
+  const data = await fetchStatementDetails(params.id);
+  if (!data) notFound();
+
+  const [t] = await Promise.all([
+    getTranslations('accounting.bankRecon'),
+  ]);
+
+  return (
+    <div className="space-y-6 max-w-7xl">
+      <div>
+        <div className="text-xs font-semibold uppercase tracking-widest text-brand-red">
+          {t('detail.eyebrow')}
+        </div>
+        <h1 className="mt-1 text-2xl font-bold text-brand-ink">
+          {data.statement.bankName} - {data.statement.accountNumber} ({data.statement.date})
+        </h1>
+        <p className="mt-1 text-sm text-brand-ink-3">
+          Status: {t(`status.${data.statement.status === 'in_progress' ? 'inProgress' : data.statement.status}` as any)}
+        </p>
+      </div>
+
+      <DetailClient
+        statement={{
+          ...data.statement,
+          openingBalance: Number(data.statement.openingBalance),
+          closingBalance: Number(data.statement.closingBalance),
+        }}
+        lines={data.lines.map((l: any) => ({
+          ...l,
+          debit: Number(l.debit),
+          credit: Number(l.credit),
+          balance: Number(l.balance),
+          isMatched: l.matchStatus === 'matched',
+          matchedJournalId: l.matchedJournalEntryId,
+        }))}
+        labels={{
+          back: t('back'),
+          finalize: t('finalize'),
+          finalizing: t('finalizing'),
+          finalized: t('finalized'),
+          delete: t('delete'),
+          deleteConfirm: t('deleteConfirm'),
+          deleteSuccess: t('deleteSuccess'),
+          deleteFailed: t('deleteFailed'),
+          match: t('match'),
+          unmatch: t('unmatch'),
+          matched: t('matched'),
+          unmatched: t('unmatched'),
+          created: t('created'),
+          createJournal: t('createJournal'),
+          suggestMatches: t('suggestMatches'),
+          suggesting: t('suggesting'),
+          suggested: t('suggested'),
+          noSuggestions: t('noSuggestions'),
+          detail: {
+            matchedCount: t('detail.matchedCount'),
+            allMatched: t('detail.allMatched'),
+            unmatchedWarning: t('detail.unmatchedWarning'),
+            selectJournal: t('detail.selectJournal'),
+            noJournalSuggestion: t('detail.noJournalSuggestion'),
+            matchSuccess: t('detail.matchSuccess'),
+            unmatchSuccess: t('detail.unmatchSuccess'),
+            journalCreated: t('detail.journalCreated'),
+          },
+          columns: {
+            date: t('columns.date'),
+            description: t('columns.description'),
+            debit: t('columns.debit'),
+            credit: t('columns.credit'),
+            balance: t('columns.balance'),
+            matchStatus: t('columns.matchStatus'),
+            journal: t('columns.journal'),
+            actions: t('columns.actions'),
+          },
+          summary: {
+            matched: t('summary.matched'),
+            unmatched: t('summary.unmatched'),
+            total: t('summary.total'),
+          }
+        }}
+      />
+    </div>
+  );
+}

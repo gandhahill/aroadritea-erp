@@ -37,6 +37,9 @@ export {
   fixedAssetDepreciationLines,
   taxRates,
   taxRules,
+  bankAccounts,
+  bankStatements,
+  bankStatementLines,
 } from './schema/accounting';
 
 // Schema — Audit

@@ -340,6 +340,95 @@
       "amount": "Jumlah",
       "noTransactions": "Belum ada transaksi.",
       "noAccounts": "Belum ada kas kecil. Hubungi admin untuk membuat akun kas kecil."
+    },
+    "bankRecon": {
+      "title": "Rekonsiliasi Bank",
+      "subtitle": "Import mutasi bank dari CSV dan cocokkan dengan jurnal yang sudah posted. Rekonsiliasi bersifat manual.",
+      "importBtn": "Import Mutasi Bank",
+      "bankAccount": "Akun Bank",
+      "selectBankAccount": "Pilih akun bank",
+      "statementDate": "Tanggal Mutasi",
+      "openingBalance": "Saldo Awal",
+      "closingBalance": "Saldo Akhir",
+      "notes": "Catatan",
+      "status": {
+        "draft": "Draf",
+        "inProgress": "Sedang Diproses",
+        "reconciled": "Selesai"
+      },
+      "match": "Cocokkan",
+      "unmatch": "Batalkan",
+      "matched": "Dicocokkan",
+      "unmatched": "Belum Dicocokkan",
+      "created": "Jurnal Dibuat",
+      "createJournal": "Buat Jurnal",
+      "finalize": "Selesaikan Rekonsiliasi",
+      "finalizing": "Memproses...",
+      "finalized": "Rekonsiliasi berhasil diselesaikan.",
+      "empty": "Belum ada rekonsiliasi bank.",
+      "suggestMatches": "Cari Kecocokan",
+      "suggesting": "Mencari...",
+      "suggested": "{count} kecocokan ditemukan.",
+      "noSuggestions": "Tidak ditemukan kecocokan.",
+      "back": "Kembali",
+      "delete": "Hapus",
+      "deleteConfirm": "Hapus statement ini? Semua baris dan match akan dihapus.",
+      "deleteSuccess": "Statement berhasil dihapus.",
+      "deleteFailed": "Gagal menghapus statement.",
+      "exportExcel": "Ekspor Excel",
+      "import": {
+        "title": "Import Mutasi Bank",
+        "subtitle": "Unggah file CSV mutasi bank, atau gunakan input manual untuk menambahkan baris satu per satu.",
+        "back": "Kembali",
+        "file": "File CSV",
+        "location": "Lokasi",
+        "selectLocation": "Pilih lokasi",
+        "submit": "Import",
+        "submitting": "Mengimpor...",
+        "success": "{count} baris berhasil diimport.",
+        "failed": "Gagal import mutasi bank.",
+        "missingMasterData": "Akun bank atau lokasi aktif belum tersedia.",
+        "templateHint": "Format CSV: Tanggal (YYYY-MM-DD), Deskripsi, Debit, Kredit, Saldo. Pemisah koma.",
+        "downloadTemplate": "Unduh Template CSV",
+        "pdfHint": "Rekening koran dari bank biasanya dalam format PDF. Anda dapat menyalin data ke template CSV atau memasukkannya secara manual.",
+        "orManual": "atau input manual",
+        "manualTitle": "Input Manual",
+        "manualSubtitle": "Tambahkan baris mutasi bank satu per satu. Cocok untuk menyalin dari rekening koran PDF.",
+        "addLine": "+ Tambah Baris",
+        "removeLine": "Hapus baris",
+        "transactionDate": "Tanggal",
+        "description": "Keterangan",
+        "debitAmount": "Masuk (Debit)",
+        "creditAmount": "Keluar (Kredit)",
+        "runningBalance": "Saldo",
+        "noLines": "Belum ada baris. Klik \"+ Tambah Baris\" untuk memulai."
+      },
+      "detail": {
+        "eyebrow": "Rekonsiliasi Bank",
+        "matchedCount": "{matched} dari {total} baris dicocokkan",
+        "allMatched": "Semua baris sudah dicocokkan. Klik \"Selesaikan Rekonsiliasi\" untuk menutup.",
+        "unmatchedWarning": "{count} baris belum dicocokkan.",
+        "selectJournal": "Pilih jurnal...",
+        "noJournalSuggestion": "Tidak ada jurnal yang cocok.",
+        "matchSuccess": "Baris berhasil dicocokkan.",
+        "unmatchSuccess": "Cocokkan berhasil dibatalkan.",
+        "journalCreated": "Jurnal berhasil dibuat dan baris dicocokkan."
+      },
+      "summary": {
+        "matched": "Dicocokkan",
+        "unmatched": "Belum Dicocokkan",
+        "total": "Total Baris"
+      },
+      "columns": {
+        "date": "Tanggal",
+        "description": "Keterangan",
+        "debit": "Masuk",
+        "credit": "Keluar",
+        "balance": "Saldo",
+        "matchStatus": "Status",
+        "journal": "Jurnal",
+        "actions": "Aksi"
+      }
     }
   },
   "purchasing": {
@@ -613,7 +702,8 @@
         "sku": "SKU",
         "name": "Nama",
         "uom": "UOM"
-      }
+      },
+      "exportExcel": "Ekspor Excel"
     },
     "opname": {
       "title": "Stock Opname",
@@ -664,8 +754,57 @@
         "noData": "Tidak ada data",
         "selectDateLocation": "Pilih tanggal dan lokasi",
         "noSurplus": "Tidak ada surplus",
-        "noSessions": "Belum ada sesi opname yang disetujui.",
-        "noProducts": "Tidak ada data produk."
+        "emptySessions": "Belum ada sesi opname yang disetujui.",
+        "emptyProducts": "Tidak ada data produk.",
+        "startDate": "Tanggal Mulai",
+        "endDate": "Tanggal Selesai",
+        "location": "Lokasi",
+        "allLocations": "Semua Lokasi",
+        "show": "Tampilkan",
+        "loading": "Memuat...",
+        "errorLoading": "Gagal memuat data varians",
+        "surplus": "Surplus",
+        "shortage": "Kekurangan",
+        "emptyState": {
+          "title": "Tidak ada varians",
+          "subtitle": "Tidak ditemukan varians pada rentang tanggal ini."
+        },
+        "export": {
+          "title": "Laporan Varians",
+          "period": "Periode",
+          "location": "Lokasi",
+          "summary": "Ringkasan",
+          "totalSessions": "Total Sesi",
+          "totalProducts": "Total Produk",
+          "totalLines": "Total Baris",
+          "linesWithVariance": "Baris dgn Varians",
+          "totalVarianceValue": "Total Nilai Varians",
+          "totalSurplus": "Total Surplus",
+          "totalShortage": "Total Kekurangan",
+          "avgVarianceRate": "Rata-rata Tingkat Varians",
+          "summarySheet": "Ringkasan",
+          "sessionsSheet": "Sesi",
+          "productsSheet": "Produk"
+        },
+        "columns": {
+          "sessionNo": "No. Sesi",
+          "date": "Tanggal",
+          "period": "Periode",
+          "location": "Lokasi",
+          "totalLines": "Total Baris",
+          "countedLines": "Baris Dihitung",
+          "linesWithVariance": "Baris dgn Varians",
+          "netVarianceQty": "Kuantitas Varians Bersih",
+          "varianceValue": "Nilai Varians",
+          "productId": "ID Produk",
+          "productName": "Nama Produk",
+          "sku": "SKU",
+          "systemQty": "Qty Sistem",
+          "countedQty": "Qty Dihitung",
+          "varianceQty": "Qty Varians",
+          "varianceRate": "Tingkat Varians",
+          "worstSession": "Sesi Terburuk"
+        }
       }
     },
     "adjust": {
@@ -764,7 +903,8 @@
     "supplies": "Bahan & Perlengkapan",
     "categories": "Kategori",
     "stockByOutlet": "Stok per Outlet",
-    "correspondence": "Surat Menyurat"
+    "correspondence": "Surat Menyurat",
+    "bankReconciliation": "Rekon Bank"
   },
   "pos": {
     "title": "Kasir",
@@ -1517,6 +1657,27 @@
         "saveRole": "Gagal menyimpan role",
         "deleteRole": "Gagal menghapus role"
       }
+    },
+    "bankAccounts": {
+      "title": "Akun Bank",
+      "subtitle": "Kelola daftar rekening bank yang digunakan untuk rekonsiliasi dan pencatatan kas.",
+      "add": "Tambah Akun Bank",
+      "edit": "Edit Akun Bank",
+      "bankName": "Nama Bank",
+      "accountNumber": "Nomor Rekening",
+      "accountHolder": "Nama Pemilik",
+      "linkedCoa": "Akun COA",
+      "selectCoa": "Pilih akun dari COA...",
+      "status": "Status Aktif",
+      "save": "Simpan",
+      "saving": "Menyimpan...",
+      "saveSuccess": "Akun bank berhasil disimpan.",
+      "saveFailed": "Gagal menyimpan akun bank.",
+      "empty": "Belum ada akun bank yang dikonfigurasi.",
+      "delete": "Hapus",
+      "deleteConfirm": "Hapus konfigurasi akun bank ini?",
+      "deleteSuccess": "Akun bank berhasil dihapus.",
+      "deleteFailed": "Gagal menghapus akun bank."
     },
     "notifications": {
       "section": "Settings",

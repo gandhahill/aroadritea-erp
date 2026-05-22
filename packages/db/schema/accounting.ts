@@ -604,3 +604,132 @@ export const journalAttachmentsRelations = relations(journalAttachments, ({ one 
   }),
   uploader: one(users, { fields: [journalAttachments.uploadedBy], references: [users.id] }),
 }));
+
+// ================================================================
+// BANK ACCOUNTS — Configurable in settings
+// ================================================================
+
+export const bankAccounts = pgTable(
+  'bank_accounts',
+  {
+    ...pk,
+    ...tenantCol,
+    bankName: text('bank_name').notNull(), // 'BCA', 'Mandiri'
+    accountNumber: text('account_number').notNull(),
+    accountHolder: text('account_holder').notNull(),
+    accountId: text('account_id').notNull(), // FK accounts (COA)
+    isActive: boolean('is_active').notNull().default(true),
+    ...auditCols,
+  },
+  (t) => [
+    index('bank_acc_tenant_idx').on(t.tenantId),
+    index('bank_acc_coa_idx').on(t.accountId),
+  ],
+);
+
+// ================================================================
+// BANK STATEMENTS — Bank Reconciliation (manual import)
+// SD §1.3: "rekonsiliasi manual cukup"
+// ================================================================
+
+export const bankStatements = pgTable(
+  'bank_statements',
+  {
+    ...pk,
+    ...tenantCol,
+    locationId: text('location_id').notNull(),
+    bankAccountId: text('bank_account_id').notNull(), // FK accounts (bank account in COA)
+    statementDate: date('statement_date').notNull(),
+    openingBalance: bigint('opening_balance', { mode: 'bigint' }).notNull(),
+    closingBalance: bigint('closing_balance', { mode: 'bigint' }).notNull(),
+    status: text('status').notNull().default('draft'), // 'draft' | 'in_progress' | 'reconciled'
+    reconciledAt: timestamp('reconciled_at', { withTimezone: true }),
+    reconciledBy: text('reconciled_by'),
+    notes: text('notes'),
+    ...auditCols,
+    ...versionCol,
+  },
+  (t) => [
+    index('bank_stmt_tenant_idx').on(t.tenantId),
+    index('bank_stmt_location_idx').on(t.locationId),
+    index('bank_stmt_account_idx').on(t.bankAccountId),
+    index('bank_stmt_date_idx').on(t.statementDate),
+    index('bank_stmt_status_idx').on(t.status),
+    check(
+      'bank_stmt_status_check',
+      sql`status IN ('draft', 'in_progress', 'reconciled')`,
+    ),
+  ],
+);
+
+// ================================================================
+// BANK STATEMENT LINES — individual bank transactions
+// ================================================================
+
+export const bankStatementLines = pgTable(
+  'bank_statement_lines',
+  {
+    ...pk,
+    statementId: text('statement_id').notNull(), // FK bank_statements
+    lineNo: integer('line_no').notNull(),
+    transactionDate: date('transaction_date').notNull(),
+    description: text('description').notNull(),
+    debit: bigint('debit', { mode: 'bigint' }).notNull().default(sql`0`), // money in
+    credit: bigint('credit', { mode: 'bigint' }).notNull().default(sql`0`), // money out
+    runningBalance: bigint('running_balance', { mode: 'bigint' }),
+    matchStatus: text('match_status').notNull().default('unmatched'), // 'unmatched' | 'matched' | 'created'
+    matchedJournalEntryId: text('matched_journal_entry_id'), // FK journal_entries
+    matchedAt: timestamp('matched_at', { withTimezone: true }),
+    matchedBy: text('matched_by'),
+    ...auditCols,
+  },
+  (t) => [
+    index('bank_stmt_line_stmt_idx').on(t.statementId),
+    index('bank_stmt_line_match_idx').on(t.matchStatus),
+    index('bank_stmt_line_journal_idx').on(t.matchedJournalEntryId),
+    index('bank_stmt_line_date_idx').on(t.transactionDate),
+    check(
+      'bank_stmt_line_match_status_check',
+      sql`match_status IN ('unmatched', 'matched', 'created')`,
+    ),
+  ],
+);
+
+// ================================================================
+// BANK RECONCILIATION RELATIONS
+// ================================================================
+
+export const bankAccountsRelations = relations(bankAccounts, ({ one, many }) => ({
+  coaAccount: one(accounts, {
+    fields: [bankAccounts.accountId],
+    references: [accounts.id],
+  }),
+  statements: many(bankStatements),
+}));
+
+export const bankStatementsRelations = relations(bankStatements, ({ one, many }) => ({
+  bankAccount: one(bankAccounts, {
+    fields: [bankStatements.bankAccountId],
+    references: [bankAccounts.id],
+  }),
+  reconciledByUser: one(users, {
+    fields: [bankStatements.reconciledBy],
+    references: [users.id],
+  }),
+  lines: many(bankStatementLines),
+}));
+
+export const bankStatementLinesRelations = relations(bankStatementLines, ({ one }) => ({
+  statement: one(bankStatements, {
+    fields: [bankStatementLines.statementId],
+    references: [bankStatements.id],
+  }),
+  matchedJournalEntry: one(journalEntries, {
+    fields: [bankStatementLines.matchedJournalEntryId],
+    references: [journalEntries.id],
+  }),
+  matchedByUser: one(users, {
+    fields: [bankStatementLines.matchedBy],
+    references: [users.id],
+  }),
+}));

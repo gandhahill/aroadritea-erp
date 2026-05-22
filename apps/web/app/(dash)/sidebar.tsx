@@ -143,6 +143,7 @@ export function Sidebar() {
         { label: t('periods'), href: '/accounting/periods', icon: <></> },
         { label: t('pettyCash'), href: '/accounting/petty-cash', icon: <></> },
         { label: t('reimbursement'), href: '/accounting/reimbursement', icon: <></> },
+        { label: t('bankReconciliation'), href: '/accounting/bank-recon', icon: <></> },
       ],
     },
     {
@@ -346,6 +347,7 @@ export function Sidebar() {
         { label: t('naixerKds'), href: '/settings/integrations/naixer', icon: <></> },
         { label: t('permissions'), href: '/settings/permissions', icon: <></> },
         { label: t('customFields'), href: '/settings/custom-fields', icon: <></> },
+        { label: t('bankAccounts'), href: '/settings/bank-accounts', icon: <></> },
         { label: t('workflowEditor'), href: '/settings/workflow-editor', icon: <></> },
       ],
     },
