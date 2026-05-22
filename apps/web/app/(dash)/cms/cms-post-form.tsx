@@ -16,7 +16,7 @@ interface Props {
 const LOCALE_TABS = [
   { code: 'id', label: 'Bahasa Indonesia' },
   { code: 'en', label: 'English' },
-  { code: 'zh', label: '??' },
+  { code: 'zh', label: '中文' },
 ];
 
 const KIND_OPTIONS = [
@@ -229,7 +229,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
 
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
             <label className="mb-1 block text-sm font-medium text-brand-ink">
-              Cuplikan / Excerpt
+              {t('excerpt')}
             </label>
             <div className="space-y-2">
               {LOCALE_TABS.map((tab) => (
@@ -240,7 +240,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
                     onChange={(e) => setExcerptVals((v) => ({ ...v, [tab.code]: e.target.value }))}
                     rows={2}
                     className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-                    placeholder={`Excerpt (${tab.code.toUpperCase()})`}
+                    placeholder={`${t('excerpt')} (${tab.code.toUpperCase()})`}
                   />
                 </div>
               ))}
@@ -250,10 +250,10 @@ export function CmsPostForm({ post, isNew = false }: Props) {
 
         <div className="space-y-4">
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
-            <h3 className="mb-3 text-sm font-semibold text-brand-ink">Pengaturan</h3>
+            <h3 className="mb-3 text-sm font-semibold text-brand-ink">{t('settings')}</h3>
             <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-brand-ink-3">Slug</label>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">{t('slug')}</label>
                 <input
                   type="text"
                   value={formData.slug}
@@ -262,11 +262,11 @@ export function CmsPostForm({ post, isNew = false }: Props) {
                   placeholder="url-slug"
                   disabled={!isNew}
                 />
-                {isNew && <p className="mt-1 text-xs text-brand-ink-3">Slug cannot be changed.</p>}
+                {isNew && <p className="mt-1 text-xs text-brand-ink-3">{t('slugHint')}</p>}
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-brand-ink-3">Kategori</label>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">{t('category')}</label>
                 <select
                   value={formData.kind}
                   onChange={(e) => setFormData((v) => ({ ...v, kind: e.target.value }))}
@@ -282,20 +282,20 @@ export function CmsPostForm({ post, isNew = false }: Props) {
 
               <div>
                 <label className="mb-1 block text-xs font-medium text-brand-ink-3">
-                  Tags (pisah koma)
+                  {t('tags')}
                 </label>
                 <input
                   type="text"
                   value={formData.tags}
                   onChange={(e) => setFormData((v) => ({ ...v, tags: e.target.value }))}
                   className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-                  placeholder="teh, promo, baru"
+                  placeholder={t('tagsPlaceholder')}
                 />
               </div>
 
               <div>
                 <label className="mb-1 block text-xs font-medium text-brand-ink-3">
-                  Urutan Tampilan
+                  {t('displayOrder')}
                 </label>
                 <input
                   type="number"
@@ -306,7 +306,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
               </div>
 
               <FileUploadField
-                label="Gambar Cover"
+                label={t('coverImage')}
                 hiddenName="coverImageUrl"
                 value={formData.coverImageUrl}
                 area="cms-images"
@@ -320,10 +320,10 @@ export function CmsPostForm({ post, isNew = false }: Props) {
 
           {!isNew && (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-              <h3 className="mb-2 text-sm font-semibold text-red-700">Zona Berbahaya</h3>
+              <h3 className="mb-2 text-sm font-semibold text-red-700">{t('dangerZone')}</h3>
               {showDeleteConfirm ? (
                 <div className="space-y-2">
-                  <p className="text-sm text-red-600">Yakin ingin menghapus post ini?</p>
+                  <p className="text-sm text-red-600">{t('confirmDelete')}</p>
                   <div className="flex gap-2">
                     <button
                       onClick={handleDelete}
