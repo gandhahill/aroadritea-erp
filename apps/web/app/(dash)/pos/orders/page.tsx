@@ -14,21 +14,24 @@ import type { ReactNode } from 'react';
 import { fetchTodaysOrders } from './actions';
 import { OrdersClient } from './orders-client';
 
+import { Pagination } from '@/components/pagination';
+import { ExportOrdersButton } from './export-orders-button';
+
 export const metadata: Metadata = { title: 'Riwayat Pesanan — POS' };
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  searchParams: Promise<{ date?: string; page?: string }>;
+  searchParams: Promise<{ date?: string; page?: string; pageSize?: string }>;
 }
 
 export default async function PosOrdersPage({ searchParams }: Props) {
-  const { date, page: pageParam } = await searchParams;
+  const { date, page: pageParam, pageSize: pageSizeParam } = await searchParams;
   const page = Number.parseInt(pageParam ?? '1', 10);
+  const pageSize = Number.parseInt(pageSizeParam ?? '20', 10);
   const [data, pagination] = await Promise.all([
-    fetchTodaysOrders(date, Number.isFinite(page) ? page : 1),
+    fetchTodaysOrders(date, Number.isFinite(page) ? page : 1, Number.isFinite(pageSize) ? pageSize : 20),
     getTranslations('common.pagination'),
   ]);
-  const totalPages = Math.max(1, Math.ceil(data.total / data.pageSize));
 
   if (!data.ok) {
     return (
@@ -54,55 +57,19 @@ export default async function PosOrdersPage({ searchParams }: Props) {
             jika diizinkan, void atau refund.
           </p>
         </div>
-        <DatePicker initialDate={date} />
+        <div className="flex items-center gap-2">
+          <DatePicker initialDate={date} />
+          <ExportOrdersButton date={date} />
+        </div>
       </div>
 
       <OrdersClient rows={data.rows} />
-      <div className="flex flex-col gap-3 rounded-lg border border-brand-cream-3 bg-card px-4 py-3 text-sm text-brand-ink-3 sm:flex-row sm:items-center sm:justify-between">
-        <span>
-          {pagination('page')} {data.page} {pagination('of')} {totalPages}
-        </span>
-        <div className="flex items-center gap-2">
-          <PageLink date={date} page={data.page - 1} disabled={data.page <= 1}>
-            {pagination('previous')}
-          </PageLink>
-          <PageLink date={date} page={data.page + 1} disabled={data.page >= totalPages}>
-            {pagination('next')}
-          </PageLink>
-        </div>
-      </div>
+      <Pagination 
+        currentPage={data.page} 
+        totalItems={data.total} 
+        pageSize={data.pageSize} 
+      />
     </div>
-  );
-}
-
-function PageLink({
-  date,
-  page,
-  disabled,
-  children,
-}: {
-  date?: string;
-  page: number;
-  disabled: boolean;
-  children: ReactNode;
-}) {
-  const params = new URLSearchParams();
-  params.set('page', String(page));
-  if (date) params.set('date', date);
-  if (disabled) {
-    return (
-      <span className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-brand-ink-3 opacity-50">
-        {children}
-      </span>
-    );
-  }
-  return (
-    <Link
-      href={`/pos/orders?${params.toString()}`}
-      className="rounded-md border border-brand-cream-3 px-3 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream"
-    >
-      {children}
-    </Link>
   );
 }
 

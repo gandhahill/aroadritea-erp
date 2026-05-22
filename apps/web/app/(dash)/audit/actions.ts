@@ -27,6 +27,7 @@ export interface AuditTrailFilters {
   from?: string;
   to?: string;
   page?: string;
+  pageSize?: string;
 }
 
 export interface AuditTrailPageData {
@@ -44,8 +45,11 @@ export async function fetchAuditTrail(filters: AuditTrailFilters): Promise<Audit
   const tenantId = String(user.tenantId ?? 'default');
   const userId = String(user.id ?? '');
   const permission = await requirePermission(userId, 'audit.view');
-  if (!permission.ok) return { rows: [], total: 0, page: 1, pageSize: 50 };
-  const pageSize = 50;
+  
+  const parsedPageSize = Number.parseInt(filters.pageSize ?? '50', 10);
+  const pageSize = Math.max(1, Math.min(100, Number.isFinite(parsedPageSize) ? parsedPageSize : 50));
+  
+  if (!permission.ok) return { rows: [], total: 0, page: 1, pageSize };
   const parsedPage = Number.parseInt(filters.page ?? '1', 10);
   const currentPage = Math.max(1, Number.isFinite(parsedPage) ? parsedPage : 1);
 

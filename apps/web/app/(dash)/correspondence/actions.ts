@@ -84,6 +84,7 @@ async function getOptions(ctx: AuditContext): Promise<CorrespondenceOptions> {
 
 export async function fetchCorrespondencePageData(searchParams: {
   page?: string;
+  pageSize?: string;
   status?: string;
   direction?: string;
   classification?: string;
@@ -92,7 +93,8 @@ export async function fetchCorrespondencePageData(searchParams: {
   if (!session) redirect('/login');
   const ctx = buildCtx(session);
   const page = Math.max(1, Number(searchParams.page ?? '1') || 1);
-  const pageSize = 25;
+  const parsedPageSize = Number.parseInt(searchParams.pageSize ?? '25', 10);
+  const pageSize = Math.max(1, Math.min(100, Number.isFinite(parsedPageSize) ? parsedPageSize : 25));
   const [options, result] = await Promise.all([
     getOptions(ctx),
     listCorrespondence(

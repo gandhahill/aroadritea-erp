@@ -1369,14 +1369,47 @@
       }
     },
     "notifications": {
-      "title": "通知",
-      "subtitle": "管理运营通知接收方。",
-      "addChannel": "添加渠道",
-      "saveChannel": "保存渠道",
-      "listTitle": "渠道列表",
-      "empty": "暂无通知渠道。",
-      "allNotifications": "所有通知",
-      "activeLabel": "活跃"
+      "section": "设置",
+      "title": "通知渠道",
+      "description": "管理运营通知接收方。SMTP/WhatsApp凭据仍保留在环境变量中；目标和目的可从ERP中管理。",
+      "list": {
+        "title": "渠道列表",
+        "emptyState": "暂无通知渠道。",
+        "columns": {
+          "label": "标签",
+          "type": "类型",
+          "target": "目标",
+          "purpose": "目的",
+          "status": "状态"
+        },
+        "status": {
+          "active": "启用",
+          "inactive": "停用"
+        }
+      },
+      "form": {
+        "title": "添加渠道",
+        "description": "系统中断监控和库存预警等运营通知目标。",
+        "success": "通知渠道已保存。",
+        "submitting": "保存中...",
+        "submit": "保存渠道",
+        "fields": {
+          "label": "标签",
+          "type": "类型",
+          "target": "目标",
+          "purpose": "目的",
+          "isActive": "启用"
+        },
+        "types": {
+          "email": "邮箱"
+        },
+        "purposes": {
+          "all": "所有通知",
+          "outage": "系统中断",
+          "stockAlert": "库存预警",
+          "partyLedger": "应付/应收账款提醒"
+        }
+      }
     },
     "attendance": {
       "title": "考勤政策",
@@ -1592,14 +1625,74 @@
       "open": "打开"
     },
     "donations": {
-      "title": "捐赠",
+      "title": "捐款报告",
       "loading": "加载中...",
-      "empty": "此期间无捐赠数据"
+      "emptyState": "此期间无捐赠数据",
+      "allLocations": "所有地点",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "location": "地点",
+      "filter": "筛选",
+      "export": {
+        "summarySheet": "总结",
+        "dailySheet": "每日",
+        "title": "捐款报告",
+        "period": "期间",
+        "location": "地点",
+        "metric": "指标",
+        "value": "值"
+      },
+      "summary": {
+        "totalDonation": "总捐款",
+        "totalTransactions": "交易笔数",
+        "averageDonation": "平均捐款"
+      },
+      "columns": {
+        "date": "日期",
+        "donationAmount": "捐款金额",
+        "transactionCount": "交易笔数",
+        "average": "平均",
+        "total": "总计"
+      }
     },
     "hourlySales": {
       "title": "按小时销售",
       "dailyDetails": "每日详情",
-      "empty": "此期间无销售数据"
+      "emptyState": "此期间无销售数据",
+      "allLocations": "所有地点",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "location": "地点",
+      "groupBy": "分组方式",
+      "groupChannel": "渠道",
+      "groupDay": "天",
+      "filter": "筛选",
+      "heatmapTitle": "热力图 — 按小时销售 (10:00—22:00)",
+      "dayTitle": "每日明细",
+      "summary": {
+        "totalTransactions": "总交易数",
+        "totalSales": "总销售额",
+        "busiestHour": "最忙碌时段"
+      },
+      "columns": {
+        "channel": "渠道",
+        "total": "总数",
+        "totalUpper": "总计",
+        "date": "日期",
+        "totalTx": "总交易",
+        "totalSales": "总销售额"
+      },
+      "export": {
+        "summarySheet": "总结",
+        "title": "按小时销售报告",
+        "period": "期间",
+        "location": "地点",
+        "mode": "模式",
+        "totalTransactions": "总交易数",
+        "totalSales": "总销售额",
+        "channelSheet": "按渠道",
+        "daySheet": "按日期"
+      }
     },
     "bi": {
       "eyebrow": "商业智能",

@@ -1350,14 +1350,74 @@
       "open": "Buka"
     },
     "donations": {
-      "title": "Donasi",
+      "title": "Laporan Donasi",
       "loading": "Memuat...",
-      "empty": "Tidak ada data donasi pada periode ini"
+      "emptyState": "Tidak ada data donasi pada periode ini",
+      "allLocations": "Semua lokasi",
+      "startDate": "Dari Tanggal",
+      "endDate": "Sampai Tanggal",
+      "location": "Lokasi",
+      "filter": "Filter",
+      "export": {
+        "summarySheet": "Ringkasan",
+        "dailySheet": "Harian",
+        "title": "Laporan Donasi",
+        "period": "Periode",
+        "location": "Lokasi",
+        "metric": "Metrik",
+        "value": "Nilai"
+      },
+      "summary": {
+        "totalDonation": "Total Donasi",
+        "totalTransactions": "Jumlah Transaksi",
+        "averageDonation": "Rata-rata Donasi"
+      },
+      "columns": {
+        "date": "Tanggal",
+        "donationAmount": "Jumlah Donasi",
+        "transactionCount": "Transaksi",
+        "average": "Rata-rata",
+        "total": "TOTAL"
+      }
     },
     "hourlySales": {
       "title": "Penjualan Per Jam",
       "dailyDetails": "Rincian Per Hari",
-      "empty": "Tidak ada data penjualan pada periode ini"
+      "emptyState": "Tidak ada data penjualan pada periode ini",
+      "allLocations": "Semua lokasi",
+      "startDate": "Dari Tanggal",
+      "endDate": "Sampai Tanggal",
+      "location": "Lokasi",
+      "groupBy": "Group By",
+      "groupChannel": "Channel",
+      "groupDay": "Hari",
+      "filter": "Filter",
+      "heatmapTitle": "Heatmap — Penjualan Per Jam (10:00—22:00 WIB)",
+      "dayTitle": "Rincian Per Hari",
+      "summary": {
+        "totalTransactions": "Total Transaksi",
+        "totalSales": "Total Penjualan",
+        "busiestHour": "Jam Tersibuk"
+      },
+      "columns": {
+        "channel": "Channel",
+        "total": "Total",
+        "totalUpper": "TOTAL",
+        "date": "Tanggal",
+        "totalTx": "Total Tx",
+        "totalSales": "Total Penjualan"
+      },
+      "export": {
+        "summarySheet": "Ringkasan",
+        "title": "Laporan Penjualan Per Jam",
+        "period": "Periode",
+        "location": "Lokasi",
+        "mode": "Mode",
+        "totalTransactions": "Total Transaksi",
+        "totalSales": "Total Penjualan",
+        "channelSheet": "Per Channel",
+        "daySheet": "Per Hari"
+      }
     },
     "bi": {
       "eyebrow": "Kecerdasan Bisnis",
@@ -1459,14 +1519,47 @@
       }
     },
     "notifications": {
-      "title": "Notifikasi",
-      "subtitle": "Kelola penerima notifikasi operasional.",
-      "addChannel": "Tambah kanal",
-      "saveChannel": "Simpan kanal",
-      "listTitle": "Daftar kanal",
-      "empty": "Belum ada kanal notifikasi.",
-      "allNotifications": "Semua notifikasi",
-      "activeLabel": "Aktif"
+      "section": "Settings",
+      "title": "Kanal Notifikasi",
+      "description": "Kelola penerima notifikasi operasional. Kredensial SMTP/WhatsApp tetap berada di env; target penerima dan purpose bisa diatur dari ERP.",
+      "list": {
+        "title": "Daftar Kanal",
+        "emptyState": "Belum ada kanal notifikasi.",
+        "columns": {
+          "label": "Label",
+          "type": "Tipe",
+          "target": "Target",
+          "purpose": "Tujuan",
+          "status": "Status"
+        },
+        "status": {
+          "active": "Aktif",
+          "inactive": "Nonaktif"
+        }
+      },
+      "form": {
+        "title": "Tambah kanal",
+        "description": "Target notifikasi operasional seperti outage monitor dan stock alert.",
+        "success": "Kanal notifikasi tersimpan.",
+        "submitting": "Menyimpan...",
+        "submit": "Simpan kanal",
+        "fields": {
+          "label": "Label",
+          "type": "Tipe",
+          "target": "Target",
+          "purpose": "Tujuan",
+          "isActive": "Aktif"
+        },
+        "types": {
+          "email": "Email"
+        },
+        "purposes": {
+          "all": "Semua notifikasi",
+          "outage": "Gangguan sistem",
+          "stockAlert": "Peringatan stok",
+          "partyLedger": "Reminder utang/piutang"
+        }
+      }
     },
     "attendance": {
       "title": "Kebijakan Presensi",

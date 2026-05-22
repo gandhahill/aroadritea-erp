@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { createCorrespondenceAction, fetchCorrespondencePageData } from './actions';
 import { FileUploadField } from '@/components/file-upload-field';
+import { Pagination } from '@/components/pagination';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +18,7 @@ const STATUSES = ['draft', 'registered', 'in_progress', 'sent', 'closed', 'archi
 interface PageProps {
   searchParams: Promise<{
     page?: string;
+    pageSize?: string;
     status?: string;
     direction?: string;
     classification?: string;
@@ -195,20 +197,11 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
             </tbody>
           </table>
         </div>
-        <div className="flex items-center justify-between border-t border-brand-cream-3 px-5 py-3 text-xs text-brand-ink-3">
-          <span>
-            {t('total', { count: data.total })} - {pagination('page')} {data.page} {pagination('of')}{' '}
-            {totalPages}
-          </span>
-          <div className="flex items-center gap-2">
-            <PageLink page={data.page - 1} disabled={data.page <= 1} params={params}>
-              {pagination('previous')}
-            </PageLink>
-            <PageLink page={data.page + 1} disabled={data.page >= totalPages} params={params}>
-              {pagination('next')}
-            </PageLink>
-          </div>
-        </div>
+        <Pagination 
+          currentPage={data.page} 
+          totalItems={data.total} 
+          pageSize={data.pageSize} 
+        />
       </section>
     </div>
   );
@@ -276,28 +269,4 @@ function FilterLink({
   );
 }
 
-function PageLink({
-  page,
-  disabled,
-  params,
-  children,
-}: {
-  page: number;
-  disabled: boolean;
-  params: Awaited<PageProps['searchParams']>;
-  children: React.ReactNode;
-}) {
-  if (disabled) {
-    return <span className="rounded-md border border-brand-cream-3 px-3 py-1.5 opacity-50">{children}</span>;
-  }
-  const query = new URLSearchParams();
-  query.set('page', String(page));
-  if (params.status) query.set('status', params.status);
-  if (params.direction) query.set('direction', params.direction);
-  if (params.classification) query.set('classification', params.classification);
-  return (
-    <Link href={`/correspondence?${query.toString()}`} className="rounded-md border border-brand-cream-3 px-3 py-1.5">
-      {children}
-    </Link>
-  );
-}
+

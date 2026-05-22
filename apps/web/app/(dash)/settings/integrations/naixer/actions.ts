@@ -22,6 +22,7 @@ import {
 } from '@erp/db/schema/inventory';
 import { dashStrategy, pipeStrategy } from '@erp/services/kitchen';
 import { generateId } from '@erp/shared/id';
+import { auditLog } from '@erp/db/schema/audit';
 import { getLocale } from 'next-intl/server';
 import QRCode from 'qrcode';
 
@@ -192,13 +193,33 @@ export async function createProductCode(
     if (!data.productId || !data.naixerCode) {
       return { success: false, error: 'Product ID and Naixer code are required' };
     }
+    const id = generateId();
     await db.insert(naixerProductCodes).values({
-      id: generateId(),
+      id,
       tenantId,
       productId: data.productId,
       variantId: data.variantId || null,
       naixerCode: data.naixerCode.trim(),
     });
+    
+    const session = await getSession();
+    const userId = session?.user?.id as string;
+    if (userId) {
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId,
+        userId,
+        action: 'create',
+        entityType: 'naixer_product_code',
+        entityId: id,
+        after: {
+          productId: data.productId,
+          variantId: data.variantId || null,
+          naixerCode: data.naixerCode.trim(),
+        },
+      });
+    }
+    
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
@@ -234,6 +255,24 @@ export async function updateProductCode(
       .returning({ id: naixerProductCodes.id });
 
     if (result.length === 0) return { success: false, error: 'Not found' };
+    
+    const session = await getSession();
+    const userId = session?.user?.id as string;
+    if (userId) {
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId,
+        userId,
+        action: 'update',
+        entityType: 'naixer_product_code',
+        entityId: id,
+        after: {
+          ...(data.naixerCode !== undefined && { naixerCode: data.naixerCode.trim() }),
+          ...(data.isActive !== undefined && { isActive: data.isActive }),
+        },
+      });
+    }
+    
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
@@ -256,6 +295,20 @@ export async function deleteProductCode(id: string): Promise<ActionResult> {
       .where(eq(naixerProductCodes.id, id))
       .returning({ id: naixerProductCodes.id });
     if (result.length === 0) return { success: false, error: 'Not found' };
+    
+    const session = await getSession();
+    const userId = session?.user?.id as string;
+    if (userId) {
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId,
+        userId,
+        action: 'delete',
+        entityType: 'naixer_product_code',
+        entityId: id,
+      });
+    }
+    
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
@@ -336,14 +389,35 @@ export async function createModifierCode(
     if (!data.modifierKind || !data.modifierOptionId || !data.naixerCode) {
       return { success: false, error: 'All fields are required' };
     }
+    const id = generateId();
     await db.insert(naixerModifierCodes).values({
-      id: generateId(),
+      id,
       tenantId,
       modifierKind: data.modifierKind,
       modifierOptionId: data.modifierOptionId,
       naixerCode: data.naixerCode.trim(),
       displayOrder: data.displayOrder ?? 0,
     });
+    
+    const session = await getSession();
+    const userId = session?.user?.id as string;
+    if (userId) {
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId,
+        userId,
+        action: 'create',
+        entityType: 'naixer_modifier_code',
+        entityId: id,
+        after: {
+          modifierKind: data.modifierKind,
+          modifierOptionId: data.modifierOptionId,
+          naixerCode: data.naixerCode.trim(),
+          displayOrder: data.displayOrder ?? 0,
+        },
+      });
+    }
+    
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
@@ -380,6 +454,25 @@ export async function updateModifierCode(
       .returning({ id: naixerModifierCodes.id });
 
     if (result.length === 0) return { success: false, error: 'Not found' };
+    
+    const session = await getSession();
+    const userId = session?.user?.id as string;
+    if (userId) {
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId,
+        userId,
+        action: 'update',
+        entityType: 'naixer_modifier_code',
+        entityId: id,
+        after: {
+          ...(data.naixerCode !== undefined && { naixerCode: data.naixerCode.trim() }),
+          ...(data.displayOrder !== undefined && { displayOrder: data.displayOrder }),
+          ...(data.isActive !== undefined && { isActive: data.isActive }),
+        },
+      });
+    }
+    
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
@@ -402,6 +495,20 @@ export async function deleteModifierCode(id: string): Promise<ActionResult> {
       .where(eq(naixerModifierCodes.id, id))
       .returning({ id: naixerModifierCodes.id });
     if (result.length === 0) return { success: false, error: 'Not found' };
+    
+    const session = await getSession();
+    const userId = session?.user?.id as string;
+    if (userId) {
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId,
+        userId,
+        action: 'delete',
+        entityType: 'naixer_modifier_code',
+        entityId: id,
+      });
+    }
+    
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
@@ -516,6 +623,32 @@ export async function updateFormatConfig(
       .returning({ id: naixerQrFormatConfig.id });
 
     if (result.length === 0) return { success: false, error: 'Not found' };
+    
+    const session = await getSession();
+    const userId = session?.user?.id as string;
+    if (userId) {
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId,
+        userId,
+        action: 'update',
+        entityType: 'naixer_qr_config',
+        entityId: id,
+        after: {
+          ...(data.format !== undefined && { format: data.format }),
+          ...(data.includeOrderId !== undefined && { includeOrderId: data.includeOrderId }),
+          ...(data.parameterOrderJson !== undefined && {
+            parameterOrderJson: data.parameterOrderJson,
+          }),
+          ...(data.labelWidthMm !== undefined && { labelWidthMm: Math.trunc(data.labelWidthMm) }),
+          ...(data.labelHeightMm !== undefined && {
+            labelHeightMm: Math.trunc(data.labelHeightMm),
+          }),
+          ...(data.isActive !== undefined && { isActive: data.isActive }),
+        },
+      });
+    }
+    
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };

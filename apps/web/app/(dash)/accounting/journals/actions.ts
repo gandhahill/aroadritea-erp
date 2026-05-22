@@ -248,12 +248,12 @@ export interface JournalListPage {
   pageSize: number;
 }
 
-export async function fetchJournalList(page = 1): Promise<JournalListPage> {
+export async function fetchJournalList(page = 1, requestedPageSize = 20): Promise<JournalListPage> {
   const ctx = await getContext();
-  if (!ctx) return { items: [], total: 0, page: 1, pageSize: 50 };
+  const pageSize = Math.max(1, Math.min(100, Number.isFinite(requestedPageSize) ? requestedPageSize : 20));
+  if (!ctx) return { items: [], total: 0, page: 1, pageSize };
   const perm = await requirePermission(ctx.userId, 'accounting.view');
-  if (!perm.ok) return { items: [], total: 0, page: 1, pageSize: 50 };
-  const pageSize = 50;
+  if (!perm.ok) return { items: [], total: 0, page: 1, pageSize };
   const currentPage = Math.max(1, Number.isFinite(page) ? page : 1);
   const whereClause = eq(journalEntries.tenantId, ctx.tenantId);
 
@@ -604,5 +604,36 @@ export async function fetchJournalDetail(journalId: string): Promise<JournalDeta
         reminderDaysBefore: l.reminderDaysBefore,
       };
     }),
+  };
+}
+
+export async function serverExportJournals() {
+  const ctx = await getContext();
+  if (!ctx) return { ok: false, error: 'Unauthenticated' };
+  const perm = await requirePermission(ctx.userId, 'accounting.view');
+  if (!perm.ok) return { ok: false, error: 'Unauthorized' };
+
+  // Fetch up to 1000 latest journals for export
+  const list = await fetchJournalList(1, 1000);
+  
+  const headers = ['Number', 'Posting Date', 'Status', 'Description', 'Total Debit'];
+  const rows = list.items.map((j) => [
+    j.number,
+    j.postingDate,
+    j.status,
+    j.description,
+    j.totalDebit,
+  ]);
+
+  return {
+    ok: true,
+    value: {
+      sheets: [
+        {
+          name: 'Journal Entries',
+          rows: [headers, ...rows],
+        },
+      ],
+    },
   };
 }

@@ -12,6 +12,9 @@ import type { ReactNode } from 'react';
 import { fetchJournalList } from './actions';
 import { JournalTable } from './journal-table';
 
+import { Pagination } from '@/components/pagination';
+import { ExportJournalsButton } from './export-journals-button';
+
 export const metadata: Metadata = {
   title: 'Journal Entries',
 };
@@ -19,19 +22,18 @@ export const metadata: Metadata = {
 export default async function JournalsPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ page?: string }>;
+  searchParams?: Promise<{ page?: string; pageSize?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect('/login');
 
   const params = await searchParams;
   const page = Number.parseInt(params?.page ?? '1', 10);
+  const pageSize = Number.parseInt(params?.pageSize ?? '20', 10); // Default to 20 or read from action logic
   const [journals, t] = await Promise.all([
-    fetchJournalList(Number.isFinite(page) ? page : 1),
+    fetchJournalList(Number.isFinite(page) ? page : 1, Number.isFinite(pageSize) ? pageSize : 20),
     getTranslations('accounting.journal'),
   ]);
-  const pagination = await getTranslations('common.pagination');
-  const totalPages = Math.max(1, Math.ceil(journals.total / journals.pageSize));
 
   return (
     <div className="space-y-6">
@@ -57,6 +59,7 @@ export default async function JournalsPage({
           >
             {t('importCsv')}
           </Link>
+          <ExportJournalsButton />
           <Link
             href="/accounting/journals/new"
             className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark"
@@ -68,45 +71,12 @@ export default async function JournalsPage({
 
       {/* Table */}
       <JournalTable journals={journals.items} />
-      <div className="flex flex-col gap-3 rounded-lg border border-brand-cream-3 bg-card px-4 py-3 text-sm text-brand-ink-3 sm:flex-row sm:items-center sm:justify-between">
-        <span>
-          {pagination('page')} {journals.page} {pagination('of')} {totalPages}
-        </span>
-        <div className="flex items-center gap-2">
-          <PageLink page={journals.page - 1} disabled={journals.page <= 1}>
-            {pagination('previous')}
-          </PageLink>
-          <PageLink page={journals.page + 1} disabled={journals.page >= totalPages}>
-            {pagination('next')}
-          </PageLink>
-        </div>
-      </div>
+      
+      <Pagination 
+        currentPage={journals.page} 
+        totalItems={journals.total} 
+        pageSize={journals.pageSize} 
+      />
     </div>
-  );
-}
-
-function PageLink({
-  page,
-  disabled,
-  children,
-}: {
-  page: number;
-  disabled: boolean;
-  children: ReactNode;
-}) {
-  if (disabled) {
-    return (
-      <span className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-brand-ink-3 opacity-50">
-        {children}
-      </span>
-    );
-  }
-  return (
-    <Link
-      href={`/accounting/journals?page=${page}`}
-      className="rounded-md border border-brand-cream-3 px-3 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream"
-    >
-      {children}
-    </Link>
   );
 }

@@ -1,46 +1,47 @@
+import { getTranslations } from 'next-intl/server';
 import { fetchNotificationChannels } from './actions';
 import { NotificationChannelForm } from './notification-channel-form';
 
 export default async function NotificationSettingsPage() {
   const channels = await fetchNotificationChannels();
+  const t = await getTranslations('settings.notifications');
 
   return (
     <main className="min-h-screen bg-brand-paper">
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-8 lg:px-8">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
-            Settings
+            {t('section')}
           </p>
           <h1 className="mt-2 font-display text-3xl font-semibold text-brand-ink">
-            Notification channels
+            {t('title')}
           </h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-brand-muted">
-            Kelola penerima notifikasi operasional. Kredensial SMTP/WhatsApp tetap berada di env;
-            target penerima dan purpose bisa diatur dari ERP.
+            {t('description')}
           </p>
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
           <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
             <div className="border-b border-brand-cream-3 px-5 py-4">
-              <h2 className="text-base font-semibold text-brand-ink">Daftar kanal</h2>
+              <h2 className="text-base font-semibold text-brand-ink">{t('list.title')}</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
                 <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   <tr>
-                    <th className="px-4 py-3">Label</th>
-                    <th className="px-4 py-3">Tipe</th>
-                    <th className="px-4 py-3">Target</th>
-                    <th className="px-4 py-3">Purpose</th>
-                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">{t('list.columns.label')}</th>
+                    <th className="px-4 py-3">{t('list.columns.type')}</th>
+                    <th className="px-4 py-3">{t('list.columns.target')}</th>
+                    <th className="px-4 py-3">{t('list.columns.purpose')}</th>
+                    <th className="px-4 py-3">{t('list.columns.status')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-brand-cream-3 bg-card">
                   {channels.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-4 py-8 text-center text-brand-ink-3">
-                        Belum ada kanal notifikasi.
+                        {t('list.emptyState')}
                       </td>
                     </tr>
                   ) : (
@@ -58,7 +59,7 @@ export default async function NotificationSettingsPage() {
                                 : 'border-brand-cream-3 bg-brand-cream-1 text-brand-ink-3'
                             }`}
                           >
-                            {channel.isActive ? 'Aktif' : 'Nonaktif'}
+                            {channel.isActive ? t('list.status.active') : t('list.status.inactive')}
                           </span>
                         </td>
                       </tr>

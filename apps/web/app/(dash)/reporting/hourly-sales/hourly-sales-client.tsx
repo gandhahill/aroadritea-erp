@@ -1,4 +1,4 @@
-﻿/**
+/**
  * HourlySalesClient — client component for the hourly sales report (SD §25.6.3)
  *
  * Features:
@@ -13,6 +13,7 @@
 
 import { exportWorkbook } from '@/lib/export-workbook';
 import type { ChannelHourRow, DayHourRow, HourlySalesResult } from '@erp/services/reporting';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { ExportXlsxButton } from '../export-button';
@@ -91,7 +92,7 @@ function ChannelBadge({ channel }: { channel: string }) {
 
 // ─── Summary Cards ──────────────────────────────────────────────────────────────
 
-function SummaryCards({ data }: { data: HourlySalesResult }) {
+function SummaryCards({ data, t }: { data: HourlySalesResult; t: any }) {
   const totalTx = data.totalTxCount;
   const totalSales = formatIDR(data.totalGrossSales);
 
@@ -108,15 +109,15 @@ function SummaryCards({ data }: { data: HourlySalesResult }) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div className="rounded-xl border border-brand-cream-3 bg-card px-4 py-3">
-        <p className="text-xs font-medium text-brand-ink-3">Total Transaksi</p>
+        <p className="text-xs font-medium text-brand-ink-3">{t('summary.totalTransactions')}</p>
         <p className="mt-1 text-lg font-bold text-brand-ink">{totalTx.toLocaleString('id-ID')}</p>
       </div>
       <div className="rounded-xl border border-brand-cream-3 bg-card px-4 py-3">
-        <p className="text-xs font-medium text-brand-ink-3">Total Penjualan</p>
+        <p className="text-xs font-medium text-brand-ink-3">{t('summary.totalSales')}</p>
         <p className="mt-1 text-lg font-bold text-brand-ink">{totalSales}</p>
       </div>
       <div className="rounded-xl border border-brand-cream-3 bg-card px-4 py-3">
-        <p className="text-xs font-medium text-brand-ink-3">Jam Tersibuk</p>
+        <p className="text-xs font-medium text-brand-ink-3">{t('summary.busiestHour')}</p>
         <p className="mt-1 text-lg font-bold text-brand-ink">{busiestHour} WIB</p>
       </div>
     </div>
@@ -125,7 +126,7 @@ function SummaryCards({ data }: { data: HourlySalesResult }) {
 
 // ─── Heatmap ───────────────────────────────────────────────────────────────────
 
-function Heatmap({ data }: { data: HourlySalesResult }) {
+function Heatmap({ data, t }: { data: HourlySalesResult; t: any }) {
   if (!data.channelRows) return null;
 
   // Find max value for color scaling
@@ -143,14 +144,14 @@ function Heatmap({ data }: { data: HourlySalesResult }) {
         <thead>
           <tr className="border-b border-brand-cream-3">
             <th className="sticky left-0 bg-card px-3 py-2 text-left font-medium text-brand-ink-2">
-              Channel
+              {t('columns.channel')}
             </th>
             {STORE_HOURS.map((h) => (
               <th key={h} className="px-1.5 py-2 text-center font-medium text-brand-ink-2">
                 {h}
               </th>
             ))}
-            <th className="px-3 py-2 text-right font-medium text-brand-ink-2">Total</th>
+            <th className="px-3 py-2 text-right font-medium text-brand-ink-2">{t('columns.total')}</th>
           </tr>
         </thead>
         <tbody>
@@ -191,7 +192,7 @@ function Heatmap({ data }: { data: HourlySalesResult }) {
           })}
           {/* Hour totals row */}
           <tr className="bg-brand-cream-2 font-semibold">
-            <td className="sticky left-0 bg-brand-cream-2 px-3 py-2 text-brand-ink-2">TOTAL</td>
+            <td className="sticky left-0 bg-brand-cream-2 px-3 py-2 text-brand-ink-2">{t('columns.totalUpper')}</td>
             {STORE_HOURS.map((h) => {
               const cell = data.hourTotals[h]!;
               return (
@@ -216,21 +217,21 @@ function maxTxInRow(row: ChannelHourRow): number {
 
 // ─── Day Table ─────────────────────────────────────────────────────────────────
 
-function DayTable({ data }: { data: HourlySalesResult }) {
+function DayTable({ data, t }: { data: HourlySalesResult; t: any }) {
   if (!data.dayRows) return null;
   return (
     <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-card">
       <table className="w-full text-xs">
         <thead>
           <tr className="border-b border-brand-cream-3 bg-brand-cream-2">
-            <th className="px-4 py-2.5 text-left font-medium text-brand-ink-2">Tanggal</th>
+            <th className="px-4 py-2.5 text-left font-medium text-brand-ink-2">{t('columns.date')}</th>
             {STORE_HOURS.map((h) => (
               <th key={h} className="px-1.5 py-2.5 text-center font-medium text-brand-ink-2">
                 {h}
               </th>
             ))}
-            <th className="px-3 py-2.5 text-right font-medium text-brand-ink-2">Total Tx</th>
-            <th className="px-3 py-2.5 text-right font-medium text-brand-ink-2">Total Penjualan</th>
+            <th className="px-3 py-2.5 text-right font-medium text-brand-ink-2">{t('columns.totalTx')}</th>
+            <th className="px-3 py-2.5 text-right font-medium text-brand-ink-2">{t('columns.totalSales')}</th>
           </tr>
         </thead>
         <tbody>
@@ -272,12 +273,12 @@ function DayTable({ data }: { data: HourlySalesResult }) {
 
 // ─── Export XLSX ───────────────────────────────────────────────────────────────
 
-function buildXlsxData(data: HourlySalesResult): Array<Array<string | number>> {
+function buildXlsxData(data: HourlySalesResult, t: any): Array<Array<string | number>> {
   const rows: Array<Array<string | number>> = [];
 
   if (data.groupBy === 'channel' && data.channelRows) {
     // Header row
-    rows.push(['Channel', ...STORE_HOURS.map((h) => `${h}:00`), 'Total']);
+    rows.push([t('columns.channel'), ...STORE_HOURS.map((h) => `${h}:00`), t('columns.total')]);
     for (const row of data.channelRows) {
       const hourVals = STORE_HOURS.map((h) => {
         const c = row.hourBreakdown[h];
@@ -291,9 +292,9 @@ function buildXlsxData(data: HourlySalesResult): Array<Array<string | number>> {
       const c = data.hourTotals[h];
       return c ? `${c.txCount} tx` : '—';
     });
-    rows.push(['TOTAL', ...totalHours, formatIDR(data.totalGrossSales)]);
+    rows.push([t('columns.totalUpper'), ...totalHours, formatIDR(data.totalGrossSales)]);
   } else if (data.groupBy === 'day' && data.dayRows) {
-    rows.push(['Tanggal', ...STORE_HOURS.map((h) => `${h}:00`), 'Total Tx', 'Total Penjualan']);
+    rows.push([t('columns.date'), ...STORE_HOURS.map((h) => `${h}:00`), t('columns.totalTx'), t('columns.totalSales')]);
     for (const row of data.dayRows) {
       const dayTotalTx = Object.values(row.hourBreakdown).reduce((s, c) => s + c.txCount, 0);
       const dayTotalGross = Object.values(row.hourBreakdown).reduce(
@@ -315,21 +316,21 @@ function buildXlsxData(data: HourlySalesResult): Array<Array<string | number>> {
   return rows;
 }
 
-async function handleExportXlsx(data: HourlySalesResult, locationLabel: string) {
-  const rows = buildXlsxData(data);
+async function handleExportXlsx(data: HourlySalesResult, locationLabel: string, t: any) {
+  const rows = buildXlsxData(data, t);
   await exportWorkbook(`penjualan-per-jam-${data.period.start}-${data.period.end}.xlsx`, [
     {
-      name: 'Ringkasan',
+      name: t('export.summarySheet'),
       rows: [
-        ['Laporan Penjualan Per Jam'],
-        ['Periode', `${data.period.start} s/d ${data.period.end}`],
-        ['Lokasi', locationLabel],
-        ['Mode', data.groupBy],
-        ['Total Transaksi', data.totalTxCount],
-        ['Total Penjualan', data.totalGrossSales],
+        [t('export.title')],
+        [t('export.period'), `${data.period.start} s/d ${data.period.end}`],
+        [t('export.location'), locationLabel],
+        [t('export.mode'), data.groupBy],
+        [t('export.totalTransactions'), data.totalTxCount],
+        [t('export.totalSales'), data.totalGrossSales],
       ],
     },
-    { name: data.groupBy === 'channel' ? 'Per Channel' : 'Per Hari', rows },
+    { name: data.groupBy === 'channel' ? t('export.channelSheet') : t('export.daySheet'), rows },
   ]);
 }
 
@@ -353,6 +354,7 @@ export function HourlySalesClient({
   locationOptions,
 }: Props) {
   const router = useRouter();
+  const t = useTranslations('reporting.hourlySales');
   const [isPending, startTransition] = useTransition();
 
   const [startDate, setStartDate] = useState(defaultStartDate);
@@ -383,16 +385,16 @@ export function HourlySalesClient({
   const data = result.data;
   const selectedLocationLabel = locationId
     ? (locationOptions.find((location) => location.id === locationId)?.label ?? locationId)
-    : 'Semua lokasi';
+    : t('allLocations');
 
   return (
     <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-brand-ink">Penjualan Per Jam</h1>
+        <h1 className="text-xl font-bold text-brand-ink">{t('title')}</h1>
         {data && (
           <ExportXlsxButton
-            onExport={() => handleExportXlsx(data, selectedLocationLabel)}
+            onExport={() => handleExportXlsx(data, selectedLocationLabel, t)}
           />
         )}
       </div>
@@ -400,7 +402,7 @@ export function HourlySalesClient({
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4">
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-brand-ink-3">Dari Tanggal</label>
+          <label className="text-xs font-medium text-brand-ink-3">{t('startDate')}</label>
           <input
             type="date"
             value={startDate}
@@ -409,7 +411,7 @@ export function HourlySalesClient({
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-brand-ink-3">Sampai Tanggal</label>
+          <label className="text-xs font-medium text-brand-ink-3">{t('endDate')}</label>
           <input
             type="date"
             value={endDate}
@@ -418,12 +420,13 @@ export function HourlySalesClient({
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-brand-ink-3">Lokasi</label>
+          <label className="text-xs font-medium text-brand-ink-3">{t('location')}</label>
           <select
             value={locationId}
             onChange={(e) => setLocationId(e.target.value)}
             className="h-9 min-w-52 rounded-lg border border-brand-cream-3 px-3 text-sm text-brand-ink"
           >
+            <option value="">{t('allLocations')}</option>
             {locationOptions.map((location) => (
               <option key={location.id} value={location.id}>
                 {location.label} ({location.code})
@@ -432,19 +435,19 @@ export function HourlySalesClient({
           </select>
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-brand-ink-3">Group By</label>
+          <label className="text-xs font-medium text-brand-ink-3">{t('groupBy')}</label>
           <div className="flex h-9 rounded-lg border border-brand-cream-3 overflow-hidden">
             <button
               onClick={() => setGroupBy('channel')}
               className={`px-3 text-sm font-medium transition-colors ${groupBy === 'channel' ? 'bg-brand-red text-white' : 'bg-card text-brand-ink hover:bg-brand-cream-2'}`}
             >
-              Channel
+              {t('groupChannel')}
             </button>
             <button
               onClick={() => setGroupBy('day')}
               className={`px-3 text-sm font-medium transition-colors border-l border-brand-cream-3 ${groupBy === 'day' ? 'bg-brand-red text-white' : 'bg-card text-brand-ink hover:bg-brand-cream-2'}`}
             >
-              Hari
+              {t('groupDay')}
             </button>
           </div>
         </div>
@@ -453,7 +456,7 @@ export function HourlySalesClient({
           disabled={isPending}
           className="h-9 rounded-lg bg-brand-red px-4 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
         >
-          {isPending ? '...' : 'Filter'}
+          {isPending ? '...' : t('filter')}
         </button>
       </div>
 
@@ -465,23 +468,23 @@ export function HourlySalesClient({
       {/* Summary + Content */}
       {data && (
         <>
-          <SummaryCards data={data} />
+          <SummaryCards data={data} t={t} />
 
           {groupBy === 'channel' && data.channelRows && (
             <>
               <div>
                 <h2 className="mb-2 text-sm font-semibold text-brand-ink-2">
-                  Heatmap — Penjualan Per Jam (10:00—22:00 WIB)
+                  {t('heatmapTitle')}
                 </h2>
-                <Heatmap data={data} />
+                <Heatmap data={data} t={t} />
               </div>
             </>
           )}
 
           {groupBy === 'day' && data.dayRows && (
             <>
-              <h2 className="mb-2 text-sm font-semibold text-brand-ink-2">Rincian Per Hari</h2>
-              <DayTable data={data} />
+              <h2 className="mb-2 text-sm font-semibold text-brand-ink-2">{t('dayTitle')}</h2>
+              <DayTable data={data} t={t} />
             </>
           )}
         </>
@@ -490,7 +493,7 @@ export function HourlySalesClient({
       {/* Empty state */}
       {data && !data.channelRows?.length && !data.dayRows?.length && (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-brand-cream-3 py-12 text-center">
-          <p className="text-sm text-brand-ink-3">Tidak ada data penjualan pada periode ini</p>
+          <p className="text-sm text-brand-ink-3">{t('emptyState')}</p>
         </div>
       )}
     </div>

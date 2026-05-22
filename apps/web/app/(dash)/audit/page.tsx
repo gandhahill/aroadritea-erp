@@ -17,6 +17,7 @@ export default async function AuditTrailPage({
     from?: string;
     to?: string;
     page?: string;
+    pageSize?: string;
   }>;
 }) {
   const filters = await searchParams;

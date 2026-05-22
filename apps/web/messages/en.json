@@ -1306,14 +1306,47 @@
       }
     },
     "notifications": {
-      "title": "Notifications",
-      "subtitle": "Manage operational notification recipients.",
-      "addChannel": "Add channel",
-      "saveChannel": "Save channel",
-      "listTitle": "Channel list",
-      "empty": "No notification channels yet.",
-      "allNotifications": "All notifications",
-      "activeLabel": "Active"
+      "section": "Settings",
+      "title": "Notification Channels",
+      "description": "Manage operational notification recipients. SMTP/WhatsApp credentials remain in env; targets and purposes can be managed from ERP.",
+      "list": {
+        "title": "Channel List",
+        "emptyState": "No notification channels yet.",
+        "columns": {
+          "label": "Label",
+          "type": "Type",
+          "target": "Target",
+          "purpose": "Purpose",
+          "status": "Status"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        }
+      },
+      "form": {
+        "title": "Add channel",
+        "description": "Target for operational notifications like outage monitor and stock alerts.",
+        "success": "Notification channel saved.",
+        "submitting": "Saving...",
+        "submit": "Save channel",
+        "fields": {
+          "label": "Label",
+          "type": "Type",
+          "target": "Target",
+          "purpose": "Purpose",
+          "isActive": "Active"
+        },
+        "types": {
+          "email": "Email"
+        },
+        "purposes": {
+          "all": "All notifications",
+          "outage": "System outage",
+          "stockAlert": "Low stock alert",
+          "partyLedger": "Payable/Receivable reminders"
+        }
+      }
     },
     "attendance": {
       "title": "Attendance Policy",
@@ -1537,14 +1570,74 @@
       "open": "Open"
     },
     "donations": {
-      "title": "Donations",
+      "title": "Donation Report",
       "loading": "Loading...",
-      "empty": "No donation data for this period"
+      "emptyState": "No donation data for this period",
+      "allLocations": "All locations",
+      "startDate": "From Date",
+      "endDate": "To Date",
+      "location": "Location",
+      "filter": "Filter",
+      "export": {
+        "summarySheet": "Summary",
+        "dailySheet": "Daily",
+        "title": "Donation Report",
+        "period": "Period",
+        "location": "Location",
+        "metric": "Metric",
+        "value": "Value"
+      },
+      "summary": {
+        "totalDonation": "Total Donation",
+        "totalTransactions": "Transaction Count",
+        "averageDonation": "Average Donation"
+      },
+      "columns": {
+        "date": "Date",
+        "donationAmount": "Donation Amount",
+        "transactionCount": "Transactions",
+        "average": "Average",
+        "total": "TOTAL"
+      }
     },
     "hourlySales": {
       "title": "Hourly Sales",
       "dailyDetails": "Daily Details",
-      "empty": "No sales data for this period"
+      "emptyState": "No sales data for this period",
+      "allLocations": "All locations",
+      "startDate": "From Date",
+      "endDate": "To Date",
+      "location": "Location",
+      "groupBy": "Group By",
+      "groupChannel": "Channel",
+      "groupDay": "Day",
+      "filter": "Filter",
+      "heatmapTitle": "Heatmap — Hourly Sales (10:00—22:00)",
+      "dayTitle": "Daily Breakdown",
+      "summary": {
+        "totalTransactions": "Total Transactions",
+        "totalSales": "Total Sales",
+        "busiestHour": "Busiest Hour"
+      },
+      "columns": {
+        "channel": "Channel",
+        "total": "Total",
+        "totalUpper": "TOTAL",
+        "date": "Date",
+        "totalTx": "Total Tx",
+        "totalSales": "Total Sales"
+      },
+      "export": {
+        "summarySheet": "Summary",
+        "title": "Hourly Sales Report",
+        "period": "Period",
+        "location": "Location",
+        "mode": "Mode",
+        "totalTransactions": "Total Transactions",
+        "totalSales": "Total Sales",
+        "channelSheet": "By Channel",
+        "daySheet": "By Day"
+      }
     },
     "bi": {
       "eyebrow": "Business Intelligence",

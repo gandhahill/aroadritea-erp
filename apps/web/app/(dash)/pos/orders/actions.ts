@@ -77,7 +77,7 @@ function dayWindowJakarta(date: string): { start: Date; end: Date } {
   return { start, end };
 }
 
-export async function fetchTodaysOrders(date?: string, page = 1): Promise<{
+export async function fetchTodaysOrders(date?: string, page = 1, requestedPageSize = 20): Promise<{
   ok: boolean;
   rows: OrderListRow[];
   locationId: string | null;
@@ -94,7 +94,7 @@ export async function fetchTodaysOrders(date?: string, page = 1): Promise<{
       locationId: null,
       total: 0,
       page: 1,
-      pageSize: 50,
+      pageSize: requestedPageSize,
       error: 'Unauthenticated',
     };
   }
@@ -102,7 +102,7 @@ export async function fetchTodaysOrders(date?: string, page = 1): Promise<{
 
   const targetDate = date ?? new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
   const { start, end } = dayWindowJakarta(targetDate);
-  const pageSize = 50;
+  const pageSize = Math.max(1, Math.min(100, Number.isFinite(requestedPageSize) ? requestedPageSize : 20));
   const currentPage = Math.max(1, Number.isFinite(page) ? page : 1);
   const whereClause = and(
     eq(salesOrders.tenantId, ctx.tenantId),
@@ -339,4 +339,35 @@ export async function refundOrderAction(input: {
   }
   revalidatePath('/pos/orders');
   return { ok: true };
+}
+
+export async function serverExportOrders(date?: string) {
+  const result = await fetchTodaysOrders(date, 1, 1000);
+  if (!result.ok) {
+    return { ok: false, error: result.error };
+  }
+
+  const headers = ['Number', 'Status', 'Channel', 'Cashier', 'Subtotal', 'Tax', 'Grand Total', 'Placed At'];
+  const rows = result.rows.map((o) => [
+    o.number,
+    o.status,
+    o.channel,
+    o.cashierName,
+    o.subtotal,
+    o.taxTotal,
+    o.grandTotal,
+    o.placedAt,
+  ]);
+
+  return {
+    ok: true,
+    value: {
+      sheets: [
+        {
+          name: 'POS Orders',
+          rows: [headers, ...rows],
+        },
+      ],
+    },
+  };
 }

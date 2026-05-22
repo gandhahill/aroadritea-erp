@@ -2,6 +2,7 @@
 
 import { exportWorkbook } from '@/lib/export-workbook';
 import type { DonationReportResult } from '@erp/services/reporting';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { ExportXlsxButton } from '../export-button';
@@ -29,6 +30,7 @@ export function DonationsClient({
   locationOptions,
 }: Props) {
   const router = useRouter();
+  const t = useTranslations('reporting.donations');
   const [isPending, startTransition] = useTransition();
 
   const [startDate, setStartDate] = useState(defaultStartDate);
@@ -58,28 +60,28 @@ export function DonationsClient({
     const { rows, totalDonation, totalTransactions, overallAverage } = result.data;
     const locationLabel = locationId
       ? (locationOptions.find((location) => location.id === locationId)?.label ?? locationId)
-      : 'Semua lokasi';
+      : t('allLocations');
 
     await exportWorkbook(`donasi-${startDate}-${endDate}.xlsx`, [
       {
-        name: 'Ringkasan',
+        name: t('export.summarySheet'),
         rows: [
-          ['Laporan Donasi'],
-          ['Periode', `${startDate} s/d ${endDate}`],
-          ['Lokasi', locationLabel],
+          [t('export.title')],
+          [t('export.period'), `${startDate} s/d ${endDate}`],
+          [t('export.location'), locationLabel],
           [],
-          ['Metrik', 'Nilai'],
-          ['Total Donasi', totalDonation],
-          ['Jumlah Transaksi', totalTransactions],
-          ['Rata-rata Donasi', overallAverage],
+          [t('export.metric'), t('export.value')],
+          [t('summary.totalDonation'), totalDonation],
+          [t('summary.totalTransactions'), totalTransactions],
+          [t('summary.averageDonation'), overallAverage],
         ],
       },
       {
-        name: 'Harian',
+        name: t('export.dailySheet'),
         rows: [
-          ['Tanggal', 'Jumlah Donasi', 'Jumlah Transaksi', 'Rata-rata'],
+          [t('columns.date'), t('columns.donationAmount'), t('columns.transactionCount'), t('columns.average')],
           ...rows.map((row) => [row.date, row.donationTotal, row.txCount, row.average]),
-          ['TOTAL', totalDonation, totalTransactions, overallAverage],
+          [t('columns.total'), totalDonation, totalTransactions, overallAverage],
         ],
       },
     ]);
@@ -90,7 +92,7 @@ export function DonationsClient({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-brand-ink">Laporan Donasi</h1>
+        <h1 className="text-xl font-bold text-brand-ink">{t('title')}</h1>
         {data && data.rows.length > 0 && (
           <ExportXlsxButton onExport={handleExportXlsx} />
         )}
@@ -98,7 +100,7 @@ export function DonationsClient({
 
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4">
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-brand-ink-3">Dari Tanggal</label>
+          <label className="text-xs font-medium text-brand-ink-3">{t('startDate')}</label>
           <input
             type="date"
             value={startDate}
@@ -107,7 +109,7 @@ export function DonationsClient({
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-brand-ink-3">Sampai Tanggal</label>
+          <label className="text-xs font-medium text-brand-ink-3">{t('endDate')}</label>
           <input
             type="date"
             value={endDate}
@@ -116,13 +118,13 @@ export function DonationsClient({
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-brand-ink-3">Lokasi</label>
+          <label className="text-xs font-medium text-brand-ink-3">{t('location')}</label>
           <select
             value={locationId}
             onChange={(e) => setLocationId(e.target.value)}
             className="h-9 min-w-52 rounded-lg border border-brand-cream-3 px-3 text-sm text-brand-ink"
           >
-            <option value="">Semua lokasi</option>
+            <option value="">{t('allLocations')}</option>
             {locationOptions.map((location) => (
               <option key={location.id} value={location.id}>
                 {location.label} ({location.code})
@@ -135,7 +137,7 @@ export function DonationsClient({
           disabled={isPending}
           className="h-9 rounded-lg bg-brand-red px-4 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
         >
-          {isPending ? '...' : 'Filter'}
+          {isPending ? '...' : t('filter')}
         </button>
       </div>
 
@@ -145,9 +147,9 @@ export function DonationsClient({
 
       {data && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <SummaryCard label="Total Donasi" value={formatRupiah(data.totalDonation)} />
-          <SummaryCard label="Jumlah Transaksi" value={data.totalTransactions.toString()} />
-          <SummaryCard label="Rata-rata Donasi" value={formatRupiah(data.overallAverage)} />
+          <SummaryCard label={t('summary.totalDonation')} value={formatRupiah(data.totalDonation)} />
+          <SummaryCard label={t('summary.totalTransactions')} value={data.totalTransactions.toString()} />
+          <SummaryCard label={t('summary.averageDonation')} value={formatRupiah(data.overallAverage)} />
         </div>
       )}
 
@@ -156,10 +158,10 @@ export function DonationsClient({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-3 bg-brand-cream-2">
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Tanggal</th>
-                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">Jumlah Donasi</th>
-                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">Transaksi</th>
-                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">Rata-rata</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.date')}</th>
+                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('columns.donationAmount')}</th>
+                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('columns.transactionCount')}</th>
+                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('columns.average')}</th>
               </tr>
             </thead>
             <tbody>
@@ -178,7 +180,7 @@ export function DonationsClient({
             </tbody>
             <tfoot>
               <tr className="border-t border-brand-cream-3 bg-brand-cream-2 font-semibold">
-                <td className="px-4 py-3 text-brand-ink">TOTAL</td>
+                <td className="px-4 py-3 text-brand-ink">{t('columns.total')}</td>
                 <td className="px-4 py-3 text-right text-brand-ink">
                   {formatRupiah(data.totalDonation)}
                 </td>
@@ -194,7 +196,7 @@ export function DonationsClient({
 
       {data && data.rows.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-brand-cream-3 py-12 text-center">
-          <p className="text-sm text-brand-ink-3">Tidak ada data donasi pada periode ini</p>
+          <p className="text-sm text-brand-ink-3">{t('emptyState')}</p>
         </div>
       )}
     </div>

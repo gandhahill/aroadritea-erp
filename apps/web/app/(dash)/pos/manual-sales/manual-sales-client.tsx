@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useActionState, useEffect } from 'react';
 import { createManualSalesAction, type ManualSalesPageData } from './actions';
+import { Pagination } from '@/components/pagination';
+import { ExportManualSalesButton } from './export-manual-sales-button';
 
 const INPUT =
   'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
@@ -119,8 +121,9 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
       </section>
 
       <section className="rounded-xl border border-brand-cream-3 bg-card shadow-sm">
-        <div className="border-b border-brand-cream-3 px-5 py-4">
+        <div className="border-b border-brand-cream-3 px-5 py-4 flex justify-between items-center">
           <h2 className="text-base font-semibold text-brand-ink">{t('history')}</h2>
+          <ExportManualSalesButton locationId={defaultLocationId} />
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
@@ -160,20 +163,11 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             </tbody>
           </table>
         </div>
-        <div className="flex flex-col gap-3 border-t border-brand-cream-3 px-5 py-3 text-xs text-brand-ink-3 sm:flex-row sm:items-center sm:justify-between">
-          <span>
-            {t('total', { count: data.total })} - {pagination('page')} {data.page}{' '}
-            {pagination('of')} {totalPages}
-          </span>
-          <div className="flex items-center gap-2">
-            <PaginationLink href={pageHref(data.page - 1)} disabled={!hasPrevious}>
-              {pagination('previous')}
-            </PaginationLink>
-            <PaginationLink href={pageHref(data.page + 1)} disabled={!hasNext}>
-              {pagination('next')}
-            </PaginationLink>
-          </div>
-        </div>
+          <Pagination 
+            currentPage={data.page} 
+            totalItems={data.total} 
+            pageSize={data.pageSize} 
+          />
       </section>
     </div>
   );

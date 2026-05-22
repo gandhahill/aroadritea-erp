@@ -78,11 +78,12 @@ function errorMessage(error: unknown) {
 export async function fetchManualSalesPageData(
   locationId?: string,
   page = 1,
+  requestedPageSize = 25,
 ): Promise<ManualSalesPageData> {
   const ctx = await getAuditContext();
-  if (!ctx) return { locations: [], items: [], total: 0, page: 1, pageSize: 25, error: 'Unauthenticated' };
+  const pageSize = Math.max(1, Math.min(100, Number.isFinite(requestedPageSize) ? requestedPageSize : 25));
+  if (!ctx) return { locations: [], items: [], total: 0, page: 1, pageSize, error: 'Unauthenticated' };
   const locale = await getLocale();
-  const pageSize = 25;
   const currentPage = Math.max(1, Number.isFinite(page) ? page : 1);
   const activeLocationId = locationId || ctx.locationId || undefined;
 
@@ -138,4 +139,37 @@ export async function createManualSalesAction(
   revalidatePath('/reporting/daily-summary');
   revalidatePath('/reporting/omzet-harian');
   return { ok: true };
+}
+
+export async function serverExportManualSales(locationId?: string) {
+  const result = await fetchManualSalesPageData(locationId, 1, 1000);
+  if (result.error) {
+    return { ok: false, error: result.error };
+  }
+
+  const headers = ['Number', 'Date', 'Location ID', 'Channel', 'Payment Method', 'Tx Count', 'Gross Sales', 'Tax Total', 'Net Revenue', 'Journal Entry ID'];
+  const rows = result.items.map((i) => [
+    i.number,
+    i.salesDate,
+    i.locationId,
+    i.channel,
+    i.paymentMethod,
+    i.transactionCount.toString(),
+    i.grossSales,
+    i.taxTotal,
+    i.netRevenue,
+    i.journalEntryId || '-',
+  ]);
+
+  return {
+    ok: true,
+    value: {
+      sheets: [
+        {
+          name: 'Manual Sales',
+          rows: [headers, ...rows],
+        },
+      ],
+    },
+  };
 }

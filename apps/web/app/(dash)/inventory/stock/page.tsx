@@ -16,6 +16,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
+import { ExportXlsxButton } from '../../reporting/export-button';
 
 export const metadata: Metadata = {
   title: 'Stok per Outlet',
@@ -117,6 +118,25 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
           <p className="mt-1 max-w-2xl text-sm text-brand-ink-3">{t('subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
+          <ExportXlsxButton
+            filename={`stock-outlet-${new Date().toISOString().split('T')[0]}.xlsx`}
+            sheets={[{
+              name: 'Stock',
+              rows: [
+                ['SKU', 'Name', 'UOM', ...outletRows.map(o => o.code)],
+                ...productRows.map(product => [
+                  product.sku,
+                  pickLocalized(product.name, locale, product.sku),
+                  product.uom,
+                  ...outletRows.map(outlet => {
+                    const stock = stockMap.get(`${product.id}::${outlet.id}`);
+                    return stock ? Number(stock.available) : 0;
+                  })
+                ])
+              ]
+            }]}
+            label={t('exportExcel') || 'Export Excel'}
+          />
           <Link
             href="/inventory/opname"
             className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm font-semibold text-brand-ink hover:bg-brand-cream-1"

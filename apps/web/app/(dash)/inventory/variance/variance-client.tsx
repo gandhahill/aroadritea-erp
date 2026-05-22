@@ -9,6 +9,7 @@
 
 import { exportWorkbook } from '@/lib/export-workbook';
 import type { VarianceReportResult } from '@erp/services/inventory';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { ExportXlsxButton } from '../../reporting/export-button';
 import { fetchVarianceReport } from './actions';
@@ -47,38 +48,38 @@ function formatVarianceRate(v: number): string {
 
 // ─── XLSX Export ─────────────────────────────────────────────────────────────
 
-async function exportXLSX(report: VarianceReportResult) {
+async function exportXLSX(report: VarianceReportResult, t: any) {
   const locationLabel = report.params.locationId
     ? (report.sessions.find((session) => session.locationId === report.params.locationId)
         ?.locationName ?? report.params.locationId)
-    : 'Semua';
+    : t('allLocations');
   const summaryRows = [
-    ['Laporan Varians Persediaan'],
-    ['Periode', `${report.params.startDate} s/d ${report.params.endDate}`],
-    ['Lokasi', locationLabel],
+    [t('export.title')],
+    [t('export.period'), `${report.params.startDate} s/d ${report.params.endDate}`],
+    [t('export.location'), locationLabel],
     [],
-    ['Ringkasan'],
-    ['Total Sesi Opname', String(report.summary.totalSessions)],
-    ['Total Produk', String(report.summary.totalProducts)],
-    ['Total Baris', String(report.summary.totalLines)],
-    ['Baris dengan Varians', String(report.summary.linesWithVariance)],
-    ['Total Nilai Varians', formatIDR(report.summary.totalVarianceValueAbs)],
-    ['Total Surplus', formatIDR(report.summary.totalSurplusValue)],
-    ['Total Kekurangan', formatIDR(report.summary.totalShortageValue)],
-    ['Rata-rata Tingkat Varians', `${report.summary.avgVarianceRate.toFixed(2)}%`],
+    [t('export.summary')],
+    [t('export.totalSessions'), String(report.summary.totalSessions)],
+    [t('export.totalProducts'), String(report.summary.totalProducts)],
+    [t('export.totalLines'), String(report.summary.totalLines)],
+    [t('export.linesWithVariance'), String(report.summary.linesWithVariance)],
+    [t('export.totalVarianceValue'), formatIDR(report.summary.totalVarianceValueAbs)],
+    [t('export.totalSurplus'), formatIDR(report.summary.totalSurplusValue)],
+    [t('export.totalShortage'), formatIDR(report.summary.totalShortageValue)],
+    [t('export.avgVarianceRate'), `${report.summary.avgVarianceRate.toFixed(2)}%`],
   ];
 
   const sessionRows = [
     [
-      'No. Sesi',
-      'Tanggal',
-      'Periode',
-      'Lokasi',
-      'Total Baris',
-      'Baris Dihitung',
-      'Baris dengan Varians',
-      'Net Varians Qty',
-      'Nilai Varians',
+      t('columns.sessionNo'),
+      t('columns.date'),
+      t('columns.period'),
+      t('columns.location'),
+      t('columns.totalLines'),
+      t('columns.countedLines'),
+      t('columns.linesWithVariance'),
+      t('columns.netVarianceQty'),
+      t('columns.varianceValue'),
     ],
     ...report.sessions.map((s) => [
       s.sessionNumber,
@@ -95,16 +96,16 @@ async function exportXLSX(report: VarianceReportResult) {
 
   const productRows = [
     [
-      'ID Produk',
-      'Nama Produk',
-      'SKU',
-      'Qty Sistem',
-      'Qty Hitung',
-      'Varians Qty',
-      'Varians Nilai',
-      'Tingkat Varians',
-      'Sesi Terbesar',
-      'Tanggal',
+      t('columns.productId'),
+      t('columns.productName'),
+      t('columns.sku'),
+      t('columns.systemQty'),
+      t('columns.countedQty'),
+      t('columns.varianceQty'),
+      t('columns.varianceValue'),
+      t('columns.varianceRate'),
+      t('columns.worstSession'),
+      t('columns.date'),
     ],
     ...report.products.map((p) => [
       p.productId,
@@ -123,9 +124,9 @@ async function exportXLSX(report: VarianceReportResult) {
   await exportWorkbook(
     `varians-persediaan-${report.params.startDate}-${report.params.endDate}.xlsx`,
     [
-      { name: 'Ringkasan', rows: summaryRows },
-      { name: 'Sesi Opname', rows: sessionRows },
-      { name: 'Produk', rows: productRows },
+      { name: t('export.summarySheet'), rows: summaryRows },
+      { name: t('export.sessionsSheet'), rows: sessionRows },
+      { name: t('export.productsSheet'), rows: productRows },
     ],
   );
 }
@@ -133,7 +134,7 @@ async function exportXLSX(report: VarianceReportResult) {
 // ─── Chart components ─────────────────────────────────────────────────────────
 
 /** Variance distribution donut: surplus vs shortage vs zero. */
-function VarianceDonut({ surplus, shortage }: { surplus: string; shortage: string }) {
+function VarianceDonut({ surplus, shortage, t }: { surplus: string; shortage: string; t: any }) {
   const sur = Number.parseInt(surplus, 10);
   const short = Number.parseInt(shortage, 10);
   const total = sur + short;
@@ -141,7 +142,7 @@ function VarianceDonut({ surplus, shortage }: { surplus: string; shortage: strin
   if (total === 0) {
     return (
       <div className="flex h-36 w-36 items-center justify-center rounded-full border-4 border-brand-cream-3">
-        <span className="text-sm text-brand-ink-3">Tidak ada data</span>
+        <span className="text-sm text-brand-ink-3">{t('noData')}</span>
       </div>
     );
   }
@@ -162,12 +163,12 @@ function VarianceDonut({ surplus, shortage }: { surplus: string; shortage: strin
       <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
         <div className="flex items-center gap-1.5 text-xs text-brand-ink">
           <span className="h-2.5 w-2.5 rounded-full bg-brand-jade" />
-          <span>Surplus</span>
+          <span>{t('surplus')}</span>
           <span className="font-medium">{surPct}%</span>
         </div>
         <div className="flex items-center gap-1.5 text-xs text-brand-ink">
           <span className="h-2.5 w-2.5 rounded-full bg-brand-ember-5" />
-          <span>Kekurangan</span>
+          <span>{t('shortage')}</span>
           <span className="font-medium">{shortPct}%</span>
         </div>
       </div>
@@ -178,13 +179,15 @@ function VarianceDonut({ surplus, shortage }: { surplus: string; shortage: strin
 /** Horizontal bar chart for top variance products. */
 function VarianceBarChart({
   items,
+  t,
 }: {
   items: Array<{ label: string; value: number; color?: string }>;
+  t: any;
 }) {
   if (!items.length) {
     return (
       <div className="flex h-32 items-center justify-center text-sm text-brand-ink-3">
-        Tidak ada data
+        {t('noData')}
       </div>
     );
   }
@@ -231,6 +234,7 @@ export function VarianceClient({
   defaultStartDate,
   defaultEndDate,
 }: Props) {
+  const t = useTranslations('inventory.variance');
   const [startDate, setStartDate] = useState(defaultStartDate);
   const [endDate, setEndDate] = useState(defaultEndDate);
   const [locationId, setLocationId] = useState(defaultLocationId);
@@ -255,7 +259,7 @@ export function VarianceClient({
         setData(result.data);
       }
     } catch {
-      setError('Gagal memuat data. Silakan coba lagi.');
+      setError(t('errorLoading'));
     } finally {
       setIsLoading(false);
     }
@@ -268,19 +272,19 @@ export function VarianceClient({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Varians Persediaan</h1>
+          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Laporan selisih stock opname per sesi dan produk.
+            {t('subtitle')}
           </p>
         </div>
-        {report && <ExportXlsxButton onExport={() => exportXLSX(report)} />}
+        {report && <ExportXlsxButton onExport={() => exportXLSX(report, t)} />}
       </div>
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4 shadow-sm">
         <div className="space-y-1">
           <label htmlFor="startDate" className="text-xs font-medium text-brand-ink-3">
-            Tanggal Mulai
+            {t('startDate')}
           </label>
           <input
             id="startDate"
@@ -292,7 +296,7 @@ export function VarianceClient({
         </div>
         <div className="space-y-1">
           <label htmlFor="endDate" className="text-xs font-medium text-brand-ink-3">
-            Tanggal Selesai
+            {t('endDate')}
           </label>
           <input
             id="endDate"
@@ -304,7 +308,7 @@ export function VarianceClient({
         </div>
         <div className="space-y-1">
           <label htmlFor="locationId" className="text-xs font-medium text-brand-ink-3">
-            Lokasi
+            {t('location')}
           </label>
           <select
             id="locationId"
@@ -312,7 +316,7 @@ export function VarianceClient({
             onChange={(e) => setLocationId(e.target.value)}
             className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
           >
-            <option value="">Semua Lokasi</option>
+            <option value="">{t('allLocations')}</option>
             {locations.map((loc) => (
               <option key={loc.id} value={loc.id}>
                 {loc.name}
@@ -342,10 +346,10 @@ export function VarianceClient({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                 />
               </svg>
-              Memuat...
+              {t('loading')}
             </>
           ) : (
-            'Tampilkan'
+            t('show')
           )}
         </button>
       </div>
@@ -373,9 +377,9 @@ export function VarianceClient({
               d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
             />
           </svg>
-          <h3 className="mt-3 text-base font-semibold text-brand-ink">Pilih tanggal dan lokasi</h3>
+          <h3 className="mt-3 text-base font-semibold text-brand-ink">{t('emptyState.title')}</h3>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Klik "Tampilkan" untuk melihat laporan varians.
+            {t('emptyState.subtitle')}
           </p>
         </div>
       )}
@@ -386,25 +390,25 @@ export function VarianceClient({
           {/* Summary cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <MetricCard
-              label="Total Sesi"
+              label={t('summary.totalSessions')}
               value={String(report.summary.totalSessions)}
               color="text-brand-ink"
-              sub={`${report.summary.totalProducts} produk`}
+              sub={`${report.summary.totalProducts} ${t('summary.productsCount')}`}
             />
             <MetricCard
-              label="Total Baris"
+              label={t('summary.totalLines')}
               value={formatQty(report.summary.totalLines)}
               color="text-brand-ink"
-              sub={`${report.summary.linesWithVariance} dengan varians`}
+              sub={`${report.summary.linesWithVariance} ${t('summary.withVariance')}`}
             />
             <MetricCard
-              label="Total Nilai Varians"
+              label={t('summary.totalVarianceValue')}
               value={formatIDR(report.summary.totalVarianceValueAbs)}
               color="text-brand-ember-5"
-              sub={`Rata-rata ${report.summary.avgVarianceRate.toFixed(2)}%`}
+              sub={`${t('summary.average')} ${report.summary.avgVarianceRate.toFixed(2)}%`}
             />
             <MetricCard
-              label="Net Revenue Lost"
+              label={t('summary.netRevenueLost')}
               value={formatIDR(report.summary.totalShortageValue)}
               color={
                 Number.parseInt(report.summary.totalShortageValue, 10) > 0
@@ -413,8 +417,8 @@ export function VarianceClient({
               }
               sub={
                 Number.parseInt(report.summary.totalSurplusValue, 10) > 0
-                  ? `${formatIDR(report.summary.totalSurplusValue)} surplus`
-                  : 'Tidak ada surplus'
+                  ? `${formatIDR(report.summary.totalSurplusValue)} ${t('summary.surplus')}`
+                  : t('summary.noSurplus')
               }
             />
           </div>
@@ -423,11 +427,12 @@ export function VarianceClient({
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Surplus vs Shortage donut */}
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-              <h3 className="mb-4 text-sm font-semibold text-brand-ink">Distribusi Varians</h3>
+              <h3 className="mb-4 text-sm font-semibold text-brand-ink">{t('charts.varianceDistribution')}</h3>
               <div className="flex items-center justify-center">
                 <VarianceDonut
                   surplus={report.summary.totalSurplusValue}
                   shortage={report.summary.totalShortageValue}
+                  t={t}
                 />
               </div>
             </div>
@@ -435,9 +440,10 @@ export function VarianceClient({
             {/* Top variance products bar chart */}
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
               <h3 className="mb-4 text-sm font-semibold text-brand-ink">
-                Top 5 Produk dengan Varians Terbesar
+                {t('charts.topVarianceProducts')}
               </h3>
               <VarianceBarChart
+                t={t}
                 items={report.products.slice(0, 5).map((p, idx) => ({
                   label:
                     p.productName.length > 24 ? p.productName.slice(0, 24) + '…' : p.productName,
@@ -458,7 +464,7 @@ export function VarianceClient({
                   : 'text-brand-ink-3 hover:text-brand-ink'
               }`}
             >
-              Ringkasan per Sesi ({report.sessions.length})
+              {t('tabs.sessions')} ({report.sessions.length})
             </button>
             <button
               onClick={() => setActiveTab('products')}
@@ -468,7 +474,7 @@ export function VarianceClient({
                   : 'text-brand-ink-3 hover:text-brand-ink'
               }`}
             >
-              Ringkasan per Produk ({report.products.length})
+              {t('tabs.products')} ({report.products.length})
             </button>
           </div>
 
@@ -477,35 +483,35 @@ export function VarianceClient({
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
               {report.sessions.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <p className="text-sm text-brand-ink-3">Belum ada sesi opname yang disetujui.</p>
+                  <p className="text-sm text-brand-ink-3">{t('emptySessions')}</p>
                 </div>
               ) : (
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
                       <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
-                        No. Sesi
+                        {t('columns.sessionNo')}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
-                        Tanggal
+                        {t('columns.date')}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
-                        Periode
+                        {t('columns.period')}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
-                        Lokasi
+                        {t('columns.location')}
                       </th>
                       <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
-                        Baris
+                        {t('columns.lines')}
                       </th>
                       <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
-                        dgn. Varians
+                        {t('columns.withVariance')}
                       </th>
                       <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
-                        Net Qty
+                        {t('columns.netQty')}
                       </th>
                       <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
-                        Nilai Varians
+                        {t('columns.varianceValue')}
                       </th>
                     </tr>
                   </thead>
@@ -568,32 +574,32 @@ export function VarianceClient({
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
               {report.products.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <p className="text-sm text-brand-ink-3">Tidak ada data produk.</p>
+                  <p className="text-sm text-brand-ink-3">{t('emptyProducts')}</p>
                 </div>
               ) : (
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
                       <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
-                        Produk
+                        {t('columns.product')}
                       </th>
                       <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
-                        Sesi
+                        {t('columns.session')}
                       </th>
                       <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
-                        Qty Sistem
+                        {t('columns.systemQty')}
                       </th>
                       <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
-                        Qty Hitung
+                        {t('columns.countedQty')}
                       </th>
                       <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
-                        Net Varians
+                        {t('columns.netVariance')}
                       </th>
                       <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
-                        Nilai
+                        {t('columns.value')}
                       </th>
                       <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
-                        Tingkat
+                        {t('columns.rate')}
                       </th>
                     </tr>
                   </thead>

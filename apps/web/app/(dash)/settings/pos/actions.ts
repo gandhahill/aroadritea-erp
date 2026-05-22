@@ -9,6 +9,7 @@ import { getSession } from '@/lib/auth';
 import { accounts, and, asc, db, eq, isNull } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import { posSettings } from '@erp/db/schema/pos';
+import { auditLog } from '@erp/db/schema/audit';
 import { requirePermission } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
@@ -375,13 +376,33 @@ export async function updatePosSetting(
         .update(posSettings)
         .set(values)
         .where(and(eq(posSettings.id, existing.id), eq(posSettings.tenantId, ctx.tenantId)));
-    } else {
-      await db.insert(posSettings).values({
+        
+      await db.insert(auditLog).values({
         id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'update',
+        entityType: 'pos_setting',
+        entityId: existing.id,
+        after: values,
+      });
+      const id = generateId();
+      await db.insert(posSettings).values({
+        id,
         tenantId: ctx.tenantId,
         locationId,
         ...values,
         createdBy: ctx.userId || null,
+      });
+      
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'create',
+        entityType: 'pos_setting',
+        entityId: id,
+        after: { locationId, ...values },
       });
     }
 
@@ -403,13 +424,34 @@ export async function updatePosSetting(
             .update(posSettings)
             .set(baseValues)
             .where(and(eq(posSettings.id, existing.id), eq(posSettings.tenantId, ctx.tenantId)));
-        } else {
-          await db.insert(posSettings).values({
+            
+          await db.insert(auditLog).values({
             id: generateId(),
+            tenantId: ctx.tenantId,
+            userId: ctx.userId,
+            action: 'update',
+            entityType: 'pos_setting',
+            entityId: existing.id,
+            after: baseValues,
+          });
+        } else {
+          const id = generateId();
+          await db.insert(posSettings).values({
+            id,
             tenantId: ctx.tenantId,
             locationId,
             ...baseValues,
             createdBy: ctx.userId || null,
+          });
+          
+          await db.insert(auditLog).values({
+            id: generateId(),
+            tenantId: ctx.tenantId,
+            userId: ctx.userId,
+            action: 'create',
+            entityType: 'pos_setting',
+            entityId: id,
+            after: { locationId, ...baseValues },
           });
         }
 

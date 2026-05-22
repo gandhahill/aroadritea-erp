@@ -3,6 +3,7 @@
 import { getSession } from '@/lib/auth';
 import { and, db, eq, gte, lte, sql } from '@erp/db';
 import { employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
+import { auditLog } from '@erp/db/schema/audit';
 import { requirePermission } from '@erp/services/iam';
 import type { AuditContext } from '@erp/shared/types';
 import { generateId } from '@erp/shared/id';
@@ -164,6 +165,20 @@ export async function upsertAssignmentAction(input: {
         updatedAt: new Date(),
       })
       .where(eq(shiftAssignments.id, existing[0].id));
+      
+    await db.insert(auditLog).values({
+      id: generateId(),
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: 'update',
+      entityType: 'shift_assignment',
+      entityId: existing[0].id,
+      after: {
+        kind: input.kind,
+        shiftDefinitionId: input.shiftDefinitionId ?? null,
+      },
+    });
+    
     revalidatePath('/hr/schedule');
     return { ok: true, id: existing[0].id };
   }
@@ -181,6 +196,22 @@ export async function upsertAssignmentAction(input: {
     createdBy: ctx.userId,
     updatedBy: ctx.userId,
   });
+  
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'create',
+    entityType: 'shift_assignment',
+    entityId: id,
+    after: {
+      employeeId: input.employeeId,
+      workDate: input.workDate,
+      kind: input.kind,
+      shiftDefinitionId: input.shiftDefinitionId ?? null,
+    },
+  });
+  
   revalidatePath('/hr/schedule');
   return { ok: true, id };
 }
@@ -193,6 +224,16 @@ export async function deleteAssignmentAction(
   const perm = await requirePermission(ctx.userId, 'hr.manage_attendance');
   if (!perm.ok) return { ok: false, error: 'Forbidden' };
   await db.delete(shiftAssignments).where(eq(shiftAssignments.id, id));
+  
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'delete',
+    entityType: 'shift_assignment',
+    entityId: id,
+  });
+  
   revalidatePath('/hr/schedule');
   return { ok: true };
 }

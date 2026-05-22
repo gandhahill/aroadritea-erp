@@ -14,6 +14,7 @@ import {
   purchaseOrders,
   taxRates,
 } from '@erp/db';
+import { auditLog } from '@erp/db/schema/audit';
 import { createPO, trackPurchaseOrderShipment } from '@erp/services/purchasing';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
@@ -236,8 +237,9 @@ export async function createSupplierAction(
   const name = String(formData.get('supplierName') ?? '').trim();
   if (!name) return { success: false, error: 'Nama supplier wajib diisi.' };
 
+  const id = generateId();
   await db.insert(partners).values({
-    id: generateId(),
+    id,
     tenantId: ctx.tenantId,
     kind: 'supplier',
     name,
@@ -248,6 +250,22 @@ export async function createSupplierAction(
     paymentTermsDays: Number.parseInt(String(formData.get('paymentTermsDays') ?? '0'), 10) || 0,
     createdBy: ctx.userId,
     updatedBy: ctx.userId,
+  });
+  
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'create',
+    entityType: 'partner',
+    entityId: id,
+    after: {
+      kind: 'supplier',
+      name,
+      phone: String(formData.get('supplierPhone') ?? '').trim() || null,
+      email: String(formData.get('supplierEmail') ?? '').trim() || null,
+      isPkp: formData.get('supplierIsPkp') === 'on',
+    },
   });
 
   revalidatePath('/purchasing');

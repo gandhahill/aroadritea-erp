@@ -197,3 +197,35 @@ export async function deactivateEmployeeAction(formData: FormData): Promise<Crea
   revalidatePath('/hr/employees');
   return { ok: true, employeeId: result.value.id };
 }
+
+export async function serverExportEmployees(input: Omit<ListEmployeesInput, 'limit' | 'offset'>) {
+  const result = await serverListEmployees({ ...input, limit: 1000, offset: 0 });
+  if (!result.ok) {
+    return { ok: false, error: result.error };
+  }
+
+  const headers = ['NIK', 'Name', 'Email', 'Location ID', 'Position', 'Department', 'Status', 'Contract Type', 'Hire Date'];
+  const rows = result.value.items.map((e) => [
+    e.nik,
+    e.name,
+    e.email,
+    e.locationId || '-',
+    e.position,
+    e.department || '-',
+    e.status,
+    e.contractType,
+    e.hireDate.toISOString(),
+  ]);
+
+  return {
+    ok: true,
+    value: {
+      sheets: [
+        {
+          name: 'Employees',
+          rows: [headers, ...rows],
+        },
+      ],
+    },
+  };
+}

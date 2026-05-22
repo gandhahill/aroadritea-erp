@@ -3,6 +3,7 @@
 import { getSession } from '@/lib/auth';
 import { and, db, desc, eq, isNull } from '@erp/db';
 import { jobApplicants, jobOpenings } from '@erp/db/schema/hr';
+import { auditLog } from '@erp/db/schema/audit';
 import { requirePermission } from '@erp/services/iam';
 import { encryptPii } from '@erp/services/security/pii';
 import type { AuditContext } from '@erp/shared/types';
@@ -147,6 +148,22 @@ export async function createOpeningAction(input: {
     createdBy: ctx.userId,
     updatedBy: ctx.userId,
   });
+  
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'create',
+    entityType: 'job_opening',
+    entityId: id,
+    after: {
+      title: input.title.trim(),
+      department: input.department?.trim() ?? null,
+      status: input.status ?? 'draft',
+      headcount: input.headcount ?? 1,
+    },
+  });
+  
   revalidatePath('/hr/recruitment');
   return { ok: true, id };
 }
@@ -165,6 +182,17 @@ export async function updateOpeningStatusAction(input: {
     .where(
       and(eq(jobOpenings.id, input.openingId), eq(jobOpenings.tenantId, ctx.tenantId)),
     );
+    
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'update',
+    entityType: 'job_opening',
+    entityId: input.openingId,
+    after: { status: input.status },
+  });
+    
   revalidatePath('/hr/recruitment');
   return { ok: true };
 }
@@ -198,6 +226,21 @@ export async function createApplicantAction(input: {
     createdBy: ctx.userId,
     updatedBy: ctx.userId,
   });
+  
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'create',
+    entityType: 'job_applicant',
+    entityId: id,
+    after: {
+      openingId: input.openingId,
+      name: input.name.trim(),
+      stage: 'applied',
+    },
+  });
+  
   revalidatePath('/hr/recruitment');
   return { ok: true, id };
 }
@@ -219,6 +262,17 @@ export async function setApplicantStageAction(input: {
         eq(jobApplicants.tenantId, ctx.tenantId),
       ),
     );
+    
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'update',
+    entityType: 'job_applicant',
+    entityId: input.applicantId,
+    after: { stage: input.stage },
+  });
+    
   revalidatePath('/hr/recruitment');
   return { ok: true };
 }
@@ -259,6 +313,17 @@ export async function updateApplicantAction(input: {
         eq(jobApplicants.tenantId, ctx.tenantId),
       ),
     );
+    
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'update',
+    entityType: 'job_applicant',
+    entityId: input.applicantId,
+    after: { name: input.name.trim() },
+  });
+    
   revalidatePath('/hr/recruitment');
   return { ok: true };
 }
@@ -285,6 +350,16 @@ export async function deleteApplicantAction(input: {
         eq(jobApplicants.tenantId, ctx.tenantId),
       ),
     );
+    
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'delete',
+    entityType: 'job_applicant',
+    entityId: input.applicantId,
+  });
+    
   revalidatePath('/hr/recruitment');
   return { ok: true };
 }

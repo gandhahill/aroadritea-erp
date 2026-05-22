@@ -371,7 +371,7 @@ export async function fetchCategories(): Promise<{ id: string; name: string }[]>
   const rows = await db
     .select({ id: productCategories.id, name: productCategories.name })
     .from(productCategories)
-    .where(eq(productCategories.tenantId, ctx.tenantId))
+    .where(and(eq(productCategories.tenantId, ctx.tenantId), eq(productCategories.isActive, true)))
     .orderBy(productCategories.sortOrder);
   return rows.map((r) => {
     return { id: r.id, name: localizeName(r.name, locale, r.id) };

@@ -26,10 +26,13 @@ interface EmployeeRow {
   contractType: string;
 }
 
+import { Pagination } from '@/components/pagination';
+
 interface Props {
   rows: EmployeeRow[];
   total: number;
   page: number;
+  pageSize: number;
   totalPages: number;
   initialQ: string;
   initialStatus: string;
@@ -42,6 +45,7 @@ export function EmployeeListClient({
   rows,
   total,
   page,
+  pageSize,
   totalPages,
   initialQ,
   initialStatus,
@@ -228,26 +232,12 @@ export function EmployeeListClient({
       )}
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-brand-ink-3">{t('pageStatus', { page, totalPages, total })}</p>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => applyFilter(q, initialStatus, initialLocationId, page - 1)}
-              disabled={page <= 1}
-              className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink disabled:cursor-not-allowed disabled:opacity-40 hover:bg-brand-cream-1"
-            >
-              {t('prev')}
-            </button>
-            <button
-              onClick={() => applyFilter(q, initialStatus, initialLocationId, page + 1)}
-              disabled={page >= totalPages}
-              className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink disabled:cursor-not-allowed disabled:opacity-40 hover:bg-brand-cream-1"
-            >
-              {t('next')}
-            </button>
-          </div>
-        </div>
+      {total > 0 && (
+        <Pagination 
+          currentPage={page} 
+          totalItems={total} 
+          pageSize={pageSize} 
+        />
       )}
     </div>
   );

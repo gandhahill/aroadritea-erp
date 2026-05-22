@@ -8,16 +8,9 @@
 'use client';
 
 import type { OpnameLineResult } from '@erp/services/inventory/opname-service';
+import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import { recordCountAction } from '../actions';
-
-const KIND_LABEL: Record<string, string> = {
-  raw_material: 'Bahan Baku',
-  finished_good: 'Produk Jual',
-  consumable: 'Perlengkapan',
-  merchandise: 'Merchandise',
-  service: 'Jasa',
-};
 
 interface Props {
   lines: OpnameLineResult[];
@@ -52,6 +45,8 @@ function varianceClass(v: string | number | null | undefined): string {
 }
 
 export function OpnameLineTable({ lines, status, sessionId }: Props) {
+  const t = useTranslations('inventory.opname');
+  const tKinds = useTranslations('inventory.stockPerOutlet.kinds');
   const isEditable = status === 'draft' || status === 'in_progress';
   const isReadOnly = status === 'submitted' || status === 'approved' || status === 'cancelled';
 
@@ -166,14 +161,26 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
 
   const dirtyCount = dirtyLines.size;
 
+  function getKindLabel(kind: string) {
+    const keyMap: Record<string, string> = {
+      raw_material: 'rawMaterial',
+      finished_good: 'finishedGood',
+      consumable: 'consumable',
+      merchandise: 'merchandise',
+      service: 'service',
+    };
+    const key = keyMap[kind];
+    return key ? tKinds(key) : kind;
+  }
+
   return (
     <div>
       {/* Table header + filters */}
       <div className="flex flex-wrap items-center gap-3 border-b border-brand-cream-3 px-4 py-3">
-        <h3 className="text-sm font-semibold text-brand-ink">Daftar Produk</h3>
+        <h3 className="text-sm font-semibold text-brand-ink">{t('productList')}</h3>
         <input
           type="search"
-          placeholder="Cari SKU atau nama…"
+          placeholder={t('searchPlaceholder')}
           value={searchQ}
           onChange={(e) => setSearchQ(e.target.value)}
           className="h-8 min-w-44 flex-1 rounded-md border border-brand-cream-3 bg-card px-2.5 text-xs"
@@ -183,10 +190,10 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
           onChange={(e) => setKindFilter(e.target.value)}
           className="h-8 rounded-md border border-brand-cream-3 bg-card px-2 text-xs"
         >
-          <option value="all">Semua Jenis</option>
+          <option value="all">{tKinds('all')}</option>
           {allKinds.map((k) => (
             <option key={k} value={k}>
-              {KIND_LABEL[k] ?? k}
+              {getKindLabel(k)}
             </option>
           ))}
         </select>
@@ -197,7 +204,7 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
             onChange={(e) => setVarianceOnly(e.target.checked)}
             className="h-3.5 w-3.5 rounded border-brand-cream-3"
           />
-          Hanya yang ada selisih
+          {t('varianceOnly')}
         </label>
         <div className="ml-auto flex items-center gap-3">
           {isEditable && dirtyCount > 0 && (
@@ -218,11 +225,11 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
                   d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
                 />
               </svg>
-              Simpan {dirtyCount} Perubahan
+              {t('saveChanges', { count: dirtyCount })}
             </button>
           )}
           <span className="text-xs text-brand-ink-3">
-            {visibleLines.length} / {lines.length} produk
+            {visibleLines.length} / {lines.length} {t('productsCount')}
           </span>
         </div>
       </div>
@@ -232,37 +239,37 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-              <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">No.</th>
-              <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">SKU</th>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">{t('columns.no')}</th>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">{t('columns.sku')}</th>
               <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">
-                Produk
+                {t('columns.product')}
               </th>
               <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">
-                Jenis
+                {t('columns.kind')}
               </th>
               <th className="px-4 py-2.5 text-center text-xs font-semibold text-brand-ink-2">
-                Satuan
+                {t('columns.uom')}
               </th>
               <th className="px-4 py-2.5 text-right text-xs font-semibold text-brand-ink-2">
-                Stok Sistem
+                {t('columns.systemQty')}
               </th>
               <th className="px-4 py-2.5 text-right text-xs font-semibold text-brand-ink-2">
-                Dihitung
+                {t('columns.countedQty')}
               </th>
               <th className="px-4 py-2.5 text-right text-xs font-semibold text-brand-ink-2">
-                Selisih
+                {t('columns.variance')}
               </th>
               {isReadOnly && (
                 <th className="px-4 py-2.5 text-right text-xs font-semibold text-brand-ink-2">
-                  Nilai Selisih
+                  {t('columns.varianceValue')}
                 </th>
               )}
               <th className="px-4 py-2.5 text-center text-xs font-semibold text-brand-ink-2">
-                Status
+                {t('columns.status')}
               </th>
               {isEditable && (
                 <th className="px-4 py-2.5 text-center text-xs font-semibold text-brand-ink-2">
-                  Aksi
+                  {t('columns.action')}
                 </th>
               )}
             </tr>
@@ -275,8 +282,8 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
                   className="px-4 py-12 text-center text-brand-ink-3"
                 >
                   {lines.length === 0
-                    ? 'Belum ada baris produk.'
-                    : 'Tidak ada produk yang cocok dengan filter.'}
+                    ? t('emptyList')
+                    : t('noMatchFilter')}
                 </td>
               </tr>
             ) : (
@@ -303,7 +310,7 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
                     <td className="px-4 py-2.5 text-brand-ink-3">
                       {line.productKind ? (
                         <span className="rounded-full bg-brand-cream-2 px-2 py-0.5 text-xs">
-                          {KIND_LABEL[line.productKind] ?? line.productKind}
+                          {getKindLabel(line.productKind)}
                         </span>
                       ) : (
                         '—'
@@ -385,7 +392,7 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
                             onClick={() => handleSaveLine(line.id, line.productId, line.variantId)}
                             className="inline-flex items-center gap-1 rounded bg-brand-ember-5 px-2 py-1 text-xs font-medium text-white transition-colors hover:bg-brand-ember-6"
                           >
-                            Simpan
+                            {t('saveAction')}
                           </button>
                         )}
                       </td>

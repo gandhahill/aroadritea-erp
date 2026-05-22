@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import type { AuditTrailFilters, AuditTrailPageData } from './actions';
+import { Pagination } from '@/components/pagination';
 
 export function AuditTrailClient({
   data,
@@ -145,30 +146,11 @@ export function AuditTrailClient({
             </tbody>
           </table>
         </div>
-        <div className="flex flex-col gap-3 border-t border-brand-cream-3 px-4 py-3 text-xs text-brand-ink-3 sm:flex-row sm:items-center sm:justify-between">
-          <span>
-            {t('latest', { count: data.total })} - {pagination('page')} {data.page}{' '}
-            {pagination('of')} {totalPages}
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={data.page <= 1}
-              onClick={() => goToPage(data.page - 1)}
-              className="rounded-md border border-brand-cream-3 px-3 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream disabled:text-brand-ink-3 disabled:opacity-50"
-            >
-              {pagination('previous')}
-            </button>
-            <button
-              type="button"
-              disabled={data.page >= totalPages}
-              onClick={() => goToPage(data.page + 1)}
-              className="rounded-md border border-brand-cream-3 px-3 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream disabled:text-brand-ink-3 disabled:opacity-50"
-            >
-              {pagination('next')}
-            </button>
-          </div>
-        </div>
+        <Pagination 
+          currentPage={data.page} 
+          totalItems={data.total} 
+          pageSize={data.pageSize} 
+        />
       </div>
     </div>
   );

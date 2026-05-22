@@ -12,6 +12,7 @@ import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchEmployeeLocationOptions } from './actions';
 import { EmployeeListClient } from './employee-list-client';
+import { ExportEmployeesButton } from './export-employees-button';
 
 export const metadata: Metadata = { title: 'Employees' };
 
@@ -25,7 +26,7 @@ const STATUS_COLOR: Record<string, { bg: string; text: string }> = {
 export default async function EmployeesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; locationId?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; locationId?: string; page?: string; pageSize?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect('/login');
@@ -42,7 +43,7 @@ export default async function EmployeesPage({
   const status = params.status ?? '';
   const locationId = params.locationId ?? '';
   const page = Math.max(1, Number.parseInt(params.page ?? '1', 10));
-  const limit = 20;
+  const limit = Math.max(1, Math.min(100, Number.parseInt(params.pageSize ?? '20', 10)));
   const offset = (page - 1) * limit;
 
   const [result, locationOptions] = await Promise.all([
@@ -86,6 +87,7 @@ export default async function EmployeesPage({
           <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-cream-2 px-3 py-1 text-xs font-medium text-brand-ink-2">
             {t('count', { count: total })}
           </span>
+          <ExportEmployeesButton q={q} status={status} locationId={locationId} />
           <a
             href="/hr/employees/new"
             className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6"
@@ -123,6 +125,7 @@ export default async function EmployeesPage({
         }))}
         total={total ?? 0}
         page={page}
+        pageSize={limit}
         totalPages={totalPages}
         initialQ={q}
         initialStatus={status}
