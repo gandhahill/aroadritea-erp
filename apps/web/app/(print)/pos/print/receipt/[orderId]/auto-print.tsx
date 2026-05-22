@@ -25,10 +25,6 @@ export function ReceiptAutoPrint({ kioskPrinting = false, printerName }: Props =
     return () => window.clearTimeout(id);
   }, [kioskPrinting]);
   return (
-    <span
-      hidden
-      data-printer={printerName ?? ''}
-      data-kiosk={kioskPrinting ? 'true' : 'false'}
-    />
+    <span hidden data-printer={printerName ?? ''} data-kiosk={kioskPrinting ? 'true' : 'false'} />
   );
 }

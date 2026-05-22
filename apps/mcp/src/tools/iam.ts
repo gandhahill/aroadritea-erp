@@ -279,7 +279,11 @@ async function deleteLocationHandler(
     .select()
     .from(locations)
     .where(
-      and(eq(locations.tenantId, ctx.tenantId), eq(locations.id, input.id), isNull(locations.deletedAt)),
+      and(
+        eq(locations.tenantId, ctx.tenantId),
+        eq(locations.id, input.id),
+        isNull(locations.deletedAt),
+      ),
     )
     .limit(1);
   if (!before) return mcpError('NOT_FOUND', `Location ${input.id} not found`);

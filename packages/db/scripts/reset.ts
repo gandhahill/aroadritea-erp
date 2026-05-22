@@ -13,9 +13,9 @@
  *   CONFIRM_DB_RESET=YES pnpm --filter @erp/db db:reset
  */
 
+import { resolve } from 'node:path';
 import { neon } from '@neondatabase/serverless';
 import { config } from 'dotenv';
-import { resolve } from 'node:path';
 
 // Load .env from repo root and packages/db just in case.
 config({ path: resolve(process.cwd(), '.env') });
@@ -63,5 +63,3 @@ try {
   console.error('ERROR Reset failed:', error);
   process.exit(4);
 }
-
-

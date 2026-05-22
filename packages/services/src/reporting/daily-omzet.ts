@@ -182,9 +182,7 @@ export async function getOmzetHarian(
     const locRow = await db
       .select({ name: locations.name, code: locations.code })
       .from(locations)
-      .where(
-        and(eq(locations.tenantId, ctx.tenantId), eq(locations.id, params.locationId)),
-      )
+      .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.id, params.locationId)))
       .limit(1)
       .then((rows) => rows[0]);
 

@@ -243,9 +243,7 @@ export default async function DashboardPage() {
         <h1 className="mt-1 text-2xl font-bold text-brand-ink">
           {hello}, {displayName.split(' ')[0]}.
         </h1>
-        <p className="mt-1 text-sm text-brand-ink-3">
-          {t('subtitle')}
-        </p>
+        <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle')}</p>
       </header>
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">

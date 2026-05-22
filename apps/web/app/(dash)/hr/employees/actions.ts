@@ -204,7 +204,17 @@ export async function serverExportEmployees(input: Omit<ListEmployeesInput, 'lim
     return { ok: false, error: result.error };
   }
 
-  const headers = ['NIK', 'Name', 'Email', 'Location ID', 'Position', 'Department', 'Status', 'Contract Type', 'Hire Date'];
+  const headers = [
+    'NIK',
+    'Name',
+    'Email',
+    'Location ID',
+    'Position',
+    'Department',
+    'Status',
+    'Contract Type',
+    'Hire Date',
+  ];
   const rows = result.value.items.map((e) => [
     e.nik,
     e.name,

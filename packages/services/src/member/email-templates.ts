@@ -78,13 +78,15 @@ export function buildOtpEmailHtml(
       title: 'Kode Verifikasi OTP',
       intro: 'Gunakan kode di bawah ini untuk memverifikasi akun Aroadri Tea Anda.',
       expiry: `Kode ini berlaku selama <strong>${expiryMinutes} menit</strong>.`,
-      warning: 'Jangan bagikan kode ini kepada siapapun. Tim Aroadri Tea tidak akan pernah meminta kode OTP Anda.',
+      warning:
+        'Jangan bagikan kode ini kepada siapapun. Tim Aroadri Tea tidak akan pernah meminta kode OTP Anda.',
     },
     en: {
       title: 'OTP Verification Code',
       intro: 'Use the code below to verify your Aroadri Tea account.',
       expiry: `This code is valid for <strong>${expiryMinutes} minutes</strong>.`,
-      warning: 'Do not share this code with anyone. The Aroadri Tea team will never ask for your OTP code.',
+      warning:
+        'Do not share this code with anyone. The Aroadri Tea team will never ask for your OTP code.',
     },
     zh: {
       title: 'OTP验证码',
@@ -128,16 +130,14 @@ export function buildWelcomeEmailHtml(memberName: string, locale: EmailLocale = 
     },
     en: {
       title: `Welcome, ${memberName}!`,
-      intro:
-        'Your Aroadri Tea member account is active. Enjoy exclusive benefits as our member.',
+      intro: 'Your Aroadri Tea member account is active. Enjoy exclusive benefits as our member.',
       benefitsTitle: 'Member Benefits:',
       benefits: [
         'Earn points on every transaction',
         'Exclusive vouchers and special promotions',
         'Move up tiers for more benefits',
       ],
-      closing:
-        'Visit the nearest outlet and mention your registered phone number when ordering.',
+      closing: 'Visit the nearest outlet and mention your registered phone number when ordering.',
     },
     zh: {
       title: `欢迎，${memberName}!`,

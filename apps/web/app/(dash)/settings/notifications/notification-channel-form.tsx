@@ -20,9 +20,7 @@ export function NotificationChannelForm() {
     >
       <div>
         <h2 className="text-base font-semibold text-brand-ink">{t('title')}</h2>
-        <p className="mt-1 text-sm text-brand-ink-3">
-          {t('description')}
-        </p>
+        <p className="mt-1 text-sm text-brand-ink-3">{t('description')}</p>
       </div>
 
       {state.error ? (
@@ -48,12 +46,7 @@ export function NotificationChannelForm() {
       </label>
       <label className="space-y-1.5">
         <span className="text-sm font-medium text-brand-ink">{t('fields.target')}</span>
-        <input
-          name="target"
-          required
-          placeholder="ops@aroadritea.com"
-          className={INPUT}
-        />
+        <input name="target" required placeholder="ops@aroadritea.com" className={INPUT} />
       </label>
       <label className="space-y-1.5">
         <span className="text-sm font-medium text-brand-ink">{t('fields.purpose')}</span>

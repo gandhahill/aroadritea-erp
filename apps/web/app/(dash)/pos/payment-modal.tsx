@@ -405,9 +405,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
                       / {formatRupiah(excess.toString())}
                     </span>
                   </div>
-                  <p className="mt-1 text-[11px] text-brand-ink-3">
-                    {t('customDonationHint')}
-                  </p>
+                  <p className="mt-1 text-[11px] text-brand-ink-3">{t('customDonationHint')}</p>
                 </div>
               )}
             </div>
@@ -549,11 +547,7 @@ function triggerPrint(orderId: string): void {
       `print-receipt-${orderId}`,
       'width=420,height=720',
     );
-    window.open(
-      `/pos/print/label/${orderId}`,
-      `print-label-${orderId}`,
-      'width=300,height=400',
-    );
+    window.open(`/pos/print/label/${orderId}`, `print-label-${orderId}`, 'width=300,height=400');
   } catch {
     // Popup blocked or environment without window.open — silent failure
     // is acceptable; the cashier can re-print from order detail.

@@ -1,7 +1,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, asc, desc, eq, inArray, isNull, auditLog, cmsSettings, db } from '@erp/db';
+import { and, asc, auditLog, cmsSettings, db, desc, eq, inArray, isNull } from '@erp/db';
 import { accounts, journalEntries, journalLines, partners } from '@erp/db/schema/accounting';
 import { requirePermission } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
@@ -118,7 +118,10 @@ export async function getPartyLedgerData(kind: PartyLedgerKind): Promise<PartyLe
           .select({ value: cmsSettings.value })
           .from(cmsSettings)
           .where(
-            and(eq(cmsSettings.tenantId, ctx.tenantId), eq(cmsSettings.key, RECEIVABLE_ALLOWANCE_KEY)),
+            and(
+              eq(cmsSettings.tenantId, ctx.tenantId),
+              eq(cmsSettings.key, RECEIVABLE_ALLOWANCE_KEY),
+            ),
           )
           .limit(1)
       : [undefined];
@@ -213,8 +216,7 @@ export async function getPartyLedgerData(kind: PartyLedgerKind): Promise<PartyLe
   const today = new Date();
 
   for (const line of lineRows) {
-    const amount =
-      kind === 'receivables' ? line.debit - line.credit : line.credit - line.debit;
+    const amount = kind === 'receivables' ? line.debit - line.credit : line.credit - line.debit;
     if (amount === 0n) continue;
 
     const key = line.partnerId ?? '__no_partner__';

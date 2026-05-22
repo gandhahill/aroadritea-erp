@@ -203,15 +203,17 @@ export async function getDailySummary(
     .limit(1);
 
   const deliveryChannels = normalizeDeliveryChannels(setting?.deliveryChannelsJson);
-  const commissionDelivery = paidSaleRows.reduce((sum, sale) => {
-    const channel = deliveryChannels.get(sale.channel);
-    if (!channel?.enabled) return sum;
-    return sum + (sale.subtotal * BigInt(channel.commissionBps)) / 10000n;
-  }, 0n) + manualSaleRows.reduce((sum, sale) => {
-    const channel = deliveryChannels.get(sale.channel);
-    if (!channel?.enabled) return sum;
-    return sum + (sale.grossSales * BigInt(channel.commissionBps)) / 10000n;
-  }, 0n);
+  const commissionDelivery =
+    paidSaleRows.reduce((sum, sale) => {
+      const channel = deliveryChannels.get(sale.channel);
+      if (!channel?.enabled) return sum;
+      return sum + (sale.subtotal * BigInt(channel.commissionBps)) / 10000n;
+    }, 0n) +
+    manualSaleRows.reduce((sum, sale) => {
+      const channel = deliveryChannels.get(sale.channel);
+      if (!channel?.enabled) return sum;
+      return sum + (sale.grossSales * BigInt(channel.commissionBps)) / 10000n;
+    }, 0n);
   const netRevenue = netSales - commissionDelivery;
 
   const refundTotal = refundSaleRows.reduce((s, r) => s + r.grandTotal, 0n);
@@ -240,7 +242,11 @@ export async function getDailySummary(
     const existing = paymentBreakdown.find((row) => row.method === manual.paymentMethod);
     if (existing) {
       existing.txCount += manual.transactionCount || 1;
-      existing.total = (BigInt(existing.total) + manual.grossSales - manual.discountTotal).toString();
+      existing.total = (
+        BigInt(existing.total) +
+        manual.grossSales -
+        manual.discountTotal
+      ).toString();
     } else {
       paymentBreakdown.push({
         method: manual.paymentMethod,
@@ -303,8 +309,7 @@ export async function getDailySummary(
 
     topProducts = topRows.map((row, idx) => {
       const nameField = row.productName as Record<string, string> | null;
-      const resolvedName =
-        nameField?.id ?? nameField?.en ?? nameField?.zh ?? row.productId;
+      const resolvedName = nameField?.id ?? nameField?.en ?? nameField?.zh ?? row.productId;
       return {
         rank: idx + 1,
         productId: row.productId,

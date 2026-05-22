@@ -8,10 +8,10 @@
  * matches user feedback (2026-05-19).
  */
 
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import { getLocale, getTranslations } from 'next-intl/server';
 import { displayAssetUrl } from '@/lib/display-asset-url';
+import type { Metadata } from 'next';
+import { getLocale, getTranslations } from 'next-intl/server';
+import Link from 'next/link';
 import { fetchProductMasterData } from '../products/actions';
 import { ProductRowActions } from '../products/row-actions';
 
@@ -86,9 +86,7 @@ export default async function SuppliesPage({ searchParams }: Props) {
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
             {t('eyebrow')}
           </p>
-          <h1 className="mt-2 text-2xl font-bold text-brand-ink">
-            {t('suppliesTitle')}
-          </h1>
+          <h1 className="mt-2 text-2xl font-bold text-brand-ink">{t('suppliesTitle')}</h1>
           <p className="mt-1 max-w-2xl text-sm text-brand-ink-3">
             {t('suppliesDescriptionPrefix')}
             <Link
@@ -201,7 +199,9 @@ export default async function SuppliesPage({ searchParams }: Props) {
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 font-semibold text-brand-ink">{localized(product.name, locale)}</td>
+                    <td className="px-4 py-3 font-semibold text-brand-ink">
+                      {localized(product.name, locale)}
+                    </td>
                     <td className="px-4 py-3 text-brand-ink-3">
                       {product.categoryCode || localized(product.categoryName, locale) || '-'}
                     </td>
@@ -240,10 +240,7 @@ export default async function SuppliesPage({ searchParams }: Props) {
                         >
                           {t('edit')}
                         </Link>
-                        <ProductRowActions
-                          productId={product.id}
-                          isActive={product.isActive}
-                        />
+                        <ProductRowActions productId={product.id} isActive={product.isActive} />
                       </div>
                     </td>
                   </tr>

@@ -30,7 +30,7 @@ export const subtract = (a: Money, b: Money): Money => a - b;
 
 function roundDivide(numerator: bigint, denominator: bigint): bigint {
   if (denominator === 0n) throw new Error('Cannot divide by zero');
-  const sign = (numerator < 0n) !== (denominator < 0n) ? -1n : 1n;
+  const sign = numerator < 0n !== denominator < 0n ? -1n : 1n;
   const n = numerator < 0n ? -numerator : numerator;
   const d = denominator < 0n ? -denominator : denominator;
   const quotient = n / d;

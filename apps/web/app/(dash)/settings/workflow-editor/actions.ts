@@ -6,8 +6,8 @@
 'use server';
 
 import { and, db, desc, eq } from '@erp/db';
-import { workflowDefinitions } from '@erp/db/schema/workflow';
 import { auditLog } from '@erp/db/schema/audit';
+import { workflowDefinitions } from '@erp/db/schema/workflow';
 import type { AuditContext } from '@erp/shared/types';
 
 export interface WorkflowDefinitionItem {
@@ -113,7 +113,7 @@ export async function serverCreateWorkflowDefinition(
       createdBy: userId,
       updatedBy: userId,
     });
-    
+
     await db.insert(auditLog).values({
       id: crypto.randomUUID(),
       tenantId,
@@ -179,12 +179,7 @@ export async function serverUpdateWorkflowDefinition(
     const existing = await db
       .select({ id: workflowDefinitions.id })
       .from(workflowDefinitions)
-      .where(
-        and(
-          eq(workflowDefinitions.id, input.id),
-          eq(workflowDefinitions.tenantId, tenantId),
-        ),
-      )
+      .where(and(eq(workflowDefinitions.id, input.id), eq(workflowDefinitions.tenantId, tenantId)))
       .limit(1);
 
     if (!existing[0]) return { success: false, error: 'Definition not found' };
@@ -202,7 +197,7 @@ export async function serverUpdateWorkflowDefinition(
         updatedBy: userId,
       })
       .where(eq(workflowDefinitions.id, input.id));
-      
+
     await db.insert(auditLog).values({
       id: crypto.randomUUID(),
       tenantId,
@@ -244,18 +239,13 @@ export async function serverDeleteWorkflowDefinition(
     const existing = await db
       .select({ id: workflowDefinitions.id })
       .from(workflowDefinitions)
-      .where(
-        and(
-          eq(workflowDefinitions.id, id),
-          eq(workflowDefinitions.tenantId, tenantId),
-        ),
-      )
+      .where(and(eq(workflowDefinitions.id, id), eq(workflowDefinitions.tenantId, tenantId)))
       .limit(1);
 
     if (!existing[0]) return { success: false, error: 'Definition not found' };
 
     await db.delete(workflowDefinitions).where(eq(workflowDefinitions.id, id));
-    
+
     await db.insert(auditLog).values({
       id: crypto.randomUUID(),
       tenantId,
@@ -264,7 +254,7 @@ export async function serverDeleteWorkflowDefinition(
       entityType: 'workflow_definition',
       entityId: id,
     });
-    
+
     return { success: true };
   } catch (e) {
     return { success: false, error: e instanceof Error ? e.message : String(e) };

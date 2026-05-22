@@ -12,15 +12,9 @@ import {
   updateOpeningStatusAction,
 } from './actions';
 
-const STAGES: Array<'applied' | 'screening' | 'interview' | 'offer' | 'hired' | 'rejected' | 'withdrawn'> = [
-  'applied',
-  'screening',
-  'interview',
-  'offer',
-  'hired',
-  'rejected',
-  'withdrawn',
-];
+const STAGES: Array<
+  'applied' | 'screening' | 'interview' | 'offer' | 'hired' | 'rejected' | 'withdrawn'
+> = ['applied', 'screening', 'interview', 'offer', 'hired', 'rejected', 'withdrawn'];
 
 const STAGE_LABEL: Record<string, string> = {
   applied: 'Applied',
@@ -134,9 +128,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
         setErr(res.error ?? 'Gagal update status.');
         return;
       }
-      setOpenings((prev) =>
-        prev.map((o) => (o.id === openingId ? { ...o, status } : o)),
-      );
+      setOpenings((prev) => prev.map((o) => (o.id === openingId ? { ...o, status } : o)));
     });
   }
 
@@ -162,9 +154,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
         ...prev,
       ]);
       setOpenings((prev) =>
-        prev.map((o) =>
-          o.id === openingId ? { ...o, applicantCount: o.applicantCount + 1 } : o,
-        ),
+        prev.map((o) => (o.id === openingId ? { ...o, applicantCount: o.applicantCount + 1 } : o)),
       );
       setNewApplicant({ name: '', email: '', phone: '', notes: '' });
       setShowNewApplicant(null);
@@ -176,15 +166,20 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
     startTransition(async () => {
       const res = await setApplicantStageAction({
         applicantId,
-        stage: stage as 'applied' | 'screening' | 'interview' | 'offer' | 'hired' | 'rejected' | 'withdrawn',
+        stage: stage as
+          | 'applied'
+          | 'screening'
+          | 'interview'
+          | 'offer'
+          | 'hired'
+          | 'rejected'
+          | 'withdrawn',
       });
       if (!res.ok) {
         setErr(res.error ?? 'Gagal update tahap.');
         return;
       }
-      setApplicants((prev) =>
-        prev.map((a) => (a.id === applicantId ? { ...a, stage } : a)),
-      );
+      setApplicants((prev) => prev.map((a) => (a.id === applicantId ? { ...a, stage } : a)));
     });
   }
 
@@ -230,9 +225,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
       }
       setApplicants((prev) =>
         prev.map((a) =>
-          a.id === id
-            ? { ...a, name: editForm.name, email: editForm.email || null }
-            : a,
+          a.id === id ? { ...a, name: editForm.name, email: editForm.email || null } : a,
         ),
       );
       setEditingApplicantId(null);
@@ -293,9 +286,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
               </span>
               <input
                 value={newOpening.department}
-                onChange={(e) =>
-                  setNewOpening((p) => ({ ...p, department: e.target.value }))
-                }
+                onChange={(e) => setNewOpening((p) => ({ ...p, department: e.target.value }))}
                 className={INPUT}
               />
             </label>
@@ -319,9 +310,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
               </span>
               <textarea
                 value={newOpening.requirements}
-                onChange={(e) =>
-                  setNewOpening((p) => ({ ...p, requirements: e.target.value }))
-                }
+                onChange={(e) => setNewOpening((p) => ({ ...p, requirements: e.target.value }))}
                 rows={3}
                 className={INPUT}
               />
@@ -368,10 +357,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                         <select
                           value={o.status}
                           onChange={(e) =>
-                            setOpeningStatus(
-                              o.id,
-                              e.target.value as 'draft' | 'open' | 'closed',
-                            )
+                            setOpeningStatus(o.id, e.target.value as 'draft' | 'open' | 'closed')
                           }
                           className="rounded-md border border-brand-cream-3 bg-card px-2 py-1 text-xs"
                         >
@@ -387,9 +373,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                       <button
                         type="button"
                         disabled={!canManage}
-                        onClick={() =>
-                          setShowNewApplicant((v) => (v === o.id ? null : o.id))
-                        }
+                        onClick={() => setShowNewApplicant((v) => (v === o.id ? null : o.id))}
                         className="rounded-md border border-brand-cream-3 px-2.5 py-1 text-xs font-semibold text-brand-ink-2 hover:border-brand-red/40 hover:text-brand-red disabled:opacity-40"
                       >
                         + Kandidat
@@ -500,7 +484,10 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
             <tbody className="divide-y divide-brand-cream-3">
               {filteredApplicants.length === 0 ? (
                 <tr>
-                  <td colSpan={canManage ? 6 : 5} className="px-3 py-6 text-center text-brand-ink-3">
+                  <td
+                    colSpan={canManage ? 6 : 5}
+                    className="px-3 py-6 text-center text-brand-ink-3"
+                  >
                     Belum ada kandidat untuk filter ini.
                   </td>
                 </tr>
@@ -534,9 +521,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                           (a.email ?? '—')
                         )}
                       </td>
-                      <td className="px-3 py-2 text-brand-ink-3">
-                        {a.appliedAt.slice(0, 10)}
-                      </td>
+                      <td className="px-3 py-2 text-brand-ink-3">{a.appliedAt.slice(0, 10)}</td>
                       <td className="px-3 py-2">
                         {canManage ? (
                           <select

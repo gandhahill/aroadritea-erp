@@ -71,11 +71,11 @@ export default async function JournalsPage({
 
       {/* Table */}
       <JournalTable journals={journals.items} />
-      
-      <Pagination 
-        currentPage={journals.page} 
-        totalItems={journals.total} 
-        pageSize={journals.pageSize} 
+
+      <Pagination
+        currentPage={journals.page}
+        totalItems={journals.total}
+        pageSize={journals.pageSize}
       />
     </div>
   );

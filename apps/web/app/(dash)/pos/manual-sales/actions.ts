@@ -7,8 +7,8 @@ import {
   listManualSalesLocations,
 } from '@erp/services/pos';
 import type { AuditContext } from '@erp/shared/types';
-import { revalidatePath } from 'next/cache';
 import { getLocale } from 'next-intl/server';
+import { revalidatePath } from 'next/cache';
 
 export interface ManualSalesPageData {
   locations: Array<{ id: string; label: string; code: string }>;
@@ -81,8 +81,12 @@ export async function fetchManualSalesPageData(
   requestedPageSize = 25,
 ): Promise<ManualSalesPageData> {
   const ctx = await getAuditContext();
-  const pageSize = Math.max(1, Math.min(100, Number.isFinite(requestedPageSize) ? requestedPageSize : 25));
-  if (!ctx) return { locations: [], items: [], total: 0, page: 1, pageSize, error: 'Unauthenticated' };
+  const pageSize = Math.max(
+    1,
+    Math.min(100, Number.isFinite(requestedPageSize) ? requestedPageSize : 25),
+  );
+  if (!ctx)
+    return { locations: [], items: [], total: 0, page: 1, pageSize, error: 'Unauthenticated' };
   const locale = await getLocale();
   const currentPage = Math.max(1, Number.isFinite(page) ? page : 1);
   const activeLocationId = locationId || ctx.locationId || undefined;
@@ -96,7 +100,14 @@ export async function fetchManualSalesPageData(
   ]);
 
   if (!closings.ok) {
-    return { locations: [], items: [], total: 0, page: currentPage, pageSize, error: errorMessage(closings.error) };
+    return {
+      locations: [],
+      items: [],
+      total: 0,
+      page: currentPage,
+      pageSize,
+      error: errorMessage(closings.error),
+    };
   }
 
   return {
@@ -147,7 +158,18 @@ export async function serverExportManualSales(locationId?: string) {
     return { ok: false, error: result.error };
   }
 
-  const headers = ['Number', 'Date', 'Location ID', 'Channel', 'Payment Method', 'Tx Count', 'Gross Sales', 'Tax Total', 'Net Revenue', 'Journal Entry ID'];
+  const headers = [
+    'Number',
+    'Date',
+    'Location ID',
+    'Channel',
+    'Payment Method',
+    'Tx Count',
+    'Gross Sales',
+    'Tax Total',
+    'Net Revenue',
+    'Journal Entry ID',
+  ];
   const rows = result.items.map((i) => [
     i.number,
     i.salesDate,

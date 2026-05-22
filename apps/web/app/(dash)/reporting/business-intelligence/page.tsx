@@ -285,8 +285,7 @@ export default async function BusinessIntelligencePage() {
     guestOrders: Number(guestRow?.orders ?? 0),
   };
 
-  const avgTicket =
-    totals.orderCount > 0 ? totals.gross / BigInt(totals.orderCount) : 0n;
+  const avgTicket = totals.orderCount > 0 ? totals.gross / BigInt(totals.orderCount) : 0n;
 
   return (
     <div className="space-y-6">
@@ -307,7 +306,10 @@ export default async function BusinessIntelligencePage() {
         <Kpi title={t('weeklyGross')} value={formatIdr(weeklyGross, locale)} />
         <Kpi title={t('pb1')} value={formatIdr(totals.pb1, locale)} />
         <Kpi title={t('deliveryCommission')} value={formatIdr(totals.deliveryCommission, locale)} />
-        <Kpi title={t('refunds')} value={`${formatIdr(totals.refunds, locale)} / ${totals.refundCount}`} />
+        <Kpi
+          title={t('refunds')}
+          value={`${formatIdr(totals.refunds, locale)} / ${totals.refundCount}`}
+        />
         <Kpi title={t('cashVariance')} value={formatIdr(totals.cashVariance, locale)} />
       </section>
 
@@ -441,9 +443,7 @@ export default async function BusinessIntelligencePage() {
         <h2 className="text-lg font-semibold text-brand-ink">
           {t('hourlyToday', { date: today })}
         </h2>
-        <p className="mt-1 text-xs text-brand-ink-3">
-          {t('hourlyHelp')}
-        </p>
+        <p className="mt-1 text-xs text-brand-ink-3">{t('hourlyHelp')}</p>
         <div className="mt-3">
           <VerticalBarChart
             data={hourlyToday.map((h) => ({

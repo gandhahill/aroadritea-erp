@@ -23,13 +23,16 @@ describe('sanitizeCmsHtml', () => {
   });
 
   it('removes dangerous SVG and iframe payloads', () => {
-    const html = '<svg><animate onbegin=alert(1) /></svg><iframe src="https://evil.test"></iframe><p>safe</p>';
+    const html =
+      '<svg><animate onbegin=alert(1) /></svg><iframe src="https://evil.test"></iframe><p>safe</p>';
 
     expect(sanitizeCmsHtml(html)).toBe('<p>safe</p>');
   });
 
   it('forces noopener on target blank links', () => {
-    const sanitized = sanitizeCmsHtml('<a href="https://aroadritea.com" target="_blank">Aroadri</a>');
+    const sanitized = sanitizeCmsHtml(
+      '<a href="https://aroadritea.com" target="_blank">Aroadri</a>',
+    );
 
     expect(sanitized).toBe(
       '<a href="https://aroadritea.com" target="_blank" rel="noopener noreferrer">Aroadri</a>',

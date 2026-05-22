@@ -10,6 +10,7 @@
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/location-options';
 import { and, db, eq, ilike, inArray, isNull, or, sql } from '@erp/db';
+import { taxRates } from '@erp/db/schema/accounting';
 import {
   productCategories,
   productModifierOptions,
@@ -19,7 +20,6 @@ import {
 } from '@erp/db/schema/inventory';
 import { posSettings, salesOrders, shifts } from '@erp/db/schema/pos';
 import { promotions } from '@erp/db/schema/promotion';
-import { taxRates } from '@erp/db/schema/accounting';
 import { requirePermission } from '@erp/services/iam';
 import { type MemberLookupResult, findMemberByPhone } from '@erp/services/member';
 import { closeShift, createSale, openShift, refundSale, voidSale } from '@erp/services/pos';
@@ -466,7 +466,13 @@ export async function fetchMasterDataRaw() {
   const productRows = await db
     .select()
     .from(products)
-    .where(and(eq(products.tenantId, ctx.tenantId), eq(products.isActive, true), eq(products.isSellable, true)));
+    .where(
+      and(
+        eq(products.tenantId, ctx.tenantId),
+        eq(products.isActive, true),
+        eq(products.isSellable, true),
+      ),
+    );
   const variantRows = await db
     .select()
     .from(productVariants)
@@ -474,7 +480,12 @@ export async function fetchMasterDataRaw() {
   const modifierRows = await db
     .select()
     .from(productModifierOptions)
-    .where(and(eq(productModifierOptions.tenantId, ctx.tenantId), eq(productModifierOptions.isActive, true)));
+    .where(
+      and(
+        eq(productModifierOptions.tenantId, ctx.tenantId),
+        eq(productModifierOptions.isActive, true),
+      ),
+    );
   const promotionRows = await db
     .select()
     .from(promotions)
@@ -485,10 +496,7 @@ export async function fetchMasterDataRaw() {
         isNull(promotions.deletedAt),
       ),
     );
-  const taxRateRows = await db
-    .select()
-    .from(taxRates)
-    .where(eq(taxRates.isActive, true));
+  const taxRateRows = await db.select().from(taxRates).where(eq(taxRates.isActive, true));
 
   // Helper to extract localized name as a single display string
   function localizeNameRaw(name: unknown): string {

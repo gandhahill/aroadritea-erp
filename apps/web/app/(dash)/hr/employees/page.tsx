@@ -26,7 +26,13 @@ const STATUS_COLOR: Record<string, { bg: string; text: string }> = {
 export default async function EmployeesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; locationId?: string; page?: string; pageSize?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    status?: string;
+    locationId?: string;
+    page?: string;
+    pageSize?: string;
+  }>;
 }) {
   const session = await getSession();
   if (!session) redirect('/login');

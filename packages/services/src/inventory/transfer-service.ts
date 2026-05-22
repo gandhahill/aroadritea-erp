@@ -519,12 +519,7 @@ export async function receiveTransfer(
         updatedBy: ctx.userId,
         version: trf.version + 1,
       })
-      .where(
-        and(
-          eq(stockTransfers.id, data.transferId),
-          eq(stockTransfers.status, 'in_transit'),
-        ),
-      )
+      .where(and(eq(stockTransfers.id, data.transferId), eq(stockTransfers.status, 'in_transit')))
       .returning({ id: stockTransfers.id });
     if (!claimedReceive || claimedReceive.length === 0) {
       return err(AppError.conflict('inventory.transfer.versionMismatch'));

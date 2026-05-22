@@ -165,7 +165,16 @@ export function OfflineSyncProvider({ children }: { children: React.ReactNode })
 
   return (
     <OfflineSyncContext.Provider
-      value={{ isOnline, pendingCount, isSyncing, isMasterDataSyncing, failedRetryCount, syncNow, syncMasterData, enqueueOrder }}
+      value={{
+        isOnline,
+        pendingCount,
+        isSyncing,
+        isMasterDataSyncing,
+        failedRetryCount,
+        syncNow,
+        syncMasterData,
+        enqueueOrder,
+      }}
     >
       {children}
     </OfflineSyncContext.Provider>

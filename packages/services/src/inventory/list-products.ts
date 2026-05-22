@@ -276,10 +276,7 @@ export async function getProduct(
         .select()
         .from(productVariants)
         .where(
-          and(
-            eq(productVariants.productId, productId),
-            eq(productVariants.tenantId, ctx.tenantId),
-          ),
+          and(eq(productVariants.productId, productId), eq(productVariants.tenantId, ctx.tenantId)),
         )
         .orderBy(productVariants.sortOrder);
 

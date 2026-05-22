@@ -13,12 +13,8 @@ export default async function NotificationSettingsPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
             {t('section')}
           </p>
-          <h1 className="mt-2 font-display text-3xl font-semibold text-brand-ink">
-            {t('title')}
-          </h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-brand-muted">
-            {t('description')}
-          </p>
+          <h1 className="mt-2 font-display text-3xl font-semibold text-brand-ink">{t('title')}</h1>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-brand-muted">{t('description')}</p>
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[1fr_380px]">

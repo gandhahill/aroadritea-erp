@@ -676,83 +676,78 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                     ) : (
                       <div className="space-y-2">
                         {form.conditions.map((cond, idx) => {
-                          const entityFields =
-                            FIELD_BY_ENTITY[form.entityType] ?? [];
+                          const entityFields = FIELD_BY_ENTITY[form.entityType] ?? [];
                           // When the chosen entity exposes a known field
                           // list, drive the field input as a dropdown so
                           // users can't accidentally type typos. If the
                           // entity isn't in the map yet (or the saved
                           // condition predates it), fall through to a free-
                           // text input so legacy rules stay editable.
-                          const fieldInKnownList = entityFields.some(
-                            (f) => f.value === cond.field,
-                          );
+                          const fieldInKnownList = entityFields.some((f) => f.value === cond.field);
                           const showDropdown =
                             entityFields.length > 0 && (cond.field === '' || fieldInKnownList);
                           return (
-                          <div key={idx} className="flex items-center gap-2">
-                            {showDropdown ? (
+                            <div key={idx} className="flex items-center gap-2">
+                              {showDropdown ? (
+                                <select
+                                  value={cond.field}
+                                  onChange={(e) => updateCondition(idx, { field: e.target.value })}
+                                  className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+                                >
+                                  <option value="">— pilih field —</option>
+                                  {entityFields.map((f) => (
+                                    <option key={f.value} value={f.value}>
+                                      {f.label} ({f.value})
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <input
+                                  type="text"
+                                  value={cond.field}
+                                  placeholder="field (e.g. grandTotal)"
+                                  onChange={(e) => updateCondition(idx, { field: e.target.value })}
+                                  className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+                                />
+                              )}
                               <select
-                                value={cond.field}
-                                onChange={(e) =>
-                                  updateCondition(idx, { field: e.target.value })
-                                }
-                                className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+                                value={cond.op}
+                                onChange={(e) => updateCondition(idx, { op: e.target.value })}
+                                className="w-20 rounded-lg border border-brand-cream-3 px-2 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                               >
-                                <option value="">— pilih field —</option>
-                                {entityFields.map((f) => (
-                                  <option key={f.value} value={f.value}>
-                                    {f.label} ({f.value})
+                                {OPERATORS.map((op) => (
+                                  <option key={op.value} value={op.value}>
+                                    {op.label}
                                   </option>
                                 ))}
                               </select>
-                            ) : (
                               <input
                                 type="text"
-                                value={cond.field}
-                                placeholder="field (e.g. grandTotal)"
-                                onChange={(e) => updateCondition(idx, { field: e.target.value })}
+                                value={cond.value}
+                                placeholder="value"
+                                onChange={(e) => updateCondition(idx, { value: e.target.value })}
                                 className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                               />
-                            )}
-                            <select
-                              value={cond.op}
-                              onChange={(e) => updateCondition(idx, { op: e.target.value })}
-                              className="w-20 rounded-lg border border-brand-cream-3 px-2 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-                            >
-                              {OPERATORS.map((op) => (
-                                <option key={op.value} value={op.value}>
-                                  {op.label}
-                                </option>
-                              ))}
-                            </select>
-                            <input
-                              type="text"
-                              value={cond.value}
-                              placeholder="value"
-                              onChange={(e) => updateCondition(idx, { value: e.target.value })}
-                              className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeCondition(idx)}
-                              className="rounded p-1 text-brand-ink-3 hover:bg-red-50 hover:text-red-500"
-                            >
-                              <svg
-                                className="h-4 w-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={2}
+                              <button
+                                type="button"
+                                onClick={() => removeCondition(idx)}
+                                className="rounded p-1 text-brand-ink-3 hover:bg-red-50 hover:text-red-500"
                               >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M6 18L18 6M6 6l12 12"
-                                />
-                              </svg>
-                            </button>
-                          </div>
+                                <svg
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
                           );
                         })}
                       </div>

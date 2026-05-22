@@ -1,8 +1,8 @@
-import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
-import { createCorrespondenceAction, fetchCorrespondencePageData } from './actions';
 import { FileUploadField } from '@/components/file-upload-field';
 import { Pagination } from '@/components/pagination';
+import { getTranslations } from 'next-intl/server';
+import Link from 'next/link';
+import { createCorrespondenceAction, fetchCorrespondencePageData } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +11,15 @@ const INPUT =
 
 const DIRECTIONS = ['incoming', 'outgoing', 'internal'] as const;
 const CHANNELS = ['physical', 'email', 'whatsapp', 'courier', 'other'] as const;
-const CLASSIFICATIONS = ['general', 'legal', 'finance', 'hr', 'procurement', 'tax', 'other'] as const;
+const CLASSIFICATIONS = [
+  'general',
+  'legal',
+  'finance',
+  'hr',
+  'procurement',
+  'tax',
+  'other',
+] as const;
 const PRIORITIES = ['low', 'normal', 'high', 'urgent'] as const;
 const STATUSES = ['draft', 'registered', 'in_progress', 'sent', 'closed', 'archived'] as const;
 
@@ -96,7 +104,12 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
             <OptionSelect name="channel" values={CHANNELS} t={t} group="channels" />
           </Field>
           <Field label={t('fields.classification')}>
-            <OptionSelect name="classification" values={CLASSIFICATIONS} t={t} group="classifications" />
+            <OptionSelect
+              name="classification"
+              values={CLASSIFICATIONS}
+              t={t}
+              group="classifications"
+            />
           </Field>
           <Field label={t('fields.priority')}>
             <OptionSelect name="priority" values={PRIORITIES} t={t} group="priorities" />
@@ -187,7 +200,10 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
                     <Td>{t(`statuses.${item.status}`)}</Td>
                     <Td>{t(`priorities.${item.priority}`)}</Td>
                     <Td>
-                      <Link className="font-semibold text-brand-red" href={`/correspondence/${item.id}`}>
+                      <Link
+                        className="font-semibold text-brand-red"
+                        href={`/correspondence/${item.id}`}
+                      >
                         {t('open')}
                       </Link>
                     </Td>
@@ -197,11 +213,7 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
             </tbody>
           </table>
         </div>
-        <Pagination 
-          currentPage={data.page} 
-          totalItems={data.total} 
-          pageSize={data.pageSize} 
-        />
+        <Pagination currentPage={data.page} totalItems={data.total} pageSize={data.pageSize} />
       </section>
     </div>
   );
@@ -268,5 +280,3 @@ function FilterLink({
     </Link>
   );
 }
-
-

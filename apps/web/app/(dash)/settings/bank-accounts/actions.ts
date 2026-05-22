@@ -59,8 +59,8 @@ export async function fetchCoaAccounts() {
       and(
         eq(accounts.tenantId, ctx.tenantId),
         eq(accounts.isActive, true),
-        eq(accounts.type, 'asset')
-      )
+        eq(accounts.type, 'asset'),
+      ),
     )
     .orderBy(accounts.code);
 
@@ -203,7 +203,13 @@ export async function deleteBankAccount(input: { id: string }): Promise<BankAcco
   const [before] = await db
     .select()
     .from(bankAccounts)
-    .where(and(eq(bankAccounts.tenantId, ctx.tenantId), eq(bankAccounts.id, id), isNull(bankAccounts.deletedAt)))
+    .where(
+      and(
+        eq(bankAccounts.tenantId, ctx.tenantId),
+        eq(bankAccounts.id, id),
+        isNull(bankAccounts.deletedAt),
+      ),
+    )
     .limit(1);
   if (!before) return { success: false, error: 'Akun bank tidak ditemukan.' };
 

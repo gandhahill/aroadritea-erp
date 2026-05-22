@@ -70,7 +70,13 @@ export async function fetchStatementDetails(id: string) {
     })
     .from(bankStatements)
     .innerJoin(bankAccounts, eq(bankStatements.bankAccountId, bankAccounts.id))
-    .where(and(eq(bankStatements.tenantId, ctx.tenantId), eq(bankStatements.id, id), isNull(bankStatements.deletedAt)))
+    .where(
+      and(
+        eq(bankStatements.tenantId, ctx.tenantId),
+        eq(bankStatements.id, id),
+        isNull(bankStatements.deletedAt),
+      ),
+    )
     .limit(1);
 
   if (!statement) return null;
@@ -184,9 +190,15 @@ export async function matchLine(lineId: string, journalId: string) {
       .where(eq(bankStatementLines.id, lineId));
 
     // Mark statement as in_progress if not already
-    const [line] = await db.select({ statementId: bankStatementLines.statementId }).from(bankStatementLines).where(eq(bankStatementLines.id, lineId));
+    const [line] = await db
+      .select({ statementId: bankStatementLines.statementId })
+      .from(bankStatementLines)
+      .where(eq(bankStatementLines.id, lineId));
     if (line) {
-       await db.update(bankStatements).set({ status: 'in_progress' }).where(eq(bankStatements.id, line.statementId));
+      await db
+        .update(bankStatements)
+        .set({ status: 'in_progress' })
+        .where(eq(bankStatements.id, line.statementId));
     }
 
     revalidatePath('/accounting/bank-recon');
@@ -266,7 +278,13 @@ export async function fetchImportMasterData() {
       number: bankAccounts.accountNumber,
     })
     .from(bankAccounts)
-    .where(and(eq(bankAccounts.tenantId, ctx.tenantId), eq(bankAccounts.isActive, true), isNull(bankAccounts.deletedAt)));
+    .where(
+      and(
+        eq(bankAccounts.tenantId, ctx.tenantId),
+        eq(bankAccounts.isActive, true),
+        isNull(bankAccounts.deletedAt),
+      ),
+    );
 
   const activeLocationsRaw = await db
     .select({
@@ -275,7 +293,13 @@ export async function fetchImportMasterData() {
       name: locations.name,
     })
     .from(locations)
-    .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.status, 'active'), isNull(locations.deletedAt)));
+    .where(
+      and(
+        eq(locations.tenantId, ctx.tenantId),
+        eq(locations.status, 'active'),
+        isNull(locations.deletedAt),
+      ),
+    );
 
   const activeLocations = activeLocationsRaw.map((l) => ({
     ...l,
@@ -331,12 +355,11 @@ export async function fetchJournalSuggestions(lineId: string) {
         eq(journalEntries.tenantId, ctx.tenantId),
         eq(journalLines.accountId, statement.coaId),
         eq(isDebit ? journalLines.debit : journalLines.credit, amountToMatch),
-        isNull(journalEntries.deletedAt)
-      )
+        isNull(journalEntries.deletedAt),
+      ),
     )
     .orderBy(desc(journalEntries.postingDate))
     .limit(10);
 
   return suggestions;
 }
-

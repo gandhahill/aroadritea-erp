@@ -91,7 +91,8 @@ export default function PosDisplayPage() {
           <h1 className="text-xl font-medium text-brand-ink-2">Daftar Pesanan Anda</h1>
           {displayState.customer && (
             <p className="text-sm text-brand-ink-3">
-              Member: <span className="font-semibold text-brand-red">{displayState.customer.name}</span>
+              Member:{' '}
+              <span className="font-semibold text-brand-red">{displayState.customer.name}</span>
               {displayState.customer.loyaltyTier && (
                 <span className="ml-2 rounded-full bg-brand-gold/10 px-2 py-0.5 text-xs font-medium text-brand-gold">
                   {displayState.customer.loyaltyTier}
@@ -116,7 +117,10 @@ export default function PosDisplayPage() {
                 {lines.map((line) => {
                   const lineTotal = BigInt(line.unitPrice) * BigInt(line.qty);
                   return (
-                    <li key={line.id} className="flex items-start justify-between rounded-xl border border-brand-cream-3 p-6 shadow-sm">
+                    <li
+                      key={line.id}
+                      className="flex items-start justify-between rounded-xl border border-brand-cream-3 p-6 shadow-sm"
+                    >
                       <div className="flex gap-4">
                         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand-cream-2 text-xl font-bold text-brand-ink">
                           {line.qty}x
@@ -128,7 +132,9 @@ export default function PosDisplayPage() {
                           )}
                         </div>
                       </div>
-                      <p className="text-xl font-bold text-brand-ink">{formatRupiah(lineTotal.toString())}</p>
+                      <p className="text-xl font-bold text-brand-ink">
+                        {formatRupiah(lineTotal.toString())}
+                      </p>
                     </li>
                   );
                 })}
@@ -140,25 +146,33 @@ export default function PosDisplayPage() {
         {/* Right: Payment Totals */}
         <div className="flex w-1/3 flex-col bg-brand-cream-1 p-8 justify-center">
           <div className="rounded-2xl border-2 border-brand-cream-3 bg-card p-8 shadow-md">
-            <h2 className="mb-6 text-center font-display text-3xl font-bold text-brand-ink">Total Pembayaran</h2>
-            
+            <h2 className="mb-6 text-center font-display text-3xl font-bold text-brand-ink">
+              Total Pembayaran
+            </h2>
+
             <div className="space-y-6">
               <div className="flex justify-between items-center border-b border-brand-cream-3 pb-6">
                 <span className="text-2xl text-brand-ink-2">Total</span>
-                <span className="text-4xl font-bold text-brand-ink">{formatRupiah(grandTotal)}</span>
+                <span className="text-4xl font-bold text-brand-ink">
+                  {formatRupiah(grandTotal)}
+                </span>
               </div>
 
               {BigInt(totalPaid) > BigInt(0) && (
                 <div className="flex justify-between items-center border-b border-brand-cream-3 pb-6">
                   <span className="text-xl text-brand-ink-3">Dibayar</span>
-                  <span className="text-2xl font-semibold text-green-600">{formatRupiah(totalPaid)}</span>
+                  <span className="text-2xl font-semibold text-green-600">
+                    {formatRupiah(totalPaid)}
+                  </span>
                 </div>
               )}
 
               {BigInt(remainingBalance) > BigInt(0) && (
                 <div className="flex justify-between items-center pt-2">
                   <span className="text-2xl font-semibold text-brand-ink-2">Sisa</span>
-                  <span className="text-4xl font-bold text-brand-red">{formatRupiah(remainingBalance)}</span>
+                  <span className="text-4xl font-bold text-brand-red">
+                    {formatRupiah(remainingBalance)}
+                  </span>
                 </div>
               )}
 

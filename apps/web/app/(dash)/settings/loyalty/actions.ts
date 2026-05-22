@@ -51,7 +51,10 @@ export async function saveLoyaltyConfig(
 
   const tiers = tierCodesRaw
     .map((code, idx) => ({
-      code: code.trim().toLowerCase().replace(/[^a-z0-9_-]/g, ''),
+      code: code
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g, ''),
       minLifetimePoints: tierPointsRaw[idx] ?? -1,
     }))
     .filter(

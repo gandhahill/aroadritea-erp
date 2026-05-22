@@ -74,12 +74,14 @@ function ToggleSwitch({
       aria-checked={enabled}
       disabled={disabled}
       onClick={onToggle}
-      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-red/30 focus:ring-offset-2 focus:ring-offset-brand-cream disabled:cursor-not-allowed disabled:opacity-50 ${enabled ? 'bg-brand-jade' : 'bg-brand-ink-3/30'
-        }`}
+      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-red/30 focus:ring-offset-2 focus:ring-offset-brand-cream disabled:cursor-not-allowed disabled:opacity-50 ${
+        enabled ? 'bg-brand-jade' : 'bg-brand-ink-3/30'
+      }`}
     >
       <span
-        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out ${enabled ? 'translate-x-4' : 'translate-x-0'
-          }`}
+        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-card shadow ring-0 transition duration-200 ease-in-out ${
+          enabled ? 'translate-x-4' : 'translate-x-0'
+        }`}
       />
     </button>
   );
@@ -324,8 +326,9 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
             {filteredJobs.map((job) => (
               <tr
                 key={job.id}
-                className={`transition-colors hover:bg-brand-cream-2/30 ${!job.enabled ? 'opacity-60' : ''
-                  }`}
+                className={`transition-colors hover:bg-brand-cream-2/30 ${
+                  !job.enabled ? 'opacity-60' : ''
+                }`}
               >
                 <td className="px-4 py-3">
                   <ToggleSwitch

@@ -215,7 +215,10 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           { label: 'Jurnal', href: '/accounting/journals' },
           { label: 'Buat Jurnal', href: '/accounting/journals/new' },
           { label: 'Import Jurnal CSV', href: '/accounting/journals/import' },
-          { label: 'Bukti Transaksi', href: '/correspondence?classification=finance&direction=internal' },
+          {
+            label: 'Bukti Transaksi',
+            href: '/correspondence?classification=finance&direction=internal',
+          },
           { label: 'Daftar Utang', href: '/accounting/payables' },
           { label: 'Daftar Piutang', href: '/accounting/receivables' },
           { label: 'Aset Tetap', href: '/accounting/assets' },
@@ -323,7 +326,8 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
       {
         id: 'permissions',
         eyebrow: 'Security',
-        title: 'Permission, role, dan audit akses {perm=settings.manage} {audience=management,developer}',
+        title:
+          'Permission, role, dan audit akses {perm=settings.manage} {audience=management,developer}',
         summary:
           'Permission menentukan menu dan aksi yang boleh dilakukan user. Pengaturan ini mendukung prinsip least privilege: user hanya mendapat akses yang diperlukan untuk pekerjaannya.',
         steps: [
@@ -597,7 +601,10 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           { label: 'Journals', href: '/accounting/journals' },
           { label: 'Create Journal', href: '/accounting/journals/new' },
           { label: 'Import Journal CSV', href: '/accounting/journals/import' },
-          { label: 'Transaction Evidence', href: '/correspondence?classification=finance&direction=internal' },
+          {
+            label: 'Transaction Evidence',
+            href: '/correspondence?classification=finance&direction=internal',
+          },
           { label: 'Payables', href: '/accounting/payables' },
           { label: 'Receivables', href: '/accounting/receivables' },
           { label: 'Fixed Assets', href: '/accounting/assets' },

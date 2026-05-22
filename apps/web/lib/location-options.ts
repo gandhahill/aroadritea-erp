@@ -45,9 +45,8 @@ export async function getActiveLocationOptions({
     // outlets share a code/name prefix. Falls back to code-only or the
     // raw UUID only if both fields are empty (defensive — should never
     // happen for a valid seeded outlet).
-    const label = localized && row.code
-      ? `${row.code} · ${localized}`
-      : localized || row.code || row.id;
+    const label =
+      localized && row.code ? `${row.code} · ${localized}` : localized || row.code || row.id;
     return {
       id: row.id,
       code: row.code,

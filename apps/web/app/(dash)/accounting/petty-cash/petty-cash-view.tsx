@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
 import type {
   PettyCashAccountItem,
@@ -12,7 +13,6 @@ import {
   expenseAction,
   replenishAction,
 } from './actions';
-import { useRouter } from 'next/navigation';
 
 function formatRupiah(amount: string): string {
   const n = Number(amount);
@@ -50,15 +50,15 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
   /** Per-outlet form state — each outlet has its own plafond + modal
    * pembukaan since allocation differs by store size (e.g., outlet
    * besar Rp 1.000.000, outlet kecil Rp 300.000). */
-  const [forms, setForms] = useState<
-    Record<string, { maxLimit: string; openingBalance: string }>
-  >(() => {
-    const init: Record<string, { maxLimit: string; openingBalance: string }> = {};
-    for (const loc of emptyLocations) {
-      init[loc.id] = { maxLimit: '500000', openingBalance: '500000' };
-    }
-    return init;
-  });
+  const [forms, setForms] = useState<Record<string, { maxLimit: string; openingBalance: string }>>(
+    () => {
+      const init: Record<string, { maxLimit: string; openingBalance: string }> = {};
+      for (const loc of emptyLocations) {
+        init[loc.id] = { maxLimit: '500000', openingBalance: '500000' };
+      }
+      return init;
+    },
+  );
 
   function setForm(locationId: string, field: 'maxLimit' | 'openingBalance', value: string) {
     setForms((prev) => ({
@@ -466,9 +466,7 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                   className="mt-1 h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink focus:outline-none"
                 />
               </label>
-              {actionError ? (
-                <p className="text-xs text-rose-600">{actionError}</p>
-              ) : null}
+              {actionError ? <p className="text-xs text-rose-600">{actionError}</p> : null}
             </div>
             <div className="grid grid-cols-2 gap-2 border-t border-brand-cream-3 p-5">
               <button

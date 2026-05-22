@@ -186,9 +186,7 @@ export default async function DocsPage({
   const canEditDocs = userId ? await can(userId, 'docs.edit') : false;
   const params = await searchParams;
   const audience: Audience =
-    params.audience === 'management' || params.audience === 'developer'
-      ? params.audience
-      : 'staff';
+    params.audience === 'management' || params.audience === 'developer' ? params.audience : 'staff';
 
   // RBAC: filter sections whose H2 has `{perm=…}` and the user lacks it.
   const allowedH2Ids = new Set<string>();

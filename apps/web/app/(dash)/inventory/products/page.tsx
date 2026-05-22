@@ -1,7 +1,7 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import { getLocale, getTranslations } from 'next-intl/server';
 import { displayAssetUrl } from '@/lib/display-asset-url';
+import type { Metadata } from 'next';
+import { getLocale, getTranslations } from 'next-intl/server';
+import Link from 'next/link';
 import { fetchProductMasterData } from './actions';
 import { CategoryForm } from './category-form';
 import { ProductRowActions } from './row-actions';
@@ -85,9 +85,10 @@ export default async function ProductsPage({ searchParams }: Props) {
       <div className="flex flex-wrap gap-2">
         {KIND_TABS.map((tab) => {
           const isActive = tab.value === 'all' ? !validKind : validKind === tab.value;
-          const href = tab.value === 'all'
-            ? `/inventory/products${search ? `?q=${encodeURIComponent(search)}` : ''}`
-            : `/inventory/products?kind=${tab.value}${search ? `&q=${encodeURIComponent(search)}` : ''}`;
+          const href =
+            tab.value === 'all'
+              ? `/inventory/products${search ? `?q=${encodeURIComponent(search)}` : ''}`
+              : `/inventory/products?kind=${tab.value}${search ? `&q=${encodeURIComponent(search)}` : ''}`;
           return (
             <Link
               key={tab.value}
@@ -133,7 +134,9 @@ export default async function ProductsPage({ searchParams }: Props) {
 
       <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
         <div className="border-b border-brand-cream-3 px-5 py-4">
-          <p className="text-sm font-semibold text-brand-ink">{t('count', { count: data.total })}</p>
+          <p className="text-sm font-semibold text-brand-ink">
+            {t('count', { count: data.total })}
+          </p>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
@@ -174,18 +177,26 @@ export default async function ProductsPage({ searchParams }: Props) {
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 font-semibold text-brand-ink">{localized(product.name, locale)}</td>
+                    <td className="px-4 py-3 font-semibold text-brand-ink">
+                      {localized(product.name, locale)}
+                    </td>
                     <td className="px-4 py-3 text-brand-ink-3">
                       {product.categoryCode || localized(product.categoryName, locale) || '-'}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        product.kind === 'finished_good' ? 'bg-brand-jade-light text-brand-jade' :
-                        product.kind === 'raw_material' ? 'bg-amber-100 text-amber-700' :
-                        product.kind === 'merchandise' ? 'bg-blue-100 text-blue-700' :
-                        product.kind === 'consumable' ? 'bg-purple-100 text-purple-700' :
-                        'bg-brand-cream-2 text-brand-ink-3'
-                      }`}>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          product.kind === 'finished_good'
+                            ? 'bg-brand-jade-light text-brand-jade'
+                            : product.kind === 'raw_material'
+                              ? 'bg-amber-100 text-amber-700'
+                              : product.kind === 'merchandise'
+                                ? 'bg-blue-100 text-blue-700'
+                                : product.kind === 'consumable'
+                                  ? 'bg-purple-100 text-purple-700'
+                                  : 'bg-brand-cream-2 text-brand-ink-3'
+                        }`}
+                      >
                         {t(KIND_LABEL_KEYS[product.kind as ProductKind] ?? 'kind')}
                       </span>
                     </td>
@@ -214,10 +225,7 @@ export default async function ProductsPage({ searchParams }: Props) {
                         >
                           {t('edit')}
                         </Link>
-                        <ProductRowActions
-                          productId={product.id}
-                          isActive={product.isActive}
-                        />
+                        <ProductRowActions productId={product.id} isActive={product.isActive} />
                       </div>
                     </td>
                   </tr>
@@ -258,12 +266,15 @@ function formatRupiah(value: string, locale: string) {
  * This keeps the table compact while reflecting that each variant
  * has its own price (per user request 2026-05-19).
  */
-function formatPrice(product: {
-  defaultSellPrice: string;
-  variantCount: number;
-  variantPriceMin: string | null;
-  variantPriceMax: string | null;
-}, locale: string): string {
+function formatPrice(
+  product: {
+    defaultSellPrice: string;
+    variantCount: number;
+    variantPriceMin: string | null;
+    variantPriceMax: string | null;
+  },
+  locale: string,
+): string {
   if (product.variantCount === 0 || !product.variantPriceMin) {
     return formatRupiah(product.defaultSellPrice, locale);
   }
@@ -272,4 +283,3 @@ function formatPrice(product: {
   }
   return `${formatRupiah(product.variantPriceMin, locale)} - ${formatRupiah(product.variantPriceMax, locale)}`;
 }
-

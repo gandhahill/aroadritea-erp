@@ -204,45 +204,27 @@ const MENU_PRODUCTS: MenuProduct[] = [
     'cold',
     'hot',
   ]),
-  tea(
-    'FT-OSM',
-    'FRESH_TEA',
-    'Osmanthus Oolong Fresh Tea',
-    '桂花乌龙鲜茶',
-    32000,
-    42000,
-    ['cold', 'hot'],
-  ),
+  tea('FT-OSM', 'FRESH_TEA', 'Osmanthus Oolong Fresh Tea', '桂花乌龙鲜茶', 32000, 42000, [
+    'cold',
+    'hot',
+  ]),
   tea('FT-JAS', 'FRESH_TEA', 'Jasmine Green Fresh Tea', '茉莉绿鲜茶', 33000, 43000, [
     'cold',
     'hot',
   ]),
-  tea('FT-CEY', 'FRESH_TEA', 'Ceylon Black Fresh Tea', '锡兰红鲜茶', 33000, 43000, [
-    'cold',
-    'hot',
-  ]),
+  tea('FT-CEY', 'FRESH_TEA', 'Ceylon Black Fresh Tea', '锡兰红鲜茶', 33000, 43000, ['cold', 'hot']),
   tea('FT-ROY', 'FRESH_TEA', 'Roasted Fragrant Yellow Fresh Tea', '焙香黄鲜茶', 32000, 42000, [
     'cold',
     'hot',
   ]),
-  tea(
-    'FT-GLU',
-    'FRESH_TEA',
-    'Glutinous Fragrant Green Fresh Tea',
-    '糯香绿鲜茶',
-    33000,
-    43000,
-    ['cold', 'hot'],
-  ),
-  tea(
-    'FT-BIL',
-    'FRESH_TEA',
-    'Buckwheat Biluochun Fresh Tea',
-    '荞麦碧螺春鲜茶',
-    35000,
-    45000,
-    ['cold', 'hot'],
-  ),
+  tea('FT-GLU', 'FRESH_TEA', 'Glutinous Fragrant Green Fresh Tea', '糯香绿鲜茶', 33000, 43000, [
+    'cold',
+    'hot',
+  ]),
+  tea('FT-BIL', 'FRESH_TEA', 'Buckwheat Biluochun Fresh Tea', '荞麦碧螺春鲜茶', 35000, 45000, [
+    'cold',
+    'hot',
+  ]),
   tea(
     'LFT-GLU',
     'LEMON_FRESH_TEA',

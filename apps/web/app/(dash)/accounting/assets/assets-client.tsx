@@ -391,9 +391,7 @@ export function AssetsClient({
               />
               <div className="grid gap-2 md:col-span-2 xl:col-span-1">
                 <label className="space-y-1">
-                  <span className="text-xs font-medium text-brand-ink-3">
-                    {t('defaultMethod')}
-                  </span>
+                  <span className="text-xs font-medium text-brand-ink-3">{t('defaultMethod')}</span>
                   <select
                     name="defaultDepreciationMethod"
                     defaultValue={category.defaultDepreciationMethod}

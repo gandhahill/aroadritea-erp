@@ -20,8 +20,8 @@ export default async function RecipesPage() {
       <div>
         <h1 className="text-2xl font-bold text-brand-ink">Resep (BOM)</h1>
         <p className="mt-1 max-w-3xl text-sm text-brand-ink-3">
-          Atur komposisi bahan baku per produk jadi. Sistem memakai resep ini
-          untuk auto-deduct stok bahan saat POS menjual produk.
+          Atur komposisi bahan baku per produk jadi. Sistem memakai resep ini untuk auto-deduct stok
+          bahan saat POS menjual produk.
         </p>
       </div>
       <RecipesClient initial={data} />

@@ -31,9 +31,7 @@ export default async function LeavePage() {
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">HR</p>
         <h1 className="mt-2 text-2xl font-bold text-brand-ink">{t('title')}</h1>
-        <p className="mt-1 max-w-2xl text-sm text-brand-ink-3">
-          {t('subtitle')}
-        </p>
+        <p className="mt-1 max-w-2xl text-sm text-brand-ink-3">{t('subtitle')}</p>
       </div>
 
       <section className="grid gap-4 md:grid-cols-3">
@@ -51,7 +49,12 @@ export default async function LeavePage() {
           <Field name="nameId" label={t('nameId')} placeholder="Cuti Tahunan" required />
           <Field name="nameEn" label={t('nameEn')} placeholder="Annual Leave" />
           <Field name="nameZh" label={t('nameZh')} placeholder="年假" />
-          <Field name="annualQuotaDays" label={t('annualQuotaDays')} type="number" defaultValue="0" />
+          <Field
+            name="annualQuotaDays"
+            label={t('annualQuotaDays')}
+            type="number"
+            defaultValue="0"
+          />
           <div className="flex flex-wrap items-end gap-3">
             <Check name="isPaid" label={t('isPaid')} defaultChecked />
             <Check name="requiresApproval" label={t('requiresApproval')} defaultChecked />

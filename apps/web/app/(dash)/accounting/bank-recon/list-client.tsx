@@ -56,7 +56,10 @@ export function BankReconListClient({ statements, labels }: Props) {
           {statements.map((s) => (
             <tr key={s.id} className="hover:bg-brand-cream-1/50 transition-colors">
               <td className="px-4 py-3 font-medium text-brand-ink">
-                <Link href={`/accounting/bank-recon/${s.id}`} className="hover:text-brand-red hover:underline">
+                <Link
+                  href={`/accounting/bank-recon/${s.id}`}
+                  className="hover:text-brand-red hover:underline"
+                >
                   {s.date}
                 </Link>
               </td>

@@ -45,10 +45,13 @@ export async function fetchAuditTrail(filters: AuditTrailFilters): Promise<Audit
   const tenantId = String(user.tenantId ?? 'default');
   const userId = String(user.id ?? '');
   const permission = await requirePermission(userId, 'audit.view');
-  
+
   const parsedPageSize = Number.parseInt(filters.pageSize ?? '50', 10);
-  const pageSize = Math.max(1, Math.min(100, Number.isFinite(parsedPageSize) ? parsedPageSize : 50));
-  
+  const pageSize = Math.max(
+    1,
+    Math.min(100, Number.isFinite(parsedPageSize) ? parsedPageSize : 50),
+  );
+
   if (!permission.ok) return { rows: [], total: 0, page: 1, pageSize };
   const parsedPage = Number.parseInt(filters.page ?? '1', 10);
   const currentPage = Math.max(1, Number.isFinite(parsedPage) ? parsedPage : 1);
@@ -95,22 +98,22 @@ export async function fetchAuditTrail(filters: AuditTrailFilters): Promise<Audit
 
   return {
     rows: rows.map((row) => ({
-    id: row.id,
-    createdAt: row.createdAt.toISOString(),
-    userId: row.userId,
-    // Audit log keeps the raw user ID for forensic traceability, but the
-    // human-facing label prefers display name → email → "User dihapus".
-    // Showing the UUID to operators is unhelpful and reveals internal
-    // identifiers unnecessarily.
-    userLabel: row.userName
-      ? `${row.userName}${row.userEmail ? ` (${row.userEmail})` : ''}`
-      : (row.userEmail ?? 'User dihapus'),
-    action: row.action,
-    entityType: row.entityType,
-    entityId: row.entityId,
-    before: row.before,
-    after: row.after,
-    metadata: row.metadata,
+      id: row.id,
+      createdAt: row.createdAt.toISOString(),
+      userId: row.userId,
+      // Audit log keeps the raw user ID for forensic traceability, but the
+      // human-facing label prefers display name → email → "User dihapus".
+      // Showing the UUID to operators is unhelpful and reveals internal
+      // identifiers unnecessarily.
+      userLabel: row.userName
+        ? `${row.userName}${row.userEmail ? ` (${row.userEmail})` : ''}`
+        : (row.userEmail ?? 'User dihapus'),
+      action: row.action,
+      entityType: row.entityType,
+      entityId: row.entityId,
+      before: row.before,
+      after: row.after,
+      metadata: row.metadata,
     })),
     total: count,
     page: currentPage,

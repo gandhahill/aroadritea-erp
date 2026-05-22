@@ -55,7 +55,13 @@ export async function POST(request: Request) {
 
   try {
     assertUploadFile(uploadFile, imageOnly);
-    const stored = await storeUpload({ file: uploadFile, area, visibility, tenantId, uploadedBy: userId });
+    const stored = await storeUpload({
+      file: uploadFile,
+      area,
+      visibility,
+      tenantId,
+      uploadedBy: userId,
+    });
     return NextResponse.json(stored);
   } catch (error) {
     return NextResponse.json(

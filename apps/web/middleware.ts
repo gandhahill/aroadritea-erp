@@ -96,5 +96,3 @@ export const config = {
     '/((?!login|api/auth|api/healthz|_next/static|_next/image|favicon.ico|favicon.svg|logo-primary.png|manifest.json|sw.js|workbox-|icons/|photo/|brand/|images/|uploads/).*)',
   ],
 };
-
-

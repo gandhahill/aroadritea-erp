@@ -141,7 +141,13 @@ export async function getPublishedPageBySlug(
     const row = await db
       .select()
       .from(cmsPages)
-      .where(and(eq(cmsPages.tenantId, tenantId), eq(cmsPages.slug, slug), eq(cmsPages.status, 'published')))
+      .where(
+        and(
+          eq(cmsPages.tenantId, tenantId),
+          eq(cmsPages.slug, slug),
+          eq(cmsPages.status, 'published'),
+        ),
+      )
       .limit(1);
     if (!row[0]) return err(AppError.notFound('cms.page.notFound'));
     return ok(row[0]);
@@ -151,7 +157,9 @@ export async function getPublishedPageBySlug(
 }
 
 /** List all published pages (for public site nav/sitemap). */
-export async function listPublishedPages(tenantId: string): Promise<Result<Array<Record<string, unknown>>>> {
+export async function listPublishedPages(
+  tenantId: string,
+): Promise<Result<Array<Record<string, unknown>>>> {
   try {
     const rows = await db
       .select()

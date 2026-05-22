@@ -250,7 +250,10 @@ export interface JournalListPage {
 
 export async function fetchJournalList(page = 1, requestedPageSize = 20): Promise<JournalListPage> {
   const ctx = await getContext();
-  const pageSize = Math.max(1, Math.min(100, Number.isFinite(requestedPageSize) ? requestedPageSize : 20));
+  const pageSize = Math.max(
+    1,
+    Math.min(100, Number.isFinite(requestedPageSize) ? requestedPageSize : 20),
+  );
   if (!ctx) return { items: [], total: 0, page: 1, pageSize };
   const perm = await requirePermission(ctx.userId, 'accounting.view');
   if (!perm.ok) return { items: [], total: 0, page: 1, pageSize };
@@ -405,9 +408,10 @@ export async function createJournalAction(
       credit,
       partnerId,
       dueDate,
-      reminderDaysBefore: typeof reminderDaysBefore === 'number' && Number.isFinite(reminderDaysBefore)
-        ? Math.max(0, Math.min(365, reminderDaysBefore))
-        : undefined,
+      reminderDaysBefore:
+        typeof reminderDaysBefore === 'number' && Number.isFinite(reminderDaysBefore)
+          ? Math.max(0, Math.min(365, reminderDaysBefore))
+          : undefined,
     });
   }
 
@@ -560,7 +564,10 @@ export async function fetchJournalDetail(journalId: string): Promise<JournalDeta
       reminderDaysBefore: journalLines.reminderDaysBefore,
     })
     .from(journalLines)
-    .leftJoin(partners, and(eq(partners.id, journalLines.partnerId), eq(partners.tenantId, ctx.tenantId)))
+    .leftJoin(
+      partners,
+      and(eq(partners.id, journalLines.partnerId), eq(partners.tenantId, ctx.tenantId)),
+    )
     .where(eq(journalLines.journalEntryId, journalId));
 
   // Fetch account details for display
@@ -615,7 +622,7 @@ export async function serverExportJournals() {
 
   // Fetch up to 1000 latest journals for export
   const list = await fetchJournalList(1, 1000);
-  
+
   const headers = ['Number', 'Posting Date', 'Status', 'Description', 'Total Debit'];
   const rows = list.items.map((j) => [
     j.number,

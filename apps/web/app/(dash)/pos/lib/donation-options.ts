@@ -33,7 +33,7 @@ const ROUNDING_THRESHOLD = 100n;
 export function calculateDonation(
   changeAmount: bigint,
   option: RoundingOption,
-  customAmount: bigint = 0n,
+  customAmount = 0n,
 ): DonationResult {
   if (changeAmount <= 0n) {
     return {
@@ -86,11 +86,10 @@ export function calculateDonation(
   if (option === 'custom') {
     // Clamp to [0, changeAmount] — the cashier UI should already do
     // this, but defensive math here keeps the JE balanced.
-    const clamped = customAmount < 0n ? 0n : customAmount > changeAmount ? changeAmount : customAmount;
+    const clamped =
+      customAmount < 0n ? 0n : customAmount > changeAmount ? changeAmount : customAmount;
     const description =
-      clamped === 0n
-        ? 'Donasi nominal khusus'
-        : `Donasi nominal ${formatRp(clamped)}`;
+      clamped === 0n ? 'Donasi nominal khusus' : `Donasi nominal ${formatRp(clamped)}`;
     return {
       choice: { type: 'custom', amount: clamped, description },
       originalChange: changeAmount,

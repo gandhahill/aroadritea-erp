@@ -194,11 +194,7 @@ export const PERMISSIONS_SEED = [
   {
     code: 'accounting.fixed_asset.view',
     module: 'accounting',
-    description: n(
-      'Lihat daftar aset tetap',
-      'View fixed asset register',
-      '查看固定资产列表',
-    ),
+    description: n('Lihat daftar aset tetap', 'View fixed asset register', '查看固定资产列表'),
   },
   {
     code: 'accounting.fixed_asset.manage',
@@ -222,11 +218,7 @@ export const PERMISSIONS_SEED = [
   {
     code: 'accounting.bank_recon.manage',
     module: 'accounting',
-    description: n(
-      'Kelola rekonsiliasi bank',
-      'Manage bank reconciliation',
-      '管理银行对账',
-    ),
+    description: n('Kelola rekonsiliasi bank', 'Manage bank reconciliation', '管理银行对账'),
   },
   // Tax
   {
@@ -353,11 +345,7 @@ export const PERMISSIONS_SEED = [
   {
     code: 'inventory.adjust.approve',
     module: 'inventory',
-    description: n(
-      'Setujui penyesuaian stok',
-      'Approve stock adjustments',
-      '批准库存调整',
-    ),
+    description: n('Setujui penyesuaian stok', 'Approve stock adjustments', '批准库存调整'),
   },
   {
     code: 'inventory.opname',
@@ -506,7 +494,11 @@ export const PERMISSIONS_SEED = [
   {
     code: 'correspondence.delete',
     module: 'correspondence',
-    description: n('Arsipkan atau hapus surat', 'Archive or delete correspondence', '归档或删除信函'),
+    description: n(
+      'Arsipkan atau hapus surat',
+      'Archive or delete correspondence',
+      '归档或删除信函',
+    ),
   },
   // Member
   {

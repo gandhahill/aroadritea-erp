@@ -53,13 +53,7 @@ export interface DemoCartState {
   // `walk_in` retained as legacy alias — production POS migrated to
   // `dine_in` / `take_away`. Stored demo carts from older sessions might
   // still hold the old value.
-  channel:
-    | 'dine_in'
-    | 'take_away'
-    | 'walk_in'
-    | 'gofood'
-    | 'grabfood'
-    | 'shopeefood';
+  channel: 'dine_in' | 'take_away' | 'walk_in' | 'gofood' | 'grabfood' | 'shopeefood';
   lines: DemoCartLine[];
   payments: DemoCartPayment[];
   notes: string;
@@ -101,7 +95,10 @@ export function calcDemoTotals(state: DemoCartState): {
     (sum, l) => sum + BigInt(l.unitPrice) * BigInt(l.qty),
     BigInt(0),
   );
-  const totalDiscount = state.lines.reduce((sum, l) => sum + BigInt(l.lineDiscount ?? '0'), BigInt(0));
+  const totalDiscount = state.lines.reduce(
+    (sum, l) => sum + BigInt(l.lineDiscount ?? '0'),
+    BigInt(0),
+  );
   const subtotalAfterDiscount = subtotal - totalDiscount;
   // PB1 is inclusive — back-out tax: tax = subtotal * 10 / 110
   const taxTotal = (subtotalAfterDiscount * BigInt(10)) / BigInt(110);

@@ -10,7 +10,6 @@
  * The snapshot timestamp is stored in demo meta so we can warn if >24h old.
  */
 
-import type { DbModifier, DbProduct, DbPromotion, DbTaxRate, DbVariant } from './indexeddb';
 import {
   DEMO_META_KEYS,
   getDemoMeta,
@@ -23,6 +22,7 @@ import {
   upsertDemoTaxRates,
   upsertDemoVariants,
 } from './demo-db';
+import type { DbModifier, DbProduct, DbPromotion, DbTaxRate, DbVariant } from './indexeddb';
 import {
   getActivePromotions,
   getModifiers,

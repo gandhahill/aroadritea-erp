@@ -32,24 +32,26 @@ export type CloseShiftInput = z.infer<typeof CloseShiftInputSchema>;
 
 // ─── Sales Order ──────────────────────────────────────────────────────────────
 
-const LineInputSchema = z.object({
-  productId: z.string().min(1),
-  variantId: z.string().optional(),
-  qty: z.number().int().positive(),
-  unitPrice: z.string().regex(/^\d+$/), // bigint rupiah (inclusive PB1)
-  lineDiscount: z.string().regex(/^\d+$/).optional().default('0'),
-  lineDiscountReason: z.string().trim().min(3).max(255).optional(),
-  modifierJson: z.record(z.string(), z.unknown()).optional(),
-  notes: z.string().optional(),
-}).superRefine((line, ctx) => {
-  if (BigInt(line.lineDiscount ?? '0') > BigInt(0) && !line.lineDiscountReason) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['lineDiscountReason'],
-      message: 'Manual discount reason is required',
-    });
-  }
-});
+const LineInputSchema = z
+  .object({
+    productId: z.string().min(1),
+    variantId: z.string().optional(),
+    qty: z.number().int().positive(),
+    unitPrice: z.string().regex(/^\d+$/), // bigint rupiah (inclusive PB1)
+    lineDiscount: z.string().regex(/^\d+$/).optional().default('0'),
+    lineDiscountReason: z.string().trim().min(3).max(255).optional(),
+    modifierJson: z.record(z.string(), z.unknown()).optional(),
+    notes: z.string().optional(),
+  })
+  .superRefine((line, ctx) => {
+    if (BigInt(line.lineDiscount ?? '0') > BigInt(0) && !line.lineDiscountReason) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['lineDiscountReason'],
+        message: 'Manual discount reason is required',
+      });
+    }
+  });
 
 const PaymentInputSchema = z.object({
   method: z.string().regex(/^[a-z0-9_-]{2,32}$/),
@@ -86,7 +88,10 @@ export const CreateManualSalesClosingInputSchema = z.object({
   locationId: z.string().min(1),
   salesDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   channel: ChannelSchema.default('walk_in'),
-  paymentMethod: z.string().regex(/^[a-z0-9_-]{2,32}$/).default('cash'),
+  paymentMethod: z
+    .string()
+    .regex(/^[a-z0-9_-]{2,32}$/)
+    .default('cash'),
   grossSales: z.string().regex(/^\d+$/),
   discountTotal: z.string().regex(/^\d+$/).optional().default('0'),
   transactionCount: z.number().int().min(0).optional().default(0),

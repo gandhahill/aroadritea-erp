@@ -29,10 +29,7 @@ export async function recordAuthEvent(args: {
     const userId = user?.id ? String(user.id) : null;
 
     const hdrs = await headers();
-    const ip =
-      hdrs.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-      hdrs.get('x-real-ip') ??
-      null;
+    const ip = hdrs.get('x-forwarded-for')?.split(',')[0]?.trim() ?? hdrs.get('x-real-ip') ?? null;
     const ua = hdrs.get('user-agent') ?? null;
 
     await db.insert(auditLog).values({

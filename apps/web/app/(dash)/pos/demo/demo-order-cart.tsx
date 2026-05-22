@@ -86,7 +86,9 @@ function DemoLineItem({
         </div>
 
         <div className="text-right">
-          <p className="text-sm font-semibold text-brand-ink">{formatRupiah(lineTotal.toString())}</p>
+          <p className="text-sm font-semibold text-brand-ink">
+            {formatRupiah(lineTotal.toString())}
+          </p>
           {lineDiscount > BigInt(0) && (
             <p className="text-xs text-brand-red line-through">
               {formatRupiah(lineSubtotal.toString())}

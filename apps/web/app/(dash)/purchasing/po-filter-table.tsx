@@ -146,9 +146,7 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-8 text-center text-brand-ink-3">
-                  {purchaseOrders.length === 0
-                    ? t('emptyPo')
-                    : t('emptyFilter')}
+                  {purchaseOrders.length === 0 ? t('emptyPo') : t('emptyFilter')}
                 </td>
               </tr>
             ) : (

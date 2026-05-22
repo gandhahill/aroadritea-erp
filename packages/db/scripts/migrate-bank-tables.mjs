@@ -87,8 +87,12 @@ try {
     console.log(`  ✅ ${name}`);
   }
 
-  const result = await sql`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE 'bank%' ORDER BY table_name`;
-  console.log('\n✅ Bank tables now in DB:', result.map(r => r.table_name));
+  const result =
+    await sql`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE 'bank%' ORDER BY table_name`;
+  console.log(
+    '\n✅ Bank tables now in DB:',
+    result.map((r) => r.table_name),
+  );
 } catch (err) {
   console.error('❌ Failed:', err.message);
   process.exit(1);

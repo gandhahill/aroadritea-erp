@@ -12,7 +12,6 @@
 
 import {
   Bar,
-  BarChart as RechartsBar,
   CartesianGrid,
   Cell,
   Legend,
@@ -20,6 +19,7 @@ import {
   LineChart,
   Pie,
   PieChart,
+  BarChart as RechartsBar,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -40,7 +40,11 @@ const formatRupiahShort = (value: number, locale: string): string => {
 };
 
 const formatRupiahFull = (value: number, locale: string): string =>
-  new Intl.NumberFormat(locale, { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
+  new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(value);
 
 interface TrendDatum {
   label: string;
@@ -70,7 +74,10 @@ export function TrendLineChart({
         <LineChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
           <XAxis dataKey="label" tick={{ fontSize: 10, fill: BRAND_INK_3 }} />
-          <YAxis tickFormatter={(value) => formatRupiahShort(Number(value), locale)} tick={{ fontSize: 10, fill: BRAND_INK_3 }} />
+          <YAxis
+            tickFormatter={(value) => formatRupiahShort(Number(value), locale)}
+            tick={{ fontSize: 10, fill: BRAND_INK_3 }}
+          />
           <Tooltip
             formatter={(value) => formatRupiahFull(Number(value), locale)}
             labelStyle={{ color: BRAND_INK_3, fontSize: 12 }}
@@ -113,7 +120,11 @@ export function HorizontalBarChart({
           margin={{ top: 4, right: 16, left: 8, bottom: 0 }}
         >
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(0,0,0,0.06)" />
-          <XAxis type="number" tickFormatter={(value) => formatRupiahShort(Number(value), locale)} tick={{ fontSize: 10, fill: BRAND_INK_3 }} />
+          <XAxis
+            type="number"
+            tickFormatter={(value) => formatRupiahShort(Number(value), locale)}
+            tick={{ fontSize: 10, fill: BRAND_INK_3 }}
+          />
           <YAxis
             type="category"
             dataKey="label"
@@ -143,13 +154,13 @@ export function VerticalBarChart({
   return (
     <div style={{ width: '100%', height }}>
       <ResponsiveContainer>
-        <RechartsBar
-          data={data}
-          margin={{ top: 4, right: 4, left: 8, bottom: 0 }}
-        >
+        <RechartsBar data={data} margin={{ top: 4, right: 4, left: 8, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
           <XAxis dataKey="label" tick={{ fontSize: 9, fill: BRAND_INK_3 }} interval={0} />
-          <YAxis tickFormatter={(value) => formatRupiahShort(Number(value), locale)} tick={{ fontSize: 10, fill: BRAND_INK_3 }} />
+          <YAxis
+            tickFormatter={(value) => formatRupiahShort(Number(value), locale)}
+            tick={{ fontSize: 10, fill: BRAND_INK_3 }}
+          />
           <Tooltip
             formatter={(value) => formatRupiahFull(Number(value), locale)}
             labelStyle={{ color: BRAND_INK_3, fontSize: 12 }}

@@ -273,9 +273,7 @@ export function VarianceClient({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            {t('subtitle')}
-          </p>
+          <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle')}</p>
         </div>
         {report && <ExportXlsxButton onExport={() => exportXLSX(report, t)} />}
       </div>
@@ -378,9 +376,7 @@ export function VarianceClient({
             />
           </svg>
           <h3 className="mt-3 text-base font-semibold text-brand-ink">{t('emptyState.title')}</h3>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            {t('emptyState.subtitle')}
-          </p>
+          <p className="mt-1 text-sm text-brand-ink-3">{t('emptyState.subtitle')}</p>
         </div>
       )}
 
@@ -427,7 +423,9 @@ export function VarianceClient({
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Surplus vs Shortage donut */}
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-              <h3 className="mb-4 text-sm font-semibold text-brand-ink">{t('charts.varianceDistribution')}</h3>
+              <h3 className="mb-4 text-sm font-semibold text-brand-ink">
+                {t('charts.varianceDistribution')}
+              </h3>
               <div className="flex items-center justify-center">
                 <VarianceDonut
                   surplus={report.summary.totalSurplusValue}

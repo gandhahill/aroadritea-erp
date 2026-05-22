@@ -29,7 +29,11 @@ export default async function PosOrdersPage({ searchParams }: Props) {
   const page = Number.parseInt(pageParam ?? '1', 10);
   const pageSize = Number.parseInt(pageSizeParam ?? '20', 10);
   const [data, pagination] = await Promise.all([
-    fetchTodaysOrders(date, Number.isFinite(page) ? page : 1, Number.isFinite(pageSize) ? pageSize : 20),
+    fetchTodaysOrders(
+      date,
+      Number.isFinite(page) ? page : 1,
+      Number.isFinite(pageSize) ? pageSize : 20,
+    ),
     getTranslations('common.pagination'),
   ]);
 
@@ -53,8 +57,8 @@ export default async function PosOrdersPage({ searchParams }: Props) {
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">POS</p>
           <h1 className="mt-1 text-2xl font-bold text-brand-ink">Riwayat Pesanan</h1>
           <p className="mt-1 max-w-2xl text-sm text-brand-ink-3">
-            Daftar transaksi penjualan untuk lokasi ini. Klik baris untuk melihat detail dan,
-            jika diizinkan, void atau refund.
+            Daftar transaksi penjualan untuk lokasi ini. Klik baris untuk melihat detail dan, jika
+            diizinkan, void atau refund.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -64,11 +68,7 @@ export default async function PosOrdersPage({ searchParams }: Props) {
       </div>
 
       <OrdersClient rows={data.rows} />
-      <Pagination 
-        currentPage={data.page} 
-        totalItems={data.total} 
-        pageSize={data.pageSize} 
-      />
+      <Pagination currentPage={data.page} totalItems={data.total} pageSize={data.pageSize} />
     </div>
   );
 }

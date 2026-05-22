@@ -61,9 +61,7 @@ export default async function NotificationsPage() {
 
       <div className="rounded-xl border border-brand-cream-3 bg-card">
         {items.length === 0 ? (
-          <div className="py-12 text-center text-sm text-brand-ink-3">
-            Belum ada notifikasi.
-          </div>
+          <div className="py-12 text-center text-sm text-brand-ink-3">Belum ada notifikasi.</div>
         ) : (
           <ul className="divide-y divide-brand-cream-3">
             {items.map((n) => (
@@ -74,7 +72,9 @@ export default async function NotificationsPage() {
                 }`}
               >
                 <span className="mt-1 inline-flex h-2 w-2 shrink-0 rounded-full bg-brand-red">
-                  {n.readAt ? <span className="block h-full w-full rounded-full bg-brand-ink-3/30" /> : null}
+                  {n.readAt ? (
+                    <span className="block h-full w-full rounded-full bg-brand-ink-3/30" />
+                  ) : null}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-brand-ink">{n.title}</p>

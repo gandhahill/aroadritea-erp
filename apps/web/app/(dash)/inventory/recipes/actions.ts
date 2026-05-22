@@ -2,8 +2,8 @@
 
 import { getSession } from '@/lib/auth';
 import { and, db, eq, isNull, sql } from '@erp/db';
-import { bomLines, boms, products } from '@erp/db/schema/inventory';
 import { auditLog } from '@erp/db/schema/audit';
+import { bomLines, boms, products } from '@erp/db/schema/inventory';
 import { requirePermission } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
@@ -193,7 +193,7 @@ export async function createRecipeAction(input: {
     createdBy: c.userId,
     updatedBy: c.userId,
   });
-  
+
   await db.insert(auditLog).values({
     id: generateId(),
     tenantId: c.tenantId,
@@ -207,7 +207,7 @@ export async function createRecipeAction(input: {
       description: input.description?.trim() || null,
     },
   });
-  
+
   revalidatePath('/inventory/recipes');
   return { ok: true, id };
 }
@@ -246,7 +246,7 @@ export async function addRecipeLineAction(input: {
     isOptional: input.isOptional ?? false,
     autoDeduct: input.autoDeduct ?? true,
   });
-  
+
   await db.insert(auditLog).values({
     id: generateId(),
     tenantId: c.tenantId,
@@ -262,7 +262,7 @@ export async function addRecipeLineAction(input: {
       autoDeduct: input.autoDeduct ?? true,
     },
   });
-  
+
   revalidatePath('/inventory/recipes');
   return { ok: true };
 }
@@ -275,7 +275,7 @@ export async function deleteRecipeLineAction(
   const perm = await requirePermission(c.userId, 'inventory.product.update');
   if (!perm.ok) return { ok: false, error: 'Forbidden' };
   await db.delete(bomLines).where(eq(bomLines.id, lineId));
-  
+
   await db.insert(auditLog).values({
     id: generateId(),
     tenantId: c.tenantId,
@@ -284,7 +284,7 @@ export async function deleteRecipeLineAction(
     entityType: 'bom_line',
     entityId: lineId,
   });
-  
+
   revalidatePath('/inventory/recipes');
   return { ok: true };
 }
@@ -299,7 +299,7 @@ export async function deleteRecipeAction(bomId: string): Promise<{ ok: boolean; 
     .update(boms)
     .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: c.userId })
     .where(eq(boms.id, bomId));
-    
+
   await db.insert(auditLog).values({
     id: generateId(),
     tenantId: c.tenantId,
@@ -308,7 +308,7 @@ export async function deleteRecipeAction(bomId: string): Promise<{ ok: boolean; 
     entityType: 'bom',
     entityId: bomId,
   });
-  
+
   revalidatePath('/inventory/recipes');
   return { ok: true };
 }

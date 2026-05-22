@@ -6,8 +6,8 @@
  * Uses i18n keys from auth.login.* namespace.
  */
 
-import { authClient } from '@/lib/auth-client';
 import { recordAuthEvent } from '@/lib/audit-auth';
+import { authClient } from '@/lib/auth-client';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, Suspense, useState } from 'react';

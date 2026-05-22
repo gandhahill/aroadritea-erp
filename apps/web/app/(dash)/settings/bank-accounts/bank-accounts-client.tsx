@@ -57,12 +57,12 @@ export function BankAccountsClient({ accounts, coaAccounts, labels }: Props) {
 
   const sortedRows = useMemo(
     () => rows.map((row, index) => ({ row, key: row.id ?? `new-${index}` })),
-    [rows]
+    [rows],
   );
 
   function updateRow(index: number, patch: Partial<BankAccountDraft>) {
     setRows((prev) =>
-      prev.map((row, rowIndex) => (rowIndex === index ? { ...row, ...patch } : row))
+      prev.map((row, rowIndex) => (rowIndex === index ? { ...row, ...patch } : row)),
     );
   }
 
@@ -79,11 +79,7 @@ export function BankAccountsClient({ accounts, coaAccounts, labels }: Props) {
       setResult(response);
       setPendingId(null);
       if (response.success && !row.id) {
-        setRows((prev) =>
-          prev.map((item) =>
-            item === row ? { ...item, id: response.id } : item
-          )
-        );
+        setRows((prev) => prev.map((item) => (item === row ? { ...item, id: response.id } : item)));
       }
     });
   }
@@ -204,9 +200,7 @@ export function BankAccountsClient({ accounts, coaAccounts, labels }: Props) {
                         disabled={isPending && pendingId === (row.id ?? 'new')}
                         className="rounded-md bg-brand-red px-3 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        {isPending && pendingId === (row.id ?? 'new')
-                          ? labels.saving
-                          : labels.save}
+                        {isPending && pendingId === (row.id ?? 'new') ? labels.saving : labels.save}
                       </button>
                       <button
                         type="button"

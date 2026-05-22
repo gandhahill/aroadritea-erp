@@ -4,9 +4,9 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
 import {
+  type PermissionMatrix,
   createRoleAction,
   deleteRoleAction,
-  type PermissionMatrix,
   setRolePermission,
   updateRoleAction,
 } from './actions';
@@ -130,9 +130,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
         <div className="mb-4">
           <h2 className="text-base font-semibold text-brand-ink">Role</h2>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            {t('subtitle')}
-          </p>
+          <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle')}</p>
         </div>
         <div className="grid gap-3 md:grid-cols-[1fr_1.3fr_1.3fr_1.3fr_auto]">
           <Input
@@ -185,9 +183,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-ink-3">
                     Kode
                   </p>
-                  <p className="mt-2 font-mono text-xs font-semibold text-brand-ink">
-                    {role.code}
-                  </p>
+                  <p className="mt-2 font-mono text-xs font-semibold text-brand-ink">{role.code}</p>
                 </div>
                 <Input
                   label="Nama ID"
@@ -267,29 +263,31 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                 {permissions.map((permission) => {
                   const desc = permission.description as Record<string, string> | null;
                   return (
-                  <tr key={permission.id} className="hover:bg-brand-cream-1/60">
-                    <td className="sticky left-0 z-10 bg-card px-4 py-3">
-                      <p className="font-mono text-xs font-semibold text-brand-ink">
-                        {permission.code}
-                      </p>
-                      {desc && (
-                        <p className="mt-0.5 text-[11px] text-brand-ink-3">
-                          {desc.id ?? desc.en ?? ''}
+                    <tr key={permission.id} className="hover:bg-brand-cream-1/60">
+                      <td className="sticky left-0 z-10 bg-card px-4 py-3">
+                        <p className="font-mono text-xs font-semibold text-brand-ink">
+                          {permission.code}
                         </p>
-                      )}
-                    </td>
-                    {matrix.roles.map((role) => (
-                      <td key={role.id} className="px-4 py-3 text-center">
-                        <input
-                          type="checkbox"
-                          checked={isGranted(role.id, permission.id)}
-                          onChange={(event) => toggle(role.id, permission.id, event.target.checked)}
-                          className="h-4 w-4 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
-                          aria-label={`${role.code} ${permission.code}`}
-                        />
+                        {desc && (
+                          <p className="mt-0.5 text-[11px] text-brand-ink-3">
+                            {desc.id ?? desc.en ?? ''}
+                          </p>
+                        )}
                       </td>
-                    ))}
-                  </tr>
+                      {matrix.roles.map((role) => (
+                        <td key={role.id} className="px-4 py-3 text-center">
+                          <input
+                            type="checkbox"
+                            checked={isGranted(role.id, permission.id)}
+                            onChange={(event) =>
+                              toggle(role.id, permission.id, event.target.checked)
+                            }
+                            className="h-4 w-4 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
+                            aria-label={`${role.code} ${permission.code}`}
+                          />
+                        </td>
+                      ))}
+                    </tr>
                   );
                 })}
               </tbody>

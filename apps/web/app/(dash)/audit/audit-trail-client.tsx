@@ -1,9 +1,9 @@
 'use client';
 
+import { Pagination } from '@/components/pagination';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import type { AuditTrailFilters, AuditTrailPageData } from './actions';
-import { Pagination } from '@/components/pagination';
 
 export function AuditTrailClient({
   data,
@@ -146,11 +146,7 @@ export function AuditTrailClient({
             </tbody>
           </table>
         </div>
-        <Pagination 
-          currentPage={data.page} 
-          totalItems={data.total} 
-          pageSize={data.pageSize} 
-        />
+        <Pagination currentPage={data.page} totalItems={data.total} pageSize={data.pageSize} />
       </div>
     </div>
   );

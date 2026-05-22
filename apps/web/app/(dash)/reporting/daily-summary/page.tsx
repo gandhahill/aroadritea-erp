@@ -33,8 +33,7 @@ export default async function DailySummaryPage({
   const tenantId = (user.tenantId as string) ?? 'default';
   const sessionLocationId = user.locationId as string | undefined;
   const rawLocale = await getLocale().catch(() => 'id');
-  const locale: 'id' | 'en' | 'zh' =
-    rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
+  const locale: 'id' | 'en' | 'zh' = rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
   const locationOptions = await getActiveLocationOptions({ tenantId, locale, type: 'store' });
 
   const startDate = params.startDate ?? today;

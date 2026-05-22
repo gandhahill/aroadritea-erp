@@ -250,10 +250,12 @@ export function AttendanceListClient({
       {forgiveId ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-md rounded-xl bg-card p-5 shadow-xl">
-            <h3 className="text-base font-semibold text-brand-ink">Beri dispensasi keterlambatan</h3>
+            <h3 className="text-base font-semibold text-brand-ink">
+              Beri dispensasi keterlambatan
+            </h3>
             <p className="mt-1 text-sm text-brand-ink-3">
-              Catat alasan agar audit trail jelas. Setelah dispensasi, kejadian
-              ini tidak dihitung untuk denda payroll.
+              Catat alasan agar audit trail jelas. Setelah dispensasi, kejadian ini tidak dihitung
+              untuk denda payroll.
             </p>
             <textarea
               value={forgiveReason}
@@ -261,9 +263,7 @@ export function AttendanceListClient({
               placeholder="Mis. shift dimajukan dadakan oleh manajer."
               className="mt-3 h-24 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
             />
-            {forgiveErr ? (
-              <p className="mt-1 text-xs text-rose-600">{forgiveErr}</p>
-            ) : null}
+            {forgiveErr ? <p className="mt-1 text-xs text-rose-600">{forgiveErr}</p> : null}
             <div className="mt-4 flex justify-end gap-2">
               <button
                 type="button"

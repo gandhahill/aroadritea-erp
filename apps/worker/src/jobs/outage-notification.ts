@@ -372,7 +372,3 @@ async function sendAlerts(
     }
   }
 }
-
-
-
-

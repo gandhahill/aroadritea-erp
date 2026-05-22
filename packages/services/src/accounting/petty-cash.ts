@@ -7,15 +7,15 @@
 
 import { db } from '@erp/db';
 import { accounts, pettyCashAccounts, pettyCashTransactions } from '@erp/db/schema/accounting';
-import { posSettings } from '@erp/db/schema/pos';
 import { auditLog } from '@erp/db/schema/audit';
+import { posSettings } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, gte, sql } from 'drizzle-orm';
-import { createJournal } from './create-journal';
 import { requirePermission } from '../iam';
+import { createJournal } from './create-journal';
 import {
   type CreatePettyCashAccountInput,
   CreatePettyCashAccountSchema,
@@ -234,9 +234,7 @@ export async function recordPettyCashExpense(
           updatedAt: new Date(),
           updatedBy: ctx.userId,
         })
-        .where(
-          and(eq(pettyCashAccounts.id, acct.id), gte(pettyCashAccounts.balance, amount)),
-        )
+        .where(and(eq(pettyCashAccounts.id, acct.id), gte(pettyCashAccounts.balance, amount)))
         .returning({ balance: pettyCashAccounts.balance });
 
       const newBalance = updated[0]?.balance;
@@ -471,9 +469,7 @@ export async function depositPettyCashToBank(
           updatedAt: new Date(),
           updatedBy: ctx.userId,
         })
-        .where(
-          and(eq(pettyCashAccounts.id, acct.id), gte(pettyCashAccounts.balance, amount)),
-        )
+        .where(and(eq(pettyCashAccounts.id, acct.id), gte(pettyCashAccounts.balance, amount)))
         .returning({ balance: pettyCashAccounts.balance });
 
       const newBalance = updated[0]?.balance;

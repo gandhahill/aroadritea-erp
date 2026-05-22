@@ -109,9 +109,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
               <td className="px-4 py-3">
                 <KindBadge kind={code.modifierKind} />
               </td>
-              <td className="px-4 py-3 text-sm text-brand-ink">
-                {code.modifierOptionLabel}
-              </td>
+              <td className="px-4 py-3 text-sm text-brand-ink">{code.modifierOptionLabel}</td>
               <td className="px-4 py-3">
                 <code className="rounded bg-brand-cream-2 px-1.5 py-0.5 text-xs font-mono font-bold text-brand-ink">
                   {code.naixerCode}

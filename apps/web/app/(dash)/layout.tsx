@@ -58,7 +58,9 @@ export default async function DashboardLayout({
                 <p className="text-sm font-medium text-brand-ink">
                   {String(session.user?.name || t('accountFallback'))}
                 </p>
-                <p className="text-[11px] text-brand-ink-3 truncate max-w-[120px]">{String(session.user?.email || '')}</p>
+                <p className="text-[11px] text-brand-ink-3 truncate max-w-[120px]">
+                  {String(session.user?.email || '')}
+                </p>
               </div>
             </Link>
             <LogoutButton label={t('logout')} loadingLabel={t('loggingOut')} />
@@ -66,9 +68,7 @@ export default async function DashboardLayout({
         </header>
 
         {/* Page content */}
-        <main className="min-h-0 flex-1 overflow-y-auto bg-brand-cream p-4 sm:p-6">
-          {children}
-        </main>
+        <main className="min-h-0 flex-1 overflow-y-auto bg-brand-cream p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );

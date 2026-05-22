@@ -18,7 +18,10 @@ interface DemoReceiptPreviewProps {
 
 export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) {
   const t = useTranslations('pos');
-  const totalPaid = order.payments.reduce((sum, payment) => sum + BigInt(payment.amount), BigInt(0));
+  const totalPaid = order.payments.reduce(
+    (sum, payment) => sum + BigInt(payment.amount),
+    BigInt(0),
+  );
   const donationTotal = order.payments.reduce(
     (sum, payment) => sum + BigInt(payment.donationAmount ?? '0'),
     BigInt(0),
@@ -180,18 +183,14 @@ export function DemoReceiptPreview({ order, onClose }: DemoReceiptPreviewProps) 
         <div className="grid grid-cols-3 gap-2 border-t border-brand-cream-3 p-5">
           <button
             type="button"
-            onClick={() =>
-              window.open('/pos/print/demo-receipt', '_blank', 'width=420,height=720')
-            }
+            onClick={() => window.open('/pos/print/demo-receipt', '_blank', 'width=420,height=720')}
             className="h-11 rounded-lg border border-brand-cream-3 bg-brand-cream-2 text-xs font-medium text-brand-ink-2 hover:bg-brand-cream-3"
           >
             {t('printReceipt')}
           </button>
           <button
             type="button"
-            onClick={() =>
-              window.open('/pos/print/demo-label', '_blank', 'width=420,height=400')
-            }
+            onClick={() => window.open('/pos/print/demo-label', '_blank', 'width=420,height=400')}
             className="h-11 rounded-lg border border-brand-cream-3 bg-brand-cream-2 text-xs font-medium text-brand-ink-2 hover:bg-brand-cream-3"
           >
             Cetak Label

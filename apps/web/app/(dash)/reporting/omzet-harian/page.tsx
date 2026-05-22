@@ -31,8 +31,7 @@ export default async function OmzetHarianPage({
   // Respect the user's UI locale instead of hard-coding 'id', so a director
   // browsing in EN/ZH still sees a localized outlet label in the dropdown.
   const rawLocale = await getLocale().catch(() => 'id');
-  const locale: 'id' | 'en' | 'zh' =
-    rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
+  const locale: 'id' | 'en' | 'zh' = rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
   const locationOptions = await getActiveLocationOptions({ tenantId, locale, type: 'store' });
   const date = params.date ?? today;
   const locationId = resolveDefaultLocationId(locationOptions, params.location, sessionLocationId);

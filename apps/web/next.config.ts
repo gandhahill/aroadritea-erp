@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url';
+import withSerwistInit from '@serwist/next';
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
-import withSerwistInit from '@serwist/next';
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url));
 

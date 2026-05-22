@@ -151,7 +151,9 @@ function Heatmap({ data, t }: { data: HourlySalesResult; t: any }) {
                 {h}
               </th>
             ))}
-            <th className="px-3 py-2 text-right font-medium text-brand-ink-2">{t('columns.total')}</th>
+            <th className="px-3 py-2 text-right font-medium text-brand-ink-2">
+              {t('columns.total')}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -192,7 +194,9 @@ function Heatmap({ data, t }: { data: HourlySalesResult; t: any }) {
           })}
           {/* Hour totals row */}
           <tr className="bg-brand-cream-2 font-semibold">
-            <td className="sticky left-0 bg-brand-cream-2 px-3 py-2 text-brand-ink-2">{t('columns.totalUpper')}</td>
+            <td className="sticky left-0 bg-brand-cream-2 px-3 py-2 text-brand-ink-2">
+              {t('columns.totalUpper')}
+            </td>
             {STORE_HOURS.map((h) => {
               const cell = data.hourTotals[h]!;
               return (
@@ -224,14 +228,20 @@ function DayTable({ data, t }: { data: HourlySalesResult; t: any }) {
       <table className="w-full text-xs">
         <thead>
           <tr className="border-b border-brand-cream-3 bg-brand-cream-2">
-            <th className="px-4 py-2.5 text-left font-medium text-brand-ink-2">{t('columns.date')}</th>
+            <th className="px-4 py-2.5 text-left font-medium text-brand-ink-2">
+              {t('columns.date')}
+            </th>
             {STORE_HOURS.map((h) => (
               <th key={h} className="px-1.5 py-2.5 text-center font-medium text-brand-ink-2">
                 {h}
               </th>
             ))}
-            <th className="px-3 py-2.5 text-right font-medium text-brand-ink-2">{t('columns.totalTx')}</th>
-            <th className="px-3 py-2.5 text-right font-medium text-brand-ink-2">{t('columns.totalSales')}</th>
+            <th className="px-3 py-2.5 text-right font-medium text-brand-ink-2">
+              {t('columns.totalTx')}
+            </th>
+            <th className="px-3 py-2.5 text-right font-medium text-brand-ink-2">
+              {t('columns.totalSales')}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -294,7 +304,12 @@ function buildXlsxData(data: HourlySalesResult, t: any): Array<Array<string | nu
     });
     rows.push([t('columns.totalUpper'), ...totalHours, formatIDR(data.totalGrossSales)]);
   } else if (data.groupBy === 'day' && data.dayRows) {
-    rows.push([t('columns.date'), ...STORE_HOURS.map((h) => `${h}:00`), t('columns.totalTx'), t('columns.totalSales')]);
+    rows.push([
+      t('columns.date'),
+      ...STORE_HOURS.map((h) => `${h}:00`),
+      t('columns.totalTx'),
+      t('columns.totalSales'),
+    ]);
     for (const row of data.dayRows) {
       const dayTotalTx = Object.values(row.hourBreakdown).reduce((s, c) => s + c.txCount, 0);
       const dayTotalGross = Object.values(row.hourBreakdown).reduce(
@@ -393,9 +408,7 @@ export function HourlySalesClient({
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-brand-ink">{t('title')}</h1>
         {data && (
-          <ExportXlsxButton
-            onExport={() => handleExportXlsx(data, selectedLocationLabel, t)}
-          />
+          <ExportXlsxButton onExport={() => handleExportXlsx(data, selectedLocationLabel, t)} />
         )}
       </div>
 
@@ -473,9 +486,7 @@ export function HourlySalesClient({
           {groupBy === 'channel' && data.channelRows && (
             <>
               <div>
-                <h2 className="mb-2 text-sm font-semibold text-brand-ink-2">
-                  {t('heatmapTitle')}
-                </h2>
+                <h2 className="mb-2 text-sm font-semibold text-brand-ink-2">{t('heatmapTitle')}</h2>
                 <Heatmap data={data} t={t} />
               </div>
             </>

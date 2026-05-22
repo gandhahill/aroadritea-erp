@@ -29,7 +29,12 @@ function isEncrypted(value: string): boolean {
 }
 
 function deterministicIv(key: Buffer, field: string, value: string): Buffer {
-  return createHmac('sha256', key).update(field).update('\0').update(value).digest().subarray(0, 12);
+  return createHmac('sha256', key)
+    .update(field)
+    .update('\0')
+    .update(value)
+    .digest()
+    .subarray(0, 12);
 }
 
 export function encryptPii(value: string | null | undefined, field: string): string | null {
@@ -47,7 +52,10 @@ export function encryptPii(value: string | null | undefined, field: string): str
   return `${PREFIX}:${iv.toString('base64url')}:${tag.toString('base64url')}:${ciphertext.toString('base64url')}`;
 }
 
-export function encryptPiiForLookup(value: string | null | undefined, field: string): string | null {
+export function encryptPiiForLookup(
+  value: string | null | undefined,
+  field: string,
+): string | null {
   if (value === null || value === undefined) return null;
   const trimmed = value.trim();
   if (!trimmed) return null;

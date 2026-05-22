@@ -1,10 +1,10 @@
 'use client';
 
-import Link from 'next/link';
-import { useTranslations } from 'next-intl';
-import { useActionState, useEffect } from 'react';
-import { createManualSalesAction, type ManualSalesPageData } from './actions';
 import { Pagination } from '@/components/pagination';
+import { useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { useActionState, useEffect } from 'react';
+import { type ManualSalesPageData, createManualSalesAction } from './actions';
 import { ExportManualSalesButton } from './export-manual-sales-button';
 
 const INPUT =
@@ -88,7 +88,13 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             <input name="discountTotal" inputMode="numeric" defaultValue="0" className={INPUT} />
           </Field>
           <Field label={t('transactionCount')}>
-            <input name="transactionCount" type="number" min={0} defaultValue={0} className={INPUT} />
+            <input
+              name="transactionCount"
+              type="number"
+              min={0}
+              defaultValue={0}
+              className={INPUT}
+            />
           </Field>
           <Field label={t('sourceReference')}>
             <input name="sourceReference" className={INPUT} />
@@ -163,11 +169,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             </tbody>
           </table>
         </div>
-          <Pagination 
-            currentPage={data.page} 
-            totalItems={data.total} 
-            pageSize={data.pageSize} 
-          />
+        <Pagination currentPage={data.page} totalItems={data.total} pageSize={data.pageSize} />
       </section>
     </div>
   );

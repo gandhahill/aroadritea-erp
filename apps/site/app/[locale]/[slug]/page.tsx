@@ -1,3 +1,5 @@
+import { getPublishedPageBySlug } from '@erp/services/cms';
+import { sanitizeCmsHtml } from '@erp/shared/sanitize-html';
 /**
  * Dynamic CMS Page Route — SD §31.4, ADR-0003
  *
@@ -7,8 +9,6 @@
  */
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getPublishedPageBySlug } from '@erp/services/cms';
-import { sanitizeCmsHtml } from '@erp/shared/sanitize-html';
 import type { SiteLocale } from '../../../i18n';
 
 interface Props {
@@ -29,10 +29,7 @@ const STATIC_ROUTES = new Set([
 ]);
 
 /** Extract localized text from a JSONB field. */
-function localize(
-  field: unknown,
-  locale: SiteLocale,
-): string {
+function localize(field: unknown, locale: SiteLocale): string {
   if (!field || typeof field !== 'object') return '';
   const obj = field as Record<string, string>;
   return obj[locale] || obj.id || obj.en || '';
@@ -73,9 +70,7 @@ export default async function CmsPage({ params }: Props) {
   return (
     <div className="px-4 py-14 sm:px-6">
       <article className="mx-auto max-w-4xl">
-        <h1 className="text-4xl font-black text-brand-ink md:text-5xl">
-          {title}
-        </h1>
+        <h1 className="text-4xl font-black text-brand-ink md:text-5xl">{title}</h1>
         <div
           className="prose prose-brand mt-8 max-w-none text-brand-ink-2"
           dangerouslySetInnerHTML={{ __html: content }}

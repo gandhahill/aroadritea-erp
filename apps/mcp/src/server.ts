@@ -13,7 +13,7 @@ import {
 import type { z } from 'zod';
 import { verifyToken } from './auth';
 import type { McpContext } from './context';
-import { mcpError, logMcpToolCall } from './helpers';
+import { logMcpToolCall, mcpError } from './helpers';
 import {
   accountingTools,
   auditTools,

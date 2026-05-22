@@ -34,8 +34,7 @@ export function JournalTable({ journals }: JournalTableProps) {
         j.description.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = !statusFilter || j.status === statusFilter;
       const matchesDate =
-        (!dateFrom || j.postingDate >= dateFrom) &&
-        (!dateTo || j.postingDate <= dateTo);
+        (!dateFrom || j.postingDate >= dateFrom) && (!dateTo || j.postingDate <= dateTo);
       return matchesSearch && matchesStatus && matchesDate;
     });
   }, [journals, searchQuery, statusFilter, dateFrom, dateTo]);
@@ -101,7 +100,10 @@ export function JournalTable({ journals }: JournalTableProps) {
               {(dateFrom || dateTo) && (
                 <button
                   type="button"
-                  onClick={() => { setDateFrom(''); setDateTo(''); }}
+                  onClick={() => {
+                    setDateFrom('');
+                    setDateTo('');
+                  }}
                   className="rounded-md border border-brand-cream-3 px-2 py-1.5 text-xs text-brand-ink-3 hover:bg-brand-cream-2"
                 >
                   Reset
@@ -115,10 +117,11 @@ export function JournalTable({ journals }: JournalTableProps) {
             <button
               type="button"
               onClick={() => setStatusFilter(null)}
-              className={`rounded-full border px-3 py-1 text-xs font-medium transition-all ${!statusFilter
-                ? 'border-brand-red bg-brand-red/10 text-brand-red'
-                : 'border-brand-cream-3 text-brand-ink-3 hover:bg-brand-cream-2'
-                }`}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-all ${
+                !statusFilter
+                  ? 'border-brand-red bg-brand-red/10 text-brand-red'
+                  : 'border-brand-cream-3 text-brand-ink-3 hover:bg-brand-cream-2'
+              }`}
             >
               Semua ({journals.length})
             </button>
@@ -130,10 +133,11 @@ export function JournalTable({ journals }: JournalTableProps) {
                   type="button"
                   key={status}
                   onClick={() => setStatusFilter(isActive ? null : status)}
-                  className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all ${isActive
-                    ? `${style?.bg ?? ''} ${style?.text ?? ''} border-current ring-2 ring-offset-1 ring-brand-red/30`
-                    : 'border-brand-cream-3 text-brand-ink-3 hover:bg-brand-cream-2'
-                    }`}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all ${
+                    isActive
+                      ? `${style?.bg ?? ''} ${style?.text ?? ''} border-current ring-2 ring-offset-1 ring-brand-red/30`
+                      : 'border-brand-cream-3 text-brand-ink-3 hover:bg-brand-cream-2'
+                  }`}
                 >
                   {status} ({counts[status]})
                 </button>
@@ -239,15 +243,9 @@ export function JournalTable({ journals }: JournalTableProps) {
                             <table className="w-full text-xs">
                               <thead className="bg-brand-cream-1 text-brand-ink-3">
                                 <tr>
-                                  <th className="px-3 py-1.5 text-left font-medium">
-                                    Akun
-                                  </th>
-                                  <th className="px-3 py-1.5 text-right font-medium">
-                                    Debit
-                                  </th>
-                                  <th className="px-3 py-1.5 text-right font-medium">
-                                    Kredit
-                                  </th>
+                                  <th className="px-3 py-1.5 text-left font-medium">Akun</th>
+                                  <th className="px-3 py-1.5 text-right font-medium">Debit</th>
+                                  <th className="px-3 py-1.5 text-right font-medium">Kredit</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -263,14 +261,10 @@ export function JournalTable({ journals }: JournalTableProps) {
                                       {line.accountName}
                                     </td>
                                     <td className="px-3 py-1 text-right tabular-nums text-brand-ink">
-                                      {Number(line.debit) > 0
-                                        ? formatAmount(line.debit)
-                                        : '—'}
+                                      {Number(line.debit) > 0 ? formatAmount(line.debit) : '—'}
                                     </td>
                                     <td className="px-3 py-1 text-right tabular-nums text-brand-ink">
-                                      {Number(line.credit) > 0
-                                        ? formatAmount(line.credit)
-                                        : '—'}
+                                      {Number(line.credit) > 0 ? formatAmount(line.credit) : '—'}
                                     </td>
                                   </tr>
                                 ))}

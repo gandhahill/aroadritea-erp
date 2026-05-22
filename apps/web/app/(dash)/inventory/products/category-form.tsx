@@ -25,7 +25,12 @@ export function CategoryForm() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
         <label className="flex-1 space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('code')}</span>
-          <input name="categoryCode" required placeholder={t('codePlaceholder')} className={INPUT} />
+          <input
+            name="categoryCode"
+            required
+            placeholder={t('codePlaceholder')}
+            className={INPUT}
+          />
         </label>
         <label className="flex-[1.5] space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('nameId')}</span>

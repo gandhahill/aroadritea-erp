@@ -24,8 +24,8 @@ import {
   resolvePosPostingConfig,
 } from './posting';
 import {
-  CreateManualSalesClosingInputSchema,
   type CreateManualSalesClosingInput,
+  CreateManualSalesClosingInputSchema,
   type ManualSalesClosingResult,
 } from './schemas';
 
@@ -105,7 +105,11 @@ export async function createManualSalesClosing(
     );
   }
 
-  const postingConfig = await resolvePosPostingConfig(ctx.tenantId, data.locationId, data.salesDate);
+  const postingConfig = await resolvePosPostingConfig(
+    ctx.tenantId,
+    data.locationId,
+    data.salesDate,
+  );
   if (!postingConfig.ok) return postingConfig;
 
   const taxableBase = grossSales - discountTotal;

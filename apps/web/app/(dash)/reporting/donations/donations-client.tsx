@@ -79,7 +79,12 @@ export function DonationsClient({
       {
         name: t('export.dailySheet'),
         rows: [
-          [t('columns.date'), t('columns.donationAmount'), t('columns.transactionCount'), t('columns.average')],
+          [
+            t('columns.date'),
+            t('columns.donationAmount'),
+            t('columns.transactionCount'),
+            t('columns.average'),
+          ],
           ...rows.map((row) => [row.date, row.donationTotal, row.txCount, row.average]),
           [t('columns.total'), totalDonation, totalTransactions, overallAverage],
         ],
@@ -93,9 +98,7 @@ export function DonationsClient({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-brand-ink">{t('title')}</h1>
-        {data && data.rows.length > 0 && (
-          <ExportXlsxButton onExport={handleExportXlsx} />
-        )}
+        {data && data.rows.length > 0 && <ExportXlsxButton onExport={handleExportXlsx} />}
       </div>
 
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4">
@@ -147,9 +150,18 @@ export function DonationsClient({
 
       {data && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <SummaryCard label={t('summary.totalDonation')} value={formatRupiah(data.totalDonation)} />
-          <SummaryCard label={t('summary.totalTransactions')} value={data.totalTransactions.toString()} />
-          <SummaryCard label={t('summary.averageDonation')} value={formatRupiah(data.overallAverage)} />
+          <SummaryCard
+            label={t('summary.totalDonation')}
+            value={formatRupiah(data.totalDonation)}
+          />
+          <SummaryCard
+            label={t('summary.totalTransactions')}
+            value={data.totalTransactions.toString()}
+          />
+          <SummaryCard
+            label={t('summary.averageDonation')}
+            value={formatRupiah(data.overallAverage)}
+          />
         </div>
       )}
 
@@ -158,10 +170,18 @@ export function DonationsClient({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-3 bg-brand-cream-2">
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.date')}</th>
-                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('columns.donationAmount')}</th>
-                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('columns.transactionCount')}</th>
-                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('columns.average')}</th>
+                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('columns.date')}
+                </th>
+                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                  {t('columns.donationAmount')}
+                </th>
+                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                  {t('columns.transactionCount')}
+                </th>
+                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                  {t('columns.average')}
+                </th>
               </tr>
             </thead>
             <tbody>

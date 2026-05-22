@@ -182,7 +182,10 @@ function normalizeLocaleString(input: {
 }
 
 function normalizeRoleCode(value: string): string {
-  return value.trim().toLowerCase().replace(/[^a-z0-9_.-]/g, '_');
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_.-]/g, '_');
 }
 
 async function requireManageContext() {

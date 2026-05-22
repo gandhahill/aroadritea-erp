@@ -2,12 +2,12 @@
 
 import { getSession } from '@/lib/auth';
 import { and, db, desc, eq, isNull } from '@erp/db';
-import { jobApplicants, jobOpenings } from '@erp/db/schema/hr';
 import { auditLog } from '@erp/db/schema/audit';
+import { jobApplicants, jobOpenings } from '@erp/db/schema/hr';
 import { requirePermission } from '@erp/services/iam';
 import { encryptPii } from '@erp/services/security/pii';
-import type { AuditContext } from '@erp/shared/types';
 import { generateId } from '@erp/shared/id';
+import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
 
 async function buildCtx(): Promise<AuditContext | null> {
@@ -79,10 +79,7 @@ export async function fetchApplicants(openingId?: string): Promise<ApplicantRow[
   if (!ctx) return [];
   // Hide soft-deleted rows. The schema's auditCols includes deletedAt;
   // we only show null = active applicants in the pipeline.
-  const conditions = [
-    eq(jobApplicants.tenantId, ctx.tenantId),
-    isNull(jobApplicants.deletedAt),
-  ];
+  const conditions = [eq(jobApplicants.tenantId, ctx.tenantId), isNull(jobApplicants.deletedAt)];
   if (openingId) conditions.push(eq(jobApplicants.openingId, openingId));
 
   const rows = await db
@@ -148,7 +145,7 @@ export async function createOpeningAction(input: {
     createdBy: ctx.userId,
     updatedBy: ctx.userId,
   });
-  
+
   await db.insert(auditLog).values({
     id: generateId(),
     tenantId: ctx.tenantId,
@@ -163,7 +160,7 @@ export async function createOpeningAction(input: {
       headcount: input.headcount ?? 1,
     },
   });
-  
+
   revalidatePath('/hr/recruitment');
   return { ok: true, id };
 }
@@ -179,10 +176,8 @@ export async function updateOpeningStatusAction(input: {
   await db
     .update(jobOpenings)
     .set({ status: input.status, updatedBy: ctx.userId, updatedAt: new Date() })
-    .where(
-      and(eq(jobOpenings.id, input.openingId), eq(jobOpenings.tenantId, ctx.tenantId)),
-    );
-    
+    .where(and(eq(jobOpenings.id, input.openingId), eq(jobOpenings.tenantId, ctx.tenantId)));
+
   await db.insert(auditLog).values({
     id: generateId(),
     tenantId: ctx.tenantId,
@@ -192,7 +187,7 @@ export async function updateOpeningStatusAction(input: {
     entityId: input.openingId,
     after: { status: input.status },
   });
-    
+
   revalidatePath('/hr/recruitment');
   return { ok: true };
 }
@@ -226,7 +221,7 @@ export async function createApplicantAction(input: {
     createdBy: ctx.userId,
     updatedBy: ctx.userId,
   });
-  
+
   await db.insert(auditLog).values({
     id: generateId(),
     tenantId: ctx.tenantId,
@@ -240,7 +235,7 @@ export async function createApplicantAction(input: {
       stage: 'applied',
     },
   });
-  
+
   revalidatePath('/hr/recruitment');
   return { ok: true, id };
 }
@@ -256,13 +251,8 @@ export async function setApplicantStageAction(input: {
   await db
     .update(jobApplicants)
     .set({ stage: input.stage, updatedBy: ctx.userId, updatedAt: new Date() })
-    .where(
-      and(
-        eq(jobApplicants.id, input.applicantId),
-        eq(jobApplicants.tenantId, ctx.tenantId),
-      ),
-    );
-    
+    .where(and(eq(jobApplicants.id, input.applicantId), eq(jobApplicants.tenantId, ctx.tenantId)));
+
   await db.insert(auditLog).values({
     id: generateId(),
     tenantId: ctx.tenantId,
@@ -272,7 +262,7 @@ export async function setApplicantStageAction(input: {
     entityId: input.applicantId,
     after: { stage: input.stage },
   });
-    
+
   revalidatePath('/hr/recruitment');
   return { ok: true };
 }
@@ -307,13 +297,8 @@ export async function updateApplicantAction(input: {
       updatedBy: ctx.userId,
       updatedAt: new Date(),
     })
-    .where(
-      and(
-        eq(jobApplicants.id, input.applicantId),
-        eq(jobApplicants.tenantId, ctx.tenantId),
-      ),
-    );
-    
+    .where(and(eq(jobApplicants.id, input.applicantId), eq(jobApplicants.tenantId, ctx.tenantId)));
+
   await db.insert(auditLog).values({
     id: generateId(),
     tenantId: ctx.tenantId,
@@ -323,7 +308,7 @@ export async function updateApplicantAction(input: {
     entityId: input.applicantId,
     after: { name: input.name.trim() },
   });
-    
+
   revalidatePath('/hr/recruitment');
   return { ok: true };
 }
@@ -344,13 +329,8 @@ export async function deleteApplicantAction(input: {
   await db
     .update(jobApplicants)
     .set({ deletedAt: new Date(), updatedBy: ctx.userId, updatedAt: new Date() })
-    .where(
-      and(
-        eq(jobApplicants.id, input.applicantId),
-        eq(jobApplicants.tenantId, ctx.tenantId),
-      ),
-    );
-    
+    .where(and(eq(jobApplicants.id, input.applicantId), eq(jobApplicants.tenantId, ctx.tenantId)));
+
   await db.insert(auditLog).values({
     id: generateId(),
     tenantId: ctx.tenantId,
@@ -359,7 +339,7 @@ export async function deleteApplicantAction(input: {
     entityType: 'job_applicant',
     entityId: input.applicantId,
   });
-    
+
   revalidatePath('/hr/recruitment');
   return { ok: true };
 }

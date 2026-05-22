@@ -84,7 +84,10 @@ export async function requestPasswordResetAction(formData: FormData) {
 
   const result = await requestMemberPasswordReset({ email, locale: locale as 'id' | 'en' | 'zh' });
   if (!result.ok) {
-    return { success: false, error: 'Permintaan reset password belum berhasil. Silakan coba lagi.' };
+    return {
+      success: false,
+      error: 'Permintaan reset password belum berhasil. Silakan coba lagi.',
+    };
   }
 
   return { success: true };
@@ -116,12 +119,11 @@ export async function verifyAndCompleteSignupAction(token: string, code: string)
   const verifyResult = await verifySignupOtp({ token, code });
   if (!verifyResult.ok) return { success: false, error: String(verifyResult.error) };
 
-  const result = await completeSignup(
-    { token, consentGiven: true },
-    undefined,
-    undefined,
-    { userId: 'member', tenantId: 'default', locationId: 'default' },
-  );
+  const result = await completeSignup({ token, consentGiven: true }, undefined, undefined, {
+    userId: 'member',
+    tenantId: 'default',
+    locationId: 'default',
+  });
 
   if (!result.ok) {
     return { success: false, error: 'Akun belum berhasil dibuat. Silakan coba lagi.' };

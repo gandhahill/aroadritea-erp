@@ -42,8 +42,14 @@ function normalizePrinterPayload(payload: unknown): string[] {
         .map((printer) => {
           if (typeof printer === 'string') return printer.trim();
           if (printer && typeof printer === 'object') {
-            const candidate = printer as { name?: unknown; printerName?: unknown; displayName?: unknown };
-            return String(candidate.name ?? candidate.printerName ?? candidate.displayName ?? '').trim();
+            const candidate = printer as {
+              name?: unknown;
+              printerName?: unknown;
+              displayName?: unknown;
+            };
+            return String(
+              candidate.name ?? candidate.printerName ?? candidate.displayName ?? '',
+            ).trim();
           }
           return '';
         })
@@ -510,7 +516,11 @@ function PrinterNameField({
         </button>
       </div>
       {hasOptions ? (
-        <select value={value} onChange={(event) => onChange(event.target.value)} className={inputClass}>
+        <select
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className={inputClass}
+        >
           <option value="">{placeholder}</option>
           {hasCurrent ? <option value={value}>{value}</option> : null}
           {options.map((printer) => (

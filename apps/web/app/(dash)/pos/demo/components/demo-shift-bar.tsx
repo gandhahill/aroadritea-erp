@@ -149,9 +149,7 @@ export function DemoShiftBar() {
 
       {showOpen && (
         <DemoShiftModal onClose={() => setShowOpen(false)}>
-          <h2 className="mb-5 text-lg font-bold text-brand-ink">
-            [DEMO] {t('openShift')}
-          </h2>
+          <h2 className="mb-5 text-lg font-bold text-brand-ink">[DEMO] {t('openShift')}</h2>
           <p className="mb-4 text-xs text-brand-ink-3">
             Shift demo tidak masuk ke database POS asli.
           </p>
@@ -200,9 +198,7 @@ export function DemoShiftBar() {
 
       {showClose && shift && (
         <DemoShiftModal onClose={() => setShowClose(false)}>
-          <h2 className="mb-5 text-lg font-bold text-brand-ink">
-            [DEMO] {t('closeShift')}
-          </h2>
+          <h2 className="mb-5 text-lg font-bold text-brand-ink">[DEMO] {t('closeShift')}</h2>
           <form onSubmit={handleClose} className="flex flex-col gap-4">
             <div>
               <label

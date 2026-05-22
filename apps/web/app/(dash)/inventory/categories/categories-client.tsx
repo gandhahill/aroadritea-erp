@@ -55,8 +55,7 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
   };
 
   const startEdit = (cat: CategoryWithCount) => {
-    const display =
-      cat.name[locale] ?? cat.name.id ?? cat.name.en ?? cat.name.zh ?? '';
+    const display = cat.name[locale] ?? cat.name.id ?? cat.name.en ?? cat.name.zh ?? '';
     setEditingId(cat.id);
     setEditingName(display);
     setMessage(null);

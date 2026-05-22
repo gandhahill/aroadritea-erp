@@ -7,9 +7,9 @@
 
 import { getSession } from '@/lib/auth';
 import { accounts, and, asc, db, eq, isNull } from '@erp/db';
+import { auditLog } from '@erp/db/schema/audit';
 import { locations } from '@erp/db/schema/auth';
 import { posSettings } from '@erp/db/schema/pos';
-import { auditLog } from '@erp/db/schema/audit';
 import { requirePermission } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
@@ -376,7 +376,7 @@ export async function updatePosSetting(
         .update(posSettings)
         .set(values)
         .where(and(eq(posSettings.id, existing.id), eq(posSettings.tenantId, ctx.tenantId)));
-        
+
       await db.insert(auditLog).values({
         id: generateId(),
         tenantId: ctx.tenantId,
@@ -394,7 +394,7 @@ export async function updatePosSetting(
         ...values,
         createdBy: ctx.userId || null,
       });
-      
+
       await db.insert(auditLog).values({
         id: generateId(),
         tenantId: ctx.tenantId,
@@ -424,7 +424,7 @@ export async function updatePosSetting(
             .update(posSettings)
             .set(baseValues)
             .where(and(eq(posSettings.id, existing.id), eq(posSettings.tenantId, ctx.tenantId)));
-            
+
           await db.insert(auditLog).values({
             id: generateId(),
             tenantId: ctx.tenantId,
@@ -443,7 +443,7 @@ export async function updatePosSetting(
             ...baseValues,
             createdBy: ctx.userId || null,
           });
-          
+
           await db.insert(auditLog).values({
             id: generateId(),
             tenantId: ctx.tenantId,

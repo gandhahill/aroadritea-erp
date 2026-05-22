@@ -9,12 +9,7 @@
 
 'use client';
 
-import type {
-  DemoCartCustomer,
-  DemoCartLine,
-  DemoCartPayment,
-  DemoCartState,
-} from '@erp/offline';
+import type { DemoCartCustomer, DemoCartLine, DemoCartPayment, DemoCartState } from '@erp/offline';
 import { calcDemoTotals } from '@erp/offline';
 import { type ReactNode, createContext, useCallback, useContext, useEffect, useState } from 'react';
 

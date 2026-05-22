@@ -46,8 +46,7 @@ export default async function SchedulePage({
         <div>
           <h1 className="text-2xl font-bold text-brand-ink">Jadwal Shift Mingguan</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Atur shift dan hari libur per karyawan. Klik sel untuk menambah /
-            menghapus penugasan.
+            Atur shift dan hari libur per karyawan. Klik sel untuk menambah / menghapus penugasan.
           </p>
         </div>
       </div>

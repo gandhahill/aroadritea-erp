@@ -78,7 +78,8 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
 
   const downloadTemplate = () => {
     const header = 'Date,Description,Debit,Credit,Balance\n';
-    const sampleRow = '2025-12-01,SALDO AWAL,0,0,46284627\n2025-12-09,TRANSFER KE PT BIDAKARA,3000000,0,43284627\n';
+    const sampleRow =
+      '2025-12-01,SALDO AWAL,0,0,46284627\n2025-12-09,TRANSFER KE PT BIDAKARA,3000000,0,43284627\n';
     const blob = new Blob([header + sampleRow], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -150,7 +151,16 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
   };
 
   const addLine = () => {
-    setLines([...lines, { transactionDate: statementDate, description: '', debitAmount: '0', creditAmount: '0', runningBalance: '0' }]);
+    setLines([
+      ...lines,
+      {
+        transactionDate: statementDate,
+        description: '',
+        debitAmount: '0',
+        creditAmount: '0',
+        runningBalance: '0',
+      },
+    ]);
   };
 
   const removeLine = (index: number) => {
@@ -184,7 +194,9 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
             onChange={(e) => setBankAccountId(e.target.value)}
             className="w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
           >
-            <option value="" disabled>{labels.select}</option>
+            <option value="" disabled>
+              {labels.select}
+            </option>
             {bankAccounts.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.name} - {b.number}
@@ -201,7 +213,9 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
             onChange={(e) => setLocationId(e.target.value)}
             className="w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
           >
-            <option value="" disabled>{labels.selectLocation}</option>
+            <option value="" disabled>
+              {labels.selectLocation}
+            </option>
             {locations.map((l) => (
               <option key={l.id} value={l.id}>
                 {l.code} - {l.name.id}
@@ -355,7 +369,10 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
                     />
                   </td>
                   <td className="px-3 py-2 text-right">
-                    <button onClick={() => removeLine(i)} className="text-brand-red hover:underline text-xs">
+                    <button
+                      onClick={() => removeLine(i)}
+                      className="text-brand-red hover:underline text-xs"
+                    >
                       {labels.removeLine}
                     </button>
                   </td>

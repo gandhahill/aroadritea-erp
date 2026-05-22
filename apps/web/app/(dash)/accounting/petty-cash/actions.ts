@@ -1,17 +1,17 @@
 'use server';
 
+import { getSession } from '@/lib/auth';
 import { and, db, desc, eq, isNull } from '@erp/db';
 import { pettyCashAccounts, pettyCashTransactions } from '@erp/db/schema/accounting';
 import { locations, users } from '@erp/db/schema/auth';
-import type { LocaleString } from '@erp/shared/types';
-import { getSession } from '@/lib/auth';
-import { getLocale } from 'next-intl/server';
 import {
   createPettyCashAccount,
   depositPettyCashToBank,
   recordPettyCashExpense,
   replenishPettyCash,
 } from '@erp/services/accounting';
+import type { LocaleString } from '@erp/shared/types';
+import { getLocale } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 
 export interface PettyCashAccountItem {
@@ -110,10 +110,7 @@ export async function fetchEmptyPettyCashLocations(
     .from(locations)
     .leftJoin(
       pettyCashAccounts,
-      and(
-        eq(pettyCashAccounts.locationId, locations.id),
-        eq(pettyCashAccounts.tenantId, tenantId),
-      ),
+      and(eq(pettyCashAccounts.locationId, locations.id), eq(pettyCashAccounts.tenantId, tenantId)),
     )
     .where(
       and(
@@ -135,7 +132,9 @@ export async function fetchPettyCashTransactions(
   limit = 50,
 ): Promise<PettyCashTransactionItem[]> {
   const session = await getSession();
-  const tenantId = String((session?.user as Record<string, unknown> | undefined)?.tenantId ?? 'default');
+  const tenantId = String(
+    (session?.user as Record<string, unknown> | undefined)?.tenantId ?? 'default',
+  );
 
   // Look up the parent account first so we can tenant-scope the
   // transactions query — otherwise `accountId` from URL params could be
@@ -214,11 +213,7 @@ async function getActionContext() {
   };
 }
 
-export async function replenishAction(
-  locationId: string,
-  amount: number,
-  description: string,
-) {
+export async function replenishAction(locationId: string, amount: number, description: string) {
   const ctx = await getActionContext();
   const result = await replenishPettyCash(
     { locationId, amount: amount.toString(), description: description || 'Isi ulang kas kecil' },
@@ -229,11 +224,7 @@ export async function replenishAction(
   return result.value;
 }
 
-export async function expenseAction(
-  locationId: string,
-  amount: number,
-  description: string,
-) {
+export async function expenseAction(locationId: string, amount: number, description: string) {
   const ctx = await getActionContext();
   const result = await recordPettyCashExpense(
     { locationId, amount: amount.toString(), description },
@@ -244,11 +235,7 @@ export async function expenseAction(
   return result.value;
 }
 
-export async function depositToBankAction(
-  locationId: string,
-  amount: number,
-  description: string,
-) {
+export async function depositToBankAction(locationId: string, amount: number, description: string) {
   const ctx = await getActionContext();
   const result = await depositPettyCashToBank(
     {

@@ -34,9 +34,21 @@ const STATIC_ROUTES: Array<{ slug: string; label: string; description: string }>
   { slug: '/lokasi', label: 'Lokasi', description: 'Daftar outlet & alamat.' },
   { slug: '/blog', label: 'Blog', description: 'Index posting blog (post dinamis).' },
   { slug: '/member', label: 'Member', description: 'Area member (login, registrasi, akun).' },
-  { slug: '/karier', label: 'Karier', description: 'Daftar lowongan + form lamaran (real-time dari ERP).' },
-  { slug: '/syarat-dan-ketentuan', label: 'Syarat & Ketentuan', description: 'Halaman legal — kontennya editable via CMS Halaman.' },
-  { slug: '/kebijakan-privasi', label: 'Kebijakan Privasi', description: 'Halaman legal — kontennya editable via CMS Halaman.' },
+  {
+    slug: '/karier',
+    label: 'Karier',
+    description: 'Daftar lowongan + form lamaran (real-time dari ERP).',
+  },
+  {
+    slug: '/syarat-dan-ketentuan',
+    label: 'Syarat & Ketentuan',
+    description: 'Halaman legal — kontennya editable via CMS Halaman.',
+  },
+  {
+    slug: '/kebijakan-privasi',
+    label: 'Kebijakan Privasi',
+    description: 'Halaman legal — kontennya editable via CMS Halaman.',
+  },
 ];
 
 export default async function CmsPagesPage() {
@@ -76,13 +88,10 @@ export default async function CmsPagesPage() {
       <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
         <div className="mb-3 flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-brand-ink">
-              Halaman bawaan (file-based)
-            </p>
+            <p className="text-sm font-semibold text-brand-ink">Halaman bawaan (file-based)</p>
             <p className="text-xs text-brand-ink-3">
-              Rute publik yang sudah aktif. Konten halaman legal di bawah ini bisa
-              diubah dari tabel CMS Halaman (slug yang sama akan menimpa konten
-              default).
+              Rute publik yang sudah aktif. Konten halaman legal di bawah ini bisa diubah dari tabel
+              CMS Halaman (slug yang sama akan menimpa konten default).
             </p>
           </div>
         </div>

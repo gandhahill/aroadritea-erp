@@ -91,9 +91,7 @@ export default async function LocaleLayout({ children, params }: Props) {
 }
 
 // Just surfacing Instagram and TikTok for all locales.
-function socialsForLocale(
-  labels: { instagram: string; tiktok: string },
-): SocialLink[] {
+function socialsForLocale(labels: { instagram: string; tiktok: string }): SocialLink[] {
   return [
     { kind: 'instagram', label: labels.instagram, href: 'https://www.instagram.com/aroadri.tea/' },
     { kind: 'tiktok', label: labels.tiktok, href: 'https://www.tiktok.com/@aroadri.tea' },

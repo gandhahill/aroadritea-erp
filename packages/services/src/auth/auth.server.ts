@@ -25,8 +25,7 @@ const authBaseURL =
 // be available in the build environment; defer the hard fail to the
 // first actual auth boot rather than blocking the build.
 const isNextBuildPhase =
-  process.env.NEXT_PHASE === 'phase-production-build' ||
-  process.env.NEXT_PHASE === 'phase-export';
+  process.env.NEXT_PHASE === 'phase-production-build' || process.env.NEXT_PHASE === 'phase-export';
 let authSecret = process.env.BETTER_AUTH_SECRET;
 if (!authSecret) {
   if (process.env.NODE_ENV === 'production' && !isNextBuildPhase) {

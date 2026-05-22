@@ -51,7 +51,10 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
 
   const totalBig = BigInt(grandTotal);
   const paidBig = state.payments.reduce((sum, p) => sum + parseMoney(p.amount), BigInt(0));
-  const splitTotal = splitPayments.reduce((sum, payment) => sum + parseMoney(payment.amount), BigInt(0));
+  const splitTotal = splitPayments.reduce(
+    (sum, payment) => sum + parseMoney(payment.amount),
+    BigInt(0),
+  );
   const currentInputBig = parseMoney(inputAmount);
   const remaining =
     totalBig - paidBig - splitTotal > BigInt(0) ? totalBig - paidBig - splitTotal : BigInt(0);
@@ -172,10 +175,7 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
       // without cross-talk.
       if (typeof window !== 'undefined') {
         try {
-          window.sessionStorage.setItem(
-            'aroadri:demo:lastReceipt',
-            JSON.stringify(order),
-          );
+          window.sessionStorage.setItem('aroadri:demo:lastReceipt', JSON.stringify(order));
         } catch {
           // Quota errors are silently ignored — the on-screen preview
           // still works without the persisted snapshot.
@@ -377,9 +377,7 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
                       / {formatRupiah(excess.toString())}
                     </span>
                   </div>
-                  <p className="mt-1 text-[11px] text-brand-ink-3">
-                    {t('customDonationHint')}
-                  </p>
+                  <p className="mt-1 text-[11px] text-brand-ink-3">{t('customDonationHint')}</p>
                 </div>
               )}
             </div>

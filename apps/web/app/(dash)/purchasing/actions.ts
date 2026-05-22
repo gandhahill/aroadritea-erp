@@ -251,7 +251,7 @@ export async function createSupplierAction(
     createdBy: ctx.userId,
     updatedBy: ctx.userId,
   });
-  
+
   await db.insert(auditLog).values({
     id: generateId(),
     tenantId: ctx.tenantId,

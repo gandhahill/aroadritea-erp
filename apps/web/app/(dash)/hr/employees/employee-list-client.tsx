@@ -232,13 +232,7 @@ export function EmployeeListClient({
       )}
 
       {/* Pagination */}
-      {total > 0 && (
-        <Pagination 
-          currentPage={page} 
-          totalItems={total} 
-          pageSize={pageSize} 
-        />
-      )}
+      {total > 0 && <Pagination currentPage={page} totalItems={total} pageSize={pageSize} />}
     </div>
   );
 }

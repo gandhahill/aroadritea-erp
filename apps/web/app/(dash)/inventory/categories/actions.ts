@@ -1,7 +1,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { db, eq, and, count } from '@erp/db';
+import { and, count, db, eq } from '@erp/db';
 import { products } from '@erp/db/schema/inventory';
 import { createCategory, listCategories, updateCategory } from '@erp/services/inventory';
 import type { AuditContext } from '@erp/shared/types';
@@ -81,19 +81,26 @@ export async function createCategoryAction(name: string) {
   revalidatePath('/inventory/categories');
 }
 
-export async function deleteCategoryAction(
-  id: string,
-): Promise<{ ok: boolean; error?: string }> {
+export async function deleteCategoryAction(id: string): Promise<{ ok: boolean; error?: string }> {
   const ctx = await getAuditContext();
 
   // Check if category has active products — prevent deletion
   const [productRow] = await db
     .select({ count: count() })
     .from(products)
-    .where(and(eq(products.categoryId, id), eq(products.tenantId, ctx.tenantId), eq(products.isActive, true)));
+    .where(
+      and(
+        eq(products.categoryId, id),
+        eq(products.tenantId, ctx.tenantId),
+        eq(products.isActive, true),
+      ),
+    );
 
   if (productRow && productRow.count > 0) {
-    return { ok: false, error: `Category has ${productRow.count} active product(s). Move or deactivate them first.` };
+    return {
+      ok: false,
+      error: `Category has ${productRow.count} active product(s). Move or deactivate them first.`,
+    };
   }
 
   // product_categories has no `version` column — schema requires `min(1)`

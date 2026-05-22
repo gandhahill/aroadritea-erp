@@ -1,7 +1,7 @@
 'use client';
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 interface Props {
   currentPage: number;
@@ -62,7 +62,7 @@ export function Pagination({
           {t('page')} {currentPage} {t('of')} {totalPages} ({totalItems} total)
         </span>
       </div>
-      
+
       <div className="flex items-center gap-1.5">
         <button
           onClick={() => handlePageChange(1)}

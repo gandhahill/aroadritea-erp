@@ -3,12 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import type { ReactNode } from 'react';
-import {
-  type COAAccountDraft,
-  type COANode,
-  deleteCOAAccount,
-  saveCOAAccount,
-} from './actions';
+import { type COAAccountDraft, type COANode, deleteCOAAccount, saveCOAAccount } from './actions';
 
 interface Props {
   tree: COANode[];
@@ -143,9 +138,7 @@ export function COAEditor({ tree }: Props) {
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 className="text-base font-semibold text-brand-ink">{t('manage')}</h2>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            {t('subtitle')}
-          </p>
+          <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle')}</p>
         </div>
         <select
           value={selectedId}

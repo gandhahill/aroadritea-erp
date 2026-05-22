@@ -6,8 +6,8 @@
 
 import { and, db, eq } from '@erp/db';
 import { jobApplicants, jobOpenings } from '@erp/db/schema/hr';
-import { generateId } from '@erp/shared/id';
 import { encryptPii } from '@erp/services/security/pii';
+import { generateId } from '@erp/shared/id';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -57,7 +57,10 @@ export async function POST(request: NextRequest) {
   const notes = String(body.notes ?? '').trim();
 
   if (!openingId || !name) {
-    return NextResponse.json({ ok: false, error: 'Nama dan lowongan wajib diisi.' }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: 'Nama dan lowongan wajib diisi.' },
+      { status: 400 },
+    );
   }
   if (name.length > 128 || notes.length > 2000) {
     return NextResponse.json({ ok: false, error: 'Field terlalu panjang.' }, { status: 400 });

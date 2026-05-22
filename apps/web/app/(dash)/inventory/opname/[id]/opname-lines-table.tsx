@@ -239,8 +239,12 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-              <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">{t('columns.no')}</th>
-              <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">{t('columns.sku')}</th>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">
+                {t('columns.no')}
+              </th>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">
+                {t('columns.sku')}
+              </th>
               <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">
                 {t('columns.product')}
               </th>
@@ -277,13 +281,8 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
           <tbody className="divide-y divide-brand-cream-2">
             {visibleLines.length === 0 ? (
               <tr>
-                <td
-                  colSpan={10}
-                  className="px-4 py-12 text-center text-brand-ink-3"
-                >
-                  {lines.length === 0
-                    ? t('emptyList')
-                    : t('noMatchFilter')}
+                <td colSpan={10} className="px-4 py-12 text-center text-brand-ink-3">
+                  {lines.length === 0 ? t('emptyList') : t('noMatchFilter')}
                 </td>
               </tr>
             ) : (

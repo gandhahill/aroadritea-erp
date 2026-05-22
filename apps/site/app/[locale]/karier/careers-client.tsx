@@ -72,13 +72,12 @@ export function CareersClient() {
     }
   }
 
-  if (loading)
-    return <p className="text-sm text-brand-ink-3">Memuat lowongan…</p>;
+  if (loading) return <p className="text-sm text-brand-ink-3">Memuat lowongan…</p>;
   if (openings.length === 0)
     return (
       <p className="rounded-lg border border-brand-cream-3 bg-card p-6 text-sm text-brand-ink-2">
-        Belum ada lowongan terbuka. Tetap pantau halaman ini, ya — kami sering
-        membuka lowongan barista, kasir, dan back office.
+        Belum ada lowongan terbuka. Tetap pantau halaman ini, ya — kami sering membuka lowongan
+        barista, kasir, dan back office.
       </p>
     );
 
@@ -86,8 +85,8 @@ export function CareersClient() {
     <div className="space-y-4">
       {submitted ? (
         <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          Terima kasih! Aplikasi untuk <b>{submitted}</b> sudah masuk. Tim HR
-          akan menghubungi via email/WhatsApp.
+          Terima kasih! Aplikasi untuk <b>{submitted}</b> sudah masuk. Tim HR akan menghubungi via
+          email/WhatsApp.
         </div>
       ) : null}
       {error ? (
@@ -108,9 +107,7 @@ export function CareersClient() {
               </div>
               <button
                 type="button"
-                onClick={() =>
-                  setActiveOpening((cur) => (cur?.id === o.id ? null : o))
-                }
+                onClick={() => setActiveOpening((cur) => (cur?.id === o.id ? null : o))}
                 className="rounded-full bg-brand-red px-4 py-1.5 text-xs font-bold text-brand-cream hover:bg-brand-red-dark"
               >
                 {activeOpening?.id === o.id ? 'Tutup form' : 'Daftar'}

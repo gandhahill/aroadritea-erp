@@ -87,9 +87,7 @@ export function CheckInClient({ locationId, employeeId, shifts }: Props) {
       },
       (err) => {
         const errorMsg =
-          err.code === err.PERMISSION_DENIED
-            ? t('messages.locationPermissionDenied')
-            : err.message;
+          err.code === err.PERMISSION_DENIED ? t('messages.locationPermissionDenied') : err.message;
         setGps((s) => ({ ...s, status: 'denied', error: errorMsg }));
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
@@ -213,8 +211,7 @@ export function CheckInClient({ locationId, employeeId, shifts }: Props) {
           {gps.data && (
             <p className="font-mono text-xs text-brand-ink-3">
               {gps.data.lat.toFixed(6)}, {gps.data.lng.toFixed(6)} / +/-
-              {Math.round(gps.data.accuracy_m)}
-              m
+              {Math.round(gps.data.accuracy_m)}m
             </p>
           )}
           {gps.error && <p className="text-xs text-rose-500">{gps.error}</p>}
@@ -278,9 +275,7 @@ export function CheckInClient({ locationId, employeeId, shifts }: Props) {
         </button>
 
         {!employeeId && (
-          <p className="text-center text-xs text-rose-500">
-            {t('messages.noEmployeeLinked')}
-          </p>
+          <p className="text-center text-xs text-rose-500">{t('messages.noEmployeeLinked')}</p>
         )}
       </div>
     </div>

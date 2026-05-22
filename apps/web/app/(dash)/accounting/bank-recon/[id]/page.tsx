@@ -17,9 +17,7 @@ export default async function BankReconDetailPage({ params }: { params: Promise<
   const data = await fetchStatementDetails(resolvedParams.id);
   if (!data) notFound();
 
-  const [t] = await Promise.all([
-    getTranslations('accounting.bankRecon'),
-  ]);
+  const [t] = await Promise.all([getTranslations('accounting.bankRecon')]);
 
   return (
     <div className="space-y-6 max-w-7xl">
@@ -31,7 +29,10 @@ export default async function BankReconDetailPage({ params }: { params: Promise<
           {data.statement.bankName} - {data.statement.accountNumber} ({data.statement.date})
         </h1>
         <p className="mt-1 text-sm text-brand-ink-3">
-          Status: {t(`status.${data.statement.status === 'in_progress' ? 'inProgress' : data.statement.status}` as any)}
+          Status:{' '}
+          {t(
+            `status.${data.statement.status === 'in_progress' ? 'inProgress' : data.statement.status}` as any,
+          )}
         </p>
       </div>
 
@@ -94,7 +95,7 @@ export default async function BankReconDetailPage({ params }: { params: Promise<
             matched: t('summary.matched'),
             unmatched: t('summary.unmatched'),
             total: t('summary.total'),
-          }
+          },
         }}
       />
     </div>

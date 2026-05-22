@@ -177,7 +177,9 @@ export function CmsPageForm({ page, isNew = false }: Props) {
         <div className="space-y-4 lg:col-span-2">
           {/* Title */}
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
-            <label className="mb-1 block text-sm font-medium text-brand-ink">{tc('labels.title')}</label>
+            <label className="mb-1 block text-sm font-medium text-brand-ink">
+              {tc('labels.title')}
+            </label>
             <div className="flex gap-1 border-b border-brand-cream-3">
               {LOCALE_TABS.map((tab) => (
                 <button
@@ -204,7 +206,9 @@ export function CmsPageForm({ page, isNew = false }: Props) {
 
           {/* Content */}
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
-            <label className="mb-2 block text-sm font-medium text-brand-ink">{tc('labels.content')}</label>
+            <label className="mb-2 block text-sm font-medium text-brand-ink">
+              {tc('labels.content')}
+            </label>
             <div className="space-y-2">
               {LOCALE_TABS.map((tab) => (
                 <div key={tab.code}>
@@ -261,7 +265,9 @@ export function CmsPageForm({ page, isNew = false }: Props) {
             <h3 className="mb-3 text-sm font-semibold text-brand-ink">{tc('labels.settings')}</h3>
             <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-brand-ink-3">{t('slug')}</label>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">
+                  {t('slug')}
+                </label>
                 <input
                   type="text"
                   value={formData.slug}
@@ -270,15 +276,13 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                   placeholder="url-slug"
                   disabled={!isNew}
                 />
-                {isNew && (
-                  <p className="mt-1 text-xs text-brand-ink-3">
-                    {t('slugHint')}
-                  </p>
-                )}
+                {isNew && <p className="mt-1 text-xs text-brand-ink-3">{t('slugHint')}</p>}
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-brand-ink-3">{t('type')}</label>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">
+                  {t('type')}
+                </label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData((v) => ({ ...v, type: e.target.value }))}

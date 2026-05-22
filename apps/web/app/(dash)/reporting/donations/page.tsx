@@ -25,8 +25,7 @@ export default async function DonationsPage({
   const tenantId = (user.tenantId as string | undefined) ?? 'default';
   const today = new Date().toISOString().slice(0, 10);
   const rawLocale = await getLocale().catch(() => 'id');
-  const locale: 'id' | 'en' | 'zh' =
-    rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
+  const locale: 'id' | 'en' | 'zh' = rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
   const locationOptions = await getActiveLocationOptions({ tenantId, locale, type: 'store' });
 
   const startDate = params.startDate ?? today;

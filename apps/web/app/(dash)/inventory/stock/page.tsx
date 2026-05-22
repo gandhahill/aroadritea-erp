@@ -13,8 +13,8 @@ import { and, db, eq, inArray, sql } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import { products, stockLevels } from '@erp/db/schema/inventory';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ExportXlsxButton } from '../../reporting/export-button';
 
@@ -47,9 +47,7 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
 
   const { kind: kindParam } = await searchParams;
   const kind = (
-    KIND_TABS.map((k) => k.value).includes(kindParam as ProductKind | 'all')
-      ? kindParam
-      : 'all'
+    KIND_TABS.map((k) => k.value).includes(kindParam as ProductKind | 'all') ? kindParam : 'all'
   ) as ProductKind | 'all';
 
   // Active store outlets
@@ -93,9 +91,7 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
           qtyAvailable: sql<string>`sum(${stockLevels.qtyAvailable})::text`,
         })
         .from(stockLevels)
-        .where(
-          and(eq(stockLevels.tenantId, tenantId), inArray(stockLevels.productId, productIds)),
-        )
+        .where(and(eq(stockLevels.tenantId, tenantId), inArray(stockLevels.productId, productIds)))
         .groupBy(stockLevels.productId, stockLevels.locationId)
     : [];
 
@@ -120,21 +116,23 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
         <div className="flex items-center gap-2">
           <ExportXlsxButton
             filename={`stock-outlet-${new Date().toISOString().split('T')[0]}.xlsx`}
-            sheets={[{
-              name: 'Stock',
-              rows: [
-                ['SKU', 'Name', 'UOM', ...outletRows.map(o => o.code)],
-                ...productRows.map(product => [
-                  product.sku,
-                  pickLocalized(product.name, locale, product.sku),
-                  product.uom,
-                  ...outletRows.map(outlet => {
-                    const stock = stockMap.get(`${product.id}::${outlet.id}`);
-                    return stock ? Number(stock.available) : 0;
-                  })
-                ])
-              ]
-            }]}
+            sheets={[
+              {
+                name: 'Stock',
+                rows: [
+                  ['SKU', 'Name', 'UOM', ...outletRows.map((o) => o.code)],
+                  ...productRows.map((product) => [
+                    product.sku,
+                    pickLocalized(product.name, locale, product.sku),
+                    product.uom,
+                    ...outletRows.map((outlet) => {
+                      const stock = stockMap.get(`${product.id}::${outlet.id}`);
+                      return stock ? Number(stock.available) : 0;
+                    }),
+                  ]),
+                ],
+              },
+            ]}
             label={t('exportExcel') || 'Export Excel'}
           />
           <Link

@@ -2,8 +2,8 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import {
   type PartyLedgerKind,
   getPartyLedgerData,
-  saveReceivableAllowanceRatesAction,
   savePartyLedgerSettingsAction,
+  saveReceivableAllowanceRatesAction,
   updatePartyLedgerDueDateAction,
 } from './party-ledger-actions';
 

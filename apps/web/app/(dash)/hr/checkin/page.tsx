@@ -23,7 +23,9 @@ export default async function CheckInPage() {
   const tenantId = String(user.tenantId ?? 'default');
   let locationId = String(user.locationId ?? '');
   const sessionEmployeeId = String(user.employeeId ?? '');
-  const userEmail = String(user.email ?? '').trim().toLowerCase();
+  const userEmail = String(user.email ?? '')
+    .trim()
+    .toLowerCase();
 
   let employeeId = sessionEmployeeId;
   if (userEmail && (!employeeId || !locationId)) {

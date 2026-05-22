@@ -1,6 +1,6 @@
 'use client';
 
-import { exportWorkbook, type WorkbookSheet } from '@/lib/export-workbook';
+import { type WorkbookSheet, exportWorkbook } from '@/lib/export-workbook';
 import { useState } from 'react';
 
 type SheetsPayload =
@@ -33,12 +33,7 @@ export function ExportXlsxButton(props: Props) {
       setBusy(true);
       if ('onExport' in props && props.onExport) {
         await props.onExport();
-      } else if (
-        'filename' in props &&
-        'sheets' in props &&
-        props.filename &&
-        props.sheets
-      ) {
+      } else if ('filename' in props && 'sheets' in props && props.filename && props.sheets) {
         await exportWorkbook(props.filename, props.sheets);
       }
     } finally {

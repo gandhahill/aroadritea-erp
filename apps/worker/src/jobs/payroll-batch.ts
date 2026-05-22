@@ -26,7 +26,9 @@ export async function payrollBatchHandler(data: PayrollJobData): Promise<void> {
   });
 
   if (!periodCode || !periodStart || !periodEnd || !locationId) {
-    console.warn('[payroll] Skipped because periodCode, periodStart, periodEnd, or locationId is missing.');
+    console.warn(
+      '[payroll] Skipped because periodCode, periodStart, periodEnd, or locationId is missing.',
+    );
     return;
   }
 

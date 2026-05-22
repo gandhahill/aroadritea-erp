@@ -200,10 +200,14 @@ export async function listCorrespondence(
 
   return tryCatch(
     async () => {
-      const conditions = [eq(correspondenceRecords.tenantId, ctx.tenantId), isNull(correspondenceRecords.deletedAt)];
+      const conditions = [
+        eq(correspondenceRecords.tenantId, ctx.tenantId),
+        isNull(correspondenceRecords.deletedAt),
+      ];
       if (data.status) conditions.push(eq(correspondenceRecords.status, data.status));
       if (data.direction) conditions.push(eq(correspondenceRecords.direction, data.direction));
-      if (data.classification) conditions.push(eq(correspondenceRecords.classification, data.classification));
+      if (data.classification)
+        conditions.push(eq(correspondenceRecords.classification, data.classification));
       if (locationScope) conditions.push(eq(correspondenceRecords.locationId, locationScope));
       const whereClause = and(...conditions);
       const [{ count = 0 } = { count: 0 }] = await db
@@ -302,7 +306,9 @@ export async function updateCorrespondence(
           updatedAt: new Date(),
           version: sql`${correspondenceRecords.version} + 1`,
         })
-        .where(and(eq(correspondenceRecords.id, id), eq(correspondenceRecords.tenantId, ctx.tenantId)))
+        .where(
+          and(eq(correspondenceRecords.id, id), eq(correspondenceRecords.tenantId, ctx.tenantId)),
+        )
         .returning();
       await insertAudit(ctx, 'update', id, toResult(current), row ? toResult(row) : null);
       return toResult(row!);
@@ -341,8 +347,13 @@ export async function deleteCorrespondence(id: string, ctx: AuditContext): Promi
           updatedBy: ctx.userId,
           version: sql`${correspondenceRecords.version} + 1`,
         })
-        .where(and(eq(correspondenceRecords.id, id), eq(correspondenceRecords.tenantId, ctx.tenantId)));
-      await insertAudit(ctx, 'delete', id, toResult(current), { deletedAt: 'now', status: 'archived' });
+        .where(
+          and(eq(correspondenceRecords.id, id), eq(correspondenceRecords.tenantId, ctx.tenantId)),
+        );
+      await insertAudit(ctx, 'delete', id, toResult(current), {
+        deletedAt: 'now',
+        status: 'archived',
+      });
       return true as const;
     },
     (e) => AppError.internal('correspondence.deleteFailed', e),

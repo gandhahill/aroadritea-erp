@@ -65,8 +65,7 @@ export function DemoReceiptClient() {
   if (!order) {
     return (
       <div className="flex min-h-screen items-center justify-center p-6 text-center text-sm text-brand-ink-3">
-        Tidak ada struk demo untuk dicetak. Lakukan pembayaran di mode demo
-        terlebih dahulu.
+        Tidak ada struk demo untuk dicetak. Lakukan pembayaran di mode demo terlebih dahulu.
       </div>
     );
   }
@@ -183,9 +182,7 @@ td { vertical-align: top; padding: 1px 0; }
                   <br />
                   {line.qty} × {rupiah(line.unitPrice)}
                 </td>
-                <td className="r-right">
-                  {rupiah(BigInt(line.unitPrice) * BigInt(line.qty))}
-                </td>
+                <td className="r-right">{rupiah(BigInt(line.unitPrice) * BigInt(line.qty))}</td>
               </tr>
             ))}
           </tbody>
@@ -238,9 +235,7 @@ td { vertical-align: top; padding: 1px 0; }
 
         <div className="r-center" style={{ marginTop: '6px' }}>
           <div className="r-tiny">No. Antrian</div>
-          <div className="r-pickup">
-            {order.orderNumber.split('-').pop() ?? order.orderNumber}
-          </div>
+          <div className="r-pickup">{order.orderNumber.split('-').pop() ?? order.orderNumber}</div>
         </div>
       </div>
     </>

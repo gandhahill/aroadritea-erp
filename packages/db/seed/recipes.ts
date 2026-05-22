@@ -24,13 +24,7 @@
 
 import { and, eq } from 'drizzle-orm';
 import type { Database } from '../client';
-import {
-  bomLines,
-  boms,
-  productCategories,
-  productVariants,
-  products,
-} from '../schema/inventory';
+import { bomLines, boms, productCategories, productVariants, products } from '../schema/inventory';
 
 type LocaleString = { id: string; en: string; zh: string };
 
@@ -191,7 +185,9 @@ export async function seedRecipes(db: Database, tenantId: string) {
   const rawCat = await db
     .select({ id: productCategories.id })
     .from(productCategories)
-    .where(and(eq(productCategories.tenantId, tenantId), eq(productCategories.code, 'RAW_MATERIAL')))
+    .where(
+      and(eq(productCategories.tenantId, tenantId), eq(productCategories.code, 'RAW_MATERIAL')),
+    )
     .limit(1);
   const rawCategoryId = rawCat[0]?.id;
 

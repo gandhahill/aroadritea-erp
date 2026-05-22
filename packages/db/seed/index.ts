@@ -311,7 +311,7 @@ async function seed() {
       console.info('Bootstrap admin assigned director role (global)');
     }
   } else {
-      console.info('INFO Bootstrap admin skipped (set SEED_ADMIN_PASSWORD to create one)');
+    console.info('INFO Bootstrap admin skipped (set SEED_ADMIN_PASSWORD to create one)');
   }
 
   // 7. COA (Chart of Accounts)

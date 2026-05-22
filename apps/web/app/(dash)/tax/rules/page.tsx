@@ -30,28 +30,55 @@ export default async function TaxRulesPage() {
         action={saveTaxRuleAction}
         className="grid gap-3 rounded-xl border border-brand-cream-3 bg-card p-4 md:grid-cols-4"
       >
-        <select name="scopeKind" className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm">
+        <select
+          name="scopeKind"
+          className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm"
+        >
           <option value="global_default">Global default</option>
           <option value="channel">Channel</option>
           <option value="customer_segment">Customer segment</option>
           <option value="product_category">Product category</option>
         </select>
-        <input name="scopeId" placeholder="Scope ID, kosong untuk global" className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm" />
-        <select name="taxCode" className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm">
+        <input
+          name="scopeId"
+          placeholder="Scope ID, kosong untuk global"
+          className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm"
+        />
+        <select
+          name="taxCode"
+          className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm"
+        >
           {taxOptions.map((option) => (
             <option key={option.code} value={option.code}>
               {option.label}
             </option>
           ))}
         </select>
-        <input name="priority" type="number" defaultValue={10} className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm" />
-        <input name="effectiveFrom" type="date" defaultValue={new Date().toISOString().slice(0, 10)} className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm" />
-        <input name="effectiveUntil" type="date" className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm" />
+        <input
+          name="priority"
+          type="number"
+          defaultValue={10}
+          className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm"
+        />
+        <input
+          name="effectiveFrom"
+          type="date"
+          defaultValue={new Date().toISOString().slice(0, 10)}
+          className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm"
+        />
+        <input
+          name="effectiveUntil"
+          type="date"
+          className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm"
+        />
         <label className="inline-flex items-center gap-2 text-sm text-brand-ink-2">
           <input name="isAppliedDefault" type="checkbox" defaultChecked />
           Default diterapkan
         </label>
-        <button type="submit" className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90">
+        <button
+          type="submit"
+          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90"
+        >
           Simpan rule
         </button>
       </form>
@@ -99,28 +126,62 @@ export default async function TaxRulesPage() {
                       </summary>
                       <form action={saveTaxRuleAction} className="mt-3 grid min-w-80 gap-2">
                         <input type="hidden" name="id" value={rule.id} />
-                        <select name="scopeKind" defaultValue={rule.scopeKind} className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs">
+                        <select
+                          name="scopeKind"
+                          defaultValue={rule.scopeKind}
+                          className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs"
+                        >
                           <option value="global_default">Global default</option>
                           <option value="channel">Channel</option>
                           <option value="customer_segment">Customer segment</option>
                           <option value="product_category">Product category</option>
                         </select>
-                        <input name="scopeId" defaultValue={rule.scopeId ?? ''} className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs" />
-                        <select name="taxCode" defaultValue={rule.taxCode} className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs">
+                        <input
+                          name="scopeId"
+                          defaultValue={rule.scopeId ?? ''}
+                          className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs"
+                        />
+                        <select
+                          name="taxCode"
+                          defaultValue={rule.taxCode}
+                          className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs"
+                        >
                           {taxOptions.map((option) => (
                             <option key={option.code} value={option.code}>
                               {option.label}
                             </option>
                           ))}
                         </select>
-                        <input name="priority" type="number" defaultValue={rule.priority} className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs" />
-                        <input name="effectiveFrom" type="date" defaultValue={rule.effectiveFrom} className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs" />
-                        <input name="effectiveUntil" type="date" defaultValue={rule.effectiveUntil ?? ''} className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs" />
+                        <input
+                          name="priority"
+                          type="number"
+                          defaultValue={rule.priority}
+                          className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs"
+                        />
+                        <input
+                          name="effectiveFrom"
+                          type="date"
+                          defaultValue={rule.effectiveFrom}
+                          className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs"
+                        />
+                        <input
+                          name="effectiveUntil"
+                          type="date"
+                          defaultValue={rule.effectiveUntil ?? ''}
+                          className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs"
+                        />
                         <label className="inline-flex items-center gap-2 text-xs text-brand-ink-2">
-                          <input name="isAppliedDefault" type="checkbox" defaultChecked={rule.isAppliedDefault} />
+                          <input
+                            name="isAppliedDefault"
+                            type="checkbox"
+                            defaultChecked={rule.isAppliedDefault}
+                          />
                           Default
                         </label>
-                        <button type="submit" className="rounded bg-brand-red px-3 py-1.5 text-xs font-semibold text-white">
+                        <button
+                          type="submit"
+                          className="rounded bg-brand-red px-3 py-1.5 text-xs font-semibold text-white"
+                        >
                           Simpan
                         </button>
                       </form>

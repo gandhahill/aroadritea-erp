@@ -1,11 +1,11 @@
-import Link from 'next/link';
+import { FileUploadField } from '@/components/file-upload-field';
 import { getTranslations } from 'next-intl/server';
+import Link from 'next/link';
 import {
   deleteCorrespondenceAction,
   fetchCorrespondenceDetail,
   updateCorrespondenceAction,
 } from '../actions';
-import { FileUploadField } from '@/components/file-upload-field';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +14,15 @@ const INPUT =
 
 const DIRECTIONS = ['incoming', 'outgoing', 'internal'] as const;
 const CHANNELS = ['physical', 'email', 'whatsapp', 'courier', 'other'] as const;
-const CLASSIFICATIONS = ['general', 'legal', 'finance', 'hr', 'procurement', 'tax', 'other'] as const;
+const CLASSIFICATIONS = [
+  'general',
+  'legal',
+  'finance',
+  'hr',
+  'procurement',
+  'tax',
+  'other',
+] as const;
 const PRIORITIES = ['low', 'normal', 'high', 'urgent'] as const;
 const STATUSES = ['draft', 'registered', 'in_progress', 'sent', 'closed', 'archived'] as const;
 
@@ -86,13 +94,31 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
             </select>
           </Field>
           <Field label={t('fields.direction')}>
-            <OptionSelect name="direction" values={DIRECTIONS} t={t} group="directions" defaultValue={record.direction} />
+            <OptionSelect
+              name="direction"
+              values={DIRECTIONS}
+              t={t}
+              group="directions"
+              defaultValue={record.direction}
+            />
           </Field>
           <Field label={t('fields.status')}>
-            <OptionSelect name="status" values={STATUSES} t={t} group="statuses" defaultValue={record.status} />
+            <OptionSelect
+              name="status"
+              values={STATUSES}
+              t={t}
+              group="statuses"
+              defaultValue={record.status}
+            />
           </Field>
           <Field label={t('fields.documentDate')}>
-            <input name="documentDate" type="date" className={INPUT} defaultValue={record.documentDate} required />
+            <input
+              name="documentDate"
+              type="date"
+              className={INPUT}
+              defaultValue={record.documentDate}
+              required
+            />
           </Field>
           <Field label={t('fields.documentNo')}>
             <input name="documentNo" className={INPUT} defaultValue={record.documentNo} required />
@@ -106,10 +132,21 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
             <input name="counterparty" className={INPUT} defaultValue={record.counterparty ?? ''} />
           </Field>
           <Field label={t('fields.dueDate')}>
-            <input name="dueDate" type="date" className={INPUT} defaultValue={record.dueDate ?? ''} />
+            <input
+              name="dueDate"
+              type="date"
+              className={INPUT}
+              defaultValue={record.dueDate ?? ''}
+            />
           </Field>
           <Field label={t('fields.channel')}>
-            <OptionSelect name="channel" values={CHANNELS} t={t} group="channels" defaultValue={record.channel} />
+            <OptionSelect
+              name="channel"
+              values={CHANNELS}
+              t={t}
+              group="channels"
+              defaultValue={record.channel}
+            />
           </Field>
           <Field label={t('fields.classification')}>
             <OptionSelect
@@ -121,7 +158,13 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
             />
           </Field>
           <Field label={t('fields.priority')}>
-            <OptionSelect name="priority" values={PRIORITIES} t={t} group="priorities" defaultValue={record.priority} />
+            <OptionSelect
+              name="priority"
+              values={PRIORITIES}
+              t={t}
+              group="priorities"
+              defaultValue={record.priority}
+            />
           </Field>
           <Field label={t('fields.owner')}>
             <select name="ownerUserId" className={INPUT} defaultValue={record.ownerUserId ?? ''}>
@@ -146,7 +189,12 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
           </Field>
           <div className="lg:col-span-4">
             <Field label={t('fields.summary')}>
-              <textarea name="summary" rows={5} className={INPUT} defaultValue={record.summary ?? ''} />
+              <textarea
+                name="summary"
+                rows={5}
+                className={INPUT}
+                defaultValue={record.summary ?? ''}
+              />
             </Field>
           </div>
           <div className="flex flex-col gap-2 lg:col-span-4 sm:flex-row sm:justify-end">

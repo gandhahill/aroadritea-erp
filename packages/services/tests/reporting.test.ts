@@ -42,9 +42,9 @@ vi.mock('../src/iam', () => ({
 }));
 
 import type { AuditContext } from '@erp/shared/types';
+import { requirePermission } from '../src/iam';
 import { balanceSheet } from '../src/reporting/balance-sheet';
 import { profitLoss } from '../src/reporting/profit-loss';
-import { requirePermission } from '../src/iam';
 // --- Import after mocks ---
 import { trialBalance } from '../src/reporting/trial-balance';
 

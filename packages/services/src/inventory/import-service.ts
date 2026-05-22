@@ -525,10 +525,7 @@ export async function importMovementsFromExcel(
         })
         .from(productVariants)
         .where(
-          and(
-            eq(productVariants.tenantId, tenantId),
-            eq(productVariants.productId, product.id),
-          ),
+          and(eq(productVariants.tenantId, tenantId), eq(productVariants.productId, product.id)),
         )
         .then((r) => r);
       const variant = variantRows.find((item) =>

@@ -621,10 +621,7 @@ export const bankAccounts = pgTable(
     isActive: boolean('is_active').notNull().default(true),
     ...auditCols,
   },
-  (t) => [
-    index('bank_acc_tenant_idx').on(t.tenantId),
-    index('bank_acc_coa_idx').on(t.accountId),
-  ],
+  (t) => [index('bank_acc_tenant_idx').on(t.tenantId), index('bank_acc_coa_idx').on(t.accountId)],
 );
 
 // ================================================================
@@ -655,10 +652,7 @@ export const bankStatements = pgTable(
     index('bank_stmt_account_idx').on(t.bankAccountId),
     index('bank_stmt_date_idx').on(t.statementDate),
     index('bank_stmt_status_idx').on(t.status),
-    check(
-      'bank_stmt_status_check',
-      sql`status IN ('draft', 'in_progress', 'reconciled')`,
-    ),
+    check('bank_stmt_status_check', sql`status IN ('draft', 'in_progress', 'reconciled')`),
   ],
 );
 

@@ -69,5 +69,3 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
 });
 
 serwist.addEventListeners();
-
-

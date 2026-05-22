@@ -80,7 +80,9 @@ export async function partyLedgerReminderHandler(
 
     const kind = row.accountSubtype === 'receivable' ? 'receivable_due' : 'payable_due';
     const title =
-      row.accountSubtype === 'receivable' ? 'Piutang mendekati jatuh tempo' : 'Utang mendekati jatuh tempo';
+      row.accountSubtype === 'receivable'
+        ? 'Piutang mendekati jatuh tempo'
+        : 'Utang mendekati jatuh tempo';
     const body = `${row.partnerName ?? 'Tanpa partner'} | ${row.journalNumber} | jatuh tempo ${String(row.dueDate).slice(0, 10)}`;
 
     await notifyByPermission({
@@ -88,7 +90,8 @@ export async function partyLedgerReminderHandler(
       kind,
       title,
       body,
-      link: row.accountSubtype === 'receivable' ? '/accounting/receivables' : '/accounting/payables',
+      link:
+        row.accountSubtype === 'receivable' ? '/accounting/receivables' : '/accounting/payables',
       permission: 'accounting.view',
     });
 
@@ -126,7 +129,10 @@ async function sendOperationalReminder(
   message: { subject: string; body: string },
 ): Promise<{ sent: boolean; error?: string }> {
   if (channelType !== 'email') {
-    return { sent: false, error: `Unsupported channel type for party ledger reminder: ${channelType}` };
+    return {
+      sent: false,
+      error: `Unsupported channel type for party ledger reminder: ${channelType}`,
+    };
   }
 
   const smtpHost = process.env.SMTP_HOST;

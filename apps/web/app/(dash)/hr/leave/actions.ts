@@ -14,8 +14,8 @@ import {
   leaveRequests,
   leaveTypes,
 } from '@erp/db';
-import { notifyByPermission } from '@erp/services/notification';
 import { requirePermission } from '@erp/services/iam';
+import { notifyByPermission } from '@erp/services/notification';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
 

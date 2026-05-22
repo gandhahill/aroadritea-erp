@@ -28,8 +28,8 @@ export default async function RecruitmentPage() {
       <div>
         <h1 className="text-2xl font-bold text-brand-ink">Rekrutmen</h1>
         <p className="mt-1 max-w-3xl text-sm text-brand-ink-3">
-          Kelola lowongan dan pipeline kandidat. Tahap: Applied → Screening →
-          Interview → Offer → Hired (atau Rejected / Withdrawn).
+          Kelola lowongan dan pipeline kandidat. Tahap: Applied → Screening → Interview → Offer →
+          Hired (atau Rejected / Withdrawn).
         </p>
       </div>
 

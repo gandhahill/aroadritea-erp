@@ -226,7 +226,9 @@ export async function deleteLocation(input: { id: string }): Promise<LocationAct
   const [before] = await db
     .select()
     .from(locations)
-    .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.id, id), isNull(locations.deletedAt)))
+    .where(
+      and(eq(locations.tenantId, ctx.tenantId), eq(locations.id, id), isNull(locations.deletedAt)),
+    )
     .limit(1);
   if (!before) return { success: false, error: 'Lokasi tidak ditemukan.' };
 

@@ -19,8 +19,18 @@ export async function stockLowAlertHandler(data: StockAlertJobData): Promise<voi
     thresholdMultiplier,
   });
 
-  const { and, db, eq, isNotNull, locations, notificationChannels, or, products, sql, stockLevels } =
-    await import('@erp/db');
+  const {
+    and,
+    db,
+    eq,
+    isNotNull,
+    locations,
+    notificationChannels,
+    or,
+    products,
+    sql,
+    stockLevels,
+  } = await import('@erp/db');
 
   const conditions = [
     eq(stockLevels.tenantId, tenantId),
@@ -58,14 +68,20 @@ export async function stockLowAlertHandler(data: StockAlertJobData): Promise<voi
       and(
         eq(notificationChannels.tenantId, tenantId),
         eq(notificationChannels.isActive, true),
-        or(eq(notificationChannels.purpose, 'all'), eq(notificationChannels.purpose, 'stock_alert')),
+        or(
+          eq(notificationChannels.purpose, 'all'),
+          eq(notificationChannels.purpose, 'stock_alert'),
+        ),
       ),
     );
 
   if (channels.length === 0) {
-    console.warn('[stock-alert] Low stock found but no active stock alert channels are configured.', {
-      count: rows.length,
-    });
+    console.warn(
+      '[stock-alert] Low stock found but no active stock alert channels are configured.',
+      {
+        count: rows.length,
+      },
+    );
     return;
   }
 

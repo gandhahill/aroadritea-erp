@@ -1,8 +1,8 @@
 'use client';
 
+import type { LoyaltyConfig } from '@erp/services/crm';
 import { useTranslations } from 'next-intl';
 import { useActionState, useState } from 'react';
-import type { LoyaltyConfig } from '@erp/services/crm';
 import { saveLoyaltyConfig } from './actions';
 
 interface TierDraft {

@@ -91,7 +91,8 @@ export async function saveTaxRuleAction(formData: FormData) {
   const scopeIdRaw = String(formData.get('scopeId') ?? '').trim();
   const taxCode = String(formData.get('taxCode') ?? '').trim();
   const priority = Number.parseInt(String(formData.get('priority') ?? '10'), 10);
-  const effectiveFrom = String(formData.get('effectiveFrom') ?? '').trim() || new Date().toISOString().slice(0, 10);
+  const effectiveFrom =
+    String(formData.get('effectiveFrom') ?? '').trim() || new Date().toISOString().slice(0, 10);
   const effectiveUntilRaw = String(formData.get('effectiveUntil') ?? '').trim();
   if (!taxCode) return;
 

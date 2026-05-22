@@ -8,21 +8,21 @@
 import { getSession } from '@/lib/auth';
 import { pickLocalized } from '@/lib/pick-localized';
 import { and, db, eq, inArray } from '@erp/db';
+import { auditLog } from '@erp/db/schema/audit';
 import { locations } from '@erp/db/schema/auth';
-import {
-  naixerModifierCodes,
-  naixerProductCodes,
-  naixerQrFormatConfig,
-} from '@erp/db/schema/kitchen';
 import {
   productModifierGroups,
   productModifierOptions,
   productVariants,
   products,
 } from '@erp/db/schema/inventory';
+import {
+  naixerModifierCodes,
+  naixerProductCodes,
+  naixerQrFormatConfig,
+} from '@erp/db/schema/kitchen';
 import { dashStrategy, pipeStrategy } from '@erp/services/kitchen';
 import { generateId } from '@erp/shared/id';
-import { auditLog } from '@erp/db/schema/audit';
 import { getLocale } from 'next-intl/server';
 import QRCode from 'qrcode';
 
@@ -119,16 +119,10 @@ export async function fetchProductCodes(tenantId: string): Promise<ProductCodeIt
       .where(eq(productVariants.tenantId, tenantId)),
   ]);
   const productMap = new Map(
-    productRows.map((p) => [
-      p.id,
-      `${p.sku} — ${pickLocalized(p.name, locale, p.sku)}`,
-    ] as const),
+    productRows.map((p) => [p.id, `${p.sku} — ${pickLocalized(p.name, locale, p.sku)}`] as const),
   );
   const variantMap = new Map(
-    variantRows.map((v) => [
-      v.id,
-      `${v.sku} — ${pickLocalized(v.name, locale, v.sku)}`,
-    ] as const),
+    variantRows.map((v) => [v.id, `${v.sku} — ${pickLocalized(v.name, locale, v.sku)}`] as const),
   );
   return rows.map((r) => ({
     ...r,
@@ -201,7 +195,7 @@ export async function createProductCode(
       variantId: data.variantId || null,
       naixerCode: data.naixerCode.trim(),
     });
-    
+
     const session = await getSession();
     const userId = session?.user?.id as string;
     if (userId) {
@@ -219,7 +213,7 @@ export async function createProductCode(
         },
       });
     }
-    
+
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
@@ -255,7 +249,7 @@ export async function updateProductCode(
       .returning({ id: naixerProductCodes.id });
 
     if (result.length === 0) return { success: false, error: 'Not found' };
-    
+
     const session = await getSession();
     const userId = session?.user?.id as string;
     if (userId) {
@@ -272,7 +266,7 @@ export async function updateProductCode(
         },
       });
     }
-    
+
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
@@ -295,7 +289,7 @@ export async function deleteProductCode(id: string): Promise<ActionResult> {
       .where(eq(naixerProductCodes.id, id))
       .returning({ id: naixerProductCodes.id });
     if (result.length === 0) return { success: false, error: 'Not found' };
-    
+
     const session = await getSession();
     const userId = session?.user?.id as string;
     if (userId) {
@@ -308,7 +302,7 @@ export async function deleteProductCode(id: string): Promise<ActionResult> {
         entityId: id,
       });
     }
-    
+
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
@@ -398,7 +392,7 @@ export async function createModifierCode(
       naixerCode: data.naixerCode.trim(),
       displayOrder: data.displayOrder ?? 0,
     });
-    
+
     const session = await getSession();
     const userId = session?.user?.id as string;
     if (userId) {
@@ -417,7 +411,7 @@ export async function createModifierCode(
         },
       });
     }
-    
+
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
@@ -454,7 +448,7 @@ export async function updateModifierCode(
       .returning({ id: naixerModifierCodes.id });
 
     if (result.length === 0) return { success: false, error: 'Not found' };
-    
+
     const session = await getSession();
     const userId = session?.user?.id as string;
     if (userId) {
@@ -472,7 +466,7 @@ export async function updateModifierCode(
         },
       });
     }
-    
+
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
@@ -495,7 +489,7 @@ export async function deleteModifierCode(id: string): Promise<ActionResult> {
       .where(eq(naixerModifierCodes.id, id))
       .returning({ id: naixerModifierCodes.id });
     if (result.length === 0) return { success: false, error: 'Not found' };
-    
+
     const session = await getSession();
     const userId = session?.user?.id as string;
     if (userId) {
@@ -508,7 +502,7 @@ export async function deleteModifierCode(id: string): Promise<ActionResult> {
         entityId: id,
       });
     }
-    
+
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
@@ -623,7 +617,7 @@ export async function updateFormatConfig(
       .returning({ id: naixerQrFormatConfig.id });
 
     if (result.length === 0) return { success: false, error: 'Not found' };
-    
+
     const session = await getSession();
     const userId = session?.user?.id as string;
     if (userId) {
@@ -648,7 +642,7 @@ export async function updateFormatConfig(
         },
       });
     }
-    
+
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };

@@ -261,11 +261,7 @@ export function DailySummaryClient({
           <h1 className="text-2xl font-bold text-brand-ink">Ringkasan Harian</h1>
           <p className="mt-1 text-sm text-brand-ink-3">Laporan penjualan harian per lokasi.</p>
         </div>
-        {report && (
-          <ExportXlsxButton
-            onExport={() => exportXLSX(report, selectedLocationLabel)}
-          />
-        )}
+        {report && <ExportXlsxButton onExport={() => exportXLSX(report, selectedLocationLabel)} />}
       </div>
 
       {/* Filter bar */}

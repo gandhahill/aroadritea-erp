@@ -39,10 +39,7 @@ vi.mock('@erp/db', () => ({
   },
 }));
 
-import {
-  completeMemberPasswordReset,
-  requestMemberPasswordReset,
-} from '../src/member/index';
+import { completeMemberPasswordReset, requestMemberPasswordReset } from '../src/member/index';
 
 function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
@@ -60,10 +57,7 @@ describe('member password reset', () => {
   });
 
   it('creates a single-use reset token only for an active member with credentials', async () => {
-    selectResults = [
-      [{ id: 'member-001', isActive: true, isMember: true }],
-      [{ id: 'cred-001' }],
-    ];
+    selectResults = [[{ id: 'member-001', isActive: true, isMember: true }], [{ id: 'cred-001' }]];
 
     const result = await requestMemberPasswordReset({
       email: 'Member@Example.com',
@@ -72,7 +66,10 @@ describe('member password reset', () => {
 
     expect(result.ok).toBe(true);
     const resetToken = insertValues.find(
-      (value) => typeof value === 'object' && value !== null && (value as { purpose?: string }).purpose === 'reset',
+      (value) =>
+        typeof value === 'object' &&
+        value !== null &&
+        (value as { purpose?: string }).purpose === 'reset',
     ) as { recipient: string; token: string; codeHash: string; tokenExpiresAt: Date } | undefined;
 
     expect(resetToken).toBeDefined();
@@ -94,7 +91,10 @@ describe('member password reset', () => {
     expect(insertValues).toHaveLength(1);
     expect(
       insertValues.some(
-        (value) => typeof value === 'object' && value !== null && (value as { purpose?: string }).purpose === 'reset',
+        (value) =>
+          typeof value === 'object' &&
+          value !== null &&
+          (value as { purpose?: string }).purpose === 'reset',
       ),
     ).toBe(false);
   });
@@ -124,8 +124,12 @@ describe('member password reset', () => {
     });
 
     expect(result.ok).toBe(true);
-    expect(updateSets.some((set) => typeof set === 'object' && set !== null && 'passwordHash' in set)).toBe(true);
+    expect(
+      updateSets.some((set) => typeof set === 'object' && set !== null && 'passwordHash' in set),
+    ).toBe(true);
     expect(deleteCount).toBe(1);
-    expect(updateSets.some((set) => typeof set === 'object' && set !== null && 'consumedAt' in set)).toBe(true);
+    expect(
+      updateSets.some((set) => typeof set === 'object' && set !== null && 'consumedAt' in set),
+    ).toBe(true);
   });
 });

@@ -33,8 +33,7 @@ async function requireContext(
   const session = await getSession();
   if (!session?.user) return null;
   const user = session.user as Record<string, unknown>;
-  const currentTenantId =
-    (user.tenantId as string | undefined) ?? 'default';
+  const currentTenantId = (user.tenantId as string | undefined) ?? 'default';
   if (currentTenantId !== tenantId) return null;
 
   const userId = String(user.id ?? '');

@@ -4,13 +4,13 @@ import { pickLocalized } from '@/lib/pick-localized';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useMemo, useState } from 'react';
-import { uploadAttachmentAction } from '../attachments/actions';
 import {
   type JournalFormAccount,
   type JournalFormLocation,
   type JournalFormPartner,
   createJournalAction,
 } from '../actions';
+import { uploadAttachmentAction } from '../attachments/actions';
 
 const INPUT =
   'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
@@ -189,9 +189,7 @@ export function JournalForm({ accounts, locations, partners }: Props) {
         <div className="flex items-center justify-between border-b border-brand-cream-3 px-5 py-4">
           <div>
             <h2 className="text-base font-semibold text-brand-ink">{t('linesSection')}</h2>
-            <p className="text-sm text-brand-ink-3">
-              {t('linesHint')}
-            </p>
+            <p className="text-sm text-brand-ink-3">{t('linesHint')}</p>
           </div>
           <button
             type="button"
@@ -334,7 +332,7 @@ export function JournalForm({ accounts, locations, partners }: Props) {
             </tbody>
             <tfoot className="bg-brand-cream-1 text-sm font-semibold text-brand-ink">
               <tr>
-                  <td className="px-4 py-3" colSpan={6}>
+                <td className="px-4 py-3" colSpan={6}>
                   Total
                 </td>
                 <td className="px-4 py-3 text-right">{formatRupiah(totals.debit)}</td>
@@ -359,9 +357,8 @@ export function JournalForm({ accounts, locations, partners }: Props) {
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
         <h2 className="text-base font-semibold text-brand-ink">Lampiran (opsional)</h2>
         <p className="mt-1 text-sm text-brand-ink-3">
-          Unggah bukti transaksi atau dokumen pendukung. File akan otomatis
-          terpasang setelah draft jurnal berhasil dibuat. Maksimum 10 MB per
-          file.
+          Unggah bukti transaksi atau dokumen pendukung. File akan otomatis terpasang setelah draft
+          jurnal berhasil dibuat. Maksimum 10 MB per file.
         </p>
         <div className="mt-3 space-y-2">
           <input
@@ -382,9 +379,7 @@ export function JournalForm({ accounts, locations, partners }: Props) {
               ))}
             </ul>
           ) : null}
-          {uploadError ? (
-            <p className="text-xs text-rose-600">{uploadError}</p>
-          ) : null}
+          {uploadError ? <p className="text-xs text-rose-600">{uploadError}</p> : null}
           {uploadingAttachments ? (
             <p className="text-xs text-brand-ink-3">Mengunggah lampiran…</p>
           ) : null}
@@ -402,10 +397,7 @@ export function JournalForm({ accounts, locations, partners }: Props) {
         <button
           type="submit"
           disabled={
-            isPending ||
-            uploadingAttachments ||
-            accounts.length === 0 ||
-            locations.length === 0
+            isPending || uploadingAttachments || accounts.length === 0 || locations.length === 0
           }
           className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
         >

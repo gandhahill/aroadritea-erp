@@ -77,7 +77,11 @@ function dayWindowJakarta(date: string): { start: Date; end: Date } {
   return { start, end };
 }
 
-export async function fetchTodaysOrders(date?: string, page = 1, requestedPageSize = 20): Promise<{
+export async function fetchTodaysOrders(
+  date?: string,
+  page = 1,
+  requestedPageSize = 20,
+): Promise<{
   ok: boolean;
   rows: OrderListRow[];
   locationId: string | null;
@@ -102,7 +106,10 @@ export async function fetchTodaysOrders(date?: string, page = 1, requestedPageSi
 
   const targetDate = date ?? new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
   const { start, end } = dayWindowJakarta(targetDate);
-  const pageSize = Math.max(1, Math.min(100, Number.isFinite(requestedPageSize) ? requestedPageSize : 20));
+  const pageSize = Math.max(
+    1,
+    Math.min(100, Number.isFinite(requestedPageSize) ? requestedPageSize : 20),
+  );
   const currentPage = Math.max(1, Number.isFinite(page) ? page : 1);
   const whereClause = and(
     eq(salesOrders.tenantId, ctx.tenantId),
@@ -131,10 +138,7 @@ export async function fetchTodaysOrders(date?: string, page = 1, requestedPageSi
       cashierName: users.displayName,
     })
     .from(salesOrders)
-    .leftJoin(
-      users,
-      and(eq(users.id, salesOrders.cashierId), eq(users.tenantId, ctx.tenantId)),
-    )
+    .leftJoin(users, and(eq(users.id, salesOrders.cashierId), eq(users.tenantId, ctx.tenantId)))
     .where(whereClause)
     .orderBy(desc(salesOrders.placedAt))
     .limit(pageSize)
@@ -207,10 +211,7 @@ export async function fetchOrderDetail(orderId: string): Promise<{
       cashierName: users.displayName,
     })
     .from(salesOrders)
-    .leftJoin(
-      users,
-      and(eq(users.id, salesOrders.cashierId), eq(users.tenantId, ctx.tenantId)),
-    )
+    .leftJoin(users, and(eq(users.id, salesOrders.cashierId), eq(users.tenantId, ctx.tenantId)))
     .where(
       and(
         eq(salesOrders.tenantId, ctx.tenantId),
@@ -347,7 +348,16 @@ export async function serverExportOrders(date?: string) {
     return { ok: false, error: result.error };
   }
 
-  const headers = ['Number', 'Status', 'Channel', 'Cashier', 'Subtotal', 'Tax', 'Grand Total', 'Placed At'];
+  const headers = [
+    'Number',
+    'Status',
+    'Channel',
+    'Cashier',
+    'Subtotal',
+    'Tax',
+    'Grand Total',
+    'Placed At',
+  ];
   const rows = result.rows.map((o) => [
     o.number,
     o.status,

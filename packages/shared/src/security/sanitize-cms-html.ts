@@ -81,7 +81,10 @@ function escapeAttribute(value: string): string {
 }
 
 function normalizeUrlForProtocolCheck(value: string): string {
-  return value.trim().replace(/[\u0000-\u001F\u007F\s]+/g, '').toLowerCase();
+  return value
+    .trim()
+    .replace(/[\u0000-\u001F\u007F\s]+/g, '')
+    .toLowerCase();
 }
 
 function isSafeUrl(value: string, tagName: string): boolean {
@@ -120,7 +123,10 @@ function sanitizeAttributes(tagName: string, rawAttributes: string): string {
         : '';
 
     if (URI_ATTRIBUTES.has(name) && !isSafeUrl(value, tagName)) continue;
-    if ((name === 'width' || name === 'height' || name === 'colspan' || name === 'rowspan') && !/^\d{1,4}$/.test(value)) {
+    if (
+      (name === 'width' || name === 'height' || name === 'colspan' || name === 'rowspan') &&
+      !/^\d{1,4}$/.test(value)
+    ) {
       continue;
     }
     if (name === 'target' && !['_blank', '_self'].includes(value)) continue;

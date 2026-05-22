@@ -89,9 +89,7 @@ export async function queueOrderItems(
   const [order] = await db
     .select()
     .from(salesOrders)
-    .where(
-      and(eq(salesOrders.id, input.salesOrderId), eq(salesOrders.tenantId, ctx.tenantId)),
-    )
+    .where(and(eq(salesOrders.id, input.salesOrderId), eq(salesOrders.tenantId, ctx.tenantId)))
     .limit(1);
 
   if (!order) {
@@ -182,9 +180,7 @@ export async function updateKdsStatus(
   const [item] = await db
     .select()
     .from(kdsOrderItems)
-    .where(
-      and(eq(kdsOrderItems.id, input.kdsItemId), eq(kdsOrderItems.tenantId, ctx.tenantId)),
-    )
+    .where(and(eq(kdsOrderItems.id, input.kdsItemId), eq(kdsOrderItems.tenantId, ctx.tenantId)))
     .limit(1);
 
   if (!item) {
@@ -309,9 +305,7 @@ export async function getKdsStats(
       count: sql<number>`count(*)::int`,
     })
     .from(kdsOrderItems)
-    .where(
-      and(eq(kdsOrderItems.tenantId, ctx.tenantId), eq(kdsOrderItems.locationId, locationId)),
-    )
+    .where(and(eq(kdsOrderItems.tenantId, ctx.tenantId), eq(kdsOrderItems.locationId, locationId)))
     .groupBy(kdsOrderItems.status);
 
   const stats: KdsStatsResult = {
@@ -347,10 +341,7 @@ export async function cancelOrderItems(
     .select({ id: kdsOrderItems.id, status: kdsOrderItems.status })
     .from(kdsOrderItems)
     .where(
-      and(
-        eq(kdsOrderItems.tenantId, ctx.tenantId),
-        eq(kdsOrderItems.salesOrderId, salesOrderId),
-      ),
+      and(eq(kdsOrderItems.tenantId, ctx.tenantId), eq(kdsOrderItems.salesOrderId, salesOrderId)),
     );
 
   let cancelled = 0;

@@ -2,9 +2,9 @@
 
 import { getSession } from '@/lib/auth';
 import { and, db, eq } from '@erp/db';
+import { accounts } from '@erp/db/schema/accounting';
 import { locations } from '@erp/db/schema/auth';
 import { productVariants, products } from '@erp/db/schema/inventory';
-import { accounts } from '@erp/db/schema/accounting';
 import {
   type PromotionListItem,
   type UpsertPromotionInput,
@@ -79,9 +79,7 @@ export async function fetchPromotionPageData() {
           isActive: productVariants.isActive,
         })
         .from(productVariants)
-        .where(
-          and(eq(productVariants.tenantId, ctx.tenantId), eq(productVariants.isActive, true)),
-        )
+        .where(and(eq(productVariants.tenantId, ctx.tenantId), eq(productVariants.isActive, true)))
         .orderBy(productVariants.sku),
       db
         .select({

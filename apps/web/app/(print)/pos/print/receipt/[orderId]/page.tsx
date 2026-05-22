@@ -14,9 +14,9 @@ import { getSession } from '@/lib/auth';
 import { formatQty } from '@/lib/format-qty';
 import { pickLocalized } from '@/lib/pick-localized';
 import { and, db, eq } from '@erp/db';
+import { partners } from '@erp/db/schema/accounting';
 import { locations } from '@erp/db/schema/auth';
 import { users as usersTable } from '@erp/db/schema/auth';
-import { partners } from '@erp/db/schema/accounting';
 import { products } from '@erp/db/schema/inventory';
 import { posSettings } from '@erp/db/schema/pos';
 import { payments, salesOrderLines, salesOrders } from '@erp/db/schema/pos';
@@ -105,10 +105,7 @@ export default async function ReceiptPrintPage({ params }: Props) {
     .leftJoin(products, eq(salesOrderLines.productId, products.id))
     .where(eq(salesOrderLines.salesOrderId, order.id));
 
-  const paymentRows = await db
-    .select()
-    .from(payments)
-    .where(eq(payments.salesOrderId, order.id));
+  const paymentRows = await db.select().from(payments).where(eq(payments.salesOrderId, order.id));
 
   const setting = await db
     .select()

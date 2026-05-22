@@ -220,7 +220,9 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
                 </a>
                 <button
                   type="button"
-                  onClick={() => confirmDeleteId === att.id ? handleDelete(att.id) : setConfirmDeleteId(att.id)}
+                  onClick={() =>
+                    confirmDeleteId === att.id ? handleDelete(att.id) : setConfirmDeleteId(att.id)
+                  }
                   disabled={deletingId === att.id || isPending}
                   className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-card px-2.5 py-1.5 text-xs font-medium text-rose-500 transition-colors hover:bg-rose-50 disabled:opacity-50"
                 >

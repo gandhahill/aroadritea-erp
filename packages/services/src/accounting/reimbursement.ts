@@ -234,9 +234,7 @@ export async function rejectReimbursement(
           updatedAt: new Date(),
           updatedBy: ctx.userId,
         })
-        .where(
-          and(eq(reimbursementRequests.id, id), eq(reimbursementRequests.status, req.status)),
-        )
+        .where(and(eq(reimbursementRequests.id, id), eq(reimbursementRequests.status, req.status)))
         .returning();
 
       if (!updated || updated.length === 0) {
@@ -390,9 +388,7 @@ async function transitionStatus(
       const updated = await db
         .update(reimbursementRequests)
         .set(setFields)
-        .where(
-          and(eq(reimbursementRequests.id, id), eq(reimbursementRequests.status, req.status)),
-        )
+        .where(and(eq(reimbursementRequests.id, id), eq(reimbursementRequests.status, req.status)))
         .returning();
 
       if (!updated || updated.length === 0) {

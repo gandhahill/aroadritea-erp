@@ -200,7 +200,10 @@ export async function saveCOAAccount(input: COAAccountDraft): Promise<COAActionR
     revalidatePath('/accounting/coa');
     return { success: true, id };
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Gagal menyimpan akun.' };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Gagal menyimpan akun.',
+    };
   }
 }
 
@@ -216,17 +219,28 @@ export async function deleteCOAAccount(input: {
   const [before] = await db
     .select()
     .from(accounts)
-    .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.id, id), isNull(accounts.deletedAt)))
+    .where(
+      and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.id, id), isNull(accounts.deletedAt)),
+    )
     .limit(1);
   if (!before) return { success: false, error: 'Akun tidak ditemukan.' };
 
   const [child] = await db
     .select({ id: accounts.id })
     .from(accounts)
-    .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.parentId, id), isNull(accounts.deletedAt)))
+    .where(
+      and(
+        eq(accounts.tenantId, ctx.tenantId),
+        eq(accounts.parentId, id),
+        isNull(accounts.deletedAt),
+      ),
+    )
     .limit(1);
   if (child) {
-    return { success: false, error: 'Akun masih memiliki sub-akun. Hapus atau pindahkan sub-akun terlebih dahulu.' };
+    return {
+      success: false,
+      error: 'Akun masih memiliki sub-akun. Hapus atau pindahkan sub-akun terlebih dahulu.',
+    };
   }
 
   if (replacementAccountId === id) {
@@ -326,7 +340,12 @@ async function replaceDraftAndConfigurationReferences(
   await db
     .update(fixedAssetCategories)
     .set({ assetAccountId: replacementAccountId, updatedAt: new Date() })
-    .where(and(eq(fixedAssetCategories.tenantId, tenantId), eq(fixedAssetCategories.assetAccountId, accountId)));
+    .where(
+      and(
+        eq(fixedAssetCategories.tenantId, tenantId),
+        eq(fixedAssetCategories.assetAccountId, accountId),
+      ),
+    );
   await db
     .update(fixedAssetCategories)
     .set({ accumulatedDepreciationAccountId: replacementAccountId, updatedAt: new Date() })

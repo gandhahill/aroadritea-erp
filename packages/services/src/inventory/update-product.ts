@@ -138,7 +138,7 @@ export async function updateProduct(
 
       // Convert BigInts to string so they can be JSON serialized
       const safeUpdates = Object.fromEntries(
-        Object.entries(updates).map(([k, v]) => [k, typeof v === 'bigint' ? String(v) : v])
+        Object.entries(updates).map(([k, v]) => [k, typeof v === 'bigint' ? String(v) : v]),
       );
 
       await db.insert(auditLog).values({
@@ -148,7 +148,12 @@ export async function updateProduct(
         action: auditAction,
         entityType: 'product',
         entityId: data.productId,
-        before: { sku: existing.sku, name: existing.name, version: existing.version, isActive: existing.isActive },
+        before: {
+          sku: existing.sku,
+          name: existing.name,
+          version: existing.version,
+          isActive: existing.isActive,
+        },
         after: { ...safeUpdates, version: existing.version + 1 },
         metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
       });

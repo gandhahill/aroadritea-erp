@@ -108,14 +108,18 @@ export async function saveTaxRateAction(formData: FormData) {
   if (!ctx) return;
 
   const id = String(formData.get('id') ?? '').trim();
-  const code = String(formData.get('code') ?? '').trim().toUpperCase();
+  const code = String(formData.get('code') ?? '')
+    .trim()
+    .toUpperCase();
   const nameId = String(formData.get('nameId') ?? '').trim();
   const nameEn = String(formData.get('nameEn') ?? '').trim() || nameId;
   const nameZh = String(formData.get('nameZh') ?? '').trim() || nameEn || nameId;
   const ratePercent = Number(String(formData.get('ratePercent') ?? '0').replace(',', '.'));
   const postingAccountId = String(formData.get('postingAccountId') ?? '').trim();
-  const calculation = String(formData.get('calculation') ?? '') === 'exclusive' ? 'exclusive' : 'inclusive';
-  const effectiveFrom = String(formData.get('effectiveFrom') ?? '').trim() || new Date().toISOString().slice(0, 10);
+  const calculation =
+    String(formData.get('calculation') ?? '') === 'exclusive' ? 'exclusive' : 'inclusive';
+  const effectiveFrom =
+    String(formData.get('effectiveFrom') ?? '').trim() || new Date().toISOString().slice(0, 10);
   const effectiveUntilRaw = String(formData.get('effectiveUntil') ?? '').trim();
 
   if (!code || !nameId || !postingAccountId || !Number.isFinite(ratePercent)) return;

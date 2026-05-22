@@ -1,11 +1,11 @@
 'use server';
 
+import { getSession } from '@/lib/auth';
 import { and, db, desc, eq } from '@erp/db';
 import { reimbursementRequests } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
 import { locations, users } from '@erp/db/schema/auth';
 import type { LocaleString } from '@erp/shared/types';
-import { getSession } from '@/lib/auth';
 import { getLocale } from 'next-intl/server';
 
 export interface ReimbursementItem {
@@ -42,7 +42,7 @@ export async function fetchReimbursements(
   const user = session.user as Record<string, unknown>;
   const tenantId = String(user.tenantId ?? 'default');
   const userId = String(user.id ?? '');
-  
+
   // Note: For now we let people view reimbursements for their tenant.
   // Realistically we should check if they can view accounting, or if it's just their own.
 
@@ -102,9 +102,7 @@ export async function fetchReimbursements(
   );
   function pickLocName(loc: { name: LocaleString; code: string } | undefined, fallback: string) {
     if (!loc) return fallback;
-    return (
-      loc.name[locale] ?? loc.name.id ?? loc.name.en ?? loc.name.zh ?? loc.code ?? fallback
-    );
+    return loc.name[locale] ?? loc.name.id ?? loc.name.en ?? loc.name.zh ?? loc.code ?? fallback;
   }
 
   return rows.map((r) => ({
@@ -132,7 +130,7 @@ export async function fetchLocations(tenantIdRaw?: string): Promise<LocationItem
   const session = await getSession();
   if (!session?.user) return [];
   const tenantId = String((session.user as Record<string, unknown>).tenantId ?? 'default');
-  
+
   const rows = await db
     .select({ id: locations.id, name: locations.name, code: locations.code })
     .from(locations)
@@ -161,7 +159,7 @@ export async function createReimbursement(
   if (!session?.user) return { success: false, error: 'Unauthenticated' };
   const tenantId = String((session.user as Record<string, unknown>).tenantId ?? 'default');
   const userId = String((session.user as Record<string, unknown>).id ?? '');
-  
+
   try {
     const id = crypto.randomUUID();
     await db.insert(reimbursementRequests).values({
@@ -178,7 +176,7 @@ export async function createReimbursement(
       createdBy: userId,
       updatedBy: userId,
     });
-    
+
     await db.insert(auditLog).values({
       id: crypto.randomUUID(),
       tenantId,
@@ -194,7 +192,7 @@ export async function createReimbursement(
         status: 'draft',
       },
     });
-    
+
     return { success: true };
   } catch (e) {
     return { success: false, error: String(e) };
@@ -210,7 +208,7 @@ export async function submitReimbursement(
   if (!session?.user) return { success: false, error: 'Unauthenticated' };
   const tenantId = String((session.user as Record<string, unknown>).tenantId ?? 'default');
   const userId = String((session.user as Record<string, unknown>).id ?? '');
-  
+
   try {
     const rows = await db
       .select()
@@ -225,7 +223,7 @@ export async function submitReimbursement(
       .update(reimbursementRequests)
       .set({ status: 'submitted', updatedBy: userId, updatedAt: new Date() })
       .where(eq(reimbursementRequests.id, id));
-      
+
     await db.insert(auditLog).values({
       id: crypto.randomUUID(),
       tenantId,
@@ -236,7 +234,7 @@ export async function submitReimbursement(
       before: { status: 'draft' },
       after: { status: 'submitted' },
     });
-    
+
     return { success: true };
   } catch (e) {
     return { success: false, error: String(e) };
@@ -256,7 +254,7 @@ export async function approveReimbursement(
   const { requirePermission } = await import('@erp/services/iam');
   const perm = await requirePermission(userId, 'accounting.approve');
   if (!perm.ok) return { success: false, error: 'Unauthorized' };
-  
+
   try {
     const rows = await db
       .select()
@@ -277,7 +275,7 @@ export async function approveReimbursement(
         updatedAt: new Date(),
       })
       .where(eq(reimbursementRequests.id, id));
-      
+
     await db.insert(auditLog).values({
       id: crypto.randomUUID(),
       tenantId,
@@ -288,7 +286,7 @@ export async function approveReimbursement(
       before: { status: 'submitted' },
       after: { status: 'approved' },
     });
-    
+
     return { success: true };
   } catch (e) {
     return { success: false, error: String(e) };
@@ -309,7 +307,7 @@ export async function rejectReimbursement(
   const { requirePermission } = await import('@erp/services/iam');
   const perm = await requirePermission(userId, 'accounting.approve');
   if (!perm.ok) return { success: false, error: 'Unauthorized' };
-  
+
   try {
     const rows = await db
       .select()
@@ -329,7 +327,7 @@ export async function rejectReimbursement(
         updatedAt: new Date(),
       })
       .where(eq(reimbursementRequests.id, id));
-      
+
     await db.insert(auditLog).values({
       id: crypto.randomUUID(),
       tenantId,
@@ -340,7 +338,7 @@ export async function rejectReimbursement(
       before: { status: 'submitted' },
       after: { status: 'rejected', rejectionReason: reason },
     });
-    
+
     return { success: true };
   } catch (e) {
     return { success: false, error: String(e) };
@@ -360,7 +358,7 @@ export async function disburseReimbursement(
   const { requirePermission } = await import('@erp/services/iam');
   const perm = await requirePermission(userId, 'accounting.manage');
   if (!perm.ok) return { success: false, error: 'Unauthorized' };
-  
+
   try {
     const rows = await db
       .select()
@@ -380,7 +378,7 @@ export async function disburseReimbursement(
         updatedAt: new Date(),
       })
       .where(eq(reimbursementRequests.id, id));
-      
+
     await db.insert(auditLog).values({
       id: crypto.randomUUID(),
       tenantId,
@@ -391,7 +389,7 @@ export async function disburseReimbursement(
       before: { status: 'approved' },
       after: { status: 'disbursed' },
     });
-    
+
     return { success: true };
   } catch (e) {
     return { success: false, error: String(e) };

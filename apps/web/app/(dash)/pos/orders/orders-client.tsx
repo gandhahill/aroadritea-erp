@@ -207,7 +207,9 @@ export function OrdersClient({ rows }: Props) {
                 >
                   <td className="px-4 py-2.5 font-mono text-xs text-brand-ink">{r.number}</td>
                   <td className="px-4 py-2.5 text-xs text-brand-ink-2">{formatTime(r.placedAt)}</td>
-                  <td className="px-4 py-2.5 text-xs text-brand-ink-2">{channelLabel(r.channel)}</td>
+                  <td className="px-4 py-2.5 text-xs text-brand-ink-2">
+                    {channelLabel(r.channel)}
+                  </td>
                   <td className="px-4 py-2.5 text-xs text-brand-ink-2">{r.cashierName}</td>
                   <td className="px-4 py-2.5 text-xs text-brand-ink-2">
                     {r.paymentMethods.length > 0 ? r.paymentMethods.join(', ') : '—'}
@@ -315,11 +317,7 @@ export function OrdersClient({ rows }: Props) {
                 <Row label="Diskon" value={`-${formatRupiah(detail.discountTotal)}`} />
               ) : null}
               <Row label="PB1 (incl.)" value={formatRupiah(detail.taxTotal)} />
-              <Row
-                label="Total"
-                value={formatRupiah(detail.grandTotal)}
-                bold
-              />
+              <Row label="Total" value={formatRupiah(detail.grandTotal)} bold />
               <div className="mt-2 border-t border-dashed border-brand-cream-3 pt-2 space-y-0.5">
                 {detail.paymentRows.length === 0 ? (
                   <p className="text-brand-ink-3">Belum ada pembayaran.</p>
@@ -361,9 +359,7 @@ export function OrdersClient({ rows }: Props) {
               </button>
             </div>
 
-            {error && !modal ? (
-              <p className="mt-2 text-xs text-rose-600">{error}</p>
-            ) : null}
+            {error && !modal ? <p className="mt-2 text-xs text-rose-600">{error}</p> : null}
           </>
         )}
       </aside>
@@ -419,7 +415,10 @@ export function OrdersClient({ rows }: Props) {
                                   max={maxQty}
                                   value={currentQty}
                                   onChange={(e) => {
-                                    const v = Math.max(0, Math.min(maxQty, Number(e.target.value) || 0));
+                                    const v = Math.max(
+                                      0,
+                                      Math.min(maxQty, Number(e.target.value) || 0),
+                                    );
                                     setRefundLines((prev) => {
                                       const next = new Map(prev);
                                       next.set(l.id, v);

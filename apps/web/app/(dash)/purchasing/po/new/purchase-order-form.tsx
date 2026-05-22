@@ -121,9 +121,7 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold text-brand-ink">{t('items')}</h2>
-            <p className="text-sm text-brand-ink-3">
-              {t('itemsHint')}
-            </p>
+            <p className="text-sm text-brand-ink-3">{t('itemsHint')}</p>
           </div>
           <button
             type="button"

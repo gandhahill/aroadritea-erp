@@ -80,7 +80,13 @@ export default async function EmployeeDetailPage({
           href="/hr/employees"
           className="inline-flex items-center gap-1.5 text-sm text-brand-ink-3 transition-colors hover:text-brand-ember-5"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
           </svg>
           {t('title')}
@@ -215,7 +221,9 @@ export default async function EmployeeDetailPage({
         )}
         {emp.recentLeaveRequests.length > 0 ? (
           <>
-            <h4 className="mb-3 text-sm font-semibold text-brand-ink">{leaveT('recentRequests')}</h4>
+            <h4 className="mb-3 text-sm font-semibold text-brand-ink">
+              {leaveT('recentRequests')}
+            </h4>
             <div className="space-y-2">
               {emp.recentLeaveRequests.map((request) => (
                 <div
@@ -239,7 +247,11 @@ export default async function EmployeeDetailPage({
   );
 }
 
-function Field({ label, value, wide = false }: { label: string; value?: string | null; wide?: boolean }) {
+function Field({
+  label,
+  value,
+  wide = false,
+}: { label: string; value?: string | null; wide?: boolean }) {
   return (
     <div className={wide ? 'col-span-2' : ''}>
       <dt className="text-brand-ink-3">{label}</dt>
@@ -248,7 +260,11 @@ function Field({ label, value, wide = false }: { label: string; value?: string |
   );
 }
 
-function Metric({ value, label, accent = false }: { value: string | number; label: string; accent?: boolean }) {
+function Metric({
+  value,
+  label,
+  accent = false,
+}: { value: string | number; label: string; accent?: boolean }) {
   return (
     <div className="rounded-lg border border-brand-cream-3 bg-brand-cream-1 p-4 text-center">
       <div className={`text-2xl font-bold ${accent ? 'text-brand-gold' : 'text-brand-ink'}`}>

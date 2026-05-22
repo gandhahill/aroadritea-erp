@@ -35,7 +35,7 @@ export default async function BankReconPage() {
       </div>
 
       <BankReconListClient
-        statements={statements.map(s => ({
+        statements={statements.map((s) => ({
           ...s,
           openingBalance: Number(s.openingBalance),
           closingBalance: Number(s.closingBalance),

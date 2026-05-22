@@ -128,8 +128,7 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
             <div className="grid gap-2 sm:grid-cols-3">
               {OPNAME_FREQUENCY_OPTIONS.map((option) => {
                 const selected =
-                  product?.opnameFrequencies?.includes(option.value) ??
-                  (option.value === 'monthly');
+                  product?.opnameFrequencies?.includes(option.value) ?? option.value === 'monthly';
                 return (
                   <label
                     key={option.value}
@@ -240,7 +239,11 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
             defaultChecked={product?.trackExpiry ?? false}
           />
           {mode === 'edit' ? (
-            <Toggle name="isActive" label={f('isActive')} defaultChecked={product?.isActive ?? true} />
+            <Toggle
+              name="isActive"
+              label={f('isActive')}
+              defaultChecked={product?.isActive ?? true}
+            />
           ) : null}
         </div>
       </section>

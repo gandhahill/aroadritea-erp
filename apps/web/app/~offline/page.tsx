@@ -56,9 +56,7 @@ export default function OfflinePage() {
             <br />
             secara otomatis saat koneksi kembali.
           </p>
-          <div className="pending">
-            Pesanan tersimpan di perangkat — aman dari kehilangan data.
-          </div>
+          <div className="pending">Pesanan tersimpan di perangkat — aman dari kehilangan data.</div>
         </div>
       </body>
     </html>

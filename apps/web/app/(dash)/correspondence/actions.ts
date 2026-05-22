@@ -4,16 +4,16 @@ import { getSession } from '@/lib/auth';
 import { pickLocalized } from '@/lib/pick-localized';
 import { and, asc, db, eq, isNull, locations, users } from '@erp/db';
 import {
+  type CorrespondenceRecord,
   createCorrespondence,
   deleteCorrespondence,
   getCorrespondence,
   listCorrespondence,
   updateCorrespondence,
-  type CorrespondenceRecord,
 } from '@erp/services/correspondence';
 import type { AuditContext } from '@erp/shared/types';
-import { revalidatePath } from 'next/cache';
 import { getLocale } from 'next-intl/server';
+import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 export interface CorrespondenceOptions {
@@ -60,14 +60,21 @@ async function getOptions(ctx: AuditContext): Promise<CorrespondenceOptions> {
   const locale = rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
   const [locationRows, userRows] = await Promise.all([
     db
-      .select({ id: locations.id, code: locations.code, name: locations.name, type: locations.type })
+      .select({
+        id: locations.id,
+        code: locations.code,
+        name: locations.name,
+        type: locations.type,
+      })
       .from(locations)
       .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.status, 'active')))
       .orderBy(asc(locations.code)),
     db
       .select({ id: users.id, name: users.displayName, email: users.email })
       .from(users)
-      .where(and(eq(users.tenantId, ctx.tenantId), eq(users.status, 'active'), isNull(users.deletedAt)))
+      .where(
+        and(eq(users.tenantId, ctx.tenantId), eq(users.status, 'active'), isNull(users.deletedAt)),
+      )
       .orderBy(asc(users.displayName)),
   ]);
   return {
@@ -94,7 +101,10 @@ export async function fetchCorrespondencePageData(searchParams: {
   const ctx = buildCtx(session);
   const page = Math.max(1, Number(searchParams.page ?? '1') || 1);
   const parsedPageSize = Number.parseInt(searchParams.pageSize ?? '25', 10);
-  const pageSize = Math.max(1, Math.min(100, Number.isFinite(parsedPageSize) ? parsedPageSize : 25));
+  const pageSize = Math.max(
+    1,
+    Math.min(100, Number.isFinite(parsedPageSize) ? parsedPageSize : 25),
+  );
   const [options, result] = await Promise.all([
     getOptions(ctx),
     listCorrespondence(
@@ -178,7 +188,8 @@ export async function updateCorrespondenceAction(id: string, formData: FormData)
   );
   revalidatePath('/correspondence');
   revalidatePath(`/correspondence/${id}`);
-  if (!result.ok) redirect(`/correspondence/${id}?error=${encodeURIComponent(result.error.messageKey)}`);
+  if (!result.ok)
+    redirect(`/correspondence/${id}?error=${encodeURIComponent(result.error.messageKey)}`);
   redirect(`/correspondence/${id}?saved=1`);
 }
 
@@ -188,6 +199,7 @@ export async function deleteCorrespondenceAction(id: string) {
   const ctx = buildCtx(session);
   const result = await deleteCorrespondence(id, ctx);
   revalidatePath('/correspondence');
-  if (!result.ok) redirect(`/correspondence/${id}?error=${encodeURIComponent(result.error.messageKey)}`);
+  if (!result.ok)
+    redirect(`/correspondence/${id}?error=${encodeURIComponent(result.error.messageKey)}`);
   redirect('/correspondence?deleted=1');
 }

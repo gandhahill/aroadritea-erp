@@ -477,7 +477,10 @@ export async function initiateSignup(
             eq(partners.tenantId, 'default'),
             eq(partners.kind, 'customer'),
             eq(partners.isMember, true),
-            or(inArray(partners.phone, phoneCipherCandidates), inArray(partners.phone, phoneCandidates)),
+            or(
+              inArray(partners.phone, phoneCipherCandidates),
+              inArray(partners.phone, phoneCandidates),
+            ),
           ),
         )
         .limit(1)
@@ -1376,5 +1379,3 @@ export async function getMemberVouchers(
     return err(AppError.internal('member.vouchers.listFailed', e));
   }
 }
-
-
