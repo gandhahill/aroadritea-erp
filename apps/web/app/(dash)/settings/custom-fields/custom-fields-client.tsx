@@ -60,6 +60,7 @@ const EMPTY_FORM: FormState = {
 
 export function CustomFieldsClient({ initialFields, ctx }: Props) {
   const t = useTranslations('settings.customFields');
+  const tc = useTranslations('common');
   const tDT = useTranslations('settings.customFields.dataTypes');
   const tET = useTranslations('settings.customFields.entityTypes');
 
