@@ -2992,5 +2992,29 @@
     "subtype": "子类型",
     "normalBalance": "正常余额",
     "parent": "上级"
+  },
+  "inbox": {
+    "title": "通知",
+    "unreadCount": "{count} 未读",
+    "latestCount": "{count} 最新",
+    "markAllRead": "全部标为已读",
+    "empty": "暂无通知。",
+    "open": "打开",
+    "markRead": "标为已读",
+    "time": {
+      "justNow": "刚刚",
+      "minutesAgo": "{min} 分钟前",
+      "hoursAgo": "{hr} 小时前",
+      "daysAgo": "{day} 天前"
+    },
+    "kinds": {
+      "leave": "请假",
+      "po": "采购",
+      "opname": "盘点",
+      "attendance": "考勤",
+      "shift": "排班",
+      "payroll": "工资",
+      "recruitment": "招聘"
+    }
   }
 }

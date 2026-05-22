@@ -2915,5 +2915,29 @@
     "subtype": "Subtipe",
     "normalBalance": "Saldo Normal",
     "parent": "Parent"
+  },
+  "inbox": {
+    "title": "Notifikasi",
+    "unreadCount": "{count} belum dibaca",
+    "latestCount": "{count} terbaru",
+    "markAllRead": "Tandai semua dibaca",
+    "empty": "Belum ada notifikasi.",
+    "open": "Buka",
+    "markRead": "Tandai dibaca",
+    "time": {
+      "justNow": "baru saja",
+      "minutesAgo": "{min} menit lalu",
+      "hoursAgo": "{hr} jam lalu",
+      "daysAgo": "{day} hari lalu"
+    },
+    "kinds": {
+      "leave": "Cuti",
+      "po": "Pembelian",
+      "opname": "Opname",
+      "attendance": "Presensi",
+      "shift": "Shift",
+      "payroll": "Payroll",
+      "recruitment": "Rekrutmen"
+    }
   }
 }

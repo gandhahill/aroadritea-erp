@@ -2916,5 +2916,29 @@
     "subtype": "Subtype",
     "normalBalance": "Normal Balance",
     "parent": "Parent"
+  },
+  "inbox": {
+    "title": "Notifications",
+    "unreadCount": "{count} unread",
+    "latestCount": "{count} latest",
+    "markAllRead": "Mark all as read",
+    "empty": "No notifications yet.",
+    "open": "Open",
+    "markRead": "Mark as read",
+    "time": {
+      "justNow": "just now",
+      "minutesAgo": "{min} minutes ago",
+      "hoursAgo": "{hr} hours ago",
+      "daysAgo": "{day} days ago"
+    },
+    "kinds": {
+      "leave": "Leave",
+      "po": "Purchase",
+      "opname": "Opname",
+      "attendance": "Attendance",
+      "shift": "Shift",
+      "payroll": "Payroll",
+      "recruitment": "Recruitment"
+    }
   }
 }
