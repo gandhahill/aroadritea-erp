@@ -44,8 +44,8 @@ export default async function BankAccountsPage() {
           empty: t('empty'),
           delete: t('delete'),
           deleteConfirm: t('deleteConfirm'),
-          active: common('active'),
-          inactive: common('inactive'),
+          active: common('status.active'),
+          inactive: common('status.inactive'),
         }}
       />
     </div>

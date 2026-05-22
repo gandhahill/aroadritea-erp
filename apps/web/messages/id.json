@@ -558,6 +558,76 @@
     "notFound": "Jadwal tidak ditemukan"
   },
   "inventory": {
+    "variance": {
+      "title": "Laporan Selisih Stok",
+      "subtitle": "Laporan selisih stok (variance) hasil dari proses opname.",
+      "startDate": "Tanggal Mulai",
+      "endDate": "Tanggal Selesai",
+      "location": "Lokasi",
+      "allLocations": "Semua Lokasi",
+      "show": "Tampilkan",
+      "loading": "Memuat...",
+      "errorLoading": "Gagal memuat data selisih stok.",
+      "surplus": "Surplus",
+      "shortage": "Kekurangan",
+      "noData": "Tidak ada data",
+      "emptyState": {
+        "title": "Tidak ada data",
+        "subtitle": "Tidak ada selisih stok pada periode dan lokasi ini."
+      },
+      "export": {
+        "title": "Ekspor Excel",
+        "period": "Periode",
+        "location": "Lokasi",
+        "summary": "Ringkasan",
+        "totalSessions": "Total Sesi",
+        "totalProducts": "Total Produk",
+        "totalLines": "Total Baris",
+        "linesWithVariance": "Baris dengan Selisih",
+        "totalVarianceValue": "Total Nilai Selisih",
+        "totalSurplus": "Total Surplus",
+        "totalShortage": "Total Kekurangan",
+        "avgVarianceRate": "Rata-rata Tingkat Selisih",
+        "summarySheet": "Ringkasan",
+        "sessionsSheet": "Berdasarkan Sesi",
+        "productsSheet": "Berdasarkan Produk"
+      },
+      "columns": {
+        "sessionNo": "No. Sesi",
+        "date": "Tanggal",
+        "period": "Periode",
+        "location": "Lokasi",
+        "totalLines": "Total Baris",
+        "countedLines": "Baris Dihitung",
+        "linesWithVariance": "Baris dengan Selisih",
+        "netVarianceQty": "Selisih Net (Qty)",
+        "varianceValue": "Nilai Selisih",
+        "productId": "ID Produk",
+        "productName": "Nama Produk",
+        "sku": "SKU",
+        "systemQty": "Qty Sistem",
+        "countedQty": "Qty Dihitung",
+        "varianceQty": "Selisih Qty",
+        "varianceRate": "Tingkat Selisih",
+        "worstSession": "Sesi Terburuk",
+        "actions": "Aksi"
+      },
+      "tabs": {
+        "sessions": "Berdasarkan Sesi",
+        "products": "Berdasarkan Produk"
+      },
+      "summary": {
+        "totalSessions": "Total Sesi",
+        "productsCount": "Produk",
+        "totalLines": "Total Baris Dihitung",
+        "withVariance": "dengan selisih",
+        "totalVarianceValue": "Total Nilai Selisih",
+        "average": "Rata-rata:",
+        "netRevenueLost": "Kehilangan Pendapatan Bersih",
+        "surplus": "surplus",
+        "noSurplus": "Tidak ada surplus"
+      }
+    },
     "products": {
       "title": "Produk & Menu",
       "subtitle": "Kelola menu jual, bahan baku, harga varian, gambar, dan kategori langsung dari ERP.",
@@ -904,7 +974,8 @@
     "categories": "Kategori",
     "stockByOutlet": "Stok per Outlet",
     "correspondence": "Surat Menyurat",
-    "bankReconciliation": "Rekon Bank"
+    "bankReconciliation": "Rekon Bank",
+    "bankAccounts": "Akun Bank"
   },
   "pos": {
     "title": "Kasir",

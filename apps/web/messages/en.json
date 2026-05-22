@@ -558,6 +558,76 @@
     "notFound": "Schedule not found"
   },
   "inventory": {
+    "variance": {
+      "title": "Stock Variance Report",
+      "subtitle": "Stock variance analysis from opname processes.",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "location": "Location",
+      "allLocations": "All Locations",
+      "show": "Show",
+      "loading": "Loading...",
+      "errorLoading": "Failed to load stock variance data.",
+      "surplus": "Surplus",
+      "shortage": "Shortage",
+      "noData": "No data",
+      "emptyState": {
+        "title": "No data",
+        "subtitle": "No stock variance in this period and location."
+      },
+      "export": {
+        "title": "Export Excel",
+        "period": "Period",
+        "location": "Location",
+        "summary": "Summary",
+        "totalSessions": "Total Sessions",
+        "totalProducts": "Total Products",
+        "totalLines": "Total Lines",
+        "linesWithVariance": "Lines with Variance",
+        "totalVarianceValue": "Total Variance Value",
+        "totalSurplus": "Total Surplus",
+        "totalShortage": "Total Shortage",
+        "avgVarianceRate": "Avg Variance Rate",
+        "summarySheet": "Summary",
+        "sessionsSheet": "By Session",
+        "productsSheet": "By Product"
+      },
+      "columns": {
+        "sessionNo": "Session No",
+        "date": "Date",
+        "period": "Period",
+        "location": "Location",
+        "totalLines": "Total Lines",
+        "countedLines": "Counted Lines",
+        "linesWithVariance": "Lines with Variance",
+        "netVarianceQty": "Net Variance Qty",
+        "varianceValue": "Variance Value",
+        "productId": "Product ID",
+        "productName": "Product Name",
+        "sku": "SKU",
+        "systemQty": "System Qty",
+        "countedQty": "Counted Qty",
+        "varianceQty": "Variance Qty",
+        "varianceRate": "Variance Rate",
+        "worstSession": "Worst Session",
+        "actions": "Actions"
+      },
+      "tabs": {
+        "sessions": "By Session",
+        "products": "By Product"
+      },
+      "summary": {
+        "totalSessions": "Total Sessions",
+        "productsCount": "Products",
+        "totalLines": "Total Counted Lines",
+        "withVariance": "with variance",
+        "totalVarianceValue": "Total Variance Value",
+        "average": "Average:",
+        "netRevenueLost": "Net Revenue Lost",
+        "surplus": "surplus",
+        "noSurplus": "No surplus"
+      }
+    },
     "products": {
       "title": "Products & Menu",
       "subtitle": "Manage sale items, raw materials, variant prices, images, and categories from the ERP.",
@@ -905,7 +975,8 @@
     "stockByOutlet": "Stock by Outlet",
     "correspondence": "Correspondence",
     "bankReconciliation": "Bank Recon",
-    "bankAccounts": "Bank Accounts"
+    "bankAccounts": "Bank Accounts",
+    "variance": "Variance"
   },
   "pos": {
     "title": "Point of Sale",

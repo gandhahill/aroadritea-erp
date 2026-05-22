@@ -579,6 +579,76 @@
     "notFound": "计划未找到"
   },
   "inventory": {
+    "variance": {
+      "title": "库存差异报告",
+      "subtitle": "库存盘点产生的差异报告。",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "location": "位置",
+      "allLocations": "所有位置",
+      "show": "显示",
+      "loading": "加载中...",
+      "errorLoading": "加载库存差异数据失败。",
+      "surplus": "盘盈",
+      "shortage": "盘亏",
+      "noData": "暂无数据",
+      "emptyState": {
+        "title": "暂无数据",
+        "subtitle": "此期间和位置没有库存差异。"
+      },
+      "export": {
+        "title": "导出 Excel",
+        "period": "期间",
+        "location": "位置",
+        "summary": "摘要",
+        "totalSessions": "总盘点",
+        "totalProducts": "总产品",
+        "totalLines": "总行数",
+        "linesWithVariance": "有差异的行",
+        "totalVarianceValue": "总差异金额",
+        "totalSurplus": "总盘盈金额",
+        "totalShortage": "总盘亏金额",
+        "avgVarianceRate": "平均差异率",
+        "summarySheet": "摘要",
+        "sessionsSheet": "按盘点",
+        "productsSheet": "按产品"
+      },
+      "columns": {
+        "sessionNo": "盘点编号",
+        "date": "日期",
+        "period": "期间",
+        "location": "位置",
+        "totalLines": "总行数",
+        "countedLines": "已盘点行",
+        "linesWithVariance": "有差异行",
+        "netVarianceQty": "净差异数量",
+        "varianceValue": "差异金额",
+        "productId": "产品 ID",
+        "productName": "产品名称",
+        "sku": "SKU",
+        "systemQty": "系统数量",
+        "countedQty": "盘点数量",
+        "varianceQty": "差异数量",
+        "varianceRate": "差异率",
+        "worstSession": "最差盘点",
+        "actions": "操作"
+      },
+      "tabs": {
+        "sessions": "按盘点",
+        "products": "按产品"
+      },
+      "summary": {
+        "totalSessions": "总盘点数",
+        "productsCount": "产品数",
+        "totalLines": "已盘点总行数",
+        "withVariance": "有差异",
+        "totalVarianceValue": "总差异金额",
+        "average": "平均：",
+        "netRevenueLost": "净收入损失",
+        "surplus": "盘盈",
+        "noSurplus": "无盘盈"
+      }
+    },
     "products": {
       "title": "产品和菜单",
       "subtitle": "从ERP管理销售商品、原材料、规格价格、图片和分类。",
@@ -941,9 +1011,10 @@
     "supplies": "物料与消耗品",
     "categories": "分类",
     "stockByOutlet": "各门店库存",
-    "correspondence": "公函",
+    "correspondence": "信函",
     "bankReconciliation": "银行对账",
-    "bankAccounts": "银行账户"
+    "bankAccounts": "银行账户",
+    "variance": "差异"
   },
   "pos": {
     "manualSales": {
