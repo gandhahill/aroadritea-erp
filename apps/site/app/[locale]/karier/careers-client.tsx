@@ -86,8 +86,8 @@ export function CareersClient() {
     <div className="space-y-4">
       {submitted ? (
         <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          {t.markup('success', {
-            title: () => <b>{submitted}</b>,
+          {t.rich('success', {
+            title: submitted,
             b: (chunks) => <b>{chunks}</b>,
           })}
         </div>
