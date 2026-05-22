@@ -9,11 +9,12 @@ export const metadata: Metadata = {
   title: 'Bank Reconciliation Detail - Settings',
 };
 
-export default async function BankReconDetailPage({ params }: { params: { id: string } }) {
+export default async function BankReconDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const data = await fetchStatementDetails(params.id);
+  const resolvedParams = await params;
+  const data = await fetchStatementDetails(resolvedParams.id);
   if (!data) notFound();
 
   const [t] = await Promise.all([
