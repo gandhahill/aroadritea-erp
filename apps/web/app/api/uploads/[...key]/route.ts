@@ -39,7 +39,7 @@ async function canReadPrivateUpload(
   upload: Awaited<ReturnType<typeof readUpload>>,
 ): Promise<boolean> {
   const userId = String(user.id ?? '');
-  const tenantId = String(user.tenantId ?? '');
+  const tenantId = String(user.tenantId ?? 'default');
   if (!userId || !tenantId) return false;
 
   if (upload.metadata) {

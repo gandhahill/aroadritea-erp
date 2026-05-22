@@ -84,6 +84,12 @@ export const auth = betterAuth({
       emailVerified: 'emailVerified',
       image: undefined, // We don't use image field
     },
+    additionalFields: {
+      tenantId: {
+        type: 'string',
+        required: true,
+      },
+    },
   },
 
   // ISO 27001 §A.9.4 — limit credential-stuffing / brute force on the

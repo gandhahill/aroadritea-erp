@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
   const user = session.user as Record<string, unknown>;
   const userId = String(user.id ?? '');
-  const tenantId = String(user.tenantId ?? '');
+  const tenantId = String(user.tenantId ?? 'default');
   if (!userId || !tenantId) {
     return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
   }
