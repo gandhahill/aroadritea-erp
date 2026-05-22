@@ -126,6 +126,10 @@
       "price": "Price",
       "status": "Status",
       "actions": "Actions"
+    },
+    "boolean": {
+      "yes": "Yes",
+      "no": "No"
     }
   },
   "auth": {
@@ -2095,7 +2099,28 @@
       "labelSize": "Label Size",
       "includeOrderId": "Include Order ID",
       "parameterOrder": "Parameter Order",
-      "previewLabel": "Preview Label"
+      "previewLabel": "Preview Label",
+      "bannerTitle": "QR Code Integration",
+      "bannerDesc": "Each product and modifier must be mapped to a Naixer vendor code. Cup labels include a scannable Naixer QR, pickup number, order time, and product details. Format B (dash) is the default: e.g.",
+      "formatConfig": "QR Format Configuration",
+      "productMappings": "Product Code Mappings",
+      "modifierMappings": "Modifier Code Mappings",
+      "products": "products",
+      "modifiers": "modifiers",
+      "product": "Product",
+      "variant": "Variant",
+      "naixerCode": "Naixer Code",
+      "allVariants": "(all variants)",
+      "noProductMappings": "No product code mappings yet. Add one below.",
+      "selectProduct": "— Select product —",
+      "variantOptional": "Variant (optional)",
+      "modifierKind": "Kind",
+      "modifierOptionId": "Modifier Option",
+      "displayOrder": "Order",
+      "noModifierMappings": "No modifier code mappings yet. Add one below.",
+      "selectModifierOption": "— Select modifier option —",
+      "addProductMapping": "Add Product Mapping",
+      "addModifierMapping": "Add Modifier Mapping"
     }
   },
   "workflow": {

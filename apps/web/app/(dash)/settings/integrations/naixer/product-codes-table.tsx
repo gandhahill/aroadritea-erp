@@ -25,7 +25,7 @@ interface Props {
 
 export function ProductCodesTable({ codes, tenantId, products, variants }: Props) {
   const tc = useTranslations('common');
-  const t = useTranslations('settings.integrations.naixer');
+  const t = useTranslations('settings.naixer');
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showAddForm, setShowAddForm] = useState(false);
@@ -79,11 +79,11 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-brand-cream-3 bg-brand-cream">
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Produk</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Varian</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Kode Naixer</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Status</th>
-            <th className="px-4 py-3 text-right font-medium text-brand-ink-2">Aksi</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('product', { fallback: 'Produk' })}</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('variant', { fallback: 'Varian' })}</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('naixerCode', { fallback: 'Kode Naixer' })}</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{tc('fields.status', { fallback: 'Status' })}</th>
+            <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{tc('fields.actions', { fallback: 'Aksi' })}</th>
           </tr>
         </thead>
         <tbody>
@@ -91,7 +91,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
             <tr key={code.id} className="border-b border-brand-cream-3 last:border-0">
               <td className="px-4 py-3 text-sm text-brand-ink">{code.productLabel}</td>
               <td className="px-4 py-3 text-xs text-brand-ink-3">
-                {code.variantLabel ?? '(semua varian)'}
+                {code.variantLabel ?? t('allVariants', { fallback: '(semua varian)' })}
               </td>
               <td className="px-4 py-3">
                 <code className="rounded bg-brand-cream-2 px-1.5 py-0.5 text-xs font-mono font-bold text-brand-ink">
@@ -108,11 +108,11 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
                   {code.isActive ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-brand-jade-light px-2 py-0.5 text-[11px] font-medium text-brand-jade">
                       <span className="h-1.5 w-1.5 rounded-full bg-brand-jade" />
-                      Aktif
+                      {tc('status.active', { fallback: 'Aktif' })}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 rounded-full bg-brand-cream-2 px-2 py-0.5 text-[11px] font-medium text-brand-ink-3">
-                      Nonaktif
+                      {tc('status.inactive', { fallback: 'Nonaktif' })}
                     </span>
                   )}
                 </button>
@@ -124,7 +124,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
                   disabled={isPending}
                   className="text-xs text-brand-red hover:underline disabled:opacity-50"
                 >
-                  Hapus
+                  {tc('actions.delete', { fallback: 'Hapus' })}
                 </button>
               </td>
             </tr>
@@ -132,7 +132,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
           {codes.length === 0 && !showAddForm && (
             <tr>
               <td colSpan={5} className="px-4 py-8 text-center text-sm text-brand-ink-3">
-                Belum ada pemetaan kode produk. Tambahkan di bawah.
+                {t('noProductMappings', { fallback: 'Belum ada pemetaan kode produk. Tambahkan di bawah.' })}
               </td>
             </tr>
           )}
@@ -144,7 +144,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
         <div className="border-t border-brand-cream-3 bg-brand-cream px-4 py-3">
           <div className="flex items-end gap-3">
             <div className="flex-1">
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">Produk</label>
+              <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('product', { fallback: 'Produk' })}</label>
               <select
                 value={newProductId}
                 onChange={(e) => {
@@ -159,7 +159,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
                 }}
                 className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
               >
-                <option value="">— Pilih produk —</option>
+                <option value="">{t('selectProduct', { fallback: '— Pilih produk —' })}</option>
                 {products.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.label}
@@ -169,7 +169,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
             </div>
             <div className="flex-1">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                Varian (opsional)
+                {t('variantOptional', { fallback: 'Varian (opsional)' })}
               </label>
               <select
                 value={newVariantId}
@@ -177,7 +177,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
                 disabled={!newProductId}
                 className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none disabled:opacity-50"
               >
-                <option value="">(semua varian)</option>
+                <option value="">{t('allVariants', { fallback: '(semua varian)' })}</option>
                 {variants
                   .filter((v) => !newProductId || v.productId === newProductId)
                   .map((v) => (
@@ -188,7 +188,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
               </select>
             </div>
             <div className="w-32">
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">Naixer Code</label>
+              <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('naixerCode', { fallback: 'Naixer Code' })}</label>
               <input
                 type="text"
                 value={newNaixerCode}

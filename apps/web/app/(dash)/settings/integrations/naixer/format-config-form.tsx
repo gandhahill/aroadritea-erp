@@ -219,7 +219,7 @@ export function FormatConfigForm({ configs }: Props) {
                     />
                   </button>
                   <span className="text-sm text-brand-ink-2">
-                    {config.includeOrderId ? tc('common.yes', { fallback: 'Yes' }) : tc('common.no', { fallback: 'No' })}
+                    {config.includeOrderId ? tc('boolean.yes', { fallback: 'Yes' }) : tc('boolean.no', { fallback: 'No' })}
                   </span>
                 </div>
               </div>

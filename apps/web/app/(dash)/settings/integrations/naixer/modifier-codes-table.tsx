@@ -43,7 +43,7 @@ function KindBadge({ kind }: { kind: string }) {
 
 export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) {
   const tc = useTranslations('common');
-  const t = useTranslations('settings.integrations.naixer');
+  const t = useTranslations('settings.naixer');
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showAddForm, setShowAddForm] = useState(false);
@@ -98,12 +98,12 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-brand-cream-3 bg-brand-cream">
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Jenis</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">ID Opsi Modifier</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Kode Naixer</th>
-            <th className="px-4 py-3 text-center font-medium text-brand-ink-2">Urutan</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Status</th>
-            <th className="px-4 py-3 text-right font-medium text-brand-ink-2">Aksi</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('modifierKind', { fallback: 'Jenis' })}</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('modifierOptionId', { fallback: 'ID Opsi Modifier' })}</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('naixerCode', { fallback: 'Kode Naixer' })}</th>
+            <th className="px-4 py-3 text-center font-medium text-brand-ink-2">{t('displayOrder', { fallback: 'Urutan' })}</th>
+            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{tc('fields.status', { fallback: 'Status' })}</th>
+            <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{tc('fields.actions', { fallback: 'Aksi' })}</th>
           </tr>
         </thead>
         <tbody>
@@ -131,11 +131,11 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
                   {code.isActive ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-brand-jade-light px-2 py-0.5 text-[11px] font-medium text-brand-jade">
                       <span className="h-1.5 w-1.5 rounded-full bg-brand-jade" />
-                      Aktif
+                      {tc('status.active', { fallback: 'Aktif' })}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 rounded-full bg-brand-cream-2 px-2 py-0.5 text-[11px] font-medium text-brand-ink-3">
-                      Nonaktif
+                      {tc('status.inactive', { fallback: 'Nonaktif' })}
                     </span>
                   )}
                 </button>
@@ -147,7 +147,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
                   disabled={isPending}
                   className="text-xs text-brand-red hover:underline disabled:opacity-50"
                 >
-                  Hapus
+                  {tc('actions.delete', { fallback: 'Hapus' })}
                 </button>
               </td>
             </tr>
@@ -155,7 +155,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
           {codes.length === 0 && !showAddForm && (
             <tr>
               <td colSpan={6} className="px-4 py-8 text-center text-sm text-brand-ink-3">
-                No modifier code mappings yet. Add one below.
+                {t('noModifierMappings', { fallback: 'Belum ada pemetaan kode modifier. Tambahkan di bawah.' })}
               </td>
             </tr>
           )}
@@ -166,7 +166,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
         <div className="border-t border-brand-cream-3 bg-brand-cream px-4 py-3">
           <div className="flex items-end gap-3">
             <div className="w-28">
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">Kind</label>
+              <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('modifierKind', { fallback: 'Kind' })}</label>
               <select
                 value={newKind}
                 onChange={(e) => setNewKind(e.target.value)}
@@ -181,14 +181,14 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
             </div>
             <div className="flex-1">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                Modifier Option
+                {t('modifierOptionId', { fallback: 'Modifier Option' })}
               </label>
               <select
                 value={newOptionId}
                 onChange={(e) => setNewOptionId(e.target.value)}
                 className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
               >
-                <option value="">— Pilih modifier option —</option>
+                <option value="">{t('selectModifierOption', { fallback: '— Pilih modifier option —' })}</option>
                 {modifierOptions.map((o) => (
                   <option key={o.id} value={o.id}>
                     {o.label}
@@ -197,7 +197,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
               </select>
             </div>
             <div className="w-28">
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">Naixer Code</label>
+              <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('naixerCode', { fallback: 'Naixer Code' })}</label>
               <input
                 type="text"
                 value={newNaixerCode}
@@ -207,7 +207,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
               />
             </div>
             <div className="w-20">
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">Order</label>
+              <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('displayOrder', { fallback: 'Order' })}</label>
               <input
                 type="number"
                 value={newOrder}

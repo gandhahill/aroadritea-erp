@@ -126,6 +126,10 @@
       "price": "价格",
       "status": "状态",
       "actions": "操作"
+    },
+    "boolean": {
+      "yes": "是",
+      "no": "否"
     }
   },
   "auth": {
@@ -2146,7 +2150,28 @@
       "labelSize": "标签大小",
       "includeOrderId": "包括订单号",
       "parameterOrder": "参数顺序",
-      "previewLabel": "预览标签"
+      "previewLabel": "预览标签",
+      "bannerTitle": "二维码集成",
+      "bannerDesc": "每个产品和修饰符必须映射到 Naixer 供应商代码。杯子标签包括可扫描的 Naixer 二维码、取餐号、订单时间和产品详细信息。格式 B（破折号）是默认的：例如",
+      "formatConfig": "二维码格式配置",
+      "productMappings": "产品代码映射",
+      "modifierMappings": "修饰符代码映射",
+      "products": "产品",
+      "modifiers": "修饰符",
+      "product": "产品",
+      "variant": "变量",
+      "naixerCode": "Naixer 代码",
+      "allVariants": "(所有变量)",
+      "noProductMappings": "目前没有产品代码映射。在下面添加一个。",
+      "selectProduct": "— 选择产品 —",
+      "variantOptional": "变量 (可选)",
+      "modifierKind": "类型",
+      "modifierOptionId": "修饰符选项",
+      "displayOrder": "顺序",
+      "noModifierMappings": "目前没有修饰符代码映射。在下面添加一个。",
+      "selectModifierOption": "— 选择修饰符选项 —",
+      "addProductMapping": "添加产品映射",
+      "addModifierMapping": "添加修饰符映射"
     }
   },
   "workflow": {

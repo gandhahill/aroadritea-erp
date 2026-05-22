@@ -126,6 +126,10 @@
       "price": "Harga",
       "status": "Status",
       "actions": "Aksi"
+    },
+    "boolean": {
+      "yes": "Ya",
+      "no": "Tidak"
     }
   },
   "auth": {
@@ -2447,7 +2451,28 @@
       "labelSize": "Ukuran Label",
       "includeOrderId": "Sertakan Order ID",
       "parameterOrder": "Urutan Parameter",
-      "previewLabel": "Pratinjau Label"
+      "previewLabel": "Pratinjau Label",
+      "bannerTitle": "Integrasi Kode QR",
+      "bannerDesc": "Setiap produk dan modifier harus dipetakan ke kode vendor Naixer. Label cup berisi QR Naixer, nomor pickup, waktu pesanan, dan detail produk. Format B (dash) adalah default: misal",
+      "formatConfig": "Konfigurasi Format QR",
+      "productMappings": "Pemetaan Kode Produk",
+      "modifierMappings": "Pemetaan Kode Modifier",
+      "products": "produk",
+      "modifiers": "modifier",
+      "product": "Produk",
+      "variant": "Varian",
+      "naixerCode": "Kode Naixer",
+      "allVariants": "(semua varian)",
+      "noProductMappings": "Belum ada pemetaan kode produk. Tambahkan di bawah.",
+      "selectProduct": "— Pilih produk —",
+      "variantOptional": "Varian (opsional)",
+      "modifierKind": "Jenis",
+      "modifierOptionId": "ID Opsi Modifier",
+      "displayOrder": "Urutan",
+      "noModifierMappings": "Belum ada pemetaan kode modifier. Tambahkan di bawah.",
+      "selectModifierOption": "— Pilih opsi modifier —",
+      "addProductMapping": "Tambah Pemetaan Produk",
+      "addModifierMapping": "Tambah Pemetaan Modifier"
     }
   },
   "shell": {
