@@ -77,6 +77,8 @@ export default async function BankReconDetailPage({ params }: { params: Promise<
             matchSuccess: t('detail.matchSuccess'),
             unmatchSuccess: t('detail.unmatchSuccess'),
             journalCreated: t('detail.journalCreated'),
+            cancel: t('detail.cancel'),
+            ref: t('detail.ref'),
           },
           columns: {
             date: t('columns.date'),

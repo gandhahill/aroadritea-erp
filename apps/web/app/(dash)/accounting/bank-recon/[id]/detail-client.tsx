@@ -54,6 +54,8 @@ interface Labels {
     matchSuccess: string;
     unmatchSuccess: string;
     journalCreated: string;
+    cancel: string;
+    ref: string;
   };
   columns: {
     date: string;
@@ -222,7 +224,7 @@ export function DetailClient({ statement, lines, labels }: Props) {
                   )}
                   {line.isMatched && (
                     <div className="mt-1 text-xs text-brand-ink-3">
-                      Ref: {line.matchedJournalId?.slice(0, 8)}
+                      {labels.detail.ref}{line.matchedJournalId?.slice(0, 8)}
                     </div>
                   )}
                 </td>
@@ -283,7 +285,7 @@ export function DetailClient({ statement, lines, labels }: Props) {
                                 onClick={() => setActiveLineId(null)}
                                 className="mt-3 text-xs text-brand-ink-3 hover:underline"
                               >
-                                Cancel
+                                {labels.detail.cancel}
                               </button>
                             </div>
                           )}

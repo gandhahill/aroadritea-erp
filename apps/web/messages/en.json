@@ -370,6 +370,7 @@
       "suggesting": "Searching...",
       "suggested": "{count} matches found.",
       "noSuggestions": "No matches found.",
+      "statusCol": "Status",
       "back": "Back",
       "delete": "Delete",
       "deleteConfirm": "Delete this statement? All lines and matches will be removed.",
@@ -401,12 +402,15 @@
         "debitAmount": "Debit (In)",
         "creditAmount": "Credit (Out)",
         "runningBalance": "Balance",
-        "noLines": "No lines yet. Click \"+ Add Line\" to start."
+        "noLines": "No lines yet. Click \"+ Add Line\" to start.",
+        "csvUpload": "CSV Upload"
       },
       "detail": {
         "eyebrow": "Bank Reconciliation",
         "matchedCount": "{matched} of {total} lines matched",
         "allMatched": "All lines matched. Click \"Finalize Reconciliation\" to close.",
+        "cancel": "Cancel",
+        "ref": "Ref: ",
         "unmatchedWarning": "{count} lines unmatched.",
         "selectJournal": "Select journal...",
         "noJournalSuggestion": "No matching journal found.",
@@ -1523,6 +1527,7 @@
       "add": "Add Bank Account",
       "edit": "Edit Bank Account",
       "bankName": "Bank Name",
+      "bankNamePlaceholder": "e.g., BCA, Mandiri",
       "accountNumber": "Account Number",
       "accountHolder": "Account Holder",
       "linkedCoa": "COA Account",

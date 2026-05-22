@@ -13,6 +13,7 @@ interface Labels {
   add: string;
   edit: string;
   bankName: string;
+  bankNamePlaceholder: string;
   accountNumber: string;
   accountHolder: string;
   linkedCoa: string;
@@ -151,7 +152,7 @@ export function BankAccountsClient({ accounts, coaAccounts, labels }: Props) {
                     <input
                       value={row.bankName}
                       onChange={(e) => updateRow(index, { bankName: e.target.value })}
-                      placeholder="e.g. BCA, Mandiri"
+                      placeholder={labels.bankNamePlaceholder}
                       className="h-9 w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-2 text-brand-ink"
                     />
                   </td>

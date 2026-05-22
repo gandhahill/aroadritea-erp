@@ -52,6 +52,7 @@ export default async function BankReconPage() {
           },
           openingBalance: t('openingBalance'),
           closingBalance: t('closingBalance'),
+          statusCol: t('statusCol'),
           empty: t('empty'),
         }}
       />

@@ -13,10 +13,11 @@ export default async function ImportBankReconPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const [masterData, t, tRecon] = await Promise.all([
+  const [masterData, t, tRecon, common] = await Promise.all([
     fetchImportMasterData(),
     getTranslations('accounting.bankRecon.import'),
     getTranslations('accounting.bankRecon'),
+    getTranslations('common'),
   ]);
 
   return (
@@ -53,6 +54,10 @@ export default async function ImportBankReconPage() {
           creditAmount: t('creditAmount'),
           runningBalance: t('runningBalance'),
           noLines: t('noLines'),
+          select: common('actions.select'),
+          openingBalance: tRecon('openingBalance'),
+          closingBalance: tRecon('closingBalance'),
+          csvUpload: t('csvUpload'),
         }}
         commonLabels={{
           bankAccount: tRecon('bankAccount'),

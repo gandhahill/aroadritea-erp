@@ -370,6 +370,7 @@
       "suggesting": "Mencari...",
       "suggested": "{count} kecocokan ditemukan.",
       "noSuggestions": "Tidak ditemukan kecocokan.",
+      "statusCol": "Status",
       "back": "Kembali",
       "delete": "Hapus",
       "deleteConfirm": "Hapus statement ini? Semua baris dan match akan dihapus.",
@@ -401,12 +402,15 @@
         "debitAmount": "Masuk (Debit)",
         "creditAmount": "Keluar (Kredit)",
         "runningBalance": "Saldo",
-        "noLines": "Belum ada baris. Klik \"+ Tambah Baris\" untuk memulai."
+        "noLines": "Belum ada baris. Klik \"+ Tambah Baris\" untuk memulai.",
+        "csvUpload": "Upload CSV"
       },
       "detail": {
         "eyebrow": "Rekonsiliasi Bank",
         "matchedCount": "{matched} dari {total} baris dicocokkan",
         "allMatched": "Semua baris sudah dicocokkan. Klik \"Selesaikan Rekonsiliasi\" untuk menutup.",
+        "cancel": "Batal",
+        "ref": "Ref: ",
         "unmatchedWarning": "{count} baris belum dicocokkan.",
         "selectJournal": "Pilih jurnal...",
         "noJournalSuggestion": "Tidak ada jurnal yang cocok.",
@@ -1735,6 +1739,7 @@
       "add": "Tambah Akun Bank",
       "edit": "Edit Akun Bank",
       "bankName": "Nama Bank",
+      "bankNamePlaceholder": "Contoh: BCA, Mandiri",
       "accountNumber": "Nomor Rekening",
       "accountHolder": "Nama Pemilik",
       "linkedCoa": "Akun COA",

@@ -26,6 +26,7 @@ interface Props {
     };
     openingBalance: string;
     closingBalance: string;
+    statusCol: string;
     empty: string;
   };
 }
@@ -48,7 +49,7 @@ export function BankReconListClient({ statements, labels }: Props) {
             <th className="px-4 py-3">{labels.bankAccount}</th>
             <th className="px-4 py-3 text-right">{labels.openingBalance}</th>
             <th className="px-4 py-3 text-right">{labels.closingBalance}</th>
-            <th className="px-4 py-3 text-center">Status</th>
+            <th className="px-4 py-3 text-center">{labels.statusCol}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-brand-cream-3">

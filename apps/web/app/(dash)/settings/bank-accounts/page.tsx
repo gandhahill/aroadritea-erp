@@ -34,6 +34,7 @@ export default async function BankAccountsPage() {
           add: t('add'),
           edit: t('edit'),
           bankName: t('bankName'),
+          bankNamePlaceholder: t('bankNamePlaceholder'),
           accountNumber: t('accountNumber'),
           accountHolder: t('accountHolder'),
           linkedCoa: t('linkedCoa'),

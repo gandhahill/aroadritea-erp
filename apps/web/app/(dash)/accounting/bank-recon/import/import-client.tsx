@@ -33,6 +33,10 @@ interface Labels {
   creditAmount: string;
   runningBalance: string;
   noLines: string;
+  select: string;
+  openingBalance: string;
+  closingBalance: string;
+  csvUpload: string;
 }
 
 interface Props extends MasterData {
@@ -180,7 +184,7 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
             onChange={(e) => setBankAccountId(e.target.value)}
             className="w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
           >
-            <option value="" disabled>Select</option>
+            <option value="" disabled>{labels.select}</option>
             {bankAccounts.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.name} - {b.number}
@@ -218,7 +222,7 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
         </div>
         <div className="space-y-1">
           <label className="text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-            Opening Balance
+            {labels.openingBalance}
           </label>
           <input
             type="number"
@@ -229,7 +233,7 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
         </div>
         <div className="space-y-1">
           <label className="text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-            Closing Balance
+            {labels.closingBalance}
           </label>
           <input
             type="number"
@@ -246,7 +250,7 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
           className={`pb-2 text-sm font-semibold transition-colors ${mode === 'csv' ? 'border-b-2 border-brand-red text-brand-red' : 'text-brand-ink-3 hover:text-brand-ink'}`}
           onClick={() => setMode('csv')}
         >
-          CSV Upload
+          {labels.csvUpload}
         </button>
         <button
           className={`pb-2 text-sm font-semibold transition-colors ${mode === 'manual' ? 'border-b-2 border-brand-red text-brand-red' : 'text-brand-ink-3 hover:text-brand-ink'}`}
