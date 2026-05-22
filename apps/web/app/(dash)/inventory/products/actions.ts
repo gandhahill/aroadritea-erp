@@ -111,8 +111,11 @@ function nullableLocaleDescription(formData: FormData) {
 }
 
 function errorMessage(error: unknown) {
+  console.error('Action error:', error);
   if (error && typeof error === 'object' && 'message' in error) {
-    return String((error as { message: unknown }).message);
+    const msg = String((error as { message: unknown }).message);
+    const cause = 'cause' in error && error.cause ? ` (${String((error as { cause: unknown }).cause)})` : '';
+    return msg + cause;
   }
   return String(error);
 }
