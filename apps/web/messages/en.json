@@ -74,7 +74,15 @@
       "qty": "Qty",
       "uom": "UOM",
       "price": "Price",
-      "tax": "Tax"
+      "tax": "Tax",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "exportExcel": "Export Excel",
+      "add": "Add",
+      "save": "Save",
+      "edit": "Edit"
     },
     "errors": {
       "required": "Required",
@@ -198,7 +206,7 @@
     },
     "coa": {
       "title": "Chart of Accounts",
-      "subtitle": "Add, edit, deactivate, and complete account names in ID/EN/ZH.",
+      "subtitle": "Browse and manage your chart of accounts hierarchy.",
       "manage": "Manage Accounts",
       "newAccount": "New account",
       "saveAccount": "Save account",
@@ -871,7 +879,8 @@
       "searchItemPlaceholder": "SKU or item name",
       "itemCount": "{count} items",
       "costPrice": "COGS / Purchase",
-      "suppliesEmpty": "No raw materials or supplies found."
+      "suppliesEmpty": "No raw materials or supplies found.",
+      "variantPrice": "Variant Price"
     },
     "categories": {
       "title": "Product Categories",
@@ -1582,7 +1591,8 @@
           "noShift": "No shift is available. Contact an administrator to activate shift master data.",
           "noEmployeeLinked": "This account is not linked to an employee record. Contact an administrator."
         }
-      }
+      },
+      "emptyTitle": "No Attendance Data"
     },
     "leave": {
       "title": "Leave",
@@ -1719,7 +1729,7 @@
       }
     },
     "disciplinary": {
-      "title": "Disciplinary Actions",
+      "title": "Disciplinary & Violations",
       "add": "Issue SP",
       "createTitle": "Create Disciplinary Letter",
       "selectEmployee": "Select Employee",
@@ -1736,15 +1746,18 @@
       "sp3": "SP3",
       "statusPending": "Pending",
       "statusAcknowledged": "Acknowledged",
-      "noRecords": "No disciplinary records"
+      "noRecords": "No disciplinary records",
+      "subtitle": "Record warnings, SOP violations, and disciplinary notes."
     },
     "fields": {
       "required": "Required field",
       "selectOption": "Select an option"
+    },
+    "schedule": {
+      "title": "Weekly Shift Schedule",
+      "subtitle": "Manage shifts and days off per employee. Click cells to add/remove assignments."
     }
   },
-
-
   "display": {
     "orderList": "Your Orders",
     "noOrders": "No orders yet"
@@ -1752,8 +1765,8 @@
   "settings": {
     "title": "Settings",
     "permissions": {
-      "title": "Permissions",
-      "subtitle": "Create new roles, edit role names, and check required permissions.",
+      "title": "Permissions & Access Rights",
+      "subtitle": "Manage roles and access matrix globally in one place.",
       "noAccess": "This account does not have access to manage permissions.",
       "addRole": "Add Role",
       "roleCode": "Code",
@@ -2019,6 +2032,12 @@
       "freeItem": "Free item",
       "complimentary": "Complimentary",
       "allLocations": "All locations"
+    },
+    "integrations": {
+      "naixer": {
+        "addProductMapping": "Add product mapping",
+        "addModifierMapping": "Add modifier mapping"
+      }
     }
   },
   "workflow": {
@@ -2078,7 +2097,8 @@
         "account": "Account",
         "amount": "Amount",
         "total": "Total"
-      }
+      },
+      "total": "Total"
     },
     "profitLoss": {
       "title": "Profit & Loss",
@@ -2095,7 +2115,8 @@
         "account": "Account",
         "amount": "Amount",
         "total": "Total"
-      }
+      },
+      "total": "Total"
     },
     "dailySummary": {
       "title": "Daily Summary",
@@ -2105,7 +2126,48 @@
       "paymentDetails": "Payment Details",
       "noPayments": "No payments",
       "noActiveOutlets": "No active outlets for daily report.",
-      "open": "Open"
+      "open": "Open",
+      "emptyData": "No data",
+      "summaryTitle": "Daily Summary",
+      "period": "Period",
+      "location": "Location",
+      "metric": "Metric",
+      "valueIdr": "Value (IDR)",
+      "grossSales": "Gross Sales",
+      "totalDiscount": "Total Discount",
+      "netSales": "Net Sales",
+      "tax": "Tax (PB1)",
+      "deliveryComm": "Delivery Comm (20%)",
+      "netRevenue": "Net Revenue",
+      "refundTotal": "Total Refund",
+      "refundCount": "Refund Count",
+      "preliminary": "Preliminary",
+      "yes": "Yes",
+      "no": "No",
+      "method": "Method",
+      "txCount": "Tx Count",
+      "total": "Total",
+      "rank": "Rank",
+      "productId": "Product ID",
+      "productName": "Product Name",
+      "qty": "Qty",
+      "nominal": "Nominal",
+      "channel": "Channel",
+      "shiftSummaryTitle": "Shift Summary",
+      "cashier": "Cashier",
+      "openedAt": "Open",
+      "closedAt": "Close",
+      "openingCash": "Opening Cash",
+      "expectedCash": "Expected",
+      "actualCash": "Actual",
+      "variance": "Variance",
+      "tx": "Tx",
+      "totalTx": "Total Tx",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "noActiveOutletsOption": "No active outlets",
+      "show": "Show",
+      "loading": "Loading..."
     },
     "donations": {
       "title": "Donation Report",
@@ -2679,5 +2741,15 @@
       "save": "Save",
       "delete": "Delete"
     }
+  },
+  "fields": {
+    "code": "Code",
+    "nameId": "Name ID",
+    "nameEn": "Name EN",
+    "nameZh": "Name Zh",
+    "type": "Type",
+    "subtype": "Subtype",
+    "normalBalance": "Normal Balance",
+    "parent": "Parent"
   }
 }

@@ -3,6 +3,7 @@
 import { ConfirmDialog, InlineAlert } from '@/components/confirm-dialog';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { deactivateProductAction, deleteProductAction, reactivateProductAction } from './actions';
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 
 export function ProductRowActions({ productId, isActive }: Props) {
   const router = useRouter();
+  const tc = useTranslations('common');
   const [pending, startTransition] = useTransition();
   const [confirmAction, setConfirmAction] = useState<{
     message: string;
@@ -86,7 +88,7 @@ export function ProductRowActions({ productId, isActive }: Props) {
             : 'border-brand-jade/30 bg-brand-jade-light text-brand-jade hover:bg-brand-jade/15'
         }`}
       >
-        {pending ? '…' : isActive ? 'Nonaktifkan' : 'Aktifkan'}
+        {pending ? '…' : isActive ? tc('labels.deactivate') : tc('labels.activate')}
       </button>
       <button
         type="button"
@@ -94,7 +96,7 @@ export function ProductRowActions({ productId, isActive }: Props) {
         disabled={pending}
         className="rounded-md border border-rose-200 bg-card px-3 py-1.5 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-50 disabled:opacity-50"
       >
-        Hapus
+        {tc('labels.delete')}
       </button>
       {errorMessage && (
         <InlineAlert message={errorMessage} tone="error" onDismiss={() => setErrorMessage(null)} />

@@ -7,6 +7,7 @@ import { getSession } from '@/lib/auth';
 import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { fetchRoster } from './actions';
 import { ScheduleGrid } from './schedule-grid';
 
@@ -40,13 +41,15 @@ export default async function SchedulePage({
   const { options, assignments } = await fetchRoster(weekStart);
   const canManage = await can(userId, 'hr.manage_attendance');
 
+  const t = await getTranslations('hr.schedule');
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Jadwal Shift Mingguan</h1>
+          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Atur shift dan hari libur per karyawan. Klik sel untuk menambah / menghapus penugasan.
+            {t('subtitle')}
           </p>
         </div>
       </div>

@@ -4,6 +4,7 @@
 
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import {
@@ -23,6 +24,8 @@ interface Props {
 }
 
 export function ProductCodesTable({ codes, tenantId, products, variants }: Props) {
+  const tc = useTranslations('common');
+  const t = useTranslations('settings.integrations.naixer');
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showAddForm, setShowAddForm] = useState(false);
@@ -200,14 +203,14 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
               disabled={isPending || !newProductId || !newNaixerCode}
               className="rounded bg-brand-red px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50"
             >
-              Add
+              {tc('labels.add')}
             </button>
             <button
               type="button"
               onClick={() => setShowAddForm(false)}
               className="rounded px-3 py-1.5 text-sm text-brand-ink-3 hover:text-brand-ink"
             >
-              Cancel
+              {tc('labels.cancel')}
             </button>
           </div>
         </div>
@@ -218,7 +221,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
             onClick={() => setShowAddForm(true)}
             className="text-sm font-medium text-brand-red hover:underline"
           >
-            + Add product code mapping
+            + {t('addProductMapping')}
           </button>
         </div>
       )}

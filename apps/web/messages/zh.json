@@ -74,7 +74,15 @@
       "qty": "数量",
       "uom": "单位",
       "price": "价格",
-      "tax": "税"
+      "tax": "税",
+      "cancel": "取消",
+      "delete": "删除",
+      "deactivate": "停用",
+      "activate": "激活",
+      "exportExcel": "导出 Excel",
+      "add": "添加",
+      "save": "保存",
+      "edit": "编辑"
     },
     "errors": {
       "required": "必填",
@@ -197,8 +205,8 @@
       }
     },
     "coa": {
-      "title": "科目表",
-      "subtitle": "添加、编辑、停用，并完善ID/EN/ZH科目名称。",
+      "title": "会计科目表",
+      "subtitle": "浏览和管理您的会计科目层级。",
       "manage": "管理科目",
       "newAccount": "新科目",
       "saveAccount": "保存科目",
@@ -892,7 +900,8 @@
       "searchItemPlaceholder": "SKU或物品名称",
       "itemCount": "{count} 件物品",
       "costPrice": "成本/采购价",
-      "suppliesEmpty": "未找到原材料或耗材。"
+      "suppliesEmpty": "未找到原材料或耗材。",
+      "variantPrice": "多规格价格"
     },
     "opname": {
       "title": "库存盘点",
@@ -1231,7 +1240,6 @@
       "empty": "暂无手动收班。",
       "total": "{count} 条收班记录"
     },
-
     "openShift": "开班",
     "closeShift": "收班",
     "shiftOpen": "已开班",
@@ -1634,7 +1642,8 @@
         "locationRequired": "必须提供位置信息",
         "sessionDateRequired": "必须提供会话日期",
         "periodCodeRequired": "必须提供周期代码"
-      }
+      },
+      "emptyTitle": "无考勤数据"
     },
     "leave": {
       "balances": "假期余额",
@@ -1771,7 +1780,7 @@
       }
     },
     "disciplinary": {
-      "title": "纪律处分",
+      "title": "纪律与违规",
       "add": "发出警告",
       "createTitle": "创建纪律处分通知",
       "selectEmployee": "选择员工",
@@ -1788,14 +1797,18 @@
       "sp3": "警告信3",
       "statusPending": "待确认",
       "statusAcknowledged": "已确认",
-      "noRecords": "暂无纪律记录"
+      "noRecords": "暂无纪律记录",
+      "subtitle": "记录警告，违反标准作业程序和纪律处分说明。"
     },
     "fields": {
       "required": "必填项",
       "selectOption": "请选择"
+    },
+    "schedule": {
+      "title": "每周排班表",
+      "subtitle": "管理每位员工的班次和休息日。点击单元格以添加/删除分配。"
     }
   },
-
   "display": {
     "orderList": "您的订单",
     "noOrders": "暂无订单"
@@ -1858,8 +1871,8 @@
       "confirmDelete": "删除字段 \"{name}\"？已存储的数据将保留。"
     },
     "permissions": {
-      "title": "权限",
-      "subtitle": "创建新角色，编辑角色名称，并勾选所需权限。",
+      "title": "权限与访问控制",
+      "subtitle": "在一个地方集中管理角色和权限矩阵。",
       "noAccess": "此帐户无权管理权限。",
       "addRole": "添加角色",
       "roleCode": "编码",
@@ -2070,6 +2083,12 @@
       "freeItem": "免费商品",
       "complimentary": "赠饮",
       "allLocations": "所有地点"
+    },
+    "integrations": {
+      "naixer": {
+        "addProductMapping": "添加产品映射",
+        "addModifierMapping": "添加修饰符映射"
+      }
     }
   },
   "workflow": {
@@ -2129,7 +2148,8 @@
         "account": "账户",
         "amount": "金额",
         "total": "总计"
-      }
+      },
+      "total": "总计"
     },
     "profitLoss": {
       "title": "利润表",
@@ -2146,7 +2166,8 @@
         "account": "账户",
         "amount": "金额",
         "total": "总计"
-      }
+      },
+      "total": "总计"
     },
     "omzetHarian": {
       "title": "每日营业收入",
@@ -2180,8 +2201,49 @@
       "selectDateLocation": "选择日期和位置",
       "paymentDetails": "付款详情",
       "noPayments": "无付款记录",
-      "noActiveOutlets": "暂无活跃门店用于日报。",
-      "open": "打开"
+      "noActiveOutlets": "没有激活的门店用于每日报告。",
+      "open": "打开",
+      "emptyData": "没有数据",
+      "summaryTitle": "每日汇总",
+      "period": "期间",
+      "location": "地点",
+      "metric": "指标",
+      "valueIdr": "金额 (IDR)",
+      "grossSales": "总销售额",
+      "totalDiscount": "总折扣",
+      "netSales": "净销售额",
+      "tax": "税 (PB1)",
+      "deliveryComm": "外卖佣金 (20%)",
+      "netRevenue": "净收入",
+      "refundTotal": "退款总额",
+      "refundCount": "退款笔数",
+      "preliminary": "初步",
+      "yes": "是",
+      "no": "否",
+      "method": "方法",
+      "txCount": "交易数量",
+      "total": "总计",
+      "rank": "排名",
+      "productId": "产品 ID",
+      "productName": "产品名称",
+      "qty": "数量",
+      "nominal": "金额",
+      "channel": "渠道",
+      "shiftSummaryTitle": "班次汇总",
+      "cashier": "收银员",
+      "openedAt": "开班",
+      "closedAt": "关班",
+      "openingCash": "初始现金",
+      "expectedCash": "应有现金",
+      "actualCash": "实际现金",
+      "variance": "差异",
+      "tx": "交易",
+      "totalTx": "总交易额",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "noActiveOutletsOption": "没有激活的门店",
+      "show": "显示",
+      "loading": "加载中..."
     },
     "donations": {
       "title": "捐款报告",
@@ -2755,5 +2817,15 @@
       "save": "保存",
       "delete": "删除"
     }
+  },
+  "fields": {
+    "code": "代码",
+    "nameId": "印尼文名称",
+    "nameEn": "英文名称",
+    "nameZh": "中文名称",
+    "type": "类型",
+    "subtype": "子类型",
+    "normalBalance": "正常余额",
+    "parent": "父级"
   }
 }

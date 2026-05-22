@@ -49,12 +49,13 @@ function DonutChart({
 }: {
   segments: Array<{ label: string; value: number; color: string }>;
 }) {
+  const tc = useTranslations('reporting.dailySummary');
   if (!segments.length) return null;
   const total = segments.reduce((s, seg) => s + seg.value, 0);
   if (total === 0)
     return (
       <div className="flex items-center justify-center h-32 text-brand-ink-3 text-sm">
-        Tidak ada data
+        {tc('emptyData')}
       </div>
     );
 
@@ -94,10 +95,11 @@ function DonutChart({
 
 /** Horizontal bar chart for top products — pure CSS. */
 function BarChart({ items }: { items: Array<{ label: string; value: number; color?: string }> }) {
+  const tc = useTranslations('reporting.dailySummary');
   if (!items.length)
     return (
       <div className="flex items-center justify-center h-32 text-brand-ink-3 text-sm">
-        Tidak ada data
+        {tc('emptyData')}
       </div>
     );
   const max = Math.max(...items.map((i) => i.value), 1);
@@ -228,7 +230,7 @@ export function DailySummaryClient({
 
   async function handleSearch() {
     if (!locationId) {
-      setError('Belum ada outlet aktif untuk laporan harian.');
+      setError(t('noActiveOutlets'));
       setData(null);
       return;
     }
@@ -260,8 +262,8 @@ export function DailySummaryClient({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">Laporan penjualan harian per lokasi.</p>
+          <h1 className="text-2xl font-bold text-brand-ink">{t('summaryTitle')}</h1>
+          <p className="mt-1 text-sm text-brand-ink-3">{t('title')}</p>
         </div>
         {report && <ExportXlsxButton onExport={() => exportXLSX(report, selectedLocationLabel)} />}
       </div>
@@ -270,7 +272,7 @@ export function DailySummaryClient({
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4 shadow-sm">
         <div className="space-y-1">
           <label htmlFor="startDate" className="text-xs font-medium text-brand-ink-3">
-            Tanggal Mulai
+            {t('startDate')}
           </label>
           <input
             id="startDate"
@@ -282,7 +284,7 @@ export function DailySummaryClient({
         </div>
         <div className="space-y-1">
           <label htmlFor="endDate" className="text-xs font-medium text-brand-ink-3">
-            Tanggal Selesai
+            {t('endDate')}
           </label>
           <input
             id="endDate"
@@ -294,7 +296,7 @@ export function DailySummaryClient({
         </div>
         <div className="space-y-1">
           <label htmlFor="locationId" className="text-xs font-medium text-brand-ink-3">
-            Lokasi
+            {t('location')}
           </label>
           <select
             id="locationId"
@@ -304,7 +306,7 @@ export function DailySummaryClient({
             className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
           >
             {locationOptions.length === 0 ? (
-              <option value="">Belum ada outlet aktif</option>
+              <option value="">{t('noActiveOutletsOption')}</option>
             ) : (
               locationOptions.map((location) => (
                 <option key={location.id} value={location.id}>
@@ -339,7 +341,7 @@ export function DailySummaryClient({
               Memuat...
             </>
           ) : (
-            'Tampilkan'
+            t('show')
           )}
         </button>
       </div>
@@ -368,9 +370,7 @@ export function DailySummaryClient({
             />
           </svg>
           <h3 className="mt-3 text-base font-semibold text-brand-ink">{t('selectDateLocation')}</h3>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            Klik "Tampilkan" untuk melihat ringkasan harian.
-          </p>
+            {t('selectDateLocation')}
         </div>
       )}
 
@@ -380,7 +380,7 @@ export function DailySummaryClient({
           {/* Period + location */}
           <div className="rounded-lg border border-brand-cream-3 bg-card px-4 py-3">
             <p className="text-sm text-brand-ink-3">
-              Periode:{' '}
+              {t('period')}:{' '}
               <span className="font-medium text-brand-ink">{formatDate(report.period.start)}</span>
               {' s/d '}
               <span className="font-medium text-brand-ink">{formatDate(report.period.end)}</span>
@@ -453,13 +453,13 @@ export function DailySummaryClient({
                 <thead>
                   <tr className="border-b border-brand-cream-3">
                     <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">
-                      Metode
+                      {t('method')}
                     </th>
                     <th className="px-4 py-2.5 text-right text-xs font-semibold text-brand-ink-2">
-                      Jumlah Tx
+                      {t('txCount')}
                     </th>
                     <th className="px-4 py-2.5 text-right text-xs font-semibold text-brand-ink-2">
-                      Total
+                      {t('total')}
                     </th>
                   </tr>
                 </thead>
@@ -489,7 +489,7 @@ export function DailySummaryClient({
                 {report.paymentBreakdown.length > 0 && (
                   <tfoot>
                     <tr className="border-t border-brand-cream-3 bg-brand-cream-1/50">
-                      <td className="px-4 py-2.5 font-bold text-brand-ink">Total</td>
+                      <td className="px-4 py-2.5 font-bold text-brand-ink">{t('total')}</td>
                       <td className="px-4 py-2.5 text-right font-bold text-brand-ink">
                         {formatQty(report.paymentBreakdown.reduce((s, r) => s + r.txCount, 0))}
                       </td>
@@ -533,13 +533,13 @@ export function DailySummaryClient({
                       #
                     </th>
                     <th className="px-4 py-2.5 text-left text-xs font-semibold text-brand-ink-2">
-                      Produk
+                      {t('productName')}
                     </th>
                     <th className="px-4 py-2.5 text-center text-xs font-semibold text-brand-ink-2">
-                      Jml
+                      {t('qty')}
                     </th>
                     <th className="px-4 py-2.5 text-right text-xs font-semibold text-brand-ink-2">
-                      Nominal
+                      {t('nominal')}
                     </th>
                   </tr>
                 </thead>
@@ -547,7 +547,7 @@ export function DailySummaryClient({
                   {report.topProducts.length === 0 ? (
                     <tr>
                       <td colSpan={4} className="px-4 py-8 text-center text-brand-ink-3">
-                        Tidak ada data
+                        {t('emptyData')}
                       </td>
                     </tr>
                   ) : (

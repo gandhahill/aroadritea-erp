@@ -142,6 +142,7 @@ function buildJsonPreview(form: FormState): string {
 
 export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
   const t = useTranslations('workflow');
+  const tc = useTranslations('common');
 
   const [definitions, setDefinitions] = useState<WorkflowDefinitionItem[]>(initialDefinitions);
   const [isPending, startTransition] = useTransition();
@@ -823,14 +824,14 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                       onClick={closeModal}
                       className="rounded-lg border border-brand-cream-3 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
                     >
-                      Batal
+                      {tc('labels.cancel')}
                     </button>
                     <button
                       type="submit"
                       disabled={isPending}
                       className="rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50"
                     >
-                      {isPending ? 'Menyimpan...' : 'Simpan'}
+                      {isPending ? '...' : tc('labels.save')}
                     </button>
                   </div>
                 </div>
@@ -846,7 +847,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                       onClick={closeModal}
                       className="rounded-lg border border-brand-cream-3 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
                     >
-                      Batal
+                      {tc('labels.cancel')}
                     </button>
                   </div>
                 </div>
@@ -886,14 +887,14 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                 onClick={() => setConfirmDeleteId(null)}
                 className="rounded-lg border border-brand-cream-3 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
               >
-                Batal
+                {tc('labels.cancel')}
               </button>
               <button
                 onClick={() => handleDelete(confirmDeleteId)}
                 disabled={isPending}
                 className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50"
               >
-                Hapus
+                {tc('labels.delete')}
               </button>
             </div>
           </div>

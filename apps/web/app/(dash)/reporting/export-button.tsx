@@ -1,6 +1,7 @@
 'use client';
 
 import { type WorkbookSheet, exportWorkbook } from '@/lib/export-workbook';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 type SheetsPayload =
@@ -25,7 +26,8 @@ type Props = SheetsPayload & {
  *     call a server action that returns a buffer).
  */
 export function ExportXlsxButton(props: Props) {
-  const { label = 'Export Excel', disabled } = props;
+  const tc = useTranslations('common');
+  const { label = tc('labels.exportExcel'), disabled } = props;
   const [busy, setBusy] = useState(false);
 
   async function runExport() {
@@ -62,7 +64,7 @@ export function ExportXlsxButton(props: Props) {
           d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5v3.75"
         />
       </svg>
-      {busy ? 'Menyiapkan...' : label}
+      {busy ? '...' : label}
     </button>
   );
 }

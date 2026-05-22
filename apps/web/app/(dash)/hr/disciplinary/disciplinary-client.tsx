@@ -7,6 +7,7 @@
 'use client';
 
 import { FileUploadField } from '@/components/file-upload-field';
+import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import {
   acknowledgeDisciplinaryActionAction,
@@ -50,6 +51,7 @@ interface Props {
 }
 
 export function DisciplinaryClient({ initialActions, employees }: Props) {
+  const tc = useTranslations('common');
   const [isPending, startTransition] = useTransition();
   const [filterLevel, setFilterLevel] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -128,7 +130,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
           onClick={() => setShowForm(!showForm)}
           className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6"
         >
-          {showForm ? 'Batal' : '+ Buat SP'}
+          {showForm ? tc('labels.cancel') : '+ Buat SP'}
         </button>
       </div>
 

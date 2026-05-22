@@ -4,6 +4,7 @@
 
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import {
@@ -41,6 +42,8 @@ function KindBadge({ kind }: { kind: string }) {
 }
 
 export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) {
+  const tc = useTranslations('common');
+  const t = useTranslations('settings.integrations.naixer');
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showAddForm, setShowAddForm] = useState(false);
@@ -218,14 +221,14 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
               disabled={isPending || !newOptionId || !newNaixerCode}
               className="rounded bg-brand-red px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50"
             >
-              Add
+              {tc('labels.add')}
             </button>
             <button
               type="button"
               onClick={() => setShowAddForm(false)}
               className="rounded px-3 py-1.5 text-sm text-brand-ink-3 hover:text-brand-ink"
             >
-              Cancel
+              {tc('labels.cancel')}
             </button>
           </div>
         </div>
@@ -236,7 +239,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
             onClick={() => setShowAddForm(true)}
             className="text-sm font-medium text-brand-red hover:underline"
           >
-            + Add modifier code mapping
+            + {t('addModifierMapping')}
           </button>
         </div>
       )}

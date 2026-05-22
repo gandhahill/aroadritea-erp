@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { InlineAlert } from '@/components/confirm-dialog';
+import { useTranslations } from 'next-intl';
 import { closePeriodAction } from './actions';
 
 interface ClosePeriodDialogProps {
@@ -20,6 +21,7 @@ interface ClosePeriodDialogProps {
 
 export function ClosePeriodDialog({ periodCode, draftCount, onClose, copy }: ClosePeriodDialogProps) {
   const router = useRouter();
+  const tc = useTranslations('common');
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [force, setForce] = useState(false);
@@ -93,7 +95,7 @@ export function ClosePeriodDialog({ periodCode, draftCount, onClose, copy }: Clo
             disabled={isPending}
             className="rounded-md border border-brand-jade/30 bg-brand-paper px-4 py-2 text-sm font-semibold text-brand-ink hover:bg-brand-jade-light disabled:opacity-50"
           >
-            Batal
+            {tc('actions.cancel')}
           </button>
           <button
             type="button"

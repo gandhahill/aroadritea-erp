@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { InlineAlert } from '@/components/confirm-dialog';
+import { useTranslations } from 'next-intl';
 import { openPeriodAction } from './actions';
 
 interface OpenPeriodDialogProps {
@@ -18,6 +19,7 @@ interface OpenPeriodDialogProps {
 
 export function OpenPeriodDialog({ onClose, copy }: OpenPeriodDialogProps) {
   const router = useRouter();
+  const tc = useTranslations('common');
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -108,7 +110,7 @@ export function OpenPeriodDialog({ onClose, copy }: OpenPeriodDialogProps) {
               disabled={isPending}
               className="rounded-md border border-brand-jade/30 bg-brand-paper px-4 py-2 text-sm font-semibold text-brand-ink hover:bg-brand-jade-light disabled:opacity-50"
             >
-              Batal
+              {tc('actions.cancel')}
             </button>
             <button
               type="submit"

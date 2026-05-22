@@ -1,6 +1,7 @@
 'use client';
 
 import type { VariantResult } from '@erp/services/inventory';
+import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { createVariantAction, toggleVariantStatusAction } from './actions';
 
@@ -11,12 +12,13 @@ export function VariantManager({
   productId,
   variants,
 }: { productId: string; variants: VariantResult[] }) {
+  const tc = useTranslations('common');
   const [state, submitAction, isPending] = useActionState(createVariantAction, null);
 
   return (
     <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
       <div className="flex flex-col gap-1">
-        <h2 className="text-base font-semibold text-brand-ink">Varian harga</h2>
+        <h2 className="text-base font-semibold text-brand-ink">{tc('inventory.products.variantPrice')}</h2>
         <p className="text-sm text-brand-ink-3">
           Gunakan untuk Regular/Large dan Hot/Cold. Harga varian dipakai POS saat tersedia.
         </p>
@@ -56,7 +58,7 @@ export function VariantManager({
                   </td>
                   <td className="px-4 py-3">
                     <span className="rounded-full bg-brand-jade-light px-2 py-1 text-xs font-semibold text-brand-jade">
-                      {variant.isActive ? 'Aktif' : 'Nonaktif'}
+                      {variant.isActive ? tc('status.active') : tc('status.inactive')}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -73,7 +75,7 @@ export function VariantManager({
                         type="submit"
                         className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink hover:bg-brand-cream-2"
                       >
-                        {variant.isActive ? 'Nonaktifkan' : 'Aktifkan'}
+                        {variant.isActive ? tc('labels.deactivate') : tc('labels.activate')}
                       </button>
                     </form>
                   </td>

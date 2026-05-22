@@ -6,6 +6,7 @@
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { fetchCOATree } from './actions';
 import { COAEditor } from './coa-editor';
 import { COATreeView } from './coa-tree';
@@ -20,14 +21,16 @@ export default async function COAPage() {
 
   const tree = await fetchCOATree();
 
+  const t = await getTranslations('accounting.coa');
+
   return (
     <div className="space-y-6">
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brand-ink">Chart of Accounts</h1>
+          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Browse and manage your chart of accounts hierarchy.
+            {t('subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-3 text-sm text-brand-ink-3">

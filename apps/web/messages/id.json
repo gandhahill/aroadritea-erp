@@ -74,7 +74,15 @@
       "qty": "Qty",
       "uom": "UOM",
       "price": "Harga",
-      "tax": "Pajak"
+      "tax": "Pajak",
+      "cancel": "Batal",
+      "delete": "Hapus",
+      "deactivate": "Nonaktifkan",
+      "activate": "Aktifkan",
+      "exportExcel": "Ekspor Excel",
+      "add": "Tambah",
+      "save": "Simpan",
+      "edit": "Edit"
     },
     "errors": {
       "required": "Wajib diisi",
@@ -197,8 +205,8 @@
       }
     },
     "coa": {
-      "title": "Bagan Akun",
-      "subtitle": "Tambah, ubah, nonaktifkan, dan lengkapi nama akun dalam ID/EN/ZH.",
+      "title": "Bagan Akun (Chart of Accounts)",
+      "subtitle": "Telusuri dan kelola hierarki bagan akun Anda.",
       "manage": "Kelola Akun",
       "newAccount": "Akun baru",
       "saveAccount": "Simpan akun",
@@ -871,7 +879,8 @@
       "searchItemPlaceholder": "SKU atau nama item",
       "itemCount": "{count} item",
       "costPrice": "HPP / Beli",
-      "suppliesEmpty": "Belum ada bahan baku atau perlengkapan."
+      "suppliesEmpty": "Belum ada bahan baku atau perlengkapan.",
+      "variantPrice": "Harga Varian"
     },
     "categories": {
       "title": "Kategori Produk",
@@ -1660,7 +1669,8 @@
           "noShift": "Shift belum tersedia. Hubungi administrator untuk mengaktifkan master shift.",
           "noEmployeeLinked": "Akun ini belum terhubung ke data karyawan. Hubungi administrator."
         }
-      }
+      },
+      "emptyTitle": "Data Kehadiran Kosong"
     },
     "leave": {
       "title": "Cuti",
@@ -1797,7 +1807,7 @@
       }
     },
     "disciplinary": {
-      "title": "Surat Peringatan",
+      "title": "Pelanggaran & Disipliner",
       "add": "Buat SP",
       "createTitle": "Buat Surat Peringatan Baru",
       "selectEmployee": "Pilih Karyawan",
@@ -1814,14 +1824,18 @@
       "sp3": "SP3",
       "statusPending": "Menunggu",
       "statusAcknowledged": "Dikonfirmasi",
-      "noRecords": "Belum ada surat peringatan"
+      "noRecords": "Belum ada surat peringatan",
+      "subtitle": "Catat SP, pelanggaran SOP, dan catatan indisipliner."
     },
     "fields": {
       "required": "Wajib diisi",
       "selectOption": "Pilih salah satu"
+    },
+    "schedule": {
+      "title": "Jadwal Shift Mingguan",
+      "subtitle": "Atur shift dan hari libur per karyawan. Klik sel untuk menambah / menghapus penugasan."
     }
   },
-
   "workflow": {
     "title": "Workflow Persetujuan",
     "subtitle": "Definisikan alur persetujuan per modul.",
@@ -1879,7 +1893,8 @@
         "account": "Akun",
         "amount": "Nominal",
         "total": "Total"
-      }
+      },
+      "total": "Total"
     },
     "profitLoss": {
       "title": "Laba / Rugi",
@@ -1896,7 +1911,8 @@
         "account": "Akun",
         "amount": "Nominal",
         "total": "Total"
-      }
+      },
+      "total": "Total"
     },
     "dailySummary": {
       "title": "Ringkasan Harian",
@@ -1906,7 +1922,48 @@
       "paymentDetails": "Rincian Pembayaran",
       "noPayments": "Tidak ada pembayaran",
       "noActiveOutlets": "Belum ada outlet aktif untuk laporan harian.",
-      "open": "Buka"
+      "open": "Buka",
+      "emptyData": "Tidak ada data",
+      "summaryTitle": "Ringkasan Harian",
+      "period": "Periode",
+      "location": "Lokasi",
+      "metric": "Metrik",
+      "valueIdr": "Nilai (IDR)",
+      "grossSales": "Gross Sales",
+      "totalDiscount": "Total Diskon",
+      "netSales": "Net Sales",
+      "tax": "PB1 (Pajak)",
+      "deliveryComm": "Komisi Delivery (20%)",
+      "netRevenue": "Net Revenue",
+      "refundTotal": "Total Refund",
+      "refundCount": "Jumlah Refund",
+      "preliminary": "Preliminary",
+      "yes": "Ya",
+      "no": "Tidak",
+      "method": "Metode",
+      "txCount": "Jumlah Transaksi",
+      "total": "Total",
+      "rank": "Rank",
+      "productId": "Product ID",
+      "productName": "Product Name",
+      "qty": "Qty",
+      "nominal": "Nominal",
+      "channel": "Channel",
+      "shiftSummaryTitle": "Ringkasan Shift",
+      "cashier": "Kasir",
+      "openedAt": "Buka",
+      "closedAt": "Tutup",
+      "openingCash": "Kas Awal",
+      "expectedCash": "Diharapkan",
+      "actualCash": "Aktual",
+      "variance": "Selisih",
+      "tx": "Tx",
+      "totalTx": "Total Tx",
+      "startDate": "Tanggal Mulai",
+      "endDate": "Tanggal Selesai",
+      "noActiveOutletsOption": "Belum ada outlet aktif",
+      "show": "Tampilkan",
+      "loading": "Memuat..."
     },
     "donations": {
       "title": "Laporan Donasi",
@@ -2041,7 +2098,6 @@
       "more": "lebih besar"
     }
   },
-
   "display": {
     "orderList": "Daftar Pesanan Anda",
     "noOrders": "Belum ada pesanan"
@@ -2049,8 +2105,8 @@
   "settings": {
     "title": "Pengaturan",
     "permissions": {
-      "title": "Hak Akses",
-      "subtitle": "Buat role baru, ubah nama role, lalu centang permission yang dibutuhkan.",
+      "title": "Izin & Hak Akses",
+      "subtitle": "Kelola roles dan matrix akses secara global di satu tempat.",
       "noAccess": "Akun ini tidak memiliki akses untuk mengatur permission.",
       "addRole": "Tambah Role",
       "roleCode": "Kode",
@@ -2316,6 +2372,12 @@
       "freeItem": "Item gratis",
       "complimentary": "Complimentary",
       "allLocations": "Semua lokasi"
+    },
+    "integrations": {
+      "naixer": {
+        "addProductMapping": "Tambah pemetaan produk",
+        "addModifierMapping": "Tambah pemetaan modifier"
+      }
     }
   },
   "shell": {
@@ -2678,5 +2740,15 @@
       "save": "Simpan",
       "delete": "Hapus"
     }
+  },
+  "fields": {
+    "code": "Kode",
+    "nameId": "Nama ID",
+    "nameEn": "Nama EN",
+    "nameZh": "Nama Zh",
+    "type": "Tipe",
+    "subtype": "Subtipe",
+    "normalBalance": "Saldo Normal",
+    "parent": "Induk (Parent)"
   }
 }
