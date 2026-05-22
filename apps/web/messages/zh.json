@@ -1231,15 +1231,7 @@
       "empty": "暂无手动收班。",
       "total": "{count} 条收班记录"
     },
-    "title": "收银台",
-    "operations": {
-      "orders": "订单",
-      "manualClosing": "旧POS收班",
-      "stock": "库存",
-      "reports": "报表",
-      "promos": "促销",
-      "settings": "POS设置"
-    },
+
     "openShift": "开班",
     "closeShift": "收班",
     "shiftOpen": "已开班",
@@ -1803,72 +1795,7 @@
       "selectOption": "请选择"
     }
   },
-  "cms": {
-    "title": "网站内容管理",
-    "pages": {
-      "title": "页面",
-      "subtitle": "管理网站静态页面（首页、关于、菜单等）",
-      "create": "创建页面",
-      "createNew": "创建新页面",
-      "editPage": "编辑页面",
-      "createFirst": "为您的网站创建第一个页面。",
-      "empty": "暂无页面",
-      "delete": "删除页面",
-      "publish": "发布",
-      "unpublish": "取消发布",
-      "slug": "URL别名",
-      "type": "类型",
-      "slugHint": "URL别名创建后无法修改。",
-      "displayOrder": "显示顺序",
-      "showInNavbar": "显示在导航栏",
-      "confirmDelete": "确定要删除此页面吗？",
-      "types": {
-        "page": "页面",
-        "landing": "着陆页",
-        "legal": "法律"
-      }
-    },
-    "posts": {
-      "title": "文章",
-      "subtitle": "管理新闻、促销、食谱和活动。",
-      "create": "创建文章",
-      "createNew": "创建新文章",
-      "editPost": "编辑文章",
-      "createFirst": "为博客或促销创建第一篇文章。",
-      "empty": "暂无文章",
-      "delete": "删除文章",
-      "publish": "发布",
-      "unpublish": "取消发布",
-      "slug": "URL别名",
-      "kind": "分类",
-      "kinds": {
-        "news": "新闻",
-        "promo": "促销",
-        "recipe": "食谱",
-        "event": "活动"
-      }
-    },
-    "errors": {
-      "saveFailed": "保存失败",
-      "deleteFailed": "删除失败",
-      "publishFailed": "发布失败",
-      "notFound": "页面未找到"
-    }
-  },
-  "tax": {
-    "rates": {
-      "title": "税率",
-      "empty": "暂无税率。",
-      "saveRate": "保存税率",
-      "selectPostingAccount": "选择过账科目"
-    },
-    "rules": {
-      "title": "税务规则",
-      "empty": "暂无税务规则。",
-      "saveRule": "保存规则",
-      "deleteRule": "删除"
-    }
-  },
+
   "display": {
     "orderList": "您的订单",
     "noOrders": "暂无订单"
@@ -2772,7 +2699,6 @@
       },
       "empty": "暂无文章",
       "emptyHint": "创建您的第一篇文章或新闻。"
-    }
     }
   },
   "tax": {

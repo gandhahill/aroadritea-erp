@@ -1743,72 +1743,8 @@
       "selectOption": "Select an option"
     }
   },
-  "cms": {
-    "title": "Site Content Management",
-    "pages": {
-      "title": "Pages",
-      "subtitle": "Manage static site pages (home, about, menu, etc.)",
-      "create": "Create Page",
-      "createNew": "Create New Page",
-      "editPage": "Edit Page",
-      "createFirst": "Create your first page for the website.",
-      "empty": "No pages yet",
-      "delete": "Delete Page",
-      "publish": "Publish",
-      "unpublish": "Unpublish",
-      "slug": "URL Slug",
-      "type": "Type",
-      "slugHint": "Slug cannot be changed after creation.",
-      "displayOrder": "Display Order",
-      "showInNavbar": "Show in Navbar",
-      "confirmDelete": "Are you sure you want to delete this page?",
-      "types": {
-        "page": "Page",
-        "landing": "Landing Page",
-        "legal": "Legal"
-      }
-    },
-    "posts": {
-      "title": "Posts",
-      "subtitle": "Manage news, promos, recipes, and events.",
-      "create": "Create Post",
-      "createNew": "Create New Post",
-      "editPost": "Edit Post",
-      "createFirst": "Create your first post for blog or promos.",
-      "empty": "No posts yet",
-      "delete": "Delete Post",
-      "publish": "Publish",
-      "unpublish": "Unpublish",
-      "slug": "URL Slug",
-      "kind": "Category",
-      "kinds": {
-        "news": "News",
-        "promo": "Promo",
-        "recipe": "Recipe",
-        "event": "Event"
-      }
-    },
-    "errors": {
-      "saveFailed": "Failed to save",
-      "deleteFailed": "Failed to delete",
-      "publishFailed": "Failed to publish",
-      "notFound": "Page not found"
-    }
-  },
-  "tax": {
-    "rates": {
-      "title": "Tax Rates",
-      "empty": "No tax rates yet.",
-      "saveRate": "Save rate",
-      "selectPostingAccount": "Select posting account"
-    },
-    "rules": {
-      "title": "Tax Rules",
-      "empty": "No tax rules yet.",
-      "saveRule": "Save rule",
-      "deleteRule": "Delete"
-    }
-  },
+
+
   "display": {
     "orderList": "Your Orders",
     "noOrders": "No orders yet"
@@ -2687,7 +2623,6 @@
       },
       "empty": "No posts yet",
       "emptyHint": "Create your first post or news."
-    }
     }
   },
   "tax": {

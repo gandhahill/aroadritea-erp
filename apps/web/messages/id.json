@@ -1821,58 +1821,7 @@
       "selectOption": "Pilih salah satu"
     }
   },
-  "cms": {
-    "title": "Kelola Konten Situs",
-    "pages": {
-      "title": "Halaman",
-      "subtitle": "Kelola halaman statis situs (beranda, tentang, menu, dll.)",
-      "create": "Buat Halaman",
-      "createNew": "Buat Halaman Baru",
-      "editPage": "Edit Halaman",
-      "createFirst": "Buat halaman pertama untuk situs Anda.",
-      "empty": "Belum ada halaman",
-      "delete": "Hapus Halaman",
-      "publish": "Publikasi",
-      "unpublish": "Batalkan Publikasi",
-      "slug": "Slug URL",
-      "type": "Tipe",
-      "slugHint": "Slug tidak dapat diubah setelah dibuat.",
-      "displayOrder": "Urutan Tampilan",
-      "showInNavbar": "Tampilkan di Navbar",
-      "confirmDelete": "Yakin ingin menghapus halaman ini?",
-      "types": {
-        "page": "Halaman",
-        "landing": "Halaman Utama",
-        "legal": "Hukum"
-      }
-    },
-    "posts": {
-      "title": "Post",
-      "subtitle": "Kelola berita, promo, resep, dan event.",
-      "create": "Buat Post",
-      "createNew": "Buat Post Baru",
-      "editPost": "Edit Artikel",
-      "createFirst": "Buat post pertama untuk blog atau promo.",
-      "empty": "Belum ada post",
-      "delete": "Hapus Post",
-      "publish": "Publikasi",
-      "unpublish": "Batalkan Publikasi",
-      "slug": "Slug URL",
-      "kind": "Kategori",
-      "kinds": {
-        "news": "Berita",
-        "promo": "Promo",
-        "recipe": "Resep",
-        "event": "Event"
-      }
-    },
-    "errors": {
-      "saveFailed": "Gagal menyimpan",
-      "deleteFailed": "Gagal menghapus",
-      "publishFailed": "Gagal mempublikasikan",
-      "notFound": "Halaman tidak ditemukan"
-    }
-  },
+
   "workflow": {
     "title": "Workflow Persetujuan",
     "subtitle": "Definisikan alur persetujuan per modul.",
@@ -2092,20 +2041,7 @@
       "more": "lebih besar"
     }
   },
-  "tax": {
-    "rates": {
-      "title": "Tarif Pajak",
-      "empty": "Belum ada tarif pajak.",
-      "saveRate": "Simpan tarif",
-      "selectPostingAccount": "Pilih akun posting"
-    },
-    "rules": {
-      "title": "Aturan Pajak",
-      "empty": "Belum ada tax rule.",
-      "saveRule": "Simpan rule",
-      "deleteRule": "Hapus"
-    }
-  },
+
   "display": {
     "orderList": "Daftar Pesanan Anda",
     "noOrders": "Belum ada pesanan"
@@ -2686,7 +2622,6 @@
       },
       "empty": "Belum ada post",
       "emptyHint": "Buat post atau berita pertama Anda."
-    }
     }
   },
   "tax": {
