@@ -265,7 +265,7 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-brand-cream-3 bg-card p-3">
         <input
           type="search"
-          placeholder="Cari nama, deskripsi, atau cron…"
+          placeholder={t('searchPlaceholder')}
           value={q}
           onChange={(e) => setQ(e.target.value)}
           className="h-9 min-w-48 flex-1 rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
@@ -275,22 +275,22 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
           onChange={(e) => setEnabledOnly(e.target.value as 'all' | 'enabled' | 'disabled')}
           className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
         >
-          <option value="all">Aktif & Nonaktif</option>
-          <option value="enabled">Aktif saja</option>
-          <option value="disabled">Nonaktif saja</option>
+          <option value="all">{t('filter.allEnabled')}</option>
+          <option value="enabled">{t('filter.enabledOnly')}</option>
+          <option value="disabled">{t('filter.disabledOnly')}</option>
         </select>
         <select
           value={statusOnly}
           onChange={(e) => setStatusOnly(e.target.value as 'all' | 'success' | 'failed' | 'never')}
           className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
         >
-          <option value="all">Semua status</option>
-          <option value="success">Sukses</option>
-          <option value="failed">Gagal</option>
-          <option value="never">Belum dijalankan</option>
+          <option value="all">{t('filter.allStatus')}</option>
+          <option value="success">{t('status.success')}</option>
+          <option value="failed">{t('status.failed')}</option>
+          <option value="never">{t('status.never')}</option>
         </select>
         <span className="ml-auto text-xs text-brand-ink-3">
-          {filteredJobs.length} dari {jobs.length}
+          {t('copy.showingCount', { count: filteredJobs.length, total: jobs.length })}
         </span>
       </div>
 
@@ -319,7 +319,7 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
             {filteredJobs.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-xs text-brand-ink-3">
-                  Tidak ada job yang cocok dengan filter.
+                  {t('emptyFilter')}
                 </td>
               </tr>
             ) : null}

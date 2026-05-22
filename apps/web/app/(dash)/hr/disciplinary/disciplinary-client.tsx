@@ -139,13 +139,13 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
       {showForm && (
         <div className="rounded-xl border border-brand-cream-3 bg-card p-6">
           <h2 className="mb-4 text-base font-semibold text-brand-ink">
-            Buat Surat Peringatan Baru
+            {t('createNew')}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">
-                  Karyawan *
+                  {tc('employee')} *
                 </label>
                 <select
                   value={employeeId}
@@ -153,7 +153,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                   required
                   className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none"
                 >
-                  <option value="">Pilih Karyawan</option>
+                  <option value="">Pilih {tc('employee')}</option>
                   {employees.map((e) => (
                     <option key={e.value} value={e.value}>
                       {e.label}
@@ -170,9 +170,9 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                   onChange={(e) => setLevel(e.target.value as 'SP1' | 'SP2' | 'SP3')}
                   className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none"
                 >
-                  <option value="SP1">SP1 — Surat Peringatan 1</option>
-                  <option value="SP2">SP2 — Surat Peringatan 2</option>
-                  <option value="SP3">SP3 — Surat Peringatan 3</option>
+                  <option value="SP1">{t('sp1Desc')}</option>
+                  <option value="SP2">{t('sp2Desc')}</option>
+                  <option value="SP3">{t('sp3Desc')}</option>
                 </select>
               </div>
               <div>

@@ -200,7 +200,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
               value={titleVals[activeLocale] ?? ''}
               onChange={(e) => setTitleVals((v) => ({ ...v, [activeLocale]: e.target.value }))}
               className="mt-3 w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-              placeholder={`Judul halaman (${activeLocale.toUpperCase()})`}
+              placeholder={`${t('pageTitlePlaceholder')} (${activeLocale.toUpperCase()})`}
             />
           </div>
 
@@ -218,7 +218,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                     onChange={(e) => setContentVals((v) => ({ ...v, [tab.code]: e.target.value }))}
                     rows={6}
                     className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-                    placeholder={`Konten halaman (${tab.code.toUpperCase()})`}
+                    placeholder={`${t('pageContentPlaceholder')} (${tab.code.toUpperCase()})`}
                   />
                 </div>
               ))}

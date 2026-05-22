@@ -26,7 +26,11 @@ const KIND_OPTIONS = [
   { value: 'event', label: 'Event' },
 ];
 
+import { useTranslations } from 'next-intl';
+
 export function CmsPostForm({ post, isNew = false }: Props) {
+  const t = useTranslations('cms.posts');
+  const tc = useTranslations('common');
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -132,7 +136,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-brand-ink">
-            {isNew ? 'Buat Post Baru' : 'Edit Post'}
+            {isNew ? t('createNewPost') : t('editPost')}
           </h1>
           {!isNew && (
             <div className="mt-1 flex items-center gap-3">
@@ -158,7 +162,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
               disabled={isPending}
               className="inline-flex items-center gap-1.5 rounded-md bg-brand-jade px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90 disabled:opacity-50"
             >
-              {status === 'published' ? 'Unpublish' : 'Publikasi'}
+              {status === 'published' ? tc('actions.unpublish') : tc('actions.publish')}
             </button>
           )}
           <button
@@ -166,7 +170,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
             disabled={isPending}
             className="inline-flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90 disabled:opacity-50"
           >
-            {isPending ? 'Menyimpan...' : 'Simpan'}
+            {isPending ? tc('actions.saving') : tc('actions.save')}
           </button>
         </div>
       </div>
@@ -180,7 +184,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
-            <label className="mb-1 block text-sm font-medium text-brand-ink">Judul</label>
+            <label className="mb-1 block text-sm font-medium text-brand-ink">{tc('labels.title')}</label>
             <div className="flex gap-1 border-b border-brand-cream-3">
               {LOCALE_TABS.map((tab) => (
                 <button
@@ -201,12 +205,12 @@ export function CmsPostForm({ post, isNew = false }: Props) {
               value={titleVals[activeLocale] ?? ''}
               onChange={(e) => setTitleVals((v) => ({ ...v, [activeLocale]: e.target.value }))}
               className="mt-3 w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-              placeholder={`Judul post (${activeLocale.toUpperCase()})`}
+              placeholder={`${tc('labels.title')} (${activeLocale.toUpperCase()})`}
             />
           </div>
 
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
-            <label className="mb-1 block text-sm font-medium text-brand-ink">Konten</label>
+            <label className="mb-1 block text-sm font-medium text-brand-ink">{tc('labels.content')}</label>
             <div className="space-y-2">
               {LOCALE_TABS.map((tab) => (
                 <div key={tab.code}>
@@ -216,7 +220,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
                     onChange={(e) => setContentVals((v) => ({ ...v, [tab.code]: e.target.value }))}
                     rows={8}
                     className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-                    placeholder={`Konten post (${tab.code.toUpperCase()})`}
+                    placeholder={`${tc('labels.content')} (${tab.code.toUpperCase()})`}
                   />
                 </div>
               ))}
@@ -236,7 +240,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
                     onChange={(e) => setExcerptVals((v) => ({ ...v, [tab.code]: e.target.value }))}
                     rows={2}
                     className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-                    placeholder={`Cuplikan singkat (${tab.code.toUpperCase()})`}
+                    placeholder={`Excerpt (${tab.code.toUpperCase()})`}
                   />
                 </div>
               ))}
@@ -258,7 +262,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
                   placeholder="url-slug"
                   disabled={!isNew}
                 />
-                {isNew && <p className="mt-1 text-xs text-brand-ink-3">Slug tidak dapat diubah.</p>}
+                {isNew && <p className="mt-1 text-xs text-brand-ink-3">Slug cannot be changed.</p>}
               </div>
 
               <div>
@@ -326,13 +330,13 @@ export function CmsPostForm({ post, isNew = false }: Props) {
                       disabled={isPending}
                       className="rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
                     >
-                      Ya, Hapus
+                      {tc('actions.yesDelete')}
                     </button>
                     <button
                       onClick={() => setShowDeleteConfirm(false)}
                       className="rounded-md border border-brand-cream-3 px-3 py-2 text-sm font-medium text-brand-ink-3 hover:bg-brand-cream-2"
                     >
-                      Batal
+                      {tc('actions.cancel')}
                     </button>
                   </div>
                 </div>
@@ -342,7 +346,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
                   disabled={isPending}
                   className="w-full rounded-md border border-red-300 bg-card px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
                 >
-                  Hapus Post
+                  {tc('actions.delete')}
                 </button>
               )}
             </div>

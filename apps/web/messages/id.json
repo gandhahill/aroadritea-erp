@@ -130,7 +130,8 @@
     "boolean": {
       "yes": "Ya",
       "no": "Tidak"
-    }
+    },
+    "employee": "Karyawan"
   },
   "auth": {
     "login": {
@@ -569,6 +570,9 @@
         "journal": "Jurnal",
         "actions": "Aksi"
       }
+    },
+    "journals": {
+      "attachmentHint": "Unggah bukti transaksi atau dokumen pendukung. File akan otomatis terpasang setelah draft jurnal berhasil dibuat. Maksimum 10 MB per file."
     }
   },
   "purchasing": {
@@ -641,7 +645,8 @@
       "totalCount": "Total {count}",
       "howItWorksTitle": "Cara kerja",
       "howItWorksBody": "Worker membaca jadwal dari database setiap 60 detik. Ubah status atau cron langsung dari halaman ini. Format cron:",
-      "cronExample": "menit jam tanggal bulan hari"
+      "cronExample": "menit jam tanggal bulan hari",
+      "showingCount": "{count} dari {total}"
     },
     "backup": {
       "label": "Cadangan Database",
@@ -676,8 +681,9 @@
     },
     "status": {
       "neverRun": "Belum pernah jalan",
-      "success": "Berhasil",
-      "failed": "Gagal"
+      "success": "Sukses",
+      "failed": "Gagal",
+      "never": "Belum dijalankan"
     },
     "empty": {
       "title": "Belum ada jadwal otomatis",
@@ -695,7 +701,15 @@
     },
     "create": "Tambah Jadwal",
     "edit": "Ubah Jadwal",
-    "notFound": "Jadwal tidak ditemukan"
+    "notFound": "Jadwal tidak ditemukan",
+    "searchPlaceholder": "Cari nama, deskripsi, atau cron…",
+    "filter": {
+      "allEnabled": "Aktif & Nonaktif",
+      "enabledOnly": "Aktif saja",
+      "disabledOnly": "Nonaktif saja",
+      "allStatus": "Semua status"
+    },
+    "emptyFilter": "Tidak ada job yang cocok dengan filter."
   },
   "inventory": {
     "recipes": {
@@ -1780,7 +1794,8 @@
       "total": "Total",
       "used": "Terpakai",
       "pending": "Menunggu",
-      "statusCancelled": "Dibatalkan"
+      "statusCancelled": "Dibatalkan",
+      "emptyData": "Belum ada data."
     },
     "payroll": {
       "title": "Penggajian",
@@ -1871,7 +1886,11 @@
       "subtitle": "SP1/SP2/SP3 — disciplinary record management",
       "empty": "Belum ada surat peringatan.",
       "create": "+ Buat SP",
-      "filterBtn": "Filter"
+      "filterBtn": "Filter",
+      "createNew": "Buat Surat Peringatan Baru",
+      "sp1Desc": "SP1 — Surat Peringatan 1",
+      "sp2Desc": "SP2 — Surat Peringatan 2",
+      "sp3Desc": "SP3 — Surat Peringatan 3"
     },
     "fields": {
       "required": "Wajib diisi",
@@ -2287,7 +2306,8 @@
       "forbidden": "Akun ini tidak memiliki akses untuk mengatur pengaturan sistem.",
       "invalidRate": "Tarif rupiah-per-poin harus lebih dari 0.",
       "invalidTiers": "Minimal satu tier yang valid.",
-      "firstTierMustBeZero": "Tier pertama (entry) harus dimulai dari 0 poin."
+      "firstTierMustBeZero": "Tier pertama (entry) harus dimulai dari 0 poin.",
+      "pointEqual": "= 1 poin"
     },
     "locations": {
       "title": "Lokasi",
@@ -2347,7 +2367,15 @@
         "sales_order": "Order Penjualan",
         "journal_entry": "Jurnal"
       },
-      "confirmDelete": "Yakin hapus bidang \"{name}\"? Data yang tersimpan akan tetap ada."
+      "confirmDelete": "Yakin hapus bidang \"{name}\"? Data yang tersimpan akan tetap ada.",
+      "nameId": "Nama (ID)",
+      "nameEn": "Nama (EN)",
+      "nameZh": "Nama (ZH)",
+      "keyHint": "Huruf kecil, angka/huruf/garis bawah saja. Tidak dapat diubah nanti.",
+      "enumHint": "Nilai dipisahkan koma.",
+      "actions": {
+        "delete": "Hapus"
+      }
     },
     "pos": {
       "title": "Pengaturan POS",
@@ -2747,7 +2775,9 @@
         "review": "Ulasan",
         "published": "Dipublikasikan",
         "archived": "Diarsipkan"
-      }
+      },
+      "pageTitlePlaceholder": "Judul halaman",
+      "pageContentPlaceholder": "Konten halaman"
     },
     "posts": {
       "title": "Post & Berita",
@@ -2778,7 +2808,15 @@
         "archived": "Diarsipkan"
       },
       "empty": "Belum ada post",
-      "emptyHint": "Buat post atau berita pertama Anda."
+      "emptyHint": "Buat post atau berita pertama Anda.",
+      "createNewPost": "Buat Post Baru",
+      "editPost": "Edit Post",
+      "titleId": "Judul post (ID)",
+      "titleEn": "Judul post (EN)",
+      "titleZh": "Judul post (ZH)",
+      "contentId": "Konten post (ID)",
+      "contentEn": "Konten post (EN)",
+      "contentZh": "Konten post (ZH)"
     }
   },
   "tax": {

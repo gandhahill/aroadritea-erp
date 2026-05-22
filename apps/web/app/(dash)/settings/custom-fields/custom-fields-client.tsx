@@ -441,7 +441,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                     className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                   />
                   <p className="mt-1 text-xs text-brand-ink-3">
-                    Lowercase, letters/numbers/underscores only. Cannot be changed later.
+                    {t('keyHint')}
                   </p>
                 </div>
               )}
@@ -450,7 +450,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-brand-ink">
-                    Nama (ID) <span className="text-brand-red">*</span>
+                    {t('nameId')} <span className="text-brand-red">*</span>
                   </label>
                   <input
                     type="text"
@@ -461,7 +461,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-brand-ink">Name (EN)</label>
+                  <label className="mb-1 block text-sm font-medium text-brand-ink">{t('nameEn')}</label>
                   <input
                     type="text"
                     value={form.name_en}
@@ -470,7 +470,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-brand-ink">名称 (ZH)</label>
+                  <label className="mb-1 block text-sm font-medium text-brand-ink">{t('nameZh')}</label>
                   <input
                     type="text"
                     value={form.name_zh}
@@ -512,7 +512,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                     placeholder="option1, option2, option3"
                     className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                   />
-                  <p className="mt-1 text-xs text-brand-ink-3">Comma-separated values.</p>
+                  <p className="mt-1 text-xs text-brand-ink-3">{t('enumHint')}</p>
                 </div>
               )}
 
@@ -568,14 +568,14 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                   onClick={closeModal}
                   className="rounded-lg border border-brand-cream-3 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
                 >
-                  Batal
+                  {tc('actions.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={isPending}
                   className="rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50"
                 >
-                  {isPending ? 'Menyimpan...' : 'Simpan'}
+                  {isPending ? tc('actions.saving') : tc('actions.save')}
                 </button>
               </div>
             </form>
@@ -617,14 +617,14 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                 onClick={() => setConfirmDeleteId(null)}
                 className="rounded-lg border border-brand-cream-3 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
               >
-                Batal
+                {tc('actions.cancel')}
               </button>
               <button
                 onClick={() => handleDelete(confirmDeleteId)}
                 disabled={isPending}
                 className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50"
               >
-                Hapus
+                {tc('actions.delete')}
               </button>
             </div>
           </div>

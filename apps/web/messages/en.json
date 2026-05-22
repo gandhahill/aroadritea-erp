@@ -130,7 +130,8 @@
     "boolean": {
       "yes": "Yes",
       "no": "No"
-    }
+    },
+    "employee": "Employee"
   },
   "auth": {
     "login": {
@@ -569,6 +570,9 @@
         "journal": "Journal",
         "actions": "Actions"
       }
+    },
+    "journals": {
+      "attachmentHint": "Upload transaction proof or supporting documents. The file will be automatically attached once the draft journal is successfully created. Maximum 10 MB per file."
     }
   },
   "purchasing": {
@@ -641,7 +645,8 @@
       "totalCount": "{count} total",
       "howItWorksTitle": "How it works",
       "howItWorksBody": "The worker reads schedules from the database every 60 seconds. Toggle jobs or edit cron from this page. Cron format:",
-      "cronExample": "minute hour day month weekday"
+      "cronExample": "minute hour day month weekday",
+      "showingCount": "{count} of {total}"
     },
     "backup": {
       "label": "Database Backup",
@@ -677,7 +682,8 @@
     "status": {
       "neverRun": "Never run",
       "success": "Success",
-      "failed": "Failed"
+      "failed": "Failed",
+      "never": "Never run"
     },
     "empty": {
       "title": "No scheduled jobs",
@@ -695,7 +701,15 @@
     },
     "create": "Add Schedule",
     "edit": "Edit Schedule",
-    "notFound": "Schedule not found"
+    "notFound": "Schedule not found",
+    "searchPlaceholder": "Search name, description, or cron…",
+    "filter": {
+      "allEnabled": "Enabled & Disabled",
+      "enabledOnly": "Enabled only",
+      "disabledOnly": "Disabled only",
+      "allStatus": "All statuses"
+    },
+    "emptyFilter": "No jobs match the filter."
   },
   "inventory": {
     "recipes": {
@@ -1702,7 +1716,8 @@
       "total": "Total",
       "used": "Used",
       "pending": "Pending",
-      "statusCancelled": "Cancelled"
+      "statusCancelled": "Cancelled",
+      "emptyData": "No data available."
     },
     "payroll": {
       "title": "Payroll",
@@ -1793,7 +1808,11 @@
       "subtitle": "SP1/SP2/SP3 — disciplinary record management",
       "empty": "No warning letters.",
       "create": "+ Create Letter",
-      "filterBtn": "Filter"
+      "filterBtn": "Filter",
+      "createNew": "Create New Disciplinary Action",
+      "sp1Desc": "SP1 — Disciplinary Letter 1",
+      "sp2Desc": "SP2 — Disciplinary Letter 2",
+      "sp3Desc": "SP3 — Disciplinary Letter 3"
     },
     "fields": {
       "required": "Required field",
@@ -1935,7 +1954,8 @@
       "forbidden": "Account does not have permission to manage system settings.",
       "invalidRate": "Rupiah-per-point must be greater than 0.",
       "invalidTiers": "At least one valid tier required.",
-      "firstTierMustBeZero": "The first (entry) tier must start at 0 points."
+      "firstTierMustBeZero": "The first (entry) tier must start at 0 points.",
+      "pointEqual": "= 1 point"
     },
     "locations": {
       "title": "Locations",
@@ -1995,7 +2015,15 @@
         "sales_order": "Sales Order",
         "journal_entry": "Journal"
       },
-      "confirmDelete": "Delete field \"{name}\"? Stored data will remain."
+      "confirmDelete": "Delete field \"{name}\"? Stored data will remain.",
+      "nameId": "Name (ID)",
+      "nameEn": "Name (EN)",
+      "nameZh": "Name (ZH)",
+      "keyHint": "Lowercase, letters/numbers/underscores only. Cannot be changed later.",
+      "enumHint": "Comma-separated values.",
+      "actions": {
+        "delete": "Delete"
+      }
     },
     "pos": {
       "title": "POS Settings",
@@ -2748,7 +2776,9 @@
         "review": "Review",
         "published": "Published",
         "archived": "Archived"
-      }
+      },
+      "pageTitlePlaceholder": "Page title",
+      "pageContentPlaceholder": "Page content"
     },
     "posts": {
       "title": "Posts & News",
@@ -2779,7 +2809,15 @@
         "archived": "Archived"
       },
       "empty": "No posts yet",
-      "emptyHint": "Create your first post or news."
+      "emptyHint": "Create your first post or news.",
+      "createNewPost": "Create New Post",
+      "editPost": "Edit Post",
+      "titleId": "Post title (ID)",
+      "titleEn": "Post title (EN)",
+      "titleZh": "Post title (ZH)",
+      "contentId": "Post content (ID)",
+      "contentEn": "Post content (EN)",
+      "contentZh": "Post content (ZH)"
     }
   },
   "tax": {

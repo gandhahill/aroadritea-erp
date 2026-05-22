@@ -130,7 +130,8 @@
     "boolean": {
       "yes": "是",
       "no": "否"
-    }
+    },
+    "employee": "员工"
   },
   "auth": {
     "login": {
@@ -590,6 +591,9 @@
       "next": "下一页",
       "descPlaceholder": "解释申请原因...",
       "saving": "保存中..."
+    },
+    "journals": {
+      "attachmentHint": "上传交易凭证或支持文件。文件将在草稿日记账成功创建后自动附加。每个文件最大 10 MB。"
     }
   },
   "purchasing": {
@@ -662,7 +666,8 @@
       "totalCount": "共 {count} 个",
       "howItWorksTitle": "工作方式",
       "howItWorksBody": "Worker 每 60 秒从数据库读取任务计划。可在此启用任务或修改 cron。Cron 格式：",
-      "cronExample": "分钟 小时 日期 月份 星期"
+      "cronExample": "分钟 小时 日期 月份 星期",
+      "showingCount": "{count} / {total}"
     },
     "backup": {
       "label": "数据库备份",
@@ -698,7 +703,8 @@
     "status": {
       "neverRun": "尚未运行",
       "success": "成功",
-      "failed": "失败"
+      "failed": "失败",
+      "never": "从未运行"
     },
     "empty": {
       "title": "暂无定时任务",
@@ -716,7 +722,15 @@
     },
     "create": "添加计划",
     "edit": "编辑计划",
-    "notFound": "计划未找到"
+    "notFound": "计划未找到",
+    "searchPlaceholder": "搜索名称、描述或 cron…",
+    "filter": {
+      "allEnabled": "启用与禁用",
+      "enabledOnly": "仅启用",
+      "disabledOnly": "仅禁用",
+      "allStatus": "所有状态"
+    },
+    "emptyFilter": "没有符合条件的作业。"
   },
   "inventory": {
     "recipes": {
@@ -1753,7 +1767,8 @@
       "total": "总天数",
       "used": "已用",
       "pending": "待审批",
-      "statusCancelled": "已取消"
+      "statusCancelled": "已取消",
+      "emptyData": "暂无数据。"
     },
     "payroll": {
       "title": "工资单",
@@ -1844,7 +1859,11 @@
       "subtitle": "SP1/SP2/SP3 — 纪律记录管理",
       "empty": "暂无警告信。",
       "create": "+ 创建警告信",
-      "filterBtn": "筛选"
+      "filterBtn": "筛选",
+      "createNew": "创建新的纪律处分",
+      "sp1Desc": "SP1 — 警告信 1",
+      "sp2Desc": "SP2 — 警告信 2",
+      "sp3Desc": "SP3 — 警告信 3"
     },
     "fields": {
       "required": "必填项",
@@ -1918,7 +1937,15 @@
         "sales_order": "销售订单",
         "journal_entry": "日记账"
       },
-      "confirmDelete": "删除字段 \"{name}\"？已存储的数据将保留。"
+      "confirmDelete": "删除字段 \"{name}\"？已存储的数据将保留。",
+      "nameId": "名称 (ID)",
+      "nameEn": "名称 (EN)",
+      "nameZh": "名称 (ZH)",
+      "keyHint": "仅限小写字母/数字/下划线。之后无法更改。",
+      "enumHint": "逗号分隔的值。",
+      "actions": {
+        "delete": "删除"
+      }
     },
     "permissions": {
       "title": "权限与访问控制",
@@ -2019,7 +2046,8 @@
       "forbidden": "此账户没有权限管理系统设置。",
       "invalidRate": "每积分对应的卢比金额必须大于 0。",
       "invalidTiers": "至少需要一个有效等级。",
-      "firstTierMustBeZero": "首个（入门）等级必须从 0 积分开始。"
+      "firstTierMustBeZero": "首个（入门）等级必须从 0 积分开始。",
+      "pointEqual": "= 1 积分"
     },
     "locations": {
       "title": "地点",
@@ -2824,7 +2852,9 @@
         "review": "审核",
         "published": "已发布",
         "archived": "已归档"
-      }
+      },
+      "pageTitlePlaceholder": "页面标题",
+      "pageContentPlaceholder": "页面内容"
     },
     "posts": {
       "title": "文章与新闻",
@@ -2855,7 +2885,15 @@
         "archived": "已归档"
       },
       "empty": "暂无文章",
-      "emptyHint": "创建您的第一篇文章或新闻。"
+      "emptyHint": "创建您的第一篇文章或新闻。",
+      "createNewPost": "创建新文章",
+      "editPost": "编辑文章",
+      "titleId": "文章标题 (ID)",
+      "titleEn": "文章标题 (EN)",
+      "titleZh": "文章标题 (ZH)",
+      "contentId": "文章内容 (ID)",
+      "contentEn": "文章内容 (EN)",
+      "contentZh": "文章内容 (ZH)"
     }
   },
   "tax": {

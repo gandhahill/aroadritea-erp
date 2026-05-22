@@ -271,6 +271,7 @@ export default async function LeavePage() {
 
       <Panel title={t('balance')}>
         <Table
+          emptyMessage={t('emptyData')}
           headers={[t('employee'), t('type'), t('year'), t('total'), t('used'), t('pending')]}
           rows={data.balances.map((balance) => [
             balance.employeeName ?? '-',
@@ -356,7 +357,7 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
+function Table({ headers, rows, emptyMessage }: { headers: string[]; rows: string[][]; emptyMessage?: string }) {
   return (
     <div className="overflow-x-auto rounded-lg border border-brand-cream-3">
       <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
@@ -373,7 +374,7 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
           {rows.length === 0 ? (
             <tr>
               <td colSpan={headers.length} className="px-4 py-6 text-center text-brand-ink-3">
-                Belum ada data.
+                {emptyMessage ?? 'Belum ada data.'}
               </td>
             </tr>
           ) : (

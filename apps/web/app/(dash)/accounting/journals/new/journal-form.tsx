@@ -355,10 +355,9 @@ export function JournalForm({ accounts, locations, partners }: Props) {
       </section>
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-        <h2 className="text-base font-semibold text-brand-ink">Lampiran (opsional)</h2>
+        <h2 className="text-base font-semibold text-brand-ink">{tc('labels.attachmentsOptional', { fallback: 'Lampiran (opsional)' })}</h2>
         <p className="mt-1 text-sm text-brand-ink-3">
-          Unggah bukti transaksi atau dokumen pendukung. File akan otomatis terpasang setelah draft
-          jurnal berhasil dibuat. Maksimum 10 MB per file.
+          {t('attachmentHint')}
         </p>
         <div className="mt-3 space-y-2">
           <input
@@ -381,7 +380,7 @@ export function JournalForm({ accounts, locations, partners }: Props) {
           ) : null}
           {uploadError ? <p className="text-xs text-rose-600">{uploadError}</p> : null}
           {uploadingAttachments ? (
-            <p className="text-xs text-brand-ink-3">Mengunggah lampiran…</p>
+            <p className="text-xs text-brand-ink-3">{tc('actions.uploading', { fallback: 'Mengunggah lampiran…' })}</p>
           ) : null}
         </div>
       </section>

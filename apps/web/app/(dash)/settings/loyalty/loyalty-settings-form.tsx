@@ -84,7 +84,7 @@ export function LoyaltySettingsForm({ initial }: Props) {
                 className={INPUT}
                 required
               />
-              <span className="whitespace-nowrap text-sm text-brand-ink-3">= 1 poin</span>
+              <span className="whitespace-nowrap text-sm text-brand-ink-3">{t('pointEqual')}</span>
             </div>
           </label>
         </div>
