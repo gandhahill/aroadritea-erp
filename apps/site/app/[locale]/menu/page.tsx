@@ -224,7 +224,11 @@ async function getPublicMenu(locale: Locale): Promise<MenuCategory[]> {
       description: row.productDescription
         ? localized(row.productDescription as LocalizedText, locale)
         : null,
-      imageUrl: PUBLIC_MENU_IMAGE_URLS[row.productSku] ?? row.imageUrl,
+      imageUrl:
+        PUBLIC_MENU_IMAGE_URLS[row.productSku] ??
+        (row.imageUrl?.startsWith('/api/')
+          ? `${process.env.NEXT_PUBLIC_WEB_URL || 'https://erp.aroadritea.com'}${row.imageUrl}`
+          : row.imageUrl),
       price:
         prices.length > 0
           ? formatPriceRange(prices, locale)

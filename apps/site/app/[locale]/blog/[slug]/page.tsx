@@ -29,7 +29,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const meta: Record<string, unknown> = { title };
   if (description) meta.description = description;
   if (result.value.coverImageUrl) {
-    meta.openGraph = { images: [{ url: String(result.value.coverImageUrl) }] };
+    const rawUrl = String(result.value.coverImageUrl);
+    const url = rawUrl.startsWith('/api/')
+      ? `${process.env.NEXT_PUBLIC_WEB_URL || 'https://erp.aroadritea.com'}${rawUrl}`
+      : rawUrl;
+    meta.openGraph = { images: [{ url }] };
   }
   return meta;
 }
@@ -42,7 +46,10 @@ export default async function BlogPostPage({ params }: Props) {
   const post = result.value;
   const title = localize(post.title, locale as SiteLocale);
   const content = sanitizeCmsHtml(localize(post.content, locale as SiteLocale));
-  const cover = post.coverImageUrl ? String(post.coverImageUrl) : null;
+  let cover = post.coverImageUrl ? String(post.coverImageUrl) : null;
+  if (cover?.startsWith('/api/')) {
+    cover = `${process.env.NEXT_PUBLIC_WEB_URL || 'https://erp.aroadritea.com'}${cover}`;
+  }
 
   return (
     <div className="px-4 py-14 sm:px-6">
