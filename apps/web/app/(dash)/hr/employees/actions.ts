@@ -137,6 +137,7 @@ export async function createEmployeeAction(
     emergencyContactName: optionalText(formData, 'emergencyContactName'),
     emergencyContactPhone: optionalText(formData, 'emergencyContactPhone'),
     password: optionalText(formData, 'password'),
+    requirePasswordChange: formData.get('requirePasswordChange') === 'on',
     roleCode: optionalText(formData, 'roleCode'),
     loginScope: text(formData, 'loginScope') === 'global' ? 'global' : 'same_location',
   };

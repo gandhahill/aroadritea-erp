@@ -159,6 +159,12 @@ export {
   complaintCompensations,
 } from './schema/crm';
 
+// Schema — Whistleblower
+export {
+  whistleblowerReports,
+  whistleblowerReportsRelations,
+} from './schema/whistleblower';
+
 // Schema — Promotions
 export { promotions, promotionApplications } from './schema/promotion';
 export type {

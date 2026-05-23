@@ -12,3 +12,4 @@ export * from './create-employee';
 export * from './update-employee';
 export * from './attendance-service';
 export * from './disciplinary-service';
+export * from './whistleblower';

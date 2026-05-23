@@ -153,7 +153,21 @@
       "errorServer": "Server error, please try again",
       "errorSuspended": "Your account has been suspended. Contact administrator.",
       "invalidCredentials": "Invalid email or password",
-      "suspended": "Your account has been suspended"
+      "suspended": "Your account has been suspended",
+      "totpCode": "OTP Code",
+      "errorInvalidTotp": "Invalid OTP code"
+    },
+    "changePassword": {
+      "title": "Change Password",
+      "subtitle": "You must change your password.",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "errorMismatch": "Passwords do not match",
+      "errorLength": "Minimum 8 characters",
+      "errorServer": "An error occurred",
+      "submitting": "Saving...",
+      "submit": "Save"
     }
   },
   "accounting": {
@@ -882,7 +896,6 @@
         "kindService": "Service",
         "taxCodeNone": "No tax"
       },
-
       "variants": {
         "add": "Add variant",
         "empty": "No variants yet.",
@@ -1572,7 +1585,8 @@
         "loginScopeSameLocation": "Employee outlet only",
         "loginScopeGlobal": "All outlets",
         "password": "Initial password",
-        "passwordHint": "Min 8 chars. The employee can change it after first login."
+        "passwordHint": "Min 8 chars. The employee can change it after first login.",
+        "requirePasswordChange": "Require password change"
       }
     },
     "contracts": {
@@ -2541,7 +2555,17 @@
     "currentPasswordWrong": "Current password is incorrect.",
     "emailInUse": "Email is already used by another account.",
     "passwordMismatch": "Password confirmation does not match.",
-    "passwordTooShort": "New password must be at least 12 characters."
+    "passwordTooShort": "New password must be at least 12 characters.",
+    "mfa": {
+      "title": "Two-Factor Auth",
+      "subtitle": "Secure account with TOTP",
+      "password": "Current Password",
+      "enabling": "Enabling...",
+      "enable": "Enable 2FA",
+      "scanTitle": "Setup Instructions",
+      "scanSubtitle": "Add this URI to app.",
+      "done": "Done"
+    }
   },
   "audit": {
     "title": "Audit Trail",
@@ -2939,6 +2963,34 @@
       "shift": "Shift",
       "payroll": "Payroll",
       "recruitment": "Recruitment"
+    }
+  },
+  "whistleblower": {
+    "title": "Whistleblower Channel",
+    "subtitle": "Report misconduct safely and anonymously.",
+    "reportTitle": "Title",
+    "titlePlaceholder": "Brief summary of the issue",
+    "category": "Category",
+    "catFraud": "Fraud / Corruption",
+    "catHarassment": "Harassment / Discrimination",
+    "catSafety": "Safety Violation",
+    "catOther": "Other",
+    "content": "Details",
+    "contentPlaceholder": "Describe in detail...",
+    "anonymityNote": "This report is anonymous.",
+    "submitting": "Submitting...",
+    "submit": "Submit Report",
+    "successTitle": "Report Submitted Successfully",
+    "successMessage": "Thank you for your report.",
+    "submitAnother": "Submit Another",
+    "admin": {
+      "title": "Whistleblower Reports",
+      "subtitle": "Manage anonymous reports",
+      "date": "Date",
+      "category": "Category",
+      "reportTitle": "Title",
+      "status": "Status",
+      "noReports": "No reports found."
     }
   }
 }

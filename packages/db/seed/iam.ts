@@ -404,6 +404,11 @@ export const PERMISSIONS_SEED = [
     ),
   },
   {
+    code: 'hr.whistleblower.read',
+    module: 'hr',
+    description: n('Lihat laporan whistleblower', 'View whistleblower reports', '查看举报人报告'),
+  },
+  {
     code: 'hr.manage_attendance',
     module: 'hr',
     description: n('Kelola presensi', 'Manage attendance', '管理考勤'),

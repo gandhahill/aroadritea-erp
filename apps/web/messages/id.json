@@ -153,7 +153,21 @@
       "errorServer": "Terjadi kesalahan server, coba lagi",
       "errorSuspended": "Akun Anda ditangguhkan. Hubungi administrator.",
       "invalidCredentials": "Email atau kata sandi salah",
-      "suspended": "Akun Anda ditangguhkan"
+      "suspended": "Akun Anda ditangguhkan",
+      "totpCode": "Kode OTP",
+      "errorInvalidTotp": "Kode OTP salah"
+    },
+    "changePassword": {
+      "title": "Ubah Kata Sandi",
+      "subtitle": "Anda harus mengubah kata sandi.",
+      "currentPassword": "Kata Sandi Saat Ini",
+      "newPassword": "Kata Sandi Baru",
+      "confirmPassword": "Konfirmasi Kata Sandi",
+      "errorMismatch": "Kata sandi tidak cocok",
+      "errorLength": "Minimal 8 karakter",
+      "errorServer": "Terjadi kesalahan",
+      "submitting": "Menyimpan...",
+      "submit": "Simpan"
     }
   },
   "accounting": {
@@ -882,7 +896,6 @@
         "kindService": "Jasa",
         "taxCodeNone": "Tanpa pajak"
       },
-
       "variants": {
         "add": "Tambah varian",
         "empty": "Belum ada varian.",
@@ -1641,7 +1654,8 @@
         "loginScopeSameLocation": "Hanya outlet karyawan",
         "loginScopeGlobal": "Seluruh outlet",
         "password": "Sandi awal",
-        "passwordHint": "Min 8 karakter. Karyawan dapat ganti sendiri setelah login."
+        "passwordHint": "Min 8 karakter. Karyawan dapat ganti sendiri setelah login.",
+        "requirePasswordChange": "Wajib ubah kata sandi"
       },
       "new": {
         "pageTitle": "Tambah Karyawan - Aroadri ERP",
@@ -2540,7 +2554,17 @@
     "currentPasswordWrong": "Kata sandi saat ini salah.",
     "emailInUse": "Email sudah digunakan akun lain.",
     "passwordMismatch": "Konfirmasi kata sandi tidak sama.",
-    "passwordTooShort": "Kata sandi baru minimal 12 karakter."
+    "passwordTooShort": "Kata sandi baru minimal 12 karakter.",
+    "mfa": {
+      "title": "Autentikasi Dua Faktor",
+      "subtitle": "Amankan akun Anda dengan TOTP",
+      "password": "Kata Sandi Saat Ini",
+      "enabling": "Mengaktifkan...",
+      "enable": "Aktifkan 2FA",
+      "scanTitle": "Instruksi Setup",
+      "scanSubtitle": "Tambahkan URI ini ke aplikasi.",
+      "done": "Selesai"
+    }
   },
   "audit": {
     "title": "Jejak Audit",
@@ -2938,6 +2962,34 @@
       "shift": "Shift",
       "payroll": "Payroll",
       "recruitment": "Rekrutmen"
+    }
+  },
+  "whistleblower": {
+    "title": "Saluran Whistleblower",
+    "subtitle": "Laporkan pelanggaran dengan aman dan anonim.",
+    "reportTitle": "Judul",
+    "titlePlaceholder": "Ringkasan singkat masalah",
+    "category": "Kategori",
+    "catFraud": "Kecurangan / Korupsi",
+    "catHarassment": "Pelecehan / Diskriminasi",
+    "catSafety": "Pelanggaran Keselamatan",
+    "catOther": "Lainnya",
+    "content": "Detail",
+    "contentPlaceholder": "Jelaskan secara rinci...",
+    "anonymityNote": "Laporan ini anonim.",
+    "submitting": "Mengirim...",
+    "submit": "Kirim Laporan",
+    "successTitle": "Laporan Berhasil Dikirim",
+    "successMessage": "Terima kasih atas laporan Anda.",
+    "submitAnother": "Kirim Laporan Lain",
+    "admin": {
+      "title": "Laporan Whistleblower",
+      "subtitle": "Kelola laporan anonim",
+      "date": "Tanggal",
+      "category": "Kategori",
+      "reportTitle": "Judul",
+      "status": "Status",
+      "noReports": "Tidak ada laporan."
     }
   }
 }

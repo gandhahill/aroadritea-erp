@@ -10,6 +10,7 @@ import { db } from '@erp/db';
 import * as authSchema from '@erp/db/schema/auth';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { twoFactor } from 'better-auth/plugins';
 
 const authBaseURL =
   process.env.BETTER_AUTH_URL ??
@@ -88,8 +89,20 @@ export const auth = betterAuth({
         type: 'string',
         required: true,
       },
+      requirePasswordChange: {
+        type: 'boolean',
+        required: true,
+        defaultValue: false,
+      },
+      twoFactorEnabled: {
+        type: 'boolean',
+        required: false,
+        defaultValue: false,
+      },
     },
   },
+
+  plugins: [twoFactor()],
 
   // ISO 27001 §A.9.4 — limit credential-stuffing / brute force on the
   // staff login endpoint. better-auth's built-in window covers the

@@ -119,6 +119,7 @@ export async function createEmployee(
           locale: 'id',
           status: 'active',
           emailVerified: new Date(),
+          requirePasswordChange: data.requirePasswordChange ?? false,
           createdBy: ctx.userId,
           updatedBy: ctx.userId,
         });

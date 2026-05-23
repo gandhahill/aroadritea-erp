@@ -153,7 +153,21 @@
       "errorServer": "服务器错误，请重试",
       "errorSuspended": "您的账户已被暂停。请联系管理员。",
       "invalidCredentials": "邮箱或密码错误",
-      "suspended": "您的账户已被暂停"
+      "suspended": "您的账户已被暂停",
+      "totpCode": "OTP 代码",
+      "errorInvalidTotp": "OTP代码无效"
+    },
+    "changePassword": {
+      "title": "更改密码",
+      "subtitle": "您必须更改密码。",
+      "currentPassword": "当前密码",
+      "newPassword": "新密码",
+      "confirmPassword": "确认密码",
+      "errorMismatch": "密码不匹配",
+      "errorLength": "最少8个字符",
+      "errorServer": "发生错误",
+      "submitting": "保存中...",
+      "submit": "保存"
     }
   },
   "accounting": {
@@ -903,7 +917,6 @@
         "kindService": "服务",
         "taxCodeNone": "无税"
       },
-
       "variants": {
         "add": "添加规格",
         "empty": "暂无规格。",
@@ -1610,7 +1623,8 @@
         "loginScopeSameLocation": "仅员工所在门店",
         "loginScopeGlobal": "所有门店",
         "password": "初始密码",
-        "passwordHint": "至少 8 位。员工首次登录后可自行修改。"
+        "passwordHint": "至少 8 位。员工首次登录后可自行修改。",
+        "requirePasswordChange": "要求更改密码"
       }
     },
     "contracts": {
@@ -2592,7 +2606,17 @@
     "currentPasswordWrong": "当前密码不正确。",
     "emailInUse": "该邮箱已被其他账户使用。",
     "passwordMismatch": "两次输入的密码不一致。",
-    "passwordTooShort": "新密码至少需要 12 个字符。"
+    "passwordTooShort": "新密码至少需要 12 个字符。",
+    "mfa": {
+      "title": "双重认证",
+      "subtitle": "使用TOTP保护帐户",
+      "password": "当前密码",
+      "enabling": "启用中...",
+      "enable": "启用2FA",
+      "scanTitle": "设置说明",
+      "scanSubtitle": "将此URI添加到应用程序。",
+      "done": "完成"
+    }
   },
   "audit": {
     "title": "审计轨迹",
@@ -3015,6 +3039,34 @@
       "shift": "排班",
       "payroll": "工资",
       "recruitment": "招聘"
+    }
+  },
+  "whistleblower": {
+    "title": "举报渠道",
+    "subtitle": "安全匿名地报告违规行为。",
+    "reportTitle": "标题",
+    "titlePlaceholder": "问题的简短总结",
+    "category": "类别",
+    "catFraud": "欺诈/腐败",
+    "catHarassment": "骚扰/歧视",
+    "catSafety": "安全违规",
+    "catOther": "其他",
+    "content": "细节",
+    "contentPlaceholder": "详细描述...",
+    "anonymityNote": "此报告是匿名的。",
+    "submitting": "提交中...",
+    "submit": "提交报告",
+    "successTitle": "报告提交成功",
+    "successMessage": "感谢您的报告。",
+    "submitAnother": "提交另一个",
+    "admin": {
+      "title": "举报人报告",
+      "subtitle": "管理匿名报告",
+      "date": "日期",
+      "category": "类别",
+      "reportTitle": "标题",
+      "status": "状态",
+      "noReports": "未找到报告。"
     }
   }
 }

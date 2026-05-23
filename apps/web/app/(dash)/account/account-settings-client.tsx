@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { updateEmailAction, updatePasswordAction, updateProfileAction } from './actions';
+import { MfaSetup } from './mfa-setup';
 
 type ActionResult = { ok: true; message: string } | { ok: false; message: string } | null;
 
@@ -76,6 +77,8 @@ export function AccountSettingsClient({
           <Submit pending={passwordPending} label={t('savePassword')} loading={t('saving')} />
           <Message state={passwordState} />
         </form>
+
+        <MfaSetup />
       </div>
     </div>
   );

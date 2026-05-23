@@ -31,6 +31,10 @@ export default async function DashboardLayout({
     redirect('/login?error=suspended');
   }
 
+  if ((session.user as any)?.requirePasswordChange) {
+    redirect('/change-password');
+  }
+
   return (
     <div className="flex h-dvh min-h-0 overflow-hidden">
       {/* Sidebar navigation */}

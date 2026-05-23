@@ -51,6 +51,7 @@ export const CreateEmployeeInputSchema = z.object({
    * specified role, so the new employee can sign in immediately.
    */
   password: z.string().min(8).max(72).optional(),
+  requirePasswordChange: z.boolean().optional().default(false),
   roleCode: z.string().min(1).optional(),
   loginScope: z.enum(['same_location', 'global']).optional().default('same_location'),
 });

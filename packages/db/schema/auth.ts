@@ -77,6 +77,8 @@ export const users = pgTable(
     locale: text('locale').notNull().default('id'), // 'id' | 'en' | 'zh'
     status: text('status').notNull().default('active'), // 'active' | 'suspended'
     emailVerified: timestamp('email_verified', { withTimezone: true }), // required by better-auth
+    twoFactorEnabled: boolean('two_factor_enabled').default(false),
+    requirePasswordChange: boolean('require_password_change').notNull().default(false),
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
     ...auditCols,
     ...versionCol,
@@ -180,6 +182,21 @@ export const authAccounts = pgTable(
     index('auth_accounts_user_idx').on(t.userId),
     uniqueIndex('auth_accounts_provider_account_idx').on(t.providerId, t.accountId),
   ],
+);
+
+// ================================================================
+// TWO FACTOR — better-auth MFA secrets
+// ================================================================
+
+export const twoFactor = pgTable(
+  'two_factor',
+  {
+    ...pk,
+    secret: text('secret').notNull(),
+    backupCodes: text('backup_codes').notNull(),
+    userId: text('user_id').notNull(),
+  },
+  (t) => [index('two_factor_user_idx').on(t.userId)]
 );
 
 // ================================================================
@@ -302,4 +319,8 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 
 export const apiTokensRelations = relations(apiTokens, ({ one }) => ({
   user: one(users, { fields: [apiTokens.userId], references: [users.id] }),
+}));
+
+export const twoFactorRelations = relations(twoFactor, ({ one }) => ({
+  user: one(users, { fields: [twoFactor.userId], references: [users.id] }),
 }));

@@ -116,6 +116,14 @@ export function EmployeeForm({ assignableRoles = [], locationOptions = [] }: Emp
             className={INPUT}
           />
         </label>
+        <label className="md:col-span-2 flex items-center gap-2 mt-2">
+          <input
+            type="checkbox"
+            name="requirePasswordChange"
+            className="h-4 w-4 rounded border-brand-cream-3 text-brand-red focus:ring-brand-ember-5"
+          />
+          <span className="text-sm text-brand-ink">{f('requirePasswordChange')}</span>
+        </label>
       </Section>
 
       <div className="flex items-center justify-end gap-3">
