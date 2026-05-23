@@ -128,6 +128,24 @@ export const RefundSaleInputSchema = z.object({
 export type RefundSaleInput = z.infer<typeof RefundSaleInputSchema>;
 export type RefundLineInput = z.infer<typeof RefundLineSchema>;
 
+// ─── Shift Expense ────────────────────────────────────────────────────────────
+
+export const RecordShiftExpenseInputSchema = z.object({
+  shiftId: z.string().min(1),
+  amount: z.string().regex(/^\d+$/, 'Amount must be numeric'),
+  description: z.string().min(1).max(255),
+  attachmentUrl: z.string().url().optional(),
+});
+
+export type RecordShiftExpenseInput = z.infer<typeof RecordShiftExpenseInputSchema>;
+
+export const ApproveShiftExpenseInputSchema = z.object({
+  expenseId: z.string().min(1),
+  accountId: z.string().min(1),
+});
+
+export type ApproveShiftExpenseInput = z.infer<typeof ApproveShiftExpenseInputSchema>;
+
 // ─── Shift status enum ────────────────────────────────────────────────────────
 
 export const ShiftStatusSchema = z.enum(['open', 'closed']);

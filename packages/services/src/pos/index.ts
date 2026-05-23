@@ -10,6 +10,7 @@ export {
 } from './manual-sales';
 export { refundSale } from './refund-sale';
 export { openShift, closeShift, getOpenShift } from './shift-service';
+export { recordShiftExpense, approveShiftExpense } from './shift-expense-service';
 
 // SD §25.11 — Donation / Rounding
 export {
@@ -28,6 +29,8 @@ export {
   CloseShiftInputSchema,
   CreateSaleInputSchema,
   CreateManualSalesClosingInputSchema,
+  RecordShiftExpenseInputSchema,
+  ApproveShiftExpenseInputSchema,
   VoidSaleInputSchema,
   RefundSaleInputSchema,
   ShiftStatusSchema,
@@ -36,6 +39,8 @@ export {
   type CloseShiftInput,
   type CreateSaleInput,
   type CreateManualSalesClosingInput,
+  type RecordShiftExpenseInput,
+  type ApproveShiftExpenseInput,
   type VoidSaleInput,
   type RefundSaleInput,
   type RefundLineInput,

@@ -12,7 +12,10 @@ import {
   products,
   purchaseOrderLines,
   purchaseOrders,
+  goodsReceiptNotes,
+  grnLines,
   taxRates,
+  sql
 } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
 import { createPO, trackPurchaseOrderShipment, createGRN, confirmGRN } from '@erp/services/purchasing';
@@ -410,4 +413,73 @@ export async function receiveGoodsAction(prevState: ActionState, formData: FormD
   revalidatePath('/purchasing');
   revalidatePath(`/purchasing/po/${poId}`);
   return { success: true };
+}
+
+export async function fetchGRNReport(
+  page = 1,
+  pageSize = 20,
+  status = '',
+  locationId = '',
+  startDate = '',
+  endDate = ''
+) {
+  const ctx = await getSessionContext();
+  if (!ctx) return { data: [], total: 0, locations: [] };
+
+  const conditions = [eq(goodsReceiptNotes.tenantId, ctx.tenantId)];
+  if (status) {
+    conditions.push(eq(goodsReceiptNotes.status, status));
+  }
+  if (locationId) {
+    conditions.push(eq(goodsReceiptNotes.locationId, locationId));
+  }
+  if (startDate) {
+    conditions.push(sql`${goodsReceiptNotes.receivedDate} >= ${startDate}`);
+  }
+  if (endDate) {
+    conditions.push(sql`${goodsReceiptNotes.receivedDate} <= ${endDate}`);
+  }
+
+  const [countResult, locationRows] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(goodsReceiptNotes)
+      .where(and(...conditions)),
+    db
+      .select({ id: locations.id, name: locations.name })
+      .from(locations)
+      .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.status, 'active')))
+  ]);
+
+  const total = countResult[0]?.count ?? 0;
+
+  const rows = await db
+    .select({
+      id: goodsReceiptNotes.id,
+      number: goodsReceiptNotes.number,
+      receivedDate: goodsReceiptNotes.receivedDate,
+      status: goodsReceiptNotes.status,
+      purchaseOrderId: purchaseOrders.id,
+      poNumber: purchaseOrders.number,
+      supplierName: partners.name,
+      locationName: locations.name,
+    })
+    .from(goodsReceiptNotes)
+    .leftJoin(purchaseOrders, eq(goodsReceiptNotes.purchaseOrderId, purchaseOrders.id))
+    .leftJoin(partners, eq(purchaseOrders.supplierId, partners.id))
+    .leftJoin(locations, eq(goodsReceiptNotes.locationId, locations.id))
+    .where(and(...conditions))
+    .orderBy(desc(goodsReceiptNotes.receivedDate), desc(goodsReceiptNotes.createdAt))
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
+
+  return {
+    data: rows.map((r) => ({
+      ...r,
+      supplierName: r.supplierName || 'Unknown Supplier',
+      locationName: localizedName(r.locationName),
+    })),
+    total,
+    locations: locationRows.map(l => ({ id: l.id, name: localizedName(l.name) }))
+  };
 }

@@ -111,6 +111,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           'Gunakan tombol operasi di bagian atas POS untuk berpindah ke pesanan, closing manual, stok, laporan, promo, atau pengaturan tanpa keluar dari konteks kasir.',
           'Pilih channel penjualan yang benar: dine in, QRIS, kartu, atau delivery aggregator.',
           'Proses pembayaran. Untuk non-tunai, nilai pembayaran harus sesuai tagihan; gunakan tunai bila ada kembalian.',
+          'Jika ada pengeluaran darurat langsung dari laci kasir (misalnya beli galon), gunakan tombol "Pengeluaran Laci", isi nominal, keterangan, dan lampirkan foto struk asli sebagai bukti transaksi. Ini akan memotong perhitungan kas akhir dan mengirim notifikasi otomatis ke tim Finance untuk penjurnalan.',
           'Sebelum tutup shift, cocokkan kas sistem dengan kas fisik dan catat selisih bila ada.',
         ],
         checks: [
@@ -503,6 +504,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           'Use the POS operation shortcuts to reach orders, manual closing, stock, reports, promotions, or settings without leaving the cashier context.',
           'Choose the correct sales channel.',
           'Process the payment. Non-cash payments must match the bill; use cash when change is needed.',
+          'If there are emergency expenses taken directly from the cash drawer (e.g., buying drinking water), use the "Drawer Expense" button, enter the amount, description, and upload the original receipt photo as proof of transaction. This will automatically deduct the expected closing cash and notify the Finance team for journaling.',
           'Before closing shift, reconcile system cash with physical cash and record any variance.',
         ],
         checks: [
@@ -886,6 +888,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           '使用POS顶部的操作快捷入口，可进入订单、手工结账、库存、报表、促销或设置，不必离开收银流程。',
           '选择正确销售渠道。',
           '处理付款。非现金付款必须等于账单金额；需要找零时使用现金。',
+          '如果直接从收银机抽屉中提取紧急支出（例如买水），请使用“抽屉支出”按钮，输入金额和说明，并上传原始收据照片作为交易证明。这将自动扣除预期现金并在期末向财务团队发送自动通知以便做账。',
           '收班前核对系统现金和实际现金，并记录差异。',
         ],
         checks: [

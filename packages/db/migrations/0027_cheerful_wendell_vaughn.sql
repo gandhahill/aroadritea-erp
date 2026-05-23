@@ -1,0 +1,1 @@
+ALTER TABLE "shift_expenses" ADD COLUMN "attachment_url" text;

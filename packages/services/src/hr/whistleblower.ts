@@ -1,5 +1,6 @@
 import { db, eq, desc } from '@erp/db';
 import { whistleblowerReports } from '@erp/db/schema/whistleblower';
+import { auditLog } from '@erp/db/schema/audit';
 import { type Result, err, ok } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
 import type { AuditContext } from '@erp/shared/types';
@@ -24,6 +25,18 @@ export async function submitWhistleblowerReport(
     attachmentUrl: input.attachmentUrl || null,
   });
 
+  await db.insert(auditLog).values({
+    id: randomUUID(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'create',
+    entityType: 'whistleblower_report',
+    entityId: id,
+    before: null,
+    after: { id, title: input.title, description: `[Category: ${input.category}] ${input.content}`, status: 'open', attachmentUrl: input.attachmentUrl || null },
+    metadata: { ipAddress: ctx.ipAddress, userAgent: ctx.userAgent },
+  });
+
   return ok({ id });
 }
 
@@ -41,6 +54,12 @@ export async function updateWhistleblowerReportStatus(
   input: { id: string; status: 'open' | 'investigating' | 'resolved'; resolutionNotes?: string },
   ctx: AuditContext
 ): Promise<Result<{ id: string }>> {
+  const existing = await db
+    .select()
+    .from(whistleblowerReports)
+    .where(eq(whistleblowerReports.id, input.id))
+    .then((r) => r[0]);
+
   await db
     .update(whistleblowerReports)
     .set({
@@ -50,6 +69,20 @@ export async function updateWhistleblowerReportStatus(
       updatedByUserId: ctx.userId,
     })
     .where(eq(whistleblowerReports.id, input.id));
+
+  if (existing) {
+    await db.insert(auditLog).values({
+      id: randomUUID(),
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: 'update',
+      entityType: 'whistleblower_report',
+      entityId: input.id,
+      before: existing,
+      after: { ...existing, status: input.status, resolutionNotes: input.resolutionNotes },
+      metadata: { ipAddress: ctx.ipAddress, userAgent: ctx.userAgent },
+    });
+  }
 
   return ok({ id: input.id });
 }

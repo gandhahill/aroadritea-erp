@@ -58,6 +58,31 @@ export const shifts = pgTable(
   ],
 );
 
+export const shiftExpenses = pgTable(
+  'shift_expenses',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    shiftId: text('shift_id').notNull(),
+    amount: bigint('amount', { mode: 'bigint' }).notNull(),
+    description: text('description').notNull(),
+    
+    status: text('status').notNull().default('pending_accounting'), // 'pending_accounting' | 'journaled' | 'rejected'
+    accountId: text('account_id'), // COA account chosen by accountant
+    journalEntryId: text('journal_entry_id'), // Optional reference to a journal entry
+    attachmentUrl: text('attachment_url'), // Proof of transaction (receipt, etc)
+
+    ...auditCols,
+  },
+  (t) => [
+    index('shift_expenses_tenant_loc_idx').on(t.tenantId, t.locationId),
+    index('shift_expenses_shift_idx').on(t.shiftId),
+    index('shift_expenses_status_idx').on(t.status),
+  ],
+);
+
 // ─── Sales Orders (POS Order) ─────────────────────────────────────────────────
 
 export const posSettings = pgTable(
@@ -71,6 +96,8 @@ export const posSettings = pgTable(
     cashAccountCode: text('cash_account_code').notNull().default('1-1300'),
     revenueAccountCode: text('revenue_account_code').notNull().default('4-1100'),
     donationTrustAccountCode: text('donation_trust_account_code').notNull().default('2-2050'),
+    cashShortageAccountCode: text('cash_shortage_account_code').notNull().default('6-2100'),
+    cashOverageAccountCode: text('cash_overage_account_code').notNull().default('7-1200'),
     // Per-outlet bank account used when petty cash is deposited back to the
     // bank (Setor ke Bank). Defaults to the generic Bank account in COA.
     bankAccountCode: text('bank_account_code').notNull().default('1-1200'),
@@ -148,6 +175,7 @@ export const manualSalesClosings = pgTable(
     notes: text('notes'),
     status: text('status').notNull().default('posted'),
     journalEntryId: text('journal_entry_id'),
+    shiftId: text('shift_id'),
 
     ...versionCol,
     ...auditCols,

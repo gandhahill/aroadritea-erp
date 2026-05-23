@@ -9,7 +9,7 @@
 
 import { db } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
-import { payments, salesOrders, shifts } from '@erp/db/schema/pos';
+import { manualSalesClosings, payments, salesOrders, shiftExpenses, shifts } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
@@ -189,8 +189,31 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
 
     const cashTotal = allPayments.reduce((sum, p) => sum + p.amount, BigInt(0));
 
-    // Expected cash = opening + retained cash payments received.
-    const expectedCash = shift.openingCash + cashTotal;
+    const manualSales = await db
+      .select({ netRevenue: manualSalesClosings.netRevenue })
+      .from(manualSalesClosings)
+      .where(
+        and(
+          eq(manualSalesClosings.tenantId, ctx.tenantId),
+          eq(manualSalesClosings.shiftId, data.shiftId),
+          eq(manualSalesClosings.paymentMethod, 'cash'),
+        ),
+      );
+    const manualSalesCashTotal = manualSales.reduce((sum, ms) => sum + ms.netRevenue, BigInt(0));
+
+    const expenses = await db
+      .select({ amount: shiftExpenses.amount })
+      .from(shiftExpenses)
+      .where(
+        and(
+          eq(shiftExpenses.tenantId, ctx.tenantId),
+          eq(shiftExpenses.shiftId, data.shiftId),
+        ),
+      );
+    const expenseTotal = expenses.reduce((sum, e) => sum + e.amount, BigInt(0));
+
+    // Expected cash = opening + sales - expenses
+    const expectedCash = shift.openingCash + cashTotal + manualSalesCashTotal - expenseTotal;
     const actualCash = BigInt(data.actualCash);
     const variance = actualCash - expectedCash;
 
@@ -288,7 +311,30 @@ export async function getOpenShift(
         ),
       );
     const cashTotal = cashPayments.reduce((sum, payment) => sum + payment.amount, BigInt(0));
-    const expectedCash = shift.openingCash + cashTotal;
+    const manualSales = await db
+      .select({ netRevenue: manualSalesClosings.netRevenue })
+      .from(manualSalesClosings)
+      .where(
+        and(
+          eq(manualSalesClosings.tenantId, ctx.tenantId),
+          eq(manualSalesClosings.shiftId, shift.id),
+          eq(manualSalesClosings.paymentMethod, 'cash'),
+        ),
+      );
+    const manualSalesCashTotal = manualSales.reduce((sum, ms) => sum + ms.netRevenue, BigInt(0));
+
+    const expenses = await db
+      .select({ amount: shiftExpenses.amount })
+      .from(shiftExpenses)
+      .where(
+        and(
+          eq(shiftExpenses.tenantId, ctx.tenantId),
+          eq(shiftExpenses.shiftId, shift.id),
+        ),
+      );
+    const expenseTotal = expenses.reduce((sum, e) => sum + e.amount, BigInt(0));
+
+    const expectedCash = shift.openingCash + cashTotal + manualSalesCashTotal - expenseTotal;
 
     return ok({
       id: shift.id,

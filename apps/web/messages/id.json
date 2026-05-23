@@ -593,6 +593,21 @@
     }
   },
   "purchasing": {
+    "grnReport": {
+      "title": "Laporan Penerimaan",
+      "subtitle": "Histori penerimaan barang (Goods Receipt Note).",
+      "allStatus": "Semua Status",
+      "statusDraft": "Draft",
+      "statusConfirmed": "Confirmed",
+      "filterBtn": "Filter",
+      "receivedDate": "Tanggal Terima",
+      "grnNumber": "No. GRN",
+      "poNumber": "No. PO",
+      "supplierName": "Supplier",
+      "locationName": "Lokasi",
+      "status": "Status",
+      "noReports": "Tidak ada data penerimaan barang."
+    },
     "title": "Pembelian",
     "subtitle": "Kelola supplier dan purchase order dari ERP.",
     "eyebrow": "Pembelian",
@@ -1199,6 +1214,7 @@
     "inventoryVariance": "Varians Persediaan",
     "purchaseOrders": "Pesanan Pembelian",
     "newPo": "PO Baru",
+    "grnReport": "Laporan Penerimaan",
     "tax": "Pajak",
     "taxRates": "Tarif Pajak",
     "taxRules": "Aturan Pajak",
@@ -1301,6 +1317,15 @@
       "total": "{count} closing"
     },
     "openShift": "Buka Shift",
+    "drawerExpense": "Pengeluaran Laci",
+    "expenseHint": "Gunakan form ini untuk mencatat kasbon laci kasir, misalnya untuk beli galon/ATK. Pengeluaran ini akan mengurangi Expected Cash Anda.",
+    "expenseAmountLabel": "Jumlah (Rp)",
+    "expenseDescRequired": "Keterangan (Wajib)",
+    "expenseDescPlaceholder": "Contoh: Beli Galon",
+    "expenseAttachment": "Bukti Pembayaran / Struk (Opsional)",
+    "recordExpense": "Catat Pengeluaran",
+    "processing": "Memproses...",
+    "amountRequired": "Jumlah pengeluaran harus diisi",
     "closeShift": "Tutup Shift",
     "shiftOpen": "Shift Dibuka",
     "shiftClosed": "Shift Ditutup",
@@ -2426,6 +2451,13 @@
     "pos": {
       "title": "Pengaturan POS",
       "subtitle": "Atur posting akuntansi POS, channel delivery, komisi platform, dan ukuran struk per outlet.",
+      "drawerExpense": "Pengeluaran Laci Kasir",
+      "expenseDescRequired": "Keterangan (Wajib)",
+      "expenseDescPlaceholder": "Contoh: Beli Galon",
+      "expenseAttachment": "Bukti Pembayaran / Struk (Opsional)",
+      "recordExpense": "Catat Pengeluaran",
+      "processing": "Memproses...",
+      "amountRequired": "Jumlah pengeluaran harus diisi",
       "operationalDefaults": "Default Operasional",
       "save": "Simpan",
       "noLocations": "Belum ada lokasi. Seed lokasi terlebih dahulu sebelum mengatur POS.",
@@ -3018,9 +3050,9 @@
       "noReports": "Tidak ada laporan.",
       "allStatus": "Semua Status",
       "filterBtn": "Filter",
-      "statusOpen": "Open",
-      "statusInvestigating": "Investigating",
-      "statusResolved": "Resolved",
+      "statusOpen": "Baru",
+      "statusInvestigating": "Sedang Diusut",
+      "statusResolved": "Selesai",
       "viewEvidence": "Lihat Bukti"
     }
   }

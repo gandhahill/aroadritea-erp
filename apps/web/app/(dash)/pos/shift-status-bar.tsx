@@ -11,9 +11,10 @@
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
-import { closeShiftAction, fetchOpenShift, openShiftAction } from './actions';
+import { closeShiftAction, fetchOpenShift, openShiftAction, recordShiftExpenseAction } from './actions';
 import type { ShiftStatusItem } from './actions';
 import { usePosCart } from './pos-cart-context';
+import { FileUploadField } from '@/components/file-upload-field';
 
 interface ShiftStatusBarProps {
   locationId: string;
@@ -37,6 +38,13 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
   // "Konfirmasi" button feel like it did nothing on the second click.
   const [openingCashInput, setOpeningCashInput] = useState('');
   const [actualCashInput, setActualCashInput] = useState('');
+
+  // Shift Expense state
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [expenseAmountInput, setExpenseAmountInput] = useState('');
+  const [expenseDescInput, setExpenseDescInput] = useState('');
+  const [expenseAttachmentUrl, setExpenseAttachmentUrl] = useState('');
+  const [expenseError, setExpenseError] = useState<string | null>(null);
 
   // Demo route lives under the same parent layout but uses an isolated
   // IndexedDB sandbox (ADR-0008). The production shift bar must not
@@ -133,6 +141,43 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
     });
   }
 
+  async function handleRecordExpense(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!shift) return;
+    const amount = expenseAmountInput.replace(/\D/g, '');
+    if (!amount || Number(amount) <= 0) {
+      setExpenseError(t('amountRequired'));
+      return;
+    }
+    if (!expenseDescInput.trim()) {
+      setExpenseError(t('expenseDescRequired'));
+      return;
+    }
+    setExpenseError(null);
+
+    startTransition(async () => {
+      const result = await recordShiftExpenseAction({
+        shiftId: shift.id,
+        amount,
+        description: expenseDescInput.trim(),
+        attachmentUrl: expenseAttachmentUrl || undefined,
+      });
+      if (result.ok) {
+        setShowExpenseModal(false);
+        setExpenseAmountInput('');
+        setExpenseDescInput('');
+        setExpenseAttachmentUrl('');
+        // Refresh shift so expectedCash updates immediately
+        const fresh = await fetchOpenShift(locationId);
+        if (fresh) setShift(fresh);
+      } else {
+        const key =
+          (result.error as { messageKey?: string } | undefined)?.messageKey ?? 'systemError';
+        setExpenseError(translateErr(t as any, key));
+      }
+    });
+  }
+
   const isOpen = shift?.status === 'open';
 
   return (
@@ -170,14 +215,30 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
           </button>
 
           {isOpen ? (
-            <button
-              type="button"
-              onClick={openCloseModal}
-              className="h-8 rounded-md border border-brand-cream-3 bg-card px-3 text-xs font-medium text-brand-ink hover:bg-brand-cream-2 disabled:opacity-50"
-              disabled={isPending}
-            >
-              {t('closeShift')}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setExpenseError(null);
+                  setExpenseAmountInput('');
+                  setExpenseDescInput('');
+                  setExpenseAttachmentUrl('');
+                  setShowExpenseModal(true);
+                }}
+                className="h-8 rounded-md border border-brand-cream-3 bg-card px-3 text-xs font-medium text-brand-ink hover:bg-brand-cream-2 disabled:opacity-50"
+                disabled={isPending}
+              >
+                {t('drawerExpense')}
+              </button>
+              <button
+                type="button"
+                onClick={openCloseModal}
+                className="h-8 rounded-md border border-brand-cream-3 bg-card px-3 text-xs font-medium text-brand-ink hover:bg-brand-cream-2 disabled:opacity-50"
+                disabled={isPending}
+              >
+                {t('closeShift')}
+              </button>
+            </>
           ) : (
             <button
               type="button"
@@ -301,6 +362,88 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                   className="h-10 rounded-md bg-brand-red px-4 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
                 >
                   {isPending ? t('loading') : t('confirm')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </Modal>
+      )}
+
+      {/* Drawer Expense Modal */}
+      {showExpenseModal && shift && (
+        <Modal onClose={() => setShowExpenseModal(false)}>
+          <div className="surface-card p-6">
+            <h2 className="mb-5 text-lg font-bold text-brand-ink">{t('drawerExpense')}</h2>
+            <form onSubmit={handleRecordExpense} className="flex flex-col gap-4">
+              <p className="text-sm text-brand-ink-3">
+                {t('expenseHint')}
+              </p>
+              <div>
+                <label
+                  htmlFor="expenseAmount"
+                  className="mb-1.5 block text-sm font-medium text-brand-ink-2"
+                >
+                  {t('expenseAmountLabel')}
+                </label>
+                <input
+                  id="expenseAmount"
+                  name="expenseAmount"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
+                  required
+                  value={expenseAmountInput}
+                  onChange={(e) => setExpenseAmountInput(e.target.value.replace(/\D/g, ''))}
+                  className="h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="expenseDesc"
+                  className="mb-1.5 block text-sm font-medium text-brand-ink-2"
+                >
+                  {t('expenseDescRequired')}
+                </label>
+                <input
+                  id="expenseDesc"
+                  name="expenseDesc"
+                  type="text"
+                  placeholder={t('expenseDescPlaceholder')}
+                  required
+                  value={expenseDescInput}
+                  onChange={(e) => setExpenseDescInput(e.target.value)}
+                  className="h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
+                />
+              </div>
+              <div>
+                <FileUploadField
+                  label={t('expenseAttachment')}
+                  hiddenName="attachmentUrl"
+                  value={expenseAttachmentUrl}
+                  area="shift-expenses"
+                  visibility="private"
+                  onChange={(url) => setExpenseAttachmentUrl(url)}
+                />
+              </div>
+              {expenseError && (
+                <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                  {expenseError}
+                </p>
+              )}
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowExpenseModal(false)}
+                  className="h-10 rounded-md border border-brand-cream-3 bg-card px-4 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
+                >
+                  {t('cancel')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="h-10 rounded-md bg-brand-red px-4 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
+                >
+                  {isPending ? t('processing') : t('recordExpense')}
                 </button>
               </div>
             </form>

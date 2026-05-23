@@ -254,6 +254,7 @@ export function Sidebar() {
       children: [
         { label: t('purchaseOrders'), href: '/purchasing', icon: <></> },
         { label: t('newPo'), href: '/purchasing/po/new', icon: <></> },
+        { label: t('grnReport'), href: '/purchasing/grn-report', icon: <></> },
       ],
     },
     {

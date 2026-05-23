@@ -9,6 +9,7 @@ const PRIVATE_READ_PERMISSION: Record<UploadArea, string[]> = {
   reimbursement: ['accounting.reimbursement.view', 'accounting.reimbursement.create'],
   disciplinary: ['hr.disciplinary.read', 'hr.disciplinary.write'],
   whistleblower: ['hr.whistleblower.read'],
+  'shift-expenses': ['pos.shift.close', 'accounting.journal.create'],
   general: ['settings.manage'],
 };
 

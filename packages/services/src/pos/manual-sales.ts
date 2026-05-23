@@ -9,7 +9,7 @@
 import { db } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
 import { locations } from '@erp/db/schema/auth';
-import { manualSalesClosings } from '@erp/db/schema/pos';
+import { manualSalesClosings, shifts } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
@@ -119,6 +119,19 @@ export async function createManualSalesClosing(
   const channelLabel = humanizeChannel(data.channel);
   const reference = data.sourceReference?.trim() || number;
 
+  const openShift = await db
+    .select({ id: shifts.id })
+    .from(shifts)
+    .where(
+      and(
+        eq(shifts.tenantId, ctx.tenantId),
+        eq(shifts.locationId, data.locationId),
+        eq(shifts.status, 'open'),
+      ),
+    )
+    .then((r) => r[0] ?? null);
+  const shiftId = openShift?.id ?? null;
+
   const createResult = await tryCatch(
     async () => {
       await db.insert(manualSalesClosings).values({
@@ -137,6 +150,7 @@ export async function createManualSalesClosing(
         sourceReference: data.sourceReference ?? null,
         notes: data.notes ?? null,
         status: 'draft',
+        shiftId,
         createdBy: ctx.userId,
         updatedBy: ctx.userId,
       });
@@ -221,6 +235,7 @@ export async function createManualSalesClosing(
       taxTotal: tax.toString(),
       netRevenue: net.toString(),
       journalEntryId: journal.value.id,
+      shiftId,
     },
     metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
   });

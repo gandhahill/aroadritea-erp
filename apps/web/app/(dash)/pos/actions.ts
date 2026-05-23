@@ -30,7 +30,9 @@ import type {
   OpenShiftInput,
   RefundSaleInput,
   VoidSaleInput,
+  RecordShiftExpenseInput,
 } from '@erp/services/pos/schemas';
+import { recordShiftExpense } from '@erp/services/pos';
 import { getLocale } from 'next-intl/server';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -197,6 +199,11 @@ export async function openShiftAction(input: OpenShiftInput) {
 export async function closeShiftAction(input: CloseShiftInput) {
   const ctx = await getAuditContext();
   return await closeShift(input, ctx);
+}
+
+export async function recordShiftExpenseAction(input: RecordShiftExpenseInput) {
+  const ctx = await getAuditContext();
+  return await recordShiftExpense(input, ctx);
 }
 
 // ─── Product Actions ───────────────────────────────────────────────────────────

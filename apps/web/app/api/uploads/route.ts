@@ -14,6 +14,7 @@ const UPLOAD_WRITE_PERMISSION: Record<UploadArea, string> = {
   reimbursement: 'accounting.reimbursement.create',
   disciplinary: 'hr.disciplinary.write',
   whistleblower: '', // Bypassed
+  'shift-expenses': 'pos.shift.close',
   general: 'settings.manage',
 };
 
