@@ -28,13 +28,13 @@ export async function submitWhistleblowerReport(
   await db.insert(auditLog).values({
     id: randomUUID(),
     tenantId: ctx.tenantId,
-    userId: ctx.userId,
+    userId: 'anonymous_whistleblower', // Anonimkan untuk melindungi pelapor
     action: 'create',
     entityType: 'whistleblower_report',
     entityId: id,
     before: null,
     after: { id, title: input.title, description: `[Category: ${input.category}] ${input.content}`, status: 'open', attachmentUrl: input.attachmentUrl || null },
-    metadata: { ipAddress: ctx.ipAddress, userAgent: ctx.userAgent },
+    metadata: null, // JANGAN simpan IP Address atau User Agent untuk privasi pelapor
   });
 
   return ok({ id });

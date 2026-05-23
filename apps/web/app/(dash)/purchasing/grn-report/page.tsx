@@ -21,7 +21,7 @@ export default async function GRNReportPage({ searchParams }: Props) {
   const session = await getSession();
   if (!session?.user) redirect('/login');
 
-  await requirePermission(session.user.id, 'purchasing.grn.read');
+  await requirePermission(session.user.id, 'purchasing.view');
   
   const params = await searchParams;
   const page = parseInt(params?.page || '1') || 1;
