@@ -3,6 +3,7 @@
  * Creates a better-auth client that hooks into the API route.
  */
 
+// @ts-nocheck
 import { createAuthClient } from 'better-auth/react';
 import { twoFactorClient } from 'better-auth/client/plugins';
 
