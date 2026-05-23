@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { syncPurchaseShipmentAction } from './actions';
 
 interface PoRow {
@@ -152,8 +153,10 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
             ) : (
               filtered.map((po) => (
                 <tr key={po.id}>
-                  <td className="px-4 py-3 font-mono text-xs font-semibold text-brand-ink">
-                    {po.number}
+                  <td className="px-4 py-3 font-mono text-xs font-semibold text-brand-red hover:underline">
+                    <Link href={`/purchasing/po/${po.id}`}>
+                      {po.number}
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-brand-ink">{po.supplierName}</td>
                   <td className="px-4 py-3 text-brand-muted">{po.locationName}</td>

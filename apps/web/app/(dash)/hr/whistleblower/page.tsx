@@ -63,9 +63,9 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
           className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-ember-5"
         >
           <option value="">{t('allStatus') || 'All Status'}</option>
-          <option value="open">Open</option>
-          <option value="investigating">Investigating</option>
-          <option value="resolved">Resolved</option>
+          <option value="open">{t('statusOpen') || 'Open'}</option>
+          <option value="investigating">{t('statusInvestigating') || 'Investigating'}</option>
+          <option value="resolved">{t('statusResolved') || 'Resolved'}</option>
         </select>
         {params?.pageSize && <input type="hidden" name="pageSize" value={params.pageSize} />}
         <button
@@ -119,7 +119,7 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
                         : 'bg-brand-cream-3 text-brand-ink-2'
                     }`}
                   >
-                    {report.status}
+                    {report.status === 'open' ? (t('statusOpen') || 'Open') : report.status === 'investigating' ? (t('statusInvestigating') || 'Investigating') : report.status === 'resolved' ? (t('statusResolved') || 'Resolved') : report.status}
                   </span>
                 </td>
               </tr>

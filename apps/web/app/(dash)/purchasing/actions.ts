@@ -15,7 +15,7 @@ import {
   taxRates,
 } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
-import { createPO, trackPurchaseOrderShipment } from '@erp/services/purchasing';
+import { createPO, trackPurchaseOrderShipment, createGRN, confirmGRN } from '@erp/services/purchasing';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
 
@@ -331,5 +331,83 @@ export async function syncPurchaseShipmentAction(formData: FormData): Promise<Ac
 
   revalidatePath('/purchasing');
   if (!result.ok) return { success: false, error: result.error.messageKey };
+  return { success: true };
+}
+
+export async function receiveGoodsAction(formData: FormData): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  if (!ctx) return { success: false, error: 'Sesi login tidak valid.' };
+
+  const poId = String(formData.get('poId') ?? '');
+  const locationId = String(formData.get('locationId') ?? ctx.locationId);
+  const notes = String(formData.get('notes') ?? '');
+  const receivedDate = new Date().toISOString(); // or from formData if needed, but today is fine for GRN
+
+  // Parse lines from formData
+  const lines: any[] = [];
+  const entries = Array.from(formData.entries());
+  
+  // Format is usually lineId_XXX for qty, etc. or we can just pass a JSON string.
+  // It's easier if the form submits a JSON string of lines or we parse them out.
+  const linesJson = String(formData.get('linesData') ?? '[]');
+  try {
+    const parsedLines = JSON.parse(linesJson);
+    for (const line of parsedLines) {
+      if (Number(line.qtyReceived) > 0) {
+        lines.push({
+          poLineId: line.poLineId,
+          productId: line.productId,
+          variantId: line.variantId || undefined,
+          qtyReceived: String(line.qtyReceived),
+          uom: line.uom,
+          batchNo: line.batchNo || undefined,
+          expiryDate: line.expiryDate || undefined,
+        });
+      }
+    }
+  } catch (e) {
+    return { success: false, error: 'Invalid lines data' };
+  }
+
+  if (lines.length === 0) {
+    return { success: false, error: 'No items to receive.' };
+  }
+
+  const grnResult = await createGRN(
+    {
+      purchaseOrderId: poId,
+      locationId: locationId,
+      receivedDate,
+      notes: notes || undefined,
+      lines,
+    },
+    {
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      locationId: ctx.locationId,
+    }
+  );
+
+  if (!grnResult.ok) {
+    return { success: false, error: grnResult.error.messageKey || grnResult.error.message };
+  }
+
+  const confirmResult = await confirmGRN(
+    {
+      grnId: grnResult.value.id,
+    },
+    {
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      locationId: ctx.locationId,
+    }
+  );
+
+  if (!confirmResult.ok) {
+    return { success: false, error: confirmResult.error.messageKey || confirmResult.error.message };
+  }
+
+  revalidatePath('/purchasing');
+  revalidatePath(`/purchasing/po/${poId}`);
   return { success: true };
 }

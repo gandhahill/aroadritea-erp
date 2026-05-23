@@ -618,6 +618,29 @@
     "fromDate": "Dari tanggal",
     "toDate": "Sampai tanggal",
     "filteredCount": "{filtered} dari {total}",
+    "grn": {
+      "receiveGoods": "Terima Barang",
+      "createGrn": "Penerimaan Barang",
+      "grnFormSubtitle": "Terima barang dari pesanan pembelian ini untuk menambah stok.",
+      "poDetails": "Detail PO",
+      "poNumber": "Nomor PO",
+      "supplier": "Supplier",
+      "status": "Status PO",
+      "date": "Tanggal",
+      "items": "Barang Diterima",
+      "product": "Produk",
+      "ordered": "Dipesan",
+      "alreadyReceived": "Sudah Diterima",
+      "receivingNow": "Diterima Sekarang",
+      "batchNo": "No. Batch (Opsional)",
+      "expiryDate": "Tanggal Kedaluwarsa (Opsional)",
+      "notes": "Catatan",
+      "confirmReceive": "Konfirmasi Penerimaan",
+      "receiving": "Memproses...",
+      "successReceived": "Barang berhasil diterima.",
+      "fullyReceived": "Semua barang untuk PO ini telah diterima sepenuhnya.",
+      "noItemsToReceive": "Tidak ada barang yang bisa diterima."
+    },
     "number": "Nomor",
     "location": "Lokasi",
     "date": "Tanggal",
@@ -2984,6 +3007,7 @@
     "successTitle": "Laporan Berhasil Dikirim",
     "successMessage": "Terima kasih atas laporan Anda.",
     "submitAnother": "Kirim Laporan Lain",
+    "uploadEvidence": "Unggah Bukti (Opsional)",
     "admin": {
       "title": "Laporan Whistleblower",
       "subtitle": "Kelola laporan anonim",
@@ -2991,7 +3015,13 @@
       "category": "Kategori",
       "reportTitle": "Judul",
       "status": "Status",
-      "noReports": "Tidak ada laporan."
+      "noReports": "Tidak ada laporan.",
+      "allStatus": "Semua Status",
+      "filterBtn": "Filter",
+      "statusOpen": "Open",
+      "statusInvestigating": "Investigating",
+      "statusResolved": "Resolved",
+      "viewEvidence": "Lihat Bukti"
     }
   }
 }

@@ -663,6 +663,29 @@
     "fromDate": "开始日期",
     "toDate": "结束日期",
     "filteredCount": "{filtered} / {total}",
+    "grn": {
+      "receiveGoods": "收货",
+      "createGrn": "入库单",
+      "grnFormSubtitle": "从此采购订单中接收商品以增加库存。",
+      "poDetails": "订单详情",
+      "poNumber": "采购单号",
+      "supplier": "供应商",
+      "status": "状态",
+      "date": "日期",
+      "items": "接收的商品",
+      "product": "商品",
+      "ordered": "订购量",
+      "alreadyReceived": "已收",
+      "receivingNow": "本次接收",
+      "batchNo": "批号（可选）",
+      "expiryDate": "有效期（可选）",
+      "notes": "备注",
+      "confirmReceive": "确认收货",
+      "receiving": "处理中...",
+      "successReceived": "商品接收成功。",
+      "fullyReceived": "该订单的所有商品已全部接收完毕。",
+      "noItemsToReceive": "没有可接收的商品。"
+    },
     "number": "单号",
     "location": "位置",
     "date": "日期",
@@ -3061,6 +3084,7 @@
     "successTitle": "报告提交成功",
     "successMessage": "感谢您的报告。",
     "submitAnother": "提交另一个",
+    "uploadEvidence": "上传证据（可选）",
     "admin": {
       "title": "举报人报告",
       "subtitle": "管理匿名报告",
@@ -3068,7 +3092,13 @@
       "category": "类别",
       "reportTitle": "标题",
       "status": "状态",
-      "noReports": "未找到报告。"
+      "noReports": "未找到报告。",
+      "allStatus": "所有状态",
+      "filterBtn": "筛选",
+      "statusOpen": "开启",
+      "statusInvestigating": "调查中",
+      "statusResolved": "已解决",
+      "viewEvidence": "查看证据"
     }
   }
 }

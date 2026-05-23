@@ -618,6 +618,29 @@
     "fromDate": "From date",
     "toDate": "To date",
     "filteredCount": "{filtered} of {total}",
+    "grn": {
+      "receiveGoods": "Receive Goods",
+      "createGrn": "Goods Receipt",
+      "grnFormSubtitle": "Receive items from this purchase order to add to stock.",
+      "poDetails": "PO Details",
+      "poNumber": "PO Number",
+      "supplier": "Supplier",
+      "status": "PO Status",
+      "date": "Date",
+      "items": "Items Received",
+      "product": "Product",
+      "ordered": "Ordered",
+      "alreadyReceived": "Already Received",
+      "receivingNow": "Receiving Now",
+      "batchNo": "Batch No (Optional)",
+      "expiryDate": "Expiry Date (Optional)",
+      "notes": "Notes",
+      "confirmReceive": "Confirm Receipt",
+      "receiving": "Processing...",
+      "successReceived": "Goods successfully received.",
+      "fullyReceived": "All items for this PO have been fully received.",
+      "noItemsToReceive": "No items left to receive."
+    },
     "number": "Number",
     "location": "Location",
     "date": "Date",
@@ -2985,6 +3008,7 @@
     "successTitle": "Report Submitted Successfully",
     "successMessage": "Thank you for your report.",
     "submitAnother": "Submit Another",
+    "uploadEvidence": "Upload Evidence (Optional)",
     "admin": {
       "title": "Whistleblower Reports",
       "subtitle": "Manage anonymous reports",
@@ -2992,7 +3016,13 @@
       "category": "Category",
       "reportTitle": "Title",
       "status": "Status",
-      "noReports": "No reports found."
+      "noReports": "No reports found.",
+      "allStatus": "All Status",
+      "filterBtn": "Filter",
+      "statusOpen": "Open",
+      "statusInvestigating": "Investigating",
+      "statusResolved": "Resolved",
+      "viewEvidence": "View Evidence"
     }
   }
 }
