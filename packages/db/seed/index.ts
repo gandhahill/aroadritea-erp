@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Seed runner â€” inserts all seed data into the database.
  * Usage: pnpm --filter @erp/db seed
  *
@@ -6,6 +6,14 @@
  * configuration is created only when missing and is not overwritten on rerun.
  * Order: tenants â†’ locations â†’ roles â†’ permissions â†’ role_permissions â†’ optional bootstrap admin â†’ COA
  */
+
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 import { generateId } from '@erp/shared/id';
 import { neon } from '@neondatabase/serverless';
