@@ -1,6 +1,5 @@
 import { getSession } from '@/lib/auth';
-import { db, purchaseOrders, purchaseOrderLines, partners, locations, products } from '@erp/db';
-import { eq, and } from 'drizzle-orm';
+import { db, purchaseOrders, purchaseOrderLines, partners, locations, products, eq, and } from '@erp/db';
 import { notFound, redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
@@ -43,7 +42,6 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
       uom: purchaseOrderLines.uom,
       qtyOrdered: purchaseOrderLines.qtyOrdered,
       qtyReceived: purchaseOrderLines.qtyReceived,
-      notes: purchaseOrderLines.notes,
     })
     .from(purchaseOrderLines)
     .leftJoin(products, eq(purchaseOrderLines.productId, products.id))

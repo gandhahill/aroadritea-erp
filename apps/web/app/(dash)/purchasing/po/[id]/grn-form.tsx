@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState, useEffect, useState } from 'react';
-import { receiveGoodsAction } from '../actions';
+import { receiveGoodsAction } from '../../actions';
 
 interface LineItem {
   id: string;
@@ -16,7 +16,7 @@ interface LineItem {
 
 export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
   const t = useTranslations('purchasing.grn');
-  const [state, action, isPending] = useActionState(receiveGoodsAction, { success: false });
+  const [state, action, isPending] = useActionState(receiveGoodsAction, { success: false } as { success: boolean; error?: string });
   const [success, setSuccess] = useState(false);
 
   // local state for form inputs

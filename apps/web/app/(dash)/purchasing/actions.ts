@@ -334,7 +334,7 @@ export async function syncPurchaseShipmentAction(formData: FormData): Promise<Ac
   return { success: true };
 }
 
-export async function receiveGoodsAction(formData: FormData): Promise<ActionState> {
+export async function receiveGoodsAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const ctx = await getSessionContext();
   if (!ctx) return { success: false, error: 'Sesi login tidak valid.' };
 
