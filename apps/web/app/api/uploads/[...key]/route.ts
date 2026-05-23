@@ -8,6 +8,7 @@ const PRIVATE_READ_PERMISSION: Record<UploadArea, string[]> = {
   'cms-images': ['cms.manage'],
   reimbursement: ['accounting.reimbursement.view', 'accounting.reimbursement.create'],
   disciplinary: ['hr.disciplinary.read', 'hr.disciplinary.write'],
+  whistleblower: ['hr.whistleblower.read'],
   general: ['settings.manage'],
 };
 
