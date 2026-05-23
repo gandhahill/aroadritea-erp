@@ -3,11 +3,10 @@
  * Creates a better-auth client that hooks into the API route.
  */
 
-// @ts-nocheck
 import { createAuthClient } from 'better-auth/react';
 import { twoFactorClient } from 'better-auth/client/plugins';
 
-export const authClient = createAuthClient({
+const client = createAuthClient({
   baseURL:
     typeof window !== 'undefined'
       ? window.location.origin
@@ -15,4 +14,5 @@ export const authClient = createAuthClient({
   plugins: [twoFactorClient()],
 });
 
-export const { signIn, signUp, signOut, useSession } = authClient;
+export const authClient = client as any;
+export const { signIn, signUp, signOut, useSession } = client as any;
