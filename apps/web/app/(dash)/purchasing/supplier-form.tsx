@@ -3,9 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { createSupplierAction } from './actions';
-
-const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
+import { Button, Input } from "@erp/ui";
 
 export function SupplierForm() {
   const t = useTranslations('purchasing');
@@ -35,25 +33,25 @@ export function SupplierForm() {
       <div className="grid gap-3 md:grid-cols-2">
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('supplierName')}</span>
-          <input name="supplierName" required className={INPUT} />
+          <Input name="supplierName" required />
         </label>
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">Email</span>
-          <input name="supplierEmail" type="email" className={INPUT} />
+          <Input name="supplierEmail" type="email" />
         </label>
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('phone')}</span>
-          <input name="supplierPhone" className={INPUT} />
+          <Input name="supplierPhone" />
         </label>
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('paymentTermsDays')}</span>
-          <input name="paymentTermsDays" type="number" min="0" defaultValue="0" className={INPUT} />
+          <Input name="paymentTermsDays" type="number" min="0" defaultValue="0" />
         </label>
       </div>
 
       <label className="space-y-1.5">
         <span className="text-sm font-medium text-brand-ink">{t('address')}</span>
-        <textarea name="supplierAddress" rows={3} className={INPUT} />
+        <textarea name="supplierAddress" rows={3} />
       </label>
 
       <label className="flex items-center gap-2 text-sm font-medium text-brand-ink">
@@ -65,13 +63,13 @@ export function SupplierForm() {
         {t('supplierPkp')}
       </label>
 
-      <button
+      <Button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
+        className="rounded-lg " variant="primary" size="lg"
       >
         {pending ? t('saving') : t('saveSupplier')}
-      </button>
+      </Button>
     </form>
   );
 }

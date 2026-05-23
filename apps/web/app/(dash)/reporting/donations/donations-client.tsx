@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { ExportXlsxButton } from '../export-button';
 import { fetchDonationReport } from './actions';
+import { TableCell, TableHead } from "@erp/ui";
 
 type LocationOption = {
   id: string;
@@ -170,44 +171,44 @@ export function DonationsClient({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-3 bg-brand-cream-2">
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
                   {t('columns.date')}
-                </th>
-                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
                   {t('columns.donationAmount')}
-                </th>
-                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
                   {t('columns.transactionCount')}
-                </th>
-                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
                   {t('columns.average')}
-                </th>
+                </TableHead>
               </tr>
             </thead>
             <tbody>
               {data.rows.map((row) => (
                 <tr key={row.date} className="border-b border-brand-cream-3 last:border-b-0">
-                  <td className="px-4 py-3 text-brand-ink">{row.date}</td>
-                  <td className="px-4 py-3 text-right font-medium text-brand-ink">
+                  <TableCell className="px-4 py-3 text-brand-ink">{row.date}</TableCell>
+                  <TableCell className="px-4 py-3 text-right font-medium text-brand-ink">
                     {formatRupiah(row.donationTotal)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-brand-ink-2">{row.txCount}</td>
-                  <td className="px-4 py-3 text-right text-brand-ink-2">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right text-brand-ink-2">{row.txCount}</TableCell>
+                  <TableCell className="px-4 py-3 text-right text-brand-ink-2">
                     {formatRupiah(row.average)}
-                  </td>
+                  </TableCell>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="border-t border-brand-cream-3 bg-brand-cream-2 font-semibold">
-                <td className="px-4 py-3 text-brand-ink">{t('columns.total')}</td>
-                <td className="px-4 py-3 text-right text-brand-ink">
+                <TableCell className="px-4 py-3 text-brand-ink">{t('columns.total')}</TableCell>
+                <TableCell className="px-4 py-3 text-right text-brand-ink">
                   {formatRupiah(data.totalDonation)}
-                </td>
-                <td className="px-4 py-3 text-right text-brand-ink-2">{data.totalTransactions}</td>
-                <td className="px-4 py-3 text-right text-brand-ink-2">
+                </TableCell>
+                <TableCell className="px-4 py-3 text-right text-brand-ink-2">{data.totalTransactions}</TableCell>
+                <TableCell className="px-4 py-3 text-right text-brand-ink-2">
                   {formatRupiah(data.overallAverage)}
-                </td>
+                </TableCell>
               </tr>
             </tfoot>
           </table>

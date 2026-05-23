@@ -10,6 +10,7 @@ import {
   matchLine,
   unmatchLine,
 } from '../actions';
+import { TableBody, Button } from "@erp/ui";
 
 interface Line {
   id: string;
@@ -169,13 +170,13 @@ export function DetailClient({ statement, lines, labels }: Props) {
             &larr; {labels.back}
           </button>
           {!isFinalized && (
-            <button
+            <Button
               onClick={handleDelete}
               disabled={isPending}
-              className="rounded-md border border-brand-cream-3 px-4 py-2 text-sm font-semibold text-brand-red hover:bg-brand-red/5 disabled:opacity-50"
+              className="rounded-md border border-brand-cream-3 px-4 py-2 text-sm font-semibold text-brand-red hover:bg-brand-red/5 disabled:opacity-50" variant="primary" size="md"
             >
               {labels.delete}
-            </button>
+            </Button>
           )}
         </div>
         {!isFinalized && (
@@ -213,7 +214,7 @@ export function DetailClient({ statement, lines, labels }: Props) {
               <th className="px-3 py-3 w-40 text-center">{labels.columns.actions}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-brand-cream-3">
+          <TableBody className="divide-y divide-brand-cream-3">
             {lines.map((line) => (
               <tr
                 key={line.id}
@@ -325,7 +326,7 @@ export function DetailClient({ statement, lines, labels }: Props) {
                 </td>
               </tr>
             ))}
-          </tbody>
+          </TableBody>
         </table>
       </div>
     </div>

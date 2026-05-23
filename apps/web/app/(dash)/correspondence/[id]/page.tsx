@@ -6,12 +6,9 @@ import {
   fetchCorrespondenceDetail,
   updateCorrespondenceAction,
 } from '../actions';
+import { Select, Button, Input } from "@erp/ui";
 
 export const dynamic = 'force-dynamic';
-
-const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
-
 const DIRECTIONS = ['incoming', 'outgoing', 'internal'] as const;
 const CHANNELS = ['physical', 'email', 'whatsapp', 'courier', 'other'] as const;
 const CLASSIFICATIONS = [
@@ -85,13 +82,13 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
         <form action={updateAction} className="grid gap-4 lg:grid-cols-4">
           <Field label={t('fields.location')}>
-            <select name="locationId" className={INPUT} defaultValue={record.locationId} required>
+            <Select name="locationId" defaultValue={record.locationId} required>
               {data.locations.map((location) => (
                 <option key={location.id} value={location.id}>
                   {location.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label={t('fields.direction')}>
             <OptionSelect
@@ -112,30 +109,30 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
             />
           </Field>
           <Field label={t('fields.documentDate')}>
-            <input
+            <Input
               name="documentDate"
               type="date"
-              className={INPUT}
+             
               defaultValue={record.documentDate}
               required
             />
           </Field>
           <Field label={t('fields.documentNo')}>
-            <input name="documentNo" className={INPUT} defaultValue={record.documentNo} required />
+            <Input name="documentNo" defaultValue={record.documentNo} required />
           </Field>
           <div className="lg:col-span-2">
             <Field label={t('fields.subject')}>
-              <input name="subject" className={INPUT} defaultValue={record.subject} required />
+              <Input name="subject" defaultValue={record.subject} required />
             </Field>
           </div>
           <Field label={t('fields.counterparty')}>
-            <input name="counterparty" className={INPUT} defaultValue={record.counterparty ?? ''} />
+            <Input name="counterparty" defaultValue={record.counterparty ?? ''} />
           </Field>
           <Field label={t('fields.dueDate')}>
-            <input
+            <Input
               name="dueDate"
               type="date"
-              className={INPUT}
+             
               defaultValue={record.dueDate ?? ''}
             />
           </Field>
@@ -167,14 +164,14 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
             />
           </Field>
           <Field label={t('fields.owner')}>
-            <select name="ownerUserId" className={INPUT} defaultValue={record.ownerUserId ?? ''}>
+            <Select name="ownerUserId" defaultValue={record.ownerUserId ?? ''}>
               <option value="">{t('unassigned')}</option>
               {data.users.map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <FileUploadField
             label={t('fields.storageUrl')}
@@ -185,14 +182,14 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx"
           />
           <Field label={t('fields.tags')}>
-            <input name="tags" className={INPUT} defaultValue={record.tags.join(', ')} />
+            <Input name="tags" defaultValue={record.tags.join(', ')} />
           </Field>
           <div className="lg:col-span-4">
             <Field label={t('fields.summary')}>
               <textarea
                 name="summary"
                 rows={5}
-                className={INPUT}
+               
                 defaultValue={record.summary ?? ''}
               />
             </Field>
@@ -204,12 +201,12 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
             >
               {actions('delete')}
             </button>
-            <button
+            <Button
               type="submit"
-              className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark"
+              className="rounded-lg " variant="primary" size="lg"
             >
               {actions('save')}
-            </button>
+            </Button>
           </div>
         </form>
       </section>
@@ -240,12 +237,12 @@ function OptionSelect({
   defaultValue?: string;
 }) {
   return (
-    <select name={name} className={INPUT} defaultValue={defaultValue}>
+    <Select name={name} defaultValue={defaultValue}>
       {values.map((value) => (
         <option key={value} value={value}>
           {t(`${group}.${value}`)}
         </option>
       ))}
-    </select>
+    </Select>
   );
 }

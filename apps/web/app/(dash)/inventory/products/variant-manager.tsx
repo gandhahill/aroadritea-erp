@@ -4,9 +4,7 @@ import type { VariantResult } from '@erp/services/inventory';
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { createVariantAction, toggleVariantStatusAction } from './actions';
-
-const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
+import { Button, Input, Select, TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
 
 export function VariantManager({
   productId,
@@ -26,18 +24,18 @@ export function VariantManager({
       </div>
 
       <div className="mt-5 overflow-hidden rounded-lg border border-brand-cream-3">
-        <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
-          <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+        <Table>
+          <TableHeader>
             <tr>
-              <th className="px-4 py-3">{tc('fields.sku')}</th>
-              <th className="px-4 py-3">{tc('fields.name')}</th>
-              <th className="px-4 py-3">{tc('fields.attributes')}</th>
-              <th className="px-4 py-3 text-right">{tc('fields.price')}</th>
-              <th className="px-4 py-3">{tc('fields.status')}</th>
-              <th className="px-4 py-3 text-right">{tc('fields.actions')}</th>
+              <TableHead className="px-4 py-3">{tc('fields.sku')}</TableHead>
+              <TableHead className="px-4 py-3">{tc('fields.name')}</TableHead>
+              <TableHead className="px-4 py-3">{tc('fields.attributes')}</TableHead>
+              <TableHead className="px-4 py-3 text-right">{tc('fields.price')}</TableHead>
+              <TableHead className="px-4 py-3">{tc('fields.status')}</TableHead>
+              <TableHead className="px-4 py-3 text-right">{tc('fields.actions')}</TableHead>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-brand-cream-3 bg-card">
+          </TableHeader>
+          <TableBody>
             {variants.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-6 text-center text-brand-ink-3">
@@ -47,22 +45,22 @@ export function VariantManager({
             ) : (
               variants.map((variant) => (
                 <tr key={variant.id}>
-                  <td className="px-4 py-3 font-mono text-xs text-brand-ink">{variant.sku}</td>
-                  <td className="px-4 py-3 font-medium text-brand-ink">{variant.name.id}</td>
-                  <td className="px-4 py-3 text-brand-ink-3">
+                  <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink">{variant.sku}</TableCell>
+                  <TableCell className="px-4 py-3 font-medium text-brand-ink">{variant.name.id}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-3">
                     {Object.entries(variant.attributes)
                       .map(([key, value]) => `${key}: ${value}`)
                       .join(', ') || '-'}
-                  </td>
-                  <td className="px-4 py-3 text-right font-semibold text-brand-ink">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right font-semibold text-brand-ink">
                     {formatRupiah(variant.sellPrice)}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     <span className="rounded-full bg-brand-jade-light px-2 py-1 text-xs font-semibold text-brand-jade">
                       {variant.isActive ? tc('status.active') : tc('status.inactive')}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right">
                     <form action={toggleVariantStatusAction}>
                       <input type="hidden" name="productId" value={productId} />
                       <input type="hidden" name="variantId" value={variant.id} />
@@ -79,72 +77,72 @@ export function VariantManager({
                         {variant.isActive ? tc('labels.deactivate') : tc('labels.activate')}
                       </button>
                     </form>
-                  </td>
+                  </TableCell>
                 </tr>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <form action={submitAction} className="mt-5 grid gap-4 lg:grid-cols-6">
         <input type="hidden" name="productId" value={productId} />
         <label className="space-y-1.5 lg:col-span-1">
           <span className="text-sm font-medium text-brand-ink">{tp('skuVariant')}</span>
-          <input name="variantSku" required className={INPUT} />
+          <Input name="variantSku" required />
         </label>
         <label className="space-y-1.5 lg:col-span-2">
           <span className="text-sm font-medium text-brand-ink">{tp('variantName')}</span>
-          <input name="variantNameId" required placeholder="Regular Cold" className={INPUT} />
+          <Input name="variantNameId" required placeholder="Regular Cold" />
           <input type="hidden" name="variantNameEn" value="" />
           <input type="hidden" name="variantNameZh" value="" />
         </label>
         <label className="space-y-1.5 lg:col-span-1">
           <span className="text-sm font-medium text-brand-ink">{tp('size')}</span>
-          <select name="size" className={INPUT}>
+          <Select name="size">
             <option value="">-</option>
             <option value="Regular">Regular</option>
             <option value="Large">Large</option>
             <option value="Small">Small</option>
-          </select>
+          </Select>
         </label>
         <label className="space-y-1.5 lg:col-span-1">
           <span className="text-sm font-medium text-brand-ink">{tp('temp')}</span>
-          <select name="temp" className={INPUT}>
+          <Select name="temp">
             <option value="">-</option>
             <option value="Hot">Hot</option>
             <option value="Cold">Cold</option>
             <option value="Warm">Warm</option>
             <option value="Ice">Ice</option>
-          </select>
+          </Select>
         </label>
         <label className="space-y-1.5 lg:col-span-1">
           <span className="text-sm font-medium text-brand-ink">{tp('sellingPrice')}</span>
-          <input name="variantSellPrice" type="number" required min={0} className={INPUT} />
+          <Input name="variantSellPrice" type="number" required min={0} />
         </label>
         <label className="space-y-1.5 lg:col-span-1">
           <span className="text-sm font-medium text-brand-ink">{tp('costPrice')}</span>
-          <input
+          <Input
             name="variantCostPrice"
             type="number"
             required
             min={0}
             defaultValue={0}
-            className={INPUT}
+           
           />
         </label>
         <label className="space-y-1.5 lg:col-span-1">
           <span className="text-sm font-medium text-brand-ink">{tp('order')}</span>
-          <input name="variantSortOrder" type="number" required min={0} defaultValue={0} className={INPUT} />
+          <Input name="variantSortOrder" type="number" required min={0} defaultValue={0} />
         </label>
         <div className="flex items-end lg:col-span-2">
-          <button
+          <Button
             type="submit"
             disabled={isPending}
-            className="w-full rounded-lg bg-brand-red px-4 py-2 font-semibold text-white shadow-sm hover:bg-brand-red-dark disabled:opacity-70"
+            className="w-full rounded-lg bg-brand-red px-4 py-2 font-semibold text-white shadow-sm hover:bg-brand-red-dark disabled:opacity-70" variant="primary" size="md"
           >
             {isPending ? tc('actions.saving') : tp('addVariant')}
-          </button>
+          </Button>
         </div>
       </form>
       {state?.error ? <p className="mt-3 text-sm text-rose-700">{state.error}</p> : null}

@@ -9,6 +9,7 @@ import {
   deleteCategoryAction,
   updateCategoryNameAction,
 } from './actions';
+import { TableCell, Input, TableHead, Button } from "@erp/ui";
 
 export function CategoriesClient({ categories }: { categories: CategoryWithCount[] }) {
   const router = useRouter();
@@ -106,26 +107,26 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
           placeholder={t('newNamePlaceholder')}
           className="rounded-lg border border-brand-cream-3 px-3 py-2 text-sm focus:border-brand-red focus:outline-none"
         />
-        <button
+        <Button
           type="submit"
           disabled={isCreating || !newName.trim()}
-          className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
+          className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50" variant="primary" size="md"
         >
           {isCreating ? t('saving') : t('add')}
-        </button>
+        </Button>
       </form>
 
       <div className="surface-card overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('name')}</th>
-              <th className="px-4 py-3 text-center font-medium text-brand-ink-2">
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('name')}</TableHead>
+              <TableHead className="px-4 py-3 text-center font-medium text-brand-ink-2">
                 {t('productCount')}
-              </th>
-              <th className="px-4 py-3 text-right font-medium text-brand-ink-2">
+              </TableHead>
+              <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
                 {tCommon('labels.actions')}
-              </th>
+              </TableHead>
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-2">
@@ -143,9 +144,9 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
                 const isEditing = editingId === cat.id;
                 return (
                   <tr key={cat.id} className="hover:bg-brand-cream/50">
-                    <td className="px-4 py-3 font-medium text-brand-ink">
+                    <TableCell className="px-4 py-3 font-medium text-brand-ink">
                       {isEditing ? (
-                        <input
+                        <Input
                           autoFocus
                           type="text"
                           value={editingName}
@@ -159,8 +160,8 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
                       ) : (
                         display
                       )}
-                    </td>
-                    <td className="px-4 py-3 text-center">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-center">
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                           cat.productCount > 0
@@ -170,8 +171,8 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
                       >
                         {cat.productCount}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-right">
                       {isEditing ? (
                         <span className="inline-flex items-center gap-2">
                           <button
@@ -228,7 +229,7 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
                           </button>
                         </span>
                       )}
-                    </td>
+                    </TableCell>
                   </tr>
                 );
               })

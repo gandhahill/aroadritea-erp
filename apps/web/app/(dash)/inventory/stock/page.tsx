@@ -17,6 +17,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ExportXlsxButton } from '../../reporting/export-button';
+import { TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
 
 export const metadata: Metadata = {
   title: 'Stok per Outlet',
@@ -171,20 +172,20 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-card shadow-sm">
-        <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
-          <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+        <Table>
+          <TableHeader>
             <tr>
-              <th className="px-4 py-3">{t('columns.sku')}</th>
-              <th className="px-4 py-3">{t('columns.name')}</th>
-              <th className="px-4 py-3">{t('columns.uom')}</th>
+              <TableHead className="px-4 py-3">{t('columns.sku')}</TableHead>
+              <TableHead className="px-4 py-3">{t('columns.name')}</TableHead>
+              <TableHead className="px-4 py-3">{t('columns.uom')}</TableHead>
               {outletRows.map((outlet) => (
-                <th key={outlet.id} className="px-4 py-3 text-right">
+                <TableHead key={outlet.id} className="px-4 py-3 text-right">
                   {outlet.code}
-                </th>
+                </TableHead>
               ))}
             </tr>
-          </thead>
-          <tbody className="divide-y divide-brand-cream-3 bg-card">
+          </TableHeader>
+          <TableBody>
             {productRows.length === 0 ? (
               <tr>
                 <td
@@ -199,9 +200,9 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
                 const displayName = pickLocalized(product.name, locale, product.sku);
                 return (
                   <tr key={product.id} className="hover:bg-brand-cream-1/60">
-                    <td className="px-4 py-3 font-mono text-xs text-brand-ink">{product.sku}</td>
-                    <td className="px-4 py-3 font-medium text-brand-ink">{displayName}</td>
-                    <td className="px-4 py-3 text-xs text-brand-ink-3">{product.uom}</td>
+                    <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink">{product.sku}</TableCell>
+                    <TableCell className="px-4 py-3 font-medium text-brand-ink">{displayName}</TableCell>
+                    <TableCell className="px-4 py-3 text-xs text-brand-ink-3">{product.uom}</TableCell>
                     {outletRows.map((outlet) => {
                       const stock = stockMap.get(`${product.id}::${outlet.id}`);
                       const available = stock ? Number(stock.available) : null;
@@ -209,7 +210,7 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
                       const isEmpty = !isUntracked && available <= 0;
                       const isLow = !isUntracked && available > 0 && available < 5;
                       return (
-                        <td
+                        <TableCell
                           key={outlet.id}
                           className={`px-4 py-3 text-right font-semibold ${
                             isUntracked
@@ -222,15 +223,15 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
                           }`}
                         >
                           {isUntracked ? t('untracked') : formatQty(available!)}
-                        </td>
+                        </TableCell>
                       );
                     })}
                   </tr>
                 );
               })
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

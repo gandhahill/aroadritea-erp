@@ -10,6 +10,7 @@ import { pickLocalized } from '@/lib/pick-localized';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import type { COANode } from './actions';
+import { Input } from "@erp/ui";
 
 // --- Type badge config ---
 const TYPE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -98,7 +99,7 @@ export function COATreeView({ tree }: COATreeViewProps) {
                 d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1 0 5.65 5.65a7.5 7.5 0 0 0 10.99 10.99z"
               />
             </svg>
-            <input
+            <Input
               id="coa-search"
               type="text"
               aria-label="Search by code or name"

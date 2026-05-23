@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { TableCell, TableBody, TableHead } from "@erp/ui";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: 'bg-brand-cream-2 text-brand-ink-3',
@@ -97,53 +98,53 @@ export function PostsTableClient({ posts }: Props) {
           <table className="w-full">
             <thead>
               <tr className="border-b border-brand-cream-3 text-left">
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   Judul
-                </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   Kategori
-                </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   Slug
-                </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   Status
-                </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   Tag
-                </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   Diperbarui
-                </th>
-                <th className="px-4 py-3" />
+                </TableHead>
+                <TableHead className="px-4 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-cream-3">
+            <TableBody className="divide-y divide-brand-cream-3">
               {filtered.map((post) => {
                 const title = post.title?.id ?? post.title?.en ?? '—';
                 return (
                   <tr key={post.id} className="hover:bg-brand-cream-1/50">
-                    <td className="px-4 py-3">
+                    <TableCell className="px-4 py-3">
                       <span className="text-sm font-medium text-brand-ink">{title}</span>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span className="rounded bg-brand-cream-2 px-2 py-0.5 text-xs font-medium text-brand-ink-2">
                         {KIND_LABELS[post.kind] ?? post.kind}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <code className="rounded bg-brand-cream-2 px-1.5 py-0.5 text-xs font-mono text-brand-ink-2">
                         /blog/{post.slug || '—'}
                       </code>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span
                         className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[post.status] ?? 'bg-brand-cream-2 text-brand-ink-3'}`}
                       >
                         {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
                         {post.tags.slice(0, 2).map((tag) => (
                           <span
@@ -157,8 +158,8 @@ export function PostsTableClient({ posts }: Props) {
                           <span className="text-xs text-brand-ink-3">+{post.tags.length - 2}</span>
                         ) : null}
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span className="text-sm text-brand-ink-3">
                         {post.updatedAt
                           ? new Date(post.updatedAt).toLocaleDateString('id-ID', {
@@ -168,8 +169,8 @@ export function PostsTableClient({ posts }: Props) {
                             })
                           : '—'}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <Link
                         href={`/cms/posts/${post.id}`}
                         className="rounded-md p-1.5 text-brand-ink-3 hover:bg-brand-cream-2 hover:text-brand-ink"
@@ -189,11 +190,11 @@ export function PostsTableClient({ posts }: Props) {
                           />
                         </svg>
                       </Link>
-                    </td>
+                    </TableCell>
                   </tr>
                 );
               })}
-            </tbody>
+            </TableBody>
           </table>
         )}
       </div>

@@ -3,6 +3,7 @@ import { getLocale } from 'next-intl/server';
 
 import { fetchAccountingPeriods } from './actions';
 import { OpenPeriodButton, ClosePeriodButton } from './periods-client';
+import { TableCell, TableHead } from "@erp/ui";
 
 export const metadata: Metadata = {
   title: 'Accounting Periods - Aroadri ERP',
@@ -182,22 +183,22 @@ export default async function AccountingPeriodsPage() {
               <table className="min-w-full text-left text-sm">
                 <thead className="border-b border-brand-ink/10 bg-brand-paper/70 text-xs uppercase tracking-[0.14em] text-brand-muted">
                   <tr>
-                    <th className="px-4 py-3 font-semibold">{copy.period}</th>
-                    <th className="px-4 py-3 font-semibold">{copy.dateRange}</th>
-                    <th className="px-4 py-3 font-semibold">{copy.status}</th>
-                    <th className="px-4 py-3 font-semibold">{copy.journals}</th>
-                    <th className="px-4 py-3 font-semibold">{copy.closedAt}</th>
-                    <th className="px-4 py-3 font-semibold">Aksi</th>
+                    <TableHead className="px-4 py-3 font-semibold">{copy.period}</TableHead>
+                    <TableHead className="px-4 py-3 font-semibold">{copy.dateRange}</TableHead>
+                    <TableHead className="px-4 py-3 font-semibold">{copy.status}</TableHead>
+                    <TableHead className="px-4 py-3 font-semibold">{copy.journals}</TableHead>
+                    <TableHead className="px-4 py-3 font-semibold">{copy.closedAt}</TableHead>
+                    <TableHead className="px-4 py-3 font-semibold">Aksi</TableHead>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-brand-ink/10">
                   {rows.map((row) => (
                     <tr key={row.id} className="hover:bg-brand-paper/70">
-                      <td className="px-4 py-3 font-semibold text-brand-ink">{row.code}</td>
-                      <td className="px-4 py-3 text-brand-muted">
+                      <TableCell className="px-4 py-3 font-semibold text-brand-ink">{row.code}</TableCell>
+                      <TableCell className="px-4 py-3 text-brand-muted">
                         {formatDate(row.startDate, locale)} - {formatDate(row.endDate, locale)}
-                      </td>
-                      <td className="px-4 py-3">
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
                         <span
                           className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClass(row.status)}`}
                         >
@@ -205,15 +206,15 @@ export default async function AccountingPeriodsPage() {
                             row.status as keyof Pick<typeof copy, 'open' | 'closing' | 'closed'>
                           ] ?? row.status}
                         </span>
-                      </td>
-                      <td className="px-4 py-3 text-brand-muted">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-brand-muted">
                         {row.draftCount} {copy.draft} / {row.postedCount} {copy.posted} /{' '}
                         {row.reversedCount} {copy.reversed}
-                      </td>
-                      <td className="px-4 py-3 text-brand-muted">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-brand-muted">
                         {row.closedAt ? formatDate(row.closedAt, locale) : copy.notClosed}
-                      </td>
-                      <td className="px-4 py-3">
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
                         {row.status !== 'closed' && (
                           <ClosePeriodButton 
                             periodCode={row.code}
@@ -221,7 +222,7 @@ export default async function AccountingPeriodsPage() {
                             copy={{ period: copy.periodAction }}
                           />
                         )}
-                      </td>
+                      </TableCell>
                     </tr>
                   ))}
                 </tbody>

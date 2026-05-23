@@ -10,6 +10,7 @@ import {
   deleteLocation,
   saveLocation,
 } from './actions';
+import { TableBody, Button } from "@erp/ui";
 
 interface Labels {
   add: string;
@@ -143,13 +144,13 @@ export function LocationsClient({ locations, labels }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button
+        <Button
           type="button"
           onClick={addRow}
-          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
+          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark" variant="primary" size="md"
         >
           {labels.add}
-        </button>
+        </Button>
       </div>
 
       {result && (
@@ -181,7 +182,7 @@ export function LocationsClient({ locations, labels }: Props) {
               <th className="px-3 py-3"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-brand-cream-3">
+          <TableBody className="divide-y divide-brand-cream-3">
             {sortedRows.map(({ row, key }, index) => (
               <tr key={key} className="align-top">
                 <td className="px-3 py-3">
@@ -326,7 +327,7 @@ export function LocationsClient({ locations, labels }: Props) {
                 </td>
               </tr>
             ))}
-          </tbody>
+          </TableBody>
         </table>
       </div>
     </div>

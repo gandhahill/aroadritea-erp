@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { updateEmailAction, updatePasswordAction, updateProfileAction } from './actions';
 import { MfaSetup } from './mfa-setup';
+import { Button, Input, Select } from "@erp/ui";
 
 type ActionResult = { ok: true; message: string } | { ok: false; message: string } | null;
 
@@ -39,7 +40,7 @@ export function AccountSettingsClient({
             <Field label={t('displayName')} name="displayName" defaultValue={user.displayName} />
             <label className="block space-y-1">
               <span className="text-xs font-semibold text-brand-ink-3">{t('defaultLanguage')}</span>
-              <select
+              <Select
                 name="locale"
                 defaultValue={user.locale}
                 className="w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red"
@@ -47,7 +48,7 @@ export function AccountSettingsClient({
                 <option value="id">Bahasa Indonesia</option>
                 <option value="en">English</option>
                 <option value="zh">中文</option>
-              </select>
+              </Select>
             </label>
           </div>
           <Submit pending={profilePending} label={t('saveProfile')} loading={t('saving')} />
@@ -98,7 +99,7 @@ function Field({
   return (
     <label className="block space-y-1">
       <span className="text-xs font-semibold text-brand-ink-3">{label}</span>
-      <input
+      <Input
         name={name}
         type={type}
         defaultValue={defaultValue}
@@ -110,13 +111,13 @@ function Field({
 
 function Submit({ pending, label, loading }: { pending: boolean; label: string; loading: string }) {
   return (
-    <button
+    <Button
       type="submit"
       disabled={pending}
-      className="mt-5 rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:opacity-60"
+      className="mt-5 rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:opacity-60" variant="primary" size="md"
     >
       {pending ? loading : label}
-    </button>
+    </Button>
   );
 }
 

@@ -4,9 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect } from 'react';
 import { createEmployeeAction } from '../actions';
-
-const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
+import { Input, Button, Select } from "@erp/ui";
 
 interface EmployeeFormProps {
   assignableRoles?: Array<{ code: string; label: string }>;
@@ -44,18 +42,18 @@ export function EmployeeForm({ assignableRoles = [], locationOptions = [] }: Emp
       <Section title={f('employmentSection')}>
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{f('location')}</span>
-          <select
+          <Select
             name="locationId"
             required
             defaultValue={locationOptions[0]?.id ?? ''}
-            className={INPUT}
+           
           >
             {locationOptions.map((location) => (
               <option key={location.id} value={location.id}>
                 {location.label}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <Field label={f('position')} name="position" required />
         <Field label={f('department')} name="department" />
@@ -63,25 +61,25 @@ export function EmployeeForm({ assignableRoles = [], locationOptions = [] }: Emp
         <Field label={f('probationEnd')} name="probationEndDate" type="date" />
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{f('contractType')}</span>
-          <select name="contractType" required defaultValue="pkwt" className={INPUT}>
+          <Select name="contractType" required defaultValue="pkwt">
             <option value="pkwt">PKWT</option>
             <option value="pkwtt">PKWTT</option>
-          </select>
+          </Select>
         </label>
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{f('loginScope')}</span>
-          <select name="loginScope" defaultValue="same_location" className={INPUT}>
+          <Select name="loginScope" defaultValue="same_location">
             <option value="same_location">{f('loginScopeSameLocation')}</option>
             <option value="global">{f('loginScopeGlobal')}</option>
-          </select>
+          </Select>
         </label>
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{f('workSchedule')}</span>
-          <select name="workSchedule" required defaultValue="fulltime" className={INPUT}>
+          <Select name="workSchedule" required defaultValue="fulltime">
             <option value="fulltime">{f('fulltime')}</option>
             <option value="parttime">{f('parttime')}</option>
             <option value="shift">{f('shift')}</option>
-          </select>
+          </Select>
         </label>
       </Section>
 
@@ -96,24 +94,24 @@ export function EmployeeForm({ assignableRoles = [], locationOptions = [] }: Emp
       <Section title={f('loginSection')}>
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{f('role')}</span>
-          <select name="roleCode" defaultValue="" className={INPUT}>
+          <Select name="roleCode" defaultValue="">
             <option value="">{f('noLogin')}</option>
             {assignableRoles.map((role) => (
               <option key={role.code} value={role.code}>
                 {role.label} ({role.code})
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{f('password')}</span>
-          <input
+          <Input
             type="password"
             name="password"
             autoComplete="new-password"
             minLength={8}
             placeholder={f('passwordHint')}
-            className={INPUT}
+           
           />
         </label>
         <label className="md:col-span-2 flex items-center gap-2 mt-2">
@@ -127,20 +125,20 @@ export function EmployeeForm({ assignableRoles = [], locationOptions = [] }: Emp
       </Section>
 
       <div className="flex items-center justify-end gap-3">
-        <button
+        <Button
           type="button"
           onClick={() => router.push('/hr/employees')}
-          className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
+          className="rounded-lg " variant="secondary" size="md"
         >
           {t('cancel')}
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
           disabled={isPending}
-          className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
+          className="rounded-lg " variant="primary" size="lg"
         >
           {isPending ? t('saving') : t('save')}
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -173,7 +171,7 @@ function Field({
       <span className="text-sm font-medium text-brand-ink">
         {label} {required ? <span className="text-brand-red">*</span> : null}
       </span>
-      <input name={name} type={type} required={required} className={INPUT} />
+      <Input name={name} type={type} required={required} />
     </label>
   );
 }

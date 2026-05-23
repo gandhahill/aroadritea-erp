@@ -3,6 +3,7 @@
 import type { PromotionListItem, UpsertPromotionInput } from '@erp/services/promotion';
 import { useMemo, useState, useTransition } from 'react';
 import { savePromotionAction } from './actions';
+import { Select, Input, TableCell, TableBody, TableHead, Button } from "@erp/ui";
 
 type LocationOption = { id: string; code: string; type: string; label: string };
 type ProductOption = { id: string; sku: string; label: string };
@@ -291,44 +292,44 @@ export function PromotionsClient({
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
       <section className="rounded-lg border border-brand-cream-3 bg-card">
         <div className="border-b border-brand-cream-3 px-4 py-3">
-          <button
+          <Button
             type="button"
             onClick={() => setDraft(emptyDraft())}
-            className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
+            className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark" variant="primary" size="md"
           >
             {labels.add}
-          </button>
+          </Button>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-[840px] w-full text-sm">
             <thead className="bg-brand-cream-2 text-left text-xs uppercase tracking-widest text-brand-ink-3">
               <tr>
-                <th className="px-4 py-3">{labels.code}</th>
-                <th className="px-4 py-3">{labels.kind}</th>
-                <th className="px-4 py-3">{labels.status}</th>
-                <th className="px-4 py-3">{labels.startsAt}</th>
-                <th className="px-4 py-3">{labels.locations}</th>
+                <TableHead className="px-4 py-3">{labels.code}</TableHead>
+                <TableHead className="px-4 py-3">{labels.kind}</TableHead>
+                <TableHead className="px-4 py-3">{labels.status}</TableHead>
+                <TableHead className="px-4 py-3">{labels.startsAt}</TableHead>
+                <TableHead className="px-4 py-3">{labels.locations}</TableHead>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-cream-3">
+            <TableBody className="divide-y divide-brand-cream-3">
               {items.map((item) => (
                 <tr
                   key={item.id}
                   className="cursor-pointer hover:bg-brand-cream-1"
                   onClick={() => setDraft(fromItem(item))}
                 >
-                  <td className="px-4 py-3">
+                  <TableCell className="px-4 py-3">
                     <div className="font-semibold text-brand-ink">{item.code}</div>
                     <div className="text-xs text-brand-ink-3">{item.name.id}</div>
-                  </td>
-                  <td className="px-4 py-3 text-brand-ink-2">{labelsForKind(item.kind, labels)}</td>
-                  <td className="px-4 py-3 text-brand-ink-2">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">{labelsForKind(item.kind, labels)}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">
                     {labelsForStatus(item.status, labels)}
-                  </td>
-                  <td className="px-4 py-3 text-brand-ink-2">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">
                     {new Date(item.startsAt).toLocaleString('id-ID')}
-                  </td>
-                  <td className="px-4 py-3 text-brand-ink-2">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">
                     {item.locationScope.length === 0
                       ? labels.allLocations
                       : item.locationScope
@@ -336,10 +337,10 @@ export function PromotionsClient({
                             (id) => locations.find((location) => location.id === id)?.label ?? id,
                           )
                           .join(', ')}
-                  </td>
+                  </TableCell>
                 </tr>
               ))}
-            </tbody>
+            </TableBody>
           </table>
         </div>
       </section>
@@ -363,13 +364,13 @@ export function PromotionsClient({
         />
 
         <div className="grid grid-cols-2 gap-3">
-          <Select
+          <FilterSelect
             label={labels.kind}
             value={draft.kind}
             options={KIND_OPTIONS.map((value) => ({ value, label: labelsForKind(value, labels) }))}
             onChange={(kind) => update({ kind: kind as PromotionDraft['kind'] })}
           />
-          <Select
+          <FilterSelect
             label={labels.status}
             value={draft.status}
             options={STATUS_OPTIONS.map((value) => ({
@@ -588,7 +589,7 @@ function Field({
   return (
     <label className="block">
       <span className="mb-1 block text-xs font-medium text-brand-ink-3">{label}</span>
-      <input
+      <Input
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -598,7 +599,7 @@ function Field({
   );
 }
 
-function Select({
+function FilterSelect({
   label,
   value,
   options,
@@ -612,7 +613,7 @@ function Select({
   return (
     <label className="block">
       <span className="mb-1 block text-xs font-medium text-brand-ink-3">{label}</span>
-      <select
+      <Select
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="h-9 w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-2 text-sm text-brand-ink"
@@ -622,7 +623,7 @@ function Select({
             {option.label}
           </option>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }
@@ -642,7 +643,7 @@ function Dropdown({
   return (
     <label className="block">
       <span className="mb-1 block text-xs font-medium text-brand-ink-3">{label}</span>
-      <select
+      <Select
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="h-9 w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-2 text-sm text-brand-ink"
@@ -653,7 +654,7 @@ function Dropdown({
             {option.label}
           </option>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }

@@ -5,6 +5,7 @@ import { useEffect, useState, useTransition } from 'react';
 import { InlineAlert } from '@/components/confirm-dialog';
 import { useTranslations } from 'next-intl';
 import { openPeriodAction } from './actions';
+import { Input } from "@erp/ui";
 
 interface OpenPeriodDialogProps {
   onClose: () => void;
@@ -73,7 +74,7 @@ export function OpenPeriodDialog({ onClose, copy }: OpenPeriodDialogProps) {
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
             <label className="mb-1 block text-xs font-semibold text-brand-ink">{copy.code}</label>
-            <input
+            <Input
               name="periodCode"
               required
               pattern="^\d{4}-\d{2}$"
@@ -84,7 +85,7 @@ export function OpenPeriodDialog({ onClose, copy }: OpenPeriodDialogProps) {
           </div>
           <div>
             <label className="mb-1 block text-xs font-semibold text-brand-ink">{copy.startDate}</label>
-            <input
+            <Input
               name="startDate"
               type="date"
               required
@@ -94,7 +95,7 @@ export function OpenPeriodDialog({ onClose, copy }: OpenPeriodDialogProps) {
           </div>
           <div>
             <label className="mb-1 block text-xs font-semibold text-brand-ink">{copy.endDate}</label>
-            <input
+            <Input
               name="endDate"
               type="date"
               required

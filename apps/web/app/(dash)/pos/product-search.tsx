@@ -12,6 +12,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState, useTransition } from 'react';
 import { type ProductListItem, type VariantItem, fetchCategories, fetchProducts } from './actions';
 import { usePosCart } from './pos-cart-context';
+import { Input } from "@erp/ui";
 
 export function ProductSearch() {
   const t = useTranslations('pos');
@@ -79,7 +80,7 @@ export function ProductSearch() {
               d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"
             />
           </svg>
-          <input
+          <Input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}

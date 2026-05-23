@@ -5,6 +5,7 @@ import { requirePermission } from '@erp/services/iam';
 import { Pagination } from '@/components/pagination';
 import { fetchGRNReport } from '../actions';
 import Link from 'next/link';
+import { TableCell, TableBody, TableHead, Button } from "@erp/ui";
 
 interface Props {
   searchParams?: Promise<{
@@ -94,47 +95,47 @@ export default async function GRNReportPage({ searchParams }: Props) {
             <option value="confirmed">{t('statusConfirmed') || 'Confirmed'}</option>
           </select>
           {params?.pageSize && <input type="hidden" name="pageSize" value={params.pageSize} />}
-          <button
+          <Button
             type="submit"
-            className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink transition-colors hover:bg-brand-cream-1"
+            className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink transition-colors hover:bg-brand-cream-1" variant="secondary" size="md"
           >
             {t('filterBtn') || 'Filter'}
-          </button>
+          </Button>
         </form>
 
         <div className="rounded-xl border border-brand-cream-3 bg-card shadow-sm">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-brand-cream-3 bg-brand-cream/50 text-brand-ink-2">
               <tr>
-                <th className="px-4 py-3 font-semibold">{t('receivedDate') || 'Tanggal Terima'}</th>
-                <th className="px-4 py-3 font-semibold">{t('grnNumber') || 'No. GRN'}</th>
-                <th className="px-4 py-3 font-semibold">{t('poNumber') || 'No. PO'}</th>
-                <th className="px-4 py-3 font-semibold">{t('supplierName') || 'Supplier'}</th>
-                <th className="px-4 py-3 font-semibold">{t('locationName') || 'Lokasi'}</th>
-                <th className="px-4 py-3 font-semibold">{t('status') || 'Status'}</th>
+                <TableHead className="px-4 py-3 font-semibold">{t('receivedDate') || 'Tanggal Terima'}</TableHead>
+                <TableHead className="px-4 py-3 font-semibold">{t('grnNumber') || 'No. GRN'}</TableHead>
+                <TableHead className="px-4 py-3 font-semibold">{t('poNumber') || 'No. PO'}</TableHead>
+                <TableHead className="px-4 py-3 font-semibold">{t('supplierName') || 'Supplier'}</TableHead>
+                <TableHead className="px-4 py-3 font-semibold">{t('locationName') || 'Lokasi'}</TableHead>
+                <TableHead className="px-4 py-3 font-semibold">{t('status') || 'Status'}</TableHead>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-cream-3">
+            <TableBody className="divide-y divide-brand-cream-3">
               {reports.map((report) => (
                 <tr key={report.id} className="transition-colors hover:bg-brand-cream-1">
-                  <td className="whitespace-nowrap px-4 py-3 text-brand-ink-2">
+                  <TableCell className="whitespace-nowrap px-4 py-3 text-brand-ink-2">
                     {report.receivedDate}
-                  </td>
-                  <td className="px-4 py-3 font-medium text-brand-ink">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 font-medium text-brand-ink">
                     {report.number}
-                  </td>
-                  <td className="px-4 py-3 font-medium text-brand-ink">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 font-medium text-brand-ink">
                     <Link href={`/purchasing/po/${report.purchaseOrderId}`} className="text-brand-red hover:underline">
                       {report.poNumber}
                     </Link>
-                  </td>
-                  <td className="px-4 py-3 text-brand-ink-2">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">
                     {report.supplierName}
-                  </td>
-                  <td className="px-4 py-3 text-brand-ink-2">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">
                     {report.locationName}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                         report.status === 'draft'
@@ -146,7 +147,7 @@ export default async function GRNReportPage({ searchParams }: Props) {
                     >
                       {report.status === 'draft' ? (t('statusDraft') || 'Draft') : report.status === 'confirmed' ? (t('statusConfirmed') || 'Confirmed') : report.status}
                     </span>
-                  </td>
+                  </TableCell>
                 </tr>
               ))}
               {reports.length === 0 && (
@@ -156,7 +157,7 @@ export default async function GRNReportPage({ searchParams }: Props) {
                   </td>
                 </tr>
               )}
-            </tbody>
+            </TableBody>
           </table>
         </div>
 

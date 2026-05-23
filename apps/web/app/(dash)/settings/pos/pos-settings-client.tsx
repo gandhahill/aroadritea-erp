@@ -8,6 +8,7 @@ import {
   type PosSettingItem,
   updatePosSetting,
 } from './actions';
+import { Button } from "@erp/ui";
 
 interface Props {
   settings: PosSettingItem[];
@@ -212,14 +213,14 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
               <div>
                 <h2 className="text-lg font-semibold text-brand-ink">{setting.locationName}</h2>
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={() => save(setting.locationId)}
                 disabled={isPending}
-                className="rounded-md bg-brand-red px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
+                className="rounded-md bg-brand-red px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50" variant="primary" size="sm"
               >
                 {isSaving ? t('saving') : t('save')}
-              </button>
+              </Button>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-4">

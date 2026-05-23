@@ -18,6 +18,7 @@ import {
   serverGetOmzetHarian,
   serverSaveOmzetAdjustment,
 } from './actions';
+import { Button, Input, TableCell, TableBody, TableHead, Select } from "@erp/ui";
 
 interface Props {
   initialData: OmzetHarianResult | null;
@@ -215,7 +216,7 @@ export function OmzetHarianClient({
         </div>
         <div className="flex-1 min-w-48">
           <label className="mb-1 block text-sm font-medium text-brand-ink">{t('location')}</label>
-          <select
+          <Select
             value={locationId}
             onChange={(e) => handleLocationChange(e.target.value)}
             disabled={locationOptions.length === 0}
@@ -230,7 +231,7 @@ export function OmzetHarianClient({
                 </option>
               ))
             )}
-          </select>
+          </Select>
         </div>
       </div>
 
@@ -292,50 +293,50 @@ export function OmzetHarianClient({
             <table className="min-w-full">
               <thead className="bg-brand-cream-2">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
+                  <TableHead className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
                     {t('colDate')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
                     {t('colLocation')}
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
                     {t('colGross')}
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
                     {t('colPB1')}
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
                     {t('colNetOmzet')}
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
                     {t('colAdjustment')}
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
                     {t('colFiscalOmzet')}
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
                     {t('colNote')}
-                  </th>
+                  </TableHead>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-brand-cream-3 bg-card">
+              <TableBody>
                 <tr>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm text-brand-ink">
+                  <TableCell className="whitespace-nowrap px-4 py-3 text-sm text-brand-ink">
                     {data.date}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm text-brand-ink">
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 text-sm text-brand-ink">
                     {data.locationName}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right font-mono text-sm text-brand-ink">
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 text-right font-mono text-sm text-brand-ink">
                     {fmtIDR(data.grossSales)}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right font-mono text-sm text-brand-ink">
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 text-right font-mono text-sm text-brand-ink">
                     {fmtIDR(data.pb1Amount)}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right font-mono text-sm font-semibold text-brand-ink">
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 text-right font-mono text-sm font-semibold text-brand-ink">
                     {fmtIDR(data.netOmzet)}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right">
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3 text-right">
                     <input
                       type="text"
                       value={adjAmount}
@@ -343,24 +344,24 @@ export function OmzetHarianClient({
                       placeholder="0"
                       className="w-36 rounded border border-brand-cream-3 bg-transparent px-2 py-1 text-right font-mono text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                     />
-                  </td>
-                  <td
+                  </TableCell>
+                  <TableCell
                     className={`whitespace-nowrap px-4 py-3 text-right font-mono text-sm font-bold ${hasAdj ? 'text-brand-red' : 'text-brand-ink'}`}
                   >
                     {adjCents < 0 ? '-' : ''}
                     {fmtAbs(fiscalCents.toString())}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    <input
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap px-4 py-3">
+                    <Input
                       type="text"
                       value={adjNote}
                       onChange={(e) => handleAdjNoteChange(e.target.value)}
                       placeholder={t('notePlaceholder')}
                       className="w-full min-w-48 rounded border border-brand-cream-3 bg-transparent px-2 py-1 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                     />
-                  </td>
+                  </TableCell>
                 </tr>
-              </tbody>
+              </TableBody>
             </table>
           </div>
 
@@ -386,13 +387,13 @@ export function OmzetHarianClient({
               )}
             </div>
             <div className="flex items-center gap-3">
-              <button
+              <Button
                 onClick={handleSave}
                 disabled={isPending || !isDirty}
-                className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2 disabled:cursor-not-allowed disabled:opacity-50" variant="secondary" size="md"
               >
                 {isPending && isDirty ? 'Menyimpan...' : t('saveAdjustment')}
-              </button>
+              </Button>
               <ExportXlsxButton
                 onExport={handleExport}
                 disabled={isPending}

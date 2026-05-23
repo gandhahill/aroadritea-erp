@@ -17,6 +17,7 @@ import {
   serverDeleteCustomField,
   serverUpdateCustomField,
 } from './actions';
+import { Button, Input, Select, TableCell, TableBody, TableHead, Table } from "@erp/ui";
 
 const ENTITY_TYPE_KEYS = [
   'product',
@@ -221,9 +222,9 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
           <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
           <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle')}</p>
         </div>
-        <button
+        <Button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-red/90"
+          className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-red/90" variant="primary" size="md"
         >
           <svg
             className="h-4 w-4"
@@ -235,23 +236,23 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
           {t('createField')}
-        </button>
+        </Button>
       </div>
 
       {/* Entity type tabs */}
       <div className="flex gap-1.5 overflow-x-auto border-b border-brand-cream-3 pb-px">
         {ENTITY_TYPE_KEYS.map((etKey) => (
-          <button
+          <Button
             key={etKey}
             onClick={() => setSelectedEntity(etKey)}
             className={`flex-shrink-0 rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${
               selectedEntity === etKey
                 ? 'border-b-2 border-brand-red bg-brand-red/5 text-brand-red'
                 : 'text-brand-ink-2 hover:bg-brand-cream-2 hover:text-brand-ink'
-            }`}
+            }`} variant="primary" size="md"
           >
             {tET(etKey)}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -281,53 +282,53 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
         </div>
       ) : (
         <div className="overflow-hidden rounded-lg border border-brand-cream-3">
-          <table className="min-w-full divide-y divide-brand-cream-3">
+          <Table className="min-w-full divide-y divide-brand-cream-3">
             <thead className="bg-brand-cream-2">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
+                <TableHead className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
                   {t('fieldKey')}
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
                   {t('fieldName')}
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
                   {t('dataType')}
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
                   {t('required')}
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
                   {t('displayOrder')}
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
                   Actions
-                </th>
+                </TableHead>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-cream-3 bg-card">
+            <TableBody>
               {filteredFields.map((field) => {
                 const nameObj = field.name as Record<string, string>;
                 return (
                   <tr key={field.id} className="hover:bg-brand-cream-2/50">
-                    <td className="px-4 py-3">
+                    <TableCell className="px-4 py-3">
                       <code className="rounded bg-brand-cream-2 px-2 py-0.5 text-xs font-mono text-brand-ink">
                         {field.key}
                       </code>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <div className="text-sm font-medium text-brand-ink">
                         {nameObj.id || nameObj.en || Object.values(nameObj)[0] || '—'}
                       </div>
                       {nameObj.en && nameObj.id !== nameObj.en && (
                         <div className="text-xs text-brand-ink-3">{nameObj.en}</div>
                       )}
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span className="inline-flex items-center rounded-full bg-brand-cream-2 px-2.5 py-0.5 text-xs font-medium text-brand-ink-2">
                         {tDT(`dataTypes.${field.dataType}` as 'dataTypes.string')}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-center">
                       {field.isRequired ? (
                         <svg
                           className="mx-auto h-4 w-4 text-brand-jade"
@@ -349,11 +350,11 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                           <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
                         </svg>
                       )}
-                    </td>
-                    <td className="px-4 py-3 text-center text-sm text-brand-ink-2">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-center text-sm text-brand-ink-2">
                       {field.displayOrder}
-                    </td>
-                    <td className="px-4 py-3 text-right">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => openEdit(field)}
@@ -394,12 +395,12 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                           </svg>
                         </button>
                       </div>
-                    </td>
+                    </TableCell>
                   </tr>
                 );
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
 
@@ -431,7 +432,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                   <label className="mb-1 block text-sm font-medium text-brand-ink">
                     {t('fieldKey')} <span className="text-brand-red">*</span>
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={form.key}
                     onChange={(e) => handleFormChange('key', e.target.value)}
@@ -453,7 +454,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                   <label className="mb-1 block text-sm font-medium text-brand-ink">
                     {t('nameId')} <span className="text-brand-red">*</span>
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={form.name_id}
                     onChange={(e) => handleFormChange('name_id', e.target.value)}
@@ -463,7 +464,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-brand-ink">{t('nameEn')}</label>
-                  <input
+                  <Input
                     type="text"
                     value={form.name_en}
                     onChange={(e) => handleFormChange('name_en', e.target.value)}
@@ -472,7 +473,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-brand-ink">{t('nameZh')}</label>
-                  <input
+                  <Input
                     type="text"
                     value={form.name_zh}
                     onChange={(e) => handleFormChange('name_zh', e.target.value)}
@@ -486,7 +487,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                 <label className="mb-1 block text-sm font-medium text-brand-ink">
                   {t('dataType')} <span className="text-brand-red">*</span>
                 </label>
-                <select
+                <Select
                   value={form.dataType}
                   onChange={(e) => handleFormChange('dataType', e.target.value)}
                   disabled={!!editingId}
@@ -497,7 +498,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                       {dt}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               {/* Enum options */}
@@ -506,7 +507,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                   <label className="mb-1 block text-sm font-medium text-brand-ink">
                     {t('enumOptions')}
                   </label>
-                  <input
+                  <Input
                     type="text"
                     value={form.enumOptions}
                     onChange={(e) => handleFormChange('enumOptions', e.target.value)}
@@ -522,7 +523,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                 <label className="mb-1 block text-sm font-medium text-brand-ink">
                   {t('validationRegex')}
                 </label>
-                <input
+                <Input
                   type="text"
                   value={form.validationRegex}
                   onChange={(e) => handleFormChange('validationRegex', e.target.value)}
@@ -571,13 +572,13 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
                 >
                   {tc('actions.cancel')}
                 </button>
-                <button
+                <Button
                   type="submit"
                   disabled={isPending}
-                  className="rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50"
+                  className="rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50" variant="primary" size="md"
                 >
                   {isPending ? tc('actions.saving') : tc('actions.save')}
-                </button>
+                </Button>
               </div>
             </form>
           </div>

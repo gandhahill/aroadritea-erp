@@ -5,6 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { requirePermission } from '@erp/services/iam';
 import { Pagination } from '@/components/pagination';
+import { TableCell, TableBody, TableHead, Button } from "@erp/ui";
 
 interface Props {
   searchParams?: Promise<{
@@ -68,30 +69,30 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
           <option value="resolved">{t('statusResolved') || 'Resolved'}</option>
         </select>
         {params?.pageSize && <input type="hidden" name="pageSize" value={params.pageSize} />}
-        <button
+        <Button
           type="submit"
-          className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink transition-colors hover:bg-brand-cream-1"
+          className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink transition-colors hover:bg-brand-cream-1" variant="secondary" size="md"
         >
           {t('filterBtn') || 'Filter'}
-        </button>
+        </Button>
       </form>
 
       <div className="rounded-xl border border-brand-cream-3 bg-card shadow-sm">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-brand-cream-3 bg-brand-cream/50 text-brand-ink-2">
             <tr>
-              <th className="px-4 py-3 font-semibold">{t('date') || 'Date'}</th>
-              <th className="px-4 py-3 font-semibold">{t('reportTitle') || 'Title'}</th>
-              <th className="px-4 py-3 font-semibold">{t('status') || 'Status'}</th>
+              <TableHead className="px-4 py-3 font-semibold">{t('date') || 'Date'}</TableHead>
+              <TableHead className="px-4 py-3 font-semibold">{t('reportTitle') || 'Title'}</TableHead>
+              <TableHead className="px-4 py-3 font-semibold">{t('status') || 'Status'}</TableHead>
             </tr>
           </thead>
-          <tbody className="divide-y divide-brand-cream-3">
+          <TableBody className="divide-y divide-brand-cream-3">
             {reports.map((report) => (
               <tr key={report.id} className="transition-colors hover:bg-brand-cream-1">
-                <td className="whitespace-nowrap px-4 py-3 text-brand-ink-2">
+                <TableCell className="whitespace-nowrap px-4 py-3 text-brand-ink-2">
                   {report.createdAt?.toLocaleDateString()}
-                </td>
-                <td className="px-4 py-3 font-medium text-brand-ink">
+                </TableCell>
+                <TableCell className="px-4 py-3 font-medium text-brand-ink">
                   <div>{report.title}</div>
                   <div className="mt-1 text-xs font-normal text-brand-ink-3">
                     {report.description.substring(0, 100)}...
@@ -106,8 +107,8 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
                       {t('viewEvidence') || 'View Evidence'}
                     </a>
                   )}
-                </td>
-                <td className="px-4 py-3">
+                </TableCell>
+                <TableCell className="px-4 py-3">
                   <span
                     className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                       report.status === 'open'
@@ -121,7 +122,7 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
                   >
                     {report.status === 'open' ? (t('statusOpen') || 'Open') : report.status === 'investigating' ? (t('statusInvestigating') || 'Investigating') : report.status === 'resolved' ? (t('statusResolved') || 'Resolved') : report.status}
                   </span>
-                </td>
+                </TableCell>
               </tr>
             ))}
             {reports.length === 0 && (
@@ -131,7 +132,7 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
                 </td>
               </tr>
             )}
-          </tbody>
+          </TableBody>
         </table>
       </div>
 

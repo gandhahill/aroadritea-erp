@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useActionState, useEffect, useState } from 'react';
 import { submitWhistleblowerAction } from './actions';
 import { FileUploadField } from '@/components/file-upload-field';
+import { Select, Input } from "@erp/ui";
 
 export default function WhistleblowerPage() {
   const t = useTranslations('whistleblower');
@@ -65,7 +66,7 @@ export default function WhistleblowerPage() {
           <div className="space-y-4">
             <label className="block space-y-1.5">
               <span className="text-sm font-medium text-brand-ink">{t('reportTitle') || 'Title'} *</span>
-              <input
+              <Input
                 name="title"
                 required
                 className="w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:ring-1 focus:ring-brand-red outline-none"
@@ -75,7 +76,7 @@ export default function WhistleblowerPage() {
 
             <label className="block space-y-1.5">
               <span className="text-sm font-medium text-brand-ink">{t('category') || 'Category'} *</span>
-              <select
+              <Select
                 name="category"
                 required
                 className="w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:ring-1 focus:ring-brand-red outline-none"
@@ -84,7 +85,7 @@ export default function WhistleblowerPage() {
                 <option value="harassment">{t('catHarassment') || 'Harassment / Discrimination'}</option>
                 <option value="safety">{t('catSafety') || 'Health & Safety Violation'}</option>
                 <option value="other">{t('catOther') || 'Other'}</option>
-              </select>
+              </Select>
             </label>
 
             <label className="block space-y-1.5">

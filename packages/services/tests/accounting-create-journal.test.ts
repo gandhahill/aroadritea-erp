@@ -29,9 +29,12 @@ vi.mock('@erp/db', () => ({
         where: (..._wArgs: unknown[]) => {
           const idx = selectCallIndex++;
           const rows = selectResults[idx] ?? [];
-          return {
+          const builder = {
+            orderBy: () => builder,
+            limit: () => builder,
             then: (fn: (r: unknown[]) => unknown) => fn(rows),
           };
+          return builder;
         },
         innerJoin: () => ({
           innerJoin: () => ({
@@ -117,7 +120,13 @@ function setupDbMocks(config: {
   }
 
   // Call 3: JE count for number generation
-  selectResults.push([{ count: config.jeCount ?? 0 }]);
+  if (config.jeCount === undefined || config.jeCount === 0) {
+    selectResults.push([]);
+  } else {
+    const pad = config.jeCount.toString().padStart(4, '0');
+    // We assume the test is using 2026-05
+    selectResults.push([{ number: `JE-2026-05-${pad}` }]);
+  }
 }
 
 // --- Tests ---
@@ -423,14 +432,14 @@ describe('JE Number Generator', () => {
 
   it('should format number as JE-YYYY-MM-NNNN', async () => {
     const { generateJournalNumber } = await import('../src/accounting/number-generator');
-    selectResults = [[{ count: 0 }]];
+    selectResults = [[]];
     const num = await generateJournalNumber('default', '2026-05-15');
     expect(num).toBe('JE-2026-05-0001');
   });
 
   it('should pad sequence to 4 digits', async () => {
     const { generateJournalNumber } = await import('../src/accounting/number-generator');
-    selectResults = [[{ count: 9 }]];
+    selectResults = [[{ number: 'JE-2026-12-0009' }]];
     selectCallIndex = 0;
     const num = await generateJournalNumber('default', '2026-12-01');
     expect(num).toBe('JE-2026-12-0010');
@@ -438,7 +447,7 @@ describe('JE Number Generator', () => {
 
   it('should handle large sequence numbers', async () => {
     const { generateJournalNumber } = await import('../src/accounting/number-generator');
-    selectResults = [[{ count: 9999 }]];
+    selectResults = [[{ number: 'JE-2026-01-9999' }]];
     selectCallIndex = 0;
     const num = await generateJournalNumber('default', '2026-01-01');
     expect(num).toBe('JE-2026-01-10000');

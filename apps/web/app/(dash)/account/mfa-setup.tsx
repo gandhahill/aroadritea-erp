@@ -3,6 +3,7 @@
 import { authClient } from '@/lib/auth-client';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { Button, Input } from "@erp/ui";
 
 export function MfaSetup() {
   const t = useTranslations('account.mfa');
@@ -53,7 +54,7 @@ export function MfaSetup() {
         <form onSubmit={handleEnable} className="space-y-4">
           <label className="block space-y-1">
             <span className="text-xs font-semibold text-brand-ink-3">{t('password') || 'Current Password'}</span>
-            <input
+            <Input
               type="password"
               required
               value={password}
@@ -61,13 +62,13 @@ export function MfaSetup() {
               className="w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red"
             />
           </label>
-          <button
+          <Button
             type="submit"
             disabled={loading}
-            className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:opacity-60"
+            className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:opacity-60" variant="primary" size="md"
           >
             {loading ? (t('enabling') || 'Enabling...') : (t('enable') || 'Enable 2FA')}
-          </button>
+          </Button>
         </form>
       )}
 
@@ -83,15 +84,15 @@ export function MfaSetup() {
                <p className="text-xs text-brand-ink-3 mt-4">Secret: {secret}</p>
             )}
           </div>
-          <button
+          <Button
             onClick={() => {
               setTotpUri(null);
               setPassword('');
             }}
-            className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition hover:bg-brand-cream-1"
+            className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition hover:bg-brand-cream-1" variant="secondary" size="md"
           >
             {t('done') || 'Done'}
-          </button>
+          </Button>
         </div>
       )}
     </div>

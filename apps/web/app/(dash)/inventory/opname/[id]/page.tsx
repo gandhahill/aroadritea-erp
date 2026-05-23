@@ -21,6 +21,7 @@ import {
 } from '../actions';
 import { OpnameLineTable } from './opname-lines-table';
 import { OpnameWorkflowBar } from './opname-workflow-bar';
+import { Button } from "@erp/ui";
 
 export const metadata: Metadata = { title: 'Stock Opname' };
 
@@ -220,12 +221,12 @@ export default async function OpnameDetailPage({
               await cancelOpnameAction(id);
             }}
           >
-            <button
+            <Button
               type="submit"
-              className="rounded-lg border border-rose-200 bg-card px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
+              className="rounded-lg border border-rose-200 bg-card px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50" variant="danger" size="sm"
             >
               Batalkan
-            </button>
+            </Button>
           </form>
         </div>
       )}
@@ -260,12 +261,12 @@ export default async function OpnameDetailPage({
               await cancelOpnameAction(id);
             }}
           >
-            <button
+            <Button
               type="submit"
-              className="rounded-lg border border-rose-200 bg-card px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
+              className="rounded-lg border border-rose-200 bg-card px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50" variant="danger" size="sm"
             >
               Batalkan
-            </button>
+            </Button>
           </form>
         </div>
       )}

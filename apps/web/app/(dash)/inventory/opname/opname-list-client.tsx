@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { TableCell, TableHead } from "@erp/ui";
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   draft: { bg: 'bg-brand-cream-2', text: 'text-brand-ink-2', label: 'Draf' },
@@ -102,13 +103,13 @@ export function OpnameListClient({ rows }: { rows: Row[] }) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">No. Sesi</th>
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Jenis</th>
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Tanggal</th>
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Periode</th>
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Status</th>
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">Dibuat oleh</th>
-              <th className="px-4 py-3 text-right font-medium text-brand-ink-2">Aksi</th>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">No. Sesi</TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">Jenis</TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">Tanggal</TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">Periode</TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">Status</TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">Dibuat oleh</TableHead>
+              <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">Aksi</TableHead>
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-2">
@@ -129,30 +130,30 @@ export function OpnameListClient({ rows }: { rows: Row[] }) {
                 };
                 return (
                   <tr key={row.id} className="hover:bg-brand-cream-1/50">
-                    <td className="px-4 py-3 font-medium text-brand-ink">{row.number}</td>
-                    <td className="px-4 py-3 text-brand-ink-2">
+                    <TableCell className="px-4 py-3 font-medium text-brand-ink">{row.number}</TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink-2">
                       <span className="rounded-full bg-brand-cream-2 px-2 py-0.5 text-xs">
                         {KIND_LABEL[row.kind] ?? row.kind}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-brand-ink-2">{row.sessionDate}</td>
-                    <td className="px-4 py-3 text-brand-ink-2">{row.periodCode}</td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink-2">{row.sessionDate}</TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink-2">{row.periodCode}</TableCell>
+                    <TableCell className="px-4 py-3">
                       <span
                         className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${s.bg} ${s.text}`}
                       >
                         {s.label}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-brand-ink-2">{row.preparedBy ?? '—'}</td>
-                    <td className="px-4 py-3 text-right">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink-2">{row.preparedBy ?? '—'}</TableCell>
+                    <TableCell className="px-4 py-3 text-right">
                       <Link
                         href={`/inventory/opname/${row.id}`}
                         className="inline-flex items-center gap-1 text-sm font-medium text-brand-ember-5 hover:text-brand-ember-6"
                       >
                         Lihat →
                       </Link>
-                    </td>
+                    </TableCell>
                   </tr>
                 );
               })

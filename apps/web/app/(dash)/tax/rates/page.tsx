@@ -13,6 +13,8 @@ export const metadata: Metadata = {
 };
 
 import { getTranslations } from 'next-intl/server';
+import { Button, TableCell, TableHead } from "@erp/ui";
+
 function formatDate(value: string | null, locale: string) {
   if (!value) return '-';
   const intlLocale = locale === 'zh' ? 'zh-CN' : locale === 'en' ? 'en-US' : 'id-ID';
@@ -108,12 +110,12 @@ export default async function TaxRatesPage() {
             <input name="isActive" type="checkbox" defaultChecked />
             {t('active')}
           </label>
-          <button
+          <Button
             type="submit"
-            className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90"
+            className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90" variant="primary" size="md"
           >
             {t('create')}
-          </button>
+          </Button>
         </form>
 
         {rows.length === 0 ? (
@@ -126,35 +128,35 @@ export default async function TaxRatesPage() {
               <table className="min-w-full text-left text-sm">
                 <thead className="border-b border-brand-ink/10 bg-brand-paper/70 text-xs uppercase tracking-[0.14em] text-brand-muted">
                   <tr>
-                    <th className="px-4 py-3 font-semibold">{t('code')}</th>
-                    <th className="px-4 py-3 font-semibold">{t('name')}</th>
-                    <th className="px-4 py-3 font-semibold">{t('rate')}</th>
-                    <th className="px-4 py-3 font-semibold">{t('calculation')}</th>
-                    <th className="px-4 py-3 font-semibold">{t('account')}</th>
-                    <th className="px-4 py-3 font-semibold">{t('effective')}</th>
-                    <th className="px-4 py-3 font-semibold">{t('status')}</th>
-                    <th className="px-4 py-3 font-semibold">{t('actions')}</th>
+                    <TableHead className="px-4 py-3 font-semibold">{t('code')}</TableHead>
+                    <TableHead className="px-4 py-3 font-semibold">{t('name')}</TableHead>
+                    <TableHead className="px-4 py-3 font-semibold">{t('rate')}</TableHead>
+                    <TableHead className="px-4 py-3 font-semibold">{t('calculation')}</TableHead>
+                    <TableHead className="px-4 py-3 font-semibold">{t('account')}</TableHead>
+                    <TableHead className="px-4 py-3 font-semibold">{t('effective')}</TableHead>
+                    <TableHead className="px-4 py-3 font-semibold">{t('status')}</TableHead>
+                    <TableHead className="px-4 py-3 font-semibold">{t('actions')}</TableHead>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-brand-ink/10">
                   {rows.map((row) => (
                     <tr key={row.id} className="hover:bg-brand-paper/70">
-                      <td className="px-4 py-3 font-mono text-xs font-semibold text-brand-red">
+                      <TableCell className="px-4 py-3 font-mono text-xs font-semibold text-brand-red">
                         {row.code}
-                      </td>
-                      <td className="px-4 py-3 font-semibold text-brand-ink">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 font-semibold text-brand-ink">
                         {pickName(row.name, locale)}
-                      </td>
-                      <td className="px-4 py-3 text-brand-muted">{row.ratePercent}%</td>
-                      <td className="px-4 py-3 text-brand-muted">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-brand-muted">{row.ratePercent}%</TableCell>
+                      <TableCell className="px-4 py-3 text-brand-muted">
                         {row.calculation === 'inclusive' ? t('inclusive') : t('exclusive')}
-                      </td>
-                      <td className="px-4 py-3 text-brand-muted">{row.postingAccount}</td>
-                      <td className="px-4 py-3 text-brand-muted">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-brand-muted">{row.postingAccount}</TableCell>
+                      <TableCell className="px-4 py-3 text-brand-muted">
                         {formatDate(row.effectiveFrom, locale)} -{' '}
                         {formatDate(row.effectiveUntil, locale)}
-                      </td>
-                      <td className="px-4 py-3">
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
                         <span
                           className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${
                             row.isActive
@@ -164,8 +166,8 @@ export default async function TaxRatesPage() {
                         >
                           {row.isActive ? t('active') : t('inactive')}
                         </span>
-                      </td>
-                      <td className="px-4 py-3">
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
                         <details className="group">
                           <summary className="cursor-pointer text-xs font-semibold text-brand-red">
                             {t('edit')}
@@ -238,12 +240,12 @@ export default async function TaxRatesPage() {
                               />
                               {t('active')}
                             </label>
-                            <button
+                            <Button
                               type="submit"
-                              className="rounded bg-brand-red px-3 py-1.5 text-xs font-semibold text-white"
+                              className="rounded bg-brand-red px-3 py-1.5 text-xs font-semibold text-white" variant="primary" size="sm"
                             >
                               {t('save')}
-                            </button>
+                            </Button>
                           </form>
                           <form action={deleteTaxRateAction} className="mt-2">
                             <input type="hidden" name="id" value={row.id} />
@@ -252,7 +254,7 @@ export default async function TaxRatesPage() {
                             </button>
                           </form>
                         </details>
-                      </td>
+                      </TableCell>
                     </tr>
                   ))}
                 </tbody>

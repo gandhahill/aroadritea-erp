@@ -14,6 +14,7 @@ import {
   deleteModifierCode,
   updateModifierCode,
 } from './actions';
+import { Button, Input, Select, TableCell, TableHead } from "@erp/ui";
 
 interface Props {
   codes: ModifierCodeItem[];
@@ -98,30 +99,30 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-brand-cream-3 bg-brand-cream">
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('modifierKind', { fallback: 'Jenis' })}</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('modifierOptionId', { fallback: 'ID Opsi Modifier' })}</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('naixerCode')}</th>
-            <th className="px-4 py-3 text-center font-medium text-brand-ink-2">{t('displayOrder', { fallback: 'Urutan' })}</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{tc('fields.status', { fallback: 'Status' })}</th>
-            <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{tc('fields.actions', { fallback: 'Aksi' })}</th>
+            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('modifierKind', { fallback: 'Jenis' })}</TableHead>
+            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('modifierOptionId', { fallback: 'ID Opsi Modifier' })}</TableHead>
+            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('naixerCode')}</TableHead>
+            <TableHead className="px-4 py-3 text-center font-medium text-brand-ink-2">{t('displayOrder', { fallback: 'Urutan' })}</TableHead>
+            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{tc('fields.status', { fallback: 'Status' })}</TableHead>
+            <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{tc('fields.actions', { fallback: 'Aksi' })}</TableHead>
           </tr>
         </thead>
         <tbody>
           {codes.map((code) => (
             <tr key={code.id} className="border-b border-brand-cream-3 last:border-0">
-              <td className="px-4 py-3">
+              <TableCell className="px-4 py-3">
                 <KindBadge kind={code.modifierKind} />
-              </td>
-              <td className="px-4 py-3 text-sm text-brand-ink">{code.modifierOptionLabel}</td>
-              <td className="px-4 py-3">
+              </TableCell>
+              <TableCell className="px-4 py-3 text-sm text-brand-ink">{code.modifierOptionLabel}</TableCell>
+              <TableCell className="px-4 py-3">
                 <code className="rounded bg-brand-cream-2 px-1.5 py-0.5 text-xs font-mono font-bold text-brand-ink">
                   {code.naixerCode}
                 </code>
-              </td>
-              <td className="px-4 py-3 text-center text-xs text-brand-ink-3">
+              </TableCell>
+              <TableCell className="px-4 py-3 text-center text-xs text-brand-ink-3">
                 {code.displayOrder}
-              </td>
-              <td className="px-4 py-3">
+              </TableCell>
+              <TableCell className="px-4 py-3">
                 <button
                   type="button"
                   onClick={() => handleToggle(code.id, code.isActive)}
@@ -139,8 +140,8 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
                     </span>
                   )}
                 </button>
-              </td>
-              <td className="px-4 py-3 text-right">
+              </TableCell>
+              <TableCell className="px-4 py-3 text-right">
                 <button
                   type="button"
                   onClick={() => handleDelete(code.id)}
@@ -149,7 +150,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
                 >
                   {tc('actions.delete', { fallback: 'Hapus' })}
                 </button>
-              </td>
+              </TableCell>
             </tr>
           ))}
           {codes.length === 0 && !showAddForm && (
@@ -167,7 +168,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
           <div className="flex items-end gap-3">
             <div className="w-28">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('modifierKind', { fallback: 'Kind' })}</label>
-              <select
+              <Select
                 value={newKind}
                 onChange={(e) => setNewKind(e.target.value)}
                 className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
@@ -177,13 +178,13 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
                     {k}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
             <div className="flex-1">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">
                 {t('modifierOptionId', { fallback: 'Modifier Option' })}
               </label>
-              <select
+              <Select
                 value={newOptionId}
                 onChange={(e) => setNewOptionId(e.target.value)}
                 className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
@@ -194,11 +195,11 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
                     {o.label}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
             <div className="w-28">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('naixerCode')}</label>
-              <input
+              <Input
                 type="text"
                 value={newNaixerCode}
                 onChange={(e) => setNewNaixerCode(e.target.value)}
@@ -208,21 +209,21 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
             </div>
             <div className="w-20">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('displayOrder', { fallback: 'Order' })}</label>
-              <input
+              <Input
                 type="number"
                 value={newOrder}
                 onChange={(e) => setNewOrder(e.target.value)}
                 className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
               />
             </div>
-            <button
+            <Button
               type="button"
               onClick={handleAdd}
               disabled={isPending || !newOptionId || !newNaixerCode}
-              className="rounded bg-brand-red px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50"
+              className="rounded bg-brand-red px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50" variant="primary" size="sm"
             >
               {tc('labels.add')}
-            </button>
+            </Button>
             <button
               type="button"
               onClick={() => setShowAddForm(false)}

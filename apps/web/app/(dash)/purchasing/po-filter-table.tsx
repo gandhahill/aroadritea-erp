@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { syncPurchaseShipmentAction } from './actions';
+import { TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
 
 interface PoRow {
   id: string;
@@ -131,19 +132,19 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
-          <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+        <Table>
+          <TableHeader>
             <tr>
-              <th className="px-4 py-3">{t('number')}</th>
-              <th className="px-4 py-3">{t('supplierTitle')}</th>
-              <th className="px-4 py-3">{t('location')}</th>
-              <th className="px-4 py-3">{t('date')}</th>
-              <th className="px-4 py-3 text-right">{t('total')}</th>
-              <th className="px-4 py-3">{t('status')}</th>
-              <th className="px-4 py-3">{t('shipmentTracking')}</th>
+              <TableHead className="px-4 py-3">{t('number')}</TableHead>
+              <TableHead className="px-4 py-3">{t('supplierTitle')}</TableHead>
+              <TableHead className="px-4 py-3">{t('location')}</TableHead>
+              <TableHead className="px-4 py-3">{t('date')}</TableHead>
+              <TableHead className="px-4 py-3 text-right">{t('total')}</TableHead>
+              <TableHead className="px-4 py-3">{t('status')}</TableHead>
+              <TableHead className="px-4 py-3">{t('shipmentTracking')}</TableHead>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-brand-cream-3 bg-card">
+          </TableHeader>
+          <TableBody>
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-8 text-center text-brand-ink-3">
@@ -153,25 +154,25 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
             ) : (
               filtered.map((po) => (
                 <tr key={po.id}>
-                  <td className="px-4 py-3 font-mono text-xs font-semibold text-brand-red hover:underline">
+                  <TableCell className="px-4 py-3 font-mono text-xs font-semibold text-brand-red hover:underline">
                     <Link href={`/purchasing/po/${po.id}`}>
                       {po.number}
                     </Link>
-                  </td>
-                  <td className="px-4 py-3 text-brand-ink">{po.supplierName}</td>
-                  <td className="px-4 py-3 text-brand-muted">{po.locationName}</td>
-                  <td className="px-4 py-3 text-brand-muted">{po.orderDate}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-brand-ink">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink">{po.supplierName}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-muted">{po.locationName}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-muted">{po.orderDate}</TableCell>
+                  <TableCell className="px-4 py-3 text-right font-semibold text-brand-ink">
                     {formatIdr(po.grandTotal)}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     <span
                       className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClass(po.status)}`}
                     >
                       {po.status}
                     </span>
-                  </td>
-                  <td className="min-w-96 px-4 py-3">
+                  </TableCell>
+                  <TableCell className="min-w-96 px-4 py-3">
                     <form
                       action={async (formData) => {
                         await syncPurchaseShipmentAction(formData);
@@ -215,12 +216,12 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
                         : t('notSynced')}
                       {po.shippingTrackingError ? ` | ${po.shippingTrackingError}` : ''}
                     </p>
-                  </td>
+                  </TableCell>
                 </tr>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

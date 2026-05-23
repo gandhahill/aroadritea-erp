@@ -3,9 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { createCategoryAction } from './actions';
-
-const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
+import { Input } from "@erp/ui";
 
 export function CategoryForm() {
   const t = useTranslations('inventory.categories');
@@ -25,29 +23,29 @@ export function CategoryForm() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
         <label className="flex-1 space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('code')}</span>
-          <input
+          <Input
             name="categoryCode"
             required
             placeholder={t('codePlaceholder')}
-            className={INPUT}
+           
           />
         </label>
         <label className="flex-[1.5] space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('nameId')}</span>
-          <input
+          <Input
             name="categoryNameId"
             required
             placeholder={t('namePlaceholderId')}
-            className={INPUT}
+           
           />
         </label>
         <label className="flex-[1.5] space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('nameEn')}</span>
-          <input name="categoryNameEn" placeholder={t('namePlaceholderEn')} className={INPUT} />
+          <Input name="categoryNameEn" placeholder={t('namePlaceholderEn')} />
         </label>
         <label className="flex-[1.5] space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('nameZh')}</span>
-          <input name="categoryNameZh" placeholder={t('namePlaceholderZh')} className={INPUT} />
+          <Input name="categoryNameZh" placeholder={t('namePlaceholderZh')} />
         </label>
         <button
           type="submit"

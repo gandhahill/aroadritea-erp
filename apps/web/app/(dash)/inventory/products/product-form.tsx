@@ -7,9 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useActionState, useEffect } from 'react';
 import { createProductAction, updateProductAction } from './actions';
 import type { ProductCategoryOption, ProductFormInitial, ProductKind } from './product-types';
-
-const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
+import { Button, Input, Select } from "@erp/ui";
 
 interface Props {
   mode: 'create' | 'edit';
@@ -65,20 +63,20 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
         <h2 className="text-base font-semibold text-brand-ink">{f('identitySection')}</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <Field label={f('sku')} required>
-            <input
+            <Input
               name="sku"
               required
               readOnly={mode === 'edit'}
               defaultValue={product?.sku ?? ''}
-              className={`${INPUT} ${mode === 'edit' ? 'bg-brand-cream-1 text-brand-ink-3' : ''}`}
+              className={mode === 'edit' ? 'bg-brand-cream-1 text-brand-ink-3' : ''}
             />
           </Field>
           <Field label={f('category')} required>
-            <select
+            <Select
               name="categoryId"
               required
               defaultValue={product?.categoryId ?? categories[0]?.id ?? ''}
-              className={INPUT}
+             
             >
               {categories.length === 0 ? (
                 <option value="">{t('createCategory')}</option>
@@ -89,40 +87,40 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
                   </option>
                 ))
               )}
-            </select>
+            </Select>
           </Field>
           <Field label={f('name')} required>
-            <input
+            <Input
               name="nameEn"
               required
               defaultValue={product?.name.en ?? product?.name.id ?? ''}
               placeholder="e.g. Brown Sugar Milk Tea"
-              className={INPUT}
+             
             />
             <p className="mt-1 text-[11px] text-brand-ink-3">{f('nameHint')}</p>
           </Field>
           <Field label={f('kind')} required>
-            <select
+            <Select
               name="kind"
               required
               defaultValue={product?.kind ?? defaultKind ?? 'finished_good'}
-              className={INPUT}
+             
             >
               {KIND_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label={f('uom')} required>
-            <select name="uom" required defaultValue={product?.uom ?? 'pcs'} className={INPUT}>
+            <Select name="uom" required defaultValue={product?.uom ?? 'pcs'}>
               {['pcs', 'cup', 'botol', 'ml', 'liter', 'gram', 'kg', 'pack', 'box'].map((uom) => (
                 <option key={uom} value={uom}>
                   {uom}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label={f('opnameFrequency')}>
             <div className="grid gap-2 sm:grid-cols-3">
@@ -149,12 +147,12 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
             <p className="mt-1 text-[11px] text-brand-ink-3">{f('opnameFrequencyHint')}</p>
           </Field>
           <Field label={f('taxCode')}>
-            <select name="taxCode" defaultValue={product?.taxCode ?? ''} className={INPUT}>
+            <Select name="taxCode" defaultValue={product?.taxCode ?? ''}>
               <option value="">{f('taxCodeNone')}</option>
               <option value="PB1">PB1</option>
               <option value="PPN_OUT">PPN_OUT</option>
               <option value="PPN_IN">PPN_IN</option>
-            </select>
+            </Select>
           </Field>
         </div>
         <div className="mt-4">
@@ -186,28 +184,28 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
         <h2 className="text-base font-semibold text-brand-ink">{f('pricingSection')}</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <Field label={f('sellPrice')}>
-            <input
+            <Input
               name="defaultSellPrice"
               inputMode="numeric"
               defaultValue={product?.defaultSellPrice ?? '0'}
-              className={INPUT}
+             
             />
           </Field>
           <Field label={f('costPrice')}>
-            <input
+            <Input
               name="defaultCostPrice"
               inputMode="numeric"
               defaultValue={product?.defaultCostPrice ?? '0'}
-              className={INPUT}
+             
             />
           </Field>
           <Field label={f('shelfLife')}>
-            <input
+            <Input
               name="shelfLifeDays"
               type="number"
               min={1}
               defaultValue={product?.shelfLifeDays ?? ''}
-              className={INPUT}
+             
             />
           </Field>
         </div>
@@ -256,13 +254,13 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
         >
           {t('cancel')}
         </button>
-        <button
+        <Button
           type="submit"
           disabled={isPending || categories.length === 0}
-          className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
+          className="rounded-lg " variant="primary" size="lg"
         >
           {isPending ? t('saving') : mode === 'create' ? t('saveProduct') : t('saveChanges')}
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -296,7 +294,7 @@ function TextArea({ label, name, value }: { label: string; name: string; value: 
   return (
     <label className="block space-y-1.5">
       <span className="text-sm font-medium text-brand-ink">{label}</span>
-      <textarea name={name} rows={4} defaultValue={value} className={INPUT} />
+      <textarea name={name} rows={4} defaultValue={value} />
     </label>
   );
 }

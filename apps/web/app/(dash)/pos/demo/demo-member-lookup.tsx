@@ -11,6 +11,7 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useDemoCart } from './demo-cart-context';
+import { Input } from "@erp/ui";
 
 export function DemoMemberLookup() {
   const t = useTranslations('pos');
@@ -109,7 +110,7 @@ export function DemoMemberLookup() {
         <label className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-ink-3">
           {t('guestName')}
         </label>
-        <input
+        <Input
           type="text"
           value={state.guestName ?? ''}
           onChange={(e) => setGuestName(e.target.value)}

@@ -7,6 +7,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchCmsPages } from '../actions';
+import { TableCell, TableBody, TableHead } from "@erp/ui";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('cms.pages');
@@ -97,7 +98,7 @@ export default async function CmsPagesPage() {
                 <th className="py-2 pr-3">{t('columns.preview')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-cream-3">
+            <TableBody className="divide-y divide-brand-cream-3">
               {STATIC_ROUTES.map((route) => (
                 <tr key={route.slug}>
                   <td className="py-2 pr-3">
@@ -119,7 +120,7 @@ export default async function CmsPagesPage() {
                   </td>
                 </tr>
               ))}
-            </tbody>
+            </TableBody>
           </table>
         </div>
       </div>
@@ -148,28 +149,28 @@ export default async function CmsPagesPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-brand-cream-3 text-left">
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   {t('columns.titleId')}
-                </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   {t('columns.slug')}
-                </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   {t('columns.type')}
-                </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   {t('columns.status')}
-                </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   {t('columns.navbar')}
-                </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   {t('columns.updatedAt')}
-                </th>
-                <th className="px-4 py-3"></th>
+                </TableHead>
+                <TableHead className="px-4 py-3"></TableHead>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-cream-3">
+            <TableBody className="divide-y divide-brand-cream-3">
               {pages.map((page: Record<string, unknown>) => {
                 const title =
                   (page.title as Record<string, string>)?.id ??
@@ -177,27 +178,27 @@ export default async function CmsPagesPage() {
                   '—';
                 return (
                   <tr key={page.id as string} className="hover:bg-brand-cream-1/50">
-                    <td className="px-4 py-3">
+                    <TableCell className="px-4 py-3">
                       <span className="text-sm font-medium text-brand-ink">{title}</span>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <code className="rounded bg-brand-cream-2 px-1.5 py-0.5 text-xs font-mono text-brand-ink-2">
                         {(page.slug as string) ?? '—'}
                       </code>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span className="rounded bg-brand-cream-2 px-2 py-0.5 text-xs font-medium text-brand-ink-2">
                         {t(`types.${TYPE_KEYS[(page.type as string) ?? 'page'] ?? (page.type as string)}`)}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span
                         className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[(page.status as string) ?? 'draft']}`}
                       >
                         {t(`status.${(page.status as string) ?? 'draft'}`)}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       {(page.isInNavbar as boolean) ? (
                         <svg
                           className="h-4 w-4 text-brand-jade"
@@ -215,8 +216,8 @@ export default async function CmsPagesPage() {
                       ) : (
                         <span className="text-brand-cream-3">—</span>
                       )}
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span className="text-sm text-brand-ink-3">
                         {page.updatedAt
                           ? new Date(page.updatedAt as string).toLocaleDateString('id-ID', {
@@ -226,8 +227,8 @@ export default async function CmsPagesPage() {
                             })
                           : '—'}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <div className="flex items-center gap-1">
                         <Link
                           href={`/cms/pages/${page.id as string}`}
@@ -248,11 +249,11 @@ export default async function CmsPagesPage() {
                           </svg>
                         </Link>
                       </div>
-                    </td>
+                    </TableCell>
                   </tr>
                 );
               })}
-            </tbody>
+            </TableBody>
           </table>
         )}
       </div>

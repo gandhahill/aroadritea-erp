@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { runPayrollAction } from './actions';
 import { useTranslations } from 'next-intl';
+import { TableCell, TableHead, Input, Select } from "@erp/ui";
 
 interface PayrollRunRow {
   id: string;
@@ -145,7 +146,7 @@ export function PayrollRunClient({
             >
               {t('form.period')}
             </label>
-            <input
+            <Input
               id="payroll-period"
               type="month"
               value={periodCode}
@@ -163,7 +164,7 @@ export function PayrollRunClient({
             >
               {t('form.location')}
             </label>
-            <select
+            <Select
               id="payroll-location"
               value={locationId}
               onChange={(e) => setLocationId(e.target.value)}
@@ -175,7 +176,7 @@ export function PayrollRunClient({
                   {l.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
 
@@ -205,7 +206,7 @@ export function PayrollRunClient({
                   <span className="mb-1 block text-xs font-medium text-brand-ink-2">
                     {employee.name}
                   </span>
-                  <input
+                  <Input
                     type="text"
                     inputMode="numeric"
                     value={bonusByEmployeeId[employee.id] ?? ''}
@@ -258,11 +259,11 @@ export function PayrollRunClient({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-                  <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('history.period')}</th>
-                  <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('history.status')}</th>
-                  <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('history.employees')}</th>
-                  <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('history.totalNet')}</th>
-                  <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('history.actions')}</th>
+                  <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('history.period')}</TableHead>
+                  <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('history.status')}</TableHead>
+                  <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('history.employees')}</TableHead>
+                  <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('history.totalNet')}</TableHead>
+                  <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('history.actions')}</TableHead>
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-cream-2">
@@ -273,19 +274,19 @@ export function PayrollRunClient({
                   };
                   return (
                     <tr key={p.id} className="hover:bg-brand-cream-1/50">
-                      <td className="px-4 py-3 font-medium text-brand-ink">{p.periodCode}</td>
-                      <td className="px-4 py-3">
+                      <TableCell className="px-4 py-3 font-medium text-brand-ink">{p.periodCode}</TableCell>
+                      <TableCell className="px-4 py-3">
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${s.bg} ${s.text}`}
                         >
                           {t(`status${p.status.charAt(0).toUpperCase() + p.status.slice(1).replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())}_label` as any)}
                         </span>
-                      </td>
-                      <td className="px-4 py-3 text-right text-brand-ink">{p.totalEmployees}</td>
-                      <td className="px-4 py-3 text-right font-semibold text-brand-ember-5">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right text-brand-ink">{p.totalEmployees}</TableCell>
+                      <TableCell className="px-4 py-3 text-right font-semibold text-brand-ember-5">
                         {formatMoney(p.totalNet)}
-                      </td>
-                      <td className="px-4 py-3 text-right">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right">
                         <a
                           href={`/hr/payroll/${p.id}`}
                           className="inline-flex items-center gap-1 text-sm font-medium text-brand-ember-5 hover:text-brand-ember-6"
@@ -306,7 +307,7 @@ export function PayrollRunClient({
                             />
                           </svg>
                         </a>
-                      </td>
+                      </TableCell>
                     </tr>
                   );
                 })}

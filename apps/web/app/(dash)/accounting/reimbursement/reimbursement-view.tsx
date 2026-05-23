@@ -12,6 +12,7 @@ import {
   submitReimbursement,
 } from './actions';
 import { useTranslations } from 'next-intl';
+import { Button, TableCell, TableHead, Select, Input } from "@erp/ui";
 
 function formatRupiah(amount: string): string {
   const n = Number(amount);
@@ -126,7 +127,7 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-medium text-brand-ink-3">{t('location')}</label>
-            <select
+            <Select
               value={locationId}
               onChange={(e) => setLocationId(e.target.value)}
               className="mt-1 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
@@ -137,12 +138,12 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
                   {loc.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <div>
             <label className="block text-xs font-medium text-brand-ink-3">{t('amount')} (Rp)</label>
-            <input
+            <Input
               type="text"
               value={amount}
               onChange={handleAmountChange}
@@ -153,7 +154,7 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
 
           <div>
             <label className="block text-xs font-medium text-brand-ink-3">{t('category')}</label>
-            <select
+            <Select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="mt-1 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
@@ -163,7 +164,7 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
                   {t(`categories.${opt}`)}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <div>
@@ -203,13 +204,13 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
             >
               {t('cancel')}
             </button>
-            <button
+            <Button
               type="submit"
               disabled={isPending}
-              className="rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
+              className="rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50" variant="primary" size="md"
             >
               {isPending ? t('saving') : t('saveDraft')}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -459,15 +460,15 @@ function ReimbursementViewInner({
             );
           })}
         </div>
-        <button
+        <Button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red-dark"
+          className="flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red-dark" variant="primary" size="md"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           {t('newRequest')}
-        </button>
+        </Button>
       </div>
 
       {/* Table */}
@@ -475,13 +476,13 @@ function ReimbursementViewInner({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('date')}</th>
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('requester')}</th>
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('location')}</th>
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('category')}</th>
-              <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('description')}</th>
-              <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('amount')}</th>
-              <th className="px-4 py-3 text-center font-medium text-brand-ink-2">{t('statusLabel')}</th>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('date')}</TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('requester')}</TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('location')}</TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('category')}</TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('description')}</TableHead>
+              <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('amount')}</TableHead>
+              <TableHead className="px-4 py-3 text-center font-medium text-brand-ink-2">{t('statusLabel')}</TableHead>
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-2">
@@ -498,25 +499,25 @@ function ReimbursementViewInner({
                     r.id === selectedId ? 'bg-brand-red/5' : 'hover:bg-brand-cream/50'
                   }`}
                 >
-                  <td className="px-4 py-3 text-brand-ink-2">{formatDate(r.createdAt)}</td>
-                  <td className="px-4 py-3 text-brand-ink">{r.requesterName}</td>
-                  <td className="px-4 py-3 text-brand-ink-2">{r.locationName}</td>
-                  <td className="px-4 py-3 text-brand-ink-2">
+                  <TableCell className="px-4 py-3 text-brand-ink-2">{formatDate(r.createdAt)}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink">{r.requesterName}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">{r.locationName}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">
                     {t(`categories.${r.category}`)}
-                  </td>
-                  <td className="max-w-[200px] truncate px-4 py-3 text-brand-ink">
+                  </TableCell>
+                  <TableCell className="max-w-[200px] truncate px-4 py-3 text-brand-ink">
                     {r.description}
-                  </td>
-                  <td className="px-4 py-3 text-right font-medium text-brand-ink">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right font-medium text-brand-ink">
                     {formatRupiah(r.amount)}
-                  </td>
-                  <td className="px-4 py-3 text-center">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-center">
                     <span
                       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${style.bg} ${style.text}`}
                     >
                       {t(`status.${r.status}`)}
                     </span>
-                  </td>
+                  </TableCell>
                 </tr>
               );
             })}
@@ -663,13 +664,13 @@ function ReimbursementViewInner({
           {/* Action buttons */}
           <div className="flex flex-wrap gap-2 border-t border-brand-cream-2 pt-4">
             {selected.status === 'draft' && (
-              <button
+              <Button
                 onClick={handleSubmit}
                 disabled={isPending}
-                className="rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
+                className="rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50" variant="primary" size="md"
               >
                 {isPending ? t('submitting') : t('submitRequest')}
-              </button>
+              </Button>
             )}
             {selected.status === 'submitted' && (
               <>

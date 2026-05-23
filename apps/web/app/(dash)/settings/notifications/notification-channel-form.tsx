@@ -3,9 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { createNotificationChannelAction } from './actions';
-
-const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
+import { Button, Select, Input } from "@erp/ui";
 
 export function NotificationChannelForm() {
   const t = useTranslations('settings.notifications.form');
@@ -36,26 +34,26 @@ export function NotificationChannelForm() {
 
       <label className="space-y-1.5">
         <span className="text-sm font-medium text-brand-ink">{t('fields.label')}</span>
-        <input name="label" required className={INPUT} />
+        <Input name="label" required />
       </label>
       <label className="space-y-1.5">
         <span className="text-sm font-medium text-brand-ink">{t('fields.type')}</span>
-        <select name="channelType" required defaultValue="email" className={INPUT}>
+        <Select name="channelType" required defaultValue="email">
           <option value="email">{t('types.email')}</option>
-        </select>
+        </Select>
       </label>
       <label className="space-y-1.5">
         <span className="text-sm font-medium text-brand-ink">{t('fields.target')}</span>
-        <input name="target" required placeholder="ops@aroadritea.com" className={INPUT} />
+        <Input name="target" required placeholder="ops@aroadritea.com" />
       </label>
       <label className="space-y-1.5">
         <span className="text-sm font-medium text-brand-ink">{t('fields.purpose')}</span>
-        <select name="purpose" required defaultValue="all" className={INPUT}>
+        <Select name="purpose" required defaultValue="all">
           <option value="all">{t('purposes.all')}</option>
           <option value="outage">{t('purposes.outage')}</option>
           <option value="stock_alert">{t('purposes.stockAlert')}</option>
           <option value="party_ledger">{t('purposes.partyLedger')}</option>
-        </select>
+        </Select>
       </label>
       <label className="flex items-center gap-2 text-sm font-medium text-brand-ink">
         <input
@@ -67,13 +65,13 @@ export function NotificationChannelForm() {
         {t('fields.isActive')}
       </label>
 
-      <button
+      <Button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
+        className="rounded-lg " variant="primary" size="lg"
       >
         {pending ? t('submitting') : t('submit')}
-      </button>
+      </Button>
     </form>
   );
 }

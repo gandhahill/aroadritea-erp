@@ -30,9 +30,12 @@ vi.mock('@erp/db', () => ({
         where: (..._wArgs: unknown[]) => {
           const idx = selectCallIndex++;
           const rows = selectResults[idx] ?? [];
-          return {
+          const builder = {
+            orderBy: () => builder,
+            limit: () => builder,
             then: (fn: (r: unknown[]) => unknown) => fn(rows),
           };
+          return builder;
         },
       }),
     }),
@@ -188,7 +191,12 @@ function setupDbMocks(config: {
   selectResults.push(config.lines ?? makeOriginalLines());
 
   // Call 4: JE count for number generation
-  selectResults.push([{ count: config.jeCount ?? 0 }]);
+  if (config.jeCount === undefined || config.jeCount === 0) {
+    selectResults.push([]);
+  } else {
+    const pad = config.jeCount.toString().padStart(4, '0');
+    selectResults.push([{ number: `JE-2026-06-${pad}` }]);
+  }
 }
 
 // --- Tests ---

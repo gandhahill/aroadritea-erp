@@ -10,6 +10,7 @@ import {
   refundOrderAction,
   voidOrderAction,
 } from './actions';
+import { TableBody, TableHeader, TableHead, Table } from "@erp/ui";
 
 interface Props {
   rows: OrderListRow[];
@@ -179,20 +180,20 @@ export function OrdersClient({ rows }: Props) {
   return (
     <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
       <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
-        <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
-          <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+        <Table>
+          <TableHeader>
             <tr>
-              <th className="px-4 py-3">{t('table.orderNo')}</th>
-              <th className="px-4 py-3">{t('table.time')}</th>
-              <th className="px-4 py-3">{t('table.channel')}</th>
-              <th className="px-4 py-3">Kasir</th>
-              <th className="px-4 py-3">Metode</th>
-              <th className="px-4 py-3 text-right">{t('table.total')}</th>
-              <th className="px-4 py-3">{t('table.status')}</th>
-              <th className="px-4 py-3" />
+              <TableHead className="px-4 py-3">{t('table.orderNo')}</TableHead>
+              <TableHead className="px-4 py-3">{t('table.time')}</TableHead>
+              <TableHead className="px-4 py-3">{t('table.channel')}</TableHead>
+              <TableHead className="px-4 py-3">Kasir</TableHead>
+              <TableHead className="px-4 py-3">Metode</TableHead>
+              <TableHead className="px-4 py-3 text-right">{t('table.total')}</TableHead>
+              <TableHead className="px-4 py-3">{t('table.status')}</TableHead>
+              <TableHead className="px-4 py-3" />
             </tr>
-          </thead>
-          <tbody className="divide-y divide-brand-cream-3">
+          </TableHeader>
+          <TableBody className="divide-y divide-brand-cream-3">
             {rows.map((r) => {
               const isSelected = selectedId === r.id;
               const status = statusBadge(r.status, t);
@@ -242,8 +243,8 @@ export function OrdersClient({ rows }: Props) {
                 </tr>
               );
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       <aside className="rounded-xl border border-brand-cream-3 bg-card p-4 shadow-sm">
@@ -289,15 +290,15 @@ export function OrdersClient({ rows }: Props) {
 
             <div className="mt-3 rounded-md border border-brand-cream-3">
               <table className="w-full text-xs">
-                <thead className="bg-brand-cream-1 text-left uppercase tracking-wider text-brand-ink-3">
+                <TableHeader className="bg-brand-cream-1 text-left uppercase tracking-wider text-brand-ink-3">
                   <tr>
                     <th className="px-2.5 py-1.5">Produk</th>
                     <th className="px-2.5 py-1.5 text-right">Qty</th>
                     <th className="px-2.5 py-1.5 text-right">Harga</th>
                     <th className="px-2.5 py-1.5 text-right">Total</th>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-brand-cream-3">
+                </TableHeader>
+                <TableBody className="divide-y divide-brand-cream-3">
                   {detail.lines.map((l) => (
                     <tr key={l.id}>
                       <td className="px-2.5 py-1.5 text-brand-ink">{l.productName}</td>
@@ -310,7 +311,7 @@ export function OrdersClient({ rows }: Props) {
                       </td>
                     </tr>
                   ))}
-                </tbody>
+                </TableBody>
               </table>
             </div>
 
@@ -394,14 +395,14 @@ export function OrdersClient({ rows }: Props) {
                   </span>
                   <div className="mt-1 rounded-md border border-brand-cream-3">
                     <table className="w-full text-xs">
-                      <thead className="bg-brand-cream-1 text-left uppercase tracking-wider text-brand-ink-3">
+                      <TableHeader className="bg-brand-cream-1 text-left uppercase tracking-wider text-brand-ink-3">
                         <tr>
                           <th className="px-2.5 py-1.5">Produk</th>
                           <th className="px-2.5 py-1.5 text-right">Asli</th>
                           <th className="w-20 px-2.5 py-1.5 text-right">Refund</th>
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-brand-cream-3">
+                      </TableHeader>
+                      <TableBody className="divide-y divide-brand-cream-3">
                         {detail.lines.map((l) => {
                           const maxQty = Math.round(Number(l.qty));
                           const currentQty = refundLines.get(l.id) ?? 0;
@@ -434,7 +435,7 @@ export function OrdersClient({ rows }: Props) {
                             </tr>
                           );
                         })}
-                      </tbody>
+                      </TableBody>
                     </table>
                   </div>
                   <p className="mt-1.5 text-right text-xs font-medium text-brand-ink">

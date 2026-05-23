@@ -14,6 +14,7 @@ import {
   createDisciplinaryActionAction,
   listDisciplinaryActionsAction,
 } from './actions';
+import { Button, Input, Select } from "@erp/ui";
 
 const LEVEL_LABEL: Record<string, { short: string; color: string; desc: string }> = {
   SP1: { short: 'SP1', color: 'bg-brand-gold/10 text-brand-gold', desc: 'Surat Peringatan 1' },
@@ -147,7 +148,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                 <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">
                   {tc('employee')} *
                 </label>
-                <select
+                <Select
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value)}
                   required
@@ -159,13 +160,13 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                       {e.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">
                   {t('level')} *
                 </label>
-                <select
+                <Select
                   value={level}
                   onChange={(e) => setLevel(e.target.value as 'SP1' | 'SP2' | 'SP3')}
                   className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none"
@@ -173,13 +174,13 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                   <option value="SP1">{t('sp1Desc')}</option>
                   <option value="SP2">{t('sp2Desc')}</option>
                   <option value="SP3">{t('sp3Desc')}</option>
-                </select>
+                </Select>
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">
                   {t('incidentDate')} *
                 </label>
-                <input
+                <Input
                   type="date"
                   value={incidentDate}
                   onChange={(e) => setIncidentDate(e.target.value)}
@@ -251,13 +252,13 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
           <option value="acknowledged">Ditekankan</option>
           <option value="escalated">Dieselakan</option>
         </select>
-        <button
+        <Button
           onClick={handleFilter}
           disabled={isPending}
-          className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm text-brand-ink hover:bg-brand-cream-1 disabled:opacity-50"
+          className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm text-brand-ink hover:bg-brand-cream-1 disabled:opacity-50" variant="secondary" size="md"
         >
           {isPending ? tc('actions.loading') : t('filterBtn')}
-        </button>
+        </Button>
       </div>
 
       {/* List */}

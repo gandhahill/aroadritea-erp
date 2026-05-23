@@ -4,9 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useMemo, useState } from 'react';
 import { type PurchaseOrderFormData, createPurchaseOrderAction } from '../../actions';
-
-const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
+import { Button, TableCell, Select, Input, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
 
 interface LineDraft {
   key: number;
@@ -87,33 +85,33 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
       <section className="grid gap-4 md:grid-cols-2">
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('supplierTitle')}</span>
-          <select name="supplierId" required className={INPUT}>
+          <Select name="supplierId" required>
             <option value="">{t('selectSupplier')}</option>
             {data.suppliers.map((supplier) => (
               <option key={supplier.id} value={supplier.id}>
                 {supplier.name} {supplier.isPkp ? '(PKP)' : ''}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{tc('labels.location')}</span>
-          <select name="locationId" required className={INPUT}>
+          <Select name="locationId" required>
             <option value="">{t('selectLocation')}</option>
             {data.locations.map((location) => (
               <option key={location.id} value={location.id}>
                 {location.name}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('orderDate')}</span>
-          <input name="orderDate" type="date" required defaultValue={today} className={INPUT} />
+          <Input name="orderDate" type="date" required defaultValue={today} />
         </label>
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('expectedDate')}</span>
-          <input name="expectedDate" type="date" className={INPUT} />
+          <Input name="expectedDate" type="date" />
         </label>
       </section>
 
@@ -133,27 +131,27 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
-            <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+          <Table>
+            <TableHeader>
               <tr>
-                <th className="px-4 py-3">{tc('labels.product')}</th>
-                <th className="px-4 py-3 text-right">{tc('labels.qty')}</th>
-                <th className="px-4 py-3">{tc('labels.uom')}</th>
-                <th className="px-4 py-3 text-right">{tc('labels.price')}</th>
-                <th className="px-4 py-3">{tc('labels.tax')}</th>
-                <th className="px-4 py-3" />
+                <TableHead className="px-4 py-3">{tc('labels.product')}</TableHead>
+                <TableHead className="px-4 py-3 text-right">{tc('labels.qty')}</TableHead>
+                <TableHead className="px-4 py-3">{tc('labels.uom')}</TableHead>
+                <TableHead className="px-4 py-3 text-right">{tc('labels.price')}</TableHead>
+                <TableHead className="px-4 py-3">{tc('labels.tax')}</TableHead>
+                <TableHead className="px-4 py-3" />
               </tr>
-            </thead>
-            <tbody className="divide-y divide-brand-cream-3 bg-card">
+            </TableHeader>
+            <TableBody>
               {lines.map((line, index) => (
                 <tr key={line.key}>
-                  <td className="min-w-72 px-4 py-3">
-                    <select
+                  <TableCell className="min-w-72 px-4 py-3">
+                    <Select
                       name={`productId-${index}`}
                       required
                       value={line.productId}
                       onChange={(event) => updateLine(line.key, { productId: event.target.value })}
-                      className={INPUT}
+                     
                     >
                       <option value="">{t('selectProduct')}</option>
                       {data.products.map((product) => (
@@ -161,43 +159,43 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
                           {product.sku} — {product.name}
                         </option>
                       ))}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    <input
+                    </Select>
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <Input
                       name={`qtyOrdered-${index}`}
                       required
                       inputMode="decimal"
                       value={line.qtyOrdered}
                       onChange={(event) => updateLine(line.key, { qtyOrdered: event.target.value })}
-                      className={`${INPUT} text-right`}
+                      className="text-right"
                     />
-                  </td>
-                  <td className="px-4 py-3">
-                    <input
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <Input
                       name={`uom-${index}`}
                       required
                       value={line.uom}
                       onChange={(event) => updateLine(line.key, { uom: event.target.value })}
-                      className={INPUT}
+                     
                     />
-                  </td>
-                  <td className="px-4 py-3">
-                    <input
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <Input
                       name={`unitPrice-${index}`}
                       required
                       inputMode="numeric"
                       value={line.unitPrice}
                       onChange={(event) => updateLine(line.key, { unitPrice: event.target.value })}
-                      className={`${INPUT} text-right`}
+                      className="text-right"
                     />
-                  </td>
-                  <td className="px-4 py-3">
-                    <select
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <Select
                       name={`taxCode-${index}`}
                       value={line.taxCode}
                       onChange={(event) => updateLine(line.key, { taxCode: event.target.value })}
-                      className={INPUT}
+                     
                     >
                       <option value="">{t('noTax')}</option>
                       {data.taxRates.map((rate) => (
@@ -205,9 +203,9 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
                           {rate.code} — {rate.name}
                         </option>
                       ))}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3 text-right">
+                    </Select>
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right">
                     <button
                       type="button"
                       onClick={() => removeLine(line.key)}
@@ -216,17 +214,17 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
                     >
                       {t('deleteItem')}
                     </button>
-                  </td>
+                  </TableCell>
                 </tr>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </section>
 
       <label className="space-y-1.5">
         <span className="text-sm font-medium text-brand-ink">{tc('labels.notes')}</span>
-        <textarea name="notes" rows={3} className={INPUT} />
+        <textarea name="notes" rows={3} />
       </label>
 
       <div className="flex flex-col gap-3 border-t border-brand-cream-3 pt-4 md:flex-row md:items-center md:justify-between">
@@ -241,20 +239,20 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
           </span>
         </p>
         <div className="flex justify-end gap-3">
-          <button
+          <Button
             type="button"
             onClick={() => router.push('/purchasing')}
-            className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
+            className="rounded-lg " variant="secondary" size="md"
           >
             {tc('actions.cancel')}
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             disabled={pending || data.suppliers.length === 0 || data.products.length === 0}
-            className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
+            className="rounded-lg " variant="primary" size="lg"
           >
             {pending ? tc('actions.saving') : t('savePo')}
-          </button>
+          </Button>
         </div>
       </div>
     </form>

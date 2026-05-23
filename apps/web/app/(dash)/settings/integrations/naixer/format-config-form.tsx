@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { type FormatConfigItem, previewQrPayload, updateFormatConfig } from './actions';
+import { Input, Select } from "@erp/ui";
 
 interface Props {
   configs: FormatConfigItem[];
@@ -112,7 +113,7 @@ export function FormatConfigForm({ configs }: Props) {
                 >
                   {t('qrFormat')}
                 </label>
-                <select
+                <Select
                   id={`naixer-format-${config.id}`}
                   value={config.format}
                   onChange={(e) => handleUpdate(config.id, { format: e.target.value })}
@@ -121,7 +122,7 @@ export function FormatConfigForm({ configs }: Props) {
                 >
                   <option value="dash">{t('formatBDash')}</option>
                   <option value="pipe">{t('formatAPipe')}</option>
-                </select>
+                </Select>
               </div>
 
               {/* Label Size */}
@@ -228,7 +229,7 @@ export function FormatConfigForm({ configs }: Props) {
               <div>
                 <p className="mb-1 block text-xs font-medium text-brand-ink-2">{t('parameterOrder')}</p>
                 <div className="flex flex-col gap-1 pt-0.5">
-                  <input
+                  <Input
                     type="text"
                     value={config.parameterOrderJson.join(', ')}
                     onChange={(e) => {

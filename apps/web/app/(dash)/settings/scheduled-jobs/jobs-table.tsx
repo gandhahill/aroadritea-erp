@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import { toggleScheduledJob, updateJobSchedule } from './actions';
 import type { ScheduledJobItem } from './actions';
+import { TableCell, TableBody } from "@erp/ui";
 
 interface Props {
   jobs: ScheduledJobItem[];
@@ -315,7 +316,7 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-brand-cream-3">
+          <TableBody className="divide-y divide-brand-cream-3">
             {filteredJobs.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-8 text-center text-xs text-brand-ink-3">
@@ -330,15 +331,15 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
                   !job.enabled ? 'opacity-60' : ''
                 }`}
               >
-                <td className="px-4 py-3">
+                <TableCell className="px-4 py-3">
                   <ToggleSwitch
                     enabled={job.enabled}
                     onToggle={() => handleToggle(job.id, job.enabled)}
                     disabled={isPending}
                   />
-                </td>
+                </TableCell>
 
-                <td className="px-4 py-3">
+                <TableCell className="px-4 py-3">
                   <div>
                     <p className="text-sm font-medium text-brand-ink">
                       {resolveMessage(job.label, t)}
@@ -354,9 +355,9 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
                       </p>
                     )}
                   </div>
-                </td>
+                </TableCell>
 
-                <td className="px-4 py-3">
+                <TableCell className="px-4 py-3">
                   <CronEditor
                     jobId={job.id}
                     cronExpression={job.cronExpression}
@@ -364,13 +365,13 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
                     labels={cronLabels}
                   />
                   <p className="mt-1 text-[10px] text-brand-ink-3">{job.timezone}</p>
-                </td>
+                </TableCell>
 
-                <td className="px-4 py-3">
+                <TableCell className="px-4 py-3">
                   <p className="text-xs text-brand-ink-2">{formatDate(job.lastRunAt)}</p>
-                </td>
+                </TableCell>
 
-                <td className="px-4 py-3">
+                <TableCell className="px-4 py-3">
                   <StatusBadge status={job.lastRunStatus} t={t} />
                   {job.lastRunStatus === 'failed' && job.lastRunError && (
                     <p
@@ -380,10 +381,10 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
                       {job.lastRunError}
                     </p>
                   )}
-                </td>
+                </TableCell>
               </tr>
             ))}
-          </tbody>
+          </TableBody>
         </table>
       </div>
     </div>

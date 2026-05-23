@@ -13,6 +13,7 @@ import { createSaleAction } from './actions';
 import { type RoundingOption, getDonationOptions } from './lib/donation-options';
 import { useOfflineSync } from './lib/offline-sync-context';
 import { usePosCart } from './pos-cart-context';
+import { Input } from "@erp/ui";
 
 const BASE_PAYMENT_METHODS = [
   { id: 'cash', badge: 'Rp' },
@@ -300,7 +301,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-brand-ink-3">
                     Rp
                   </span>
-                  <input
+                  <Input
                     type="text"
                     inputMode="numeric"
                     value={inputAmount}

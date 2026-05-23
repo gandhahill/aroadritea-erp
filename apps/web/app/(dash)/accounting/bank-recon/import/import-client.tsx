@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { importBankStatement } from '../actions';
+import { Input, TableBody, Select } from "@erp/ui";
 
 interface MasterData {
   bankAccounts: { id: string; name: string; number: string }[];
@@ -189,7 +190,7 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
           <label className="text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
             {commonLabels.bankAccount}
           </label>
-          <select
+          <Select
             value={bankAccountId}
             onChange={(e) => setBankAccountId(e.target.value)}
             className="w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
@@ -202,13 +203,13 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
                 {b.name} - {b.number}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="space-y-1">
           <label className="text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
             {labels.location}
           </label>
-          <select
+          <Select
             value={locationId}
             onChange={(e) => setLocationId(e.target.value)}
             className="w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
@@ -221,13 +222,13 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
                 {l.code} - {l.name.id}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <div className="space-y-1">
           <label className="text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
             {labels.transactionDate}
           </label>
-          <input
+          <Input
             type="date"
             value={statementDate}
             onChange={(e) => setStatementDate(e.target.value)}
@@ -238,7 +239,7 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
           <label className="text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
             {labels.openingBalance}
           </label>
-          <input
+          <Input
             type="number"
             value={openingBalance}
             onChange={(e) => setOpeningBalance(e.target.value)}
@@ -249,7 +250,7 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
           <label className="text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
             {labels.closingBalance}
           </label>
-          <input
+          <Input
             type="number"
             value={closingBalance}
             onChange={(e) => setClosingBalance(e.target.value)}
@@ -325,11 +326,11 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
                 <th className="px-3 py-3 w-16"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-cream-3">
+            <TableBody className="divide-y divide-brand-cream-3">
               {lines.map((line, i) => (
                 <tr key={i} className="align-top">
                   <td className="px-3 py-2">
-                    <input
+                    <Input
                       type="date"
                       value={line.transactionDate}
                       onChange={(e) => updateLine(i, { transactionDate: e.target.value })}
@@ -337,7 +338,7 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
                     />
                   </td>
                   <td className="px-3 py-2">
-                    <input
+                    <Input
                       type="text"
                       value={line.description}
                       onChange={(e) => updateLine(i, { description: e.target.value })}
@@ -345,7 +346,7 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
                     />
                   </td>
                   <td className="px-3 py-2">
-                    <input
+                    <Input
                       type="number"
                       value={line.debitAmount}
                       onChange={(e) => updateLine(i, { debitAmount: e.target.value })}
@@ -353,7 +354,7 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
                     />
                   </td>
                   <td className="px-3 py-2">
-                    <input
+                    <Input
                       type="number"
                       value={line.creditAmount}
                       onChange={(e) => updateLine(i, { creditAmount: e.target.value })}
@@ -361,7 +362,7 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
                     />
                   </td>
                   <td className="px-3 py-2">
-                    <input
+                    <Input
                       type="number"
                       value={line.runningBalance}
                       onChange={(e) => updateLine(i, { runningBalance: e.target.value })}
@@ -385,7 +386,7 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
                   </td>
                 </tr>
               )}
-            </tbody>
+            </TableBody>
           </table>
         </div>
       )}

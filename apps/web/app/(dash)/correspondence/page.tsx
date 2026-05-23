@@ -3,12 +3,9 @@ import { Pagination } from '@/components/pagination';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { createCorrespondenceAction, fetchCorrespondencePageData } from './actions';
+import { TableCell, TableHead, Select, TableBody, Table, Button, Input } from "@erp/ui";
 
 export const dynamic = 'force-dynamic';
-
-const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
-
 const DIRECTIONS = ['incoming', 'outgoing', 'internal'] as const;
 const CHANNELS = ['physical', 'email', 'whatsapp', 'courier', 'other'] as const;
 const CLASSIFICATIONS = [
@@ -72,33 +69,33 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
         <h2 className="text-base font-semibold text-brand-ink">{t('newRecord')}</h2>
         <form action={createCorrespondenceAction} className="mt-4 grid gap-4 lg:grid-cols-4">
           <Field label={t('fields.location')}>
-            <select name="locationId" className={INPUT} required>
+            <Select name="locationId" required>
               {data.locations.map((location) => (
                 <option key={location.id} value={location.id}>
                   {location.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label={t('fields.direction')}>
             <OptionSelect name="direction" values={DIRECTIONS} t={t} group="directions" />
           </Field>
           <Field label={t('fields.documentNo')}>
-            <input name="documentNo" className={INPUT} required />
+            <Input name="documentNo" required />
           </Field>
           <Field label={t('fields.documentDate')}>
-            <input name="documentDate" type="date" className={INPUT} required />
+            <Input name="documentDate" type="date" required />
           </Field>
           <div className="lg:col-span-2">
             <Field label={t('fields.subject')}>
-              <input name="subject" className={INPUT} required />
+              <Input name="subject" required />
             </Field>
           </div>
           <Field label={t('fields.counterparty')}>
-            <input name="counterparty" className={INPUT} />
+            <Input name="counterparty" />
           </Field>
           <Field label={t('fields.dueDate')}>
-            <input name="dueDate" type="date" className={INPUT} />
+            <Input name="dueDate" type="date" />
           </Field>
           <Field label={t('fields.channel')}>
             <OptionSelect name="channel" values={CHANNELS} t={t} group="channels" />
@@ -115,14 +112,14 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
             <OptionSelect name="priority" values={PRIORITIES} t={t} group="priorities" />
           </Field>
           <Field label={t('fields.owner')}>
-            <select name="ownerUserId" className={INPUT} defaultValue="">
+            <Select name="ownerUserId" defaultValue="">
               <option value="">{t('unassigned')}</option>
               {data.users.map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <FileUploadField
             label={t('fields.storageUrl')}
@@ -132,20 +129,20 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx"
           />
           <Field label={t('fields.tags')}>
-            <input name="tags" className={INPUT} placeholder={t('tagsPlaceholder')} />
+            <Input name="tags" placeholder={t('tagsPlaceholder')} />
           </Field>
           <div className="lg:col-span-3">
             <Field label={t('fields.summary')}>
-              <textarea name="summary" rows={3} className={INPUT} />
+              <textarea name="summary" rows={3} />
             </Field>
           </div>
           <div className="flex items-end">
-            <button
+            <Button
               type="submit"
-              className="w-full rounded-lg bg-brand-red px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark"
+              className="w-full rounded-lg bg-brand-red px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark" variant="primary" size="lg"
             >
               {actions('save')}
-            </button>
+            </Button>
           </div>
         </form>
       </section>
@@ -169,7 +166,7 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
+          <Table>
             <thead className="bg-brand-cream">
               <tr className="text-left text-brand-ink-2">
                 <Th>{t('fields.documentNo')}</Th>
@@ -182,7 +179,7 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
                 <Th>{t('open')}</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-cream-3">
+            <TableBody className="divide-y divide-brand-cream-3">
               {data.items.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-8 text-center text-brand-ink-3">
@@ -210,8 +207,8 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
                   </tr>
                 ))
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
         <Pagination currentPage={data.page} totalItems={data.total} pageSize={data.pageSize} />
       </section>
@@ -240,22 +237,22 @@ function OptionSelect({
   group: string;
 }) {
   return (
-    <select name={name} className={INPUT}>
+    <Select name={name}>
       {values.map((value) => (
         <option key={value} value={value}>
           {t(`${group}.${value}`)}
         </option>
       ))}
-    </select>
+    </Select>
   );
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return <th className="whitespace-nowrap px-4 py-3 font-medium">{children}</th>;
+  return <TableHead className="whitespace-nowrap px-4 py-3 font-medium">{children}</TableHead>;
 }
 
 function Td({ children }: { children: React.ReactNode }) {
-  return <td className="whitespace-nowrap px-4 py-3">{children}</td>;
+  return <TableCell className="whitespace-nowrap px-4 py-3">{children}</TableCell>;
 }
 
 function FilterLink({

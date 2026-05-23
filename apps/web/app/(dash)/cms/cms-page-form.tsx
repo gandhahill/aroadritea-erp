@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { createCmsPage, deleteCmsPage, publishCmsPage, updateCmsPage } from './actions';
+import { Input, Select, Button } from "@erp/ui";
 
 interface Props {
   page?: Record<string, unknown> | null;
@@ -156,13 +157,13 @@ export function CmsPageForm({ page, isNew = false }: Props) {
               {status === 'published' ? t('unpublish') : t('publish')}
             </button>
           )}
-          <button
+          <Button
             onClick={() => handleSave(false)}
             disabled={isPending}
-            className="inline-flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90 disabled:opacity-50" variant="primary" size="md"
           >
             {isPending ? tc('actions.saving') : tc('actions.save')}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -195,7 +196,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                 </button>
               ))}
             </div>
-            <input
+            <Input
               type="text"
               value={titleVals[activeLocale] ?? ''}
               onChange={(e) => setTitleVals((v) => ({ ...v, [activeLocale]: e.target.value }))}
@@ -234,7 +235,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                   <p className="mb-1 text-xs font-medium text-brand-ink-3">
                     Meta Title — {tab.label}
                   </p>
-                  <input
+                  <Input
                     type="text"
                     value={metaTitleVals[tab.code] ?? ''}
                     onChange={(e) =>
@@ -268,7 +269,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                 <label className="mb-1 block text-xs font-medium text-brand-ink-3">
                   {t('slug')}
                 </label>
-                <input
+                <Input
                   type="text"
                   value={formData.slug}
                   onChange={(e) => setFormData((v) => ({ ...v, slug: e.target.value }))}
@@ -283,7 +284,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                 <label className="mb-1 block text-xs font-medium text-brand-ink-3">
                   {t('type')}
                 </label>
-                <select
+                <Select
                   value={formData.type}
                   onChange={(e) => setFormData((v) => ({ ...v, type: e.target.value }))}
                   className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
@@ -291,14 +292,14 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                   <option value="page">{t('types.page')}</option>
                   <option value="landing">{t('types.landing')}</option>
                   <option value="legal">{t('types.legal')}</option>
-                </select>
+                </Select>
               </div>
 
               <div>
                 <label className="mb-1 block text-xs font-medium text-brand-ink-3">
                   {t('displayOrder')}
                 </label>
-                <input
+                <Input
                   type="number"
                   value={formData.displayOrder}
                   onChange={(e) => setFormData((v) => ({ ...v, displayOrder: e.target.value }))}

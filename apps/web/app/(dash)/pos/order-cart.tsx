@@ -9,6 +9,7 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { type CartLine, usePosCart } from './pos-cart-context';
+import { Input } from "@erp/ui";
 
 export function OrderCart() {
   const t = useTranslations('pos');
@@ -226,7 +227,7 @@ function CartLineItem({
       )}
 
       {/* Notes */}
-      <input
+      <Input
         type="text"
         value={line.notes ?? ''}
         onChange={(e) => onNotesChange(e.target.value)}

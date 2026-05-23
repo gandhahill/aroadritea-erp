@@ -9,6 +9,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchTrialBalance } from '../actions';
 import { ExportXlsxButton } from '../export-button';
+import { TableCell, TableHead } from "@erp/ui";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('reporting.trialBalance');
@@ -82,24 +83,24 @@ export default async function TrialBalancePage({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+                <TableHead className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   {t('columns.code')}
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   {t('columns.account')}
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   {t('columns.type')}
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   {t('columns.debit')}
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   {t('columns.credit')}
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   {t('columns.balance')}
-                </th>
+                </TableHead>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
@@ -128,16 +129,16 @@ export default async function TrialBalancePage({
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-brand-cream-3 bg-brand-cream/30 font-semibold">
-                <td className="px-4 py-3 text-brand-ink" colSpan={3}>
+                <TableCell className="px-4 py-3 text-brand-ink" colSpan={3}>
                   {t('total')}
-                </td>
-                <td className="px-4 py-3 text-right font-mono tabular-nums text-brand-jade">
+                </TableCell>
+                <TableCell className="px-4 py-3 text-right font-mono tabular-nums text-brand-jade">
                   {fmtRp(data.totalDebit)}
-                </td>
-                <td className="px-4 py-3 text-right font-mono tabular-nums text-brand-clay">
+                </TableCell>
+                <TableCell className="px-4 py-3 text-right font-mono tabular-nums text-brand-clay">
                   {fmtRp(data.totalCredit)}
-                </td>
-                <td className="px-4 py-3"></td>
+                </TableCell>
+                <TableCell className="px-4 py-3"></TableCell>
               </tr>
             </tfoot>
           </table>

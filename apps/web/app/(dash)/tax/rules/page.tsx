@@ -6,6 +6,7 @@ import {
   fetchTaxRules,
   saveTaxRuleAction,
 } from './actions';
+import { Button, TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
 
 export const metadata: Metadata = {
   title: 'Tax Rules - Aroadri ERP',
@@ -75,27 +76,27 @@ export default async function TaxRulesPage() {
           <input name="isAppliedDefault" type="checkbox" defaultChecked />
           {t('defaultApplied')}
         </label>
-        <button
+        <Button
           type="submit"
-          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90"
+          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90" variant="primary" size="md"
         >
           {t('saveRule')}
-        </button>
+        </Button>
       </form>
 
       <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
-        <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
-          <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+        <Table>
+          <TableHeader>
             <tr>
-              <th className="px-4 py-3">{t('columns.scope')}</th>
-              <th className="px-4 py-3">{t('columns.tax')}</th>
-              <th className="px-4 py-3">{t('columns.default')}</th>
-              <th className="px-4 py-3 text-right">{t('columns.priority')}</th>
-              <th className="px-4 py-3">{t('columns.effective')}</th>
-              <th className="px-4 py-3">{t('columns.actions')}</th>
+              <TableHead className="px-4 py-3">{t('columns.scope')}</TableHead>
+              <TableHead className="px-4 py-3">{t('columns.tax')}</TableHead>
+              <TableHead className="px-4 py-3">{t('columns.default')}</TableHead>
+              <TableHead className="px-4 py-3 text-right">{t('columns.priority')}</TableHead>
+              <TableHead className="px-4 py-3">{t('columns.effective')}</TableHead>
+              <TableHead className="px-4 py-3">{t('columns.actions')}</TableHead>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-brand-cream-3 bg-card">
+          </TableHeader>
+          <TableBody>
             {rows.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-brand-ink-3">
@@ -105,21 +106,21 @@ export default async function TaxRulesPage() {
             ) : (
               rows.map((rule) => (
                 <tr key={rule.id}>
-                  <td className="px-4 py-3">
+                  <TableCell className="px-4 py-3">
                     <p className="font-semibold text-brand-ink">{t(`scope.${rule.scopeKind}`)}</p>
                     <p className="text-xs text-brand-ink-3">{rule.scopeId ?? t('global')}</p>
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     <p className="font-mono text-xs font-semibold text-brand-ink">{rule.taxCode}</p>
                     <p className="text-xs text-brand-ink-3">{pickName(rule.taxName, locale)}</p>
-                  </td>
-                  <td className="px-4 py-3">{rule.isAppliedDefault ? t('yes') : t('no')}</td>
-                  <td className="px-4 py-3 text-right">{rule.priority}</td>
-                  <td className="px-4 py-3 text-brand-ink-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">{rule.isAppliedDefault ? t('yes') : t('no')}</TableCell>
+                  <TableCell className="px-4 py-3 text-right">{rule.priority}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-3">
                     {formatDate(rule.effectiveFrom, locale, t('onwards'))} -{' '}
                     {formatDate(rule.effectiveUntil, locale, t('onwards'))}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     <details>
                       <summary className="cursor-pointer text-xs font-semibold text-brand-red">
                         {t('edit')}
@@ -178,12 +179,12 @@ export default async function TaxRulesPage() {
                           />
                           {t('columns.default')}
                         </label>
-                        <button
+                        <Button
                           type="submit"
-                          className="rounded bg-brand-red px-3 py-1.5 text-xs font-semibold text-white"
+                          className="rounded bg-brand-red px-3 py-1.5 text-xs font-semibold text-white" variant="primary" size="sm"
                         >
                           {t('save')}
-                        </button>
+                        </Button>
                       </form>
                       <form action={deleteTaxRuleAction} className="mt-2">
                         <input type="hidden" name="id" value={rule.id} />
@@ -192,12 +193,12 @@ export default async function TaxRulesPage() {
                         </button>
                       </form>
                     </details>
-                  </td>
+                  </TableCell>
                 </tr>
               ))
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

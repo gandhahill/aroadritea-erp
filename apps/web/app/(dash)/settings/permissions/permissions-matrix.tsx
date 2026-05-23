@@ -134,26 +134,22 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
           <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle')}</p>
         </div>
         <div className="grid gap-3 md:grid-cols-[1fr_1.3fr_1.3fr_1.3fr_auto]">
-          <Input
-            label={tc('fields.code')}
+          <FilterInput label={tc('fields.code')}
             value={newRole.code}
             onChange={(value) => setNewRole((current) => ({ ...current, code: value }))}
             placeholder="store_supervisor"
           />
-          <Input
-            label={tc('fields.nameId')}
+          <FilterInput label={tc('fields.nameId')}
             value={newRole.id}
             onChange={(value) => setNewRole((current) => ({ ...current, id: value }))}
             placeholder="Supervisor Outlet"
           />
-          <Input
-            label={tc('fields.nameEn')}
+          <FilterInput label={tc('fields.nameEn')}
             value={newRole.en}
             onChange={(value) => setNewRole((current) => ({ ...current, en: value }))}
             placeholder="Store Supervisor"
           />
-          <Input
-            label={tc('fields.nameZh')}
+          <FilterInput label={tc('fields.nameZh')}
             value={newRole.zh}
             onChange={(value) => setNewRole((current) => ({ ...current, zh: value }))}
             placeholder="门店主管"
@@ -186,8 +182,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                   </p>
                   <p className="mt-2 font-mono text-xs font-semibold text-brand-ink">{role.code}</p>
                 </div>
-                <Input
-                  label={tc('fields.nameId')}
+                <FilterInput label={tc('fields.nameId')}
                   value={draft.id}
                   onChange={(value) =>
                     setRoleDrafts((current) => ({
@@ -196,8 +191,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                     }))
                   }
                 />
-                <Input
-                  label={tc('fields.nameEn')}
+                <FilterInput label={tc('fields.nameEn')}
                   value={draft.en}
                   onChange={(value) =>
                     setRoleDrafts((current) => ({
@@ -206,8 +200,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                     }))
                   }
                 />
-                <Input
-                  label={tc('fields.nameZh')}
+                <FilterInput label={tc('fields.nameZh')}
                   value={draft.zh}
                   onChange={(value) =>
                     setRoleDrafts((current) => ({
@@ -300,7 +293,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
   );
 }
 
-function Input({
+function FilterInput({
   label,
   value,
   onChange,

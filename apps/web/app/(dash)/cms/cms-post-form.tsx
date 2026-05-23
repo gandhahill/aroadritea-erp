@@ -27,6 +27,7 @@ const KIND_OPTIONS = [
 ];
 
 import { useTranslations } from 'next-intl';
+import { Input, Select, Button } from "@erp/ui";
 
 export function CmsPostForm({ post, isNew = false }: Props) {
   const t = useTranslations('cms.posts');
@@ -165,13 +166,13 @@ export function CmsPostForm({ post, isNew = false }: Props) {
               {status === 'published' ? tc('actions.unpublish') : tc('actions.publish')}
             </button>
           )}
-          <button
+          <Button
             onClick={() => handleSave(false)}
             disabled={isPending}
-            className="inline-flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90 disabled:opacity-50" variant="primary" size="md"
           >
             {isPending ? tc('actions.saving') : tc('actions.save')}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -200,7 +201,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
                 </button>
               ))}
             </div>
-            <input
+            <Input
               type="text"
               value={titleVals[activeLocale] ?? ''}
               onChange={(e) => setTitleVals((v) => ({ ...v, [activeLocale]: e.target.value }))}
@@ -254,7 +255,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
             <div className="space-y-3">
               <div>
                 <label className="mb-1 block text-xs font-medium text-brand-ink-3">{t('slug')}</label>
-                <input
+                <Input
                   type="text"
                   value={formData.slug}
                   onChange={(e) => setFormData((v) => ({ ...v, slug: e.target.value }))}
@@ -267,7 +268,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
 
               <div>
                 <label className="mb-1 block text-xs font-medium text-brand-ink-3">{t('category')}</label>
-                <select
+                <Select
                   value={formData.kind}
                   onChange={(e) => setFormData((v) => ({ ...v, kind: e.target.value }))}
                   className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
@@ -277,14 +278,14 @@ export function CmsPostForm({ post, isNew = false }: Props) {
                       {opt.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div>
                 <label className="mb-1 block text-xs font-medium text-brand-ink-3">
                   {t('tags')}
                 </label>
-                <input
+                <Input
                   type="text"
                   value={formData.tags}
                   onChange={(e) => setFormData((v) => ({ ...v, tags: e.target.value }))}
@@ -297,7 +298,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
                 <label className="mb-1 block text-xs font-medium text-brand-ink-3">
                   {t('displayOrder')}
                 </label>
-                <input
+                <Input
                   type="number"
                   value={formData.displayOrder}
                   onChange={(e) => setFormData((v) => ({ ...v, displayOrder: e.target.value }))}

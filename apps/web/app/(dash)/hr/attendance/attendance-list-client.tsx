@@ -9,6 +9,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { forgiveLateAction } from './actions';
 import { useTranslations } from 'next-intl';
+import { TableCell, TableHead } from "@erp/ui";
 
 interface AttendanceRow {
   id: string;
@@ -187,28 +188,28 @@ export function AttendanceListClient({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.employee')}</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.shift')}</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.checkIn')}</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.checkOut')}</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.method')}</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.late')}</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.workedHours')}</th>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.employee')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.shift')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.checkIn')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.checkOut')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.method')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.late')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.workedHours')}</TableHead>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
               {items.map((row) => (
                 <tr key={row.id} className="hover:bg-brand-cream-1/50">
-                  <td className="px-4 py-3 font-medium text-brand-ink">{row.employeeName}</td>
-                  <td className="px-4 py-3 text-brand-ink-2">{row.shiftCode ?? '—'}</td>
-                  <td className="px-4 py-3 text-brand-ink-2">{formatDateTime(row.checkInAt)}</td>
-                  <td className="px-4 py-3 text-brand-ink-2">
+                  <TableCell className="px-4 py-3 font-medium text-brand-ink">{row.employeeName}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">{row.shiftCode ?? '—'}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">{formatDateTime(row.checkInAt)}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">
                     {formatDateTime(row.checkOutAt ?? '')}
-                  </td>
-                  <td className="px-4 py-3 text-brand-ink-2 capitalize">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2 capitalize">
                     {row.checkInMethod === 'gps' ? 'GPS' : row.checkInMethod}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     {row.isLate ? (
                       row.lateForgiven ? (
                         <span
@@ -225,9 +226,9 @@ export function AttendanceListClient({
                     ) : (
                       <span className="text-xs text-brand-jade">{t('onTime')}</span>
                     )}
-                  </td>
-                  <td className="px-4 py-3 text-brand-ink-2">{formatMinutes(row.workedMinutes)}</td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">{formatMinutes(row.workedMinutes)}</TableCell>
+                  <TableCell className="px-4 py-3">
                     {row.isLate && !row.lateForgiven ? (
                       <button
                         type="button"
@@ -241,7 +242,7 @@ export function AttendanceListClient({
                         {t('forgiveBtn')}
                       </button>
                     ) : null}
-                  </td>
+                  </TableCell>
                 </tr>
               ))}
             </tbody>

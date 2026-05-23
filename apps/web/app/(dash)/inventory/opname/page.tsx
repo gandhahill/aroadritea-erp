@@ -14,6 +14,7 @@ import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { TableCell, TableHead } from "@erp/ui";
 
 export const metadata: Metadata = { title: 'Stock Opname' };
 
@@ -136,13 +137,13 @@ export default async function OpnameListPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.sessionNo')}</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.date')}</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.outlet')}</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.period')}</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.status')}</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.createdBy')}</th>
-                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('columns.actions')}</th>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.sessionNo')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.date')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.outlet')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.period')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.status')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.createdBy')}</TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('columns.actions')}</TableHead>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
@@ -154,27 +155,27 @@ export default async function OpnameListPage() {
                 };
                 return (
                   <tr key={row.id} className="hover:bg-brand-cream-1/50">
-                    <td className="px-4 py-3 font-medium text-brand-ink">{row.number}</td>
-                    <td className="px-4 py-3 text-brand-ink-2">{String(row.sessionDate)}</td>
-                    <td className="px-4 py-3 text-brand-ink-2">
+                    <TableCell className="px-4 py-3 font-medium text-brand-ink">{row.number}</TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink-2">{String(row.sessionDate)}</TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink-2">
                       {pickLocationLabel(
                         row.locationName as Record<string, string> | null,
                         row.locationCode,
                         row.locationId,
                       )}
-                    </td>
-                    <td className="px-4 py-3 text-brand-ink-2">{row.periodCode}</td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink-2">{row.periodCode}</TableCell>
+                    <TableCell className="px-4 py-3">
                       <span
                         className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${status.bg} ${status.text}`}
                       >
                         {t(`status.${row.status}`)}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-brand-ink-2">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink-2">
                       {row.preparedByName ?? row.preparedByEmail ?? '—'}
-                    </td>
-                    <td className="px-4 py-3 text-right">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-right">
                       <Link
                         href={`/inventory/opname/${row.id}`}
                         className="inline-flex items-center gap-1 text-sm font-medium text-brand-ember-5 transition-colors hover:text-brand-ember-6"
@@ -194,7 +195,7 @@ export default async function OpnameListPage() {
                           />
                         </svg>
                       </Link>
-                    </td>
+                    </TableCell>
                   </tr>
                 );
               })}

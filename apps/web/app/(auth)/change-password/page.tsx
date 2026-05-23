@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 import { clearPasswordRequirementAction } from './actions';
 import { useTranslations } from 'next-intl';
+import { Input } from "@erp/ui";
 
 export default function ChangePasswordPage() {
   const t = useTranslations('auth.changePassword');
@@ -83,7 +84,7 @@ export default function ChangePasswordPage() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-brand-ink-2">{t('currentPassword')}</label>
-              <input
+              <Input
                 type="password"
                 required
                 value={currentPassword}
@@ -94,7 +95,7 @@ export default function ChangePasswordPage() {
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-brand-ink-2">{t('newPassword')}</label>
-              <input
+              <Input
                 type="password"
                 required
                 value={newPassword}
@@ -105,7 +106,7 @@ export default function ChangePasswordPage() {
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-brand-ink-2">{t('confirmPassword')}</label>
-              <input
+              <Input
                 type="password"
                 required
                 value={confirmPassword}

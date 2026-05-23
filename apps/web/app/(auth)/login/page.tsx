@@ -11,6 +11,7 @@ import { authClient } from '@/lib/auth-client';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, Suspense, useState } from 'react';
+import { Input, Select } from "@erp/ui";
 
 export default function LoginPage() {
   return (
@@ -151,7 +152,7 @@ function LoginContent() {
                   <label htmlFor="login-locale" className="text-sm font-medium text-brand-ink-2">
                     {t('language')}
                   </label>
-                  <select
+                  <Select
                     id="login-locale"
                     value={selectedLocale}
                     onChange={(e) => handleLocaleChange(e.target.value)}
@@ -161,7 +162,7 @@ function LoginContent() {
                     <option value="id">{t('languageId')}</option>
                     <option value="en">{t('languageEn')}</option>
                     <option value="zh">{t('languageZh')}</option>
-                  </select>
+                  </Select>
                 </div>
 
                 {/* Email field */}
@@ -169,7 +170,7 @@ function LoginContent() {
                   <label htmlFor="login-email" className="text-sm font-medium text-brand-ink-2">
                     {t('email')}
                   </label>
-                  <input
+                  <Input
                     id="login-email"
                     type="email"
                     autoComplete="email"
@@ -187,7 +188,7 @@ function LoginContent() {
                     {t('password')}
                   </label>
                   <div className="relative">
-                    <input
+                    <Input
                       id="login-password"
                       type={showPassword ? 'text' : 'password'}
                       autoComplete="current-password"
@@ -248,7 +249,7 @@ function LoginContent() {
                 <label htmlFor="login-totp" className="text-sm font-medium text-brand-ink-2">
                   {t('totpCode') || 'OTP Code'}
                 </label>
-                <input
+                <Input
                   id="login-totp"
                   type="text"
                   required

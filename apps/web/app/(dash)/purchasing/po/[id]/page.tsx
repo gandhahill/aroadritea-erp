@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { GrnForm } from './grn-form';
+import { TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
 
 export default async function PoDetailPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -120,24 +121,24 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
             )}
             
             <div className="mt-6 overflow-x-auto">
-              <table className="min-w-full divide-y divide-brand-cream-3 text-sm text-left">
-                <thead className="bg-brand-cream-1 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+              <Table className=" text-left">
+                <TableHeader className="bg-brand-cream-1 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   <tr>
-                    <th className="px-4 py-3">{t('product')}</th>
-                    <th className="px-4 py-3 text-right">{t('ordered')}</th>
-                    <th className="px-4 py-3 text-right">{t('alreadyReceived')}</th>
+                    <TableHead className="px-4 py-3">{t('product')}</TableHead>
+                    <TableHead className="px-4 py-3 text-right">{t('ordered')}</TableHead>
+                    <TableHead className="px-4 py-3 text-right">{t('alreadyReceived')}</TableHead>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-brand-cream-3">
+                </TableHeader>
+                <TableBody className="divide-y divide-brand-cream-3">
                   {formattedLines.map(line => (
                     <tr key={line.id}>
-                      <td className="px-4 py-3 text-brand-ink">{line.productName}</td>
-                      <td className="px-4 py-3 text-right font-mono text-brand-ink">{line.qtyOrdered} {line.uom}</td>
-                      <td className="px-4 py-3 text-right font-mono text-brand-ink">{line.qtyReceived} {line.uom}</td>
+                      <TableCell className="px-4 py-3 text-brand-ink">{line.productName}</TableCell>
+                      <TableCell className="px-4 py-3 text-right font-mono text-brand-ink">{line.qtyOrdered} {line.uom}</TableCell>
+                      <TableCell className="px-4 py-3 text-right font-mono text-brand-ink">{line.qtyReceived} {line.uom}</TableCell>
                     </tr>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </div>
         )}

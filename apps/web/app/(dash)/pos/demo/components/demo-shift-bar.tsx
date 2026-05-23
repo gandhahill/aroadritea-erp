@@ -13,6 +13,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
+import { Input } from "@erp/ui";
 
 interface DemoShiftState {
   id: string;
@@ -161,7 +162,7 @@ export function DemoShiftBar() {
               >
                 {t('openingCash')}
               </label>
-              <input
+              <Input
                 id="demoOpeningCash"
                 type="text"
                 inputMode="numeric"
@@ -207,7 +208,7 @@ export function DemoShiftBar() {
               >
                 {t('expectedCash')}
               </label>
-              <input
+              <Input
                 id="demoExpectedCash"
                 type="text"
                 value={formatRupiah(shift.openingCash)}
@@ -222,7 +223,7 @@ export function DemoShiftBar() {
               >
                 {t('actualCash')}
               </label>
-              <input
+              <Input
                 id="demoActualCash"
                 type="text"
                 inputMode="numeric"

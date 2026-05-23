@@ -3,9 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { type QuickAdjustData, createQuickAdjustmentAction } from './actions';
-
-const INPUT =
-  'h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20';
+import { Button, Input, Select } from "@erp/ui";
 
 export function QuickAdjustForm({ data }: { data: QuickAdjustData }) {
   const t = useTranslations('inventory.adjust');
@@ -35,7 +33,7 @@ export function QuickAdjustForm({ data }: { data: QuickAdjustData }) {
       <div className="grid gap-4 md:grid-cols-2">
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('location')}</span>
-          <select name="locationId" required defaultValue="" className={INPUT}>
+          <Select name="locationId" required defaultValue="">
             <option value="" disabled>
               {t('chooseLocation')}
             </option>
@@ -44,23 +42,23 @@ export function QuickAdjustForm({ data }: { data: QuickAdjustData }) {
                 {location.label}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('reason')}</span>
-          <select name="reason" required defaultValue="count_correction" className={INPUT}>
+          <Select name="reason" required defaultValue="count_correction">
             {['count_correction', 'waste', 'damage', 'opening_balance', 'other'].map((reason) => (
               <option key={reason} value={reason}>
                 {t(`reasons.${reason}`)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         <label className="space-y-1.5 md:col-span-2">
           <span className="text-sm font-medium text-brand-ink">{t('product')}</span>
-          <select name="productId" required defaultValue="" className={INPUT}>
+          <Select name="productId" required defaultValue="">
             <option value="" disabled>
               {t('chooseProduct')}
             </option>
@@ -69,28 +67,28 @@ export function QuickAdjustForm({ data }: { data: QuickAdjustData }) {
                 {product.label} ({product.uom})
               </option>
             ))}
-          </select>
+          </Select>
         </label>
 
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('qtyAfter')}</span>
-          <input name="qtyAfter" type="number" min="0" step="0.001" required className={INPUT} />
+          <Input name="qtyAfter" type="number" min="0" step="0.001" required />
         </label>
 
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('notes')}</span>
-          <input name="notes" placeholder={t('notesPlaceholder')} className={INPUT} />
+          <Input name="notes" placeholder={t('notesPlaceholder')} />
         </label>
       </div>
 
       <div className="mt-5 flex justify-end">
-        <button
+        <Button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
+          className="rounded-lg " variant="primary" size="lg"
         >
           {pending ? t('submitting') : t('submit')}
-        </button>
+        </Button>
       </div>
     </form>
   );

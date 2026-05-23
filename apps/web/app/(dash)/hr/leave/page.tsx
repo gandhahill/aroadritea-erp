@@ -8,6 +8,7 @@ import {
   fetchLeaveDashboard,
   saveLeaveTypeAction,
 } from './actions';
+import { TableCell, TableBody, TableHead, TableHeader, Table, Input, Button, Select } from "@erp/ui";
 
 export const metadata: Metadata = {
   title: 'Leave - Aroadri ERP',
@@ -130,7 +131,7 @@ export default async function LeavePage() {
         >
           <label className="space-y-1 md:col-span-2">
             <span className="text-xs font-medium text-brand-ink-3">{t('employee')}</span>
-            <select
+            <Select
               name="employeeId"
               required
               defaultValue=""
@@ -144,11 +145,11 @@ export default async function LeavePage() {
                   {emp.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="space-y-1 md:col-span-2">
             <span className="text-xs font-medium text-brand-ink-3">{t('type')}</span>
-            <select
+            <Select
               name="leaveTypeId"
               required
               defaultValue=""
@@ -162,7 +163,7 @@ export default async function LeavePage() {
                   {type.nameId}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <Field name="startDate" label={t('start')} type="date" required />
           <Field name="endDate" label={t('end')} type="date" required />
@@ -176,28 +177,28 @@ export default async function LeavePage() {
             />
           </label>
           <div className="md:col-span-6 flex justify-end">
-            <button
+            <Button
               type="submit"
-              className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
+              className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark" variant="primary" size="md"
             >
               {t('submitRequest')}
-            </button>
+            </Button>
           </div>
         </form>
 
         <div className="overflow-x-auto rounded-lg border border-brand-cream-3">
-          <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
-            <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+          <Table>
+            <TableHeader>
               <tr>
-                <th className="px-4 py-3">{t('employee')}</th>
-                <th className="px-4 py-3">{t('type')}</th>
-                <th className="px-4 py-3">{t('date')}</th>
-                <th className="px-4 py-3">{t('days')}</th>
-                <th className="px-4 py-3">{t('status')}</th>
-                <th className="px-4 py-3">{t('action')}</th>
+                <TableHead className="px-4 py-3">{t('employee')}</TableHead>
+                <TableHead className="px-4 py-3">{t('type')}</TableHead>
+                <TableHead className="px-4 py-3">{t('date')}</TableHead>
+                <TableHead className="px-4 py-3">{t('days')}</TableHead>
+                <TableHead className="px-4 py-3">{t('status')}</TableHead>
+                <TableHead className="px-4 py-3">{t('action')}</TableHead>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-brand-cream-3 bg-card">
+            </TableHeader>
+            <TableBody>
               {data.requestsFull.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-6 text-center text-brand-ink-3">
@@ -207,18 +208,18 @@ export default async function LeavePage() {
               ) : (
                 data.requestsFull.map((req) => (
                   <tr key={req.id}>
-                    <td className="px-4 py-3 text-brand-ink">{req.employeeName ?? '-'}</td>
-                    <td className="px-4 py-3 text-brand-ink-2">
+                    <TableCell className="px-4 py-3 text-brand-ink">{req.employeeName ?? '-'}</TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink-2">
                       {pickName(req.leaveTypeName, locale)}
-                    </td>
-                    <td className="px-4 py-3 text-brand-ink-2">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink-2">
                       {formatDate(req.startDate, locale)} – {formatDate(req.endDate, locale)}
-                    </td>
-                    <td className="px-4 py-3 text-brand-ink">{req.totalDays}</td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink">{req.totalDays}</TableCell>
+                    <TableCell className="px-4 py-3">
                       <StatusBadge status={req.status} t={t} />
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       {data.canApprove && req.status === 'pending' ? (
                         <div className="flex flex-wrap gap-1">
                           <form action={decideLeaveRequestAction}>
@@ -240,12 +241,12 @@ export default async function LeavePage() {
                               placeholder={t('rejectReason')}
                               className="h-7 w-32 rounded-md border border-brand-cream-3 bg-card px-2 text-[11px]"
                             />
-                            <button
+                            <Button
                               type="submit"
-                              className="ml-1 rounded-md border border-rose-300 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                              className="ml-1 rounded-md border border-rose-300 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50" variant="danger" size="sm"
                             >
                               {t('reject')}
-                            </button>
+                            </Button>
                           </form>
                         </div>
                       ) : null}
@@ -260,17 +261,17 @@ export default async function LeavePage() {
                           </button>
                         </form>
                       ) : null}
-                    </td>
+                    </TableCell>
                   </tr>
                 ))
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </Panel>
 
       <Panel title={t('balance')}>
-        <Table
+        <DataTable
           emptyMessage={t('emptyData')}
           headers={[t('employee'), t('type'), t('year'), t('total'), t('used'), t('pending')]}
           rows={data.balances.map((balance) => [
@@ -305,7 +306,7 @@ function Field({
   return (
     <label className="space-y-1">
       <span className="text-xs font-medium text-brand-ink-3">{label}</span>
-      <input
+      <Input
         name={name}
         type={type}
         defaultValue={defaultValue}
@@ -357,20 +358,20 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-function Table({ headers, rows, emptyMessage }: { headers: string[]; rows: string[][]; emptyMessage?: string }) {
+function DataTable({ headers, rows, emptyMessage }: { headers: string[]; rows: string[][]; emptyMessage?: string }) {
   return (
     <div className="overflow-x-auto rounded-lg border border-brand-cream-3">
-      <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
-        <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+      <Table className="min-w-full divide-y divide-brand-cream-3 text-sm">
+        <TableHeader>
           <tr>
             {headers.map((header) => (
-              <th key={header} className="px-4 py-3">
+              <TableHead key={header} className="px-4 py-3">
                 {header}
-              </th>
+              </TableHead>
             ))}
           </tr>
-        </thead>
-        <tbody className="divide-y divide-brand-cream-3 bg-card">
+        </TableHeader>
+        <TableBody>
           {rows.length === 0 ? (
             <tr>
               <td colSpan={headers.length} className="px-4 py-6 text-center text-brand-ink-3">
@@ -381,18 +382,18 @@ function Table({ headers, rows, emptyMessage }: { headers: string[]; rows: strin
             rows.map((row, index) => (
               <tr key={`${row.join('|')}-${index}`}>
                 {row.map((cell, cellIndex) => (
-                  <td
+                  <TableCell
                     key={`${headers[cellIndex] ?? 'column'}-${cell}`}
                     className="px-4 py-3 text-brand-ink"
                   >
                     {cell}
-                  </td>
+                  </TableCell>
                 ))}
               </tr>
             ))
           )}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

@@ -15,6 +15,7 @@ import { closeShiftAction, fetchOpenShift, openShiftAction, recordShiftExpenseAc
 import type { ShiftStatusItem } from './actions';
 import { usePosCart } from './pos-cart-context';
 import { FileUploadField } from '@/components/file-upload-field';
+import { Input } from "@erp/ui";
 
 interface ShiftStatusBarProps {
   locationId: string;
@@ -265,7 +266,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                 >
                   {t('openingCash')}
                 </label>
-                <input
+                <Input
                   id="openingCash"
                   name="openingCash"
                   type="text"
@@ -316,7 +317,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                 >
                   {t('expectedCash')}
                 </label>
-                <input
+                <Input
                   id="expectedCash"
                   type="text"
                   value={formatRupiah(shift.expectedCash ?? '0')}
@@ -331,7 +332,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                 >
                   {t('actualCash')}
                 </label>
-                <input
+                <Input
                   id="actualCash"
                   name="actualCash"
                   type="text"
@@ -385,7 +386,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                 >
                   {t('expenseAmountLabel')}
                 </label>
-                <input
+                <Input
                   id="expenseAmount"
                   name="expenseAmount"
                   type="text"
@@ -404,7 +405,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
                 >
                   {t('expenseDescRequired')}
                 </label>
-                <input
+                <Input
                   id="expenseDesc"
                   name="expenseDesc"
                   type="text"

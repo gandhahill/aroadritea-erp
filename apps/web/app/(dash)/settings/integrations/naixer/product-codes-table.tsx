@@ -15,6 +15,7 @@ import {
   deleteProductCode,
   updateProductCode,
 } from './actions';
+import { Button, Input, Select, TableCell, TableHead } from "@erp/ui";
 
 interface Props {
   codes: ProductCodeItem[];
@@ -79,26 +80,26 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-brand-cream-3 bg-brand-cream">
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('product', { fallback: 'Produk' })}</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('variant')}</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('naixerCode')}</th>
-            <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{tc('fields.status', { fallback: 'Status' })}</th>
-            <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{tc('fields.actions', { fallback: 'Aksi' })}</th>
+            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('product', { fallback: 'Produk' })}</TableHead>
+            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('variant')}</TableHead>
+            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('naixerCode')}</TableHead>
+            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{tc('fields.status', { fallback: 'Status' })}</TableHead>
+            <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{tc('fields.actions', { fallback: 'Aksi' })}</TableHead>
           </tr>
         </thead>
         <tbody>
           {codes.map((code) => (
             <tr key={code.id} className="border-b border-brand-cream-3 last:border-0">
-              <td className="px-4 py-3 text-sm text-brand-ink">{code.productLabel}</td>
-              <td className="px-4 py-3 text-xs text-brand-ink-3">
+              <TableCell className="px-4 py-3 text-sm text-brand-ink">{code.productLabel}</TableCell>
+              <TableCell className="px-4 py-3 text-xs text-brand-ink-3">
                 {code.variantLabel ?? t('allVariants')}
-              </td>
-              <td className="px-4 py-3">
+              </TableCell>
+              <TableCell className="px-4 py-3">
                 <code className="rounded bg-brand-cream-2 px-1.5 py-0.5 text-xs font-mono font-bold text-brand-ink">
                   {code.naixerCode}
                 </code>
-              </td>
-              <td className="px-4 py-3">
+              </TableCell>
+              <TableCell className="px-4 py-3">
                 <button
                   type="button"
                   onClick={() => handleToggle(code.id, code.isActive)}
@@ -116,8 +117,8 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
                     </span>
                   )}
                 </button>
-              </td>
-              <td className="px-4 py-3 text-right">
+              </TableCell>
+              <TableCell className="px-4 py-3 text-right">
                 <button
                   type="button"
                   onClick={() => handleDelete(code.id)}
@@ -126,7 +127,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
                 >
                   {tc('actions.delete', { fallback: 'Hapus' })}
                 </button>
-              </td>
+              </TableCell>
             </tr>
           ))}
           {codes.length === 0 && !showAddForm && (
@@ -145,7 +146,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
           <div className="flex items-end gap-3">
             <div className="flex-1">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('product', { fallback: 'Produk' })}</label>
-              <select
+              <Select
                 value={newProductId}
                 onChange={(e) => {
                   setNewProductId(e.target.value);
@@ -165,13 +166,13 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
                     {p.label}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
             <div className="flex-1">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">
                 {t('variantOptional')}
               </label>
-              <select
+              <Select
                 value={newVariantId}
                 onChange={(e) => setNewVariantId(e.target.value)}
                 disabled={!newProductId}
@@ -185,11 +186,11 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
                       {v.label}
                     </option>
                   ))}
-              </select>
+              </Select>
             </div>
             <div className="w-32">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('naixerCode')}</label>
-              <input
+              <Input
                 type="text"
                 value={newNaixerCode}
                 onChange={(e) => setNewNaixerCode(e.target.value)}
@@ -197,14 +198,14 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
                 className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm font-mono text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none"
               />
             </div>
-            <button
+            <Button
               type="button"
               onClick={handleAdd}
               disabled={isPending || !newProductId || !newNaixerCode}
-              className="rounded bg-brand-red px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50"
+              className="rounded bg-brand-red px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50" variant="primary" size="sm"
             >
               {tc('labels.add')}
-            </button>
+            </Button>
             <button
               type="button"
               onClick={() => setShowAddForm(false)}

@@ -4,6 +4,7 @@ import { Pagination } from '@/components/pagination';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import type { AuditTrailFilters, AuditTrailPageData } from './actions';
+import { Input, TableCell, TableHead, TableHeader, Button, Select } from "@erp/ui";
 
 export function AuditTrailClient({
   data,
@@ -41,7 +42,7 @@ export function AuditTrailClient({
         <FilterInput label={t('entityType')} name="entityType" defaultValue={filters.entityType} />
         <label className="space-y-1">
           <span className="text-xs font-semibold text-brand-ink-3">{t('action')}</span>
-          <select
+          <Select
             name="action"
             defaultValue={filters.action ?? ''}
             className="w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-red"
@@ -68,17 +69,17 @@ export function AuditTrailClient({
                 {action}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <FilterInput label={t('actor')} name="actor" defaultValue={filters.actor} />
         <FilterInput label={t('from')} name="from" type="date" defaultValue={filters.from} />
         <FilterInput label={t('to')} name="to" type="date" defaultValue={filters.to} />
-        <button
+        <Button
           type="submit"
-          className="self-end rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
+          className="self-end rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark" variant="primary" size="md"
         >
           {t('apply')}
-        </button>
+        </Button>
       </form>
 
       <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card">
@@ -87,16 +88,16 @@ export function AuditTrailClient({
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1040px] text-sm">
-            <thead className="bg-brand-cream-1 text-xs uppercase tracking-wide text-brand-ink-3">
+            <TableHeader className="bg-brand-cream-1 text-xs uppercase tracking-wide text-brand-ink-3">
               <tr>
-                <th className="px-4 py-3 text-left">{t('time')}</th>
-                <th className="px-4 py-3 text-left">{t('actor')}</th>
-                <th className="px-4 py-3 text-left">{t('action')}</th>
-                <th className="px-4 py-3 text-left">{t('entityType')}</th>
-                <th className="px-4 py-3 text-left">{t('entityId')}</th>
-                <th className="px-4 py-3 text-left">{t('change')}</th>
+                <TableHead className="px-4 py-3 text-left">{t('time')}</TableHead>
+                <TableHead className="px-4 py-3 text-left">{t('actor')}</TableHead>
+                <TableHead className="px-4 py-3 text-left">{t('action')}</TableHead>
+                <TableHead className="px-4 py-3 text-left">{t('entityType')}</TableHead>
+                <TableHead className="px-4 py-3 text-left">{t('entityId')}</TableHead>
+                <TableHead className="px-4 py-3 text-left">{t('change')}</TableHead>
               </tr>
-            </thead>
+            </TableHeader>
             <tbody className="divide-y divide-brand-cream-2">
               {rows.length === 0 ? (
                 <tr>
@@ -107,23 +108,23 @@ export function AuditTrailClient({
               ) : (
                 rows.map((row) => (
                   <tr key={row.id} className="align-top hover:bg-brand-cream-1/50">
-                    <td className="px-4 py-3 text-brand-ink-3">
+                    <TableCell className="px-4 py-3 text-brand-ink-3">
                       {new Intl.DateTimeFormat(undefined, {
                         dateStyle: 'medium',
                         timeStyle: 'short',
                       }).format(new Date(row.createdAt))}
-                    </td>
-                    <td className="px-4 py-3 text-brand-ink">{row.userLabel}</td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink">{row.userLabel}</TableCell>
+                    <TableCell className="px-4 py-3">
                       <span className="rounded-full bg-brand-red/10 px-2 py-1 text-xs font-semibold text-brand-red">
                         {row.action}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-brand-ink">{row.entityType}</td>
-                    <td className="px-4 py-3 text-xs text-brand-ink-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink">{row.entityType}</TableCell>
+                    <TableCell className="px-4 py-3 text-xs text-brand-ink-3">
                       {maskIdentifier(row.entityId)}
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <FieldDiff before={row.before} after={row.after} />
                       {row.metadata ? (
                         <details className="mt-2">
@@ -139,7 +140,7 @@ export function AuditTrailClient({
                           </pre>
                         </details>
                       ) : null}
-                    </td>
+                    </TableCell>
                   </tr>
                 ))
               )}
@@ -285,7 +286,7 @@ function FilterInput({
   return (
     <label className="space-y-1">
       <span className="text-xs font-semibold text-brand-ink-3">{label}</span>
-      <input
+      <Input
         name={name}
         type={type}
         defaultValue={defaultValue ?? ''}

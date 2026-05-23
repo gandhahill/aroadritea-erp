@@ -150,3 +150,24 @@ Status verifikasi akhir:
 - Deployment verification: `docs/audit/03-deployment-verification.md`
 - Runtime inventory: `docs/audit/security-runtime-inventory.md`
 - Coverage ledger: `docs/audit/repository-coverage-ledger.md`
+
+## Audit Fase Lanjutan (Dimensi 9 - 12)
+Audit terhadap Dimensi 9, 10, 11, dan 12 telah dilakukan pada tanggal 2026-05-23.
+
+### Dimensi 9 (Paritas Backend ↔ UI)
+- Ditemukan beberapa *orphan backend* (seperti modul CRM) dan UI buntu yang merujuk ke action placeholder. 
+
+### Dimensi 10 (i18n & Audit Trail)
+- **i18n:** Telah dilakukan perbaikan pada ketidaksesuaian paritas terjemahan.
+- **Audit Trail & Whistleblower:** Seluruh mutasi material telah menulis ke `auditLog`. Skema anonimitas Whistleblower terverifikasi patuh (identitas pelapor dan metadata jaringan tidak dicatat/dibocorkan pada tabel `auditLog`).
+
+### Dimensi 11 (Kelengkapan Tool MCP)
+- Tool MCP divalidasi dengan Zod dan dibatasi via otorisasi terpusat.
+- **Gap:** Ditemukan ketiadaan tool mutasi kritis seperti `create_sale` (POS), `create_product` (Inventory), `cancel_po` (Purchasing), dan `whistleblower`. 
+- **Tindakan (NEED-DECISION):** Menunggu persetujuan pemilik sistem sebelum mengekspos fitur *write* sensitif ini kepada AI.
+
+### Dimensi 12 (Konsistensi UI)
+- Tidak ada pelanggaran penggunaan kelas generik Tailwind berkat linter ADR-0006.
+- **Kelemahan (Visual & Layout):** Konsistensi dicapai melalui duplikasi *string class* yang masif alih-alih menggunakan komponen terpusat di `packages/ui`.
+- **Kelemahan (Aksesibilitas & Meta):** Direktori publik `apps/site` sebelumnya tidak memiliki file `robots.ts`, `sitemap.ts`, dan tag meta Open Graph.
+- **Tindakan (AUTO-FIX):** Tag meta SEO telah ditambahkan. Sedang dalam proses eksekusi abstraksi *UI Components* ke dalam `packages/ui/src` untuk menghapus repetisi.

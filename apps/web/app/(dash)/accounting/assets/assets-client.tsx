@@ -6,9 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useMemo, useState } from 'react';
 import { createAssetAction, runDepreciationAction, updateAssetCategoryAction } from './actions';
 import type { AssetPageData } from './actions';
-
-const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
+import { Input, Select, Button, TableHeader } from "@erp/ui";
 
 const METHOD_VALUES = [
   'straight_line',
@@ -105,10 +103,10 @@ export function AssetsClient({
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <select
+            <Select
               value={initialLocationId}
               onChange={(event) => applyFilter(event.target.value, initialStatus)}
-              className={INPUT}
+             
             >
               <option value="">{t('allLocations')}</option>
               {locations.map((location) => (
@@ -116,22 +114,22 @@ export function AssetsClient({
                   {location.label}
                 </option>
               ))}
-            </select>
-            <select
+            </Select>
+            <Select
               value={initialStatus}
               onChange={(event) => applyFilter(initialLocationId, event.target.value)}
-              className={INPUT}
+             
             >
               <option value="">{t('allStatuses')}</option>
               <option value="active">{t('statusActive')}</option>
               <option value="fully_depreciated">{t('statusFullyDepreciated')}</option>
               <option value="disposed">{t('statusDisposed')}</option>
-            </select>
+            </Select>
           </div>
 
           <div className="mt-5 overflow-hidden rounded-lg border border-brand-cream-3">
             <table className="w-full text-sm">
-              <thead className="bg-brand-cream-1 text-left text-brand-ink-2">
+              <TableHeader className="bg-brand-cream-1 text-left text-brand-ink-2">
                 <tr>
                   <th className="px-3 py-2 font-medium">{t('asset')}</th>
                   <th className="px-3 py-2 font-medium">{t('location')}</th>
@@ -141,7 +139,7 @@ export function AssetsClient({
                   <th className="px-3 py-2 text-right font-medium">{t('bookValue')}</th>
                   <th className="px-3 py-2 font-medium">{t('status')}</th>
                 </tr>
-              </thead>
+              </TableHeader>
               <tbody className="divide-y divide-brand-cream-2">
                 {assets.length === 0 ? (
                   <tr>
@@ -226,15 +224,15 @@ export function AssetsClient({
               />
               <label className="block space-y-1.5">
                 <span className="text-sm font-medium text-brand-ink">{t('notes')}</span>
-                <textarea name="notes" className={`${INPUT} min-h-20`} />
+                <textarea name="notes" className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5 min-h-20" />
               </label>
-              <button
+              <Button
                 type="submit"
                 disabled={runPending || locations.length === 0}
-                className="w-full rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
+                className="w-full rounded-lg " variant="primary" size="md"
               >
                 {runPending ? t('posting') : t('run')}
-              </button>
+              </Button>
             </div>
           </form>
         </aside>
@@ -262,19 +260,19 @@ export function AssetsClient({
           <SelectLocation name="locationId" locations={locations} label={t('location')} />
           <label className="space-y-1.5">
             <span className="text-sm font-medium text-brand-ink">{t('category')}</span>
-            <select
+            <Select
               name="categoryId"
               value={categoryId}
               onChange={(event) => setCategoryId(event.target.value)}
               required
-              className={INPUT}
+             
             >
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {pickName(category.name)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <Field label={t('code')} name="code" required />
           <Field label={t('name')} name="name" required />
@@ -308,33 +306,33 @@ export function AssetsClient({
           />
           <label className="space-y-1.5">
             <span className="text-sm font-medium text-brand-ink">{t('method')}</span>
-            <select
+            <Select
               name="depreciationMethod"
               defaultValue={selectedCategory?.defaultDepreciationMethod ?? 'straight_line'}
-              className={INPUT}
+             
             >
               {METHOD_VALUES.map((method) => (
                 <option key={method} value={method}>
                   {t(`methods.${method}`)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <Field label={t('rateBps')} name="depreciationRateBps" type="number" placeholder="2500" />
           <Field label={t('productionCapacity')} name="productionCapacity" inputMode="numeric" />
           <label className="space-y-1.5 md:col-span-2 xl:col-span-4">
             <span className="text-sm font-medium text-brand-ink">{t('notes')}</span>
-            <textarea name="notes" className={`${INPUT} min-h-20`} />
+            <textarea name="notes" className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5 min-h-20" />
           </label>
         </div>
         <div className="mt-5 flex justify-end">
-          <button
+          <Button
             type="submit"
             disabled={createPending || categories.length === 0 || locations.length === 0}
-            className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
+            className="rounded-lg " variant="primary" size="lg"
           >
             {createPending ? t('saving') : t('save')}
-          </button>
+          </Button>
         </div>
       </form>
 
@@ -359,13 +357,13 @@ export function AssetsClient({
                 <span className="text-xs font-medium text-brand-ink-3">
                   {t('usefulLifeMonths')}
                 </span>
-                <input
+                <Input
                   name="defaultUsefulLifeMonths"
                   type="number"
                   min={1}
                   max={600}
                   defaultValue={category.defaultUsefulLifeMonths}
-                  className={INPUT}
+                 
                 />
               </label>
               <SelectAccount
@@ -392,24 +390,24 @@ export function AssetsClient({
               <div className="grid gap-2 md:col-span-2 xl:col-span-1">
                 <label className="space-y-1">
                   <span className="text-xs font-medium text-brand-ink-3">{t('defaultMethod')}</span>
-                  <select
+                  <Select
                     name="defaultDepreciationMethod"
                     defaultValue={category.defaultDepreciationMethod}
-                    className={INPUT}
+                   
                   >
                     {METHOD_VALUES.map((method) => (
                       <option key={method} value={method}>
                         {t(`methods.${method}`)}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
-                <button
+                <Button
                   type="submit"
-                  className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark"
+                  className="rounded-lg " variant="primary" size="md"
                 >
                   {t('saveCategory')}
-                </button>
+                </Button>
               </div>
             </form>
           ))}
@@ -435,13 +433,13 @@ function SelectAccount({
   return (
     <label className="space-y-1">
       <span className="text-xs font-medium text-brand-ink-3">{label}</span>
-      <select name={name} defaultValue={defaultValue} className={INPUT}>
+      <Select name={name} defaultValue={defaultValue}>
         {accounts.map((account) => (
           <option key={account.id} value={account.id}>
             {account.code} - {pickName(account.name)}
           </option>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }
@@ -458,13 +456,13 @@ function SelectLocation({
   return (
     <label className="space-y-1.5">
       <span className="text-sm font-medium text-brand-ink">{label}</span>
-      <select name={name} required defaultValue={locations[0]?.id ?? ''} className={INPUT}>
+      <Select name={name} required defaultValue={locations[0]?.id ?? ''}>
         {locations.map((location) => (
           <option key={location.id} value={location.id}>
             {location.label}
           </option>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }
@@ -489,14 +487,14 @@ function Field({
   return (
     <label className="space-y-1.5">
       <span className="text-sm font-medium text-brand-ink">{label}</span>
-      <input
+      <Input
         name={name}
         type={type}
         required={required}
         defaultValue={defaultValue}
         placeholder={placeholder}
         inputMode={inputMode}
-        className={INPUT}
+       
       />
     </label>
   );

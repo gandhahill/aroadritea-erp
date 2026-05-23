@@ -11,6 +11,7 @@ import { useTranslations } from 'next-intl';
 import { type FormEvent, useEffect, useState, useTransition } from 'react';
 import { type MemberLookupActionResult, lookupMemberByPhoneAction } from './actions';
 import { usePosCart } from './pos-cart-context';
+import { Input } from "@erp/ui";
 
 type FoundMember = NonNullable<Extract<MemberLookupActionResult, { ok: true }>['member']>;
 
@@ -173,7 +174,7 @@ export function MemberLookup() {
         <label className="block text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-ink-3">
           {t('guestName')}
         </label>
-        <input
+        <Input
           type="text"
           value={guestName}
           onChange={(event) => commitGuestName(event.target.value)}

@@ -6,6 +6,7 @@ import {
   saveReceivableAllowanceRatesAction,
   updatePartyLedgerDueDateAction,
 } from './party-ledger-actions';
+import { TableCell, TableBody, TableHead, TableHeader, Table, Button, Input } from "@erp/ui";
 
 interface Props {
   kind: PartyLedgerKind;
@@ -65,12 +66,12 @@ export async function PartyLedgerPage({ kind }: Props) {
               </label>
             ))}
           </div>
-          <button
+          <Button
             type="submit"
-            className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90"
+            className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90" variant="primary" size="md"
           >
             {t('saveMapping')}
-          </button>
+          </Button>
         </form>
       </section>
 
@@ -119,7 +120,7 @@ export async function PartyLedgerPage({ kind }: Props) {
               ).map(([key, label]) => (
                 <label key={key} className="text-xs font-semibold text-brand-ink-3">
                   {t('allowanceRateLabel', { bucket: label })}
-                  <input
+                  <Input
                     name={key}
                     type="number"
                     min={0}
@@ -129,12 +130,12 @@ export async function PartyLedgerPage({ kind }: Props) {
                   />
                 </label>
               ))}
-              <button
+              <Button
                 type="submit"
-                className="sm:col-span-4 rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90"
+                className="sm:col-span-4 rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90" variant="primary" size="md"
               >
                 {t('saveAllowance')}
-              </button>
+              </Button>
             </form>
           </div>
         </section>
@@ -149,39 +150,39 @@ export async function PartyLedgerPage({ kind }: Props) {
           <p className="px-4 py-8 text-center text-sm text-brand-ink-3">{t('empty')}</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
-              <thead className="bg-brand-cream-1 text-left text-xs uppercase tracking-wide text-brand-ink-3">
+            <Table>
+              <TableHeader className="bg-brand-cream-1 text-left text-xs uppercase tracking-wide text-brand-ink-3">
                 <tr>
-                  <th className="px-4 py-3">{t('partner')}</th>
-                  <th className="px-4 py-3 text-right">{t('current')}</th>
-                  <th className="px-4 py-3 text-right">{t('days1To30')}</th>
-                  <th className="px-4 py-3 text-right">{t('days31To60')}</th>
-                  <th className="px-4 py-3 text-right">{t('over60')}</th>
-                  <th className="px-4 py-3 text-right">{t('total')}</th>
-                  <th className="px-4 py-3">{t('accounts')}</th>
-                  <th className="px-4 py-3">{t('dueDates')}</th>
+                  <TableHead className="px-4 py-3">{t('partner')}</TableHead>
+                  <TableHead className="px-4 py-3 text-right">{t('current')}</TableHead>
+                  <TableHead className="px-4 py-3 text-right">{t('days1To30')}</TableHead>
+                  <TableHead className="px-4 py-3 text-right">{t('days31To60')}</TableHead>
+                  <TableHead className="px-4 py-3 text-right">{t('over60')}</TableHead>
+                  <TableHead className="px-4 py-3 text-right">{t('total')}</TableHead>
+                  <TableHead className="px-4 py-3">{t('accounts')}</TableHead>
+                  <TableHead className="px-4 py-3">{t('dueDates')}</TableHead>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-cream-3">
+              </TableHeader>
+              <TableBody className="divide-y divide-brand-cream-3">
                 {data.rows.map((row) => (
                   <tr key={row.partnerId ?? 'no-partner'} className="align-top">
-                    <td className="px-4 py-3 font-medium text-brand-ink">
+                    <TableCell className="px-4 py-3 font-medium text-brand-ink">
                       {row.partnerName ?? t('noPartner')}
-                    </td>
+                    </TableCell>
                     <AmountCell value={row.current} locale={locale} />
                     <AmountCell value={row.days1To30} locale={locale} />
                     <AmountCell value={row.days31To60} locale={locale} />
                     <AmountCell value={row.over60} locale={locale} />
                     <AmountCell value={row.total} locale={locale} strong />
-                    <td className="px-4 py-3 text-xs leading-5 text-brand-ink-3">
+                    <TableCell className="px-4 py-3 text-xs leading-5 text-brand-ink-3">
                       {row.accountBreakdown.map((account) => (
                         <div key={account.accountId}>
                           {account.accountCode} {localized(account.accountName, locale)}:{' '}
                           {formatRupiah(account.amount, locale)}
                         </div>
                       ))}
-                    </td>
-                    <td className="min-w-80 px-4 py-3">
+                    </TableCell>
+                    <TableCell className="min-w-80 px-4 py-3">
                       <div className="space-y-2">
                         {row.entries.slice(0, 4).map((entry) => (
                           <form
@@ -222,11 +223,11 @@ export async function PartyLedgerPage({ kind }: Props) {
                           </form>
                         ))}
                       </div>
-                    </td>
+                    </TableCell>
                   </tr>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
       </section>
@@ -261,13 +262,13 @@ function AmountCell({
   strong?: boolean;
 }) {
   return (
-    <td
+    <TableCell
       className={`px-4 py-3 text-right tabular-nums ${
         strong ? 'font-semibold text-brand-red' : 'text-brand-ink-2'
       }`}
     >
       {formatRupiah(value, locale)}
-    </td>
+    </TableCell>
   );
 }
 

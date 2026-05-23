@@ -13,6 +13,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { ExportXlsxButton } from '../../reporting/export-button';
 import { fetchVarianceReport } from './actions';
+import { TableCell, TableHead } from "@erp/ui";
 
 // ─── Formatters ────────────────────────────────────────────────────────────────
 
@@ -487,30 +488,30 @@ export function VarianceClient({
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
+                      <TableHead className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
                         {t('columns.sessionNo')}
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
                         {t('columns.date')}
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
                         {t('columns.period')}
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
                         {t('columns.location')}
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
                         {t('columns.lines')}
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
                         {t('columns.withVariance')}
-                      </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
                         {t('columns.netQty')}
-                      </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
                         {t('columns.varianceValue')}
-                      </th>
+                      </TableHead>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-brand-cream-2">
@@ -519,16 +520,16 @@ export function VarianceClient({
                       const netQty = s.netVarianceQty;
                       return (
                         <tr key={s.sessionId} className="hover:bg-brand-cream-1/50">
-                          <td className="px-4 py-3 font-medium text-brand-ink">
+                          <TableCell className="px-4 py-3 font-medium text-brand-ink">
                             {s.sessionNumber}
-                          </td>
-                          <td className="px-4 py-3 text-brand-ink-2">
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-brand-ink-2">
                             {formatDate(s.sessionDate)}
-                          </td>
-                          <td className="px-4 py-3 text-brand-ink-2">{s.periodCode}</td>
-                          <td className="px-4 py-3 text-brand-ink-2">{s.locationName}</td>
-                          <td className="px-4 py-3 text-center text-brand-ink">{s.totalLines}</td>
-                          <td className="px-4 py-3 text-center">
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-brand-ink-2">{s.periodCode}</TableCell>
+                          <TableCell className="px-4 py-3 text-brand-ink-2">{s.locationName}</TableCell>
+                          <TableCell className="px-4 py-3 text-center text-brand-ink">{s.totalLines}</TableCell>
+                          <TableCell className="px-4 py-3 text-center">
                             <span
                               className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                                 s.linesWithVariance > 0
@@ -538,8 +539,8 @@ export function VarianceClient({
                             >
                               {s.linesWithVariance}
                             </span>
-                          </td>
-                          <td
+                          </TableCell>
+                          <TableCell
                             className={`px-4 py-3 text-right font-medium ${
                               netQty > 0
                                 ? 'text-brand-jade'
@@ -550,14 +551,14 @@ export function VarianceClient({
                           >
                             {netQty > 0 ? '+' : ''}
                             {formatQty(netQty)}
-                          </td>
-                          <td
+                          </TableCell>
+                          <TableCell
                             className={`px-4 py-3 text-right font-medium ${
                               hasVariance ? 'text-brand-ember-5' : 'text-brand-ink'
                             }`}
                           >
                             {formatIDR(s.totalVarianceValue)}
-                          </td>
+                          </TableCell>
                         </tr>
                       );
                     })}
@@ -578,27 +579,27 @@ export function VarianceClient({
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
+                      <TableHead className="px-4 py-3 text-left text-xs font-semibold text-brand-ink-2">
                         {t('columns.product')}
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
                         {t('columns.session')}
-                      </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
                         {t('columns.systemQty')}
-                      </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
                         {t('columns.countedQty')}
-                      </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
                         {t('columns.netVariance')}
-                      </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-right text-xs font-semibold text-brand-ink-2">
                         {t('columns.value')}
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
+                      </TableHead>
+                      <TableHead className="px-4 py-3 text-center text-xs font-semibold text-brand-ink-2">
                         {t('columns.rate')}
-                      </th>
+                      </TableHead>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-brand-cream-2">
@@ -607,22 +608,22 @@ export function VarianceClient({
                       const valNum = Number.parseInt(p.totalVarianceValueAbs, 10);
                       return (
                         <tr key={p.productId} className="hover:bg-brand-cream-1/50">
-                          <td className="px-4 py-3">
+                          <TableCell className="px-4 py-3">
                             <span className="font-medium text-brand-ink">{p.productName}</span>
                             {p.sku && (
                               <span className="ml-2 rounded bg-brand-cream-2 px-1 py-0.5 text-xs text-brand-ink-3">
                                 {p.sku}
                               </span>
                             )}
-                          </td>
-                          <td className="px-4 py-3 text-center text-brand-ink">{p.sessions}</td>
-                          <td className="px-4 py-3 text-right text-brand-ink">
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-center text-brand-ink">{p.sessions}</TableCell>
+                          <TableCell className="px-4 py-3 text-right text-brand-ink">
                             {formatQty(p.totalSystemQty)}
-                          </td>
-                          <td className="px-4 py-3 text-right text-brand-ink">
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-right text-brand-ink">
                             {formatQty(p.totalCountedQty)}
-                          </td>
-                          <td
+                          </TableCell>
+                          <TableCell
                             className={`px-4 py-3 text-right font-medium ${
                               netQty > 0
                                 ? 'text-brand-jade'
@@ -633,15 +634,15 @@ export function VarianceClient({
                           >
                             {netQty > 0 ? '+' : ''}
                             {formatQty(netQty)} {p.uom}
-                          </td>
-                          <td
+                          </TableCell>
+                          <TableCell
                             className={`px-4 py-3 text-right font-medium ${
                               valNum > 0 ? 'text-brand-ember-5' : 'text-brand-ink'
                             }`}
                           >
                             {formatIDR(p.totalVarianceValueAbs)}
-                          </td>
-                          <td className="px-4 py-3 text-center">
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-center">
                             {p.varianceRate > 0 ? (
                               <span
                                 className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -655,7 +656,7 @@ export function VarianceClient({
                             ) : (
                               <span className="text-brand-ink-3">—</span>
                             )}
-                          </td>
+                          </TableCell>
                         </tr>
                       );
                     })}

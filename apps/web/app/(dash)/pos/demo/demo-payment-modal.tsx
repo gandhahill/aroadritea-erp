@@ -15,6 +15,7 @@ import { type RoundingOption, getDonationOptions } from '../lib/donation-options
 import { DemoReceiptPreview } from './components/demo-receipt-preview';
 import { useDemoCart } from './demo-cart-context';
 import { useDemoMode } from './demo-mode-context';
+import { Input } from "@erp/ui";
 
 const BASE_PAYMENT_METHODS = [
   { id: 'cash', badge: 'Rp' },
@@ -274,7 +275,7 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-brand-ink-3">
                     Rp
                   </span>
-                  <input
+                  <Input
                     type="text"
                     inputMode="numeric"
                     value={inputAmount}

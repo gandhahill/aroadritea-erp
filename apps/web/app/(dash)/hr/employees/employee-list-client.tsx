@@ -27,6 +27,7 @@ interface EmployeeRow {
 }
 
 import { Pagination } from '@/components/pagination';
+import { TableCell, TableHead, Input } from "@erp/ui";
 
 interface Props {
   rows: EmployeeRow[];
@@ -88,7 +89,7 @@ export function EmployeeListClient({
               d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
             />
           </svg>
-          <input
+          <Input
             type="text"
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -151,33 +152,33 @@ export function EmployeeListClient({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('name')}</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('nik')}</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('name')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('nik')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
                   {t('position')}
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
                   {t('department')}
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
                   {t('location')}
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('status')}</th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('status')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
                   {t('contractType')}
-                </th>
-                <th className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
                   {t('hireDate')}
-                </th>
-                <th className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
                   {t('actions')}
-                </th>
+                </TableHead>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
               {rows.map((row) => (
                 <tr key={row.id} className="hover:bg-brand-cream-1/50">
-                  <td className="px-4 py-3">
+                  <TableCell className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-ember-5/10 text-xs font-semibold text-brand-ember-5">
                         {row.name.charAt(0).toUpperCase()}
@@ -187,23 +188,23 @@ export function EmployeeListClient({
                         <div className="text-xs text-brand-ink-3">{row.email}</div>
                       </div>
                     </div>
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs text-brand-ink-2">{row.nik}</td>
-                  <td className="px-4 py-3 text-brand-ink">{row.position}</td>
-                  <td className="px-4 py-3 text-brand-ink-2">{row.department ?? '—'}</td>
-                  <td className="px-4 py-3 text-brand-ink-2">{row.locationName}</td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink-2">{row.nik}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink">{row.position}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">{row.department ?? '—'}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">{row.locationName}</TableCell>
+                  <TableCell className="px-4 py-3">
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${row.statusColor.bg} ${row.statusColor.text}`}
                     >
                       {row.statusLabel}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 text-brand-ink-2">{row.contractLabel}</td>
-                  <td className="px-4 py-3 text-brand-ink-2">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">{row.contractLabel}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">
                     {row.hireDate ? new Date(row.hireDate).toLocaleDateString(locale) : '—'}
-                  </td>
-                  <td className="px-4 py-3 text-right">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right">
                     <Link
                       href={`/hr/employees/${row.id}`}
                       className="inline-flex items-center gap-1 text-sm font-medium text-brand-ember-5 transition-colors hover:text-brand-ember-6"
@@ -223,7 +224,7 @@ export function EmployeeListClient({
                         />
                       </svg>
                     </Link>
-                  </td>
+                  </TableCell>
                 </tr>
               ))}
             </tbody>

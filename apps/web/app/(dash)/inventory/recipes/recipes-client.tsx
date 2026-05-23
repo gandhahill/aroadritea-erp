@@ -13,6 +13,7 @@ import {
   deleteRecipeLineAction,
   fetchRecipeLines,
 } from './actions';
+import { TableBody, TableHeader, Input, Select } from "@erp/ui";
 
 interface Props {
   initial: {
@@ -21,9 +22,6 @@ interface Props {
     ingredients: ProductOption[];
   };
 }
-
-const INPUT =
-  'h-9 w-full rounded-md border border-brand-cream-3 bg-card px-2.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20';
 
 export function RecipesClient({ initial }: Props) {
   const t = useTranslations('inventory.recipes');
@@ -170,11 +168,11 @@ export function RecipesClient({ initial }: Props) {
     <div className="grid gap-4 lg:grid-cols-[1.2fr_1.8fr]">
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <input
+          <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={t('searchPlaceholder')}
-            className={INPUT}
+           
           />
           <button
             type="button"
@@ -193,10 +191,10 @@ export function RecipesClient({ initial }: Props) {
 
         {showNew ? (
           <div className="space-y-2 rounded-lg border border-brand-cream-3 bg-brand-cream-1 p-3">
-            <select
+            <Select
               value={newRecipe.productId}
               onChange={(e) => setNewRecipe((p) => ({ ...p, productId: e.target.value }))}
-              className={INPUT}
+             
             >
               <option value="">{t('selectProduct')}</option>
               {initial.finishedGoods.map((p) => (
@@ -204,12 +202,12 @@ export function RecipesClient({ initial }: Props) {
                   {p.sku} — {p.name}
                 </option>
               ))}
-            </select>
-            <input
+            </Select>
+            <Input
               value={newRecipe.description}
               onChange={(e) => setNewRecipe((p) => ({ ...p, description: e.target.value }))}
               placeholder={t('notePlaceholder')}
-              className={INPUT}
+             
             />
             <button
               type="button"
@@ -263,7 +261,7 @@ export function RecipesClient({ initial }: Props) {
             </div>
 
             <div className="mb-3 grid gap-2 rounded-lg border border-brand-cream-3 bg-brand-cream-1 p-3 md:grid-cols-[1.5fr_0.8fr_0.6fr_auto]">
-              <select
+              <Select
                 value={newLine.ingredientId}
                 onChange={(e) => {
                   const ing = initial.ingredients.find((i) => i.id === e.target.value);
@@ -273,7 +271,7 @@ export function RecipesClient({ initial }: Props) {
                     uom: ing?.uom ?? p.uom,
                   }));
                 }}
-                className={INPUT}
+               
               >
                 <option value="">{t('selectIngredient')}</option>
                 {initial.ingredients.map((i) => (
@@ -281,21 +279,21 @@ export function RecipesClient({ initial }: Props) {
                     {i.sku} — {i.name} ({i.uom})
                   </option>
                 ))}
-              </select>
-              <input
+              </Select>
+              <Input
                 type="number"
                 step="0.001"
                 min="0"
                 value={newLine.qty}
                 onChange={(e) => setNewLine((p) => ({ ...p, qty: e.target.value }))}
                 placeholder={t('qty')}
-                className={INPUT}
+               
               />
-              <input
+              <Input
                 value={newLine.uom}
                 onChange={(e) => setNewLine((p) => ({ ...p, uom: e.target.value }))}
                 placeholder={t('uom')}
-                className={INPUT}
+               
               />
               <button
                 type="button"
@@ -317,7 +315,7 @@ export function RecipesClient({ initial }: Props) {
             </div>
 
             <table className="w-full text-sm">
-              <thead className="bg-brand-cream-1 text-left text-xs uppercase tracking-wider text-brand-ink-3">
+              <TableHeader className="bg-brand-cream-1 text-left text-xs uppercase tracking-wider text-brand-ink-3">
                 <tr>
                   <th className="px-3 py-2">#</th>
                   <th className="px-3 py-2">{t('columns.ingredient')}</th>
@@ -326,8 +324,8 @@ export function RecipesClient({ initial }: Props) {
                   <th className="px-3 py-2">{t('columns.auto')}</th>
                   <th className="px-3 py-2" />
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-cream-3">
+              </TableHeader>
+              <TableBody className="divide-y divide-brand-cream-3">
                 {!selectedLines ? (
                   <tr>
                     <td colSpan={6} className="px-3 py-4 text-center text-xs text-brand-ink-3">
@@ -367,7 +365,7 @@ export function RecipesClient({ initial }: Props) {
                     </tr>
                   ))
                 )}
-              </tbody>
+              </TableBody>
             </table>
           </div>
         ) : (

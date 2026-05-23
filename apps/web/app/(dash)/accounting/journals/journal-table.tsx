@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { Fragment, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { JournalListItem } from './actions';
+import { TableHeader, TableCell, TableHead, Input } from "@erp/ui";
 
 // --- Status badge config ---
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
@@ -72,7 +73,7 @@ export function JournalTable({ journals }: JournalTableProps) {
                   d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1 0 5.65 5.65a7.5 7.5 0 0 0 10.99 10.99z"
                 />
               </svg>
-              <input
+              <Input
                 id="journal-search"
                 type="text"
                 aria-label={t('searchPlaceholder')}
@@ -154,24 +155,24 @@ export function JournalTable({ journals }: JournalTableProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+              <TableHead className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                 {t('noNumber')}
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                 {t('date')}
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                 {t('description')}
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                 {t('type')}
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+              </TableHead>
+              <TableHead className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                 {t('amount')}
-              </th>
-              <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+              </TableHead>
+              <TableHead className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                 {t('status')}
-              </th>
+              </TableHead>
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-2">
@@ -205,51 +206,51 @@ export function JournalTable({ journals }: JournalTableProps) {
                 return (
                   <Fragment key={journal.id}>
                     <tr className="group transition-colors hover:bg-brand-cream/50">
-                      <td className="px-4 py-3 align-top">
+                      <TableCell className="px-4 py-3 align-top">
                         <Link
                           href={`/accounting/journals/${journal.id}`}
                           className="font-mono text-sm font-medium text-brand-red hover:underline"
                         >
                           {journal.number}
                         </Link>
-                      </td>
-                      <td className="px-4 py-3 align-top text-brand-ink-2 tabular-nums">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 align-top text-brand-ink-2 tabular-nums">
                         {journal.postingDate}
-                      </td>
-                      <td className="px-4 py-3 align-top text-brand-ink max-w-xs truncate">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 align-top text-brand-ink max-w-xs truncate">
                         {journal.description}
-                      </td>
-                      <td className="px-4 py-3 align-top">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 align-top">
                         {journal.referenceType && (
                           <span className="rounded-md bg-brand-cream-2 px-2 py-0.5 text-xs font-medium text-brand-ink-2 capitalize">
                             {journal.referenceType}
                           </span>
                         )}
-                      </td>
-                      <td className="px-4 py-3 align-top text-right font-mono text-brand-ink tabular-nums">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 align-top text-right font-mono text-brand-ink tabular-nums">
                         {formatAmount(journal.totalDebit)}
-                      </td>
-                      <td className="px-4 py-3 align-top text-center">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 align-top text-center">
                         <span
                           className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${style?.bg ?? ''} ${style?.text ?? ''}`}
                         >
                           <span className={`h-1.5 w-1.5 rounded-full ${style?.dot ?? ''}`} />
                           {journal.status}
                         </span>
-                      </td>
+                      </TableCell>
                     </tr>
                     {lines.length > 0 ? (
                       <tr className="bg-brand-cream/30">
                         <td colSpan={6} className="px-6 pb-4 pt-1">
                           <div className="overflow-x-auto rounded-md border border-brand-cream-3 bg-card">
                             <table className="w-full text-xs">
-                              <thead className="bg-brand-cream-1 text-brand-ink-3">
+                              <TableHeader className="bg-brand-cream-1 text-brand-ink-3">
                                 <tr>
                                   <th className="px-3 py-1.5 text-left font-medium">{t('account')}</th>
                                   <th className="px-3 py-1.5 text-right font-medium">{t('debit')}</th>
                                   <th className="px-3 py-1.5 text-right font-medium">{t('credit')}</th>
                                 </tr>
-                              </thead>
+                              </TableHeader>
                               <tbody>
                                 {lines.map((line, idx) => (
                                   <tr

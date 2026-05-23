@@ -4,6 +4,7 @@ import type { LoyaltyConfig } from '@erp/services/crm';
 import { useTranslations } from 'next-intl';
 import { useActionState, useState } from 'react';
 import { saveLoyaltyConfig } from './actions';
+import { Button, Input } from "@erp/ui";
 
 interface TierDraft {
   key: number;
@@ -14,9 +15,6 @@ interface TierDraft {
 interface Props {
   initial: LoyaltyConfig;
 }
-
-const INPUT =
-  'h-9 w-full rounded-md border border-brand-cream-3 bg-card px-2.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20';
 
 export function LoyaltySettingsForm({ initial }: Props) {
   const t = useTranslations('settings.loyalty');
@@ -74,14 +72,14 @@ export function LoyaltySettingsForm({ initial }: Props) {
             <span className="text-sm font-medium text-brand-ink">{t('rupiahPerPoint')}</span>
             <div className="flex items-center gap-2">
               <span className="text-sm text-brand-ink-3">Rp</span>
-              <input
+              <Input
                 name="rupiahPerPoint"
                 type="number"
                 min={1}
                 step={1000}
                 value={rupiahPerPoint}
                 onChange={(event) => setRupiahPerPoint(Number(event.target.value))}
-                className={INPUT}
+               
                 required
               />
               <span className="whitespace-nowrap text-sm text-brand-ink-3">{t('pointEqual')}</span>
@@ -118,12 +116,12 @@ export function LoyaltySettingsForm({ initial }: Props) {
                   <span className="text-[11px] font-semibold uppercase tracking-wide text-brand-ink-3">
                     {t('tierCode')}
                   </span>
-                  <input
+                  <Input
                     name="tierCode"
                     value={tier.code}
                     onChange={(event) => updateTier(tier.key, { code: event.target.value })}
                     placeholder="bronze"
-                    className={INPUT}
+                   
                     required
                   />
                 </label>
@@ -131,7 +129,7 @@ export function LoyaltySettingsForm({ initial }: Props) {
                   <span className="text-[11px] font-semibold uppercase tracking-wide text-brand-ink-3">
                     {t('minPoints')}
                   </span>
-                  <input
+                  <Input
                     name="tierPoints"
                     type="number"
                     min={0}
@@ -141,7 +139,7 @@ export function LoyaltySettingsForm({ initial }: Props) {
                         minLifetimePoints: Number.parseInt(event.target.value, 10) || 0,
                       })
                     }
-                    className={INPUT}
+                   
                     required
                   />
                 </label>
@@ -170,13 +168,13 @@ export function LoyaltySettingsForm({ initial }: Props) {
       </section>
 
       <div className="flex items-center justify-end gap-3">
-        <button
+        <Button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
+          className="rounded-lg " variant="primary" size="lg"
         >
           {pending ? t('saving') : t('save')}
-        </button>
+        </Button>
       </div>
     </form>
   );

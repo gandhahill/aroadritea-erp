@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useActionState, useEffect, useState } from 'react';
 import { receiveGoodsAction } from '../../actions';
+import { Input, TableBody, Table } from "@erp/ui";
 
 interface LineItem {
   id: string;
@@ -102,7 +103,7 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
         )}
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-brand-cream-3 text-sm text-left">
+          <Table className=" text-left">
             <thead className="text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
               <tr>
                 <th className="py-2 pr-4">{t('product')}</th>
@@ -113,7 +114,7 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
                 <th className="py-2 pl-4">{t('expiryDate')}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-cream-3">
+            <TableBody className="divide-y divide-brand-cream-3">
               {receivableLines.map(line => {
                 const data = receiveData[line.id] || { qty: '0', batch: '', expiry: '' };
                 const remaining = Number(line.qtyOrdered) - Number(line.qtyReceived);
@@ -127,7 +128,7 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
                     <td className="py-3 px-4 text-right font-mono text-brand-ink">{line.qtyReceived} {line.uom}</td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        <input
+                        <Input
                           type="number"
                           step="0.001"
                           min="0"
@@ -141,7 +142,7 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
                       </div>
                     </td>
                     <td className="py-3 px-4">
-                      <input
+                      <Input
                         type="text"
                         value={data.batch}
                         onChange={e => updateLineData(line.id, 'batch', e.target.value)}
@@ -149,7 +150,7 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
                       />
                     </td>
                     <td className="py-3 pl-4">
-                      <input
+                      <Input
                         type="date"
                         value={data.expiry}
                         onChange={e => updateLineData(line.id, 'expiry', e.target.value)}
@@ -159,8 +160,8 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
                   </tr>
                 );
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
 
         <div className="pt-4 border-t border-brand-cream-3 flex items-start gap-6">

@@ -12,6 +12,7 @@ import { type DbProduct, type DbVariant, getProducts, getVariants } from '@erp/o
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { useDemoCart } from './demo-cart-context';
+import { Input } from "@erp/ui";
 
 interface ProductWithVariants extends DbProduct {
   variants: DbVariant[];
@@ -89,7 +90,7 @@ export function DemoProductSearch() {
     <div className="flex flex-1 flex-col overflow-hidden min-h-0">
       {/* Search */}
       <div className="border-b border-brand-cream-3 p-3 shrink-0">
-        <input
+        <Input
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}

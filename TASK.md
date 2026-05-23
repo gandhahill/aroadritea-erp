@@ -25,6 +25,7 @@
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
 | T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-21 14:32 WIB (Codex) | IN_PROGRESS | Commit `1419720` deployed to VPS. Migration `0021`, seed, web/site/MCP/worker builds, and PM2 reload/save passed. Public health routes return 200; protected ERP smoke routes return 307 redirects without app-error; requested menu image assets return 200. DB reset was not run because migration/seed updated stale paths without data loss. |
+| T-0169 | 8-Dimension Systematic Codebase Audit | Antigravity | 2026-05-23 13:44 | 2026-05-23 13:44 WIB (Antigravity) | IN_PROGRESS | Starting Phase 0 baseline checks and architectural review. |
 
 ---
 

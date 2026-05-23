@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { importJournalCsvAction } from '../actions';
+import { Button, Input } from "@erp/ui";
 
 export function ImportJournalForm() {
   const t = useTranslations('accounting.journal.import');
@@ -23,7 +24,7 @@ export function ImportJournalForm() {
 
       <label className="block space-y-1.5">
         <span className="text-sm font-medium text-brand-ink">{t('file')}</span>
-        <input
+        <Input
           name="file"
           type="file"
           accept=".csv,text/csv"
@@ -35,13 +36,13 @@ export function ImportJournalForm() {
       <p className="mt-3 text-xs leading-5 text-brand-ink-3">{t('templateHint')}</p>
 
       <div className="mt-5 flex justify-end">
-        <button
+        <Button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
+          className="rounded-lg " variant="primary" size="lg"
         >
           {pending ? t('submitting') : t('submit')}
-        </button>
+        </Button>
       </div>
     </form>
   );

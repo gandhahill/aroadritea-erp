@@ -7,6 +7,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchCmsPosts } from '../actions';
+import { TableCell, TableBody, TableHead } from "@erp/ui";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('cms.posts');
@@ -85,28 +86,28 @@ export default async function CmsPostsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-brand-cream-3 text-left">
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   {t('columns.title')}
-                </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   {t('columns.type')}
-                </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   {t('columns.slug')}
-                </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   {t('columns.status')}
-                </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   Tags
-                </th>
-                <th className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
+                </TableHead>
+                <TableHead className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-brand-ink-3">
                   {t('columns.updatedAt')}
-                </th>
-                <th className="px-4 py-3"></th>
+                </TableHead>
+                <TableHead className="px-4 py-3"></TableHead>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-cream-3">
+            <TableBody className="divide-y divide-brand-cream-3">
               {posts.map((post: Record<string, unknown>) => {
                 const title =
                   (post.title as Record<string, string>)?.id ??
@@ -114,27 +115,27 @@ export default async function CmsPostsPage() {
                   '—';
                 return (
                   <tr key={post.id as string} className="hover:bg-brand-cream-1/50">
-                    <td className="px-4 py-3">
+                    <TableCell className="px-4 py-3">
                       <span className="text-sm font-medium text-brand-ink">{title}</span>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span className="rounded bg-brand-cream-2 px-2 py-0.5 text-xs font-medium text-brand-ink-2">
                         {t(`types.${KIND_KEYS[(post.kind as string) ?? 'news'] ?? (post.kind as string)}`)}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <code className="rounded bg-brand-cream-2 px-1.5 py-0.5 text-xs font-mono text-brand-ink-2">
                         /blog/{(post.slug as string) ?? '—'}
                       </code>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span
                         className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[(post.status as string) ?? 'draft']}`}
                       >
                         {t(`status.${(post.status as string) ?? 'draft'}`)}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
                         {((post.tags as string[]) ?? []).slice(0, 2).map((tag) => (
                           <span
@@ -150,8 +151,8 @@ export default async function CmsPostsPage() {
                           </span>
                         )}
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span className="text-sm text-brand-ink-3">
                         {post.updatedAt
                           ? new Date(post.updatedAt as string).toLocaleDateString('id-ID', {
@@ -161,8 +162,8 @@ export default async function CmsPostsPage() {
                             })
                           : '—'}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <Link
                         href={`/cms/posts/${post.id as string}`}
                         className="rounded-md p-1.5 text-brand-ink-3 hover:bg-brand-cream-2 hover:text-brand-ink"
@@ -181,11 +182,11 @@ export default async function CmsPostsPage() {
                           />
                         </svg>
                       </Link>
-                    </td>
+                    </TableCell>
                   </tr>
                 );
               })}
-            </tbody>
+            </TableBody>
           </table>
         )}
       </div>

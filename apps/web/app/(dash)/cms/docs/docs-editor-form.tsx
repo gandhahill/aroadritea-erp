@@ -4,6 +4,7 @@ import type { EditableDocsContent } from '@/app/(dash)/docs/editable-docs';
 import { useTranslations } from 'next-intl';
 import { useActionState, useState } from 'react';
 import { saveDocsEditorContent } from './actions';
+import { Input } from "@erp/ui";
 
 const LOCALES = [
   { code: 'id', label: 'Bahasa Indonesia' },
@@ -81,7 +82,7 @@ export function DocsEditorForm({ initialContent }: { initialContent: EditableDoc
             <div className="grid gap-4 lg:grid-cols-2">
               <label className="block">
                 <span className="text-sm font-semibold text-brand-ink">{t('docTitle')}</span>
-                <input
+                <Input
                   name={`title_${locale.code}`}
                   defaultValue={initialContent[locale.code].title}
                   className="mt-2 h-11 w-full rounded-md border border-brand-cream-3 bg-brand-cream px-3 text-sm text-brand-ink focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
@@ -89,7 +90,7 @@ export function DocsEditorForm({ initialContent }: { initialContent: EditableDoc
               </label>
               <label className="block">
                 <span className="text-sm font-semibold text-brand-ink">{t('docSubtitle')}</span>
-                <input
+                <Input
                   name={`subtitle_${locale.code}`}
                   defaultValue={initialContent[locale.code].subtitle}
                   className="mt-2 h-11 w-full rounded-md border border-brand-cream-3 bg-brand-cream px-3 text-sm text-brand-ink focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"

@@ -8,6 +8,7 @@ import {
   deleteBankAccount,
   saveBankAccount,
 } from './actions';
+import { Select, Input, TableBody, Button } from "@erp/ui";
 
 interface Labels {
   add: string;
@@ -105,13 +106,13 @@ export function BankAccountsClient({ accounts, coaAccounts, labels }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button
+        <Button
           type="button"
           onClick={addRow}
-          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
+          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark" variant="primary" size="md"
         >
           {labels.add}
-        </button>
+        </Button>
       </div>
 
       {result && (
@@ -141,11 +142,11 @@ export function BankAccountsClient({ accounts, coaAccounts, labels }: Props) {
                 <th className="px-3 py-3"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-brand-cream-3">
+            <TableBody className="divide-y divide-brand-cream-3">
               {sortedRows.map(({ row, key }, index) => (
                 <tr key={key} className="align-top">
                   <td className="px-3 py-3">
-                    <input
+                    <Input
                       value={row.bankName}
                       onChange={(e) => updateRow(index, { bankName: e.target.value })}
                       placeholder={labels.bankNamePlaceholder}
@@ -153,21 +154,21 @@ export function BankAccountsClient({ accounts, coaAccounts, labels }: Props) {
                     />
                   </td>
                   <td className="px-3 py-3">
-                    <input
+                    <Input
                       value={row.accountNumber}
                       onChange={(e) => updateRow(index, { accountNumber: e.target.value })}
                       className="h-9 w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-2 text-brand-ink"
                     />
                   </td>
                   <td className="px-3 py-3">
-                    <input
+                    <Input
                       value={row.accountHolder}
                       onChange={(e) => updateRow(index, { accountHolder: e.target.value })}
                       className="h-9 w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-2 text-brand-ink"
                     />
                   </td>
                   <td className="px-3 py-3">
-                    <select
+                    <Select
                       value={row.accountId}
                       onChange={(e) => updateRow(index, { accountId: e.target.value })}
                       className="h-9 w-full max-w-[250px] rounded-md border border-brand-cream-3 bg-brand-cream-1 px-2 text-brand-ink"
@@ -180,7 +181,7 @@ export function BankAccountsClient({ accounts, coaAccounts, labels }: Props) {
                           {coa.code} - {coa.name.id}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </td>
                   <td className="px-3 py-3">
                     <select
@@ -214,7 +215,7 @@ export function BankAccountsClient({ accounts, coaAccounts, labels }: Props) {
                   </td>
                 </tr>
               ))}
-            </tbody>
+            </TableBody>
           </table>
         </div>
       )}

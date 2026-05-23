@@ -102,11 +102,33 @@ export function generateMetadata(): Metadata {
   return {
     title: { default: 'Aroadri Tea', template: '%s | Aroadri Tea' },
     description: 'Nature Aroma in Every Sip - Chinese-style tea and dessert in Yogyakarta',
-    metadataBase: new URL('https://aroadritea.com'),
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://aroadritea.com'),
     icons: {
       icon: '/brand/logo-favicon.svg',
       shortcut: '/brand/logo-favicon.svg',
       apple: '/brand/logo-primary.png',
+    },
+    openGraph: {
+      type: 'website',
+      locale: 'id_ID',
+      url: 'https://aroadritea.com',
+      title: 'Aroadri Tea',
+      description: 'Nature Aroma in Every Sip - Chinese-style tea and dessert in Yogyakarta',
+      siteName: 'Aroadri Tea',
+      images: [
+        {
+          url: '/brand/og-image.jpg',
+          width: 1200,
+          height: 630,
+          alt: 'Aroadri Tea',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Aroadri Tea',
+      description: 'Nature Aroma in Every Sip - Chinese-style tea and dessert in Yogyakarta',
+      images: ['/brand/og-image.jpg'],
     },
   };
 }

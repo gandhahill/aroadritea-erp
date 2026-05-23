@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useState } from 'react';
 import { createOpnameSessionAction } from '../actions';
+import { Button, Input, Select } from "@erp/ui";
 
 type OpnameKind = 'daily' | 'weekly' | 'monthly';
 
@@ -14,9 +15,6 @@ const EMPTY_FORM = {
   notes: '',
   kind: 'monthly' as OpnameKind,
 };
-
-const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5 disabled:opacity-60';
 
 interface Props {
   locationOptions: Array<{ id: string; label: string; code: string }>;
@@ -85,14 +83,14 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
             <label htmlFor="locationId" className="block text-sm font-medium text-brand-ink">
               {t('location')} <span className="text-rose-500">*</span>
             </label>
-            <select
+            <Select
               id="locationId"
               name="locationId"
               value={form.locationId}
               onChange={(e) => setForm((f) => ({ ...f, locationId: e.target.value }))}
               required
               disabled={locationOptions.length === 0}
-              className={INPUT}
+             
             >
               {locationOptions.length === 0 ? (
                 <option value="">{t('noLocations')}</option>
@@ -103,7 +101,7 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
                   </option>
                 ))
               )}
-            </select>
+            </Select>
           </div>
 
           <div className="space-y-1.5">
@@ -139,14 +137,14 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
             <label htmlFor="sessionDate" className="block text-sm font-medium text-brand-ink">
               {t('sessionDate')} <span className="text-rose-500">*</span>
             </label>
-            <input
+            <Input
               id="sessionDate"
               name="sessionDate"
               type="date"
               value={form.sessionDate}
               onChange={(e) => setForm((f) => ({ ...f, sessionDate: e.target.value }))}
               required
-              className={INPUT}
+             
             />
           </div>
 
@@ -154,7 +152,7 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
             <label htmlFor="periodCode" className="block text-sm font-medium text-brand-ink">
               {t('periodCode')} <span className="text-rose-500">*</span>
             </label>
-            <input
+            <Input
               id="periodCode"
               name="periodCode"
               type="text"
@@ -162,7 +160,7 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
               value={form.periodCode}
               onChange={(e) => setForm((f) => ({ ...f, periodCode: e.target.value }))}
               required
-              className={INPUT}
+             
             />
             <p className="text-xs text-brand-ink-3">{t('periodHint')}</p>
           </div>
@@ -178,7 +176,7 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
               placeholder={t('notesPlaceholder')}
               value={form.notes}
               onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-              className={INPUT}
+             
             />
           </div>
 
@@ -189,13 +187,13 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
           ) : null}
 
           <div className="flex items-center justify-end gap-3 pt-2">
-            <button
+            <Button
               type="button"
               onClick={() => router.back()}
-              className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink transition-colors hover:bg-brand-cream-1"
+              className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink transition-colors hover:bg-brand-cream-1" variant="secondary" size="md"
             >
               {actions('cancel')}
-            </button>
+            </Button>
             <button
               type="submit"
               disabled={isPending || locationOptions.length === 0}

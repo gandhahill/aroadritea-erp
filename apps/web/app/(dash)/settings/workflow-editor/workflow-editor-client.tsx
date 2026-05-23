@@ -18,6 +18,7 @@ import {
   serverDeleteWorkflowDefinition,
   serverUpdateWorkflowDefinition,
 } from './actions';
+import { Button, Input, Select } from "@erp/ui";
 
 const ENTITY_TYPES = [
   { value: 'purchase_order', label: 'Purchase Order' },
@@ -368,9 +369,9 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
           <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
           <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle')}</p>
         </div>
-        <button
+        <Button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-red/90"
+          className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-red/90" variant="primary" size="md"
         >
           <svg
             className="h-4 w-4"
@@ -382,7 +383,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
           {t('createDefinition')}
-        </button>
+        </Button>
       </div>
 
       {/* Info banner */}
@@ -572,7 +573,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                       <label className="mb-1 block text-sm font-medium text-brand-ink">
                         Nama (ID) <span className="text-brand-red">*</span>
                       </label>
-                      <input
+                      <Input
                         type="text"
                         value={form.name_id}
                         onChange={(e) => updateForm((p) => ({ ...p, name_id: e.target.value }))}
@@ -584,7 +585,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                       <label className="mb-1 block text-sm font-medium text-brand-ink">
                         Name (EN)
                       </label>
-                      <input
+                      <Input
                         type="text"
                         value={form.name_en}
                         onChange={(e) => updateForm((p) => ({ ...p, name_en: e.target.value }))}
@@ -595,7 +596,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                       <label className="mb-1 block text-sm font-medium text-brand-ink">
                         名称 (ZH)
                       </label>
-                      <input
+                      <Input
                         type="text"
                         value={form.name_zh}
                         onChange={(e) => updateForm((p) => ({ ...p, name_zh: e.target.value }))}
@@ -610,7 +611,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                       <label className="mb-1 block text-sm font-medium text-brand-ink">
                         {t('entityType')} <span className="text-brand-red">*</span>
                       </label>
-                      <select
+                      <Select
                         value={form.entityType}
                         onChange={(e) => {
                           if (!editingId) updateForm((p) => ({ ...p, entityType: e.target.value }));
@@ -623,13 +624,13 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                             {et.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </div>
                     <div className="w-28">
                       <label className="mb-1 block text-sm font-medium text-brand-ink">
                         {t('priority')}
                       </label>
-                      <input
+                      <Input
                         type="number"
                         value={form.priority}
                         onChange={(e) =>
@@ -648,7 +649,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                     <label className="mb-1 block text-sm font-medium text-brand-ink">
                       {t('description')}
                     </label>
-                    <input
+                    <Input
                       type="text"
                       value={form.description}
                       onChange={(e) => updateForm((p) => ({ ...p, description: e.target.value }))}
@@ -826,13 +827,13 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                     >
                       {tc('labels.cancel')}
                     </button>
-                    <button
+                    <Button
                       type="submit"
                       disabled={isPending}
-                      className="rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50"
+                      className="rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50" variant="primary" size="md"
                     >
                       {isPending ? '...' : tc('labels.save')}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : (

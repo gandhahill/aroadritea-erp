@@ -3,13 +3,11 @@
 import { useTranslations } from 'next-intl';
 import { useActionState, useState } from 'react';
 import { saveAttendancePolicy } from './actions';
+import { Button, Input } from "@erp/ui";
 
 interface Props {
   initial: { latePenalty: number; freeLatesPerMonth: number; absentPenalty: number };
 }
-
-const INPUT =
-  'h-10 w-full rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20';
 
 export function AttendancePolicyForm({ initial }: Props) {
   const t = useTranslations('settings.attendance');
@@ -41,28 +39,28 @@ export function AttendancePolicyForm({ initial }: Props) {
             <span className="text-sm font-medium text-brand-ink">{t('latePenalty')}</span>
             <div className="flex items-center gap-2">
               <span className="text-sm text-brand-ink-3">Rp</span>
-              <input
+              <Input
                 name="latePenalty"
                 type="number"
                 min={0}
                 step={1000}
                 value={latePenalty}
                 onChange={(event) => setLatePenalty(Number(event.target.value))}
-                className={INPUT}
+               
                 required
               />
             </div>
           </label>
           <label className="space-y-1.5">
             <span className="text-sm font-medium text-brand-ink">{t('freeLatesPerMonth')}</span>
-            <input
+            <Input
               name="freeLatesPerMonth"
               type="number"
               min={0}
               max={31}
               value={freeLatesPerMonth}
               onChange={(event) => setFreeLatesPerMonth(Number(event.target.value))}
-              className={INPUT}
+             
               required
             />
           </label>
@@ -70,14 +68,14 @@ export function AttendancePolicyForm({ initial }: Props) {
             <span className="text-sm font-medium text-brand-ink">{t('absentPenalty')}</span>
             <div className="flex items-center gap-2">
               <span className="text-sm text-brand-ink-3">Rp</span>
-              <input
+              <Input
                 name="absentPenalty"
                 type="number"
                 min={0}
                 step={1000}
                 value={absentPenalty}
                 onChange={(event) => setAbsentPenalty(Number(event.target.value))}
-                className={INPUT}
+               
                 required
               />
             </div>
@@ -86,13 +84,13 @@ export function AttendancePolicyForm({ initial }: Props) {
       </section>
 
       <div className="flex items-center justify-end gap-3">
-        <button
+        <Button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
+          className="rounded-lg " variant="primary" size="lg"
         >
           {pending ? t('saving') : t('save')}
-        </button>
+        </Button>
       </div>
     </form>
   );

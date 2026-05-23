@@ -709,6 +709,15 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
   if (!permCheck.ok) return permCheck;
 
   let claimedIdempotencyId: string | null = null;
+  let saleIdToRollback: string | null = null;
+  const rollbackSaleData = async () => {
+    if (!saleIdToRollback) return;
+    await db.delete(payments).where(eq(payments.salesOrderId, saleIdToRollback)).catch(() => undefined);
+    await db.delete(promotionApplications).where(eq(promotionApplications.salesOrderId, saleIdToRollback)).catch(() => undefined);
+    await db.delete(salesOrderLines).where(eq(salesOrderLines.salesOrderId, saleIdToRollback)).catch(() => undefined);
+    await db.delete(salesOrders).where(eq(salesOrders.id, saleIdToRollback)).catch(() => undefined);
+  };
+
   let appliedStockDeductions: IngredientDeduction[] = [];
   const rollbackAppliedStockDeductions = async () => {
     if (appliedStockDeductions.length === 0) return;
@@ -748,21 +757,26 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       .then((r) => r[0]);
 
     if (existingIdempotency) {
-      // Return cached response
-      const cachedBody = existingIdempotency.responseBody as { id: string } | null;
-      if (cachedBody?.id) {
+      // If the previous attempt failed with a 5xx error, allow retry
+      if (existingIdempotency.responseStatus >= 500) {
+        // We will overwrite the old idempotency record later
+      } else {
+        // Return cached response
+        const cachedBody = existingIdempotency.responseBody as { id: string } | null;
+        if (cachedBody?.id) {
+          return err(
+            AppError.conflict('pos.createSale.duplicateOrder', {
+              existingOrderId: cachedBody.id,
+            }),
+          );
+        }
         return err(
-          AppError.conflict('pos.createSale.duplicateOrder', {
-            existingOrderId: cachedBody.id,
+          AppError.conflict('pos.createSale.idempotencyInProgress', {
+            idempotencyKey: data.idempotencyKey,
+            responseStatus: existingIdempotency.responseStatus,
           }),
         );
       }
-      return err(
-        AppError.conflict('pos.createSale.idempotencyInProgress', {
-          idempotencyKey: data.idempotencyKey,
-          responseStatus: existingIdempotency.responseStatus,
-        }),
-      );
     }
 
     // 5. Validate products/variants
@@ -961,6 +975,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     // 7b. SD §25.11 — Calculate donation / rounding for cash payments
     // 8. Generate order number + ID
     const saleId = generateId();
+    saleIdToRollback = saleId;
     const saleNumber = await generateSaleNumber(ctx.tenantId, data.locationId);
 
     // 9. Claim idempotency before any stock/order/accounting mutation.
@@ -1187,6 +1202,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
           claimedIdempotencyId = null;
         }
         await rollbackAppliedStockDeductions();
+        await rollbackSaleData();
         return err(postResult.error);
       }
       // Update sales_order with JE reference
@@ -1203,6 +1219,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
         claimedIdempotencyId = null;
       }
       await rollbackAppliedStockDeductions();
+      await rollbackSaleData();
       return err(jeResult.error);
     }
 
@@ -1308,6 +1325,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     return ok(result);
   } catch (e) {
     await rollbackAppliedStockDeductions().catch(() => undefined);
+    await rollbackSaleData();
     if (claimedIdempotencyId) {
       await db
         .update(idempotencyRecords)

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { fetchProductMasterData } from './actions';
 import { CategoryForm } from './category-form';
 import { ProductRowActions } from './row-actions';
+import { TableCell, TableBody, TableHead, TableHeader, Table, Button } from "@erp/ui";
 
 export const metadata: Metadata = {
   title: 'Produk & Menu - Aroadri ERP',
@@ -73,7 +74,7 @@ export default async function ProductsPage({ searchParams }: Props) {
         </div>
         <Link
           href="/inventory/products/new"
-          className="inline-flex items-center justify-center rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark"
+          className="inline-flex items-center justify-center rounded-lg "
         >
           {t('add')}
         </Link>
@@ -116,12 +117,12 @@ export default async function ProductsPage({ searchParams }: Props) {
               placeholder={t('searchInputPlaceholder')}
               className="min-w-0 flex-1 rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
             />
-            <button
+            <Button
               type="submit"
-              className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
+              className="rounded-lg " variant="secondary" size="md"
             >
               {t('searchBtn')}
-            </button>
+            </Button>
           </div>
         </label>
       </form>
@@ -139,21 +140,21 @@ export default async function ProductsPage({ searchParams }: Props) {
           </p>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
-            <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+          <Table>
+            <TableHeader>
               <tr>
-                <th className="px-4 py-3">{t('sku')}</th>
-                <th className="px-4 py-3">{t('photo')}</th>
-                <th className="px-4 py-3">{t('name')}</th>
-                <th className="px-4 py-3">{t('category')}</th>
-                <th className="px-4 py-3">{t('kind')}</th>
-                <th className="px-4 py-3 text-right">{t('price')}</th>
-                <th className="px-4 py-3 text-right">{t('variant')}</th>
-                <th className="px-4 py-3">{t('status')}</th>
-                <th className="px-4 py-3" />
+                <TableHead className="px-4 py-3">{t('sku')}</TableHead>
+                <TableHead className="px-4 py-3">{t('photo')}</TableHead>
+                <TableHead className="px-4 py-3">{t('name')}</TableHead>
+                <TableHead className="px-4 py-3">{t('category')}</TableHead>
+                <TableHead className="px-4 py-3">{t('kind')}</TableHead>
+                <TableHead className="px-4 py-3 text-right">{t('price')}</TableHead>
+                <TableHead className="px-4 py-3 text-right">{t('variant')}</TableHead>
+                <TableHead className="px-4 py-3">{t('status')}</TableHead>
+                <TableHead className="px-4 py-3" />
               </tr>
-            </thead>
-            <tbody className="divide-y divide-brand-cream-3 bg-card">
+            </TableHeader>
+            <TableBody>
               {data.products.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-4 py-8 text-center text-brand-ink-3">
@@ -163,8 +164,8 @@ export default async function ProductsPage({ searchParams }: Props) {
               ) : (
                 data.products.map((product) => (
                   <tr key={product.id} className="hover:bg-brand-cream-1/60">
-                    <td className="px-4 py-3 font-mono text-xs text-brand-ink">{product.sku}</td>
-                    <td className="px-4 py-3">
+                    <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink">{product.sku}</TableCell>
+                    <TableCell className="px-4 py-3">
                       {product.imageUrl ? (
                         <img
                           src={displayAssetUrl(product.imageUrl)}
@@ -176,14 +177,14 @@ export default async function ProductsPage({ searchParams }: Props) {
                           -
                         </div>
                       )}
-                    </td>
-                    <td className="px-4 py-3 font-semibold text-brand-ink">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 font-semibold text-brand-ink">
                       {localized(product.name, locale)}
-                    </td>
-                    <td className="px-4 py-3 text-brand-ink-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink-3">
                       {product.categoryCode || localized(product.categoryName, locale) || '-'}
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                           product.kind === 'finished_good'
@@ -199,14 +200,14 @@ export default async function ProductsPage({ searchParams }: Props) {
                       >
                         {t(KIND_LABEL_KEYS[product.kind as ProductKind] ?? 'kind')}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold text-brand-ink">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-right font-semibold text-brand-ink">
                       {formatPrice(product, locale)}
-                    </td>
-                    <td className="px-4 py-3 text-right text-brand-ink-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-right text-brand-ink-3">
                       {product.variantCount}
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <span
                         className={`rounded-full px-2 py-1 text-xs font-semibold ${
                           product.isActive
@@ -216,8 +217,8 @@ export default async function ProductsPage({ searchParams }: Props) {
                       >
                         {product.isActive ? t('active') : t('inactive')}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           href={`/inventory/products/${product.id}`}
@@ -227,12 +228,12 @@ export default async function ProductsPage({ searchParams }: Props) {
                         </Link>
                         <ProductRowActions productId={product.id} isActive={product.isActive} />
                       </div>
-                    </td>
+                    </TableCell>
                   </tr>
                 ))
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
     </div>

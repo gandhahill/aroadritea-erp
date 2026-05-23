@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { fetchNotificationChannels } from './actions';
 import { NotificationChannelForm } from './notification-channel-form';
+import { TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
 
 export default async function NotificationSettingsPage() {
   const channels = await fetchNotificationChannels();
@@ -23,17 +24,17 @@ export default async function NotificationSettingsPage() {
               <h2 className="text-base font-semibold text-brand-ink">{t('list.title')}</h2>
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
-                <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+              <Table>
+                <TableHeader>
                   <tr>
-                    <th className="px-4 py-3">{t('list.columns.label')}</th>
-                    <th className="px-4 py-3">{t('list.columns.type')}</th>
-                    <th className="px-4 py-3">{t('list.columns.target')}</th>
-                    <th className="px-4 py-3">{t('list.columns.purpose')}</th>
-                    <th className="px-4 py-3">{t('list.columns.status')}</th>
+                    <TableHead className="px-4 py-3">{t('list.columns.label')}</TableHead>
+                    <TableHead className="px-4 py-3">{t('list.columns.type')}</TableHead>
+                    <TableHead className="px-4 py-3">{t('list.columns.target')}</TableHead>
+                    <TableHead className="px-4 py-3">{t('list.columns.purpose')}</TableHead>
+                    <TableHead className="px-4 py-3">{t('list.columns.status')}</TableHead>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-brand-cream-3 bg-card">
+                </TableHeader>
+                <TableBody>
                   {channels.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-4 py-8 text-center text-brand-ink-3">
@@ -43,11 +44,11 @@ export default async function NotificationSettingsPage() {
                   ) : (
                     channels.map((channel) => (
                       <tr key={channel.id}>
-                        <td className="px-4 py-3 font-semibold text-brand-ink">{channel.label}</td>
-                        <td className="px-4 py-3 text-brand-muted">{channel.channelType}</td>
-                        <td className="px-4 py-3 text-brand-muted">{channel.target}</td>
-                        <td className="px-4 py-3 text-brand-muted">{channel.purpose}</td>
-                        <td className="px-4 py-3">
+                        <TableCell className="px-4 py-3 font-semibold text-brand-ink">{channel.label}</TableCell>
+                        <TableCell className="px-4 py-3 text-brand-muted">{channel.channelType}</TableCell>
+                        <TableCell className="px-4 py-3 text-brand-muted">{channel.target}</TableCell>
+                        <TableCell className="px-4 py-3 text-brand-muted">{channel.purpose}</TableCell>
+                        <TableCell className="px-4 py-3">
                           <span
                             className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${
                               channel.isActive
@@ -57,12 +58,12 @@ export default async function NotificationSettingsPage() {
                           >
                             {channel.isActive ? t('list.status.active') : t('list.status.inactive')}
                           </span>
-                        </td>
+                        </TableCell>
                       </tr>
                     ))
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </div>
 

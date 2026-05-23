@@ -84,10 +84,18 @@ export async function reverseJournal(
       AppError.businessRule('accounting.journal.cannotReverse', {
         journalId,
         currentStatus: originalJe.status,
-        reason:
-          originalJe.status === 'draft'
-            ? 'Cannot reverse a draft JE. Delete it instead.'
-            : 'This JE has already been reversed.',
+        reason: 'Cannot reverse a draft JE. Delete it instead.',
+      }),
+    );
+  }
+
+  // Prevent double reversal
+  if (originalJe.reversedByJeId) {
+    return err(
+      AppError.businessRule('accounting.journal.cannotReverse', {
+        journalId,
+        currentStatus: originalJe.status,
+        reason: 'This JE has already been reversed.',
       }),
     );
   }
@@ -167,11 +175,10 @@ export async function reverseJournal(
   //    fails fast before any new posting hits the books.
   return tryCatch(
     async () => {
-      // 9a. Claim original JE: status posted → reversed.
+      // 9a. Claim original JE: set reversedByJeId (keep status as 'posted').
       const claimed = await db
         .update(journalEntries)
         .set({
-          status: 'reversed',
           reversedByJeId: reversalJeId,
           updatedBy: ctx.userId,
           updatedAt: now,
@@ -253,7 +260,6 @@ export async function reverseJournal(
           version: originalJe.version,
         },
         after: {
-          status: 'reversed',
           reversedByJeId: reversalJeId,
           version: originalJe.version + 1,
         },

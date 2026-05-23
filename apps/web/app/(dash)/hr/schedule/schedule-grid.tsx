@@ -9,6 +9,7 @@ import {
   deleteAssignmentAction,
   upsertAssignmentAction,
 } from './actions';
+import { TableBody, TableHeader } from "@erp/ui";
 
 interface Props {
   weekStart: string;
@@ -138,7 +139,7 @@ export function ScheduleGrid({ weekStart, options, initialAssignments, canManage
 
       <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-card">
         <table className="w-full text-sm">
-          <thead className="bg-brand-cream-1 text-left text-xs uppercase tracking-widest text-brand-ink-3">
+          <TableHeader className="bg-brand-cream-1 text-left text-xs uppercase tracking-widest text-brand-ink-3">
             <tr>
               <th className="sticky left-0 z-10 bg-brand-cream-1 px-3 py-2">{tc('employee')}</th>
               {dates.map((date) => (
@@ -148,8 +149,8 @@ export function ScheduleGrid({ weekStart, options, initialAssignments, canManage
                 </th>
               ))}
             </tr>
-          </thead>
-          <tbody className="divide-y divide-brand-cream-3">
+          </TableHeader>
+          <TableBody className="divide-y divide-brand-cream-3">
             {options.employees.map((emp) => (
               <tr key={emp.id}>
                 <td className="sticky left-0 z-10 bg-card px-3 py-2 font-medium text-brand-ink">
@@ -211,7 +212,7 @@ export function ScheduleGrid({ weekStart, options, initialAssignments, canManage
                 </td>
               </tr>
             ) : null}
-          </tbody>
+          </TableBody>
         </table>
       </div>
     </div>

@@ -14,6 +14,7 @@ import {
   replenishAction,
 } from './actions';
 import { useTranslations } from 'next-intl';
+import { Input, TableCell, TableHead, Button } from "@erp/ui";
 
 function formatRupiah(amount: string): string {
   const n = Number(amount);
@@ -260,14 +261,14 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                   />
                 </div>
               </label>
-              <button
+              <Button
                 type="button"
                 onClick={() => handleCreate(loc.id)}
                 disabled={pending}
-                className="mt-4 w-full rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-4 w-full rounded-lg  disabled:cursor-not-allowed disabled:opacity-50" variant="primary" size="md"
               >
                 {pending ? t('openSubmitting') : t('openSubmit')}
-              </button>
+              </Button>
             </div>
           );
         })}
@@ -348,10 +349,10 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
-                  <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('date')}</th>
-                  <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('type')}</th>
-                  <th className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('description')}</th>
-                  <th className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('amount')}</th>
+                  <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('date')}</TableHead>
+                  <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('type')}</TableHead>
+                  <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('description')}</TableHead>
+                  <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('amount')}</TableHead>
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-cream-2">
@@ -373,23 +374,23 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                         : 'bg-brand-cream-2 text-brand-ink-2';
                   return (
                     <tr key={tx.id} className="hover:bg-brand-cream/50">
-                      <td className="px-4 py-3 text-brand-ink-2">{formatDate(tx.createdAt)}</td>
-                      <td className="px-4 py-3">
+                      <TableCell className="px-4 py-3 text-brand-ink-2">{formatDate(tx.createdAt)}</TableCell>
+                      <TableCell className="px-4 py-3">
                         <span
                           className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${badgeColor}`}
                         >
                           {kindLabel}
                         </span>
-                      </td>
-                      <td className="px-4 py-3 text-brand-ink">{tx.description}</td>
-                      <td
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-brand-ink">{tx.description}</TableCell>
+                      <TableCell
                         className={`px-4 py-3 text-right font-medium ${
                           isIncoming ? 'text-brand-jade' : 'text-brand-clay'
                         }`}
                       >
                         {isIncoming ? '+' : '-'}
                         {formatRupiah(tx.amount)}
-                      </td>
+                      </TableCell>
                     </tr>
                   );
                 })}
@@ -452,7 +453,7 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                 <span className="text-xs font-medium uppercase tracking-wider text-brand-ink-2">
                   {actionModal === 'expense' ? t('modalNoteRequired') : t('modalNoteOptional')}
                 </span>
-                <input
+                <Input
                   type="text"
                   value={actionNote}
                   onChange={(e) => setActionNote(e.target.value)}

@@ -11,9 +11,7 @@ import {
   createJournalAction,
 } from '../actions';
 import { uploadAttachmentAction } from '../attachments/actions';
-
-const INPUT =
-  'w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5';
+import { Button, Input, TableCell, Select, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
 
 interface LineDraft {
   key: number;
@@ -162,25 +160,25 @@ export function JournalForm({ accounts, locations, partners }: Props) {
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <label className="space-y-1.5">
             <span className="text-sm font-medium text-brand-ink">{t('postingDate')}</span>
-            <input name="postingDate" type="date" required defaultValue={today} className={INPUT} />
+            <Input name="postingDate" type="date" required defaultValue={today} />
           </label>
           <label className="space-y-1.5">
             <span className="text-sm font-medium text-brand-ink">{tc('labels.location')}</span>
-            <select name="locationId" required defaultValue={defaultLocationId} className={INPUT}>
+            <Select name="locationId" required defaultValue={defaultLocationId}>
               {locations.map((location) => (
                 <option key={location.id} value={location.id}>
                   {location.code} - {location.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="space-y-1.5 md:col-span-2">
             <span className="text-sm font-medium text-brand-ink">{tc('labels.description')}</span>
-            <input name="description" required className={INPUT} />
+            <Input name="description" required />
           </label>
           <label className="space-y-1.5 md:col-span-2">
             <span className="text-sm font-medium text-brand-ink">Reference ID</span>
-            <input name="referenceId" className={INPUT} />
+            <Input name="referenceId" />
           </label>
         </div>
       </section>
@@ -201,30 +199,30 @@ export function JournalForm({ accounts, locations, partners }: Props) {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
-            <thead className="bg-brand-cream-1 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+          <Table>
+            <TableHeader>
               <tr>
-                <th className="px-4 py-3">{tc('labels.account')}</th>
-                <th className="px-4 py-3">{tc('labels.description')}</th>
-                <th className="px-4 py-3">{t('partner')}</th>
-                <th className="px-4 py-3">{t('dueDate')}</th>
-                <th className="px-4 py-3">{t('reminderDaysBefore')}</th>
-                <th className="px-4 py-3">{tc('labels.location')}</th>
-                <th className="px-4 py-3 text-right">{t('debit')}</th>
-                <th className="px-4 py-3 text-right">{t('credit')}</th>
-                <th className="px-4 py-3" />
+                <TableHead className="px-4 py-3">{tc('labels.account')}</TableHead>
+                <TableHead className="px-4 py-3">{tc('labels.description')}</TableHead>
+                <TableHead className="px-4 py-3">{t('partner')}</TableHead>
+                <TableHead className="px-4 py-3">{t('dueDate')}</TableHead>
+                <TableHead className="px-4 py-3">{t('reminderDaysBefore')}</TableHead>
+                <TableHead className="px-4 py-3">{tc('labels.location')}</TableHead>
+                <TableHead className="px-4 py-3 text-right">{t('debit')}</TableHead>
+                <TableHead className="px-4 py-3 text-right">{t('credit')}</TableHead>
+                <TableHead className="px-4 py-3" />
               </tr>
-            </thead>
-            <tbody className="divide-y divide-brand-cream-3 bg-card">
+            </TableHeader>
+            <TableBody>
               {lines.map((line, index) => (
                 <tr key={line.key}>
-                  <td className="min-w-72 px-4 py-3">
-                    <select
+                  <TableCell className="min-w-72 px-4 py-3">
+                    <Select
                       name={`accountId-${index}`}
                       required
                       value={line.accountId}
                       onChange={(event) => updateLine(line.key, { accountId: event.target.value })}
-                      className={INPUT}
+                     
                     >
                       <option value="">{t('selectAccount')}</option>
                       {accounts.map((account) => (
@@ -232,24 +230,24 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                           {account.code} - {pickLocalized(account.name, locale, account.code)}
                         </option>
                       ))}
-                    </select>
-                  </td>
-                  <td className="min-w-56 px-4 py-3">
-                    <input
+                    </Select>
+                  </TableCell>
+                  <TableCell className="min-w-56 px-4 py-3">
+                    <Input
                       name={`lineDescription-${index}`}
                       value={line.description}
                       onChange={(event) =>
                         updateLine(line.key, { description: event.target.value })
                       }
-                      className={INPUT}
+                     
                     />
-                  </td>
-                  <td className="min-w-52 px-4 py-3">
-                    <select
+                  </TableCell>
+                  <TableCell className="min-w-52 px-4 py-3">
+                    <Select
                       name={`partnerId-${index}`}
                       value={line.partnerId}
                       onChange={(event) => updateLine(line.key, { partnerId: event.target.value })}
-                      className={INPUT}
+                     
                     >
                       <option value="">{t('noPartner')}</option>
                       {partners.map((partner) => (
@@ -257,19 +255,19 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                           {partner.name} ({partner.kind})
                         </option>
                       ))}
-                    </select>
-                  </td>
-                  <td className="min-w-40 px-4 py-3">
-                    <input
+                    </Select>
+                  </TableCell>
+                  <TableCell className="min-w-40 px-4 py-3">
+                    <Input
                       name={`dueDate-${index}`}
                       type="date"
                       value={line.dueDate}
                       onChange={(event) => updateLine(line.key, { dueDate: event.target.value })}
-                      className={INPUT}
+                     
                     />
-                  </td>
-                  <td className="min-w-28 px-4 py-3">
-                    <input
+                  </TableCell>
+                  <TableCell className="min-w-28 px-4 py-3">
+                    <Input
                       name={`reminderDaysBefore-${index}`}
                       type="number"
                       min={0}
@@ -278,66 +276,66 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                       onChange={(event) =>
                         updateLine(line.key, { reminderDaysBefore: event.target.value })
                       }
-                      className={INPUT}
+                     
                     />
-                  </td>
-                  <td className="min-w-52 px-4 py-3">
-                    <select
+                  </TableCell>
+                  <TableCell className="min-w-52 px-4 py-3">
+                    <Select
                       name={`lineLocationId-${index}`}
                       value={line.locationId || defaultLocationId}
                       onChange={(event) => updateLine(line.key, { locationId: event.target.value })}
-                      className={INPUT}
+                     
                     >
                       {locations.map((location) => (
                         <option key={location.id} value={location.id}>
                           {location.code}
                         </option>
                       ))}
-                    </select>
-                  </td>
-                  <td className="min-w-36 px-4 py-3">
-                    <input
+                    </Select>
+                  </TableCell>
+                  <TableCell className="min-w-36 px-4 py-3">
+                    <Input
                       name={`debit-${index}`}
                       inputMode="numeric"
                       value={line.debit}
                       onChange={(event) =>
                         updateLine(line.key, { debit: event.target.value, credit: '' })
                       }
-                      className={`${INPUT} text-right`}
+                      className="text-right"
                     />
-                  </td>
-                  <td className="min-w-36 px-4 py-3">
-                    <input
+                  </TableCell>
+                  <TableCell className="min-w-36 px-4 py-3">
+                    <Input
                       name={`credit-${index}`}
                       inputMode="numeric"
                       value={line.credit}
                       onChange={(event) =>
                         updateLine(line.key, { credit: event.target.value, debit: '' })
                       }
-                      className={`${INPUT} text-right`}
+                      className="text-right"
                     />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-right">
+                    <Button
                       type="button"
                       onClick={() => removeLine(line.key)}
                       disabled={lines.length <= 2}
-                      className="rounded-md px-2 py-1 text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-50 disabled:opacity-30"
+                      className="rounded-md " variant="danger" size="sm"
                     >
                       {t('deleteItem')}
-                    </button>
-                  </td>
+                    </Button>
+                  </TableCell>
                 </tr>
               ))}
-            </tbody>
+            </TableBody>
             <tfoot className="bg-brand-cream-1 text-sm font-semibold text-brand-ink">
               <tr>
-                <td className="px-4 py-3" colSpan={6}>
+                <TableCell className="px-4 py-3" colSpan={6}>
                   Total
-                </td>
-                <td className="px-4 py-3 text-right">{formatRupiah(totals.debit)}</td>
-                <td className="px-4 py-3 text-right">{formatRupiah(totals.credit)}</td>
-                <td className="px-4 py-3">
+                </TableCell>
+                <TableCell className="px-4 py-3 text-right">{formatRupiah(totals.debit)}</TableCell>
+                <TableCell className="px-4 py-3 text-right">{formatRupiah(totals.credit)}</TableCell>
+                <TableCell className="px-4 py-3">
                   {totals.debit === totals.credit && totals.debit > 0 ? (
                     <span className="rounded-full bg-brand-jade-light px-2 py-1 text-xs text-brand-jade">
                       {t('balanced')}
@@ -347,10 +345,10 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                       {t('notBalanced')}
                     </span>
                   )}
-                </td>
+                </TableCell>
               </tr>
             </tfoot>
-          </table>
+          </Table>
         </div>
       </section>
 
@@ -360,7 +358,7 @@ export function JournalForm({ accounts, locations, partners }: Props) {
           {t('attachmentHint')}
         </p>
         <div className="mt-3 space-y-2">
-          <input
+          <Input
             type="file"
             multiple
             onChange={(event) => {
@@ -386,22 +384,22 @@ export function JournalForm({ accounts, locations, partners }: Props) {
       </section>
 
       <div className="flex items-center justify-end gap-3">
-        <button
+        <Button
           type="button"
           onClick={() => router.push('/accounting/journals')}
-          className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
+          className="rounded-lg " variant="secondary" size="md"
         >
           {tc('actions.cancel')}
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
           disabled={
             isPending || uploadingAttachments || accounts.length === 0 || locations.length === 0
           }
-          className="rounded-lg bg-brand-red px-5 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
+          className="rounded-lg " variant="primary" size="lg"
         >
           {isPending || uploadingAttachments ? t('saving') : t('saveDraft')}
-        </button>
+        </Button>
       </div>
     </form>
   );
