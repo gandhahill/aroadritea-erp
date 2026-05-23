@@ -3,11 +3,13 @@
 import { useTranslations } from 'next-intl';
 import { useActionState, useEffect, useState } from 'react';
 import { submitWhistleblowerAction } from './actions';
+import { FileUploadField } from '@/components/file-upload-field';
 
 export default function WhistleblowerPage() {
   const t = useTranslations('whistleblower');
   const [state, submitAction, isPending] = useActionState(submitWhistleblowerAction, null);
   const [success, setSuccess] = useState(false);
+  const [attachmentUrl, setAttachmentUrl] = useState('');
 
   useEffect(() => {
     if (state?.ok) {
@@ -31,6 +33,7 @@ export default function WhistleblowerPage() {
           <button
             onClick={() => {
               setSuccess(false);
+              setAttachmentUrl('');
               // In a real app we might redirect or reset form
             }}
             className="mt-6 rounded-lg bg-brand-red px-6 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
@@ -94,6 +97,17 @@ export default function WhistleblowerPage() {
                 placeholder={t('contentPlaceholder') || 'Please describe the incident in detail (who, what, when, where)...'}
               />
             </label>
+
+            <div>
+              <FileUploadField
+                label={t('uploadEvidence') || 'Upload Evidence (Optional)'}
+                hiddenName="attachmentUrl"
+                value={attachmentUrl}
+                area="whistleblower"
+                visibility="private"
+                onChange={(url) => setAttachmentUrl(url)}
+              />
+            </div>
             
             <p className="text-xs text-brand-ink-3">
               {t('anonymityNote') || 'Note: We do not collect your name, email, or IP address with this submission. It is completely anonymous.'}

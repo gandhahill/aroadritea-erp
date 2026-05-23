@@ -22,6 +22,7 @@ export const whistleblowerReports = pgTable('whistleblower_reports', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   updatedByUserId: text('updated_by_user_id'),
+  attachmentUrl: text('attachment_url'),
 
   ...versionCol,
 });

@@ -13,6 +13,7 @@ const UPLOAD_WRITE_PERMISSION: Record<UploadArea, string> = {
   'cms-images': 'cms.manage',
   reimbursement: 'accounting.reimbursement.create',
   disciplinary: 'hr.disciplinary.write',
+  whistleblower: '', // Bypassed
   general: 'settings.manage',
 };
 
@@ -50,8 +51,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
   }
 
-  const permission = await requirePermission(userId, UPLOAD_WRITE_PERMISSION[area]);
-  if (!permission.ok) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (area !== 'whistleblower') {
+    const permission = await requirePermission(userId, UPLOAD_WRITE_PERMISSION[area]);
+    if (!permission.ok) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
 
   try {
     assertUploadFile(uploadFile, imageOnly);

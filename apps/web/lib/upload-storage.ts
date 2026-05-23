@@ -7,6 +7,7 @@ export const ALLOWED_UPLOAD_AREAS = [
   'cms-images',
   'reimbursement',
   'disciplinary',
+  'whistleblower',
   'general',
 ] as const;
 

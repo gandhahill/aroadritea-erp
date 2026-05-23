@@ -308,7 +308,8 @@ export function Sidebar() {
         { label: t('leave'), href: '/hr/leave', icon: <></> },
         { label: t('payroll'), href: '/hr/payroll', icon: <></> },
         { label: t('disciplinary'), href: '/hr/disciplinary', icon: <></> },
-        { label: t('whistleblower'), href: '/hr/whistleblower', icon: <></> },
+        { label: t('whistleblowerForm'), href: '/whistleblower', icon: <></> },
+        { label: t('whistleblowerReports'), href: '/hr/whistleblower', icon: <></> },
       ],
     },
     {

@@ -16,6 +16,7 @@ export async function submitWhistleblowerAction(
   const title = formData.get('title') as string;
   const category = formData.get('category') as string;
   const content = formData.get('content') as string;
+  const attachmentUrl = formData.get('attachmentUrl') as string | null;
 
   if (!title || !category || !content) {
     return { ok: false, error: 'Missing required fields' };
@@ -23,7 +24,7 @@ export async function submitWhistleblowerAction(
 
   try {
     const result = await submitWhistleblowerReport(
-      { title, category, content },
+      { title, category, content, attachmentUrl: attachmentUrl || undefined },
       { userId: session.user.id, tenantId: (session.user as any).tenantId } as any
     );
 

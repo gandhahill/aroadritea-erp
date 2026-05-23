@@ -6,7 +6,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { randomUUID } from 'crypto';
 
 export async function submitWhistleblowerReport(
-  input: { title: string; category: string; content: string; evidencePath?: string },
+  input: { title: string; category: string; content: string; attachmentUrl?: string },
   ctx: AuditContext
 ): Promise<Result<{ id: string }>> {
   if (!ctx.userId) {
@@ -21,6 +21,7 @@ export async function submitWhistleblowerReport(
     description: `[Category: ${input.category}] ${input.content}`,
     status: 'open',
     tenantId: ctx.tenantId,
+    attachmentUrl: input.attachmentUrl || null,
   });
 
   return ok({ id });

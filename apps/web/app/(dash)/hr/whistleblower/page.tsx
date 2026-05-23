@@ -48,7 +48,17 @@ export default async function AdminWhistleblowerPage() {
                 <td className="px-4 py-3 font-medium text-brand-ink">{report.title}</td>
                 <td className="px-4 py-3 capitalize text-brand-ink">
                   {/* description holds both category and details. We just show a snippet */}
-                  {report.description.substring(0, 50)}...
+                  <div className="mb-1">{report.description.substring(0, 50)}...</div>
+                  {report.attachmentUrl && (
+                    <a
+                      href={report.attachmentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-medium text-brand-red hover:underline"
+                    >
+                      {t('viewEvidence') || 'View Evidence'}
+                    </a>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <span
