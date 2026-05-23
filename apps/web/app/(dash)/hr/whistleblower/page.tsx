@@ -39,10 +39,11 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
     .limit(pageSize)
     .offset((page - 1) * pageSize);
 
-  const [{ count }] = await db
+  const countResult = await db
     .select({ count: sql<number>`count(*)` })
     .from(whistleblowerReports)
     .where(and(...conditions));
+  const count = countResult[0]?.count ?? 0;
 
   const t = await getTranslations('whistleblower.admin');
 
