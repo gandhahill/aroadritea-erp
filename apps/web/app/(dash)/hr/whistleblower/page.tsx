@@ -79,6 +79,7 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
           {t('filterBtn') || 'Filter'}
         </Button>
       </FilterBar>
+      </form>
 
       <div className="rounded-xl border border-brand-cream-3 bg-card shadow-sm">
         <table className="w-full text-left text-sm">
