@@ -1,9 +1,12 @@
+"use client";
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export interface PageHeaderProps {
   title: React.ReactNode;
   description?: React.ReactNode;
-  eyebrow?: React.ReactNode;
+  eyebrow?: React.ReactNode; // Dipelihara untuk kompatibilitas props, tapi kita akan paksa pakai auto-breadcrumb
   breadcrumbs?: { label: React.ReactNode; href?: string }[];
   actions?: React.ReactNode;
 }
@@ -11,20 +14,42 @@ export interface PageHeaderProps {
 export function PageHeader({
   title,
   description,
-  eyebrow,
   breadcrumbs,
   actions,
 }: PageHeaderProps) {
+  const pathname = usePathname();
+
+  // Jika tidak ada breadcrumbs eksplisit, kita generate otomatis dari URL agar 100% seragam
+  const generateBreadcrumbs = () => {
+    if (breadcrumbs && breadcrumbs.length > 0) return breadcrumbs;
+    if (!pathname || pathname === '/') return [];
+
+    const segments = pathname.split('/').filter(Boolean);
+    const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, ' ');
+
+    // Tambahkan Home di awal
+    const autoCrumbs = [{ label: 'Dashboard', href: '/' }];
+    
+    segments.forEach((segment, index) => {
+      const href = '/' + segments.slice(0, index + 1).join('/');
+      autoCrumbs.push({ label: capitalize(segment), href });
+    });
+
+    return autoCrumbs;
+  };
+
+  const displayBreadcrumbs = generateBreadcrumbs();
+
   return (
     <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div>
-        {breadcrumbs && breadcrumbs.length > 0 && (
+        {displayBreadcrumbs.length > 0 && (
           <div className="mb-2 flex items-center gap-2 text-sm text-brand-ink-3">
-            {breadcrumbs.map((crumb, index) => {
-              const isLast = index === breadcrumbs.length - 1;
+            {displayBreadcrumbs.map((crumb, index) => {
+              const isLast = index === displayBreadcrumbs.length - 1;
               return (
                 <div key={index} className="flex items-center gap-2">
-                  {crumb.href ? (
+                  {!isLast && crumb.href ? (
                     <Link href={crumb.href} className="hover:text-brand-ink transition-colors">
                       {crumb.label}
                     </Link>
@@ -38,11 +63,6 @@ export function PageHeader({
               );
             })}
           </div>
-        )}
-        {!breadcrumbs && eyebrow && (
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
-            {eyebrow}
-          </p>
         )}
         <h1 className="font-display text-2xl md:text-3xl font-semibold text-brand-ink">
           {title}
