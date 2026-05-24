@@ -1,4 +1,3 @@
-import { Select } from "@erp/ui";
 /**
  * HourlySalesClient — client component for the hourly sales report (SD §25.6.3)
  *
@@ -11,6 +10,8 @@ import { Select } from "@erp/ui";
  */
 
 'use client';
+
+import { Select } from "@erp/ui";
 
 import { exportWorkbook } from '@/lib/export-workbook';
 import type { ChannelHourRow, DayHourRow, HourlySalesResult } from '@erp/services/reporting';

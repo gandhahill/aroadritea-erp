@@ -1,4 +1,3 @@
-import { Select } from "@erp/ui";
 /**
  * DailySummaryClient — client component for the daily summary report.
  *
@@ -7,6 +6,8 @@ import { Select } from "@erp/ui";
  */
 
 'use client';
+
+import { Select } from "@erp/ui";
 
 import { exportWorkbook } from '@/lib/export-workbook';
 import type { DailySummaryResult } from '@erp/services/reporting';

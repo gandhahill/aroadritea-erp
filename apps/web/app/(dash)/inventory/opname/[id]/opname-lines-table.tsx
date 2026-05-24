@@ -1,4 +1,3 @@
-import { Select } from "@erp/ui";
 /**
  * OpnameLineTable — interactive table for opname session lines.
  *
@@ -7,6 +6,8 @@ import { Select } from "@erp/ui";
  */
 
 'use client';
+
+import { Select } from "@erp/ui";
 
 import type { OpnameLineResult } from '@erp/services/inventory/opname-service';
 import { useTranslations } from 'next-intl';
