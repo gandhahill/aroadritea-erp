@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { syncPurchaseShipmentAction } from './actions';
+import { FilterBar, FilterField } from "@/components/filter-bar";
 import { TableCell, TableBody, TableHead, TableHeader, Table, Select, Input } from "@erp/ui";
 
 interface PoRow {

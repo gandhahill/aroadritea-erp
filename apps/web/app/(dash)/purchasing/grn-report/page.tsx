@@ -6,6 +6,7 @@ import { Pagination } from '@/components/pagination';
 import { fetchGRNReport } from '../actions';
 import Link from 'next/link';
 import { TableCell, TableBody, TableHead, Button, Select, Input } from "@erp/ui";
+import { FilterBar, FilterField } from "@/components/filter-bar";
 import { PageHeader } from "@/components/page-header";
 
 interface Props {
@@ -58,7 +59,7 @@ export default async function GRNReportPage({ searchParams }: Props) {
                           </div>}
               />
 
-        <FilterBar as="form" method="GET">
+        <form method="GET" className="mb-6"><FilterBar>
           <FilterField>
             <Input
               type="date"

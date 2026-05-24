@@ -57,7 +57,7 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
             description={<>{t('subtitle') || 'Manage and review anonymous reports.'}</>}
           />
 
-      <FilterBar as="form" method="GET" className="mb-6">
+      <form method="GET" className="mb-6"><FilterBar>
         <FilterField>
           <Select
             name="status"
