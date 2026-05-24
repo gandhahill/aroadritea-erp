@@ -838,6 +838,12 @@
         "deleteFailed": "删除配方失败。"
       }
     },
+    "opname": {
+      "columns": {
+        "status": "状态",
+        "action": "操作"
+      }
+    },
     "variance": {
       "title": "库存差异报告",
       "subtitle": "库存盘点产生的差异报告。",

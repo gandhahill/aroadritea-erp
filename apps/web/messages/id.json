@@ -817,6 +817,12 @@
         "deleteFailed": "Gagal menghapus resep."
       }
     },
+    "opname": {
+      "columns": {
+        "status": "Status",
+        "action": "Aksi"
+      }
+    },
     "variance": {
       "title": "Laporan Selisih Stok",
       "subtitle": "Laporan selisih stok (variance) hasil dari proses opname.",

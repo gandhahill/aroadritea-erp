@@ -817,6 +817,12 @@
         "deleteFailed": "Failed to delete recipe."
       }
     },
+    "opname": {
+      "columns": {
+        "status": "Status",
+        "action": "Action"
+      }
+    },
     "variance": {
       "title": "Stock Variance Report",
       "subtitle": "Stock variance analysis from opname processes.",
