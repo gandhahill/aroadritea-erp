@@ -29,7 +29,19 @@ export type ListEmployeesInput = z.infer<typeof ListEmployeesInputSchema>;
 
 export const CreateEmployeeInputSchema = z.object({
   locationId: z.string().min(1).optional(),
-  nik: z.string().min(1).max(32),
+  // NIK (KTP number) is OPTIONAL by business decision (2026-05-24): many
+  // outlets onboard staff before their KTP is in hand. When provided it
+  // must still be 6-32 chars; an empty string is normalised to undefined
+  // and persisted as NULL (see create-employee.ts).
+  nik: z
+    .string()
+    .max(32)
+    .optional()
+    .transform((value) => {
+      if (!value) return undefined;
+      const trimmed = value.trim();
+      return trimmed.length === 0 ? undefined : trimmed;
+    }),
   name: z.string().min(1).max(128),
   email: z.string().email(),
   phone: z.string().optional(),

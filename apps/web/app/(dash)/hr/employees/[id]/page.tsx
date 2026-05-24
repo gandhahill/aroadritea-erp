@@ -109,7 +109,7 @@ export default async function EmployeeDetailPage({
             {emp.department ? ` - ${emp.department}` : ''}
           </p>
           <p className="text-xs text-brand-ink-3">
-            {t('nik')}: {emp.nik} / {emp.email}
+            {t('nik')}: {emp.nik ?? '—'} / {emp.email}
           </p>
         </div>
         <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-right text-sm">

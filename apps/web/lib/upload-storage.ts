@@ -12,6 +12,8 @@ export const ALLOWED_UPLOAD_AREAS = [
   'whistleblower',
   'general',
   'shift-expenses',
+  'sop',
+  'ai-attachments',
 ] as const;
 
 export type UploadArea = (typeof ALLOWED_UPLOAD_AREAS)[number];

@@ -1,0 +1,12 @@
+-- SD §9.6, AGENTS.md "User Req 4 (2026-05-24)" — make `employees.nik` optional.
+--
+-- The original schema enforced NOT NULL because we assumed every onboarded
+-- staff member would have an Indonesian National ID (NIK / KTP) on hand
+-- at hire date. In practice many outlets onboard probationers before the
+-- KTP is in their possession (lost card, change of domicile, freshly
+-- 17). The application now accepts an empty NIK and persists NULL.
+--
+-- The unique index stays in place because PostgreSQL allows multiple NULL
+-- values inside a unique index, so this change is safe — only real NIKs
+-- collide.
+ALTER TABLE "employees" ALTER COLUMN "nik" DROP NOT NULL;

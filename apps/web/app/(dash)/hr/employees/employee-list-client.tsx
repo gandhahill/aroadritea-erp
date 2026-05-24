@@ -12,7 +12,7 @@ import { useState, useTransition } from 'react';
 
 interface EmployeeRow {
   id: string;
-  nik: string;
+  nik: string | null;
   name: string;
   email: string;
   status: string;
@@ -182,7 +182,7 @@ export function EmployeeListClient({
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink-2">{row.nik}</TableCell>
+                  <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink-2">{row.nik ?? '—'}</TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink">{row.position}</TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink-2">{row.department ?? '—'}</TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink-2">{row.locationName}</TableCell>

@@ -26,6 +26,8 @@
     "./schema/notification": "./schema/notification.ts",
     "./schema/stock-opname": "./schema/stock-opname.ts",
     "./schema/whistleblower": "./schema/whistleblower.ts",
+    "./schema/sop": "./schema/sop.ts",
+    "./schema/ai": "./schema/ai.ts",
     "./schema/reporting/daily-revenue-adjustments": "./schema/reporting/daily-revenue-adjustments.ts"
   },
   "scripts": {

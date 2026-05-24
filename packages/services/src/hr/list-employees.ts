@@ -17,7 +17,7 @@ import { type ListEmployeesInput, ListEmployeesInputSchema } from './schemas';
 
 export interface EmployeeListItem {
   id: string;
-  nik: string;
+  nik: string | null;
   name: string;
   email: string;
   phone: string | null;

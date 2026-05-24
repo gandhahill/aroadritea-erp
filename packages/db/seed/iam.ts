@@ -438,6 +438,44 @@ export const PERMISSIONS_SEED = [
     module: 'hr',
     description: n('Buat/kelola SP', 'Create/manage warnings', '创建/管理警告'),
   },
+  // SOP (User Req 2 — 2026-05-24)
+  {
+    code: 'hr.sop.read',
+    module: 'hr',
+    description: n(
+      'Lihat dokumen SOP perusahaan',
+      'View company SOP documents',
+      '查看公司SOP文件',
+    ),
+  },
+  {
+    code: 'hr.sop.manage',
+    module: 'hr',
+    description: n(
+      'Unggah / edit / arsipkan SOP',
+      'Upload / edit / archive SOPs',
+      '上传/编辑/归档SOP',
+    ),
+  },
+  // AI assistant (User Req 1 — 2026-05-24)
+  {
+    code: 'ai.assistant.use',
+    module: 'ai',
+    description: n(
+      'Gunakan AI asisten (chat + tools terbatas RBAC)',
+      'Use the AI assistant (chat + RBAC-gated tools)',
+      '使用AI助手（受RBAC限制的聊天和工具）',
+    ),
+  },
+  {
+    code: 'ai.assistant.admin',
+    module: 'ai',
+    description: n(
+      'Lihat semua percakapan AI lintas pengguna + konfigurasi',
+      'View every AI conversation across users + configure',
+      '查看跨用户的所有AI对话及配置',
+    ),
+  },
   // Payroll
   {
     code: 'hr.payroll.write',
@@ -620,6 +658,9 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'hr.attendance.write',
     'hr.disciplinary.read',
     'hr.disciplinary.write',
+    'hr.sop.read',
+    'hr.sop.manage',
+    'ai.assistant.use',
     'kitchen.view',
     'reporting.view',
     'reporting.export',
@@ -673,6 +714,8 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'reporting.view',
     'reporting.export',
     'audit.view',
+    'hr.sop.read',
+    'ai.assistant.use',
     'docs.view',
   ],
   store_manager: [
@@ -703,6 +746,9 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'hr.attendance.write',
     'hr.disciplinary.read',
     'hr.disciplinary.write',
+    'hr.sop.read',
+    'hr.sop.manage',
+    'ai.assistant.use',
     'correspondence.view',
     'correspondence.create',
     'correspondence.update',
@@ -720,6 +766,8 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'pos.shift.close',
     'promotion.view',
     'hr.attendance.write',
+    'hr.sop.read',
+    'ai.assistant.use',
     'docs.view',
   ],
   assistant: [
@@ -731,6 +779,8 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'correspondence.view',
     'correspondence.create',
     'hr.attendance.write',
+    'hr.sop.read',
+    'ai.assistant.use',
     'docs.view',
   ],
 };

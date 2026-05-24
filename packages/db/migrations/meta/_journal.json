@@ -204,6 +204,27 @@
       "when": 1779587777461,
       "tag": "0028_windy_black_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1779639600000,
+      "tag": "0029_employee_nik_optional",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1779639700000,
+      "tag": "0030_sop_documents",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1779639800000,
+      "tag": "0031_ai_assistant",
+      "breakpoints": true
     }
   ]
 }

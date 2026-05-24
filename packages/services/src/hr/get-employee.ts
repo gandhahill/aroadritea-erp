@@ -63,7 +63,7 @@ export interface LeaveRequestRow {
 
 export interface EmployeeDetailResult {
   id: string;
-  nik: string;
+  nik: string | null;
   name: string;
   email: string;
   phone: string | null;

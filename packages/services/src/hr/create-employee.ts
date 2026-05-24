@@ -59,7 +59,11 @@ export async function createEmployee(
           locationId: targetLocationId,
           createdBy: ctx.userId,
           updatedBy: ctx.userId,
-          nik: encryptPii(data.nik, 'employees.nik') ?? '',
+          // NIK is optional. When supplied we still encrypt at rest;
+          // when omitted we persist NULL so the unique index does not
+          // collide (PostgreSQL allows multiple NULLs in a unique
+          // index) — see migration 0029_employee_nik_optional.
+          nik: data.nik ? (encryptPii(data.nik, 'employees.nik') ?? null) : null,
           name: data.name,
           email: encryptPiiForLookup(data.email, 'employees.email') ?? '',
           phone: encryptPii(data.phone, 'employees.phone'),

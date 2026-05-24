@@ -11,6 +11,10 @@ const PRIVATE_READ_PERMISSION: Record<UploadArea, string[]> = {
   whistleblower: ['hr.whistleblower.read'],
   'shift-expenses': ['pos.shift.close', 'accounting.journal.create'],
   general: ['settings.manage'],
+  // Every authenticated employee may read SOPs (gated by hr.sop.read).
+  sop: ['hr.sop.read', 'hr.sop.manage'],
+  // AI assistant attachments — only the assistant operator + admins.
+  'ai-attachments': ['ai.assistant.use', 'ai.assistant.admin'],
 };
 
 export async function GET(_request: Request, { params }: { params: Promise<{ key: string[] }> }) {

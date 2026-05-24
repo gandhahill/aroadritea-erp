@@ -17,6 +17,8 @@ const UPLOAD_WRITE_PERMISSION: Record<UploadArea, string> = {
   whistleblower: '', // Bypassed
   'shift-expenses': 'pos.shift.close',
   general: 'settings.manage',
+  sop: 'hr.sop.manage',
+  'ai-attachments': 'ai.assistant.use',
 };
 
 const PUBLIC_UPLOAD_AREAS = new Set<UploadArea>(['product-images', 'cms-images']);

@@ -7,4 +7,5 @@
 export * from './payroll-engine';
 export * from './run-payroll';
 export * from './approve-payroll';
+export * from './payslip';
 export type { RunPayrollInput, RunPayrollResult } from './run-payroll';

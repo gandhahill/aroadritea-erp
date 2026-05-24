@@ -32,7 +32,7 @@ export function EmployeeForm({ assignableRoles = [], locationOptions = [] }: Emp
       ) : null}
 
       <Section title={f('identitySection')}>
-        <Field label={f('nik')} name="nik" required />
+        <Field label={f('nikOptional')} name="nik" />
         <Field label={f('fullName')} name="name" required />
         <Field label={t('email')} name="email" type="email" required />
         <Field label={f('phone')} name="phone" />

@@ -51,7 +51,11 @@ export const employees = pgTable(
     ...locationCol,
 
     // Core identity (encrypted at rest — UU PDP)
-    nik: text('nik').notNull(), // KTP number — encrypted
+    // NIK is OPTIONAL (business decision 2026-05-24): many staff are
+    // onboarded before their KTP is in hand. When supplied it remains
+    // unique (PostgreSQL's unique index treats NULLs as distinct, so
+    // multiple NULL rows are allowed). See migration 0029.
+    nik: text('nik'), // KTP number — encrypted, nullable
     name: text('name').notNull(),
     email: text('email').notNull(),
     phone: text('phone'), // encrypted
