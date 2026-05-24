@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS "bank_accounts" (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS "bank_accounts" (
 	"id" text PRIMARY KEY NOT NULL,
 	"tenant_id" text DEFAULT 'default' NOT NULL,
 	"bank_name" text NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS "bank_accounts" (
 	"updated_by" text
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "bank_statement_lines" (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS "bank_statement_lines" (
 	"id" text PRIMARY KEY NOT NULL,
 	"statement_id" text NOT NULL,
 	"line_no" integer NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS "bank_statement_lines" (
 	CONSTRAINT "bank_stmt_line_match_status_check" CHECK (match_status IN ('unmatched', 'matched', 'created'))
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "bank_statements" (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS "bank_statements" (
 	"id" text PRIMARY KEY NOT NULL,
 	"tenant_id" text DEFAULT 'default' NOT NULL,
 	"location_id" text NOT NULL,
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS "bank_statements" (
 	CONSTRAINT "bank_stmt_status_check" CHECK (status IN ('draft', 'in_progress', 'reconciled'))
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "fixed_asset_categories" (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS "fixed_asset_categories" (
 	"id" text PRIMARY KEY NOT NULL,
 	"tenant_id" text DEFAULT 'default' NOT NULL,
 	"code" text NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS "fixed_asset_categories" (
 	CONSTRAINT "fixed_asset_cat_method_check" CHECK (default_depreciation_method IN ('straight_line', 'declining_balance', 'double_declining_balance', 'sum_of_years_digits', 'units_of_production'))
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "fixed_asset_depreciation_lines" (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS "fixed_asset_depreciation_lines" (
 	"id" text PRIMARY KEY NOT NULL,
 	"run_id" text NOT NULL,
 	"asset_id" text NOT NULL,
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS "fixed_asset_depreciation_lines" (
 	CONSTRAINT "fixed_asset_dep_lines_amount_positive" CHECK (amount > 0)
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "fixed_asset_depreciation_runs" (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS "fixed_asset_depreciation_runs" (
 	"id" text PRIMARY KEY NOT NULL,
 	"tenant_id" text DEFAULT 'default' NOT NULL,
 	"location_id" text NOT NULL,
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS "fixed_asset_depreciation_runs" (
 	CONSTRAINT "fixed_asset_dep_runs_status_check" CHECK (status IN ('posted', 'void'))
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "fixed_assets" (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS "fixed_assets" (
 	"id" text PRIMARY KEY NOT NULL,
 	"tenant_id" text DEFAULT 'default' NOT NULL,
 	"location_id" text NOT NULL,
@@ -147,14 +147,14 @@ CREATE TABLE IF NOT EXISTS "fixed_assets" (
 	CONSTRAINT "fixed_asset_method_check" CHECK (depreciation_method IN ('straight_line', 'declining_balance', 'double_declining_balance', 'sum_of_years_digits', 'units_of_production'))
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "two_factor" (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS "two_factor" (
 	"id" text PRIMARY KEY NOT NULL,
 	"secret" text NOT NULL,
 	"backup_codes" text NOT NULL,
 	"user_id" text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "correspondence_records" (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS "correspondence_records" (
 	"id" text PRIMARY KEY NOT NULL,
 	"tenant_id" text DEFAULT 'default' NOT NULL,
 	"location_id" text NOT NULL,
@@ -181,7 +181,7 @@ CREATE TABLE IF NOT EXISTS "correspondence_records" (
 	"updated_by" text
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "manual_sales_closings" (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS "manual_sales_closings" (
 	"id" text PRIMARY KEY NOT NULL,
 	"tenant_id" text DEFAULT 'default' NOT NULL,
 	"location_id" text NOT NULL,
@@ -206,7 +206,7 @@ CREATE TABLE IF NOT EXISTS "manual_sales_closings" (
 	"updated_by" text
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "shipment_tracking_requests" (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS "shipment_tracking_requests" (
 	"id" text PRIMARY KEY NOT NULL,
 	"tenant_id" text DEFAULT 'default' NOT NULL,
 	"purchase_order_id" text NOT NULL,
@@ -225,7 +225,7 @@ CREATE TABLE IF NOT EXISTS "shipment_tracking_requests" (
 	"updated_by" text
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "whistleblower_reports" (
+CREATE TABLE IF NOT EXISTS IF NOT EXISTS "whistleblower_reports" (
 	"id" text PRIMARY KEY NOT NULL,
 	"tenant_id" text DEFAULT 'default' NOT NULL,
 	"title" text NOT NULL,
@@ -238,38 +238,38 @@ CREATE TABLE IF NOT EXISTS "whistleblower_reports" (
 	"version" integer DEFAULT 1 NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "journal_lines" ADD COLUMN "due_date" date;--> statement-breakpoint
-ALTER TABLE "journal_lines" ADD COLUMN "reminder_days_before" integer;--> statement-breakpoint
-ALTER TABLE "journal_lines" ADD COLUMN "reminder_sent_at" timestamp with time zone;--> statement-breakpoint
-ALTER TABLE "journal_lines" ADD COLUMN "expected_loss_rate_bps" integer;--> statement-breakpoint
-ALTER TABLE "users" ADD COLUMN "two_factor_enabled" boolean DEFAULT false;--> statement-breakpoint
-ALTER TABLE "users" ADD COLUMN "require_password_change" boolean DEFAULT false NOT NULL;--> statement-breakpoint
-ALTER TABLE "employees" ADD COLUMN "version" integer DEFAULT 1 NOT NULL;--> statement-breakpoint
-ALTER TABLE "bom_lines" ADD COLUMN "auto_deduct" boolean DEFAULT true NOT NULL;--> statement-breakpoint
-ALTER TABLE "products" ADD COLUMN "opname_frequency" text DEFAULT 'monthly' NOT NULL;--> statement-breakpoint
-ALTER TABLE "products" ADD COLUMN "opname_frequencies" jsonb DEFAULT '["monthly"]'::jsonb NOT NULL;--> statement-breakpoint
-ALTER TABLE "pos_settings" ADD COLUMN "bank_account_code" text DEFAULT '1-1200' NOT NULL;--> statement-breakpoint
-ALTER TABLE "pos_settings" ADD COLUMN "bank_account_label" text;--> statement-breakpoint
-ALTER TABLE "pos_settings" ADD COLUMN "receipt_label_width_mm" integer DEFAULT 40 NOT NULL;--> statement-breakpoint
-ALTER TABLE "pos_settings" ADD COLUMN "receipt_label_height_mm" integer DEFAULT 30 NOT NULL;--> statement-breakpoint
-ALTER TABLE "pos_settings" ADD COLUMN "receipt_show_logo" boolean DEFAULT true NOT NULL;--> statement-breakpoint
-ALTER TABLE "pos_settings" ADD COLUMN "receipt_outlet_phone" text;--> statement-breakpoint
-ALTER TABLE "pos_settings" ADD COLUMN "receipt_outlet_address" text;--> statement-breakpoint
-ALTER TABLE "pos_settings" ADD COLUMN "receipt_instagram" text DEFAULT '@aroadri.tea';--> statement-breakpoint
-ALTER TABLE "pos_settings" ADD COLUMN "receipt_tiktok" text DEFAULT '@aroadri.tea';--> statement-breakpoint
-ALTER TABLE "pos_settings" ADD COLUMN "receipt_website" text DEFAULT 'aroadritea.com';--> statement-breakpoint
-ALTER TABLE "pos_settings" ADD COLUMN "receipt_footer_text" text;--> statement-breakpoint
-ALTER TABLE "pos_settings" ADD COLUMN "receipt_printer_name" text;--> statement-breakpoint
-ALTER TABLE "pos_settings" ADD COLUMN "label_printer_name" text;--> statement-breakpoint
-ALTER TABLE "pos_settings" ADD COLUMN "kiosk_printing_enabled" boolean DEFAULT false NOT NULL;--> statement-breakpoint
-ALTER TABLE "purchase_orders" ADD COLUMN "shipping_courier_code" text;--> statement-breakpoint
-ALTER TABLE "purchase_orders" ADD COLUMN "shipping_awb" text;--> statement-breakpoint
-ALTER TABLE "purchase_orders" ADD COLUMN "shipping_phone_last5" text;--> statement-breakpoint
-ALTER TABLE "purchase_orders" ADD COLUMN "shipping_tracking_status" text;--> statement-breakpoint
-ALTER TABLE "purchase_orders" ADD COLUMN "shipping_tracking_summary" jsonb;--> statement-breakpoint
-ALTER TABLE "purchase_orders" ADD COLUMN "shipping_tracking_history" jsonb;--> statement-breakpoint
-ALTER TABLE "purchase_orders" ADD COLUMN "shipping_tracking_synced_at" timestamp with time zone;--> statement-breakpoint
-ALTER TABLE "purchase_orders" ADD COLUMN "shipping_tracking_error" text;--> statement-breakpoint
+ALTER TABLE "journal_lines" ADD COLUMN IF NOT EXISTS "due_date" date;--> statement-breakpoint
+ALTER TABLE "journal_lines" ADD COLUMN IF NOT EXISTS "reminder_days_before" integer;--> statement-breakpoint
+ALTER TABLE "journal_lines" ADD COLUMN IF NOT EXISTS "reminder_sent_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "journal_lines" ADD COLUMN IF NOT EXISTS "expected_loss_rate_bps" integer;--> statement-breakpoint
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "two_factor_enabled" boolean DEFAULT false;--> statement-breakpoint
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "require_password_change" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "employees" ADD COLUMN IF NOT EXISTS "version" integer DEFAULT 1 NOT NULL;--> statement-breakpoint
+ALTER TABLE "bom_lines" ADD COLUMN IF NOT EXISTS "auto_deduct" boolean DEFAULT true NOT NULL;--> statement-breakpoint
+ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "opname_frequency" text DEFAULT 'monthly' NOT NULL;--> statement-breakpoint
+ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "opname_frequencies" jsonb DEFAULT '["monthly"]'::jsonb NOT NULL;--> statement-breakpoint
+ALTER TABLE "pos_settings" ADD COLUMN IF NOT EXISTS "bank_account_code" text DEFAULT '1-1200' NOT NULL;--> statement-breakpoint
+ALTER TABLE "pos_settings" ADD COLUMN IF NOT EXISTS "bank_account_label" text;--> statement-breakpoint
+ALTER TABLE "pos_settings" ADD COLUMN IF NOT EXISTS "receipt_label_width_mm" integer DEFAULT 40 NOT NULL;--> statement-breakpoint
+ALTER TABLE "pos_settings" ADD COLUMN IF NOT EXISTS "receipt_label_height_mm" integer DEFAULT 30 NOT NULL;--> statement-breakpoint
+ALTER TABLE "pos_settings" ADD COLUMN IF NOT EXISTS "receipt_show_logo" boolean DEFAULT true NOT NULL;--> statement-breakpoint
+ALTER TABLE "pos_settings" ADD COLUMN IF NOT EXISTS "receipt_outlet_phone" text;--> statement-breakpoint
+ALTER TABLE "pos_settings" ADD COLUMN IF NOT EXISTS "receipt_outlet_address" text;--> statement-breakpoint
+ALTER TABLE "pos_settings" ADD COLUMN IF NOT EXISTS "receipt_instagram" text DEFAULT '@aroadri.tea';--> statement-breakpoint
+ALTER TABLE "pos_settings" ADD COLUMN IF NOT EXISTS "receipt_tiktok" text DEFAULT '@aroadri.tea';--> statement-breakpoint
+ALTER TABLE "pos_settings" ADD COLUMN IF NOT EXISTS "receipt_website" text DEFAULT 'aroadritea.com';--> statement-breakpoint
+ALTER TABLE "pos_settings" ADD COLUMN IF NOT EXISTS "receipt_footer_text" text;--> statement-breakpoint
+ALTER TABLE "pos_settings" ADD COLUMN IF NOT EXISTS "receipt_printer_name" text;--> statement-breakpoint
+ALTER TABLE "pos_settings" ADD COLUMN IF NOT EXISTS "label_printer_name" text;--> statement-breakpoint
+ALTER TABLE "pos_settings" ADD COLUMN IF NOT EXISTS "kiosk_printing_enabled" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "purchase_orders" ADD COLUMN IF NOT EXISTS "shipping_courier_code" text;--> statement-breakpoint
+ALTER TABLE "purchase_orders" ADD COLUMN IF NOT EXISTS "shipping_awb" text;--> statement-breakpoint
+ALTER TABLE "purchase_orders" ADD COLUMN IF NOT EXISTS "shipping_phone_last5" text;--> statement-breakpoint
+ALTER TABLE "purchase_orders" ADD COLUMN IF NOT EXISTS "shipping_tracking_status" text;--> statement-breakpoint
+ALTER TABLE "purchase_orders" ADD COLUMN IF NOT EXISTS "shipping_tracking_summary" jsonb;--> statement-breakpoint
+ALTER TABLE "purchase_orders" ADD COLUMN IF NOT EXISTS "shipping_tracking_history" jsonb;--> statement-breakpoint
+ALTER TABLE "purchase_orders" ADD COLUMN IF NOT EXISTS "shipping_tracking_synced_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "purchase_orders" ADD COLUMN IF NOT EXISTS "shipping_tracking_error" text;--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "bank_acc_tenant_idx" ON "bank_accounts" USING btree ("tenant_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "bank_acc_coa_idx" ON "bank_accounts" USING btree ("account_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "bank_stmt_line_stmt_idx" ON "bank_statement_lines" USING btree ("statement_id");--> statement-breakpoint
