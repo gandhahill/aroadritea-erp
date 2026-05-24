@@ -3,6 +3,7 @@
 import { getSession } from '@/lib/auth';
 import { and, db, eq, gte, lte, sql } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
+import { locations } from '@erp/db/schema/auth';
 import { employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
 import { requirePermission } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
@@ -56,8 +57,11 @@ export async function fetchRoster(weekStart: string): Promise<{
         name: shiftDefinitions.name,
         startTime: shiftDefinitions.startTime,
         endTime: shiftDefinitions.endTime,
+        locationId: shiftDefinitions.locationId,
+        locationName: locations.name,
       })
       .from(shiftDefinitions)
+      .leftJoin(locations, eq(shiftDefinitions.locationId, locations.id))
       .where(and(eq(shiftDefinitions.tenantId, ctx.tenantId), eq(shiftDefinitions.isActive, true)))
       .orderBy(shiftDefinitions.startTime),
     db
@@ -107,13 +111,21 @@ export async function fetchRoster(weekStart: string): Promise<{
 
   return {
     options: {
-      shifts: shiftRows.map((s) => ({
-        id: s.id,
-        code: s.code,
-        label: s.name,
-        time: `${s.startTime}-${s.endTime}`,
+      shifts: shiftRows.map((s) => {
+        const locNameRaw = s.locationName as Record<string, string> | null;
+        const locStr = locNameRaw ? locNameRaw['id'] || locNameRaw['en'] || '' : '';
+        const suffix = locStr ? ` (${locStr})` : '';
+        return {
+          id: s.id,
+          code: s.code,
+          label: `${s.name} ${s.startTime}-${s.endTime}${suffix}`,
+          time: `${s.startTime}-${s.endTime}`,
+        };
+      }),
+      employees: empRows.map((e) => ({
+        id: e.id,
+        name: e.name,
       })),
-      employees: empRows.map((e) => ({ id: e.id, name: e.name })),
     },
     assignments,
   };
@@ -183,11 +195,17 @@ export async function upsertAssignmentAction(input: {
     return { ok: true, id: existing[0].id };
   }
 
+  let targetLocationId = ctx.locationId;
+  if (input.shiftDefinitionId) {
+    const [sd] = await db.select({ locationId: shiftDefinitions.locationId }).from(shiftDefinitions).where(eq(shiftDefinitions.id, input.shiftDefinitionId));
+    if (sd) targetLocationId = sd.locationId;
+  }
+
   const id = generateId();
   await db.insert(shiftAssignments).values({
     id,
     tenantId: ctx.tenantId,
-    locationId: ctx.locationId,
+    locationId: targetLocationId,
     employeeId: input.employeeId,
     workDate: input.workDate,
     kind: input.kind,
