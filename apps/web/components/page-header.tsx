@@ -27,12 +27,23 @@ export function PageHeader({
     const segments = pathname.split('/').filter(Boolean);
     const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/-/g, ' ');
 
-    // Tambahkan Home di awal
-    const autoCrumbs = [{ label: 'Dashboard', href: '/' }];
+    const autoCrumbs: { label: string; href: string }[] = [];
+    
+    // Tambahkan root Dashboard di awal jika segmen pertama bukan 'dashboard'
+    if (segments[0] !== 'dashboard') {
+      autoCrumbs.push({ label: 'Dashboard', href: '/dashboard' });
+    }
     
     segments.forEach((segment, index) => {
       const href = '/' + segments.slice(0, index + 1).join('/');
-      autoCrumbs.push({ label: capitalize(segment), href });
+      // Khusus untuk HR, Po, dll agar tampilannya lebih bagus
+      let label = capitalize(segment);
+      if (segment.toLowerCase() === 'hr') label = 'HR';
+      if (segment.toLowerCase() === 'po') label = 'PO';
+      if (segment.toLowerCase() === 'coa') label = 'COA';
+      if (segment.toLowerCase() === 'pos') label = 'POS';
+      
+      autoCrumbs.push({ label, href });
     });
 
     return autoCrumbs;
