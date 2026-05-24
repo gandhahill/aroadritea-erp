@@ -34,10 +34,10 @@ export interface RosterAssignment {
 
 export interface RosterOptions {
   shifts: Array<{ id: string; code: string; label: string; time: string }>;
-  employees: Array<{ id: string; name: string }>;
+  employees: Array<{ id: string; name: string; locationName?: string }>;
 }
 
-export async function fetchRoster(weekStart: string): Promise<{
+export async function fetchRoster(weekStart: string, locationId?: string): Promise<{
   options: RosterOptions;
   assignments: RosterAssignment[];
 }> {
@@ -62,15 +62,23 @@ export async function fetchRoster(weekStart: string): Promise<{
       })
       .from(shiftDefinitions)
       .leftJoin(locations, eq(shiftDefinitions.locationId, locations.id))
-      .where(and(eq(shiftDefinitions.tenantId, ctx.tenantId), eq(shiftDefinitions.isActive, true)))
+      .where(
+        and(
+          eq(shiftDefinitions.tenantId, ctx.tenantId), 
+          eq(shiftDefinitions.isActive, true),
+          locationId ? eq(shiftDefinitions.locationId, locationId) : undefined
+        )
+      )
       .orderBy(shiftDefinitions.startTime),
     db
-      .select({ id: employees.id, name: employees.name, status: employees.status })
+      .select({ id: employees.id, name: employees.name, status: employees.status, locationName: locations.name })
       .from(employees)
+      .leftJoin(locations, eq(employees.locationId, locations.id))
       .where(
         and(
           eq(employees.tenantId, ctx.tenantId),
           sql`${employees.status} in ('active','probation')`,
+          locationId ? eq(employees.locationId, locationId) : undefined
         ),
       )
       .orderBy(employees.name),
@@ -122,10 +130,15 @@ export async function fetchRoster(weekStart: string): Promise<{
           time: `${s.startTime}-${s.endTime}`,
         };
       }),
-      employees: empRows.map((e) => ({
-        id: e.id,
-        name: e.name,
-      })),
+      employees: empRows.map((e) => {
+        const locNameRaw = e.locationName as Record<string, string> | null;
+        const locStr = locNameRaw ? locNameRaw['id'] || locNameRaw['en'] || '' : '';
+        return {
+          id: e.id,
+          name: e.name,
+          locationName: locStr,
+        };
+      }),
     },
     assignments,
   };

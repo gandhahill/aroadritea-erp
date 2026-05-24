@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import {
@@ -13,6 +14,8 @@ import { TableBody, TableHeader } from "@erp/ui";
 
 interface Props {
   weekStart: string;
+  locationId?: string;
+  locations?: Array<{ id: string; name: string }>;
   options: RosterOptions;
   initialAssignments: RosterAssignment[];
   canManage: boolean;
@@ -27,7 +30,8 @@ function daysOfWeek(weekStart: string): string[] {
   });
 }
 
-export function ScheduleGrid({ weekStart, options, initialAssignments, canManage }: Props) {
+export function ScheduleGrid({ weekStart, locationId, locations, options, initialAssignments, canManage }: Props) {
+  const router = useRouter();
   const t = useTranslations('hr.schedule');
   const tc = useTranslations('common');
   const locale = useLocale();
@@ -113,22 +117,40 @@ export function ScheduleGrid({ weekStart, options, initialAssignments, canManage
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2 rounded-xl border border-brand-cream-3 bg-card p-3">
-        <Link
-          href={`/hr/schedule?week=${prevWeek}`}
-          className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink-2 hover:bg-brand-cream-1"
-        >
-          &larr; {t('prevWeek')}
-        </Link>
-        <p className="text-sm font-semibold text-brand-ink">
-          {t('weekOf')} {weekStart} &mdash; {dates[6]}
-        </p>
-        <Link
-          href={`/hr/schedule?week=${nextWeek}`}
-          className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink-2 hover:bg-brand-cream-1"
-        >
-          {t('nextWeek')} &rarr;
-        </Link>
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-brand-cream-3 bg-card p-3">
+        <div className="flex items-center gap-2 flex-1 md:flex-none">
+          <Link
+            href={`/hr/schedule?week=${prevWeek}${locationId ? `&locationId=${locationId}` : ''}`}
+            className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink-2 hover:bg-brand-cream-1 whitespace-nowrap"
+          >
+            &larr; {t('prevWeek')}
+          </Link>
+          <p className="text-sm font-semibold text-brand-ink whitespace-nowrap px-2">
+            {t('weekOf')} {weekStart} &mdash; {dates[6]}
+          </p>
+          <Link
+            href={`/hr/schedule?week=${nextWeek}${locationId ? `&locationId=${locationId}` : ''}`}
+            className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink-2 hover:bg-brand-cream-1 whitespace-nowrap"
+          >
+            {t('nextWeek')} &rarr;
+          </Link>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-medium text-brand-ink-3">Lokasi:</label>
+          <select
+            value={locationId ?? ''}
+            onChange={(e) => {
+              const val = e.target.value;
+              router.push(`/hr/schedule?week=${weekStart}${val ? `&locationId=${val}` : ''}`);
+            }}
+            className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1.5 text-sm outline-none focus:border-brand-red"
+          >
+            <option value="">Semua Lokasi</option>
+            {locations?.map(loc => (
+              <option key={loc.id} value={loc.id}>{loc.name}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {err ? (
@@ -142,6 +164,7 @@ export function ScheduleGrid({ weekStart, options, initialAssignments, canManage
           <TableHeader className="bg-brand-cream-1 text-left text-xs uppercase tracking-widest text-brand-ink-3">
             <tr>
               <th className="sticky left-0 z-10 bg-brand-cream-1 px-3 py-2">{tc('employee')}</th>
+              <th className="bg-brand-cream-1 px-3 py-2">Lokasi</th>
               {dates.map((date) => (
                 <th key={date} className="px-3 py-2 text-center">
                   <div className="capitalize">{new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(new Date(`${date}T12:00:00Z`))}</div>
@@ -153,8 +176,11 @@ export function ScheduleGrid({ weekStart, options, initialAssignments, canManage
           <TableBody className="divide-y divide-brand-cream-3">
             {options.employees.map((emp) => (
               <tr key={emp.id}>
-                <td className="sticky left-0 z-10 bg-card px-3 py-2 font-medium text-brand-ink">
+                <td className="sticky left-0 z-10 bg-card px-3 py-2 font-medium text-brand-ink whitespace-nowrap">
                   {emp.name}
+                </td>
+                <td className="bg-card px-3 py-2 text-brand-ink-3 whitespace-nowrap">
+                  {emp.locationName || '-'}
                 </td>
                 {dates.map((date) => {
                   const cell = cellMap.get(`${emp.id}|${date}`) ?? [];
@@ -207,7 +233,7 @@ export function ScheduleGrid({ weekStart, options, initialAssignments, canManage
             ))}
             {options.employees.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-3 py-6 text-center text-brand-ink-3">
+                <td colSpan={9} className="px-3 py-6 text-center text-brand-ink-3">
                   {t('emptyEmployees')}
                 </td>
               </tr>

@@ -11,6 +11,8 @@ import { getTranslations } from 'next-intl/server';
 import { fetchRoster } from './actions';
 import { ScheduleGrid } from './schedule-grid';
 import { PageHeader } from "@/components/page-header";
+import { db, eq } from '@erp/db';
+import { locations } from '@erp/db/schema/auth';
 
 export const metadata: Metadata = { title: 'Jadwal Shift' };
 
@@ -27,7 +29,7 @@ function mondayOf(iso: string): string {
 export default async function SchedulePage({
   searchParams,
 }: {
-  searchParams: Promise<{ week?: string }>;
+  searchParams: Promise<{ week?: string; locationId?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect('/login');
@@ -39,7 +41,19 @@ export default async function SchedulePage({
   const today = new Date().toISOString().slice(0, 10);
   const weekStart = mondayOf(params.week ?? today);
 
-  const { options, assignments } = await fetchRoster(weekStart);
+  const tenantId = String((session.user as Record<string, unknown>)?.tenantId ?? 'default');
+  const locationRows = await db
+    .select({ id: locations.id, name: locations.name })
+    .from(locations)
+    .where(eq(locations.tenantId, tenantId))
+    .orderBy(locations.name);
+
+  const parsedLocations = locationRows.map(row => {
+    const n = row.name as Record<string, string>;
+    return { id: row.id, name: n['id'] || n['en'] || '' };
+  });
+
+  const { options, assignments } = await fetchRoster(weekStart, params.locationId);
   const canManage = await can(userId, 'hr.manage_attendance');
 
   const t = await getTranslations('hr.schedule');
@@ -53,6 +67,8 @@ export default async function SchedulePage({
 
       <ScheduleGrid
         weekStart={weekStart}
+        locationId={params.locationId}
+        locations={parsedLocations}
         options={options}
         initialAssignments={assignments}
         canManage={canManage}
