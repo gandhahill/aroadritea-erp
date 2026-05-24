@@ -1674,7 +1674,9 @@
         "password": "Initial password",
         "passwordHint": "Min 8 chars. The employee can change it after first login.",
         "requirePasswordChange": "Require password change"
-      }
+      },
+      "addTitle": "Add Employee",
+      "addSubtitle": "Enter new employee details"
     },
     "contracts": {
       "title": "Employment Contracts",

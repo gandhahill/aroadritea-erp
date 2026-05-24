@@ -1712,7 +1712,9 @@
         "password": "初始密码",
         "passwordHint": "至少 8 位。员工首次登录后可自行修改。",
         "requirePasswordChange": "要求更改密码"
-      }
+      },
+      "addTitle": "添加员工",
+      "addSubtitle": "输入新员工详细信息"
     },
     "contracts": {
       "title": "劳动合同",

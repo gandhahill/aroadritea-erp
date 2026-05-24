@@ -1752,7 +1752,9 @@
       "statusProbation": "Masa Percobaan",
       "statusActive": "Aktif",
       "statusOnLeave": "Cuti",
-      "statusTerminated": "Diberhentikan"
+      "statusTerminated": "Diberhentikan",
+      "addTitle": "Tambah Karyawan",
+      "addSubtitle": "Masukkan data karyawan baru"
     },
     "contracts": {
       "title": "Kontrak Kerja",

@@ -1,12 +1,12 @@
 {
-  "name": "Aroadri Tea POS",
-  "short_name": "Aroadri POS",
-  "id": "/pos",
-  "description": "Aroadri Tea ERP POS untuk operasional kasir dengan dukungan offline.",
-  "start_url": "/pos",
+  "name": "Aroadri Tea ERP",
+  "short_name": "Aroadri ERP",
+  "id": "/",
+  "description": "Aroadri Tea ERP untuk operasional kasir, inventaris, dan back-office.",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "landscape",
+  "orientation": "any",
   "background_color": "#1A0A0A",
   "theme_color": "#D6262E",
   "icons": [

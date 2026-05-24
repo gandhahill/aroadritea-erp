@@ -29,6 +29,7 @@ import {
 } from './schemas';
 import { auditRecord } from "../audit";
 import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
+import { getBOMIngredients, deductIngredients, compensateIngredientDeductions } from './create-sale';
 
 async function generateManualSalesNumber(tenantId: string, salesDate: string): Promise<string> {
   const prefix = `MSC-${salesDate.slice(0, 7)}-`;
@@ -137,6 +138,38 @@ export async function createManualSalesClosing(
     .then((r) => r[0] ?? null);
   const shiftId = openShift?.id ?? null;
 
+  let appliedStockDeductions: Awaited<ReturnType<typeof deductIngredients>> extends Result<infer T> ? T : never = [];
+  const rollbackAppliedStockDeductions = async () => {
+    if (appliedStockDeductions.length === 0) return;
+    await compensateIngredientDeductions(appliedStockDeductions, ctx, true);
+    appliedStockDeductions = [];
+  };
+
+  if (data.lineItems.length > 0) {
+    for (const line of data.lineItems) {
+      const ingredients = await getBOMIngredients(
+        ctx.tenantId,
+        line.productId,
+        line.variantId ?? null,
+        line.qty,
+      );
+
+      const deductResult = await deductIngredients(
+        ctx.tenantId,
+        data.locationId,
+        ingredients,
+        id,
+        ctx,
+      );
+      if (!deductResult.ok) {
+        await rollbackAppliedStockDeductions();
+        await releaseIdempotencyClaim(claimedIdempotencyId, 500, { error: 'deduction_failed' });
+        return err(deductResult.error);
+      }
+      appliedStockDeductions.push(...deductResult.value);
+    }
+  }
+
   const createResult = await tryCatch(
     async () => {
       await db.insert(manualSalesClosings).values({
@@ -156,6 +189,7 @@ export async function createManualSalesClosing(
         notes: data.notes ?? null,
         status: 'draft',
         shiftId,
+        lineItemsJson: data.lineItems.length > 0 ? data.lineItems : null,
         createdBy: ctx.userId,
         updatedBy: ctx.userId,
       });
@@ -164,6 +198,7 @@ export async function createManualSalesClosing(
     (e) => AppError.internal('pos.manualSales.createFailed', e),
   );
   if (!createResult.ok) {
+    await rollbackAppliedStockDeductions();
     await releaseIdempotencyClaim(claimedIdempotencyId, 500, { error: 'create_failed' });
     return err(createResult.error);
   }

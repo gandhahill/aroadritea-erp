@@ -3,7 +3,7 @@
 import { Pagination } from '@/components/pagination';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { type ManualSalesPageData, createManualSalesAction } from './actions';
 import { ExportManualSalesButton } from './export-manual-sales-button';
 import { TableCell, TableHead, TableBody, Table, Button, Input, Select } from "@erp/ui";
@@ -18,6 +18,16 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
   const t = useTranslations('pos.manualSales');
   const pagination = useTranslations('common.pagination');
   const [state, submitAction, isPending] = useActionState(createManualSalesAction, null);
+  const [lineItems, setLineItems] = useState<Array<{ productId: string; variantId?: string; name: string; qty: number; price: string; total: string }>>([]);
+  const [grossSales, setGrossSales] = useState('');
+
+  // Automatically calculate grossSales from lineItems
+  useEffect(() => {
+    if (lineItems.length > 0) {
+      const sum = lineItems.reduce((acc, curr) => acc + BigInt(curr.total || '0'), BigInt(0));
+      setGrossSales(sum.toString());
+    }
+  }, [lineItems]);
 
   useEffect(() => {
     if (state?.ok) {
@@ -78,8 +88,114 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
               <option value="shopeefood">ShopeeFood</option>
             </Select>
           </Field>
+          <div className="lg:col-span-4 rounded-xl border border-brand-cream-3 p-4">
+            <h3 className="mb-3 text-sm font-semibold text-brand-ink">{t('products')}</h3>
+            <div className="space-y-3">
+              {lineItems.map((item, index) => (
+                <div key={index} className="flex flex-wrap items-end gap-3 rounded-lg border border-brand-cream-3 bg-brand-cream-2/50 p-3">
+                  <div className="flex-1 min-w-[200px]">
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">Product</span>
+                    <Select
+                      value={`${item.productId}::${item.variantId || ''}`}
+                      onChange={(e) => {
+                        const [pid, vid] = e.target.value.split('::');
+                        const product = data.products.find(p => p.id === pid && (p.variantId || '') === vid);
+                        if (!product) return;
+                        const newItems = [...lineItems];
+                        const current = newItems[index];
+                        if (!current) return;
+                        newItems[index] = {
+                          productId: product.id,
+                          variantId: product.variantId || undefined,
+                          name: product.name,
+                          qty: current.qty || 1,
+                          price: product.sellPrice,
+                          total: (BigInt(current.qty || 1) * BigInt(product.sellPrice)).toString()
+                        };
+                        setLineItems(newItems);
+                      }}
+                    >
+                      <option value="::" disabled>Select Product</option>
+                      {data.products.map(p => (
+                        <option key={`${p.id}::${p.variantId || ''}`} value={`${p.id}::${p.variantId || ''}`}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                  <div className="w-24">
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">Qty</span>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={item.qty}
+                      onChange={(e) => {
+                        const qty = Math.max(1, parseInt(e.target.value) || 1);
+                        const newItems = [...lineItems];
+                        const current = newItems[index];
+                        if (!current) return;
+                        newItems[index] = {
+                          productId: current.productId,
+                          variantId: current.variantId,
+                          name: current.name,
+                          qty,
+                          price: current.price,
+                          total: (BigInt(qty) * BigInt(current.price)).toString()
+                        };
+                        setLineItems(newItems);
+                      }}
+                    />
+                  </div>
+                  <div className="w-32">
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">Price</span>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      value={item.price}
+                      onChange={(e) => {
+                        const price = e.target.value.replace(/\D/g, '') || '0';
+                        const newItems = [...lineItems];
+                        const current = newItems[index];
+                        if (!current) return;
+                        newItems[index] = {
+                          productId: current.productId,
+                          variantId: current.variantId,
+                          name: current.name,
+                          qty: current.qty,
+                          price,
+                          total: (BigInt(current.qty) * BigInt(price)).toString()
+                        };
+                        setLineItems(newItems);
+                      }}
+                    />
+                  </div>
+                  <div className="w-32">
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">Total</span>
+                    <Input
+                      type="text"
+                      readOnly
+                      value={formatRupiah(item.total).replace('Rp', '').trim()}
+                      className="bg-brand-cream/50"
+                    />
+                  </div>
+                  <Button type="button" variant="ghost" className="text-brand-red mb-1" onClick={() => {
+                    setLineItems(lineItems.filter((_, i) => i !== index));
+                  }}>
+                    Delete
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="secondary" onClick={() => {
+                setLineItems([...lineItems, { productId: '', name: '', qty: 1, price: '0', total: '0' }]);
+              }}>
+                + {t('addProduct', { defaultValue: 'Add Product' })}
+              </Button>
+            </div>
+            <input type="hidden" name="lineItemsJson" value={JSON.stringify(lineItems.filter(i => i.productId))} />
+          </div>
+
           <Field label={t('grossSales')}>
-            <Input name="grossSales" inputMode="numeric" required />
+            <Input name="grossSales" inputMode="numeric" required value={grossSales} onChange={(e) => setGrossSales(e.target.value.replace(/\D/g, ''))} />
           </Field>
           <Field label={t('discountTotal')}>
             <Input name="discountTotal" inputMode="numeric" defaultValue="0" />

@@ -9,9 +9,12 @@ import {
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
+import { db, eq, and, sql } from '@erp/db';
+import { products, productVariants } from '@erp/db/schema/inventory';
 
 export interface ManualSalesPageData {
   locations: Array<{ id: string; label: string; code: string }>;
+  products: Array<{ id: string; name: string; sellPrice: string; variantId: string | null }>;
   items: Array<{
     id: string;
     number: string;
@@ -86,22 +89,41 @@ export async function fetchManualSalesPageData(
     Math.min(100, Number.isFinite(requestedPageSize) ? requestedPageSize : 25),
   );
   if (!ctx)
-    return { locations: [], items: [], total: 0, page: 1, pageSize, error: 'Unauthenticated' };
+    return { locations: [], products: [], items: [], total: 0, page: 1, pageSize, error: 'Unauthenticated' };
   const locale = await getLocale();
   const currentPage = Math.max(1, Number.isFinite(page) ? page : 1);
   const activeLocationId = locationId || ctx.locationId || undefined;
 
-  const [locationRows, closings] = await Promise.all([
+  const [locationRows, closings, productList] = await Promise.all([
     listManualSalesLocations(ctx),
     listManualSalesClosings(
       { locationId: activeLocationId, limit: pageSize, offset: (currentPage - 1) * pageSize },
       ctx,
     ),
+    db.execute<{
+      id: string;
+      name: string;
+      sellPrice: string;
+      variantId: string | null;
+    }>(
+      sql`
+      SELECT 
+        p.id, 
+        COALESCE(v.name->>'id', v.name->>'en', p.name->>'id', p.name->>'en', 'Product') as name,
+        COALESCE(v.sell_price, p.default_sell_price) as "sellPrice",
+        v.id as "variantId"
+      FROM products p
+      LEFT JOIN product_variants v ON v.product_id = p.id AND v.is_active = true
+      WHERE p.tenant_id = ${ctx.tenantId} AND p.is_active = true AND p.kind IN ('food', 'drink', 'retail')
+      ORDER BY p.code ASC
+      `
+    ).then((res) => res.rows)
   ]);
 
   if (!closings.ok) {
     return {
       locations: [],
+      products: [],
       items: [],
       total: 0,
       page: currentPage,
@@ -115,6 +137,12 @@ export async function fetchManualSalesPageData(
       id: row.id,
       code: row.code,
       label: `${row.code} - ${pickLocalized(row.name, locale)}`,
+    })),
+    products: productList.map(p => ({
+      id: p.id,
+      name: p.name,
+      sellPrice: p.sellPrice,
+      variantId: p.variantId
     })),
     items: closings.value.items,
     total: closings.value.total,
@@ -130,6 +158,16 @@ export async function createManualSalesAction(
   const ctx = await getAuditContext();
   if (!ctx) return { error: 'Unauthenticated' };
 
+  let lineItems = [];
+  try {
+    const rawItems = text(formData, 'lineItemsJson');
+    if (rawItems) {
+      lineItems = JSON.parse(rawItems);
+    }
+  } catch (e) {
+    return { error: 'Invalid line items data' };
+  }
+
   const result = await createManualSalesClosing(
     {
       locationId: text(formData, 'locationId') || ctx.locationId,
@@ -142,6 +180,7 @@ export async function createManualSalesAction(
       sourceReference: text(formData, 'sourceReference') || undefined,
       notes: text(formData, 'notes') || undefined,
       idempotencyKey: crypto.randomUUID(),
+      lineItems,
     },
     ctx,
   );

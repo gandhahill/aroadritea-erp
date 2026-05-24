@@ -442,7 +442,7 @@ async function generateSaleNumber(tenantId: string, locationId: string): Promise
 }
 
 /** Look up active BOM for a product, scale by qtySold. */
-async function getBOMIngredients(
+export async function getBOMIngredients(
   tenantId: string,
   productId: string,
   variantId: string | null,
@@ -535,7 +535,7 @@ export function resolveIngredientDeductionDecision(
   return { action: 'deduct' };
 }
 
-async function compensateIngredientDeductions(
+export async function compensateIngredientDeductions(
   deductions: IngredientDeduction[],
   ctx: AuditContext,
   recordMovement: boolean,
@@ -585,7 +585,7 @@ function insufficientStockError(ingredient: IngredientDeduction, stock?: Ingredi
 }
 
 /** Deduct ingredients from stock_levels. */
-async function deductIngredients(
+export async function deductIngredients(
   tenantId: string,
   locationId: string,
   ingredients: Array<{
@@ -869,7 +869,12 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     );
     if (!postingConfigResult.ok) return postingConfigResult;
     const postingConfig = postingConfigResult.value;
-    if (data.channel !== 'walk_in' && !postingConfig.deliveryChannels.has(data.channel)) {
+    if (
+      data.channel !== 'walk_in' &&
+      data.channel !== 'dine_in' &&
+      data.channel !== 'take_away' &&
+      !postingConfig.deliveryChannels.has(data.channel)
+    ) {
       return err(
         AppError.businessRule('pos.createSale.deliveryChannelNotConfigured', {
           channel: data.channel,

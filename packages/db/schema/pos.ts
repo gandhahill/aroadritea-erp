@@ -177,6 +177,17 @@ export const manualSalesClosings = pgTable(
     journalEntryId: text('journal_entry_id'),
     shiftId: text('shift_id'),
 
+    lineItemsJson: jsonb('line_items_json').$type<
+      Array<{
+        productId: string;
+        variantId?: string | null;
+        name: string;
+        qty: number;
+        price: string;
+        total: string;
+      }>
+    >(),
+
     ...versionCol,
     ...auditCols,
   },

@@ -386,6 +386,7 @@ export async function updatePosSetting(
         entityId: existing.id,
         after: values,
       });
+    } else {
       const id = generateId();
       await db.insert(posSettings).values({
         id,
