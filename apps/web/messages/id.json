@@ -1168,6 +1168,10 @@
         "opening_balance": "Saldo awal",
         "other": "Lainnya"
       }
+    },
+    "transfer": {
+      "versionMismatch": "Data telah diubah oleh pengguna lain (Konflik Versi).",
+      "shipFailed": "Gagal mengirim barang."
     }
   },
   "nav": {
@@ -1333,7 +1337,7 @@
     "openingCash": "Kas Awal (IDR)",
     "actualCash": "Kas Aktual (IDR)",
     "openingCashRequired": "Nominal kas awal wajib diisi.",
-    "actualCashRequired": "Nominal kas aktual wajib diisi.",
+    "actualCashRequired": "Nominal kas fisik wajib diisi.",
     "variance": "Selisih",
     "varianceCash": "Selisih Kas",
     "expectedCash": "Kas Diharapkan",
@@ -1487,7 +1491,16 @@
       "noMasterDataHelp": "Buka POS produksi terlebih dahulu untuk memuat produk, harga, dan modifier, lalu kembali ke mode demo.",
       "openProductionPOS": "Buka POS Produksi"
     },
-    "noActiveStore": "Belum ada outlet aktif yang bisa dipakai untuk POS. Aktifkan outlet terlebih dahulu di data lokasi."
+    "noActiveStore": "Belum ada outlet aktif yang bisa dipakai untuk POS. Aktifkan outlet terlebih dahulu di data lokasi.",
+    "shiftOpenFailed": "Gagal membuka shift.",
+    "createSale": {
+      "duplicateRequest": "Permintaan ganda terdeteksi (Idempotensi).",
+      "idempotencyInProgress": "Transaksi sedang diproses oleh permintaan lain.",
+      "idempotencyClaimMissing": "Klaim idempotensi tidak ditemukan.",
+      "ingredientDeductionFailed": "Gagal mengurangi stok bahan baku.",
+      "duplicateOrder": "Pesanan ganda terdeteksi.",
+      "nonCashOverpay": "Pembayaran non-tunai tidak boleh melebihi total."
+    }
   },
   "app": {
     "name": "Aroadri Tea ERP",

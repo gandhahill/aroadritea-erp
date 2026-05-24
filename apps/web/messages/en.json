@@ -1168,6 +1168,10 @@
         "opening_balance": "Opening balance",
         "other": "Other"
       }
+    },
+    "transfer": {
+      "versionMismatch": "Data has been modified by another user (Version Conflict).",
+      "shipFailed": "Failed to ship items."
     }
   },
   "nav": {
@@ -1333,8 +1337,8 @@
     "customerDisplay": "Customer Display",
     "openingCash": "Opening Cash (IDR)",
     "actualCash": "Actual Cash (IDR)",
-    "openingCashRequired": "Opening cash is required.",
-    "actualCashRequired": "Actual cash is required.",
+    "openingCashRequired": "Opening cash amount is required.",
+    "actualCashRequired": "Actual cash amount is required.",
     "variance": "Variance",
     "varianceCash": "Cash Variance",
     "expectedCash": "Expected Cash",
@@ -1488,7 +1492,16 @@
       "noMasterDataHelp": "Open production POS first to load products, prices, and modifiers, then return to demo mode.",
       "openProductionPOS": "Open Production POS"
     },
-    "noActiveStore": "No active outlet is available for POS. Activate an outlet in location data first."
+    "noActiveStore": "No active outlet is available for POS. Activate an outlet in location data first.",
+    "shiftOpenFailed": "Failed to open shift.",
+    "createSale": {
+      "duplicateRequest": "Duplicate request detected (Idempotency).",
+      "idempotencyInProgress": "Transaction is being processed by another request.",
+      "idempotencyClaimMissing": "Idempotency claim is missing.",
+      "ingredientDeductionFailed": "Failed to deduct ingredient stock.",
+      "duplicateOrder": "Duplicate order detected.",
+      "nonCashOverpay": "Non-cash payment cannot exceed the total amount."
+    }
   },
   "app": {
     "name": "Aroadri Tea ERP",

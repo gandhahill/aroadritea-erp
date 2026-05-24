@@ -1206,7 +1206,11 @@
     "searchItemPlaceholder": "按名称或SKU搜索...",
     "itemCount": "{count} 件商品",
     "costPrice": "成本价/单位",
-    "suppliesEmpty": "未找到耗材商品。"
+    "suppliesEmpty": "未找到耗材商品。",
+    "transfer": {
+      "versionMismatch": "数据已被其他用户修改（版本冲突）。",
+      "shipFailed": "发货失败。"
+    }
   },
   "nav": {
     "dashboard": "仪表盘",
@@ -1351,7 +1355,7 @@
       "netRevenue": "净收入",
       "journal": "日记账",
       "synced": "已同步",
-"notSynced": "未同步",
+      "notSynced": "未同步",
       "empty": "暂无手动收班。",
       "total": "{count} 条收班记录"
     },
@@ -1371,8 +1375,8 @@
     "customerDisplay": "顾客显示屏",
     "openingCash": "备用金 (印尼盾)",
     "actualCash": "实际现金 (印尼盾)",
-    "openingCashRequired": "备用金不能为空。",
-    "actualCashRequired": "实际现金不能为空。",
+    "openingCashRequired": "必须填写开班现金金额。",
+    "actualCashRequired": "必须填写实际现金金额。",
     "variance": "差异",
     "varianceCash": "现金差异",
     "expectedCash": "应收现金",
@@ -1526,7 +1530,16 @@
       "snapshotHelp": "请确认此浏览器已打开过正式 POS。产品、价格和加料等主数据需要先保存到浏览器 IndexedDB。",
       "noMasterDataHelp": "请先打开正式 POS 加载产品、价格和加料，然后再回到演示模式。"
     },
-    "noActiveStore": "没有可用的 POS 门店。请先在地点设置中启用一个门店。"
+    "noActiveStore": "没有可用的 POS 门店。请先在地点设置中启用一个门店。",
+    "shiftOpenFailed": "开班失败。",
+    "createSale": {
+      "duplicateRequest": "检测到重复请求（幂等性）。",
+      "idempotencyInProgress": "交易正在被另一个请求处理。",
+      "idempotencyClaimMissing": "幂等性声明丢失。",
+      "ingredientDeductionFailed": "扣除原料库存失败。",
+      "duplicateOrder": "检测到重复订单。",
+      "nonCashOverpay": "非现金支付不能超过总金额。"
+    }
   },
   "app": {
     "name": "Aroadri Tea ERP",
