@@ -13,6 +13,6 @@ CREATE TABLE IF NOT EXISTS "shift_expenses" (
 	"updated_by" text
 );
 --> statement-breakpoint
-ALTER TABLE "pos_settings" ADD COLUMN "drawer_expense_account_code" text DEFAULT '6-2100' NOT NULL;--> statement-breakpoint
+ALTER TABLE "pos_settings" ADD COLUMN IF NOT EXISTS "drawer_expense_account_code" text DEFAULT '6-2100' NOT NULL;--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "shift_expenses_tenant_loc_idx" ON "shift_expenses" USING btree ("tenant_id","location_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "shift_expenses_shift_idx" ON "shift_expenses" USING btree ("shift_id");

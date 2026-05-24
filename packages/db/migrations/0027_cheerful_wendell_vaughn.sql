@@ -1,1 +1,1 @@
-ALTER TABLE "shift_expenses" ADD COLUMN "attachment_url" text;
+ALTER TABLE "shift_expenses" ADD COLUMN IF NOT EXISTS "attachment_url" text;

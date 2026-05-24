@@ -197,6 +197,13 @@
       "when": 1779540607521,
       "tag": "0027_cheerful_wendell_vaughn",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1779587777461,
+      "tag": "0028_windy_black_tarantula",
+      "breakpoints": true
     }
   ]
 }
