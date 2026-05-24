@@ -606,7 +606,8 @@
       "supplierName": "Supplier",
       "locationName": "Location",
       "status": "Status",
-      "noReports": "No GRN data found."
+      "noReports": "No GRN data found.",
+      "allLocations": "All Locations"
     },
     "title": "Purchasing",
     "subtitle": "Manage suppliers and purchase orders from the ERP.",
@@ -690,6 +691,15 @@
         "back": "Back",
         "missingMasterData": "Suppliers, active locations, or purchasable products are not ready. Complete those records before creating a PO."
       }
+    },
+    "poList": {
+      "statusDraft": "Draft",
+      "statusSubmitted": "Submitted",
+      "statusApproved": "Approved",
+      "statusPartial": "Partial",
+      "statusReceived": "Received",
+      "statusClosed": "Closed",
+      "statusCancelled": "Cancelled"
     }
   },
   "scheduledJobs": {
@@ -1907,7 +1917,9 @@
       "createNew": "Create New Disciplinary Action",
       "sp1Desc": "SP1 — Disciplinary Letter 1",
       "sp2Desc": "SP2 — Disciplinary Letter 2",
-      "sp3Desc": "SP3 — Disciplinary Letter 3"
+      "sp3Desc": "SP3 — Disciplinary Letter 3",
+      "statusIssued": "Issued",
+      "statusEscalated": "Escalated"
     },
     "fields": {
       "required": "Required field",

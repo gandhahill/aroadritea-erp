@@ -627,7 +627,8 @@
       "supplierName": "供应商",
       "locationName": "位置",
       "status": "状态",
-      "noReports": "暂无入库记录。"
+      "noReports": "暂无入库记录。",
+      "allLocations": "所有地点"
     },
     "title": "采购",
     "subtitle": "从ERP管理供应商和采购订单。",
@@ -711,7 +712,16 @@
     "awb": "运单号",
     "phoneLast5": "电话末5位",
     "syncTracking": "同步物流",
-    "notSynced": "未同步"
+    "notSynced": "未同步",
+    "poList": {
+      "statusDraft": "Draft",
+      "statusSubmitted": "已提交",
+      "statusApproved": "已批准",
+      "statusPartial": "部分",
+      "statusReceived": "已接收",
+      "statusClosed": "已关闭",
+      "statusCancelled": "已取消"
+    }
   },
   "scheduledJobs": {
     "title": "定时任务",
@@ -1958,7 +1968,9 @@
       "createNew": "创建新的纪律处分",
       "sp1Desc": "SP1 — 警告信 1",
       "sp2Desc": "SP2 — 警告信 2",
-      "sp3Desc": "SP3 — 警告信 3"
+      "sp3Desc": "SP3 — 警告信 3",
+      "statusIssued": "已发布",
+      "statusEscalated": "已升级"
     },
     "fields": {
       "required": "必填项",

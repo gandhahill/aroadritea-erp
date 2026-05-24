@@ -606,7 +606,8 @@
       "supplierName": "Supplier",
       "locationName": "Lokasi",
       "status": "Status",
-      "noReports": "Tidak ada data penerimaan barang."
+      "noReports": "Tidak ada data penerimaan barang.",
+      "allLocations": "Semua Lokasi"
     },
     "title": "Pembelian",
     "subtitle": "Kelola supplier dan purchase order dari ERP.",
@@ -690,6 +691,15 @@
         "back": "Kembali",
         "missingMasterData": "Supplier, lokasi aktif, atau produk purchasable belum siap. Lengkapi data tersebut sebelum membuat PO."
       }
+    },
+    "poList": {
+      "statusDraft": "Draft",
+      "statusSubmitted": "Diajukan",
+      "statusApproved": "Disetujui",
+      "statusPartial": "Parsial",
+      "statusReceived": "Diterima",
+      "statusClosed": "Ditutup",
+      "statusCancelled": "Dibatalkan"
     }
   },
   "scheduledJobs": {
@@ -1985,7 +1995,9 @@
       "createNew": "Buat Surat Peringatan Baru",
       "sp1Desc": "SP1 — Surat Peringatan 1",
       "sp2Desc": "SP2 — Surat Peringatan 2",
-      "sp3Desc": "SP3 — Surat Peringatan 3"
+      "sp3Desc": "SP3 — Surat Peringatan 3",
+      "statusIssued": "Diterbitkan",
+      "statusEscalated": "Dieselakan"
     },
     "fields": {
       "required": "Wajib diisi",

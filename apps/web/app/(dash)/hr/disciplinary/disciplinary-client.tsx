@@ -251,9 +251,9 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
             className="w-full sm:w-48"
           >
             <option value="">{t('allStatus')}</option>
-            <option value="issued">Diterbitkan</option>
-            <option value="acknowledged">Ditekankan</option>
-            <option value="escalated">Dieselakan</option>
+            <option value="issued">{t('statusIssued')}</option>
+            <option value="acknowledged">{t('statusAcknowledged')}</option>
+            <option value="escalated">{t('statusEscalated')}</option>
           </Select>
         </FilterField>
         <Button

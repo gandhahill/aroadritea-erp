@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { syncPurchaseShipmentAction } from './actions';
-import { TableCell, TableBody, TableHead, TableHeader, Table, Select } from "@erp/ui";
+import { TableCell, TableBody, TableHead, TableHeader, Table, Select, Input } from "@erp/ui";
 
 interface PoRow {
   id: string;
@@ -95,7 +95,7 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
             type="search"
             placeholder={t('searchPlaceholder')}
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e: any) => setQ(e.target.value)}
             className="min-w-40"
           />
         </FilterField>
@@ -106,20 +106,20 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
             className="w-full sm:w-40"
           >
             <option value="">{t('allStatuses')}</option>
-            <option value="draft">Draft</option>
-            <option value="submitted">Submitted</option>
-            <option value="approved">Approved</option>
-            <option value="partial">Partial</option>
-            <option value="received">Received</option>
-            <option value="closed">Closed</option>
-            <option value="cancelled">Cancelled</option>
+            <option value="draft">{t('statusDraft')}</option>
+            <option value="submitted">{t('statusSubmitted')}</option>
+            <option value="approved">{t('statusApproved')}</option>
+            <option value="partial">{t('statusPartial')}</option>
+            <option value="received">{t('statusReceived')}</option>
+            <option value="closed">{t('statusClosed')}</option>
+            <option value="cancelled">{t('statusCancelled')}</option>
           </Select>
         </FilterField>
         <FilterField>
           <Input
             type="date"
             value={from}
-            onChange={(e) => setFrom(e.target.value)}
+            onChange={(e: any) => setFrom(e.target.value)}
             aria-label={t('fromDate')}
           />
         </FilterField>
@@ -128,7 +128,7 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
           <Input
             type="date"
             value={to}
-            onChange={(e) => setTo(e.target.value)}
+            onChange={(e: any) => setTo(e.target.value)}
             aria-label={t('toDate')}
           />
         </FilterField>

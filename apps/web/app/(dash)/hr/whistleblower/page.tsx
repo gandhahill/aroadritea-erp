@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { requirePermission } from '@erp/services/iam';
 import { Pagination } from '@/components/pagination';
 import { TableCell, TableBody, TableHead, Button, Select } from "@erp/ui";
+import { FilterBar, FilterField } from "@/components/filter-bar";
 import { PageHeader } from "@/components/page-header";
 
 interface Props {

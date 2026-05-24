@@ -5,7 +5,7 @@ import { requirePermission } from '@erp/services/iam';
 import { Pagination } from '@/components/pagination';
 import { fetchGRNReport } from '../actions';
 import Link from 'next/link';
-import { TableCell, TableBody, TableHead, Button, Select } from "@erp/ui";
+import { TableCell, TableBody, TableHead, Button, Select, Input } from "@erp/ui";
 import { PageHeader } from "@/components/page-header";
 
 interface Props {
@@ -80,7 +80,7 @@ export default async function GRNReportPage({ searchParams }: Props) {
               defaultValue={filterLocationId}
               className="w-full sm:w-48"
             >
-              <option value="">Semua Lokasi</option>
+              <option value="">{t('allLocations')}</option>
               {locations.map((loc) => (
                 <option key={loc.id} value={loc.id}>{loc.name}</option>
               ))}
