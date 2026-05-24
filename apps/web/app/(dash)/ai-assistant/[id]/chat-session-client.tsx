@@ -8,6 +8,8 @@ interface Message {
   id: string;
   role: string;
   content: string;
+  toolName?: string | null;
+  toolPayload?: unknown;
   createdAt: Date;
   requiresConfirmation: boolean;
 }
@@ -18,14 +20,38 @@ interface Props {
   initialMessages: Message[];
 }
 
+interface PendingAttachment {
+  url: string;
+  fileName: string;
+  mimeType: string;
+  fileSize: number;
+}
+
+function summariseToolPayload(payload: unknown): string {
+  if (!payload || typeof payload !== 'object') return '';
+  const p = payload as Record<string, unknown>;
+  if (typeof p.call_id === 'string') {
+    const inner = (p.payload as { ok?: boolean; output?: unknown; error?: string }) ?? null;
+    if (inner) {
+      if (inner.ok === false) return `Tool error: ${inner.error}`;
+      const outputJson = JSON.stringify(inner.output ?? null);
+      return outputJson.length > 500 ? `${outputJson.slice(0, 500)}…` : outputJson;
+    }
+  }
+  return JSON.stringify(p).slice(0, 500);
+}
+
 export function ChatSessionClient(props: Props) {
   const [messages, setMessages] = useState<Message[]>(props.initialMessages);
   const [draft, setDraft] = useState('');
   const [useReasoning, setUseReasoning] = useState(false);
+  const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (scrollerRef.current) {
@@ -40,32 +66,78 @@ export function ChatSessionClient(props: Props) {
     }
   }
 
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Hanya file gambar yang didukung untuk OCR/visual.');
+      return;
+    }
+    setError(null);
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.set('file', file);
+      fd.set('area', 'ai-attachments');
+      fd.set('visibility', 'private');
+      fd.set('imageOnly', 'true');
+      const res = await fetch('/api/uploads', { method: 'POST', body: fd });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({ error: 'upload-failed' }));
+        setError(payload.error ?? 'upload-failed');
+        return;
+      }
+      const stored = (await res.json()) as {
+        url: string;
+        fileName: string;
+        mimeType: string;
+        fileSize: number;
+      };
+      setAttachments((prev) => [...prev, stored]);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function removeAttachment(idx: number) {
+    setAttachments((prev) => prev.filter((_, i) => i !== idx));
+  }
+
   async function submit() {
     const value = draft.trim();
-    if (!value || pending) return;
+    if ((!value && attachments.length === 0) || pending) return;
     setError(null);
     const localId = `local-${Date.now()}`;
+    const queuedAttachments = attachments;
+    const composedPreview = queuedAttachments.length
+      ? `${value}${value ? '\n\n' : ''}📎 ${queuedAttachments.map((a) => a.fileName).join(', ')}`
+      : value;
+
     setMessages((prev) => [
       ...prev,
       {
         id: localId,
         role: 'user',
-        content: value,
+        content: composedPreview,
         createdAt: new Date(),
         requiresConfirmation: false,
       },
     ]);
     setDraft('');
+    setAttachments([]);
 
     startTransition(async () => {
       const result = await sendMessageAction({
         sessionId: props.sessionId,
         content: value,
         useReasoning,
+        attachments: queuedAttachments.length
+          ? queuedAttachments.map((a) => ({ url: a.url, mimeType: a.mimeType }))
+          : undefined,
       });
       if (!result.ok) {
         setError(result.error);
-        // Roll back the optimistic user message so the user can retry.
         setMessages((prev) => prev.filter((m) => m.id !== localId));
         return;
       }
@@ -100,28 +172,35 @@ export function ChatSessionClient(props: Props) {
             Mulai dengan menulis pertanyaan, mis. <em>"Bagaimana cara input penjualan manual?"</em>
           </div>
         ) : null}
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-              m.role === 'user'
-                ? 'ml-auto bg-brand-red/10 text-brand-ink'
-                : m.role === 'assistant'
-                  ? 'bg-brand-cream-2 text-brand-ink'
-                  : 'bg-brand-cream-3 text-brand-ink-2'
-            }`}
-          >
-            <div className="mb-1 text-[10px] uppercase tracking-wide text-brand-ink-3">
-              {m.role}
-            </div>
-            <div className="whitespace-pre-wrap leading-relaxed">{m.content}</div>
-            {m.requiresConfirmation ? (
-              <div className="mt-2 text-xs text-amber-700">
-                ⏳ Menunggu konfirmasi Anda sebelum AI mengeksekusi tindakan.
+        {messages.map((m) => {
+          const isTool = m.role === 'tool';
+          const bubbleClass = isTool
+            ? 'bg-brand-cream-3/70 text-brand-ink-2 text-xs border border-brand-cream-3'
+            : m.role === 'user'
+              ? 'ml-auto bg-brand-red/10 text-brand-ink'
+              : m.role === 'assistant'
+                ? 'bg-brand-cream-2 text-brand-ink'
+                : 'bg-brand-cream-3 text-brand-ink-2';
+          return (
+            <div key={m.id} className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${bubbleClass}`}>
+              <div className="mb-1 text-[10px] uppercase tracking-wide text-brand-ink-3">
+                {isTool && m.toolName ? `tool: ${m.toolName}` : m.role}
               </div>
-            ) : null}
-          </div>
-        ))}
+              {isTool ? (
+                <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-snug">
+                  {summariseToolPayload(m.toolPayload ?? m.content)}
+                </pre>
+              ) : (
+                <div className="whitespace-pre-wrap leading-relaxed">{m.content}</div>
+              )}
+              {m.requiresConfirmation ? (
+                <div className="mt-2 text-xs text-amber-700">
+                  ⏳ Menunggu konfirmasi Anda sebelum AI mengeksekusi tindakan.
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
         {pending ? (
           <div className="max-w-[80%] rounded-lg bg-brand-cream-2 px-3 py-2 text-sm text-brand-ink-2">
             <span className="inline-block animate-pulse">…AI sedang mengetik</span>
@@ -132,6 +211,27 @@ export function ChatSessionClient(props: Props) {
       {error ? (
         <div className="mx-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
           {error}
+        </div>
+      ) : null}
+
+      {attachments.length > 0 ? (
+        <div className="mx-4 flex flex-wrap gap-2 text-xs">
+          {attachments.map((a, idx) => (
+            <span
+              key={a.url}
+              className="inline-flex items-center gap-2 rounded-md border border-brand-cream-3 bg-brand-cream-2 px-2 py-1"
+            >
+              📎 {a.fileName}
+              <button
+                type="button"
+                onClick={() => removeAttachment(idx)}
+                className="text-rose-500 hover:text-rose-700"
+                aria-label={`hapus ${a.fileName}`}
+              >
+                ×
+              </button>
+            </span>
+          ))}
         </div>
       ) : null}
 
@@ -153,17 +253,39 @@ export function ChatSessionClient(props: Props) {
           maxLength={8000}
           disabled={pending}
         />
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <label className="flex items-center gap-2 text-xs text-brand-ink-2">
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-xs text-brand-ink-2">
+              <input
+                type="checkbox"
+                checked={useReasoning}
+                onChange={(e) => setUseReasoning(e.target.checked)}
+                className="h-3.5 w-3.5 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
+              />
+              Mode penalaran (lebih lambat, lebih akurat)
+            </label>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading || pending}
+              className="rounded border border-brand-cream-3 px-2 py-1 text-xs text-brand-ink-2 hover:bg-brand-cream-2 disabled:opacity-50"
+            >
+              {uploading ? 'Mengunggah…' : '📷 Lampirkan foto struk'}
+            </button>
             <input
-              type="checkbox"
-              checked={useReasoning}
-              onChange={(e) => setUseReasoning(e.target.checked)}
-              className="h-3.5 w-3.5 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={handleFile}
+              className="hidden"
             />
-            Mode penalaran (lebih lambat, lebih akurat)
-          </label>
-          <Button variant="primary" size="sm" type="submit" disabled={pending || !draft.trim()}>
+          </div>
+          <Button
+            variant="primary"
+            size="sm"
+            type="submit"
+            disabled={pending || (!draft.trim() && attachments.length === 0)}
+          >
             {pending ? 'Mengirim…' : 'Kirim'}
           </Button>
         </div>

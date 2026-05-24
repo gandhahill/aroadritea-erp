@@ -128,6 +128,12 @@ const KNOWN_ENTITY_TYPES = new Set([
   'member_session',
   'voucher',
   'complaint',
+  // T-0170/T-0171 — SOP, AI assistant
+  'sop_document',
+  'ai_chat_session',
+  'ai_chat_message',
+  'ai_tool_call',
+  'whistleblower_report',
 ]);
 
 /** Validate that before/after snapshots have primitive values only (no BigInt, Date, etc.). */

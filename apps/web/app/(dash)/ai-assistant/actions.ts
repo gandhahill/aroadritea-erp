@@ -90,6 +90,10 @@ export async function sendMessageAction(input: {
   sessionId: string;
   content: string;
   useReasoning?: boolean;
+  /** Optional uploaded attachments. Each `url` is the result of POSTing
+   *  to /api/uploads with area=ai-attachments — the server-side service
+   *  forwards the URL to DeepSeek as an image_url content part. */
+  attachments?: Array<{ url: string; mimeType: string }>;
 }) {
   const ctx = await resolveCtx();
   if (!ctx) return { ok: false as const, error: 'unauthenticated' };
@@ -102,5 +106,10 @@ export async function sendMessageAction(input: {
     };
   }
   revalidatePath(`/ai-assistant/${input.sessionId}`);
-  return { ok: true as const, reply: r.value.reply, messageId: r.value.assistantMessageId };
+  return {
+    ok: true as const,
+    reply: r.value.reply,
+    messageId: r.value.assistantMessageId,
+    toolRoundsExecuted: r.value.toolRoundsExecuted,
+  };
 }

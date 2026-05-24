@@ -1,27 +1,55 @@
 /**
- * DeepSeek chat-completions client — ADR-0013.
+ * DeepSeek chat-completions client — ADR-0013 + T-0171 (Phase 2).
  *
- * DeepSeek exposes an OpenAI-compatible /v1/chat/completions endpoint, so
- * we use the bare REST API rather than pulling in the openai SDK.
+ * Documentation reference (fetched 2026-05-24):
+ *   - https://api-docs.deepseek.com/quick_start/pricing
+ *   - https://api-docs.deepseek.com/guides/function_calling
+ *   - https://api-docs.deepseek.com/guides/thinking_mode
+ *   - https://api-docs.deepseek.com/guides/tool_calls
  *
- * Config priority (highest wins):
- *  1. DB row `cms_settings.ai.provider.config` (set via Settings UI).
- *  2. Environment variables `DEEPSEEK_API_KEY` / `AI_PROVIDER_*`.
- *  3. Built-in defaults (DeepSeek v4 pro thinking).
- *
- * `AI_ASSISTANT_ENABLED=false` disables the assistant entirely; the UI
- * hides the chat widget when `isAiAssistantEnabled()` is false.
+ * Important model notes:
+ *   - Legacy aliases `deepseek-chat` and `deepseek-reasoner` are scheduled
+ *     for deprecation on 2026-07-24 and map to `deepseek-v4-flash`.
+ *   - `deepseek-v4-pro` is the thinking model the owner asked for and
+ *     supports tool calling. Per the docs, when thinking mode is active
+ *     the parameters `temperature`, `top_p`, `presence_penalty`, and
+ *     `frequency_penalty` are silently ignored — we omit them.
+ *   - Thinking mode returns `reasoning_content` alongside `content`; on
+ *     subsequent turns that contain `tool_calls` the previous
+ *     `reasoning_content` MUST be replayed or the API answers 400.
  */
 
 const DEFAULT_BASE_URL = 'https://api.deepseek.com/v1';
-const DEFAULT_MODEL = 'deepseek-chat';
-const DEFAULT_THINKING_MODEL = 'deepseek-reasoner';
+const DEFAULT_MODEL = 'deepseek-v4-flash';
+const DEFAULT_THINKING_MODEL = 'deepseek-v4-pro';
+
+export type AiContentPart =
+  | { type: 'text'; text: string }
+  | { type: 'image_url'; image_url: { url: string } };
 
 export interface AiChatMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
-  content: string | Array<{ type: string; text?: string; image_url?: { url: string } }>;
+  content: string | AiContentPart[];
   name?: string;
   tool_call_id?: string;
+  tool_calls?: AiToolCall[];
+  /** Returned only by thinking models; we replay it in follow-up turns. */
+  reasoning_content?: string;
+}
+
+export interface AiToolDefinition {
+  type: 'function';
+  function: {
+    name: string;
+    description: string;
+    parameters: Record<string, unknown>;
+  };
+}
+
+export interface AiToolCall {
+  id: string;
+  type: 'function';
+  function: { name: string; arguments: string };
 }
 
 export interface AiCompletionRequest {
@@ -29,6 +57,12 @@ export interface AiCompletionRequest {
   messages: AiChatMessage[];
   temperature?: number;
   maxTokens?: number;
+  /** OpenAI-compatible tools array. Pass only what the caller's RBAC allows. */
+  tools?: AiToolDefinition[];
+  /** Tell the model whether it must use a tool. Defaults to 'auto'. */
+  toolChoice?: 'auto' | 'none' | 'required';
+  /** When true, omit unsupported parameters and surface reasoning_content. */
+  thinkingMode?: boolean;
 }
 
 export interface AiCompletionResponse {
@@ -36,6 +70,8 @@ export interface AiCompletionResponse {
   modelUsed: string;
   promptTokens?: number;
   completionTokens?: number;
+  toolCalls?: AiToolCall[];
+  reasoningContent?: string;
 }
 
 export interface AiProviderConfig {
@@ -67,10 +103,14 @@ export function loadProviderConfig(): AiProviderConfig {
   return cachedConfig;
 }
 
-/** Reset the cached provider config — used by tests and after the
- *  admin saves a new value via the Settings UI. */
 export function resetProviderConfigCache(): void {
   cachedConfig = null;
+}
+
+export function isThinkingModel(modelName: string): boolean {
+  const lower = modelName.toLowerCase();
+  // The v4-pro family always reasons; reasoner is the legacy alias.
+  return lower.includes('reasoner') || lower.includes('-pro');
 }
 
 export class AiProviderError extends Error {
@@ -93,12 +133,24 @@ export async function aiComplete(req: AiCompletionRequest): Promise<AiCompletion
     );
   }
   const model = req.model ?? config.model;
-  const payload = {
+  const thinking = req.thinkingMode ?? isThinkingModel(model);
+
+  const payload: Record<string, unknown> = {
     model,
     messages: req.messages,
-    temperature: req.temperature ?? config.temperature,
     max_tokens: req.maxTokens ?? config.maxTokens,
   };
+
+  // Per docs §thinking_mode, these parameters are silently ignored by
+  // thinking models. We omit them to keep the request payload clean.
+  if (!thinking) {
+    payload.temperature = req.temperature ?? config.temperature;
+  }
+
+  if (req.tools && req.tools.length > 0) {
+    payload.tools = req.tools;
+    payload.tool_choice = req.toolChoice ?? 'auto';
+  }
 
   const response = await fetch(`${config.baseUrl.replace(/\/$/, '')}/chat/completions`, {
     method: 'POST',
@@ -107,8 +159,8 @@ export async function aiComplete(req: AiCompletionRequest): Promise<AiCompletion
       Authorization: `Bearer ${config.apiKey}`,
     },
     body: JSON.stringify(payload),
-    // 60 s safety bound — DeepSeek "pro thinking" can be slow but should
-    // never legitimately exceed a minute for one user turn.
+    // 60 s safety bound — thinking mode can take ~10-20 s on long
+    // conversations; 60 s gives margin while still timing out a hang.
     signal: AbortSignal.timeout(60_000),
   });
 
@@ -127,16 +179,25 @@ export async function aiComplete(req: AiCompletionRequest): Promise<AiCompletion
   }
 
   const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string }; finish_reason?: string }>;
+    choices?: Array<{
+      message?: {
+        content?: string;
+        reasoning_content?: string;
+        tool_calls?: AiToolCall[];
+      };
+      finish_reason?: string;
+    }>;
     usage?: { prompt_tokens?: number; completion_tokens?: number };
     model?: string;
   };
 
-  const content = data.choices?.[0]?.message?.content ?? '';
+  const message = data.choices?.[0]?.message ?? {};
   return {
-    content,
+    content: message.content ?? '',
     modelUsed: data.model ?? model,
     promptTokens: data.usage?.prompt_tokens,
     completionTokens: data.usage?.completion_tokens,
+    toolCalls: message.tool_calls && message.tool_calls.length > 0 ? message.tool_calls : undefined,
+    reasoningContent: message.reasoning_content,
   };
 }

@@ -89,16 +89,26 @@ const aiComplete = vi.fn();
 vi.mock('../src/ai/client', () => ({
   aiComplete: (...args: unknown[]) => aiComplete(...args),
   isAiAssistantEnabled: () => process.env.AI_ASSISTANT_ENABLED !== 'false',
+  isThinkingModel: (model: string) =>
+    model.toLowerCase().includes('reasoner') || model.toLowerCase().includes('-pro'),
   loadProviderConfig: () => ({
     baseUrl: 'http://stub',
     apiKey: 'test-key',
-    model: 'deepseek-chat',
-    reasoningModel: 'deepseek-reasoner',
+    model: 'deepseek-v4-flash',
+    reasoningModel: 'deepseek-v4-pro',
     temperature: 0.4,
     maxTokens: 2048,
   }),
   resetProviderConfigCache: () => undefined,
   AiProviderError: class extends Error {},
+}));
+
+// Phase 2 added a tool registry — short-circuit it so the existing chat
+// tests don't depend on tool plumbing.
+vi.mock('../src/ai/tools/registry', () => ({
+  listAvailableTools: vi.fn(async () => []),
+  executeTool: vi.fn(async () => ({ ok: true, value: { output: null, log: {} } })),
+  _resetToolsForTests: () => undefined,
 }));
 
 import { sendChatMessage } from '../src/ai/conversation';
