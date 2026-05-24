@@ -58,47 +58,54 @@ export default async function GRNReportPage({ searchParams }: Props) {
                           </div>}
               />
 
-        <form method="GET" className="mb-6 flex flex-wrap items-center gap-3">
-          <input
-            type="date"
-            name="startDate"
-            defaultValue={filterStartDate}
-            className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-ember-5"
-          />
+        <FilterBar as="form" method="GET">
+          <FilterField>
+            <Input
+              type="date"
+              name="startDate"
+              defaultValue={filterStartDate}
+            />
+          </FilterField>
           <span className="text-sm text-brand-ink-3">-</span>
-          <input
-            type="date"
-            name="endDate"
-            defaultValue={filterEndDate}
-            className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-ember-5"
-          />
-          <Select
-            name="locationId"
-            defaultValue={filterLocationId}
-            className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-ember-5"
-          >
-            <option value="">Semua Lokasi</option>
-            {locations.map((loc) => (
-              <option key={loc.id} value={loc.id}>{loc.name}</option>
-            ))}
-          </Select>
-          <Select
-            name="status"
-            defaultValue={filterStatus}
-            className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-ember-5"
-          >
-            <option value="">{t('allStatus') || 'Semua Status'}</option>
-            <option value="draft">{t('statusDraft') || 'Draft'}</option>
-            <option value="confirmed">{t('statusConfirmed') || 'Confirmed'}</option>
-          </Select>
+          <FilterField>
+            <Input
+              type="date"
+              name="endDate"
+              defaultValue={filterEndDate}
+            />
+          </FilterField>
+          <FilterField>
+            <Select
+              name="locationId"
+              defaultValue={filterLocationId}
+              className="w-full sm:w-48"
+            >
+              <option value="">Semua Lokasi</option>
+              {locations.map((loc) => (
+                <option key={loc.id} value={loc.id}>{loc.name}</option>
+              ))}
+            </Select>
+          </FilterField>
+          <FilterField>
+            <Select
+              name="status"
+              defaultValue={filterStatus}
+              className="w-full sm:w-48"
+            >
+              <option value="">{t('allStatus') || 'Semua Status'}</option>
+              <option value="draft">{t('statusDraft') || 'Draft'}</option>
+              <option value="confirmed">{t('statusConfirmed') || 'Confirmed'}</option>
+            </Select>
+          </FilterField>
           {params?.pageSize && <input type="hidden" name="pageSize" value={params.pageSize} />}
           <Button
             type="submit"
-            className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink transition-colors hover:bg-brand-cream-1" variant="secondary" size="md"
+            variant="primary"
+            className="h-9"
           >
             {t('filterBtn') || 'Filter'}
           </Button>
-        </form>
+        </FilterBar>
 
         <div className="rounded-xl border border-brand-cream-3 bg-card shadow-sm">
           <table className="w-full text-left text-sm">

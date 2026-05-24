@@ -89,47 +89,53 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2 border-b border-brand-cream-3 px-5 py-3">
-        <input
-          type="search"
-          placeholder={t('searchPlaceholder')}
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          className="h-9 min-w-40 flex-1 rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
-        />
-        <Select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
-        >
-          <option value="">{t('allStatuses')}</option>
-          <option value="draft">Draft</option>
-          <option value="submitted">Submitted</option>
-          <option value="approved">Approved</option>
-          <option value="partial">Partial</option>
-          <option value="received">Received</option>
-          <option value="closed">Closed</option>
-          <option value="cancelled">Cancelled</option>
-        </Select>
-        <input
-          type="date"
-          value={from}
-          onChange={(e) => setFrom(e.target.value)}
-          aria-label={t('fromDate')}
-          className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
-        />
-        <span className="text-xs text-brand-ink-3">—</span>
-        <input
-          type="date"
-          value={to}
-          onChange={(e) => setTo(e.target.value)}
-          aria-label={t('toDate')}
-          className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
-        />
+      <FilterBar>
+        <FilterField>
+          <Input
+            type="search"
+            placeholder={t('searchPlaceholder')}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            className="min-w-40"
+          />
+        </FilterField>
+        <FilterField>
+          <Select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="w-full sm:w-40"
+          >
+            <option value="">{t('allStatuses')}</option>
+            <option value="draft">Draft</option>
+            <option value="submitted">Submitted</option>
+            <option value="approved">Approved</option>
+            <option value="partial">Partial</option>
+            <option value="received">Received</option>
+            <option value="closed">Closed</option>
+            <option value="cancelled">Cancelled</option>
+          </Select>
+        </FilterField>
+        <FilterField>
+          <Input
+            type="date"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            aria-label={t('fromDate')}
+          />
+        </FilterField>
+        <span className="text-sm text-brand-ink-3">—</span>
+        <FilterField>
+          <Input
+            type="date"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            aria-label={t('toDate')}
+          />
+        </FilterField>
         <span className="ml-auto text-xs text-brand-ink-3">
           {t('filteredCount', { filtered: filtered.length, total: purchaseOrders.length })}
         </span>
-      </div>
+      </FilterBar>
 
       <div className="overflow-x-auto">
         <Table>

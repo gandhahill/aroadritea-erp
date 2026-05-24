@@ -7,7 +7,7 @@ import { useActionState, useEffect, useMemo, useState } from 'react';
 import { createAssetAction, runDepreciationAction, updateAssetCategoryAction } from './actions';
 import type { AssetPageData } from './actions';
 import { Input, Select, Button, TableHeader } from "@erp/ui";
-import { FilterBar } from "@/components/filter-bar";
+import { FilterBar, FilterField } from "@/components/filter-bar";
 
 const METHOD_VALUES = [
   'straight_line',

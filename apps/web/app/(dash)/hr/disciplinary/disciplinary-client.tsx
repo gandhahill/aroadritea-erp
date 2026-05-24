@@ -14,7 +14,7 @@ import {
   createDisciplinaryActionAction,
   listDisciplinaryActionsAction,
 } from './actions';
-import { Button, Input, Select } from "@erp/ui";
+import { Button, Input, Table, TableBody, TableCell, TableHead, TableHeader, Select } from "@erp/ui";
 import { PageHeader } from "@/components/page-header";
 import { FilterBar, FilterField } from "@/components/filter-bar";
 
@@ -231,35 +231,40 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
       )}
 
       {/* Filters */}
-      <div className="flex items-center gap-3">
-        <Select
-          value={filterLevel}
-          onChange={(e) => setFilterLevel(e.target.value)}
-          className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink"
-        >
-          <option value="">{t('allLevels')}</option>
-          <option value="SP1">SP1</option>
-          <option value="SP2">SP2</option>
-          <option value="SP3">SP3</option>
-        </Select>
-        <Select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink"
-        >
-          <option value="">{t('allStatus')}</option>
-          <option value="issued">Diterbitkan</option>
-          <option value="acknowledged">Ditekankan</option>
-          <option value="escalated">Dieselakan</option>
-        </Select>
+      <FilterBar>
+        <FilterField>
+          <Select
+            value={filterLevel}
+            onChange={(e) => setFilterLevel(e.target.value)}
+            className="w-full sm:w-48"
+          >
+            <option value="">{t('allLevels')}</option>
+            <option value="SP1">SP1</option>
+            <option value="SP2">SP2</option>
+            <option value="SP3">SP3</option>
+          </Select>
+        </FilterField>
+        <FilterField>
+          <Select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="w-full sm:w-48"
+          >
+            <option value="">{t('allStatus')}</option>
+            <option value="issued">Diterbitkan</option>
+            <option value="acknowledged">Ditekankan</option>
+            <option value="escalated">Dieselakan</option>
+          </Select>
+        </FilterField>
         <Button
           onClick={handleFilter}
           disabled={isPending}
-          className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm text-brand-ink hover:bg-brand-cream-1 disabled:opacity-50" variant="secondary" size="md"
+          variant="primary"
+          className="h-9"
         >
           {isPending ? tc('actions.loading') : t('filterBtn')}
         </Button>
-      </div>
+      </FilterBar>
 
       {/* List */}
       {actions.length === 0 ? (

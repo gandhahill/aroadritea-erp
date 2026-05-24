@@ -9,7 +9,8 @@ import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import { toggleScheduledJob, updateJobSchedule } from './actions';
 import type { ScheduledJobItem } from './actions';
-import { TableCell, TableBody, Select } from "@erp/ui";
+import { TableCell, TableBody, Select, Input } from "@erp/ui";
+import { FilterBar, FilterField } from "@/components/filter-bar";
 
 interface Props {
   jobs: ScheduledJobItem[];
@@ -263,37 +264,43 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-brand-cream-3 bg-card p-3">
-        <input
-          type="search"
-          placeholder={t('searchPlaceholder')}
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          className="h-9 min-w-48 flex-1 rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
-        />
-        <Select
-          value={enabledOnly}
-          onChange={(e) => setEnabledOnly(e.target.value as 'all' | 'enabled' | 'disabled')}
-          className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
-        >
-          <option value="all">{t('filter.allEnabled')}</option>
-          <option value="enabled">{t('filter.enabledOnly')}</option>
-          <option value="disabled">{t('filter.disabledOnly')}</option>
-        </Select>
-        <Select
-          value={statusOnly}
-          onChange={(e) => setStatusOnly(e.target.value as 'all' | 'success' | 'failed' | 'never')}
-          className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
-        >
-          <option value="all">{t('filter.allStatus')}</option>
-          <option value="success">{t('status.success')}</option>
-          <option value="failed">{t('status.failed')}</option>
-          <option value="never">{t('status.never')}</option>
-        </Select>
+      <FilterBar>
+        <FilterField>
+          <Input
+            type="search"
+            placeholder={t('searchPlaceholder')}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            className="w-full sm:w-64"
+          />
+        </FilterField>
+        <FilterField>
+          <Select
+            value={enabledOnly}
+            onChange={(e) => setEnabledOnly(e.target.value as 'all' | 'enabled' | 'disabled')}
+            className="w-full sm:w-40"
+          >
+            <option value="all">{t('filter.allEnabled')}</option>
+            <option value="enabled">{t('filter.enabledOnly')}</option>
+            <option value="disabled">{t('filter.disabledOnly')}</option>
+          </Select>
+        </FilterField>
+        <FilterField>
+          <Select
+            value={statusOnly}
+            onChange={(e) => setStatusOnly(e.target.value as 'all' | 'success' | 'failed' | 'never')}
+            className="w-full sm:w-40"
+          >
+            <option value="all">{t('filter.allStatus')}</option>
+            <option value="success">{t('status.success')}</option>
+            <option value="failed">{t('status.failed')}</option>
+            <option value="never">{t('status.never')}</option>
+          </Select>
+        </FilterField>
         <span className="ml-auto text-xs text-brand-ink-3">
           {t('copy.showingCount', { count: filteredJobs.length, total: jobs.length })}
         </span>
-      </div>
+      </FilterBar>
 
       <div className="overflow-hidden rounded-lg border border-brand-cream-3 bg-card">
         <table className="w-full">

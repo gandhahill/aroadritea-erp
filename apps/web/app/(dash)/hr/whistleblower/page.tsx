@@ -56,25 +56,28 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
             description={<>{t('subtitle') || 'Manage and review anonymous reports.'}</>}
           />
 
-      <form method="GET" className="mb-6 flex items-center gap-3">
-        <Select
-          name="status"
-          defaultValue={filterStatus}
-          className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-ember-5"
-        >
-          <option value="">{t('allStatus') || 'All Status'}</option>
-          <option value="open">{t('statusOpen') || 'Open'}</option>
-          <option value="investigating">{t('statusInvestigating') || 'Investigating'}</option>
-          <option value="resolved">{t('statusResolved') || 'Resolved'}</option>
-        </Select>
+      <FilterBar as="form" method="GET" className="mb-6">
+        <FilterField>
+          <Select
+            name="status"
+            defaultValue={filterStatus}
+            className="w-full sm:w-48"
+          >
+            <option value="">{t('allStatus') || 'All Status'}</option>
+            <option value="open">{t('statusOpen') || 'Open'}</option>
+            <option value="investigating">{t('statusInvestigating') || 'Investigating'}</option>
+            <option value="resolved">{t('statusResolved') || 'Resolved'}</option>
+          </Select>
+        </FilterField>
         {params?.pageSize && <input type="hidden" name="pageSize" value={params.pageSize} />}
         <Button
           type="submit"
-          className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink transition-colors hover:bg-brand-cream-1" variant="secondary" size="md"
+          variant="primary"
+          className="h-9"
         >
           {t('filterBtn') || 'Filter'}
         </Button>
-      </form>
+      </FilterBar>
 
       <div className="rounded-xl border border-brand-cream-3 bg-card shadow-sm">
         <table className="w-full text-left text-sm">
