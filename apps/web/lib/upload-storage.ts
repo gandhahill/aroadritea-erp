@@ -1,6 +1,8 @@
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
+export { assertImageMagicBytes } from '@erp/shared/image-magic-bytes';
+
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 export const ALLOWED_UPLOAD_AREAS = [
   'product-images',
@@ -61,6 +63,7 @@ export function assertUploadFile(file: File, imageOnly = false) {
     }
   }
 }
+
 
 export async function storeUpload({
   file,

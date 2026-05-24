@@ -431,14 +431,14 @@ describe('JE Number Generator', () => {
   });
 
   it('should format number as JE-YYYY-MM-NNNN', async () => {
-    const { generateJournalNumber } = await import('../src/accounting/number-generator');
+    const { generateJournalNumber } = await import('../src/shared/number-generator');
     selectResults = [[]];
     const num = await generateJournalNumber('default', '2026-05-15');
     expect(num).toBe('JE-2026-05-0001');
   });
 
   it('should pad sequence to 4 digits', async () => {
-    const { generateJournalNumber } = await import('../src/accounting/number-generator');
+    const { generateJournalNumber } = await import('../src/shared/number-generator');
     selectResults = [[{ number: 'JE-2026-12-0009' }]];
     selectCallIndex = 0;
     const num = await generateJournalNumber('default', '2026-12-01');
@@ -446,7 +446,7 @@ describe('JE Number Generator', () => {
   });
 
   it('should handle large sequence numbers', async () => {
-    const { generateJournalNumber } = await import('../src/accounting/number-generator');
+    const { generateJournalNumber } = await import('../src/shared/number-generator');
     selectResults = [[{ number: 'JE-2026-01-9999' }]];
     selectCallIndex = 0;
     const num = await generateJournalNumber('default', '2026-01-01');

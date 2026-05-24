@@ -1,6 +1,7 @@
 import { getSession } from '@/lib/auth';
 import {
   type UploadArea,
+  assertImageMagicBytes,
   assertUploadFile,
   parseUploadArea,
   storeUpload,
@@ -57,14 +58,32 @@ export async function POST(request: Request) {
     if (!permission.ok) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
+  // Whistleblower attachments must not be linkable back to the reporter
+  // (AGENTS.md "audit trail ANONIM"). We require a session so the form
+  // is only available to authenticated employees, but the upload metadata
+  // never records who they were.
+  const effectiveUploader = area === 'whistleblower' ? 'anonymous_whistleblower' : userId;
+
   try {
     assertUploadFile(uploadFile, imageOnly);
+
+    // When the upload claims to be an image, verify the actual file
+    // bytes match a real image signature before we ever write it to
+    // disk. Client-set MIME / extension are not trustworthy.
+    if (imageOnly) {
+      const head = Buffer.from(await uploadFile.slice(0, 16).arrayBuffer());
+      const magicErr = assertImageMagicBytes(head);
+      if (magicErr) {
+        return NextResponse.json({ error: magicErr }, { status: 400 });
+      }
+    }
+
     const stored = await storeUpload({
       file: uploadFile,
       area,
       visibility,
       tenantId,
-      uploadedBy: userId,
+      uploadedBy: effectiveUploader,
     });
     return NextResponse.json(stored);
   } catch (error) {

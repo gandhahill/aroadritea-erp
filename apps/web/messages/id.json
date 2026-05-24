@@ -232,6 +232,7 @@
         "empty": "Belum ada lampiran.",
         "confirmDelete": "Hapus lampiran ini?"
       },
+      "attachmentHint": "Gunakan format PDF, JPG, atau PNG (maks 5MB).",
       "importCsv": "Impor CSV",
       "downloadTemplate": "Unduh templat",
       "import": {

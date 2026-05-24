@@ -8,7 +8,6 @@
  */
 
 import type { DataType } from '@erp/services/customfield';
-import type { AuditContext } from '@erp/shared/types';
 import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import type { CustomFieldItem } from './actions';
@@ -33,7 +32,6 @@ const DATA_TYPES = ['string', 'number', 'boolean', 'date', 'enum', 'reference'] 
 
 interface Props {
   initialFields: CustomFieldItem[];
-  ctx: AuditContext;
 }
 
 interface FormState {
@@ -60,7 +58,7 @@ const EMPTY_FORM: FormState = {
   displayOrder: 0,
 };
 
-export function CustomFieldsClient({ initialFields, ctx }: Props) {
+export function CustomFieldsClient({ initialFields }: Props) {
   const t = useTranslations('settings.customFields');
   const tc = useTranslations('common');
   const tDT = useTranslations('settings.customFields.dataTypes');
@@ -134,18 +132,15 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
 
     startTransition(async () => {
       if (editingId) {
-        // Update
-        const result = await serverUpdateCustomField(
-          {
-            id: editingId,
-            name,
-            enumOptions,
-            isRequired: form.isRequired,
-            validationRegex: form.validationRegex || undefined,
-            displayOrder: form.displayOrder,
-          },
-          ctx,
-        );
+        // Update — session-derived ctx is resolved inside the action.
+        const result = await serverUpdateCustomField({
+          id: editingId,
+          name,
+          enumOptions,
+          isRequired: form.isRequired,
+          validationRegex: form.validationRegex || undefined,
+          displayOrder: form.displayOrder,
+        });
         if (!result.success) {
           setFormError(result.error ?? 'Update failed');
           return;
@@ -166,20 +161,17 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
           ),
         );
       } else {
-        // Create
-        const result = await serverCreateCustomField(
-          {
-            entityType: selectedEntity,
-            key: form.key,
-            name,
-            dataType: form.dataType as DataType,
-            enumOptions,
-            isRequired: form.isRequired,
-            validationRegex: form.validationRegex || undefined,
-            displayOrder: form.displayOrder,
-          },
-          ctx,
-        );
+        // Create — session-derived ctx is resolved inside the action.
+        const result = await serverCreateCustomField({
+          entityType: selectedEntity,
+          key: form.key,
+          name,
+          dataType: form.dataType as DataType,
+          enumOptions,
+          isRequired: form.isRequired,
+          validationRegex: form.validationRegex || undefined,
+          displayOrder: form.displayOrder,
+        });
         if (!result.success) {
           setFormError(result.error ?? 'Create failed');
           return;
@@ -208,7 +200,7 @@ export function CustomFieldsClient({ initialFields, ctx }: Props) {
 
   function handleDelete(id: string) {
     startTransition(async () => {
-      const result = await serverDeleteCustomField(id, ctx);
+      const result = await serverDeleteCustomField(id);
       if (!result.success) return;
       setFields((prev) => prev.filter((f) => f.id !== id));
       setConfirmDeleteId(null);

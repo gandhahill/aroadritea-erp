@@ -197,9 +197,14 @@ async function verifyTurnstile(token: string, ipAddress?: string): Promise<boole
   // sets this sentinel when challenges.cloudflare.com fails to load so the
   // signup form does not deadlock. Bot protection still relies on the
   // mandatory email OTP downstream + per-IP rate limiting elsewhere.
+  //
+  // Default-deny tightening (B2-006): the bypass is a legitimate
+  // operability tradeoff for CN visitors but is also a security knob.
+  // We now require `TURNSTILE_ALLOW_BYPASS=true` to be set explicitly;
+  // in production an unset/empty value rejects the sentinel instead of
+  // silently accepting any client that forwards it.
   if (token === 'captcha-unreachable') {
-    if (process.env.TURNSTILE_ALLOW_BYPASS === 'false') return false;
-    return true;
+    return turnstileBypassEnabled();
   }
 
   const formData = new FormData();
@@ -212,17 +217,30 @@ async function verifyTurnstile(token: string, ipAddress?: string): Promise<boole
       method: 'POST',
       body: formData,
       // 5s upper bound — siteverify is normally <500ms; if Cloudflare is
-      // unreachable from the server too we fail open with OTP fallback
-      // rather than block legitimate signups.
+      // unreachable from the server too we fall back to the explicit
+      // bypass policy below.
       signal: AbortSignal.timeout(5000),
     });
     if (!response.ok) return false;
     const payload = (await response.json()) as { success?: boolean };
     return payload.success === true;
   } catch {
-    // Network/timeout — allow OTP step to gate the registration.
-    return process.env.TURNSTILE_ALLOW_BYPASS !== 'false';
+    // Network/timeout — defer to the same explicit bypass policy.
+    return turnstileBypassEnabled();
   }
+}
+
+/**
+ * Resolve whether the Turnstile bypass is enabled. Defaults to **off in
+ * production** so a forgotten env var fails closed; dev keeps the
+ * legacy permissive behaviour so local signups still work without a
+ * Cloudflare account.
+ */
+function turnstileBypassEnabled(): boolean {
+  const flag = process.env.TURNSTILE_ALLOW_BYPASS;
+  if (flag === 'true') return true;
+  if (flag === 'false') return false;
+  return process.env.NODE_ENV !== 'production';
 }
 
 type EmailLocale = 'id' | 'en' | 'zh';

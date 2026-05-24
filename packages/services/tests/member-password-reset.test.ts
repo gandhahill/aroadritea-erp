@@ -39,6 +39,14 @@ vi.mock('@erp/db', () => ({
   },
 }));
 
+// Mock bcrypt-backed password helpers so the test does not pay the cost-12
+// hashing penalty (which can exceed the default 5 s vitest timeout on slower
+// CI/dev machines and was flaking this regression).
+vi.mock('../src/member/password', () => ({
+  hashMemberPassword: vi.fn(async (password: string) => `hash:${password}`),
+  verifyMemberPassword: vi.fn(async () => true),
+}));
+
 import { completeMemberPasswordReset, requestMemberPasswordReset } from '../src/member/index';
 
 function hashToken(token: string): string {

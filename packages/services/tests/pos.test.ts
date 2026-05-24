@@ -348,40 +348,37 @@ describe('CreateSaleInputSchema', () => {
 // ─── Schema: VoidSaleInput ─────────────────────────────────────────────────────
 
 describe('VoidSaleInputSchema', () => {
+  const validBase = {
+    salesOrderId: 'so-001',
+    reason: 'Wrong item ordered',
+    version: 1,
+    idempotencyKey: 'idem-void-001',
+  };
+
   it('accepts valid input', () => {
-    const result = VoidSaleInputSchema.safeParse({
-      salesOrderId: 'so-001',
-      reason: 'Wrong item ordered',
-      version: 1,
-    });
+    const result = VoidSaleInputSchema.safeParse(validBase);
     expect(result.success).toBe(true);
   });
 
   it('rejects empty reason', () => {
-    const result = VoidSaleInputSchema.safeParse({
-      salesOrderId: 'so-001',
-      reason: '',
-      version: 1,
-    });
+    const result = VoidSaleInputSchema.safeParse({ ...validBase, reason: '' });
     expect(result.success).toBe(false);
   });
 
   it('rejects reason longer than 255 chars', () => {
-    const result = VoidSaleInputSchema.safeParse({
-      salesOrderId: 'so-001',
-      reason: 'x'.repeat(256),
-      version: 1,
-    });
+    const result = VoidSaleInputSchema.safeParse({ ...validBase, reason: 'x'.repeat(256) });
     expect(result.success).toBe(false);
   });
 
   it('accepts reason at exactly 255 chars', () => {
-    const result = VoidSaleInputSchema.safeParse({
-      salesOrderId: 'so-001',
-      reason: 'x'.repeat(255),
-      version: 1,
-    });
+    const result = VoidSaleInputSchema.safeParse({ ...validBase, reason: 'x'.repeat(255) });
     expect(result.success).toBe(true);
+  });
+
+  it('rejects missing idempotencyKey', () => {
+    const { idempotencyKey: _drop, ...rest } = validBase;
+    const result = VoidSaleInputSchema.safeParse(rest);
+    expect(result.success).toBe(false);
   });
 });
 
@@ -560,13 +557,14 @@ describe('Sales order total calculation', () => {
 // ─── RefundSaleInputSchema ─────────────────────────────────────────────────────
 
 describe('RefundSaleInputSchema', () => {
-  // Tests upgraded after partial refunds were added (requires `lines` and
-  // a non-empty `reason`).
+  // Tests upgraded after partial refunds were added (requires `lines`,
+  // `idempotencyKey`, and a non-empty `reason`).
   const validBase = {
     salesOrderId: 'so-001',
     reason: 'Pelanggan batal',
     version: 1,
     lines: [{ lineId: 'line-1', qty: 1 }],
+    idempotencyKey: 'idem-refund-001',
   };
 
   it('accepts valid input with all fields', () => {

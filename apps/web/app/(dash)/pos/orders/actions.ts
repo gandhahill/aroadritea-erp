@@ -286,12 +286,22 @@ export async function voidOrderAction(input: {
   orderId: string;
   reason: string;
   version: number;
+  /** Optional client-supplied UUID. We accept it so double-clicks/network
+   * retries hit the same idempotency record; otherwise we generate one. */
+  idempotencyKey?: string;
 }): Promise<{ ok: boolean; error?: string }> {
   const session = await resolveCtx();
   if (!session) return { ok: false, error: 'Unauthenticated' };
 
+  const idempotencyKey = (input.idempotencyKey ?? crypto.randomUUID()).slice(0, 64);
+
   const result = await voidSale(
-    { salesOrderId: input.orderId, reason: input.reason, version: input.version },
+    {
+      salesOrderId: input.orderId,
+      reason: input.reason,
+      version: input.version,
+      idempotencyKey,
+    },
     session.ctx,
   );
   if (!result.ok) {
@@ -306,32 +316,36 @@ export async function refundOrderAction(input: {
   reason: string;
   version: number;
   /**
-   * Per-line refund qty captured from the UI for the cashier's
-   * confirmation. The underlying refundSale service currently refunds
-   * the whole order (RefundSaleInputSchema), so we don't forward
-   * `lines` to it — but we keep the field in the action signature so
-   * future partial-refund support doesn't require a UI rewrite, and we
-   * fold the selection into the audit reason so the rationale is
-   * preserved.
+   * Per-line refund qty selected in the UI. Each entry with qty > 0 is
+   * forwarded to the underlying `refundSale` service as a partial-refund
+   * line (RefundSaleInputSchema requires at least one line). When the
+   * cashier omits the field we refuse the call — refundSale will not
+   * accept an empty `lines` array.
    */
   lines?: Array<{ lineId: string; qty: number }>;
+  /** Optional client-supplied idempotency key. See voidOrderAction. */
+  idempotencyKey?: string;
 }): Promise<{ ok: boolean; error?: string }> {
   const session = await resolveCtx();
   if (!session) return { ok: false, error: 'Unauthenticated' };
 
-  const lineSummary = (input.lines ?? [])
-    .filter((l) => l.qty > 0)
-    .map((l) => `${l.lineId}:${l.qty}`)
-    .join(',');
-  const reasonWithLines = lineSummary
-    ? `${input.reason} | refundLines=${lineSummary}`
-    : input.reason;
+  const refundLines = (input.lines ?? [])
+    .filter((l) => l.qty > 0 && l.lineId)
+    .map((l) => ({ lineId: l.lineId, qty: Math.floor(l.qty) }));
+
+  if (refundLines.length === 0) {
+    return { ok: false, error: 'pos.refund.linesRequired' };
+  }
+
+  const idempotencyKey = (input.idempotencyKey ?? crypto.randomUUID()).slice(0, 64);
 
   const result = await refundSale(
     {
       salesOrderId: input.orderId,
-      reason: reasonWithLines.slice(0, 255),
+      reason: input.reason.slice(0, 255),
       version: input.version,
+      lines: refundLines,
+      idempotencyKey,
     },
     session.ctx,
   );

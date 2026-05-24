@@ -232,6 +232,7 @@
         "empty": "暂无附件。",
         "confirmDelete": "删除此附件？"
       },
+      "attachmentHint": "请使用 PDF、JPG 或 PNG 格式（最大 5MB）。",
       "importCsv": "导入 CSV",
       "downloadTemplate": "下载模板",
       "import": {

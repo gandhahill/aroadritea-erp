@@ -232,6 +232,7 @@
         "empty": "No attachments yet.",
         "confirmDelete": "Delete this attachment?"
       },
+      "attachmentHint": "Use PDF, JPG, or PNG format (max 5MB).",
       "importCsv": "Import CSV",
       "downloadTemplate": "Download template",
       "import": {

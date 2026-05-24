@@ -1,45 +1,71 @@
-import { db, eq, desc, and } from '@erp/db';
+/**
+ * Whistleblower service — SD §9.10, AGENTS.md "audit trail ANONIM".
+ *
+ * Submission rules (anonymity):
+ *  - `submitWhistleblowerReport` MUST NOT receive or store the reporter's
+ *    user id, IP, or user-agent. Only the tenantId is required so the row
+ *    lands in the correct tenant slice.
+ *  - The function MUST NOT call `auditRecord` for the submission itself —
+ *    the audit log writes `userId` and `metadata.ip/userAgent`, which would
+ *    leak the reporter's identity for any admin with `audit.read` even when
+ *    the public table omits it.
+ *  - Admin actions (list / update status) DO write audit entries because
+ *    the actor in that path is the HR admin handling the report, not the
+ *    reporter.
+ */
+import { randomUUID } from 'node:crypto';
+import { and, db, desc, eq } from '@erp/db';
 import { whistleblowerReports } from '@erp/db/schema/whistleblower';
-import { requirePermission } from '../iam';
-import { type Result, err, ok } from '@erp/shared/result';
 import { AppError } from '@erp/shared/errors';
+import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { randomUUID } from 'crypto';
-import { auditRecord } from "../audit";
+import { auditRecord } from '../audit';
+import { requirePermission } from '../iam';
+
+export interface SubmitWhistleblowerInput {
+  tenantId: string;
+  title: string;
+  category: string;
+  content: string;
+  attachmentUrl?: string;
+}
 
 export async function submitWhistleblowerReport(
-  input: { title: string; category: string; content: string; attachmentUrl?: string },
-  ctx: AuditContext
+  input: SubmitWhistleblowerInput,
 ): Promise<Result<{ id: string }>> {
-  if (!ctx.userId) {
-    return err(AppError.unauthenticated());
-  }
+  const title = input.title?.trim() ?? '';
+  const category = input.category?.trim() ?? '';
+  const content = input.content?.trim() ?? '';
+  const tenantId = input.tenantId?.trim() ?? '';
+
+  if (!tenantId) return err(AppError.validation('hr.whistleblower.invalidTenant'));
+  if (!title) return err(AppError.validation('hr.whistleblower.invalidTitle'));
+  if (!category) return err(AppError.validation('hr.whistleblower.invalidCategory'));
+  if (!content) return err(AppError.validation('hr.whistleblower.invalidContent'));
+  if (title.length > 200) return err(AppError.validation('hr.whistleblower.titleTooLong'));
+  if (content.length > 8000) return err(AppError.validation('hr.whistleblower.contentTooLong'));
 
   const id = randomUUID();
 
   await db.insert(whistleblowerReports).values({
     id,
-    title: input.title,
-    description: `[Category: ${input.category}] ${input.content}`,
+    title,
+    description: `[Category: ${category}] ${content}`,
     status: 'open',
-    tenantId: ctx.tenantId,
-    attachmentUrl: input.attachmentUrl || null,
+    tenantId,
+    attachmentUrl: input.attachmentUrl?.trim() || null,
   });
 
-  await auditRecord({
-      action: 'create',
-      entityType: 'whistleblower_report',
-      entityId: id,
-      before: null,
-      after: { id, title: input.title, description: `[Category: ${input.category}] ${input.content}`, status: 'open', attachmentUrl: input.attachmentUrl || null },
-      metadata: null,
-      ctx,
-    });
+  // No auditRecord here — see file-level docs. The whistleblower table is
+  // the only persistent trace of a submission and it intentionally has no
+  // createdByUserId column.
 
   return ok({ id });
 }
 
-export async function listWhistleblowerReports(ctx: AuditContext): Promise<Result<any[]>> {
+export async function listWhistleblowerReports(
+  ctx: AuditContext,
+): Promise<Result<Array<typeof whistleblowerReports.$inferSelect>>> {
   const permCheck = await requirePermission(ctx.userId, 'hr.whistleblower.read', {
     locationId: ctx.locationId,
   });
@@ -55,8 +81,12 @@ export async function listWhistleblowerReports(ctx: AuditContext): Promise<Resul
 }
 
 export async function updateWhistleblowerReportStatus(
-  input: { id: string; status: 'open' | 'investigating' | 'resolved'; resolutionNotes?: string },
-  ctx: AuditContext
+  input: {
+    id: string;
+    status: 'open' | 'investigating' | 'resolved';
+    resolutionNotes?: string;
+  },
+  ctx: AuditContext,
 ): Promise<Result<{ id: string }>> {
   const permCheck = await requirePermission(ctx.userId, 'hr.manage_employees', {
     locationId: ctx.locationId,
@@ -69,8 +99,8 @@ export async function updateWhistleblowerReportStatus(
     .where(
       and(
         eq(whistleblowerReports.tenantId, ctx.tenantId),
-        eq(whistleblowerReports.id, input.id)
-      )
+        eq(whistleblowerReports.id, input.id),
+      ),
     )
     .then((r) => r[0]);
 
@@ -89,21 +119,21 @@ export async function updateWhistleblowerReportStatus(
     .where(
       and(
         eq(whistleblowerReports.tenantId, ctx.tenantId),
-        eq(whistleblowerReports.id, input.id)
-      )
+        eq(whistleblowerReports.id, input.id),
+      ),
     );
 
-  if (existing) {
-    await auditRecord({
-        action: 'update',
-        entityType: 'whistleblower_report',
-        entityId: input.id,
-        before: existing,
-        after: { ...existing, status: input.status, resolutionNotes: input.resolutionNotes },
-        metadata: { ipAddress: ctx.ipAddress, userAgent: ctx.userAgent },
-        ctx,
-      });
-  }
+  // Audit the admin's status change — actor here is the investigator,
+  // never the original reporter.
+  await auditRecord({
+    action: 'update',
+    entityType: 'whistleblower_report',
+    entityId: input.id,
+    before: { status: existing.status, resolutionNotes: existing.resolutionNotes ?? null },
+    after: { status: input.status, resolutionNotes: input.resolutionNotes ?? null },
+    metadata: { ipAddress: ctx.ipAddress, userAgent: ctx.userAgent },
+    ctx,
+  });
 
   return ok({ id: input.id });
 }
