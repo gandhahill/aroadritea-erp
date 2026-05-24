@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { requirePermission } from '@erp/services/iam';
 import { Pagination } from '@/components/pagination';
 import { TableCell, TableBody, TableHead, Button } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 interface Props {
   searchParams?: Promise<{
@@ -50,12 +51,10 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
 
   return (
     <main className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-brand-ink">{t('title') || 'Whistleblower Reports (Admin)'}</h1>
-        <p className="mt-1 text-sm text-brand-ink-3">
-          {t('subtitle') || 'Manage and review anonymous reports.'}
-        </p>
-      </div>
+      <PageHeader 
+            title={<>{t('title') || 'Whistleblower Reports (Admin)'}</>}
+            description={<>{t('subtitle') || 'Manage and review anonymous reports.'}</>}
+          />
 
       <form method="GET" className="mb-6 flex items-center gap-3">
         <select

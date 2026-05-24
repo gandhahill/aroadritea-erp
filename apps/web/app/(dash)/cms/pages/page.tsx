@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchCmsPages } from '../actions';
 import { TableCell, TableBody, TableHead } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('cms.pages');
@@ -54,29 +55,27 @@ export default async function CmsPagesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            {t('subtitle')}
-          </p>
-        </div>
-        <Link
-          href="/cms/pages/new"
-          className="inline-flex items-center gap-2 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90"
-        >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          {t('createPage')}
-        </Link>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+            actions={<>
+          <Link
+                    href="/cms/pages/new"
+                    className="inline-flex items-center gap-2 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90"
+                  >
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    {t('createPage')}
+                  </Link>
+            </>}
+          />
 
       {/* File-based routes (not editable from CMS) */}
       <div className="rounded-lg border border-brand-cream-3 bg-card p-4">

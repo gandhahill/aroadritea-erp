@@ -19,6 +19,7 @@ import {
   serverSaveOmzetAdjustment,
 } from './actions';
 import { Button, Input, TableCell, TableBody, TableHead, Select } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 interface Props {
   initialData: OmzetHarianResult | null;
@@ -173,12 +174,10 @@ export function OmzetHarianClient({
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle')}</p>
-        </div>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+          />
 
       {/* Info banner */}
       <div className="rounded-lg border border-brand-gold/20 bg-brand-gold/5 px-4 py-3">

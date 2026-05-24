@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ExportXlsxButton } from '../../reporting/export-button';
 import { TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Stok per Outlet',
@@ -106,50 +107,48 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
-            Inventory
-          </p>
-          <h1 className="mt-2 text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 max-w-2xl text-sm text-brand-ink-3">{t('subtitle')}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <ExportXlsxButton
-            filename={`stock-outlet-${new Date().toISOString().split('T')[0]}.xlsx`}
-            sheets={[
-              {
-                name: 'Stock',
-                rows: [
-                  ['SKU', 'Name', 'UOM', ...outletRows.map((o) => o.code)],
-                  ...productRows.map((product) => [
-                    product.sku,
-                    pickLocalized(product.name, locale, product.sku),
-                    product.uom,
-                    ...outletRows.map((outlet) => {
-                      const stock = stockMap.get(`${product.id}::${outlet.id}`);
-                      return stock ? Number(stock.available) : 0;
-                    }),
-                  ]),
-                ],
-              },
-            ]}
-            label={t('exportExcel') || 'Export Excel'}
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+            eyebrow={<>Inventory</>}
+            actions={<>
+          <div className="flex items-center gap-2">
+                    <ExportXlsxButton
+                      filename={`stock-outlet-${new Date().toISOString().split('T')[0]}.xlsx`}
+                      sheets={[
+                        {
+                          name: 'Stock',
+                          rows: [
+                            ['SKU', 'Name', 'UOM', ...outletRows.map((o) => o.code)],
+                            ...productRows.map((product) => [
+                              product.sku,
+                              pickLocalized(product.name, locale, product.sku),
+                              product.uom,
+                              ...outletRows.map((outlet) => {
+                                const stock = stockMap.get(`${product.id}::${outlet.id}`);
+                                return stock ? Number(stock.available) : 0;
+                              }),
+                            ]),
+                          ],
+                        },
+                      ]}
+                      label={t('exportExcel') || 'Export Excel'}
+                    />
+                    <Link
+                      href="/inventory/opname"
+                      className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm font-semibold text-brand-ink hover:bg-brand-cream-1"
+                    >
+                      {t('opnameLink')}
+                    </Link>
+                    <Link
+                      href="/inventory/adjust"
+                      className="rounded-lg bg-brand-red px-3 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
+                    >
+                      {t('adjustLink')}
+                    </Link>
+                  </div>
+            </>}
           />
-          <Link
-            href="/inventory/opname"
-            className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm font-semibold text-brand-ink hover:bg-brand-cream-1"
-          >
-            {t('opnameLink')}
-          </Link>
-          <Link
-            href="/inventory/adjust"
-            className="rounded-lg bg-brand-red px-3 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
-          >
-            {t('adjustLink')}
-          </Link>
-        </div>
-      </div>
 
       <div className="flex flex-wrap gap-2">
         {KIND_TABS.map((tab) => {

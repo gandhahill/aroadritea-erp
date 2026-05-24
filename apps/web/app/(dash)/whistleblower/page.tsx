@@ -5,6 +5,7 @@ import { useActionState, useEffect, useState } from 'react';
 import { submitWhistleblowerAction } from './actions';
 import { FileUploadField } from '@/components/file-upload-field';
 import { Select, Input } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 export default function WhistleblowerPage() {
   const t = useTranslations('whistleblower');
@@ -49,12 +50,10 @@ export default function WhistleblowerPage() {
   return (
     <main className="p-6">
       <div className="mx-auto max-w-2xl">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-brand-ink">{t('title') || 'Whistleblower Channel'}</h1>
-          <p className="mt-2 text-sm text-brand-ink-3">
-            {t('subtitle') || 'Report misconduct, fraud, or violations safely and anonymously. Your identity is not recorded.'}
-          </p>
-        </div>
+        <PageHeader 
+                title={<>{t('title') || 'Whistleblower Channel'}</>}
+                description={<>{t('subtitle') || 'Report misconduct, fraud, or violations safely and anonymously. Your identity is not recorded.'}</>}
+              />
 
         <form action={submitAction} className="space-y-6 rounded-xl border border-brand-cream-3 bg-card p-6 shadow-sm">
           {state?.error && (

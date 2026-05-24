@@ -22,6 +22,7 @@ import {
 import { OpnameLineTable } from './opname-lines-table';
 import { OpnameWorkflowBar } from './opname-workflow-bar';
 import { Button } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: 'Stock Opname' };
 
@@ -93,28 +94,26 @@ export default async function OpnameDetailPage({
   return (
     <div className="space-y-6">
       {/* Breadcrumb + header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="mb-1.5 flex items-center gap-2 text-sm text-brand-ink-3">
-            <a href="/inventory/opname" className="hover:text-brand-ink">
-              Stock Opname
-            </a>
-            <span>/</span>
-            <span className="font-medium">{data.number}</span>
-          </div>
-          <h1 className="text-2xl font-bold text-brand-ink">{data.number}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            Tanggal sesi {data.sessionDate} · Periode {data.periodCode}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ${statusCfg.bg} ${statusCfg.text}`}
-          >
-            {statusCfg.label}
-          </span>
-        </div>
-      </div>
+      <PageHeader 
+            title={<>{data.number}</>}
+            description={<>Tanggal sesi {data.sessionDate}· Periode {data.periodCode}</>}
+            eyebrow={<div className="mb-1.5 flex items-center gap-2 text-sm text-brand-ink-3">
+                      <a href="/inventory/opname" className="hover:text-brand-ink">
+                        Stock Opname
+                      </a>
+                      <span>/</span>
+                      <span className="font-medium">{data.number}</span>
+                    </div>}
+            actions={<>
+          <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ${statusCfg.bg} ${statusCfg.text}`}
+                    >
+                      {statusCfg.label}
+                    </span>
+                  </div>
+            </>}
+          />
 
       {/* Workflow progress bar */}
       <OpnameWorkflowBar status={data.status} />

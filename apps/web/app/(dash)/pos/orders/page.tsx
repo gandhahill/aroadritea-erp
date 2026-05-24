@@ -16,6 +16,7 @@ import { OrdersClient } from './orders-client';
 
 import { Pagination } from '@/components/pagination';
 import { ExportOrdersButton } from './export-orders-button';
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: 'Riwayat Pesanan — POS' }; // Needs generating dynamically later if want fully i18n title
 export const dynamic = 'force-dynamic';
@@ -41,32 +42,25 @@ export default async function PosOrdersPage({ searchParams }: Props) {
 
   if (!data.ok) {
     return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-        <div className="rounded-xl border border-brand-cream-3 bg-card p-6 text-sm text-brand-ink-3">
-          {data.error === 'Unauthenticated'
-            ? t('unauthenticated')
-            : t('loadFailed')}
-        </div>
-      </div>
+      <PageHeader 
+          title={<>{t('title')}</>}
+        />
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">POS</p>
-          <h1 className="mt-1 text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 max-w-2xl text-sm text-brand-ink-3">
-            {t('subtitle')}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <DatePicker initialDate={date} t={t} />
-          <ExportOrdersButton date={date} />
-        </div>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+            eyebrow={<>POS</>}
+            actions={<>
+          <div className="flex items-center gap-2">
+                    <DatePicker initialDate={date} t={t} />
+                    <ExportOrdersButton date={date} />
+                  </div>
+            </>}
+          />
 
       <OrdersClient rows={data.rows} />
       <Pagination currentPage={data.page} totalItems={data.total} pageSize={data.pageSize} />

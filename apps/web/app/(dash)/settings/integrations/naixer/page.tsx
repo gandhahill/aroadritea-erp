@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 };
 
 import { getTranslations } from 'next-intl/server';
+import { PageHeader } from "@/components/page-header";
 
 export default async function NaixerKdsPage() {
   const session = await getSession();
@@ -42,22 +43,20 @@ export default async function NaixerKdsPage() {
   return (
     <div className="space-y-8">
       {/* Page header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            {t('subtitle')}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
-            {productCodes.filter((p) => p.isActive).length} {t('products')}
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-cream-2 px-3 py-1 text-xs font-medium text-brand-ink-3">
-            {modifierCodes.filter((m) => m.isActive).length} {t('modifiers')}
-          </span>
-        </div>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+            actions={<>
+          <div className="flex items-center gap-3">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
+                      {productCodes.filter((p) => p.isActive).length} {t('products')}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-cream-2 px-3 py-1 text-xs font-medium text-brand-ink-3">
+                      {modifierCodes.filter((m) => m.isActive).length} {t('modifiers')}
+                    </span>
+                  </div>
+            </>}
+          />
 
       {/* Info banner */}
       <div className="rounded-lg border border-brand-gold/20 bg-brand-gold/5 px-4 py-3">

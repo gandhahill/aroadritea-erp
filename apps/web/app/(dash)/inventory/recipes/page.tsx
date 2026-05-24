@@ -9,6 +9,7 @@ import { fetchRecipes } from './actions';
 import { RecipesClient } from './recipes-client';
 
 import { getTranslations } from 'next-intl/server';
+import { PageHeader } from "@/components/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('inventory.recipes');
@@ -23,12 +24,10 @@ export default async function RecipesPage() {
   const t = await getTranslations('inventory.recipes');
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-        <p className="mt-1 max-w-3xl text-sm text-brand-ink-3">
-          {t('subtitle')}
-        </p>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+          />
       <RecipesClient initial={data} />
     </div>
   );

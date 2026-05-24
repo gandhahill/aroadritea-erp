@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { fetchPurchasingDashboard } from './actions';
 import { PoFilterTable } from './po-filter-table';
 import { SupplierForm } from './supplier-form';
+import { PageHeader } from "@/components/page-header";
 
 export default async function PurchasingPage() {
   const [data, t] = await Promise.all([fetchPurchasingDashboard(), getTranslations('purchasing')]);
@@ -10,25 +11,19 @@ export default async function PurchasingPage() {
   return (
     <main className="min-h-screen bg-brand-paper">
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-8 lg:px-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
-              {t('eyebrow')}
-            </p>
-            <h1 className="mt-2 font-display text-3xl font-semibold text-brand-ink">
-              {t('dashboardTitle')}
-            </h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-brand-muted">
-              {t('dashboardSubtitle')}
-            </p>
-          </div>
-          <Link
-            href="/purchasing/po/new"
-            className="inline-flex items-center justify-center rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark"
-          >
-            {t('newPo')}
-          </Link>
-        </div>
+        <PageHeader 
+                title={<>{t('dashboardTitle')}</>}
+                description={<>{t('dashboardSubtitle')}</>}
+                eyebrow={<>{t('eyebrow')}</>}
+                actions={<>
+              <Link
+                          href="/purchasing/po/new"
+                          className="inline-flex items-center justify-center rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark"
+                        >
+                          {t('newPo')}
+                        </Link>
+                </>}
+              />
 
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4 shadow-sm">

@@ -9,6 +9,7 @@ import {
   saveLeaveTypeAction,
 } from './actions';
 import { TableCell, TableBody, TableHead, TableHeader, Table, Input, Button, Select } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Leave - Aroadri ERP',
@@ -29,11 +30,11 @@ export default async function LeavePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">HR</p>
-        <h1 className="mt-2 text-2xl font-bold text-brand-ink">{t('title')}</h1>
-        <p className="mt-1 max-w-2xl text-sm text-brand-ink-3">{t('subtitle')}</p>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+            eyebrow={<>HR</>}
+          />
 
       <section className="grid gap-4 md:grid-cols-3">
         <Metric title={t('typesCount')} value={data.types.length} />

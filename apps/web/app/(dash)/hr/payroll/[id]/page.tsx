@@ -13,6 +13,7 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 import { approvePayrollAction, markPayrollPaidAction } from '../actions';
+import { PageHeader } from "@/components/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('hr.payroll');
@@ -144,14 +145,9 @@ export default async function PayrollDetailPage({ params }: Props) {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-brand-ink">{t('detail.title')}</h1>
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColor(status)}`}
-            >
-              {t(`status${status.charAt(0).toUpperCase() + status.slice(1).replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase())}_label` as any)}
-            </span>
-          </div>
+          <PageHeader 
+                    title={<>{t('detail.title')}</>}
+                  />
           <p className="mt-1 text-sm text-brand-ink-3">
             {String(loc?.name ?? payroll.locationId)} &middot; {String(payroll.periodCode)}
           </p>

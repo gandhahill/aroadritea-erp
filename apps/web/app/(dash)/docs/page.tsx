@@ -10,6 +10,7 @@ import {
   type EditableDocsLocaleContent,
   normalizeEditableDocs,
 } from './editable-docs';
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Docs - Aroadri ERP',
@@ -242,42 +243,21 @@ export default async function DocsPage({
 
       <main className="min-w-0 flex-1">
         <header className="border-b border-brand-cream-3 pb-7">
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
-                {t('badge')}
-              </p>
-              <h1 className="mt-3 text-3xl font-bold tracking-normal text-brand-ink md:text-4xl">
-                {content.title}
-              </h1>
-              <p className="mt-4 max-w-4xl text-base leading-7 text-brand-ink-3">
-                {content.subtitle}
-              </p>
-              <div className="mt-4 inline-flex rounded-full border border-brand-cream-3 bg-brand-cream-1 p-1 text-xs font-semibold">
-                {AUDIENCES.map((a) => (
-                  <Link
-                    key={a}
-                    href={`/docs${a === 'staff' ? '' : `?audience=${a}`}`}
-                    className={`rounded-full px-3 py-1.5 transition-colors ${
-                      audience === a
-                        ? 'bg-brand-red text-white shadow-sm'
-                        : 'text-brand-ink-2 hover:text-brand-ink'
-                    }`}
-                  >
-                    {t(`audiences.${a}` as any)}
-                  </Link>
-                ))}
-              </div>
-            </div>
-            {canEditDocs ? (
-              <Link
-                href="/cms/docs"
-                className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-brand-cream-3 bg-brand-cream-1 px-4 text-sm font-semibold text-brand-ink transition-colors hover:border-brand-red/40 hover:text-brand-red"
-              >
-                {t('edit')}
-              </Link>
-            ) : null}
-          </div>
+          <PageHeader 
+                    title={<>{content.title}</>}
+                    description={<>{content.subtitle}</>}
+                    eyebrow={<>{t('badge')}</>}
+                    actions={<>
+                  {canEditDocs ? (
+                                <Link
+                                  href="/cms/docs"
+                                  className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-brand-cream-3 bg-brand-cream-1 px-4 text-sm font-semibold text-brand-ink transition-colors hover:border-brand-red/40 hover:text-brand-red"
+                                >
+                                  {t('edit')}
+                                </Link>
+                              ) : null}
+                    </>}
+                  />
         </header>
 
         <article className="mt-8 space-y-5">

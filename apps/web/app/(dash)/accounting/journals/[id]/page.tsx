@@ -9,6 +9,7 @@ import { notFound, redirect } from 'next/navigation';
 import { fetchJournalDetail } from '../actions';
 import { fetchJournalAttachments } from '../attachments/actions';
 import { JournalAttachmentsList } from './attachments-list';
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Journal Entry Detail',
@@ -62,15 +63,9 @@ export default async function JournalDetailPage({
       <div className="surface-card p-6">
         <div className="flex items-start justify-between">
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-brand-ink">{journal.number}</h1>
-              <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${style?.bg ?? ''} ${style?.text ?? ''}`}
-              >
-                <span className={`h-1.5 w-1.5 rounded-full ${style?.dot ?? ''}`} />
-                {journal.status}
-              </span>
-            </div>
+            <PageHeader 
+                        title={<>{journal.number}</>}
+                      />
             <p className="mt-2 text-sm text-brand-ink-2">{journal.description}</p>
           </div>
         </div>

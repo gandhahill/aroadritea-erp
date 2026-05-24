@@ -18,6 +18,7 @@ interface Props {
 }
 
 import { getTranslations, getLocale } from 'next-intl/server';
+import { PageHeader } from "@/components/page-header";
 
 export default async function ProductDetailPage({ params }: Props) {
   const { id } = await params;
@@ -55,31 +56,10 @@ export default async function ProductDetailPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <div>
-        {/* Adapt the back link to the originating list — supplies for
-            raw_material/consumable, otherwise the menu master. */}
-        {product && (product.kind === 'raw_material' || product.kind === 'consumable') ? (
-          <Link
-            href="/inventory/supplies"
-            className="text-sm font-medium text-brand-ink-3 transition-colors hover:text-brand-ink"
-          >
-            {t('backToSupplies')}
-          </Link>
-        ) : (
-          <Link
-            href="/inventory/products"
-            className="text-sm font-medium text-brand-ink-3 transition-colors hover:text-brand-ink"
-          >
-            {t('backToProducts')}
-          </Link>
-        )}
-        <h1 className="mt-3 text-2xl font-bold text-brand-ink">
-          {product ? ((product.name as Record<string, string>)[locale] ?? product.name.id) : t('loadFailed')}
-        </h1>
-        <p className="mt-1 text-sm text-brand-ink-3">
-          {t('editProductDesc')}
-        </p>
-      </div>
+      <PageHeader 
+            title={<>{product ? ((product.name as Record<string, string>)[locale] ?? product.name.id) : t('loadFailed')}</>}
+            description={<>{t('editProductDesc')}</>}
+          />
 
       {data.error ? (
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">

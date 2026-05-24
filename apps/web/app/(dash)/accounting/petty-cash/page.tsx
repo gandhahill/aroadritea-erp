@@ -8,6 +8,7 @@ import {
   fetchPettyCashTransactions,
 } from './actions';
 import { PettyCashView } from './petty-cash-view';
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Kas Kecil',
@@ -32,12 +33,10 @@ export default async function PettyCashPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-        <p className="mt-1 text-sm text-brand-ink-3">
-          {t('subtitle')}
-        </p>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+          />
 
       <PettyCashView
         accounts={accounts}

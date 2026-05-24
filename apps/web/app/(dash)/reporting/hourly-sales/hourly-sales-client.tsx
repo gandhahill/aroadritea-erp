@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { ExportXlsxButton } from '../export-button';
 import { fetchHourlySales } from './actions';
+import { PageHeader } from "@/components/page-header";
 
 type LocationOption = {
   id: string;
@@ -405,12 +406,9 @@ export function HourlySalesClient({
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-brand-ink">{t('title')}</h1>
-        {data && (
-          <ExportXlsxButton onExport={() => handleExportXlsx(data, selectedLocationLabel, t)} />
-        )}
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+          />
 
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4">

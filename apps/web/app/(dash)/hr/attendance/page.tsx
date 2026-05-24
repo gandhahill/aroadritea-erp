@@ -11,6 +11,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { AttendanceListClient } from './attendance-list-client';
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: 'Attendance' };
 
@@ -103,12 +104,10 @@ export default async function AttendancePage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle', { total })}</p>
-        </div>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle', { total })}</>}
+          />
 
       <AttendanceListClient
         items={items}

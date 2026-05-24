@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { fetchStatementDetails } from '../actions';
 import { DetailClient } from './detail-client';
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Bank Reconciliation Detail - Settings',
@@ -21,20 +22,12 @@ export default async function BankReconDetailPage({ params }: { params: Promise<
 
   return (
     <div className="space-y-6 max-w-7xl">
-      <div>
-        <div className="text-xs font-semibold uppercase tracking-widest text-brand-red">
-          {t('detail.eyebrow')}
-        </div>
-        <h1 className="mt-1 text-2xl font-bold text-brand-ink">
-          {data.statement.bankName} - {data.statement.accountNumber} ({data.statement.date})
-        </h1>
-        <p className="mt-1 text-sm text-brand-ink-3">
-          Status:{' '}
-          {t(
-            `status.${data.statement.status === 'in_progress' ? 'inProgress' : data.statement.status}` as any,
-          )}
-        </p>
-      </div>
+      <PageHeader 
+            title={<>{data.statement.bankName}- {data.statement.accountNumber}({data.statement.date})</>}
+            description={<>Status:{' '}{t(
+                      `status.${data.statement.status === 'in_progress' ? 'inProgress' : data.statement.status}` as any,
+                    )}</>}
+          />
 
       <DetailClient
         statement={{

@@ -14,6 +14,7 @@ import type { GpsData } from '@erp/services/hr';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { serverCheckIn } from './actions';
+import { PageHeader } from "@/components/page-header";
 
 interface Props {
   // userId / tenantId no longer flow through the client — serverCheckIn
@@ -161,24 +162,14 @@ export function CheckInClient({ locationId, employeeId, shifts }: Props) {
     <div className="flex min-h-screen flex-col items-center justify-center bg-brand-cream px-4 py-8">
       <div className="w-full max-w-sm space-y-6">
         {/* Header */}
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-brand-ink">{attendanceT('checkIn')}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            {currentTime.toLocaleDateString(displayLocale, {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
-          </p>
-          <p className="mt-0.5 font-mono text-3xl font-bold text-brand-ember-5">
-            {currentTime.toLocaleTimeString(displayLocale, {
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-            })}
-          </p>
-        </div>
+        <PageHeader 
+                title={<>{attendanceT('checkIn')}</>}
+                description={<>{currentTime.toLocaleTimeString(displayLocale, {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                          })}</>}
+              />
 
         {/* GPS Status */}
         <div className="rounded-xl border border-brand-cream-3 bg-card p-4">

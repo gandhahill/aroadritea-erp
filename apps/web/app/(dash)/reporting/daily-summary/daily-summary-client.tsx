@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { ExportXlsxButton } from '../export-button';
 import { fetchDailySummary } from './actions';
+import { PageHeader } from "@/components/page-header";
 
 // ─── Formatters ────────────────────────────────────────────────────────────────
 
@@ -262,13 +263,13 @@ export function DailySummaryClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-ink">{t('summaryTitle')}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">{t('title')}</p>
-        </div>
-        {report && <ExportXlsxButton onExport={() => exportXLSX(report, selectedLocationLabel)} />}
-      </div>
+      <PageHeader 
+            title={<>{t('summaryTitle')}</>}
+            description={<>{t('title')}</>}
+            actions={<>
+          {report && <ExportXlsxButton onExport={() => exportXLSX(report, selectedLocationLabel)} />}
+            </>}
+          />
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4 shadow-sm">

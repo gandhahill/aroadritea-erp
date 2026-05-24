@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchStatements } from './actions';
 import { BankReconListClient } from './list-client';
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Bank Reconciliation',
@@ -21,18 +22,18 @@ export default async function BankReconPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 max-w-3xl text-sm text-brand-ink-3">{t('subtitle')}</p>
-        </div>
-        <Link
-          href="/accounting/bank-recon/import"
-          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
-        >
-          {t('importBtn')}
-        </Link>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+            actions={<>
+          <Link
+                    href="/accounting/bank-recon/import"
+                    className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
+                  >
+                    {t('importBtn')}
+                  </Link>
+            </>}
+          />
 
       <BankReconListClient
         statements={statements.map((s) => ({

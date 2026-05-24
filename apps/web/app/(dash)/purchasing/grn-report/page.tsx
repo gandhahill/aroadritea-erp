@@ -6,6 +6,7 @@ import { Pagination } from '@/components/pagination';
 import { fetchGRNReport } from '../actions';
 import Link from 'next/link';
 import { TableCell, TableBody, TableHead, Button } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 interface Props {
   searchParams?: Promise<{
@@ -47,19 +48,15 @@ export default async function GRNReportPage({ searchParams }: Props) {
   return (
     <main className="min-h-screen bg-brand-paper p-6 lg:p-8">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-sm text-brand-ink-3">
-              <Link href="/purchasing" className="hover:text-brand-ink">{tNav('purchasing')}</Link>
-              <span>/</span>
-              <span className="font-medium text-brand-ink">{t('title') || 'Laporan Penerimaan'}</span>
-            </div>
-            <h1 className="mt-2 font-display text-2xl font-bold text-brand-ink">{t('title') || 'Laporan Penerimaan (GRN)'}</h1>
-            <p className="mt-1 text-sm text-brand-ink-3">
-              {t('subtitle') || 'Histori penerimaan barang (Goods Receipt Note).'}
-            </p>
-          </div>
-        </div>
+        <PageHeader 
+                title={<>{t('title') || 'Laporan Penerimaan (GRN)'}</>}
+                description={<>{t('subtitle') || 'Histori penerimaan barang (Goods Receipt Note).'}</>}
+                eyebrow={<div className="flex items-center gap-2 text-sm text-brand-ink-3">
+                            <Link href="/purchasing" className="hover:text-brand-ink">{tNav('purchasing')}</Link>
+                            <span>/</span>
+                            <span className="font-medium text-brand-ink">{t('title') || 'Laporan Penerimaan'}</span>
+                          </div>}
+              />
 
         <form method="GET" className="mb-6 flex flex-wrap items-center gap-3">
           <input

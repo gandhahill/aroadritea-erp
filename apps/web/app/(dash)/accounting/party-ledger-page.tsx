@@ -7,6 +7,7 @@ import {
   updatePartyLedgerDueDateAction,
 } from './party-ledger-actions';
 import { TableCell, TableBody, TableHead, TableHeader, Table, Button, Input } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 interface Props {
   kind: PartyLedgerKind;
@@ -23,23 +24,21 @@ export async function PartyLedgerPage({ kind }: Props) {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-brand-red">
-            {t('eyebrow')}
-          </p>
-          <h1 className="mt-2 text-2xl font-bold text-brand-ink">{title}</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-brand-ink-2">{subtitle}</p>
-        </div>
-        <div className="rounded-md border border-brand-cream-3 bg-brand-cream-1 px-4 py-3 text-right">
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-ink-3">
-            {t('totalOutstanding')}
-          </p>
-          <p className="mt-1 text-xl font-bold text-brand-red">
-            {formatRupiah(data.totalOutstanding, locale)}
-          </p>
-        </div>
-      </header>
+      <PageHeader 
+            title={<>{title}</>}
+            description={<>{subtitle}</>}
+            eyebrow={<>{t('eyebrow')}</>}
+            actions={<>
+          <div className="rounded-md border border-brand-cream-3 bg-brand-cream-1 px-4 py-3 text-right">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-brand-ink-3">
+                      {t('totalOutstanding')}
+                    </p>
+                    <p className="mt-1 text-xl font-bold text-brand-red">
+                      {formatRupiah(data.totalOutstanding, locale)}
+                    </p>
+                  </div>
+            </>}
+          />
 
       <section className="surface-card p-4">
         <h2 className="text-sm font-semibold text-brand-ink">{t('accountMapping')}</h2>

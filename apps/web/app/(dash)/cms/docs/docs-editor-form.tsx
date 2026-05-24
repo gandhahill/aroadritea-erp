@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useActionState, useState } from 'react';
 import { saveDocsEditorContent } from './actions';
 import { Input } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 const LOCALES = [
   { code: 'id', label: 'Bahasa Indonesia' },
@@ -27,22 +28,20 @@ export function DocsEditorForm({ initialContent }: { initialContent: EditableDoc
 
   return (
     <form action={formAction} className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
-            {t('eyebrow')}
-          </p>
-          <h1 className="mt-2 text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-brand-ink-3">{t('subtitle')}</p>
-        </div>
-        <button
-          type="submit"
-          disabled={pending}
-          className="inline-flex h-10 items-center justify-center rounded-md bg-brand-red px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {pending ? t('saving') : t('save')}
-        </button>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+            eyebrow={<>{t('eyebrow')}</>}
+            actions={<>
+          <button
+                    type="submit"
+                    disabled={pending}
+                    className="inline-flex h-10 items-center justify-center rounded-md bg-brand-red px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {pending ? t('saving') : t('save')}
+                  </button>
+            </>}
+          />
 
       {state.message && (
         <div

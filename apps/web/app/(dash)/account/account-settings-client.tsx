@@ -5,6 +5,7 @@ import { useActionState } from 'react';
 import { updateEmailAction, updatePasswordAction, updateProfileAction } from './actions';
 import { MfaSetup } from './mfa-setup';
 import { Button, Input, Select } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 type ActionResult = { ok: true; message: string } | { ok: false; message: string } | null;
 
@@ -28,10 +29,10 @@ export function AccountSettingsClient({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-        <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle')}</p>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+          />
 
       <div className="grid gap-6 xl:grid-cols-3">
         <form action={profileAction} className="rounded-xl border border-brand-cream-3 bg-card p-5">

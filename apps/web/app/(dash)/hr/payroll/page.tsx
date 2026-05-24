@@ -16,6 +16,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { PayrollRunClient } from './payroll-run-client';
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: 'Payroll' };
 
@@ -80,12 +81,10 @@ export default async function PayrollPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-        <p className="mt-1 text-sm text-brand-ink-3">
-          {t('subtitle')}
-        </p>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+          />
 
       <PayrollRunClient
         locations={locations_}

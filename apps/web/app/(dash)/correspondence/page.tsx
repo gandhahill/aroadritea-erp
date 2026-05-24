@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { createCorrespondenceAction, fetchCorrespondencePageData } from './actions';
 import { TableCell, TableHead, Select, TableBody, Table, Button, Input } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 export const dynamic = 'force-dynamic';
 const DIRECTIONS = ['incoming', 'outgoing', 'internal'] as const;
@@ -44,15 +45,11 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6 pb-16">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
-            {t('eyebrow')}
-          </p>
-          <h1 className="mt-2 text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 max-w-3xl text-sm text-brand-ink-3">{t('subtitle')}</p>
-        </div>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+            eyebrow={<>{t('eyebrow')}</>}
+          />
 
       {params.error || data.error ? (
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">

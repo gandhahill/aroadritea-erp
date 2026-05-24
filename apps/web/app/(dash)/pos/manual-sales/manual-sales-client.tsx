@@ -7,6 +7,7 @@ import { useActionState, useEffect } from 'react';
 import { type ManualSalesPageData, createManualSalesAction } from './actions';
 import { ExportManualSalesButton } from './export-manual-sales-button';
 import { TableCell, TableHead, TableBody, Table, Button, Input, Select } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 interface Props {
   data: ManualSalesPageData;
@@ -38,13 +39,11 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
 
   return (
     <div className="h-full w-full overflow-y-auto space-y-6 pb-24 px-4 pt-4">
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
-          {t('eyebrow')}
-        </p>
-        <h1 className="mt-2 text-2xl font-bold text-brand-ink">{t('title')}</h1>
-        <p className="mt-1 max-w-3xl text-sm text-brand-ink-3">{t('subtitle')}</p>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+            eyebrow={<>{t('eyebrow')}</>}
+          />
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
         <form id="manual-sales-form" action={submitAction} className="grid gap-4 lg:grid-cols-4">

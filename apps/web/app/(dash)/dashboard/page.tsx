@@ -18,6 +18,7 @@ import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Dashboard - Aroadri ERP',
@@ -236,15 +237,11 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <p className="text-sm font-semibold uppercase tracking-widest text-brand-red">
-          Aroadri Tea ERP
-        </p>
-        <h1 className="mt-1 text-2xl font-bold text-brand-ink">
-          {hello}, {displayName.split(' ')[0]}.
-        </h1>
-        <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle')}</p>
-      </header>
+      <PageHeader 
+            title={<>{hello}, {displayName.split(' ')[0]}.</>}
+            description={<>{t('subtitle')}</>}
+            eyebrow={<>Aroadri Tea ERP</>}
+          />
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <Kpi

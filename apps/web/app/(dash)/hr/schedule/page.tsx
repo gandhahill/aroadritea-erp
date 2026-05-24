@@ -10,6 +10,7 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { fetchRoster } from './actions';
 import { ScheduleGrid } from './schedule-grid';
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: 'Jadwal Shift' };
 
@@ -45,14 +46,10 @@ export default async function SchedulePage({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            {t('subtitle')}
-          </p>
-        </div>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+          />
 
       <ScheduleGrid
         weekStart={weekStart}

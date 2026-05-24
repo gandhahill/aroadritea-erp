@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchLocations } from './actions';
 import { LocationsClient } from './locations-client';
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Locations - Settings',
@@ -20,10 +21,10 @@ export default async function LocationsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-        <p className="mt-1 max-w-3xl text-sm text-brand-ink-3">{t('subtitle')}</p>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+          />
 
       <LocationsClient
         locations={locations}

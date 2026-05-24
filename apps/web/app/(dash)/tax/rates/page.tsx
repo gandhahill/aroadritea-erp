@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 
 import { getTranslations } from 'next-intl/server';
 import { Button, TableCell, TableHead } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 function formatDate(value: string | null, locale: string) {
   if (!value) return '-';
@@ -40,11 +41,11 @@ export default async function TaxRatesPage() {
   return (
     <main className="min-h-screen bg-brand-paper text-brand-ink">
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-8 lg:px-8">
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">Tax</p>
-          <h1 className="font-display text-3xl font-semibold text-brand-ink">{t('title')}</h1>
-          <p className="max-w-3xl text-sm leading-6 text-brand-muted">{t('subtitle')}</p>
-        </div>
+        <PageHeader 
+                title={<>{t('title')}</>}
+                description={<>{t('subtitle')}</>}
+                eyebrow={<>Tax</>}
+              />
 
         <form
           action={saveTaxRateAction}

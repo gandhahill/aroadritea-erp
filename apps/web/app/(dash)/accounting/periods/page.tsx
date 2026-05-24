@@ -4,6 +4,7 @@ import { getLocale } from 'next-intl/server';
 import { fetchAccountingPeriods } from './actions';
 import { OpenPeriodButton, ClosePeriodButton } from './periods-client';
 import { TableCell, TableHead } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Accounting Periods - Aroadri ERP',
@@ -144,10 +145,9 @@ export default async function AccountingPeriodsPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
             Accounting
           </p>
-          <div className="flex items-center justify-between">
-            <h1 className="font-display text-3xl font-semibold text-brand-ink">{copy.title}</h1>
-            <OpenPeriodButton copy={{ period: copy.periodAction }} />
-          </div>
+          <PageHeader 
+                    title={<>{copy.title}</>}
+                  />
           <p className="max-w-3xl text-sm leading-6 text-brand-muted">{copy.subtitle}</p>
         </div>
 

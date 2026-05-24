@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { fetchNotificationChannels } from './actions';
 import { NotificationChannelForm } from './notification-channel-form';
 import { TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 export default async function NotificationSettingsPage() {
   const channels = await fetchNotificationChannels();
@@ -10,13 +11,11 @@ export default async function NotificationSettingsPage() {
   return (
     <main className="min-h-screen bg-brand-paper">
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-8 lg:px-8">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
-            {t('section')}
-          </p>
-          <h1 className="mt-2 font-display text-3xl font-semibold text-brand-ink">{t('title')}</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-brand-muted">{t('description')}</p>
-        </div>
+        <PageHeader 
+                title={<>{t('title')}</>}
+                description={<>{t('description')}</>}
+                eyebrow={<>{t('section')}</>}
+              />
 
         <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
           <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">

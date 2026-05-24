@@ -5,6 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { GrnForm } from './grn-form';
 import { TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 export default async function PoDetailPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -75,14 +76,9 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
   return (
     <main className="min-h-screen bg-brand-paper">
       <section className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-5 py-8 lg:px-8">
-        <div className="flex items-center gap-4">
-          <Link href="/purchasing" className="text-sm font-semibold text-brand-ink-3 hover:text-brand-ink">
-            &larr; Kembali
-          </Link>
-          <h1 className="font-display text-2xl font-semibold text-brand-ink">
-            {t('poDetails')} - {po.number}
-          </h1>
-        </div>
+        <PageHeader 
+                title={<>{t('poDetails')}- {po.number}</>}
+              />
 
         <div className="rounded-xl border border-brand-cream-3 bg-card p-6 shadow-sm grid gap-4 md:grid-cols-2">
           <div>

@@ -9,6 +9,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchProfitLoss } from '../actions';
 import { ExportXlsxButton } from '../export-button';
+import { PageHeader } from "@/components/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('reporting.profitLoss');
@@ -35,70 +36,67 @@ export default async function ProfitLossPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            {t('subtitle')} <span className="font-medium text-brand-ink">{from}</span> —{' '}
-            <span className="font-medium text-brand-ink">{to}</span>
-          </p>
-        </div>
-        {data ? (
-          <ExportXlsxButton
-            filename={`profit-loss-${from}_to_${to}.xlsx`}
-            sheets={[
-              {
-                name: t('revenue'),
-                rows: [
-                  [t('columns.account'), '', t('columns.amount')],
-                  ...data.revenue.lines.map((l) => [
-                    l.accountCode,
-                    pickLocalized(l.accountName, locale),
-                    Number(l.balance),
-                  ]),
-                  ['', t('total'), Number(data.revenue.total)],
-                ],
-              },
-              {
-                name: t('cogs'),
-                rows: [
-                  [t('columns.account'), '', t('columns.amount')],
-                  ...data.cogs.lines.map((l) => [
-                    l.accountCode,
-                    pickLocalized(l.accountName, locale),
-                    Number(l.balance),
-                  ]),
-                  ['', t('total'), Number(data.cogs.total)],
-                ],
-              },
-              {
-                name: t('expenses'),
-                rows: [
-                  [t('columns.account'), '', t('columns.amount')],
-                  ...data.expenses.lines.map((l) => [
-                    l.accountCode,
-                    pickLocalized(l.accountName, locale),
-                    Number(l.balance),
-                  ]),
-                  ['', t('total'), Number(data.expenses.total)],
-                ],
-              },
-              {
-                name: 'Summary',
-                rows: [
-                  ['From', from],
-                  ['To', to],
-                  [t('revenue'), Number(data.revenue.total)],
-                  [t('cogs'), Number(data.cogs.total)],
-                  [t('grossProfit'), Number(data.grossProfit)],
-                  [t('expenses'), Number(data.expenses.total)],
-                  [t('netProfit'), Number(data.netIncome)],
-                ],
-              },
-            ]}
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}<span className="font-medium text-brand-ink">{from}</span>—{' '}<span className="font-medium text-brand-ink">{to}</span></>}
+            actions={<>
+          {data ? (
+                    <ExportXlsxButton
+                      filename={`profit-loss-${from}_to_${to}.xlsx`}
+                      sheets={[
+                        {
+                          name: t('revenue'),
+                          rows: [
+                            [t('columns.account'), '', t('columns.amount')],
+                            ...data.revenue.lines.map((l) => [
+                              l.accountCode,
+                              pickLocalized(l.accountName, locale),
+                              Number(l.balance),
+                            ]),
+                            ['', t('total'), Number(data.revenue.total)],
+                          ],
+                        },
+                        {
+                          name: t('cogs'),
+                          rows: [
+                            [t('columns.account'), '', t('columns.amount')],
+                            ...data.cogs.lines.map((l) => [
+                              l.accountCode,
+                              pickLocalized(l.accountName, locale),
+                              Number(l.balance),
+                            ]),
+                            ['', t('total'), Number(data.cogs.total)],
+                          ],
+                        },
+                        {
+                          name: t('expenses'),
+                          rows: [
+                            [t('columns.account'), '', t('columns.amount')],
+                            ...data.expenses.lines.map((l) => [
+                              l.accountCode,
+                              pickLocalized(l.accountName, locale),
+                              Number(l.balance),
+                            ]),
+                            ['', t('total'), Number(data.expenses.total)],
+                          ],
+                        },
+                        {
+                          name: 'Summary',
+                          rows: [
+                            ['From', from],
+                            ['To', to],
+                            [t('revenue'), Number(data.revenue.total)],
+                            [t('cogs'), Number(data.cogs.total)],
+                            [t('grossProfit'), Number(data.grossProfit)],
+                            [t('expenses'), Number(data.expenses.total)],
+                            [t('netProfit'), Number(data.netIncome)],
+                          ],
+                        },
+                      ]}
+                    />
+                  ) : null}
+            </>}
           />
-        ) : null}
-      </div>
 
       {data ? (
         <div className="space-y-4">

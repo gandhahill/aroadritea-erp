@@ -28,6 +28,7 @@ const KIND_OPTIONS = [
 
 import { useTranslations } from 'next-intl';
 import { Input, Select, Button } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 export function CmsPostForm({ post, isNew = false }: Props) {
   const t = useTranslations('cms.posts');
@@ -134,47 +135,29 @@ export function CmsPostForm({ post, isNew = false }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-ink">
-            {isNew ? t('createNewPost') : t('editPost')}
-          </h1>
-          {!isNew && (
-            <div className="mt-1 flex items-center gap-3">
-              <code className="rounded bg-brand-cream-2 px-2 py-0.5 text-xs font-mono text-brand-ink-2">
-                /blog/{post?.slug as string}
-              </code>
-              <span
-                className={`rounded px-2 py-0.5 text-xs font-medium ${
-                  status === 'published'
-                    ? 'bg-brand-jade/10 text-brand-jade'
-                    : 'bg-brand-cream-2 text-brand-ink-3'
-                }`}
-              >
-                {status}
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          {!isNew && (
-            <button
-              onClick={handlePublish}
-              disabled={isPending}
-              className="inline-flex items-center gap-1.5 rounded-md bg-brand-jade px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90 disabled:opacity-50"
-            >
-              {status === 'published' ? tc('actions.unpublish') : tc('actions.publish')}
-            </button>
-          )}
-          <Button
-            onClick={() => handleSave(false)}
-            disabled={isPending}
-            className="inline-flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90 disabled:opacity-50" variant="primary" size="md"
-          >
-            {isPending ? tc('actions.saving') : tc('actions.save')}
-          </Button>
-        </div>
-      </div>
+      <PageHeader 
+            title={<>{isNew ? t('createNewPost') : t('editPost')}</>}
+            actions={<>
+          <div className="flex items-center gap-3">
+                    {!isNew && (
+                      <button
+                        onClick={handlePublish}
+                        disabled={isPending}
+                        className="inline-flex items-center gap-1.5 rounded-md bg-brand-jade px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90 disabled:opacity-50"
+                      >
+                        {status === 'published' ? tc('actions.unpublish') : tc('actions.publish')}
+                      </button>
+                    )}
+                    <Button
+                      onClick={() => handleSave(false)}
+                      disabled={isPending}
+                      className="inline-flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90 disabled:opacity-50" variant="primary" size="md"
+                    >
+                      {isPending ? tc('actions.saving') : tc('actions.save')}
+                    </Button>
+                  </div>
+            </>}
+          />
 
       {error && (
         <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

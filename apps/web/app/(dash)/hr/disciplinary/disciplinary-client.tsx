@@ -15,6 +15,7 @@ import {
   listDisciplinaryActionsAction,
 } from './actions';
 import { Button, Input, Select } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 const LEVEL_LABEL: Record<string, { short: string; color: string; desc: string }> = {
   SP1: { short: 'SP1', color: 'bg-brand-gold/10 text-brand-gold', desc: 'Surat Peringatan 1' },
@@ -121,20 +122,18 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            {t('subtitle')}
-          </p>
-        </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6"
-        >
-          {showForm ? tc('labels.cancel') : t('create')}
-        </button>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+            actions={<>
+          <button
+                    onClick={() => setShowForm(!showForm)}
+                    className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6"
+                  >
+                    {showForm ? tc('labels.cancel') : t('create')}
+                  </button>
+            </>}
+          />
 
       {/* Create Form */}
       {showForm && (

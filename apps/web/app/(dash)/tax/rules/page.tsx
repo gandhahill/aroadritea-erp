@@ -7,6 +7,7 @@ import {
   saveTaxRuleAction,
 } from './actions';
 import { Button, TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Tax Rules - Aroadri ERP',
@@ -19,13 +20,11 @@ export default async function TaxRulesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">Tax</p>
-        <h1 className="mt-2 text-2xl font-bold text-brand-ink">{t('title')}</h1>
-        <p className="mt-1 max-w-2xl text-sm text-brand-ink-3">
-          {t('subtitle')}
-        </p>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+            eyebrow={<>Tax</>}
+          />
 
       <form
         action={saveTaxRuleAction}

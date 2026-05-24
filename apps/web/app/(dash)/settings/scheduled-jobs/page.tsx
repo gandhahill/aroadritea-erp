@@ -9,6 +9,7 @@ import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchScheduledJobs } from './actions';
 import { ScheduledJobsTable } from './jobs-table';
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Scheduled Jobs - Settings',
@@ -24,20 +25,20 @@ export default async function ScheduledJobsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">{t('copy.subtitle')}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
-            {t('copy.activeCount', { count: jobs.filter((j) => j.enabled).length })}
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-cream-2 px-3 py-1 text-xs font-medium text-brand-ink-3">
-            {t('copy.totalCount', { count: jobs.length })}
-          </span>
-        </div>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('copy.subtitle')}</>}
+            actions={<>
+          <div className="flex items-center gap-3">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
+                      {t('copy.activeCount', { count: jobs.filter((j) => j.enabled).length })}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-cream-2 px-3 py-1 text-xs font-medium text-brand-ink-3">
+                      {t('copy.totalCount', { count: jobs.length })}
+                    </span>
+                  </div>
+            </>}
+          />
 
       <div className="rounded-lg border border-brand-gold/20 bg-brand-gold/5 px-4 py-3">
         <div className="flex items-start gap-3">

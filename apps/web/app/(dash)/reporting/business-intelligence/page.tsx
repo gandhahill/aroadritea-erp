@@ -9,6 +9,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { DonutChart, HorizontalBarChart, TrendLineChart, VerticalBarChart } from './charts';
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Business Intelligence',
@@ -289,15 +290,11 @@ export default async function BusinessIntelligencePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-widest text-brand-red">
-          {t('eyebrow')}
-        </p>
-        <h1 className="mt-1 text-2xl font-bold text-brand-ink">{t('title')}</h1>
-        <p className="mt-1 max-w-3xl text-sm text-brand-ink-3">
-          {t('subtitle', { from: monthStart, to: today })}
-        </p>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle', { from: monthStart, to: today })}</>}
+            eyebrow={<>{t('eyebrow')}</>}
+          />
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <Kpi title={t('gross')} value={formatIdr(totals.gross, locale)} />

@@ -6,6 +6,7 @@ import { fetchProductMasterData } from './actions';
 import { CategoryForm } from './category-form';
 import { ProductRowActions } from './row-actions';
 import { TableCell, TableBody, TableHead, TableHeader, Table, Button } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Produk & Menu - Aroadri ERP',
@@ -55,30 +56,24 @@ export default async function ProductsPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
-            {t('eyebrow')}
-          </p>
-          <h1 className="mt-2 text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 max-w-2xl text-sm text-brand-ink-3">
-            {t('sellableDescriptionPrefix')}
-            <Link
-              href="/inventory/supplies"
-              className="ml-1 font-medium text-brand-ember-5 hover:text-brand-ember-6"
-            >
-              {t('suppliesLink')}
-            </Link>{' '}
-            {t('sellableDescriptionSuffix')}
-          </p>
-        </div>
-        <Link
-          href="/inventory/products/new"
-          className="inline-flex items-center justify-center rounded-lg "
-        >
-          {t('add')}
-        </Link>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('sellableDescriptionPrefix')}<Link
+                        href="/inventory/supplies"
+                        className="ml-1 font-medium text-brand-ember-5 hover:text-brand-ember-6"
+                      >
+                        {t('suppliesLink')}
+                      </Link>{' '}{t('sellableDescriptionSuffix')}</>}
+            eyebrow={<>{t('eyebrow')}</>}
+            actions={<>
+          <Link
+                    href="/inventory/products/new"
+                    className="inline-flex items-center justify-center rounded-lg "
+                  >
+                    {t('add')}
+                  </Link>
+            </>}
+          />
 
       <CategoryForm />
 

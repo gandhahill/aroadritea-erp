@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchMyNotifications, markAllReadAction, markReadAction } from './actions';
 import { getTranslations, getLocale } from 'next-intl/server';
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: 'Notifikasi' };
 
@@ -41,24 +42,22 @@ export default async function NotificationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            {t('unreadCount', { count: unread })} · {t('latestCount', { count: items.length })}
-          </p>
-        </div>
-        {unread > 0 ? (
-          <form action={markAllReadAction}>
-            <button
-              type="submit"
-              className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink-2 hover:border-brand-red/40 hover:text-brand-red"
-            >
-              {t('markAllRead')}
-            </button>
-          </form>
-        ) : null}
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('unreadCount', { count: unread })}· {t('latestCount', { count: items.length })}</>}
+            actions={<>
+          {unread > 0 ? (
+                    <form action={markAllReadAction}>
+                      <button
+                        type="submit"
+                        className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink-2 hover:border-brand-red/40 hover:text-brand-red"
+                      >
+                        {t('markAllRead')}
+                      </button>
+                    </form>
+                  ) : null}
+            </>}
+          />
 
       <div className="rounded-xl border border-brand-cream-3 bg-card">
         {items.length === 0 ? (

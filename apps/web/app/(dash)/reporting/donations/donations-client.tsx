@@ -8,6 +8,7 @@ import { useState, useTransition } from 'react';
 import { ExportXlsxButton } from '../export-button';
 import { fetchDonationReport } from './actions';
 import { TableCell, TableHead } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 type LocationOption = {
   id: string;
@@ -97,10 +98,9 @@ export function DonationsClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-brand-ink">{t('title')}</h1>
-        {data && data.rows.length > 0 && <ExportXlsxButton onExport={handleExportXlsx} />}
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+          />
 
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4">
         <div className="flex flex-col gap-1">

@@ -10,6 +10,7 @@ import { getTranslations } from 'next-intl/server';
 import { fetchCOATree } from './actions';
 import { COAEditor } from './coa-editor';
 import { COATreeView } from './coa-tree';
+import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Chart of Accounts',
@@ -26,19 +27,17 @@ export default async function COAPage() {
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            {t('subtitle')}
-          </p>
-        </div>
-        <div className="flex items-center gap-3 text-sm text-brand-ink-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
-            {tree.reduce((sum, node) => sum + countNodes(node), 0)} accounts
-          </span>
-        </div>
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+            actions={<>
+          <div className="flex items-center gap-3 text-sm text-brand-ink-3">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
+                      {tree.reduce((sum, node) => sum + countNodes(node), 0)} accounts
+                    </span>
+                  </div>
+            </>}
+          />
 
       <COAEditor tree={tree} />
 

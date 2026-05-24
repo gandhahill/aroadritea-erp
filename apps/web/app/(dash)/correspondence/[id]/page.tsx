@@ -7,6 +7,7 @@ import {
   updateCorrespondenceAction,
 } from '../actions';
 import { Select, Button, Input } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 export const dynamic = 'force-dynamic';
 const DIRECTIONS = ['incoming', 'outgoing', 'internal'] as const;
@@ -55,18 +56,15 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-16">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <Link href="/correspondence" className="text-sm font-semibold text-brand-red">
-            {t('back')}
-          </Link>
-          <h1 className="mt-2 text-2xl font-bold text-brand-ink">{record.documentNo}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">{record.subject}</p>
-        </div>
-        <span className="rounded-full border border-brand-cream-3 px-3 py-1 text-xs font-semibold text-brand-ink-2">
-          {t(`statuses.${record.status}`)}
-        </span>
-      </div>
+      <PageHeader 
+            title={<>{record.documentNo}</>}
+            description={<>{record.subject}</>}
+            actions={<>
+          <span className="rounded-full border border-brand-cream-3 px-3 py-1 text-xs font-semibold text-brand-ink-2">
+                    {t(`statuses.${record.status}`)}
+                  </span>
+            </>}
+          />
 
       {query.error ? (
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">

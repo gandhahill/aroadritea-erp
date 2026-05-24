@@ -14,6 +14,7 @@ import { useState } from 'react';
 import { ExportXlsxButton } from '../../reporting/export-button';
 import { fetchVarianceReport } from './actions';
 import { TableCell, TableHead } from "@erp/ui";
+import { PageHeader } from "@/components/page-header";
 
 // ─── Formatters ────────────────────────────────────────────────────────────────
 
@@ -271,13 +272,13 @@ export function VarianceClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-brand-ink">{t('title')}</h1>
-          <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle')}</p>
-        </div>
-        {report && <ExportXlsxButton onExport={() => exportXLSX(report, t)} />}
-      </div>
+      <PageHeader 
+            title={<>{t('title')}</>}
+            description={<>{t('subtitle')}</>}
+            actions={<>
+          {report && <ExportXlsxButton onExport={() => exportXLSX(report, t)} />}
+            </>}
+          />
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4 shadow-sm">
