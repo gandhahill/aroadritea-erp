@@ -27,8 +27,9 @@ interface EmployeeRow {
 }
 
 import { Pagination } from '@/components/pagination';
-import { TableCell, TableHead, Input, Select } from "@erp/ui";
+import { TableCell, TableHead, Input, Select, Button } from "@erp/ui";
 import { SearchInput } from '@/components/search-input';
+import { FilterBar, FilterField } from '@/components/filter-bar';
 
 interface Props {
   rows: EmployeeRow[];
@@ -75,8 +76,9 @@ export function EmployeeListClient({
   return (
     <div className="space-y-4">
       {/* Search + Filter bar */}
-      <div className="flex items-center gap-3">
-        <SearchInput
+      <FilterBar>
+        <FilterField label={t('searchPlaceholder')}>
+          <SearchInput
             type="text"
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -84,35 +86,40 @@ export function EmployeeListClient({
               if (e.key === 'Enter') applyFilter(q, initialStatus, initialLocationId, 1);
             }}
             placeholder={t('searchPlaceholder')}
-            className="w-full rounded-lg border border-brand-cream-3 bg-card pl-10 pr-4 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
+            className="w-full sm:w-64"
           />
+        </FilterField>
 
-        <Select
-          value={initialStatus}
-          onChange={(e) => applyFilter(q, e.target.value, initialLocationId, 1)}
-          className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
-        >
-          <option value="">{t('status')}</option>
-          {statusOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </Select>
+        <FilterField label={t('status')}>
+          <Select
+            value={initialStatus}
+            onChange={(e) => applyFilter(q, e.target.value, initialLocationId, 1)}
+            className="w-full sm:w-48"
+          >
+            <option value="">{t('status')}</option>
+            {statusOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </Select>
+        </FilterField>
 
-        <Select
-          value={initialLocationId}
-          onChange={(e) => applyFilter(q, initialStatus, e.target.value, 1)}
-          className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
-        >
-          <option value="">{t('allLocations')}</option>
-          {locationOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </Select>
-      </div>
+        <FilterField label={t('allLocations')}>
+          <Select
+            value={initialLocationId}
+            onChange={(e) => applyFilter(q, initialStatus, e.target.value, 1)}
+            className="w-full sm:w-48"
+          >
+            <option value="">{t('allLocations')}</option>
+            {locationOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </Select>
+        </FilterField>
+      </FilterBar>
 
       {/* Table */}
       {rows.length === 0 ? (

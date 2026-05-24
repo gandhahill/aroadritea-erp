@@ -16,6 +16,8 @@ import { useTranslations, useLocale } from 'next-intl';
 import { ExportXlsxButton } from '../export-button';
 import { fetchDailySummary } from './actions';
 import { PageHeader } from "@/components/page-header";
+import { FilterBar, FilterField } from '@/components/filter-bar';
+import { Button } from '@erp/ui';
 
 // ─── Formatters ────────────────────────────────────────────────────────────────
 
@@ -274,41 +276,32 @@ export function DailySummaryClient({
           />
 
       {/* Filter bar */}
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4 shadow-sm">
-        <div className="space-y-1">
-          <label htmlFor="startDate" className="text-xs font-medium text-brand-ink-3">
-            {t('startDate')}
-          </label>
+      <FilterBar>
+        <FilterField label={t('startDate')}>
           <input
             id="startDate"
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
+            className="h-9 rounded-lg border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5 w-full sm:w-36"
           />
-        </div>
-        <div className="space-y-1">
-          <label htmlFor="endDate" className="text-xs font-medium text-brand-ink-3">
-            {t('endDate')}
-          </label>
+        </FilterField>
+        <FilterField label={t('endDate')}>
           <input
             id="endDate"
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
+            className="h-9 rounded-lg border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5 w-full sm:w-36"
           />
-        </div>
-        <div className="space-y-1">
-          <label htmlFor="locationId" className="text-xs font-medium text-brand-ink-3">
-            {t('location')}
-          </label>
+        </FilterField>
+        <FilterField label={t('location')}>
           <Select
             id="locationId"
             value={locationId}
             onChange={(e) => setLocationId(e.target.value)}
             disabled={locationOptions.length === 0}
-            className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
+            className="w-full sm:w-48 h-9"
           >
             {locationOptions.length === 0 ? (
               <option value="">{t('noActiveOutletsOption')}</option>
@@ -320,11 +313,12 @@ export function DailySummaryClient({
               ))
             )}
           </Select>
-        </div>
-        <button
+        </FilterField>
+        <Button
           onClick={handleSearch}
           disabled={isLoading}
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6 disabled:opacity-50"
+          variant="primary"
+          className="gap-2"
         >
           {isLoading ? (
             <>
@@ -348,8 +342,8 @@ export function DailySummaryClient({
           ) : (
             t('show')
           )}
-        </button>
-      </div>
+        </Button>
+      </FilterBar>
 
       {/* Error state */}
       {error && (

@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { TableCell, TableBody, TableHead, Select } from "@erp/ui";
+import { TableCell, TableBody, TableHead, Select, Input } from "@erp/ui";
+import { FilterBar, FilterField } from '@/components/filter-bar';
 
 const STATUS_COLORS: Record<string, string> = {
   draft: 'bg-brand-cream-2 text-brand-ink-3',
@@ -54,40 +55,47 @@ export function PostsTableClient({ posts }: Props) {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-brand-cream-3 bg-card p-3">
-        <input
-          type="search"
-          placeholder="Cari judul, slug, atau tag…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          className="h-9 min-w-48 flex-1 rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
-        />
-        <Select
-          value={kind}
-          onChange={(e) => setKind(e.target.value)}
-          className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
-        >
-          <option value="">Semua kategori</option>
-          <option value="news">Berita</option>
-          <option value="promo">Promo</option>
-          <option value="recipe">Resep</option>
-          <option value="event">Event</option>
-        </Select>
-        <Select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
-        >
-          <option value="">Semua status</option>
-          <option value="draft">Draft</option>
-          <option value="review">Review</option>
-          <option value="published">Published</option>
-          <option value="archived">Archived</option>
-        </Select>
-        <span className="text-xs text-brand-ink-3">
+      <FilterBar>
+        <FilterField>
+          <Input
+            type="search"
+            placeholder="Cari judul, slug, atau tag…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            className="h-9 w-full sm:w-64"
+          />
+        </FilterField>
+        <FilterField>
+          <Select
+            value={kind}
+            onChange={(e) => setKind(e.target.value)}
+            className="h-9 w-full sm:w-36"
+          >
+            <option value="">Semua kategori</option>
+            <option value="news">Berita</option>
+            <option value="promo">Promo</option>
+            <option value="recipe">Resep</option>
+            <option value="event">Event</option>
+          </Select>
+        </FilterField>
+        <FilterField>
+          <Select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="h-9 w-full sm:w-36"
+          >
+            <option value="">Semua status</option>
+            <option value="draft">Draft</option>
+            <option value="review">Review</option>
+            <option value="published">Published</option>
+            <option value="archived">Archived</option>
+          </Select>
+        </FilterField>
+        
+        <div className="ml-auto flex items-center text-xs text-brand-ink-3">
           {filtered.length} dari {posts.length}
-        </span>
-      </div>
+        </div>
+      </FilterBar>
 
       <div className="rounded-lg border border-brand-cream-3 bg-card">
         {filtered.length === 0 ? (

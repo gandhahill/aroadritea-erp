@@ -7,6 +7,7 @@ import { CategoryForm } from './category-form';
 import { ProductRowActions } from './row-actions';
 import { TableCell, TableBody, TableHead, TableHeader, Table, Button } from "@erp/ui";
 import { PageHeader } from "@/components/page-header";
+import { FilterBar, FilterField } from "@/components/filter-bar";
 
 export const metadata: Metadata = {
   title: 'Produk & Menu - Aroadri ERP',

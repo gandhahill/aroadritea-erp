@@ -21,6 +21,8 @@ import { useState, useTransition } from 'react';
 import { ExportXlsxButton } from '../export-button';
 import { fetchHourlySales } from './actions';
 import { PageHeader } from "@/components/page-header";
+import { FilterBar, FilterField } from '@/components/filter-bar';
+import { Button } from '@erp/ui';
 
 type LocationOption = {
   id: string;
@@ -413,31 +415,29 @@ export function HourlySalesClient({
           />
 
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-brand-ink-3">{t('startDate')}</label>
+      {/* Filters */}
+      <FilterBar>
+        <FilterField label={t('startDate')}>
           <input
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="h-9 rounded-lg border border-brand-cream-3 px-3 text-sm text-brand-ink"
+            className="h-9 rounded-lg border border-brand-cream-3 px-3 text-sm text-brand-ink w-full sm:w-36"
           />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-brand-ink-3">{t('endDate')}</label>
+        </FilterField>
+        <FilterField label={t('endDate')}>
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="h-9 rounded-lg border border-brand-cream-3 px-3 text-sm text-brand-ink"
+            className="h-9 rounded-lg border border-brand-cream-3 px-3 text-sm text-brand-ink w-full sm:w-36"
           />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-brand-ink-3">{t('location')}</label>
+        </FilterField>
+        <FilterField label={t('location')}>
           <Select
             value={locationId}
             onChange={(e) => setLocationId(e.target.value)}
-            className="h-9 min-w-52 rounded-lg border border-brand-cream-3 px-3 text-sm text-brand-ink"
+            className="h-9 w-full sm:w-48"
           >
             <option value="">{t('allLocations')}</option>
             {locationOptions.map((location) => (
@@ -446,9 +446,8 @@ export function HourlySalesClient({
               </option>
             ))}
           </Select>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-brand-ink-3">{t('groupBy')}</label>
+        </FilterField>
+        <FilterField label={t('groupBy')}>
           <div className="flex h-9 rounded-lg border border-brand-cream-3 overflow-hidden">
             <button
               onClick={() => setGroupBy('channel')}
@@ -463,15 +462,16 @@ export function HourlySalesClient({
               {t('groupDay')}
             </button>
           </div>
-        </div>
-        <button
+        </FilterField>
+        <Button
           onClick={handleSearch}
           disabled={isPending}
-          className="h-9 rounded-lg bg-brand-red px-4 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
+          variant="primary"
+          className="h-9"
         >
           {isPending ? '...' : t('filter')}
-        </button>
-      </div>
+        </Button>
+      </FilterBar>
 
       {/* Error */}
       {result.error && (

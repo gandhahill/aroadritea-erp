@@ -9,7 +9,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { forgiveLateAction } from './actions';
 import { useTranslations } from 'next-intl';
-import { TableCell, TableHead, Select } from "@erp/ui";
+import { TableCell, TableHead, Select, Button, Input } from "@erp/ui";
+import { FilterBar, FilterField } from '@/components/filter-bar';
 
 interface AttendanceRow {
   id: string;
@@ -111,30 +112,31 @@ export function AttendanceListClient({
   return (
     <div className="space-y-4">
       {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-brand-cream-3 bg-card p-4">
-        <Select
-          value={initialEmployeeId}
-          onChange={(e) =>
-            applyFilter({
-              employeeId: e.target.value,
-              dateFrom: initialDateFrom,
-              dateTo: initialDateTo,
-              page: 1,
-            })
-          }
-          className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
-        >
-          <option value="">{t('allEmployees')}</option>
-          {employees.map((e) => (
-            <option key={e.value} value={e.value}>
-              {e.label}
-            </option>
-          ))}
-        </Select>
+      <FilterBar>
+        <FilterField label={t('allEmployees')}>
+          <Select
+            value={initialEmployeeId}
+            onChange={(e) =>
+              applyFilter({
+                employeeId: e.target.value,
+                dateFrom: initialDateFrom,
+                dateTo: initialDateTo,
+                page: 1,
+              })
+            }
+            className="w-full sm:w-48"
+          >
+            <option value="">{t('allEmployees')}</option>
+            {employees.map((e) => (
+              <option key={e.value} value={e.value}>
+                {e.label}
+              </option>
+            ))}
+          </Select>
+        </FilterField>
 
-        <div className="flex items-center gap-2 text-sm text-brand-ink-3">
-          <span>{t('from')}</span>
-          <input
+        <FilterField label={t('from')}>
+          <Input
             type="date"
             value={initialDateFrom}
             onChange={(e) =>
@@ -145,10 +147,12 @@ export function AttendanceListClient({
                 page: 1,
               })
             }
-            className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
+            className="w-full sm:w-36"
           />
-          <span>{t('to')}</span>
-          <input
+        </FilterField>
+
+        <FilterField label={t('to')}>
+          <Input
             type="date"
             value={initialDateTo}
             onChange={(e) =>
@@ -159,10 +163,10 @@ export function AttendanceListClient({
                 page: 1,
               })
             }
-            className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
+            className="w-full sm:w-36"
           />
-        </div>
-      </div>
+        </FilterField>
+      </FilterBar>
 
       {/* Table */}
       {items.length === 0 ? (

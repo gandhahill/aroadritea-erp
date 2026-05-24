@@ -16,6 +16,7 @@ export function PageHeader({
   description,
   breadcrumbs,
   actions,
+  eyebrow,
 }: PageHeaderProps) {
   const pathname = usePathname();
 
@@ -42,6 +43,7 @@ export function PageHeader({
       if (segment.toLowerCase() === 'po') label = 'PO';
       if (segment.toLowerCase() === 'coa') label = 'COA';
       if (segment.toLowerCase() === 'pos') label = 'POS';
+      if (segment.toLowerCase() === 'cms') label = 'CMS';
       
       autoCrumbs.push({ label, href });
     });
@@ -54,7 +56,11 @@ export function PageHeader({
   return (
     <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div>
-        {displayBreadcrumbs.length > 0 && (
+        {eyebrow ? (
+          <div className="mb-2 text-sm font-medium text-brand-ink-3 uppercase tracking-wider">
+            {eyebrow}
+          </div>
+        ) : displayBreadcrumbs.length > 0 && (
           <div className="mb-2 flex items-center gap-2 text-sm text-brand-ink-3">
             {displayBreadcrumbs.map((crumb, index) => {
               const isLast = index === displayBreadcrumbs.length - 1;
@@ -69,7 +75,7 @@ export function PageHeader({
                       {crumb.label}
                     </span>
                   )}
-                  {!isLast && <span>/</span>}
+                  {!isLast && <span className="text-brand-cream-3">/</span>}
                 </div>
               );
             })}

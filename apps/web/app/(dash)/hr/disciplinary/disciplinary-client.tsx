@@ -16,6 +16,7 @@ import {
 } from './actions';
 import { Button, Input, Select } from "@erp/ui";
 import { PageHeader } from "@/components/page-header";
+import { FilterBar, FilterField } from "@/components/filter-bar";
 
 const LEVEL_LABEL: Record<string, { short: string; color: string; desc: string }> = {
   SP1: { short: 'SP1', color: 'bg-brand-gold/10 text-brand-gold', desc: 'Surat Peringatan 1' },

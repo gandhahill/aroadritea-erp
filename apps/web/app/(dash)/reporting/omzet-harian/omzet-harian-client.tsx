@@ -20,6 +20,7 @@ import {
 } from './actions';
 import { Button, Input, TableCell, TableBody, TableHead, Select } from "@erp/ui";
 import { PageHeader } from "@/components/page-header";
+import { FilterBar, FilterField } from "@/components/filter-bar";
 
 interface Props {
   initialData: OmzetHarianResult | null;

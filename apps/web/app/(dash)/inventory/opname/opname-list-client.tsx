@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { TableCell, TableHead, Select } from "@erp/ui";
+import { TableCell, TableHead, Select, Input } from "@erp/ui";
+import { FilterBar, FilterField } from '@/components/filter-bar';
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   draft: { bg: 'bg-brand-cream-2', text: 'text-brand-ink-2', label: 'Draf' },
@@ -52,52 +53,63 @@ export function OpnameListClient({ rows }: { rows: Row[] }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-brand-cream-3 bg-card p-3">
-        <input
-          type="search"
-          placeholder="Cari nomor, periode, atau penyiap…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          className="h-9 min-w-48 flex-1 rounded-md border border-brand-cream-3 bg-card px-3 text-sm"
-        />
-        <Select
-          value={kind}
-          onChange={(e) => setKind(e.target.value)}
-          className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
-        >
-          <option value="">Semua jenis</option>
-          <option value="daily">Harian</option>
-          <option value="monthly">Bulanan</option>
-        </Select>
-        <Select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
-        >
-          <option value="">Semua status</option>
-          {Object.entries(STATUS_COLORS).map(([k, v]) => (
-            <option key={k} value={k}>
-              {v.label}
-            </option>
-          ))}
-        </Select>
-        <input
-          type="date"
-          value={from}
-          onChange={(e) => setFrom(e.target.value)}
-          className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
-        />
-        <span className="text-xs text-brand-ink-3">—</span>
-        <input
-          type="date"
-          value={to}
-          onChange={(e) => setTo(e.target.value)}
-          className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
-        />
-        <span className="ml-auto text-xs text-brand-ink-3">
+      <FilterBar>
+        <FilterField>
+          <Input
+            type="search"
+            placeholder="Cari nomor, periode, atau penyiap…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            className="h-9 w-full sm:w-64"
+          />
+        </FilterField>
+        <FilterField>
+          <Select
+            value={kind}
+            onChange={(e) => setKind(e.target.value)}
+            className="h-9 w-full sm:w-36"
+          >
+            <option value="">Semua jenis</option>
+            <option value="daily">Harian</option>
+            <option value="monthly">Bulanan</option>
+          </Select>
+        </FilterField>
+        <FilterField>
+          <Select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="h-9 w-full sm:w-36"
+          >
+            <option value="">Semua status</option>
+            {Object.entries(STATUS_COLORS).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v.label}
+              </option>
+            ))}
+          </Select>
+        </FilterField>
+        <FilterField>
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="h-9 w-32"
+            />
+            <span className="text-xs text-brand-ink-3">—</span>
+            <Input
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="h-9 w-32"
+            />
+          </div>
+        </FilterField>
+        
+        <div className="ml-auto flex items-center text-xs text-brand-ink-3">
           {filtered.length} dari {rows.length}
-        </span>
-      </div>
+        </div>
+      </FilterBar>
 
       <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
         <table className="w-full text-sm">
