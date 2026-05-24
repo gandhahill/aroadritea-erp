@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { TableCell, TableHead } from "@erp/ui";
+import { TableCell, TableHead, Select } from "@erp/ui";
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   draft: { bg: 'bg-brand-cream-2', text: 'text-brand-ink-2', label: 'Draf' },
@@ -60,7 +60,7 @@ export function OpnameListClient({ rows }: { rows: Row[] }) {
           onChange={(e) => setQ(e.target.value)}
           className="h-9 min-w-48 flex-1 rounded-md border border-brand-cream-3 bg-card px-3 text-sm"
         />
-        <select
+        <Select
           value={kind}
           onChange={(e) => setKind(e.target.value)}
           className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
@@ -68,8 +68,8 @@ export function OpnameListClient({ rows }: { rows: Row[] }) {
           <option value="">Semua jenis</option>
           <option value="daily">Harian</option>
           <option value="monthly">Bulanan</option>
-        </select>
-        <select
+        </Select>
+        <Select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
           className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
@@ -80,7 +80,7 @@ export function OpnameListClient({ rows }: { rows: Row[] }) {
               {v.label}
             </option>
           ))}
-        </select>
+        </Select>
         <input
           type="date"
           value={from}

@@ -10,7 +10,7 @@ import {
   deleteLocation,
   saveLocation,
 } from './actions';
-import { TableBody, Button } from "@erp/ui";
+import { TableBody, Button, Select } from "@erp/ui";
 
 interface Labels {
   add: string;
@@ -214,7 +214,7 @@ export function LocationsClient({ locations, labels }: Props) {
                   />
                 </td>
                 <td className="px-3 py-3">
-                  <select
+                  <Select
                     value={row.type}
                     onChange={(event) =>
                       updateRow(index, { type: event.target.value as LocationType })
@@ -224,10 +224,10 @@ export function LocationsClient({ locations, labels }: Props) {
                     <option value="store">{labels.store}</option>
                     <option value="office">{labels.office}</option>
                     <option value="warehouse">{labels.warehouse}</option>
-                  </select>
+                  </Select>
                 </td>
                 <td className="px-3 py-3">
-                  <select
+                  <Select
                     value={row.status}
                     onChange={(event) =>
                       updateRow(index, { status: event.target.value as LocationStatus })
@@ -236,7 +236,7 @@ export function LocationsClient({ locations, labels }: Props) {
                   >
                     <option value="active">{labels.active}</option>
                     <option value="inactive">{labels.inactive}</option>
-                  </select>
+                  </Select>
                 </td>
                 <td className="px-3 py-3">
                   <input

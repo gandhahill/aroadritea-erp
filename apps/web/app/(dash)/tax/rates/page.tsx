@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 import { getTranslations } from 'next-intl/server';
-import { Button, TableCell, TableHead } from "@erp/ui";
+import { Button, TableCell, TableHead, Select } from "@erp/ui";
 import { PageHeader } from "@/components/page-header";
 
 function formatDate(value: string | null, locale: string) {
@@ -78,14 +78,14 @@ export default async function TaxRatesPage() {
             placeholder="10"
             className="rounded border border-brand-ink/10 bg-card px-3 py-2 text-sm"
           />
-          <select
+          <Select
             name="calculation"
             className="rounded border border-brand-ink/10 bg-card px-3 py-2 text-sm"
           >
             <option value="inclusive">{t('inclusive')}</option>
             <option value="exclusive">{t('exclusive')}</option>
-          </select>
-          <select
+          </Select>
+          <Select
             name="postingAccountId"
             className="rounded border border-brand-ink/10 bg-card px-3 py-2 text-sm"
           >
@@ -95,7 +95,7 @@ export default async function TaxRatesPage() {
                 {account.label}
               </option>
             ))}
-          </select>
+          </Select>
           <input
             name="effectiveFrom"
             type="date"
@@ -202,15 +202,15 @@ export default async function TaxRatesPage() {
                               defaultValue={row.ratePercent}
                               className="rounded border border-brand-ink/10 bg-card px-2 py-1 text-xs"
                             />
-                            <select
+                            <Select
                               name="calculation"
                               defaultValue={row.calculation}
                               className="rounded border border-brand-ink/10 bg-card px-2 py-1 text-xs"
                             >
                               <option value="inclusive">{t('inclusive')}</option>
                               <option value="exclusive">{t('exclusive')}</option>
-                            </select>
-                            <select
+                            </Select>
+                            <Select
                               name="postingAccountId"
                               defaultValue={row.postingAccountId}
                               className="rounded border border-brand-ink/10 bg-card px-2 py-1 text-xs"
@@ -220,7 +220,7 @@ export default async function TaxRatesPage() {
                                   {account.label}
                                 </option>
                               ))}
-                            </select>
+                            </Select>
                             <input
                               name="effectiveFrom"
                               type="date"

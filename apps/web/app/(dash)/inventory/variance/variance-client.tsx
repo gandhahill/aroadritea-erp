@@ -13,7 +13,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { ExportXlsxButton } from '../../reporting/export-button';
 import { fetchVarianceReport } from './actions';
-import { TableCell, TableHead } from "@erp/ui";
+import { TableCell, TableHead, Select } from "@erp/ui";
 import { PageHeader } from "@/components/page-header";
 
 // ─── Formatters ────────────────────────────────────────────────────────────────
@@ -310,7 +310,7 @@ export function VarianceClient({
           <label htmlFor="locationId" className="text-xs font-medium text-brand-ink-3">
             {t('location')}
           </label>
-          <select
+          <Select
             id="locationId"
             value={locationId}
             onChange={(e) => setLocationId(e.target.value)}
@@ -322,7 +322,7 @@ export function VarianceClient({
                 {loc.name}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <button
           onClick={handleSearch}

@@ -8,7 +8,7 @@ import {
   type PosSettingItem,
   updatePosSetting,
 } from './actions';
-import { Button } from "@erp/ui";
+import { Button, Select } from "@erp/ui";
 
 interface Props {
   settings: PosSettingItem[];
@@ -469,14 +469,14 @@ function AccountSelect({
   const hasCurrent = options.some((option) => option.code === value);
 
   return (
-    <select value={value} onChange={(event) => onChange(event.target.value)} className={inputClass}>
+    <Select value={value} onChange={(event) => onChange(event.target.value)} className={inputClass}>
       {!hasCurrent ? <option value={value}>{value}</option> : null}
       {options.map((option) => (
         <option key={option.code} value={option.code}>
           {option.label}
         </option>
       ))}
-    </select>
+    </Select>
   );
 }
 
@@ -517,7 +517,7 @@ function PrinterNameField({
         </button>
       </div>
       {hasOptions ? (
-        <select
+        <Select
           value={value}
           onChange={(event) => onChange(event.target.value)}
           className={inputClass}
@@ -529,7 +529,7 @@ function PrinterNameField({
               {printer}
             </option>
           ))}
-        </select>
+        </Select>
       ) : (
         <input
           value={value}

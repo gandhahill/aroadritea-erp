@@ -141,7 +141,7 @@ export function COAEditor({ tree }: Props) {
           <h2 className="text-base font-semibold text-brand-ink">{t('manage')}</h2>
           <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle')}</p>
         </div>
-        <select
+        <Select
           value={selectedId}
           onChange={(event) => {
             const node = accounts.find((account) => account.id === event.target.value);
@@ -158,7 +158,7 @@ export function COAEditor({ tree }: Props) {
               {account.code} - {account.name.id ?? account.name.en ?? account.code}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {message && (
@@ -198,7 +198,7 @@ export function COAEditor({ tree }: Props) {
           />
         </Field>
         <Field label={tc('fields.type')}>
-          <select
+          <Select
             value={draft.type}
             onChange={(event) => {
               const nextType = event.target.value;
@@ -222,10 +222,10 @@ export function COAEditor({ tree }: Props) {
                 {type}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label={tc('fields.subtype')}>
-          <select
+          <Select
             value={draft.subtype}
             onChange={(event) => update({ subtype: event.target.value })}
             className={fieldClass}
@@ -235,10 +235,10 @@ export function COAEditor({ tree }: Props) {
                 {subtype}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label={tc('fields.normalBalance')}>
-          <select
+          <Select
             value={draft.normalBalance}
             onChange={(event) => update({ normalBalance: event.target.value })}
             className={fieldClass}
@@ -248,10 +248,10 @@ export function COAEditor({ tree }: Props) {
                 {balance}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label={tc('fields.parent')}>
-          <select
+          <Select
             value={draft.parentId ?? ''}
             onChange={(event) => update({ parentId: event.target.value || null })}
             className={fieldClass}
@@ -265,7 +265,7 @@ export function COAEditor({ tree }: Props) {
                   {account.code} - {account.name.id ?? account.name.en ?? account.code}
                 </option>
               ))}
-          </select>
+          </Select>
         </Field>
       </div>
 

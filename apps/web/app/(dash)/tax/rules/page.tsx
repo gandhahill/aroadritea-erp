@@ -6,7 +6,7 @@ import {
   fetchTaxRules,
   saveTaxRuleAction,
 } from './actions';
-import { Button, TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
+import { Button, TableCell, TableBody, TableHead, TableHeader, Table, Select } from "@erp/ui";
 import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export default async function TaxRulesPage() {
         action={saveTaxRuleAction}
         className="grid gap-3 rounded-xl border border-brand-cream-3 bg-card p-4 md:grid-cols-4"
       >
-        <select
+        <Select
           name="scopeKind"
           className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm"
         >
@@ -38,13 +38,13 @@ export default async function TaxRulesPage() {
           <option value="channel">{t('scope.channel')}</option>
           <option value="customer_segment">{t('scope.customer_segment')}</option>
           <option value="product_category">{t('scope.product_category')}</option>
-        </select>
+        </Select>
         <input
           name="scopeId"
           placeholder={t('placeholders.scopeId')}
           className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm"
         />
-        <select
+        <Select
           name="taxCode"
           className="rounded border border-brand-cream-3 bg-card px-3 py-2 text-sm"
         >
@@ -53,7 +53,7 @@ export default async function TaxRulesPage() {
               {option.label}
             </option>
           ))}
-        </select>
+        </Select>
         <input
           name="priority"
           type="number"
@@ -126,7 +126,7 @@ export default async function TaxRulesPage() {
                       </summary>
                       <form action={saveTaxRuleAction} className="mt-3 grid min-w-80 gap-2">
                         <input type="hidden" name="id" value={rule.id} />
-                        <select
+                        <Select
                           name="scopeKind"
                           defaultValue={rule.scopeKind}
                           className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs"
@@ -135,13 +135,13 @@ export default async function TaxRulesPage() {
                           <option value="channel">{t('scope.channel')}</option>
                           <option value="customer_segment">{t('scope.customer_segment')}</option>
                           <option value="product_category">{t('scope.product_category')}</option>
-                        </select>
+                        </Select>
                         <input
                           name="scopeId"
                           defaultValue={rule.scopeId ?? ''}
                           className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs"
                         />
-                        <select
+                        <Select
                           name="taxCode"
                           defaultValue={rule.taxCode}
                           className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs"
@@ -151,7 +151,7 @@ export default async function TaxRulesPage() {
                               {option.label}
                             </option>
                           ))}
-                        </select>
+                        </Select>
                         <input
                           name="priority"
                           type="number"

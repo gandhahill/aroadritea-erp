@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { TableCell, TableBody, TableHead } from "@erp/ui";
+import { TableCell, TableBody, TableHead, Select } from "@erp/ui";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: 'bg-brand-cream-2 text-brand-ink-3',
@@ -62,7 +62,7 @@ export function PostsTableClient({ posts }: Props) {
           onChange={(e) => setQ(e.target.value)}
           className="h-9 min-w-48 flex-1 rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
         />
-        <select
+        <Select
           value={kind}
           onChange={(e) => setKind(e.target.value)}
           className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
@@ -72,8 +72,8 @@ export function PostsTableClient({ posts }: Props) {
           <option value="promo">Promo</option>
           <option value="recipe">Resep</option>
           <option value="event">Event</option>
-        </select>
-        <select
+        </Select>
+        <Select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
           className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
@@ -83,7 +83,7 @@ export function PostsTableClient({ posts }: Props) {
           <option value="review">Review</option>
           <option value="published">Published</option>
           <option value="archived">Archived</option>
-        </select>
+        </Select>
         <span className="text-xs text-brand-ink-3">
           {filtered.length} dari {posts.length}
         </span>

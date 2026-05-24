@@ -5,7 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { requirePermission } from '@erp/services/iam';
 import { Pagination } from '@/components/pagination';
-import { TableCell, TableBody, TableHead, Button } from "@erp/ui";
+import { TableCell, TableBody, TableHead, Button, Select } from "@erp/ui";
 import { PageHeader } from "@/components/page-header";
 
 interface Props {
@@ -57,7 +57,7 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
           />
 
       <form method="GET" className="mb-6 flex items-center gap-3">
-        <select
+        <Select
           name="status"
           defaultValue={filterStatus}
           className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-ember-5"
@@ -66,7 +66,7 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
           <option value="open">{t('statusOpen') || 'Open'}</option>
           <option value="investigating">{t('statusInvestigating') || 'Investigating'}</option>
           <option value="resolved">{t('statusResolved') || 'Resolved'}</option>
-        </select>
+        </Select>
         {params?.pageSize && <input type="hidden" name="pageSize" value={params.pageSize} />}
         <Button
           type="submit"

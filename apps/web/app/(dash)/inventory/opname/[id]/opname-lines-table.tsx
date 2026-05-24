@@ -1,3 +1,4 @@
+import { Select } from "@erp/ui";
 /**
  * OpnameLineTable — interactive table for opname session lines.
  *
@@ -185,7 +186,7 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
           onChange={(e) => setSearchQ(e.target.value)}
           className="h-8 min-w-44 flex-1 rounded-md border border-brand-cream-3 bg-card px-2.5 text-xs"
         />
-        <select
+        <Select
           value={kindFilter}
           onChange={(e) => setKindFilter(e.target.value)}
           className="h-8 rounded-md border border-brand-cream-3 bg-card px-2 text-xs"
@@ -196,7 +197,7 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
               {getKindLabel(k)}
             </option>
           ))}
-        </select>
+        </Select>
         <label className="flex items-center gap-1.5 text-xs text-brand-ink-3">
           <input
             type="checkbox"

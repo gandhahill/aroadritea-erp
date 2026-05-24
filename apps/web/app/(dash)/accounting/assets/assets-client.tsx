@@ -7,6 +7,7 @@ import { useActionState, useEffect, useMemo, useState } from 'react';
 import { createAssetAction, runDepreciationAction, updateAssetCategoryAction } from './actions';
 import type { AssetPageData } from './actions';
 import { Input, Select, Button, TableHeader } from "@erp/ui";
+import { FilterBar } from "@/components/filter-bar";
 
 const METHOD_VALUES = [
   'straight_line',
@@ -102,7 +103,7 @@ export function AssetsClient({
             </span>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-3">
+          <FilterBar>
             <Select
               value={initialLocationId}
               onChange={(event) => applyFilter(event.target.value, initialStatus)}
@@ -125,7 +126,7 @@ export function AssetsClient({
               <option value="fully_depreciated">{t('statusFullyDepreciated')}</option>
               <option value="disposed">{t('statusDisposed')}</option>
             </Select>
-          </div>
+          </FilterBar>
 
           <div className="mt-5 overflow-hidden rounded-lg border border-brand-cream-3">
             <table className="w-full text-sm">

@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { syncPurchaseShipmentAction } from './actions';
-import { TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
+import { TableCell, TableBody, TableHead, TableHeader, Table, Select } from "@erp/ui";
 
 interface PoRow {
   id: string;
@@ -97,7 +97,7 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
           onChange={(e) => setQ(e.target.value)}
           className="h-9 min-w-40 flex-1 rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
         />
-        <select
+        <Select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
           className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
@@ -110,7 +110,7 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
           <option value="received">Received</option>
           <option value="closed">Closed</option>
           <option value="cancelled">Cancelled</option>
-        </select>
+        </Select>
         <input
           type="date"
           value={from}
@@ -180,7 +180,7 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
                       className="grid gap-2 md:grid-cols-[88px_1fr_84px_auto]"
                     >
                       <input type="hidden" name="poId" value={po.id} />
-                      <select
+                      <Select
                         name="courierCode"
                         defaultValue={po.shippingCourierCode ?? 'jne'}
                         className="h-8 rounded border border-brand-cream-3 bg-card px-2 text-xs"
@@ -190,7 +190,7 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
                             {courier}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                       <input
                         name="awb"
                         defaultValue={po.shippingAwb ?? ''}

@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { ExportXlsxButton } from '../export-button';
 import { fetchDonationReport } from './actions';
-import { TableCell, TableHead } from "@erp/ui";
+import { TableCell, TableHead, Select } from "@erp/ui";
 import { PageHeader } from "@/components/page-header";
 
 type LocationOption = {
@@ -123,7 +123,7 @@ export function DonationsClient({
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-brand-ink-3">{t('location')}</label>
-          <select
+          <Select
             value={locationId}
             onChange={(e) => setLocationId(e.target.value)}
             className="h-9 min-w-52 rounded-lg border border-brand-cream-3 px-3 text-sm text-brand-ink"
@@ -134,7 +134,7 @@ export function DonationsClient({
                 {location.label} ({location.code})
               </option>
             ))}
-          </select>
+          </Select>
         </div>
         <button
           onClick={handleFilter}

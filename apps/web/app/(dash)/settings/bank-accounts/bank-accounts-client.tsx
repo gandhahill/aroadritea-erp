@@ -184,14 +184,14 @@ export function BankAccountsClient({ accounts, coaAccounts, labels }: Props) {
                     </Select>
                   </td>
                   <td className="px-3 py-3">
-                    <select
+                    <Select
                       value={row.isActive ? 'true' : 'false'}
                       onChange={(e) => updateRow(index, { isActive: e.target.value === 'true' })}
                       className="h-9 w-28 rounded-md border border-brand-cream-3 bg-brand-cream-1 px-2 text-brand-ink"
                     >
                       <option value="true">{labels.active}</option>
                       <option value="false">{labels.inactive}</option>
-                    </select>
+                    </Select>
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex gap-2">

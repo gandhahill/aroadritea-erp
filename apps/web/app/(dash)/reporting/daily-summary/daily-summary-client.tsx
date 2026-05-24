@@ -1,3 +1,4 @@
+import { Select } from "@erp/ui";
 /**
  * DailySummaryClient — client component for the daily summary report.
  *
@@ -301,7 +302,7 @@ export function DailySummaryClient({
           <label htmlFor="locationId" className="text-xs font-medium text-brand-ink-3">
             {t('location')}
           </label>
-          <select
+          <Select
             id="locationId"
             value={locationId}
             onChange={(e) => setLocationId(e.target.value)}
@@ -317,7 +318,7 @@ export function DailySummaryClient({
                 </option>
               ))
             )}
-          </select>
+          </Select>
         </div>
         <button
           onClick={handleSearch}

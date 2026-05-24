@@ -231,7 +231,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
 
       {/* Filters */}
       <div className="flex items-center gap-3">
-        <select
+        <Select
           value={filterLevel}
           onChange={(e) => setFilterLevel(e.target.value)}
           className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink"
@@ -240,8 +240,8 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
           <option value="SP1">SP1</option>
           <option value="SP2">SP2</option>
           <option value="SP3">SP3</option>
-        </select>
-        <select
+        </Select>
+        <Select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
           className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink"
@@ -250,7 +250,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
           <option value="issued">Diterbitkan</option>
           <option value="acknowledged">Ditekankan</option>
           <option value="escalated">Dieselakan</option>
-        </select>
+        </Select>
         <Button
           onClick={handleFilter}
           disabled={isPending}

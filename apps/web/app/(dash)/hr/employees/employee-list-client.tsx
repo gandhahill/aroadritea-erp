@@ -27,7 +27,8 @@ interface EmployeeRow {
 }
 
 import { Pagination } from '@/components/pagination';
-import { TableCell, TableHead, Input } from "@erp/ui";
+import { TableCell, TableHead, Input, Select } from "@erp/ui";
+import { SearchInput } from '@/components/search-input';
 
 interface Props {
   rows: EmployeeRow[];
@@ -75,21 +76,7 @@ export function EmployeeListClient({
     <div className="space-y-4">
       {/* Search + Filter bar */}
       <div className="flex items-center gap-3">
-        <div className="relative flex-1">
-          <svg
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-ink-3"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-            />
-          </svg>
-          <Input
+        <SearchInput
             type="text"
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -99,9 +86,8 @@ export function EmployeeListClient({
             placeholder={t('searchPlaceholder')}
             className="w-full rounded-lg border border-brand-cream-3 bg-card pl-10 pr-4 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
           />
-        </div>
 
-        <select
+        <Select
           value={initialStatus}
           onChange={(e) => applyFilter(q, e.target.value, initialLocationId, 1)}
           className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
@@ -112,9 +98,9 @@ export function EmployeeListClient({
               {opt.label}
             </option>
           ))}
-        </select>
+        </Select>
 
-        <select
+        <Select
           value={initialLocationId}
           onChange={(e) => applyFilter(q, initialStatus, e.target.value, 1)}
           className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
@@ -125,7 +111,7 @@ export function EmployeeListClient({
               {opt.label}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       {/* Table */}

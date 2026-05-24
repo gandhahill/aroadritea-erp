@@ -9,7 +9,7 @@ import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import { toggleScheduledJob, updateJobSchedule } from './actions';
 import type { ScheduledJobItem } from './actions';
-import { TableCell, TableBody } from "@erp/ui";
+import { TableCell, TableBody, Select } from "@erp/ui";
 
 interface Props {
   jobs: ScheduledJobItem[];
@@ -271,7 +271,7 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
           onChange={(e) => setQ(e.target.value)}
           className="h-9 min-w-48 flex-1 rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
         />
-        <select
+        <Select
           value={enabledOnly}
           onChange={(e) => setEnabledOnly(e.target.value as 'all' | 'enabled' | 'disabled')}
           className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
@@ -279,8 +279,8 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
           <option value="all">{t('filter.allEnabled')}</option>
           <option value="enabled">{t('filter.enabledOnly')}</option>
           <option value="disabled">{t('filter.disabledOnly')}</option>
-        </select>
-        <select
+        </Select>
+        <Select
           value={statusOnly}
           onChange={(e) => setStatusOnly(e.target.value as 'all' | 'success' | 'failed' | 'never')}
           className="h-9 rounded-md border border-brand-cream-3 bg-card px-2 text-sm"
@@ -289,7 +289,7 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
           <option value="success">{t('status.success')}</option>
           <option value="failed">{t('status.failed')}</option>
           <option value="never">{t('status.never')}</option>
-        </select>
+        </Select>
         <span className="ml-auto text-xs text-brand-ink-3">
           {t('copy.showingCount', { count: filteredJobs.length, total: jobs.length })}
         </span>

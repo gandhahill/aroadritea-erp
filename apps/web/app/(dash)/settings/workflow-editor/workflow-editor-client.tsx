@@ -692,7 +692,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                           return (
                             <div key={idx} className="flex items-center gap-2">
                               {showDropdown ? (
-                                <select
+                                <Select
                                   value={cond.field}
                                   onChange={(e) => updateCondition(idx, { field: e.target.value })}
                                   className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
@@ -703,7 +703,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                                       {f.label} ({f.value})
                                     </option>
                                   ))}
-                                </select>
+                                </Select>
                               ) : (
                                 <input
                                   type="text"
@@ -713,7 +713,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                                   className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                                 />
                               )}
-                              <select
+                              <Select
                                 value={cond.op}
                                 onChange={(e) => updateCondition(idx, { op: e.target.value })}
                                 className="w-20 rounded-lg border border-brand-cream-3 px-2 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
@@ -723,7 +723,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                                     {op.label}
                                   </option>
                                 ))}
-                              </select>
+                              </Select>
                               <input
                                 type="text"
                                 value={cond.value}
@@ -776,7 +776,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                             {idx + 1}
                           </span>
                           <span className="text-sm text-brand-ink-2">Approver role:</span>
-                          <select
+                          <Select
                             value={step.approverRole}
                             onChange={(e) => updateStep(idx, e.target.value)}
                             className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
@@ -786,7 +786,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                                 {r}
                               </option>
                             ))}
-                          </select>
+                          </Select>
                           {form.steps.length > 1 && (
                             <button
                               type="button"

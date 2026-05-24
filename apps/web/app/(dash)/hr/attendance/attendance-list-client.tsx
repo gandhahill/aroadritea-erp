@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { forgiveLateAction } from './actions';
 import { useTranslations } from 'next-intl';
-import { TableCell, TableHead } from "@erp/ui";
+import { TableCell, TableHead, Select } from "@erp/ui";
 
 interface AttendanceRow {
   id: string;
@@ -112,7 +112,7 @@ export function AttendanceListClient({
     <div className="space-y-4">
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-brand-cream-3 bg-card p-4">
-        <select
+        <Select
           value={initialEmployeeId}
           onChange={(e) =>
             applyFilter({
@@ -130,7 +130,7 @@ export function AttendanceListClient({
               {e.label}
             </option>
           ))}
-        </select>
+        </Select>
 
         <div className="flex items-center gap-2 text-sm text-brand-ink-3">
           <span>{t('from')}</span>

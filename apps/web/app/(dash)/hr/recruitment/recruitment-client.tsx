@@ -12,7 +12,7 @@ import {
   updateOpeningStatusAction,
 } from './actions';
 import { useTranslations } from 'next-intl';
-import { Input, TableBody, TableHeader, Button } from "@erp/ui";
+import { Input, TableBody, TableHeader, Button, Select } from "@erp/ui";
 
 const STAGES: Array<
   'applied' | 'screening' | 'interview' | 'offer' | 'hired' | 'rejected' | 'withdrawn'
@@ -354,7 +354,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                     <td className="px-3 py-2 text-center">{o.applicantCount}</td>
                     <td className="px-3 py-2">
                       {canManage ? (
-                        <select
+                        <Select
                           value={o.status}
                           onChange={(e) =>
                             setOpeningStatus(o.id, e.target.value as 'draft' | 'open' | 'closed')
@@ -364,7 +364,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                           <option value="draft">Draft</option>
                           <option value="open">Open</option>
                           <option value="closed">Closed</option>
-                        </select>
+                        </Select>
                       ) : (
                         <span>{o.status}</span>
                       )}
@@ -437,7 +437,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
         <div className="mb-3 flex items-center justify-between gap-3">
           <h2 className="text-base font-semibold text-brand-ink">{t('pipeline')}</h2>
           <div className="flex gap-2">
-            <select
+            <Select
               value={openingFilter ?? ''}
               onChange={(e) => {
                 setOpeningFilter(e.target.value || null);
@@ -451,8 +451,8 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                   {o.title}
                 </option>
               ))}
-            </select>
-            <select
+            </Select>
+            <Select
               value={stageFilter ?? ''}
               onChange={(e) => {
                 setStageFilter(e.target.value || null);
@@ -466,7 +466,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                   {t(`stages.${s}`)}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -524,7 +524,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                       <td className="px-3 py-2 text-brand-ink-3">{a.appliedAt.slice(0, 10)}</td>
                       <td className="px-3 py-2">
                         {canManage ? (
-                          <select
+                          <Select
                             value={a.stage}
                             onChange={(e) =>
                               setStage(a.id, e.target.value as ApplicantRow['stage'])
@@ -536,7 +536,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                                 {t(`stages.${s}`)}
                               </option>
                             ))}
-                          </select>
+                          </Select>
                         ) : (
                           <span
                             className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${STAGE_COLOR[a.stage] ?? STAGE_COLOR.applied}`}

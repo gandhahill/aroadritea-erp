@@ -2,6 +2,7 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import { Select } from "@erp/ui";
 
 const OPTIONS = [
   { value: 'id', label: 'ID' },
@@ -22,7 +23,7 @@ export function LocaleSwitcher() {
   return (
     <label className="flex items-center gap-2 text-xs font-semibold text-brand-ink-3">
       {t('language')}
-      <select
+      <Select
         value={locale}
         onChange={(event) => changeLocale(event.target.value)}
         className="rounded-md border border-brand-cream-3 bg-brand-cream px-2 py-1.5 text-xs font-semibold text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
@@ -32,7 +33,7 @@ export function LocaleSwitcher() {
             {option.label}
           </option>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }

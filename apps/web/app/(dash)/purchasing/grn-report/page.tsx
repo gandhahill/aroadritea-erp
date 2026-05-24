@@ -5,7 +5,7 @@ import { requirePermission } from '@erp/services/iam';
 import { Pagination } from '@/components/pagination';
 import { fetchGRNReport } from '../actions';
 import Link from 'next/link';
-import { TableCell, TableBody, TableHead, Button } from "@erp/ui";
+import { TableCell, TableBody, TableHead, Button, Select } from "@erp/ui";
 import { PageHeader } from "@/components/page-header";
 
 interface Props {
@@ -72,7 +72,7 @@ export default async function GRNReportPage({ searchParams }: Props) {
             defaultValue={filterEndDate}
             className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-ember-5"
           />
-          <select
+          <Select
             name="locationId"
             defaultValue={filterLocationId}
             className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-ember-5"
@@ -81,8 +81,8 @@ export default async function GRNReportPage({ searchParams }: Props) {
             {locations.map((loc) => (
               <option key={loc.id} value={loc.id}>{loc.name}</option>
             ))}
-          </select>
-          <select
+          </Select>
+          <Select
             name="status"
             defaultValue={filterStatus}
             className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-ember-5"
@@ -90,7 +90,7 @@ export default async function GRNReportPage({ searchParams }: Props) {
             <option value="">{t('allStatus') || 'Semua Status'}</option>
             <option value="draft">{t('statusDraft') || 'Draft'}</option>
             <option value="confirmed">{t('statusConfirmed') || 'Confirmed'}</option>
-          </select>
+          </Select>
           {params?.pageSize && <input type="hidden" name="pageSize" value={params.pageSize} />}
           <Button
             type="submit"
