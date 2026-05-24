@@ -1781,7 +1781,18 @@
         "sessionDateRequired": "必须提供会话日期",
         "periodCodeRequired": "必须提供周期代码"
       },
-      "emptyTitle": "无考勤数据"
+      "emptyTitle": "无考勤数据",
+      "validationFailed": "考勤数据验证失败。",
+      "employeeTerminated": "员工已停职。",
+      "shiftNotFound": "未找到排班时间表。",
+      "alreadyCheckedIn": "您今天已经签到过了。",
+      "gpsRequired": "签到需要GPS位置数据。",
+      "gpsInaccurate": "GPS精度太低。请在开阔区域重试。",
+      "gpsLocationNotConfigured": "门店坐标位置未配置。",
+      "outsideLocationRadius": "您在允许的门店位置半径之外。",
+      "checkInFailed": "签到失败。",
+      "notFound": "未找到考勤数据。",
+      "alreadyCheckedOut": "您已经签退了。"
     },
     "leave": {
       "balances": "假期余额",
@@ -1960,6 +1971,9 @@
       "prevWeek": "上周",
       "nextWeek": "下周",
       "weekOf": "星期"
+    },
+    "employee": {
+      "notFound": "未找到员工。"
     }
   },
   "display": {

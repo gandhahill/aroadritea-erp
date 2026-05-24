@@ -1730,7 +1730,18 @@
           "noEmployeeLinked": "This account is not linked to an employee record. Contact an administrator."
         }
       },
-      "emptyTitle": "No Attendance Data"
+      "emptyTitle": "No Attendance Data",
+      "validationFailed": "Attendance data validation failed.",
+      "employeeTerminated": "Employee has been terminated.",
+      "shiftNotFound": "Shift schedule not found.",
+      "alreadyCheckedIn": "You have already checked in today.",
+      "gpsRequired": "Check-in requires GPS location data.",
+      "gpsInaccurate": "GPS accuracy is too low. Try in an open area.",
+      "gpsLocationNotConfigured": "Outlet coordinate location is not configured.",
+      "outsideLocationRadius": "You are outside the permitted outlet location radius.",
+      "checkInFailed": "Failed to check in.",
+      "notFound": "Attendance data not found.",
+      "alreadyCheckedOut": "You have already checked out."
     },
     "leave": {
       "title": "Leave",
@@ -1909,6 +1920,9 @@
       "prevWeek": "Previous week",
       "nextWeek": "Next week",
       "weekOf": "Week of"
+    },
+    "employee": {
+      "notFound": "Employee not found."
     }
   },
   "display": {

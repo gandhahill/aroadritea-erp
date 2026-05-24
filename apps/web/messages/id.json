@@ -1808,7 +1808,18 @@
           "noEmployeeLinked": "Akun ini belum terhubung ke data karyawan. Hubungi administrator."
         }
       },
-      "emptyTitle": "Data Kehadiran Kosong"
+      "emptyTitle": "Data Kehadiran Kosong",
+      "validationFailed": "Validasi data presensi gagal.",
+      "employeeTerminated": "Karyawan sudah dinonaktifkan.",
+      "shiftNotFound": "Jadwal shift tidak ditemukan.",
+      "alreadyCheckedIn": "Anda sudah melakukan check-in hari ini.",
+      "gpsRequired": "Check-in memerlukan data lokasi GPS.",
+      "gpsInaccurate": "Akurasi GPS terlalu rendah. Coba di area terbuka.",
+      "gpsLocationNotConfigured": "Lokasi koordinat outlet belum dikonfigurasi.",
+      "outsideLocationRadius": "Anda berada di luar radius lokasi outlet yang diizinkan.",
+      "checkInFailed": "Gagal melakukan check-in.",
+      "notFound": "Data presensi tidak ditemukan.",
+      "alreadyCheckedOut": "Anda sudah melakukan check-out."
     },
     "leave": {
       "title": "Cuti",
@@ -1987,6 +1998,9 @@
       "prevWeek": "Minggu sebelumnya",
       "nextWeek": "Minggu berikutnya",
       "weekOf": "Minggu"
+    },
+    "employee": {
+      "notFound": "Karyawan tidak ditemukan."
     }
   },
   "workflow": {
