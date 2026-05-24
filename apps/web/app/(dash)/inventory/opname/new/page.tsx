@@ -9,6 +9,9 @@ import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/locati
 import { getLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { NewOpnameForm } from './new-opname-form';
+import { db } from '@erp/db';
+import { accountingPeriods } from '@erp/db/schema/accounting';
+import { and, eq, inArray } from '@erp/db';
 
 export default async function NewOpnamePage() {
   const session = await getSession();
@@ -22,5 +25,24 @@ export default async function NewOpnamePage() {
   const locationOptions = await getActiveLocationOptions({ tenantId, locale, type: 'store' });
   const defaultLocationId = resolveDefaultLocationId(locationOptions, undefined, sessionLocationId);
 
-  return <NewOpnameForm locationOptions={locationOptions} defaultLocationId={defaultLocationId} />;
+  // Fetch open and closing accounting periods
+  const periods = await db
+    .select({ code: accountingPeriods.code })
+    .from(accountingPeriods)
+    .where(
+      and(
+        eq(accountingPeriods.tenantId, tenantId),
+        inArray(accountingPeriods.status, ['open', 'closing'])
+      )
+    );
+
+  const periodCodes = periods.map((p) => p.code).sort().reverse(); // Show latest first
+
+  return (
+    <NewOpnameForm 
+      locationOptions={locationOptions} 
+      defaultLocationId={defaultLocationId} 
+      activePeriodCodes={periodCodes} 
+    />
+  );
 }

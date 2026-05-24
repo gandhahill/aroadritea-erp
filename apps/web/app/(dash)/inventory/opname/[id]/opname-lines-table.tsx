@@ -11,6 +11,7 @@ import { Select } from "@erp/ui";
 
 import type { OpnameLineResult } from '@erp/services/inventory/opname-service';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
 import { recordCountAction } from '../actions';
 
@@ -47,6 +48,7 @@ function varianceClass(v: string | number | null | undefined): string {
 }
 
 export function OpnameLineTable({ lines, status, sessionId }: Props) {
+  const router = useRouter();
   const t = useTranslations('inventory.opname');
   const tKinds = useTranslations('inventory.stockPerOutlet.kinds');
   const isEditable = status === 'draft' || status === 'in_progress';
@@ -131,13 +133,14 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
           },
         ],
       });
-      setDirtyLines((prev) => {
-        const next = new Map(prev);
-        next.delete(lineId);
-        return next;
+        setDirtyLines((prev) => {
+          const next = new Map(prev);
+          next.delete(lineId);
+          return next;
+        });
+        router.refresh();
       });
-    });
-  }
+    }
 
   async function handleSaveAll() {
     const dirty = Array.from(dirtyLines.entries())
@@ -158,6 +161,7 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
     startTransition(async () => {
       await recordCountAction({ sessionId, lines: dirty });
       setDirtyLines(new Map());
+      router.refresh();
     });
   }
 

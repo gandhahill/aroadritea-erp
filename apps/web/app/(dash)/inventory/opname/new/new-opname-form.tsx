@@ -20,9 +20,10 @@ const EMPTY_FORM = {
 interface Props {
   locationOptions: Array<{ id: string; label: string; code: string }>;
   defaultLocationId: string;
+  activePeriodCodes: string[];
 }
 
-export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
+export function NewOpnameForm({ locationOptions, defaultLocationId, activePeriodCodes }: Props) {
   const router = useRouter();
   const t = useTranslations('inventory.opname.newSession');
   const actions = useTranslations('common.actions');
@@ -137,16 +138,18 @@ export function NewOpnameForm({ locationOptions, defaultLocationId }: Props) {
             <label htmlFor="periodCode" className="block text-sm font-medium text-brand-ink">
               {t('periodCode')} <span className="text-rose-500">*</span>
             </label>
-            <Input
+            <Select
               id="periodCode"
               name="periodCode"
-              type="text"
-              placeholder={t('periodPlaceholder')}
               value={form.periodCode}
               onChange={(e) => setForm((f) => ({ ...f, periodCode: e.target.value }))}
               required
-             
-            />
+            >
+              <option value="">{t('periodPlaceholder')}</option>
+              {activePeriodCodes.map(code => (
+                <option key={code} value={code}>{code}</option>
+              ))}
+            </Select>
             <p className="text-xs text-brand-ink-3">{t('periodHint')}</p>
           </div>
 
