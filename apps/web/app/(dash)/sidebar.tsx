@@ -9,7 +9,7 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface NavItem {
   label: string;
@@ -23,6 +23,18 @@ export function Sidebar() {
   const t = useTranslations('nav');
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (navRef.current) {
+      setTimeout(() => {
+        const activeEl = navRef.current?.querySelector('[data-active="true"]');
+        if (activeEl) {
+          activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 100);
+    }
+  }, [pathname, isCollapsed]);
 
   const NAV_ITEMS: NavItem[] = [
     {
@@ -430,7 +442,7 @@ export function Sidebar() {
       )}
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 overflow-x-hidden">
+      <nav ref={navRef} className="flex-1 overflow-y-auto py-3 px-2 overflow-x-hidden">
         <ul className="space-y-0.5">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname.startsWith(item.href);
