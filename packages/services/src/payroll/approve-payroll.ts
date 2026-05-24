@@ -11,7 +11,6 @@
 
 import { db } from '@erp/db';
 import { accounts } from '@erp/db/schema/accounting';
-import { auditLog } from '@erp/db/schema/audit';
 import { payrollLines, payrolls, salaryComponents } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -21,6 +20,7 @@ import { and, eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { createJournal } from '../accounting/create-journal';
 import { requirePermission } from '../iam';
+import { auditRecord } from "../audit";
 
 export const ApprovePayrollInputSchema = z.object({
   payrollId: z.string().min(1),
@@ -200,23 +200,21 @@ export async function approvePayroll(
       throw AppError.conflict('hr.payroll.cannotApprove', { status: payroll.status });
     }
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'approve',
-      entityType: 'payroll',
-      entityId: data.payrollId,
-      before: { status: payroll.status },
-      after: {
-        status: 'approved',
-        approvedBy: ctx.userId,
-        journalEntryId: journalResult.value.id,
-        totalEarnings: payroll.totalEarnings.toString(),
-        totalNet: payroll.totalNet.toString(),
-      },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'approve',
+        entityType: 'payroll',
+        entityId: data.payrollId,
+        before: { status: payroll.status },
+        after: {
+              status: 'approved',
+              approvedBy: ctx.userId,
+              journalEntryId: journalResult.value.id,
+              totalEarnings: payroll.totalEarnings.toString(),
+              totalNet: payroll.totalNet.toString(),
+            },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({ payrollId: data.payrollId, journalEntryId: journalResult.value.id });
   } catch (e) {
@@ -260,17 +258,15 @@ export async function markPayrollPaid(
       throw AppError.conflict('hr.payroll.cannotMarkPaid', { status: payroll.status });
     }
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'mark_paid',
-      entityType: 'payroll',
-      entityId: input.payrollId,
-      before: { status: 'approved' },
-      after: { status: 'paid' },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'mark_paid',
+        entityType: 'payroll',
+        entityId: input.payrollId,
+        before: { status: 'approved' },
+        after: { status: 'paid' },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({ payrollId: input.payrollId });
   } catch (e) {

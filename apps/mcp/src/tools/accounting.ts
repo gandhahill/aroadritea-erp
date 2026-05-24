@@ -351,11 +351,11 @@ const DepreciationMethodMcpSchema = z.enum([
 ]);
 
 export const ListFixedAssetCategoriesSchema = z.object({
-  location_id: z.string().optional(),
+  location_id: z.string().min(1, 'location_id is required for MCP access'),
 });
 
 export const ListFixedAssetsMcpSchema = z.object({
-  location_id: z.string().optional(),
+  location_id: z.string().min(1, 'location_id is required for MCP access'),
   status: z.enum(['active', 'fully_depreciated', 'disposed']).optional(),
   limit: z.number().int().min(1).max(200).optional().default(100),
   offset: z.number().int().min(0).optional().default(0),

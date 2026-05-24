@@ -162,6 +162,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
         amount,
         description: expenseDescInput.trim(),
         attachmentUrl: expenseAttachmentUrl || undefined,
+        idempotencyKey: crypto.randomUUID(),
       });
       if (result.ok) {
         setShowExpenseModal(false);

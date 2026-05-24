@@ -18,7 +18,7 @@ export const InventoryListProductsSchema = z.object({
 
 export const InventoryGetStockSchema = z.object({
   product_id: z.string(),
-  location_id: z.string().optional(),
+  location_id: z.string().min(1, 'location_id is required for MCP access'),
 });
 
 export const InventoryAdjustSchema = z.object({
@@ -511,7 +511,7 @@ export const HRCreateEmployeeSchema = z.object({
 export const HRListEmployeesSchema = z.object({
   status: z.enum(['probation', 'active', 'on_leave', 'terminated']).optional(),
   department: z.string().optional(),
-  location_id: z.string().optional(),
+  location_id: z.string().min(1, 'location_id is required for MCP access'),
   search: z.string().optional(),
   limit: z.number().int().min(1).max(200).optional().default(50),
   offset: z.number().int().min(0).optional().default(0),

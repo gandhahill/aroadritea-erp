@@ -11,7 +11,6 @@
  */
 
 import { db } from '@erp/db';
-import { auditLog } from '@erp/db/schema/audit';
 import { disciplinaryActions } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -20,6 +19,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { requirePermission } from '../iam';
+import { auditRecord } from "../audit";
 
 // ─── Schema ─────────────────────────────────────────────────────────────────
 
@@ -91,24 +91,22 @@ export async function createDisciplinaryAction(
     // SP1/SP2/SP3 affect labor records that may lead to termination,
     // so the issuance MUST be on the immutable audit log (ISO 38500 +
     // UU Cipta Kerja documentation requirements).
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'create',
-      entityType: 'disciplinary_action',
-      entityId: id,
-      before: null,
-      after: {
-        employeeId: data.employeeId,
-        level: data.level,
-        reason: data.reason,
-        incidentDate: data.incidentDate,
-        status: 'issued',
-        issuedBy: ctx.userId,
-      },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'create',
+        entityType: 'disciplinary_action',
+        entityId: id,
+        before: null,
+        after: {
+              employeeId: data.employeeId,
+              level: data.level,
+              reason: data.reason,
+              incidentDate: data.incidentDate,
+              status: 'issued',
+              issuedBy: ctx.userId,
+            },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({ id, employeeId: data.employeeId, level: data.level, status: 'issued' });
   } catch (e) {
@@ -165,6 +163,7 @@ export async function acknowledgeDisciplinaryAction(
       })
       .where(
         and(
+          eq(disciplinaryActions.tenantId, ctx.tenantId),
           eq(disciplinaryActions.id, data.disciplinaryId),
           eq(disciplinaryActions.status, 'issued'),
         ),
@@ -178,17 +177,15 @@ export async function acknowledgeDisciplinaryAction(
       );
     }
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'acknowledge',
-      entityType: 'disciplinary_action',
-      entityId: data.disciplinaryId,
-      before: { status: action.status },
-      after: { status: 'acknowledged', acknowledgedBy: ctx.userId },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'acknowledge',
+        entityType: 'disciplinary_action',
+        entityId: data.disciplinaryId,
+        before: { status: action.status },
+        after: { status: 'acknowledged', acknowledgedBy: ctx.userId },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({ id: data.disciplinaryId, status: 'acknowledged' });
   } catch (e) {
@@ -285,19 +282,22 @@ export async function attachDocument(
         attachmentUrl: input.attachmentUrl,
         updatedBy: ctx.userId,
       })
-      .where(eq(disciplinaryActions.id, input.disciplinaryId));
+      .where(
+        and(
+          eq(disciplinaryActions.tenantId, ctx.tenantId),
+          eq(disciplinaryActions.id, input.disciplinaryId)
+        )
+      );
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'update',
-      entityType: 'disciplinary_action',
-      entityId: input.disciplinaryId,
-      before: { attachmentUrl: action.attachmentUrl },
-      after: { attachmentUrl: input.attachmentUrl },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'update',
+        entityType: 'disciplinary_action',
+        entityId: input.disciplinaryId,
+        before: { attachmentUrl: action.attachmentUrl },
+        after: { attachmentUrl: input.attachmentUrl },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({ id: input.disciplinaryId, attachmentUrl: input.attachmentUrl });
   } catch (e) {

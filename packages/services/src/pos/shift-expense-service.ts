@@ -17,6 +17,7 @@ import {
   type ApproveShiftExpenseInput,
   ApproveShiftExpenseInputSchema,
 } from './schemas';
+import { auditRecord } from "../audit";
 
 /**
  * Record an expense out of the cashier drawer.
@@ -238,19 +239,22 @@ export async function approveShiftExpense(
           updatedBy: ctx.userId,
           updatedAt: new Date(),
         })
-        .where(eq(shiftExpenses.id, expense.id));
+        .where(
+          and(
+            eq(shiftExpenses.tenantId, ctx.tenantId),
+            eq(shiftExpenses.id, expense.id)
+          )
+        );
 
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'update',
-        entityType: 'shift_expense',
-        entityId: expense.id,
-        before: expense,
-        after: { ...expense, status: 'journaled', accountId, journalEntryId: journalRes.value.id },
-        metadata: { ipAddress: ctx.ipAddress, userAgent: ctx.userAgent },
-      });
+      await auditRecord({
+            action: 'update',
+            entityType: 'shift_expense',
+            entityId: expense.id,
+            before: expense,
+            after: { ...expense, status: 'journaled', accountId, journalEntryId: journalRes.value.id },
+            metadata: { ipAddress: ctx.ipAddress, userAgent: ctx.userAgent },
+            ctx,
+          });
 
       return { id: expense.id, journalEntryId: journalRes.value.id };
     },

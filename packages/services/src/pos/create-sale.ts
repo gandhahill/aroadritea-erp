@@ -65,6 +65,7 @@ import { createJournal } from '../accounting/create-journal';
 import { earnLoyaltyPoints } from '../crm';
 import { requirePermission } from '../iam';
 import { notifyByPermission } from '../notification';
+import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
 import { type DonationResult, type RoundingOption, calculateDonation } from './donation';
 import {
   CreateSaleInputSchema,
@@ -745,41 +746,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     }
 
     // 4. Idempotency check — prevent duplicate from offline sync
-    const existingIdempotency = await db
-      .select()
-      .from(idempotencyRecords)
-      .where(
-        and(
-          eq(idempotencyRecords.locationId, data.locationId),
-          eq(idempotencyRecords.idempotencyKey, data.idempotencyKey),
-        ),
-      )
-      .then((r) => r[0]);
-
-    if (existingIdempotency) {
-      // If the previous attempt failed with a 5xx error, allow retry
-      if (existingIdempotency.responseStatus >= 500) {
-        // We will overwrite the old idempotency record later
-      } else {
-        // Return cached response
-        const cachedBody = existingIdempotency.responseBody as { id: string } | null;
-        if (cachedBody?.id) {
-          return err(
-            AppError.conflict('pos.createSale.duplicateOrder', {
-              existingOrderId: cachedBody.id,
-            }),
-          );
-        }
-        return err(
-          AppError.conflict('pos.createSale.idempotencyInProgress', {
-            idempotencyKey: data.idempotencyKey,
-            responseStatus: existingIdempotency.responseStatus,
-          }),
-        );
-      }
-    }
-
-    // 5. Validate products/variants
+    // Will be claimed properly later after validations.
     const productIds = [...new Set(data.lines.map((l) => l.productId))];
     const foundProducts = await db
       .select({
@@ -979,33 +946,22 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     const saleNumber = await generateSaleNumber(ctx.tenantId, data.locationId);
 
     // 9. Claim idempotency before any stock/order/accounting mutation.
-    const expiryAt = new Date();
-    expiryAt.setHours(expiryAt.getHours() + 24);
-    const idempotencyId = generateId();
-    const claimRows = await db
-      .insert(idempotencyRecords)
-      .values({
-        id: idempotencyId,
-        idempotencyKey: data.idempotencyKey,
-        locationId: data.locationId,
-        responseStatus: 102,
-        responseBody: { status: 'processing' } as never,
-        createdAt: new Date(),
-        expiresAt: expiryAt,
-      })
-      .onConflictDoNothing({
-        target: [idempotencyRecords.idempotencyKey, idempotencyRecords.locationId],
-      })
-      .returning({ id: idempotencyRecords.id });
-
-    if (!claimRows[0]) {
-      return err(
-        AppError.conflict('pos.createSale.idempotencyInProgress', {
-          idempotencyKey: data.idempotencyKey,
-        }),
-      );
+    const claimResult = await claimIdempotency(data.locationId, data.idempotencyKey, 'pos.createSale');
+    if (!claimResult.ok) {
+      // Fallback check: if duplicateRequest, preserve original error signature
+      if (claimResult.error.messageKey === 'pos.createSale.duplicateRequest') {
+        const details = claimResult.error.details as { cachedResponse?: { id: string } };
+        if (details.cachedResponse?.id) {
+          return err(
+            AppError.conflict('pos.createSale.duplicateOrder', {
+              existingOrderId: details.cachedResponse.id,
+            }),
+          );
+        }
+      }
+      return err(claimResult.error);
     }
-    claimedIdempotencyId = idempotencyId;
+    claimedIdempotencyId = claimResult.value.id;
 
     // 10. BOM ingredient deduction (for all non-service lines)
     for (const line of data.lines) {
@@ -1228,14 +1184,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       await rollbackAppliedStockDeductions();
       return err(AppError.internal('pos.createSale.idempotencyClaimMissing'));
     }
-    await db
-      .update(idempotencyRecords)
-      .set({
-        responseStatus: 200,
-        responseBody: { id: saleId } as never,
-        expiresAt: expiryAt,
-      })
-      .where(eq(idempotencyRecords.id, claimedIdempotencyId));
+    await releaseIdempotencyClaim(claimedIdempotencyId, 200, { id: saleId });
     claimedIdempotencyId = null;
 
     // 15. Audit log
@@ -1323,17 +1272,21 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     };
 
     return ok(result);
-  } catch (e) {
+  } catch (e: any) {
     await rollbackAppliedStockDeductions().catch(() => undefined);
     await rollbackSaleData();
+    if (e instanceof Error || typeof e === 'object') {
+      const errObj = e as any;
+      if (errObj.code === '23514' || (errObj.message && errObj.message.includes('stock_levels_qty_check'))) {
+        if (claimedIdempotencyId) {
+          await releaseIdempotencyClaim(claimedIdempotencyId, 400, { error: 'insufficient_stock' });
+        }
+        return err(AppError.businessRule('pos.createSale.insufficientStock'));
+      }
+    }
+
     if (claimedIdempotencyId) {
-      await db
-        .update(idempotencyRecords)
-        .set({
-          responseStatus: 500,
-          responseBody: { error: 'sale_create_failed' } as never,
-        })
-        .where(eq(idempotencyRecords.id, claimedIdempotencyId));
+      await releaseIdempotencyClaim(claimedIdempotencyId, 500, { error: 'sale_create_failed' });
     }
     return err(AppError.internal('pos.createSale.failed', e));
   }

@@ -6,7 +6,6 @@
  */
 
 import { db } from '@erp/db';
-import { auditLog } from '@erp/db/schema/audit';
 import { roles, userRoles, users } from '@erp/db/schema/auth';
 import { employees } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
@@ -16,8 +15,9 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
 import { hashPassword } from '../auth/password';
 import { requirePermission } from '../iam';
-import { encryptPii } from '../security/pii';
+import { encryptPii, encryptPiiForLookup } from '../security/pii';
 import { type CreateEmployeeInput, CreateEmployeeInputSchema } from './schemas';
+import { auditRecord } from "../audit";
 
 export async function createEmployee(
   input: CreateEmployeeInput,
@@ -61,7 +61,7 @@ export async function createEmployee(
           updatedBy: ctx.userId,
           nik: encryptPii(data.nik, 'employees.nik') ?? '',
           name: data.name,
-          email: data.email,
+          email: encryptPiiForLookup(data.email, 'employees.email') ?? '',
           phone: encryptPii(data.phone, 'employees.phone'),
           address: encryptPii(data.address, 'employees.address'),
           status: 'probation',
@@ -134,26 +134,24 @@ export async function createEmployee(
       // raw PII fields here; the before/after diff comes from the
       // encrypted values stored in the row. We only persist a short
       // summary that's safe to display in the audit-trail UI.
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'create',
-        entityType: 'employee',
-        entityId: emp.id,
-        before: null,
-        after: {
-          name: data.name,
-          email: data.email,
-          position: data.position,
-          department: data.department ?? null,
-          contractType: data.contractType,
-          hireDate: data.hireDate,
-          locationId: targetLocationId,
-          loginScope: data.password && data.roleCode ? data.loginScope : null,
-        },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      });
+      await auditRecord({
+            action: 'create',
+            entityType: 'employee',
+            entityId: emp.id,
+            before: null,
+            after: {
+                    name: data.name,
+                    email: data.email,
+                    position: data.position,
+                    department: data.department ?? null,
+                    contractType: data.contractType,
+                    hireDate: data.hireDate,
+                    locationId: targetLocationId,
+                    loginScope: data.password && data.roleCode ? data.loginScope : null,
+                  },
+            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+            ctx,
+          });
 
       return { id: emp.id };
     },

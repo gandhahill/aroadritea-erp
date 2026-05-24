@@ -7,7 +7,7 @@ import {
   cmsRevisions,
   cmsSettings,
 } from '@erp/db/schema/cms';
-import { auditLog } from '@erp/db/schema/audit';
+import { requirePermission } from '../iam';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -19,6 +19,7 @@ import type { AuditContext } from '@erp/shared/types';
  */
 import { and, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { auditRecord } from "../audit";
 
 // ─── Shared schemas ──────────────────────────────────────────────────────────
 
@@ -197,6 +198,11 @@ export async function createPage(
   input: CreatePageInput,
   ctx: AuditContext,
 ): Promise<Result<{ id: string }>> {
+  const permCheck = await requirePermission(ctx.userId, 'cms.manage', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
   const parsed = CreatePageSchema.safeParse(input);
   if (!parsed.success) {
     return err(AppError.validation('cms.page.validationFailed', { issues: parsed.error.issues }));
@@ -210,22 +216,20 @@ export async function createPage(
       updatedBy: ctx.userId,
     });
 
-    await db.insert(auditLog).values({
-      id: crypto.randomUUID(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'create',
-      entityType: 'cms_page',
-      entityId: newId,
-      before: null,
-      after: {
-        id: newId,
-        slug: parsed.data.slug,
-        title: parsed.data.title,
-        status: parsed.data.status,
-      },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'create',
+        entityType: 'cms_page',
+        entityId: newId,
+        before: null,
+        after: {
+              id: newId,
+              slug: parsed.data.slug,
+              title: parsed.data.title,
+              status: parsed.data.status,
+            },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({ id: newId });
   } catch (e) {
@@ -238,6 +242,11 @@ export async function updatePage(
   input: UpdatePageInput,
   ctx: AuditContext,
 ): Promise<Result<{ id: string }>> {
+  const permCheck = await requirePermission(ctx.userId, 'cms.manage', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
   const parsed = UpdatePageSchema.safeParse(input);
   if (!parsed.success) {
     return err(AppError.validation('cms.page.validationFailed', { issues: parsed.error.issues }));
@@ -251,17 +260,15 @@ export async function updatePage(
       .returning({ id: cmsPages.id });
     if (claimed.length === 0) return err(AppError.notFound('cms.page.notFound'));
 
-    await db.insert(auditLog).values({
-      id: crypto.randomUUID(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'update',
-      entityType: 'cms_page',
-      entityId: id,
-      before: null,
-      after: { id, ...data },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'update',
+        entityType: 'cms_page',
+        entityId: id,
+        before: null,
+        after: { id, ...data },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({ id });
   } catch (e) {
@@ -274,6 +281,11 @@ export async function publishPage(
   input: PublishPageInput,
   ctx: AuditContext,
 ): Promise<Result<{ id: string; status: string }>> {
+  const permCheck = await requirePermission(ctx.userId, 'cms.manage', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
   const parsed = PublishPageSchema.safeParse(input);
   if (!parsed.success) {
     return err(AppError.validation('cms.page.validationFailed', { issues: parsed.error.issues }));
@@ -288,17 +300,15 @@ export async function publishPage(
       .returning({ id: cmsPages.id });
     if (claimed.length === 0) return err(AppError.notFound('cms.page.notFound'));
 
-    await db.insert(auditLog).values({
-      id: crypto.randomUUID(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'update',
-      entityType: 'cms_page',
-      entityId: id,
-      before: null,
-      after: { id, status: newStatus },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'update',
+        entityType: 'cms_page',
+        entityId: id,
+        before: null,
+        after: { id, status: newStatus },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({ id, status: newStatus });
   } catch (e) {
@@ -308,6 +318,11 @@ export async function publishPage(
 
 /** Soft-delete a CMS page. */
 export async function deletePage(id: string, ctx: AuditContext): Promise<Result<void>> {
+  const permCheck = await requirePermission(ctx.userId, 'cms.manage', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
   try {
     // Tenant-scope the archive — without it any authenticated user could
     // archive another tenant's CMS page by guessing its UUID.
@@ -320,17 +335,15 @@ export async function deletePage(id: string, ctx: AuditContext): Promise<Result<
       return err(AppError.notFound('cms.page.notFound'));
     }
 
-    await db.insert(auditLog).values({
-      id: crypto.randomUUID(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'delete',
-      entityType: 'cms_page',
-      entityId: id,
-      before: null,
-      after: { id, status: 'archived' },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'delete',
+        entityType: 'cms_page',
+        entityId: id,
+        before: null,
+        after: { id, status: 'archived' },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok(undefined);
   } catch (e) {
@@ -434,6 +447,11 @@ export async function createPost(
   input: CreatePostInput,
   ctx: AuditContext,
 ): Promise<Result<{ id: string }>> {
+  const permCheck = await requirePermission(ctx.userId, 'cms.manage', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
   const parsed = CreatePostSchema.safeParse(input);
   if (!parsed.success) {
     return err(AppError.validation('cms.post.validationFailed', { issues: parsed.error.issues }));
@@ -448,22 +466,20 @@ export async function createPost(
       updatedBy: ctx.userId,
     });
 
-    await db.insert(auditLog).values({
-      id: crypto.randomUUID(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'create',
-      entityType: 'cms_post',
-      entityId: newId,
-      before: null,
-      after: {
-        id: newId,
-        slug: parsed.data.slug,
-        title: parsed.data.title,
-        status: parsed.data.status,
-      },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'create',
+        entityType: 'cms_post',
+        entityId: newId,
+        before: null,
+        after: {
+              id: newId,
+              slug: parsed.data.slug,
+              title: parsed.data.title,
+              status: parsed.data.status,
+            },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({ id: newId });
   } catch (e) {
@@ -476,6 +492,11 @@ export async function updatePost(
   input: UpdatePostInput,
   ctx: AuditContext,
 ): Promise<Result<{ id: string }>> {
+  const permCheck = await requirePermission(ctx.userId, 'cms.manage', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
   const parsed = UpdatePostSchema.safeParse(input);
   if (!parsed.success) {
     return err(AppError.validation('cms.post.validationFailed', { issues: parsed.error.issues }));
@@ -489,17 +510,15 @@ export async function updatePost(
       .returning({ id: cmsPosts.id });
     if (claimed.length === 0) return err(AppError.notFound('cms.post.notFound'));
 
-    await db.insert(auditLog).values({
-      id: crypto.randomUUID(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'update',
-      entityType: 'cms_post',
-      entityId: id,
-      before: null,
-      after: { id, ...data },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'update',
+        entityType: 'cms_post',
+        entityId: id,
+        before: null,
+        after: { id, ...data },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({ id });
   } catch (e) {
@@ -512,6 +531,11 @@ export async function publishPost(
   input: PublishPostInput,
   ctx: AuditContext,
 ): Promise<Result<{ id: string; status: string }>> {
+  const permCheck = await requirePermission(ctx.userId, 'cms.manage', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
   const parsed = PublishPostSchema.safeParse(input);
   if (!parsed.success) {
     return err(AppError.validation('cms.post.validationFailed', { issues: parsed.error.issues }));
@@ -526,17 +550,15 @@ export async function publishPost(
       .returning({ id: cmsPosts.id });
     if (claimed.length === 0) return err(AppError.notFound('cms.post.notFound'));
 
-    await db.insert(auditLog).values({
-      id: crypto.randomUUID(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'update',
-      entityType: 'cms_post',
-      entityId: id,
-      before: null,
-      after: { id, status: newStatus },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'update',
+        entityType: 'cms_post',
+        entityId: id,
+        before: null,
+        after: { id, status: newStatus },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({ id, status: newStatus });
   } catch (e) {
@@ -546,6 +568,11 @@ export async function publishPost(
 
 /** Soft-delete a blog post (tenant-scoped). */
 export async function deletePost(id: string, ctx: AuditContext): Promise<Result<void>> {
+  const permCheck = await requirePermission(ctx.userId, 'cms.manage', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
   try {
     const claimed = await db
       .update(cmsPosts)
@@ -556,17 +583,15 @@ export async function deletePost(id: string, ctx: AuditContext): Promise<Result<
       return err(AppError.notFound('cms.post.notFound'));
     }
 
-    await db.insert(auditLog).values({
-      id: crypto.randomUUID(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'delete',
-      entityType: 'cms_post',
-      entityId: id,
-      before: null,
-      after: { id, status: 'archived' },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'delete',
+        entityType: 'cms_post',
+        entityId: id,
+        before: null,
+        after: { id, status: 'archived' },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok(undefined);
   } catch (e) {
@@ -645,6 +670,11 @@ export async function setSetting(
   value: unknown,
   ctx: AuditContext,
 ): Promise<Result<void>> {
+  const permCheck = await requirePermission(ctx.userId, 'cms.manage', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
   try {
     const existing = await db
       .select({ id: cmsSettings.id })

@@ -141,6 +141,7 @@ export async function createManualSalesAction(
       transactionCount: intValue(formData, 'transactionCount'),
       sourceReference: text(formData, 'sourceReference') || undefined,
       notes: text(formData, 'notes') || undefined,
+      idempotencyKey: crypto.randomUUID(),
     },
     ctx,
   );

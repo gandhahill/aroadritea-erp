@@ -98,3 +98,14 @@ export {
   auditTools,
   AuditSearchSchema,
 } from './phase2';
+
+export {
+  phase3Tools,
+  CMSListPagesSchema,
+  CMSListFaqsSchema,
+  CMSUpdateSettingSchema,
+  InventoryCreateOpnameSchema,
+  InventoryTransferStockSchema,
+  POSLogExpenseSchema,
+  HRListWhistleblowerSchema,
+} from './phase3';

@@ -29,6 +29,7 @@ import {
   text,
   timestamp,
   uniqueIndex,
+  check,
 } from 'drizzle-orm/pg-core';
 import { auditCols, isActiveFlag, locationCol, pk, tenantCol, versionCol } from './common';
 
@@ -397,6 +398,8 @@ export const stockLevels = pgTable(
     ),
     index('stock_levels_product_idx').on(t.productId),
     index('stock_levels_low_stock_idx').on(t.tenantId, t.productId),
+    check('stock_levels_qty_check', sql`${t.qtyOnHand} >= 0`),
+    check('stock_levels_available_check', sql`${t.qtyAvailable} >= 0`),
   ],
 );
 

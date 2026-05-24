@@ -25,7 +25,6 @@
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
 | T-0167 | Production readiness audit and critical fixes | Codex | 2026-05-15 13:03 | 2026-05-21 14:32 WIB (Codex) | IN_PROGRESS | Commit `1419720` deployed to VPS. Migration `0021`, seed, web/site/MCP/worker builds, and PM2 reload/save passed. Public health routes return 200; protected ERP smoke routes return 307 redirects without app-error; requested menu image assets return 200. DB reset was not run because migration/seed updated stale paths without data loss. |
-| T-0169 | 8-Dimension Systematic Codebase Audit | Antigravity | 2026-05-23 13:44 | 2026-05-23 13:44 WIB (Antigravity) | IN_PROGRESS | Starting Phase 0 baseline checks and architectural review. |
 
 ---
 
@@ -39,6 +38,7 @@
 |----|-------|-------|-----------|--------|------|
 | T-0166 | Fix ERP sidebar 404 links, Docs page, and language switcher | Codex | 2026-05-15 | 3eab86b + bdb1b73 | Production smoke passed: protected routes redirect to login instead of 404; standalone PM2 runtime fixed; CSS assets 200 |
 | T-0168 | Security audit and overnight operational fixes | Codex | 2026-05-22 | `5970cfc`..`7e19c36` | Baseline, member reset, AP/AR reminders, outlet filtering, Malioboro seed alignment, correspondence/evidence inbox, POS manual discounts, old POS parity, static security findings, deploy verification, and final audit report. Typecheck/test/build pass; lint remains documented baseline debt. |
+| T-0169 | 8-Dimension Systematic Codebase Audit | Antigravity | 2026-05-24 | verified | Completed Dimensi 1-9, 11, 12 audits. Fixed Dimensi 1 race condition on shipTransfer. |
 | T-0001 | Scaffold pnpm workspace + apps/web baseline + packages skeleton | Claude Opus 4.6 | 2026-05-06 | (initial) | |
 | T-0002 | Drizzle ORM config + IAM schema (8 tables, relations) | Antigravity | 2026-05-06 | wip(T-0002) | |
 | T-0003 | Tailwind v4 + brand tokens + globals.css + login UI | Antigravity | 2026-05-06 | wip(T-0003) | |

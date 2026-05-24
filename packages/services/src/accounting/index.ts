@@ -31,7 +31,7 @@ export {
   type OpenPeriodInput,
   type GetPeriodStatusInput,
 } from './schemas';
-export { generateJournalNumber } from './number-generator';
+export { generateJournalNumber } from '../shared/number-generator';
 export {
   getPettyCashBalance,
   listPettyCashTransactions,

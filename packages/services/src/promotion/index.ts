@@ -1,4 +1,4 @@
-import { auditLog, db, promotions } from '@erp/db';
+import { db, promotions } from '@erp/db';
 import type {
   PromotionBenefitConfig,
   PromotionConditionConfig,
@@ -12,6 +12,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { requirePermission } from '../iam';
+import { auditRecord } from "../audit";
 
 const LocaleNameSchema = z.object({
   id: z.string().min(1).max(160),
@@ -212,17 +213,14 @@ export async function upsertPromotion(
       .returning();
     if (!updated) return err(AppError.internal('promotion.upsert.updateFailed'));
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'update',
-      entityType: 'promotion',
-      entityId: data.id,
-      before,
-      after: updated,
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'update',
+        entityType: 'promotion',
+        entityId: data.id,
+        after: updated,
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok(toPromotionListItem(updated));
   }
@@ -252,17 +250,15 @@ export async function upsertPromotion(
     .returning();
   if (!created) return err(AppError.internal('promotion.upsert.createFailed'));
 
-  await db.insert(auditLog).values({
-    id: generateId(),
-    tenantId: ctx.tenantId,
-    userId: ctx.userId,
-    action: 'create',
-    entityType: 'promotion',
-    entityId: created.id,
-    before: null,
-    after: created,
-    metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-  });
+  await auditRecord({
+      action: 'create',
+      entityType: 'promotion',
+      entityId: created.id,
+      before: null,
+      after: created,
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
   return ok(toPromotionListItem(created));
 }

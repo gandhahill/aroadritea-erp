@@ -6,7 +6,6 @@
  */
 
 import { db } from '@erp/db';
-import { auditLog } from '@erp/db/schema/audit';
 import { products } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -14,6 +13,7 @@ import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
+import { auditRecord } from "../audit";
 
 async function toggleProductActive(
   productId: string,
@@ -60,17 +60,15 @@ async function toggleProductActive(
         return { id: productId };
       }
 
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: active ? 'reactivate' : 'deactivate',
-        entityType: 'product',
-        entityId: productId,
-        before: { isActive: !active },
-        after: { isActive: active },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      });
+      await auditRecord({
+            action: active ? 'reactivate' : 'deactivate',
+            entityType: 'product',
+            entityId: productId,
+            before: { isActive: !active },
+            after: { isActive: active },
+            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+            ctx,
+          });
 
       return { id: updated.id };
     },

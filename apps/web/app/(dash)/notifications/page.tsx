@@ -32,10 +32,9 @@ export default async function NotificationsPage() {
   }
 
   function getKindLabel(kind: string): string {
-    const validKinds = ['leave', 'po', 'opname', 'attendance', 'shift', 'payroll', 'recruitment'];
-    if (validKinds.includes(kind)) {
-      // @ts-ignore dynamic keys
-      return t(`kinds.${kind}`);
+    const validKinds = ['leave', 'po', 'opname', 'attendance', 'shift', 'payroll', 'recruitment'] as const;
+    if (validKinds.includes(kind as any)) {
+      return t(`kinds.${kind}` as Parameters<typeof t>[0]);
     }
     return kind;
   }

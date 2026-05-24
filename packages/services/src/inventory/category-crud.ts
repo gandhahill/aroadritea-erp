@@ -6,7 +6,6 @@
  */
 
 import { db } from '@erp/db';
-import { auditLog } from '@erp/db/schema/audit';
 import { productCategories } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -20,6 +19,7 @@ import {
   type UpdateCategoryInput,
   UpdateCategoryInputSchema,
 } from './schemas';
+import { auditRecord } from "../audit";
 
 // --- Types ---
 
@@ -99,17 +99,15 @@ export async function createCategory(
         updatedBy: ctx.userId,
       });
 
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'create',
-        entityType: 'product_category',
-        entityId: categoryId,
-        before: null,
-        after: { id: categoryId, code: data.code, name: data.name },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      });
+      await auditRecord({
+            action: 'create',
+            entityType: 'product_category',
+            entityId: categoryId,
+            before: null,
+            after: { id: categoryId, code: data.code, name: data.name },
+            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+            ctx,
+          });
 
       return {
         id: categoryId,
@@ -189,17 +187,15 @@ export async function updateCategory(
       const auditAction =
         data.isActive === false && existing.isActive === true ? 'delete' : 'update';
 
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: auditAction,
-        entityType: 'product_category',
-        entityId: data.categoryId,
-        before: { code: existing.code, name: existing.name, isActive: existing.isActive },
-        after: updates,
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      });
+      await auditRecord({
+            action: auditAction,
+            entityType: 'product_category',
+            entityId: data.categoryId,
+            before: { code: existing.code, name: existing.name, isActive: existing.isActive },
+            after: updates,
+            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+            ctx,
+          });
 
       return {
         id: updated.id,

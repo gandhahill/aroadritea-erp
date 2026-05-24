@@ -1,12 +1,12 @@
 import { db } from '@erp/db';
 import { accounts, journalEntries, taxRates } from '@erp/db/schema/accounting';
-import { auditLog } from '@erp/db/schema/audit';
 import { posSettings } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, sql } from 'drizzle-orm';
+import { auditRecord } from "../audit";
 
 const DEFAULT_PB1_TAX_CODE = 'PB1';
 const DEFAULT_CASH_ACCOUNT_CODE = '1-1300';
@@ -192,25 +192,23 @@ export async function autoPostJournalEntry(
     return err(AppError.conflict('pos.posting.journalAutoPostFailed', { journalEntryId }));
   }
 
-  await db.insert(auditLog).values({
-    id: generateId(),
-    tenantId: ctx.tenantId,
-    userId: ctx.userId,
-    action: 'post',
-    entityType: 'journal_entry',
-    entityId: journalEntryId,
-    before: { status: 'draft' },
-    after: {
-      status: 'posted',
-      postedAt: postedAt.toISOString(),
-      postedBy: ctx.userId,
-    },
-    metadata: {
-      ip: ctx.ipAddress ?? null,
-      userAgent: ctx.userAgent ?? null,
-      source,
-    },
-  });
+  await auditRecord({
+      action: 'post',
+      entityType: 'journal_entry',
+      entityId: journalEntryId,
+      before: { status: 'draft' },
+      after: {
+          status: 'posted',
+          postedAt: postedAt.toISOString(),
+          postedBy: ctx.userId,
+        },
+      metadata: {
+          ip: ctx.ipAddress ?? null,
+          userAgent: ctx.userAgent ?? null,
+          source,
+        },
+      ctx,
+    });
 
   return ok(undefined);
 }

@@ -7,7 +7,6 @@
  */
 
 import { db } from '@erp/db';
-import { auditLog } from '@erp/db/schema/audit';
 import {
   bomLines,
   bomSubstitutes,
@@ -32,6 +31,7 @@ import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
+import { auditRecord } from "../audit";
 
 async function exists(label: string, query: PromiseLike<unknown[]>): Promise<string | null> {
   const rows = await query;
@@ -222,17 +222,15 @@ export async function deleteProductPermanently(
         .delete(products)
         .where(and(eq(products.id, productId), eq(products.tenantId, ctx.tenantId)));
 
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'delete',
-        entityType: 'product',
-        entityId: productId,
-        before: { id: product.id, sku: product.sku, name: product.name },
-        after: null,
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      });
+      await auditRecord({
+            action: 'delete',
+            entityType: 'product',
+            entityId: productId,
+            before: { id: product.id, sku: product.sku, name: product.name },
+            after: null,
+            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+            ctx,
+          });
 
       return { id: productId };
     },

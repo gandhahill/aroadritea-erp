@@ -6,8 +6,9 @@
  * - complaint_compensations   — compensation awarded per complaint
  */
 
-import { index, pgTable } from 'drizzle-orm/pg-core';
+import { check, index, pgTable } from 'drizzle-orm/pg-core';
 import { bigint, integer, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { auditCols, locationCol, pk, tenantCol } from './common';
 
 // ─── complaints ─────────────────────────────────────────────────────────────
@@ -86,5 +87,6 @@ export const complaintCompensations = pgTable(
   (t) => [
     index('complaint_compensations_complaint_idx').on(t.complaintId),
     index('complaint_compensations_kind_idx').on(t.kind),
+    check('complaint_compensations_value_check', sql`${t.value} >= 0`),
   ],
 );

@@ -1,6 +1,5 @@
 import { db } from '@erp/db';
 import { accountingPeriods } from '@erp/db/schema/accounting';
-import { auditLog } from '@erp/db/schema/audit';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
@@ -8,6 +7,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 import { type OpenPeriodInput, OpenPeriodInputSchema } from './schemas';
+import { auditRecord } from "../audit";
 
 export interface OpenPeriodResult {
   id: string;
@@ -83,25 +83,23 @@ export async function openPeriod(
       });
 
       // 6. Write audit log
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'open_period',
-        entityType: 'accounting_period',
-        entityId: periodId,
-        before: null,
-        after: {
-          code: periodCode,
-          startDate,
-          endDate,
-          status: 'open',
-        },
-        metadata: {
-          ip: ctx.ipAddress ?? null,
-          userAgent: ctx.userAgent ?? null,
-        },
-      });
+      await auditRecord({
+            action: 'open_period',
+            entityType: 'accounting_period',
+            entityId: periodId,
+            before: null,
+            after: {
+                    code: periodCode,
+                    startDate,
+                    endDate,
+                    status: 'open',
+                  },
+            metadata: {
+                    ip: ctx.ipAddress ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                  },
+            ctx,
+          });
 
       return {
         id: periodId,

@@ -7,7 +7,6 @@
  */
 
 import { db } from '@erp/db';
-import { auditLog } from '@erp/db/schema/audit';
 import { locations } from '@erp/db/schema/auth';
 import { manualSalesClosings, shifts } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
@@ -28,6 +27,8 @@ import {
   CreateManualSalesClosingInputSchema,
   type ManualSalesClosingResult,
 } from './schemas';
+import { auditRecord } from "../audit";
+import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
 
 async function generateManualSalesNumber(tenantId: string, salesDate: string): Promise<string> {
   const prefix = `MSC-${salesDate.slice(0, 7)}-`;
@@ -119,6 +120,10 @@ export async function createManualSalesClosing(
   const channelLabel = humanizeChannel(data.channel);
   const reference = data.sourceReference?.trim() || number;
 
+  const claimResult = await claimIdempotency(data.locationId, data.idempotencyKey, 'pos.manualSales');
+  if (!claimResult.ok) return claimResult;
+  const claimedIdempotencyId = claimResult.value.id;
+
   const openShift = await db
     .select({ id: shifts.id })
     .from(shifts)
@@ -158,7 +163,10 @@ export async function createManualSalesClosing(
     },
     (e) => AppError.internal('pos.manualSales.createFailed', e),
   );
-  if (!createResult.ok) return err(createResult.error);
+  if (!createResult.ok) {
+    await releaseIdempotencyClaim(claimedIdempotencyId, 500, { error: 'create_failed' });
+    return err(createResult.error);
+  }
 
   const journal = await createJournal(
     {
@@ -196,11 +204,13 @@ export async function createManualSalesClosing(
   );
 
   if (!journal.ok) {
+    await releaseIdempotencyClaim(claimedIdempotencyId, 500, { error: 'journal_failed' });
     await markManualSalesFailed(id, ctx, journal.error.code);
     return err(journal.error);
   }
   const postResult = await autoPostJournalEntry(journal.value.id, ctx, 'pos.manualSales');
   if (!postResult.ok) {
+    await releaseIdempotencyClaim(claimedIdempotencyId, 500, { error: 'post_failed' });
     await markManualSalesFailed(id, ctx, postResult.error.code);
     return postResult;
   }
@@ -217,33 +227,35 @@ export async function createManualSalesClosing(
     .where(and(eq(manualSalesClosings.id, id), eq(manualSalesClosings.tenantId, ctx.tenantId)))
     .returning();
 
-  await db.insert(auditLog).values({
-    id: generateId(),
-    tenantId: ctx.tenantId,
-    userId: ctx.userId,
-    action: 'create',
-    entityType: 'manual_sales_closing',
-    entityId: id,
-    before: null,
-    after: {
-      number,
-      salesDate: data.salesDate,
-      channel: data.channel,
-      paymentMethod: data.paymentMethod,
-      grossSales: grossSales.toString(),
-      discountTotal: discountTotal.toString(),
-      taxTotal: tax.toString(),
-      netRevenue: net.toString(),
-      journalEntryId: journal.value.id,
-      shiftId,
-    },
-    metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-  });
+  await auditRecord({
+      action: 'create',
+      entityType: 'manual_sales_closing',
+      entityId: id,
+      before: null,
+      after: {
+          number,
+          salesDate: data.salesDate,
+          channel: data.channel,
+          paymentMethod: data.paymentMethod,
+          grossSales: grossSales.toString(),
+          discountTotal: discountTotal.toString(),
+          taxTotal: tax.toString(),
+          netRevenue: net.toString(),
+          journalEntryId: journal.value.id,
+          shiftId,
+        },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
   if (!updated) {
+    await releaseIdempotencyClaim(claimedIdempotencyId, 500, { error: 'update_failed' });
     return err(AppError.internal('pos.manualSales.linkJournalFailed', { id }));
   }
-  return ok(toResult(updated));
+  
+  const resultObj = toResult(updated);
+  await saveIdempotency(db, data.locationId, data.idempotencyKey, 201, resultObj);
+  return ok(resultObj);
 }
 
 export async function listManualSalesClosings(

@@ -35,7 +35,22 @@ export type AuditAction =
   | 'cancel'
   | 'submit'
   | 'open'
-  | 'close';
+  | 'close'
+  | 'run_payroll'
+  | 'mark_paid'
+  | 'closing'
+  | 'post_depreciation'
+  | 'void_depreciation'
+  | 'open_period'
+  | 'check_in'
+  | 'check_out'
+  | 'forgive_late'
+  | 'acknowledge'
+  | 'deactivate'
+  | 'reactivate'
+  | 'master_import'
+  | 'movement_import'
+  | 'receive';
 
 /** Input for a single audit log entry. */
 export interface AuditRecordInput {
@@ -44,7 +59,7 @@ export interface AuditRecordInput {
   entityId: string;
   before?: Record<string, unknown> | null;
   after?: Record<string, unknown> | null;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, unknown> | null;
 }
 
 /** Extended input that carries its own AuditContext. */

@@ -7,13 +7,13 @@
  */
 
 import { db } from '@erp/db';
-import { auditLog } from '@erp/db/schema/audit';
 import { customFieldDefinitions, customFieldValues } from '@erp/db/schema/customfield';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, isNull, like, or, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
+import { auditRecord } from "../audit";
 
 // ─── Data type enum ──────────────────────────────────────────────────────────
 
@@ -258,21 +258,19 @@ export async function deleteDefinition(id: string, ctx: AuditContext): Promise<R
         and(eq(customFieldDefinitions.id, id), eq(customFieldDefinitions.tenantId, ctx.tenantId)),
       );
 
-    await db.insert(auditLog).values({
-      id: crypto.randomUUID(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'delete',
-      entityType: 'custom_field_definition',
-      entityId: id,
-      before: {
-        entityType: existing[0].entityType,
-        key: existing[0].key,
-        dataType: existing[0].dataType,
-      },
-      after: { deletedAt: deletedAt.toISOString() },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'delete',
+        entityType: 'custom_field_definition',
+        entityId: id,
+        before: {
+              entityType: existing[0].entityType,
+              key: existing[0].key,
+              dataType: existing[0].dataType,
+            },
+        after: { deletedAt: deletedAt.toISOString() },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok(undefined);
   } catch (e) {

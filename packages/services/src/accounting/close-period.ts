@@ -23,7 +23,6 @@
 
 import { db } from '@erp/db';
 import { accountingPeriods, journalEntries } from '@erp/db/schema/accounting';
-import { auditLog } from '@erp/db/schema/audit';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
@@ -36,6 +35,7 @@ import {
   type GetPeriodStatusInput,
   GetPeriodStatusInputSchema,
 } from './schemas';
+import { auditRecord } from "../audit";
 
 // --- Return types ---
 
@@ -256,24 +256,22 @@ export async function closePeriod(
       }
 
       // 7. Audit log
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: newStatus === 'closed' ? 'close' : 'closing',
-        entityType: 'accounting_period',
-        entityId: period.id,
-        before: { status: previousStatus },
-        after: {
-          status: newStatus,
-          closedAt: closedAt?.toISOString() ?? null,
-          closedBy,
-        },
-        metadata: {
-          ip: ctx.ipAddress ?? null,
-          userAgent: ctx.userAgent ?? null,
-        },
-      });
+      await auditRecord({
+            action: newStatus === 'closed' ? 'close' : 'closing',
+            entityType: 'accounting_period',
+            entityId: period.id,
+            before: { status: previousStatus },
+            after: {
+                    status: newStatus,
+                    closedAt: closedAt?.toISOString() ?? null,
+                    closedBy,
+                  },
+            metadata: {
+                    ip: ctx.ipAddress ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                  },
+            ctx,
+          });
 
       return {
         id: period.id,

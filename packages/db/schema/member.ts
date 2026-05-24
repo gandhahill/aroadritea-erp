@@ -7,8 +7,9 @@
  * - member_sessions        — session DB-backed for member portal
  */
 
-import { index, pgTable, uniqueIndex } from 'drizzle-orm/pg-core';
+import { check, index, pgTable, uniqueIndex } from 'drizzle-orm/pg-core';
 import { boolean, integer, jsonb, text, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { auditCols, pk } from './common';
 
 // ─── member_signup_attempts ───────────────────────────────────────────────
@@ -135,6 +136,7 @@ export const memberLoyalty = pgTable(
   (table) => ({
     memberIdx: uniqueIndex('member_loyalty_member_uq').on(table.tenantId, table.memberId),
     tierPointsIdx: index('member_loyalty_tier_points_idx').on(table.tier, table.points),
+    pointsCheck: check('member_loyalty_points_check', sql`${table.points} >= 0`),
   }),
 );
 

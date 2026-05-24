@@ -31,6 +31,7 @@ import {
   purchasingTools,
   reportingTools,
   taxTools,
+  phase3Tools,
 } from './tools/index';
 
 const SERVER_INFO = {
@@ -64,6 +65,7 @@ const allTools: ToolEntry[] = [
   ...(docsTools as unknown as ToolEntry[]),
   ...(operationsTools as unknown as ToolEntry[]),
   ...(auditTools as unknown as ToolEntry[]),
+  ...(phase3Tools as unknown as ToolEntry[]),
 ];
 
 // Tool map for O(1) lookup

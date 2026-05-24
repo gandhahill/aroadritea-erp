@@ -20,7 +20,6 @@
 
 import { db } from '@erp/db';
 import { accountingPeriods } from '@erp/db/schema/accounting';
-import { auditLog } from '@erp/db/schema/audit';
 import { products, stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import { stockOpnameLines, stockOpnameSessions } from '@erp/db/schema/stock-opname';
 import { AppError } from '@erp/shared/errors';
@@ -31,7 +30,8 @@ import { and, eq, inArray, sql } from 'drizzle-orm';
 import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
 import { createJournal } from '../accounting/create-journal';
 import { requirePermission } from '../iam';
-import { generateOpnameNumber } from './number-generator';
+import { generateOpnameNumber } from '../shared/number-generator';
+import { auditRecord } from "../audit";
 
 type SupportedLocale = 'id' | 'en' | 'zh';
 
@@ -331,22 +331,20 @@ export async function createOpnameDraft(
   }
 
   // Audit log
-  await db.insert(auditLog).values({
-    id: generateId(),
-    entityType: 'stock_opname_session',
-    entityId: id,
-    action: 'create',
-    before: null,
-    after: {
-      id,
-      number,
-      sessionDate: input.sessionDate,
-      periodCode: input.periodCode,
-      linesCount: lines.length,
-    },
-    userId: ctx.userId,
-    tenantId: ctx.tenantId,
-  });
+  await auditRecord({
+      action: 'create',
+      entityType: 'stock_opname_session',
+      entityId: id,
+      before: null,
+      after: {
+          id,
+          number,
+          sessionDate: input.sessionDate,
+          periodCode: input.periodCode,
+          linesCount: lines.length,
+        },
+      ctx,
+    });
 
   return ok({
     id,
@@ -558,16 +556,14 @@ export async function submitOpname(
     .set({ status: 'submitted', submittedBy: ctx.userId, submittedAt: now })
     .where(eq(stockOpnameSessions.id, sessionId));
 
-  await db.insert(auditLog).values({
-    id: generateId(),
-    entityType: 'stock_opname_session',
-    entityId: sessionId,
-    action: 'submit',
-    before: { status: session.status },
-    after: { status: 'submitted' },
-    userId: ctx.userId,
-    tenantId: ctx.tenantId,
-  });
+  await auditRecord({
+      action: 'submit',
+      entityType: 'stock_opname_session',
+      entityId: sessionId,
+      before: { status: session.status },
+      after: { status: 'submitted' },
+      ctx,
+    });
 
   return ok({
     id: session.id,
@@ -777,16 +773,14 @@ export async function approveOpname(
 
   // Session was already claimed above; no second status update needed.
 
-  await db.insert(auditLog).values({
-    id: generateId(),
-    entityType: 'stock_opname_session',
-    entityId: sessionId,
-    action: 'approve',
-    before: { status: 'submitted' },
-    after: { status: 'approved', journalEntryId: resultJournalId, linesCount: lines.length },
-    userId: ctx.userId,
-    tenantId: ctx.tenantId,
-  });
+  await auditRecord({
+      action: 'approve',
+      entityType: 'stock_opname_session',
+      entityId: sessionId,
+      before: { status: 'submitted' },
+      after: { status: 'approved', journalEntryId: resultJournalId, linesCount: lines.length },
+      ctx,
+    });
 
   return ok({
     id: session.id,
@@ -845,16 +839,14 @@ export async function cancelOpname(
     .set({ status: 'cancelled' })
     .where(eq(stockOpnameSessions.id, sessionId));
 
-  await db.insert(auditLog).values({
-    id: generateId(),
-    entityType: 'stock_opname_session',
-    entityId: sessionId,
-    action: 'cancel',
-    before: { status: session.status },
-    after: { status: 'cancelled' },
-    userId: ctx.userId,
-    tenantId: ctx.tenantId,
-  });
+  await auditRecord({
+      action: 'cancel',
+      entityType: 'stock_opname_session',
+      entityId: sessionId,
+      before: { status: session.status },
+      after: { status: 'cancelled' },
+      ctx,
+    });
 
   return ok({ id: sessionId, status: 'cancelled' });
 }

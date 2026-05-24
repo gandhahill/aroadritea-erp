@@ -114,11 +114,6 @@ export interface GRNConfirmResult {
 // ─── Create GRN ─────────────────────────────────────────────────────────────
 
 export async function createGRN(rawInput: unknown, ctx: AuditContext): Promise<Result<GRNResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'purchasing.grn.create', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = CreateGRNInputSchema.safeParse(rawInput);
   if (!parsed.success) {
     return err(
@@ -141,6 +136,11 @@ export async function createGRN(rawInput: unknown, ctx: AuditContext): Promise<R
   if (!po) {
     return err(AppError.notFound('purchasing.errors.po_not_found'));
   }
+
+  const permCheck = await requirePermission(ctx.userId, 'purchasing.grn.create', {
+    locationId: po.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
 
   const RECEIVABLE_STATUSES = new Set(['approved', 'partial']);
   if (!RECEIVABLE_STATUSES.has(po.status)) {

@@ -243,7 +243,7 @@ export async function getEmployee(
         id: row.id,
         nik: decryptPii(row.nik, 'employees.nik') ?? row.nik,
         name: row.name,
-        email: row.email,
+        email: decryptPii(row.email, 'employees.email') ?? row.email,
         phone: decryptPii(row.phone, 'employees.phone'),
         address: decryptPii(row.address, 'employees.address'),
         status: row.status,

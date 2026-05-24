@@ -18,7 +18,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
-import { generatePONumber } from './number-generator';
+import { generatePONumber } from '../shared/number-generator';
 import { type CreatePOInput, CreatePOInputSchema, type POLineInput } from './schemas';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -102,13 +102,7 @@ async function computeLineTax(
 // ─── Service ───────────────────────────────────────────────────────────────────
 
 export async function createPO(rawInput: unknown, ctx: AuditContext): Promise<Result<POCreated>> {
-  // 1. Permission check
-  const permCheck = await requirePermission(ctx.userId, 'purchasing.po.create', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
-  // 2. Parse input
+  // 1. Parse input
   const parsed = CreatePOInputSchema.safeParse(rawInput);
   if (!parsed.success) {
     return err(
@@ -118,6 +112,12 @@ export async function createPO(rawInput: unknown, ctx: AuditContext): Promise<Re
     );
   }
   const input = parsed.data;
+
+  // 2. Permission check
+  const permCheck = await requirePermission(ctx.userId, 'purchasing.po.create', {
+    locationId: input.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
 
   // 3. Validate supplier exists in this tenant and is flagged as a
   //    supplier (partners table also holds customers/members — without

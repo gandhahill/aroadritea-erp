@@ -26,7 +26,6 @@
 
 import { db } from '@erp/db';
 import { accountingPeriods, journalEntries, journalLines } from '@erp/db/schema/accounting';
-import { auditLog } from '@erp/db/schema/audit';
 import { bomLines, boms, stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import { salesOrderLines, salesOrders } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
@@ -34,11 +33,13 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, sql } from 'drizzle-orm';
-import { generateJournalNumber } from '../accounting/number-generator';
+import { generateJournalNumber } from '../shared/number-generator';
 import { reverseJournal } from '../accounting/reverse-journal';
 import { requirePermission } from '../iam';
 import { RefundSaleInputSchema } from './schemas';
 import type { SaleResult } from './schemas';
+import { auditRecord } from "../audit";
+import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
 
 export async function refundSale(input: unknown, ctx: AuditContext): Promise<Result<SaleResult>> {
   const parsed = RefundSaleInputSchema.safeParse(input);
@@ -50,6 +51,7 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
     );
   }
   const data = parsed.data;
+  let claimedIdempotencyId: string | null = null;
 
   try {
     const sale = await db
@@ -72,6 +74,10 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
     if (sale.version !== data.version) {
       return err(AppError.conflict('pos.refund.versionMismatch'));
     }
+
+    const claimResult = await claimIdempotency(sale.locationId, data.idempotencyKey, 'pos.refund');
+    if (!claimResult.ok) return claimResult;
+    claimedIdempotencyId = claimResult.value.id;
 
     // ── Validate refund lines against original ──────────────────────────
     const originalLines = await db
@@ -263,26 +269,24 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
     }
 
     // ── Audit log ───────────────────────────────────────────────────────
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'refund',
-      entityType: 'sales_order',
-      entityId: data.salesOrderId,
-      before: { status: sale.status },
-      after: {
-        status: 'refunded',
-        reason: data.reason,
-        reversalJeId,
-        isFullRefund,
-        refundTotal: refundTotal.toString(),
-        refundLines: data.lines,
-      },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'refund',
+        entityType: 'sales_order',
+        entityId: data.salesOrderId,
+        before: { status: sale.status },
+        after: {
+              status: 'refunded',
+              reason: data.reason,
+              reversalJeId,
+              isFullRefund,
+              refundTotal: refundTotal.toString(),
+              refundLines: data.lines,
+            },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
-    return ok({
+    const result: SaleResult = {
       id: sale.id,
       number: sale.number,
       status: 'refunded',
@@ -307,8 +311,14 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
       })),
       payments: [],
       journalEntryId: reversalJeId,
-    });
+    };
+    
+    await saveIdempotency(db, sale!.locationId, data.idempotencyKey, 200, result);
+    return ok(result);
   } catch (e) {
+    if (claimedIdempotencyId) {
+      await releaseIdempotencyClaim(claimedIdempotencyId, 500, { error: 'refund_failed' });
+    }
     return err(AppError.internal('pos.refund.failed', e));
   }
 }
@@ -439,24 +449,22 @@ async function createPartialReversalJe(
 
   await db.insert(journalLines).values(lineValues);
 
-  await db.insert(auditLog).values({
-    id: generateId(),
-    tenantId: ctx.tenantId,
-    userId: ctx.userId,
-    action: 'create',
-    entityType: 'journal_entry',
-    entityId: jeId,
-    before: null,
-    after: {
-      id: jeId,
-      number: jeNumber,
-      status: 'posted',
-      partialRefundOf: sale.number,
-      totalDebit: totalDebit.toString(),
-      totalCredit: totalCredit.toString(),
-    },
-    metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-  });
+  await auditRecord({
+      action: 'create',
+      entityType: 'journal_entry',
+      entityId: jeId,
+      before: null,
+      after: {
+          id: jeId,
+          number: jeNumber,
+          status: 'posted',
+          partialRefundOf: sale.number,
+          totalDebit: totalDebit.toString(),
+          totalCredit: totalCredit.toString(),
+        },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
   return ok(jeId);
 }

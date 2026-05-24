@@ -13,7 +13,6 @@
  */
 
 import { db } from '@erp/db';
-import { auditLog } from '@erp/db/schema/audit';
 import {
   productCategories,
   productVariants,
@@ -27,6 +26,7 @@ import { type Result, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, ilike, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
+import { auditRecord } from "../audit";
 
 // ─── Input Types ──────────────────────────────────────────────────────────────
 
@@ -411,21 +411,19 @@ export async function importMasterFromExcel(
   }
 
   // ── Audit log ──
-  await db.insert(auditLog).values({
-    id: generateId(),
-    tenantId: ctx.tenantId,
-    entityType: 'import',
-    entityId: ctx.tenantId,
-    action: 'master_import',
-    after: JSON.stringify({
-      rowsProcessed: rows.length,
-      createdProducts,
-      updatedProducts,
-      skippedProducts,
-      createdCategories,
-    }),
-    userId: ctx.userId,
-  });
+  await auditRecord({
+      action: 'master_import',
+      entityType: 'import',
+      entityId: ctx.tenantId,
+      after: {
+          rowsProcessed: rows.length,
+          createdProducts,
+          updatedProducts,
+          skippedProducts,
+          createdCategories,
+        },
+      ctx,
+    });
 
   return ok({
     createdProducts,
@@ -566,20 +564,18 @@ export async function importMovementsFromExcel(
   }
 
   // ── Audit log ──
-  await db.insert(auditLog).values({
-    id: generateId(),
-    tenantId,
-    entityType: 'import',
-    entityId: locationId,
-    action: 'movement_import',
-    after: JSON.stringify({
-      rowsProcessed: rows.length,
-      imported,
-      skipped,
-      locationId,
-    }),
-    userId,
-  });
+  await auditRecord({
+      action: 'movement_import',
+      entityType: 'import',
+      entityId: locationId,
+      after: {
+          rowsProcessed: rows.length,
+          imported,
+          skipped,
+          locationId,
+        },
+      ctx,
+    });
 
   return ok({ imported, skipped, errors });
 }

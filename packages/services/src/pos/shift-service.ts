@@ -8,7 +8,6 @@
  */
 
 import { db } from '@erp/db';
-import { auditLog } from '@erp/db/schema/audit';
 import { manualSalesClosings, payments, salesOrders, shiftExpenses, shifts } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -18,6 +17,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 import { CloseShiftInputSchema, OpenShiftInputSchema } from './schemas';
 import type { ShiftResult } from './schemas';
+import { auditRecord } from "../audit";
 
 // The shifts table does not carry a `version` column — partial unique
 // index `shifts_open_per_location_unique` already guarantees at most one
@@ -91,17 +91,15 @@ export async function openShift(input: unknown, ctx: AuditContext): Promise<Resu
       updatedBy: ctx.userId,
     });
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'create',
-      entityType: 'shift',
-      entityId: shiftId,
-      before: null,
-      after: { status: 'open', openingCash: data.openingCash },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'create',
+        entityType: 'shift',
+        entityId: shiftId,
+        before: null,
+        after: { status: 'open', openingCash: data.openingCash },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({
       id: shiftId,
@@ -237,22 +235,20 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
       return err(AppError.conflict('pos.shift.versionMismatch'));
     }
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'close',
-      entityType: 'shift',
-      entityId: data.shiftId,
-      before: { status: 'open' },
-      after: {
-        status: 'closed',
-        expectedCash: expectedCash.toString(),
-        actualCash: data.actualCash,
-        variance: variance.toString(),
-      },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'close',
+        entityType: 'shift',
+        entityId: data.shiftId,
+        before: { status: 'open' },
+        after: {
+              status: 'closed',
+              expectedCash: expectedCash.toString(),
+              actualCash: data.actualCash,
+              variance: variance.toString(),
+            },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({
       id: shift.id,

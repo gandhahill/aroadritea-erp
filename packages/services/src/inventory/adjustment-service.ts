@@ -22,7 +22,6 @@
 
 import { db } from '@erp/db';
 import { accountingPeriods } from '@erp/db/schema/accounting';
-import { auditLog } from '@erp/db/schema/audit';
 import {
   products,
   stockAdjustmentLines,
@@ -38,13 +37,14 @@ import { and, eq, inArray } from 'drizzle-orm';
 import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
 import { createJournal } from '../accounting/create-journal';
 import { requirePermission } from '../iam';
-import { generateAdjustmentNumber } from './number-generator';
+import { generateAdjustmentNumber } from '../shared/number-generator';
 import {
   type AdjustmentReason,
   ApproveAdjustmentInputSchema,
   CreateAdjustmentInputSchema,
   RejectAdjustmentInputSchema,
 } from './schemas';
+import { auditRecord } from "../audit";
 
 // ─── Default COA codes ────────────────────────────────────────────────────────
 //
@@ -149,13 +149,7 @@ export async function createAdjustmentDraft(
   input: unknown,
   ctx: AuditContext,
 ): Promise<Result<AdjustmentResult>> {
-  // 1. Permission check
-  const permCheck = await requirePermission(ctx.userId, 'inventory.adjust', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
-  // 2. Validate input
+  // 1. Validate input
   const parsed = CreateAdjustmentInputSchema.safeParse(input);
   if (!parsed.success) {
     return err(
@@ -165,6 +159,12 @@ export async function createAdjustmentDraft(
     );
   }
   const data = parsed.data;
+
+  // 2. Permission check
+  const permCheck = await requirePermission(ctx.userId, 'inventory.adjust', {
+    locationId: data.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
 
   // 3. Validate product IDs exist and are active
   const productIds = [...new Set(data.lines.map((l) => l.productId))];
@@ -229,17 +229,15 @@ export async function createAdjustmentDraft(
 
     await db.insert(stockAdjustmentLines).values(lineValues);
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'create',
-      entityType: 'stock_adjustment',
-      entityId: adjId,
-      before: null,
-      after: { number: adjNumber, reason: data.reason, lineCount: lineValues.length },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'create',
+        entityType: 'stock_adjustment',
+        entityId: adjId,
+        before: null,
+        after: { number: adjNumber, reason: data.reason, lineCount: lineValues.length },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({
       id: adjId,
@@ -313,17 +311,15 @@ export async function submitAdjustment(
       .where(eq(stockAdjustmentLines.adjustmentId, adjustmentId))
       .orderBy(stockAdjustmentLines.lineNo);
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'submit',
-      entityType: 'stock_adjustment',
-      entityId: adjustmentId,
-      before: { status: adj.status },
-      after: { status: 'submitted' },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'submit',
+        entityType: 'stock_adjustment',
+        entityId: adjustmentId,
+        before: { status: adj.status },
+        after: { status: 'submitted' },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({
       id: adj.id,
@@ -593,7 +589,8 @@ export async function approveAdjustment(
       updatedBy: ctx.userId,
     }));
 
-    await db.insert(stockMovements).values(movementValues);
+    const batchQueries: any[] = [];
+    batchQueries.push(db.insert(stockMovements).values(movementValues));
 
     // 10. Update / insert stock_levels. Pass the qtyAfter string directly
     //     to preserve the original decimal precision.
@@ -616,53 +613,55 @@ export async function approveAdjustment(
         .then((r) => r[0]);
 
       if (existing) {
-        await db
-          .update(stockLevels)
-          .set({
-            qtyOnHand: line.qtyAfter,
-            qtyAvailable: line.qtyAfter,
-            updatedBy: ctx.userId,
-            lastMovementAt: new Date(),
-          })
-          .where(eq(stockLevels.id, existing.id));
+        batchQueries.push(
+          db
+            .update(stockLevels)
+            .set({
+              qtyOnHand: line.qtyAfter,
+              qtyAvailable: line.qtyAfter,
+              updatedBy: ctx.userId,
+              lastMovementAt: new Date(),
+            })
+            .where(eq(stockLevels.id, existing.id))
+        );
       } else {
-        await db.insert(stockLevels).values({
-          id: generateId(),
-          tenantId: ctx.tenantId,
-          locationId: adj.locationId,
-          stockLocationId: null,
-          productId: line.productId,
-          variantId: line.variantId ?? null,
-          batchNo: line.batchNo ?? null,
-          qtyOnHand: line.qtyAfter,
-          qtyReserved: '0',
-          qtyAvailable: line.qtyAfter,
-          uom: line.uom,
-          avgUnitCost: line.unitCost,
-          createdBy: ctx.userId,
-          updatedBy: ctx.userId,
-        });
+        batchQueries.push(
+          db.insert(stockLevels).values({
+            id: generateId(),
+            tenantId: ctx.tenantId,
+            locationId: adj.locationId,
+            stockLocationId: null as unknown as string,
+            productId: line.productId,
+            variantId: line.variantId ?? null,
+            batchNo: line.batchNo ?? null,
+            qtyOnHand: line.qtyAfter,
+            qtyReserved: '0',
+            qtyAvailable: line.qtyAfter,
+            uom: line.uom,
+            avgUnitCost: line.unitCost,
+            createdBy: ctx.userId,
+            updatedBy: ctx.userId,
+          })
+        );
       }
     }
 
     // 11. Audit
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'approve',
-      entityType: 'stock_adjustment',
-      entityId: data.adjustmentId,
-      before: { status: 'submitted' },
-      after: {
-        status: 'approved',
-        approvedBy: ctx.userId,
-        movementCount: movementValues.length,
-        journalEntryId,
-        netValue: netDelta.toString(),
-      },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'approve',
+        entityType: 'stock_adjustment',
+        entityId: data.adjustmentId,
+        before: { status: 'submitted' },
+        after: {
+              status: 'approved',
+              approvedBy: ctx.userId,
+              movementCount: movementValues.length,
+              journalEntryId,
+              netValue: netDelta.toString(),
+            },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({
       id: adj.id,
@@ -760,17 +759,15 @@ export async function rejectAdjustment(
       .where(eq(stockAdjustmentLines.adjustmentId, data.adjustmentId))
       .orderBy(stockAdjustmentLines.lineNo);
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'reject',
-      entityType: 'stock_adjustment',
-      entityId: data.adjustmentId,
-      before: { status: adj.status },
-      after: { status: 'rejected', rejectionReason: data.reason },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'reject',
+        entityType: 'stock_adjustment',
+        entityId: data.adjustmentId,
+        before: { status: adj.status },
+        after: { status: 'rejected', rejectionReason: data.reason },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({
       id: adj.id,

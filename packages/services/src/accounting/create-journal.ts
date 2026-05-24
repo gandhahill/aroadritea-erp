@@ -22,15 +22,16 @@ import {
   journalEntries,
   journalLines,
 } from '@erp/db/schema/accounting';
-import { auditLog } from '@erp/db/schema/audit';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray } from 'drizzle-orm';
 import { requirePermission } from '../iam';
-import { generateJournalNumber } from './number-generator';
+import { generateJournalNumber } from '../shared/number-generator';
 import { type CreateJournalInput, CreateJournalInputSchema } from './schemas';
+import { auditRecord } from "../audit";
+import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
 
 // --- Return type ---
 
@@ -91,6 +92,13 @@ export async function createJournal(
     );
   }
   const data = parsed.data;
+
+  let claimedIdempotencyId: string | null = null;
+  if (data.idempotencyKey) {
+    const claimResult = await claimIdempotency(data.locationId, data.idempotencyKey, 'accounting.createJournal');
+    if (!claimResult.ok) return claimResult;
+    claimedIdempotencyId = claimResult.value.id;
+  }
 
   // 3. Parse line amounts to bigint and validate debit/credit exclusivity
   const parsedLines = data.lines.map((line, idx) => {
@@ -208,7 +216,7 @@ export async function createJournal(
   //     (Neon HTTP driver doesn't support true transactions, but inserts are
   //      atomic per statement. We insert JE first, then lines. If lines fail,
   //      the JE is orphaned in draft status — acceptable for draft.)
-  return tryCatch(
+  const result = await tryCatch(
     async () => {
       // Insert journal entry
       await db.insert(journalEntries).values({
@@ -248,31 +256,28 @@ export async function createJournal(
       await db.insert(journalLines).values(lineValues);
 
       // 11. Write audit log (SD §15)
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'create',
-        entityType: 'journal_entry',
-        entityId: jeId,
-        before: null,
-        after: {
-          id: jeId,
-          number: jeNumber,
-          postingDate: data.postingDate,
-          status: 'draft',
-          totalDebit: totalDebit.toString(),
-          totalCredit: totalCredit.toString(),
-          lineCount: lineValues.length,
-        },
-        metadata: {
-          ip: ctx.ipAddress ?? null,
-          userAgent: ctx.userAgent ?? null,
-        },
-      });
+      await auditRecord({
+            action: 'create',
+            entityType: 'journal_entry',
+            entityId: jeId,
+            before: null,
+            after: {
+                    id: jeId,
+                    number: jeNumber,
+                    postingDate: data.postingDate,
+                    status: 'draft',
+                    totalDebit: totalDebit.toString(),
+                    totalCredit: totalCredit.toString(),
+                    lineCount: lineValues.length,
+                  },
+            metadata: {
+                    ip: ctx.ipAddress ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                  },
+            ctx,
+          });
 
-      // Build result
-      const result: JournalEntryResult = {
+      const resultObj: JournalEntryResult = {
         id: jeId,
         number: jeNumber,
         postingDate: data.postingDate,
@@ -298,8 +303,16 @@ export async function createJournal(
         })),
       };
 
-      return result;
+      return resultObj;
     },
     (e) => AppError.internal('accounting.journal.createFailed', e),
   );
+
+  if (result.ok && data.idempotencyKey && claimedIdempotencyId) {
+    await saveIdempotency(db, data.locationId, data.idempotencyKey, 201, result.value);
+  } else if (!result.ok && claimedIdempotencyId) {
+    await releaseIdempotencyClaim(claimedIdempotencyId, 500, { error: 'journal_create_failed' });
+  }
+
+  return result;
 }

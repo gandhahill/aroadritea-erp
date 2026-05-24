@@ -12,7 +12,6 @@
  */
 
 import { db } from '@erp/db';
-import { auditLog } from '@erp/db/schema/audit';
 import { productCategories, products } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -21,6 +20,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 import { type CreateProductInput, CreateProductInputSchema } from './schemas';
+import { auditRecord } from "../audit";
 
 // --- Return type ---
 
@@ -133,17 +133,15 @@ export async function createProduct(
       });
 
       // Audit log
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'create',
-        entityType: 'product',
-        entityId: productId,
-        before: null,
-        after: { id: productId, sku: data.sku, name: data.name, kind: data.kind },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      });
+      await auditRecord({
+            action: 'create',
+            entityType: 'product',
+            entityId: productId,
+            before: null,
+            after: { id: productId, sku: data.sku, name: data.name, kind: data.kind },
+            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+            ctx,
+          });
 
       const result: ProductResult = {
         id: productId,

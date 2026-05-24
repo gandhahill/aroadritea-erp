@@ -22,7 +22,6 @@
 
 import { db } from '@erp/db';
 import { accountingPeriods, journalEntries, journalLines } from '@erp/db/schema/accounting';
-import { auditLog } from '@erp/db/schema/audit';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
@@ -34,8 +33,9 @@ import {
   validateFixedAssetDepreciationJournalCanReverse,
   voidFixedAssetDepreciationForJournal,
 } from './fixed-assets';
-import { generateJournalNumber } from './number-generator';
+import { generateJournalNumber } from '../shared/number-generator';
 import { type ReverseJournalInput, ReverseJournalInputSchema } from './schemas';
+import { auditRecord } from "../audit";
 
 // --- Service function ---
 
@@ -225,49 +225,45 @@ export async function reverseJournal(
       await db.insert(journalLines).values(reversedLineValues);
 
       // 9d. Audit log — reversal creation
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'create',
-        entityType: 'journal_entry',
-        entityId: reversalJeId,
-        before: null,
-        after: {
-          id: reversalJeId,
-          number: reversalNumber,
-          status: 'posted',
-          reversalOf: originalJe.number,
-          totalDebit: originalJe.totalCredit.toString(),
-          totalCredit: originalJe.totalDebit.toString(),
-        },
-        metadata: {
-          ip: ctx.ipAddress ?? null,
-          userAgent: ctx.userAgent ?? null,
-        },
-      });
+      await auditRecord({
+            action: 'create',
+            entityType: 'journal_entry',
+            entityId: reversalJeId,
+            before: null,
+            after: {
+                    id: reversalJeId,
+                    number: reversalNumber,
+                    status: 'posted',
+                    reversalOf: originalJe.number,
+                    totalDebit: originalJe.totalCredit.toString(),
+                    totalCredit: originalJe.totalDebit.toString(),
+                  },
+            metadata: {
+                    ip: ctx.ipAddress ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                  },
+            ctx,
+          });
 
       // 9e. Audit log — original JE status change
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'reverse',
-        entityType: 'journal_entry',
-        entityId: journalId,
-        before: {
-          status: 'posted',
-          version: originalJe.version,
-        },
-        after: {
-          reversedByJeId: reversalJeId,
-          version: originalJe.version + 1,
-        },
-        metadata: {
-          ip: ctx.ipAddress ?? null,
-          userAgent: ctx.userAgent ?? null,
-        },
-      });
+      await auditRecord({
+            action: 'reverse',
+            entityType: 'journal_entry',
+            entityId: journalId,
+            before: {
+                    status: 'posted',
+                    version: originalJe.version,
+                  },
+            after: {
+                    reversedByJeId: reversalJeId,
+                    version: originalJe.version + 1,
+                  },
+            metadata: {
+                    ip: ctx.ipAddress ?? null,
+                    userAgent: ctx.userAgent ?? null,
+                  },
+            ctx,
+          });
 
       if (originalJe.referenceType === 'fixed_asset_depreciation') {
         const fixedAssetResult = await voidFixedAssetDepreciationForJournal(

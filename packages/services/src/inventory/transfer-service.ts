@@ -34,12 +34,13 @@ import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, gte, inArray, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
-import { generateTransferNumber } from './number-generator';
+import { generateTransferNumber } from '../shared/number-generator';
 import {
   CreateTransferInputSchema,
   ReceiveTransferInputSchema,
   ShipTransferInputSchema,
 } from './schemas';
+import { auditRecord } from "../audit";
 
 // ─── Return types ─────────────────────────────────────────────────────────────
 
@@ -116,11 +117,6 @@ export async function createTransferDraft(
   input: unknown,
   ctx: AuditContext,
 ): Promise<Result<TransferResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'inventory.transfer', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   const parsed = CreateTransferInputSchema.safeParse(input);
   if (!parsed.success) {
     return err(
@@ -130,6 +126,11 @@ export async function createTransferDraft(
     );
   }
   const data = parsed.data;
+
+  const permCheck = await requirePermission(ctx.userId, 'inventory.transfer', {
+    locationId: data.fromLocationId,
+  });
+  if (!permCheck.ok) return permCheck;
 
   if (data.fromLocationId === data.toLocationId) {
     return err(AppError.businessRule('inventory.transfer.sameLocation'));
@@ -191,17 +192,15 @@ export async function createTransferDraft(
 
     await db.insert(stockTransferLines).values(lineValues);
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'create',
-      entityType: 'stock_transfer',
-      entityId: trfId,
-      before: null,
-      after: { number: trfNumber, lineCount: lineValues.length },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'create',
+        entityType: 'stock_transfer',
+        entityId: trfId,
+        before: null,
+        after: { number: trfNumber, lineCount: lineValues.length },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok(
       buildTransferResult(
@@ -288,101 +287,6 @@ export async function shipTransfer(
 
     const now = new Date();
 
-    // CLAIM the transfer first via atomic optimistic UPDATE so two
-    // concurrent shippers can't both run the deduction loop below.
-    const claimed = await db
-      .update(stockTransfers)
-      .set({
-        status: 'in_transit',
-        shippedAt: now,
-        shippedBy: ctx.userId,
-        updatedBy: ctx.userId,
-        version: trf.version + 1,
-      })
-      .where(
-        and(
-          eq(stockTransfers.id, data.transferId),
-          eq(stockTransfers.version, trf.version),
-          eq(stockTransfers.status, 'draft'),
-        ),
-      )
-      .returning({ id: stockTransfers.id });
-    if (!claimed || claimed.length === 0) {
-      return err(AppError.conflict('inventory.transfer.versionMismatch'));
-    }
-
-    // Deduct from source stock_levels with a strict atomic guard.
-    // Previous code silently clamped to zero — letting you ship more
-    // than on-hand and creating phantom stock at the destination.
-    // Now the UPDATE only succeeds when `qty_on_hand >= sent`, and on
-    // failure we roll the claim back to 'draft' so the transfer can
-    // be edited or cancelled cleanly.
-    const deducted: Array<{ stockLevelId: string; qtySent: string }> = [];
-    let insufficientLine: { productId: string; sent: string } | null = null;
-
-    for (const line of lines) {
-      const variantCondition = line.variantId
-        ? eq(stockLevels.variantId, line.variantId)
-        : eq(stockLevels.variantId, '' as unknown as string);
-
-      const result = await db
-        .update(stockLevels)
-        .set({
-          qtyOnHand: sql`${stockLevels.qtyOnHand} - ${line.qtySent}::numeric`,
-          qtyAvailable: sql`${stockLevels.qtyAvailable} - ${line.qtySent}::numeric`,
-          updatedBy: ctx.userId,
-          lastMovementAt: now,
-        })
-        .where(
-          and(
-            eq(stockLevels.tenantId, ctx.tenantId),
-            eq(stockLevels.locationId, trf.fromLocationId),
-            eq(stockLevels.productId, line.productId),
-            variantCondition,
-            gte(stockLevels.qtyOnHand, line.qtySent),
-          ),
-        )
-        .returning({ id: stockLevels.id });
-
-      if (!result || result.length === 0) {
-        insufficientLine = { productId: line.productId, sent: line.qtySent };
-        break;
-      }
-      deducted.push({ stockLevelId: result[0]!.id, qtySent: line.qtySent });
-    }
-
-    if (insufficientLine) {
-      // Compensate: add back what we already deducted, then roll the
-      // status back to 'draft' so the user can adjust quantities.
-      for (const d of deducted) {
-        await db
-          .update(stockLevels)
-          .set({
-            qtyOnHand: sql`${stockLevels.qtyOnHand} + ${d.qtySent}::numeric`,
-            qtyAvailable: sql`${stockLevels.qtyAvailable} + ${d.qtySent}::numeric`,
-            updatedBy: ctx.userId,
-          })
-          .where(eq(stockLevels.id, d.stockLevelId));
-      }
-      await db
-        .update(stockTransfers)
-        .set({
-          status: 'draft',
-          shippedAt: null,
-          shippedBy: null,
-          updatedBy: ctx.userId,
-          version: trf.version,
-        })
-        .where(eq(stockTransfers.id, data.transferId));
-      return err(
-        AppError.businessRule('inventory.transfer.insufficientStock', {
-          productId: insufficientLine.productId,
-          requested: insufficientLine.sent,
-        }),
-      );
-    }
-
-    // Now record movements — same atomic transfer_out + transfer_in pair.
     const outMovements = lines.map((line) => ({
       id: generateId(),
       tenantId: ctx.tenantId,
@@ -421,19 +325,85 @@ export async function shipTransfer(
       updatedBy: ctx.userId,
     }));
 
-    await db.insert(stockMovements).values([...outMovements, ...inMovements]);
+    const deductions = lines.map((line) => {
+      const variantCondition = line.variantId
+        ? eq(stockLevels.variantId, line.variantId)
+        : eq(stockLevels.variantId, '' as unknown as string);
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'ship',
-      entityType: 'stock_transfer',
-      entityId: data.transferId,
-      before: { status: 'draft' },
-      after: { status: 'in_transit', movementCount: lines.length * 2 },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      return db
+        .update(stockLevels)
+        .set({
+          qtyOnHand: sql`${stockLevels.qtyOnHand} - ${line.qtySent}::numeric`,
+          qtyAvailable: sql`${stockLevels.qtyAvailable} - ${line.qtySent}::numeric`,
+          updatedBy: ctx.userId,
+          lastMovementAt: now,
+        })
+        .where(
+          and(
+            eq(stockLevels.tenantId, ctx.tenantId),
+            eq(stockLevels.locationId, trf.fromLocationId),
+            eq(stockLevels.productId, line.productId),
+            variantCondition,
+          ),
+        );
     });
+
+    // CLAIM the transfer first to prevent race conditions that would cause
+    // double-deductions if executed directly inside db.batch.
+    const claimedShip = await db
+      .update(stockTransfers)
+      .set({
+        status: 'in_transit',
+        shippedAt: now,
+        shippedBy: ctx.userId,
+        updatedBy: ctx.userId,
+        version: trf.version + 1,
+      })
+      .where(
+        and(
+          eq(stockTransfers.id, data.transferId),
+          eq(stockTransfers.version, trf.version),
+          eq(stockTransfers.status, 'draft'),
+        ),
+      )
+      .returning({ id: stockTransfers.id });
+
+    if (!claimedShip || claimedShip.length === 0) {
+      return err(AppError.conflict('inventory.transfer.versionMismatch'));
+    }
+
+    try {
+      // Execute dependent updates atomically via db.batch
+      // Any CHECK constraint violation (e.g. negative stock) will throw.
+      await db.batch([
+        ...deductions,
+        db.insert(stockMovements).values([...outMovements, ...inMovements]),
+        db.insert(auditLog).values({
+          id: generateId(),
+          tenantId: ctx.tenantId,
+          userId: ctx.userId,
+          action: 'ship',
+          entityType: 'stock_transfer',
+          entityId: data.transferId,
+          before: { status: 'draft' },
+          after: { status: 'in_transit', movementCount: lines.length * 2 },
+          metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        }),
+      ] as any);
+    } catch (batchError) {
+      // Rollback the claim if the batch fails (e.g. insufficient stock constraint)
+      await db
+        .update(stockTransfers)
+        .set({
+          status: 'draft',
+          shippedAt: null,
+          shippedBy: null,
+          updatedBy: ctx.userId,
+          version: trf.version,
+        })
+        .where(eq(stockTransfers.id, data.transferId));
+      throw batchError;
+    }
 
     return ok(
       buildTransferResult(
@@ -447,7 +417,10 @@ export async function shipTransfer(
         lines,
       ),
     );
-  } catch (e) {
+  } catch (e: any) {
+    if (e.code === '23514' || (e.message && e.message.includes('stock_levels_qty_check'))) {
+      return err(AppError.businessRule('inventory.transfer.insufficientStock'));
+    }
     return err(AppError.internal('inventory.transfer.shipFailed', e));
   }
 }
@@ -581,17 +554,15 @@ export async function receiveTransfer(
       }
     }
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'receive',
-      entityType: 'stock_transfer',
-      entityId: data.transferId,
-      before: { status: 'in_transit' },
-      after: { status: 'received' },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'receive',
+        entityType: 'stock_transfer',
+        entityId: data.transferId,
+        before: { status: 'in_transit' },
+        after: { status: 'received' },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     const updatedLines = await db
       .select()
@@ -663,17 +634,15 @@ export async function cancelTransfer(
       .where(eq(stockTransferLines.transferId, transferId))
       .orderBy(stockTransferLines.lineNo);
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'cancel',
-      entityType: 'stock_transfer',
-      entityId: transferId,
-      before: { status: trf.status },
-      after: { status: 'cancelled' },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'cancel',
+        entityType: 'stock_transfer',
+        entityId: transferId,
+        before: { status: trf.status },
+        after: { status: 'cancelled' },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok(
       buildTransferResult(

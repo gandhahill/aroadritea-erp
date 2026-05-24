@@ -22,6 +22,7 @@ import {
   type RejectReimbursementInput,
   RejectReimbursementSchema,
 } from './schemas';
+import { auditRecord } from "../audit";
 
 // --- Return types ---
 
@@ -121,23 +122,21 @@ export async function createReimbursement(
         })
         .returning();
 
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'create',
-        entityType: 'reimbursement_request',
-        entityId: id,
-        before: null,
-        after: {
-          id,
-          amount: data.amount,
-          category: data.category,
-          description: data.description,
-          status: 'draft',
-        },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      });
+      await auditRecord({
+            action: 'create',
+            entityType: 'reimbursement_request',
+            entityId: id,
+            before: null,
+            after: {
+                    id,
+                    amount: data.amount,
+                    category: data.category,
+                    description: data.description,
+                    status: 'draft',
+                  },
+            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+            ctx,
+          });
 
       return toResult(rows[0]!);
     },
@@ -244,17 +243,15 @@ export async function rejectReimbursement(
         });
       }
 
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'reject',
-        entityType: 'reimbursement_request',
-        entityId: id,
-        before: { status: req.status },
-        after: { status: 'rejected', rejectionReason: reason },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      });
+      await auditRecord({
+            action: 'reject',
+            entityType: 'reimbursement_request',
+            entityId: id,
+            before: { status: req.status },
+            after: { status: 'rejected', rejectionReason: reason },
+            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+            ctx,
+          });
 
       return toResult(updated[0]!);
     },

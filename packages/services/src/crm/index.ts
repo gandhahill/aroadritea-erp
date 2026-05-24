@@ -9,7 +9,6 @@
 
 import { db } from '@erp/db';
 import { accounts, partners } from '@erp/db/schema/accounting';
-import { auditLog } from '@erp/db/schema/audit';
 import { cmsSettings } from '@erp/db/schema/cms';
 import { complaintCompensations, complaints } from '@erp/db/schema/crm';
 import { memberLoyalty, memberPointsTransactions, memberVouchers } from '@erp/db/schema/member';
@@ -21,6 +20,7 @@ import { and, asc, desc, eq, gte } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import { requirePermission } from '../iam';
 import { decryptPii, encryptPii, encryptPiiForLookup } from '../security/pii';
+import { auditRecord } from "../audit";
 
 // ─── Loyalty configuration ──────────────────────────────────────────────────
 
@@ -197,25 +197,23 @@ export async function logComplaint(
       createdBy: ctx.userId,
       updatedBy: ctx.userId,
     });
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'create',
-      entityType: 'complaint',
-      entityId: id,
-      before: null,
-      after: {
-        memberId: input.memberId ?? null,
-        customerName: input.customerName ?? null,
-        orderNumber: input.orderNumber ?? null,
-        category: input.category,
-        priority: input.priority ?? 'medium',
-        status: 'open',
-        piiFields: input.customerPhone ? ['customerPhone'] : [],
-      },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'create',
+        entityType: 'complaint',
+        entityId: id,
+        before: null,
+        after: {
+              memberId: input.memberId ?? null,
+              customerName: input.customerName ?? null,
+              orderNumber: input.orderNumber ?? null,
+              category: input.category,
+              priority: input.priority ?? 'medium',
+              status: 'open',
+              piiFields: input.customerPhone ? ['customerPhone'] : [],
+            },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
     return ok({ id });
   } catch (e) {
     return err(AppError.internal('crm.logComplaint.failed', e));
@@ -305,25 +303,23 @@ export async function resolveComplaint(
       })
       .where(and(eq(complaints.tenantId, ctx.tenantId), eq(complaints.id, input.complaintId)));
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'update',
-      entityType: 'complaint',
-      entityId: input.complaintId,
-      before: {
-        status: existing.status,
-        assignedTo: existing.assignedTo,
-        resolutionNotes: existing.resolutionNotes,
-      },
-      after: {
-        status: input.status,
-        assignedTo: input.assignedTo ?? existing.assignedTo,
-        resolutionNotes: input.resolutionNotes ?? existing.resolutionNotes,
-      },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'update',
+        entityType: 'complaint',
+        entityId: input.complaintId,
+        before: {
+              status: existing.status,
+              assignedTo: existing.assignedTo,
+              resolutionNotes: existing.resolutionNotes,
+            },
+        after: {
+              status: input.status,
+              assignedTo: input.assignedTo ?? existing.assignedTo,
+              resolutionNotes: input.resolutionNotes ?? existing.resolutionNotes,
+            },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok(undefined);
   } catch (e) {
@@ -348,6 +344,14 @@ export async function awardCompensation(
   ctx: AuditContext,
 ): Promise<Result<{ id: string; journalEntryId?: string }>> {
   try {
+    if (input.value <= 0) {
+      return err(
+        AppError.validation('crm.invalidCompensationValue', {
+          issues: [{ message: 'Compensation value must be strictly positive.' }],
+        }),
+      );
+    }
+
     // Verify complaint exists
     const complaint = await db
       .select()
@@ -439,22 +443,20 @@ export async function awardCompensation(
       updatedBy: ctx.userId,
     });
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      action: 'create',
-      entityType: 'complaint_compensation',
-      entityId: compId,
-      before: null,
-      after: {
-        complaintId: input.complaintId,
-        kind: input.kind,
-        value: input.value,
-        journalEntryId: jeId ?? null,
-      },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-    });
+    await auditRecord({
+        action: 'create',
+        entityType: 'complaint_compensation',
+        entityId: compId,
+        before: null,
+        after: {
+              complaintId: input.complaintId,
+              kind: input.kind,
+              value: input.value,
+              journalEntryId: jeId ?? null,
+            },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
     return ok({ id: compId, journalEntryId: jeId });
   } catch (e) {
@@ -581,6 +583,14 @@ export async function redeemLoyaltyPoints(
   ctx: AuditContext,
 ): Promise<Result<{ voucherCode: string; pointsRemaining: number }>> {
   try {
+    if (input.pointsToRedeem <= 0) {
+      return err(
+        AppError.validation('crm.invalidPoints', {
+          issues: [{ message: 'Points to redeem must be strictly positive.' }],
+        }),
+      );
+    }
+
     const loyaltyRows = await db
       .select()
       .from(memberLoyalty)

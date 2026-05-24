@@ -97,6 +97,7 @@ export const CreateManualSalesClosingInputSchema = z.object({
   transactionCount: z.number().int().min(0).optional().default(0),
   sourceReference: z.string().max(120).optional(),
   notes: z.string().max(1000).optional(),
+  idempotencyKey: z.string().min(1).max(64),
 });
 
 export type CreateManualSalesClosingInput = z.infer<typeof CreateManualSalesClosingInputSchema>;
@@ -107,6 +108,7 @@ export const VoidSaleInputSchema = z.object({
   salesOrderId: z.string().min(1),
   reason: z.string().min(1).max(255),
   version: z.number().int().min(1),
+  idempotencyKey: z.string().min(1).max(64),
 });
 
 export type VoidSaleInput = z.infer<typeof VoidSaleInputSchema>;
@@ -123,6 +125,7 @@ export const RefundSaleInputSchema = z.object({
   reason: z.string().min(1).max(255),
   version: z.number().int().min(1),
   lines: z.array(RefundLineSchema).min(1),
+  idempotencyKey: z.string().min(1).max(64),
 });
 
 export type RefundSaleInput = z.infer<typeof RefundSaleInputSchema>;
@@ -135,6 +138,7 @@ export const RecordShiftExpenseInputSchema = z.object({
   amount: z.string().regex(/^\d+$/, 'Amount must be numeric'),
   description: z.string().min(1).max(255),
   attachmentUrl: z.string().url().optional(),
+  idempotencyKey: z.string().min(1).max(64),
 });
 
 export type RecordShiftExpenseInput = z.infer<typeof RecordShiftExpenseInputSchema>;

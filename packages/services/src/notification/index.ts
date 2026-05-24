@@ -8,7 +8,6 @@
 
 import { and, db, desc, eq, isNull, sql } from '@erp/db';
 import { notificationChannels } from '@erp/db';
-import { auditLog } from '@erp/db/schema/audit';
 import { rolePermissions, userRoles, users } from '@erp/db/schema/auth';
 import { permissions } from '@erp/db/schema/auth';
 import { userNotifications } from '@erp/db/schema/notification';
@@ -19,6 +18,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
 import { requirePermission } from '../iam';
 import { maskPii } from '../security/pii';
+import { auditRecord } from "../audit";
 
 const ChannelTypeSchema = z.enum(['email', 'whatsapp', 'telegram']);
 const PurposeSchema = z.enum(['all', 'outage', 'stock_alert', 'party_ledger']);
@@ -101,23 +101,21 @@ export async function createNotificationChannel(
     updatedBy: ctx.userId,
   });
 
-  await db.insert(auditLog).values({
-    id: generateId(),
-    tenantId: ctx.tenantId,
-    userId: ctx.userId,
-    action: 'create',
-    entityType: 'notification_channel',
-    entityId: id,
-    before: null,
-    after: {
-      label: parsed.data.label,
-      channelType: parsed.data.channelType,
-      purpose: parsed.data.purpose,
-      isActive: parsed.data.isActive,
-      targetMasked: maskPii(parsed.data.target),
-    },
-    metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-  });
+  await auditRecord({
+      action: 'create',
+      entityType: 'notification_channel',
+      entityId: id,
+      before: null,
+      after: {
+          label: parsed.data.label,
+          channelType: parsed.data.channelType,
+          purpose: parsed.data.purpose,
+          isActive: parsed.data.isActive,
+          targetMasked: maskPii(parsed.data.target),
+        },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
   const rows = await db
     .select()
@@ -157,29 +155,27 @@ export async function updateNotificationChannel(
     .returning();
 
   if (!rows[0]) return err(AppError.notFound('notification.channel.notFound', { id }));
-  await db.insert(auditLog).values({
-    id: generateId(),
-    tenantId: ctx.tenantId,
-    userId: ctx.userId,
-    action: 'update',
-    entityType: 'notification_channel',
-    entityId: id,
-    before: {
-      label: existing.label,
-      channelType: existing.channelType,
-      purpose: existing.purpose,
-      isActive: existing.isActive,
-      targetMasked: maskPii(existing.target),
-    },
-    after: {
-      label: rows[0].label,
-      channelType: rows[0].channelType,
-      purpose: rows[0].purpose,
-      isActive: rows[0].isActive,
-      targetMasked: maskPii(rows[0].target),
-    },
-    metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-  });
+  await auditRecord({
+      action: 'update',
+      entityType: 'notification_channel',
+      entityId: id,
+      before: {
+          label: existing.label,
+          channelType: existing.channelType,
+          purpose: existing.purpose,
+          isActive: existing.isActive,
+          targetMasked: maskPii(existing.target),
+        },
+      after: {
+          label: rows[0].label,
+          channelType: rows[0].channelType,
+          purpose: rows[0].purpose,
+          isActive: rows[0].isActive,
+          targetMasked: maskPii(rows[0].target),
+        },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
   return ok(toResult(rows[0]));
 }
 

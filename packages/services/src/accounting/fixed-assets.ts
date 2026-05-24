@@ -7,7 +7,6 @@ import {
   fixedAssetDepreciationRuns,
   fixedAssets,
 } from '@erp/db/schema/accounting';
-import { auditLog } from '@erp/db/schema/audit';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
@@ -27,6 +26,7 @@ import {
   type UpdateFixedAssetCategoryInput,
   UpdateFixedAssetCategorySchema,
 } from './schemas';
+import { auditRecord } from "../audit";
 
 type FixedAssetRow = typeof fixedAssets.$inferSelect;
 
@@ -232,22 +232,20 @@ export async function updateFixedAssetCategory(
           ),
         );
 
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'update',
-        entityType: 'fixed_asset_category',
-        entityId: category.id,
-        before: {
-          defaultUsefulLifeMonths: category.defaultUsefulLifeMonths,
-          defaultDepreciationMethod: category.defaultDepreciationMethod,
-          assetAccountId: category.assetAccountId,
-          accumulatedDepreciationAccountId: category.accumulatedDepreciationAccountId,
-          depreciationExpenseAccountId: category.depreciationExpenseAccountId,
-        },
-        after: data,
-      });
+      await auditRecord({
+            action: 'update',
+            entityType: 'fixed_asset_category',
+            entityId: category.id,
+            before: {
+                    defaultUsefulLifeMonths: category.defaultUsefulLifeMonths,
+                    defaultDepreciationMethod: category.defaultDepreciationMethod,
+                    assetAccountId: category.assetAccountId,
+                    accumulatedDepreciationAccountId: category.accumulatedDepreciationAccountId,
+                    depreciationExpenseAccountId: category.depreciationExpenseAccountId,
+                  },
+            after: data,
+            ctx,
+          });
 
       return { id: category.id };
     },
@@ -403,24 +401,22 @@ export async function createFixedAsset(
         updatedBy: ctx.userId,
       });
 
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'create',
-        entityType: 'fixed_asset',
-        entityId: id,
-        before: null,
-        after: {
-          code: data.code,
-          name: data.name,
-          locationId: data.locationId,
-          categoryId: data.categoryId,
-          acquisitionCost: data.acquisitionCost,
-          depreciationMethod: data.depreciationMethod,
-        },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      });
+      await auditRecord({
+            action: 'create',
+            entityType: 'fixed_asset',
+            entityId: id,
+            before: null,
+            after: {
+                    code: data.code,
+                    name: data.name,
+                    locationId: data.locationId,
+                    categoryId: data.categoryId,
+                    acquisitionCost: data.acquisitionCost,
+                    depreciationMethod: data.depreciationMethod,
+                  },
+            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+            ctx,
+          });
 
       return { id };
     },
@@ -585,23 +581,21 @@ export async function runFixedAssetDepreciation(
           );
       }
 
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'post_depreciation',
-        entityType: 'fixed_asset_depreciation_run',
-        entityId: runId,
-        before: null,
-        after: {
-          postingDate: data.postingDate,
-          locationId: data.locationId,
-          totalAmount: totalAmount.toString(),
-          assetCount: depreciationLines.length,
-          journalEntryId: journalResult.value.id,
-        },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      });
+      await auditRecord({
+            action: 'post_depreciation',
+            entityType: 'fixed_asset_depreciation_run',
+            entityId: runId,
+            before: null,
+            after: {
+                    postingDate: data.postingDate,
+                    locationId: data.locationId,
+                    totalAmount: totalAmount.toString(),
+                    assetCount: depreciationLines.length,
+                    journalEntryId: journalResult.value.id,
+                  },
+            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+            ctx,
+          });
 
       return {
         runId,
@@ -745,25 +739,23 @@ export async function voidFixedAssetDepreciationForJournal(
           ),
         );
 
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'void_depreciation',
-        entityType: 'fixed_asset_depreciation_run',
-        entityId: run.id,
-        before: {
-          status: 'posted',
-          journalEntryId,
-          totalAmount: run.totalAmount.toString(),
-        },
-        after: {
-          status: 'void',
-          reversalJournalEntryId,
-          assetCount: lines.length,
-        },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      });
+      await auditRecord({
+            action: 'void_depreciation',
+            entityType: 'fixed_asset_depreciation_run',
+            entityId: run.id,
+            before: {
+                    status: 'posted',
+                    journalEntryId,
+                    totalAmount: run.totalAmount.toString(),
+                  },
+            after: {
+                    status: 'void',
+                    reversalJournalEntryId,
+                    assetCount: lines.length,
+                  },
+            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+            ctx,
+          });
     },
     (e) => {
       if (e instanceof AppError) return e;

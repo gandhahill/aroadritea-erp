@@ -6,7 +6,6 @@
  */
 
 import { db } from '@erp/db';
-import { auditLog } from '@erp/db/schema/audit';
 import { productVariants, products } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -21,6 +20,7 @@ import {
   type UpdateVariantInput,
   UpdateVariantInputSchema,
 } from './schemas';
+import { auditRecord } from "../audit";
 
 // --- Create variant ---
 
@@ -85,17 +85,15 @@ export async function createVariant(
         updatedBy: ctx.userId,
       });
 
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: 'create',
-        entityType: 'product_variant',
-        entityId: variantId,
-        before: null,
-        after: { id: variantId, sku: data.sku, productId: data.productId },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      });
+      await auditRecord({
+            action: 'create',
+            entityType: 'product_variant',
+            entityId: variantId,
+            before: null,
+            after: { id: variantId, sku: data.sku, productId: data.productId },
+            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+            ctx,
+          });
 
       return {
         id: variantId,
@@ -188,17 +186,15 @@ export async function updateVariant(
       const auditAction =
         data.isActive === false && existing.isActive === true ? 'delete' : 'update';
 
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: auditAction,
-        entityType: 'product_variant',
-        entityId: data.variantId,
-        before: { sku: existing.sku, version: existing.version, isActive: existing.isActive },
-        after: { ...updates, version: existing.version + 1 },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      });
+      await auditRecord({
+            action: auditAction,
+            entityType: 'product_variant',
+            entityId: data.variantId,
+            before: { sku: existing.sku, version: existing.version, isActive: existing.isActive },
+            after: { ...updates, version: existing.version + 1 },
+            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+            ctx,
+          });
 
       return {
         id: updated.id,

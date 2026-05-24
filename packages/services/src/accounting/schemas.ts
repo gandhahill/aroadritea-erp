@@ -64,6 +64,7 @@ export const CreateJournalInputSchema = z.object({
   lines: z.array(JournalLineInputSchema).min(2, {
     message: 'At least 2 journal lines are required',
   }),
+  idempotencyKey: z.string().min(1).max(64).optional(),
 });
 
 export type CreateJournalInput = z.infer<typeof CreateJournalInputSchema>;

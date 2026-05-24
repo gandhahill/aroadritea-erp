@@ -44,21 +44,21 @@ async function checkPermission(ctx: McpContext, permission: string) {
 
 export const BalanceSheetSchema = z.object({
   as_of: z.string(),
-  location_id: z.string().optional(),
+  location_id: z.string().min(1, 'location_id is required for MCP access'),
   locale: z.enum(['id', 'en', 'zh']).optional().default('id'),
 });
 
 export const ProfitLossSchema = z.object({
   from: z.string(),
   to: z.string(),
-  location_id: z.string().optional(),
+  location_id: z.string().min(1, 'location_id is required for MCP access'),
   locale: z.enum(['id', 'en', 'zh']).optional().default('id'),
 });
 
 export const CashFlowSchema = z.object({
   from: z.string(),
   to: z.string(),
-  location_id: z.string().optional(),
+  location_id: z.string().min(1, 'location_id is required for MCP access'),
   cash_account_codes: z.array(z.string()).optional(),
   locale: z.enum(['id', 'en', 'zh']).optional().default('id'),
 });
@@ -72,7 +72,7 @@ export const GeneralLedgerSchema = z.object({
 
 export const TrialBalanceSchema = z.object({
   as_of: z.string(),
-  location_id: z.string().optional(),
+  location_id: z.string().min(1, 'location_id is required for MCP access'),
   locale: z.enum(['id', 'en', 'zh']).optional().default('id'),
 });
 
@@ -86,13 +86,13 @@ export const DailySummarySchema = z.object({
 export const DonationReportSchema = z.object({
   start_date: z.string(),
   end_date: z.string(),
-  location_id: z.string().optional(),
+  location_id: z.string().min(1, 'location_id is required for MCP access'),
 });
 
 export const HourlySalesSchema = z.object({
   start_date: z.string(),
   end_date: z.string(),
-  location_id: z.string().optional(),
+  location_id: z.string().min(1, 'location_id is required for MCP access'),
   group_by: z.enum(['channel', 'day']).optional().default('channel'),
 });
 

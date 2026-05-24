@@ -8,7 +8,6 @@
  */
 
 import { db } from '@erp/db';
-import { auditLog } from '@erp/db/schema/audit';
 import { productCategories, products } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -18,6 +17,7 @@ import { and, eq } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 import type { ProductResult } from './create-product';
 import { type UpdateProductInput, UpdateProductInputSchema } from './schemas';
+import { auditRecord } from "../audit";
 
 export async function updateProduct(
   input: UpdateProductInput,
@@ -125,7 +125,13 @@ export async function updateProduct(
       const [updated] = await db
         .update(products)
         .set(updates)
-        .where(and(eq(products.id, data.productId), eq(products.version, data.version)))
+        .where(
+          and(
+            eq(products.tenantId, ctx.tenantId),
+            eq(products.id, data.productId),
+            eq(products.version, data.version)
+          )
+        )
         .returning();
 
       if (!updated) {
@@ -141,22 +147,20 @@ export async function updateProduct(
         Object.entries(updates).map(([k, v]) => [k, typeof v === 'bigint' ? String(v) : v]),
       );
 
-      await db.insert(auditLog).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        userId: ctx.userId,
-        action: auditAction,
-        entityType: 'product',
-        entityId: data.productId,
-        before: {
-          sku: existing.sku,
-          name: existing.name,
-          version: existing.version,
-          isActive: existing.isActive,
-        },
-        after: { ...safeUpdates, version: existing.version + 1 },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      });
+      await auditRecord({
+            action: auditAction,
+            entityType: 'product',
+            entityId: data.productId,
+            before: {
+                    sku: existing.sku,
+                    name: existing.name,
+                    version: existing.version,
+                    isActive: existing.isActive,
+                  },
+            after: { ...safeUpdates, version: existing.version + 1 },
+            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+            ctx,
+          });
 
       const result: ProductResult = {
         id: updated.id,
