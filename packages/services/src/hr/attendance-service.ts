@@ -11,7 +11,7 @@
 import { db } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import { customFieldDefinitions, customFieldValues } from '@erp/db/schema/customfield';
-import { attendance, employees, shiftDefinitions } from '@erp/db/schema/hr';
+import { attendance, employees, shiftDefinitions, shiftAssignments } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
@@ -227,22 +227,45 @@ export async function checkIn(
         });
       }
 
+      const performedAt = data.performedAt ? new Date(data.performedAt) : new Date();
+      const wibDate = new Date(performedAt.getTime() + 7 * 60 * 60 * 1000);
+      const workDateStr = `${wibDate.getUTCFullYear()}-${String(wibDate.getUTCMonth() + 1).padStart(2, '0')}-${String(wibDate.getUTCDate()).padStart(2, '0')}`;
+
+      const [assignment] = await db
+        .select({
+          locationId: shiftAssignments.locationId,
+          shiftDefinitionId: shiftAssignments.shiftDefinitionId,
+        })
+        .from(shiftAssignments)
+        .where(
+          and(
+            eq(shiftAssignments.employeeId, employee.id),
+            eq(shiftAssignments.workDate, workDateStr),
+            eq(shiftAssignments.kind, 'shift'),
+            isNull(shiftAssignments.deletedAt)
+          )
+        )
+        .limit(1);
+
+      const targetLocationId = assignment?.locationId ?? employee.locationId;
+      const targetShiftDefinitionId = assignment?.shiftDefinitionId ?? data.shiftDefinitionId;
+
       const permCheck = await requirePermission(ctx.userId, 'hr.attendance.write', {
-        locationId: employee.locationId,
+        locationId: targetLocationId,
       });
       if (!permCheck.ok) throw permCheck.error;
 
       // 1. Derive shift definition
       let shiftDef = null;
-      if (data.shiftDefinitionId) {
+      if (targetShiftDefinitionId) {
         const [sd] = await db
           .select()
           .from(shiftDefinitions)
           .where(
             and(
-              eq(shiftDefinitions.id, data.shiftDefinitionId),
+              eq(shiftDefinitions.id, targetShiftDefinitionId),
               eq(shiftDefinitions.tenantId, ctx.tenantId),
-              eq(shiftDefinitions.locationId, employee.locationId),
+              eq(shiftDefinitions.locationId, targetLocationId),
               eq(shiftDefinitions.isActive, true),
               isNull(shiftDefinitions.deletedAt),
             ),
@@ -250,13 +273,11 @@ export async function checkIn(
           .limit(1);
         if (!sd) {
           throw AppError.notFound('hr.attendance.shiftNotFound', {
-            shiftDefinitionId: data.shiftDefinitionId,
+            shiftDefinitionId: targetShiftDefinitionId,
           });
         }
         shiftDef = sd;
       }
-
-      const performedAt = data.performedAt ? new Date(data.performedAt) : new Date();
 
       // 2. Check for duplicate check-in on the same WIB operational day.
       const { start: todayStart, end: todayEnd } = wibDayBounds(performedAt);
@@ -268,7 +289,7 @@ export async function checkIn(
           and(
             eq(attendance.employeeId, data.employeeId),
             eq(attendance.tenantId, ctx.tenantId),
-            eq(attendance.locationId, employee.locationId),
+            eq(attendance.locationId, targetLocationId),
             isNull(attendance.deletedAt),
             sql`${attendance.checkInAt} >= ${todayStart}`,
             sql`${attendance.checkInAt} <= ${todayEnd}`,
@@ -295,10 +316,10 @@ export async function checkIn(
           });
         }
 
-        const locationGps = await getLocationGpsConfig(ctx.tenantId, employee.locationId);
+        const locationGps = await getLocationGpsConfig(ctx.tenantId, targetLocationId);
         if (!locationGps) {
           throw AppError.validation('hr.attendance.gpsLocationNotConfigured', {
-            locationId: employee.locationId,
+            locationId: targetLocationId,
             message: 'GPS coordinates for this location are not configured.',
           });
         }
@@ -332,11 +353,11 @@ export async function checkIn(
         .values({
           id: attId,
           tenantId: ctx.tenantId,
-          locationId: employee.locationId,
+          locationId: targetLocationId,
           createdBy: ctx.userId,
           updatedBy: ctx.userId,
           employeeId: data.employeeId,
-          shiftDefinitionId: data.shiftDefinitionId ?? null,
+          shiftDefinitionId: targetShiftDefinitionId ?? null,
           checkInAt: performedAt,
           checkInMethod: data.method,
           checkInGps: data.gpsData ?? null,
