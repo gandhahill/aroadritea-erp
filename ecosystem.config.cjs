@@ -39,6 +39,7 @@ const sharedEnv = {
   ...fileEnv,
   NODE_ENV: 'production',
   NEXT_TELEMETRY_DISABLED: '1',
+  TZ: 'Asia/Jakarta',
 };
 
 function withSharedEnv(extra = {}) {
