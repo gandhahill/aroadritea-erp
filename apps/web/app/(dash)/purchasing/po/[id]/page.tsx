@@ -7,6 +7,14 @@ import { GrnForm } from './grn-form';
 import { TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
 import { PageHeader } from "@/components/page-header";
 
+function shipmentBadgeClass(status: string | null, hasError: boolean): string {
+  if (hasError) return 'border-rose-200 bg-rose-50 text-rose-700';
+  if (!status) return 'border-brand-cream-3 bg-brand-cream-1 text-brand-ink-3';
+  if (['DELIVERED', 'TERKIRIM', 'DITERIMA'].includes(status.toUpperCase()))
+    return 'border-brand-jade/30 bg-brand-jade/10 text-brand-jade';
+  return 'border-brand-gold/40 bg-brand-gold/15 text-brand-wood';
+}
+
 export default async function PoDetailPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const session = await getSession();
@@ -26,6 +34,11 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
       supplierName: partners.name,
       locationName: locations.name,
       notes: purchaseOrders.notes,
+      shippingCourierCode: purchaseOrders.shippingCourierCode,
+      shippingAwb: purchaseOrders.shippingAwb,
+      shippingTrackingStatus: purchaseOrders.shippingTrackingStatus,
+      shippingTrackingSyncedAt: purchaseOrders.shippingTrackingSyncedAt,
+      shippingTrackingError: purchaseOrders.shippingTrackingError,
     })
     .from(purchaseOrders)
     .leftJoin(partners, eq(purchaseOrders.supplierId, partners.id))
@@ -98,6 +111,44 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
             <span className="inline-block mt-1 rounded-full bg-brand-cream-1 px-2.5 py-1 text-xs font-semibold text-brand-ink">
               {po.status}
             </span>
+          </div>
+        </div>
+
+        {/* T-0185: shipment quick-status with link to detail page. */}
+        <div className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-wider text-brand-ink-3">
+                Pengiriman / Shipment
+              </p>
+              <p className="mt-1 text-sm font-medium text-brand-ink">
+                {po.shippingAwb
+                  ? `${po.shippingCourierCode?.toUpperCase() ?? ''} · ${po.shippingAwb}`
+                  : 'Belum ada nomor resi'}
+              </p>
+              {po.shippingTrackingError ? (
+                <p className="mt-1 text-xs text-rose-700">{po.shippingTrackingError}</p>
+              ) : po.shippingTrackingSyncedAt ? (
+                <p className="mt-1 text-xs text-brand-ink-3">
+                  Disinkron: {po.shippingTrackingSyncedAt.toISOString().slice(0, 16).replace('T', ' ')}
+                </p>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-3">
+              <span
+                className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${shipmentBadgeClass(po.shippingTrackingStatus, Boolean(po.shippingTrackingError))}`}
+              >
+                {po.shippingTrackingError
+                  ? 'Error'
+                  : po.shippingTrackingStatus ?? 'Belum disinkron'}
+              </span>
+              <Link
+                href={`/purchasing/shipments/${po.id}`}
+                className="rounded-lg border border-brand-cream-3 bg-card px-3 py-1.5 text-xs font-semibold text-brand-ink hover:bg-brand-cream-1"
+              >
+                Detail
+              </Link>
+            </div>
           </div>
         </div>
 

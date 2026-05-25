@@ -751,6 +751,54 @@
         "post": "Posting",
         "cancel": "Batalkan"
       }
+    },
+    "shipments": {
+      "eyebrow": "Logistik",
+      "title": "Pengiriman Supplier",
+      "subtitle": "Pantau status pengiriman barang dari supplier ke outlet melalui BinderByte (JNE, J&T, SiCepat, dll.).",
+      "back": "Kembali",
+      "tableTitle": "Daftar Pengiriman",
+      "searchPlaceholder": "Cari No. PO / supplier / lokasi / AWB",
+      "filterAll": "Semua",
+      "filterInTransit": "Dalam pengiriman",
+      "filterDelivered": "Terkirim",
+      "filterErrored": "Bermasalah",
+      "filterNoShipping": "Belum ada resi",
+      "emptyAll": "Belum ada PO dengan data pengiriman.",
+      "emptyFilter": "Tidak ada pengiriman yang cocok dengan filter.",
+      "countSummary": "{filtered} dari {total} PO",
+      "orderDate": "Tgl PO",
+      "expected": "Estimasi Sampai",
+      "status": "Status Pengiriman",
+      "sync": "Sinkron Resi",
+      "syncedAt": "Disinkron",
+      "courier": "Kurir",
+      "viewDetail": "Detail",
+      "errorsBanner": "{count} pengiriman mengalami error sinkronisasi. Periksa nomor resi dan kode kurir.",
+      "kpi": {
+        "total": "Total PO",
+        "withShipping": "Punya Resi",
+        "inTransit": "Dalam Perjalanan",
+        "delivered": "Terkirim"
+      },
+      "badge": {
+        "noShipping": "Belum ada resi",
+        "inTransit": "Dalam pengiriman",
+        "delivered": "Terkirim",
+        "errored": "Error"
+      },
+      "detail": {
+        "title": "Detail Pengiriman",
+        "metaTitle": "Informasi Pengiriman",
+        "service": "Layanan",
+        "lastStatus": "Status terkini",
+        "lastUpdate": "Update terakhir (kurir)",
+        "errorLabel": "Error",
+        "syncTitle": "Sinkronkan Ulang",
+        "syncHint": "Tekan tombol di bawah untuk mengambil status terbaru dari BinderByte. Setiap sinkron memakai 1 kuota bulanan.",
+        "historyTitle": "Riwayat Pengiriman",
+        "historyEmpty": "Belum ada riwayat. Lakukan sinkron untuk mengambil data dari kurir."
+      }
     }
   },
   "scheduledJobs": {
@@ -1302,6 +1350,7 @@
     "newPo": "PO Baru",
     "grnReport": "Laporan Penerimaan",
     "purchaseReturns": "Retur Pembelian",
+    "shipments": "Pengiriman",
     "tax": "Pajak",
     "taxRates": "Tarif Pajak",
     "taxRules": "Aturan Pajak",

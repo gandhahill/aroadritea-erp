@@ -751,6 +751,54 @@
         "post": "Post",
         "cancel": "Cancel"
       }
+    },
+    "shipments": {
+      "eyebrow": "Logistics",
+      "title": "Supplier Shipments",
+      "subtitle": "Track inbound deliveries from suppliers via BinderByte (JNE, J&T, SiCepat, etc.).",
+      "back": "Back",
+      "tableTitle": "Shipment List",
+      "searchPlaceholder": "Search PO no. / supplier / location / AWB",
+      "filterAll": "All",
+      "filterInTransit": "In transit",
+      "filterDelivered": "Delivered",
+      "filterErrored": "Errored",
+      "filterNoShipping": "No tracking yet",
+      "emptyAll": "No POs with shipment data yet.",
+      "emptyFilter": "No shipments match the current filter.",
+      "countSummary": "{filtered} of {total} POs",
+      "orderDate": "PO Date",
+      "expected": "Expected",
+      "status": "Shipment Status",
+      "sync": "Sync Tracking",
+      "syncedAt": "Synced",
+      "courier": "Courier",
+      "viewDetail": "Detail",
+      "errorsBanner": "{count} shipments errored on the last sync. Check AWB number and courier code.",
+      "kpi": {
+        "total": "Total POs",
+        "withShipping": "With Tracking",
+        "inTransit": "In Transit",
+        "delivered": "Delivered"
+      },
+      "badge": {
+        "noShipping": "No tracking",
+        "inTransit": "In transit",
+        "delivered": "Delivered",
+        "errored": "Error"
+      },
+      "detail": {
+        "title": "Shipment Detail",
+        "metaTitle": "Shipment Info",
+        "service": "Service",
+        "lastStatus": "Latest status",
+        "lastUpdate": "Last update (courier)",
+        "errorLabel": "Error",
+        "syncTitle": "Resync",
+        "syncHint": "Press the button to pull the latest status from BinderByte. Each sync consumes 1 monthly quota.",
+        "historyTitle": "Shipment History",
+        "historyEmpty": "No history yet. Run a sync to fetch data from the courier."
+      }
     }
   },
   "scheduledJobs": {
@@ -1297,6 +1345,7 @@
     "newPo": "New PO",
     "grnReport": "GRN Report",
     "purchaseReturns": "Purchase Returns",
+    "shipments": "Shipments",
     "tax": "Tax",
     "taxRates": "Tax Rates",
     "taxRules": "Tax Rules",

@@ -333,8 +333,170 @@ export async function syncPurchaseShipmentAction(formData: FormData): Promise<Ac
   );
 
   revalidatePath('/purchasing');
+  revalidatePath('/purchasing/shipments');
+  revalidatePath(`/purchasing/po/${String(formData.get('poId') ?? '')}`);
   if (!result.ok) return { success: false, error: result.error.messageKey };
   return { success: true };
+}
+
+// ─── Shipments (T-0185) ─────────────────────────────────────────────────
+//
+// Centralised "what's in transit" view across all POs that have shipment
+// info. Pull from cached PO columns — no API hit on page load.
+
+export interface ShipmentSummaryRow {
+  poId: string;
+  poNumber: string;
+  supplierName: string;
+  locationName: string;
+  orderDate: string;
+  expectedDate: string | null;
+  poStatus: string;
+  courierCode: string | null;
+  awb: string | null;
+  trackingStatus: string | null;
+  trackingSyncedAt: string | null;
+  trackingError: string | null;
+  hasHistory: boolean;
+}
+
+export interface ShipmentDetail {
+  poId: string;
+  poNumber: string;
+  supplierName: string;
+  locationName: string;
+  courierCode: string | null;
+  awb: string | null;
+  phoneLast5: string | null;
+  trackingStatus: string | null;
+  trackingSyncedAt: string | null;
+  trackingError: string | null;
+  summary: Record<string, unknown> | null;
+  history: Array<Record<string, unknown>>;
+}
+
+export async function fetchShipmentDashboard(): Promise<{
+  rows: ShipmentSummaryRow[];
+  total: number;
+  withShipping: number;
+  delivered: number;
+  inTransit: number;
+  errored: number;
+}> {
+  const ctx = await getSessionContext();
+  if (!ctx)
+    return { rows: [], total: 0, withShipping: 0, delivered: 0, inTransit: 0, errored: 0 };
+
+  const rows = await db
+    .select({
+      id: purchaseOrders.id,
+      number: purchaseOrders.number,
+      status: purchaseOrders.status,
+      orderDate: purchaseOrders.orderDate,
+      expectedDate: purchaseOrders.expectedDate,
+      supplierName: partners.name,
+      locationName: locations.name,
+      courierCode: purchaseOrders.shippingCourierCode,
+      awb: purchaseOrders.shippingAwb,
+      trackingStatus: purchaseOrders.shippingTrackingStatus,
+      trackingSyncedAt: purchaseOrders.shippingTrackingSyncedAt,
+      trackingError: purchaseOrders.shippingTrackingError,
+      history: purchaseOrders.shippingTrackingHistory,
+    })
+    .from(purchaseOrders)
+    .leftJoin(
+      partners,
+      and(eq(purchaseOrders.supplierId, partners.id), eq(partners.tenantId, ctx.tenantId)),
+    )
+    .leftJoin(
+      locations,
+      and(eq(purchaseOrders.locationId, locations.id), eq(locations.tenantId, ctx.tenantId)),
+    )
+    .where(eq(purchaseOrders.tenantId, ctx.tenantId))
+    .orderBy(desc(purchaseOrders.orderDate));
+
+  const mapped: ShipmentSummaryRow[] = rows.map((row) => ({
+    poId: row.id,
+    poNumber: row.number,
+    supplierName: row.supplierName ?? '—',
+    locationName: localizedName(row.locationName),
+    orderDate: row.orderDate,
+    expectedDate: row.expectedDate ?? null,
+    poStatus: row.status,
+    courierCode: row.courierCode,
+    awb: row.awb,
+    trackingStatus: row.trackingStatus,
+    trackingSyncedAt: row.trackingSyncedAt ? row.trackingSyncedAt.toISOString() : null,
+    trackingError: row.trackingError,
+    hasHistory: Array.isArray(row.history) && (row.history as unknown[]).length > 0,
+  }));
+
+  const withShipping = mapped.filter((r) => r.awb || r.trackingStatus).length;
+  const delivered = mapped.filter(
+    (r) =>
+      r.trackingStatus &&
+      ['DELIVERED', 'TERKIRIM', 'DITERIMA'].includes(r.trackingStatus.toUpperCase()),
+  ).length;
+  const errored = mapped.filter((r) => r.trackingError).length;
+  const inTransit = withShipping - delivered - errored;
+
+  return {
+    rows: mapped,
+    total: mapped.length,
+    withShipping,
+    delivered,
+    inTransit: Math.max(0, inTransit),
+    errored,
+  };
+}
+
+export async function fetchShipmentDetail(poId: string): Promise<ShipmentDetail | null> {
+  const ctx = await getSessionContext();
+  if (!ctx) return null;
+
+  const [row] = await db
+    .select({
+      id: purchaseOrders.id,
+      number: purchaseOrders.number,
+      supplierName: partners.name,
+      locationName: locations.name,
+      courierCode: purchaseOrders.shippingCourierCode,
+      awb: purchaseOrders.shippingAwb,
+      phoneLast5: purchaseOrders.shippingPhoneLast5,
+      trackingStatus: purchaseOrders.shippingTrackingStatus,
+      trackingSyncedAt: purchaseOrders.shippingTrackingSyncedAt,
+      trackingError: purchaseOrders.shippingTrackingError,
+      summary: purchaseOrders.shippingTrackingSummary,
+      history: purchaseOrders.shippingTrackingHistory,
+    })
+    .from(purchaseOrders)
+    .leftJoin(
+      partners,
+      and(eq(purchaseOrders.supplierId, partners.id), eq(partners.tenantId, ctx.tenantId)),
+    )
+    .leftJoin(
+      locations,
+      and(eq(purchaseOrders.locationId, locations.id), eq(locations.tenantId, ctx.tenantId)),
+    )
+    .where(and(eq(purchaseOrders.id, poId), eq(purchaseOrders.tenantId, ctx.tenantId)))
+    .limit(1);
+
+  if (!row) return null;
+
+  return {
+    poId: row.id,
+    poNumber: row.number,
+    supplierName: row.supplierName ?? '—',
+    locationName: localizedName(row.locationName),
+    courierCode: row.courierCode,
+    awb: row.awb,
+    phoneLast5: row.phoneLast5,
+    trackingStatus: row.trackingStatus,
+    trackingSyncedAt: row.trackingSyncedAt ? row.trackingSyncedAt.toISOString() : null,
+    trackingError: row.trackingError,
+    summary: row.summary as Record<string, unknown> | null,
+    history: Array.isArray(row.history) ? (row.history as Array<Record<string, unknown>>) : [],
+  };
 }
 
 export async function receiveGoodsAction(prevState: ActionState, formData: FormData): Promise<ActionState> {

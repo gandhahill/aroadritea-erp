@@ -772,6 +772,54 @@
         "post": "过账",
         "cancel": "取消"
       }
+    },
+    "shipments": {
+      "eyebrow": "物流",
+      "title": "供应商物流跟踪",
+      "subtitle": "通过 BinderByte (JNE / J&T / SiCepat 等) 跟踪供应商发往门店的货物状态。",
+      "back": "返回",
+      "tableTitle": "物流列表",
+      "searchPlaceholder": "搜索 PO 号 / 供应商 / 地点 / 运单号",
+      "filterAll": "全部",
+      "filterInTransit": "运输中",
+      "filterDelivered": "已送达",
+      "filterErrored": "异常",
+      "filterNoShipping": "尚未跟踪",
+      "emptyAll": "尚无带物流信息的采购单。",
+      "emptyFilter": "无符合筛选条件的物流。",
+      "countSummary": "{filtered} / {total} 采购单",
+      "orderDate": "PO 日期",
+      "expected": "预计到达",
+      "status": "物流状态",
+      "sync": "同步运单",
+      "syncedAt": "同步于",
+      "courier": "快递",
+      "viewDetail": "详情",
+      "errorsBanner": "{count} 个物流上次同步异常,请检查运单号与快递代码。",
+      "kpi": {
+        "total": "PO 总数",
+        "withShipping": "已有运单",
+        "inTransit": "运输中",
+        "delivered": "已送达"
+      },
+      "badge": {
+        "noShipping": "未跟踪",
+        "inTransit": "运输中",
+        "delivered": "已送达",
+        "errored": "错误"
+      },
+      "detail": {
+        "title": "物流详情",
+        "metaTitle": "物流信息",
+        "service": "服务",
+        "lastStatus": "最新状态",
+        "lastUpdate": "快递最近更新",
+        "errorLabel": "错误",
+        "syncTitle": "重新同步",
+        "syncHint": "点击下方按钮从 BinderByte 拉取最新状态。每次同步占用 1 次月度配额。",
+        "historyTitle": "物流轨迹",
+        "historyEmpty": "暂无轨迹,执行同步以获取快递数据。"
+      }
     }
   },
   "scheduledJobs": {
@@ -1337,6 +1385,7 @@
     "newPo": "新采购订单",
     "grnReport": "入库报告",
     "purchaseReturns": "采购退货",
+    "shipments": "物流跟踪",
     "tax": "税务",
     "taxRates": "税率",
     "taxRules": "税务规则",
