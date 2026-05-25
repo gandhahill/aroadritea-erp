@@ -9,6 +9,7 @@ import { scheduledJobs } from '@erp/db/schema/scheduled-jobs';
 import { eq } from 'drizzle-orm';
 import { boss } from './boss';
 import {
+  aiActionDraftsSweeperHandler,
   backupHandler,
   isrRevalidateHandler,
   outageMonitorHandler,
@@ -17,6 +18,7 @@ import {
   stockLowAlertHandler,
 } from './jobs/index';
 import type {
+  AiActionDraftsSweeperJobData,
   BackupJobData,
   IsrRevalidateJobData,
   OutageMonitorJobData,
@@ -39,6 +41,9 @@ const handlerMap: Record<string, JobHandler> = {
   'outage-monitor': (data) => outageMonitorHandler(data as unknown as OutageMonitorJobData),
   'party-ledger-reminders': (data) =>
     partyLedgerReminderHandler(data as unknown as PartyLedgerReminderJobData),
+  'ai-action-drafts-sweeper': async (data) => {
+    await aiActionDraftsSweeperHandler(data as unknown as AiActionDraftsSweeperJobData);
+  },
 };
 
 // --- Sync state ---

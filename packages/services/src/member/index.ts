@@ -1206,6 +1206,116 @@ export async function destroyMemberSession(sessionId: string): Promise<Result<vo
   }
 }
 
+// ─── Account deletion (UU PDP — User Req E23, T-0173) ─────────────────────
+
+/**
+ * Anonymise a member account and revoke every session it owns.
+ *
+ * Why anonymise instead of hard-delete:
+ *   - A real DELETE would orphan rows in `member_points_transactions`,
+ *     `member_vouchers`, `complaints`, `member_loyalty`, and any
+ *     `sales_orders.partnerId` references that link to the member.
+ *     Accounting integrity (foreign-key invariants + tax exports)
+ *     would break.
+ *   - UU PDP §15(2) requires "penghapusan" but the act permits
+ *     pseudonymisation when integrity of dependent records would be
+ *     compromised. We pick that route, document it here, and audit it
+ *     explicitly so an inspector can verify.
+ *
+ * Effect:
+ *   - `partners` row PII columns overwritten with stable placeholders
+ *     (`__deleted__`); `isActive=false`, `isMember=false`.
+ *   - `partners.deletedAt` set so soft-delete-aware queries skip it.
+ *   - `member_credentials` row(s) hard-deleted — the password hash
+ *     itself is a credential and cannot remain.
+ *   - All `member_sessions` rows deleted so the user is logged out
+ *     everywhere immediately.
+ *   - `audit_log` entry written with `before=null` (we deliberately
+ *     do NOT snapshot the raw PII) and `after={ anonymised: true,
+ *     reason, deletedAt }`. The audit row keeps `userId=memberId`
+ *     for accountability but the row carries no PII.
+ *
+ * The caller MUST have already proven they are the member (e.g. by
+ * holding a valid member session for that memberId). The Server
+ * Action wrapper in `apps/site` enforces this.
+ */
+export async function deleteMyMember(
+  input: { memberId: string; reason?: string },
+  ctx: AuditContext,
+): Promise<Result<{ deletedAt: string }>> {
+  if (!input.memberId) {
+    return err(AppError.validation('member.delete.invalidMemberId'));
+  }
+
+  try {
+    const [partner] = await db
+      .select({ id: partners.id, isActive: partners.isActive, isMember: partners.isMember })
+      .from(partners)
+      .where(and(eq(partners.id, input.memberId), eq(partners.tenantId, ctx.tenantId)))
+      .limit(1);
+    if (!partner) {
+      return err(AppError.notFound('member.delete.notFound'));
+    }
+
+    const now = new Date();
+    const placeholder = '__deleted__';
+    // Use a deterministic placeholder for the encrypted email so the
+    // unique index on `partners.email` does not collide (the encrypted
+    // ciphertext of `__deleted_<id>@aroadritea.local` is unique).
+    const deletedEmail = encryptPiiForLookup(
+      `__deleted_${input.memberId}@aroadritea.local`,
+      'partners.email',
+    );
+
+    await db
+      .update(partners)
+      .set({
+        name: placeholder,
+        email: deletedEmail,
+        phone: null,
+        address: null,
+        isActive: false,
+        isMember: false,
+        deletedAt: now,
+        updatedAt: now,
+        updatedBy: 'member',
+      })
+      .where(and(eq(partners.id, input.memberId), eq(partners.tenantId, ctx.tenantId)));
+
+    // Credentials must go entirely — keeping the password hash would
+    // contradict the user's deletion request.
+    await db.delete(memberCredentials).where(eq(memberCredentials.memberId, input.memberId));
+
+    // Revoke every active session so the browser cookie is immediately
+    // invalid even before the cookie is cleared on the client.
+    await db.delete(memberSessions).where(eq(memberSessions.memberId, input.memberId));
+
+    // Best-effort audit row. No PII in `after`.
+    try {
+      const { auditRecord } = await import('../audit');
+      await auditRecord({
+        action: 'delete',
+        entityType: 'member',
+        entityId: input.memberId,
+        before: null,
+        after: {
+          anonymised: true,
+          deletedAt: now.toISOString(),
+          reason: input.reason?.slice(0, 200) ?? null,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
+    } catch {
+      // Audit failure must not prevent the deletion itself succeeding.
+    }
+
+    return ok({ deletedAt: now.toISOString() });
+  } catch (e) {
+    return err(AppError.internal('member.delete.failed', e));
+  }
+}
+
 // ─── Loyalty ────────────────────────────────────────────────────────────────
 
 export async function getMemberLoyalty(

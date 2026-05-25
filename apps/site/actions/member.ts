@@ -7,6 +7,7 @@
 import {
   completeMemberPasswordReset,
   completeSignup,
+  deleteMyMember,
   destroyMemberSession,
   getMemberLoyalty,
   getMemberVouchers,
@@ -214,4 +215,41 @@ export async function logoutAction() {
 
   cookieStore.delete(MEMBER_SESSION_COOKIE);
   revalidatePath('/[locale]/member/akun');
+}
+
+/**
+ * E23 — UU PDP-compliant member account deletion.
+ *
+ * Validates the caller actually owns the session, calls the service
+ * which anonymises the partner row + revokes every session, then
+ * clears the cookie. Returns a structured success/error so the page
+ * can show a confirmation and redirect.
+ */
+export async function deleteMyAccountAction(input: {
+  confirmation: string;
+  reason?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  if (input.confirmation !== 'HAPUS') {
+    return { success: false, error: 'Ketik HAPUS untuk konfirmasi.' };
+  }
+  const cookieStore = await cookies();
+  const token = cookieStore.get(MEMBER_SESSION_COOKIE)?.value;
+  if (!token) return { success: false, error: 'Sesi tidak valid. Silakan login ulang.' };
+
+  const sessionResult = await validateMemberSession(token);
+  if (!sessionResult.ok || !sessionResult.value) {
+    return { success: false, error: 'Sesi tidak valid. Silakan login ulang.' };
+  }
+
+  const memberId = sessionResult.value.memberId;
+  const result = await deleteMyMember(
+    { memberId, reason: input.reason },
+    { userId: memberId, tenantId: 'default', locationId: '' },
+  );
+  if (!result.ok) {
+    return { success: false, error: 'Penghapusan gagal. Hubungi admin.' };
+  }
+  cookieStore.delete(MEMBER_SESSION_COOKIE);
+  revalidatePath('/[locale]/member/akun');
+  return { success: true };
 }

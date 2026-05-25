@@ -386,6 +386,7 @@ export function Sidebar() {
         { label: t('customFields'), href: '/settings/custom-fields', icon: <></> },
         { label: t('bankAccounts'), href: '/settings/bank-accounts', icon: <></> },
         { label: t('workflowEditor'), href: '/settings/workflow-editor', icon: <></> },
+        { label: t('aiAssistantLog'), href: '/settings/ai-assistant/log', icon: <></> },
       ],
     },
   ];

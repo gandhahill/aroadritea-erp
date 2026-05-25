@@ -135,6 +135,18 @@
     "noVouchers": "暂无优惠券。",
     "cashierLookupTitle": "结账时使用手机号",
     "cashierLookupBody": "当收银员询问是否有会员时，请告知注册手机号。收银员会查找会员资料并确认姓名，然后记录本次积分。",
+    "deleteAccount": {
+      "sectionTitle": "删除我的账户",
+      "sectionBody": "根据印尼《个人数据保护法》，您可以要求删除数据。姓名、邮箱、电话和地址将被匿名化；积分和优惠券会因会计完整性而保留，但不再与您关联。此操作不可撤销。",
+      "openButton": "我想删除账户",
+      "confirmInputLabel": "输入 HAPUS 以确认",
+      "confirmInputHint": "必须是大写 HAPUS — 防止意外点击。",
+      "reasonLabel": "原因（可选）",
+      "reasonPlaceholder": "例如：换手机号、不再使用等。",
+      "cancel": "取消",
+      "commit": "立即删除账户",
+      "success": "账户已删除。即将跳转到注册页面。"
+    },
     "login": {
       "title": "会员登录",
       "subtitle": "登录您的会员账户查看积分、优惠券和交易记录。",

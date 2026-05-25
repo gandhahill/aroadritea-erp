@@ -135,6 +135,18 @@
     "noVouchers": "No vouchers yet.",
     "cashierLookupTitle": "Use your phone number at checkout",
     "cashierLookupBody": "When the cashier asks whether you are a member, mention your registered phone number. The cashier will find the member record and confirm the name before points are recorded.",
+    "deleteAccount": {
+      "sectionTitle": "Delete my account",
+      "sectionBody": "Under Indonesia's UU PDP, you may request data deletion. Your name, email, phone, and address will be anonymised; points and vouchers are kept for accounting integrity but can no longer be traced to you. This action cannot be undone.",
+      "openButton": "I want to delete my account",
+      "confirmInputLabel": "Type HAPUS to confirm",
+      "confirmInputHint": "Must be the exact uppercase word HAPUS — guards against accidental taps.",
+      "reasonLabel": "Reason (optional)",
+      "reasonPlaceholder": "e.g. changing phone number, no longer active, etc.",
+      "cancel": "Cancel",
+      "commit": "Delete my account now",
+      "success": "Your account was deleted. Redirecting you to the signup page."
+    },
     "login": {
       "title": "Member Login",
       "subtitle": "Login to your member account to view points, vouchers, and transaction history.",

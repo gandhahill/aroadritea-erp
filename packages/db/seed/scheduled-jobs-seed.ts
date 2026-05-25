@@ -53,4 +53,15 @@ export const SCHEDULED_JOBS_SEED = [
     jobData: {},
     enabled: true,
   },
+  {
+    name: 'ai-action-drafts-sweeper',
+    label: 'scheduledJobs.aiActionDraftsSweeper.label',
+    description: 'scheduledJobs.aiActionDraftsSweeper.description',
+    // 04:30 WIB = 21:30 UTC. Run once a day; draft TTL is 30 min so a
+    // 24h window is plenty for the sweep to catch every leftover.
+    cronExpression: '0 30 21 * * *',
+    timezone: 'Asia/Jakarta',
+    jobData: {},
+    enabled: true,
+  },
 ] as const;

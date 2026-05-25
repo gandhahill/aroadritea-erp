@@ -58,14 +58,20 @@
 | AI-P3-004 | ai / ui | 🔵 Info (UX) | Chat tidak punya cara menyetujui draft mutasi. | `<ConfirmActionCard>` baru: render dari `tool_payload` ketika output `requires_confirmation:true`. Tombol "Setujui & Posting" + "Batal" + countdown expiry + hasil commit dengan referensi ID. | ✅ | (manual smoke; typecheck PASS) |
 | AI-P3-005 | ai / actions | 🟠 High (Sec) | UI butuh server action yang re-cek permission. | `confirmDraftAction` / `cancelDraftAction` / `fetchDraftAction` di `apps/web/app/(dash)/ai-assistant/actions.ts`. Re-derive `ctx` server-side. | ✅ | (covered via drafts service tests) |
 
+## T-0173 — Compliance + AI wrap-up (2026-05-25)
+
+| ID | Area | Severity | Temuan (path:line) | Perbaikan | Status | Test |
+|----|------|----------|--------------------|-----------|--------|------|
+| E23-001 | member / privacy | 🟠 High (UU PDP) | Member belum bisa minta penghapusan data — kewajiban UU No. 27/2022 §15. | Service `deleteMyMember` (anonimisasi PII + soft-delete + revoke sessions + hard-delete credentials) + Server Action `deleteMyAccountAction` (2-step "HAPUS" confirm) + UI `<DeleteAccountCard>` di /member/akun. Audit `delete` entityType `member` ditulis dengan `before=null` (tidak snapshot PII raw). | ✅ | `packages/services/tests/member-delete.test.ts` (3 tests) |
+| AI-P3-COMPLAINT | ai / tools | 🟡 Med (Feature) | Hanya 1 kind draft (`manual_sale`); user butuh juga draft complaint. | Tool `log_complaint_draft` register di registry, kind `complaint` sudah ada di `COMMIT_PERMISSION_BY_KIND` dari T-0172 sehingga commit langsung dispatch ke `crm.logComplaint`. | ✅ | (re-use ai-drafts service tests) |
+| AI-P3-ADMIN-LOG | ai / observability | 🟡 Med (Sec) | Tidak ada cara admin lihat aktivitas AI lintas user. | Page `/settings/ai-assistant/log` (server-rendered) gate `ai.assistant.admin` → filter entity (4 jenis) + filter user_id + pagination + summary cards (total sesi + draft per status). | ✅ | (manual smoke; typecheck PASS) |
+| AI-P3-SWEEPER | ai / hygiene | 🟢 Low (Ops) | Draft pending kedaluwarsa tidak otomatis ditandai expired. | Worker job `ai-action-drafts-sweeper` (cron 04:30 WIB harian) tandai semua row pending yang lewat `expires_at` jadi `expired` + audit row dengan reason `sweeper`. Scheduler map updated. | ✅ | (manual; sweeper logic lurus) |
+
 ## Backlog (carry-over, updated 2026-05-25)
 
 | ID | Item | Severity | Catatan |
 |----|------|----------|---------|
-| BACKLOG-AI-COMPLAINT | Draft kind kedua: `log_complaint_draft` + commit dispatcher untuk `logComplaint`. | 🟡 Med | Pola sama dengan `manual_sale`. |
 | BACKLOG-AI-WEBSEARCH | Web search opt-in via DeepSeek built-in tool flag (kolom `aiChatSessions.allowWebSearch` sudah ada, default off). | 🟢 Low | Tambah toggle UI di sidebar sesi. |
-| BACKLOG-AI-ADMIN-LOG | Page `/settings/ai-assistant/log` untuk role `ai.assistant.admin` — list draft + tool call lintas user. | 🟡 Med | Re-use audit_log entityType `ai_*`. |
-| BACKLOG-AI-SWEEPER | Scheduled job harian: tandai draft `pending` yang lewat `expires_at` jadi `expired`. | 🟢 Low | Tambah di `scheduled_jobs` seed. |
 | BACKLOG-T-0169 | Shift × Manual Sales integration (variance jurnal) | 🟡 Med | T-0169 belum selesai oleh owner sebelumnya; next step ada di checkpoint T-0169. |
 | BACKLOG-LINT | Lint cleanup branch (332 err / 488 warn) | 🟢 Low | Format/import/a11y mechanical debt. Pisah PR. |
 | BACKLOG-CSP | CSP `unsafe-inline` di `script-src` (apps/web + apps/site) | 🟢 Low | Next.js memerlukan inline untuk hidrasi; ganti ke nonce-based bila waktu memungkinkan. |

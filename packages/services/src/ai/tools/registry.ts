@@ -42,6 +42,11 @@ import {
   GetTodaySalesSummaryInputSchema,
   getTodaySalesSummaryTool,
 } from './get-today-sales-summary';
+import {
+  LogComplaintDraftInputSchema,
+  type LogComplaintDraftToolDeps,
+  logComplaintDraftTool,
+} from './log-complaint-draft';
 import { OcrReceiptStrukInputSchema, ocrReceiptStrukTool } from './ocr-receipt';
 import { ReadFileInputSchema, readFileTool } from './read-file';
 import { RequestAdminHelpInputSchema, requestAdminHelpTool } from './request-admin-help';
@@ -287,6 +292,49 @@ registerTool({
     ctx: AuditContext,
     deps?: ToolExecutionDeps,
   ) => createManualSaleDraftTool(input, ctx, deps as CreateManualSaleDraftToolDeps | undefined),
+});
+
+registerTool({
+  name: 'log_complaint_draft',
+  description:
+    'Stage a customer-complaint intake as a draft. The user must click "Setujui & Posting" to commit, which re-checks crm.logComplaint permission and writes the row via the real CRM service.',
+  inputSchema: LogComplaintDraftInputSchema,
+  parameters: {
+    type: 'object',
+    properties: {
+      customer_name: { type: 'string', description: 'Nama pelanggan (opsional).' },
+      customer_phone: { type: 'string', description: 'Nomor telepon (opsional, akan dienkripsi).' },
+      member_id: { type: 'string', description: 'ID member jika sudah terdaftar.' },
+      order_number: { type: 'string', description: 'Nomor order terkait (T01-…).' },
+      occurred_at: {
+        type: 'string',
+        description: 'YYYY-MM-DD atau YYYY-MM-DDTHH:MM. Default: hari ini.',
+      },
+      category: {
+        type: 'string',
+        description:
+          'product_quality | service | delivery | payment | hygiene | staff | other',
+      },
+      description: {
+        type: 'string',
+        description: 'Detail keluhan; 5–2000 karakter.',
+      },
+      priority: {
+        type: 'string',
+        description: 'low | medium | high | urgent (default medium).',
+      },
+    },
+    required: ['category', 'description'],
+  },
+  // Mirrors the UI's "log complaint" permission so the AI can never
+  // help a user file complaints they couldn't have filed manually.
+  permission: 'crm.logComplaint',
+  mutates: false,
+  execute: (
+    input: import('./log-complaint-draft').LogComplaintDraftInput,
+    ctx: AuditContext,
+    deps?: ToolExecutionDeps,
+  ) => logComplaintDraftTool(input, ctx, deps as LogComplaintDraftToolDeps | undefined),
 });
 
 registerTool({

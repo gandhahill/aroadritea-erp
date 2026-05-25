@@ -135,6 +135,18 @@
     "noVouchers": "Belum ada voucher.",
     "cashierLookupTitle": "Pakai nomor telepon di kasir",
     "cashierLookupBody": "Saat kasir bertanya apakah ada member, sebutkan nomor telepon terdaftar. Kasir akan mencari data member dan mengonfirmasi nama sebelum poin transaksi dicatat.",
+    "deleteAccount": {
+      "sectionTitle": "Hapus akun saya",
+      "sectionBody": "Sesuai UU PDP, Anda dapat meminta penghapusan data. Nama, email, telepon, dan alamat akan di-anonimkan; riwayat poin dan voucher akan dipertahankan untuk integritas akuntansi tapi tidak lagi bisa dikaitkan ke Anda. Tindakan ini tidak dapat dibatalkan.",
+      "openButton": "Saya ingin hapus akun",
+      "confirmInputLabel": "Ketik HAPUS untuk konfirmasi",
+      "confirmInputHint": "Harus persis huruf besar HAPUS — perlindungan dari klik tidak sengaja.",
+      "reasonLabel": "Alasan (opsional)",
+      "reasonPlaceholder": "Misal: ganti nomor telepon, tidak aktif lagi, dll.",
+      "cancel": "Batal",
+      "commit": "Hapus akun saya sekarang",
+      "success": "Akun Anda berhasil dihapus. Anda akan diarahkan ke halaman daftar."
+    },
     "login": {
       "title": "Masuk Member",
       "subtitle": "Masuk ke akun member Anda untuk melihat poin, voucher, dan riwayat transaksi.",
