@@ -90,9 +90,9 @@ export function isAiAssistantEnabled(): boolean {
 }
 
 export function loadProviderConfig(): AiProviderConfig {
-  if (cachedConfig) return cachedConfig;
+  if (cachedConfig?.apiKey) return cachedConfig;
   const apiKey = process.env.DEEPSEEK_API_KEY ?? process.env.AI_PROVIDER_KEY ?? '';
-  cachedConfig = {
+  const config = {
     baseUrl: process.env.AI_PROVIDER_BASE_URL ?? DEFAULT_BASE_URL,
     apiKey,
     model: process.env.AI_PROVIDER_MODEL ?? DEFAULT_MODEL,
@@ -100,7 +100,10 @@ export function loadProviderConfig(): AiProviderConfig {
     temperature: Number.parseFloat(process.env.AI_PROVIDER_TEMPERATURE ?? '0.4'),
     maxTokens: Number.parseInt(process.env.AI_PROVIDER_MAX_TOKENS ?? '2048', 10),
   };
-  return cachedConfig;
+  if (apiKey) {
+    cachedConfig = config;
+  }
+  return config;
 }
 
 export function resetProviderConfigCache(): void {
