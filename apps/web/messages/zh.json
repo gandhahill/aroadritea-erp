@@ -3700,6 +3700,9 @@
         "ai_tool_call": "AI 工具调用",
         "ai_action_draft": "AI 操作草稿"
       }
+    },
+    "provider": {
+      "notConfigured": "AI助手已禁用或提供商配置（API Key）未设置。"
     }
   },
   "hr.sop.filter.all": "全部",

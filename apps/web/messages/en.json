@@ -3624,6 +3624,9 @@
         "ai_tool_call": "AI Tool Call",
         "ai_action_draft": "AI Action Draft"
       }
+    },
+    "provider": {
+      "notConfigured": "AI Assistant is disabled or the provider configuration (API Key) is missing."
     }
   },
   "hr.sop.filter.all": "All",

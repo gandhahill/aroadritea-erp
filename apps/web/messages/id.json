@@ -3623,6 +3623,9 @@
         "ai_tool_call": "Pemanggilan Alat AI",
         "ai_action_draft": "Draf Aksi AI"
       }
+    },
+    "provider": {
+      "notConfigured": "Asisten AI dinonaktifkan atau konfigurasi penyedia (API Key) belum diatur."
     }
   },
   "hr.sop.filter.all": "Semua",

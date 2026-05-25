@@ -91,7 +91,29 @@ export function isAiAssistantEnabled(): boolean {
 
 export function loadProviderConfig(): AiProviderConfig {
   if (cachedConfig?.apiKey) return cachedConfig;
-  const apiKey = process.env.DEEPSEEK_API_KEY ?? process.env.AI_PROVIDER_KEY ?? '';
+  
+  let apiKey = process.env.DEEPSEEK_API_KEY ?? process.env.AI_PROVIDER_KEY ?? '';
+  
+  if (!apiKey) {
+    try {
+      // Bypass PM2 environment caching by explicitly reading the root .env
+      const fs = require('fs');
+      const path = require('path');
+      let rootEnvPath = path.join(process.cwd(), '../../.env');
+      if (!fs.existsSync(rootEnvPath)) {
+        rootEnvPath = path.join(process.cwd(), '.env');
+      }
+      if (fs.existsSync(rootEnvPath)) {
+        const envContent = fs.readFileSync(rootEnvPath, 'utf8');
+        const match = envContent.match(/^DEEPSEEK_API_KEY\s*=\s*(.*)$/m);
+        if (match && match[1]) {
+          apiKey = match[1].replace(/["']/g, '').trim();
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
   const config = {
     baseUrl: process.env.AI_PROVIDER_BASE_URL ?? DEFAULT_BASE_URL,
     apiKey,

@@ -32,6 +32,7 @@ export function AiAssistantClient(props: Props) {
   const [renameValue, setRenameValue] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
   const t = useTranslations('aiAssistantLanding');
+  const t_ai = useTranslations('ai');
 
   if (!props.enabled) {
     return (
@@ -78,7 +79,7 @@ export function AiAssistantClient(props: Props) {
     <div className="space-y-4">
       {notice ? (
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-          {notice}
+          {notice === 'ai.provider.notConfigured' ? t_ai('provider.notConfigured') : notice}
         </div>
       ) : null}
 
@@ -122,7 +123,7 @@ export function AiAssistantClient(props: Props) {
 
       {error ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
-          {error}
+          {error === 'ai.provider.notConfigured' ? t_ai('provider.notConfigured') : error}
         </div>
       ) : null}
 
