@@ -37,3 +37,8 @@ coverage/
 # Misc
 *.tsbuildinfo
 .turbo/
+
+# Local commit-message scratch files used by Claude sessions (HEREDOC
+# fallback when PowerShell mangles multi-line `git commit -m`).
+.commit-msg-*.txt
+
