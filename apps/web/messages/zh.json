@@ -2852,6 +2852,31 @@
       "scanTitle": "设置说明",
       "scanSubtitle": "将此URI添加到应用程序。",
       "done": "完成"
+    },
+    "sessions": {
+      "title": "活动会话",
+      "description": "当前登录您账户的所有浏览器/设备。如发现不熟悉的，请撤销。",
+      "empty": "暂无活动会话。",
+      "thisDevice": "当前设备",
+      "ipLabel": "IP",
+      "createdLabel": "开始时间",
+      "expiresLabel": "到期时间",
+      "revoke": "撤销",
+      "logoutEverywhere": "登出其它所有设备",
+      "revoked": "会话已撤销。",
+      "revokedAll": "已撤销 {count} 个其它会话。",
+      "cancel": "取消",
+      "confirmRevokeTitle": "撤销此会话？",
+      "confirmRevokeBody": "该设备将立即被登出，并需重新登录。",
+      "confirmRevokeAllTitle": "登出其它所有设备？",
+      "confirmRevokeAllBody": "仅当前设备保持登录，其它会话将全部登出。",
+      "errors": {
+        "unauthenticated": "会话已过期，请重新登录。",
+        "invalid_id": "无效的会话 ID。",
+        "not_found": "未找到会话或不属于您。",
+        "cannot_revoke_current": "无法在此撤销当前设备的会话。请使用顶部的注销按钮。",
+        "unknown": "未知错误。"
+      }
     }
   },
   "audit": {

@@ -2800,6 +2800,31 @@
       "scanTitle": "Instruksi Setup",
       "scanSubtitle": "Tambahkan URI ini ke aplikasi.",
       "done": "Selesai"
+    },
+    "sessions": {
+      "title": "Sesi Aktif",
+      "description": "Setiap browser/perangkat yang sedang login di akun Anda. Cabut akses jika Anda tidak mengenali salah satunya.",
+      "empty": "Tidak ada sesi aktif.",
+      "thisDevice": "Perangkat ini",
+      "ipLabel": "IP",
+      "createdLabel": "Mulai",
+      "expiresLabel": "Berlaku sampai",
+      "revoke": "Cabut",
+      "logoutEverywhere": "Keluar dari semua perangkat lain",
+      "revoked": "Sesi berhasil dicabut.",
+      "revokedAll": "{count} sesi lain berhasil dicabut.",
+      "cancel": "Batal",
+      "confirmRevokeTitle": "Cabut sesi ini?",
+      "confirmRevokeBody": "Perangkat tersebut akan otomatis logout. Login ulang diperlukan untuk mengakses kembali.",
+      "confirmRevokeAllTitle": "Keluar dari semua perangkat lain?",
+      "confirmRevokeAllBody": "Hanya perangkat ini yang tetap login. Semua sesi lain akan logout dan harus login ulang.",
+      "errors": {
+        "unauthenticated": "Sesi Anda sudah berakhir. Silakan login ulang.",
+        "invalid_id": "ID sesi tidak valid.",
+        "not_found": "Sesi tidak ditemukan atau bukan milik Anda.",
+        "cannot_revoke_current": "Tidak bisa mencabut sesi perangkat ini dari sini. Gunakan tombol Logout di bilah atas.",
+        "unknown": "Terjadi kesalahan tak terduga."
+      }
     }
   },
   "audit": {

@@ -134,7 +134,7 @@ export function AgingClient(props: Props) {
             <div key={key} className="rounded-xl border border-brand-cream-3 bg-card p-3">
               <p className="text-xs uppercase tracking-wide text-brand-ink-3">{label}</p>
               <p className="mt-1 text-base font-semibold text-brand-ink">
-                {fmt((totals as Record<string, string>)[key])}
+                {fmt((totals as unknown as Record<string, string>)[key] ?? '0')}
               </p>
             </div>
           ))}

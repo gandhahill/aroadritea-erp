@@ -2796,6 +2796,31 @@
       "scanTitle": "Setup Instructions",
       "scanSubtitle": "Add this URI to app.",
       "done": "Done"
+    },
+    "sessions": {
+      "title": "Active Sessions",
+      "description": "Every browser/device currently signed in to your account. Revoke any you don't recognise.",
+      "empty": "No active sessions.",
+      "thisDevice": "This device",
+      "ipLabel": "IP",
+      "createdLabel": "Started",
+      "expiresLabel": "Expires",
+      "revoke": "Revoke",
+      "logoutEverywhere": "Sign out everywhere else",
+      "revoked": "Session revoked.",
+      "revokedAll": "Revoked {count} other session(s).",
+      "cancel": "Cancel",
+      "confirmRevokeTitle": "Revoke this session?",
+      "confirmRevokeBody": "That device will be logged out immediately and must sign in again to regain access.",
+      "confirmRevokeAllTitle": "Sign out everywhere else?",
+      "confirmRevokeAllBody": "Only this device stays signed in. Every other session is logged out and must sign in again.",
+      "errors": {
+        "unauthenticated": "Your session has expired. Please sign in again.",
+        "invalid_id": "Invalid session id.",
+        "not_found": "Session not found or not yours.",
+        "cannot_revoke_current": "You can't revoke the current session from here. Use the Logout button in the top bar.",
+        "unknown": "Unexpected error."
+      }
     }
   },
   "audit": {

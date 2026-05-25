@@ -129,9 +129,9 @@ async function resolveShiftLabel(
     .where(eq(shiftDefinitions.id, shiftDefinitionId))
     .limit(1);
   if (!s) return null;
-  const label = (s.name as Record<string, string> | null)?.id
-    ?? (s.name as Record<string, string> | null)?.en
-    ?? s.code;
+  // shift_definitions.name is plain text in the schema (per locale
+  // staff naming convention), so no LocaleString unwrap needed.
+  const label = s.name || s.code;
   return `${label} ${s.startTime}-${s.endTime}`;
 }
 
@@ -143,11 +143,8 @@ async function resolveLocationLabel(locationId: string | null | undefined): Prom
     .where(eq(locations.id, locationId))
     .limit(1);
   if (!loc) return null;
-  return (
-    ((loc.name as Record<string, string> | null)?.id as string | undefined) ??
-    ((loc.name as Record<string, string> | null)?.en as string | undefined) ??
-    loc.code
-  );
+  const localised = loc.name as unknown as Record<string, string> | null;
+  return localised?.id ?? localised?.en ?? loc.code;
 }
 
 async function buildCtx(): Promise<AuditContext | null> {

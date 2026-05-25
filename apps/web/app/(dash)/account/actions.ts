@@ -1,10 +1,11 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, db, eq } from '@erp/db';
+import { and, db, desc, eq, not } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
-import { authAccounts, users } from '@erp/db/schema/auth';
+import { authAccounts, sessions, users } from '@erp/db/schema/auth';
 import { hashPassword, verifyPassword } from '@erp/services/auth/password';
+import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
@@ -185,5 +186,159 @@ export async function updatePasswordAction(
     after: { changed: true },
   });
 
+  // B24 best-practice — invalidate every other active session whenever
+  // the password changes. The current session keeps the cookie because
+  // the user is presumably still at their desk; everywhere else has to
+  // re-authenticate with the new password.
+  await revokeAllOtherSessionsForUser(userId, tenantId, /* auditAs */ 'password_change');
+
   return { ok: true, message: 'account.passwordSaved' };
+}
+
+// ─── B24 — Session management (multi-device list + revoke) ───────────────
+
+/** What the UI renders in the session list — no secret values exposed. */
+export interface SessionListRow {
+  id: string;
+  userAgent: string | null;
+  ipAddress: string | null;
+  createdAt: string;
+  expiresAt: string;
+  isCurrent: boolean;
+}
+
+async function currentSessionToken(): Promise<string | null> {
+  const hdrs = await headers();
+  const cookie = hdrs.get('cookie') ?? '';
+  // The cookie name set by better-auth — match either the http or
+  // __Secure variant used in production.
+  const match = cookie.match(
+    /(?:^|; )(?:__Secure-)?aroadri\.session_token=([^;]+)/,
+  );
+  return match?.[1] ?? null;
+}
+
+export async function listMySessions(): Promise<SessionListRow[]> {
+  const session = await getSession();
+  if (!session?.user) return [];
+  const userId = String((session.user as Record<string, unknown>).id ?? '');
+  const currentToken = await currentSessionToken();
+
+  const rows = await db
+    .select({
+      id: sessions.id,
+      token: sessions.token,
+      userAgent: sessions.userAgent,
+      ipAddress: sessions.ipAddress,
+      createdAt: sessions.createdAt,
+      expiresAt: sessions.expiresAt,
+    })
+    .from(sessions)
+    .where(eq(sessions.userId, userId))
+    .orderBy(desc(sessions.createdAt));
+
+  return rows.map((r) => ({
+    id: r.id,
+    userAgent: r.userAgent,
+    ipAddress: r.ipAddress,
+    createdAt: r.createdAt.toISOString(),
+    expiresAt: r.expiresAt.toISOString(),
+    // Don't leak the token — only flag whether it matches.
+    isCurrent: currentToken !== null && r.token === currentToken,
+  }));
+}
+
+export async function revokeSessionAction(
+  sessionId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!sessionId) return { ok: false, error: 'invalid_id' };
+  const session = await getSession();
+  if (!session?.user) return { ok: false, error: 'unauthenticated' };
+  const userId = String((session.user as Record<string, unknown>).id ?? '');
+  const tenantId = String((session.user as Record<string, unknown>).tenantId ?? 'default');
+  const currentToken = await currentSessionToken();
+
+  // Refuse to revoke the caller's *current* session via this entry
+  // point — that's what /api/auth/sign-out is for and a single click
+  // shouldn't kick the user out by accident.
+  const [target] = await db
+    .select({ id: sessions.id, userId: sessions.userId, token: sessions.token })
+    .from(sessions)
+    .where(eq(sessions.id, sessionId))
+    .limit(1);
+  if (!target || target.userId !== userId) {
+    return { ok: false, error: 'not_found' };
+  }
+  if (currentToken && target.token === currentToken) {
+    return { ok: false, error: 'cannot_revoke_current' };
+  }
+
+  await db.delete(sessions).where(eq(sessions.id, sessionId));
+
+  await db.insert(auditLog).values({
+    id: crypto.randomUUID(),
+    tenantId,
+    userId,
+    action: 'delete',
+    entityType: 'user_session',
+    entityId: sessionId,
+    before: { revokedSessionId: sessionId },
+    after: { reason: 'user_revoke', via: '/account/sessions' },
+  });
+
+  revalidatePath('/account');
+  return { ok: true };
+}
+
+export async function revokeAllOtherSessionsAction(): Promise<{
+  ok: boolean;
+  revoked?: number;
+  error?: string;
+}> {
+  const session = await getSession();
+  if (!session?.user) return { ok: false, error: 'unauthenticated' };
+  const userId = String((session.user as Record<string, unknown>).id ?? '');
+  const tenantId = String((session.user as Record<string, unknown>).tenantId ?? 'default');
+  const revoked = await revokeAllOtherSessionsForUser(userId, tenantId, 'user_logout_everywhere');
+  revalidatePath('/account');
+  return { ok: true, revoked };
+}
+
+async function revokeAllOtherSessionsForUser(
+  userId: string,
+  tenantId: string,
+  reason: 'password_change' | 'user_logout_everywhere',
+): Promise<number> {
+  const currentToken = await currentSessionToken();
+
+  const conditions = [eq(sessions.userId, userId)];
+  if (currentToken) conditions.push(not(eq(sessions.token, currentToken)));
+
+  const targets = await db
+    .select({ id: sessions.id })
+    .from(sessions)
+    .where(and(...conditions));
+  if (targets.length === 0) return 0;
+
+  await db.delete(sessions).where(and(...conditions));
+
+  // Single audit row per session so the trail stays granular.
+  for (const t of targets) {
+    try {
+      await db.insert(auditLog).values({
+        id: crypto.randomUUID(),
+        tenantId,
+        userId,
+        action: 'delete',
+        entityType: 'user_session',
+        entityId: t.id,
+        before: null,
+        after: { reason },
+      });
+    } catch {
+      // best-effort
+    }
+  }
+
+  return targets.length;
 }
