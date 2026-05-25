@@ -3617,6 +3617,12 @@
       "filter": {
         "all": "All",
         "show": "Filter"
+      },
+      "entities": {
+        "ai_chat_session": "AI Chat Session",
+        "ai_chat_message": "AI Chat Message",
+        "ai_tool_call": "AI Tool Call",
+        "ai_action_draft": "AI Action Draft"
       }
     }
   },
@@ -3679,6 +3685,8 @@
     "owner": "owner",
     "btnRename": "Rename",
     "btnArchive": "Archive",
-    "btnSave": "Save"
+    "btnSave": "Save",
+    "title": "AI Assistant",
+    "description": "Ask about workflows, detect errors, or get help with OCR for old POS receipts. Your identity and permissions are respected on every command."
   }
 }

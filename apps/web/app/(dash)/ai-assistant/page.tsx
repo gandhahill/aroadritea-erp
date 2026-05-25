@@ -11,6 +11,7 @@ import { getSession } from '@/lib/auth';
 import { isAiAssistantEnabled } from '@erp/services/ai';
 import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchAllSessionsAdmin, fetchMySessions } from './actions';
 import { AiAssistantClient } from './ai-assistant-client';
@@ -29,11 +30,13 @@ export default async function AiAssistantLandingPage() {
   const mySessions = await fetchMySessions();
   const adminSessions = isAdmin ? await fetchAllSessionsAdmin() : { ok: true as const, items: [] };
 
+  const t = await getTranslations('aiAssistantLanding');
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Asisten AI"
-        description="Tanyakan alur kerja, deteksi error, atau bantu OCR struk POS lama. Identitas dan izin Anda dihormati pada setiap perintah."
+        title={t('title')}
+        description={t('description')}
       />
       <AiAssistantClient
         enabled={enabled}

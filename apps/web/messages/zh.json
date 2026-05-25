@@ -3693,6 +3693,12 @@
       "filter": {
         "all": "全部",
         "show": "过滤"
+      },
+      "entities": {
+        "ai_chat_session": "AI 聊天会话",
+        "ai_chat_message": "AI 聊天消息",
+        "ai_tool_call": "AI 工具调用",
+        "ai_action_draft": "AI 操作草稿"
       }
     }
   },
@@ -3755,6 +3761,8 @@
     "owner": "所有者",
     "btnRename": "重命名",
     "btnArchive": "归档",
-    "btnSave": "保存"
+    "btnSave": "保存",
+    "title": "AI 助手",
+    "description": "询问工作流程、检测错误或获取旧版POS收据的OCR帮助。您的身份和权限将在每次命令中受到尊重。"
   }
 }

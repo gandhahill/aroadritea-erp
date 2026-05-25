@@ -3616,6 +3616,12 @@
       "filter": {
         "all": "Semua",
         "show": "Tampilkan"
+      },
+      "entities": {
+        "ai_chat_session": "Sesi Percakapan AI",
+        "ai_chat_message": "Pesan Percakapan AI",
+        "ai_tool_call": "Pemanggilan Alat AI",
+        "ai_action_draft": "Draf Aksi AI"
       }
     }
   },
@@ -3678,6 +3684,8 @@
     "owner": "pemilik",
     "btnRename": "Ganti nama",
     "btnArchive": "Arsipkan",
-    "btnSave": "Simpan"
+    "btnSave": "Simpan",
+    "title": "Asisten AI",
+    "description": "Tanyakan alur kerja, deteksi error, atau bantu OCR struk POS lama. Identitas dan izin Anda dihormati pada setiap perintah."
   }
 }

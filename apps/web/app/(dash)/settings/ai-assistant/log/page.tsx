@@ -157,7 +157,7 @@ export default async function AiAssistantLogPage({
               <option value="">{t('filter.all')}</option>
               {ENTITY_FILTERS.map((e) => (
                 <option key={e} value={e}>
-                  {e}
+                  {t(\`entities.\${e}\`) ?? e}
                 </option>
               ))}
             </select>
@@ -213,7 +213,7 @@ export default async function AiAssistantLogPage({
                       {row.action}
                     </span>
                   </TableCell>
-                  <TableCell className="px-3 py-2 text-brand-ink-2">{row.entityType}</TableCell>
+                  <TableCell className="px-3 py-2 text-brand-ink-2">{t(\`entities.\${row.entityType as EntityFilter}\`) ?? row.entityType}</TableCell>
                   <TableCell className="px-3 py-2 font-mono text-[11px] text-brand-ink-3">
                     {row.entityId}
                   </TableCell>
