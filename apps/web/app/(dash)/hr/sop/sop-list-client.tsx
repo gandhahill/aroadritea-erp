@@ -5,6 +5,7 @@ import { Pagination } from '@/components/pagination';
 import type { SopRow } from '@erp/services/hr';
 import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import { deleteSopAction, updateSopAction } from './actions';
 import { SopUploadForm } from './sop-upload-form';
@@ -47,6 +48,7 @@ function humanSize(bytes: number) {
 export function SopListClient(props: Props) {
   const router = useRouter();
   const search = useSearchParams();
+  const t = useTranslations('hr.sop');
   const [_isPending, startTransition] = useTransition();
   const [showUpload, setShowUpload] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -115,12 +117,12 @@ export function SopListClient(props: Props) {
       ) : null}
 
       <FilterBar>
-        <FilterField label="Status">
+        <FilterField label={t('table.status')}>
           <Select
             value={props.initialStatus}
             onChange={(e) => updateParam('status', e.target.value)}
           >
-            <option value="">Semua</option>
+            <option value="">{t('filter.all')}</option>
             {STATUSES.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -128,12 +130,12 @@ export function SopListClient(props: Props) {
             ))}
           </Select>
         </FilterField>
-        <FilterField label="Kategori">
+        <FilterField label={t('table.category')}>
           <Select
             value={props.initialCategory}
             onChange={(e) => updateParam('category', e.target.value)}
           >
-            <option value="">Semua</option>
+            <option value="">{t('filter.all')}</option>
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -141,10 +143,10 @@ export function SopListClient(props: Props) {
             ))}
           </Select>
         </FilterField>
-        <FilterField label="Cari judul / deskripsi" className="flex-1">
+        <FilterField label={t('filter.searchLabel')} className="flex-1">
           <Input
             defaultValue={props.initialSearch}
-            placeholder="cari…"
+            placeholder={t('filter.searchPlaceholder')}
             onKeyDown={(e) => {
               if (e.key === 'Enter') updateParam('search', (e.target as HTMLInputElement).value);
             }}
@@ -152,7 +154,7 @@ export function SopListClient(props: Props) {
         </FilterField>
         {props.canManage ? (
           <Button variant="primary" size="md" onClick={() => setShowUpload(true)}>
-            + Upload SOP
+            {t('filter.upload')}
           </Button>
         ) : null}
       </FilterBar>
@@ -162,19 +164,19 @@ export function SopListClient(props: Props) {
           <thead className="bg-brand-cream-2/60">
             <tr>
               <TableHead className="px-4 py-3 text-left text-xs uppercase text-brand-ink-2">
-                Judul
+                {t('table.title')}
               </TableHead>
               <TableHead className="px-4 py-3 text-left text-xs uppercase text-brand-ink-2">
-                Kategori
+                {t('table.category')}
               </TableHead>
               <TableHead className="px-4 py-3 text-left text-xs uppercase text-brand-ink-2">
-                Status
+                {t('table.status')}
               </TableHead>
               <TableHead className="px-4 py-3 text-left text-xs uppercase text-brand-ink-2">
-                Ukuran
+                {t('table.size')}
               </TableHead>
               <TableHead className="px-4 py-3 text-right text-xs uppercase text-brand-ink-2">
-                Aksi
+                {t('table.action')}
               </TableHead>
             </tr>
           </thead>
@@ -182,7 +184,7 @@ export function SopListClient(props: Props) {
             {props.rows.length === 0 ? (
               <tr>
                 <TableCell colSpan={5} className="px-4 py-10 text-center text-sm text-brand-ink-3">
-                  Belum ada SOP yang sesuai dengan filter.
+                  {t('table.empty')}
                 </TableCell>
               </tr>
             ) : (
@@ -215,7 +217,7 @@ export function SopListClient(props: Props) {
                         rel="noreferrer"
                         className="rounded-lg border border-brand-cream-3 px-3 py-1 text-xs text-brand-ink hover:bg-brand-cream-2"
                       >
-                        Unduh
+                        {t('action.download')}
                       </a>
                       {props.canManage ? (
                         <>
@@ -225,7 +227,7 @@ export function SopListClient(props: Props) {
                             disabled={statusBusy === row.id}
                             className="rounded-lg border border-brand-cream-3 px-3 py-1 text-xs text-brand-ink hover:bg-brand-cream-2 disabled:opacity-50"
                           >
-                            {row.status === 'published' ? 'Jadikan draft' : 'Publikasikan'}
+                            {row.status === 'published' ? t('action.draft') : t('action.publish')}
                           </button>
                           <button
                             type="button"
@@ -233,7 +235,7 @@ export function SopListClient(props: Props) {
                             disabled={statusBusy === row.id}
                             className="rounded-lg border border-rose-200 px-3 py-1 text-xs text-rose-600 hover:bg-rose-50 disabled:opacity-50"
                           >
-                            Hapus
+                            {t('action.delete')}
                           </button>
                         </>
                       ) : null}
@@ -261,17 +263,16 @@ export function SopListClient(props: Props) {
       {confirmDeleteId ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-sm rounded-xl border border-brand-cream-3 bg-card p-6 shadow-2xl">
-            <h2 className="text-base font-semibold text-brand-ink">Hapus SOP?</h2>
+            <h2 className="text-base font-semibold text-brand-ink">{t('delete.title')}</h2>
             <p className="mt-2 text-sm text-brand-ink-3">
-              Dokumen akan diarsipkan (soft-delete). Anda dapat menghubungi DBA jika perlu
-              memulihkan.
+              {t('delete.desc')}
             </p>
             <div className="mt-4 flex justify-end gap-2">
               <Button variant="secondary" size="sm" onClick={() => setConfirmDeleteId(null)}>
-                Batal
+                {t('delete.cancel')}
               </Button>
               <Button variant="primary" size="sm" onClick={performDelete}>
-                Hapus
+                {t('delete.confirm')}
               </Button>
             </div>
           </div>

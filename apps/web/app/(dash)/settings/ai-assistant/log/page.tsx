@@ -134,12 +134,12 @@ export default async function AiAssistantLogPage({
       {/* Summary cards */}
       <div className="grid gap-3 sm:grid-cols-4">
         <div className="rounded-xl border border-brand-cream-3 bg-card p-3">
-          <p className="text-xs uppercase tracking-wide text-brand-ink-3">Total sesi</p>
+          <p className="text-xs uppercase tracking-wide text-brand-ink-3">{t('stat.sessions')}</p>
           <p className="mt-1 text-xl font-semibold text-brand-ink">{sessionStat.count}</p>
         </div>
         {draftStat.map((d) => (
           <div key={d.status} className="rounded-xl border border-brand-cream-3 bg-card p-3">
-            <p className="text-xs uppercase tracking-wide text-brand-ink-3">Draft {d.status}</p>
+            <p className="text-xs uppercase tracking-wide text-brand-ink-3">{t('stat.draft')} {d.status}</p>
             <p className="mt-1 text-xl font-semibold text-brand-ink">{d.count}</p>
           </div>
         ))}
@@ -148,13 +148,13 @@ export default async function AiAssistantLogPage({
       {/* Filters */}
       <form method="GET">
         <FilterBar>
-          <FilterField label="Entity">
+          <FilterField label={t('table.entity')}>
             <select
               name="entity"
               defaultValue={entity ?? ''}
               className="h-9 w-44 rounded-md border border-brand-cream-3 bg-white px-3 text-sm focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20"
             >
-              <option value="">Semua</option>
+              <option value="">{t('filter.all')}</option>
               {ENTITY_FILTERS.map((e) => (
                 <option key={e} value={e}>
                   {e}
@@ -174,7 +174,7 @@ export default async function AiAssistantLogPage({
             type="submit"
             className="h-9 rounded-md bg-brand-red px-4 text-sm font-semibold text-white hover:bg-brand-red-dark"
           >
-            Tampilkan
+            {t('filter.show')}
           </button>
         </FilterBar>
       </form>
@@ -184,19 +184,19 @@ export default async function AiAssistantLogPage({
         <Table>
           <thead className="bg-brand-cream-2/60 text-left text-xs uppercase text-brand-ink-2">
             <tr>
-              <TableHead className="px-3 py-2">Waktu</TableHead>
-              <TableHead className="px-3 py-2">User</TableHead>
-              <TableHead className="px-3 py-2">Action</TableHead>
-              <TableHead className="px-3 py-2">Entity</TableHead>
-              <TableHead className="px-3 py-2">Entity ID</TableHead>
-              <TableHead className="px-3 py-2">Detail</TableHead>
+              <TableHead className="px-3 py-2">{t('table.time')}</TableHead>
+              <TableHead className="px-3 py-2">{t('table.user')}</TableHead>
+              <TableHead className="px-3 py-2">{t('table.action')}</TableHead>
+              <TableHead className="px-3 py-2">{t('table.entity')}</TableHead>
+              <TableHead className="px-3 py-2">{t('table.entityId')}</TableHead>
+              <TableHead className="px-3 py-2">{t('table.detail')}</TableHead>
             </tr>
           </thead>
           <TableBody>
             {rows.length === 0 ? (
               <tr>
                 <TableCell colSpan={6} className="px-3 py-8 text-center text-sm text-brand-ink-3">
-                  Belum ada entri yang cocok dengan filter.
+                  {t('table.empty')}
                 </TableCell>
               </tr>
             ) : (
