@@ -3,6 +3,8 @@
 import { Button } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, useTransition } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { sendMessageAction, toggleSessionWebSearchAction } from '../actions';
 import { ConfirmActionCard } from './confirm-action-card';
 
@@ -190,6 +192,7 @@ export function ChatSessionClient(props: Props) {
           id: result.messageId,
           role: 'assistant',
           content: result.reply,
+          toolPayload: result.reasoning ? { reasoning_content: result.reasoning } : undefined,
           createdAt: new Date(),
           requiresConfirmation: false,
         },
@@ -248,7 +251,24 @@ export function ChatSessionClient(props: Props) {
                   {summariseToolPayload(m.toolPayload ?? m.content)}
                 </pre>
               ) : (
-                <div className="whitespace-pre-wrap leading-relaxed">{m.content}</div>
+                <div className="flex flex-col gap-2">
+                  {m.role === 'assistant' &&
+                  m.toolPayload &&
+                  typeof m.toolPayload === 'object' &&
+                  (m.toolPayload as any).reasoning_content ? (
+                    <details className="group mt-1">
+                      <summary className="cursor-pointer text-xs font-semibold text-brand-ink-3 transition-colors hover:text-brand-ink-2">
+                        {t('reasoningLabel')}
+                      </summary>
+                      <div className="mt-2 border-l-2 border-brand-cream-3 pl-3 text-xs italic leading-relaxed text-brand-ink-3">
+                        {(m.toolPayload as any).reasoning_content}
+                      </div>
+                    </details>
+                  ) : null}
+                  <div className="prose prose-sm max-w-none leading-relaxed prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-pre:my-2 prose-pre:p-2 prose-pre:bg-brand-cream-1 prose-pre:text-brand-ink prose-pre:border-brand-cream-3 prose-pre:border">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                  </div>
+                </div>
               )}
               {m.requiresConfirmation ? (
                 <div className="mt-2 text-xs text-amber-700">

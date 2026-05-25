@@ -105,6 +105,7 @@ export async function sendChatMessage(
   Result<{
     assistantMessageId: string;
     reply: string;
+    reasoning?: string;
     toolRoundsExecuted: number;
   }>
 > {
@@ -278,6 +279,7 @@ export async function sendChatMessage(
   return ok({
     assistantMessageId,
     reply: assistantContent,
+    reasoning: assistantReasoning,
     toolRoundsExecuted: roundsExecuted,
   });
 }

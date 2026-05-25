@@ -171,6 +171,7 @@ export async function sendMessageAction(input: {
   return {
     ok: true as const,
     reply: r.value.reply,
+    reasoning: r.value.reasoning,
     messageId: r.value.assistantMessageId,
     toolRoundsExecuted: r.value.toolRoundsExecuted,
   };

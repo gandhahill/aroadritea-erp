@@ -3666,7 +3666,7 @@
     "uploading": "Uploading...",
     "attachReceipt": "Attach receipt photo",
     "waitConfirm": "Waiting for your confirmation before AI executes action.",
-    "aiTyping": "...AI is typing",
+    "aiTyping": "AI is typing...",
     "placeholder": "Type a message... (Enter to send, Shift+Enter for new line)",
     "reasoningMode": "Reasoning mode (slower, more accurate)",
     "allowWebSearch": "Allow web search",
@@ -3675,7 +3675,8 @@
     "toolError": "Tool error: ",
     "imageOnlyError": "Only image files are supported for OCR/visual.",
     "failedUpload": "failed to upload",
-    "delete": "delete"
+    "delete": "delete",
+    "reasoningLabel": "Reasoning Process"
   },
   "aiAssistantLanding": {
     "disabled": "AI Assistant is disabled by admin (AI_ASSISTANT_ENABLED=false). Contact administrator to re-enable.",

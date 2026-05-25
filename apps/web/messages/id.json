@@ -3665,7 +3665,7 @@
     "uploading": "Mengunggah...",
     "attachReceipt": "Lampirkan foto struk",
     "waitConfirm": "Menunggu konfirmasi Anda sebelum AI mengeksekusi tindakan.",
-    "aiTyping": "...AI sedang mengetik",
+    "aiTyping": "AI sedang mengetik...",
     "placeholder": "Tulis pesan... (Enter untuk kirim, Shift+Enter untuk baris baru)",
     "reasoningMode": "Mode penalaran (lebih lambat, lebih akurat)",
     "allowWebSearch": "Izinkan pencarian web",
@@ -3674,7 +3674,8 @@
     "toolError": "Kesalahan alat: ",
     "imageOnlyError": "Hanya file gambar yang didukung untuk OCR/visual.",
     "failedUpload": "gagal mengunggah",
-    "delete": "hapus"
+    "delete": "hapus",
+    "reasoningLabel": "Proses Pemikiran"
   },
   "aiAssistantLanding": {
     "disabled": "Asisten AI dinonaktifkan oleh admin (AI_ASSISTANT_ENABLED=false). Hubungi administrator untuk mengaktifkan kembali.",

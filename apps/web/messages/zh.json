@@ -3742,7 +3742,7 @@
     "uploading": "上传中...",
     "attachReceipt": "附上收据照片",
     "waitConfirm": "等待您的确认，AI 才会执行操作。",
-    "aiTyping": "...AI 正在输入",
+    "aiTyping": "AI 正在输入...",
     "placeholder": "输入消息... (按 Enter 发送，Shift+Enter 换行)",
     "reasoningMode": "推理模式 (较慢，更准确)",
     "allowWebSearch": "允许网络搜索",
@@ -3751,7 +3751,8 @@
     "toolError": "工具错误: ",
     "imageOnlyError": "OCR/视觉仅支持图像文件。",
     "failedUpload": "上传失败",
-    "delete": "删除"
+    "delete": "删除",
+    "reasoningLabel": "推理过程"
   },
   "aiAssistantLanding": {
     "disabled": "管理员已禁用 AI 助手 (AI_ASSISTANT_ENABLED=false)。请联系管理员重新启用。",

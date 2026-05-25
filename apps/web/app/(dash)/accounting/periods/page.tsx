@@ -142,13 +142,7 @@ export default async function AccountingPeriodsPage() {
   return (
     <div className="space-y-6">
       <section className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
-            Accounting
-          </p>
-          <PageHeader title={<>{copy.title}</>} />
-          <p className="max-w-3xl text-sm leading-6 text-brand-muted">{copy.subtitle}</p>
-        </div>
+        <PageHeader title={<>{copy.title}</>} description={<>{copy.subtitle}</>} />
 
         <div className="grid gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-brand-jade/20 bg-brand-jade/10 p-4">
