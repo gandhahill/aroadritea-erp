@@ -64,3 +64,29 @@ export {
   exportOmzetHarianXlsx,
   type OmzetHarianResult,
 } from './daily-omzet';
+
+// T-0174 — F&B BI gaps.
+export {
+  aging,
+  type AgingInput,
+  type AgingKind,
+  type AgingBuckets,
+  type AgingPartnerRow,
+  type AgingLineDetail,
+  type AgingResult,
+} from './aging';
+
+export {
+  cogsReport,
+  type CogsInput,
+  type CogsLine,
+  type CogsRow,
+  type CogsResult,
+} from './cogs';
+
+export {
+  wasteReport,
+  type WasteInput,
+  type WasteRow,
+  type WasteResult,
+} from './waste';

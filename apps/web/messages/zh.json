@@ -1269,6 +1269,11 @@
     "hourlySales": "小时销售",
     "donations": "捐赠",
     "dailyRevenue": "每日营业额",
+    "cashFlow": "现金流",
+    "agingReceivables": "应收账款账龄",
+    "agingPayables": "应付账款账龄",
+    "cogs": "COGS 与配方",
+    "waste": "损耗 / 报废",
     "businessIntelligence": "商业智能",
     "posCashier": "POS 收银",
     "manualSales": "手动销售录入",
@@ -2615,6 +2620,117 @@
         "other": "{channel}"
       },
       "member": "会员"
+    },
+    "aging": {
+      "receivablesTitle": "应收账款账龄",
+      "payablesTitle": "应付账款账龄",
+      "receivablesDescription": "按合作方分组的应收余额（按账龄）。区间 0–30 / 31–60 / 61–90 / >90 天，以到期日为准（无到期日时使用过账日期）。",
+      "payablesDescription": "按供应商分组的应付余额（按账龄）。区间 0–30 / 31–60 / 61–90 / >90 天。",
+      "asOf": "截止日期",
+      "location": "门店",
+      "allLocations": "全部门店",
+      "account": "科目",
+      "filter": "应用",
+      "exportXlsx": "导出 XLSX",
+      "tableHeader": {
+        "partner": "合作方",
+        "current": "0–30 天",
+        "bucket31_60": "31–60 天",
+        "bucket61_90": "61–90 天",
+        "bucketOver90": ">90 天",
+        "total": "合计",
+        "lineCount": "行数"
+      },
+      "detailsTitle": "明细（按分录行）",
+      "detailsHeader": {
+        "journal": "凭证号",
+        "postingDate": "过账日",
+        "dueDate": "到期日",
+        "daysOverdue": "逾期天数",
+        "bucket": "区间",
+        "amount": "金额",
+        "description": "摘要"
+      },
+      "totalLabel": "合计",
+      "empty": "当前筛选下没有未结余额。",
+      "noPartner": "（无合作方）"
+    },
+    "cashFlowPage": {
+      "title": "现金流",
+      "description": "按现金等价科目汇总所有已过账分录，所选期间内的现金流动。",
+      "from": "起始",
+      "to": "结束",
+      "location": "门店",
+      "allLocations": "全部门店",
+      "filter": "应用",
+      "exportXlsx": "导出 XLSX",
+      "operating": "经营",
+      "investing": "投资",
+      "financing": "筹资",
+      "inflow": "流入",
+      "outflow": "流出",
+      "net": "净额",
+      "totalInflow": "总流入",
+      "totalOutflow": "总流出",
+      "netChange": "净变动",
+      "tableHeader": {
+        "date": "日期",
+        "journal": "凭证",
+        "description": "摘要",
+        "amount": "金额"
+      },
+      "empty": "本期间没有现金流动。"
+    },
+    "cogs": {
+      "title": "配方成本与销售成本",
+      "description": "按当前有效 BOM × 原料成本 计算的产品成本。没有 BOM 的产品列为 TODO。",
+      "filter": "应用",
+      "exportXlsx": "导出 XLSX",
+      "includeInactive": "包含已停用产品",
+      "missingBomTitle": "尚无配方（BOM）的产品",
+      "missingBomBody": "请在 库存 → 配方 中维护，以便系统计算 COGS。",
+      "tableHeader": {
+        "product": "产品",
+        "sku": "SKU",
+        "sellPrice": "售价",
+        "unitCost": "成本",
+        "grossMargin": "毛利",
+        "marginPercent": "毛利率",
+        "bomVersion": "BOM v"
+      },
+      "linesTitle": "原料明细",
+      "linesHeader": {
+        "ingredient": "原料",
+        "qty": "数量",
+        "uom": "单位",
+        "unitCost": "单价",
+        "lineCost": "小计"
+      },
+      "negativeMargin": "负毛利",
+      "empty": "暂无可计算 COGS 的产品。"
+    },
+    "waste": {
+      "title": "损耗 / 报废",
+      "description": "按期间统计的报废库存（reason 含 waste / susut / spoil / basi / expired）+ 以最近成本计算的金额。",
+      "from": "起始",
+      "to": "结束",
+      "location": "门店",
+      "allLocations": "全部门店",
+      "includePending": "包含草稿调整",
+      "filter": "应用",
+      "exportXlsx": "导出 XLSX",
+      "tableHeader": {
+        "product": "产品",
+        "sku": "SKU",
+        "variant": "规格",
+        "qty": "数量",
+        "uom": "单位",
+        "value": "金额 (IDR)",
+        "adjustmentCount": "调整次数"
+      },
+      "totalQtyLabel": "总数量",
+      "totalValueLabel": "总金额",
+      "empty": "本期间无损耗记录。"
     }
   },
   "opname": {
