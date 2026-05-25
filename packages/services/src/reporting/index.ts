@@ -90,3 +90,10 @@ export {
   type WasteRow,
   type WasteResult,
 } from './waste';
+
+export {
+  periodCompare,
+  previousPeriod,
+  type PeriodInput,
+  type PeriodCompareResult,
+} from './period-compare';

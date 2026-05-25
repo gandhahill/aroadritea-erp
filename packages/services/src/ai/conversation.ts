@@ -172,7 +172,12 @@ export async function sendChatMessage(
   const modelToUse = input.useReasoning ? config.reasoningModel : config.model;
   const thinking = isThinkingModel(modelToUse);
 
-  const tools = await listAvailableTools(ctx);
+  // T-0177 — web_search is gated by the session-level opt-in flag.
+  // Pass a hint into listAvailableTools so the registry can include /
+  // exclude it without leaking the tool name to a non-opted-in session.
+  const tools = await listAvailableTools(ctx, {
+    includeWebSearch: session.allowWebSearch,
+  });
   const history = messages.slice(-HISTORY_CONTEXT_MESSAGES);
   const providerMessages: AiChatMessage[] = [
     { role: 'system', content: buildSystemPrompt(ctx, tools.length) },

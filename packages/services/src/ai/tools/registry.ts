@@ -47,6 +47,7 @@ import {
   type LogComplaintDraftToolDeps,
   logComplaintDraftTool,
 } from './log-complaint-draft';
+import { WebSearchInputSchema, webSearchTool } from './web-search';
 import { OcrReceiptStrukInputSchema, ocrReceiptStrukTool } from './ocr-receipt';
 import { ReadFileInputSchema, readFileTool } from './read-file';
 import { RequestAdminHelpInputSchema, requestAdminHelpTool } from './request-admin-help';
@@ -338,6 +339,24 @@ registerTool({
 });
 
 registerTool({
+  name: 'web_search',
+  description:
+    'Search the public web via Brave Search. Only available in chat sessions where the user has opted in via "izinkan pencarian web". Returns up to 10 titled snippets — use them to answer doc-lookup questions, never to scrape PII.',
+  inputSchema: WebSearchInputSchema,
+  parameters: {
+    type: 'object',
+    properties: {
+      query: { type: 'string', description: 'Search query.' },
+      count: { type: 'integer', description: 'Cap hits (1–10, default 5).' },
+    },
+    required: ['query'],
+  },
+  permission: 'ai.assistant.use',
+  mutates: false,
+  execute: webSearchTool,
+});
+
+registerTool({
   name: 'ocr_receipt_struk',
   description:
     'OCR a photographed receipt printed by the legacy POS. Extracts the date / channel / payment / gross_sales / discount / transaction_count, then stages a manual-sales draft for the cashier to confirm.',
@@ -369,9 +388,21 @@ registerTool({
 // Public API
 // ───────────────────────────────────────────────────────────────────────
 
-export async function listAvailableTools(ctx: AuditContext): Promise<AiToolDefinition[]> {
+export interface ListAvailableToolsOptions {
+  /** Caller-supplied opt-ins. `web_search` requires the session to have
+   *  `allowWebSearch === true`; the conversation runner passes that
+   *  flag down. Without the opt-in the tool is never returned, so the
+   *  model cannot even see that the capability exists. */
+  includeWebSearch?: boolean;
+}
+
+export async function listAvailableTools(
+  ctx: AuditContext,
+  options: ListAvailableToolsOptions = {},
+): Promise<AiToolDefinition[]> {
   const out: AiToolDefinition[] = [];
   for (const tool of Object.values(TOOLS)) {
+    if (tool.name === 'web_search' && !options.includeWebSearch) continue;
     const allowed = await can(ctx.userId, tool.permission, { locationId: ctx.locationId });
     if (!allowed) continue;
     out.push({

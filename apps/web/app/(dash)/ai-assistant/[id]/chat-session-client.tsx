@@ -2,7 +2,7 @@
 
 import { Button } from '@erp/ui';
 import { useEffect, useRef, useState, useTransition } from 'react';
-import { sendMessageAction } from '../actions';
+import { sendMessageAction, toggleSessionWebSearchAction } from '../actions';
 import { ConfirmActionCard } from './confirm-action-card';
 
 interface Message {
@@ -55,6 +55,7 @@ function extractDraftHint(payload: unknown): DraftHint | null {
 interface Props {
   enabled: boolean;
   sessionId: string;
+  allowWebSearch?: boolean;
   initialMessages: Message[];
 }
 
@@ -83,6 +84,8 @@ export function ChatSessionClient(props: Props) {
   const [messages, setMessages] = useState<Message[]>(props.initialMessages);
   const [draft, setDraft] = useState('');
   const [useReasoning, setUseReasoning] = useState(false);
+  const [allowWebSearch, setAllowWebSearch] = useState(props.allowWebSearch ?? false);
+  const [webSearchBusy, setWebSearchBusy] = useState(false);
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -316,6 +319,26 @@ export function ChatSessionClient(props: Props) {
                 className="h-3.5 w-3.5 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
               />
               Mode penalaran (lebih lambat, lebih akurat)
+            </label>
+            <label className="flex items-center gap-2 text-xs text-brand-ink-2">
+              <input
+                type="checkbox"
+                checked={allowWebSearch}
+                disabled={webSearchBusy}
+                onChange={async (e) => {
+                  const next = e.target.checked;
+                  setWebSearchBusy(true);
+                  setAllowWebSearch(next);
+                  const result = await toggleSessionWebSearchAction(props.sessionId, next);
+                  setWebSearchBusy(false);
+                  if (!result.ok) {
+                    setAllowWebSearch(!next);
+                    setError(result.error ?? 'gagal mengubah pengaturan web search');
+                  }
+                }}
+                className="h-3.5 w-3.5 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
+              />
+              Izinkan pencarian web
             </label>
             <button
               type="button"

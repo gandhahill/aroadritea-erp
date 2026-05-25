@@ -172,6 +172,29 @@ export async function getAiSession(
   });
 }
 
+export async function setSessionWebSearch(
+  id: string,
+  allow: boolean,
+  ctx: AuditContext,
+): Promise<Result<void>> {
+  const perm = await requirePermission(ctx.userId, 'ai.assistant.use');
+  if (!perm.ok) return perm;
+  const result = await db
+    .update(aiChatSessions)
+    .set({ allowWebSearch: allow ? 'true' : 'false', updatedAt: new Date(), updatedBy: ctx.userId })
+    .where(
+      and(
+        eq(aiChatSessions.tenantId, ctx.tenantId),
+        eq(aiChatSessions.id, id),
+        eq(aiChatSessions.userId, ctx.userId),
+        isNull(aiChatSessions.deletedAt),
+      ),
+    )
+    .returning({ id: aiChatSessions.id });
+  if (result.length === 0) return err(AppError.notFound('ai.session.notFound', { id }));
+  return ok(undefined);
+}
+
 export async function renameAiSession(
   id: string,
   title: string,

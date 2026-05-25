@@ -19,6 +19,7 @@ import {
   listMyAiSessions,
   renameAiSession,
   sendChatMessage,
+  setSessionWebSearch,
 } from '@erp/services/ai';
 import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
@@ -74,6 +75,16 @@ export async function renameSessionAction(id: string, title: string) {
   const ctx = await resolveCtx();
   if (!ctx) return { ok: false as const, error: 'unauthenticated' };
   const r = await renameAiSession(id, title, ctx);
+  if (!r.ok) return { ok: false as const, error: r.error.messageKey };
+  revalidatePath('/ai-assistant');
+  revalidatePath(`/ai-assistant/${id}`);
+  return { ok: true as const };
+}
+
+export async function toggleSessionWebSearchAction(id: string, allow: boolean) {
+  const ctx = await resolveCtx();
+  if (!ctx) return { ok: false as const, error: 'unauthenticated' };
+  const r = await setSessionWebSearch(id, allow, ctx);
   if (!r.ok) return { ok: false as const, error: r.error.messageKey };
   revalidatePath('/ai-assistant');
   revalidatePath(`/ai-assistant/${id}`);

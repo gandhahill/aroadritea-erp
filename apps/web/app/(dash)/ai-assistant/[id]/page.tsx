@@ -44,6 +44,7 @@ export default async function ChatSessionPage({
       <ChatSessionClient
         enabled={isAiAssistantEnabled()}
         sessionId={result.session.id}
+        allowWebSearch={result.session.allowWebSearch}
         initialMessages={result.messages}
       />
     </main>
