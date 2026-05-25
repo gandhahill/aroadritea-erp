@@ -27,7 +27,8 @@
     "./auth/client": "./src/auth/auth.client.ts",
     "./auth/password": "./src/auth/password.ts",
     "./iam": "./src/iam/index.ts",
-    "./notification": "./src/notification/index.ts"
+    "./notification": "./src/notification/index.ts",
+    "./helpdesk": "./src/helpdesk/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

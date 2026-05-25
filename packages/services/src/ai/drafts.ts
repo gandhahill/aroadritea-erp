@@ -30,7 +30,7 @@ import { requirePermission } from '../iam';
 
 const DRAFT_TTL_MINUTES = 30;
 
-export type DraftKind = 'manual_sale' | 'complaint';
+export type DraftKind = 'manual_sale' | 'complaint' | 'helpdesk_ticket';
 
 export interface DraftRow {
   id: string;
@@ -181,6 +181,7 @@ const COMMIT_PERMISSION_BY_KIND: Record<DraftKind, string> = {
   // cashier could do from the manual-sales UI.
   manual_sale: 'pos.transact',
   complaint: 'crm.logComplaint',
+  helpdesk_ticket: 'helpdesk.create',
 };
 
 export interface CommitResult {
@@ -289,6 +290,17 @@ async function dispatchCommit(draft: DraftRow, ctx: AuditContext): Promise<strin
         throw new Error(result.error.messageKey ?? 'crm.commitFailed');
       }
       return (result.value as { id?: string }).id ?? '(unknown)';
+    }
+    case 'helpdesk_ticket': {
+      const { createTicket } = await import('../helpdesk');
+      const result = await createTicket(draft.payload, {
+        ...ctx,
+        locationId: draft.locationId ?? ctx.locationId,
+      });
+      if (!result.ok) {
+        throw new Error(result.error.messageKey ?? 'helpdesk.commitFailed');
+      }
+      return result.value.id;
     }
     default: {
       throw new Error(`unsupported draft kind ${draft.kind}`);

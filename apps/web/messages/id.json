@@ -1317,6 +1317,7 @@
     "myAttendance": "Presensi Saya",
     "crm": "CRM",
     "members": "Member",
+    "helpdesk": "Helpdesk",
     "disciplinary": "Surat Peringatan",
     "sop": "SOP & Prosedur",
     "aiAssistant": "Asisten AI",
@@ -1674,6 +1675,71 @@
     "errors": {
       "allLinesMustBeCounted": "Semua baris harus dihitung sebelum diajukan",
       "approvalRestricted": "Hanya director yang dapat menyetujui"
+    }
+  },
+  "helpdesk": {
+    "title": "Helpdesk",
+    "description": "Pelaporan masalah & permintaan dukungan.",
+    "newTicket": "+ Tiket Baru",
+    "newTicketDesc": "Sampaikan masalah Anda. Petugas akan menerima notifikasi otomatis.",
+    "subject": "Judul",
+    "subjectPlaceholder": "Singkat dan deskriptif",
+    "subjectRequired": "Judul minimal 3 karakter.",
+    "body": "Detail",
+    "bodyPlaceholder": "Jelaskan masalah, langkah-langkah, dan dampak.",
+    "bodyRequired": "Detail minimal 3 karakter.",
+    "submit": "Buat Tiket",
+    "submitting": "Menyimpan…",
+    "empty": "Belum ada tiket.",
+    "reportedBy": "Dilaporkan oleh",
+    "viaAi": "via AI",
+    "viaManual": "manual",
+    "details": "Detail Tiket",
+    "contextSection": "Konteks Tambahan",
+    "thread": "Diskusi",
+    "noReplies": "Belum ada balasan.",
+    "replyPlaceholder": "Ketik balasan…",
+    "replyRequired": "Balasan tidak boleh kosong.",
+    "sendReply": "Kirim Balasan",
+    "internal": "Internal",
+    "internalNote": "Catatan internal (tidak terlihat reporter)",
+    "table": {
+      "number": "No.",
+      "subject": "Judul",
+      "reporter": "Pelapor",
+      "assignee": "Ditugaskan",
+      "priority": "Prioritas",
+      "status": "Status",
+      "via": "Sumber",
+      "category": "Kategori"
+    },
+    "status": {
+      "all": "Semua",
+      "open": "Open",
+      "in_progress": "Diproses",
+      "waiting_reporter": "Menunggu Pelapor",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "priority": {
+      "label": "Prioritas",
+      "low": "Rendah",
+      "normal": "Normal",
+      "high": "Tinggi",
+      "urgent": "Urgent"
+    },
+    "category": {
+      "label": "Kategori",
+      "bug": "Bug / Error",
+      "request": "Permintaan Fitur",
+      "question": "Pertanyaan",
+      "other": "Lainnya"
+    },
+    "actions": {
+      "inProgress": "Mulai Proses",
+      "resolve": "Tandai Resolved",
+      "close": "Tutup",
+      "reopen": "Buka Ulang"
     }
   },
   "crm": {

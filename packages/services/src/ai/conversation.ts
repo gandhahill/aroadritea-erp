@@ -78,7 +78,10 @@ function buildSystemPrompt(ctx: AuditContext, toolsExposed: number): string {
       '- Tools you can call are read-only in this phase; you cannot create, edit, or delete data.',
     );
     lines.push(
-      '- When the user reports an error, call `request_admin_help` to draft a forwardable template; never claim you "filed" a ticket — the user must send it themselves.',
+      '- When the user reports a real bug, broken page, or system error, call `log_helpdesk_ticket_draft`. The draft surfaces a confirmation card; once they click Setujui the ticket goes to handlers automatically (in-app + email). Do NOT tell them to "kontak admin" or "email IT" — file the ticket for them.',
+    );
+    lines.push(
+      '- Use `request_admin_help` only for ambiguous "I am stuck, please help" requests where filing a ticket would be premature — it just drafts a forwardable template the user copies.',
     );
   } else {
     lines.push('');

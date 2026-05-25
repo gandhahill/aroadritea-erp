@@ -47,6 +47,11 @@ import {
   type LogComplaintDraftToolDeps,
   logComplaintDraftTool,
 } from './log-complaint-draft';
+import {
+  LogHelpdeskTicketDraftInputSchema,
+  type LogHelpdeskTicketDraftToolDeps,
+  logHelpdeskTicketDraftTool,
+} from './log-helpdesk-ticket-draft';
 import { WebSearchInputSchema, webSearchTool } from './web-search';
 import { OcrReceiptStrukInputSchema, ocrReceiptStrukTool } from './ocr-receipt';
 import { ReadFileInputSchema, readFileTool } from './read-file';
@@ -354,6 +359,34 @@ registerTool({
   permission: 'ai.assistant.use',
   mutates: false,
   execute: webSearchTool,
+});
+
+registerTool({
+  name: 'log_helpdesk_ticket_draft',
+  description:
+    'File a helpdesk ticket on the user\'s behalf when they report an error, bug, or operational problem in the ERP. ALWAYS prefer this over asking the user to "contact admin" — handlers with helpdesk.handle permission auto-get notified by email + in-app. The user will see a confirmation card and click Setujui to commit. Categorize as `bug` for ERP defects, `request` for new features, `question` for how-to, `other` for the rest.',
+  inputSchema: LogHelpdeskTicketDraftInputSchema,
+  parameters: {
+    type: 'object',
+    properties: {
+      subject: { type: 'string', description: 'Ringkasan singkat (3–200 char).' },
+      body: { type: 'string', description: 'Detail masalah (3–5000 char).' },
+      category: { type: 'string', description: 'bug | request | question | other (default bug).' },
+      priority: { type: 'string', description: 'low | normal | high | urgent (default normal).' },
+      context: {
+        type: 'object',
+        description: 'Structured hints (URL, related entity refs, browser info). Optional.',
+      },
+    },
+    required: ['subject', 'body'],
+  },
+  permission: 'helpdesk.create',
+  mutates: false,
+  execute: (
+    input: import('./log-helpdesk-ticket-draft').LogHelpdeskTicketDraftInput,
+    ctx: AuditContext,
+    deps?: ToolExecutionDeps,
+  ) => logHelpdeskTicketDraftTool(input, ctx, deps as LogHelpdeskTicketDraftToolDeps | undefined),
 });
 
 registerTool({

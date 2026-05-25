@@ -1312,6 +1312,7 @@
     "myAttendance": "My Attendance",
     "crm": "CRM",
     "members": "Members",
+    "helpdesk": "Helpdesk",
     "disciplinary": "Disciplinary Actions",
     "sop": "SOP & Procedures",
     "aiAssistant": "AI Assistant",
@@ -1592,6 +1593,71 @@
     "name": "Aroadri Tea ERP",
     "company": "PT Gandha Hill Catering Management Indonesia",
     "tagline": "Enterprise Resource Planning"
+  },
+  "helpdesk": {
+    "title": "Helpdesk",
+    "description": "Report issues and request support.",
+    "newTicket": "+ New Ticket",
+    "newTicketDesc": "Describe your issue. Handlers get notified automatically.",
+    "subject": "Subject",
+    "subjectPlaceholder": "Short and descriptive",
+    "subjectRequired": "Subject must be at least 3 characters.",
+    "body": "Details",
+    "bodyPlaceholder": "Explain the issue, steps, and impact.",
+    "bodyRequired": "Details must be at least 3 characters.",
+    "submit": "Create Ticket",
+    "submitting": "Saving…",
+    "empty": "No tickets yet.",
+    "reportedBy": "Reported by",
+    "viaAi": "via AI",
+    "viaManual": "manual",
+    "details": "Ticket Details",
+    "contextSection": "Extra context",
+    "thread": "Thread",
+    "noReplies": "No replies yet.",
+    "replyPlaceholder": "Type a reply…",
+    "replyRequired": "Reply can't be empty.",
+    "sendReply": "Send Reply",
+    "internal": "Internal",
+    "internalNote": "Internal note (hidden from reporter)",
+    "table": {
+      "number": "No.",
+      "subject": "Subject",
+      "reporter": "Reporter",
+      "assignee": "Assignee",
+      "priority": "Priority",
+      "status": "Status",
+      "via": "Source",
+      "category": "Category"
+    },
+    "status": {
+      "all": "All",
+      "open": "Open",
+      "in_progress": "In Progress",
+      "waiting_reporter": "Waiting Reporter",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "priority": {
+      "label": "Priority",
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "category": {
+      "label": "Category",
+      "bug": "Bug / Error",
+      "request": "Feature Request",
+      "question": "Question",
+      "other": "Other"
+    },
+    "actions": {
+      "inProgress": "Start Working",
+      "resolve": "Mark Resolved",
+      "close": "Close",
+      "reopen": "Reopen"
+    }
   },
   "crm": {
     "members": {

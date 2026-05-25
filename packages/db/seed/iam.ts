@@ -403,6 +403,22 @@ export const PERMISSIONS_SEED = [
     module: 'crm',
     description: n('Penyesuaian poin loyalitas member', 'Adjust loyalty points', '调整会员积分'),
   },
+  // Helpdesk — T-0184
+  {
+    code: 'helpdesk.create',
+    module: 'helpdesk',
+    description: n('Buat tiket helpdesk', 'Create helpdesk ticket', '创建工单'),
+  },
+  {
+    code: 'helpdesk.view',
+    module: 'helpdesk',
+    description: n('Lihat tiket sendiri', 'View own tickets', '查看自己的工单'),
+  },
+  {
+    code: 'helpdesk.handle',
+    module: 'helpdesk',
+    description: n('Tangani semua tiket', 'Handle all tickets', '处理所有工单'),
+  },
   // HR
   {
     code: 'hr.view',
@@ -680,6 +696,9 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'purchasing.return.post',
     'crm.member.view',
     'crm.member.adjustPoints',
+    'helpdesk.create',
+    'helpdesk.view',
+    'helpdesk.handle',
     'hr.view',
     'hr.employee.read',
     'hr.employee.write',
@@ -786,6 +805,8 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'reporting.view',
     'docs.view',
     'docs.edit',
+    'helpdesk.create',
+    'helpdesk.view',
   ],
   cashier: [
     'pos.transact',
@@ -799,6 +820,8 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'hr.sop.read',
     'ai.assistant.use',
     'docs.view',
+    'helpdesk.create',
+    'helpdesk.view',
   ],
   assistant: [
     'accounting.view',

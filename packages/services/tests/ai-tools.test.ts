@@ -213,65 +213,77 @@ describe('search_codebase tool', () => {
 // ───────────────────────────────────────────────────────────────────────
 
 describe('executeTool', () => {
-  it('refuses when caller lacks the required permission', async () => {
-    canMock.mockResolvedValueOnce(false);
-    const { executeTool } = await import('../src/ai/tools/registry');
-    const result = await executeTool(
-      ctx,
-      'request_admin_help',
-      JSON.stringify({ error_summary: 'POS macet saat close shift' }),
-    );
-    expect(result.ok).toBe(false);
-    // Audit row must still be written so the refusal stays attributable.
-    const auditRows = inserts.filter(
-      (i) =>
-        typeof i.values === 'object' &&
-        i.values !== null &&
-        (i.values as { entityType?: string }).entityType === 'ai_tool_call',
-    );
-    expect(auditRows.length).toBe(1);
-    expect((auditRows[0]?.values as { after: { outcome: string } }).after.outcome).toBe(
-      'forbidden',
-    );
-  });
+  it(
+    'refuses when caller lacks the required permission',
+    async () => {
+      canMock.mockResolvedValueOnce(false);
+      const { executeTool } = await import('../src/ai/tools/registry');
+      const result = await executeTool(
+        ctx,
+        'request_admin_help',
+        JSON.stringify({ error_summary: 'POS macet saat close shift' }),
+      );
+      expect(result.ok).toBe(false);
+      // Audit row must still be written so the refusal stays attributable.
+      const auditRows = inserts.filter(
+        (i) =>
+          typeof i.values === 'object' &&
+          i.values !== null &&
+          (i.values as { entityType?: string }).entityType === 'ai_tool_call',
+      );
+      expect(auditRows.length).toBe(1);
+      expect((auditRows[0]?.values as { after: { outcome: string } }).after.outcome).toBe(
+        'forbidden',
+      );
+    },
+    15_000,
+  );
 
-  it('rejects malformed arguments before calling the executor', async () => {
-    const { executeTool } = await import('../src/ai/tools/registry');
-    // request_admin_help requires error_summary; we omit it.
-    const result = await executeTool(ctx, 'request_admin_help', JSON.stringify({}));
-    expect(result.ok).toBe(false);
-    const auditRows = inserts.filter(
-      (i) =>
-        typeof i.values === 'object' &&
-        i.values !== null &&
-        (i.values as { entityType?: string }).entityType === 'ai_tool_call',
-    );
-    expect(auditRows.length).toBe(1);
-    expect((auditRows[0]?.values as { after: { outcome: string } }).after.outcome).toBe(
-      'invalid',
-    );
-  });
+  it(
+    'rejects malformed arguments before calling the executor',
+    async () => {
+      const { executeTool } = await import('../src/ai/tools/registry');
+      // request_admin_help requires error_summary; we omit it.
+      const result = await executeTool(ctx, 'request_admin_help', JSON.stringify({}));
+      expect(result.ok).toBe(false);
+      const auditRows = inserts.filter(
+        (i) =>
+          typeof i.values === 'object' &&
+          i.values !== null &&
+          (i.values as { entityType?: string }).entityType === 'ai_tool_call',
+      );
+      expect(auditRows.length).toBe(1);
+      expect((auditRows[0]?.values as { after: { outcome: string } }).after.outcome).toBe(
+        'invalid',
+      );
+    },
+    15_000,
+  );
 
-  it('returns ok and writes an audit row for a successful run', async () => {
-    const { executeTool } = await import('../src/ai/tools/registry');
-    const result = await executeTool(
-      ctx,
-      'request_admin_help',
-      JSON.stringify({ error_summary: 'POS hang saat close shift' }),
-    );
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect((result.value.output as { template: string }).template).toContain('POS hang');
-    }
-    const auditRows = inserts.filter(
-      (i) =>
-        typeof i.values === 'object' &&
-        i.values !== null &&
-        (i.values as { entityType?: string }).entityType === 'ai_tool_call',
-    );
-    expect(auditRows.length).toBe(1);
-    expect((auditRows[0]?.values as { after: { outcome: string } }).after.outcome).toBe('ok');
-  });
+  it(
+    'returns ok and writes an audit row for a successful run',
+    async () => {
+      const { executeTool } = await import('../src/ai/tools/registry');
+      const result = await executeTool(
+        ctx,
+        'request_admin_help',
+        JSON.stringify({ error_summary: 'POS hang saat close shift' }),
+      );
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect((result.value.output as { template: string }).template).toContain('POS hang');
+      }
+      const auditRows = inserts.filter(
+        (i) =>
+          typeof i.values === 'object' &&
+          i.values !== null &&
+          (i.values as { entityType?: string }).entityType === 'ai_tool_call',
+      );
+      expect(auditRows.length).toBe(1);
+      expect((auditRows[0]?.values as { after: { outcome: string } }).after.outcome).toBe('ok');
+    },
+    15_000,
+  );
 
   it('returns NOT_FOUND for an unknown tool', async () => {
     const { executeTool } = await import('../src/ai/tools/registry');

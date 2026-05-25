@@ -1352,6 +1352,7 @@
     "myAttendance": "我的考勤",
     "crm": "客户关系",
     "members": "会员",
+    "helpdesk": "工单",
     "disciplinary": "纪律处分",
     "sop": "标准操作流程",
     "aiAssistant": "AI 助手",
@@ -1635,6 +1636,71 @@
     "name": "Aroadri Tea ERP",
     "company": "PT Gandha Hill Catering Management Indonesia",
     "tagline": "企业资源规划"
+  },
+  "helpdesk": {
+    "title": "工单",
+    "description": "提交问题与支持请求。",
+    "newTicket": "+ 新建工单",
+    "newTicketDesc": "描述您的问题，处理人将自动收到通知。",
+    "subject": "主题",
+    "subjectPlaceholder": "简短且具体",
+    "subjectRequired": "主题至少 3 个字符。",
+    "body": "详情",
+    "bodyPlaceholder": "说明问题、复现步骤与影响。",
+    "bodyRequired": "详情至少 3 个字符。",
+    "submit": "创建工单",
+    "submitting": "保存中…",
+    "empty": "暂无工单。",
+    "reportedBy": "提报人",
+    "viaAi": "AI 提交",
+    "viaManual": "手动",
+    "details": "工单详情",
+    "contextSection": "附加上下文",
+    "thread": "讨论",
+    "noReplies": "暂无回复。",
+    "replyPlaceholder": "输入回复…",
+    "replyRequired": "回复不能为空。",
+    "sendReply": "发送回复",
+    "internal": "内部",
+    "internalNote": "内部备注（提报人不可见）",
+    "table": {
+      "number": "编号",
+      "subject": "主题",
+      "reporter": "提报人",
+      "assignee": "处理人",
+      "priority": "优先级",
+      "status": "状态",
+      "via": "来源",
+      "category": "类别"
+    },
+    "status": {
+      "all": "全部",
+      "open": "开放",
+      "in_progress": "处理中",
+      "waiting_reporter": "等待提报人",
+      "resolved": "已解决",
+      "closed": "已关闭"
+    },
+    "priority": {
+      "label": "优先级",
+      "low": "低",
+      "normal": "普通",
+      "high": "高",
+      "urgent": "紧急"
+    },
+    "category": {
+      "label": "类别",
+      "bug": "Bug / 故障",
+      "request": "功能请求",
+      "question": "咨询",
+      "other": "其他"
+    },
+    "actions": {
+      "inProgress": "开始处理",
+      "resolve": "标记已解决",
+      "close": "关闭",
+      "reopen": "重新开启"
+    }
   },
   "crm": {
     "members": {
