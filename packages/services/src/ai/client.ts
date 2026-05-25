@@ -86,19 +86,19 @@ export interface AiProviderConfig {
 let cachedConfig: AiProviderConfig | null = null;
 
 export function isAiAssistantEnabled(): boolean {
-  return process.env.AI_ASSISTANT_ENABLED !== 'false';
+  return process.env['AI_ASSISTANT_ENABLED'] !== 'false';
 }
 
 export function loadProviderConfig(): AiProviderConfig {
   if (cachedConfig?.apiKey) return cachedConfig;
-  const apiKey = process.env.DEEPSEEK_API_KEY ?? process.env.AI_PROVIDER_KEY ?? '';
+  const apiKey = process.env['DEEPSEEK_API_KEY'] ?? process.env['AI_PROVIDER_KEY'] ?? '';
   const config = {
-    baseUrl: process.env.AI_PROVIDER_BASE_URL ?? DEFAULT_BASE_URL,
+    baseUrl: process.env['AI_PROVIDER_BASE_URL'] ?? DEFAULT_BASE_URL,
     apiKey,
-    model: process.env.AI_PROVIDER_MODEL ?? DEFAULT_MODEL,
-    reasoningModel: process.env.AI_PROVIDER_REASONING_MODEL ?? DEFAULT_THINKING_MODEL,
-    temperature: Number.parseFloat(process.env.AI_PROVIDER_TEMPERATURE ?? '0.4'),
-    maxTokens: Number.parseInt(process.env.AI_PROVIDER_MAX_TOKENS ?? '2048', 10),
+    model: process.env['AI_PROVIDER_MODEL'] ?? DEFAULT_MODEL,
+    reasoningModel: process.env['AI_PROVIDER_REASONING_MODEL'] ?? DEFAULT_THINKING_MODEL,
+    temperature: Number.parseFloat(process.env['AI_PROVIDER_TEMPERATURE'] ?? '0.4'),
+    maxTokens: Number.parseInt(process.env['AI_PROVIDER_MAX_TOKENS'] ?? '2048', 10),
   };
   if (apiKey) {
     cachedConfig = config;

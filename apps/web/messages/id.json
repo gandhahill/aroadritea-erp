@@ -1389,7 +1389,9 @@
     "stockByOutlet": "Stok per Outlet",
     "correspondence": "Surat Menyurat",
     "bankReconciliation": "Rekon Bank",
-    "bankAccounts": "Akun Bank"
+    "bankAccounts": "Akun Bank",
+    "expandSidebar": "Perluas Sidebar",
+    "collapseSidebar": "Perkecil Sidebar"
   },
   "pos": {
     "title": "Kasir",

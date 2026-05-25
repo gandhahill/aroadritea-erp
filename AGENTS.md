@@ -175,8 +175,8 @@ Full detail in **`SYSTEM-DESIGN.md`**. Operational summary:
 - ❌ Use `number` for money — use `Money` (bigint).
 - ❌ Start a task without entry in `TASK.md` + checkpoint.
 - ❌ Exit a session without updating checkpoint with explicit `Next step`.
-- ❌ **STRICT PROHIBITION**: Hardcode Bahasa Indonesia (or any language) strings in UI components. ALL UI text must use i18n keys and be added to the translation JSON files (`en.json`, `id.json`, `zh.json`) immediately.
-- ❌ **STRICT PROHIBITION**: Skip audit trails. Any transactional or state-changing action MUST include audit logs (either via audit columns in the table or an entry in the `audit_log` table).
+- ❌ **ABSOLUTE STRICT PROHIBITION (MANDATORY TO FOLLOW)**: NEVER Hardcode Bahasa Indonesia (or any language) strings in UI components, tooltips, placeholders, or `title` attributes. ALL UI text MUST use i18n keys (`useTranslations` etc.) and be added to ALL translation JSON files (`en.json`, `id.json`, `zh.json`) immediately. Ignorance of this rule is a critical failure.
+- ❌ **ABSOLUTE STRICT PROHIBITION (MANDATORY TO FOLLOW)**: NEVER Skip audit trails. Any transactional or state-changing action MUST include audit logs (either via audit columns in the table or an entry in the `audit_log` table). Ignorance of this rule is a critical failure.
 
 ---
 

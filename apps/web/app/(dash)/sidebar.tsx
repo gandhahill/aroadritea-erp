@@ -474,7 +474,7 @@ export function Sidebar() {
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={`shrink-0 p-1 text-brand-ink-3 hover:text-brand-ink hover:bg-brand-cream-2 rounded-md transition-colors ${isCollapsed ? 'hidden' : 'block'}`}
-          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+          title={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -495,7 +495,7 @@ export function Sidebar() {
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="mx-auto mt-2 p-1.5 text-brand-ink-3 hover:text-brand-ink hover:bg-brand-cream-2 rounded-md transition-colors"
-          title="Expand Sidebar"
+          title={t('expandSidebar')}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

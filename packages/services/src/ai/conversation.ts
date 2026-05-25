@@ -37,7 +37,7 @@ import { getAiSession, getRecentUserMessageCount, recordChatMessage } from './se
 import { executeTool, listAvailableTools } from './tools/registry';
 
 const HARD_USER_TURN_CAP_PER_HOUR = Number.parseInt(
-  process.env.AI_ASSISTANT_PER_USER_HOURLY_CAP ?? '30',
+  process.env['AI_ASSISTANT_PER_USER_HOURLY_CAP'] ?? '30',
   10,
 );
 const HISTORY_CONTEXT_MESSAGES = 20;

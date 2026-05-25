@@ -1428,7 +1428,9 @@
     "correspondence": "信函",
     "bankReconciliation": "银行对账",
     "bankAccounts": "银行账户",
-    "variance": "差异"
+    "variance": "差异",
+    "expandSidebar": "展开侧边栏",
+    "collapseSidebar": "折叠侧边栏"
   },
   "pos": {
     "title": "收银",

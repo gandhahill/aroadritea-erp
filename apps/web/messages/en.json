@@ -1333,7 +1333,7 @@
     "cashFlow": "Cash Flow",
     "agingReceivables": "Aging Receivables",
     "agingPayables": "Aging Payables",
-    "cogs": "Cost of Goods Sold",
+    "cogs": "Settings",
     "waste": "Waste",
     "aiAssistant": "AI Assistant",
     "aiAssistantLog": "AI Assistant Log",
@@ -1371,7 +1371,6 @@
     "helpdesk": "Helpdesk",
     "disciplinary": "Disciplinary Actions",
     "sop": "SOP & Procedures",
-    "aiAssistant": "AI Assistant",
     "whistleblowerForm": "Whistleblower Form",
     "whistleblowerReports": "Whistleblower Reports",
     "account": "My Account",
@@ -1384,7 +1383,6 @@
     "permissions": "Permissions",
     "customFields": "Custom Fields",
     "workflowEditor": "Workflow Editor",
-    "aiAssistantLog": "AI Assistant Log",
     "docsSettings": "Edit Docs",
     "supplies": "Supplies",
     "categories": "Categories",
@@ -1393,8 +1391,8 @@
     "bankReconciliation": "Bank Recon",
     "bankAccounts": "Bank Accounts",
     "variance": "Variance",
-    "cogs": "Settings",
-    "waste": "Waste"
+    "expandSidebar": "Expand Sidebar",
+    "collapseSidebar": "Collapse Sidebar"
   },
   "pos": {
     "title": "Point of Sale",
