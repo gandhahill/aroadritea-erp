@@ -1,2 +1,12 @@
 'use server';
-export { fetchAgingPayables } from '../aging-receivables/actions';
+
+import {
+  fetchAgingPayables as fetchAgingPayablesFromReceivables,
+} from '../aging-receivables/actions';
+
+export async function fetchAgingPayables(input: {
+  asOf: string;
+  locationId?: string;
+}) {
+  return fetchAgingPayablesFromReceivables(input);
+}

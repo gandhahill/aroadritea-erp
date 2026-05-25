@@ -203,7 +203,7 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 
 ## Next Step
 
-Deploy the 2026-05-21 local patch: commit and push, pull on VPS, run `pnpm --filter @erp/db migrate`, run `pnpm --filter @erp/db seed`, rebuild `@erp/web` and `@erp/site`, reload PM2, then smoke `/pos/manual-sales`, `/inventory/opname/new`, `/inventory/products`, `/pos/orders`, `/accounting/journals`, `/audit`, public member signup/OTP, and the eight menu image URLs. Do not reset production DB unless the owner explicitly accepts the data-loss tradeoff; migration `0021_manual_sales_and_opname_frequency.sql` already updates stale product image paths without requiring a reset.
+Deploy the 2026-05-25 maintenance build fix: commit/push the async wrapper in `apps/web/app/(dash)/reporting/aging-payables/actions.ts`, pull on VPS, run `pnpm -r build`, reload/save PM2, then smoke `/reporting/aging-payables` and `/reporting/aging-receivables`.
 
 ## Test Status
 
@@ -316,3 +316,10 @@ Deploy the 2026-05-21 local patch: commit and push, pull on VPS, run `pnpm --fil
   - Public route smoke PASS: `/id/member/daftar` and `/id/member/verifikasi-otp` returned HTTP 200; protected ERP routes `/pos/manual-sales`, `/inventory/opname/new`, `/pos/orders`, `/accounting/journals`, and `/audit` returned HTTP 307 redirects instead of 404/application-error.
   - Product image smoke PASS: seven requested ERP image URLs under `/photo/menu/*` returned HTTP 200.
   - Deployment note: sourcing `.env` printed `line 45: n: command not found`, but migration/seed/build/reload completed successfully. Inspect and clean the malformed `.env` line in the next maintenance pass.
+- 2026-05-25 22:21 local maintenance:
+  - New VPS build failure reported in `apps/web/app/(dash)/reporting/aging-payables/actions.ts`.
+  - Root cause: the file is marked `"use server"` but exports `fetchAgingPayables` via direct re-export from the aging receivables action module. Next.js 15 only allows exported async functions from a `"use server"` file.
+  - Planned fix: replace the direct re-export with an explicit `export async function fetchAgingPayables(...)` wrapper that delegates to the shared AP action implementation.
+- 2026-05-25 22:33 local verification PASS:
+  - `pnpm --filter @erp/web build` PASS; `/reporting/aging-payables` appears in the generated route list.
+  - `pnpm -r build` PASS across worker, MCP, site, and web. This matches the failing VPS command scope.
