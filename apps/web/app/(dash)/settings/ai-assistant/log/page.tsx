@@ -9,6 +9,7 @@
  * not exposed here — the goal is observability, not management.
  */
 
+import { FilterBar, FilterField } from '@/components/filter-bar';
 import { PageHeader } from '@/components/page-header';
 import { Pagination } from '@/components/pagination';
 import { getSession } from '@/lib/auth';
@@ -145,40 +146,37 @@ export default async function AiAssistantLogPage({
       </div>
 
       {/* Filters */}
-      <form
-        className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-3"
-        method="GET"
-      >
-        <label className="space-y-1 text-sm">
-          <span className="text-brand-ink-2">Entity</span>
-          <select
-            name="entity"
-            defaultValue={entity ?? ''}
-            className="w-44 rounded-md border border-brand-cream-3 bg-white px-2 py-1 text-sm"
+      <form method="GET">
+        <FilterBar>
+          <FilterField label="Entity">
+            <select
+              name="entity"
+              defaultValue={entity ?? ''}
+              className="h-9 w-44 rounded-md border border-brand-cream-3 bg-white px-3 text-sm focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20"
+            >
+              <option value="">Semua</option>
+              {ENTITY_FILTERS.map((e) => (
+                <option key={e} value={e}>
+                  {e}
+                </option>
+              ))}
+            </select>
+          </FilterField>
+          <FilterField label="User ID">
+            <input
+              name="user"
+              defaultValue={userFilter ?? ''}
+              placeholder="ulid…"
+              className="h-9 w-72 rounded-md border border-brand-cream-3 bg-white px-3 font-mono text-xs focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20"
+            />
+          </FilterField>
+          <button
+            type="submit"
+            className="h-9 rounded-md bg-brand-red px-4 text-sm font-semibold text-white hover:bg-brand-red-dark"
           >
-            <option value="">Semua</option>
-            {ENTITY_FILTERS.map((e) => (
-              <option key={e} value={e}>
-                {e}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-1 text-sm">
-          <span className="text-brand-ink-2">User ID</span>
-          <input
-            name="user"
-            defaultValue={userFilter ?? ''}
-            placeholder="ulid…"
-            className="w-72 rounded-md border border-brand-cream-3 bg-white px-2 py-1 font-mono text-xs"
-          />
-        </label>
-        <button
-          type="submit"
-          className="rounded-md border border-brand-cream-3 bg-brand-cream-2 px-3 py-1.5 text-sm hover:bg-brand-cream-3"
-        >
-          Tampilkan
-        </button>
+            Tampilkan
+          </button>
+        </FilterBar>
       </form>
 
       {/* Table */}

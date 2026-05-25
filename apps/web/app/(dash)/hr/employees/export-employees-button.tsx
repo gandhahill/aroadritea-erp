@@ -38,9 +38,13 @@ export function ExportEmployeesButton({
   }
 
   return (
-    <div className="space-y-2">
-      {error ? <InlineAlert message={error} onDismiss={() => setError(null)} /> : null}
+    <div className="relative inline-block">
       <ExportXlsxButton onExport={handleExport} label={t('exportExcel') || 'Export Excel'} />
+      {error ? (
+        <div className="absolute right-0 top-full z-50 mt-2 w-72">
+          <InlineAlert message={error} onDismiss={() => setError(null)} />
+        </div>
+      ) : null}
     </div>
   );
 }

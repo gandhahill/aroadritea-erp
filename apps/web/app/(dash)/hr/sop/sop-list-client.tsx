@@ -1,6 +1,6 @@
 'use client';
 
-import { FilterBar } from '@/components/filter-bar';
+import { FilterBar, FilterField } from '@/components/filter-bar';
 import { Pagination } from '@/components/pagination';
 import type { SopRow } from '@erp/services/hr';
 import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@erp/ui';
@@ -115,8 +115,7 @@ export function SopListClient(props: Props) {
       ) : null}
 
       <FilterBar>
-        <label className="space-y-1 text-sm">
-          <span className="text-brand-ink-2">Status</span>
+        <FilterField label="Status">
           <Select
             value={props.initialStatus}
             onChange={(e) => updateParam('status', e.target.value)}
@@ -128,9 +127,8 @@ export function SopListClient(props: Props) {
               </option>
             ))}
           </Select>
-        </label>
-        <label className="space-y-1 text-sm">
-          <span className="text-brand-ink-2">Kategori</span>
+        </FilterField>
+        <FilterField label="Kategori">
           <Select
             value={props.initialCategory}
             onChange={(e) => updateParam('category', e.target.value)}
@@ -142,9 +140,8 @@ export function SopListClient(props: Props) {
               </option>
             ))}
           </Select>
-        </label>
-        <label className="flex-1 space-y-1 text-sm">
-          <span className="text-brand-ink-2">Cari judul / deskripsi</span>
+        </FilterField>
+        <FilterField label="Cari judul / deskripsi" className="flex-1">
           <Input
             defaultValue={props.initialSearch}
             placeholder="cari…"
@@ -152,7 +149,7 @@ export function SopListClient(props: Props) {
               if (e.key === 'Enter') updateParam('search', (e.target as HTMLInputElement).value);
             }}
           />
-        </label>
+        </FilterField>
         {props.canManage ? (
           <Button variant="primary" size="md" onClick={() => setShowUpload(true)}>
             + Upload SOP
