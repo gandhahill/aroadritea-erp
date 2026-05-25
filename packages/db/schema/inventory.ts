@@ -20,6 +20,7 @@ import { sql } from 'drizzle-orm';
 import {
   bigint,
   boolean,
+  check,
   date,
   index,
   integer,
@@ -29,7 +30,6 @@ import {
   text,
   timestamp,
   uniqueIndex,
-  check,
 } from 'drizzle-orm/pg-core';
 import { auditCols, isActiveFlag, locationCol, pk, tenantCol, versionCol } from './common';
 

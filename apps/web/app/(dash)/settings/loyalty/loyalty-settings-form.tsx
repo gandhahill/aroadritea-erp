@@ -1,10 +1,10 @@
 'use client';
 
 import type { LoyaltyConfig } from '@erp/services/crm';
+import { Button, Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useActionState, useState } from 'react';
 import { saveLoyaltyConfig } from './actions';
-import { Button, Input } from "@erp/ui";
 
 interface TierDraft {
   key: number;
@@ -79,7 +79,6 @@ export function LoyaltySettingsForm({ initial }: Props) {
                 step={1000}
                 value={rupiahPerPoint}
                 onChange={(event) => setRupiahPerPoint(Number(event.target.value))}
-               
                 required
               />
               <span className="whitespace-nowrap text-sm text-brand-ink-3">{t('pointEqual')}</span>
@@ -121,7 +120,6 @@ export function LoyaltySettingsForm({ initial }: Props) {
                     value={tier.code}
                     onChange={(event) => updateTier(tier.key, { code: event.target.value })}
                     placeholder="bronze"
-                   
                     required
                   />
                 </label>
@@ -139,7 +137,6 @@ export function LoyaltySettingsForm({ initial }: Props) {
                         minLifetimePoints: Number.parseInt(event.target.value, 10) || 0,
                       })
                     }
-                   
                     required
                   />
                 </label>
@@ -171,7 +168,9 @@ export function LoyaltySettingsForm({ initial }: Props) {
         <Button
           type="submit"
           disabled={pending}
-          className="rounded-lg " variant="primary" size="lg"
+          className="rounded-lg "
+          variant="primary"
+          size="lg"
         >
           {pending ? t('saving') : t('save')}
         </Button>

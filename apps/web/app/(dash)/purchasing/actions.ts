@@ -7,18 +7,23 @@ import {
   db,
   desc,
   eq,
+  goodsReceiptNotes,
+  grnLines,
   locations,
   partners,
   products,
   purchaseOrderLines,
   purchaseOrders,
-  goodsReceiptNotes,
-  grnLines,
+  sql,
   taxRates,
-  sql
 } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
-import { createPO, trackPurchaseOrderShipment, createGRN, confirmGRN } from '@erp/services/purchasing';
+import {
+  confirmGRN,
+  createGRN,
+  createPO,
+  trackPurchaseOrderShipment,
+} from '@erp/services/purchasing';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
 
@@ -384,8 +389,7 @@ export async function fetchShipmentDashboard(): Promise<{
   errored: number;
 }> {
   const ctx = await getSessionContext();
-  if (!ctx)
-    return { rows: [], total: 0, withShipping: 0, delivered: 0, inTransit: 0, errored: 0 };
+  if (!ctx) return { rows: [], total: 0, withShipping: 0, delivered: 0, inTransit: 0, errored: 0 };
 
   const rows = await db
     .select({
@@ -499,7 +503,10 @@ export async function fetchShipmentDetail(poId: string): Promise<ShipmentDetail 
   };
 }
 
-export async function receiveGoodsAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
+export async function receiveGoodsAction(
+  prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const ctx = await getSessionContext();
   if (!ctx) return { success: false, error: 'Sesi login tidak valid.' };
 
@@ -511,7 +518,7 @@ export async function receiveGoodsAction(prevState: ActionState, formData: FormD
   // Parse lines from formData
   const lines: any[] = [];
   const entries = Array.from(formData.entries());
-  
+
   // Format is usually lineId_XXX for qty, etc. or we can just pass a JSON string.
   // It's easier if the form submits a JSON string of lines or we parse them out.
   const linesJson = String(formData.get('linesData') ?? '[]');
@@ -550,7 +557,7 @@ export async function receiveGoodsAction(prevState: ActionState, formData: FormD
       tenantId: ctx.tenantId,
       userId: ctx.userId,
       locationId: ctx.locationId,
-    }
+    },
   );
 
   if (!grnResult.ok) {
@@ -565,7 +572,7 @@ export async function receiveGoodsAction(prevState: ActionState, formData: FormD
       tenantId: ctx.tenantId,
       userId: ctx.userId,
       locationId: ctx.locationId,
-    }
+    },
   );
 
   if (!confirmResult.ok) {
@@ -583,7 +590,7 @@ export async function fetchGRNReport(
   status = '',
   locationId = '',
   startDate = '',
-  endDate = ''
+  endDate = '',
 ) {
   const ctx = await getSessionContext();
   if (!ctx) return { data: [], total: 0, locations: [] };
@@ -610,7 +617,7 @@ export async function fetchGRNReport(
     db
       .select({ id: locations.id, name: locations.name })
       .from(locations)
-      .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.status, 'active')))
+      .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.status, 'active'))),
   ]);
 
   const total = countResult[0]?.count ?? 0;
@@ -642,6 +649,6 @@ export async function fetchGRNReport(
       locationName: localizedName(r.locationName),
     })),
     total,
-    locations: locationRows.map(l => ({ id: l.id, name: localizedName(l.name) }))
+    locations: locationRows.map((l) => ({ id: l.id, name: localizedName(l.name) })),
   };
 }

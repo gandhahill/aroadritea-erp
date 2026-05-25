@@ -127,9 +127,7 @@ export async function webSearchTool(
     // then to a truncated slice of `text`. Hard cap at 600 chars so a
     // single result doesn't blow up the model's context.
     const snippet =
-      r.summary?.trim() ||
-      r.highlights?.[0]?.trim() ||
-      (r.text ?? '').slice(0, 600).trim();
+      r.summary?.trim() || r.highlights?.[0]?.trim() || (r.text ?? '').slice(0, 600).trim();
     return {
       title: (r.title ?? '').trim(),
       url: (r.url ?? '').trim(),

@@ -11,9 +11,9 @@
 
 'use client';
 
+import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
-import { Input } from "@erp/ui";
 
 interface DemoShiftState {
   id: string;

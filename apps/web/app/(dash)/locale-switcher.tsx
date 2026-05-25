@@ -1,8 +1,8 @@
 'use client';
 
+import { Select } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { Select } from "@erp/ui";
 
 const OPTIONS = [
   { value: 'id', label: 'ID' },

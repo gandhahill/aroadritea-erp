@@ -196,7 +196,7 @@ export const twoFactor = pgTable(
     backupCodes: text('backup_codes').notNull(),
     userId: text('user_id').notNull(),
   },
-  (t) => [index('two_factor_user_idx').on(t.userId)]
+  (t) => [index('two_factor_user_idx').on(t.userId)],
 );
 
 // ================================================================

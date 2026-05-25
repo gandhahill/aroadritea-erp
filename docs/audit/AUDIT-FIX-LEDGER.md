@@ -17,8 +17,8 @@
 | `pnpm typecheck` | ✅ PASS | 10/10 workspace packages |
 | `pnpm test` (services) | ❌ FAIL (7 tests) → ✅ FIXED | Fixed sebelum mulai audit: tests not updated for idempotencyKey schema requirement + path rename `accounting/number-generator` → `shared/number-generator` + bcrypt cost-12 timeout di password-reset test |
 | `pnpm test` (shared) | ✅ PASS | 65/65 |
-| `pnpm lint` (Biome) | ❌ FAIL (baseline debt) | 332 errors / 488 warnings dokumentasikan sebagai REC-002 di T-0168 |
-| `pnpm build` | (belum dijalankan) | Akan dijalankan setelah edit besar |
+| `pnpm lint` (Biome) | ❌ FAIL → ✅ PASS | T-0186: Biome error-level blockers cleared; `pnpm -w lint` exit 0 with 884 warnings remaining as non-blocking hygiene debt |
+| `pnpm build` | ✅ PASS | T-0186: root `pnpm build` PASS after serial workspace build flow; site + web Next builds verified |
 
 ## Ledger Temuan & Perbaikan
 
@@ -67,17 +67,64 @@
 | AI-P3-ADMIN-LOG | ai / observability | 🟡 Med (Sec) | Tidak ada cara admin lihat aktivitas AI lintas user. | Page `/settings/ai-assistant/log` (server-rendered) gate `ai.assistant.admin` → filter entity (4 jenis) + filter user_id + pagination + summary cards (total sesi + draft per status). | ✅ | (manual smoke; typecheck PASS) |
 | AI-P3-SWEEPER | ai / hygiene | 🟢 Low (Ops) | Draft pending kedaluwarsa tidak otomatis ditandai expired. | Worker job `ai-action-drafts-sweeper` (cron 04:30 WIB harian) tandai semua row pending yang lewat `expires_at` jadi `expired` + audit row dengan reason `sweeper`. Scheduler map updated. | ✅ | (manual; sweeper logic lurus) |
 
+## T-0174 — F&B BI gaps (2026-05-25)
+
+| ID | Area | Severity | Temuan (path:line) | Perbaikan | Status | Test |
+|----|------|----------|--------------------|-----------|--------|------|
+| E13-BI-001 | reporting / aging | 🟡 Med (Feature gap) | Gap ERP F&B: AR/AP aging belum tersedia sebagai laporan manajemen. | Service aging buckets 0-30/31-60/61-90/>90 + UI `/reporting/aging-receivables` dan `/reporting/aging-payables`, permission-gated. | ✅ | `reporting-aging.test.ts` (4 tests) |
+| E13-BI-002 | reporting / cash-flow | 🟡 Med (Feature gap) | Cash flow belum punya surface operasional lengkap. | UI cash flow + server aggregation existing, i18n id/en/zh. | ✅ | `pnpm -w typecheck`, build web |
+| E13-BI-003 | reporting / cogs | 🟡 Med (Feature gap) | Recipe costing/COGS belum visible untuk kontrol margin. | Service COGS report berbasis BOM × cost + UI `/reporting/cogs`; margin negatif flagged. | ✅ | `pnpm -w test` |
+| E13-BI-004 | reporting / waste | 🟡 Med (Feature gap) | Waste/spoilage belum menjadi laporan eksplisit. | Service waste report dari stock_adjustments reason match waste/susut/spoil/basi/expired + UI `/reporting/waste`. | ✅ | `pnpm -w test` |
+
+## T-0175 — Shift notification (2026-05-25)
+
+| ID | Area | Severity | Temuan (path:line) | Perbaikan | Status | Test |
+|----|------|----------|--------------------|-----------|--------|------|
+| HR-NOTIF-001 | hr / schedule | 🟡 Med (UX/control) | Perubahan jadwal shift tidak memberi notifikasi in-app/email ke karyawan terkait. | Helper `notifyUser/notifyUserByEmail`, SMTP transport shared, schedule actions fan-out notification best-effort. | ✅ | `notify-user.test.ts` (5 tests) |
+
+## T-0176 — Auth hardening (2026-05-25)
+
+| ID | Area | Severity | Temuan (path:line) | Perbaikan | Status | Test |
+|----|------|----------|--------------------|-----------|--------|------|
+| B24-001 | auth / sessions | 🟠 High | User tidak punya manajemen sesi multi-device/revoke; password change belum invalidate sesi lain. | `/account` sessions section, revoke per-row, logout everywhere, password change invalidates other sessions. | ✅ | typecheck + test suite |
+| B2-LOG-001 | security / logging | 🟡 Med | Redaksi PII/log belum tersedia sebagai util shared yang reusable. | `@erp/shared/log-scrub` untuk email/phone/NIK/NPWP/secret JSON keys. | ✅ | `log-scrub.test.ts` (6 tests) |
+| B-EXT-001 | integration / hmac | 🟡 Med | Integrasi inbound butuh primitive HMAC timestamp/replay-safe. | `@erp/shared/hmac` dengan timing-safe compare dan replay window 300s. | ✅ | `hmac.test.ts` (5 tests) |
+
+## T-0177..T-0179 — AI web search and reporting exports (2026-05-25)
+
+| ID | Area | Severity | Temuan (path:line) | Perbaikan | Status | Test |
+|----|------|----------|--------------------|-----------|--------|------|
+| AI-WEB-001 | ai / web-search | 🟡 Med (Feature) | AI belum punya web-search opt-in; user kemudian minta Exa, bukan Brave. | Web search opt-in ditambahkan lalu diganti ke Exa Search API (`EXA_SEARCH_API_KEY`, POST `/search`, highlights/summary). | ✅ | `web-search.test.ts` (3 tests) |
+| E18-COMPARE-001 | reporting | 🟡 Med (Analytics) | BI/daily summary belum punya komparasi periode. | Helper `periodCompare` + previousPeriod UTC-stable; cards dapat delta badge. | ✅ | `period-compare.test.ts` (4 tests) |
+| E19-XLSX-001 | reporting / export | 🟡 Med (Export gap) | Aging/COGS/Waste masih CSV/kurang konsisten dengan workbook utility. | Upgrade export ke XLSX multi-sheet/numeric cells. | ✅ | typecheck + build |
+
+## T-0180..T-0185 — User-requested ERP additions (2026-05-25)
+
+| ID | Area | Severity | Temuan (path:line) | Perbaikan | Status | Test |
+|----|------|----------|--------------------|-----------|--------|------|
+| PUR-RET-001 | purchasing / return | 🟠 High (Business gap) | Modul retur pembelian belum ada. | Schema `purchase_returns` + `purchase_return_lines` (migrasi 0033), service create/submit/approve/post/cancel/list/get, JE balik DR GRNI / CR Inventory, stock movement, UI `/purchasing/returns`. | ✅ | `purchase-return-schemas.test.ts` (8 tests), full suite |
+| HR-ATT-001 | hr / attendance | 🟡 Med (Feature) | Karyawan belum punya halaman riwayat presensi self-service. | Service `listMyAttendance` + UI `/hr/my-attendance` dengan filter tanggal dan summary. | ✅ | typecheck + build |
+| HR-SHIFT-001 | hr / schedule | 🟡 Med (Feature/control) | Penyesuaian jadwal shift tanggal tertentu belum tercatat sebagai override. | Schema `schedule_overrides` (migrasi 0034), `swapShiftAssignmentAction`, audit + notification. | ✅ | typecheck + full suite |
+| CRM-MEMBER-001 | crm / member | 🟡 Med (Feature) | Manajemen belum punya halaman data member dan adjust poin. | Service `listMembers/getMemberDetail/adjustMemberPoints`, permissions `crm.member.*`, UI `/crm/members`. | ✅ | typecheck + full suite |
+| HELP-001 | helpdesk / ai | 🟠 High (Ops gap) | AI hanya menyarankan kontak admin saat user report error; tidak ada ticketing system. | Schema helpdesk (migrasi 0035), service ticket/reply/status/assign, notification in-app+email, AI tool `log_helpdesk_ticket_draft` via draft-confirm-commit, UI `/helpdesk`. | ✅ | full services tests 600/600 |
+| SHIP-001 | purchasing / shipment | 🟡 Med (Feature) | Tracking BinderByte hanya menempel di PO, belum ada surface terpusat untuk pengiriman non-penjualan. | UI `/purchasing/shipments` + detail timeline + inline sync; no external call during page load. | ✅ | typecheck + build |
+
+## T-0186 — Final DoD closure (2026-05-25)
+
+| ID | Area | Severity | Temuan (path:line) | Perbaikan | Status | Test |
+|----|------|----------|--------------------|-----------|--------|------|
+| D22-001 | ux / native dialogs | 🟡 Med (DoD violation) | `alert()`, `confirm()`, dan `window.prompt()` masih dipakai di beberapa UI produksi (export buttons, bank recon, bank accounts, purchase return, shift swap). | Replaced with `ConfirmDialog`, `InlineAlert`, and an in-app shift swap dialog. Final grep only finds comments in `apps/web/components/confirm-dialog.tsx`. | ✅ | `rg "\b(alert|confirm|prompt)\s*\(|window\.(alert|confirm|prompt)" apps packages` |
+| LINT-001 | quality / Biome | 🟡 Med (DoD blocker) | Baseline Biome mempunyai error-level diagnostics dan parser issue; `pnpm lint` tidak hijau. | Ran `biome check --write`, fixed remaining parser/security/a11y blockers, sanitized CMS lint path, semantic `<dialog>` overlays, optional chaining fixes. | ✅ | `pnpm -w lint` exit 0; 884 warnings remain |
+| BUILD-001 | production / VPS | 🟡 Med (DoD blocker) | Workspace recursive build dapat menumpuk Next build paralel dan berat untuk VPS 2 GB. | Verified root build with serial workspace flow; web build does explicit `pnpm typecheck` before `next build`. | ✅ | `pnpm build` PASS |
+| DOC-001 | audit docs | 🟢 Low | T-0170 report masih mencatat Phase 1 dan backlog yang sudah selesai. | Updated ledger/report/checkpoint to reflect T-0171..T-0186 final state. | ✅ | docs updated |
+
 ## Backlog (carry-over, updated 2026-05-25)
 
 | ID | Item | Severity | Catatan |
 |----|------|----------|---------|
-| BACKLOG-AI-WEBSEARCH | Web search opt-in via DeepSeek built-in tool flag (kolom `aiChatSessions.allowWebSearch` sudah ada, default off). | 🟢 Low | Tambah toggle UI di sidebar sesi. |
-| BACKLOG-T-0169 | Shift × Manual Sales integration (variance jurnal) | 🟡 Med | T-0169 belum selesai oleh owner sebelumnya; next step ada di checkpoint T-0169. |
-| BACKLOG-LINT | Lint cleanup branch (332 err / 488 warn) | 🟢 Low | Format/import/a11y mechanical debt. Pisah PR. |
+| BACKLOG-LINT-WARNINGS | Biome warning cleanup (884 warnings) | 🟢 Low | Exit code sudah hijau; sisa mostly `noExplicitAny`, label association, useless fragments, and test thenables. |
 | BACKLOG-CSP | CSP `unsafe-inline` di `script-src` (apps/web + apps/site) | 🟢 Low | Next.js memerlukan inline untuk hidrasi; ganti ke nonce-based bila waktu memungkinkan. |
-| BACKLOG-MCP-WRITE | MCP write tools (create_sale, create_product, cancel_po, dst) | 🟡 Med | Sesuai catatan T-0169 — menunggu keputusan pemilik untuk mengekspos write ke AI. |
-| BACKLOG-PII-LOGS | Sweep error logs & toast messages untuk PII leakage | 🟢 Low | Audit ringan; gunakan `pii.ts` redactor di logger umum. |
-| BACKLOG-A11Y | Aksesibilitas WCAG 2.1 AA pass formal (kontras, ARIA, kbd) | 🟢 Low | Phase D belum lengkap pada audit ini. |
+| BACKLOG-A11Y-MANUAL | Formal device/WCAG pass sebelum pilot toko | 🟢 Low | Blocking lint/a11y errors sudah ditutup; manual tablet/mobile keyboard pass tetap disarankan sebelum store pilot. |
 
 <!-- Tambah temuan baru di bawah ini. Format kolom: ID | Area | Severity | Temuan (path:line) | Perbaikan | Status | Test -->
 

@@ -4,12 +4,12 @@
  */
 'use client';
 
+import { PageHeader } from '@/components/page-header';
+import { Button, Input, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { createCmsPage, deleteCmsPage, publishCmsPage, updateCmsPage } from './actions';
-import { Input, Select, Button } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 interface Props {
   page?: Record<string, unknown> | null;
@@ -126,29 +126,33 @@ export function CmsPageForm({ page, isNew = false }: Props) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <PageHeader 
-            title={<>{isNew ? t('createNew') : t('editPage')}</>}
-            actions={<>
-          <div className="flex items-center gap-3">
-                    {!isNew && (
-                      <button
-                        onClick={handlePublish}
-                        disabled={isPending}
-                        className="inline-flex items-center gap-1.5 rounded-md bg-brand-jade px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90 disabled:opacity-50"
-                      >
-                        {status === 'published' ? t('unpublish') : t('publish')}
-                      </button>
-                    )}
-                    <Button
-                      onClick={() => handleSave(false)}
-                      disabled={isPending}
-                      className="inline-flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90 disabled:opacity-50" variant="primary" size="md"
-                    >
-                      {isPending ? tc('actions.saving') : tc('actions.save')}
-                    </Button>
-                  </div>
-            </>}
-          />
+      <PageHeader
+        title={<>{isNew ? t('createNew') : t('editPage')}</>}
+        actions={
+          <>
+            <div className="flex items-center gap-3">
+              {!isNew && (
+                <button
+                  onClick={handlePublish}
+                  disabled={isPending}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-brand-jade px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90 disabled:opacity-50"
+                >
+                  {status === 'published' ? t('unpublish') : t('publish')}
+                </button>
+              )}
+              <Button
+                onClick={() => handleSave(false)}
+                disabled={isPending}
+                className="inline-flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90 disabled:opacity-50"
+                variant="primary"
+                size="md"
+              >
+                {isPending ? tc('actions.saving') : tc('actions.save')}
+              </Button>
+            </div>
+          </>
+        }
+      />
 
       {error && (
         <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

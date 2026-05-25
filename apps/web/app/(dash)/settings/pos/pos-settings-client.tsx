@@ -1,5 +1,6 @@
 'use client';
 
+import { Button, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState, useTransition } from 'react';
 import {
@@ -8,7 +9,6 @@ import {
   type PosSettingItem,
   updatePosSetting,
 } from './actions';
-import { Button, Select } from "@erp/ui";
 
 interface Props {
   settings: PosSettingItem[];
@@ -217,7 +217,9 @@ export function PosSettingsClient({ settings, accountOptions }: Props) {
                 type="button"
                 onClick={() => save(setting.locationId)}
                 disabled={isPending}
-                className="rounded-md bg-brand-red px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50" variant="primary" size="sm"
+                className="rounded-md bg-brand-red px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
+                variant="primary"
+                size="sm"
               >
                 {isSaving ? t('saving') : t('save')}
               </Button>

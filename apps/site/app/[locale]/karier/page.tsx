@@ -28,12 +28,8 @@ export default async function CareersPage({ params }: Props) {
   return (
     <div className="px-4 py-14 sm:px-6">
       <article className="mx-auto max-w-4xl">
-        <h1 className="text-4xl font-black text-brand-ink md:text-5xl">
-          {t('title')}
-        </h1>
-        <p className="mt-4 max-w-2xl text-base text-brand-ink-2">
-          {t('subtitle')}
-        </p>
+        <h1 className="text-4xl font-black text-brand-ink md:text-5xl">{t('title')}</h1>
+        <p className="mt-4 max-w-2xl text-base text-brand-ink-2">{t('subtitle')}</p>
         <div className="mt-8">
           <CareersClient />
         </div>

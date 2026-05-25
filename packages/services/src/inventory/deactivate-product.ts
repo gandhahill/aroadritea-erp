@@ -12,8 +12,8 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
-import { auditRecord } from "../audit";
 
 async function toggleProductActive(
   productId: string,
@@ -61,14 +61,14 @@ async function toggleProductActive(
       }
 
       await auditRecord({
-            action: active ? 'reactivate' : 'deactivate',
-            entityType: 'product',
-            entityId: productId,
-            before: { isActive: !active },
-            after: { isActive: active },
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: active ? 'reactivate' : 'deactivate',
+        entityType: 'product',
+        entityId: productId,
+        before: { isActive: !active },
+        after: { isActive: active },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return { id: updated.id };
     },

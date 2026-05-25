@@ -42,7 +42,11 @@ function parseTimestamp(value: string): number | null {
   return Number.isFinite(isoMs) ? isoMs : null;
 }
 
-export function computeHmac(secret: string, rawBody: string, encoding: 'hex' | 'base64' = 'hex'): string {
+export function computeHmac(
+  secret: string,
+  rawBody: string,
+  encoding: 'hex' | 'base64' = 'hex',
+): string {
   return createHmac('sha256', secret).update(rawBody).digest(encoding);
 }
 

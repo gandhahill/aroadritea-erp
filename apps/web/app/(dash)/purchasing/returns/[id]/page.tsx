@@ -2,11 +2,11 @@
  * Purchase Return detail page — T-0180.
  */
 
-import { getSession } from '@/lib/auth';
 import { PageHeader } from '@/components/page-header';
+import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { redirect, notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { fetchPurchaseReturnAction } from '../actions';
 import { ReturnActions } from './return-actions-client';
 

@@ -66,7 +66,6 @@ export function assertUploadFile(file: File, imageOnly = false) {
   }
 }
 
-
 export async function storeUpload({
   file,
   area,

@@ -1,11 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useTranslations } from 'next-intl';
-import { syncPurchaseShipmentAction } from '../actions';
 import { FilterBar, FilterField } from '@/components/filter-bar';
 import { Input, Select, Table, TableBody, TableCell, TableHead, TableHeader } from '@erp/ui';
+import { useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
+import { syncPurchaseShipmentAction } from '../actions';
 import type { ShipmentSummaryRow } from '../actions';
 
 const COURIERS = [
@@ -137,14 +137,13 @@ export function ShipmentsTable({ rows }: { rows: ShipmentSummaryRow[] }) {
             ) : (
               filtered.map((r) => {
                 const klass = classifyStatus(r);
-                const statusLabel =
-                  r.trackingError
-                    ? t('badge.errored')
-                    : !r.awb && !r.trackingStatus
-                      ? t('badge.noShipping')
-                      : klass === 'delivered'
-                        ? t('badge.delivered')
-                        : r.trackingStatus ?? t('badge.inTransit');
+                const statusLabel = r.trackingError
+                  ? t('badge.errored')
+                  : !r.awb && !r.trackingStatus
+                    ? t('badge.noShipping')
+                    : klass === 'delivered'
+                      ? t('badge.delivered')
+                      : (r.trackingStatus ?? t('badge.inTransit'));
                 return (
                   <tr key={r.poId} className="align-top">
                     <TableCell className="px-4 py-3 font-mono text-xs font-semibold text-brand-red hover:underline">

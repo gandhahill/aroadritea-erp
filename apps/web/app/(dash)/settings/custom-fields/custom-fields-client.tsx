@@ -7,7 +7,9 @@
  * Uses optimistic updates for better UX.
  */
 
+import { PageHeader } from '@/components/page-header';
 import type { DataType } from '@erp/services/customfield';
+import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import type { CustomFieldItem } from './actions';
@@ -16,8 +18,6 @@ import {
   serverDeleteCustomField,
   serverUpdateCustomField,
 } from './actions';
-import { Button, Input, Select, TableCell, TableBody, TableHead, Table } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 const ENTITY_TYPE_KEYS = [
   'product',
@@ -210,27 +210,31 @@ export function CustomFieldsClient({ initialFields }: Props) {
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-            actions={<>
-          <Button
-                    onClick={openCreate}
-                    className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-red/90" variant="primary" size="md"
-                  >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    {t('createField')}
-                  </Button>
-            </>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={<>{t('subtitle')}</>}
+        actions={
+          <>
+            <Button
+              onClick={openCreate}
+              className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-red/90"
+              variant="primary"
+              size="md"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              {t('createField')}
+            </Button>
+          </>
+        }
+      />
 
       {/* Entity type tabs */}
       <div className="flex gap-1.5 overflow-x-auto border-b border-brand-cream-3 pb-px">
@@ -242,7 +246,9 @@ export function CustomFieldsClient({ initialFields }: Props) {
               selectedEntity === etKey
                 ? 'border-b-2 border-brand-red bg-brand-red/5 text-brand-red'
                 : 'text-brand-ink-2 hover:bg-brand-cream-2 hover:text-brand-ink'
-            }`} variant="primary" size="md"
+            }`}
+            variant="primary"
+            size="md"
           >
             {tET(etKey)}
           </Button>
@@ -435,9 +441,7 @@ export function CustomFieldsClient({ initialFields }: Props) {
                     required
                     className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                   />
-                  <p className="mt-1 text-xs text-brand-ink-3">
-                    {t('keyHint')}
-                  </p>
+                  <p className="mt-1 text-xs text-brand-ink-3">{t('keyHint')}</p>
                 </div>
               )}
 
@@ -456,7 +460,9 @@ export function CustomFieldsClient({ initialFields }: Props) {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-brand-ink">{t('nameEn')}</label>
+                  <label className="mb-1 block text-sm font-medium text-brand-ink">
+                    {t('nameEn')}
+                  </label>
                   <Input
                     type="text"
                     value={form.name_en}
@@ -465,7 +471,9 @@ export function CustomFieldsClient({ initialFields }: Props) {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-brand-ink">{t('nameZh')}</label>
+                  <label className="mb-1 block text-sm font-medium text-brand-ink">
+                    {t('nameZh')}
+                  </label>
                   <Input
                     type="text"
                     value={form.name_zh}
@@ -568,7 +576,9 @@ export function CustomFieldsClient({ initialFields }: Props) {
                 <Button
                   type="submit"
                   disabled={isPending}
-                  className="rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50" variant="primary" size="md"
+                  className="rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50"
+                  variant="primary"
+                  size="md"
                 >
                   {isPending ? tc('actions.saving') : tc('actions.save')}
                 </Button>

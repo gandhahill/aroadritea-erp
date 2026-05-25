@@ -6,10 +6,10 @@
  * Admins additionally see every session in their tenant.
  */
 
-import { getSession } from '@/lib/auth';
 import { PageHeader } from '@/components/page-header';
-import { can } from '@erp/services/iam';
+import { getSession } from '@/lib/auth';
 import { isAiAssistantEnabled } from '@erp/services/ai';
+import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchAllSessionsAdmin, fetchMySessions } from './actions';

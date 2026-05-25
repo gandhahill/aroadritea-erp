@@ -41,10 +41,7 @@ export async function generateJournalNumber(
  * Generate the next stock adjustment number.
  * Format: ADJ-YYYY-MM-NNNN
  */
-export async function generateAdjustmentNumber(
-  tenantId: string,
-  date: string,
-): Promise<string> {
+export async function generateAdjustmentNumber(tenantId: string, date: string): Promise<string> {
   const prefix = `ADJ-${date.substring(0, 7)}-`;
   const result = await db
     .select({ number: stockAdjustments.number })
@@ -65,10 +62,7 @@ export async function generateAdjustmentNumber(
  * Generate the next stock opname session number.
  * Format: SO-YYYY-MM-NNNN
  */
-export async function generateOpnameNumber(
-  tenantId: string,
-  sessionDate: string,
-): Promise<string> {
+export async function generateOpnameNumber(tenantId: string, sessionDate: string): Promise<string> {
   const prefix = `SO-${sessionDate.substring(0, 7)}-`;
   const result = await db
     .select({ number: stockOpnameSessions.number })
@@ -89,10 +83,7 @@ export async function generateOpnameNumber(
  * Generate the next stock transfer number.
  * Format: TRF-YYYY-MM-NNNN
  */
-export async function generateTransferNumber(
-  tenantId: string,
-  date: string,
-): Promise<string> {
+export async function generateTransferNumber(tenantId: string, date: string): Promise<string> {
   const prefix = `TRF-${date.substring(0, 7)}-`;
   const result = await db
     .select({ number: stockTransfers.number })
@@ -143,7 +134,7 @@ function calculateNextNumber(lastNumber: string | undefined, prefix: string): st
 
   if (lastNumber) {
     const seqStr = lastNumber.substring(prefix.length);
-    const parsed = parseInt(seqStr, 10);
+    const parsed = Number.parseInt(seqStr, 10);
     if (!Number.isNaN(parsed)) {
       nextSeqNum = parsed + 1;
     }

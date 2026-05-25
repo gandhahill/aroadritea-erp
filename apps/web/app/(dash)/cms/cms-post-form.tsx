@@ -26,9 +26,9 @@ const KIND_OPTIONS = [
   { value: 'event', label: 'Event' },
 ];
 
+import { PageHeader } from '@/components/page-header';
+import { Button, Input, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
-import { Input, Select, Button } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 export function CmsPostForm({ post, isNew = false }: Props) {
   const t = useTranslations('cms.posts');
@@ -135,29 +135,33 @@ export function CmsPostForm({ post, isNew = false }: Props) {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{isNew ? t('createNewPost') : t('editPost')}</>}
-            actions={<>
-          <div className="flex items-center gap-3">
-                    {!isNew && (
-                      <button
-                        onClick={handlePublish}
-                        disabled={isPending}
-                        className="inline-flex items-center gap-1.5 rounded-md bg-brand-jade px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90 disabled:opacity-50"
-                      >
-                        {status === 'published' ? tc('actions.unpublish') : tc('actions.publish')}
-                      </button>
-                    )}
-                    <Button
-                      onClick={() => handleSave(false)}
-                      disabled={isPending}
-                      className="inline-flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90 disabled:opacity-50" variant="primary" size="md"
-                    >
-                      {isPending ? tc('actions.saving') : tc('actions.save')}
-                    </Button>
-                  </div>
-            </>}
-          />
+      <PageHeader
+        title={<>{isNew ? t('createNewPost') : t('editPost')}</>}
+        actions={
+          <>
+            <div className="flex items-center gap-3">
+              {!isNew && (
+                <button
+                  onClick={handlePublish}
+                  disabled={isPending}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-brand-jade px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-jade/90 disabled:opacity-50"
+                >
+                  {status === 'published' ? tc('actions.unpublish') : tc('actions.publish')}
+                </button>
+              )}
+              <Button
+                onClick={() => handleSave(false)}
+                disabled={isPending}
+                className="inline-flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90 disabled:opacity-50"
+                variant="primary"
+                size="md"
+              >
+                {isPending ? tc('actions.saving') : tc('actions.save')}
+              </Button>
+            </div>
+          </>
+        }
+      />
 
       {error && (
         <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -168,7 +172,9 @@ export function CmsPostForm({ post, isNew = false }: Props) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
-            <label className="mb-1 block text-sm font-medium text-brand-ink">{tc('labels.title')}</label>
+            <label className="mb-1 block text-sm font-medium text-brand-ink">
+              {tc('labels.title')}
+            </label>
             <div className="flex gap-1 border-b border-brand-cream-3">
               {LOCALE_TABS.map((tab) => (
                 <button
@@ -194,7 +200,9 @@ export function CmsPostForm({ post, isNew = false }: Props) {
           </div>
 
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
-            <label className="mb-1 block text-sm font-medium text-brand-ink">{tc('labels.content')}</label>
+            <label className="mb-1 block text-sm font-medium text-brand-ink">
+              {tc('labels.content')}
+            </label>
             <div className="space-y-2">
               {LOCALE_TABS.map((tab) => (
                 <div key={tab.code}>
@@ -212,9 +220,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
           </div>
 
           <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
-            <label className="mb-1 block text-sm font-medium text-brand-ink">
-              {t('excerpt')}
-            </label>
+            <label className="mb-1 block text-sm font-medium text-brand-ink">{t('excerpt')}</label>
             <div className="space-y-2">
               {LOCALE_TABS.map((tab) => (
                 <div key={tab.code}>
@@ -237,7 +243,9 @@ export function CmsPostForm({ post, isNew = false }: Props) {
             <h3 className="mb-3 text-sm font-semibold text-brand-ink">{t('settings')}</h3>
             <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-brand-ink-3">{t('slug')}</label>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">
+                  {t('slug')}
+                </label>
                 <Input
                   type="text"
                   value={formData.slug}
@@ -250,7 +258,9 @@ export function CmsPostForm({ post, isNew = false }: Props) {
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-brand-ink-3">{t('category')}</label>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">
+                  {t('category')}
+                </label>
                 <Select
                   value={formData.kind}
                   onChange={(e) => setFormData((v) => ({ ...v, kind: e.target.value }))}

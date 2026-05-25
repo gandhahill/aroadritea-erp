@@ -11,8 +11,8 @@
  * itself (TODO) will deep-link here with `?grnId=...` in a follow-up.
  */
 
-import { getSession } from '@/lib/auth';
 import { PageHeader } from '@/components/page-header';
+import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';

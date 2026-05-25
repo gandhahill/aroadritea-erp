@@ -24,9 +24,7 @@ function nextSelectRows(): unknown[] {
 
 function tableName(table: unknown): string {
   return String(
-    (table as { _: { name?: string } })?._?.name ??
-      (table as { name?: string })?.name ??
-      'unknown',
+    (table as { _: { name?: string } })?._?.name ?? (table as { name?: string })?.name ?? 'unknown',
   );
 }
 
@@ -215,9 +213,7 @@ describe('commitDraft', () => {
 
     // Status update happens via db.update; audit row written too.
     expect(updates.length).toBeGreaterThan(0);
-    expect(
-      (updates[0]?.set as { status?: string }).status === 'committed',
-    ).toBe(true);
+    expect((updates[0]?.set as { status?: string }).status === 'committed').toBe(true);
     const auditRows = inserts.filter(
       (i) =>
         typeof i.values === 'object' &&

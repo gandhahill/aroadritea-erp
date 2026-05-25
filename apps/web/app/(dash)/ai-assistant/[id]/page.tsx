@@ -2,10 +2,10 @@
  * AI Assistant — individual chat session (User Req 1, ADR-0013).
  */
 
-import { getSession } from '@/lib/auth';
 import { PageHeader } from '@/components/page-header';
-import { can } from '@erp/services/iam';
+import { getSession } from '@/lib/auth';
 import { isAiAssistantEnabled } from '@erp/services/ai';
+import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { fetchSession } from '../actions';

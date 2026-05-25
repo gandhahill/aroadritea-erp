@@ -3,16 +3,16 @@
  * minggu, menggantikan pengumuman WhatsApp manual.
  */
 
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
-import { can } from '@erp/services/iam';
-import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
-import { fetchRoster } from './actions';
-import { ScheduleGrid } from './schedule-grid';
-import { PageHeader } from "@/components/page-header";
 import { db, eq } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
+import { can } from '@erp/services/iam';
+import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
+import { fetchRoster } from './actions';
+import { ScheduleGrid } from './schedule-grid';
 
 export const metadata: Metadata = { title: 'Jadwal Shift' };
 
@@ -48,7 +48,7 @@ export default async function SchedulePage({
     .where(eq(locations.tenantId, tenantId))
     .orderBy(locations.name);
 
-  const parsedLocations = locationRows.map(row => {
+  const parsedLocations = locationRows.map((row) => {
     const n = row.name as Record<string, string>;
     return { id: row.id, name: n['id'] || n['en'] || '' };
   });
@@ -60,10 +60,7 @@ export default async function SchedulePage({
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
 
       <ScheduleGrid
         weekStart={weekStart}

@@ -55,9 +55,7 @@ function absolutizeAttachmentUrl(url: string): string {
   if (url.startsWith('data:')) return url;
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   const base =
-    process.env.NEXT_PUBLIC_WEB_URL ??
-    process.env.BETTER_AUTH_URL ??
-    'http://localhost:3000';
+    process.env.NEXT_PUBLIC_WEB_URL ?? process.env.BETTER_AUTH_URL ?? 'http://localhost:3000';
   return `${base.replace(/\/$/, '')}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 

@@ -1,8 +1,8 @@
 'use client';
 
 import { formatRupiah } from '@erp/shared/money';
+import { TableBody, TableCell, TableHead } from '@erp/ui';
 import Link from 'next/link';
-import { TableCell, TableBody, TableHead } from "@erp/ui";
 
 interface Statement {
   id: string;

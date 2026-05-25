@@ -1,7 +1,7 @@
-import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
-import { auditCols, pk, tenantCol, versionCol } from './common';
 import { relations } from 'drizzle-orm';
+import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { users } from './auth';
+import { auditCols, pk, tenantCol, versionCol } from './common';
 
 /**
  * Whistleblower Reports schema

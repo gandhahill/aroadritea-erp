@@ -9,7 +9,10 @@
  * Export Excel button.
  */
 
+import { FilterBar, FilterField } from '@/components/filter-bar';
+import { PageHeader } from '@/components/page-header';
 import type { OmzetHarianResult } from '@erp/services/reporting';
+import { Button, Input, Select, TableBody, TableCell, TableHead } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import { ExportXlsxButton } from '../export-button';
@@ -18,9 +21,6 @@ import {
   serverGetOmzetHarian,
   serverSaveOmzetAdjustment,
 } from './actions';
-import { Button, Input, TableCell, TableBody, TableHead, Select } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
-import { FilterBar, FilterField } from "@/components/filter-bar";
 
 interface Props {
   initialData: OmzetHarianResult | null;
@@ -175,10 +175,7 @@ export function OmzetHarianClient({
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
 
       {/* Info banner */}
       <div className="rounded-lg border border-brand-gold/20 bg-brand-gold/5 px-4 py-3">
@@ -390,7 +387,9 @@ export function OmzetHarianClient({
               <Button
                 onClick={handleSave}
                 disabled={isPending || !isDirty}
-                className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2 disabled:cursor-not-allowed disabled:opacity-50" variant="secondary" size="md"
+                className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2 disabled:cursor-not-allowed disabled:opacity-50"
+                variant="secondary"
+                size="md"
               >
                 {isPending && isDirty ? 'Menyimpan...' : t('saveAdjustment')}
               </Button>

@@ -1,13 +1,13 @@
+import { FilterBar, FilterField } from '@/components/filter-bar';
+import { PageHeader } from '@/components/page-header';
 import { displayAssetUrl } from '@/lib/display-asset-url';
+import { Button, Table, TableBody, TableCell, TableHead, TableHeader } from '@erp/ui';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { fetchProductMasterData } from './actions';
 import { CategoryForm } from './category-form';
 import { ProductRowActions } from './row-actions';
-import { TableCell, TableBody, TableHead, TableHeader, Table, Button } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
-import { FilterBar, FilterField } from "@/components/filter-bar";
 
 export const metadata: Metadata = {
   title: 'Produk & Menu - Aroadri ERP',
@@ -57,24 +57,32 @@ export default async function ProductsPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('sellableDescriptionPrefix')}<Link
-                        href="/inventory/supplies"
-                        className="ml-1 font-medium text-brand-ember-5 hover:text-brand-ember-6"
-                      >
-                        {t('suppliesLink')}
-                      </Link>{' '}{t('sellableDescriptionSuffix')}</>}
-            eyebrow={<>{t('eyebrow')}</>}
-            actions={<>
-          <Link
-                    href="/inventory/products/new"
-                    className="inline-flex items-center justify-center rounded-lg "
-                  >
-                    {t('add')}
-                  </Link>
-            </>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={
+          <>
+            {t('sellableDescriptionPrefix')}
+            <Link
+              href="/inventory/supplies"
+              className="ml-1 font-medium text-brand-ember-5 hover:text-brand-ember-6"
+            >
+              {t('suppliesLink')}
+            </Link>{' '}
+            {t('sellableDescriptionSuffix')}
+          </>
+        }
+        eyebrow={<>{t('eyebrow')}</>}
+        actions={
+          <>
+            <Link
+              href="/inventory/products/new"
+              className="inline-flex items-center justify-center rounded-lg "
+            >
+              {t('add')}
+            </Link>
+          </>
+        }
+      />
 
       <CategoryForm />
 
@@ -113,10 +121,7 @@ export default async function ProductsPage({ searchParams }: Props) {
               placeholder={t('searchInputPlaceholder')}
               className="min-w-0 flex-1 rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
             />
-            <Button
-              type="submit"
-              className="rounded-lg " variant="secondary" size="md"
-            >
+            <Button type="submit" className="rounded-lg " variant="secondary" size="md">
               {t('searchBtn')}
             </Button>
           </div>
@@ -160,7 +165,9 @@ export default async function ProductsPage({ searchParams }: Props) {
               ) : (
                 data.products.map((product) => (
                   <tr key={product.id} className="hover:bg-brand-cream-1/60">
-                    <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink">{product.sku}</TableCell>
+                    <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink">
+                      {product.sku}
+                    </TableCell>
                     <TableCell className="px-4 py-3">
                       {product.imageUrl ? (
                         <img

@@ -13,11 +13,11 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { hashPassword } from '../auth/password';
 import { requirePermission } from '../iam';
 import { encryptPii, encryptPiiForLookup } from '../security/pii';
 import { type CreateEmployeeInput, CreateEmployeeInputSchema } from './schemas';
-import { auditRecord } from "../audit";
 
 export async function createEmployee(
   input: CreateEmployeeInput,
@@ -139,23 +139,23 @@ export async function createEmployee(
       // encrypted values stored in the row. We only persist a short
       // summary that's safe to display in the audit-trail UI.
       await auditRecord({
-            action: 'create',
-            entityType: 'employee',
-            entityId: emp.id,
-            before: null,
-            after: {
-                    name: data.name,
-                    email: data.email,
-                    position: data.position,
-                    department: data.department ?? null,
-                    contractType: data.contractType,
-                    hireDate: data.hireDate,
-                    locationId: targetLocationId,
-                    loginScope: data.password && data.roleCode ? data.loginScope : null,
-                  },
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: 'create',
+        entityType: 'employee',
+        entityId: emp.id,
+        before: null,
+        after: {
+          name: data.name,
+          email: data.email,
+          position: data.position,
+          department: data.department ?? null,
+          contractType: data.contractType,
+          hireDate: data.hireDate,
+          locationId: targetLocationId,
+          loginScope: data.password && data.roleCode ? data.loginScope : null,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return { id: emp.id };
     },

@@ -12,9 +12,9 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { type CreateJournalAttachmentInput, CreateJournalAttachmentSchema } from './schemas';
-import { auditRecord } from "../audit";
 
 // --- Return types ---
 
@@ -120,20 +120,20 @@ export async function createJournalAttachment(
         .returning();
 
       await auditRecord({
-            action: 'create',
-            entityType: 'journal_attachment',
-            entityId: id,
-            before: null,
-            after: {
-                    id,
-                    journalEntryId: data.journalEntryId,
-                    fileName: data.fileName,
-                    fileSize: data.fileSize,
-                    mimeType: data.mimeType,
-                  },
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: 'create',
+        entityType: 'journal_attachment',
+        entityId: id,
+        before: null,
+        after: {
+          id,
+          journalEntryId: data.journalEntryId,
+          fileName: data.fileName,
+          fileSize: data.fileSize,
+          mimeType: data.mimeType,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return toAttachmentResult(rows[0]!);
     },
@@ -207,18 +207,18 @@ export async function deleteJournalAttachment(
       await db.delete(journalAttachments).where(eq(journalAttachments.id, attachmentId));
 
       await auditRecord({
-            action: 'delete',
-            entityType: 'journal_attachment',
-            entityId: attachmentId,
-            before: {
-                    fileName: attachment.fileName,
-                    fileKey: attachment.fileKey,
-                    journalEntryId: attachment.journalEntryId,
-                  },
-            after: null,
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: 'delete',
+        entityType: 'journal_attachment',
+        entityId: attachmentId,
+        before: {
+          fileName: attachment.fileName,
+          fileKey: attachment.fileKey,
+          journalEntryId: attachment.journalEntryId,
+        },
+        after: null,
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return undefined;
     },

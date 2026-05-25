@@ -17,8 +17,8 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
-import { getTranslations, getLocale } from 'next-intl/server';
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from '@/components/page-header';
+import { getLocale, getTranslations } from 'next-intl/server';
 
 export default async function ProductDetailPage({ params }: Props) {
   const { id } = await params;
@@ -56,10 +56,16 @@ export default async function ProductDetailPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader 
-            title={<>{product ? ((product.name as Record<string, string>)[locale] ?? product.name.id) : t('loadFailed')}</>}
-            description={<>{t('editProductDesc')}</>}
-          />
+      <PageHeader
+        title={
+          <>
+            {product
+              ? ((product.name as Record<string, string>)[locale] ?? product.name.id)
+              : t('loadFailed')}
+          </>
+        }
+        description={<>{t('editProductDesc')}</>}
+      />
 
       {data.error ? (
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">

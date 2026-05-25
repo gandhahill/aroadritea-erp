@@ -2,6 +2,7 @@
  * Kebijakan Presensi — admins tune late/absent penalties without redeploying.
  */
 
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
@@ -9,7 +10,6 @@ import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchAttendancePolicy } from './actions';
 import { AttendancePolicyForm } from './attendance-policy-form';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Kebijakan Presensi',
@@ -34,10 +34,7 @@ export default async function AttendancePolicyPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
       <AttendancePolicyForm initial={policy} />
     </div>
   );

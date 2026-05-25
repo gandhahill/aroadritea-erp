@@ -5,8 +5,8 @@
  * more via the regular /hr/payroll page.
  */
 
-import { getSession } from '@/lib/auth';
 import { PageHeader } from '@/components/page-header';
+import { getSession } from '@/lib/auth';
 import { listMyPayslips } from '@erp/services/payroll';
 import type { AuditContext } from '@erp/shared/types';
 import type { Metadata } from 'next';
@@ -58,7 +58,10 @@ export default async function MyPayslipsPage() {
             </thead>
             <tbody>
               {items.map((row) => (
-                <tr key={`${row.payrollId}-${row.employeeId}`} className="border-t border-brand-cream-3">
+                <tr
+                  key={`${row.payrollId}-${row.employeeId}`}
+                  className="border-t border-brand-cream-3"
+                >
                   <td className="px-4 py-3 font-medium text-brand-ink">{row.periodCode}</td>
                   <td className="px-4 py-3 text-brand-ink-2">{row.locationCode}</td>
                   <td className="px-4 py-3 text-brand-ink-2">{row.status}</td>

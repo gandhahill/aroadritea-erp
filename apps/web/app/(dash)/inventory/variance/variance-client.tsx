@@ -7,16 +7,16 @@
 
 'use client';
 
+import { FilterBar, FilterField } from '@/components/filter-bar';
+import { PageHeader } from '@/components/page-header';
 import { exportWorkbook } from '@/lib/export-workbook';
 import type { VarianceReportResult } from '@erp/services/inventory';
+import { Select, TableCell, TableHead } from '@erp/ui';
+import { Button } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { ExportXlsxButton } from '../../reporting/export-button';
 import { fetchVarianceReport } from './actions';
-import { TableCell, TableHead, Select } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
-import { FilterBar, FilterField } from "@/components/filter-bar";
-import { Button } from "@erp/ui";
 
 // ─── Formatters ────────────────────────────────────────────────────────────────
 
@@ -274,13 +274,11 @@ export function VarianceClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-            actions={<>
-          {report && <ExportXlsxButton onExport={() => exportXLSX(report, t)} />}
-            </>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={<>{t('subtitle')}</>}
+        actions={<>{report && <ExportXlsxButton onExport={() => exportXLSX(report, t)} />}</>}
+      />
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4 shadow-sm">
@@ -529,9 +527,15 @@ export function VarianceClient({
                           <TableCell className="px-4 py-3 text-brand-ink-2">
                             {formatDate(s.sessionDate)}
                           </TableCell>
-                          <TableCell className="px-4 py-3 text-brand-ink-2">{s.periodCode}</TableCell>
-                          <TableCell className="px-4 py-3 text-brand-ink-2">{s.locationName}</TableCell>
-                          <TableCell className="px-4 py-3 text-center text-brand-ink">{s.totalLines}</TableCell>
+                          <TableCell className="px-4 py-3 text-brand-ink-2">
+                            {s.periodCode}
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-brand-ink-2">
+                            {s.locationName}
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-center text-brand-ink">
+                            {s.totalLines}
+                          </TableCell>
                           <TableCell className="px-4 py-3 text-center">
                             <span
                               className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -619,7 +623,9 @@ export function VarianceClient({
                               </span>
                             )}
                           </TableCell>
-                          <TableCell className="px-4 py-3 text-center text-brand-ink">{p.sessions}</TableCell>
+                          <TableCell className="px-4 py-3 text-center text-brand-ink">
+                            {p.sessions}
+                          </TableCell>
                           <TableCell className="px-4 py-3 text-right text-brand-ink">
                             {formatQty(p.totalSystemQty)}
                           </TableCell>

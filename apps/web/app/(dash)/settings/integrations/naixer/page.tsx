@@ -21,8 +21,8 @@ export const metadata: Metadata = {
   title: 'Naixer KDS — Integrations — Settings',
 };
 
+import { PageHeader } from '@/components/page-header';
 import { getTranslations } from 'next-intl/server';
-import { PageHeader } from "@/components/page-header";
 
 export default async function NaixerKdsPage() {
   const session = await getSession();
@@ -43,20 +43,22 @@ export default async function NaixerKdsPage() {
   return (
     <div className="space-y-8">
       {/* Page header */}
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-            actions={<>
-          <div className="flex items-center gap-3">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
-                      {productCodes.filter((p) => p.isActive).length} {t('products')}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-cream-2 px-3 py-1 text-xs font-medium text-brand-ink-3">
-                      {modifierCodes.filter((m) => m.isActive).length} {t('modifiers')}
-                    </span>
-                  </div>
-            </>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={<>{t('subtitle')}</>}
+        actions={
+          <>
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
+                {productCodes.filter((p) => p.isActive).length} {t('products')}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-cream-2 px-3 py-1 text-xs font-medium text-brand-ink-3">
+                {modifierCodes.filter((m) => m.isActive).length} {t('modifiers')}
+              </span>
+            </div>
+          </>
+        }
+      />
 
       {/* Info banner */}
       <div className="rounded-lg border border-brand-gold/20 bg-brand-gold/5 px-4 py-3">

@@ -1,10 +1,10 @@
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { fetchStatementDetails } from '../actions';
 import { DetailClient } from './detail-client';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Bank Reconciliation Detail - Settings',
@@ -22,12 +22,21 @@ export default async function BankReconDetailPage({ params }: { params: Promise<
 
   return (
     <div className="space-y-6 max-w-7xl">
-      <PageHeader 
-            title={<>{data.statement.bankName}- {data.statement.accountNumber}({data.statement.date})</>}
-            description={<>Status:{' '}{t(
-                      `status.${data.statement.status === 'in_progress' ? 'inProgress' : data.statement.status}` as any,
-                    )}</>}
-          />
+      <PageHeader
+        title={
+          <>
+            {data.statement.bankName}- {data.statement.accountNumber}({data.statement.date})
+          </>
+        }
+        description={
+          <>
+            Status:{' '}
+            {t(
+              `status.${data.statement.status === 'in_progress' ? 'inProgress' : data.statement.status}` as any,
+            )}
+          </>
+        }
+      />
 
       <DetailClient
         statement={{

@@ -45,9 +45,7 @@ function nextSelectRows(): unknown[] {
 
 function tableName(table: unknown): string {
   return String(
-    (table as { _: { name?: string } })?._?.name ??
-      (table as { name?: string })?.name ??
-      'unknown',
+    (table as { _: { name?: string } })?._?.name ?? (table as { name?: string })?.name ?? 'unknown',
   );
 }
 
@@ -163,49 +161,37 @@ describe('search_codebase tool', () => {
     process.env.AROADRI_SEARCH_BUDGET_MS = '15000';
   });
 
-  it(
-    'finds a known string under packages/',
-    async () => {
-      const { searchCodebaseTool } = await import('../src/ai/tools/search-codebase');
-      const out = await searchCodebaseTool({ query: 'sopDocuments', max_results: 5 }, ctx);
-      expect(out.matches.length).toBeGreaterThan(0);
-      expect(
-        out.matches.every(
-          (m) =>
-            m.file.startsWith('packages/') ||
-            m.file.startsWith('docs/') ||
-            m.file.startsWith('apps/') ||
-            m.file.startsWith('scripts/'),
-        ),
-      ).toBe(true);
-    },
-    15_000,
-  );
+  it('finds a known string under packages/', async () => {
+    const { searchCodebaseTool } = await import('../src/ai/tools/search-codebase');
+    const out = await searchCodebaseTool({ query: 'sopDocuments', max_results: 5 }, ctx);
+    expect(out.matches.length).toBeGreaterThan(0);
+    expect(
+      out.matches.every(
+        (m) =>
+          m.file.startsWith('packages/') ||
+          m.file.startsWith('docs/') ||
+          m.file.startsWith('apps/') ||
+          m.file.startsWith('scripts/'),
+      ),
+    ).toBe(true);
+  }, 15_000);
 
-  it(
-    'caps results at max_results',
-    async () => {
-      const { searchCodebaseTool } = await import('../src/ai/tools/search-codebase');
-      const out = await searchCodebaseTool({ query: 'export', max_results: 3 }, ctx);
-      expect(out.matches.length).toBeLessThanOrEqual(3);
-    },
-    15_000,
-  );
+  it('caps results at max_results', async () => {
+    const { searchCodebaseTool } = await import('../src/ai/tools/search-codebase');
+    const out = await searchCodebaseTool({ query: 'export', max_results: 3 }, ctx);
+    expect(out.matches.length).toBeLessThanOrEqual(3);
+  }, 15_000);
 
-  it(
-    'never returns paths outside the allow-list',
-    async () => {
-      const { searchCodebaseTool } = await import('../src/ai/tools/search-codebase');
-      const out = await searchCodebaseTool({ query: 'TODO', max_results: 5 }, ctx);
-      for (const m of out.matches) {
-        expect(m.file.startsWith('node_modules')).toBe(false);
-        expect(m.file.startsWith('.git')).toBe(false);
-        expect(m.file.startsWith('storage')).toBe(false);
-        expect(m.file).not.toMatch(/^\.env/);
-      }
-    },
-    15_000,
-  );
+  it('never returns paths outside the allow-list', async () => {
+    const { searchCodebaseTool } = await import('../src/ai/tools/search-codebase');
+    const out = await searchCodebaseTool({ query: 'TODO', max_results: 5 }, ctx);
+    for (const m of out.matches) {
+      expect(m.file.startsWith('node_modules')).toBe(false);
+      expect(m.file.startsWith('.git')).toBe(false);
+      expect(m.file.startsWith('storage')).toBe(false);
+      expect(m.file).not.toMatch(/^\.env/);
+    }
+  }, 15_000);
 });
 
 // ───────────────────────────────────────────────────────────────────────
@@ -213,77 +199,63 @@ describe('search_codebase tool', () => {
 // ───────────────────────────────────────────────────────────────────────
 
 describe('executeTool', () => {
-  it(
-    'refuses when caller lacks the required permission',
-    async () => {
-      canMock.mockResolvedValueOnce(false);
-      const { executeTool } = await import('../src/ai/tools/registry');
-      const result = await executeTool(
-        ctx,
-        'request_admin_help',
-        JSON.stringify({ error_summary: 'POS macet saat close shift' }),
-      );
-      expect(result.ok).toBe(false);
-      // Audit row must still be written so the refusal stays attributable.
-      const auditRows = inserts.filter(
-        (i) =>
-          typeof i.values === 'object' &&
-          i.values !== null &&
-          (i.values as { entityType?: string }).entityType === 'ai_tool_call',
-      );
-      expect(auditRows.length).toBe(1);
-      expect((auditRows[0]?.values as { after: { outcome: string } }).after.outcome).toBe(
-        'forbidden',
-      );
-    },
-    15_000,
-  );
+  it('refuses when caller lacks the required permission', async () => {
+    canMock.mockResolvedValueOnce(false);
+    const { executeTool } = await import('../src/ai/tools/registry');
+    const result = await executeTool(
+      ctx,
+      'request_admin_help',
+      JSON.stringify({ error_summary: 'POS macet saat close shift' }),
+    );
+    expect(result.ok).toBe(false);
+    // Audit row must still be written so the refusal stays attributable.
+    const auditRows = inserts.filter(
+      (i) =>
+        typeof i.values === 'object' &&
+        i.values !== null &&
+        (i.values as { entityType?: string }).entityType === 'ai_tool_call',
+    );
+    expect(auditRows.length).toBe(1);
+    expect((auditRows[0]?.values as { after: { outcome: string } }).after.outcome).toBe(
+      'forbidden',
+    );
+  }, 15_000);
 
-  it(
-    'rejects malformed arguments before calling the executor',
-    async () => {
-      const { executeTool } = await import('../src/ai/tools/registry');
-      // request_admin_help requires error_summary; we omit it.
-      const result = await executeTool(ctx, 'request_admin_help', JSON.stringify({}));
-      expect(result.ok).toBe(false);
-      const auditRows = inserts.filter(
-        (i) =>
-          typeof i.values === 'object' &&
-          i.values !== null &&
-          (i.values as { entityType?: string }).entityType === 'ai_tool_call',
-      );
-      expect(auditRows.length).toBe(1);
-      expect((auditRows[0]?.values as { after: { outcome: string } }).after.outcome).toBe(
-        'invalid',
-      );
-    },
-    15_000,
-  );
+  it('rejects malformed arguments before calling the executor', async () => {
+    const { executeTool } = await import('../src/ai/tools/registry');
+    // request_admin_help requires error_summary; we omit it.
+    const result = await executeTool(ctx, 'request_admin_help', JSON.stringify({}));
+    expect(result.ok).toBe(false);
+    const auditRows = inserts.filter(
+      (i) =>
+        typeof i.values === 'object' &&
+        i.values !== null &&
+        (i.values as { entityType?: string }).entityType === 'ai_tool_call',
+    );
+    expect(auditRows.length).toBe(1);
+    expect((auditRows[0]?.values as { after: { outcome: string } }).after.outcome).toBe('invalid');
+  }, 15_000);
 
-  it(
-    'returns ok and writes an audit row for a successful run',
-    async () => {
-      const { executeTool } = await import('../src/ai/tools/registry');
-      const result = await executeTool(
-        ctx,
-        'request_admin_help',
-        JSON.stringify({ error_summary: 'POS hang saat close shift' }),
-      );
-      expect(result.ok).toBe(true);
-      if (result.ok) {
-        expect((result.value.output as { template: string }).template).toContain('POS hang');
-      }
-      const auditRows = inserts.filter(
-        (i) =>
-          typeof i.values === 'object' &&
-          i.values !== null &&
-          (i.values as { entityType?: string }).entityType === 'ai_tool_call',
-      );
-      expect(auditRows.length).toBe(1);
-      expect((auditRows[0]?.values as { after: { outcome: string } }).after.outcome).toBe('ok');
-    },
-    15_000,
-  );
+  it('returns ok and writes an audit row for a successful run', async () => {
+    const { executeTool } = await import('../src/ai/tools/registry');
+    const result = await executeTool(
+      ctx,
+      'request_admin_help',
+      JSON.stringify({ error_summary: 'POS hang saat close shift' }),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect((result.value.output as { template: string }).template).toContain('POS hang');
+    }
+    const auditRows = inserts.filter(
+      (i) =>
+        typeof i.values === 'object' &&
+        i.values !== null &&
+        (i.values as { entityType?: string }).entityType === 'ai_tool_call',
+    );
+    expect(auditRows.length).toBe(1);
+    expect((auditRows[0]?.values as { after: { outcome: string } }).after.outcome).toBe('ok');
+  }, 15_000);
 
   it('returns NOT_FOUND for an unknown tool', async () => {
     const { executeTool } = await import('../src/ai/tools/registry');
@@ -424,9 +396,11 @@ describe('sendChatMessage tool-call loop', () => {
 
     // Provider must have received reasoning_content on the assistant
     // tool-call turn in the second request (otherwise DeepSeek 400s).
-    const secondCallMessages = (aiCompleteMock.mock.calls[1]?.[0] as {
-      messages: Array<Record<string, unknown>>;
-    }).messages;
+    const secondCallMessages = (
+      aiCompleteMock.mock.calls[1]?.[0] as {
+        messages: Array<Record<string, unknown>>;
+      }
+    ).messages;
     const assistantToolCallTurn = secondCallMessages.find(
       (m) => m.role === 'assistant' && Array.isArray((m as { tool_calls?: unknown[] }).tool_calls),
     );

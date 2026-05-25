@@ -95,9 +95,7 @@ export async function getEmployeePayslip(
   const [employee] = await db
     .select()
     .from(employees)
-    .where(
-      and(eq(employees.tenantId, ctx.tenantId), eq(employees.id, input.employeeId)),
-    )
+    .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.id, input.employeeId)))
     .limit(1);
 
   if (!employee) {
@@ -113,7 +111,9 @@ export async function getEmployeePayslip(
     .limit(1);
 
   const isOwnPayslip =
-    !!requester?.email && employee.email && requester.email.toLowerCase() === employee.email.toLowerCase();
+    !!requester?.email &&
+    employee.email &&
+    requester.email.toLowerCase() === employee.email.toLowerCase();
 
   let allowed = isOwnPayslip;
   if (!allowed) {
@@ -149,10 +149,11 @@ export async function getEmployeePayslip(
   let totalDeductions = 0n;
 
   for (const row of lines) {
-    const componentName = (row.component?.name as { id?: string; en?: string })?.id
-      ?? (row.component?.name as { id?: string; en?: string })?.en
-      ?? row.component?.code
-      ?? row.line.salaryComponentId;
+    const componentName =
+      (row.component?.name as { id?: string; en?: string })?.id ??
+      (row.component?.name as { id?: string; en?: string })?.en ??
+      row.component?.code ??
+      row.line.salaryComponentId;
     const entry: PayslipLine = {
       componentCode: row.component?.code ?? row.line.salaryComponentId,
       componentName: String(componentName),
@@ -194,10 +195,10 @@ export async function getEmployeePayslip(
     employer: {
       legalName: 'PT Gandha Hill Catering Management Indonesia',
       locationName:
-        (payroll.location?.name as { id?: string; en?: string })?.id
-        ?? (payroll.location?.name as { id?: string; en?: string })?.en
-        ?? payroll.location?.code
-        ?? payroll.payroll.locationId,
+        (payroll.location?.name as { id?: string; en?: string })?.id ??
+        (payroll.location?.name as { id?: string; en?: string })?.en ??
+        payroll.location?.code ??
+        payroll.payroll.locationId,
       locationCode: payroll.location?.code ?? payroll.payroll.locationId,
       address: payroll.location?.address ?? null,
     },
@@ -225,17 +226,19 @@ export async function getEmployeePayslip(
  * own; when they have `hr.payroll.approve` they see everything in
  * payroll runs from their outlet.
  */
-export async function listMyPayslips(
-  ctx: AuditContext,
-): Promise<Result<Array<{
-  payrollId: string;
-  periodCode: string;
-  status: string;
-  approvedAt: Date | null;
-  locationCode: string;
-  employeeId: string;
-  net: string;
-}>>> {
+export async function listMyPayslips(ctx: AuditContext): Promise<
+  Result<
+    Array<{
+      payrollId: string;
+      periodCode: string;
+      status: string;
+      approvedAt: Date | null;
+      locationCode: string;
+      employeeId: string;
+      net: string;
+    }>
+  >
+> {
   const [requester] = await db
     .select({ email: users.email })
     .from(users)
@@ -258,7 +261,8 @@ export async function listMyPayslips(
   const encryptedRequester = encryptPiiForLookup(requester.email.toLowerCase(), 'employees.email');
   const empRows = matchingEmployees.filter(
     (e) =>
-      e.email && (e.email === encryptedRequester || e.email.toLowerCase() === requester.email.toLowerCase()),
+      e.email &&
+      (e.email === encryptedRequester || e.email.toLowerCase() === requester.email.toLowerCase()),
   );
 
   if (empRows.length === 0) return ok([]);
@@ -272,12 +276,7 @@ export async function listMyPayslips(
       componentKind: payrollLines.componentKind,
     })
     .from(payrollLines)
-    .where(
-      and(
-        eq(payrollLines.tenantId, ctx.tenantId),
-        inArray(payrollLines.employeeId, empIds),
-      ),
-    );
+    .where(and(eq(payrollLines.tenantId, ctx.tenantId), inArray(payrollLines.employeeId, empIds)));
   if (lines.length === 0) return ok([]);
 
   const payrollIds = Array.from(new Set(lines.map((l) => l.payrollId)));

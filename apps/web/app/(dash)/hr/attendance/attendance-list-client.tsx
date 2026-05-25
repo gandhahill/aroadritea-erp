@@ -4,13 +4,13 @@
 
 'use client';
 
+import { FilterBar, FilterField } from '@/components/filter-bar';
+import { Button, Input, Select, TableCell, TableHead } from '@erp/ui';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { forgiveLateAction } from './actions';
-import { useTranslations } from 'next-intl';
-import { TableCell, TableHead, Select, Button, Input } from "@erp/ui";
-import { FilterBar, FilterField } from '@/components/filter-bar';
 
 interface AttendanceRow {
   id: string;
@@ -192,21 +192,41 @@ export function AttendanceListClient({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.employee')}</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.shift')}</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.checkIn')}</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.checkOut')}</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.method')}</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.late')}</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.workedHours')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('columns.employee')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('columns.shift')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('columns.checkIn')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('columns.checkOut')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('columns.method')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('columns.late')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('columns.workedHours')}
+                </TableHead>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
               {items.map((row) => (
                 <tr key={row.id} className="hover:bg-brand-cream-1/50">
-                  <TableCell className="px-4 py-3 font-medium text-brand-ink">{row.employeeName}</TableCell>
-                  <TableCell className="px-4 py-3 text-brand-ink-2">{row.shiftCode ?? '—'}</TableCell>
-                  <TableCell className="px-4 py-3 text-brand-ink-2">{formatDateTime(row.checkInAt)}</TableCell>
+                  <TableCell className="px-4 py-3 font-medium text-brand-ink">
+                    {row.employeeName}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">
+                    {row.shiftCode ?? '—'}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">
+                    {formatDateTime(row.checkInAt)}
+                  </TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink-2">
                     {formatDateTime(row.checkOutAt ?? '')}
                   </TableCell>
@@ -231,7 +251,9 @@ export function AttendanceListClient({
                       <span className="text-xs text-brand-jade">{t('onTime')}</span>
                     )}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-brand-ink-2">{formatMinutes(row.workedMinutes)}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">
+                    {formatMinutes(row.workedMinutes)}
+                  </TableCell>
                   <TableCell className="px-4 py-3">
                     {row.isLate && !row.lateForgiven ? (
                       <button
@@ -257,12 +279,8 @@ export function AttendanceListClient({
       {forgiveId ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-md rounded-xl bg-card p-5 shadow-xl">
-            <h3 className="text-base font-semibold text-brand-ink">
-              {t('forgiveModalTitle')}
-            </h3>
-            <p className="mt-1 text-sm text-brand-ink-3">
-              {t('forgiveModalDesc')}
-            </p>
+            <h3 className="text-base font-semibold text-brand-ink">{t('forgiveModalTitle')}</h3>
+            <p className="mt-1 text-sm text-brand-ink-3">{t('forgiveModalDesc')}</p>
             <textarea
               value={forgiveReason}
               onChange={(event) => setForgiveReason(event.target.value)}

@@ -1,11 +1,11 @@
 'use client';
 
+import { PageHeader } from '@/components/page-header';
+import { Button, Input, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useState } from 'react';
 import { createOpnameSessionAction } from '../actions';
-import { Button, Input, Select } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 type OpnameKind = 'daily' | 'weekly' | 'monthly';
 
@@ -58,10 +58,7 @@ export function NewOpnameForm({ locationOptions, defaultLocationId, activePeriod
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
 
       <div className="rounded-xl border border-brand-cream-3 bg-card p-6 shadow-sm">
         <form action={submitAction} className="space-y-5">
@@ -76,7 +73,6 @@ export function NewOpnameForm({ locationOptions, defaultLocationId, activePeriod
               onChange={(e) => setForm((f) => ({ ...f, locationId: e.target.value }))}
               required
               disabled={locationOptions.length === 0}
-             
             >
               {locationOptions.length === 0 ? (
                 <option value="">{t('noLocations')}</option>
@@ -130,7 +126,6 @@ export function NewOpnameForm({ locationOptions, defaultLocationId, activePeriod
               value={form.sessionDate}
               onChange={(e) => setForm((f) => ({ ...f, sessionDate: e.target.value }))}
               required
-             
             />
           </div>
 
@@ -146,8 +141,10 @@ export function NewOpnameForm({ locationOptions, defaultLocationId, activePeriod
               required
             >
               <option value="">{t('periodPlaceholder')}</option>
-              {activePeriodCodes.map(code => (
-                <option key={code} value={code}>{code}</option>
+              {activePeriodCodes.map((code) => (
+                <option key={code} value={code}>
+                  {code}
+                </option>
               ))}
             </Select>
             <p className="text-xs text-brand-ink-3">{t('periodHint')}</p>
@@ -164,7 +161,6 @@ export function NewOpnameForm({ locationOptions, defaultLocationId, activePeriod
               placeholder={t('notesPlaceholder')}
               value={form.notes}
               onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-             
             />
           </div>
 
@@ -178,7 +174,9 @@ export function NewOpnameForm({ locationOptions, defaultLocationId, activePeriod
             <Button
               type="button"
               onClick={() => router.back()}
-              className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink transition-colors hover:bg-brand-cream-1" variant="secondary" size="md"
+              className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-medium text-brand-ink transition-colors hover:bg-brand-cream-1"
+              variant="secondary"
+              size="md"
             >
               {actions('cancel')}
             </Button>

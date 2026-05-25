@@ -4,14 +4,14 @@
  * Lists attendance records with employee + date filters.
  */
 
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { db, desc, eq, sql } from '@erp/db';
 import { attendance, employees, shiftDefinitions } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
 import { AttendanceListClient } from './attendance-list-client';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: 'Attendance' };
 
@@ -104,10 +104,7 @@ export default async function AttendancePage({
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle', { total })}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle', { total })}</>} />
 
       <AttendanceListClient
         items={items}

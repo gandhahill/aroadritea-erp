@@ -6,10 +6,10 @@
 
 'use client';
 
+import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { type CartLine, usePosCart } from './pos-cart-context';
-import { Input } from "@erp/ui";
 
 export function OrderCart() {
   const t = useTranslations('pos');

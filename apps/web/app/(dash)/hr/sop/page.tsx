@@ -4,8 +4,8 @@
  * Manage / upload actions surface only when the session has `hr.sop.manage`.
  */
 
-import { getSession } from '@/lib/auth';
 import { PageHeader } from '@/components/page-header';
+import { getSession } from '@/lib/auth';
 import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';

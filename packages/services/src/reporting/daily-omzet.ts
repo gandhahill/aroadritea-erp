@@ -19,8 +19,8 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, sql } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
-import { auditRecord } from "../audit";
 
 /**
  * Locale is resolved by the caller (the action layer has next-intl).
@@ -273,22 +273,22 @@ export async function saveOmzetAdjustment(
       // Fiscal adjustments feed Coretax SPT exports — every edit must
       // be on the audit log (ISO 38500 + UU KUP record retention).
       await auditRecord({
-          action: 'update',
-          entityType: 'daily_revenue_adjustment',
-          entityId: existing.id,
-          before: {
-                  adjustmentAmount: existing.adjustmentAmount.toString(),
-                  adjustmentNote: existing.adjustmentNote,
-                },
-          after: {
-                  adjustmentAmount: adjCents.toString(),
-                  adjustmentNote: params.adjustmentNote ?? null,
-                  locationId: params.locationId,
-                  date: params.date,
-                },
-          metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-          ctx,
-        });
+        action: 'update',
+        entityType: 'daily_revenue_adjustment',
+        entityId: existing.id,
+        before: {
+          adjustmentAmount: existing.adjustmentAmount.toString(),
+          adjustmentNote: existing.adjustmentNote,
+        },
+        after: {
+          adjustmentAmount: adjCents.toString(),
+          adjustmentNote: params.adjustmentNote ?? null,
+          locationId: params.locationId,
+          date: params.date,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
     } else {
       const newId = crypto.randomUUID();
       await db.insert(dailyRevenueAdjustments).values({
@@ -303,19 +303,19 @@ export async function saveOmzetAdjustment(
       });
 
       await auditRecord({
-          action: 'create',
-          entityType: 'daily_revenue_adjustment',
-          entityId: newId,
-          before: null,
-          after: {
-                  adjustmentAmount: adjCents.toString(),
-                  adjustmentNote: params.adjustmentNote ?? null,
-                  locationId: params.locationId,
-                  date: params.date,
-                },
-          metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-          ctx,
-        });
+        action: 'create',
+        entityType: 'daily_revenue_adjustment',
+        entityId: newId,
+        before: null,
+        after: {
+          adjustmentAmount: adjCents.toString(),
+          adjustmentNote: params.adjustmentNote ?? null,
+          locationId: params.locationId,
+          date: params.date,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
     }
 
     return ok(undefined);

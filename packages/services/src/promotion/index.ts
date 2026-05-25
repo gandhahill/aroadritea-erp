@@ -11,8 +11,8 @@ import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
-import { auditRecord } from "../audit";
 
 const LocaleNameSchema = z.object({
   id: z.string().min(1).max(160),
@@ -214,13 +214,13 @@ export async function upsertPromotion(
     if (!updated) return err(AppError.internal('promotion.upsert.updateFailed'));
 
     await auditRecord({
-        action: 'update',
-        entityType: 'promotion',
-        entityId: data.id,
-        after: updated,
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'update',
+      entityType: 'promotion',
+      entityId: data.id,
+      after: updated,
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok(toPromotionListItem(updated));
   }
@@ -251,14 +251,14 @@ export async function upsertPromotion(
   if (!created) return err(AppError.internal('promotion.upsert.createFailed'));
 
   await auditRecord({
-      action: 'create',
-      entityType: 'promotion',
-      entityId: created.id,
-      before: null,
-      after: created,
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      ctx,
-    });
+    action: 'create',
+    entityType: 'promotion',
+    entityId: created.id,
+    before: null,
+    after: created,
+    metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+    ctx,
+  });
 
   return ok(toPromotionListItem(created));
 }

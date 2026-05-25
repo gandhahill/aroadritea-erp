@@ -97,10 +97,7 @@ export async function updateWhistleblowerReportStatus(
     .select()
     .from(whistleblowerReports)
     .where(
-      and(
-        eq(whistleblowerReports.tenantId, ctx.tenantId),
-        eq(whistleblowerReports.id, input.id),
-      ),
+      and(eq(whistleblowerReports.tenantId, ctx.tenantId), eq(whistleblowerReports.id, input.id)),
     )
     .then((r) => r[0]);
 
@@ -117,10 +114,7 @@ export async function updateWhistleblowerReportStatus(
       updatedByUserId: ctx.userId,
     })
     .where(
-      and(
-        eq(whistleblowerReports.tenantId, ctx.tenantId),
-        eq(whistleblowerReports.id, input.id),
-      ),
+      and(eq(whistleblowerReports.tenantId, ctx.tenantId), eq(whistleblowerReports.id, input.id)),
     );
 
   // Audit the admin's status change — actor here is the investigator,

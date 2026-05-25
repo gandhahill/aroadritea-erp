@@ -1,10 +1,10 @@
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchBankAccounts, fetchCoaAccounts } from './actions';
 import { BankAccountsClient } from './bank-accounts-client';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Bank Accounts - Settings',
@@ -23,10 +23,7 @@ export default async function BankAccountsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
 
       <BankAccountsClient
         accounts={accounts}

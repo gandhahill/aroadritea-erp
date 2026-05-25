@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { getSetting } from '@erp/services/cms';
 import { can } from '@erp/services/iam';
@@ -10,7 +11,6 @@ import {
   type EditableDocsLocaleContent,
   normalizeEditableDocs,
 } from './editable-docs';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Docs - Aroadri ERP',
@@ -243,21 +243,23 @@ export default async function DocsPage({
 
       <main className="min-w-0 flex-1">
         <header className="border-b border-brand-cream-3 pb-7">
-          <PageHeader 
-                    title={<>{content.title}</>}
-                    description={<>{content.subtitle}</>}
-                    eyebrow={<>{t('badge')}</>}
-                    actions={<>
-                  {canEditDocs ? (
-                                <Link
-                                  href="/cms/docs"
-                                  className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-brand-cream-3 bg-brand-cream-1 px-4 text-sm font-semibold text-brand-ink transition-colors hover:border-brand-red/40 hover:text-brand-red"
-                                >
-                                  {t('edit')}
-                                </Link>
-                              ) : null}
-                    </>}
-                  />
+          <PageHeader
+            title={<>{content.title}</>}
+            description={<>{content.subtitle}</>}
+            eyebrow={<>{t('badge')}</>}
+            actions={
+              <>
+                {canEditDocs ? (
+                  <Link
+                    href="/cms/docs"
+                    className="inline-flex h-10 shrink-0 items-center justify-center rounded-md border border-brand-cream-3 bg-brand-cream-1 px-4 text-sm font-semibold text-brand-ink transition-colors hover:border-brand-red/40 hover:text-brand-red"
+                  >
+                    {t('edit')}
+                  </Link>
+                ) : null}
+              </>
+            }
+          />
         </header>
 
         <article className="mt-8 space-y-5">

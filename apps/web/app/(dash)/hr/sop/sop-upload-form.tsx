@@ -102,12 +102,20 @@ export function SopUploadForm({ onClose, onSaved }: Props) {
 
         <label className="block space-y-1 text-sm">
           <span className="font-medium text-brand-ink">Judul *</span>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} />
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            maxLength={200}
+          />
         </label>
 
         <label className="block space-y-1 text-sm">
           <span className="font-medium text-brand-ink">Kategori</span>
-          <Select value={category} onChange={(e) => setCategory(e.target.value as (typeof CATEGORIES)[number])}>
+          <Select
+            value={category}
+            onChange={(e) => setCategory(e.target.value as (typeof CATEGORIES)[number])}
+          >
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -136,7 +144,9 @@ export function SopUploadForm({ onClose, onSaved }: Props) {
             className="block w-full text-sm text-brand-ink"
             required
           />
-          <p className="text-xs text-brand-ink-3">Maks 10 MB. PDF disarankan untuk dokumen final.</p>
+          <p className="text-xs text-brand-ink-3">
+            Maks 10 MB. PDF disarankan untuk dokumen final.
+          </p>
         </label>
 
         <label className="flex items-center gap-2 text-sm text-brand-ink">

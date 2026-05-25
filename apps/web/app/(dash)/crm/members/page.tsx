@@ -2,8 +2,8 @@
  * Member browser for management — T-0183.
  */
 
-import { getSession } from '@/lib/auth';
 import { PageHeader } from '@/components/page-header';
+import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
@@ -31,8 +31,7 @@ export default async function MembersPage({
     limit,
     offset: (page - 1) * limit,
   });
-  const totalPages =
-    result.total && result.total > 0 ? Math.ceil(result.total / limit) : 1;
+  const totalPages = result.total && result.total > 0 ? Math.ceil(result.total / limit) : 1;
 
   return (
     <main className="space-y-6 p-6">
@@ -98,14 +97,19 @@ export default async function MembersPage({
               result.items.map((m) => (
                 <tr key={m.id} className="border-t border-brand-cream-3">
                   <td className="px-3 py-2">
-                    <Link href={`/crm/members/${m.id}`} className="font-medium text-brand-red hover:underline">
+                    <Link
+                      href={`/crm/members/${m.id}`}
+                      className="font-medium text-brand-red hover:underline"
+                    >
                       {m.name}
                     </Link>
                   </td>
                   <td className="px-3 py-2">
                     <TierBadge tier={m.tier} />
                   </td>
-                  <td className="px-3 py-2 text-right font-mono">{m.points.toLocaleString('id-ID')}</td>
+                  <td className="px-3 py-2 text-right font-mono">
+                    {m.points.toLocaleString('id-ID')}
+                  </td>
                   <td className="px-3 py-2 text-right font-mono text-brand-ink-3">
                     {m.lifetimePoints.toLocaleString('id-ID')}
                   </td>
@@ -158,7 +162,9 @@ function TierBadge({ tier }: { tier: string }) {
         ? 'bg-slate-100 text-slate-700'
         : 'bg-orange-50 text-orange-700';
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${tone}`}>
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${tone}`}
+    >
       {tier}
     </span>
   );

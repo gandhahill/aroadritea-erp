@@ -1,10 +1,10 @@
 import { FileUploadField } from '@/components/file-upload-field';
+import { PageHeader } from '@/components/page-header';
 import { Pagination } from '@/components/pagination';
+import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { createCorrespondenceAction, fetchCorrespondencePageData } from './actions';
-import { TableCell, TableHead, Select, TableBody, Table, Button, Input } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 export const dynamic = 'force-dynamic';
 const DIRECTIONS = ['incoming', 'outgoing', 'internal'] as const;
@@ -45,11 +45,11 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6 pb-16">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-            eyebrow={<>{t('eyebrow')}</>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={<>{t('subtitle')}</>}
+        eyebrow={<>{t('eyebrow')}</>}
+      />
 
       {params.error || data.error ? (
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -136,7 +136,9 @@ export default async function CorrespondencePage({ searchParams }: PageProps) {
           <div className="flex items-end">
             <Button
               type="submit"
-              className="w-full rounded-lg bg-brand-red px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark" variant="primary" size="lg"
+              className="w-full rounded-lg bg-brand-red px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark"
+              variant="primary"
+              size="lg"
             >
               {actions('save')}
             </Button>

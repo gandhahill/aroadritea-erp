@@ -12,10 +12,7 @@ export async function clearPasswordRequirementAction() {
     throw AppError.internal('unauthenticated', new Error('Not logged in'));
   }
 
-  await db
-    .update(users)
-    .set({ requirePasswordChange: false })
-    .where(eq(users.id, session.user.id));
+  await db.update(users).set({ requirePasswordChange: false }).where(eq(users.id, session.user.id));
 
   revalidatePath('/', 'layout');
   return { ok: true };

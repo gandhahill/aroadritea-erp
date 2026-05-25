@@ -15,7 +15,14 @@ import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
+import {
+  compensateIngredientDeductions,
+  deductIngredients,
+  getBOMIngredients,
+} from './create-sale';
 import {
   autoPostJournalEntry,
   extractInclusiveTax,
@@ -27,9 +34,6 @@ import {
   CreateManualSalesClosingInputSchema,
   type ManualSalesClosingResult,
 } from './schemas';
-import { auditRecord } from "../audit";
-import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
-import { getBOMIngredients, deductIngredients, compensateIngredientDeductions } from './create-sale';
 
 async function generateManualSalesNumber(tenantId: string, salesDate: string): Promise<string> {
   const prefix = `MSC-${salesDate.slice(0, 7)}-`;
@@ -121,7 +125,11 @@ export async function createManualSalesClosing(
   const channelLabel = humanizeChannel(data.channel);
   const reference = data.sourceReference?.trim() || number;
 
-  const claimResult = await claimIdempotency(data.locationId, data.idempotencyKey, 'pos.manualSales');
+  const claimResult = await claimIdempotency(
+    data.locationId,
+    data.idempotencyKey,
+    'pos.manualSales',
+  );
   if (!claimResult.ok) return claimResult;
   const claimedIdempotencyId = claimResult.value.id;
 
@@ -138,7 +146,9 @@ export async function createManualSalesClosing(
     .then((r) => r[0] ?? null);
   const shiftId = openShift?.id ?? null;
 
-  let appliedStockDeductions: Awaited<ReturnType<typeof deductIngredients>> extends Result<infer T> ? T : never = [];
+  let appliedStockDeductions: Awaited<ReturnType<typeof deductIngredients>> extends Result<infer T>
+    ? T
+    : never = [];
   const rollbackAppliedStockDeductions = async () => {
     if (appliedStockDeductions.length === 0) return;
     await compensateIngredientDeductions(appliedStockDeductions, ctx, true);
@@ -263,31 +273,31 @@ export async function createManualSalesClosing(
     .returning();
 
   await auditRecord({
-      action: 'create',
-      entityType: 'manual_sales_closing',
-      entityId: id,
-      before: null,
-      after: {
-          number,
-          salesDate: data.salesDate,
-          channel: data.channel,
-          paymentMethod: data.paymentMethod,
-          grossSales: grossSales.toString(),
-          discountTotal: discountTotal.toString(),
-          taxTotal: tax.toString(),
-          netRevenue: net.toString(),
-          journalEntryId: journal.value.id,
-          shiftId,
-        },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      ctx,
-    });
+    action: 'create',
+    entityType: 'manual_sales_closing',
+    entityId: id,
+    before: null,
+    after: {
+      number,
+      salesDate: data.salesDate,
+      channel: data.channel,
+      paymentMethod: data.paymentMethod,
+      grossSales: grossSales.toString(),
+      discountTotal: discountTotal.toString(),
+      taxTotal: tax.toString(),
+      netRevenue: net.toString(),
+      journalEntryId: journal.value.id,
+      shiftId,
+    },
+    metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+    ctx,
+  });
 
   if (!updated) {
     await releaseIdempotencyClaim(claimedIdempotencyId, 500, { error: 'update_failed' });
     return err(AppError.internal('pos.manualSales.linkJournalFailed', { id }));
   }
-  
+
   const resultObj = toResult(updated);
   await saveIdempotency(db, data.locationId, data.idempotencyKey, 201, resultObj);
   return ok(resultObj);

@@ -5,8 +5,8 @@ import { and, db, desc, eq, not } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
 import { authAccounts, sessions, users } from '@erp/db/schema/auth';
 import { hashPassword, verifyPassword } from '@erp/services/auth/password';
-import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 import { z } from 'zod';
 
 const ProfileSchema = z.object({
@@ -212,9 +212,7 @@ async function currentSessionToken(): Promise<string | null> {
   const cookie = hdrs.get('cookie') ?? '';
   // The cookie name set by better-auth — match either the http or
   // __Secure variant used in production.
-  const match = cookie.match(
-    /(?:^|; )(?:__Secure-)?aroadri\.session_token=([^;]+)/,
-  );
+  const match = cookie.match(/(?:^|; )(?:__Secure-)?aroadri\.session_token=([^;]+)/);
   return match?.[1] ?? null;
 }
 

@@ -1,9 +1,9 @@
 'use client';
 
+import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { createCategoryAction } from './actions';
-import { Input } from "@erp/ui";
 
 export function CategoryForm() {
   const t = useTranslations('inventory.categories');
@@ -23,21 +23,11 @@ export function CategoryForm() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
         <label className="flex-1 space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('code')}</span>
-          <Input
-            name="categoryCode"
-            required
-            placeholder={t('codePlaceholder')}
-           
-          />
+          <Input name="categoryCode" required placeholder={t('codePlaceholder')} />
         </label>
         <label className="flex-[1.5] space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('nameId')}</span>
-          <Input
-            name="categoryNameId"
-            required
-            placeholder={t('namePlaceholderId')}
-           
-          />
+          <Input name="categoryNameId" required placeholder={t('namePlaceholderId')} />
         </label>
         <label className="flex-[1.5] space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('nameEn')}</span>

@@ -1,10 +1,10 @@
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchImportMasterData } from '../actions';
 import { ImportClient } from './import-client';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Import Bank Statement - Settings',
@@ -23,10 +23,7 @@ export default async function ImportBankReconPage() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
 
       <ImportClient
         bankAccounts={masterData.bankAccounts}

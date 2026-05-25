@@ -8,14 +8,14 @@
  * matches user feedback (2026-05-19).
  */
 
+import { PageHeader } from '@/components/page-header';
 import { displayAssetUrl } from '@/lib/display-asset-url';
+import { Button, Table, TableBody, TableCell, TableHead, TableHeader } from '@erp/ui';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { fetchProductMasterData } from '../products/actions';
 import { ProductRowActions } from '../products/row-actions';
-import { TableCell, TableBody, TableHead, TableHeader, Table, Button } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Bahan Baku & Perlengkapan - Aroadri ERP',
@@ -83,24 +83,32 @@ export default async function SuppliesPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('suppliesTitle')}</>}
-            description={<>{t('suppliesDescriptionPrefix')}<Link
-                        href="/inventory/products"
-                        className="ml-1 font-medium text-brand-ember-5 hover:text-brand-ember-6"
-                      >
-                        {t('sellableLink')}
-                      </Link>{' '}{t('suppliesDescriptionSuffix')}</>}
-            eyebrow={<>{t('eyebrow')}</>}
-            actions={<>
-          <Link
-                    href="/inventory/products/new?kind=raw_material"
-                    className="inline-flex items-center justify-center rounded-lg "
-                  >
-                    {t('addItem')}
-                  </Link>
-            </>}
-          />
+      <PageHeader
+        title={<>{t('suppliesTitle')}</>}
+        description={
+          <>
+            {t('suppliesDescriptionPrefix')}
+            <Link
+              href="/inventory/products"
+              className="ml-1 font-medium text-brand-ember-5 hover:text-brand-ember-6"
+            >
+              {t('sellableLink')}
+            </Link>{' '}
+            {t('suppliesDescriptionSuffix')}
+          </>
+        }
+        eyebrow={<>{t('eyebrow')}</>}
+        actions={
+          <>
+            <Link
+              href="/inventory/products/new?kind=raw_material"
+              className="inline-flex items-center justify-center rounded-lg "
+            >
+              {t('addItem')}
+            </Link>
+          </>
+        }
+      />
 
       {/* Kind filter tabs */}
       <div className="flex flex-wrap gap-2">
@@ -137,10 +145,7 @@ export default async function SuppliesPage({ searchParams }: Props) {
               placeholder={t('searchItemPlaceholder')}
               className="min-w-0 flex-1 rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink shadow-sm placeholder:text-brand-ink-3/60 focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"
             />
-            <Button
-              type="submit"
-              className="rounded-lg " variant="secondary" size="md"
-            >
+            <Button type="submit" className="rounded-lg " variant="secondary" size="md">
               {t('searchBtn')}
             </Button>
           </div>
@@ -181,7 +186,9 @@ export default async function SuppliesPage({ searchParams }: Props) {
               ) : (
                 products.map((product) => (
                   <tr key={product.id} className="hover:bg-brand-cream-1/60">
-                    <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink">{product.sku}</TableCell>
+                    <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink">
+                      {product.sku}
+                    </TableCell>
                     <TableCell className="px-4 py-3">
                       {product.imageUrl ? (
                         <img

@@ -98,16 +98,19 @@ export const CreateManualSalesClosingInputSchema = z.object({
   sourceReference: z.string().max(120).optional(),
   notes: z.string().max(1000).optional(),
   idempotencyKey: z.string().min(1).max(64),
-  lineItems: z.array(
-    z.object({
-      productId: z.string().min(1),
-      variantId: z.string().optional(),
-      name: z.string(),
-      qty: z.number().positive(),
-      price: z.string(),
-      total: z.string(),
-    })
-  ).optional().default([]),
+  lineItems: z
+    .array(
+      z.object({
+        productId: z.string().min(1),
+        variantId: z.string().optional(),
+        name: z.string(),
+        qty: z.number().positive(),
+        price: z.string(),
+        total: z.string(),
+      }),
+    )
+    .optional()
+    .default([]),
 });
 
 export type CreateManualSalesClosingInput = z.infer<typeof CreateManualSalesClosingInputSchema>;

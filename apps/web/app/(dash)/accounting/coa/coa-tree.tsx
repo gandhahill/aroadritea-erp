@@ -7,10 +7,10 @@
 'use client';
 
 import { pickLocalized } from '@/lib/pick-localized';
+import { Input } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import type { COANode } from './actions';
-import { Input } from "@erp/ui";
 
 // --- Type badge config ---
 const TYPE_COLORS: Record<string, { bg: string; text: string; border: string }> = {

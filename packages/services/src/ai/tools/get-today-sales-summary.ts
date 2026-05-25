@@ -16,7 +16,10 @@ import { getDailySummary } from '../../reporting/daily-summary';
 
 export const GetTodaySalesSummaryInputSchema = z.object({
   /** YYYY-MM-DD (defaults to today in WIB). */
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   /** Outlet ID. Defaults to caller's session location. */
   location_id: z.string().min(1).max(64).optional(),
 });
@@ -62,10 +65,7 @@ export async function getTodaySalesSummaryTool(
   }
   const date = input.date ?? todayInJakarta();
 
-  const result = await getDailySummary(
-    { locationId, startDate: date, endDate: date },
-    ctx,
-  );
+  const result = await getDailySummary({ locationId, startDate: date, endDate: date }, ctx);
   if (!result.ok) {
     return { ok: false, error: result.error.messageKey ?? 'summary.failed' };
   }

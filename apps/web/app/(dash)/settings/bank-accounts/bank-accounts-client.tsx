@@ -1,5 +1,7 @@
 'use client';
 
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { Button, Input, Select, TableBody } from '@erp/ui';
 import { useMemo, useState, useTransition } from 'react';
 import {
   type BankAccountActionResult,
@@ -8,7 +10,6 @@ import {
   deleteBankAccount,
   saveBankAccount,
 } from './actions';
-import { Select, Input, TableBody, Button } from "@erp/ui";
 
 interface Labels {
   add: string;
@@ -54,6 +55,7 @@ export function BankAccountsClient({ accounts, coaAccounts, labels }: Props) {
   const [rows, setRows] = useState<BankAccountDraft[]>(accounts);
   const [result, setResult] = useState<BankAccountActionResult | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [rowToDelete, setRowToDelete] = useState<BankAccountDraft | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const sortedRows = useMemo(
@@ -90,15 +92,21 @@ export function BankAccountsClient({ accounts, coaAccounts, labels }: Props) {
       setRows((prev) => prev.filter((item) => item !== row));
       return;
     }
-    if (!confirm(labels.deleteConfirm)) return;
-    setPendingId(row.id);
+    setRowToDelete(row);
+  }
+
+  function confirmDelete() {
+    if (!rowToDelete?.id) return;
+    const deleteId = rowToDelete.id;
+    setPendingId(deleteId);
     setResult(null);
     startTransition(async () => {
-      const response = await deleteBankAccount({ id: row.id ?? '' });
+      const response = await deleteBankAccount({ id: deleteId });
       setResult(response);
       setPendingId(null);
+      setRowToDelete(null);
       if (response.success) {
-        setRows((prev) => prev.filter((item) => item.id !== row.id));
+        setRows((prev) => prev.filter((item) => item.id !== deleteId));
       }
     });
   }
@@ -109,7 +117,9 @@ export function BankAccountsClient({ accounts, coaAccounts, labels }: Props) {
         <Button
           type="button"
           onClick={addRow}
-          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark" variant="primary" size="md"
+          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
+          variant="primary"
+          size="md"
         >
           {labels.add}
         </Button>
@@ -219,6 +229,16 @@ export function BankAccountsClient({ accounts, coaAccounts, labels }: Props) {
           </table>
         </div>
       )}
+
+      {rowToDelete ? (
+        <ConfirmDialog
+          title={labels.delete}
+          message={labels.deleteConfirm}
+          confirmLabel={labels.delete}
+          onConfirm={confirmDelete}
+          onCancel={() => setRowToDelete(null)}
+        />
+      ) : null}
     </div>
   );
 }

@@ -26,12 +26,12 @@ import {
   memberTools,
   operationsTools,
   payrollTools,
+  phase3Tools,
   posTools,
   promotionTools,
   purchasingTools,
   reportingTools,
   taxTools,
-  phase3Tools,
 } from './tools/index';
 
 const SERVER_INFO = {

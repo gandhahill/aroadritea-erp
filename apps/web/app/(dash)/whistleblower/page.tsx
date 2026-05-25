@@ -1,11 +1,11 @@
 'use client';
 
+import { FileUploadField } from '@/components/file-upload-field';
+import { PageHeader } from '@/components/page-header';
+import { Input, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useActionState, useEffect, useState } from 'react';
 import { submitWhistleblowerAction } from './actions';
-import { FileUploadField } from '@/components/file-upload-field';
-import { Select, Input } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 export default function WhistleblowerPage() {
   const t = useTranslations('whistleblower');
@@ -25,12 +25,20 @@ export default function WhistleblowerPage() {
         <div className="max-w-md text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand-jade/10 text-brand-jade">
             <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-brand-ink">{t('successTitle') || 'Report Submitted'}</h2>
+          <h2 className="text-xl font-bold text-brand-ink">
+            {t('successTitle') || 'Report Submitted'}
+          </h2>
           <p className="mt-2 text-sm text-brand-ink-3">
-            {t('successMessage') || 'Your report has been submitted anonymously. Thank you for speaking up.'}
+            {t('successMessage') ||
+              'Your report has been submitted anonymously. Thank you for speaking up.'}
           </p>
           <button
             onClick={() => {
@@ -50,21 +58,29 @@ export default function WhistleblowerPage() {
   return (
     <main className="p-6">
       <div className="mx-auto max-w-2xl">
-        <PageHeader 
-                title={<>{t('title') || 'Whistleblower Channel'}</>}
-                description={<>{t('subtitle') || 'Report misconduct, fraud, or violations safely and anonymously. Your identity is not recorded.'}</>}
-              />
+        <PageHeader
+          title={<>{t('title') || 'Whistleblower Channel'}</>}
+          description={
+            <>
+              {t('subtitle') ||
+                'Report misconduct, fraud, or violations safely and anonymously. Your identity is not recorded.'}
+            </>
+          }
+        />
 
-        <form action={submitAction} className="space-y-6 rounded-xl border border-brand-cream-3 bg-card p-6 shadow-sm">
+        <form
+          action={submitAction}
+          className="space-y-6 rounded-xl border border-brand-cream-3 bg-card p-6 shadow-sm"
+        >
           {state?.error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-              {state.error}
-            </div>
+            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{state.error}</div>
           )}
 
           <div className="space-y-4">
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-brand-ink">{t('reportTitle') || 'Title'} *</span>
+              <span className="text-sm font-medium text-brand-ink">
+                {t('reportTitle') || 'Title'} *
+              </span>
               <Input
                 name="title"
                 required
@@ -74,27 +90,36 @@ export default function WhistleblowerPage() {
             </label>
 
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-brand-ink">{t('category') || 'Category'} *</span>
+              <span className="text-sm font-medium text-brand-ink">
+                {t('category') || 'Category'} *
+              </span>
               <Select
                 name="category"
                 required
                 className="w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:ring-1 focus:ring-brand-red outline-none"
               >
                 <option value="fraud">{t('catFraud') || 'Fraud / Corruption'}</option>
-                <option value="harassment">{t('catHarassment') || 'Harassment / Discrimination'}</option>
+                <option value="harassment">
+                  {t('catHarassment') || 'Harassment / Discrimination'}
+                </option>
                 <option value="safety">{t('catSafety') || 'Health & Safety Violation'}</option>
                 <option value="other">{t('catOther') || 'Other'}</option>
               </Select>
             </label>
 
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-brand-ink">{t('content') || 'Details'} *</span>
+              <span className="text-sm font-medium text-brand-ink">
+                {t('content') || 'Details'} *
+              </span>
               <textarea
                 name="content"
                 required
                 rows={6}
                 className="w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:ring-1 focus:ring-brand-red outline-none"
-                placeholder={t('contentPlaceholder') || 'Please describe the incident in detail (who, what, when, where)...'}
+                placeholder={
+                  t('contentPlaceholder') ||
+                  'Please describe the incident in detail (who, what, when, where)...'
+                }
               />
             </label>
 
@@ -108,9 +133,10 @@ export default function WhistleblowerPage() {
                 onChange={(url) => setAttachmentUrl(url)}
               />
             </div>
-            
+
             <p className="text-xs text-brand-ink-3">
-              {t('anonymityNote') || 'Note: We do not collect your name, email, or IP address with this submission. It is completely anonymous.'}
+              {t('anonymityNote') ||
+                'Note: We do not collect your name, email, or IP address with this submission. It is completely anonymous.'}
             </p>
           </div>
 
@@ -120,7 +146,7 @@ export default function WhistleblowerPage() {
               disabled={isPending}
               className="rounded-lg bg-brand-red px-6 py-2 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-red-dark disabled:opacity-50"
             >
-              {isPending ? (t('submitting') || 'Submitting...') : (t('submit') || 'Submit Report')}
+              {isPending ? t('submitting') || 'Submitting...' : t('submit') || 'Submit Report'}
             </button>
           </div>
         </form>

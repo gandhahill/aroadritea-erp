@@ -22,10 +22,10 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import type { JournalEntryResult, JournalLineResult } from './create-journal';
 import { type PostJournalInput, PostJournalInputSchema } from './schemas';
-import { auditRecord } from "../audit";
 
 // --- Service function ---
 
@@ -155,25 +155,25 @@ export async function postJournal(
 
       // 10. Write audit log (SD §15) — action = 'post'
       await auditRecord({
-            action: 'post',
-            entityType: 'journal_entry',
-            entityId: journalId,
-            before: {
-                    status: 'draft',
-                    version: je.version,
-                  },
-            after: {
-                    status: 'posted',
-                    postedAt: now.toISOString(),
-                    postedBy: ctx.userId,
-                    version: je.version + 1,
-                  },
-            metadata: {
-                    ip: ctx.ipAddress ?? null,
-                    userAgent: ctx.userAgent ?? null,
-                  },
-            ctx,
-          });
+        action: 'post',
+        entityType: 'journal_entry',
+        entityId: journalId,
+        before: {
+          status: 'draft',
+          version: je.version,
+        },
+        after: {
+          status: 'posted',
+          postedAt: now.toISOString(),
+          postedBy: ctx.userId,
+          version: je.version + 1,
+        },
+        metadata: {
+          ip: ctx.ipAddress ?? null,
+          userAgent: ctx.userAgent ?? null,
+        },
+        ctx,
+      });
 
       // Build result
       const result: JournalEntryResult = {

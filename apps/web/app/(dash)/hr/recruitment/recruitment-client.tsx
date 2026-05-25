@@ -1,5 +1,7 @@
 'use client';
 
+import { Button, Input, Select, TableBody, TableHeader } from '@erp/ui';
+import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import {
   type ApplicantRow,
@@ -11,8 +13,6 @@ import {
   updateApplicantAction,
   updateOpeningStatusAction,
 } from './actions';
-import { useTranslations } from 'next-intl';
-import { Input, TableBody, TableHeader, Button, Select } from "@erp/ui";
 
 const STAGES: Array<
   'applied' | 'screening' | 'interview' | 'offer' | 'hired' | 'rejected' | 'withdrawn'
@@ -260,7 +260,9 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
             <Button
               type="button"
               onClick={() => setShowNewOpening((v) => !v)}
-              className="rounded-md bg-brand-red px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-red-dark" variant="primary" size="sm"
+              className="rounded-md bg-brand-red px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-red-dark"
+              variant="primary"
+              size="sm"
             >
               {showNewOpening ? t('cancel') : t('addOpening')}
             </Button>
@@ -277,7 +279,6 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                 value={newOpening.title}
                 onChange={(e) => setNewOpening((p) => ({ ...p, title: e.target.value }))}
                 placeholder={t('titlePlaceholder')}
-               
               />
             </label>
             <label className="space-y-1">
@@ -287,7 +288,6 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
               <Input
                 value={newOpening.department}
                 onChange={(e) => setNewOpening((p) => ({ ...p, department: e.target.value }))}
-               
               />
             </label>
             <label className="space-y-1">
@@ -301,7 +301,6 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                 onChange={(e) =>
                   setNewOpening((p) => ({ ...p, headcount: Number(e.target.value) }))
                 }
-               
               />
             </label>
             <label className="space-y-1 md:col-span-2">
@@ -312,7 +311,6 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                 value={newOpening.requirements}
                 onChange={(e) => setNewOpening((p) => ({ ...p, requirements: e.target.value }))}
                 rows={3}
-               
               />
             </label>
             <div className="md:col-span-2 flex justify-end">
@@ -320,7 +318,9 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                 type="button"
                 onClick={submitOpening}
                 disabled={busy}
-                className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50" variant="primary" size="md"
+                className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
+                variant="primary"
+                size="md"
               >
                 {busy ? t('saving') : t('saveOpening')}
               </Button>
@@ -398,25 +398,21 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
               placeholder={t('namePlaceholder')}
               value={newApplicant.name}
               onChange={(e) => setNewApplicant((p) => ({ ...p, name: e.target.value }))}
-             
             />
             <Input
               placeholder={t('emailPlaceholder')}
               value={newApplicant.email}
               onChange={(e) => setNewApplicant((p) => ({ ...p, email: e.target.value }))}
-             
             />
             <Input
               placeholder={t('phonePlaceholder')}
               value={newApplicant.phone}
               onChange={(e) => setNewApplicant((p) => ({ ...p, phone: e.target.value }))}
-             
             />
             <textarea
               placeholder={t('notesPlaceholder')}
               value={newApplicant.notes}
               onChange={(e) => setNewApplicant((p) => ({ ...p, notes: e.target.value }))}
-             
               rows={2}
             />
             <div className="md:col-span-2 flex justify-end">
@@ -424,7 +420,9 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                 type="button"
                 onClick={() => submitApplicant(showNewApplicant)}
                 disabled={busy}
-                className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50" variant="primary" size="md"
+                className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
+                variant="primary"
+                size="md"
               >
                 {busy ? t('saving') : t('saveApplicant')}
               </Button>
@@ -478,7 +476,9 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                 <th className="px-3 py-2">{t('applicantsColumns.email')}</th>
                 <th className="px-3 py-2">{t('applicantsColumns.applied')}</th>
                 <th className="px-3 py-2">{t('applicantsColumns.stage')}</th>
-                {canManage ? <th className="px-3 py-2 text-right">{t('applicantsColumns.actions')}</th> : null}
+                {canManage ? (
+                  <th className="px-3 py-2 text-right">{t('applicantsColumns.actions')}</th>
+                ) : null}
               </tr>
             </TableHeader>
             <TableBody className="divide-y divide-brand-cream-3">
@@ -502,7 +502,6 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                             type="text"
                             value={editForm.name}
                             onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
-                           
                           />
                         ) : (
                           a.name
@@ -515,7 +514,6 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
                             type="email"
                             value={editForm.email}
                             onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
-                           
                           />
                         ) : (
                           (a.email ?? '—')
@@ -613,7 +611,11 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
         </div>
         <div className="mt-3 flex flex-col gap-3 border-t border-brand-cream-3 pt-3 text-xs text-brand-ink-3 sm:flex-row sm:items-center sm:justify-between">
           <span>
-            {t('pagination', { count: filteredApplicants.length, page: Math.min(applicantPage, applicantTotalPages), total: applicantTotalPages })}
+            {t('pagination', {
+              count: filteredApplicants.length,
+              page: Math.min(applicantPage, applicantTotalPages),
+              total: applicantTotalPages,
+            })}
           </span>
           <div className="flex items-center gap-2">
             <button

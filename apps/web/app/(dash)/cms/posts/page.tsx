@@ -1,14 +1,14 @@
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
+import { TableBody, TableCell, TableHead } from '@erp/ui';
+import type { Metadata } from 'next';
 /**
  * CMS Posts — List page (SD §31.3)
  */
 import { getTranslations } from 'next-intl/server';
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchCmsPosts } from '../actions';
-import { TableCell, TableBody, TableHead } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('cms.posts');
@@ -39,27 +39,29 @@ export default async function CmsPostsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-            actions={<>
-          <Link
-                    href="/cms/posts/new"
-                    className="inline-flex items-center gap-2 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90"
-                  >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    {t('createPost')}
-                  </Link>
-            </>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={<>{t('subtitle')}</>}
+        actions={
+          <>
+            <Link
+              href="/cms/posts/new"
+              className="inline-flex items-center gap-2 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              {t('createPost')}
+            </Link>
+          </>
+        }
+      />
 
       {/* Posts table */}
       <div className="rounded-lg border border-brand-cream-3 bg-card">
@@ -79,9 +81,7 @@ export default async function CmsPostsPage() {
               />
             </svg>
             <p className="mt-3 text-sm font-medium text-brand-ink-2">{t('empty')}</p>
-            <p className="mt-1 text-xs text-brand-ink-3">
-              {t('emptyHint')}
-            </p>
+            <p className="mt-1 text-xs text-brand-ink-3">{t('emptyHint')}</p>
           </div>
         ) : (
           <table className="w-full">
@@ -121,7 +121,9 @@ export default async function CmsPostsPage() {
                     </TableCell>
                     <TableCell className="px-4 py-3">
                       <span className="rounded bg-brand-cream-2 px-2 py-0.5 text-xs font-medium text-brand-ink-2">
-                        {t(`types.${KIND_KEYS[(post.kind as string) ?? 'news'] ?? (post.kind as string)}`)}
+                        {t(
+                          `types.${KIND_KEYS[(post.kind as string) ?? 'news'] ?? (post.kind as string)}`,
+                        )}
                       </span>
                     </TableCell>
                     <TableCell className="px-4 py-3">

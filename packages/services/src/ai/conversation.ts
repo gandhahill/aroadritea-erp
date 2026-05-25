@@ -33,11 +33,7 @@ import {
   isThinkingModel,
   loadProviderConfig,
 } from './client';
-import {
-  getAiSession,
-  getRecentUserMessageCount,
-  recordChatMessage,
-} from './session';
+import { getAiSession, getRecentUserMessageCount, recordChatMessage } from './session';
 import { executeTool, listAvailableTools } from './tools/registry';
 
 const HARD_USER_TURN_CAP_PER_HOUR = Number.parseInt(
@@ -105,11 +101,13 @@ export interface SendChatMessageInput {
 export async function sendChatMessage(
   input: SendChatMessageInput,
   ctx: AuditContext,
-): Promise<Result<{
-  assistantMessageId: string;
-  reply: string;
-  toolRoundsExecuted: number;
-}>> {
+): Promise<
+  Result<{
+    assistantMessageId: string;
+    reply: string;
+    toolRoundsExecuted: number;
+  }>
+> {
   if (!isAiAssistantEnabled()) {
     return err(AppError.businessRule('ai.assistant.disabled'));
   }
@@ -266,7 +264,6 @@ export async function sendChatMessage(
       });
     }
   }
-
 
   const assistantMessageId = await recordChatMessage({
     sessionId: input.sessionId,

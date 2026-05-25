@@ -37,8 +37,8 @@ describe('webSearchTool (Exa)', () => {
 
   it('returns rate_limited when Exa replies 429', async () => {
     vi.stubEnv('EXA_SEARCH_API_KEY', 'fake-key');
-    global.fetch = vi.fn(async () =>
-      new Response(JSON.stringify({ error: 'too many' }), { status: 429 }),
+    global.fetch = vi.fn(
+      async () => new Response(JSON.stringify({ error: 'too many' }), { status: 429 }),
     ) as unknown as typeof fetch;
     const out = await webSearchTool({ query: 'x' }, ctx);
     expect(out.reason).toBe('rate_limited');
@@ -47,36 +47,37 @@ describe('webSearchTool (Exa)', () => {
 
   it('maps a successful Exa response and prefers summary for snippet', async () => {
     vi.stubEnv('EXA_SEARCH_API_KEY', 'fake-key');
-    global.fetch = vi.fn(async () =>
-      new Response(
-        JSON.stringify({
-          requestId: 'req_1',
-          searchType: 'auto',
-          results: [
-            {
-              title: 'Result 1',
-              url: 'https://example.com/1',
-              publishedDate: '2026-05-01',
-              summary: '  Summary text  ',
-              highlights: ['highlight 1'],
-              text: 'full text body...',
-            },
-            {
-              title: 'Result 2',
-              url: 'https://example.com/2',
-              // No summary → falls back to first highlight.
-              highlights: ['  highlight only  '],
-            },
-            {
-              title: 'Result 3',
-              url: 'https://example.com/3',
-              // No summary, no highlights → text slice fallback.
-              text: 'a'.repeat(700),
-            },
-          ],
-        }),
-        { status: 200 },
-      ),
+    global.fetch = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            requestId: 'req_1',
+            searchType: 'auto',
+            results: [
+              {
+                title: 'Result 1',
+                url: 'https://example.com/1',
+                publishedDate: '2026-05-01',
+                summary: '  Summary text  ',
+                highlights: ['highlight 1'],
+                text: 'full text body...',
+              },
+              {
+                title: 'Result 2',
+                url: 'https://example.com/2',
+                // No summary → falls back to first highlight.
+                highlights: ['  highlight only  '],
+              },
+              {
+                title: 'Result 3',
+                url: 'https://example.com/3',
+                // No summary, no highlights → text slice fallback.
+                text: 'a'.repeat(700),
+              },
+            ],
+          }),
+          { status: 200 },
+        ),
     ) as unknown as typeof fetch;
 
     const out = await webSearchTool({ query: 'q', count: 5 }, ctx);

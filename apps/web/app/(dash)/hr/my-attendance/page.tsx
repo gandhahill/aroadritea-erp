@@ -7,8 +7,8 @@
  * `?from=YYYY-MM-DD&to=YYYY-MM-DD`.
  */
 
-import { getSession } from '@/lib/auth';
 import { PageHeader } from '@/components/page-header';
+import { getSession } from '@/lib/auth';
 import { listMyAttendance } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
 import type { Metadata } from 'next';
@@ -146,7 +146,9 @@ export default async function MyAttendancePage({
                     {fmtDate(new Date(r.checkInAt), localeStr)}
                   </td>
                   <td className="px-3 py-2 font-mono text-xs">{r.shiftCode ?? '—'}</td>
-                  <td className="px-3 py-2 text-brand-ink">{fmtDateTime(new Date(r.checkInAt), localeStr)}</td>
+                  <td className="px-3 py-2 text-brand-ink">
+                    {fmtDateTime(new Date(r.checkInAt), localeStr)}
+                  </td>
                   <td className="px-3 py-2 text-brand-ink">
                     {r.checkOutAt ? fmtDateTime(new Date(r.checkOutAt), localeStr) : '—'}
                   </td>

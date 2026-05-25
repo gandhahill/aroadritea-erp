@@ -4,11 +4,11 @@
 
 'use client';
 
+import { Input, Select } from '@erp/ui';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { useTranslations } from 'next-intl';
 import { type FormatConfigItem, previewQrPayload, updateFormatConfig } from './actions';
-import { Input, Select } from "@erp/ui";
 
 interface Props {
   configs: FormatConfigItem[];
@@ -198,7 +198,9 @@ export function FormatConfigForm({ configs }: Props) {
 
               {/* Include Order ID */}
               <div>
-                <p className="mb-1 block text-xs font-medium text-brand-ink-2">{t('includeOrderId')}</p>
+                <p className="mb-1 block text-xs font-medium text-brand-ink-2">
+                  {t('includeOrderId')}
+                </p>
                 <div className="flex items-center gap-2 pt-1.5">
                   <button
                     type="button"
@@ -227,7 +229,9 @@ export function FormatConfigForm({ configs }: Props) {
 
               {/* Parameter Order */}
               <div>
-                <p className="mb-1 block text-xs font-medium text-brand-ink-2">{t('parameterOrder')}</p>
+                <p className="mb-1 block text-xs font-medium text-brand-ink-2">
+                  {t('parameterOrder')}
+                </p>
                 <div className="flex flex-col gap-1 pt-0.5">
                   <Input
                     type="text"

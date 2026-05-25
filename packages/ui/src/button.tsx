@@ -6,7 +6,8 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   size?: 'sm' | 'md' | 'lg';
 }
 
-const baseStyles = 'inline-flex items-center justify-center font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+const baseStyles =
+  'inline-flex items-center justify-center font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
 
 const variantStyles = {
   primary: 'bg-brand-red text-white shadow-soft hover:bg-brand-red-dark',
@@ -30,6 +31,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       />
     );
-  }
+  },
 );
 Button.displayName = 'Button';

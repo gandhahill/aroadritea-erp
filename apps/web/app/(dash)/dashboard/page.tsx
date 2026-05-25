@@ -7,6 +7,7 @@
  * behaviour so non-cashier roles also have a useful first screen.
  */
 
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { and, db, eq, gte, isNull, sql } from '@erp/db';
 import { accountingPeriods } from '@erp/db/schema/accounting';
@@ -18,7 +19,6 @@ import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Dashboard - Aroadri ERP',
@@ -237,11 +237,15 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{hello}, {displayName.split(' ')[0]}.</>}
-            description={<>{t('subtitle')}</>}
-            eyebrow={<>Aroadri Tea ERP</>}
-          />
+      <PageHeader
+        title={
+          <>
+            {hello}, {displayName.split(' ')[0]}.
+          </>
+        }
+        description={<>{t('subtitle')}</>}
+        eyebrow={<>Aroadri Tea ERP</>}
+      />
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <Kpi

@@ -81,9 +81,12 @@ function escapeAttribute(value: string): string {
 }
 
 function normalizeUrlForProtocolCheck(value: string): string {
-  return value
-    .trim()
-    .replace(/[\u0000-\u001F\u007F\s]+/g, '')
+  return [...value.trim()]
+    .filter((char) => {
+      const code = char.charCodeAt(0);
+      return code > 0x1f && code !== 0x7f && !/\s/.test(char);
+    })
+    .join('')
     .toLowerCase();
 }
 

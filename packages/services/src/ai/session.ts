@@ -6,11 +6,7 @@
  */
 
 import { and, asc, db, desc, eq, isNull, sql } from '@erp/db';
-import {
-  aiChatAttachments,
-  aiChatMessages,
-  aiChatSessions,
-} from '@erp/db/schema/ai';
+import { aiChatAttachments, aiChatMessages, aiChatSessions } from '@erp/db/schema/ai';
 import { auditLog } from '@erp/db/schema/audit';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -42,9 +38,7 @@ function rowOf(raw: typeof aiChatSessions.$inferSelect): SessionRow {
   };
 }
 
-export async function listMyAiSessions(
-  ctx: AuditContext,
-): Promise<Result<SessionRow[]>> {
+export async function listMyAiSessions(ctx: AuditContext): Promise<Result<SessionRow[]>> {
   const perm = await requirePermission(ctx.userId, 'ai.assistant.use');
   if (!perm.ok) return perm;
   const rows = await db
@@ -62,17 +56,13 @@ export async function listMyAiSessions(
   return ok(rows.map(rowOf));
 }
 
-export async function listAllAiSessionsAdmin(
-  ctx: AuditContext,
-): Promise<Result<SessionRow[]>> {
+export async function listAllAiSessionsAdmin(ctx: AuditContext): Promise<Result<SessionRow[]>> {
   const perm = await requirePermission(ctx.userId, 'ai.assistant.admin');
   if (!perm.ok) return perm;
   const rows = await db
     .select()
     .from(aiChatSessions)
-    .where(
-      and(eq(aiChatSessions.tenantId, ctx.tenantId), isNull(aiChatSessions.deletedAt)),
-    )
+    .where(and(eq(aiChatSessions.tenantId, ctx.tenantId), isNull(aiChatSessions.deletedAt)))
     .orderBy(desc(aiChatSessions.updatedAt))
     .limit(500);
   return ok(rows.map(rowOf));
@@ -118,18 +108,20 @@ export async function createAiSession(
 export async function getAiSession(
   id: string,
   ctx: AuditContext,
-): Promise<Result<{
-  session: SessionRow;
-  messages: Array<{
-    id: string;
-    role: string;
-    content: string;
-    toolName: string | null;
-    toolPayload: unknown;
-    createdAt: Date;
-    requiresConfirmation: boolean;
-  }>;
-}>> {
+): Promise<
+  Result<{
+    session: SessionRow;
+    messages: Array<{
+      id: string;
+      role: string;
+      content: string;
+      toolName: string | null;
+      toolPayload: unknown;
+      createdAt: Date;
+      requiresConfirmation: boolean;
+    }>;
+  }>
+> {
   const perm = await requirePermission(ctx.userId, 'ai.assistant.use');
   if (!perm.ok) return perm;
 
@@ -223,10 +215,7 @@ export async function renameAiSession(
   return ok(undefined);
 }
 
-export async function archiveAiSession(
-  id: string,
-  ctx: AuditContext,
-): Promise<Result<void>> {
+export async function archiveAiSession(id: string, ctx: AuditContext): Promise<Result<void>> {
   const perm = await requirePermission(ctx.userId, 'ai.assistant.use');
   if (!perm.ok) return perm;
   const now = new Date();

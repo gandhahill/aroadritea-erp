@@ -3,9 +3,9 @@
 import { getSession } from '@/lib/auth';
 import { and, db, desc, eq, inArray, sql } from '@erp/db';
 import { accountingPeriods, journalEntries } from '@erp/db/schema/accounting';
-import { requirePermission } from '@erp/services/iam';
 import { closePeriod, openPeriod } from '@erp/services/accounting';
-import type { OpenPeriodInput, ClosePeriodInput } from '@erp/services/accounting';
+import type { ClosePeriodInput, OpenPeriodInput } from '@erp/services/accounting';
+import { requirePermission } from '@erp/services/iam';
 import { revalidatePath } from 'next/cache';
 
 export interface AccountingPeriodRow {

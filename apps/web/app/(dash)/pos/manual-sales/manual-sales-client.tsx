@@ -1,13 +1,13 @@
 'use client';
 
+import { PageHeader } from '@/components/page-header';
 import { Pagination } from '@/components/pagination';
+import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useActionState, useEffect, useState } from 'react';
 import { type ManualSalesPageData, createManualSalesAction } from './actions';
 import { ExportManualSalesButton } from './export-manual-sales-button';
-import { TableCell, TableHead, TableBody, Table, Button, Input, Select } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 interface Props {
   data: ManualSalesPageData;
@@ -18,7 +18,16 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
   const t = useTranslations('pos.manualSales');
   const pagination = useTranslations('common.pagination');
   const [state, submitAction, isPending] = useActionState(createManualSalesAction, null);
-  const [lineItems, setLineItems] = useState<Array<{ productId: string; variantId?: string; name: string; qty: number; price: string; total: string }>>([]);
+  const [lineItems, setLineItems] = useState<
+    Array<{
+      productId: string;
+      variantId?: string;
+      name: string;
+      qty: number;
+      price: string;
+      total: string;
+    }>
+  >([]);
   const [grossSales, setGrossSales] = useState('');
 
   // Automatically calculate grossSales from lineItems
@@ -49,11 +58,11 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
 
   return (
     <div className="h-full w-full overflow-y-auto space-y-6 pb-24 px-4 pt-4">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-            eyebrow={<>{t('eyebrow')}</>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={<>{t('subtitle')}</>}
+        eyebrow={<>{t('eyebrow')}</>}
+      />
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
         <form id="manual-sales-form" action={submitAction} className="grid gap-4 lg:grid-cols-4">
@@ -92,14 +101,21 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             <h3 className="mb-3 text-sm font-semibold text-brand-ink">{t('products')}</h3>
             <div className="space-y-3">
               {lineItems.map((item, index) => (
-                <div key={index} className="flex flex-wrap items-end gap-3 rounded-lg border border-brand-cream-3 bg-brand-cream-2/50 p-3">
+                <div
+                  key={index}
+                  className="flex flex-wrap items-end gap-3 rounded-lg border border-brand-cream-3 bg-brand-cream-2/50 p-3"
+                >
                   <div className="flex-1 min-w-[200px]">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">Product</span>
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                      Product
+                    </span>
                     <Select
                       value={`${item.productId}::${item.variantId || ''}`}
                       onChange={(e) => {
                         const [pid, vid] = e.target.value.split('::');
-                        const product = data.products.find(p => p.id === pid && (p.variantId || '') === vid);
+                        const product = data.products.find(
+                          (p) => p.id === pid && (p.variantId || '') === vid,
+                        );
                         if (!product) return;
                         const newItems = [...lineItems];
                         const current = newItems[index];
@@ -110,14 +126,19 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                           name: product.name,
                           qty: current.qty || 1,
                           price: product.sellPrice,
-                          total: (BigInt(current.qty || 1) * BigInt(product.sellPrice)).toString()
+                          total: (BigInt(current.qty || 1) * BigInt(product.sellPrice)).toString(),
                         };
                         setLineItems(newItems);
                       }}
                     >
-                      <option value="::" disabled>Select Product</option>
-                      {data.products.map(p => (
-                        <option key={`${p.id}::${p.variantId || ''}`} value={`${p.id}::${p.variantId || ''}`}>
+                      <option value="::" disabled>
+                        Select Product
+                      </option>
+                      {data.products.map((p) => (
+                        <option
+                          key={`${p.id}::${p.variantId || ''}`}
+                          value={`${p.id}::${p.variantId || ''}`}
+                        >
                           {p.name}
                         </option>
                       ))}
@@ -130,7 +151,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                       min={1}
                       value={item.qty}
                       onChange={(e) => {
-                        const qty = Math.max(1, parseInt(e.target.value) || 1);
+                        const qty = Math.max(1, Number.parseInt(e.target.value) || 1);
                         const newItems = [...lineItems];
                         const current = newItems[index];
                         if (!current) return;
@@ -140,7 +161,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                           name: current.name,
                           qty,
                           price: current.price,
-                          total: (BigInt(qty) * BigInt(current.price)).toString()
+                          total: (BigInt(qty) * BigInt(current.price)).toString(),
                         };
                         setLineItems(newItems);
                       }}
@@ -163,7 +184,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                           name: current.name,
                           qty: current.qty,
                           price,
-                          total: (BigInt(current.qty) * BigInt(price)).toString()
+                          total: (BigInt(current.qty) * BigInt(price)).toString(),
                         };
                         setLineItems(newItems);
                       }}
@@ -178,36 +199,52 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                       className="bg-brand-cream/50"
                     />
                   </div>
-                  <Button type="button" variant="ghost" className="text-brand-red mb-1" onClick={() => {
-                    setLineItems(lineItems.filter((_, i) => i !== index));
-                  }}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-brand-red mb-1"
+                    onClick={() => {
+                      setLineItems(lineItems.filter((_, i) => i !== index));
+                    }}
+                  >
                     Delete
                   </Button>
                 </div>
               ))}
-              <Button type="button" variant="secondary" onClick={() => {
-                setLineItems([...lineItems, { productId: '', name: '', qty: 1, price: '0', total: '0' }]);
-              }}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setLineItems([
+                    ...lineItems,
+                    { productId: '', name: '', qty: 1, price: '0', total: '0' },
+                  ]);
+                }}
+              >
                 + {t('addProduct', { defaultValue: 'Add Product' })}
               </Button>
             </div>
-            <input type="hidden" name="lineItemsJson" value={JSON.stringify(lineItems.filter(i => i.productId))} />
+            <input
+              type="hidden"
+              name="lineItemsJson"
+              value={JSON.stringify(lineItems.filter((i) => i.productId))}
+            />
           </div>
 
           <Field label={t('grossSales')}>
-            <Input name="grossSales" inputMode="numeric" required value={grossSales} onChange={(e) => setGrossSales(e.target.value.replace(/\D/g, ''))} />
+            <Input
+              name="grossSales"
+              inputMode="numeric"
+              required
+              value={grossSales}
+              onChange={(e) => setGrossSales(e.target.value.replace(/\D/g, ''))}
+            />
           </Field>
           <Field label={t('discountTotal')}>
             <Input name="discountTotal" inputMode="numeric" defaultValue="0" />
           </Field>
           <Field label={t('transactionCount')}>
-            <Input
-              name="transactionCount"
-              type="number"
-              min={0}
-              defaultValue={0}
-             
-            />
+            <Input name="transactionCount" type="number" min={0} defaultValue={0} />
           </Field>
           <Field label={t('sourceReference')}>
             <Input name="sourceReference" />
@@ -221,7 +258,9 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             <Button
               type="submit"
               disabled={isPending || data.locations.length === 0}
-              className="w-full rounded-lg bg-brand-red px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50" variant="primary" size="lg"
+              className="w-full rounded-lg bg-brand-red px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
+              variant="primary"
+              size="lg"
             >
               {isPending ? t('posting') : t('post')}
             </Button>
@@ -305,7 +344,9 @@ function Th({
   align?: 'left' | 'right';
 }) {
   return (
-    <TableHead className={`px-4 py-3 font-medium ${align === 'right' ? 'text-right' : 'text-left'}`}>
+    <TableHead
+      className={`px-4 py-3 font-medium ${align === 'right' ? 'text-right' : 'text-left'}`}
+    >
       {children}
     </TableHead>
   );
@@ -319,7 +360,9 @@ function Td({
   align?: 'left' | 'right';
 }) {
   return (
-    <TableCell className={`whitespace-nowrap px-4 py-3 ${align === 'right' ? 'text-right' : 'text-left'}`}>
+    <TableCell
+      className={`whitespace-nowrap px-4 py-3 ${align === 'right' ? 'text-right' : 'text-left'}`}
+    >
       {children}
     </TableCell>
   );

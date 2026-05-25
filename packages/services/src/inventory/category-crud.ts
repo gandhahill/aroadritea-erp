@@ -12,6 +12,7 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import {
   type CreateCategoryInput,
@@ -19,7 +20,6 @@ import {
   type UpdateCategoryInput,
   UpdateCategoryInputSchema,
 } from './schemas';
-import { auditRecord } from "../audit";
 
 // --- Types ---
 
@@ -100,14 +100,14 @@ export async function createCategory(
       });
 
       await auditRecord({
-            action: 'create',
-            entityType: 'product_category',
-            entityId: categoryId,
-            before: null,
-            after: { id: categoryId, code: data.code, name: data.name },
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: 'create',
+        entityType: 'product_category',
+        entityId: categoryId,
+        before: null,
+        after: { id: categoryId, code: data.code, name: data.name },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return {
         id: categoryId,
@@ -188,14 +188,14 @@ export async function updateCategory(
         data.isActive === false && existing.isActive === true ? 'delete' : 'update';
 
       await auditRecord({
-            action: auditAction,
-            entityType: 'product_category',
-            entityId: data.categoryId,
-            before: { code: existing.code, name: existing.name, isActive: existing.isActive },
-            after: updates,
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: auditAction,
+        entityType: 'product_category',
+        entityId: data.categoryId,
+        before: { code: existing.code, name: existing.name, isActive: existing.isActive },
+        after: updates,
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return {
         id: updated.id,

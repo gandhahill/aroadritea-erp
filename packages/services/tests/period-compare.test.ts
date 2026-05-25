@@ -23,9 +23,8 @@ describe('previousPeriod', () => {
 
 describe('periodCompare', () => {
   it('returns current + previous + delta + deltaPercent', async () => {
-    const result = await periodCompare(
-      { from: '2026-05-01', to: '2026-05-31' },
-      async (range) => (range.from === '2026-05-01' ? 1_500_000n : 1_000_000n),
+    const result = await periodCompare({ from: '2026-05-01', to: '2026-05-31' }, async (range) =>
+      range.from === '2026-05-01' ? 1_500_000n : 1_000_000n,
     );
     expect(result.current.value).toBe(1_500_000n);
     expect(result.previous.value).toBe(1_000_000n);
@@ -34,9 +33,8 @@ describe('periodCompare', () => {
   });
 
   it('returns null deltaPercent when previous is 0', async () => {
-    const result = await periodCompare(
-      { from: '2026-05-01', to: '2026-05-31' },
-      async (range) => (range.from === '2026-05-01' ? 250_000n : 0n),
+    const result = await periodCompare({ from: '2026-05-01', to: '2026-05-31' }, async (range) =>
+      range.from === '2026-05-01' ? 250_000n : 0n,
     );
     expect(result.deltaPercent).toBeNull();
     expect(result.delta).toBe(250_000n);

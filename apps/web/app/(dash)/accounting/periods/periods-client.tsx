@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { OpenPeriodDialog } from './open-period-dialog';
 import { ClosePeriodDialog } from './close-period-dialog';
+import { OpenPeriodDialog } from './open-period-dialog';
 
 interface OpenPeriodButtonProps {
   copy: any;
@@ -20,12 +20,7 @@ export function OpenPeriodButton({ copy }: OpenPeriodButtonProps) {
         {copy.period.openPeriod}
       </button>
 
-      {isOpen && (
-        <OpenPeriodDialog
-          onClose={() => setIsOpen(false)}
-          copy={copy.period}
-        />
-      )}
+      {isOpen && <OpenPeriodDialog onClose={() => setIsOpen(false)} copy={copy.period} />}
     </>
   );
 }

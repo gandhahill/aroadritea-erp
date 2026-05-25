@@ -250,14 +250,10 @@ async function main(): Promise<void> {
     await importModifiers(csvContent);
   }
 
-  console.info('
-Import complete!');
+  console.info('\nImport complete!');
 }
 
 main().catch((e) => {
   console.error('ERROR Import failed:', e);
   process.exit(1);
 });
-
-
-

@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@erp/ui';
 import type { TicketDetail } from '@erp/services/helpdesk';
+import { Button } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -59,8 +59,14 @@ export function TicketDetailClient({ ticket, canHandle, currentUserId }: Props) 
       {/* Meta */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Meta label={t('table.status')} value={t(`status.${ticket.status}` as 'status.open')} />
-        <Meta label={t('table.priority')} value={t(`priority.${ticket.priority}` as 'priority.normal')} />
-        <Meta label={t('table.category')} value={t(`category.${ticket.category}` as 'category.other')} />
+        <Meta
+          label={t('table.priority')}
+          value={t(`priority.${ticket.priority}` as 'priority.normal')}
+        />
+        <Meta
+          label={t('table.category')}
+          value={t(`category.${ticket.category}` as 'category.other')}
+        />
         <Meta label={t('table.assignee')} value={ticket.assigneeName ?? '—'} />
       </div>
 
@@ -70,8 +76,12 @@ export function TicketDetailClient({ ticket, canHandle, currentUserId }: Props) 
         <p className="mt-2 whitespace-pre-wrap text-sm text-brand-ink-2">{ticket.body}</p>
         {ticket.context && Object.keys(ticket.context).length > 0 ? (
           <details className="mt-3 rounded border border-brand-cream-3 bg-brand-cream-1 p-2 text-xs">
-            <summary className="cursor-pointer font-semibold text-brand-ink-2">{t('contextSection')}</summary>
-            <pre className="mt-1 overflow-x-auto text-[11px] text-brand-ink-3">{JSON.stringify(ticket.context, null, 2)}</pre>
+            <summary className="cursor-pointer font-semibold text-brand-ink-2">
+              {t('contextSection')}
+            </summary>
+            <pre className="mt-1 overflow-x-auto text-[11px] text-brand-ink-3">
+              {JSON.stringify(ticket.context, null, 2)}
+            </pre>
           </details>
         ) : null}
       </div>
@@ -80,22 +90,42 @@ export function TicketDetailClient({ ticket, canHandle, currentUserId }: Props) 
       {canHandle ? (
         <div className="flex flex-wrap gap-2 rounded-xl border border-brand-cream-3 bg-card p-3">
           {ticket.status !== 'in_progress' ? (
-            <Button variant="secondary" size="md" disabled={pending} onClick={() => transition('in_progress')}>
+            <Button
+              variant="secondary"
+              size="md"
+              disabled={pending}
+              onClick={() => transition('in_progress')}
+            >
               {t('actions.inProgress')}
             </Button>
           ) : null}
           {ticket.status !== 'resolved' ? (
-            <Button variant="primary" size="md" disabled={pending} onClick={() => transition('resolved')}>
+            <Button
+              variant="primary"
+              size="md"
+              disabled={pending}
+              onClick={() => transition('resolved')}
+            >
               {t('actions.resolve')}
             </Button>
           ) : null}
           {ticket.status !== 'closed' ? (
-            <Button variant="secondary" size="md" disabled={pending} onClick={() => transition('closed')}>
+            <Button
+              variant="secondary"
+              size="md"
+              disabled={pending}
+              onClick={() => transition('closed')}
+            >
               {t('actions.close')}
             </Button>
           ) : null}
           {ticket.status === 'closed' || ticket.status === 'resolved' ? (
-            <Button variant="secondary" size="md" disabled={pending} onClick={() => transition('open')}>
+            <Button
+              variant="secondary"
+              size="md"
+              disabled={pending}
+              onClick={() => transition('open')}
+            >
               {t('actions.reopen')}
             </Button>
           ) : null}
@@ -115,7 +145,11 @@ export function TicketDetailClient({ ticket, canHandle, currentUserId }: Props) 
               <li
                 key={r.id}
                 className={`px-4 py-3 ${
-                  r.isInternal ? 'bg-amber-50' : r.authorUserId === currentUserId ? 'bg-brand-cream-1/30' : ''
+                  r.isInternal
+                    ? 'bg-amber-50'
+                    : r.authorUserId === currentUserId
+                      ? 'bg-brand-cream-1/30'
+                      : ''
                 }`}
               >
                 <div className="flex items-center justify-between text-xs text-brand-ink-3">
@@ -147,7 +181,11 @@ export function TicketDetailClient({ ticket, canHandle, currentUserId }: Props) 
             />
             {canHandle ? (
               <label className="flex items-center gap-2 text-xs text-brand-ink-3">
-                <input type="checkbox" checked={internal} onChange={(e) => setInternal(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={internal}
+                  onChange={(e) => setInternal(e.target.checked)}
+                />
                 {t('internalNote')}
               </label>
             ) : null}

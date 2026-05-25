@@ -271,10 +271,10 @@ async function dispatchCommit(draft: DraftRow, ctx: AuditContext): Promise<strin
   switch (draft.kind) {
     case 'manual_sale': {
       const { createManualSalesClosing } = await import('../pos');
-      const result = await createManualSalesClosing(
-        draft.payload as never,
-        { ...ctx, locationId: draft.locationId ?? ctx.locationId },
-      );
+      const result = await createManualSalesClosing(draft.payload as never, {
+        ...ctx,
+        locationId: draft.locationId ?? ctx.locationId,
+      });
       if (!result.ok) {
         throw new Error(result.error.messageKey ?? 'manual_sales.commitFailed');
       }
@@ -282,10 +282,10 @@ async function dispatchCommit(draft: DraftRow, ctx: AuditContext): Promise<strin
     }
     case 'complaint': {
       const { logComplaint } = await import('../crm');
-      const result = await logComplaint(
-        draft.payload as never,
-        { ...ctx, locationId: draft.locationId ?? ctx.locationId },
-      );
+      const result = await logComplaint(draft.payload as never, {
+        ...ctx,
+        locationId: draft.locationId ?? ctx.locationId,
+      });
       if (!result.ok) {
         throw new Error(result.error.messageKey ?? 'crm.commitFailed');
       }

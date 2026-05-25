@@ -7,17 +7,17 @@
 
 'use client';
 
-import { Select } from "@erp/ui";
+import { Select } from '@erp/ui';
 
+import { FilterBar, FilterField } from '@/components/filter-bar';
+import { PageHeader } from '@/components/page-header';
 import { exportWorkbook } from '@/lib/export-workbook';
 import type { DailySummaryResult } from '@erp/services/reporting';
+import { Button } from '@erp/ui';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
 import { ExportXlsxButton } from '../export-button';
 import { fetchDailySummary, fetchDailySummaryPrevious } from './actions';
-import { PageHeader } from "@/components/page-header";
-import { FilterBar, FilterField } from '@/components/filter-bar';
-import { Button } from '@erp/ui';
 
 // ─── Formatters ────────────────────────────────────────────────────────────────
 
@@ -52,7 +52,7 @@ function formatQty(v: number | null | undefined): string {
   return v.toLocaleString('id-ID');
 }
 
-function formatDate(iso: string, locale: string = 'id-ID'): string {
+function formatDate(iso: string, locale = 'id-ID'): string {
   if (!iso) return '—';
   return new Intl.DateTimeFormat(locale, {
     day: '2-digit',
@@ -295,13 +295,17 @@ export function DailySummaryClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <PageHeader 
-            title={<>{t('summaryTitle')}</>}
-            description={<>{t('title')}</>}
-            actions={<>
-          {report && <ExportXlsxButton onExport={() => exportXLSX(report, selectedLocationLabel)} />}
-            </>}
-          />
+      <PageHeader
+        title={<>{t('summaryTitle')}</>}
+        description={<>{t('title')}</>}
+        actions={
+          <>
+            {report && (
+              <ExportXlsxButton onExport={() => exportXLSX(report, selectedLocationLabel)} />
+            )}
+          </>
+        }
+      />
 
       {/* Filter bar */}
       <FilterBar>
@@ -342,12 +346,7 @@ export function DailySummaryClient({
             )}
           </Select>
         </FilterField>
-        <Button
-          onClick={handleSearch}
-          disabled={isLoading}
-          variant="primary"
-          className="gap-2"
-        >
+        <Button onClick={handleSearch} disabled={isLoading} variant="primary" className="gap-2">
           {isLoading ? (
             <>
               <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -397,7 +396,7 @@ export function DailySummaryClient({
             />
           </svg>
           <h3 className="mt-3 text-base font-semibold text-brand-ink">{t('selectDateLocation')}</h3>
-            {t('selectDateLocation')}
+          {t('selectDateLocation')}
         </div>
       )}
 
@@ -408,9 +407,13 @@ export function DailySummaryClient({
           <div className="rounded-lg border border-brand-cream-3 bg-card px-4 py-3">
             <p className="text-sm text-brand-ink-3">
               {t('period')}:{' '}
-              <span className="font-medium text-brand-ink">{formatDate(report.period.start, locale)}</span>
+              <span className="font-medium text-brand-ink">
+                {formatDate(report.period.start, locale)}
+              </span>
               {' s/d '}
-              <span className="font-medium text-brand-ink">{formatDate(report.period.end, locale)}</span>
+              <span className="font-medium text-brand-ink">
+                {formatDate(report.period.end, locale)}
+              </span>
               {report.isPreliminary && (
                 <span className="ml-2 inline-flex items-center rounded-full bg-brand-gold/10 px-2 py-0.5 text-xs font-medium text-brand-gold">
                   Preliminary
@@ -562,7 +565,9 @@ export function DailySummaryClient({
 
             {/* Donut chart */}
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-              <h3 className="mb-4 text-sm font-semibold text-brand-ink">{t('paymentDistribution')}</h3>
+              <h3 className="mb-4 text-sm font-semibold text-brand-ink">
+                {t('paymentDistribution')}
+              </h3>
               <DonutChart
                 segments={report.paymentBreakdown.map((row, idx) => ({
                   label: row.method,
@@ -645,7 +650,9 @@ export function DailySummaryClient({
           {report.shiftSummary.length > 0 && (
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
               <div className="border-b border-brand-cream-3 bg-brand-cream-1 px-4 py-3">
-                <h3 className="text-sm font-semibold text-brand-ink">{t('shiftSummary', { defaultMessage: 'Ringkasan Shift' })}</h3>
+                <h3 className="text-sm font-semibold text-brand-ink">
+                  {t('shiftSummary', { defaultMessage: 'Ringkasan Shift' })}
+                </h3>
               </div>
               <table className="w-full text-sm">
                 <thead>

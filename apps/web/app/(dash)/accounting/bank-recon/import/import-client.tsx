@@ -1,9 +1,9 @@
 'use client';
 
+import { Input, Select, TableBody } from '@erp/ui';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { importBankStatement } from '../actions';
-import { Input, TableBody, Select } from "@erp/ui";
 
 interface MasterData {
   bankAccounts: { id: string; name: string; number: string }[];

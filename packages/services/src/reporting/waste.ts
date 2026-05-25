@@ -140,10 +140,7 @@ export async function wasteReport(
       // Aggregate per (productId, variantId) — waste is negative qtyDelta,
       // we flip sign so the report shows a positive quantity wasted.
       type Key = string;
-      const buckets = new Map<
-        Key,
-        { row: WasteRow; valueBig: bigint; qtyNumber: number }
-      >();
+      const buckets = new Map<Key, { row: WasteRow; valueBig: bigint; qtyNumber: number }>();
 
       for (const line of lines) {
         const product = productById.get(line.productId);

@@ -25,8 +25,8 @@ import { generateId } from '@erp/shared/id';
 import { type Result, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, ilike, sql } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
-import { auditRecord } from "../audit";
 
 // ─── Input Types ──────────────────────────────────────────────────────────────
 
@@ -412,18 +412,18 @@ export async function importMasterFromExcel(
 
   // ── Audit log ──
   await auditRecord({
-      action: 'master_import',
-      entityType: 'import',
-      entityId: ctx.tenantId,
-      after: {
-          rowsProcessed: rows.length,
-          createdProducts,
-          updatedProducts,
-          skippedProducts,
-          createdCategories,
-        },
-      ctx,
-    });
+    action: 'master_import',
+    entityType: 'import',
+    entityId: ctx.tenantId,
+    after: {
+      rowsProcessed: rows.length,
+      createdProducts,
+      updatedProducts,
+      skippedProducts,
+      createdCategories,
+    },
+    ctx,
+  });
 
   return ok({
     createdProducts,
@@ -565,17 +565,17 @@ export async function importMovementsFromExcel(
 
   // ── Audit log ──
   await auditRecord({
-      action: 'movement_import',
-      entityType: 'import',
-      entityId: locationId,
-      after: {
-          rowsProcessed: rows.length,
-          imported,
-          skipped,
-          locationId,
-        },
-      ctx,
-    });
+    action: 'movement_import',
+    entityType: 'import',
+    entityId: locationId,
+    after: {
+      rowsProcessed: rows.length,
+      imported,
+      skipped,
+      locationId,
+    },
+    ctx,
+  });
 
   return ok({ imported, skipped, errors });
 }

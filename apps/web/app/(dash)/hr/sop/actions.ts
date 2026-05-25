@@ -47,7 +47,9 @@ export async function fetchSopList(input: ListSopInput): Promise<SopListResult> 
   return { items: result.value.items, total: result.value.total };
 }
 
-export async function fetchSopDetail(id: string): Promise<{ ok: boolean; row?: SopRow; error?: string }> {
+export async function fetchSopDetail(
+  id: string,
+): Promise<{ ok: boolean; row?: SopRow; error?: string }> {
   const ctx = await resolveCtx();
   if (!ctx) return { ok: false, error: 'unauthenticated' };
 

@@ -5,17 +5,17 @@
  * Create new session button, status badges, quick actions.
  */
 
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { db } from '@erp/db';
 import { and, desc, eq } from '@erp/db';
 import { locations, users } from '@erp/db/schema/auth';
 import { stockOpnameSessions } from '@erp/db/schema/stock-opname';
+import { TableCell, TableHead } from '@erp/ui';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { TableCell, TableHead } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: 'Stock Opname' };
 
@@ -80,29 +80,31 @@ export default async function OpnameListPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-            actions={<>
-          <div className="flex items-center gap-3">
-                    <Link
-                      href="/inventory/opname/new"
-                      className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6"
-                    >
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                      </svg>
-                      {t('createSession')}
-                    </Link>
-                  </div>
-            </>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={<>{t('subtitle')}</>}
+        actions={
+          <>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/inventory/opname/new"
+                className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                {t('createSession')}
+              </Link>
+            </div>
+          </>
+        }
+      />
 
       {/* Session list table */}
       {rows.length === 0 ? (
@@ -121,9 +123,7 @@ export default async function OpnameListPage() {
             />
           </svg>
           <h3 className="mt-3 text-base font-semibold text-brand-ink">{t('emptyTitle')}</h3>
-          <p className="mt-1 text-sm text-brand-ink-3">
-            {t('emptySubtitle')}
-          </p>
+          <p className="mt-1 text-sm text-brand-ink-3">{t('emptySubtitle')}</p>
           <Link
             href="/inventory/opname/new"
             className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6"
@@ -136,13 +136,27 @@ export default async function OpnameListPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.sessionNo')}</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.date')}</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.outlet')}</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.period')}</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.status')}</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.createdBy')}</TableHead>
-                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('columns.actions')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('columns.sessionNo')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('columns.date')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('columns.outlet')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('columns.period')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('columns.status')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('columns.createdBy')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                  {t('columns.actions')}
+                </TableHead>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
@@ -154,8 +168,12 @@ export default async function OpnameListPage() {
                 };
                 return (
                   <tr key={row.id} className="hover:bg-brand-cream-1/50">
-                    <TableCell className="px-4 py-3 font-medium text-brand-ink">{row.number}</TableCell>
-                    <TableCell className="px-4 py-3 text-brand-ink-2">{String(row.sessionDate)}</TableCell>
+                    <TableCell className="px-4 py-3 font-medium text-brand-ink">
+                      {row.number}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink-2">
+                      {String(row.sessionDate)}
+                    </TableCell>
                     <TableCell className="px-4 py-3 text-brand-ink-2">
                       {pickLocationLabel(
                         row.locationName as Record<string, string> | null,

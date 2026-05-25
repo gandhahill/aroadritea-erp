@@ -7,7 +7,6 @@ import {
   cmsRevisions,
   cmsSettings,
 } from '@erp/db/schema/cms';
-import { requirePermission } from '../iam';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -19,7 +18,8 @@ import type { AuditContext } from '@erp/shared/types';
  */
 import { and, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { auditRecord } from "../audit";
+import { auditRecord } from '../audit';
+import { requirePermission } from '../iam';
 
 // ─── Shared schemas ──────────────────────────────────────────────────────────
 
@@ -217,19 +217,19 @@ export async function createPage(
     });
 
     await auditRecord({
-        action: 'create',
-        entityType: 'cms_page',
-        entityId: newId,
-        before: null,
-        after: {
-              id: newId,
-              slug: parsed.data.slug,
-              title: parsed.data.title,
-              status: parsed.data.status,
-            },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'create',
+      entityType: 'cms_page',
+      entityId: newId,
+      before: null,
+      after: {
+        id: newId,
+        slug: parsed.data.slug,
+        title: parsed.data.title,
+        status: parsed.data.status,
+      },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok({ id: newId });
   } catch (e) {
@@ -261,14 +261,14 @@ export async function updatePage(
     if (claimed.length === 0) return err(AppError.notFound('cms.page.notFound'));
 
     await auditRecord({
-        action: 'update',
-        entityType: 'cms_page',
-        entityId: id,
-        before: null,
-        after: { id, ...data },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'update',
+      entityType: 'cms_page',
+      entityId: id,
+      before: null,
+      after: { id, ...data },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok({ id });
   } catch (e) {
@@ -301,14 +301,14 @@ export async function publishPage(
     if (claimed.length === 0) return err(AppError.notFound('cms.page.notFound'));
 
     await auditRecord({
-        action: 'update',
-        entityType: 'cms_page',
-        entityId: id,
-        before: null,
-        after: { id, status: newStatus },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'update',
+      entityType: 'cms_page',
+      entityId: id,
+      before: null,
+      after: { id, status: newStatus },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok({ id, status: newStatus });
   } catch (e) {
@@ -336,14 +336,14 @@ export async function deletePage(id: string, ctx: AuditContext): Promise<Result<
     }
 
     await auditRecord({
-        action: 'delete',
-        entityType: 'cms_page',
-        entityId: id,
-        before: null,
-        after: { id, status: 'archived' },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'delete',
+      entityType: 'cms_page',
+      entityId: id,
+      before: null,
+      after: { id, status: 'archived' },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok(undefined);
   } catch (e) {
@@ -467,19 +467,19 @@ export async function createPost(
     });
 
     await auditRecord({
-        action: 'create',
-        entityType: 'cms_post',
-        entityId: newId,
-        before: null,
-        after: {
-              id: newId,
-              slug: parsed.data.slug,
-              title: parsed.data.title,
-              status: parsed.data.status,
-            },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'create',
+      entityType: 'cms_post',
+      entityId: newId,
+      before: null,
+      after: {
+        id: newId,
+        slug: parsed.data.slug,
+        title: parsed.data.title,
+        status: parsed.data.status,
+      },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok({ id: newId });
   } catch (e) {
@@ -511,14 +511,14 @@ export async function updatePost(
     if (claimed.length === 0) return err(AppError.notFound('cms.post.notFound'));
 
     await auditRecord({
-        action: 'update',
-        entityType: 'cms_post',
-        entityId: id,
-        before: null,
-        after: { id, ...data },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'update',
+      entityType: 'cms_post',
+      entityId: id,
+      before: null,
+      after: { id, ...data },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok({ id });
   } catch (e) {
@@ -551,14 +551,14 @@ export async function publishPost(
     if (claimed.length === 0) return err(AppError.notFound('cms.post.notFound'));
 
     await auditRecord({
-        action: 'update',
-        entityType: 'cms_post',
-        entityId: id,
-        before: null,
-        after: { id, status: newStatus },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'update',
+      entityType: 'cms_post',
+      entityId: id,
+      before: null,
+      after: { id, status: newStatus },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok({ id, status: newStatus });
   } catch (e) {
@@ -584,14 +584,14 @@ export async function deletePost(id: string, ctx: AuditContext): Promise<Result<
     }
 
     await auditRecord({
-        action: 'delete',
-        entityType: 'cms_post',
-        entityId: id,
-        before: null,
-        after: { id, status: 'archived' },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'delete',
+      entityType: 'cms_post',
+      entityId: id,
+      before: null,
+      after: { id, status: 'archived' },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok(undefined);
   } catch (e) {

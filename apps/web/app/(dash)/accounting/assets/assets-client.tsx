@@ -1,13 +1,13 @@
 'use client';
 
+import { FilterBar, FilterField } from '@/components/filter-bar';
+import { Button, Input, Select, TableHeader } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useMemo, useState } from 'react';
 import { createAssetAction, runDepreciationAction, updateAssetCategoryAction } from './actions';
 import type { AssetPageData } from './actions';
-import { Input, Select, Button, TableHeader } from "@erp/ui";
-import { FilterBar, FilterField } from "@/components/filter-bar";
 
 const METHOD_VALUES = [
   'straight_line',
@@ -107,7 +107,6 @@ export function AssetsClient({
             <Select
               value={initialLocationId}
               onChange={(event) => applyFilter(event.target.value, initialStatus)}
-             
             >
               <option value="">{t('allLocations')}</option>
               {locations.map((location) => (
@@ -119,7 +118,6 @@ export function AssetsClient({
             <Select
               value={initialStatus}
               onChange={(event) => applyFilter(initialLocationId, event.target.value)}
-             
             >
               <option value="">{t('allStatuses')}</option>
               <option value="active">{t('statusActive')}</option>
@@ -225,12 +223,17 @@ export function AssetsClient({
               />
               <label className="block space-y-1.5">
                 <span className="text-sm font-medium text-brand-ink">{t('notes')}</span>
-                <textarea name="notes" className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5 min-h-20" />
+                <textarea
+                  name="notes"
+                  className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5 min-h-20"
+                />
               </label>
               <Button
                 type="submit"
                 disabled={runPending || locations.length === 0}
-                className="w-full rounded-lg " variant="primary" size="md"
+                className="w-full rounded-lg "
+                variant="primary"
+                size="md"
               >
                 {runPending ? t('posting') : t('run')}
               </Button>
@@ -266,7 +269,6 @@ export function AssetsClient({
               value={categoryId}
               onChange={(event) => setCategoryId(event.target.value)}
               required
-             
             >
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -310,7 +312,6 @@ export function AssetsClient({
             <Select
               name="depreciationMethod"
               defaultValue={selectedCategory?.defaultDepreciationMethod ?? 'straight_line'}
-             
             >
               {METHOD_VALUES.map((method) => (
                 <option key={method} value={method}>
@@ -323,14 +324,19 @@ export function AssetsClient({
           <Field label={t('productionCapacity')} name="productionCapacity" inputMode="numeric" />
           <label className="space-y-1.5 md:col-span-2 xl:col-span-4">
             <span className="text-sm font-medium text-brand-ink">{t('notes')}</span>
-            <textarea name="notes" className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5 min-h-20" />
+            <textarea
+              name="notes"
+              className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5 min-h-20"
+            />
           </label>
         </div>
         <div className="mt-5 flex justify-end">
           <Button
             type="submit"
             disabled={createPending || categories.length === 0 || locations.length === 0}
-            className="rounded-lg " variant="primary" size="lg"
+            className="rounded-lg "
+            variant="primary"
+            size="lg"
           >
             {createPending ? t('saving') : t('save')}
           </Button>
@@ -364,7 +370,6 @@ export function AssetsClient({
                   min={1}
                   max={600}
                   defaultValue={category.defaultUsefulLifeMonths}
-                 
                 />
               </label>
               <SelectAccount
@@ -394,7 +399,6 @@ export function AssetsClient({
                   <Select
                     name="defaultDepreciationMethod"
                     defaultValue={category.defaultDepreciationMethod}
-                   
                   >
                     {METHOD_VALUES.map((method) => (
                       <option key={method} value={method}>
@@ -403,10 +407,7 @@ export function AssetsClient({
                     ))}
                   </Select>
                 </label>
-                <Button
-                  type="submit"
-                  className="rounded-lg " variant="primary" size="md"
-                >
+                <Button type="submit" className="rounded-lg " variant="primary" size="md">
                   {t('saveCategory')}
                 </Button>
               </div>
@@ -495,7 +496,6 @@ function Field({
         defaultValue={defaultValue}
         placeholder={placeholder}
         inputMode={inputMode}
-       
       />
     </label>
   );

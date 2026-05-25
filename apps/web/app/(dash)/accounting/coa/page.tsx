@@ -3,14 +3,14 @@
  * Tree view of Chart of Accounts with search, multi-bahasa display.
  */
 
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
 import { fetchCOATree } from './actions';
 import { COAEditor } from './coa-editor';
 import { COATreeView } from './coa-tree';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Chart of Accounts',
@@ -27,17 +27,19 @@ export default async function COAPage() {
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-            actions={<>
-          <div className="flex items-center gap-3 text-sm text-brand-ink-3">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
-                      {tree.reduce((sum, node) => sum + countNodes(node), 0)} accounts
-                    </span>
-                  </div>
-            </>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={<>{t('subtitle')}</>}
+        actions={
+          <>
+            <div className="flex items-center gap-3 text-sm text-brand-ink-3">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
+                {tree.reduce((sum, node) => sum + countNodes(node), 0)} accounts
+              </span>
+            </div>
+          </>
+        }
+      />
 
       <COAEditor tree={tree} />
 

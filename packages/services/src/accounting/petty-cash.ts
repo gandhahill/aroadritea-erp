@@ -13,6 +13,7 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, gte, sql } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { createJournal } from './create-journal';
 import {
@@ -27,7 +28,6 @@ import {
   type ReplenishPettyCashInput,
   ReplenishPettyCashSchema,
 } from './schemas';
-import { auditRecord } from "../audit";
 
 // --- Return types ---
 
@@ -258,25 +258,25 @@ export async function recordPettyCashExpense(
         .returning();
 
       await auditRecord({
-            action: 'create',
-            entityType: 'petty_cash_transaction',
-            entityId: txId,
-            before: null,
-            after: {
-                    id: txId,
-                    kind: 'expense',
-                    amount: amountStr,
-                    description,
-                    locationId,
-                    balanceBefore: acct.balance.toString(),
-                    balanceAfter: newBalance.toString(),
-                  },
-            metadata: {
-                    ip: ctx.ipAddress ?? null,
-                    userAgent: ctx.userAgent ?? null,
-                  },
-            ctx,
-          });
+        action: 'create',
+        entityType: 'petty_cash_transaction',
+        entityId: txId,
+        before: null,
+        after: {
+          id: txId,
+          kind: 'expense',
+          amount: amountStr,
+          description,
+          locationId,
+          balanceBefore: acct.balance.toString(),
+          balanceAfter: newBalance.toString(),
+        },
+        metadata: {
+          ip: ctx.ipAddress ?? null,
+          userAgent: ctx.userAgent ?? null,
+        },
+        ctx,
+      });
 
       return toTransactionResult(txRows[0]!);
     },
@@ -370,25 +370,25 @@ export async function replenishPettyCash(
         .returning();
 
       await auditRecord({
-            action: 'create',
-            entityType: 'petty_cash_transaction',
-            entityId: txId,
-            before: null,
-            after: {
-                    id: txId,
-                    kind: 'topup',
-                    amount: amountStr,
-                    description,
-                    locationId,
-                    balanceBefore: acct.balance.toString(),
-                    balanceAfter: newBalance.toString(),
-                  },
-            metadata: {
-                    ip: ctx.ipAddress ?? null,
-                    userAgent: ctx.userAgent ?? null,
-                  },
-            ctx,
-          });
+        action: 'create',
+        entityType: 'petty_cash_transaction',
+        entityId: txId,
+        before: null,
+        after: {
+          id: txId,
+          kind: 'topup',
+          amount: amountStr,
+          description,
+          locationId,
+          balanceBefore: acct.balance.toString(),
+          balanceAfter: newBalance.toString(),
+        },
+        metadata: {
+          ip: ctx.ipAddress ?? null,
+          userAgent: ctx.userAgent ?? null,
+        },
+        ctx,
+      });
 
       return toTransactionResult(txRows[0]!);
     },
@@ -491,26 +491,26 @@ export async function depositPettyCashToBank(
         .returning();
 
       await auditRecord({
-            action: 'create',
-            entityType: 'petty_cash_transaction',
-            entityId: txId,
-            before: null,
-            after: {
-                    id: txId,
-                    kind: 'deposit_to_bank',
-                    amount: amountStr,
-                    description,
-                    locationId,
-                    balanceBefore: acct.balance.toString(),
-                    balanceAfter: newBalance.toString(),
-                    journalEntryId: journalRes.value.id,
-                  },
-            metadata: {
-                    ip: ctx.ipAddress ?? null,
-                    userAgent: ctx.userAgent ?? null,
-                  },
-            ctx,
-          });
+        action: 'create',
+        entityType: 'petty_cash_transaction',
+        entityId: txId,
+        before: null,
+        after: {
+          id: txId,
+          kind: 'deposit_to_bank',
+          amount: amountStr,
+          description,
+          locationId,
+          balanceBefore: acct.balance.toString(),
+          balanceAfter: newBalance.toString(),
+          journalEntryId: journalRes.value.id,
+        },
+        metadata: {
+          ip: ctx.ipAddress ?? null,
+          userAgent: ctx.userAgent ?? null,
+        },
+        ctx,
+      });
 
       return toTransactionResult(txRows[0]!);
     },
@@ -681,22 +681,22 @@ export async function createPettyCashAccount(
       }
 
       await auditRecord({
-            action: 'create',
-            entityType: 'petty_cash_account',
-            entityId: acctId,
-            before: null,
-            after: {
-                    id: acctId,
-                    locationId,
-                    maxLimit: maxLimitStr,
-                    balance: openingBalance.toString(),
-                  },
-            metadata: {
-                    ip: ctx.ipAddress ?? null,
-                    userAgent: ctx.userAgent ?? null,
-                  },
-            ctx,
-          });
+        action: 'create',
+        entityType: 'petty_cash_account',
+        entityId: acctId,
+        before: null,
+        after: {
+          id: acctId,
+          locationId,
+          maxLimit: maxLimitStr,
+          balance: openingBalance.toString(),
+        },
+        metadata: {
+          ip: ctx.ipAddress ?? null,
+          userAgent: ctx.userAgent ?? null,
+        },
+        ctx,
+      });
 
       return toAccountResult(rows[0]!);
     },

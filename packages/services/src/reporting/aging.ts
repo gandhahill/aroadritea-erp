@@ -11,12 +11,7 @@
  */
 
 import { db } from '@erp/db';
-import {
-  accounts,
-  journalEntries,
-  journalLines,
-  partners,
-} from '@erp/db/schema/accounting';
+import { accounts, journalEntries, journalLines, partners } from '@erp/db/schema/accounting';
 import { AppError } from '@erp/shared/errors';
 import { type Result, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -146,7 +141,9 @@ export async function aging(input: AgingInput, ctx: AuditContext): Promise<Resul
 
       // Partner lookup so we can show readable names (encrypted email
       // not surfaced — `partners.name` is plain).
-      const partnerIds = Array.from(new Set(rows.map((r) => r.partnerId).filter(Boolean) as string[]));
+      const partnerIds = Array.from(
+        new Set(rows.map((r) => r.partnerId).filter(Boolean) as string[]),
+      );
       const partnerRows = partnerIds.length
         ? await db
             .select({ id: partners.id, name: partners.name })
@@ -232,7 +229,6 @@ export async function aging(input: AgingInput, ctx: AuditContext): Promise<Resul
         details,
       };
     },
-    (e) =>
-      e instanceof AppError ? e : AppError.internal('reporting.aging.failed', e),
+    (e) => (e instanceof AppError ? e : AppError.internal('reporting.aging.failed', e)),
   );
 }

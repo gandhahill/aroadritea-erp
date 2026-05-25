@@ -26,6 +26,7 @@ import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import {
   type AttendancePolicy,
@@ -33,7 +34,6 @@ import {
   type PayrollEmployeeContext,
   calculatePayroll,
 } from './payroll-engine';
-import { auditRecord } from "../audit";
 
 export const ATTENDANCE_POLICY_SETTING_KEY = 'attendance.policy';
 
@@ -359,22 +359,22 @@ export async function runPayroll(
       await db.insert(payrollLines).values(allLines);
 
       await auditRecord({
-            action: 'run_payroll',
-            entityType: 'payroll',
-            entityId: payrollId,
-            before: null,
-            after: {
-                    id: payrollId,
-                    periodCode: data.periodCode,
-                    locationId: data.locationId,
-                    totalEmployees: empRows.length,
-                    totalEarnings,
-                    totalDeductions,
-                    totalNet,
-                  } as never,
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: 'run_payroll',
+        entityType: 'payroll',
+        entityId: payrollId,
+        before: null,
+        after: {
+          id: payrollId,
+          periodCode: data.periodCode,
+          locationId: data.locationId,
+          totalEmployees: empRows.length,
+          totalEarnings,
+          totalDeductions,
+          totalNet,
+        } as never,
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return {
         payrollId,

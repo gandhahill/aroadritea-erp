@@ -1,11 +1,11 @@
 'use client';
 
+import { PageHeader } from '@/components/page-header';
+import { Button, Input, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { updateEmailAction, updatePasswordAction, updateProfileAction } from './actions';
 import { MfaSetup } from './mfa-setup';
-import { Button, Input, Select } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 type ActionResult = { ok: true; message: string } | { ok: false; message: string } | null;
 
@@ -29,10 +29,7 @@ export function AccountSettingsClient({
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
 
       <div className="grid gap-6 xl:grid-cols-3">
         <form action={profileAction} className="rounded-xl border border-brand-cream-3 bg-card p-5">
@@ -115,7 +112,9 @@ function Submit({ pending, label, loading }: { pending: boolean; label: string; 
     <Button
       type="submit"
       disabled={pending}
-      className="mt-5 rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:opacity-60" variant="primary" size="md"
+      className="mt-5 rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:opacity-60"
+      variant="primary"
+      size="md"
     >
       {pending ? loading : label}
     </Button>

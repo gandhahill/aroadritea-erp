@@ -18,12 +18,7 @@
  */
 
 import { db } from '@erp/db';
-import {
-  bomLines,
-  boms,
-  productVariants,
-  products,
-} from '@erp/db/schema/inventory';
+import { bomLines, boms, productVariants, products } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { type Result, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -66,10 +61,7 @@ export interface CogsResult {
   missingBomProductIds: string[];
 }
 
-export async function cogsReport(
-  input: CogsInput,
-  ctx: AuditContext,
-): Promise<Result<CogsResult>> {
+export async function cogsReport(input: CogsInput, ctx: AuditContext): Promise<Result<CogsResult>> {
   const permCheck = await requirePermission(ctx.userId, 'accounting.reports');
   if (!permCheck.ok) return permCheck;
 
@@ -150,7 +142,11 @@ export async function cogsReport(
       const variantById = new Map<string, { sku: string; costPrice: bigint }>();
       if (ingredientIds.length) {
         const variantRows = await db
-          .select({ id: productVariants.id, sku: productVariants.sku, costPrice: productVariants.costPrice })
+          .select({
+            id: productVariants.id,
+            sku: productVariants.sku,
+            costPrice: productVariants.costPrice,
+          })
           .from(productVariants)
           .where(eq(productVariants.tenantId, ctx.tenantId));
         for (const v of variantRows) {

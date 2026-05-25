@@ -51,20 +51,28 @@ export const cmsTools = [
       const parsed = CMSListFaqsSchema.safeParse(input);
       if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
       const { listFaqs } = await import('@erp/services/cms');
-      const result = await listFaqs(ctx.tenantId, { activeOnly: parsed.data.active_only, category: parsed.data.category });
+      const result = await listFaqs(ctx.tenantId, {
+        activeOnly: parsed.data.active_only,
+        category: parsed.data.category,
+      });
       if (!result.ok) return serializeResult(result);
       return mcpSuccess({ faqs: result.value });
     },
   },
   {
     name: 'cms.update_setting',
-    description: 'Update a global CMS setting (e.g., site_notice, active_promo). Requires high privileges.',
+    description:
+      'Update a global CMS setting (e.g., site_notice, active_promo). Requires high privileges.',
     schema: CMSUpdateSettingSchema,
     handler: async (input: unknown, ctx: McpContext) => {
       const parsed = CMSUpdateSettingSchema.safeParse(input);
       if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
       const { setSetting } = await import('@erp/services/cms');
-      const result = await setSetting(ctx.tenantId, parsed.data.key, parsed.data.value, { userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' });
+      const result = await setSetting(ctx.tenantId, parsed.data.key, parsed.data.value, {
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      });
       if (!result.ok) return serializeResult(result);
       return mcpSuccess({ success: true, key: parsed.data.key });
     },
@@ -86,13 +94,15 @@ export const InventoryTransferStockSchema = z.object({
   to_location_id: z.string().min(1),
   transfer_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   reason: z.string(),
-  lines: z.array(
-    z.object({
-      productId: z.string().min(1),
-      qtyTransfer: z.string(),
-      uom: z.string(),
-    })
-  ).min(1),
+  lines: z
+    .array(
+      z.object({
+        productId: z.string().min(1),
+        qtyTransfer: z.string(),
+        uom: z.string(),
+      }),
+    )
+    .min(1),
 });
 
 export const inventoryToolsPhase3 = [
@@ -114,7 +124,7 @@ export const inventoryToolsPhase3 = [
           kind: parsed.data.kind,
           notes: parsed.data.notes,
         },
-        { userId: ctx.userId, tenantId: ctx.tenantId, locationId: locId }
+        { userId: ctx.userId, tenantId: ctx.tenantId, locationId: locId },
       );
       if (!result.ok) return serializeResult(result);
       return mcpSuccess({ session: result.value });
@@ -127,7 +137,7 @@ export const inventoryToolsPhase3 = [
     handler: async (input: unknown, ctx: McpContext) => {
       const parsed = InventoryTransferStockSchema.safeParse(input);
       if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
-      
+
       const { createTransferDraft } = await import('@erp/services/inventory/transfer-service');
       const result = await createTransferDraft(
         {
@@ -137,7 +147,7 @@ export const inventoryToolsPhase3 = [
           reason: parsed.data.reason as never,
           lines: parsed.data.lines,
         },
-        { userId: ctx.userId, tenantId: ctx.tenantId, locationId: parsed.data.from_location_id }
+        { userId: ctx.userId, tenantId: ctx.tenantId, locationId: parsed.data.from_location_id },
       );
       if (!result.ok) return serializeResult(result);
       return mcpSuccess({ transfer: result.value });
@@ -173,7 +183,7 @@ export const posToolsPhase3 = [
           description: parsed.data.description,
           idempotencyKey: crypto.randomUUID(),
         },
-        { userId: ctx.userId, tenantId: ctx.tenantId, locationId: locId }
+        { userId: ctx.userId, tenantId: ctx.tenantId, locationId: locId },
       );
       if (!result.ok) return serializeResult(result);
       return mcpSuccess({ expense: result.value });
@@ -197,9 +207,13 @@ export const hrToolsPhase3 = [
       if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
 
       const { listWhistleblowerReports } = await import('@erp/services/hr/whistleblower');
-      const result = await listWhistleblowerReports({ userId: ctx.userId, tenantId: ctx.tenantId, locationId: ctx.locationId ?? '' });
+      const result = await listWhistleblowerReports({
+        userId: ctx.userId,
+        tenantId: ctx.tenantId,
+        locationId: ctx.locationId ?? '',
+      });
       if (!result.ok) return serializeResult(result);
-      
+
       let items = result.value;
       if (parsed.data.status) {
         items = items.filter((r: any) => r.status === parsed.data.status);

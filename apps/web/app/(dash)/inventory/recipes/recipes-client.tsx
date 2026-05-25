@@ -1,6 +1,7 @@
 'use client';
 
 import { formatQty } from '@/lib/format-qty';
+import { Input, Select, TableBody, TableHeader } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import {
@@ -13,7 +14,6 @@ import {
   deleteRecipeLineAction,
   fetchRecipeLines,
 } from './actions';
-import { TableBody, TableHeader, Input, Select } from "@erp/ui";
 
 interface Props {
   initial: {
@@ -106,7 +106,7 @@ export function RecipesClient({ initial }: Props) {
   function submitNewLine() {
     if (!selectedBomId) return;
     setErr(null);
-    const qtyNum = parseFloat(newLine.qty);
+    const qtyNum = Number.parseFloat(newLine.qty);
     if (!newLine.ingredientId || !Number.isFinite(qtyNum) || qtyNum <= 0) {
       setErr(t('errors.selectIngredient'));
       return;
@@ -172,7 +172,6 @@ export function RecipesClient({ initial }: Props) {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={t('searchPlaceholder')}
-           
           />
           <button
             type="button"
@@ -194,7 +193,6 @@ export function RecipesClient({ initial }: Props) {
             <Select
               value={newRecipe.productId}
               onChange={(e) => setNewRecipe((p) => ({ ...p, productId: e.target.value }))}
-             
             >
               <option value="">{t('selectProduct')}</option>
               {initial.finishedGoods.map((p) => (
@@ -207,7 +205,6 @@ export function RecipesClient({ initial }: Props) {
               value={newRecipe.description}
               onChange={(e) => setNewRecipe((p) => ({ ...p, description: e.target.value }))}
               placeholder={t('notePlaceholder')}
-             
             />
             <button
               type="button"
@@ -271,7 +268,6 @@ export function RecipesClient({ initial }: Props) {
                     uom: ing?.uom ?? p.uom,
                   }));
                 }}
-               
               >
                 <option value="">{t('selectIngredient')}</option>
                 {initial.ingredients.map((i) => (
@@ -287,13 +283,11 @@ export function RecipesClient({ initial }: Props) {
                 value={newLine.qty}
                 onChange={(e) => setNewLine((p) => ({ ...p, qty: e.target.value }))}
                 placeholder={t('qty')}
-               
               />
               <Input
                 value={newLine.uom}
                 onChange={(e) => setNewLine((p) => ({ ...p, uom: e.target.value }))}
                 placeholder={t('uom')}
-               
               />
               <button
                 type="button"

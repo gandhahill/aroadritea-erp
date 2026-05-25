@@ -3,13 +3,13 @@
  * Shows journal entry header + lines table.
  */
 
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { fetchJournalDetail } from '../actions';
 import { fetchJournalAttachments } from '../attachments/actions';
 import { JournalAttachmentsList } from './attachments-list';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Journal Entry Detail',
@@ -63,9 +63,7 @@ export default async function JournalDetailPage({
       <div className="surface-card p-6">
         <div className="flex items-start justify-between">
           <div>
-            <PageHeader 
-                        title={<>{journal.number}</>}
-                      />
+            <PageHeader title={<>{journal.number}</>} />
             <p className="mt-2 text-sm text-brand-ink-2">{journal.description}</p>
           </div>
         </div>

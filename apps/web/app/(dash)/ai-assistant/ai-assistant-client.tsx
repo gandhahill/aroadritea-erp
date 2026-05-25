@@ -34,8 +34,8 @@ export function AiAssistantClient(props: Props) {
   if (!props.enabled) {
     return (
       <div className="rounded-xl border border-dashed border-brand-cream-3 bg-card p-10 text-center text-sm text-brand-ink-3">
-        Asisten AI dinonaktifkan oleh admin (AI_ASSISTANT_ENABLED=false). Hubungi
-        administrator untuk mengaktifkan kembali.
+        Asisten AI dinonaktifkan oleh admin (AI_ASSISTANT_ENABLED=false). Hubungi administrator
+        untuk mengaktifkan kembali.
       </div>
     );
   }

@@ -9,13 +9,13 @@
 
 import { getNextDemoOrderNumber } from '@erp/offline';
 import type { DemoOrder } from '@erp/offline';
+import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { type RoundingOption, getDonationOptions } from '../lib/donation-options';
 import { DemoReceiptPreview } from './components/demo-receipt-preview';
 import { useDemoCart } from './demo-cart-context';
 import { useDemoMode } from './demo-mode-context';
-import { Input } from "@erp/ui";
 
 const BASE_PAYMENT_METHODS = [
   { id: 'cash', badge: 'Rp' },

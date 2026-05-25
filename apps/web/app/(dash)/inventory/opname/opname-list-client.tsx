@@ -1,9 +1,9 @@
 'use client';
 
+import { FilterBar, FilterField } from '@/components/filter-bar';
+import { Input, Select, TableCell, TableHead } from '@erp/ui';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { TableCell, TableHead, Select, Input } from "@erp/ui";
-import { FilterBar, FilterField } from '@/components/filter-bar';
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   draft: { bg: 'bg-brand-cream-2', text: 'text-brand-ink-2', label: 'Draf' },
@@ -105,7 +105,7 @@ export function OpnameListClient({ rows }: { rows: Row[] }) {
             />
           </div>
         </FilterField>
-        
+
         <div className="ml-auto flex items-center text-xs text-brand-ink-3">
           {filtered.length} dari {rows.length}
         </div>
@@ -115,13 +115,27 @@ export function OpnameListClient({ rows }: { rows: Row[] }) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">No. Sesi</TableHead>
-              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">Jenis</TableHead>
-              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">Tanggal</TableHead>
-              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">Periode</TableHead>
-              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">Status</TableHead>
-              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">Dibuat oleh</TableHead>
-              <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">Aksi</TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                No. Sesi
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                Jenis
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                Tanggal
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                Periode
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                Status
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                Dibuat oleh
+              </TableHead>
+              <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                Aksi
+              </TableHead>
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-2">
@@ -142,7 +156,9 @@ export function OpnameListClient({ rows }: { rows: Row[] }) {
                 };
                 return (
                   <tr key={row.id} className="hover:bg-brand-cream-1/50">
-                    <TableCell className="px-4 py-3 font-medium text-brand-ink">{row.number}</TableCell>
+                    <TableCell className="px-4 py-3 font-medium text-brand-ink">
+                      {row.number}
+                    </TableCell>
                     <TableCell className="px-4 py-3 text-brand-ink-2">
                       <span className="rounded-full bg-brand-cream-2 px-2 py-0.5 text-xs">
                         {KIND_LABEL[row.kind] ?? row.kind}
@@ -157,7 +173,9 @@ export function OpnameListClient({ rows }: { rows: Row[] }) {
                         {s.label}
                       </span>
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-brand-ink-2">{row.preparedBy ?? '—'}</TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink-2">
+                      {row.preparedBy ?? '—'}
+                    </TableCell>
                     <TableCell className="px-4 py-3 text-right">
                       <Link
                         href={`/inventory/opname/${row.id}`}

@@ -1,9 +1,9 @@
 'use client';
 
+import { Button, Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { createSupplierAction } from './actions';
-import { Button, Input } from "@erp/ui";
 
 export function SupplierForm() {
   const t = useTranslations('purchasing');
@@ -63,11 +63,7 @@ export function SupplierForm() {
         {t('supplierPkp')}
       </label>
 
-      <Button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg " variant="primary" size="lg"
-      >
+      <Button type="submit" disabled={pending} className="rounded-lg " variant="primary" size="lg">
         {pending ? t('saving') : t('saveSupplier')}
       </Button>
     </form>

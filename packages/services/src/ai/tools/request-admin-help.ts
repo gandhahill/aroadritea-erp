@@ -57,7 +57,9 @@ export async function requestAdminHelpTool(
     lines.push(`Halaman: ${url}`);
   }
   lines.push(`Waktu kejadian: ${when}`);
-  lines.push(`User: ${ctx.userId} (tenant ${ctx.tenantId}${locationId ? `, lokasi ${locationId}` : ''}).`);
+  lines.push(
+    `User: ${ctx.userId} (tenant ${ctx.tenantId}${locationId ? `, lokasi ${locationId}` : ''}).`,
+  );
   lines.push('');
   lines.push('Mohon arahan apa yang perlu saya lakukan. Terima kasih.');
 

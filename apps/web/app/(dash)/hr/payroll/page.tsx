@@ -8,15 +8,15 @@
  * - Run payroll → creates draft payroll
  */
 
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { and, db, eq, isNull } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import { employees, payrolls } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
 import { PayrollRunClient } from './payroll-run-client';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: 'Payroll' };
 
@@ -81,10 +81,7 @@ export default async function PayrollPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
 
       <PayrollRunClient
         locations={locations_}

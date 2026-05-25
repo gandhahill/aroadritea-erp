@@ -2,8 +2,8 @@
  * Member detail for management — T-0183.
  */
 
-import { getSession } from '@/lib/auth';
 import { PageHeader } from '@/components/page-header';
+import { getSession } from '@/lib/auth';
 import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
@@ -102,7 +102,9 @@ export default async function MemberDetailPage({
                     {t.delta > 0 ? '+' : ''}
                     {t.delta.toLocaleString('id-ID')}
                   </td>
-                  <td className="px-3 py-2 text-right font-mono">{t.balanceAfter.toLocaleString('id-ID')}</td>
+                  <td className="px-3 py-2 text-right font-mono">
+                    {t.balanceAfter.toLocaleString('id-ID')}
+                  </td>
                   <td className="px-3 py-2 text-brand-ink-3">{t.reason ?? '—'}</td>
                 </tr>
               ))
@@ -118,7 +120,11 @@ function Card({ label, value, highlight }: { label: string; value: string; highl
   return (
     <div className="rounded-xl border border-brand-cream-3 bg-card p-3">
       <p className="text-xs uppercase tracking-wide text-brand-ink-3">{label}</p>
-      <p className={`mt-1 text-lg font-bold capitalize ${highlight ? 'text-brand-red' : 'text-brand-ink'}`}>{value}</p>
+      <p
+        className={`mt-1 text-lg font-bold capitalize ${highlight ? 'text-brand-red' : 'text-brand-ink'}`}
+      >
+        {value}
+      </p>
     </div>
   );
 }

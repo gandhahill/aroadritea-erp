@@ -1,10 +1,19 @@
 'use client';
 
+import {
+  Button,
+  Input,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+} from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useMemo, useState } from 'react';
 import { type PurchaseOrderFormData, createPurchaseOrderAction } from '../../actions';
-import { Button, TableCell, Select, Input, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
 
 interface LineDraft {
   key: number;
@@ -151,7 +160,6 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
                       required
                       value={line.productId}
                       onChange={(event) => updateLine(line.key, { productId: event.target.value })}
-                     
                     >
                       <option value="">{t('selectProduct')}</option>
                       {data.products.map((product) => (
@@ -177,7 +185,6 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
                       required
                       value={line.uom}
                       onChange={(event) => updateLine(line.key, { uom: event.target.value })}
-                     
                     />
                   </TableCell>
                   <TableCell className="px-4 py-3">
@@ -195,7 +202,6 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
                       name={`taxCode-${index}`}
                       value={line.taxCode}
                       onChange={(event) => updateLine(line.key, { taxCode: event.target.value })}
-                     
                     >
                       <option value="">{t('noTax')}</option>
                       {data.taxRates.map((rate) => (
@@ -242,14 +248,18 @@ export function PurchaseOrderForm({ data }: { data: PurchaseOrderFormData }) {
           <Button
             type="button"
             onClick={() => router.push('/purchasing')}
-            className="rounded-lg " variant="secondary" size="md"
+            className="rounded-lg "
+            variant="secondary"
+            size="md"
           >
             {tc('actions.cancel')}
           </Button>
           <Button
             type="submit"
             disabled={pending || data.suppliers.length === 0 || data.products.length === 0}
-            className="rounded-lg " variant="primary" size="lg"
+            className="rounded-lg "
+            variant="primary"
+            size="lg"
           >
             {pending ? tc('actions.saving') : t('savePo')}
           </Button>

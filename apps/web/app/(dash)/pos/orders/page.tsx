@@ -14,9 +14,9 @@ import type { ReactNode } from 'react';
 import { fetchTodaysOrders } from './actions';
 import { OrdersClient } from './orders-client';
 
+import { PageHeader } from '@/components/page-header';
 import { Pagination } from '@/components/pagination';
 import { ExportOrdersButton } from './export-orders-button';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: 'Riwayat Pesanan — POS' }; // Needs generating dynamically later if want fully i18n title
 export const dynamic = 'force-dynamic';
@@ -46,7 +46,11 @@ export default async function PosOrdersPage({ searchParams }: Props) {
         <PageHeader title={<>{t('title')}</>} />
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-8 text-center text-rose-700">
           <p className="font-medium">Tidak dapat memuat pesanan.</p>
-          <p className="text-sm mt-1">{data.error === 'Unauthenticated' ? 'Anda belum memiliki lokasi POS yang diatur pada sesi ini.' : data.error}</p>
+          <p className="text-sm mt-1">
+            {data.error === 'Unauthenticated'
+              ? 'Anda belum memiliki lokasi POS yang diatur pada sesi ini.'
+              : data.error}
+          </p>
         </div>
       </div>
     );
@@ -54,17 +58,19 @@ export default async function PosOrdersPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-4">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-            eyebrow={<>POS</>}
-            actions={<>
-          <div className="flex items-center gap-2">
-                    <DatePicker initialDate={date} t={t} />
-                    <ExportOrdersButton date={date} />
-                  </div>
-            </>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={<>{t('subtitle')}</>}
+        eyebrow={<>POS</>}
+        actions={
+          <>
+            <div className="flex items-center gap-2">
+              <DatePicker initialDate={date} t={t} />
+              <ExportOrdersButton date={date} />
+            </div>
+          </>
+        }
+      />
 
       <OrdersClient rows={data.rows} />
       <Pagination currentPage={data.page} totalItems={data.total} pageSize={data.pageSize} />

@@ -1,11 +1,11 @@
 'use client';
 
 import { authClient } from '@/lib/auth-client';
+import { Input } from '@erp/ui';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 import { clearPasswordRequirementAction } from './actions';
-import { useTranslations } from 'next-intl';
-import { Input } from "@erp/ui";
 
 export default function ChangePasswordPage() {
   const t = useTranslations('auth.changePassword');

@@ -1,6 +1,16 @@
 'use client';
 
 import { pickLocalized } from '@/lib/pick-localized';
+import {
+  Button,
+  Input,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+} from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useMemo, useState } from 'react';
@@ -11,7 +21,6 @@ import {
   createJournalAction,
 } from '../actions';
 import { uploadAttachmentAction } from '../attachments/actions';
-import { Button, Input, TableCell, Select, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
 
 interface LineDraft {
   key: number;
@@ -222,7 +231,6 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                       required
                       value={line.accountId}
                       onChange={(event) => updateLine(line.key, { accountId: event.target.value })}
-                     
                     >
                       <option value="">{t('selectAccount')}</option>
                       {accounts.map((account) => (
@@ -239,7 +247,6 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                       onChange={(event) =>
                         updateLine(line.key, { description: event.target.value })
                       }
-                     
                     />
                   </TableCell>
                   <TableCell className="min-w-52 px-4 py-3">
@@ -247,7 +254,6 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                       name={`partnerId-${index}`}
                       value={line.partnerId}
                       onChange={(event) => updateLine(line.key, { partnerId: event.target.value })}
-                     
                     >
                       <option value="">{t('noPartner')}</option>
                       {partners.map((partner) => (
@@ -263,7 +269,6 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                       type="date"
                       value={line.dueDate}
                       onChange={(event) => updateLine(line.key, { dueDate: event.target.value })}
-                     
                     />
                   </TableCell>
                   <TableCell className="min-w-28 px-4 py-3">
@@ -276,7 +281,6 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                       onChange={(event) =>
                         updateLine(line.key, { reminderDaysBefore: event.target.value })
                       }
-                     
                     />
                   </TableCell>
                   <TableCell className="min-w-52 px-4 py-3">
@@ -284,7 +288,6 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                       name={`lineLocationId-${index}`}
                       value={line.locationId || defaultLocationId}
                       onChange={(event) => updateLine(line.key, { locationId: event.target.value })}
-                     
                     >
                       {locations.map((location) => (
                         <option key={location.id} value={location.id}>
@@ -320,7 +323,9 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                       type="button"
                       onClick={() => removeLine(line.key)}
                       disabled={lines.length <= 2}
-                      className="rounded-md " variant="danger" size="sm"
+                      className="rounded-md "
+                      variant="danger"
+                      size="sm"
                     >
                       {t('deleteItem')}
                     </Button>
@@ -334,7 +339,9 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                   Total
                 </TableCell>
                 <TableCell className="px-4 py-3 text-right">{formatRupiah(totals.debit)}</TableCell>
-                <TableCell className="px-4 py-3 text-right">{formatRupiah(totals.credit)}</TableCell>
+                <TableCell className="px-4 py-3 text-right">
+                  {formatRupiah(totals.credit)}
+                </TableCell>
                 <TableCell className="px-4 py-3">
                   {totals.debit === totals.credit && totals.debit > 0 ? (
                     <span className="rounded-full bg-brand-jade-light px-2 py-1 text-xs text-brand-jade">
@@ -353,10 +360,10 @@ export function JournalForm({ accounts, locations, partners }: Props) {
       </section>
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-        <h2 className="text-base font-semibold text-brand-ink">{tc('labels.attachmentsOptional', { fallback: 'Lampiran (opsional)' })}</h2>
-        <p className="mt-1 text-sm text-brand-ink-3">
-          {t('attachmentHint')}
-        </p>
+        <h2 className="text-base font-semibold text-brand-ink">
+          {tc('labels.attachmentsOptional', { fallback: 'Lampiran (opsional)' })}
+        </h2>
+        <p className="mt-1 text-sm text-brand-ink-3">{t('attachmentHint')}</p>
         <div className="mt-3 space-y-2">
           <Input
             type="file"
@@ -378,7 +385,9 @@ export function JournalForm({ accounts, locations, partners }: Props) {
           ) : null}
           {uploadError ? <p className="text-xs text-rose-600">{uploadError}</p> : null}
           {uploadingAttachments ? (
-            <p className="text-xs text-brand-ink-3">{tc('actions.uploading', { fallback: 'Mengunggah lampiran…' })}</p>
+            <p className="text-xs text-brand-ink-3">
+              {tc('actions.uploading', { fallback: 'Mengunggah lampiran…' })}
+            </p>
           ) : null}
         </div>
       </section>
@@ -387,7 +396,9 @@ export function JournalForm({ accounts, locations, partners }: Props) {
         <Button
           type="button"
           onClick={() => router.push('/accounting/journals')}
-          className="rounded-lg " variant="secondary" size="md"
+          className="rounded-lg "
+          variant="secondary"
+          size="md"
         >
           {tc('actions.cancel')}
         </Button>
@@ -396,7 +407,9 @@ export function JournalForm({ accounts, locations, partners }: Props) {
           disabled={
             isPending || uploadingAttachments || accounts.length === 0 || locations.length === 0
           }
-          className="rounded-lg " variant="primary" size="lg"
+          className="rounded-lg "
+          variant="primary"
+          size="lg"
         >
           {isPending || uploadingAttachments ? t('saving') : t('saveDraft')}
         </Button>

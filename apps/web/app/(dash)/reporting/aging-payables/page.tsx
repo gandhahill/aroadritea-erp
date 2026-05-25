@@ -3,14 +3,14 @@
  * with `kind="AP"`).
  */
 
-import { getSession } from '@/lib/auth';
 import { PageHeader } from '@/components/page-header';
+import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
-import { fetchAgingPayables } from './actions';
 import { AgingClient } from '../_components/aging-client';
+import { fetchAgingPayables } from './actions';
 
 export const metadata: Metadata = { title: 'Aging Payables' };
 
@@ -48,8 +48,8 @@ export default async function AgingPayablesPage({
         asOf={asOf}
         locationId={locationId ?? ''}
         locationOptions={locationOptions.map((l) => ({ value: l.id, label: l.label }))}
-        data={result.ok ? result.data ?? null : null}
-        error={result.ok ? null : result.error ?? null}
+        data={result.ok ? (result.data ?? null) : null}
+        error={result.ok ? null : (result.error ?? null)}
       />
     </main>
   );

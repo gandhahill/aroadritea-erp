@@ -39,10 +39,10 @@ import { createJournal } from '../accounting/create-journal';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import {
-  CreatePurchaseReturnInputSchema,
   type CreatePurchaseReturnInput,
-  PurchaseReturnIdInputSchema,
+  CreatePurchaseReturnInputSchema,
   type PurchaseReturnIdInput,
+  PurchaseReturnIdInputSchema,
 } from './return-schemas';
 
 // ─── Constants ─────────────────────────────────────────────────────────────
@@ -161,12 +161,7 @@ export async function createPurchaseReturn(
   const [grn] = await db
     .select()
     .from(goodsReceiptNotes)
-    .where(
-      and(
-        eq(goodsReceiptNotes.tenantId, ctx.tenantId),
-        eq(goodsReceiptNotes.id, input.grnId),
-      ),
-    )
+    .where(and(eq(goodsReceiptNotes.tenantId, ctx.tenantId), eq(goodsReceiptNotes.id, input.grnId)))
     .limit(1);
   if (!grn) {
     return err(AppError.notFound('purchasing.errors.grn_not_found'));
@@ -188,10 +183,7 @@ export async function createPurchaseReturn(
   }
 
   // Load the GRN lines once for qty validation.
-  const srcLines = await db
-    .select()
-    .from(grnLines)
-    .where(eq(grnLines.grnId, grn.id));
+  const srcLines = await db.select().from(grnLines).where(eq(grnLines.grnId, grn.id));
   const grnLineMap = new Map(srcLines.map((l) => [l.id, l]));
 
   for (const line of input.lines) {
@@ -394,10 +386,17 @@ export async function submitPurchaseReturn(
   if (!parsed.success) {
     return err(AppError.validation('purchasing.errors.invalid_input'));
   }
-  return transitionStatus(parsed.data.returnId, 'draft', 'submitted', ctx, 'purchasing.return.create', {
-    submittedBy: ctx.userId,
-    submittedAt: new Date(),
-  });
+  return transitionStatus(
+    parsed.data.returnId,
+    'draft',
+    'submitted',
+    ctx,
+    'purchasing.return.create',
+    {
+      submittedBy: ctx.userId,
+      submittedAt: new Date(),
+    },
+  );
 }
 
 export async function approvePurchaseReturn(
@@ -434,10 +433,7 @@ export async function cancelPurchaseReturn(
     .select()
     .from(purchaseReturns)
     .where(
-      and(
-        eq(purchaseReturns.tenantId, ctx.tenantId),
-        eq(purchaseReturns.id, parsed.data.returnId),
-      ),
+      and(eq(purchaseReturns.tenantId, ctx.tenantId), eq(purchaseReturns.id, parsed.data.returnId)),
     )
     .limit(1);
   if (!row) return err(AppError.notFound('purchasing.errors.return_not_found'));
@@ -449,10 +445,17 @@ export async function cancelPurchaseReturn(
       }),
     );
   }
-  return transitionStatus(parsed.data.returnId, row.status, 'cancelled', ctx, 'purchasing.return.create', {
-    cancelledBy: ctx.userId,
-    cancelledAt: new Date(),
-  });
+  return transitionStatus(
+    parsed.data.returnId,
+    row.status,
+    'cancelled',
+    ctx,
+    'purchasing.return.create',
+    {
+      cancelledBy: ctx.userId,
+      cancelledAt: new Date(),
+    },
+  );
 }
 
 // ─── Post (creates JE + decrements stock) ─────────────────────────────────
@@ -470,10 +473,7 @@ export async function postPurchaseReturn(
     .select()
     .from(purchaseReturns)
     .where(
-      and(
-        eq(purchaseReturns.tenantId, ctx.tenantId),
-        eq(purchaseReturns.id, parsed.data.returnId),
-      ),
+      and(eq(purchaseReturns.tenantId, ctx.tenantId), eq(purchaseReturns.id, parsed.data.returnId)),
     )
     .limit(1);
   if (!row) return err(AppError.notFound('purchasing.errors.return_not_found'));
@@ -553,10 +553,7 @@ export async function postPurchaseReturn(
       return err(AppError.businessRule('purchasing.errors.grni_account_not_found'));
     }
     const firstLine = lines[0]!;
-    const invAccountId = await resolveInventoryAccountForProduct(
-      ctx.tenantId,
-      firstLine.productId,
-    );
+    const invAccountId = await resolveInventoryAccountForProduct(ctx.tenantId, firstLine.productId);
 
     const jeResult = await createJournal(
       {
@@ -594,10 +591,7 @@ export async function postPurchaseReturn(
       return jeResult;
     }
     journalEntryId = jeResult.value.id;
-    await db
-      .update(purchaseReturns)
-      .set({ journalEntryId })
-      .where(eq(purchaseReturns.id, row.id));
+    await db.update(purchaseReturns).set({ journalEntryId }).where(eq(purchaseReturns.id, row.id));
   }
 
   // Stock movements + level decrement (variant-aware lookup).

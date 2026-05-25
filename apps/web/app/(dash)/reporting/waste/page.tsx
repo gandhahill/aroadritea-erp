@@ -2,8 +2,8 @@
  * Waste / Spoilage report — T-0174.
  */
 
-import { getSession } from '@/lib/auth';
 import { PageHeader } from '@/components/page-header';
+import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -60,8 +60,8 @@ export default async function WastePage({
         locationId={locationId ?? ''}
         includePending={includePending}
         locationOptions={locationOptions.map((l) => ({ value: l.id, label: l.label }))}
-        data={result.ok ? result.data ?? null : null}
-        error={result.ok ? null : result.error ?? null}
+        data={result.ok ? (result.data ?? null) : null}
+        error={result.ok ? null : (result.error ?? null)}
       />
     </main>
   );

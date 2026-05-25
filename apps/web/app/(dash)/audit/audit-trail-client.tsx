@@ -1,11 +1,11 @@
 'use client';
 
+import { PageHeader } from '@/components/page-header';
 import { Pagination } from '@/components/pagination';
+import { Button, Input, Select, TableCell, TableHead, TableHeader } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import type { AuditTrailFilters, AuditTrailPageData } from './actions';
-import { Input, TableCell, TableHead, TableHeader, Button, Select } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 export function AuditTrailClient({
   data,
@@ -31,10 +31,7 @@ export function AuditTrailClient({
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
 
       <form
         action={applyFilters}
@@ -77,7 +74,9 @@ export function AuditTrailClient({
         <FilterInput label={t('to')} name="to" type="date" defaultValue={filters.to} />
         <Button
           type="submit"
-          className="self-end rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark" variant="primary" size="md"
+          className="self-end rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
+          variant="primary"
+          size="md"
         >
           {t('apply')}
         </Button>

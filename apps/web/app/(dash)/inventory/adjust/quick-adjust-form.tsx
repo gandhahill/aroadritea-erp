@@ -1,9 +1,9 @@
 'use client';
 
+import { Button, Input, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { type QuickAdjustData, createQuickAdjustmentAction } from './actions';
-import { Button, Input, Select } from "@erp/ui";
 
 export function QuickAdjustForm({ data }: { data: QuickAdjustData }) {
   const t = useTranslations('inventory.adjust');
@@ -85,7 +85,9 @@ export function QuickAdjustForm({ data }: { data: QuickAdjustData }) {
         <Button
           type="submit"
           disabled={pending}
-          className="rounded-lg " variant="primary" size="lg"
+          className="rounded-lg "
+          variant="primary"
+          size="lg"
         >
           {pending ? t('submitting') : t('submit')}
         </Button>

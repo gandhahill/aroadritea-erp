@@ -1,8 +1,9 @@
 'use client';
 
+import { Table, TableBody, TableHead, TableHeader } from '@erp/ui';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { useTranslations } from 'next-intl';
 import {
   type OrderDetail,
   type OrderListRow,
@@ -10,7 +11,6 @@ import {
   refundOrderAction,
   voidOrderAction,
 } from './actions';
-import { TableBody, TableHeader, TableHead, Table } from "@erp/ui";
 
 interface Props {
   rows: OrderListRow[];

@@ -29,9 +29,9 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
 import { createJournal } from '../accounting/create-journal';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { generateOpnameNumber } from '../shared/number-generator';
-import { auditRecord } from "../audit";
 
 type SupportedLocale = 'id' | 'en' | 'zh';
 
@@ -332,19 +332,19 @@ export async function createOpnameDraft(
 
   // Audit log
   await auditRecord({
-      action: 'create',
-      entityType: 'stock_opname_session',
-      entityId: id,
-      before: null,
-      after: {
-          id,
-          number,
-          sessionDate: input.sessionDate,
-          periodCode: input.periodCode,
-          linesCount: lines.length,
-        },
-      ctx,
-    });
+    action: 'create',
+    entityType: 'stock_opname_session',
+    entityId: id,
+    before: null,
+    after: {
+      id,
+      number,
+      sessionDate: input.sessionDate,
+      periodCode: input.periodCode,
+      linesCount: lines.length,
+    },
+    ctx,
+  });
 
   return ok({
     id,
@@ -557,13 +557,13 @@ export async function submitOpname(
     .where(eq(stockOpnameSessions.id, sessionId));
 
   await auditRecord({
-      action: 'submit',
-      entityType: 'stock_opname_session',
-      entityId: sessionId,
-      before: { status: session.status },
-      after: { status: 'submitted' },
-      ctx,
-    });
+    action: 'submit',
+    entityType: 'stock_opname_session',
+    entityId: sessionId,
+    before: { status: session.status },
+    after: { status: 'submitted' },
+    ctx,
+  });
 
   return ok({
     id: session.id,
@@ -774,13 +774,13 @@ export async function approveOpname(
   // Session was already claimed above; no second status update needed.
 
   await auditRecord({
-      action: 'approve',
-      entityType: 'stock_opname_session',
-      entityId: sessionId,
-      before: { status: 'submitted' },
-      after: { status: 'approved', journalEntryId: resultJournalId, linesCount: lines.length },
-      ctx,
-    });
+    action: 'approve',
+    entityType: 'stock_opname_session',
+    entityId: sessionId,
+    before: { status: 'submitted' },
+    after: { status: 'approved', journalEntryId: resultJournalId, linesCount: lines.length },
+    ctx,
+  });
 
   return ok({
     id: session.id,
@@ -840,13 +840,13 @@ export async function cancelOpname(
     .where(eq(stockOpnameSessions.id, sessionId));
 
   await auditRecord({
-      action: 'cancel',
-      entityType: 'stock_opname_session',
-      entityId: sessionId,
-      before: { status: session.status },
-      after: { status: 'cancelled' },
-      ctx,
-    });
+    action: 'cancel',
+    entityType: 'stock_opname_session',
+    entityId: sessionId,
+    before: { status: session.status },
+    after: { status: 'cancelled' },
+    ctx,
+  });
 
   return ok({ id: sessionId, status: 'cancelled' });
 }

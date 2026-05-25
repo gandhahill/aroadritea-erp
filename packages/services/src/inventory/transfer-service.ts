@@ -33,6 +33,7 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, gte, inArray, sql } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { generateTransferNumber } from '../shared/number-generator';
 import {
@@ -40,7 +41,6 @@ import {
   ReceiveTransferInputSchema,
   ShipTransferInputSchema,
 } from './schemas';
-import { auditRecord } from "../audit";
 
 // ─── Return types ─────────────────────────────────────────────────────────────
 
@@ -193,14 +193,14 @@ export async function createTransferDraft(
     await db.insert(stockTransferLines).values(lineValues);
 
     await auditRecord({
-        action: 'create',
-        entityType: 'stock_transfer',
-        entityId: trfId,
-        before: null,
-        after: { number: trfNumber, lineCount: lineValues.length },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'create',
+      entityType: 'stock_transfer',
+      entityId: trfId,
+      before: null,
+      after: { number: trfNumber, lineCount: lineValues.length },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok(
       buildTransferResult(
@@ -418,7 +418,7 @@ export async function shipTransfer(
       ),
     );
   } catch (e: any) {
-    if (e.code === '23514' || (e.message && e.message.includes('stock_levels_qty_check'))) {
+    if (e.code === '23514' || e.message?.includes('stock_levels_qty_check')) {
       return err(AppError.businessRule('inventory.transfer.insufficientStock'));
     }
     return err(AppError.internal('inventory.transfer.shipFailed', e));
@@ -555,14 +555,14 @@ export async function receiveTransfer(
     }
 
     await auditRecord({
-        action: 'receive',
-        entityType: 'stock_transfer',
-        entityId: data.transferId,
-        before: { status: 'in_transit' },
-        after: { status: 'received' },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'receive',
+      entityType: 'stock_transfer',
+      entityId: data.transferId,
+      before: { status: 'in_transit' },
+      after: { status: 'received' },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     const updatedLines = await db
       .select()
@@ -635,14 +635,14 @@ export async function cancelTransfer(
       .orderBy(stockTransferLines.lineNo);
 
     await auditRecord({
-        action: 'cancel',
-        entityType: 'stock_transfer',
-        entityId: transferId,
-        before: { status: trf.status },
-        after: { status: 'cancelled' },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'cancel',
+      entityType: 'stock_transfer',
+      entityId: transferId,
+      before: { status: trf.status },
+      after: { status: 'cancelled' },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok(
       buildTransferResult(

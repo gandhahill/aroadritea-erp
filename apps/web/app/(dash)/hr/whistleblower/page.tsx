@@ -1,13 +1,13 @@
+import { FilterBar, FilterField } from '@/components/filter-bar';
+import { PageHeader } from '@/components/page-header';
+import { Pagination } from '@/components/pagination';
 import { getSession } from '@/lib/auth';
-import { db, desc, eq, and, sql } from '@erp/db';
+import { and, db, desc, eq, sql } from '@erp/db';
 import { whistleblowerReports } from '@erp/db/schema/whistleblower';
+import { requirePermission } from '@erp/services/iam';
+import { Button, Select, TableBody, TableCell, TableHead } from '@erp/ui';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
-import { requirePermission } from '@erp/services/iam';
-import { Pagination } from '@/components/pagination';
-import { TableCell, TableBody, TableHead, Button, Select } from "@erp/ui";
-import { FilterBar, FilterField } from "@/components/filter-bar";
-import { PageHeader } from "@/components/page-header";
 
 interface Props {
   searchParams?: Promise<{
@@ -22,10 +22,10 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
   if (!session?.user) redirect('/login');
 
   await requirePermission(session.user.id, 'hr.whistleblower.read');
-  
+
   const params = await searchParams;
-  const page = parseInt(params?.page || '1') || 1;
-  const pageSize = parseInt(params?.pageSize || '20') || 20;
+  const page = Number.parseInt(params?.page || '1') || 1;
+  const pageSize = Number.parseInt(params?.pageSize || '20') || 20;
   const filterStatus = params?.status || '';
 
   const tenantId = (session.user as any).tenantId;
@@ -52,33 +52,26 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
 
   return (
     <main className="p-6">
-      <PageHeader 
-            title={<>{t('title') || 'Whistleblower Reports (Admin)'}</>}
-            description={<>{t('subtitle') || 'Manage and review anonymous reports.'}</>}
-          />
+      <PageHeader
+        title={<>{t('title') || 'Whistleblower Reports (Admin)'}</>}
+        description={<>{t('subtitle') || 'Manage and review anonymous reports.'}</>}
+      />
 
-      <form method="GET" className="mb-6"><FilterBar>
-        <FilterField>
-          <Select
-            name="status"
-            defaultValue={filterStatus}
-            className="w-full sm:w-48"
-          >
-            <option value="">{t('allStatus') || 'All Status'}</option>
-            <option value="open">{t('statusOpen') || 'Open'}</option>
-            <option value="investigating">{t('statusInvestigating') || 'Investigating'}</option>
-            <option value="resolved">{t('statusResolved') || 'Resolved'}</option>
-          </Select>
-        </FilterField>
-        {params?.pageSize && <input type="hidden" name="pageSize" value={params.pageSize} />}
-        <Button
-          type="submit"
-          variant="primary"
-          className="h-9"
-        >
-          {t('filterBtn') || 'Filter'}
-        </Button>
-      </FilterBar>
+      <form method="GET" className="mb-6">
+        <FilterBar>
+          <FilterField>
+            <Select name="status" defaultValue={filterStatus} className="w-full sm:w-48">
+              <option value="">{t('allStatus') || 'All Status'}</option>
+              <option value="open">{t('statusOpen') || 'Open'}</option>
+              <option value="investigating">{t('statusInvestigating') || 'Investigating'}</option>
+              <option value="resolved">{t('statusResolved') || 'Resolved'}</option>
+            </Select>
+          </FilterField>
+          {params?.pageSize && <input type="hidden" name="pageSize" value={params.pageSize} />}
+          <Button type="submit" variant="primary" className="h-9">
+            {t('filterBtn') || 'Filter'}
+          </Button>
+        </FilterBar>
       </form>
 
       <div className="rounded-xl border border-brand-cream-3 bg-card shadow-sm">
@@ -86,7 +79,9 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
           <thead className="border-b border-brand-cream-3 bg-brand-cream/50 text-brand-ink-2">
             <tr>
               <TableHead className="px-4 py-3 font-semibold">{t('date') || 'Date'}</TableHead>
-              <TableHead className="px-4 py-3 font-semibold">{t('reportTitle') || 'Title'}</TableHead>
+              <TableHead className="px-4 py-3 font-semibold">
+                {t('reportTitle') || 'Title'}
+              </TableHead>
               <TableHead className="px-4 py-3 font-semibold">{t('status') || 'Status'}</TableHead>
             </tr>
           </thead>
@@ -118,13 +113,19 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
                       report.status === 'open'
                         ? 'bg-blue-50 text-blue-700'
                         : report.status === 'investigating'
-                        ? 'bg-amber-50 text-amber-700'
-                        : report.status === 'resolved'
-                        ? 'bg-brand-jade/10 text-brand-jade'
-                        : 'bg-brand-cream-3 text-brand-ink-2'
+                          ? 'bg-amber-50 text-amber-700'
+                          : report.status === 'resolved'
+                            ? 'bg-brand-jade/10 text-brand-jade'
+                            : 'bg-brand-cream-3 text-brand-ink-2'
                     }`}
                   >
-                    {report.status === 'open' ? (t('statusOpen') || 'Open') : report.status === 'investigating' ? (t('statusInvestigating') || 'Investigating') : report.status === 'resolved' ? (t('statusResolved') || 'Resolved') : report.status}
+                    {report.status === 'open'
+                      ? t('statusOpen') || 'Open'
+                      : report.status === 'investigating'
+                        ? t('statusInvestigating') || 'Investigating'
+                        : report.status === 'resolved'
+                          ? t('statusResolved') || 'Resolved'
+                          : report.status}
                   </span>
                 </TableCell>
               </tr>
@@ -141,11 +142,7 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
       </div>
 
       <div className="mt-6">
-        <Pagination
-          currentPage={page}
-          totalItems={Number(count)}
-          pageSize={pageSize}
-        />
+        <Pagination currentPage={page} totalItems={Number(count)} pageSize={pageSize} />
       </div>
     </main>
   );

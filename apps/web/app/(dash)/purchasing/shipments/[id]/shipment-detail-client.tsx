@@ -1,8 +1,8 @@
 'use client';
 
+import { Input, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { syncPurchaseShipmentAction } from '../../actions';
-import { Input, Select } from '@erp/ui';
 import type { ShipmentDetail } from '../../actions';
 
 const COURIERS = [
@@ -52,9 +52,7 @@ export function ShipmentDetailClient({ detail }: { detail: ShipmentDetail }) {
   const status = pickString(summary, 'status') ?? detail.trackingStatus ?? '—';
   const lastUpdate =
     pickString(summary, 'date') ??
-    (detail.trackingSyncedAt
-      ? detail.trackingSyncedAt.slice(0, 16).replace('T', ' ')
-      : null);
+    (detail.trackingSyncedAt ? detail.trackingSyncedAt.slice(0, 16).replace('T', ' ') : null);
 
   return (
     <>
@@ -92,7 +90,11 @@ export function ShipmentDetailClient({ detail }: { detail: ShipmentDetail }) {
           <input type="hidden" name="poId" value={detail.poId} />
           <div>
             <label className="text-xs font-semibold text-brand-ink-3">{t('courier')}</label>
-            <Select name="courierCode" defaultValue={detail.courierCode ?? 'jne'} className="w-full">
+            <Select
+              name="courierCode"
+              defaultValue={detail.courierCode ?? 'jne'}
+              className="w-full"
+            >
               {COURIERS.map((c) => (
                 <option key={c} value={c}>
                   {c}
@@ -166,9 +168,7 @@ function Field({
   return (
     <div>
       <dt className="text-xs uppercase tracking-wider text-brand-ink-3">{label}</dt>
-      <dd
-        className={`mt-1 text-sm text-brand-ink ${mono ? 'font-mono' : 'font-medium'}`}
-      >
+      <dd className={`mt-1 text-sm text-brand-ink ${mono ? 'font-mono' : 'font-medium'}`}>
         {value}
       </dd>
     </div>

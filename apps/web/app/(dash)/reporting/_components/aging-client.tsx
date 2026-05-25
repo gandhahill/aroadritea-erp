@@ -1,11 +1,11 @@
 'use client';
 
+import { exportWorkbook } from '@/lib/export-workbook';
+import type { AgingResult } from '@erp/services/reporting';
 import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useTransition } from 'react';
-import type { AgingResult } from '@erp/services/reporting';
-import { exportWorkbook } from '@/lib/export-workbook';
 
 const IDR = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -171,7 +171,9 @@ export function AgingClient(props: Props) {
               <TableHead className="px-3 py-2 text-right">{t('tableHeader.current')}</TableHead>
               <TableHead className="px-3 py-2 text-right">{t('tableHeader.bucket31_60')}</TableHead>
               <TableHead className="px-3 py-2 text-right">{t('tableHeader.bucket61_90')}</TableHead>
-              <TableHead className="px-3 py-2 text-right">{t('tableHeader.bucketOver90')}</TableHead>
+              <TableHead className="px-3 py-2 text-right">
+                {t('tableHeader.bucketOver90')}
+              </TableHead>
               <TableHead className="px-3 py-2 text-right">{t('tableHeader.total')}</TableHead>
               <TableHead className="px-3 py-2 text-right">{t('tableHeader.lineCount')}</TableHead>
             </tr>
@@ -179,10 +181,7 @@ export function AgingClient(props: Props) {
           <TableBody>
             {partners.length === 0 ? (
               <tr>
-                <TableCell
-                  colSpan={7}
-                  className="px-3 py-6 text-center text-sm text-brand-ink-3"
-                >
+                <TableCell colSpan={7} className="px-3 py-6 text-center text-sm text-brand-ink-3">
                   {t('empty')}
                 </TableCell>
               </tr>
@@ -233,9 +232,13 @@ export function AgingClient(props: Props) {
                   <TableHead className="px-3 py-2">{t('detailsHeader.journal')}</TableHead>
                   <TableHead className="px-3 py-2">{t('detailsHeader.postingDate')}</TableHead>
                   <TableHead className="px-3 py-2">{t('detailsHeader.dueDate')}</TableHead>
-                  <TableHead className="px-3 py-2 text-right">{t('detailsHeader.daysOverdue')}</TableHead>
+                  <TableHead className="px-3 py-2 text-right">
+                    {t('detailsHeader.daysOverdue')}
+                  </TableHead>
                   <TableHead className="px-3 py-2">{t('detailsHeader.bucket')}</TableHead>
-                  <TableHead className="px-3 py-2 text-right">{t('detailsHeader.amount')}</TableHead>
+                  <TableHead className="px-3 py-2 text-right">
+                    {t('detailsHeader.amount')}
+                  </TableHead>
                   <TableHead className="px-3 py-2">{t('detailsHeader.description')}</TableHead>
                 </tr>
               </thead>
@@ -254,7 +257,9 @@ export function AgingClient(props: Props) {
                     <TableCell className="px-3 py-2 text-right font-mono text-brand-ink">
                       {fmt(d.amount)}
                     </TableCell>
-                    <TableCell className="px-3 py-2 text-brand-ink-3">{d.description ?? '—'}</TableCell>
+                    <TableCell className="px-3 py-2 text-brand-ink-3">
+                      {d.description ?? '—'}
+                    </TableCell>
                   </tr>
                 ))}
               </TableBody>

@@ -127,7 +127,12 @@ export function NewReturnClient({ defaultGrnId, defaultLocationId }: Props) {
               className="w-72 font-mono"
             />
           </label>
-          <Button variant="secondary" size="md" onClick={handleLoadGrn} disabled={pending || !grnInput.trim()}>
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={handleLoadGrn}
+            disabled={pending || !grnInput.trim()}
+          >
             {t('loadGrn')}
           </Button>
           {grn ? (
@@ -216,7 +221,11 @@ export function NewReturnClient({ defaultGrnId, defaultLocationId }: Props) {
           </label>
           <label className="block space-y-1 text-sm">
             <span className="text-brand-ink-2">{t('reason')}</span>
-            <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t('reasonPlaceholder')} />
+            <Input
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder={t('reasonPlaceholder')}
+            />
           </label>
           <label className="block space-y-1 text-sm">
             <span className="text-brand-ink-2">{t('notesLabel')}</span>

@@ -46,8 +46,6 @@ describe('scrubPiiDeep', () => {
     expect(out.session.userAgent).toBe('Chrome');
     expect(out.list[0]).toBe('plain');
     expect((out.list[1] as { secret: string; note: string }).secret).toBe('***');
-    expect((out.list[1] as { secret: string; note: string }).note).toBe(
-      'NIK 340*********0123',
-    );
+    expect((out.list[1] as { secret: string; note: string }).note).toBe('NIK 340*********0123');
   });
 });

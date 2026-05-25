@@ -8,14 +8,19 @@
 
 'use client';
 
+import { FileUploadField } from '@/components/file-upload-field';
+import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
-import { closeShiftAction, fetchOpenShift, openShiftAction, recordShiftExpenseAction } from './actions';
+import {
+  closeShiftAction,
+  fetchOpenShift,
+  openShiftAction,
+  recordShiftExpenseAction,
+} from './actions';
 import type { ShiftStatusItem } from './actions';
 import { usePosCart } from './pos-cart-context';
-import { FileUploadField } from '@/components/file-upload-field';
-import { Input } from "@erp/ui";
 
 interface ShiftStatusBarProps {
   locationId: string;
@@ -377,9 +382,7 @@ export function ShiftStatusBar({ locationId, tenantId }: ShiftStatusBarProps) {
           <div className="surface-card p-6">
             <h2 className="mb-5 text-lg font-bold text-brand-ink">{t('drawerExpense')}</h2>
             <form onSubmit={handleRecordExpense} className="flex flex-col gap-4">
-              <p className="text-sm text-brand-ink-3">
-                {t('expenseHint')}
-              </p>
+              <p className="text-sm text-brand-ink-3">{t('expenseHint')}</p>
               <div>
                 <label
                   htmlFor="expenseAmount"

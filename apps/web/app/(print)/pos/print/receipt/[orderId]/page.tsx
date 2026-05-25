@@ -193,7 +193,6 @@ td { vertical-align: top; padding: 1px 0; }
           // Plain <img> — Next.js Image needs sizing & domain config that
           // doesn't apply on a print-only document.
           // biome-ignore lint/a11y/useAltText: print-only
-          // biome-ignore lint/performance/noImgElement: print-only document
           <img className="r-logo" src="/logo-primary.png" alt="" />
         ) : null}
 

@@ -2,15 +2,15 @@
  * Trial Balance Page — SD §21.2
  */
 
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { pickLocalized } from '@/lib/pick-localized';
+import { TableCell, TableHead } from '@erp/ui';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchTrialBalance } from '../actions';
 import { ExportXlsxButton } from '../export-button';
-import { TableCell, TableHead } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('reporting.trialBalance');
@@ -34,48 +34,55 @@ export default async function TrialBalancePage({
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}<span className="font-medium text-brand-ink">{asOf}</span></>}
-            actions={<>
-          <div className="flex items-center gap-3">
-                    {data?.isPreliminary && (
-                      <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
-                        {t('preliminary')}
-                      </span>
-                    )}
-                    {data ? (
-                      <ExportXlsxButton
-                        filename={`trial-balance-${asOf}.xlsx`}
-                        sheets={[
-                          {
-                            name: t('exportName'),
-                            rows: [
-                              [
-                                t('columns.code'),
-                                t('columns.account'),
-                                t('columns.type'),
-                                t('columns.debit'),
-                                t('columns.credit'),
-                                t('columns.balance')
-                              ],
-                              ...data.lines.map((l) => [
-                                l.accountCode,
-                                pickLocalized(l.accountName, locale),
-                                l.accountType,
-                                Number(l.totalDebit),
-                                Number(l.totalCredit),
-                                Number(l.balance),
-                              ]),
-                              ['', t('total'), '', Number(data.totalDebit), Number(data.totalCredit), ''],
-                            ],
-                          },
-                        ]}
-                      />
-                    ) : null}
-                  </div>
-            </>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={
+          <>
+            {t('subtitle')}
+            <span className="font-medium text-brand-ink">{asOf}</span>
+          </>
+        }
+        actions={
+          <>
+            <div className="flex items-center gap-3">
+              {data?.isPreliminary && (
+                <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+                  {t('preliminary')}
+                </span>
+              )}
+              {data ? (
+                <ExportXlsxButton
+                  filename={`trial-balance-${asOf}.xlsx`}
+                  sheets={[
+                    {
+                      name: t('exportName'),
+                      rows: [
+                        [
+                          t('columns.code'),
+                          t('columns.account'),
+                          t('columns.type'),
+                          t('columns.debit'),
+                          t('columns.credit'),
+                          t('columns.balance'),
+                        ],
+                        ...data.lines.map((l) => [
+                          l.accountCode,
+                          pickLocalized(l.accountName, locale),
+                          l.accountType,
+                          Number(l.totalDebit),
+                          Number(l.totalCredit),
+                          Number(l.balance),
+                        ]),
+                        ['', t('total'), '', Number(data.totalDebit), Number(data.totalCredit), ''],
+                      ],
+                    },
+                  ]}
+                />
+              ) : null}
+            </div>
+          </>
+        }
+      />
 
       {data ? (
         <div className="surface-card overflow-hidden">

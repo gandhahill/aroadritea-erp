@@ -2,6 +2,7 @@
  * Profit & Loss Page — SD §21.2
  */
 
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { pickLocalized } from '@/lib/pick-localized';
 import type { Metadata } from 'next';
@@ -9,7 +10,6 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchProfitLoss } from '../actions';
 import { ExportXlsxButton } from '../export-button';
-import { PageHeader } from "@/components/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('reporting.profitLoss');
@@ -36,67 +36,75 @@ export default async function ProfitLossPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}<span className="font-medium text-brand-ink">{from}</span>—{' '}<span className="font-medium text-brand-ink">{to}</span></>}
-            actions={<>
-          {data ? (
-                    <ExportXlsxButton
-                      filename={`profit-loss-${from}_to_${to}.xlsx`}
-                      sheets={[
-                        {
-                          name: t('revenue'),
-                          rows: [
-                            [t('columns.account'), '', t('columns.amount')],
-                            ...data.revenue.lines.map((l) => [
-                              l.accountCode,
-                              pickLocalized(l.accountName, locale),
-                              Number(l.balance),
-                            ]),
-                            ['', t('total'), Number(data.revenue.total)],
-                          ],
-                        },
-                        {
-                          name: t('cogs'),
-                          rows: [
-                            [t('columns.account'), '', t('columns.amount')],
-                            ...data.cogs.lines.map((l) => [
-                              l.accountCode,
-                              pickLocalized(l.accountName, locale),
-                              Number(l.balance),
-                            ]),
-                            ['', t('total'), Number(data.cogs.total)],
-                          ],
-                        },
-                        {
-                          name: t('expenses'),
-                          rows: [
-                            [t('columns.account'), '', t('columns.amount')],
-                            ...data.expenses.lines.map((l) => [
-                              l.accountCode,
-                              pickLocalized(l.accountName, locale),
-                              Number(l.balance),
-                            ]),
-                            ['', t('total'), Number(data.expenses.total)],
-                          ],
-                        },
-                        {
-                          name: 'Summary',
-                          rows: [
-                            ['From', from],
-                            ['To', to],
-                            [t('revenue'), Number(data.revenue.total)],
-                            [t('cogs'), Number(data.cogs.total)],
-                            [t('grossProfit'), Number(data.grossProfit)],
-                            [t('expenses'), Number(data.expenses.total)],
-                            [t('netProfit'), Number(data.netIncome)],
-                          ],
-                        },
-                      ]}
-                    />
-                  ) : null}
-            </>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={
+          <>
+            {t('subtitle')}
+            <span className="font-medium text-brand-ink">{from}</span>—{' '}
+            <span className="font-medium text-brand-ink">{to}</span>
+          </>
+        }
+        actions={
+          <>
+            {data ? (
+              <ExportXlsxButton
+                filename={`profit-loss-${from}_to_${to}.xlsx`}
+                sheets={[
+                  {
+                    name: t('revenue'),
+                    rows: [
+                      [t('columns.account'), '', t('columns.amount')],
+                      ...data.revenue.lines.map((l) => [
+                        l.accountCode,
+                        pickLocalized(l.accountName, locale),
+                        Number(l.balance),
+                      ]),
+                      ['', t('total'), Number(data.revenue.total)],
+                    ],
+                  },
+                  {
+                    name: t('cogs'),
+                    rows: [
+                      [t('columns.account'), '', t('columns.amount')],
+                      ...data.cogs.lines.map((l) => [
+                        l.accountCode,
+                        pickLocalized(l.accountName, locale),
+                        Number(l.balance),
+                      ]),
+                      ['', t('total'), Number(data.cogs.total)],
+                    ],
+                  },
+                  {
+                    name: t('expenses'),
+                    rows: [
+                      [t('columns.account'), '', t('columns.amount')],
+                      ...data.expenses.lines.map((l) => [
+                        l.accountCode,
+                        pickLocalized(l.accountName, locale),
+                        Number(l.balance),
+                      ]),
+                      ['', t('total'), Number(data.expenses.total)],
+                    ],
+                  },
+                  {
+                    name: 'Summary',
+                    rows: [
+                      ['From', from],
+                      ['To', to],
+                      [t('revenue'), Number(data.revenue.total)],
+                      [t('cogs'), Number(data.cogs.total)],
+                      [t('grossProfit'), Number(data.grossProfit)],
+                      [t('expenses'), Number(data.expenses.total)],
+                      [t('netProfit'), Number(data.netIncome)],
+                    ],
+                  },
+                ]}
+              />
+            ) : null}
+          </>
+        }
+      />
 
       {data ? (
         <div className="space-y-4">
@@ -123,9 +131,7 @@ export default async function ProfitLossPage({
           {/* Gross Profit */}
           <div className="surface-card p-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-brand-ink">
-                {t('grossProfit')}
-              </span>
+              <span className="text-sm font-semibold text-brand-ink">{t('grossProfit')}</span>
               <span
                 className={`font-mono text-base font-bold tabular-nums ${Number.parseInt(data.grossProfit) >= 0 ? 'text-brand-jade' : 'text-brand-clay'}`}
               >
@@ -207,7 +213,9 @@ function PLSection({ title, lines, total, colorClass, locale, totalLabel }: PLSe
         )}
       </div>
       <div className="border-t-2 border-brand-cream-3 px-4 py-3 flex items-center justify-between bg-brand-cream/30">
-        <span className="text-sm font-semibold text-brand-ink">{totalLabel} {title}</span>
+        <span className="text-sm font-semibold text-brand-ink">
+          {totalLabel} {title}
+        </span>
         <span className={`font-mono text-sm font-bold tabular-nums ${colorClass}`}>
           {fmtRp(total)}
         </span>

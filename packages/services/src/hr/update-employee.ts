@@ -12,10 +12,10 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { encryptPii, encryptPiiForLookup } from '../security/pii';
 import { type UpdateEmployeeInput, UpdateEmployeeInputSchema } from './schemas';
-import { auditRecord } from "../audit";
 
 export async function updateEmployee(
   input: UpdateEmployeeInput,
@@ -71,7 +71,8 @@ export async function updateEmployee(
       };
 
       if (data.name !== undefined) setCols.name = data.name;
-      if (data.email !== undefined) setCols.email = encryptPiiForLookup(data.email, 'employees.email');
+      if (data.email !== undefined)
+        setCols.email = encryptPiiForLookup(data.email, 'employees.email');
       if (data.phone !== undefined) setCols.phone = encryptPii(data.phone, 'employees.phone');
       if (data.address !== undefined)
         setCols.address = encryptPii(data.address, 'employees.address');
@@ -139,14 +140,14 @@ export async function updateEmployee(
       if (piiKeysTouched.length > 0) safeAfter['_pii_fields_updated'] = piiKeysTouched;
 
       await auditRecord({
-            action: 'update',
-            entityType: 'employee',
-            entityId: updated.id,
-            before: null,
-            after: safeAfter,
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: 'update',
+        entityType: 'employee',
+        entityId: updated.id,
+        before: null,
+        after: safeAfter,
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return { id: updated.id };
     },
@@ -205,14 +206,14 @@ export async function deactivateEmployee(
       if (!updated) throw AppError.conflict('hr.employee.versionMismatch');
 
       await auditRecord({
-            action: 'deactivate',
-            entityType: 'employee',
-            entityId: updated.id,
-            before: { status: existing.status },
-            after: { status: 'terminated' },
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: 'deactivate',
+        entityType: 'employee',
+        entityId: updated.id,
+        before: { status: existing.status },
+        after: { status: 'terminated' },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return { id: updated.id };
     },

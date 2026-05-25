@@ -9,7 +9,7 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface NavItem {
   label: string;
@@ -527,7 +527,11 @@ export function Sidebar() {
                   <>
                     <button
                       type="button"
-                      data-active={isActive && !item.children?.some(c => pathname === c.href) ? "true" : undefined}
+                      data-active={
+                        isActive && !item.children?.some((c) => pathname === c.href)
+                          ? 'true'
+                          : undefined
+                      }
                       onClick={() => toggleSection(item.href)}
                       className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                         isActive
@@ -563,7 +567,7 @@ export function Sidebar() {
                             <li key={child.href}>
                               <Link
                                 href={child.href}
-                                data-active={childActive ? "true" : undefined}
+                                data-active={childActive ? 'true' : undefined}
                                 className={`block rounded-md px-3 py-1.5 text-sm transition-colors whitespace-nowrap ${
                                   childActive
                                     ? 'bg-brand-red/10 font-medium text-brand-red'
@@ -581,7 +585,7 @@ export function Sidebar() {
                 ) : (
                   <Link
                     href={item.href}
-                    data-active={isActive ? "true" : undefined}
+                    data-active={isActive ? 'true' : undefined}
                     title={isCollapsed ? item.label : undefined}
                     className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                       isActive

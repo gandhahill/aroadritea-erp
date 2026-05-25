@@ -6,9 +6,9 @@
  * - complaint_compensations   — compensation awarded per complaint
  */
 
+import { sql } from 'drizzle-orm';
 import { check, index, pgTable } from 'drizzle-orm/pg-core';
 import { bigint, integer, text, timestamp } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
 import { auditCols, locationCol, pk, tenantCol } from './common';
 
 // ─── complaints ─────────────────────────────────────────────────────────────

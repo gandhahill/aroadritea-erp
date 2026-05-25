@@ -7,7 +7,7 @@
 
 'use client';
 
-import { Select } from "@erp/ui";
+import { Select } from '@erp/ui';
 
 import type { OpnameLineResult } from '@erp/services/inventory/opname-service';
 import { useTranslations } from 'next-intl';
@@ -133,14 +133,14 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
           },
         ],
       });
-        setDirtyLines((prev) => {
-          const next = new Map(prev);
-          next.delete(lineId);
-          return next;
-        });
-        router.refresh();
+      setDirtyLines((prev) => {
+        const next = new Map(prev);
+        next.delete(lineId);
+        return next;
       });
-    }
+      router.refresh();
+    });
+  }
 
   async function handleSaveAll() {
     const dirty = Array.from(dirtyLines.entries())

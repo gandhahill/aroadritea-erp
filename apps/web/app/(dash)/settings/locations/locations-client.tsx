@@ -1,5 +1,6 @@
 'use client';
 
+import { Button, Select, TableBody } from '@erp/ui';
 import { useMemo, useState, useTransition } from 'react';
 import {
   type LocationActionResult,
@@ -10,7 +11,6 @@ import {
   deleteLocation,
   saveLocation,
 } from './actions';
-import { TableBody, Button, Select } from "@erp/ui";
 
 interface Labels {
   add: string;
@@ -147,7 +147,9 @@ export function LocationsClient({ locations, labels }: Props) {
         <Button
           type="button"
           onClick={addRow}
-          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark" variant="primary" size="md"
+          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
+          variant="primary"
+          size="md"
         >
           {labels.add}
         </Button>

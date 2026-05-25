@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 
 export interface FilterBarProps {
   children: React.ReactNode;
@@ -7,7 +7,9 @@ export interface FilterBarProps {
 
 export function FilterBar({ children, className = '' }: FilterBarProps) {
   return (
-    <div className={`flex flex-wrap items-end gap-4 rounded-xl border border-brand-cream-3 bg-card p-4 shadow-sm ${className}`}>
+    <div
+      className={`flex flex-wrap items-end gap-4 rounded-xl border border-brand-cream-3 bg-card p-4 shadow-sm ${className}`}
+    >
       {children}
     </div>
   );

@@ -1,11 +1,11 @@
 'use client';
 
+import { exportWorkbook } from '@/lib/export-workbook';
+import type { WasteResult } from '@erp/services/reporting';
 import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
-import type { WasteResult } from '@erp/services/reporting';
-import { exportWorkbook } from '@/lib/export-workbook';
 
 const IDR = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -146,7 +146,9 @@ export function WasteClient(props: Props) {
             <p className="mt-1 text-xl font-semibold text-brand-ink">{props.data.totalQty}</p>
           </div>
           <div className="rounded-xl border border-brand-cream-3 bg-card p-3">
-            <p className="text-xs uppercase tracking-wide text-brand-ink-3">{t('totalValueLabel')}</p>
+            <p className="text-xs uppercase tracking-wide text-brand-ink-3">
+              {t('totalValueLabel')}
+            </p>
             <p className="mt-1 text-xl font-semibold text-rose-600">
               {fmt(props.data.totalValueIdr)}
             </p>
@@ -164,7 +166,9 @@ export function WasteClient(props: Props) {
               <TableHead className="px-3 py-2 text-right">{t('tableHeader.qty')}</TableHead>
               <TableHead className="px-3 py-2">{t('tableHeader.uom')}</TableHead>
               <TableHead className="px-3 py-2 text-right">{t('tableHeader.value')}</TableHead>
-              <TableHead className="px-3 py-2 text-right">{t('tableHeader.adjustmentCount')}</TableHead>
+              <TableHead className="px-3 py-2 text-right">
+                {t('tableHeader.adjustmentCount')}
+              </TableHead>
             </tr>
           </thead>
           <TableBody>

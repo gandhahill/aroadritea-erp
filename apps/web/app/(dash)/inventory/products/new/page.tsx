@@ -1,9 +1,9 @@
+import { PageHeader } from '@/components/page-header';
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { fetchProductMasterData } from '../actions';
 import { ProductForm } from '../product-form';
-import { getTranslations } from 'next-intl/server';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Tambah Produk - Aroadri ERP',
@@ -33,10 +33,7 @@ export default async function NewProductPage({
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <PageHeader 
-            title={<>{title}</>}
-            description={<>{subtitle}</>}
-          />
+      <PageHeader title={<>{title}</>} description={<>{subtitle}</>} />
       {data.error ? (
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {data.error}

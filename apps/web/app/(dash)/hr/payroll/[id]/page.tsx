@@ -5,15 +5,15 @@
  * Accessible to directors/managers. Status determines which buttons are shown.
  */
 
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { db, eq } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import { employees, payrollLines, payrolls, salaryComponents } from '@erp/db/schema/hr';
-import { redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
 import { approvePayrollAction, markPayrollPaidAction } from '../actions';
-import { PageHeader } from "@/components/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('hr.payroll');
@@ -145,9 +145,7 @@ export default async function PayrollDetailPage({ params }: Props) {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <PageHeader 
-                    title={<>{t('detail.title')}</>}
-                  />
+          <PageHeader title={<>{t('detail.title')}</>} />
           <p className="mt-1 text-sm text-brand-ink-3">
             {String(loc?.name ?? payroll.locationId)} &middot; {String(payroll.periodCode)}
           </p>
@@ -215,9 +213,7 @@ export default async function PayrollDetailPage({ params }: Props) {
                 </button>
               )}
               <p className="text-sm text-brand-ink-3">
-                {canApprove
-                  ? t('detail.actions.approveHelp')
-                  : t('detail.actions.paidHelp')}
+                {canApprove ? t('detail.actions.approveHelp') : t('detail.actions.paidHelp')}
               </p>
             </div>
           </form>
@@ -259,7 +255,9 @@ export default async function PayrollDetailPage({ params }: Props) {
                       <span
                         className={`text-xs font-medium ${line.kind === 'earning' ? 'text-brand-jade' : 'text-brand-rose-4'}`}
                       >
-                        {line.kind === 'earning' ? t('detail.table.earning') : t('detail.table.deduction')}
+                        {line.kind === 'earning'
+                          ? t('detail.table.earning')
+                          : t('detail.table.deduction')}
                       </span>
                     </td>
                     <td

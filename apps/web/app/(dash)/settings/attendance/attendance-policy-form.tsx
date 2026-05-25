@@ -1,9 +1,9 @@
 'use client';
 
+import { Button, Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useActionState, useState } from 'react';
 import { saveAttendancePolicy } from './actions';
-import { Button, Input } from "@erp/ui";
 
 interface Props {
   initial: { latePenalty: number; freeLatesPerMonth: number; absentPenalty: number };
@@ -46,7 +46,6 @@ export function AttendancePolicyForm({ initial }: Props) {
                 step={1000}
                 value={latePenalty}
                 onChange={(event) => setLatePenalty(Number(event.target.value))}
-               
                 required
               />
             </div>
@@ -60,7 +59,6 @@ export function AttendancePolicyForm({ initial }: Props) {
               max={31}
               value={freeLatesPerMonth}
               onChange={(event) => setFreeLatesPerMonth(Number(event.target.value))}
-             
               required
             />
           </label>
@@ -75,7 +73,6 @@ export function AttendancePolicyForm({ initial }: Props) {
                 step={1000}
                 value={absentPenalty}
                 onChange={(event) => setAbsentPenalty(Number(event.target.value))}
-               
                 required
               />
             </div>
@@ -87,7 +84,9 @@ export function AttendancePolicyForm({ initial }: Props) {
         <Button
           type="submit"
           disabled={pending}
-          className="rounded-lg " variant="primary" size="lg"
+          className="rounded-lg "
+          variant="primary"
+          size="lg"
         >
           {pending ? t('saving') : t('save')}
         </Button>

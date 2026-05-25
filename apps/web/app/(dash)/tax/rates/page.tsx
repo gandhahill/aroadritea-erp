@@ -12,9 +12,9 @@ export const metadata: Metadata = {
   title: 'Tax Rates - Aroadri ERP',
 };
 
+import { PageHeader } from '@/components/page-header';
+import { Button, Select, TableCell, TableHead } from '@erp/ui';
 import { getTranslations } from 'next-intl/server';
-import { Button, TableCell, TableHead, Select } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 function formatDate(value: string | null, locale: string) {
   if (!value) return '-';
@@ -41,11 +41,11 @@ export default async function TaxRatesPage() {
   return (
     <main className="min-h-screen bg-brand-paper text-brand-ink">
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-8 lg:px-8">
-        <PageHeader 
-                title={<>{t('title')}</>}
-                description={<>{t('subtitle')}</>}
-                eyebrow={<>Tax</>}
-              />
+        <PageHeader
+          title={<>{t('title')}</>}
+          description={<>{t('subtitle')}</>}
+          eyebrow={<>Tax</>}
+        />
 
         <form
           action={saveTaxRateAction}
@@ -113,7 +113,9 @@ export default async function TaxRatesPage() {
           </label>
           <Button
             type="submit"
-            className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90" variant="primary" size="md"
+            className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90"
+            variant="primary"
+            size="md"
           >
             {t('create')}
           </Button>
@@ -148,11 +150,15 @@ export default async function TaxRatesPage() {
                       <TableCell className="px-4 py-3 font-semibold text-brand-ink">
                         {pickName(row.name, locale)}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-brand-muted">{row.ratePercent}%</TableCell>
+                      <TableCell className="px-4 py-3 text-brand-muted">
+                        {row.ratePercent}%
+                      </TableCell>
                       <TableCell className="px-4 py-3 text-brand-muted">
                         {row.calculation === 'inclusive' ? t('inclusive') : t('exclusive')}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-brand-muted">{row.postingAccount}</TableCell>
+                      <TableCell className="px-4 py-3 text-brand-muted">
+                        {row.postingAccount}
+                      </TableCell>
                       <TableCell className="px-4 py-3 text-brand-muted">
                         {formatDate(row.effectiveFrom, locale)} -{' '}
                         {formatDate(row.effectiveUntil, locale)}
@@ -243,7 +249,9 @@ export default async function TaxRatesPage() {
                             </label>
                             <Button
                               type="submit"
-                              className="rounded bg-brand-red px-3 py-1.5 text-xs font-semibold text-white" variant="primary" size="sm"
+                              className="rounded bg-brand-red px-3 py-1.5 text-xs font-semibold text-white"
+                              variant="primary"
+                              size="sm"
                             >
                               {t('save')}
                             </Button>

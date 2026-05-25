@@ -8,11 +8,11 @@
 'use client';
 
 import { displayAssetUrl } from '@/lib/display-asset-url';
+import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState, useTransition } from 'react';
 import { type ProductListItem, type VariantItem, fetchCategories, fetchProducts } from './actions';
 import { usePosCart } from './pos-cart-context';
-import { Input } from "@erp/ui";
 
 export function ProductSearch() {
   const t = useTranslations('pos');

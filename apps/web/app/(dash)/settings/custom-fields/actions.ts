@@ -13,11 +13,7 @@
 import { getSession } from '@/lib/auth';
 import { and, db, eq } from '@erp/db';
 import { customFieldDefinitions, customFieldValues } from '@erp/db/schema/customfield';
-import {
-  createDefinition,
-  deleteDefinition,
-  updateDefinition,
-} from '@erp/services/customfield';
+import { createDefinition, deleteDefinition, updateDefinition } from '@erp/services/customfield';
 import type { DataType } from '@erp/services/customfield';
 import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
@@ -141,9 +137,7 @@ export async function serverDeleteCustomField(
 /**
  * Get custom field values for an entity within the current tenant.
  */
-export async function fetchCustomFieldValues(
-  entityId: string,
-): Promise<Record<string, unknown>[]> {
+export async function fetchCustomFieldValues(entityId: string): Promise<Record<string, unknown>[]> {
   const ctx = await resolveCtx();
   if (!ctx) return [];
 

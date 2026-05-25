@@ -141,7 +141,8 @@ export function SessionsSection({ sessions }: Props) {
                   ) : null}
                 </div>
                 <div className="text-xs text-brand-ink-3">
-                  {t('ipLabel')}: {s.ipAddress ?? '—'} · {t('createdLabel')}: {fmtDateTime(s.createdAt)}
+                  {t('ipLabel')}: {s.ipAddress ?? '—'} · {t('createdLabel')}:{' '}
+                  {fmtDateTime(s.createdAt)}
                 </div>
                 <div className="text-[11px] text-brand-ink-3">
                   {t('expiresLabel')}: {fmtDateTime(s.expiresAt)}

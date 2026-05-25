@@ -146,10 +146,7 @@ export async function listSopDocuments(
   return ok({ items: rows.map(rowOf), total: count });
 }
 
-export async function getSopDocument(
-  id: string,
-  ctx: AuditContext,
-): Promise<Result<SopRow>> {
+export async function getSopDocument(id: string, ctx: AuditContext): Promise<Result<SopRow>> {
   const perm = await requirePermission(ctx.userId, 'hr.sop.read', { locationId: ctx.locationId });
   if (!perm.ok) return perm;
 
@@ -263,7 +260,8 @@ export async function updateSopDocument(
     .update(sopDocuments)
     .set({
       title: data.title?.trim() ?? existing.title,
-      description: data.description !== undefined ? (data.description?.trim() ?? null) : existing.description,
+      description:
+        data.description !== undefined ? (data.description?.trim() ?? null) : existing.description,
       category: data.category ?? existing.category,
       locationId: data.locationId !== undefined ? data.locationId : existing.locationId,
       status: nextStatus,
@@ -271,9 +269,7 @@ export async function updateSopDocument(
       updatedAt: now,
       updatedBy: ctx.userId,
     })
-    .where(
-      and(eq(sopDocuments.tenantId, ctx.tenantId), eq(sopDocuments.id, data.id)),
-    );
+    .where(and(eq(sopDocuments.tenantId, ctx.tenantId), eq(sopDocuments.id, data.id)));
 
   await auditRecord({
     action: 'update',
@@ -296,10 +292,7 @@ export async function updateSopDocument(
   return ok({ id: data.id });
 }
 
-export async function deleteSopDocument(
-  id: string,
-  ctx: AuditContext,
-): Promise<Result<void>> {
+export async function deleteSopDocument(id: string, ctx: AuditContext): Promise<Result<void>> {
   const perm = await requirePermission(ctx.userId, 'hr.sop.manage', {
     locationId: ctx.locationId,
   });

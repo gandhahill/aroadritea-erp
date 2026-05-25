@@ -7,9 +7,9 @@
  * - member_sessions        — session DB-backed for member portal
  */
 
+import { sql } from 'drizzle-orm';
 import { check, index, pgTable, uniqueIndex } from 'drizzle-orm/pg-core';
 import { boolean, integer, jsonb, text, timestamp, varchar } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
 import { auditCols, pk } from './common';
 
 // ─── member_signup_attempts ───────────────────────────────────────────────

@@ -1,3 +1,14 @@
+import { PageHeader } from '@/components/page-header';
+import {
+  Button,
+  Input,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+} from '@erp/ui';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
@@ -8,8 +19,6 @@ import {
   fetchLeaveDashboard,
   saveLeaveTypeAction,
 } from './actions';
-import { TableCell, TableBody, TableHead, TableHeader, Table, Input, Button, Select } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Leave - Aroadri ERP',
@@ -30,11 +39,7 @@ export default async function LeavePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-            eyebrow={<>HR</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} eyebrow={<>HR</>} />
 
       <section className="grid gap-4 md:grid-cols-3">
         <Metric title={t('typesCount')} value={data.types.length} />
@@ -180,7 +185,9 @@ export default async function LeavePage() {
           <div className="md:col-span-6 flex justify-end">
             <Button
               type="submit"
-              className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark" variant="primary" size="md"
+              className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
+              variant="primary"
+              size="md"
             >
               {t('submitRequest')}
             </Button>
@@ -209,7 +216,9 @@ export default async function LeavePage() {
               ) : (
                 data.requestsFull.map((req) => (
                   <tr key={req.id}>
-                    <TableCell className="px-4 py-3 text-brand-ink">{req.employeeName ?? '-'}</TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink">
+                      {req.employeeName ?? '-'}
+                    </TableCell>
                     <TableCell className="px-4 py-3 text-brand-ink-2">
                       {pickName(req.leaveTypeName, locale)}
                     </TableCell>
@@ -244,7 +253,9 @@ export default async function LeavePage() {
                             />
                             <Button
                               type="submit"
-                              className="ml-1 rounded-md border border-rose-300 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50" variant="danger" size="sm"
+                              className="ml-1 rounded-md border border-rose-300 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                              variant="danger"
+                              size="sm"
                             >
                               {t('reject')}
                             </Button>
@@ -359,7 +370,11 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-function DataTable({ headers, rows, emptyMessage }: { headers: string[]; rows: string[][]; emptyMessage?: string }) {
+function DataTable({
+  headers,
+  rows,
+  emptyMessage,
+}: { headers: string[]; rows: string[][]; emptyMessage?: string }) {
   return (
     <div className="overflow-x-auto rounded-lg border border-brand-cream-3">
       <Table className="min-w-full divide-y divide-brand-cream-3 text-sm">

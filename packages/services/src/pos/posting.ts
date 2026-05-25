@@ -6,7 +6,7 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, sql } from 'drizzle-orm';
-import { auditRecord } from "../audit";
+import { auditRecord } from '../audit';
 
 const DEFAULT_PB1_TAX_CODE = 'PB1';
 const DEFAULT_CASH_ACCOUNT_CODE = '1-1300';
@@ -193,22 +193,22 @@ export async function autoPostJournalEntry(
   }
 
   await auditRecord({
-      action: 'post',
-      entityType: 'journal_entry',
-      entityId: journalEntryId,
-      before: { status: 'draft' },
-      after: {
-          status: 'posted',
-          postedAt: postedAt.toISOString(),
-          postedBy: ctx.userId,
-        },
-      metadata: {
-          ip: ctx.ipAddress ?? null,
-          userAgent: ctx.userAgent ?? null,
-          source,
-        },
-      ctx,
-    });
+    action: 'post',
+    entityType: 'journal_entry',
+    entityId: journalEntryId,
+    before: { status: 'draft' },
+    after: {
+      status: 'posted',
+      postedAt: postedAt.toISOString(),
+      postedBy: ctx.userId,
+    },
+    metadata: {
+      ip: ctx.ipAddress ?? null,
+      userAgent: ctx.userAgent ?? null,
+      source,
+    },
+    ctx,
+  });
 
   return ok(undefined);
 }

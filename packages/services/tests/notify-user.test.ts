@@ -109,7 +109,10 @@ describe('notifyUserByEmail', () => {
   it('resolves an existing user and forwards to notifyUser', async () => {
     // 1) findUser select returns the user, 2) inside notifyUser the
     // user re-lookup for email recipient.
-    selectQueue = [[{ id: 'user-99', email: 'cashier@aroadri.com' }], [{ email: 'cashier@aroadri.com', status: 'active' }]];
+    selectQueue = [
+      [{ id: 'user-99', email: 'cashier@aroadri.com' }],
+      [{ email: 'cashier@aroadri.com', status: 'active' }],
+    ];
     const result = await notifyUserByEmail({
       tenantId: 'tenant-1',
       email: 'cashier@aroadri.com',

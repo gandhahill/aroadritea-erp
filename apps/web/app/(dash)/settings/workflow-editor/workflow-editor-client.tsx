@@ -9,7 +9,9 @@
  * JSON preview tab.
  */
 
+import { PageHeader } from '@/components/page-header';
 import type { AuditContext } from '@erp/shared/types';
+import { Button, Input, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import type { ConditionInput, WorkflowDefinitionItem, WorkflowStepInput } from './actions';
@@ -18,8 +20,6 @@ import {
   serverDeleteWorkflowDefinition,
   serverUpdateWorkflowDefinition,
 } from './actions';
-import { Button, Input, Select } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 const ENTITY_TYPES = [
   { value: 'purchase_order', label: 'Purchase Order' },
@@ -365,27 +365,31 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-            actions={<>
-          <Button
-                    onClick={openCreate}
-                    className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-red/90" variant="primary" size="md"
-                  >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    {t('createDefinition')}
-                  </Button>
-            </>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={<>{t('subtitle')}</>}
+        actions={
+          <>
+            <Button
+              onClick={openCreate}
+              className="inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-red/90"
+              variant="primary"
+              size="md"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              {t('createDefinition')}
+            </Button>
+          </>
+        }
+      />
 
       {/* Info banner */}
       <div className="rounded-lg border border-brand-gold/20 bg-brand-gold/5 px-4 py-3">
@@ -831,7 +835,9 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                     <Button
                       type="submit"
                       disabled={isPending}
-                      className="rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50" variant="primary" size="md"
+                      className="rounded-lg bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50"
+                      variant="primary"
+                      size="md"
                     >
                       {isPending ? '...' : tc('labels.save')}
                     </Button>

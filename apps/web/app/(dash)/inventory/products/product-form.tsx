@@ -1,13 +1,13 @@
 'use client';
 
 import { FileUploadField } from '@/components/file-upload-field';
+import { Button, Input, Select } from '@erp/ui';
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect } from 'react';
 import { createProductAction, updateProductAction } from './actions';
 import type { ProductCategoryOption, ProductFormInitial, ProductKind } from './product-types';
-import { Button, Input, Select } from "@erp/ui";
 
 interface Props {
   mode: 'create' | 'edit';
@@ -76,7 +76,6 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
               name="categoryId"
               required
               defaultValue={product?.categoryId ?? categories[0]?.id ?? ''}
-             
             >
               {categories.length === 0 ? (
                 <option value="">{t('createCategory')}</option>
@@ -95,7 +94,6 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
               required
               defaultValue={product?.name.en ?? product?.name.id ?? ''}
               placeholder="e.g. Brown Sugar Milk Tea"
-             
             />
             <p className="mt-1 text-[11px] text-brand-ink-3">{f('nameHint')}</p>
           </Field>
@@ -104,7 +102,6 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
               name="kind"
               required
               defaultValue={product?.kind ?? defaultKind ?? 'finished_good'}
-             
             >
               {KIND_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -188,7 +185,6 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
               name="defaultSellPrice"
               inputMode="numeric"
               defaultValue={product?.defaultSellPrice ?? '0'}
-             
             />
           </Field>
           <Field label={f('costPrice')}>
@@ -196,7 +192,6 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
               name="defaultCostPrice"
               inputMode="numeric"
               defaultValue={product?.defaultCostPrice ?? '0'}
-             
             />
           </Field>
           <Field label={f('shelfLife')}>
@@ -205,7 +200,6 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
               type="number"
               min={1}
               defaultValue={product?.shelfLifeDays ?? ''}
-             
             />
           </Field>
         </div>
@@ -215,7 +209,7 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
             label={f('isSellable')}
             defaultChecked={
               product?.isSellable ??
-              (defaultKind === 'raw_material' || defaultKind === 'consumable' ? false : true)
+              !(defaultKind === 'raw_material' || defaultKind === 'consumable')
             }
           />
           <Toggle
@@ -223,7 +217,7 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
             label={f('isPurchasable')}
             defaultChecked={
               product?.isPurchasable ??
-              (defaultKind === 'raw_material' || defaultKind === 'consumable' ? true : false)
+              (defaultKind === 'raw_material' || defaultKind === 'consumable')
             }
           />
           <Toggle
@@ -257,7 +251,9 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
         <Button
           type="submit"
           disabled={isPending || categories.length === 0}
-          className="rounded-lg " variant="primary" size="lg"
+          className="rounded-lg "
+          variant="primary"
+          size="lg"
         >
           {isPending ? t('saving') : mode === 'create' ? t('saveProduct') : t('saveChanges')}
         </Button>

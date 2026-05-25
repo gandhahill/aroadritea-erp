@@ -11,18 +11,18 @@
 
 'use client';
 
-import { Select } from "@erp/ui";
+import { Select } from '@erp/ui';
 
+import { FilterBar, FilterField } from '@/components/filter-bar';
+import { PageHeader } from '@/components/page-header';
 import { exportWorkbook } from '@/lib/export-workbook';
 import type { ChannelHourRow, DayHourRow, HourlySalesResult } from '@erp/services/reporting';
+import { Button } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { ExportXlsxButton } from '../export-button';
 import { fetchHourlySales } from './actions';
-import { PageHeader } from "@/components/page-header";
-import { FilterBar, FilterField } from '@/components/filter-bar';
-import { Button } from '@erp/ui';
 
 type LocationOption = {
   id: string;
@@ -410,9 +410,7 @@ export function HourlySalesClient({
   return (
     <div className="space-y-5">
       {/* Header */}
-      <PageHeader 
-            title={<>{t('title')}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} />
 
       {/* Filters */}
       {/* Filters */}
@@ -463,12 +461,7 @@ export function HourlySalesClient({
             </button>
           </div>
         </FilterField>
-        <Button
-          onClick={handleSearch}
-          disabled={isPending}
-          variant="primary"
-          className="h-9"
-        >
+        <Button onClick={handleSearch} disabled={isPending} variant="primary" className="h-9">
           {isPending ? '...' : t('filter')}
         </Button>
       </FilterBar>

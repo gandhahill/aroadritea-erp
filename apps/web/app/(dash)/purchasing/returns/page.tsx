@@ -2,8 +2,8 @@
  * Purchase Returns list page — T-0180.
  */
 
-import { getSession } from '@/lib/auth';
 import { PageHeader } from '@/components/page-header';
+import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
@@ -89,14 +89,20 @@ export default async function PurchaseReturnsPage({
               result.data.map((row) => (
                 <tr key={row.id} className="border-t border-brand-cream-3">
                   <td className="px-3 py-2">
-                    <Link href={`/purchasing/returns/${row.id}`} className="font-mono text-brand-red hover:underline">
+                    <Link
+                      href={`/purchasing/returns/${row.id}`}
+                      className="font-mono text-brand-red hover:underline"
+                    >
                       {row.number}
                     </Link>
                   </td>
                   <td className="px-3 py-2 text-brand-ink-2">{row.returnDate}</td>
                   <td className="px-3 py-2 text-brand-ink-2">{row.supplierId}</td>
                   <td className="px-3 py-2">
-                    <StatusBadge status={row.status} label={t(`status.${row.status}` as 'status.draft')} />
+                    <StatusBadge
+                      status={row.status}
+                      label={t(`status.${row.status}` as 'status.draft')}
+                    />
                   </td>
                   <td className="px-3 py-2 text-right font-mono">
                     {IDR.format(Number(BigInt(row.grandTotal)))}
@@ -123,7 +129,9 @@ function StatusBadge({ status, label }: { status: string; label: string }) {
             ? 'bg-blue-50 text-blue-700'
             : 'bg-brand-cream-2 text-brand-ink-2';
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${tone}`}>
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${tone}`}
+    >
       {label}
     </span>
   );

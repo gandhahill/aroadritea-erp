@@ -5,9 +5,9 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { type OpenPeriodInput, OpenPeriodInputSchema } from './schemas';
-import { auditRecord } from "../audit";
 
 export interface OpenPeriodResult {
   id: string;
@@ -84,22 +84,22 @@ export async function openPeriod(
 
       // 6. Write audit log
       await auditRecord({
-            action: 'open_period',
-            entityType: 'accounting_period',
-            entityId: periodId,
-            before: null,
-            after: {
-                    code: periodCode,
-                    startDate,
-                    endDate,
-                    status: 'open',
-                  },
-            metadata: {
-                    ip: ctx.ipAddress ?? null,
-                    userAgent: ctx.userAgent ?? null,
-                  },
-            ctx,
-          });
+        action: 'open_period',
+        entityType: 'accounting_period',
+        entityId: periodId,
+        before: null,
+        after: {
+          code: periodCode,
+          startDate,
+          endDate,
+          status: 'open',
+        },
+        metadata: {
+          ip: ctx.ipAddress ?? null,
+          userAgent: ctx.userAgent ?? null,
+        },
+        ctx,
+      });
 
       return {
         id: periodId,

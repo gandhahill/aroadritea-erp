@@ -36,6 +36,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray } from 'drizzle-orm';
 import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
 import { createJournal } from '../accounting/create-journal';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { generateAdjustmentNumber } from '../shared/number-generator';
 import {
@@ -44,7 +45,6 @@ import {
   CreateAdjustmentInputSchema,
   RejectAdjustmentInputSchema,
 } from './schemas';
-import { auditRecord } from "../audit";
 
 // ─── Default COA codes ────────────────────────────────────────────────────────
 //
@@ -230,14 +230,14 @@ export async function createAdjustmentDraft(
     await db.insert(stockAdjustmentLines).values(lineValues);
 
     await auditRecord({
-        action: 'create',
-        entityType: 'stock_adjustment',
-        entityId: adjId,
-        before: null,
-        after: { number: adjNumber, reason: data.reason, lineCount: lineValues.length },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'create',
+      entityType: 'stock_adjustment',
+      entityId: adjId,
+      before: null,
+      after: { number: adjNumber, reason: data.reason, lineCount: lineValues.length },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok({
       id: adjId,
@@ -312,14 +312,14 @@ export async function submitAdjustment(
       .orderBy(stockAdjustmentLines.lineNo);
 
     await auditRecord({
-        action: 'submit',
-        entityType: 'stock_adjustment',
-        entityId: adjustmentId,
-        before: { status: adj.status },
-        after: { status: 'submitted' },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'submit',
+      entityType: 'stock_adjustment',
+      entityId: adjustmentId,
+      before: { status: adj.status },
+      after: { status: 'submitted' },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok({
       id: adj.id,
@@ -622,7 +622,7 @@ export async function approveAdjustment(
               updatedBy: ctx.userId,
               lastMovementAt: new Date(),
             })
-            .where(eq(stockLevels.id, existing.id))
+            .where(eq(stockLevels.id, existing.id)),
         );
       } else {
         batchQueries.push(
@@ -641,27 +641,27 @@ export async function approveAdjustment(
             avgUnitCost: line.unitCost,
             createdBy: ctx.userId,
             updatedBy: ctx.userId,
-          })
+          }),
         );
       }
     }
 
     // 11. Audit
     await auditRecord({
-        action: 'approve',
-        entityType: 'stock_adjustment',
-        entityId: data.adjustmentId,
-        before: { status: 'submitted' },
-        after: {
-              status: 'approved',
-              approvedBy: ctx.userId,
-              movementCount: movementValues.length,
-              journalEntryId,
-              netValue: netDelta.toString(),
-            },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'approve',
+      entityType: 'stock_adjustment',
+      entityId: data.adjustmentId,
+      before: { status: 'submitted' },
+      after: {
+        status: 'approved',
+        approvedBy: ctx.userId,
+        movementCount: movementValues.length,
+        journalEntryId,
+        netValue: netDelta.toString(),
+      },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok({
       id: adj.id,
@@ -760,14 +760,14 @@ export async function rejectAdjustment(
       .orderBy(stockAdjustmentLines.lineNo);
 
     await auditRecord({
-        action: 'reject',
-        entityType: 'stock_adjustment',
-        entityId: data.adjustmentId,
-        before: { status: adj.status },
-        after: { status: 'rejected', rejectionReason: data.reason },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'reject',
+      entityType: 'stock_adjustment',
+      entityId: data.adjustmentId,
+      before: { status: adj.status },
+      after: { status: 'rejected', rejectionReason: data.reason },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok({
       id: adj.id,

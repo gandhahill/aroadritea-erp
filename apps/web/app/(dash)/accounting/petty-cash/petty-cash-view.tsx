@@ -1,5 +1,7 @@
 'use client';
 
+import { Button, Input, TableCell, TableHead } from '@erp/ui';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
 import type {
@@ -13,8 +15,6 @@ import {
   expenseAction,
   replenishAction,
 } from './actions';
-import { useTranslations } from 'next-intl';
-import { Input, TableCell, TableHead, Button } from "@erp/ui";
 
 function formatRupiah(amount: string): string {
   const n = Number(amount);
@@ -112,11 +112,7 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
           }
           await expenseAction(acct.locationId, amountNum, actionNote);
         } else if (actionModal === 'deposit_to_bank') {
-          await depositToBankAction(
-            acct.locationId,
-            amountNum,
-            actionNote || t('depositToBank'),
-          );
+          await depositToBankAction(acct.locationId, amountNum, actionNote || t('depositToBank'));
         }
         setActionModal(null);
         router.refresh();
@@ -194,7 +190,9 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
               <p className="mt-2 text-2xl font-bold text-brand-ink">{formatRupiah(acct.balance)}</p>
               <div className="mt-3">
                 <div className="flex items-center justify-between text-xs text-brand-ink-3">
-                  <span>{t('plafond')}: {formatRupiah(acct.maxLimit)}</span>
+                  <span>
+                    {t('plafond')}: {formatRupiah(acct.maxLimit)}
+                  </span>
                   <span>{Math.round(pct)}%</span>
                 </div>
                 <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-brand-cream-2">
@@ -230,7 +228,11 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                   {t('notOpened')}
                 </span>
               </div>
-              <p className="mb-3 text-xs text-brand-ink-3" dangerouslySetInnerHTML={{ __html: t('openInfo') }} />
+              <p className="mb-3 text-xs text-brand-ink-3">
+                {t.rich('openInfo', {
+                  b: (chunks) => <strong className="font-semibold text-brand-ink">{chunks}</strong>,
+                })}
+              </p>
               <label className="block">
                 <span className="text-[11px] font-medium uppercase tracking-wider text-brand-ink-2">
                   {t('openPlafond')}
@@ -265,7 +267,9 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                 type="button"
                 onClick={() => handleCreate(loc.id)}
                 disabled={pending}
-                className="mt-4 w-full rounded-lg  disabled:cursor-not-allowed disabled:opacity-50" variant="primary" size="md"
+                className="mt-4 w-full rounded-lg  disabled:cursor-not-allowed disabled:opacity-50"
+                variant="primary"
+                size="md"
               >
                 {pending ? t('openSubmitting') : t('openSubmit')}
               </Button>
@@ -349,10 +353,18 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
-                  <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('date')}</TableHead>
-                  <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('type')}</TableHead>
-                  <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('description')}</TableHead>
-                  <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('amount')}</TableHead>
+                  <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                    {t('date')}
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                    {t('type')}
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                    {t('description')}
+                  </TableHead>
+                  <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                    {t('amount')}
+                  </TableHead>
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-cream-2">
@@ -374,7 +386,9 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                         : 'bg-brand-cream-2 text-brand-ink-2';
                   return (
                     <tr key={tx.id} className="hover:bg-brand-cream/50">
-                      <TableCell className="px-4 py-3 text-brand-ink-2">{formatDate(tx.createdAt)}</TableCell>
+                      <TableCell className="px-4 py-3 text-brand-ink-2">
+                        {formatDate(tx.createdAt)}
+                      </TableCell>
                       <TableCell className="px-4 py-3">
                         <span
                           className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${badgeColor}`}

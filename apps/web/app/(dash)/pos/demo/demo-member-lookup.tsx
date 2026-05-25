@@ -8,10 +8,10 @@
 
 'use client';
 
+import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useDemoCart } from './demo-cart-context';
-import { Input } from "@erp/ui";
 
 export function DemoMemberLookup() {
   const t = useTranslations('pos');

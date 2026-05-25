@@ -9,25 +9,30 @@
  * not exposed here — the goal is observability, not management.
  */
 
-import { getSession } from '@/lib/auth';
 import { PageHeader } from '@/components/page-header';
 import { Pagination } from '@/components/pagination';
-import { Table, TableBody, TableCell, TableHead } from '@erp/ui';
+import { getSession } from '@/lib/auth';
 import { and, db, desc, eq, inArray, sql } from '@erp/db';
 import { aiActionDrafts, aiChatSessions } from '@erp/db/schema/ai';
 import { auditLog } from '@erp/db/schema/audit';
 import { users } from '@erp/db/schema/auth';
 import { can } from '@erp/services/iam';
+import { Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 
 export const metadata: Metadata = { title: 'AI Assistant Log' };
 export const dynamic = 'force-dynamic';
 
-const ENTITY_FILTERS = ['ai_chat_session', 'ai_chat_message', 'ai_tool_call', 'ai_action_draft'] as const;
+const ENTITY_FILTERS = [
+  'ai_chat_session',
+  'ai_chat_message',
+  'ai_tool_call',
+  'ai_action_draft',
+] as const;
 type EntityFilter = (typeof ENTITY_FILTERS)[number];
 
-function escape(value: unknown): string {
+function renderCellValue(value: unknown): string {
   if (value === null || value === undefined) return '—';
   if (typeof value === 'string') return value;
   return JSON.stringify(value).slice(0, 200);
@@ -67,9 +72,7 @@ export default async function AiAssistantLogPage({
   if (entity) {
     conditions.push(eq(auditLog.entityType, entity));
   } else {
-    conditions.push(
-      inArray(auditLog.entityType, ENTITY_FILTERS as unknown as string[]),
-    );
+    conditions.push(inArray(auditLog.entityType, ENTITY_FILTERS as unknown as string[]));
   }
   if (userFilter) conditions.push(eq(auditLog.userId, userFilter));
 
@@ -127,9 +130,7 @@ export default async function AiAssistantLogPage({
         </div>
         {draftStat.map((d) => (
           <div key={d.status} className="rounded-xl border border-brand-cream-3 bg-card p-3">
-            <p className="text-xs uppercase tracking-wide text-brand-ink-3">
-              Draft {d.status}
-            </p>
+            <p className="text-xs uppercase tracking-wide text-brand-ink-3">Draft {d.status}</p>
             <p className="mt-1 text-xl font-semibold text-brand-ink">{d.count}</p>
           </div>
         ))}
@@ -212,7 +213,7 @@ export default async function AiAssistantLogPage({
                   </TableCell>
                   <TableCell className="px-3 py-2">
                     <pre className="max-w-xs overflow-hidden whitespace-pre-wrap break-words font-mono text-[10px] leading-snug text-brand-ink-2">
-                      {escape(row.after ?? row.before)}
+                      {renderCellValue(row.after ?? row.before)}
                     </pre>
                   </TableCell>
                 </tr>

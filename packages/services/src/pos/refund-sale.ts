@@ -33,13 +33,13 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, sql } from 'drizzle-orm';
-import { generateJournalNumber } from '../shared/number-generator';
 import { reverseJournal } from '../accounting/reverse-journal';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
+import { generateJournalNumber } from '../shared/number-generator';
 import { RefundSaleInputSchema } from './schemas';
 import type { SaleResult } from './schemas';
-import { auditRecord } from "../audit";
-import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
 
 export async function refundSale(input: unknown, ctx: AuditContext): Promise<Result<SaleResult>> {
   const parsed = RefundSaleInputSchema.safeParse(input);
@@ -270,21 +270,21 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
 
     // ── Audit log ───────────────────────────────────────────────────────
     await auditRecord({
-        action: 'refund',
-        entityType: 'sales_order',
-        entityId: data.salesOrderId,
-        before: { status: sale.status },
-        after: {
-              status: 'refunded',
-              reason: data.reason,
-              reversalJeId,
-              isFullRefund,
-              refundTotal: refundTotal.toString(),
-              refundLines: data.lines,
-            },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'refund',
+      entityType: 'sales_order',
+      entityId: data.salesOrderId,
+      before: { status: sale.status },
+      after: {
+        status: 'refunded',
+        reason: data.reason,
+        reversalJeId,
+        isFullRefund,
+        refundTotal: refundTotal.toString(),
+        refundLines: data.lines,
+      },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     const result: SaleResult = {
       id: sale.id,
@@ -312,7 +312,7 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
       payments: [],
       journalEntryId: reversalJeId,
     };
-    
+
     await saveIdempotency(db, sale!.locationId, data.idempotencyKey, 200, result);
     return ok(result);
   } catch (e) {
@@ -450,21 +450,21 @@ async function createPartialReversalJe(
   await db.insert(journalLines).values(lineValues);
 
   await auditRecord({
-      action: 'create',
-      entityType: 'journal_entry',
-      entityId: jeId,
-      before: null,
-      after: {
-          id: jeId,
-          number: jeNumber,
-          status: 'posted',
-          partialRefundOf: sale.number,
-          totalDebit: totalDebit.toString(),
-          totalCredit: totalCredit.toString(),
-        },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      ctx,
-    });
+    action: 'create',
+    entityType: 'journal_entry',
+    entityId: jeId,
+    before: null,
+    after: {
+      id: jeId,
+      number: jeNumber,
+      status: 'posted',
+      partialRefundOf: sale.number,
+      totalDebit: totalDebit.toString(),
+      totalCredit: totalCredit.toString(),
+    },
+    metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+    ctx,
+  });
 
   return ok(jeId);
 }

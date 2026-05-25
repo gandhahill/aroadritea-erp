@@ -7,13 +7,13 @@
 
 'use client';
 
+import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import { createSaleAction } from './actions';
 import { type RoundingOption, getDonationOptions } from './lib/donation-options';
 import { useOfflineSync } from './lib/offline-sync-context';
 import { usePosCart } from './pos-cart-context';
-import { Input } from "@erp/ui";
 
 const BASE_PAYMENT_METHODS = [
   { id: 'cash', badge: 'Rp' },
@@ -51,7 +51,8 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   /** Custom donation amount entered by the cashier when `donationChoice === 'custom'`. */
   const [customDonationInput, setCustomDonationInput] = useState('');
   const paymentMethods = useMemo(() => {
-    if (state.channel === 'walk_in' || state.channel === 'dine_in' || state.channel === 'take_away') return [...BASE_PAYMENT_METHODS];
+    if (state.channel === 'walk_in' || state.channel === 'dine_in' || state.channel === 'take_away')
+      return [...BASE_PAYMENT_METHODS];
     return [...BASE_PAYMENT_METHODS, { id: state.channel, badge: channelBadge(state.channel) }];
   }, [state.channel]);
 

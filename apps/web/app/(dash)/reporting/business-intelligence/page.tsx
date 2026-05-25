@@ -1,3 +1,4 @@
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
 import { and, db, eq, gte, lte, sql } from '@erp/db';
@@ -9,7 +10,6 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { DonutChart, HorizontalBarChart, TrendLineChart, VerticalBarChart } from './charts';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Business Intelligence',
@@ -168,20 +168,14 @@ export default async function BusinessIntelligencePage() {
 
   /** Returns delta + percent for two bigint values. Percent is null
    *  when previous = 0 (no baseline). */
-  function bigDelta(
-    cur: bigint,
-    prev: bigint,
-  ): { delta: bigint; percent: number | null } {
+  function bigDelta(cur: bigint, prev: bigint): { delta: bigint; percent: number | null } {
     const delta = cur - prev;
     const percent =
       prev === 0n ? null : Number((delta * 10000n) / (prev < 0n ? -prev : prev)) / 100;
     return { delta, percent };
   }
 
-  function numDelta(
-    cur: number,
-    prev: number,
-  ): { delta: number; percent: number | null } {
+  function numDelta(cur: number, prev: number): { delta: number; percent: number | null } {
     const delta = cur - prev;
     const percent = prev === 0 ? null : Math.round(((cur - prev) / Math.abs(prev)) * 1000) / 10;
     return { delta, percent };
@@ -354,11 +348,11 @@ export default async function BusinessIntelligencePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle', { from: monthStart, to: today })}</>}
-            eyebrow={<>{t('eyebrow')}</>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={<>{t('subtitle', { from: monthStart, to: today })}</>}
+        eyebrow={<>{t('eyebrow')}</>}
+      />
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <Kpi

@@ -1,10 +1,10 @@
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchLocations, fetchReimbursements } from './actions';
 import { ReimbursementClient } from './reimbursement-view';
-import { getTranslations } from 'next-intl/server';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Reimbursement',
@@ -26,10 +26,7 @@ export default async function ReimbursementPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
 
       <ReimbursementClient
         initialItems={items}

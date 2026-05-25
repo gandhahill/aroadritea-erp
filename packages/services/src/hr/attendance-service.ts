@@ -11,15 +11,15 @@
 import { db } from '@erp/db';
 import { locations, users } from '@erp/db/schema/auth';
 import { customFieldDefinitions, customFieldValues } from '@erp/db/schema/customfield';
-import { attendance, employees, shiftDefinitions, shiftAssignments } from '@erp/db/schema/hr';
+import { attendance, employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
-import { auditRecord } from "../audit";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -242,8 +242,8 @@ export async function checkIn(
             eq(shiftAssignments.employeeId, employee.id),
             eq(shiftAssignments.workDate, workDateStr),
             eq(shiftAssignments.kind, 'shift'),
-            isNull(shiftAssignments.deletedAt)
-          )
+            isNull(shiftAssignments.deletedAt),
+          ),
         )
         .limit(1);
 
@@ -380,14 +380,14 @@ export async function checkIn(
       }
 
       await auditRecord({
-            action: 'check_in',
-            entityType: 'attendance',
-            entityId: record.id,
-            before: null,
-            after: record as never,
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: 'check_in',
+        entityType: 'attendance',
+        entityId: record.id,
+        before: null,
+        after: record as never,
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return {
         id: record.id,
@@ -510,14 +510,14 @@ export async function checkOut(
       }
 
       await auditRecord({
-            action: 'check_out',
-            entityType: 'attendance',
-            entityId: data.attendanceId,
-            before: { checkOutAt: null },
-            after: { checkOutAt: updated.checkOutAt, workedMinutes: updated.workedMinutes } as never,
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: 'check_out',
+        entityType: 'attendance',
+        entityId: data.attendanceId,
+        before: { checkOutAt: null },
+        after: { checkOutAt: updated.checkOutAt, workedMinutes: updated.workedMinutes } as never,
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return {
         id: updated.id,
@@ -696,19 +696,19 @@ export async function forgiveLate(
       // ISO 38500 — supervisor waivers materially affect payroll and
       // disciplinary records, so capture before/after explicitly.
       await auditRecord({
-            action: 'forgive_late',
-            entityType: 'attendance',
-            entityId: input.attendanceId,
-            before: { lateForgiven: false },
-            after: {
-                    lateForgiven: true,
-                    lateForgivenBy: ctx.userId,
-                    lateForgivenReason: input.reason.trim(),
-                    employeeId: row.employeeId,
-                  },
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: 'forgive_late',
+        entityType: 'attendance',
+        entityId: input.attendanceId,
+        before: { lateForgiven: false },
+        after: {
+          lateForgiven: true,
+          lateForgivenBy: ctx.userId,
+          lateForgivenReason: input.reason.trim(),
+          employeeId: row.employeeId,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return { id: input.attendanceId };
     },

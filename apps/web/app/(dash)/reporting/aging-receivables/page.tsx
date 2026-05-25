@@ -3,14 +3,14 @@
  * All copy goes through next-intl `reporting.aging.*` keys (id/en/zh).
  */
 
-import { getSession } from '@/lib/auth';
 import { PageHeader } from '@/components/page-header';
+import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
-import { fetchAgingReceivables } from './actions';
 import { AgingClient } from '../_components/aging-client';
+import { fetchAgingReceivables } from './actions';
 
 export const metadata: Metadata = { title: 'Aging Receivables' };
 
@@ -48,8 +48,8 @@ export default async function AgingReceivablesPage({
         asOf={asOf}
         locationId={locationId ?? ''}
         locationOptions={locationOptions.map((l) => ({ value: l.id, label: l.label }))}
-        data={result.ok ? result.data ?? null : null}
-        error={result.ok ? null : result.error ?? null}
+        data={result.ok ? (result.data ?? null) : null}
+        error={result.ok ? null : (result.error ?? null)}
       />
     </main>
   );

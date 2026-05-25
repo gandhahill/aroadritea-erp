@@ -52,11 +52,11 @@ import {
   type LogHelpdeskTicketDraftToolDeps,
   logHelpdeskTicketDraftTool,
 } from './log-helpdesk-ticket-draft';
-import { WebSearchInputSchema, webSearchTool } from './web-search';
 import { OcrReceiptStrukInputSchema, ocrReceiptStrukTool } from './ocr-receipt';
 import { ReadFileInputSchema, readFileTool } from './read-file';
 import { RequestAdminHelpInputSchema, requestAdminHelpTool } from './request-admin-help';
 import { SearchCodebaseInputSchema, searchCodebaseTool } from './search-codebase';
+import { WebSearchInputSchema, webSearchTool } from './web-search';
 
 /**
  * Optional execution dependencies passed by the conversation runner to
@@ -171,7 +171,7 @@ registerTool({
     properties: {
       location_id: {
         type: 'string',
-        description: 'Outlet ID. Defaults to the caller\'s session location when omitted.',
+        description: "Outlet ID. Defaults to the caller's session location when omitted.",
       },
       limit: { type: 'integer', description: 'Cap on returned orders (1–25, default 10).' },
       since_minutes: {
@@ -196,8 +196,7 @@ registerTool({
     properties: {
       path: {
         type: 'string',
-        description:
-          'Repo-relative path, e.g. "packages/services/src/pos/manual-sales.ts".',
+        description: 'Repo-relative path, e.g. "packages/services/src/pos/manual-sales.ts".',
       },
       start_line: { type: 'integer', description: 'Start line (default 1).' },
       line_count: { type: 'integer', description: 'Number of lines (1–200, default 80).' },
@@ -237,7 +236,7 @@ registerTool({
       product_code: { type: 'string', description: 'Product SKU.' },
       location: {
         type: 'string',
-        description: 'Outlet code OR ID. Defaults to caller\'s session location when omitted.',
+        description: "Outlet code OR ID. Defaults to caller's session location when omitted.",
       },
       variant_code: { type: 'string', description: 'Optional variant SKU.' },
     },
@@ -259,7 +258,7 @@ registerTool({
       date: { type: 'string', description: 'YYYY-MM-DD; defaults to today.' },
       location_id: {
         type: 'string',
-        description: 'Outlet ID. Defaults to caller\'s session location.',
+        description: "Outlet ID. Defaults to caller's session location.",
       },
     },
   },
@@ -283,7 +282,10 @@ registerTool({
         type: 'string',
         description: 'cash | qris | bank_transfer | ewallet | …',
       },
-      gross_sales: { type: 'string', description: 'Total rupiah as integer string (e.g. "320000").' },
+      gross_sales: {
+        type: 'string',
+        description: 'Total rupiah as integer string (e.g. "320000").',
+      },
       discount_total: { type: 'string', description: 'Optional discount rupiah integer string.' },
       transaction_count: { type: 'integer', description: 'Optional transaction count.' },
       source_reference: { type: 'string', description: 'Optional reference, e.g. receipt file.' },
@@ -318,8 +320,7 @@ registerTool({
       },
       category: {
         type: 'string',
-        description:
-          'product_quality | service | delivery | payment | hygiene | staff | other',
+        description: 'product_quality | service | delivery | payment | hygiene | staff | other',
       },
       description: {
         type: 'string',
@@ -399,8 +400,7 @@ registerTool({
     properties: {
       attachment_url: {
         type: 'string',
-        description:
-          'URL of an image previously uploaded via /api/uploads (area=ai-attachments).',
+        description: 'URL of an image previously uploaded via /api/uploads (area=ai-attachments).',
       },
       location_id: { type: 'string', description: 'Outlet ID; defaults to session location.' },
       channel: { type: 'string', description: 'Override channel hint.' },
@@ -504,7 +504,9 @@ export async function executeTool(
       outcome: 'forbidden',
     };
     await writeToolAudit(ctx, log);
-    return err(AppError.forbidden('ai.tool.forbidden', { tool: name, permission: tool.permission }));
+    return err(
+      AppError.forbidden('ai.tool.forbidden', { tool: name, permission: tool.permission }),
+    );
   }
 
   try {

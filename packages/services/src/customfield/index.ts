@@ -12,8 +12,8 @@ import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, isNull, like, or, sql } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
-import { auditRecord } from "../audit";
 
 // ─── Data type enum ──────────────────────────────────────────────────────────
 
@@ -259,18 +259,18 @@ export async function deleteDefinition(id: string, ctx: AuditContext): Promise<R
       );
 
     await auditRecord({
-        action: 'delete',
-        entityType: 'custom_field_definition',
-        entityId: id,
-        before: {
-              entityType: existing[0].entityType,
-              key: existing[0].key,
-              dataType: existing[0].dataType,
-            },
-        after: { deletedAt: deletedAt.toISOString() },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'delete',
+      entityType: 'custom_field_definition',
+      entityId: id,
+      before: {
+        entityType: existing[0].entityType,
+        key: existing[0].key,
+        dataType: existing[0].dataType,
+      },
+      after: { deletedAt: deletedAt.toISOString() },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok(undefined);
   } catch (e) {

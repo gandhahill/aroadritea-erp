@@ -9,8 +9,10 @@
  *   approved / cancelled → read-only
  */
 
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import type { OpnameLineResult } from '@erp/services/inventory/opname-service';
+import { Button } from '@erp/ui';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import {
@@ -21,8 +23,6 @@ import {
 } from '../actions';
 import { OpnameLineTable } from './opname-lines-table';
 import { OpnameWorkflowBar } from './opname-workflow-bar';
-import { Button } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: 'Stock Opname' };
 
@@ -94,26 +94,34 @@ export default async function OpnameDetailPage({
   return (
     <div className="space-y-6">
       {/* Breadcrumb + header */}
-      <PageHeader 
-            title={<>{data.number}</>}
-            description={<>Tanggal sesi {data.sessionDate}· Periode {data.periodCode}</>}
-            eyebrow={<div className="mb-1.5 flex items-center gap-2 text-sm text-brand-ink-3">
-                      <a href="/inventory/opname" className="hover:text-brand-ink">
-                        Stock Opname
-                      </a>
-                      <span>/</span>
-                      <span className="font-medium">{data.number}</span>
-                    </div>}
-            actions={<>
-          <div className="flex items-center gap-2">
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ${statusCfg.bg} ${statusCfg.text}`}
-                    >
-                      {statusCfg.label}
-                    </span>
-                  </div>
-            </>}
-          />
+      <PageHeader
+        title={<>{data.number}</>}
+        description={
+          <>
+            Tanggal sesi {data.sessionDate}· Periode {data.periodCode}
+          </>
+        }
+        eyebrow={
+          <div className="mb-1.5 flex items-center gap-2 text-sm text-brand-ink-3">
+            <a href="/inventory/opname" className="hover:text-brand-ink">
+              Stock Opname
+            </a>
+            <span>/</span>
+            <span className="font-medium">{data.number}</span>
+          </div>
+        }
+        actions={
+          <>
+            <div className="flex items-center gap-2">
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ${statusCfg.bg} ${statusCfg.text}`}
+              >
+                {statusCfg.label}
+              </span>
+            </div>
+          </>
+        }
+      />
 
       {/* Workflow progress bar */}
       <OpnameWorkflowBar status={data.status} />
@@ -222,7 +230,9 @@ export default async function OpnameDetailPage({
           >
             <Button
               type="submit"
-              className="rounded-lg border border-rose-200 bg-card px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50" variant="danger" size="sm"
+              className="rounded-lg border border-rose-200 bg-card px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
+              variant="danger"
+              size="sm"
             >
               Batalkan
             </Button>
@@ -262,7 +272,9 @@ export default async function OpnameDetailPage({
           >
             <Button
               type="submit"
-              className="rounded-lg border border-rose-200 bg-card px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50" variant="danger" size="sm"
+              className="rounded-lg border border-rose-200 bg-card px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
+              variant="danger"
+              size="sm"
             >
               Batalkan
             </Button>

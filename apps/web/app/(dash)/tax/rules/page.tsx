@@ -1,3 +1,5 @@
+import { PageHeader } from '@/components/page-header';
+import { Button, Select, Table, TableBody, TableCell, TableHead, TableHeader } from '@erp/ui';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import {
@@ -6,8 +8,6 @@ import {
   fetchTaxRules,
   saveTaxRuleAction,
 } from './actions';
-import { Button, TableCell, TableBody, TableHead, TableHeader, Table, Select } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Tax Rules - Aroadri ERP',
@@ -20,11 +20,7 @@ export default async function TaxRulesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-            eyebrow={<>Tax</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} eyebrow={<>Tax</>} />
 
       <form
         action={saveTaxRuleAction}
@@ -77,7 +73,9 @@ export default async function TaxRulesPage() {
         </label>
         <Button
           type="submit"
-          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90" variant="primary" size="md"
+          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90"
+          variant="primary"
+          size="md"
         >
           {t('saveRule')}
         </Button>
@@ -113,7 +111,9 @@ export default async function TaxRulesPage() {
                     <p className="font-mono text-xs font-semibold text-brand-ink">{rule.taxCode}</p>
                     <p className="text-xs text-brand-ink-3">{pickName(rule.taxName, locale)}</p>
                   </TableCell>
-                  <TableCell className="px-4 py-3">{rule.isAppliedDefault ? t('yes') : t('no')}</TableCell>
+                  <TableCell className="px-4 py-3">
+                    {rule.isAppliedDefault ? t('yes') : t('no')}
+                  </TableCell>
                   <TableCell className="px-4 py-3 text-right">{rule.priority}</TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink-3">
                     {formatDate(rule.effectiveFrom, locale, t('onwards'))} -{' '}
@@ -180,7 +180,9 @@ export default async function TaxRulesPage() {
                         </label>
                         <Button
                           type="submit"
-                          className="rounded bg-brand-red px-3 py-1.5 text-xs font-semibold text-white" variant="primary" size="sm"
+                          className="rounded bg-brand-red px-3 py-1.5 text-xs font-semibold text-white"
+                          variant="primary"
+                          size="sm"
                         >
                           {t('save')}
                         </Button>

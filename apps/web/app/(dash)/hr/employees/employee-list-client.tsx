@@ -26,10 +26,10 @@ interface EmployeeRow {
   contractType: string;
 }
 
-import { Pagination } from '@/components/pagination';
-import { TableCell, TableHead, Input, Select, Button } from "@erp/ui";
-import { SearchInput } from '@/components/search-input';
 import { FilterBar, FilterField } from '@/components/filter-bar';
+import { Pagination } from '@/components/pagination';
+import { SearchInput } from '@/components/search-input';
+import { Button, Input, Select, TableCell, TableHead } from '@erp/ui';
 
 interface Props {
   rows: EmployeeRow[];
@@ -145,8 +145,12 @@ export function EmployeeListClient({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('name')}</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('nik')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('name')}
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('nik')}
+                </TableHead>
                 <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
                   {t('position')}
                 </TableHead>
@@ -156,7 +160,9 @@ export function EmployeeListClient({
                 <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
                   {t('location')}
                 </TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('status')}</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                  {t('status')}
+                </TableHead>
                 <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
                   {t('contractType')}
                 </TableHead>
@@ -182,9 +188,13 @@ export function EmployeeListClient({
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink-2">{row.nik ?? '—'}</TableCell>
+                  <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink-2">
+                    {row.nik ?? '—'}
+                  </TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink">{row.position}</TableCell>
-                  <TableCell className="px-4 py-3 text-brand-ink-2">{row.department ?? '—'}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">
+                    {row.department ?? '—'}
+                  </TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink-2">{row.locationName}</TableCell>
                   <TableCell className="px-4 py-3">
                     <span

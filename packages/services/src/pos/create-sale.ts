@@ -713,10 +713,22 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
   let saleIdToRollback: string | null = null;
   const rollbackSaleData = async () => {
     if (!saleIdToRollback) return;
-    await db.delete(payments).where(eq(payments.salesOrderId, saleIdToRollback)).catch(() => undefined);
-    await db.delete(promotionApplications).where(eq(promotionApplications.salesOrderId, saleIdToRollback)).catch(() => undefined);
-    await db.delete(salesOrderLines).where(eq(salesOrderLines.salesOrderId, saleIdToRollback)).catch(() => undefined);
-    await db.delete(salesOrders).where(eq(salesOrders.id, saleIdToRollback)).catch(() => undefined);
+    await db
+      .delete(payments)
+      .where(eq(payments.salesOrderId, saleIdToRollback))
+      .catch(() => undefined);
+    await db
+      .delete(promotionApplications)
+      .where(eq(promotionApplications.salesOrderId, saleIdToRollback))
+      .catch(() => undefined);
+    await db
+      .delete(salesOrderLines)
+      .where(eq(salesOrderLines.salesOrderId, saleIdToRollback))
+      .catch(() => undefined);
+    await db
+      .delete(salesOrders)
+      .where(eq(salesOrders.id, saleIdToRollback))
+      .catch(() => undefined);
   };
 
   let appliedStockDeductions: IngredientDeduction[] = [];
@@ -951,7 +963,11 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     const saleNumber = await generateSaleNumber(ctx.tenantId, data.locationId);
 
     // 9. Claim idempotency before any stock/order/accounting mutation.
-    const claimResult = await claimIdempotency(data.locationId, data.idempotencyKey, 'pos.createSale');
+    const claimResult = await claimIdempotency(
+      data.locationId,
+      data.idempotencyKey,
+      'pos.createSale',
+    );
     if (!claimResult.ok) {
       // Fallback check: if duplicateRequest, preserve original error signature
       if (claimResult.error.messageKey === 'pos.createSale.duplicateRequest') {
@@ -1282,7 +1298,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     await rollbackSaleData();
     if (e instanceof Error || typeof e === 'object') {
       const errObj = e as any;
-      if (errObj.code === '23514' || (errObj.message && errObj.message.includes('stock_levels_qty_check'))) {
+      if (errObj.code === '23514' || errObj.message?.includes('stock_levels_qty_check')) {
         if (claimedIdempotencyId) {
           await releaseIdempotencyClaim(claimedIdempotencyId, 400, { error: 'insufficient_stock' });
         }

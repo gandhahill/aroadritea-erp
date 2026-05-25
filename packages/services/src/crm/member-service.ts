@@ -15,10 +15,7 @@
 
 import { db } from '@erp/db';
 import { partners } from '@erp/db/schema/accounting';
-import {
-  memberLoyalty,
-  memberPointsTransactions,
-} from '@erp/db/schema/member';
+import { memberLoyalty, memberPointsTransactions } from '@erp/db/schema/member';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
@@ -76,10 +73,7 @@ export async function listMembers(
   const permCheck = await requirePermission(ctx.userId, 'crm.member.view');
   if (!permCheck.ok) return permCheck;
 
-  const conds = [
-    eq(partners.tenantId, ctx.tenantId),
-    eq(partners.isMember, true),
-  ];
+  const conds = [eq(partners.tenantId, ctx.tenantId), eq(partners.isMember, true)];
   if (filter.activeOnly) conds.push(eq(partners.isActive, true));
   if (filter.search?.trim()) {
     const q = `%${filter.search.trim()}%`;

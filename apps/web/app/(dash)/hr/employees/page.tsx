@@ -4,6 +4,7 @@
  * Paginated employee list with search, status filter, department filter.
  */
 
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { listEmployees } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
@@ -13,7 +14,6 @@ import { redirect } from 'next/navigation';
 import { fetchEmployeeLocationOptions } from './actions';
 import { EmployeeListClient } from './employee-list-client';
 import { ExportEmployeesButton } from './export-employees-button';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = { title: 'Employees' };
 
@@ -85,33 +85,35 @@ export default async function EmployeesPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('description')}</>}
-            actions={<>
-          <div className="flex items-center gap-3">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-cream-2 px-3 py-1 text-xs font-medium text-brand-ink-2">
-                      {t('count', { count: total })}
-                    </span>
-                    <ExportEmployeesButton q={q} status={status} locationId={locationId} />
-                    <a
-                      href="/hr/employees/new"
-                      className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6"
-                    >
-                      <svg
-                        className="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                      </svg>
-                      {t('add')}
-                    </a>
-                  </div>
-            </>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={<>{t('description')}</>}
+        actions={
+          <>
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-cream-2 px-3 py-1 text-xs font-medium text-brand-ink-2">
+                {t('count', { count: total })}
+              </span>
+              <ExportEmployeesButton q={q} status={status} locationId={locationId} />
+              <a
+                href="/hr/employees/new"
+                className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6"
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                {t('add')}
+              </a>
+            </div>
+          </>
+        }
+      />
 
       <EmployeeListClient
         rows={rows.map((r) => ({

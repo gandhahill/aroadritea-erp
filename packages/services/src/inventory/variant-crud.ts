@@ -12,6 +12,7 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import type { VariantResult } from './list-products';
 import {
@@ -20,7 +21,6 @@ import {
   type UpdateVariantInput,
   UpdateVariantInputSchema,
 } from './schemas';
-import { auditRecord } from "../audit";
 
 // --- Create variant ---
 
@@ -86,14 +86,14 @@ export async function createVariant(
       });
 
       await auditRecord({
-            action: 'create',
-            entityType: 'product_variant',
-            entityId: variantId,
-            before: null,
-            after: { id: variantId, sku: data.sku, productId: data.productId },
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: 'create',
+        entityType: 'product_variant',
+        entityId: variantId,
+        before: null,
+        after: { id: variantId, sku: data.sku, productId: data.productId },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return {
         id: variantId,
@@ -187,14 +187,14 @@ export async function updateVariant(
         data.isActive === false && existing.isActive === true ? 'delete' : 'update';
 
       await auditRecord({
-            action: auditAction,
-            entityType: 'product_variant',
-            entityId: data.variantId,
-            before: { sku: existing.sku, version: existing.version, isActive: existing.isActive },
-            after: { ...updates, version: existing.version + 1 },
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: auditAction,
+        entityType: 'product_variant',
+        entityId: data.variantId,
+        before: { sku: existing.sku, version: existing.version, isActive: existing.isActive },
+        after: { ...updates, version: existing.version + 1 },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return {
         id: updated.id,

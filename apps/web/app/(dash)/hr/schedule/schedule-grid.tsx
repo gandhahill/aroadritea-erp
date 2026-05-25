@@ -1,8 +1,9 @@
 'use client';
 
+import { TableBody, TableHeader } from '@erp/ui';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations, useLocale } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import {
   type RosterAssignment,
@@ -11,7 +12,6 @@ import {
   swapShiftAssignmentAction,
   upsertAssignmentAction,
 } from './actions';
-import { TableBody, TableHeader } from "@erp/ui";
 
 interface Props {
   weekStart: string;
@@ -22,6 +22,11 @@ interface Props {
   canManage: boolean;
 }
 
+type SwapDialogState = {
+  assignment: RosterAssignment;
+  substituteEmployeeId: string;
+  reason: string;
+} | null;
 
 function daysOfWeek(weekStart: string): string[] {
   return Array.from({ length: 7 }, (_, i) => {
@@ -31,7 +36,14 @@ function daysOfWeek(weekStart: string): string[] {
   });
 }
 
-export function ScheduleGrid({ weekStart, locationId, locations, options, initialAssignments, canManage }: Props) {
+export function ScheduleGrid({
+  weekStart,
+  locationId,
+  locations,
+  options,
+  initialAssignments,
+  canManage,
+}: Props) {
   const router = useRouter();
   const t = useTranslations('hr.schedule');
   const tc = useTranslations('common');
@@ -40,69 +52,70 @@ export function ScheduleGrid({ weekStart, locationId, locations, options, initia
   const [assignments, setAssignments] = useState(initialAssignments);
   const [busy, startTransition] = useTransition();
   const [err, setErr] = useState<string | null>(null);
-
-  function key(employeeId: string, date: string, shiftId: string | null) {
-    return `${employeeId}|${date}|${shiftId ?? 'off'}`;
-  }
+  const [swapDialog, setSwapDialog] = useState<SwapDialogState>(null);
 
   const cellMap = useMemo(() => {
     const map = new Map<string, RosterAssignment[]>();
-    for (const a of assignments) {
-      const k = `${a.employeeId}|${a.workDate}`;
-      const arr = map.get(k) ?? [];
-      arr.push(a);
-      map.set(k, arr);
+    for (const assignment of assignments) {
+      const key = `${assignment.employeeId}|${assignment.workDate}`;
+      const current = map.get(key) ?? [];
+      current.push(assignment);
+      map.set(key, current);
     }
     return map;
   }, [assignments]);
 
-  async function swapAssignment(assignment: RosterAssignment) {
+  function getSwapCandidates(assignment: RosterAssignment) {
+    return options.employees.filter((employee) => employee.id !== assignment.employeeId);
+  }
+
+  function openSwapDialog(assignment: RosterAssignment) {
     setErr(null);
-    // Build a quick "id — name" lookup for the prompt so the user can
-    // see the available substitutes. Anyone in the active employee
-    // pool except the original employee qualifies.
-    const candidates = options.employees.filter((e) => e.id !== assignment.employeeId);
+    const candidates = getSwapCandidates(assignment);
     if (candidates.length === 0) {
       setErr(t('swap.noCandidates'));
       return;
     }
-    const list = candidates.map((c, i) => `${i + 1}. ${c.name}`).join('\n');
-    const pick = window.prompt(
-      `${t('swap.pickPrompt', { date: assignment.workDate })}\n\n${list}\n\n${t(
-        'swap.pickInstruction',
-      )}`,
-      '1',
+    setSwapDialog({
+      assignment,
+      substituteEmployeeId: candidates[0]?.id ?? '',
+      reason: '',
+    });
+  }
+
+  function confirmSwapAssignment() {
+    if (!swapDialog) return;
+    setErr(null);
+    const substitute = getSwapCandidates(swapDialog.assignment).find(
+      (candidate) => candidate.id === swapDialog.substituteEmployeeId,
     );
-    if (!pick) return;
-    const idx = Number.parseInt(pick.trim(), 10) - 1;
-    if (Number.isNaN(idx) || idx < 0 || idx >= candidates.length) {
+    if (!substitute) {
       setErr(t('swap.invalidIndex'));
       return;
     }
-    const substitute = candidates[idx]!;
-    const reason = window.prompt(t('swap.reasonPrompt'));
-    if (!reason || reason.trim().length < 3) {
+    const reason = swapDialog.reason.trim();
+    if (reason.length < 3) {
       setErr(t('swap.reasonRequired'));
       return;
     }
     startTransition(async () => {
-      const res = await swapShiftAssignmentAction({
-        assignmentId: assignment.id,
+      const response = await swapShiftAssignmentAction({
+        assignmentId: swapDialog.assignment.id,
         substituteEmployeeId: substitute.id,
-        reason: reason.trim(),
+        reason,
       });
-      if (!res.ok) {
-        setErr(res.error ?? 'Gagal swap.');
+      if (!response.ok) {
+        setErr(response.error ?? 'Gagal swap.');
         return;
       }
-      // Re-point the row locally; the assignment id is preserved.
       setAssignments((prev) =>
-        prev.map((a) =>
-          a.id === assignment.id
-            ? { ...a, employeeId: substitute.id, employeeName: substitute.name }
-            : a,
+        prev.map((assignment) =>
+          assignment.id === swapDialog.assignment.id
+            ? { ...assignment, employeeId: substitute.id, employeeName: substitute.name }
+            : assignment,
         ),
       );
+      setSwapDialog(null);
     });
   }
 
@@ -114,37 +127,37 @@ export function ScheduleGrid({ weekStart, locationId, locations, options, initia
   ) {
     setErr(null);
     const existing = assignments.find(
-      (a) =>
-        a.employeeId === employeeId &&
-        a.workDate === workDate &&
-        a.shiftDefinitionId === shiftDefinitionId &&
-        a.kind === kind,
+      (assignment) =>
+        assignment.employeeId === employeeId &&
+        assignment.workDate === workDate &&
+        assignment.shiftDefinitionId === shiftDefinitionId &&
+        assignment.kind === kind,
     );
     startTransition(async () => {
       if (existing) {
-        const res = await deleteAssignmentAction(existing.id);
-        if (!res.ok) {
-          setErr(res.error ?? 'Gagal menghapus.');
+        const response = await deleteAssignmentAction(existing.id);
+        if (!response.ok) {
+          setErr(response.error ?? 'Gagal menghapus.');
           return;
         }
-        setAssignments((prev) => prev.filter((a) => a.id !== existing.id));
+        setAssignments((prev) => prev.filter((assignment) => assignment.id !== existing.id));
         return;
       }
-      const res = await upsertAssignmentAction({
+      const response = await upsertAssignmentAction({
         employeeId,
         workDate,
         kind,
         shiftDefinitionId,
       });
-      if (!res.ok || !res.id) {
-        setErr(res.error ?? 'Gagal menyimpan.');
+      if (!response.ok || !response.id) {
+        setErr(response.error ?? 'Gagal menyimpan.');
         return;
       }
-      const shift = options.shifts.find((s) => s.id === shiftDefinitionId);
+      const shift = options.shifts.find((item) => item.id === shiftDefinitionId);
       const newAssignment: RosterAssignment = {
-        id: res.id,
+        id: response.id,
         employeeId,
-        employeeName: options.employees.find((e) => e.id === employeeId)?.name ?? '?',
+        employeeName: options.employees.find((item) => item.id === employeeId)?.name ?? '?',
         workDate,
         kind,
         shiftDefinitionId,
@@ -155,13 +168,10 @@ export function ScheduleGrid({ weekStart, locationId, locations, options, initia
     });
   }
 
-  // Compute ±7 days in UTC so the toISOString().slice(0,10) cast doesn't
-  // shift the date back across the WIB→UTC boundary (which caused the
-  // "next week" button to snap back to the current Monday).
   const shiftDays = (iso: string, days: number): string => {
-    const d = new Date(`${iso}T12:00:00Z`); // mid-day UTC avoids edge cases
-    d.setUTCDate(d.getUTCDate() + days);
-    return d.toISOString().slice(0, 10);
+    const date = new Date(`${iso}T12:00:00Z`);
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString().slice(0, 10);
   };
   const prevWeek = shiftDays(weekStart, -7);
   const nextWeek = shiftDays(weekStart, 7);
@@ -169,36 +179,40 @@ export function ScheduleGrid({ weekStart, locationId, locations, options, initia
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-brand-cream-3 bg-card p-3">
-        <div className="flex items-center gap-2 flex-1 md:flex-none">
+        <div className="flex flex-1 items-center gap-2 md:flex-none">
           <Link
             href={`/hr/schedule?week=${prevWeek}${locationId ? `&locationId=${locationId}` : ''}`}
-            className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink-2 hover:bg-brand-cream-1 whitespace-nowrap"
+            className="whitespace-nowrap rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink-2 hover:bg-brand-cream-1"
           >
             &larr; {t('prevWeek')}
           </Link>
-          <p className="text-sm font-semibold text-brand-ink whitespace-nowrap px-2">
+          <p className="whitespace-nowrap px-2 text-sm font-semibold text-brand-ink">
             {t('weekOf')} {weekStart} &mdash; {dates[6]}
           </p>
           <Link
             href={`/hr/schedule?week=${nextWeek}${locationId ? `&locationId=${locationId}` : ''}`}
-            className="rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink-2 hover:bg-brand-cream-1 whitespace-nowrap"
+            className="whitespace-nowrap rounded-md border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink-2 hover:bg-brand-cream-1"
           >
             {t('nextWeek')} &rarr;
           </Link>
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-xs font-medium text-brand-ink-3">Lokasi:</label>
+          <label className="text-xs font-medium text-brand-ink-3">{tc('labels.location')}:</label>
           <select
             value={locationId ?? ''}
-            onChange={(e) => {
-              const val = e.target.value;
-              router.push(`/hr/schedule?week=${weekStart}${val ? `&locationId=${val}` : ''}`);
+            onChange={(event) => {
+              const nextLocationId = event.target.value;
+              router.push(
+                `/hr/schedule?week=${weekStart}${nextLocationId ? `&locationId=${nextLocationId}` : ''}`,
+              );
             }}
             className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1.5 text-sm outline-none focus:border-brand-red"
           >
-            <option value="">Semua Lokasi</option>
-            {locations?.map(loc => (
-              <option key={loc.id} value={loc.id}>{loc.name}</option>
+            <option value="">{tc('labels.allLocations')}</option>
+            {locations?.map((location) => (
+              <option key={location.id} value={location.id}>
+                {location.name}
+              </option>
             ))}
           </select>
         </div>
@@ -215,77 +229,83 @@ export function ScheduleGrid({ weekStart, locationId, locations, options, initia
           <TableHeader className="bg-brand-cream-1 text-left text-xs uppercase tracking-widest text-brand-ink-3">
             <tr>
               <th className="sticky left-0 z-10 bg-brand-cream-1 px-3 py-2">{tc('employee')}</th>
-              <th className="bg-brand-cream-1 px-3 py-2">Lokasi</th>
+              <th className="bg-brand-cream-1 px-3 py-2">{tc('labels.location')}</th>
               {dates.map((date) => (
                 <th key={date} className="px-3 py-2 text-center">
-                  <div className="capitalize">{new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(new Date(`${date}T12:00:00Z`))}</div>
+                  <div className="capitalize">
+                    {new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(
+                      new Date(`${date}T12:00:00Z`),
+                    )}
+                  </div>
                   <div className="text-[10px] font-normal text-brand-ink-3">{date.slice(5)}</div>
                 </th>
               ))}
             </tr>
           </TableHeader>
           <TableBody className="divide-y divide-brand-cream-3">
-            {options.employees.map((emp) => (
-              <tr key={emp.id}>
-                <td className="sticky left-0 z-10 bg-card px-3 py-2 font-medium text-brand-ink whitespace-nowrap">
-                  {emp.name}
+            {options.employees.map((employee) => (
+              <tr key={employee.id}>
+                <td className="sticky left-0 z-10 whitespace-nowrap bg-card px-3 py-2 font-medium text-brand-ink">
+                  {employee.name}
                 </td>
-                <td className="bg-card px-3 py-2 text-brand-ink-3 whitespace-nowrap">
-                  {emp.locationName || '-'}
+                <td className="whitespace-nowrap bg-card px-3 py-2 text-brand-ink-3">
+                  {employee.locationName || '-'}
                 </td>
                 {dates.map((date) => {
-                  const cell = cellMap.get(`${emp.id}|${date}`) ?? [];
+                  const cell = cellMap.get(`${employee.id}|${date}`) ?? [];
                   return (
                     <td key={date} className="px-2 py-2 align-top">
                       <div className="flex flex-col gap-1">
-                        {options.shifts.map((s) => {
+                        {options.shifts.map((shift) => {
                           const onAssignment = cell.find(
-                            (c) => c.shiftDefinitionId === s.id && c.kind === 'shift',
+                            (assignment) =>
+                              assignment.shiftDefinitionId === shift.id &&
+                              assignment.kind === 'shift',
                           );
                           const on = Boolean(onAssignment);
                           return (
-                            <div key={s.id} className="flex items-center gap-1">
+                            <div key={shift.id} className="flex items-center gap-1">
                               <button
                                 type="button"
                                 disabled={!canManage || busy}
-                                onClick={(e) => {
-                                  // Alt-click on an "on" cell triggers swap UX instead of toggle.
-                                  if (on && onAssignment && (e.altKey || e.metaKey)) {
-                                    void swapAssignment(onAssignment);
+                                onClick={(event) => {
+                                  if (on && onAssignment && (event.altKey || event.metaKey)) {
+                                    openSwapDialog(onAssignment);
                                     return;
                                   }
-                                  void toggle(emp.id, date, 'shift', s.id);
+                                  void toggle(employee.id, date, 'shift', shift.id);
                                 }}
-                                title={`${s.label} ${s.time}${on ? ` — Alt+Klik ${t('swap.short')}` : ''}`}
+                                title={`${shift.label} ${shift.time}${on ? ` - ${t('swap.short')}` : ''}`}
                                 className={`flex-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-colors ${
                                   on
                                     ? 'bg-brand-red text-white shadow-sm'
                                     : 'border border-brand-cream-3 text-brand-ink-3 hover:border-brand-red/40'
                                 } disabled:cursor-not-allowed disabled:opacity-50`}
                               >
-                                {s.code}
+                                {shift.code}
                               </button>
                               {on && onAssignment ? (
                                 <button
                                   type="button"
                                   disabled={!canManage || busy}
-                                  onClick={() => swapAssignment(onAssignment)}
+                                  onClick={() => openSwapDialog(onAssignment)}
                                   title={t('swap.button')}
+                                  aria-label={t('swap.button')}
                                   className="rounded-md border border-brand-cream-3 px-1.5 text-[11px] text-brand-ink-3 hover:border-brand-ink hover:text-brand-ink"
                                 >
-                                  ⇄
+                                  &harr;
                                 </button>
                               ) : null}
                             </div>
                           );
                         })}
                         {(() => {
-                          const offRow = cell.find((c) => c.kind === 'off');
+                          const offRow = cell.find((assignment) => assignment.kind === 'off');
                           return (
                             <button
                               type="button"
                               disabled={!canManage || busy}
-                              onClick={() => toggle(emp.id, date, 'off', null)}
+                              onClick={() => toggle(employee.id, date, 'off', null)}
                               className={`rounded-md px-2 py-1 text-[11px] font-semibold transition-colors ${
                                 offRow
                                   ? 'bg-brand-ink/80 text-white'
@@ -312,6 +332,72 @@ export function ScheduleGrid({ weekStart, locationId, locations, options, initia
           </TableBody>
         </table>
       </div>
+
+      {swapDialog ? (
+        <dialog
+          open
+          aria-labelledby="swap-dialog-title"
+          className="fixed inset-0 z-50 flex h-full w-full max-w-none items-center justify-center border-0 bg-black/40 px-4"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setSwapDialog(null);
+          }}
+        >
+          <div className="w-full max-w-md rounded-xl border border-brand-cream-3 bg-card p-5 shadow-xl">
+            <h2 id="swap-dialog-title" className="text-base font-semibold text-brand-ink">
+              {t('swap.button')}
+            </h2>
+            <p className="mt-2 text-sm text-brand-ink-2">
+              {t('swap.pickPrompt', { date: swapDialog.assignment.workDate })}
+            </p>
+            <select
+              value={swapDialog.substituteEmployeeId}
+              onChange={(event) =>
+                setSwapDialog((current) =>
+                  current ? { ...current, substituteEmployeeId: event.target.value } : current,
+                )
+              }
+              className="mt-3 h-10 w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 text-sm text-brand-ink outline-none focus:border-brand-red"
+            >
+              {getSwapCandidates(swapDialog.assignment).map((candidate) => (
+                <option key={candidate.id} value={candidate.id}>
+                  {candidate.name}
+                </option>
+              ))}
+            </select>
+            <label className="mt-4 block text-xs font-semibold text-brand-ink-3">
+              {t('swap.reasonPrompt')}
+            </label>
+            <textarea
+              value={swapDialog.reason}
+              onChange={(event) =>
+                setSwapDialog((current) =>
+                  current ? { ...current, reason: event.target.value } : current,
+                )
+              }
+              rows={3}
+              className="mt-2 w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-red"
+            />
+            <p className="mt-2 text-xs text-brand-ink-3">{t('swap.pickInstruction')}</p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setSwapDialog(null)}
+                className="rounded-md border border-brand-cream-3 px-3 py-2 text-xs font-semibold text-brand-ink-2 hover:bg-brand-cream-1"
+              >
+                {tc('actions.cancel')}
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={confirmSwapAssignment}
+                className="rounded-md bg-brand-red px-3 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {tc('actions.confirm')}
+              </button>
+            </div>
+          </div>
+        </dialog>
+      ) : null}
     </div>
   );
 }

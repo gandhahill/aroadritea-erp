@@ -9,10 +9,10 @@
 
 import { displayAssetUrl } from '@/lib/display-asset-url';
 import { type DbProduct, type DbVariant, getProducts, getVariants } from '@erp/offline';
+import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 import { useDemoCart } from './demo-cart-context';
-import { Input } from "@erp/ui";
 
 interface ProductWithVariants extends DbProduct {
   variants: DbVariant[];

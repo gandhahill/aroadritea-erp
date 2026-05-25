@@ -1,4 +1,6 @@
 import { FileUploadField } from '@/components/file-upload-field';
+import { PageHeader } from '@/components/page-header';
+import { Button, Input, Select } from '@erp/ui';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import {
@@ -6,8 +8,6 @@ import {
   fetchCorrespondenceDetail,
   updateCorrespondenceAction,
 } from '../actions';
-import { Select, Button, Input } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 export const dynamic = 'force-dynamic';
 const DIRECTIONS = ['incoming', 'outgoing', 'internal'] as const;
@@ -56,15 +56,17 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 pb-16">
-      <PageHeader 
-            title={<>{record.documentNo}</>}
-            description={<>{record.subject}</>}
-            actions={<>
-          <span className="rounded-full border border-brand-cream-3 px-3 py-1 text-xs font-semibold text-brand-ink-2">
-                    {t(`statuses.${record.status}`)}
-                  </span>
-            </>}
-          />
+      <PageHeader
+        title={<>{record.documentNo}</>}
+        description={<>{record.subject}</>}
+        actions={
+          <>
+            <span className="rounded-full border border-brand-cream-3 px-3 py-1 text-xs font-semibold text-brand-ink-2">
+              {t(`statuses.${record.status}`)}
+            </span>
+          </>
+        }
+      />
 
       {query.error ? (
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -107,13 +109,7 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
             />
           </Field>
           <Field label={t('fields.documentDate')}>
-            <Input
-              name="documentDate"
-              type="date"
-             
-              defaultValue={record.documentDate}
-              required
-            />
+            <Input name="documentDate" type="date" defaultValue={record.documentDate} required />
           </Field>
           <Field label={t('fields.documentNo')}>
             <Input name="documentNo" defaultValue={record.documentNo} required />
@@ -127,12 +123,7 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
             <Input name="counterparty" defaultValue={record.counterparty ?? ''} />
           </Field>
           <Field label={t('fields.dueDate')}>
-            <Input
-              name="dueDate"
-              type="date"
-             
-              defaultValue={record.dueDate ?? ''}
-            />
+            <Input name="dueDate" type="date" defaultValue={record.dueDate ?? ''} />
           </Field>
           <Field label={t('fields.channel')}>
             <OptionSelect
@@ -184,12 +175,7 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
           </Field>
           <div className="lg:col-span-4">
             <Field label={t('fields.summary')}>
-              <textarea
-                name="summary"
-                rows={5}
-               
-                defaultValue={record.summary ?? ''}
-              />
+              <textarea name="summary" rows={5} defaultValue={record.summary ?? ''} />
             </Field>
           </div>
           <div className="flex flex-col gap-2 lg:col-span-4 sm:flex-row sm:justify-end">
@@ -199,10 +185,7 @@ export default async function CorrespondenceDetailPage({ params, searchParams }:
             >
               {actions('delete')}
             </button>
-            <Button
-              type="submit"
-              className="rounded-lg " variant="primary" size="lg"
-            >
+            <Button type="submit" className="rounded-lg " variant="primary" size="lg">
               {actions('save')}
             </Button>
           </div>

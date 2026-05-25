@@ -1,10 +1,10 @@
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchAssetPageData } from './actions';
 import { AssetsClient } from './assets-client';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Aset Tetap',
@@ -30,10 +30,7 @@ export default async function FixedAssetsPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('description')}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('description')}</>} />
       <AssetsClient
         {...data}
         initialLocationId={params.locationId ?? ''}

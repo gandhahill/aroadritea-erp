@@ -1,11 +1,11 @@
 'use client';
 
+import { exportWorkbook } from '@/lib/export-workbook';
+import type { CogsResult } from '@erp/services/reporting';
 import { Button, Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import type { CogsResult } from '@erp/services/reporting';
-import { exportWorkbook } from '@/lib/export-workbook';
 
 const IDR = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -149,7 +149,9 @@ export function CogsClient(props: Props) {
               <TableHead className="px-3 py-2 text-right">{t('tableHeader.sellPrice')}</TableHead>
               <TableHead className="px-3 py-2 text-right">{t('tableHeader.unitCost')}</TableHead>
               <TableHead className="px-3 py-2 text-right">{t('tableHeader.grossMargin')}</TableHead>
-              <TableHead className="px-3 py-2 text-right">{t('tableHeader.marginPercent')}</TableHead>
+              <TableHead className="px-3 py-2 text-right">
+                {t('tableHeader.marginPercent')}
+              </TableHead>
               <TableHead className="px-3 py-2 text-right">{t('tableHeader.bomVersion')}</TableHead>
             </tr>
           </thead>
@@ -205,7 +207,10 @@ export function CogsClient(props: Props) {
                 );
                 if (!expanded.has(row.productId)) return [rowEl];
                 const linesEl = (
-                  <tr key={`${row.productId}-lines`} className="border-t border-brand-cream-3 bg-brand-cream-2/30">
+                  <tr
+                    key={`${row.productId}-lines`}
+                    className="border-t border-brand-cream-3 bg-brand-cream-2/30"
+                  >
                     <TableCell colSpan={7} className="px-3 py-3">
                       <div className="mb-2 text-xs font-medium uppercase tracking-wide text-brand-ink-3">
                         {t('linesTitle')}
@@ -213,11 +218,19 @@ export function CogsClient(props: Props) {
                       <Table>
                         <thead className="bg-white/60 text-left text-[11px] uppercase text-brand-ink-3">
                           <tr>
-                            <TableHead className="px-2 py-1">{t('linesHeader.ingredient')}</TableHead>
-                            <TableHead className="px-2 py-1 text-right">{t('linesHeader.qty')}</TableHead>
+                            <TableHead className="px-2 py-1">
+                              {t('linesHeader.ingredient')}
+                            </TableHead>
+                            <TableHead className="px-2 py-1 text-right">
+                              {t('linesHeader.qty')}
+                            </TableHead>
                             <TableHead className="px-2 py-1">{t('linesHeader.uom')}</TableHead>
-                            <TableHead className="px-2 py-1 text-right">{t('linesHeader.unitCost')}</TableHead>
-                            <TableHead className="px-2 py-1 text-right">{t('linesHeader.lineCost')}</TableHead>
+                            <TableHead className="px-2 py-1 text-right">
+                              {t('linesHeader.unitCost')}
+                            </TableHead>
+                            <TableHead className="px-2 py-1 text-right">
+                              {t('linesHeader.lineCost')}
+                            </TableHead>
                           </tr>
                         </thead>
                         <TableBody>
@@ -226,10 +239,16 @@ export function CogsClient(props: Props) {
                               <TableCell className="px-2 py-1">
                                 {localizedName(l.ingredientName as Record<string, unknown>)}
                               </TableCell>
-                              <TableCell className="px-2 py-1 text-right font-mono">{l.qty}</TableCell>
+                              <TableCell className="px-2 py-1 text-right font-mono">
+                                {l.qty}
+                              </TableCell>
                               <TableCell className="px-2 py-1 text-brand-ink-2">{l.uom}</TableCell>
-                              <TableCell className="px-2 py-1 text-right font-mono">{fmt(l.unitCost)}</TableCell>
-                              <TableCell className="px-2 py-1 text-right font-mono">{fmt(l.lineCost)}</TableCell>
+                              <TableCell className="px-2 py-1 text-right font-mono">
+                                {fmt(l.unitCost)}
+                              </TableCell>
+                              <TableCell className="px-2 py-1 text-right font-mono">
+                                {fmt(l.lineCost)}
+                              </TableCell>
                             </tr>
                           ))}
                         </TableBody>

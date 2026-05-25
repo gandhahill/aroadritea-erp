@@ -1,6 +1,8 @@
 'use client';
 
+import { ConfirmDialog, InlineAlert } from '@/components/confirm-dialog';
 import { formatRupiah } from '@erp/shared/money';
+import { Button, TableBody } from '@erp/ui';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import {
@@ -10,7 +12,6 @@ import {
   matchLine,
   unmatchLine,
 } from '../actions';
-import { TableBody, Button } from "@erp/ui";
 
 interface Line {
   id: string;
@@ -95,6 +96,8 @@ export function DetailClient({ statement, lines, labels }: Props) {
     { id: string; date: string; description: string; amount: number }[]
   >([]);
   const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const matchedCount = lines.filter((l) => l.isMatched).length;
   const totalCount = lines.length;
@@ -102,24 +105,28 @@ export function DetailClient({ statement, lines, labels }: Props) {
   const isFinalized = statement.status === 'reconciled';
 
   const handleFinalize = () => {
+    setError(null);
     startTransition(async () => {
       const res = await finalizeStatement(statement.id);
-      if (res.success) {
-        // success
-      } else {
-        alert(res.error);
+      if (!res.success) {
+        setError(res.error ?? labels.deleteFailed);
       }
     });
   };
 
   const handleDelete = () => {
-    if (!confirm(labels.deleteConfirm)) return;
+    setConfirmDeleteOpen(true);
+  };
+
+  const confirmDelete = () => {
+    setError(null);
     startTransition(async () => {
       const res = await deleteStatement(statement.id);
       if (res.success) {
         router.push('/accounting/bank-recon');
       } else {
-        alert(res.error || labels.deleteFailed);
+        setError(res.error || labels.deleteFailed);
+        setConfirmDeleteOpen(false);
       }
     });
   };
@@ -139,10 +146,11 @@ export function DetailClient({ statement, lines, labels }: Props) {
   };
 
   const handleMatch = async (lineId: string, journalId: string) => {
+    setError(null);
     startTransition(async () => {
       const res = await matchLine(lineId, journalId);
       if (!res.success) {
-        alert(res.error);
+        setError(res.error ?? labels.deleteFailed);
       } else {
         setActiveLineId(null);
       }
@@ -150,10 +158,11 @@ export function DetailClient({ statement, lines, labels }: Props) {
   };
 
   const handleUnmatch = async (lineId: string) => {
+    setError(null);
     startTransition(async () => {
       const res = await unmatchLine(lineId);
       if (!res.success) {
-        alert(res.error);
+        setError(res.error ?? labels.deleteFailed);
       }
     });
   };
@@ -173,7 +182,9 @@ export function DetailClient({ statement, lines, labels }: Props) {
             <Button
               onClick={handleDelete}
               disabled={isPending}
-              className="rounded-md border border-brand-cream-3 px-4 py-2 text-sm font-semibold text-brand-red hover:bg-brand-red/5 disabled:opacity-50" variant="primary" size="md"
+              className="rounded-md border border-brand-cream-3 px-4 py-2 text-sm font-semibold text-brand-red hover:bg-brand-red/5 disabled:opacity-50"
+              variant="primary"
+              size="md"
             >
               {labels.delete}
             </Button>
@@ -200,6 +211,7 @@ export function DetailClient({ statement, lines, labels }: Props) {
           {labels.detail.allMatched}
         </div>
       )}
+      {error ? <InlineAlert message={error} onDismiss={() => setError(null)} /> : null}
 
       {/* Lines Table */}
       <div className="overflow-x-auto rounded-lg border border-brand-cream-3 bg-card">
@@ -329,6 +341,16 @@ export function DetailClient({ statement, lines, labels }: Props) {
           </TableBody>
         </table>
       </div>
+      {confirmDeleteOpen ? (
+        <ConfirmDialog
+          title={labels.delete}
+          message={labels.deleteConfirm}
+          confirmLabel={labels.delete}
+          cancelLabel={labels.detail.cancel}
+          onConfirm={confirmDelete}
+          onCancel={() => setConfirmDeleteOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }

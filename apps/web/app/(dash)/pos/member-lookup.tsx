@@ -7,11 +7,11 @@
 
 'use client';
 
+import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { type FormEvent, useEffect, useState, useTransition } from 'react';
 import { type MemberLookupActionResult, lookupMemberByPhoneAction } from './actions';
 import { usePosCart } from './pos-cart-context';
-import { Input } from "@erp/ui";
 
 type FoundMember = NonNullable<Extract<MemberLookupActionResult, { ok: true }>['member']>;
 

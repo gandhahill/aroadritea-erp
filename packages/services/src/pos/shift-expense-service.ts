@@ -1,23 +1,23 @@
 import { db } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
-import { shiftExpenses, shifts, posSettings } from '@erp/db/schema/pos';
+import { permissions, rolePermissions, roles, userRoles, users } from '@erp/db/schema/auth';
 import { userNotifications } from '@erp/db/schema/notification';
-import { users, userRoles, rolePermissions, roles, permissions } from '@erp/db/schema/auth';
+import { posSettings, shiftExpenses, shifts } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, isNull, or, sql } from 'drizzle-orm';
-import { requirePermission } from '../iam';
 import { createJournal } from '../accounting/create-journal';
+import { auditRecord } from '../audit';
+import { requirePermission } from '../iam';
 import { autoPostJournalEntry } from './posting';
 import {
-  type RecordShiftExpenseInput,
-  RecordShiftExpenseInputSchema,
   type ApproveShiftExpenseInput,
   ApproveShiftExpenseInputSchema,
+  type RecordShiftExpenseInput,
+  RecordShiftExpenseInputSchema,
 } from './schemas';
-import { auditRecord } from "../audit";
 
 /**
  * Record an expense out of the cashier drawer.
@@ -86,10 +86,7 @@ export async function recordShiftExpense(
               eq(users.tenantId, ctx.tenantId),
               isNull(users.deletedAt),
               eq(permissions.code, 'accounting.journal.create'),
-              or(
-                isNull(userRoles.locationId),
-                eq(userRoles.locationId, shift.locationId),
-              ),
+              or(isNull(userRoles.locationId), eq(userRoles.locationId, shift.locationId)),
             ),
           );
 
@@ -239,22 +236,17 @@ export async function approveShiftExpense(
           updatedBy: ctx.userId,
           updatedAt: new Date(),
         })
-        .where(
-          and(
-            eq(shiftExpenses.tenantId, ctx.tenantId),
-            eq(shiftExpenses.id, expense.id)
-          )
-        );
+        .where(and(eq(shiftExpenses.tenantId, ctx.tenantId), eq(shiftExpenses.id, expense.id)));
 
       await auditRecord({
-            action: 'update',
-            entityType: 'shift_expense',
-            entityId: expense.id,
-            before: expense,
-            after: { ...expense, status: 'journaled', accountId, journalEntryId: journalRes.value.id },
-            metadata: { ipAddress: ctx.ipAddress, userAgent: ctx.userAgent },
-            ctx,
-          });
+        action: 'update',
+        entityType: 'shift_expense',
+        entityId: expense.id,
+        before: expense,
+        after: { ...expense, status: 'journaled', accountId, journalEntryId: journalRes.value.id },
+        metadata: { ipAddress: ctx.ipAddress, userAgent: ctx.userAgent },
+        ctx,
+      });
 
       return { id: expense.id, journalEntryId: journalRes.value.id };
     },

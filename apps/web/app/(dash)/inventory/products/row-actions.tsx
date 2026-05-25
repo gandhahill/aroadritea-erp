@@ -1,9 +1,9 @@
 'use client';
 
 import { ConfirmDialog, InlineAlert } from '@/components/confirm-dialog';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { useTranslations } from 'next-intl';
 import { deactivateProductAction, deleteProductAction, reactivateProductAction } from './actions';
 
 interface Props {

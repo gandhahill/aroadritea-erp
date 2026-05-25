@@ -7,7 +7,7 @@
  * download path at /api/uploads/private/sop/<fileKey>.
  */
 
-import { pgTable, text, index, bigint } from 'drizzle-orm/pg-core';
+import { bigint, index, pgTable, text } from 'drizzle-orm/pg-core';
 import { auditCols, locationCol, pk, statusCol, tenantCol, versionCol } from './common';
 
 export const sopDocuments = pgTable(

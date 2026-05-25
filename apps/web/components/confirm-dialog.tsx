@@ -39,11 +39,10 @@ export function ConfirmDialog({
       : 'border-brand-jade/30 bg-brand-jade text-white hover:bg-brand-jade/90';
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
+    <dialog
+      open
       aria-labelledby="confirm-dialog-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      className="fixed inset-0 z-50 flex h-full w-full max-w-none items-center justify-center border-0 bg-black/40 px-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onCancel();
       }}
@@ -70,7 +69,7 @@ export function ConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }
 

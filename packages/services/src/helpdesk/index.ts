@@ -119,9 +119,7 @@ export async function createTicket(
 ): Promise<Result<TicketSummary>> {
   const parsed = CreateTicketInputSchema.safeParse(rawInput);
   if (!parsed.success) {
-    return err(
-      AppError.validation('helpdesk.invalidInput', { detail: parsed.error.message }),
-    );
+    return err(AppError.validation('helpdesk.invalidInput', { detail: parsed.error.message }));
   }
   const permCheck = await requirePermission(ctx.userId, 'helpdesk.create');
   if (!permCheck.ok) return permCheck;
@@ -254,7 +252,7 @@ export async function listTickets(
       reporterUserId: r.reporterUserId,
       reporterName: nameMap.get(r.reporterUserId) ?? null,
       assigneeUserId: r.assigneeUserId,
-      assigneeName: r.assigneeUserId ? nameMap.get(r.assigneeUserId) ?? null : null,
+      assigneeName: r.assigneeUserId ? (nameMap.get(r.assigneeUserId) ?? null) : null,
       createdVia: r.createdVia,
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
@@ -316,7 +314,7 @@ export async function getTicket(
     reporterUserId: row.reporterUserId,
     reporterName: nameMap.get(row.reporterUserId) ?? null,
     assigneeUserId: row.assigneeUserId,
-    assigneeName: row.assigneeUserId ? nameMap.get(row.assigneeUserId) ?? null : null,
+    assigneeName: row.assigneeUserId ? (nameMap.get(row.assigneeUserId) ?? null) : null,
     createdVia: row.createdVia,
     sourceAiSessionId: row.sourceAiSessionId,
     context: row.contextJson as Record<string, unknown> | null,
@@ -350,10 +348,7 @@ export async function replyTicket(
     .select()
     .from(helpdeskTickets)
     .where(
-      and(
-        eq(helpdeskTickets.tenantId, ctx.tenantId),
-        eq(helpdeskTickets.id, parsed.data.ticketId),
-      ),
+      and(eq(helpdeskTickets.tenantId, ctx.tenantId), eq(helpdeskTickets.id, parsed.data.ticketId)),
     )
     .limit(1);
   if (!row) return err(AppError.notFound('helpdesk.notFound'));
@@ -379,16 +374,14 @@ export async function replyTicket(
   });
 
   // First handler reply stamps first_response_at; also nudges status.
-  const isFirstHandlerReply =
-    handleAllowed && !isReporter && !row.firstResponseAt;
+  const isFirstHandlerReply = handleAllowed && !isReporter && !row.firstResponseAt;
   await db
     .update(helpdeskTickets)
     .set({
       updatedBy: ctx.userId,
       updatedAt: now,
       firstResponseAt: isFirstHandlerReply ? now : row.firstResponseAt,
-      status:
-        row.status === 'open' && handleAllowed ? 'in_progress' : row.status,
+      status: row.status === 'open' && handleAllowed ? 'in_progress' : row.status,
     })
     .where(eq(helpdeskTickets.id, row.id));
 
@@ -476,8 +469,7 @@ export const setTicketResolved = (id: string, ctx: AuditContext) =>
   transitionStatus(id, 'resolved', ctx);
 export const setTicketClosed = (id: string, ctx: AuditContext) =>
   transitionStatus(id, 'closed', ctx);
-export const setTicketOpen = (id: string, ctx: AuditContext) =>
-  transitionStatus(id, 'open', ctx);
+export const setTicketOpen = (id: string, ctx: AuditContext) => transitionStatus(id, 'open', ctx);
 
 // ─── Assign ───────────────────────────────────────────────────────────────
 
@@ -490,9 +482,7 @@ export async function assignTicket(
   const [row] = await db
     .select()
     .from(helpdeskTickets)
-    .where(
-      and(eq(helpdeskTickets.tenantId, ctx.tenantId), eq(helpdeskTickets.id, input.ticketId)),
-    )
+    .where(and(eq(helpdeskTickets.tenantId, ctx.tenantId), eq(helpdeskTickets.id, input.ticketId)))
     .limit(1);
   if (!row) return err(AppError.notFound('helpdesk.notFound'));
 

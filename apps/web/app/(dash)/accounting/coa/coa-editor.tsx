@@ -1,10 +1,10 @@
 'use client';
 
+import { Button, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import type { ReactNode } from 'react';
 import { type COAAccountDraft, type COANode, deleteCOAAccount, saveCOAAccount } from './actions';
-import { Button, Select } from "@erp/ui";
 
 interface Props {
   tree: COANode[];
@@ -290,7 +290,9 @@ export function COAEditor({ tree }: Props) {
           type="button"
           onClick={save}
           disabled={isPending}
-          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90 disabled:opacity-60" variant="primary" size="md"
+          className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red/90 disabled:opacity-60"
+          variant="primary"
+          size="md"
         >
           {t('saveAccount')}
         </Button>
@@ -327,7 +329,9 @@ export function COAEditor({ tree }: Props) {
               type="button"
               onClick={remove}
               disabled={isPending}
-              className="self-start rounded-md border border-brand-red px-4 py-2 text-sm font-semibold text-brand-red hover:bg-brand-red/5 disabled:opacity-60" variant="primary" size="md"
+              className="self-start rounded-md border border-brand-red px-4 py-2 text-sm font-semibold text-brand-red hover:bg-brand-red/5 disabled:opacity-60"
+              variant="primary"
+              size="md"
             >
               Hapus aman
             </Button>

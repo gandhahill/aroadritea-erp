@@ -1,6 +1,8 @@
 'use client';
 
 import { FileUploadField } from '@/components/file-upload-field';
+import { Button, Input, Select, TableCell, TableHead } from '@erp/ui';
+import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import type { LocationItem, ReimbursementItem } from './actions';
 import {
@@ -11,8 +13,6 @@ import {
   rejectReimbursement,
   submitReimbursement,
 } from './actions';
-import { useTranslations } from 'next-intl';
-import { Button, TableCell, TableHead, Select, Input } from "@erp/ui";
 
 function formatRupiah(amount: string): string {
   const n = Number(amount);
@@ -207,7 +207,9 @@ function CreateModal({ locations, tenantId, userId, onClose, onSuccess }: Create
             <Button
               type="submit"
               disabled={isPending}
-              className="rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50" variant="primary" size="md"
+              className="rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
+              variant="primary"
+              size="md"
             >
               {isPending ? t('saving') : t('saveDraft')}
             </Button>
@@ -234,7 +236,9 @@ function RejectModal({ onConfirm, onClose, isPending }: RejectModalProps) {
       <div className="surface-card w-full max-w-sm space-y-4 p-6 shadow-xl">
         <h2 className="text-lg font-semibold text-brand-ink">{t('rejectTitle')}</h2>
         <div>
-          <label className="block text-xs font-medium text-brand-ink-3">{t('modalRejectReason')}</label>
+          <label className="block text-xs font-medium text-brand-ink-3">
+            {t('modalRejectReason')}
+          </label>
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
@@ -375,18 +379,12 @@ function ReimbursementViewInner({
 
   const handleSubmit = () => {
     if (!selectedId) return;
-    handleAction(
-      () => submitReimbursement(selectedId, tenantId, userId),
-      t('submitSuccess'),
-    );
+    handleAction(() => submitReimbursement(selectedId, tenantId, userId), t('submitSuccess'));
   };
 
   const handleApprove = () => {
     if (!selectedId) return;
-    handleAction(
-      () => approveReimbursement(selectedId, tenantId, userId),
-      t('approveSuccess'),
-    );
+    handleAction(() => approveReimbursement(selectedId, tenantId, userId), t('approveSuccess'));
   };
 
   const handleReject = (reason: string) => {
@@ -399,10 +397,7 @@ function ReimbursementViewInner({
 
   const handleDisburse = () => {
     if (!selectedId) return;
-    handleAction(
-      () => disburseReimbursement(selectedId, tenantId, userId),
-      t('disburseSuccess'),
-    );
+    handleAction(() => disburseReimbursement(selectedId, tenantId, userId), t('disburseSuccess'));
   };
 
   return (
@@ -462,7 +457,9 @@ function ReimbursementViewInner({
         </div>
         <Button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red-dark" variant="primary" size="md"
+          className="flex items-center gap-1.5 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red-dark"
+          variant="primary"
+          size="md"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -476,13 +473,27 @@ function ReimbursementViewInner({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
-              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('date')}</TableHead>
-              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('requester')}</TableHead>
-              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('location')}</TableHead>
-              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('category')}</TableHead>
-              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('description')}</TableHead>
-              <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('amount')}</TableHead>
-              <TableHead className="px-4 py-3 text-center font-medium text-brand-ink-2">{t('statusLabel')}</TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                {t('date')}
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                {t('requester')}
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                {t('location')}
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                {t('category')}
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                {t('description')}
+              </TableHead>
+              <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
+                {t('amount')}
+              </TableHead>
+              <TableHead className="px-4 py-3 text-center font-medium text-brand-ink-2">
+                {t('statusLabel')}
+              </TableHead>
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-2">
@@ -499,7 +510,9 @@ function ReimbursementViewInner({
                     r.id === selectedId ? 'bg-brand-red/5' : 'hover:bg-brand-cream/50'
                   }`}
                 >
-                  <TableCell className="px-4 py-3 text-brand-ink-2">{formatDate(r.createdAt)}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">
+                    {formatDate(r.createdAt)}
+                  </TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink">{r.requesterName}</TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink-2">{r.locationName}</TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink-2">
@@ -533,7 +546,11 @@ function ReimbursementViewInner({
       </div>
       <div className="flex flex-col gap-3 rounded-lg border border-brand-cream-3 bg-card px-4 py-3 text-xs text-brand-ink-3 sm:flex-row sm:items-center sm:justify-between">
         <span>
-          {t('pagination', { count: filtered.length, current: Math.min(page, totalPages), total: totalPages })}
+          {t('pagination', {
+            count: filtered.length,
+            current: Math.min(page, totalPages),
+            total: totalPages,
+          })}
         </span>
         <div className="flex items-center gap-2">
           <button
@@ -579,9 +596,7 @@ function ReimbursementViewInner({
             </div>
             <div>
               <span className="text-xs font-medium text-brand-ink-3">{t('category')}</span>
-              <p className="mt-1 text-sm text-brand-ink">
-                {t(`categories.${selected.category}`)}
-              </p>
+              <p className="mt-1 text-sm text-brand-ink">{t(`categories.${selected.category}`)}</p>
             </div>
             <div>
               <span className="text-xs font-medium text-brand-ink-3">{t('amount')}</span>
@@ -667,7 +682,9 @@ function ReimbursementViewInner({
               <Button
                 onClick={handleSubmit}
                 disabled={isPending}
-                className="rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50" variant="primary" size="md"
+                className="rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white hover:bg-brand-red-dark disabled:opacity-50"
+                variant="primary"
+                size="md"
               >
                 {isPending ? t('submitting') : t('submitRequest')}
               </Button>

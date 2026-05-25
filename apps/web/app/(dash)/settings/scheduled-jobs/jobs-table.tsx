@@ -5,12 +5,12 @@
 
 'use client';
 
+import { FilterBar, FilterField } from '@/components/filter-bar';
+import { Input, Select, TableBody, TableCell } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import { toggleScheduledJob, updateJobSchedule } from './actions';
 import type { ScheduledJobItem } from './actions';
-import { TableCell, TableBody, Select, Input } from "@erp/ui";
-import { FilterBar, FilterField } from "@/components/filter-bar";
 
 interface Props {
   jobs: ScheduledJobItem[];
@@ -288,7 +288,9 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
         <FilterField>
           <Select
             value={statusOnly}
-            onChange={(e) => setStatusOnly(e.target.value as 'all' | 'success' | 'failed' | 'never')}
+            onChange={(e) =>
+              setStatusOnly(e.target.value as 'all' | 'success' | 'failed' | 'never')
+            }
             className="w-full sm:w-40"
           >
             <option value="all">{t('filter.allStatus')}</option>

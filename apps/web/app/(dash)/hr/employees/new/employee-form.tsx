@@ -1,10 +1,10 @@
 'use client';
 
+import { Button, Input, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect } from 'react';
 import { createEmployeeAction } from '../actions';
-import { Input, Button, Select } from "@erp/ui";
 
 interface EmployeeFormProps {
   assignableRoles?: Array<{ code: string; label: string }>;
@@ -42,12 +42,7 @@ export function EmployeeForm({ assignableRoles = [], locationOptions = [] }: Emp
       <Section title={f('employmentSection')}>
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{f('location')}</span>
-          <Select
-            name="locationId"
-            required
-            defaultValue={locationOptions[0]?.id ?? ''}
-           
-          >
+          <Select name="locationId" required defaultValue={locationOptions[0]?.id ?? ''}>
             {locationOptions.map((location) => (
               <option key={location.id} value={location.id}>
                 {location.label}
@@ -111,7 +106,6 @@ export function EmployeeForm({ assignableRoles = [], locationOptions = [] }: Emp
             autoComplete="new-password"
             minLength={8}
             placeholder={f('passwordHint')}
-           
           />
         </label>
         <label className="md:col-span-2 flex items-center gap-2 mt-2">
@@ -128,14 +122,18 @@ export function EmployeeForm({ assignableRoles = [], locationOptions = [] }: Emp
         <Button
           type="button"
           onClick={() => router.push('/hr/employees')}
-          className="rounded-lg " variant="secondary" size="md"
+          className="rounded-lg "
+          variant="secondary"
+          size="md"
         >
           {t('cancel')}
         </Button>
         <Button
           type="submit"
           disabled={isPending}
-          className="rounded-lg " variant="primary" size="lg"
+          className="rounded-lg "
+          variant="primary"
+          size="lg"
         >
           {isPending ? t('saving') : t('save')}
         </Button>

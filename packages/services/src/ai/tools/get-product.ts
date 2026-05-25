@@ -57,10 +57,7 @@ export async function getProductTool(
     .select()
     .from(productVariants)
     .where(
-      and(
-        eq(productVariants.tenantId, ctx.tenantId),
-        eq(productVariants.productId, product.id),
-      ),
+      and(eq(productVariants.tenantId, ctx.tenantId), eq(productVariants.productId, product.id)),
     );
 
   return {

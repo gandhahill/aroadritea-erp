@@ -1,8 +1,8 @@
+import { PageHeader } from '@/components/page-header';
+import { Table, TableBody, TableCell, TableHead, TableHeader } from '@erp/ui';
 import { getTranslations } from 'next-intl/server';
 import { fetchNotificationChannels } from './actions';
 import { NotificationChannelForm } from './notification-channel-form';
-import { TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 export default async function NotificationSettingsPage() {
   const channels = await fetchNotificationChannels();
@@ -11,11 +11,11 @@ export default async function NotificationSettingsPage() {
   return (
     <main className="min-h-screen bg-brand-paper">
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-8 lg:px-8">
-        <PageHeader 
-                title={<>{t('title')}</>}
-                description={<>{t('description')}</>}
-                eyebrow={<>{t('section')}</>}
-              />
+        <PageHeader
+          title={<>{t('title')}</>}
+          description={<>{t('description')}</>}
+          eyebrow={<>{t('section')}</>}
+        />
 
         <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
           <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
@@ -43,10 +43,18 @@ export default async function NotificationSettingsPage() {
                   ) : (
                     channels.map((channel) => (
                       <tr key={channel.id}>
-                        <TableCell className="px-4 py-3 font-semibold text-brand-ink">{channel.label}</TableCell>
-                        <TableCell className="px-4 py-3 text-brand-muted">{channel.channelType}</TableCell>
-                        <TableCell className="px-4 py-3 text-brand-muted">{channel.target}</TableCell>
-                        <TableCell className="px-4 py-3 text-brand-muted">{channel.purpose}</TableCell>
+                        <TableCell className="px-4 py-3 font-semibold text-brand-ink">
+                          {channel.label}
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-brand-muted">
+                          {channel.channelType}
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-brand-muted">
+                          {channel.target}
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-brand-muted">
+                          {channel.purpose}
+                        </TableCell>
                         <TableCell className="px-4 py-3">
                           <span
                             className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${

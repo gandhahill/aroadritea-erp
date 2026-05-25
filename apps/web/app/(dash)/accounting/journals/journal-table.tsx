@@ -5,11 +5,11 @@
 
 'use client';
 
+import { Input, TableCell, TableHead, TableHeader } from '@erp/ui';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { Fragment, useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
 import type { JournalListItem } from './actions';
-import { TableHeader, TableCell, TableHead, Input } from "@erp/ui";
 
 // --- Status badge config ---
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
@@ -246,9 +246,15 @@ export function JournalTable({ journals }: JournalTableProps) {
                             <table className="w-full text-xs">
                               <TableHeader className="bg-brand-cream-1 text-brand-ink-3">
                                 <tr>
-                                  <th className="px-3 py-1.5 text-left font-medium">{t('account')}</th>
-                                  <th className="px-3 py-1.5 text-right font-medium">{t('debit')}</th>
-                                  <th className="px-3 py-1.5 text-right font-medium">{t('credit')}</th>
+                                  <th className="px-3 py-1.5 text-left font-medium">
+                                    {t('account')}
+                                  </th>
+                                  <th className="px-3 py-1.5 text-right font-medium">
+                                    {t('debit')}
+                                  </th>
+                                  <th className="px-3 py-1.5 text-right font-medium">
+                                    {t('credit')}
+                                  </th>
                                 </tr>
                               </TableHeader>
                               <tbody>

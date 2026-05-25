@@ -1,9 +1,9 @@
-import { notFound } from 'next/navigation';
+import { PageHeader } from '@/components/page-header';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { fetchShipmentDetail } from '../../actions';
 import { ShipmentDetailClient } from './shipment-detail-client';
-import { PageHeader } from '@/components/page-header';
 
 export default async function ShipmentDetailPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;

@@ -1,11 +1,11 @@
 'use client';
 
+import { InlineAlert } from '@/components/confirm-dialog';
+import { Input } from '@erp/ui';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
-import { InlineAlert } from '@/components/confirm-dialog';
-import { useTranslations } from 'next-intl';
 import { openPeriodAction } from './actions';
-import { Input } from "@erp/ui";
 
 interface OpenPeriodDialogProps {
   onClose: () => void;
@@ -36,7 +36,7 @@ export function OpenPeriodDialog({ onClose, copy }: OpenPeriodDialogProps) {
     e.preventDefault();
     setError(null);
     const formData = new FormData(e.currentTarget);
-    
+
     const periodCode = formData.get('periodCode') as string;
     const startDate = formData.get('startDate') as string;
     const endDate = formData.get('endDate') as string;
@@ -53,10 +53,9 @@ export function OpenPeriodDialog({ onClose, copy }: OpenPeriodDialogProps) {
   }
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+    <dialog
+      open
+      className="fixed inset-0 z-50 flex h-full w-full max-w-none items-center justify-center border-0 bg-black/40 px-4"
       onClick={(e) => {
         if (e.target === e.currentTarget && !isPending) onClose();
       }}
@@ -64,7 +63,7 @@ export function OpenPeriodDialog({ onClose, copy }: OpenPeriodDialogProps) {
       <div className="w-full max-w-md rounded-xl border border-brand-jade/15 bg-brand-paper p-6 shadow-xl">
         <h2 className="text-lg font-semibold text-brand-ink">{copy.openPeriod}</h2>
         <p className="mt-2 text-sm text-brand-muted">{copy.openPeriodSubtitle}</p>
-        
+
         {error && (
           <div className="mt-4">
             <InlineAlert message={error} tone="error" onDismiss={() => setError(null)} />
@@ -84,7 +83,9 @@ export function OpenPeriodDialog({ onClose, copy }: OpenPeriodDialogProps) {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-brand-ink">{copy.startDate}</label>
+            <label className="mb-1 block text-xs font-semibold text-brand-ink">
+              {copy.startDate}
+            </label>
             <Input
               name="startDate"
               type="date"
@@ -94,7 +95,9 @@ export function OpenPeriodDialog({ onClose, copy }: OpenPeriodDialogProps) {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-brand-ink">{copy.endDate}</label>
+            <label className="mb-1 block text-xs font-semibold text-brand-ink">
+              {copy.endDate}
+            </label>
             <Input
               name="endDate"
               type="date"
@@ -123,6 +126,6 @@ export function OpenPeriodDialog({ onClose, copy }: OpenPeriodDialogProps) {
           </div>
         </form>
       </div>
-    </div>
+    </dialog>
   );
 }

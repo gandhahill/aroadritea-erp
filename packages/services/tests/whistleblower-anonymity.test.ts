@@ -60,9 +60,7 @@ describe('whistleblower anonymity', () => {
     expect(result.ok).toBe(true);
 
     // Only the whistleblower row should have been written.
-    const auditWrites = insertEvents.filter((event) =>
-      event.table.toLowerCase().includes('audit'),
-    );
+    const auditWrites = insertEvents.filter((event) => event.table.toLowerCase().includes('audit'));
     expect(auditWrites).toHaveLength(0);
 
     expect(insertEvents).toHaveLength(1);
@@ -88,11 +86,7 @@ describe('whistleblower anonymity', () => {
   });
 
   it('rejects empty title / category / content', async () => {
-    for (const overrides of [
-      { title: '   ' },
-      { category: '' },
-      { content: '' },
-    ]) {
+    for (const overrides of [{ title: '   ' }, { category: '' }, { content: '' }]) {
       insertEvents.length = 0;
       const result = await submitWhistleblowerReport({
         tenantId: 'tenant-1',

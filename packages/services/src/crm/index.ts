@@ -18,9 +18,9 @@ import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, asc, desc, eq, gte } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { decryptPii, encryptPii, encryptPiiForLookup } from '../security/pii';
-import { auditRecord } from "../audit";
 
 // ─── Loyalty configuration ──────────────────────────────────────────────────
 
@@ -198,22 +198,22 @@ export async function logComplaint(
       updatedBy: ctx.userId,
     });
     await auditRecord({
-        action: 'create',
-        entityType: 'complaint',
-        entityId: id,
-        before: null,
-        after: {
-              memberId: input.memberId ?? null,
-              customerName: input.customerName ?? null,
-              orderNumber: input.orderNumber ?? null,
-              category: input.category,
-              priority: input.priority ?? 'medium',
-              status: 'open',
-              piiFields: input.customerPhone ? ['customerPhone'] : [],
-            },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'create',
+      entityType: 'complaint',
+      entityId: id,
+      before: null,
+      after: {
+        memberId: input.memberId ?? null,
+        customerName: input.customerName ?? null,
+        orderNumber: input.orderNumber ?? null,
+        category: input.category,
+        priority: input.priority ?? 'medium',
+        status: 'open',
+        piiFields: input.customerPhone ? ['customerPhone'] : [],
+      },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
     return ok({ id });
   } catch (e) {
     return err(AppError.internal('crm.logComplaint.failed', e));
@@ -304,22 +304,22 @@ export async function resolveComplaint(
       .where(and(eq(complaints.tenantId, ctx.tenantId), eq(complaints.id, input.complaintId)));
 
     await auditRecord({
-        action: 'update',
-        entityType: 'complaint',
-        entityId: input.complaintId,
-        before: {
-              status: existing.status,
-              assignedTo: existing.assignedTo,
-              resolutionNotes: existing.resolutionNotes,
-            },
-        after: {
-              status: input.status,
-              assignedTo: input.assignedTo ?? existing.assignedTo,
-              resolutionNotes: input.resolutionNotes ?? existing.resolutionNotes,
-            },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'update',
+      entityType: 'complaint',
+      entityId: input.complaintId,
+      before: {
+        status: existing.status,
+        assignedTo: existing.assignedTo,
+        resolutionNotes: existing.resolutionNotes,
+      },
+      after: {
+        status: input.status,
+        assignedTo: input.assignedTo ?? existing.assignedTo,
+        resolutionNotes: input.resolutionNotes ?? existing.resolutionNotes,
+      },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok(undefined);
   } catch (e) {
@@ -444,19 +444,19 @@ export async function awardCompensation(
     });
 
     await auditRecord({
-        action: 'create',
-        entityType: 'complaint_compensation',
-        entityId: compId,
-        before: null,
-        after: {
-              complaintId: input.complaintId,
-              kind: input.kind,
-              value: input.value,
-              journalEntryId: jeId ?? null,
-            },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'create',
+      entityType: 'complaint_compensation',
+      entityId: compId,
+      before: null,
+      after: {
+        complaintId: input.complaintId,
+        kind: input.kind,
+        value: input.value,
+        journalEntryId: jeId ?? null,
+      },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok({ id: compId, journalEntryId: jeId });
   } catch (e) {
@@ -658,7 +658,6 @@ export async function redeemLoyaltyPoints(
     return err(AppError.internal('crm.redeemLoyaltyPoints.failed', e));
   }
 }
-
 
 // Re-export the member-data service (T-0183).
 export * from './member-service';

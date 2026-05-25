@@ -1,8 +1,8 @@
+import { PageHeader } from '@/components/page-header';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { fetchShipmentDashboard } from '../actions';
 import { ShipmentsTable } from './shipments-table';
-import { PageHeader } from '@/components/page-header';
 
 export default async function ShipmentsPage() {
   const [data, t] = await Promise.all([
@@ -61,11 +61,7 @@ function KpiTile({
   tone: 'muted' | 'gold' | 'jade';
 }) {
   const toneClass =
-    tone === 'gold'
-      ? 'text-brand-wood'
-      : tone === 'jade'
-        ? 'text-brand-jade'
-        : 'text-brand-ink';
+    tone === 'gold' ? 'text-brand-wood' : tone === 'jade' ? 'text-brand-jade' : 'text-brand-ink';
   return (
     <div className="rounded-lg border border-brand-cream-3 bg-card p-4 shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-muted">{label}</p>

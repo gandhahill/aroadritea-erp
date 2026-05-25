@@ -1,14 +1,14 @@
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
 import {
   fetchEmptyPettyCashLocations,
   fetchPettyCashAccounts,
   fetchPettyCashTransactions,
 } from './actions';
 import { PettyCashView } from './petty-cash-view';
-import { PageHeader } from "@/components/page-header";
 
 export const metadata: Metadata = {
   title: 'Kas Kecil',
@@ -33,10 +33,7 @@ export default async function PettyCashPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
 
       <PettyCashView
         accounts={accounts}

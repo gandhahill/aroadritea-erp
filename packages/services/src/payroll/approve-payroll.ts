@@ -19,8 +19,8 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { createJournal } from '../accounting/create-journal';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
-import { auditRecord } from "../audit";
 
 export const ApprovePayrollInputSchema = z.object({
   payrollId: z.string().min(1),
@@ -201,20 +201,20 @@ export async function approvePayroll(
     }
 
     await auditRecord({
-        action: 'approve',
-        entityType: 'payroll',
-        entityId: data.payrollId,
-        before: { status: payroll.status },
-        after: {
-              status: 'approved',
-              approvedBy: ctx.userId,
-              journalEntryId: journalResult.value.id,
-              totalEarnings: payroll.totalEarnings.toString(),
-              totalNet: payroll.totalNet.toString(),
-            },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'approve',
+      entityType: 'payroll',
+      entityId: data.payrollId,
+      before: { status: payroll.status },
+      after: {
+        status: 'approved',
+        approvedBy: ctx.userId,
+        journalEntryId: journalResult.value.id,
+        totalEarnings: payroll.totalEarnings.toString(),
+        totalNet: payroll.totalNet.toString(),
+      },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok({ payrollId: data.payrollId, journalEntryId: journalResult.value.id });
   } catch (e) {
@@ -259,14 +259,14 @@ export async function markPayrollPaid(
     }
 
     await auditRecord({
-        action: 'mark_paid',
-        entityType: 'payroll',
-        entityId: input.payrollId,
-        before: { status: 'approved' },
-        after: { status: 'paid' },
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
-      });
+      action: 'mark_paid',
+      entityType: 'payroll',
+      entityId: input.payrollId,
+      before: { status: 'approved' },
+      after: { status: 'paid' },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
 
     return ok({ payrollId: input.payrollId });
   } catch (e) {

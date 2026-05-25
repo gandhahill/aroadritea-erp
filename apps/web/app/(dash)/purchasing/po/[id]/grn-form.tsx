@@ -1,9 +1,9 @@
 'use client';
 
+import { Input, Table, TableBody } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useActionState, useEffect, useState } from 'react';
 import { receiveGoodsAction } from '../../actions';
-import { Input, TableBody, Table } from "@erp/ui";
 
 interface LineItem {
   id: string;
@@ -17,11 +17,16 @@ interface LineItem {
 
 export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
   const t = useTranslations('purchasing.grn');
-  const [state, action, isPending] = useActionState(receiveGoodsAction, { success: false } as { success: boolean; error?: string });
+  const [state, action, isPending] = useActionState(receiveGoodsAction, { success: false } as {
+    success: boolean;
+    error?: string;
+  });
   const [success, setSuccess] = useState(false);
 
   // local state for form inputs
-  const [receiveData, setReceiveData] = useState<Record<string, { qty: string; batch: string; expiry: string }>>({});
+  const [receiveData, setReceiveData] = useState<
+    Record<string, { qty: string; batch: string; expiry: string }>
+  >({});
 
   useEffect(() => {
     // initialize state
@@ -50,7 +55,7 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
   }
 
   // filter out lines that are fully received
-  const receivableLines = lines.filter(l => Number(l.qtyOrdered) > Number(l.qtyReceived));
+  const receivableLines = lines.filter((l) => Number(l.qtyOrdered) > Number(l.qtyReceived));
 
   if (receivableLines.length === 0) {
     return null; // The parent handles the 'fully received' UI
@@ -58,33 +63,35 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
 
   const handleSubmit = (formData: FormData) => {
     // Collect the structured linesData
-    const linesToSubmit = receivableLines.map(line => {
-      const data = receiveData[line.id];
-      return {
-        poLineId: line.id,
-        productId: line.productId,
-        variantId: line.variantId,
-        uom: line.uom,
-        qtyReceived: data?.qty || '0',
-        batchNo: data?.batch || '',
-        expiryDate: data?.expiry || ''
-      };
-    }).filter(l => Number(l.qtyReceived) > 0);
+    const linesToSubmit = receivableLines
+      .map((line) => {
+        const data = receiveData[line.id];
+        return {
+          poLineId: line.id,
+          productId: line.productId,
+          variantId: line.variantId,
+          uom: line.uom,
+          qtyReceived: data?.qty || '0',
+          batchNo: data?.batch || '',
+          expiryDate: data?.expiry || '',
+        };
+      })
+      .filter((l) => Number(l.qtyReceived) > 0);
 
     formData.set('linesData', JSON.stringify(linesToSubmit));
     formData.set('poId', poId);
-    
+
     // Call the original action
     action(formData);
   };
 
   const updateLineData = (id: string, field: 'qty' | 'batch' | 'expiry', value: string) => {
-    setReceiveData(prev => ({
+    setReceiveData((prev) => ({
       ...prev,
       [id]: {
         ...(prev[id] || { qty: '0', batch: '', expiry: '' }),
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
   };
 
@@ -97,9 +104,7 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
 
       <form action={handleSubmit} className="p-6 space-y-6">
         {state.error && (
-          <div className="rounded-md bg-rose-50 p-3 text-sm text-rose-700">
-            {state.error}
-          </div>
+          <div className="rounded-md bg-rose-50 p-3 text-sm text-rose-700">{state.error}</div>
         )}
 
         <div className="overflow-x-auto">
@@ -115,17 +120,21 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
               </tr>
             </thead>
             <TableBody className="divide-y divide-brand-cream-3">
-              {receivableLines.map(line => {
+              {receivableLines.map((line) => {
                 const data = receiveData[line.id] || { qty: '0', batch: '', expiry: '' };
                 const remaining = Number(line.qtyOrdered) - Number(line.qtyReceived);
-                
+
                 return (
                   <tr key={line.id} className="group">
                     <td className="py-3 pr-4">
                       <p className="font-medium text-brand-ink">{line.productName}</p>
                     </td>
-                    <td className="py-3 px-4 text-right font-mono text-brand-ink">{line.qtyOrdered} {line.uom}</td>
-                    <td className="py-3 px-4 text-right font-mono text-brand-ink">{line.qtyReceived} {line.uom}</td>
+                    <td className="py-3 px-4 text-right font-mono text-brand-ink">
+                      {line.qtyOrdered} {line.uom}
+                    </td>
+                    <td className="py-3 px-4 text-right font-mono text-brand-ink">
+                      {line.qtyReceived} {line.uom}
+                    </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
                         <Input
@@ -135,7 +144,7 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
                           max={remaining}
                           required
                           value={data.qty}
-                          onChange={e => updateLineData(line.id, 'qty', e.target.value)}
+                          onChange={(e) => updateLineData(line.id, 'qty', e.target.value)}
                           className="w-full rounded-md border border-brand-cream-3 bg-brand-cream px-2 py-1.5 text-right font-mono text-sm focus:border-brand-red focus:outline-none"
                         />
                         <span className="text-xs text-brand-ink-3">{line.uom}</span>
@@ -145,7 +154,7 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
                       <Input
                         type="text"
                         value={data.batch}
-                        onChange={e => updateLineData(line.id, 'batch', e.target.value)}
+                        onChange={(e) => updateLineData(line.id, 'batch', e.target.value)}
                         className="w-full rounded-md border border-brand-cream-3 bg-brand-cream px-2 py-1.5 text-sm focus:border-brand-red focus:outline-none"
                       />
                     </td>
@@ -153,7 +162,7 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
                       <Input
                         type="date"
                         value={data.expiry}
-                        onChange={e => updateLineData(line.id, 'expiry', e.target.value)}
+                        onChange={(e) => updateLineData(line.id, 'expiry', e.target.value)}
                         className="w-full rounded-md border border-brand-cream-3 bg-brand-cream px-2 py-1.5 text-sm focus:border-brand-red focus:outline-none"
                       />
                     </td>

@@ -1,5 +1,6 @@
 'use client';
 
+import { Button, Input, TableCell, TableHead } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -9,7 +10,6 @@ import {
   deleteCategoryAction,
   updateCategoryNameAction,
 } from './actions';
-import { TableCell, Input, TableHead, Button } from "@erp/ui";
 
 export function CategoriesClient({ categories }: { categories: CategoryWithCount[] }) {
   const router = useRouter();
@@ -110,7 +110,9 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
         <Button
           type="submit"
           disabled={isCreating || !newName.trim()}
-          className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50" variant="primary" size="md"
+          className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
+          variant="primary"
+          size="md"
         >
           {isCreating ? t('saving') : t('add')}
         </Button>
@@ -120,7 +122,9 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
-              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('name')}</TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                {t('name')}
+              </TableHead>
               <TableHead className="px-4 py-3 text-center font-medium text-brand-ink-2">
                 {t('productCount')}
               </TableHead>

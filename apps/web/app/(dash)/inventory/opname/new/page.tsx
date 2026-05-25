@@ -6,12 +6,12 @@
 
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/location-options';
+import { db } from '@erp/db';
+import { and, eq, inArray } from '@erp/db';
+import { accountingPeriods } from '@erp/db/schema/accounting';
 import { getLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { NewOpnameForm } from './new-opname-form';
-import { db } from '@erp/db';
-import { accountingPeriods } from '@erp/db/schema/accounting';
-import { and, eq, inArray } from '@erp/db';
 
 export default async function NewOpnamePage() {
   const session = await getSession();
@@ -32,17 +32,20 @@ export default async function NewOpnamePage() {
     .where(
       and(
         eq(accountingPeriods.tenantId, tenantId),
-        inArray(accountingPeriods.status, ['open', 'closing'])
-      )
+        inArray(accountingPeriods.status, ['open', 'closing']),
+      ),
     );
 
-  const periodCodes = periods.map((p) => p.code).sort().reverse(); // Show latest first
+  const periodCodes = periods
+    .map((p) => p.code)
+    .sort()
+    .reverse(); // Show latest first
 
   return (
-    <NewOpnameForm 
-      locationOptions={locationOptions} 
-      defaultLocationId={defaultLocationId} 
-      activePeriodCodes={periodCodes} 
+    <NewOpnameForm
+      locationOptions={locationOptions}
+      defaultLocationId={defaultLocationId}
+      activePeriodCodes={periodCodes}
     />
   );
 }

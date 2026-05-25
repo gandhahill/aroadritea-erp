@@ -7,6 +7,18 @@
 'use client';
 
 import { FileUploadField } from '@/components/file-upload-field';
+import { FilterBar, FilterField } from '@/components/filter-bar';
+import { PageHeader } from '@/components/page-header';
+import {
+  Button,
+  Input,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+} from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useState, useTransition } from 'react';
 import {
@@ -14,9 +26,6 @@ import {
   createDisciplinaryActionAction,
   listDisciplinaryActionsAction,
 } from './actions';
-import { Button, Input, Table, TableBody, TableCell, TableHead, TableHeader, Select } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
-import { FilterBar, FilterField } from "@/components/filter-bar";
 
 const LEVEL_LABEL: Record<string, { short: string; color: string; desc: string }> = {
   SP1: { short: 'SP1', color: 'bg-brand-gold/10 text-brand-gold', desc: 'Surat Peringatan 1' },
@@ -123,25 +132,25 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-            actions={<>
-          <button
-                    onClick={() => setShowForm(!showForm)}
-                    className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6"
-                  >
-                    {showForm ? tc('labels.cancel') : t('create')}
-                  </button>
-            </>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={<>{t('subtitle')}</>}
+        actions={
+          <>
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="inline-flex items-center gap-2 rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ember-6"
+            >
+              {showForm ? tc('labels.cancel') : t('create')}
+            </button>
+          </>
+        }
+      />
 
       {/* Create Form */}
       {showForm && (
         <div className="rounded-xl border border-brand-cream-3 bg-card p-6">
-          <h2 className="mb-4 text-base font-semibold text-brand-ink">
-            {t('createNew')}
-          </h2>
+          <h2 className="mb-4 text-base font-semibold text-brand-ink">{t('createNew')}</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -198,7 +207,9 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">{t('reason')} *</label>
+              <label className="mb-1.5 block text-sm font-medium text-brand-ink-2">
+                {t('reason')} *
+              </label>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
@@ -256,12 +267,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
             <option value="escalated">{t('statusEscalated')}</option>
           </Select>
         </FilterField>
-        <Button
-          onClick={handleFilter}
-          disabled={isPending}
-          variant="primary"
-          className="h-9"
-        >
+        <Button onClick={handleFilter} disabled={isPending} variant="primary" className="h-9">
           {isPending ? tc('actions.loading') : t('filterBtn')}
         </Button>
       </FilterBar>

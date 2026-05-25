@@ -22,9 +22,7 @@ function nextSelectRows(): unknown[] {
 
 function tableName(table: unknown): string {
   return String(
-    (table as { _: { name?: string } })?._?.name ??
-      (table as { name?: string })?.name ??
-      'unknown',
+    (table as { _: { name?: string } })?._?.name ?? (table as { name?: string })?.name ?? 'unknown',
   );
 }
 

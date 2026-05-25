@@ -1,9 +1,9 @@
 'use client';
 
+import { Button, Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { importJournalCsvAction } from '../actions';
-import { Button, Input } from "@erp/ui";
 
 export function ImportJournalForm() {
   const t = useTranslations('accounting.journal.import');
@@ -39,7 +39,9 @@ export function ImportJournalForm() {
         <Button
           type="submit"
           disabled={pending}
-          className="rounded-lg " variant="primary" size="lg"
+          className="rounded-lg "
+          variant="primary"
+          size="lg"
         >
           {pending ? t('submitting') : t('submit')}
         </Button>

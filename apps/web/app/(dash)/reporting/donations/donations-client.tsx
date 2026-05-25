@@ -1,14 +1,14 @@
 'use client';
 
+import { PageHeader } from '@/components/page-header';
 import { exportWorkbook } from '@/lib/export-workbook';
 import type { DonationReportResult } from '@erp/services/reporting';
+import { Select, TableCell, TableHead } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { ExportXlsxButton } from '../export-button';
 import { fetchDonationReport } from './actions';
-import { TableCell, TableHead, Select } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 type LocationOption = {
   id: string;
@@ -98,9 +98,7 @@ export function DonationsClient({
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} />
 
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-4">
         <div className="flex flex-col gap-1">
@@ -192,7 +190,9 @@ export function DonationsClient({
                   <TableCell className="px-4 py-3 text-right font-medium text-brand-ink">
                     {formatRupiah(row.donationTotal)}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-right text-brand-ink-2">{row.txCount}</TableCell>
+                  <TableCell className="px-4 py-3 text-right text-brand-ink-2">
+                    {row.txCount}
+                  </TableCell>
                   <TableCell className="px-4 py-3 text-right text-brand-ink-2">
                     {formatRupiah(row.average)}
                   </TableCell>
@@ -205,7 +205,9 @@ export function DonationsClient({
                 <TableCell className="px-4 py-3 text-right text-brand-ink">
                   {formatRupiah(data.totalDonation)}
                 </TableCell>
-                <TableCell className="px-4 py-3 text-right text-brand-ink-2">{data.totalTransactions}</TableCell>
+                <TableCell className="px-4 py-3 text-right text-brand-ink-2">
+                  {data.totalTransactions}
+                </TableCell>
                 <TableCell className="px-4 py-3 text-right text-brand-ink-2">
                   {formatRupiah(data.overallAverage)}
                 </TableCell>

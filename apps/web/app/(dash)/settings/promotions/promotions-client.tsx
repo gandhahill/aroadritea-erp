@@ -1,9 +1,9 @@
 'use client';
 
 import type { PromotionListItem, UpsertPromotionInput } from '@erp/services/promotion';
+import { Button, Input, Select, TableBody, TableCell, TableHead } from '@erp/ui';
 import { useMemo, useState, useTransition } from 'react';
 import { savePromotionAction } from './actions';
-import { Select, Input, TableCell, TableBody, TableHead, Button } from "@erp/ui";
 
 type LocationOption = { id: string; code: string; type: string; label: string };
 type ProductOption = { id: string; sku: string; label: string };
@@ -295,7 +295,9 @@ export function PromotionsClient({
           <Button
             type="button"
             onClick={() => setDraft(emptyDraft())}
-            className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark" variant="primary" size="md"
+            className="rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
+            variant="primary"
+            size="md"
           >
             {labels.add}
           </Button>
@@ -322,7 +324,9 @@ export function PromotionsClient({
                     <div className="font-semibold text-brand-ink">{item.code}</div>
                     <div className="text-xs text-brand-ink-3">{item.name.id}</div>
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-brand-ink-2">{labelsForKind(item.kind, labels)}</TableCell>
+                  <TableCell className="px-4 py-3 text-brand-ink-2">
+                    {labelsForKind(item.kind, labels)}
+                  </TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink-2">
                     {labelsForStatus(item.status, labels)}
                   </TableCell>

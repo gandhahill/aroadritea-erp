@@ -1,6 +1,8 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
+import { and, db, eq, sql } from '@erp/db';
+import { productVariants, products } from '@erp/db/schema/inventory';
 import {
   createManualSalesClosing,
   listManualSalesClosings,
@@ -9,8 +11,6 @@ import {
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
-import { db, eq, and, sql } from '@erp/db';
-import { products, productVariants } from '@erp/db/schema/inventory';
 
 export interface ManualSalesPageData {
   locations: Array<{ id: string; label: string; code: string }>;
@@ -89,7 +89,15 @@ export async function fetchManualSalesPageData(
     Math.min(100, Number.isFinite(requestedPageSize) ? requestedPageSize : 25),
   );
   if (!ctx)
-    return { locations: [], products: [], items: [], total: 0, page: 1, pageSize, error: 'Unauthenticated' };
+    return {
+      locations: [],
+      products: [],
+      items: [],
+      total: 0,
+      page: 1,
+      pageSize,
+      error: 'Unauthenticated',
+    };
   const locale = await getLocale();
   const currentPage = Math.max(1, Number.isFinite(page) ? page : 1);
   const activeLocationId = locationId || ctx.locationId || undefined;
@@ -100,13 +108,14 @@ export async function fetchManualSalesPageData(
       { locationId: activeLocationId, limit: pageSize, offset: (currentPage - 1) * pageSize },
       ctx,
     ),
-    db.execute<{
-      id: string;
-      name: string;
-      sellPrice: string;
-      variantId: string | null;
-    }>(
-      sql`
+    db
+      .execute<{
+        id: string;
+        name: string;
+        sellPrice: string;
+        variantId: string | null;
+      }>(
+        sql`
       SELECT 
         p.id, 
         COALESCE(v.name->>'id', v.name->>'en', p.name->>'id', p.name->>'en', 'Product') as name,
@@ -116,8 +125,9 @@ export async function fetchManualSalesPageData(
       LEFT JOIN product_variants v ON v.product_id = p.id AND v.is_active = true
       WHERE p.tenant_id = ${ctx.tenantId} AND p.is_active = true AND p.kind IN ('food', 'drink', 'retail')
       ORDER BY p.code ASC
-      `
-    ).then((res) => res.rows)
+      `,
+      )
+      .then((res) => res.rows),
   ]);
 
   if (!closings.ok) {
@@ -138,11 +148,11 @@ export async function fetchManualSalesPageData(
       code: row.code,
       label: `${row.code} - ${pickLocalized(row.name, locale)}`,
     })),
-    products: productList.map(p => ({
+    products: productList.map((p) => ({
       id: p.id,
       name: p.name,
       sellPrice: p.sellPrice,
-      variantId: p.variantId
+      variantId: p.variantId,
     })),
     items: closings.value.items,
     total: closings.value.total,

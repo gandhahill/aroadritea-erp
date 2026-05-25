@@ -1,14 +1,14 @@
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
+import { TableBody, TableCell, TableHead } from '@erp/ui';
+import type { Metadata } from 'next';
 /**
  * CMS Pages — List page (SD §31.3)
  */
 import { getTranslations } from 'next-intl/server';
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchCmsPages } from '../actions';
-import { TableCell, TableBody, TableHead } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('cms.pages');
@@ -55,36 +55,36 @@ export default async function CmsPagesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-            actions={<>
-          <Link
-                    href="/cms/pages/new"
-                    className="inline-flex items-center gap-2 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90"
-                  >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    {t('createPage')}
-                  </Link>
-            </>}
-          />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={<>{t('subtitle')}</>}
+        actions={
+          <>
+            <Link
+              href="/cms/pages/new"
+              className="inline-flex items-center gap-2 rounded-md bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/90"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              {t('createPage')}
+            </Link>
+          </>
+        }
+      />
 
       {/* File-based routes (not editable from CMS) */}
       <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
         <div className="mb-3 flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-brand-ink">{t('staticRoutesTitle')}</p>
-            <p className="text-xs text-brand-ink-3">
-              {t('staticRoutesSubtitle')}
-            </p>
+            <p className="text-xs text-brand-ink-3">{t('staticRoutesSubtitle')}</p>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -105,7 +105,9 @@ export default async function CmsPagesPage() {
                       {route.slug}
                     </code>
                   </td>
-                  <td className="py-2 pr-3 font-medium text-brand-ink">{t(`static.${route.key}`)}</td>
+                  <td className="py-2 pr-3 font-medium text-brand-ink">
+                    {t(`static.${route.key}`)}
+                  </td>
                   <td className="py-2 pr-3 text-brand-ink-3">{t(`static.${route.key}Desc`)}</td>
                   <td className="py-2 pr-3">
                     <a
@@ -187,7 +189,9 @@ export default async function CmsPagesPage() {
                     </TableCell>
                     <TableCell className="px-4 py-3">
                       <span className="rounded bg-brand-cream-2 px-2 py-0.5 text-xs font-medium text-brand-ink-2">
-                        {t(`types.${TYPE_KEYS[(page.type as string) ?? 'page'] ?? (page.type as string)}`)}
+                        {t(
+                          `types.${TYPE_KEYS[(page.type as string) ?? 'page'] ?? (page.type as string)}`,
+                        )}
                       </span>
                     </TableCell>
                     <TableCell className="px-4 py-3">

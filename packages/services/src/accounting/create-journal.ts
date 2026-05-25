@@ -27,11 +27,11 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
 import { generateJournalNumber } from '../shared/number-generator';
 import { type CreateJournalInput, CreateJournalInputSchema } from './schemas';
-import { auditRecord } from "../audit";
-import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
 
 // --- Return type ---
 
@@ -95,7 +95,11 @@ export async function createJournal(
 
   let claimedIdempotencyId: string | null = null;
   if (data.idempotencyKey) {
-    const claimResult = await claimIdempotency(data.locationId, data.idempotencyKey, 'accounting.createJournal');
+    const claimResult = await claimIdempotency(
+      data.locationId,
+      data.idempotencyKey,
+      'accounting.createJournal',
+    );
     if (!claimResult.ok) return claimResult;
     claimedIdempotencyId = claimResult.value.id;
   }
@@ -257,25 +261,25 @@ export async function createJournal(
 
       // 11. Write audit log (SD §15)
       await auditRecord({
-            action: 'create',
-            entityType: 'journal_entry',
-            entityId: jeId,
-            before: null,
-            after: {
-                    id: jeId,
-                    number: jeNumber,
-                    postingDate: data.postingDate,
-                    status: 'draft',
-                    totalDebit: totalDebit.toString(),
-                    totalCredit: totalCredit.toString(),
-                    lineCount: lineValues.length,
-                  },
-            metadata: {
-                    ip: ctx.ipAddress ?? null,
-                    userAgent: ctx.userAgent ?? null,
-                  },
-            ctx,
-          });
+        action: 'create',
+        entityType: 'journal_entry',
+        entityId: jeId,
+        before: null,
+        after: {
+          id: jeId,
+          number: jeNumber,
+          postingDate: data.postingDate,
+          status: 'draft',
+          totalDebit: totalDebit.toString(),
+          totalCredit: totalCredit.toString(),
+          lineCount: lineValues.length,
+        },
+        metadata: {
+          ip: ctx.ipAddress ?? null,
+          userAgent: ctx.userAgent ?? null,
+        },
+        ctx,
+      });
 
       const resultObj: JournalEntryResult = {
         id: jeId,

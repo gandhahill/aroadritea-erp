@@ -8,8 +8,8 @@ import { redirect } from 'next/navigation';
 import { fetchRecipes } from './actions';
 import { RecipesClient } from './recipes-client';
 
+import { PageHeader } from '@/components/page-header';
 import { getTranslations } from 'next-intl/server';
-import { PageHeader } from "@/components/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('inventory.recipes');
@@ -24,10 +24,7 @@ export default async function RecipesPage() {
   const t = await getTranslations('inventory.recipes');
   return (
     <div className="space-y-6">
-      <PageHeader 
-            title={<>{t('title')}</>}
-            description={<>{t('subtitle')}</>}
-          />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
       <RecipesClient initial={data} />
     </div>
   );

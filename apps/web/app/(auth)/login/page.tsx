@@ -8,10 +8,10 @@
 
 import { recordAuthEvent } from '@/lib/audit-auth';
 import { authClient } from '@/lib/auth-client';
+import { Input, Select } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, Suspense, useState } from 'react';
-import { Input, Select } from "@erp/ui";
 
 export default function LoginPage() {
   return (

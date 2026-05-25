@@ -12,6 +12,7 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext, LocaleString } from '@erp/shared/types';
 import { and, desc, eq, inArray, isNull, lt, sql } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { can, requirePermission } from '../iam';
 import { createJournal } from './create-journal';
 import { postJournal } from './post-journal';
@@ -26,7 +27,6 @@ import {
   type UpdateFixedAssetCategoryInput,
   UpdateFixedAssetCategorySchema,
 } from './schemas';
-import { auditRecord } from "../audit";
 
 type FixedAssetRow = typeof fixedAssets.$inferSelect;
 
@@ -233,19 +233,19 @@ export async function updateFixedAssetCategory(
         );
 
       await auditRecord({
-            action: 'update',
-            entityType: 'fixed_asset_category',
-            entityId: category.id,
-            before: {
-                    defaultUsefulLifeMonths: category.defaultUsefulLifeMonths,
-                    defaultDepreciationMethod: category.defaultDepreciationMethod,
-                    assetAccountId: category.assetAccountId,
-                    accumulatedDepreciationAccountId: category.accumulatedDepreciationAccountId,
-                    depreciationExpenseAccountId: category.depreciationExpenseAccountId,
-                  },
-            after: data,
-            ctx,
-          });
+        action: 'update',
+        entityType: 'fixed_asset_category',
+        entityId: category.id,
+        before: {
+          defaultUsefulLifeMonths: category.defaultUsefulLifeMonths,
+          defaultDepreciationMethod: category.defaultDepreciationMethod,
+          assetAccountId: category.assetAccountId,
+          accumulatedDepreciationAccountId: category.accumulatedDepreciationAccountId,
+          depreciationExpenseAccountId: category.depreciationExpenseAccountId,
+        },
+        after: data,
+        ctx,
+      });
 
       return { id: category.id };
     },
@@ -402,21 +402,21 @@ export async function createFixedAsset(
       });
 
       await auditRecord({
-            action: 'create',
-            entityType: 'fixed_asset',
-            entityId: id,
-            before: null,
-            after: {
-                    code: data.code,
-                    name: data.name,
-                    locationId: data.locationId,
-                    categoryId: data.categoryId,
-                    acquisitionCost: data.acquisitionCost,
-                    depreciationMethod: data.depreciationMethod,
-                  },
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: 'create',
+        entityType: 'fixed_asset',
+        entityId: id,
+        before: null,
+        after: {
+          code: data.code,
+          name: data.name,
+          locationId: data.locationId,
+          categoryId: data.categoryId,
+          acquisitionCost: data.acquisitionCost,
+          depreciationMethod: data.depreciationMethod,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return { id };
     },
@@ -582,20 +582,20 @@ export async function runFixedAssetDepreciation(
       }
 
       await auditRecord({
-            action: 'post_depreciation',
-            entityType: 'fixed_asset_depreciation_run',
-            entityId: runId,
-            before: null,
-            after: {
-                    postingDate: data.postingDate,
-                    locationId: data.locationId,
-                    totalAmount: totalAmount.toString(),
-                    assetCount: depreciationLines.length,
-                    journalEntryId: journalResult.value.id,
-                  },
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: 'post_depreciation',
+        entityType: 'fixed_asset_depreciation_run',
+        entityId: runId,
+        before: null,
+        after: {
+          postingDate: data.postingDate,
+          locationId: data.locationId,
+          totalAmount: totalAmount.toString(),
+          assetCount: depreciationLines.length,
+          journalEntryId: journalResult.value.id,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       return {
         runId,
@@ -740,22 +740,22 @@ export async function voidFixedAssetDepreciationForJournal(
         );
 
       await auditRecord({
-            action: 'void_depreciation',
-            entityType: 'fixed_asset_depreciation_run',
-            entityId: run.id,
-            before: {
-                    status: 'posted',
-                    journalEntryId,
-                    totalAmount: run.totalAmount.toString(),
-                  },
-            after: {
-                    status: 'void',
-                    reversalJournalEntryId,
-                    assetCount: lines.length,
-                  },
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: 'void_depreciation',
+        entityType: 'fixed_asset_depreciation_run',
+        entityId: run.id,
+        before: {
+          status: 'posted',
+          journalEntryId,
+          totalAmount: run.totalAmount.toString(),
+        },
+        after: {
+          status: 'void',
+          reversalJournalEntryId,
+          assetCount: lines.length,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
     },
     (e) => {
       if (e instanceof AppError) return e;

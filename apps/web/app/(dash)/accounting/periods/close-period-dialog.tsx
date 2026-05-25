@@ -1,9 +1,9 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState, useTransition } from 'react';
 import { InlineAlert } from '@/components/confirm-dialog';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState, useTransition } from 'react';
 import { closePeriodAction } from './actions';
 
 interface ClosePeriodDialogProps {
@@ -19,7 +19,12 @@ interface ClosePeriodDialogProps {
   };
 }
 
-export function ClosePeriodDialog({ periodCode, draftCount, onClose, copy }: ClosePeriodDialogProps) {
+export function ClosePeriodDialog({
+  periodCode,
+  draftCount,
+  onClose,
+  copy,
+}: ClosePeriodDialogProps) {
   const router = useRouter();
   const tc = useTranslations('common');
   const [isPending, startTransition] = useTransition();
@@ -51,25 +56,26 @@ export function ClosePeriodDialog({ periodCode, draftCount, onClose, copy }: Clo
   const warningText = copy.draftWarning.replace('{count}', String(draftCount));
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+    <dialog
+      open
+      className="fixed inset-0 z-50 flex h-full w-full max-w-none items-center justify-center border-0 bg-black/40 px-4"
       onClick={(e) => {
         if (e.target === e.currentTarget && !isPending) onClose();
       }}
     >
       <div className="w-full max-w-md rounded-xl border border-rose-200 bg-brand-paper p-6 shadow-xl">
-        <h2 className="text-lg font-semibold text-brand-ink">{copy.confirmClose} ({periodCode})</h2>
+        <h2 className="text-lg font-semibold text-brand-ink">
+          {copy.confirmClose} ({periodCode})
+        </h2>
         <p className="mt-2 text-sm text-brand-ink/80">{copy.confirmCloseMessage}</p>
 
         {hasDrafts && (
           <div className="mt-4">
             <InlineAlert message={warningText} tone="error" />
             <div className="mt-3 flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                id="forceClose" 
+              <input
+                type="checkbox"
+                id="forceClose"
                 checked={force}
                 onChange={(e) => setForce(e.target.checked)}
                 disabled={isPending}
@@ -107,6 +113,6 @@ export function ClosePeriodDialog({ periodCode, draftCount, onClose, copy }: Clo
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

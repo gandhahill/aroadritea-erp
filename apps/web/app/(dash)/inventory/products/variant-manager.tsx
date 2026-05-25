@@ -1,10 +1,19 @@
 'use client';
 
 import type { VariantResult } from '@erp/services/inventory';
+import {
+  Button,
+  Input,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+} from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { createVariantAction, toggleVariantStatusAction } from './actions';
-import { Button, Input, Select, TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
 
 export function VariantManager({
   productId,
@@ -18,9 +27,7 @@ export function VariantManager({
     <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
       <div className="flex flex-col gap-1">
         <h2 className="text-base font-semibold text-brand-ink">{tp('variantPrice')}</h2>
-        <p className="text-sm text-brand-ink-3">
-          {tp('variantDesc')}
-        </p>
+        <p className="text-sm text-brand-ink-3">{tp('variantDesc')}</p>
       </div>
 
       <div className="mt-5 overflow-hidden rounded-lg border border-brand-cream-3">
@@ -45,8 +52,12 @@ export function VariantManager({
             ) : (
               variants.map((variant) => (
                 <tr key={variant.id}>
-                  <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink">{variant.sku}</TableCell>
-                  <TableCell className="px-4 py-3 font-medium text-brand-ink">{variant.name.id}</TableCell>
+                  <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink">
+                    {variant.sku}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 font-medium text-brand-ink">
+                    {variant.name.id}
+                  </TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink-3">
                     {Object.entries(variant.attributes)
                       .map(([key, value]) => `${key}: ${value}`)
@@ -122,14 +133,7 @@ export function VariantManager({
         </label>
         <label className="space-y-1.5 lg:col-span-1">
           <span className="text-sm font-medium text-brand-ink">{tp('costPrice')}</span>
-          <Input
-            name="variantCostPrice"
-            type="number"
-            required
-            min={0}
-            defaultValue={0}
-           
-          />
+          <Input name="variantCostPrice" type="number" required min={0} defaultValue={0} />
         </label>
         <label className="space-y-1.5 lg:col-span-1">
           <span className="text-sm font-medium text-brand-ink">{tp('order')}</span>
@@ -139,7 +143,9 @@ export function VariantManager({
           <Button
             type="submit"
             disabled={isPending}
-            className="w-full rounded-lg bg-brand-red px-4 py-2 font-semibold text-white shadow-sm hover:bg-brand-red-dark disabled:opacity-70" variant="primary" size="md"
+            className="w-full rounded-lg bg-brand-red px-4 py-2 font-semibold text-white shadow-sm hover:bg-brand-red-dark disabled:opacity-70"
+            variant="primary"
+            size="md"
           >
             {isPending ? tc('actions.saving') : tp('addVariant')}
           </Button>

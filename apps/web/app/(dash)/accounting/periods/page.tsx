@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { getLocale } from 'next-intl/server';
 
+import { PageHeader } from '@/components/page-header';
+import { TableCell, TableHead } from '@erp/ui';
 import { fetchAccountingPeriods } from './actions';
-import { OpenPeriodButton, ClosePeriodButton } from './periods-client';
-import { TableCell, TableHead } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
+import { ClosePeriodButton, OpenPeriodButton } from './periods-client';
 
 export const metadata: Metadata = {
   title: 'Accounting Periods - Aroadri ERP',
@@ -39,8 +39,8 @@ const PAGE_COPY = {
       draftWarning: 'Peringatan: Masih ada {count} jurnal berstatus draft di periode ini.',
       code: 'Kode Periode (YYYY-MM)',
       startDate: 'Tanggal Mulai',
-      endDate: 'Tanggal Selesai'
-    }
+      endDate: 'Tanggal Selesai',
+    },
   },
   en: {
     title: 'Accounting Periods',
@@ -62,7 +62,8 @@ const PAGE_COPY = {
     reversed: 'reversed',
     periodAction: {
       openPeriod: 'Open Period',
-      openPeriodSubtitle: 'Create a new accounting period. Ensure there are no duplicate period codes.',
+      openPeriodSubtitle:
+        'Create a new accounting period. Ensure there are no duplicate period codes.',
       closePeriod: 'Close Period',
       confirmClose: 'Confirm Close',
       confirmCloseMessage: 'Are you sure you want to close this period?',
@@ -70,8 +71,8 @@ const PAGE_COPY = {
       draftWarning: 'Warning: There are {count} draft journals in this period.',
       code: 'Period Code (YYYY-MM)',
       startDate: 'Start Date',
-      endDate: 'End Date'
-    }
+      endDate: 'End Date',
+    },
   },
   zh: {
     title: '会计期间',
@@ -100,8 +101,8 @@ const PAGE_COPY = {
       draftWarning: '警告：此期间还有 {count} 个草稿凭证。',
       code: '期间代码 (YYYY-MM)',
       startDate: '开始日期',
-      endDate: '结束日期'
-    }
+      endDate: '结束日期',
+    },
   },
 } as const;
 
@@ -145,9 +146,7 @@ export default async function AccountingPeriodsPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
             Accounting
           </p>
-          <PageHeader 
-                    title={<>{copy.title}</>}
-                  />
+          <PageHeader title={<>{copy.title}</>} />
           <p className="max-w-3xl text-sm leading-6 text-brand-muted">{copy.subtitle}</p>
         </div>
 
@@ -194,7 +193,9 @@ export default async function AccountingPeriodsPage() {
                 <tbody className="divide-y divide-brand-ink/10">
                   {rows.map((row) => (
                     <tr key={row.id} className="hover:bg-brand-paper/70">
-                      <TableCell className="px-4 py-3 font-semibold text-brand-ink">{row.code}</TableCell>
+                      <TableCell className="px-4 py-3 font-semibold text-brand-ink">
+                        {row.code}
+                      </TableCell>
                       <TableCell className="px-4 py-3 text-brand-muted">
                         {formatDate(row.startDate, locale)} - {formatDate(row.endDate, locale)}
                       </TableCell>
@@ -216,7 +217,7 @@ export default async function AccountingPeriodsPage() {
                       </TableCell>
                       <TableCell className="px-4 py-3">
                         {row.status !== 'closed' && (
-                          <ClosePeriodButton 
+                          <ClosePeriodButton
                             periodCode={row.code}
                             draftCount={row.draftCount}
                             copy={{ period: copy.periodAction }}

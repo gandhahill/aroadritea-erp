@@ -64,9 +64,7 @@ async function notifyShiftChange(args: {
     const verb = labels[args.action];
 
     const shiftLine =
-      args.kind === 'off'
-        ? 'Status: hari libur (off)'
-        : `Shift: ${args.shiftLabel ?? '—'}`;
+      args.kind === 'off' ? 'Status: hari libur (off)' : `Shift: ${args.shiftLabel ?? '—'}`;
 
     const titleBahasa = `${verb.id} — ${args.workDate}`;
     const bodyBahasa = [
@@ -179,7 +177,10 @@ export interface RosterOptions {
   employees: Array<{ id: string; name: string; locationName?: string }>;
 }
 
-export async function fetchRoster(weekStart: string, locationId?: string): Promise<{
+export async function fetchRoster(
+  weekStart: string,
+  locationId?: string,
+): Promise<{
   options: RosterOptions;
   assignments: RosterAssignment[];
 }> {
@@ -206,21 +207,26 @@ export async function fetchRoster(weekStart: string, locationId?: string): Promi
       .leftJoin(locations, eq(shiftDefinitions.locationId, locations.id))
       .where(
         and(
-          eq(shiftDefinitions.tenantId, ctx.tenantId), 
+          eq(shiftDefinitions.tenantId, ctx.tenantId),
           eq(shiftDefinitions.isActive, true),
-          locationId ? eq(shiftDefinitions.locationId, locationId) : undefined
-        )
+          locationId ? eq(shiftDefinitions.locationId, locationId) : undefined,
+        ),
       )
       .orderBy(shiftDefinitions.startTime),
     db
-      .select({ id: employees.id, name: employees.name, status: employees.status, locationName: locations.name })
+      .select({
+        id: employees.id,
+        name: employees.name,
+        status: employees.status,
+        locationName: locations.name,
+      })
       .from(employees)
       .leftJoin(locations, eq(employees.locationId, locations.id))
       .where(
         and(
           eq(employees.tenantId, ctx.tenantId),
           sql`${employees.status} in ('active','probation')`,
-          locationId ? eq(employees.locationId, locationId) : undefined
+          locationId ? eq(employees.locationId, locationId) : undefined,
         ),
       )
       .orderBy(employees.name),
@@ -369,7 +375,10 @@ export async function upsertAssignmentAction(input: {
 
   let targetLocationId = ctx.locationId;
   if (input.shiftDefinitionId) {
-    const [sd] = await db.select({ locationId: shiftDefinitions.locationId }).from(shiftDefinitions).where(eq(shiftDefinitions.id, input.shiftDefinitionId));
+    const [sd] = await db
+      .select({ locationId: shiftDefinitions.locationId })
+      .from(shiftDefinitions)
+      .where(eq(shiftDefinitions.id, input.shiftDefinitionId));
     if (sd) targetLocationId = sd.locationId;
   }
 
@@ -505,10 +514,7 @@ export async function swapShiftAssignmentAction(input: {
     .select()
     .from(shiftAssignments)
     .where(
-      and(
-        eq(shiftAssignments.tenantId, ctx.tenantId),
-        eq(shiftAssignments.id, input.assignmentId),
-      ),
+      and(eq(shiftAssignments.tenantId, ctx.tenantId), eq(shiftAssignments.id, input.assignmentId)),
     )
     .limit(1);
   if (!original) {

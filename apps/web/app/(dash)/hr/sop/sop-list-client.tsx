@@ -1,13 +1,13 @@
 'use client';
 
+import { FilterBar } from '@/components/filter-bar';
+import { Pagination } from '@/components/pagination';
+import type { SopRow } from '@erp/services/hr';
 import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
-import type { SopRow } from '@erp/services/hr';
-import { Pagination } from '@/components/pagination';
-import { FilterBar } from '@/components/filter-bar';
-import { SopUploadForm } from './sop-upload-form';
 import { deleteSopAction, updateSopAction } from './actions';
+import { SopUploadForm } from './sop-upload-form';
 
 interface Props {
   rows: SopRow[];
@@ -53,10 +53,10 @@ export function SopListClient(props: Props) {
   const [statusBusy, setStatusBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(props.error ?? null);
 
-  const totalPages = useMemo(() => Math.max(1, Math.ceil(props.total / props.pageSize)), [
-    props.total,
-    props.pageSize,
-  ]);
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(props.total / props.pageSize)),
+    [props.total, props.pageSize],
+  );
 
   function updateParam(key: string, value: string) {
     const next = new URLSearchParams(search.toString());
@@ -154,11 +154,7 @@ export function SopListClient(props: Props) {
           />
         </label>
         {props.canManage ? (
-          <Button
-            variant="primary"
-            size="md"
-            onClick={() => setShowUpload(true)}
-          >
+          <Button variant="primary" size="md" onClick={() => setShowUpload(true)}>
             + Upload SOP
           </Button>
         ) : null}
@@ -168,11 +164,21 @@ export function SopListClient(props: Props) {
         <Table>
           <thead className="bg-brand-cream-2/60">
             <tr>
-              <TableHead className="px-4 py-3 text-left text-xs uppercase text-brand-ink-2">Judul</TableHead>
-              <TableHead className="px-4 py-3 text-left text-xs uppercase text-brand-ink-2">Kategori</TableHead>
-              <TableHead className="px-4 py-3 text-left text-xs uppercase text-brand-ink-2">Status</TableHead>
-              <TableHead className="px-4 py-3 text-left text-xs uppercase text-brand-ink-2">Ukuran</TableHead>
-              <TableHead className="px-4 py-3 text-right text-xs uppercase text-brand-ink-2">Aksi</TableHead>
+              <TableHead className="px-4 py-3 text-left text-xs uppercase text-brand-ink-2">
+                Judul
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left text-xs uppercase text-brand-ink-2">
+                Kategori
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left text-xs uppercase text-brand-ink-2">
+                Status
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left text-xs uppercase text-brand-ink-2">
+                Ukuran
+              </TableHead>
+              <TableHead className="px-4 py-3 text-right text-xs uppercase text-brand-ink-2">
+                Aksi
+              </TableHead>
             </tr>
           </thead>
           <TableBody>
@@ -191,7 +197,9 @@ export function SopListClient(props: Props) {
                       <div className="line-clamp-2 text-xs text-brand-ink-3">{row.description}</div>
                     ) : null}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-sm text-brand-ink-2">{row.category}</TableCell>
+                  <TableCell className="px-4 py-3 text-sm text-brand-ink-2">
+                    {row.category}
+                  </TableCell>
                   <TableCell className="px-4 py-3 text-sm">
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusBadge(row.status)}`}
@@ -199,7 +207,9 @@ export function SopListClient(props: Props) {
                       {row.status}
                     </span>
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-sm text-brand-ink-2">{humanSize(row.fileSize)}</TableCell>
+                  <TableCell className="px-4 py-3 text-sm text-brand-ink-2">
+                    {humanSize(row.fileSize)}
+                  </TableCell>
                   <TableCell className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <a
@@ -239,11 +249,7 @@ export function SopListClient(props: Props) {
         </Table>
       </div>
 
-      <Pagination
-        currentPage={props.page}
-        totalItems={props.total}
-        pageSize={props.pageSize}
-      />
+      <Pagination currentPage={props.page} totalItems={props.total} pageSize={props.pageSize} />
 
       {showUpload ? (
         <SopUploadForm
@@ -260,7 +266,8 @@ export function SopListClient(props: Props) {
           <div className="w-full max-w-sm rounded-xl border border-brand-cream-3 bg-card p-6 shadow-2xl">
             <h2 className="text-base font-semibold text-brand-ink">Hapus SOP?</h2>
             <p className="mt-2 text-sm text-brand-ink-3">
-              Dokumen akan diarsipkan (soft-delete). Anda dapat menghubungi DBA jika perlu memulihkan.
+              Dokumen akan diarsipkan (soft-delete). Anda dapat menghubungi DBA jika perlu
+              memulihkan.
             </p>
             <div className="mt-4 flex justify-end gap-2">
               <Button variant="secondary" size="sm" onClick={() => setConfirmDeleteId(null)}>

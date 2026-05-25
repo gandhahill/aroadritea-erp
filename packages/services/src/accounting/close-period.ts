@@ -28,6 +28,7 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, sql } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import {
   type ClosePeriodInput,
@@ -35,7 +36,6 @@ import {
   type GetPeriodStatusInput,
   GetPeriodStatusInputSchema,
 } from './schemas';
-import { auditRecord } from "../audit";
 
 // --- Return types ---
 
@@ -257,21 +257,21 @@ export async function closePeriod(
 
       // 7. Audit log
       await auditRecord({
-            action: newStatus === 'closed' ? 'close' : 'closing',
-            entityType: 'accounting_period',
-            entityId: period.id,
-            before: { status: previousStatus },
-            after: {
-                    status: newStatus,
-                    closedAt: closedAt?.toISOString() ?? null,
-                    closedBy,
-                  },
-            metadata: {
-                    ip: ctx.ipAddress ?? null,
-                    userAgent: ctx.userAgent ?? null,
-                  },
-            ctx,
-          });
+        action: newStatus === 'closed' ? 'close' : 'closing',
+        entityType: 'accounting_period',
+        entityId: period.id,
+        before: { status: previousStatus },
+        after: {
+          status: newStatus,
+          closedAt: closedAt?.toISOString() ?? null,
+          closedBy,
+        },
+        metadata: {
+          ip: ctx.ipAddress ?? null,
+          userAgent: ctx.userAgent ?? null,
+        },
+        ctx,
+      });
 
       return {
         id: period.id,

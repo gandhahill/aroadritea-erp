@@ -4,6 +4,7 @@
 
 'use client';
 
+import { Button, Input, Select, TableCell, TableHead } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -15,7 +16,6 @@ import {
   deleteProductCode,
   updateProductCode,
 } from './actions';
-import { Button, Input, Select, TableCell, TableHead } from "@erp/ui";
 
 interface Props {
   codes: ProductCodeItem[];
@@ -80,17 +80,29 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-brand-cream-3 bg-brand-cream">
-            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('product', { fallback: 'Produk' })}</TableHead>
-            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('variant')}</TableHead>
-            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('naixerCode')}</TableHead>
-            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{tc('fields.status', { fallback: 'Status' })}</TableHead>
-            <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{tc('fields.actions', { fallback: 'Aksi' })}</TableHead>
+            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+              {t('product', { fallback: 'Produk' })}
+            </TableHead>
+            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+              {t('variant')}
+            </TableHead>
+            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+              {t('naixerCode')}
+            </TableHead>
+            <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+              {tc('fields.status', { fallback: 'Status' })}
+            </TableHead>
+            <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
+              {tc('fields.actions', { fallback: 'Aksi' })}
+            </TableHead>
           </tr>
         </thead>
         <tbody>
           {codes.map((code) => (
             <tr key={code.id} className="border-b border-brand-cream-3 last:border-0">
-              <TableCell className="px-4 py-3 text-sm text-brand-ink">{code.productLabel}</TableCell>
+              <TableCell className="px-4 py-3 text-sm text-brand-ink">
+                {code.productLabel}
+              </TableCell>
               <TableCell className="px-4 py-3 text-xs text-brand-ink-3">
                 {code.variantLabel ?? t('allVariants')}
               </TableCell>
@@ -133,7 +145,9 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
           {codes.length === 0 && !showAddForm && (
             <tr>
               <td colSpan={5} className="px-4 py-8 text-center text-sm text-brand-ink-3">
-                {t('noProductMappings', { fallback: 'Belum ada pemetaan kode produk. Tambahkan di bawah.' })}
+                {t('noProductMappings', {
+                  fallback: 'Belum ada pemetaan kode produk. Tambahkan di bawah.',
+                })}
               </td>
             </tr>
           )}
@@ -145,7 +159,9 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
         <div className="border-t border-brand-cream-3 bg-brand-cream px-4 py-3">
           <div className="flex items-end gap-3">
             <div className="flex-1">
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('product', { fallback: 'Produk' })}</label>
+              <label className="mb-1 block text-xs font-medium text-brand-ink-2">
+                {t('product', { fallback: 'Produk' })}
+              </label>
               <Select
                 value={newProductId}
                 onChange={(e) => {
@@ -189,7 +205,9 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
               </Select>
             </div>
             <div className="w-32">
-              <label className="mb-1 block text-xs font-medium text-brand-ink-2">{t('naixerCode')}</label>
+              <label className="mb-1 block text-xs font-medium text-brand-ink-2">
+                {t('naixerCode')}
+              </label>
               <Input
                 type="text"
                 value={newNaixerCode}
@@ -202,7 +220,9 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
               type="button"
               onClick={handleAdd}
               disabled={isPending || !newProductId || !newNaixerCode}
-              className="rounded bg-brand-red px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50" variant="primary" size="sm"
+              className="rounded bg-brand-red px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-red/90 disabled:opacity-50"
+              variant="primary"
+              size="sm"
             >
               {tc('labels.add')}
             </Button>

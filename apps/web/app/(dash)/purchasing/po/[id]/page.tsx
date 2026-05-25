@@ -1,11 +1,20 @@
+import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
-import { db, purchaseOrders, purchaseOrderLines, partners, locations, products, eq, and } from '@erp/db';
-import { notFound, redirect } from 'next/navigation';
+import {
+  and,
+  db,
+  eq,
+  locations,
+  partners,
+  products,
+  purchaseOrderLines,
+  purchaseOrders,
+} from '@erp/db';
+import { Table, TableBody, TableCell, TableHead, TableHeader } from '@erp/ui';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
+import { notFound, redirect } from 'next/navigation';
 import { GrnForm } from './grn-form';
-import { TableCell, TableBody, TableHead, TableHeader, Table } from "@erp/ui";
-import { PageHeader } from "@/components/page-header";
 
 function shipmentBadgeClass(status: string | null, hasError: boolean): string {
   if (hasError) return 'border-rose-200 bg-rose-50 text-rose-700';
@@ -19,7 +28,7 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
   const params = await props.params;
   const session = await getSession();
   if (!session?.user) return redirect('/login');
-  
+
   const user = session.user as Record<string, unknown>;
   const tenantId = (user.tenantId as string | undefined) ?? 'default';
 
@@ -64,8 +73,8 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
 
   // A PO is receivable if its status is 'approved' or 'partial'
   const isReceivable = po.status === 'approved' || po.status === 'partial';
-  const hasItemsToReceive = poLines.some(l => Number(l.qtyOrdered) > Number(l.qtyReceived));
-  
+  const hasItemsToReceive = poLines.some((l) => Number(l.qtyOrdered) > Number(l.qtyReceived));
+
   const canReceive = isReceivable && hasItemsToReceive;
 
   // Format product names depending on language preference, but we'll try to extract id if it's a JSON
@@ -75,7 +84,7 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
     return nameData.id || nameData.en || nameData.zh || 'Unknown Product';
   };
 
-  const formattedLines = poLines.map(l => ({
+  const formattedLines = poLines.map((l) => ({
     ...l,
     productName: formatProductName(l.productName),
   }));
@@ -89,9 +98,13 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
   return (
     <main className="min-h-screen bg-brand-paper">
       <section className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-5 py-8 lg:px-8">
-        <PageHeader 
-                title={<>{t('poDetails')}- {po.number}</>}
-              />
+        <PageHeader
+          title={
+            <>
+              {t('poDetails')}- {po.number}
+            </>
+          }
+        />
 
         <div className="rounded-xl border border-brand-cream-3 bg-card p-6 shadow-sm grid gap-4 md:grid-cols-2">
           <div>
@@ -130,7 +143,8 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
                 <p className="mt-1 text-xs text-rose-700">{po.shippingTrackingError}</p>
               ) : po.shippingTrackingSyncedAt ? (
                 <p className="mt-1 text-xs text-brand-ink-3">
-                  Disinkron: {po.shippingTrackingSyncedAt.toISOString().slice(0, 16).replace('T', ' ')}
+                  Disinkron:{' '}
+                  {po.shippingTrackingSyncedAt.toISOString().slice(0, 16).replace('T', ' ')}
                 </p>
               ) : null}
             </div>
@@ -140,7 +154,7 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
               >
                 {po.shippingTrackingError
                   ? 'Error'
-                  : po.shippingTrackingStatus ?? 'Belum disinkron'}
+                  : (po.shippingTrackingStatus ?? 'Belum disinkron')}
               </span>
               <Link
                 href={`/purchasing/shipments/${po.id}`}
@@ -166,7 +180,7 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
                 PO is in status "{po.status}" and cannot be received right now.
               </p>
             )}
-            
+
             <div className="mt-6 overflow-x-auto">
               <Table className=" text-left">
                 <TableHeader className="bg-brand-cream-1 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
@@ -177,11 +191,15 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
                   </tr>
                 </TableHeader>
                 <TableBody className="divide-y divide-brand-cream-3">
-                  {formattedLines.map(line => (
+                  {formattedLines.map((line) => (
                     <tr key={line.id}>
                       <TableCell className="px-4 py-3 text-brand-ink">{line.productName}</TableCell>
-                      <TableCell className="px-4 py-3 text-right font-mono text-brand-ink">{line.qtyOrdered} {line.uom}</TableCell>
-                      <TableCell className="px-4 py-3 text-right font-mono text-brand-ink">{line.qtyReceived} {line.uom}</TableCell>
+                      <TableCell className="px-4 py-3 text-right font-mono text-brand-ink">
+                        {line.qtyOrdered} {line.uom}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-right font-mono text-brand-ink">
+                        {line.qtyReceived} {line.uom}
+                      </TableCell>
                     </tr>
                   ))}
                 </TableBody>

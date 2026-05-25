@@ -391,7 +391,11 @@ export const PERMISSIONS_SEED = [
   {
     code: 'purchasing.return.post',
     module: 'purchasing',
-    description: n('Posting jurnal retur pembelian', 'Post purchase-return journal', '过账采购退货分录'),
+    description: n(
+      'Posting jurnal retur pembelian',
+      'Post purchase-return journal',
+      '过账采购退货分录',
+    ),
   },
   {
     code: 'crm.member.view',
@@ -483,11 +487,7 @@ export const PERMISSIONS_SEED = [
   {
     code: 'hr.sop.read',
     module: 'hr',
-    description: n(
-      'Lihat dokumen SOP perusahaan',
-      'View company SOP documents',
-      '查看公司SOP文件',
-    ),
+    description: n('Lihat dokumen SOP perusahaan', 'View company SOP documents', '查看公司SOP文件'),
   },
   {
     code: 'hr.sop.manage',

@@ -1,11 +1,11 @@
 'use client';
 
+import { FilterBar, FilterField } from '@/components/filter-bar';
+import { Input, Select, Table, TableBody, TableCell, TableHead, TableHeader } from '@erp/ui';
 import { useTranslations } from 'next-intl';
-import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useMemo, useState } from 'react';
 import { syncPurchaseShipmentAction } from './actions';
-import { FilterBar, FilterField } from "@/components/filter-bar";
-import { TableCell, TableBody, TableHead, TableHeader, Table, Select, Input } from "@erp/ui";
 
 interface PoRow {
   id: string;
@@ -162,9 +162,7 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
               filtered.map((po) => (
                 <tr key={po.id}>
                   <TableCell className="px-4 py-3 font-mono text-xs font-semibold text-brand-red hover:underline">
-                    <Link href={`/purchasing/po/${po.id}`}>
-                      {po.number}
-                    </Link>
+                    <Link href={`/purchasing/po/${po.id}`}>{po.number}</Link>
                   </TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink">{po.supplierName}</TableCell>
                   <TableCell className="px-4 py-3 text-brand-muted">{po.locationName}</TableCell>

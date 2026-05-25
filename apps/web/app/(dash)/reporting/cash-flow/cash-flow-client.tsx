@@ -159,21 +159,13 @@ export function CashFlowClient(props: Props) {
           <div className="rounded-xl border border-brand-cream-3 bg-card p-3">
             <p className="text-xs uppercase tracking-wide text-brand-ink-3">{t('totalInflow')}</p>
             <p className="mt-1 text-base font-semibold text-emerald-700">
-              {fmt(
-                props.data.sections
-                  .reduce((acc, s) => acc + BigInt(s.inflow), 0n)
-                  .toString(),
-              )}
+              {fmt(props.data.sections.reduce((acc, s) => acc + BigInt(s.inflow), 0n).toString())}
             </p>
           </div>
           <div className="rounded-xl border border-brand-cream-3 bg-card p-3">
             <p className="text-xs uppercase tracking-wide text-brand-ink-3">{t('totalOutflow')}</p>
             <p className="mt-1 text-base font-semibold text-rose-600">
-              {fmt(
-                props.data.sections
-                  .reduce((acc, s) => acc + BigInt(s.outflow), 0n)
-                  .toString(),
-              )}
+              {fmt(props.data.sections.reduce((acc, s) => acc + BigInt(s.outflow), 0n).toString())}
             </p>
           </div>
           <div className="rounded-xl border border-brand-cream-3 bg-card p-3">
@@ -186,7 +178,10 @@ export function CashFlowClient(props: Props) {
       ) : null}
 
       {props.data?.sections.map((section) => (
-        <div key={section.kind} className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card">
+        <div
+          key={section.kind}
+          className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card"
+        >
           <header className="flex items-center justify-between border-b border-brand-cream-3 bg-brand-cream-2/40 px-3 py-2">
             <h2 className="text-sm font-semibold text-brand-ink">{sectionLabel(section.kind)}</h2>
             <div className="flex gap-4 text-xs text-brand-ink-2">

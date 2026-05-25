@@ -1,9 +1,9 @@
 import { db } from '@erp/db';
 import { idempotencyRecords } from '@erp/db/schema/pos';
-import { and, eq } from 'drizzle-orm';
 import { AppError } from '@erp/shared/errors';
-import { err, ok, type Result } from '@erp/shared/result';
 import { generateId } from '@erp/shared/id';
+import { type Result, err, ok } from '@erp/shared/result';
+import { and, eq } from 'drizzle-orm';
 
 export interface IdempotencyClaim {
   id: string;

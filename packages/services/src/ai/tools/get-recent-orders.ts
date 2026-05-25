@@ -18,7 +18,12 @@ import { z } from 'zod';
 export const GetRecentOrdersInputSchema = z.object({
   location_id: z.string().min(1).max(64).optional(),
   limit: z.number().int().min(1).max(25).optional(),
-  since_minutes: z.number().int().min(1).max(60 * 24 * 7).optional(),
+  since_minutes: z
+    .number()
+    .int()
+    .min(1)
+    .max(60 * 24 * 7)
+    .optional(),
 });
 
 export type GetRecentOrdersInput = z.infer<typeof GetRecentOrdersInputSchema>;
@@ -84,9 +89,7 @@ export async function getRecentOrdersTool(
 
   const orderIds = rows.map((r) => r.id);
   const paymentRows = orderIds.length
-    ? await db
-        .select({ orderId: payments.salesOrderId, method: payments.method })
-        .from(payments)
+    ? await db.select({ orderId: payments.salesOrderId, method: payments.method }).from(payments)
     : [];
   const paymentByOrder = new Map<string, Set<string>>();
   for (const p of paymentRows) {

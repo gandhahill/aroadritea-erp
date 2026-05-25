@@ -3,8 +3,8 @@
  * Creates a better-auth client that hooks into the API route.
  */
 
-import { createAuthClient } from 'better-auth/react';
 import { twoFactorClient } from 'better-auth/client/plugins';
+import { createAuthClient } from 'better-auth/react';
 
 const client = createAuthClient({
   baseURL:

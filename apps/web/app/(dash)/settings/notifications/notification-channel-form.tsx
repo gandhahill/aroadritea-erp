@@ -1,9 +1,9 @@
 'use client';
 
+import { Button, Input, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { createNotificationChannelAction } from './actions';
-import { Button, Select, Input } from "@erp/ui";
 
 export function NotificationChannelForm() {
   const t = useTranslations('settings.notifications.form');
@@ -65,11 +65,7 @@ export function NotificationChannelForm() {
         {t('fields.isActive')}
       </label>
 
-      <Button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg " variant="primary" size="lg"
-      >
+      <Button type="submit" disabled={pending} className="rounded-lg " variant="primary" size="lg">
         {pending ? t('submitting') : t('submit')}
       </Button>
     </form>

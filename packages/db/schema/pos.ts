@@ -68,7 +68,7 @@ export const shiftExpenses = pgTable(
     shiftId: text('shift_id').notNull(),
     amount: bigint('amount', { mode: 'bigint' }).notNull(),
     description: text('description').notNull(),
-    
+
     status: text('status').notNull().default('pending_accounting'), // 'pending_accounting' | 'journaled' | 'rejected'
     accountId: text('account_id'), // COA account chosen by accountant
     journalEntryId: text('journal_entry_id'), // Optional reference to a journal entry
@@ -177,16 +177,17 @@ export const manualSalesClosings = pgTable(
     journalEntryId: text('journal_entry_id'),
     shiftId: text('shift_id'),
 
-    lineItemsJson: jsonb('line_items_json').$type<
-      Array<{
-        productId: string;
-        variantId?: string | null;
-        name: string;
-        qty: number;
-        price: string;
-        total: string;
-      }>
-    >(),
+    lineItemsJson:
+      jsonb('line_items_json').$type<
+        Array<{
+          productId: string;
+          variantId?: string | null;
+          name: string;
+          qty: number;
+          price: string;
+          total: string;
+        }>
+      >(),
 
     ...versionCol,
     ...auditCols,

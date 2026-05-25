@@ -14,10 +14,10 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import type { ProductResult } from './create-product';
 import { type UpdateProductInput, UpdateProductInputSchema } from './schemas';
-import { auditRecord } from "../audit";
 
 export async function updateProduct(
   input: UpdateProductInput,
@@ -129,8 +129,8 @@ export async function updateProduct(
           and(
             eq(products.tenantId, ctx.tenantId),
             eq(products.id, data.productId),
-            eq(products.version, data.version)
-          )
+            eq(products.version, data.version),
+          ),
         )
         .returning();
 
@@ -148,19 +148,19 @@ export async function updateProduct(
       );
 
       await auditRecord({
-            action: auditAction,
-            entityType: 'product',
-            entityId: data.productId,
-            before: {
-                    sku: existing.sku,
-                    name: existing.name,
-                    version: existing.version,
-                    isActive: existing.isActive,
-                  },
-            after: { ...safeUpdates, version: existing.version + 1 },
-            metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-            ctx,
-          });
+        action: auditAction,
+        entityType: 'product',
+        entityId: data.productId,
+        before: {
+          sku: existing.sku,
+          name: existing.name,
+          version: existing.version,
+          isActive: existing.isActive,
+        },
+        after: { ...safeUpdates, version: existing.version + 1 },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
 
       const result: ProductResult = {
         id: updated.id,

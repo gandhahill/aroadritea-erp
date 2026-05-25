@@ -24,15 +24,15 @@ import { requirePermission } from '@erp/services/iam';
 import { type MemberLookupResult, findMemberByPhone } from '@erp/services/member';
 import { closeShift, createSale, openShift, refundSale, voidSale } from '@erp/services/pos';
 import { getOpenShift } from '@erp/services/pos';
+import { recordShiftExpense } from '@erp/services/pos';
 import type {
   CloseShiftInput,
   CreateSaleInput,
   OpenShiftInput,
+  RecordShiftExpenseInput,
   RefundSaleInput,
   VoidSaleInput,
-  RecordShiftExpenseInput,
 } from '@erp/services/pos/schemas';
-import { recordShiftExpense } from '@erp/services/pos';
 import { getLocale } from 'next-intl/server';
 
 // ─── Types ────────────────────────────────────────────────────────────────────

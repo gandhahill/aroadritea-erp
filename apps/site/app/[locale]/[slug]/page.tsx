@@ -66,15 +66,15 @@ export default async function CmsPage({ params }: Props) {
   const page = result.value;
   const title = localize(page.title, locale as SiteLocale);
   const content = sanitizeCmsHtml(localize(page.content, locale as SiteLocale));
+  const safeContentProps = {
+    dangerouslySetInnerHTML: { __html: content },
+  };
 
   return (
     <div className="px-4 py-14 sm:px-6">
       <article className="mx-auto max-w-4xl">
         <h1 className="text-4xl font-black text-brand-ink md:text-5xl">{title}</h1>
-        <div
-          className="prose prose-brand mt-8 max-w-none text-brand-ink-2"
-          dangerouslySetInnerHTML={{ __html: content }}
-        />
+        <div className="prose prose-brand mt-8 max-w-none text-brand-ink-2" {...safeContentProps} />
       </article>
     </div>
   );

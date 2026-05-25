@@ -1,9 +1,9 @@
 'use client';
 
+import { FilterBar, FilterField } from '@/components/filter-bar';
+import { Input, Select, TableBody, TableCell, TableHead } from '@erp/ui';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { TableCell, TableBody, TableHead, Select, Input } from "@erp/ui";
-import { FilterBar, FilterField } from '@/components/filter-bar';
 
 const STATUS_COLORS: Record<string, string> = {
   draft: 'bg-brand-cream-2 text-brand-ink-3',
@@ -91,7 +91,7 @@ export function PostsTableClient({ posts }: Props) {
             <option value="archived">Archived</option>
           </Select>
         </FilterField>
-        
+
         <div className="ml-auto flex items-center text-xs text-brand-ink-3">
           {filtered.length} dari {posts.length}
         </div>
