@@ -45,10 +45,10 @@ export default async function PosOrdersPage({ searchParams }: Props) {
       <div className="space-y-4">
         <PageHeader title={<>{t('title')}</>} />
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-8 text-center text-rose-700">
-          <p className="font-medium">Tidak dapat memuat pesanan.</p>
+          <p className="font-medium">{t('loadError')}</p>
           <p className="text-sm mt-1">
             {data.error === 'Unauthenticated'
-              ? 'Anda belum memiliki lokasi POS yang diatur pada sesi ini.'
+              ? t('errors.noLocation')
               : data.error}
           </p>
         </div>

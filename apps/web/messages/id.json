@@ -1332,8 +1332,8 @@
     "cashFlow": "Arus Kas",
     "agingReceivables": "Aging Piutang",
     "agingPayables": "Aging Utang",
-    "cogs": "HPP & Resep",
-    "waste": "Susut / Spoilage",
+    "cogs": "Pengaturan",
+    "waste": "Pembuangan",
     "businessIntelligence": "Business Intelligence",
     "posCashier": "Kasir POS",
     "manualSales": "Input Penjualan Manual",
@@ -1429,7 +1429,11 @@
       "channelPos": "POS",
       "channelOnline": "Online",
       "detail": "Detail",
-      "empty": "Belum ada pesanan pada tanggal ini."
+      "empty": "Belum ada pesanan pada tanggal ini.",
+      "loadError": "Tidak dapat memuat pesanan.",
+      "errors": {
+        "noLocation": "Anda belum memiliki lokasi POS yang diatur pada sesi ini."
+      }
     },
     "manualSales": {
       "eyebrow": "POS Lama",
@@ -1640,6 +1644,9 @@
       "ingredientDeductionFailed": "Gagal mengurangi stok bahan baku.",
       "duplicateOrder": "Pesanan ganda terdeteksi.",
       "nonCashOverpay": "Pembayaran non-tunai tidak boleh melebihi total."
+    },
+    "errors": {
+      "noLocation": "Anda belum memiliki lokasi POS yang diatur pada sesi ini."
     }
   },
   "app": {
@@ -2294,6 +2301,15 @@
     },
     "employee": {
       "notFound": "Karyawan tidak ditemukan."
+    },
+    "payslip": {
+      "title": "Slip Gaji Saya",
+      "description": "Daftar slip gaji yang sudah pernah dirilis untuk Anda. Klik Unduh untuk membuka tampilan cetak (Save as PDF).",
+      "empty": "Belum ada slip gaji yang dirilis untuk akun Anda."
+    },
+    "sop": {
+      "title": "SOP / Standar Operasional",
+      "description": "Dokumen prosedur kerja resmi yang wajib diketahui setiap karyawan."
     }
   },
   "workflow": {
@@ -3522,6 +3538,12 @@
       "statusInvestigating": "Sedang Diusut",
       "statusResolved": "Selesai",
       "viewEvidence": "Lihat Bukti"
+    }
+  },
+  "ai": {
+    "audit": {
+      "title": "AI Assistant — Audit Log",
+      "description": "Setiap message turn, tool call, dan draft mutasi yang dilakukan AI assistant lintas pengguna."
     }
   }
 }

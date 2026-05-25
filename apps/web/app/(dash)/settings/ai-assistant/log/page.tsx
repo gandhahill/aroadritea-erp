@@ -20,8 +20,13 @@ import { can } from '@erp/services/iam';
 import { Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 
-export const metadata: Metadata = { title: 'AI Assistant Log' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('ai.audit');
+  return { title: t('title') };
+}
+
 export const dynamic = 'force-dynamic';
 
 const ENTITY_FILTERS = [
@@ -57,7 +62,10 @@ export default async function AiAssistantLogPage({
   const sessionUser = session.user as Record<string, unknown>;
   const userId = String(sessionUser.id ?? '');
   const tenantId = String(sessionUser.tenantId ?? 'default');
-  const isAdmin = await can(userId, 'ai.assistant.admin');
+  const [isAdmin, t] = await Promise.all([
+    can(userId, 'ai.assistant.admin'),
+    getTranslations('ai.audit')
+  ]);
   if (!isAdmin) notFound();
 
   const params = await searchParams;
@@ -118,8 +126,8 @@ export default async function AiAssistantLogPage({
   return (
     <main className="space-y-6 p-6">
       <PageHeader
-        title="AI Assistant — Audit Log"
-        description="Setiap message turn, tool call, dan draft mutasi yang dilakukan AI assistant lintas pengguna."
+        title={t('title')}
+        description={t('description')}
       />
 
       {/* Summary cards */}

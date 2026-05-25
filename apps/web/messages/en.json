@@ -1385,7 +1385,9 @@
     "correspondence": "Correspondence",
     "bankReconciliation": "Bank Recon",
     "bankAccounts": "Bank Accounts",
-    "variance": "Variance"
+    "variance": "Variance",
+    "cogs": "Settings",
+    "waste": "Waste"
   },
   "pos": {
     "title": "Point of Sale",
@@ -1425,7 +1427,11 @@
       "channelPos": "POS",
       "channelOnline": "Online",
       "detail": "Detail",
-      "empty": "No orders found for this date."
+      "empty": "No orders found for this date.",
+      "loadError": "Could not load orders.",
+      "errors": {
+        "noLocation": "You don't have a POS location set for this session."
+      }
     },
     "manualSales": {
       "eyebrow": "Legacy POS",
@@ -1636,6 +1642,9 @@
       "ingredientDeductionFailed": "Failed to deduct ingredient stock.",
       "duplicateOrder": "Duplicate order detected.",
       "nonCashOverpay": "Non-cash payment cannot exceed the total amount."
+    },
+    "errors": {
+      "noLocation": "You don't have a POS location set for this session."
     }
   },
   "app": {
@@ -2211,6 +2220,15 @@
     },
     "employee": {
       "notFound": "Employee not found."
+    },
+    "payslip": {
+      "title": "My Payslips",
+      "description": "List of payslips released to you. Click Download to open print view (Save as PDF).",
+      "empty": "No payslips have been released for your account yet."
+    },
+    "sop": {
+      "title": "SOP / Standard Operating Procedures",
+      "description": "Official work procedures that every employee must know."
     }
   },
   "display": {
@@ -3518,6 +3536,12 @@
       "statusInvestigating": "Investigating",
       "statusResolved": "Resolved",
       "viewEvidence": "View Evidence"
+    }
+  },
+  "ai": {
+    "audit": {
+      "title": "AI Assistant — Audit Log",
+      "description": "Every message turn, tool call, and mutation draft performed by the AI assistant across users."
     }
   }
 }

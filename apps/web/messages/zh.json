@@ -1370,8 +1370,8 @@
     "cashFlow": "现金流",
     "agingReceivables": "应收账款账龄",
     "agingPayables": "应付账款账龄",
-    "cogs": "COGS 与配方",
-    "waste": "损耗 / 报废",
+    "cogs": "设置",
+    "waste": "废料",
     "businessIntelligence": "商业智能",
     "posCashier": "POS 收银",
     "manualSales": "手动销售录入",
@@ -1468,7 +1468,11 @@
       "channelPos": "POS",
       "channelOnline": "在线",
       "detail": "详情",
-      "empty": "该日期没有找到订单。"
+      "empty": "该日期没有找到订单。",
+      "loadError": "无法加载订单。",
+      "errors": {
+        "noLocation": "您尚未在此会话中设置POS位置。"
+      }
     },
     "manualSales": {
       "eyebrow": "旧POS",
@@ -1679,6 +1683,9 @@
       "ingredientDeductionFailed": "扣除原料库存失败。",
       "duplicateOrder": "检测到重复订单。",
       "nonCashOverpay": "非现金支付不能超过总金额。"
+    },
+    "errors": {
+      "noLocation": "您尚未在此会话中设置POS位置。"
     }
   },
   "app": {
@@ -2267,6 +2274,15 @@
     },
     "employee": {
       "notFound": "未找到员工。"
+    },
+    "payslip": {
+      "title": "我的工资单",
+      "description": "已向您发布的工资单列表。单击下载以打开打印视图（另存为 PDF）。",
+      "empty": "您的帐户尚未发布任何工资单。"
+    },
+    "sop": {
+      "title": "SOP / 标准操作程序",
+      "description": "每位员工必须了解的正式工作程序。"
     }
   },
   "display": {
@@ -3599,6 +3615,12 @@
       "statusInvestigating": "调查中",
       "statusResolved": "已解决",
       "viewEvidence": "查看证据"
+    }
+  },
+  "ai": {
+    "audit": {
+      "title": "AI 助手 — 审计日志",
+      "description": "AI 助手跨用户执行的每个消息轮次、工具调用和变动草稿。"
     }
   }
 }

@@ -11,8 +11,12 @@ import { listMyPayslips } from '@erp/services/payroll';
 import type { AuditContext } from '@erp/shared/types';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 
-export const metadata: Metadata = { title: 'Slip Gaji Saya' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('hr.payslip');
+  return { title: t('title') };
+}
 
 const IDR = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -30,19 +34,23 @@ export default async function MyPayslipsPage() {
     locationId: String(user.locationId ?? ''),
   };
 
-  const result = await listMyPayslips(ctx);
+  const [result, t] = await Promise.all([
+    listMyPayslips(ctx),
+    getTranslations('hr.payslip')
+  ]);
+  
   const items = result.ok ? result.value : [];
 
   return (
     <main className="space-y-6 p-6">
       <PageHeader
-        title="Slip Gaji Saya"
-        description="Daftar slip gaji yang sudah pernah dirilis untuk Anda. Klik Unduh untuk membuka tampilan cetak (Save as PDF)."
+        title={t('title')}
+        description={t('description')}
       />
 
       {items.length === 0 ? (
         <div className="rounded-xl border border-dashed border-brand-cream-3 bg-card p-10 text-center text-sm text-brand-ink-3">
-          Belum ada slip gaji yang dirilis untuk akun Anda.
+          {t('empty')}
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card">
