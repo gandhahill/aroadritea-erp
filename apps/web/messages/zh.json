@@ -1349,6 +1349,7 @@
     "leave": "请假",
     "payroll": "工资单",
     "myPayslips": "我的工资单",
+    "myAttendance": "我的考勤",
     "disciplinary": "纪律处分",
     "sop": "标准操作流程",
     "aiAssistant": "AI 助手",
@@ -1883,6 +1884,28 @@
       "checkInFailed": "签到失败。",
       "notFound": "未找到考勤数据。",
       "alreadyCheckedOut": "您已经签退了。"
+    },
+    "myAttendance": {
+      "title": "我的考勤记录",
+      "description": "您本人的签到 / 签退历史。可按日期范围筛选。",
+      "from": "起始",
+      "to": "结束",
+      "filter": "查询",
+      "totalDays": "总天数",
+      "lateDays": "迟到天数",
+      "totalWorked": "工作总时长",
+      "onTime": "准时",
+      "lateBy": "迟到 {minutes} 分",
+      "forgiven": "免责",
+      "empty": "该日期范围内无考勤记录。",
+      "table": {
+        "date": "日期",
+        "shift": "班次",
+        "checkIn": "签到",
+        "checkOut": "签退",
+        "worked": "时长",
+        "status": "状态"
+      }
     },
     "leave": {
       "balances": "假期余额",

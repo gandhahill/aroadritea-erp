@@ -1309,6 +1309,7 @@
     "leave": "Leave",
     "payroll": "Payroll",
     "myPayslips": "My Payslips",
+    "myAttendance": "My Attendance",
     "disciplinary": "Disciplinary Actions",
     "sop": "SOP & Procedures",
     "aiAssistant": "AI Assistant",
@@ -1827,6 +1828,28 @@
       "checkInFailed": "Failed to check in.",
       "notFound": "Attendance data not found.",
       "alreadyCheckedOut": "You have already checked out."
+    },
+    "myAttendance": {
+      "title": "My Attendance History",
+      "description": "Your own check-in / check-out records. Filter by date range.",
+      "from": "From",
+      "to": "To",
+      "filter": "Apply",
+      "totalDays": "Total days",
+      "lateDays": "Late days",
+      "totalWorked": "Total worked",
+      "onTime": "On time",
+      "lateBy": "Late by {minutes}m",
+      "forgiven": "Forgiven",
+      "empty": "No attendance records in this date range.",
+      "table": {
+        "date": "Date",
+        "shift": "Shift",
+        "checkIn": "Check in",
+        "checkOut": "Check out",
+        "worked": "Worked",
+        "status": "Status"
+      }
     },
     "leave": {
       "title": "Leave",

@@ -1314,6 +1314,7 @@
     "leave": "Cuti",
     "payroll": "Penggajian",
     "myPayslips": "Slip Gaji Saya",
+    "myAttendance": "Presensi Saya",
     "disciplinary": "Surat Peringatan",
     "sop": "SOP & Prosedur",
     "aiAssistant": "Asisten AI",
@@ -1910,6 +1911,28 @@
       "checkInFailed": "Gagal melakukan check-in.",
       "notFound": "Data presensi tidak ditemukan.",
       "alreadyCheckedOut": "Anda sudah melakukan check-out."
+    },
+    "myAttendance": {
+      "title": "Riwayat Presensi Saya",
+      "description": "Riwayat check-in & check-out Anda sendiri. Filter sesuai tanggal.",
+      "from": "Dari",
+      "to": "Sampai",
+      "filter": "Tampilkan",
+      "totalDays": "Total Hari",
+      "lateDays": "Hari Terlambat",
+      "totalWorked": "Total Jam Kerja",
+      "onTime": "Tepat Waktu",
+      "lateBy": "Terlambat {minutes}m",
+      "forgiven": "Dispensasi",
+      "empty": "Belum ada catatan presensi pada rentang tanggal ini.",
+      "table": {
+        "date": "Tanggal",
+        "shift": "Shift",
+        "checkIn": "Masuk",
+        "checkOut": "Pulang",
+        "worked": "Durasi",
+        "status": "Status"
+      }
     },
     "leave": {
       "title": "Cuti",

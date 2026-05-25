@@ -324,6 +324,7 @@ export function Sidebar() {
         { label: t('schedule'), href: '/hr/schedule', icon: <></> },
         { label: t('checkIn'), href: '/hr/checkin', icon: <></> },
         { label: t('attendance'), href: '/hr/attendance', icon: <></> },
+        { label: t('myAttendance'), href: '/hr/my-attendance', icon: <></> },
         { label: t('leave'), href: '/hr/leave', icon: <></> },
         { label: t('payroll'), href: '/hr/payroll', icon: <></> },
         { label: t('myPayslips'), href: '/hr/my-payslips', icon: <></> },

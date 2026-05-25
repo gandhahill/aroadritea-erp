@@ -9,7 +9,7 @@
  */
 
 import { db } from '@erp/db';
-import { locations } from '@erp/db/schema/auth';
+import { locations, users } from '@erp/db/schema/auth';
 import { customFieldDefinitions, customFieldValues } from '@erp/db/schema/customfield';
 import { attendance, employees, shiftDefinitions, shiftAssignments } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
@@ -715,6 +715,103 @@ export async function forgiveLate(
     (e) => {
       if (e instanceof AppError) return e;
       return AppError.internal('hr.attendance.forgiveLate.failed', e);
+    },
+  );
+}
+
+// ─── listMyAttendance — self-service (T-0181) ──────────────────────────────
+//
+// Resolves the current user → their `employees` row by encrypted email
+// match and returns ONLY their own attendance records. No
+// `hr.attendance.read` required — every authenticated user can see
+// their own check-ins (mirrors `listMyPayslips`).
+
+export interface MyAttendanceItem {
+  id: string;
+  shiftCode: string | null;
+  checkInAt: Date;
+  checkOutAt: Date | null;
+  checkInMethod: string;
+  isLate: boolean;
+  lateMinutes: number;
+  workedMinutes: number | null;
+  lateForgiven: boolean;
+}
+
+export async function listMyAttendance(
+  input: { dateFrom?: string; dateTo?: string; limit?: number },
+  ctx: AuditContext,
+): Promise<Result<MyAttendanceItem[]>> {
+  return tryCatch(
+    async () => {
+      const [requester] = await db
+        .select({ email: users.email })
+        .from(users)
+        .where(eq(users.id, ctx.userId))
+        .limit(1);
+      if (!requester?.email) return [];
+
+      // Same encrypted-email lookup pattern as listMyPayslips so the
+      // match works against the at-rest encrypted employees.email field.
+      const tenantEmployees = await db
+        .select()
+        .from(employees)
+        .where(eq(employees.tenantId, ctx.tenantId));
+      const { encryptPiiForLookup } = await import('../security/pii');
+      const encryptedRequester = encryptPiiForLookup(
+        requester.email.toLowerCase(),
+        'employees.email',
+      );
+      const empRows = tenantEmployees.filter(
+        (e) =>
+          e.email &&
+          (e.email === encryptedRequester ||
+            e.email.toLowerCase() === requester.email.toLowerCase()),
+      );
+      if (empRows.length === 0) return [];
+      const empIds = empRows.map((e) => e.id);
+
+      const conditions = [
+        eq(attendance.tenantId, ctx.tenantId),
+        inArray(attendance.employeeId, empIds),
+        isNull(attendance.deletedAt),
+      ];
+      if (input.dateFrom) conditions.push(sql`${attendance.checkInAt} >= ${input.dateFrom}`);
+      if (input.dateTo) conditions.push(sql`${attendance.checkInAt} <= ${input.dateTo}`);
+      const limit = Math.min(input.limit ?? 100, 365);
+
+      const rows = await db
+        .select({
+          id: attendance.id,
+          checkInAt: attendance.checkInAt,
+          checkOutAt: attendance.checkOutAt,
+          checkInMethod: attendance.checkInMethod,
+          isLate: attendance.isLate,
+          lateMinutes: attendance.lateMinutes,
+          workedMinutes: attendance.workedMinutes,
+          shiftCode: attendance.shiftDefinitionCode,
+          lateForgiven: attendance.lateForgiven,
+        })
+        .from(attendance)
+        .where(and(...conditions))
+        .orderBy(desc(attendance.checkInAt))
+        .limit(limit);
+
+      return rows.map((r) => ({
+        id: r.id,
+        checkInAt: r.checkInAt!,
+        checkOutAt: r.checkOutAt,
+        checkInMethod: r.checkInMethod,
+        isLate: r.isLate,
+        lateMinutes: Number(r.lateMinutes),
+        workedMinutes: r.workedMinutes ? Number(r.workedMinutes) : null,
+        shiftCode: r.shiftCode,
+        lateForgiven: r.lateForgiven,
+      }));
+    },
+    (e) => {
+      if (e instanceof AppError) return e;
+      return AppError.internal('hr.attendance.myListFailed', e);
     },
   );
 }
