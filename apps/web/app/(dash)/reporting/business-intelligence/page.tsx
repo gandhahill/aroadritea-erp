@@ -2,7 +2,7 @@ import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
 import { and, db, eq, gte, lte, sql } from '@erp/db';
 import { salesOrders } from '@erp/db/schema/pos';
-import { getDailySummary } from '@erp/services/reporting';
+import { getDailySummary, previousPeriod } from '@erp/services/reporting';
 import type { AuditContext } from '@erp/shared/types';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -79,6 +79,18 @@ export default async function BusinessIntelligencePage() {
     }),
   );
 
+  // Previous same-length window for period-over-period comparison.
+  const prevMonth = previousPeriod({ from: monthStart, to: today });
+  const prevMonthlyResults = await Promise.all(
+    locations.map(async (location) => {
+      const result = await getDailySummary(
+        { locationId: location.id, startDate: prevMonth.from, endDate: prevMonth.to },
+        { ...ctxBase, locationId: location.id },
+      );
+      return { location, result };
+    }),
+  );
+
   const weeklyResults = await Promise.all(
     locations.map(async (location) => {
       const result = await getDailySummary(
@@ -90,6 +102,7 @@ export default async function BusinessIntelligencePage() {
   );
 
   const okMonthly = monthlyResults.filter((entry) => entry.result.ok);
+  const okPrevMonthly = prevMonthlyResults.filter((entry) => entry.result.ok);
   const okWeekly = weeklyResults.filter((entry) => entry.result.ok);
 
   const totals = okMonthly.reduce(
@@ -122,6 +135,57 @@ export default async function BusinessIntelligencePage() {
       cashVariance: 0n,
     },
   );
+
+  // Same shape, but for the prior same-length window. Used for badges only.
+  const prevTotals = okPrevMonthly.reduce(
+    (acc, entry) => {
+      if (!entry.result.ok) return acc;
+      const data = entry.result.value;
+      acc.gross += toBigInt(data.grossSales);
+      acc.netRevenue += toBigInt(data.netRevenue);
+      acc.pb1 += toBigInt(data.taxTotal);
+      acc.deliveryCommission += toBigInt(data.commissionDelivery);
+      acc.refunds += toBigInt(data.refundTotal);
+      acc.refundCount += data.refundCount;
+      acc.orderCount += data.shiftSummary.reduce((sum, shift) => sum + shift.txCount, 0);
+      acc.cashVariance += data.shiftSummary.reduce(
+        (sum, shift) => sum + toBigInt(shift.variance),
+        0n,
+      );
+      return acc;
+    },
+    {
+      gross: 0n,
+      netRevenue: 0n,
+      pb1: 0n,
+      deliveryCommission: 0n,
+      refunds: 0n,
+      refundCount: 0,
+      orderCount: 0,
+      cashVariance: 0n,
+    },
+  );
+
+  /** Returns delta + percent for two bigint values. Percent is null
+   *  when previous = 0 (no baseline). */
+  function bigDelta(
+    cur: bigint,
+    prev: bigint,
+  ): { delta: bigint; percent: number | null } {
+    const delta = cur - prev;
+    const percent =
+      prev === 0n ? null : Number((delta * 10000n) / (prev < 0n ? -prev : prev)) / 100;
+    return { delta, percent };
+  }
+
+  function numDelta(
+    cur: number,
+    prev: number,
+  ): { delta: number; percent: number | null } {
+    const delta = cur - prev;
+    const percent = prev === 0 ? null : Math.round(((cur - prev) / Math.abs(prev)) * 1000) / 10;
+    return { delta, percent };
+  }
 
   const paymentMap = new Map<string, { count: number; total: bigint }>();
   for (const entry of okMonthly) {
@@ -297,17 +361,59 @@ export default async function BusinessIntelligencePage() {
           />
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <Kpi title={t('gross')} value={formatIdr(totals.gross, locale)} />
-        <Kpi title={t('netRevenue')} value={formatIdr(totals.netRevenue, locale)} />
-        <Kpi title={t('orders')} value={String(totals.orderCount)} />
+        <Kpi
+          title={t('gross')}
+          value={formatIdr(totals.gross, locale)}
+          delta={bigDelta(totals.gross, prevTotals.gross)}
+          deltaLabel={t('vsPreviousShort')}
+          baselineLabel={t('noBaseline')}
+        />
+        <Kpi
+          title={t('netRevenue')}
+          value={formatIdr(totals.netRevenue, locale)}
+          delta={bigDelta(totals.netRevenue, prevTotals.netRevenue)}
+          deltaLabel={t('vsPreviousShort')}
+          baselineLabel={t('noBaseline')}
+        />
+        <Kpi
+          title={t('orders')}
+          value={String(totals.orderCount)}
+          delta={numDelta(totals.orderCount, prevTotals.orderCount)}
+          deltaLabel={t('vsPreviousShort')}
+          baselineLabel={t('noBaseline')}
+        />
         <Kpi title={t('weeklyGross')} value={formatIdr(weeklyGross, locale)} />
-        <Kpi title={t('pb1')} value={formatIdr(totals.pb1, locale)} />
-        <Kpi title={t('deliveryCommission')} value={formatIdr(totals.deliveryCommission, locale)} />
+        <Kpi
+          title={t('pb1')}
+          value={formatIdr(totals.pb1, locale)}
+          delta={bigDelta(totals.pb1, prevTotals.pb1)}
+          deltaLabel={t('vsPreviousShort')}
+          baselineLabel={t('noBaseline')}
+        />
+        <Kpi
+          title={t('deliveryCommission')}
+          value={formatIdr(totals.deliveryCommission, locale)}
+          delta={bigDelta(totals.deliveryCommission, prevTotals.deliveryCommission)}
+          deltaLabel={t('vsPreviousShort')}
+          baselineLabel={t('noBaseline')}
+          invertDelta
+        />
         <Kpi
           title={t('refunds')}
           value={`${formatIdr(totals.refunds, locale)} / ${totals.refundCount}`}
+          delta={bigDelta(totals.refunds, prevTotals.refunds)}
+          deltaLabel={t('vsPreviousShort')}
+          baselineLabel={t('noBaseline')}
+          invertDelta
         />
-        <Kpi title={t('cashVariance')} value={formatIdr(totals.cashVariance, locale)} />
+        <Kpi
+          title={t('cashVariance')}
+          value={formatIdr(totals.cashVariance, locale)}
+          delta={bigDelta(totals.cashVariance, prevTotals.cashVariance)}
+          deltaLabel={t('vsPreviousShort')}
+          baselineLabel={t('noBaseline')}
+          invertDelta
+        />
       </section>
 
       <section className="grid gap-4 xl:grid-cols-3">
@@ -461,10 +567,20 @@ function Kpi({
   title,
   value,
   compact = false,
+  delta,
+  deltaLabel,
+  baselineLabel,
+  invertDelta,
 }: {
   title: string;
   value: string;
   compact?: boolean;
+  delta?: { percent: number | null } | null;
+  /** Translated "vs previous" string. */
+  deltaLabel?: string;
+  baselineLabel?: string;
+  /** Set true for metrics where decrease is good (refunds, commission). */
+  invertDelta?: boolean;
 }) {
   return (
     <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
@@ -480,6 +596,33 @@ function Kpi({
       >
         {value}
       </div>
+      {delta !== undefined &&
+        (() => {
+          if (!delta || delta.percent === null) {
+            return baselineLabel ? (
+              <div className="mt-1 text-[11px] italic text-brand-ink-3">{baselineLabel}</div>
+            ) : null;
+          }
+          const isUp = delta.percent > 0;
+          const isFlat = delta.percent === 0;
+          const good = invertDelta ? !isUp : isUp;
+          const tone = isFlat
+            ? 'text-brand-ink-3 bg-brand-cream-2'
+            : good
+              ? 'text-brand-jade bg-emerald-50'
+              : 'text-rose-600 bg-rose-50';
+          const arrow = isFlat ? '→' : isUp ? '↑' : '↓';
+          return (
+            <div
+              className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${tone}`}
+              title={deltaLabel}
+            >
+              <span>{arrow}</span>
+              <span>{`${delta.percent > 0 ? '+' : ''}${delta.percent.toFixed(1)}%`}</span>
+              {deltaLabel && <span className="font-normal text-brand-ink-3">{deltaLabel}</span>}
+            </div>
+          );
+        })()}
     </div>
   );
 }

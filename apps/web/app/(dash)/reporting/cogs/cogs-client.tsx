@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import type { CogsResult } from '@erp/services/reporting';
+import { exportWorkbook } from '@/lib/export-workbook';
 
 const IDR = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -49,36 +50,57 @@ export function CogsClient(props: Props) {
     startTransition(() => router.push(`?${next.toString()}`));
   }
 
-  function exportCsv() {
+  async function exportCsv() {
+    // Real XLSX (exceljs). Two sheets: product summary + BOM line detail.
     if (!props.data) return;
-    const rows: string[][] = [];
-    rows.push([
+    const summaryRows: (string | number)[][] = [];
+    summaryRows.push([
       t('tableHeader.product'),
       t('tableHeader.sku'),
       t('tableHeader.sellPrice'),
       t('tableHeader.unitCost'),
       t('tableHeader.grossMargin'),
       t('tableHeader.marginPercent'),
+      t('tableHeader.bomVersion'),
     ]);
     for (const p of props.data.products) {
-      rows.push([
+      summaryRows.push([
         localizedName(p.productName as Record<string, unknown>),
         p.productSku,
-        p.sellPrice,
-        p.unitCost,
-        p.grossMargin,
-        p.marginPercent != null ? p.marginPercent.toFixed(2) : '—',
+        Number(p.sellPrice),
+        Number(p.unitCost),
+        Number(p.grossMargin),
+        p.marginPercent != null ? Number(p.marginPercent.toFixed(2)) : '',
+        p.bomVersion ?? '',
       ]);
     }
-    const csv = rows
-      .map((r) => r.map((c) => `"${(c ?? '').replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `cogs-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+
+    const linesRows: (string | number)[][] = [];
+    linesRows.push([
+      t('tableHeader.product'),
+      t('linesHeader.ingredient'),
+      t('linesHeader.qty'),
+      t('linesHeader.uom'),
+      t('linesHeader.unitCost'),
+      t('linesHeader.lineCost'),
+    ]);
+    for (const p of props.data.products) {
+      for (const l of p.lines) {
+        linesRows.push([
+          localizedName(p.productName as Record<string, unknown>),
+          localizedName(l.ingredientName as Record<string, unknown>),
+          Number(l.qty),
+          l.uom,
+          Number(l.unitCost),
+          Number(l.lineCost),
+        ]);
+      }
+    }
+
+    await exportWorkbook(`cogs-${new Date().toISOString().slice(0, 10)}.xlsx`, [
+      { name: t('exportSummarySheet'), rows: summaryRows },
+      { name: t('exportLinesSheet'), rows: linesRows },
+    ]);
   }
 
   function toggle(id: string) {

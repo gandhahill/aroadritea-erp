@@ -9,7 +9,7 @@ import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/locati
 import type { Metadata } from 'next';
 import { getLocale } from 'next-intl/server';
 import { redirect } from 'next/navigation';
-import { fetchDailySummary } from './actions';
+import { fetchDailySummary, fetchDailySummaryPrevious } from './actions';
 import { DailySummaryClient } from './daily-summary-client';
 
 import { getTranslations } from 'next-intl/server';
@@ -50,18 +50,28 @@ export default async function DailySummaryPage({
   );
 
   const t = await getTranslations('reporting.dailySummary');
-  const data = locationId
-    ? await fetchDailySummary({
-        locationId,
-        startDate,
-        endDate,
-        cashierId: params.cashierId,
-      })
-    : { error: t('noActiveOutlets') };
+  const [data, prev] = locationId
+    ? await Promise.all([
+        fetchDailySummary({
+          locationId,
+          startDate,
+          endDate,
+          cashierId: params.cashierId,
+        }),
+        fetchDailySummaryPrevious({
+          locationId,
+          startDate,
+          endDate,
+          cashierId: params.cashierId,
+        }),
+      ])
+    : [{ error: t('noActiveOutlets') }, { previous: null, prevRange: { from: '', to: '' } }];
 
   return (
     <DailySummaryClient
       initialData={data}
+      initialPrevious={prev.previous}
+      initialPrevRange={prev.prevRange}
       defaultStartDate={startDate}
       defaultEndDate={endDate}
       defaultLocationId={locationId}

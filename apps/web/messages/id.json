@@ -2183,7 +2183,11 @@
       "deliveryCommission": "Komisi Delivery",
       "fromDelivery": "20% dari ch. delivery",
       "netMinusCommission": "Net sales − komisi",
-      "transactions": "{count} transaksi"
+      "transactions": "{count} transaksi",
+      "vsPrevious": "vs periode sebelumnya",
+      "vsPreviousRange": "vs {from} s/d {to}",
+      "noBaseline": "Belum ada baseline",
+      "comparisonTitle": "Perbandingan vs Periode Sebelumnya"
     },
     "donations": {
       "title": "Laporan Donasi",
@@ -2290,7 +2294,10 @@
         "walkIn": "Walk-in",
         "other": "{channel}"
       },
-      "member": "Member"
+      "member": "Member",
+      "vsPrevious": "vs periode setara sebelumnya",
+      "vsPreviousShort": "vs sebelumnya",
+      "noBaseline": "Belum ada baseline"
     },
     "omzetHarian": {
       "title": "Omzet Harian",
@@ -2349,7 +2356,9 @@
       },
       "totalLabel": "Total",
       "empty": "Tidak ada saldo terbuka untuk filter ini.",
-      "noPartner": "(tanpa partner)"
+      "noPartner": "(tanpa partner)",
+      "exportSummarySheet": "Ringkasan",
+      "exportDetailSheet": "Detail Baris"
     },
     "cashFlowPage": {
       "title": "Arus Kas",
@@ -2403,7 +2412,9 @@
         "lineCost": "Subtotal"
       },
       "negativeMargin": "Margin negatif",
-      "empty": "Belum ada produk yang dapat dihitung HPP-nya."
+      "empty": "Belum ada produk yang dapat dihitung HPP-nya.",
+      "exportSummarySheet": "Ringkasan HPP",
+      "exportLinesSheet": "Detail Bahan"
     },
     "waste": {
       "title": "Susut / Spoilage",
@@ -2426,7 +2437,8 @@
       },
       "totalQtyLabel": "Total Qty",
       "totalValueLabel": "Total Nilai",
-      "empty": "Tidak ada catatan susut pada periode ini."
+      "empty": "Tidak ada catatan susut pada periode ini.",
+      "exportSheet": "Susut"
     }
   },
   "display": {

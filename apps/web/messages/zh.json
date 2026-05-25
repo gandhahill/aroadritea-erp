@@ -2512,7 +2512,11 @@
       "deliveryCommission": "外卖佣金",
       "fromDelivery": "外卖渠道的 20%",
       "netMinusCommission": "净销售额 - 佣金",
-      "transactions": "{count} 笔交易"
+      "transactions": "{count} 笔交易",
+      "vsPrevious": "对比上期",
+      "vsPreviousRange": "对比 {from} 至 {to}",
+      "noBaseline": "无历史基准",
+      "comparisonTitle": "与上期对比"
     },
     "donations": {
       "title": "捐款报告",
@@ -2619,7 +2623,10 @@
         "walkIn": "到店",
         "other": "{channel}"
       },
-      "member": "会员"
+      "member": "会员",
+      "vsPrevious": "对比上期同等区间",
+      "vsPreviousShort": "对比上期",
+      "noBaseline": "无历史基准"
     },
     "aging": {
       "receivablesTitle": "应收账款账龄",
@@ -2653,7 +2660,9 @@
       },
       "totalLabel": "合计",
       "empty": "当前筛选下没有未结余额。",
-      "noPartner": "（无合作方）"
+      "noPartner": "（无合作方）",
+      "exportSummarySheet": "汇总",
+      "exportDetailSheet": "明细行"
     },
     "cashFlowPage": {
       "title": "现金流",
@@ -2707,7 +2716,9 @@
         "lineCost": "小计"
       },
       "negativeMargin": "负毛利",
-      "empty": "暂无可计算 COGS 的产品。"
+      "empty": "暂无可计算 COGS 的产品。",
+      "exportSummarySheet": "COGS 汇总",
+      "exportLinesSheet": "原料明细"
     },
     "waste": {
       "title": "损耗 / 报废",
@@ -2730,7 +2741,8 @@
       },
       "totalQtyLabel": "总数量",
       "totalValueLabel": "总金额",
-      "empty": "本期间无损耗记录。"
+      "empty": "本期间无损耗记录。",
+      "exportSheet": "损耗"
     }
   },
   "opname": {

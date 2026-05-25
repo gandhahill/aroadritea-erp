@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
 import type { WasteResult } from '@erp/services/reporting';
+import { exportWorkbook } from '@/lib/export-workbook';
 
 const IDR = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -50,9 +51,10 @@ export function WasteClient(props: Props) {
     startTransition(() => router.push(`?${next.toString()}`));
   }
 
-  function exportCsv() {
+  async function exportCsv() {
+    // Real XLSX (exceljs). Single sheet — keep it simple for waste.
     if (!props.data) return;
-    const rows: string[][] = [];
+    const rows: (string | number)[][] = [];
     rows.push([
       t('tableHeader.product'),
       t('tableHeader.sku'),
@@ -67,21 +69,15 @@ export function WasteClient(props: Props) {
         localizedName(r.productName as Record<string, unknown>),
         r.productSku,
         r.variantSku ?? '',
-        r.qty,
+        Number(r.qty),
         r.uom,
-        r.valueIdr,
-        String(r.adjustmentCount),
+        Number(r.valueIdr),
+        r.adjustmentCount,
       ]);
     }
-    const csv = rows
-      .map((r) => r.map((c) => `"${(c ?? '').replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `waste-${props.from}-to-${props.to}.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+    await exportWorkbook(`waste-${props.from}-to-${props.to}.xlsx`, [
+      { name: t('exportSheet'), rows },
+    ]);
   }
 
   return (

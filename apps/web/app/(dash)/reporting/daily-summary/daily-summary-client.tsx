@@ -14,7 +14,7 @@ import type { DailySummaryResult } from '@erp/services/reporting';
 import { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { ExportXlsxButton } from '../export-button';
-import { fetchDailySummary } from './actions';
+import { fetchDailySummary, fetchDailySummaryPrevious } from './actions';
 import { PageHeader } from "@/components/page-header";
 import { FilterBar, FilterField } from '@/components/filter-bar';
 import { Button } from '@erp/ui';
@@ -30,6 +30,21 @@ function formatIDR(v: string | number | bigint | null | undefined): string {
     currency: 'IDR',
     minimumFractionDigits: 0,
   }).format(num);
+}
+
+/** Compute a period-over-period delta. Returns null when there is no
+ *  baseline (previous = 0) so callers can show "no baseline" instead. */
+function computeDelta(
+  current: string | number | null | undefined,
+  previous: string | number | null | undefined,
+): { delta: number; percent: number | null } | null {
+  if (current == null || previous == null) return null;
+  const cur = typeof current === 'string' ? Number.parseInt(current, 10) : Number(current);
+  const prev = typeof previous === 'string' ? Number.parseInt(previous, 10) : Number(previous);
+  if (Number.isNaN(cur) || Number.isNaN(prev)) return null;
+  const delta = cur - prev;
+  const percent = prev === 0 ? null : Math.round(((cur - prev) / prev) * 1000) / 10;
+  return { delta, percent };
 }
 
 function formatQty(v: number | null | undefined): string {
@@ -212,6 +227,8 @@ async function exportXLSX(data: DailySummaryResult, locationLabel: string) {
 
 interface Props {
   initialData: { data?: DailySummaryResult; error?: string };
+  initialPrevious: DailySummaryResult | null;
+  initialPrevRange: { from: string; to: string };
   defaultStartDate: string;
   defaultEndDate: string;
   defaultLocationId: string;
@@ -220,6 +237,8 @@ interface Props {
 
 export function DailySummaryClient({
   initialData,
+  initialPrevious,
+  initialPrevRange,
   defaultStartDate,
   defaultEndDate,
   defaultLocationId,
@@ -229,6 +248,8 @@ export function DailySummaryClient({
   const [endDate, setEndDate] = useState(defaultEndDate);
   const [locationId, setLocationId] = useState(defaultLocationId);
   const [data, setData] = useState<DailySummaryResult | null>(initialData.data ?? null);
+  const [previous, setPrevious] = useState<DailySummaryResult | null>(initialPrevious);
+  const [prevRange, setPrevRange] = useState<{ from: string; to: string }>(initialPrevRange);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialData.error ?? null);
   const t = useTranslations('reporting.dailySummary');
@@ -239,17 +260,24 @@ export function DailySummaryClient({
     if (!locationId) {
       setError(t('noActiveOutlets'));
       setData(null);
+      setPrevious(null);
       return;
     }
     setIsLoading(true);
     setError(null);
     try {
-      const result = await fetchDailySummary({ locationId, startDate, endDate });
+      const [result, prev] = await Promise.all([
+        fetchDailySummary({ locationId, startDate, endDate }),
+        fetchDailySummaryPrevious({ locationId, startDate, endDate }),
+      ]);
       if (result.error) {
         setError(result.error);
         setData(null);
+        setPrevious(null);
       } else if (result.data) {
         setData(result.data);
+        setPrevious(prev.previous);
+        setPrevRange(prev.prevRange);
       }
     } catch (err) {
       setError(t('loadFailed'));
@@ -391,53 +419,79 @@ export function DailySummaryClient({
             </p>
           </div>
 
+          {/* Period comparison header */}
+          {previous && prevRange.from && (
+            <p className="text-xs text-brand-ink-3 italic">
+              {t('comparisonTitle')}:{' '}
+              {t('vsPreviousRange', { from: prevRange.from, to: prevRange.to })}
+            </p>
+          )}
+
           {/* 6 main metrics */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <MetricCard
               label={t('grossSales')}
               value={formatIDR(report.grossSales)}
               color="text-brand-ink"
+              delta={previous ? computeDelta(report.grossSales, previous.grossSales) : undefined}
             />
             <MetricCard
               label={t('totalDiscount')}
               value={formatIDR(report.discountTotal)}
               color="text-rose-500"
               sub={t('deductedFromGross')}
+              delta={
+                previous ? computeDelta(report.discountTotal, previous.discountTotal) : undefined
+              }
+              invertDelta
             />
             <MetricCard
               label={t('netSales')}
               value={formatIDR(report.netSales)}
               color="text-brand-ink"
               sub={t('grossMinusDiscount')}
+              delta={previous ? computeDelta(report.netSales, previous.netSales) : undefined}
             />
             <MetricCard
               label={t('taxPb1')}
               value={formatIDR(report.taxTotal)}
               color="text-brand-gold"
               sub={t('taxInclusive')}
+              delta={previous ? computeDelta(report.taxTotal, previous.taxTotal) : undefined}
             />
             <MetricCard
               label={t('deliveryCommission')}
               value={formatIDR(report.commissionDelivery)}
               color="text-rose-500"
               sub={t('fromDelivery')}
+              delta={
+                previous
+                  ? computeDelta(report.commissionDelivery, previous.commissionDelivery)
+                  : undefined
+              }
+              invertDelta
             />
             <MetricCard
               label={t('netRevenue')}
               value={formatIDR(report.netRevenue)}
               color="text-brand-jade"
               sub={t('netMinusCommission')}
+              delta={previous ? computeDelta(report.netRevenue, previous.netRevenue) : undefined}
             />
             <MetricCard
               label={t('refundTotal')}
               value={formatIDR(report.refundTotal)}
               color="text-rose-500"
               sub={t('transactions', { count: report.refundCount })}
+              delta={previous ? computeDelta(report.refundTotal, previous.refundTotal) : undefined}
+              invertDelta
             />
             <MetricCard
               label={t('refundCount')}
               value={String(report.refundCount)}
               color="text-brand-ink"
+              delta={previous ? computeDelta(report.refundCount, previous.refundCount) : undefined}
+              invertDelta
             />
           </div>
 
@@ -674,17 +728,61 @@ function MetricCard({
   value,
   color,
   sub,
+  delta,
+  invertDelta,
 }: {
   label: string;
   value: string;
   color: string;
   sub?: string;
+  /** If provided, shows a "vs previous period" badge. */
+  delta?: { delta: number; percent: number | null } | null;
+  /** Set true for metrics where a *decrease* is good (discounts, refunds). */
+  invertDelta?: boolean;
 }) {
   return (
     <div className="rounded-xl border border-brand-cream-3 bg-card p-4 shadow-sm">
       <p className="text-xs font-medium uppercase tracking-wide text-brand-ink-3">{label}</p>
       <p className={`mt-1 text-xl font-bold ${color}`}>{value}</p>
       {sub && <p className="mt-0.5 text-xs text-brand-ink-3">{sub}</p>}
+      {delta !== undefined && <DeltaBadge delta={delta} invert={invertDelta} />}
     </div>
+  );
+}
+
+function DeltaBadge({
+  delta,
+  invert,
+}: {
+  delta: { delta: number; percent: number | null } | null;
+  invert?: boolean;
+}) {
+  const t = useTranslations('reporting.dailySummary');
+  if (!delta) {
+    return <p className="mt-1.5 text-xs text-brand-ink-3 italic">{t('noBaseline')}</p>;
+  }
+  const isUp = delta.delta > 0;
+  const isFlat = delta.delta === 0;
+  // For inverted metrics (discounts, refunds) up = bad.
+  const good = invert ? !isUp : isUp;
+  const color = isFlat
+    ? 'text-brand-ink-3 bg-brand-cream-2'
+    : good
+      ? 'text-brand-jade bg-emerald-50'
+      : 'text-rose-600 bg-rose-50';
+  const arrow = isFlat ? '→' : isUp ? '↑' : '↓';
+  const pctLabel =
+    delta.percent === null
+      ? t('noBaseline')
+      : `${delta.percent > 0 ? '+' : ''}${delta.percent.toFixed(1)}%`;
+  return (
+    <p
+      className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${color}`}
+      title={t('vsPrevious')}
+    >
+      <span>{arrow}</span>
+      <span>{pctLabel}</span>
+      <span className="text-brand-ink-3 font-normal">{t('vsPrevious')}</span>
+    </p>
   );
 }

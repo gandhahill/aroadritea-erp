@@ -2431,7 +2431,11 @@
       "deliveryCommission": "Delivery Commission",
       "fromDelivery": "20% from delivery channels",
       "netMinusCommission": "Net sales − commission",
-      "transactions": "{count} transactions"
+      "transactions": "{count} transactions",
+      "vsPrevious": "vs previous period",
+      "vsPreviousRange": "vs {from} to {to}",
+      "noBaseline": "No prior baseline",
+      "comparisonTitle": "Compared to Previous Period"
     },
     "donations": {
       "title": "Donation Report",
@@ -2538,7 +2542,10 @@
         "walkIn": "Walk-in",
         "other": "{channel}"
       },
-      "member": "Member"
+      "member": "Member",
+      "vsPrevious": "vs same window last period",
+      "vsPreviousShort": "vs previous",
+      "noBaseline": "No prior baseline"
     },
     "omzetHarian": {
       "title": "Daily Revenue",
@@ -2597,7 +2604,9 @@
       },
       "totalLabel": "Total",
       "empty": "No open balance for this filter.",
-      "noPartner": "(no partner)"
+      "noPartner": "(no partner)",
+      "exportSummarySheet": "Summary",
+      "exportDetailSheet": "Detail Lines"
     },
     "cashFlowPage": {
       "title": "Cash Flow",
@@ -2651,7 +2660,9 @@
         "lineCost": "Subtotal"
       },
       "negativeMargin": "Negative margin",
-      "empty": "No products with computable COGS yet."
+      "empty": "No products with computable COGS yet.",
+      "exportSummarySheet": "COGS Summary",
+      "exportLinesSheet": "Ingredient Detail"
     },
     "waste": {
       "title": "Waste / Spoilage",
@@ -2674,7 +2685,8 @@
       },
       "totalQtyLabel": "Total qty",
       "totalValueLabel": "Total value",
-      "empty": "No waste recorded in this period."
+      "empty": "No waste recorded in this period.",
+      "exportSheet": "Waste"
     }
   },
   "opname": {

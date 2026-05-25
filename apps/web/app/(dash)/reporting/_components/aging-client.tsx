@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useTransition } from 'react';
 import type { AgingResult } from '@erp/services/reporting';
+import { exportWorkbook } from '@/lib/export-workbook';
 
 const IDR = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -42,38 +43,59 @@ export function AgingClient(props: Props) {
     startTransition(() => router.push(`?${next.toString()}`));
   }
 
-  function exportXlsx() {
-    // Lightweight CSV export — leverages browser download without
-    // pulling exceljs into the client bundle. Honours the active filter.
+  async function exportXlsx() {
+    // Real XLSX (exceljs) with two sheets: aging buckets per partner +
+    // detail drill-down lines. Numbers go in as Number so spreadsheets
+    // can sum them; aging buckets are in IDR (rupiah, not sen).
     if (!props.data) return;
-    const rows: string[][] = [];
-    rows.push([
+    const summaryRows: (string | number)[][] = [];
+    summaryRows.push([
       t('tableHeader.partner'),
       t('tableHeader.current'),
       t('tableHeader.bucket31_60'),
       t('tableHeader.bucket61_90'),
       t('tableHeader.bucketOver90'),
       t('tableHeader.total'),
+      t('tableHeader.lineCount'),
     ]);
     for (const p of partners) {
-      rows.push([
-        p.partnerName,
-        p.buckets.current,
-        p.buckets.bucket_31_60,
-        p.buckets.bucket_61_90,
-        p.buckets.bucket_over_90,
-        p.buckets.total,
+      summaryRows.push([
+        p.partnerName || t('noPartner'),
+        Number(p.buckets.current),
+        Number(p.buckets.bucket_31_60),
+        Number(p.buckets.bucket_61_90),
+        Number(p.buckets.bucket_over_90),
+        Number(p.buckets.total),
+        p.lineCount,
       ]);
     }
-    const csv = rows
-      .map((r) => r.map((cell) => `"${(cell ?? '').replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `aging-${props.kind.toLowerCase()}-${props.asOf}.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+
+    const detailRows: (string | number)[][] = [];
+    detailRows.push([
+      t('detailsHeader.journal'),
+      t('detailsHeader.postingDate'),
+      t('detailsHeader.dueDate'),
+      t('detailsHeader.daysOverdue'),
+      t('detailsHeader.bucket'),
+      t('detailsHeader.amount'),
+      t('detailsHeader.description'),
+    ]);
+    for (const d of details) {
+      detailRows.push([
+        d.journalNumber,
+        d.postingDate,
+        d.dueDate ?? '',
+        d.daysOverdue,
+        d.bucket,
+        Number(d.amount),
+        d.description ?? '',
+      ]);
+    }
+
+    await exportWorkbook(`aging-${props.kind.toLowerCase()}-${props.asOf}.xlsx`, [
+      { name: t('exportSummarySheet'), rows: summaryRows },
+      { name: t('exportDetailSheet'), rows: detailRows },
+    ]);
   }
 
   const totalLabel = useMemo(() => t('totalLabel'), [t]);
