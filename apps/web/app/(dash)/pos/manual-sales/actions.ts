@@ -123,7 +123,7 @@ export async function fetchManualSalesPageData(
         v.id as "variantId"
       FROM products p
       LEFT JOIN product_variants v ON v.product_id = p.id AND v.is_active = true
-      WHERE p.tenant_id = ${ctx.tenantId} AND p.is_active = true AND p.kind IN ('food', 'drink', 'retail')
+      WHERE p.tenant_id = ${ctx.tenantId} AND p.is_active = true AND p.kind IN ('food', 'drink', 'retail', 'finished_good')
       ORDER BY p.sku ASC
       `,
       )

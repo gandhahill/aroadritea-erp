@@ -1512,7 +1512,14 @@
       "synced": "Synced",
       "notSynced": "Not synced",
       "empty": "No manual closings yet.",
-      "total": "{count} closings"
+      "total": "{count} closings",
+      "products": "Products",
+      "addProduct": "Add Product",
+      "product": "Product",
+      "selectProduct": "Select Product",
+      "qty": "Qty",
+      "price": "Price",
+      "delete": "Delete"
     },
     "openShift": "Open Shift",
     "drawerExpense": "Drawer Expense",
@@ -3659,5 +3666,19 @@
     "imageOnlyError": "Only image files are supported for OCR/visual.",
     "failedUpload": "failed to upload",
     "delete": "delete"
+  },
+  "aiAssistantLanding": {
+    "disabled": "AI Assistant is disabled by admin (AI_ASSISTANT_ENABLED=false). Contact administrator to re-enable.",
+    "startNew": "Start new conversation",
+    "policy": "Policy: 30 messages / hour / user · full audit · DeepSeek v4 model.",
+    "titlePlaceholder": "Short title (optional)",
+    "btnNewSession": "+ New session",
+    "tabMine": "My conversations",
+    "tabAll": "All conversations (admin)",
+    "empty": "No conversations yet. Start a new session above.",
+    "owner": "owner",
+    "btnRename": "Rename",
+    "btnArchive": "Archive",
+    "btnSave": "Save"
   }
 }

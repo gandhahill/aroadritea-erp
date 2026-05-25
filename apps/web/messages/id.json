@@ -1511,7 +1511,14 @@
       "synced": "Tersinkron",
       "notSynced": "Belum sinkron",
       "empty": "Belum ada closing manual.",
-      "total": "{count} closing"
+      "total": "{count} closing",
+      "products": "Produk",
+      "addProduct": "Tambah Produk",
+      "product": "Produk",
+      "selectProduct": "Pilih Produk",
+      "qty": "Kuantitas",
+      "price": "Harga",
+      "delete": "Hapus"
     },
     "openShift": "Buka Shift",
     "drawerExpense": "Pengeluaran Laci",
@@ -3658,5 +3665,19 @@
     "imageOnlyError": "Hanya file gambar yang didukung untuk OCR/visual.",
     "failedUpload": "gagal mengunggah",
     "delete": "hapus"
+  },
+  "aiAssistantLanding": {
+    "disabled": "Asisten AI dinonaktifkan oleh admin (AI_ASSISTANT_ENABLED=false). Hubungi administrator untuk mengaktifkan kembali.",
+    "startNew": "Mulai percakapan baru",
+    "policy": "Kebijakan: 30 pesan / jam / pengguna · audit lengkap · model DeepSeek v4.",
+    "titlePlaceholder": "Judul singkat (opsional)",
+    "btnNewSession": "+ Sesi baru",
+    "tabMine": "Percakapan saya",
+    "tabAll": "Semua percakapan (admin)",
+    "empty": "Belum ada percakapan. Mulai sesi baru di atas.",
+    "owner": "pemilik",
+    "btnRename": "Ganti nama",
+    "btnArchive": "Arsipkan",
+    "btnSave": "Simpan"
   }
 }

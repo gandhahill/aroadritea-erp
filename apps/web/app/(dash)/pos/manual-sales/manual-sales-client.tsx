@@ -107,7 +107,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                 >
                   <div className="flex-1 min-w-[200px]">
                     <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
-                      Product
+                      {t('product')}
                     </span>
                     <Select
                       value={`${item.productId}::${item.variantId || ''}`}
@@ -132,7 +132,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                       }}
                     >
                       <option value="::" disabled>
-                        Select Product
+                        {t('selectProduct')}
                       </option>
                       {data.products.map((p) => (
                         <option
@@ -145,7 +145,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     </Select>
                   </div>
                   <div className="w-24">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">Qty</span>
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('qty')}</span>
                     <Input
                       type="number"
                       min={1}
@@ -168,7 +168,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     />
                   </div>
                   <div className="w-32">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">Price</span>
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('price')}</span>
                     <Input
                       type="text"
                       inputMode="numeric"
@@ -191,7 +191,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     />
                   </div>
                   <div className="w-32">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">Total</span>
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('total')}</span>
                     <Input
                       type="text"
                       readOnly
@@ -207,7 +207,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                       setLineItems(lineItems.filter((_, i) => i !== index));
                     }}
                   >
-                    Delete
+                    {t('delete')}
                   </Button>
                 </div>
               ))}

@@ -1550,7 +1550,14 @@
       "synced": "已同步",
       "notSynced": "未同步",
       "empty": "暂无手动收班。",
-      "total": "{count} 条收班记录"
+      "total": "{count} 条收班记录",
+      "products": "产品",
+      "addProduct": "添加产品",
+      "product": "产品",
+      "selectProduct": "选择产品",
+      "qty": "数量",
+      "price": "价格",
+      "delete": "删除"
     },
     "openShift": "开班",
     "drawerExpense": "钱箱支出",
@@ -3735,5 +3742,19 @@
     "imageOnlyError": "OCR/视觉仅支持图像文件。",
     "failedUpload": "上传失败",
     "delete": "删除"
+  },
+  "aiAssistantLanding": {
+    "disabled": "管理员已禁用 AI 助手 (AI_ASSISTANT_ENABLED=false)。请联系管理员重新启用。",
+    "startNew": "开始新对话",
+    "policy": "政策：每用户每小时 30 条消息 · 完整审计 · DeepSeek v4 模型。",
+    "titlePlaceholder": "简短标题（可选）",
+    "btnNewSession": "+ 新会话",
+    "tabMine": "我的对话",
+    "tabAll": "所有对话（管理员）",
+    "empty": "暂无对话。请在上方开始新会话。",
+    "owner": "所有者",
+    "btnRename": "重命名",
+    "btnArchive": "归档",
+    "btnSave": "保存"
   }
 }

@@ -4,6 +4,7 @@ import { Button, Input } from '@erp/ui';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { archiveSessionAction, renameSessionAction, startSessionAction } from './actions';
+import { useTranslations } from 'next-intl';
 
 interface SessionRow {
   id: string;
@@ -30,12 +31,12 @@ export function AiAssistantClient(props: Props) {
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
+  const t = useTranslations('aiAssistantLanding');
 
   if (!props.enabled) {
     return (
       <div className="rounded-xl border border-dashed border-brand-cream-3 bg-card p-10 text-center text-sm text-brand-ink-3">
-        Asisten AI dinonaktifkan oleh admin (AI_ASSISTANT_ENABLED=false). Hubungi administrator
-        untuk mengaktifkan kembali.
+        {t('disabled')}
       </div>
     );
   }
@@ -82,38 +83,38 @@ export function AiAssistantClient(props: Props) {
       ) : null}
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-4">
-        <h2 className="text-sm font-semibold text-brand-ink">Mulai percakapan baru</h2>
+        <h2 className="text-sm font-semibold text-brand-ink">{t('startNew')}</h2>
         <p className="text-xs text-brand-ink-3">
-          Kebijakan: 30 pesan / jam / pengguna · audit lengkap · model DeepSeek v4.
+          {t('policy')}
         </p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
           <Input
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="Judul singkat (opsional)"
+            placeholder={t('titlePlaceholder')}
             maxLength={200}
             className="flex-1"
           />
           <Button variant="primary" size="md" onClick={handleStart}>
-            + Sesi baru
+            {t('btnNewSession')}
           </Button>
         </div>
       </section>
 
       {props.canAdmin ? (
         <nav className="flex gap-2 border-b border-brand-cream-3 pb-px">
-          {(['mine', 'all'] as const).map((t) => (
+          {(['mine', 'all'] as const).map((t_tab) => (
             <button
-              key={t}
+              key={t_tab}
               type="button"
-              onClick={() => setTab(t)}
+              onClick={() => setTab(t_tab)}
               className={`rounded-t-md px-4 py-2 text-sm font-medium ${
-                tab === t
+                tab === t_tab
                   ? 'border-b-2 border-brand-red text-brand-red'
                   : 'text-brand-ink-2 hover:text-brand-ink'
               }`}
             >
-              {t === 'mine' ? 'Percakapan saya' : 'Semua percakapan (admin)'}
+              {t_tab === 'mine' ? t('tabMine') : t('tabAll')}
             </button>
           ))}
         </nav>
@@ -127,7 +128,7 @@ export function AiAssistantClient(props: Props) {
 
       {list.length === 0 ? (
         <div className="rounded-xl border border-dashed border-brand-cream-3 bg-card p-10 text-center text-sm text-brand-ink-3">
-          Belum ada percakapan. Mulai sesi baru di atas.
+          {t('empty')}
         </div>
       ) : (
         <ul className="grid gap-2 sm:grid-cols-2">
@@ -154,7 +155,7 @@ export function AiAssistantClient(props: Props) {
                         className="flex-1"
                       />
                       <Button size="sm" variant="primary" onClick={() => handleRename(row.id)}>
-                        Simpan
+                        {t('btnSave')}
                       </Button>
                     </div>
                   ) : (
@@ -166,7 +167,7 @@ export function AiAssistantClient(props: Props) {
                     </a>
                   )}
                   <p className="mt-1 text-xs text-brand-ink-3">
-                    {props.canAdmin && tab === 'all' ? `pemilik: ${row.ownerUserId} · ` : ''}
+                    {props.canAdmin && tab === 'all' ? `${t('owner')}: ${row.ownerUserId} · ` : ''}
                     {row.status} · {new Date(row.updatedAt).toLocaleString('id-ID')}
                   </p>
                 </div>
@@ -179,14 +180,14 @@ export function AiAssistantClient(props: Props) {
                     }}
                     className="rounded border border-brand-cream-3 px-2 py-1 text-brand-ink-2 hover:bg-brand-cream-2"
                   >
-                    Ganti nama
+                    {t('btnRename')}
                   </button>
                   <button
                     type="button"
                     onClick={() => handleArchive(row.id)}
                     className="rounded border border-rose-200 px-2 py-1 text-rose-600 hover:bg-rose-50"
                   >
-                    Arsipkan
+                    {t('btnArchive')}
                   </button>
                 </div>
               </div>
