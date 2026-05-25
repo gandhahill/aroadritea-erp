@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@erp/ui';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { sendMessageAction, toggleSessionWebSearchAction } from '../actions';
 import { ConfirmActionCard } from './confirm-action-card';
@@ -81,6 +82,7 @@ function summariseToolPayload(payload: unknown): string {
 }
 
 export function ChatSessionClient(props: Props) {
+  const t = useTranslations('aiAssistantChat');
   const [messages, setMessages] = useState<Message[]>(props.initialMessages);
   const [draft, setDraft] = useState('');
   const [useReasoning, setUseReasoning] = useState(false);
@@ -112,7 +114,7 @@ export function ChatSessionClient(props: Props) {
     e.target.value = '';
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      setError('Hanya file gambar yang didukung untuk OCR/visual.');
+      setError(t('imageOnlyError'));
       return;
     }
     setError(null);
@@ -199,8 +201,7 @@ export function ChatSessionClient(props: Props) {
   if (!props.enabled) {
     return (
       <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-        AI assistant dinonaktifkan. Atur env <code>AI_ASSISTANT_ENABLED=true</code> dan{' '}
-        <code>DEEPSEEK_API_KEY</code> untuk mengaktifkan.
+        {t('disabledWarning')}
       </div>
     );
   }
@@ -210,7 +211,7 @@ export function ChatSessionClient(props: Props) {
       <div ref={scrollerRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
         {messages.length === 0 ? (
           <div className="rounded-lg border border-dashed border-brand-cream-3 px-3 py-6 text-center text-sm text-brand-ink-3">
-            Mulai dengan menulis pertanyaan, mis. <em>"Bagaimana cara input penjualan manual?"</em>
+            {t('welcomeHint')}
           </div>
         ) : null}
         {messages.map((m) => {
@@ -251,7 +252,7 @@ export function ChatSessionClient(props: Props) {
               )}
               {m.requiresConfirmation ? (
                 <div className="mt-2 text-xs text-amber-700">
-                  ⏳ Menunggu konfirmasi Anda sebelum AI mengeksekusi tindakan.
+                  ⏳ {t('waitConfirm')}
                 </div>
               ) : null}
             </div>
@@ -259,7 +260,7 @@ export function ChatSessionClient(props: Props) {
         })}
         {pending ? (
           <div className="max-w-[80%] rounded-lg bg-brand-cream-2 px-3 py-2 text-sm text-brand-ink-2">
-            <span className="inline-block animate-pulse">…AI sedang mengetik</span>
+            <span className="inline-block animate-pulse">{t('aiTyping')}</span>
           </div>
         ) : null}
       </div>
@@ -282,7 +283,8 @@ export function ChatSessionClient(props: Props) {
                 type="button"
                 onClick={() => removeAttachment(idx)}
                 className="text-rose-500 hover:text-rose-700"
-                aria-label={`hapus ${a.fileName}`}
+                aria-label={t('delete')}
+                title={t('delete')}
               >
                 ×
               </button>
@@ -303,7 +305,7 @@ export function ChatSessionClient(props: Props) {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKey}
-          placeholder="Tulis pesan… (Enter untuk kirim, Shift+Enter untuk baris baru)"
+          placeholder={t('placeholder')}
           rows={2}
           className="w-full resize-none rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
           maxLength={8000}
@@ -318,7 +320,7 @@ export function ChatSessionClient(props: Props) {
                 onChange={(e) => setUseReasoning(e.target.checked)}
                 className="h-3.5 w-3.5 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
               />
-              Mode penalaran (lebih lambat, lebih akurat)
+              {t('reasoningMode')}
             </label>
             <label className="flex items-center gap-2 text-xs text-brand-ink-2">
               <input
@@ -333,20 +335,38 @@ export function ChatSessionClient(props: Props) {
                   setWebSearchBusy(false);
                   if (!result.ok) {
                     setAllowWebSearch(!next);
-                    setError(result.error ?? 'gagal mengubah pengaturan web search');
+                    setError(result.error ?? t('failedUpload'));
                   }
                 }}
                 className="h-3.5 w-3.5 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
               />
-              Izinkan pencarian web
+              {t('allowWebSearch')}
             </label>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading || pending}
-              className="rounded border border-brand-cream-3 px-2 py-1 text-xs text-brand-ink-2 hover:bg-brand-cream-2 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded border border-brand-cream-3 px-2 py-1 text-xs text-brand-ink-2 hover:bg-brand-cream-2 disabled:opacity-50"
             >
-              {uploading ? 'Mengunggah…' : '📷 Lampirkan foto struk'}
+              {uploading ? (
+                t('uploading')
+              ) : (
+                <>
+                  <svg
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5 text-brand-ink-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"
+                    />
+                  </svg> {t('attachReceipt')} </>
+              )}
             </button>
             <input
               ref={fileInputRef}
@@ -362,7 +382,7 @@ export function ChatSessionClient(props: Props) {
             type="submit"
             disabled={pending || (!draft.trim() && attachments.length === 0)}
           >
-            {pending ? 'Mengirim…' : 'Kirim'}
+            {pending ? t('sending') : t('send')}
           </Button>
         </div>
       </form>

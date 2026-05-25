@@ -47,7 +47,7 @@ export default async function CashFlowPage({
   const result = await fetchCashFlow({ from, to, locationId });
 
   return (
-    <main className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageHeader title={t('title')} description={t('description')} />
       <CashFlowClient
         from={from}
@@ -57,6 +57,6 @@ export default async function CashFlowPage({
         data={result.ok ? (result.data ?? null) : null}
         error={result.ok ? null : (result.error ?? null)}
       />
-    </main>
+    </div>
   );
 }

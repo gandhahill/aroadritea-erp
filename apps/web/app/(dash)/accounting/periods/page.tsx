@@ -140,8 +140,8 @@ export default async function AccountingPeriodsPage() {
   const closedCount = rows.filter((row) => row.status === 'closed').length;
 
   return (
-    <main className="min-h-screen bg-brand-paper text-brand-ink">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-8 lg:px-8">
+    <div className="space-y-6">
+      <section className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red/80">
             Accounting
@@ -232,6 +232,6 @@ export default async function AccountingPeriodsPage() {
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }

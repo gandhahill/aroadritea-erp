@@ -124,7 +124,7 @@ export async function fetchManualSalesPageData(
       FROM products p
       LEFT JOIN product_variants v ON v.product_id = p.id AND v.is_active = true
       WHERE p.tenant_id = ${ctx.tenantId} AND p.is_active = true AND p.kind IN ('food', 'drink', 'retail')
-      ORDER BY p.code ASC
+      ORDER BY p.sku ASC
       `,
       )
       .then((res) => res.rows),

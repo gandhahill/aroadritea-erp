@@ -51,7 +51,7 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
   const t = await getTranslations('whistleblower.admin');
 
   return (
-    <main className="p-6">
+    <div className="space-y-6">
       <PageHeader
         title={<>{t('title') || 'Whistleblower Reports (Admin)'}</>}
         description={<>{t('subtitle') || 'Manage and review anonymous reports.'}</>}
@@ -144,6 +144,6 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
       <div className="mt-6">
         <Pagination currentPage={page} totalItems={Number(count)} pageSize={pageSize} />
       </div>
-    </main>
+    </div>
   );
 }

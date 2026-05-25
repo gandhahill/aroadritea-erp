@@ -50,7 +50,7 @@ export default async function SopPage({
   ]);
 
   return (
-    <main className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageHeader
         title={t('title')}
         description={t('description')}
@@ -66,6 +66,6 @@ export default async function SopPage({
         canManage={canManage}
         error={result.error ?? null}
       />
-    </main>
+    </div>
   );
 }

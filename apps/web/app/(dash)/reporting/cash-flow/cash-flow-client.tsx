@@ -4,6 +4,7 @@ import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
+import { ExportXlsxButton } from '../export-button';
 
 const IDR = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -149,9 +150,7 @@ export function CashFlowClient(props: Props) {
         <Button variant="primary" size="md" onClick={() => router.refresh()} disabled={pending}>
           {t('filter')}
         </Button>
-        <Button variant="primary" size="md" onClick={exportCsv} disabled={!props.data}>
-          {t('exportXlsx')}
-        </Button>
+        <ExportXlsxButton onExport={exportCsv} disabled={!props.data} label={t('exportXlsx')} />
       </div>
 
       {props.data ? (

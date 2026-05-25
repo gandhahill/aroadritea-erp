@@ -29,17 +29,17 @@ export default async function ChatSessionPage({
   if (!result.ok) {
     if (result.error === 'ai.session.notFound') notFound();
     return (
-      <main className="space-y-4 p-6">
+      <div className="space-y-4">
         <PageHeader title="AI Assistant" description="Sesi tidak dapat dimuat." />
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
           {result.error}
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="flex h-full flex-col p-6">
+    <div className="flex h-full flex-col">
       <PageHeader title={result.session.title} description={`Status: ${result.session.status}`} />
       <ChatSessionClient
         enabled={isAiAssistantEnabled()}
@@ -47,6 +47,6 @@ export default async function ChatSessionPage({
         allowWebSearch={result.session.allowWebSearch}
         initialMessages={result.messages}
       />
-    </main>
+    </div>
   );
 }

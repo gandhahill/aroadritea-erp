@@ -26,13 +26,13 @@ export default async function CogsPage({
   const result = await fetchCogs({ includeInactive });
 
   return (
-    <main className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageHeader title={t('title')} description={t('description')} />
       <CogsClient
         includeInactive={includeInactive}
         data={result.ok ? (result.data ?? null) : null}
         error={result.ok ? null : (result.error ?? null)}
       />
-    </main>
+    </div>
   );
 }

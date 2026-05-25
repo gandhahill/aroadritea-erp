@@ -29,7 +29,7 @@ export default async function MemberDetailPage({
   const canAdjust = await can(userId, 'crm.member.adjustPoints');
 
   return (
-    <main className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageHeader
         title={m.name}
         description={`${t('memberSince')} ${m.joinedAt.slice(0, 10)} · ${m.city ?? '—'}`}
@@ -112,7 +112,7 @@ export default async function MemberDetailPage({
           </tbody>
         </table>
       </section>
-    </main>
+    </div>
   );
 }
 

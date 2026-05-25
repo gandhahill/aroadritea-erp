@@ -42,7 +42,7 @@ export default async function MyPayslipsPage() {
   const items = result.ok ? result.value : [];
 
   return (
-    <main className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageHeader
         title={t('title')}
         description={t('description')}
@@ -92,6 +92,6 @@ export default async function MyPayslipsPage() {
           </table>
         </div>
       )}
-    </main>
+    </div>
   );
 }

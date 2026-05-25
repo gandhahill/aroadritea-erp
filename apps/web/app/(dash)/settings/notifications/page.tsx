@@ -9,8 +9,8 @@ export default async function NotificationSettingsPage() {
   const t = await getTranslations('settings.notifications');
 
   return (
-    <main className="min-h-screen bg-brand-paper">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-8 lg:px-8">
+    <div className="space-y-6">
+      <section className="flex flex-col gap-6">
         <PageHeader
           title={<>{t('title')}</>}
           description={<>{t('description')}</>}
@@ -77,6 +77,6 @@ export default async function NotificationSettingsPage() {
           <NotificationChannelForm />
         </div>
       </section>
-    </main>
+    </div>
   );
 }

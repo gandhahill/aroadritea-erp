@@ -6,6 +6,7 @@ import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useTransition } from 'react';
+import { ExportXlsxButton } from '../export-button';
 
 const IDR = new Intl.NumberFormat('id-ID', {
   style: 'currency',
@@ -136,9 +137,7 @@ export function AgingClient(props: Props) {
         <Button variant="primary" size="md" onClick={() => router.refresh()} disabled={pending}>
           {t('filter')}
         </Button>
-        <Button variant="primary" size="md" onClick={exportXlsx} disabled={!props.data}>
-          {t('exportXlsx')}
-        </Button>
+        <ExportXlsxButton onExport={exportXlsx} disabled={!props.data} />
       </div>
 
       {/* Summary totals */}

@@ -30,12 +30,12 @@ export default async function TicketDetailPage({
   const canHandle = await can(userId, 'helpdesk.handle');
 
   return (
-    <main className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageHeader
         title={`${ticket.number} — ${ticket.subject}`}
         description={`${t('reportedBy')} ${ticket.reporterName ?? '—'} · ${ticket.createdAt.slice(0, 10)}${ticket.createdVia === 'ai_chat' ? ` · 🤖 ${t('viaAi')}` : ''}`}
       />
       <TicketDetailClient ticket={ticket} canHandle={canHandle} currentUserId={userId} />
-    </main>
+    </div>
   );
 }

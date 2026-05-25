@@ -51,7 +51,7 @@ export default async function GRNReportPage({ searchParams }: Props) {
   const tNav = await getTranslations('nav');
 
   return (
-    <main className="min-h-screen bg-brand-paper p-6 lg:p-8">
+    <div className="space-y-6">
       <div className="mx-auto max-w-7xl">
         <PageHeader
           title={<>{t('title') || 'Laporan Penerimaan (GRN)'}</>}
@@ -181,6 +181,6 @@ export default async function GRNReportPage({ searchParams }: Props) {
           <Pagination currentPage={page} totalItems={Number(count)} pageSize={pageSize} />
         </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -34,7 +34,7 @@ export default async function MembersPage({
   const totalPages = result.total && result.total > 0 ? Math.ceil(result.total / limit) : 1;
 
   return (
-    <main className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageHeader title={t('title')} description={t('description')} />
 
       {/* Filter */}
@@ -150,7 +150,7 @@ export default async function MembersPage({
           </div>
         </div>
       ) : null}
-    </main>
+    </div>
   );
 }
 

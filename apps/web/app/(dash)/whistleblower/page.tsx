@@ -56,7 +56,7 @@ export default function WhistleblowerPage() {
   }
 
   return (
-    <main className="p-6">
+    <div className="space-y-6">
       <div className="mx-auto max-w-2xl">
         <PageHeader
           title={<>{t('title') || 'Whistleblower Channel'}</>}
@@ -151,6 +151,6 @@ export default function WhistleblowerPage() {
           </div>
         </form>
       </div>
-    </main>
+    </div>
   );
 }

@@ -41,7 +41,7 @@ export default async function AgingReceivablesPage({
   const result = await fetchAgingReceivables({ asOf, locationId });
 
   return (
-    <main className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageHeader title={t('receivablesTitle')} description={t('receivablesDescription')} />
       <AgingClient
         kind="AR"
@@ -51,6 +51,6 @@ export default async function AgingReceivablesPage({
         data={result.ok ? (result.data ?? null) : null}
         error={result.ok ? null : (result.error ?? null)}
       />
-    </main>
+    </div>
   );
 }

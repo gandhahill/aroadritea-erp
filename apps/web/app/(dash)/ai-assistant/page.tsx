@@ -30,7 +30,7 @@ export default async function AiAssistantLandingPage() {
   const adminSessions = isAdmin ? await fetchAllSessionsAdmin() : { ok: true as const, items: [] };
 
   return (
-    <main className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageHeader
         title="Asisten AI"
         description="Tanyakan alur kerja, deteksi error, atau bantu OCR struk POS lama. Identitas dan izin Anda dihormati pada setiap perintah."
@@ -43,6 +43,6 @@ export default async function AiAssistantLandingPage() {
         ownError={mySessions.ok ? null : mySessions.error}
         adminError={adminSessions.ok ? null : adminSessions.error}
       />
-    </main>
+    </div>
   );
 }

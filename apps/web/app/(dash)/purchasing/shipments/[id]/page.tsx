@@ -15,7 +15,7 @@ export default async function ShipmentDetailPage(props: { params: Promise<{ id: 
   if (!detail) return notFound();
 
   return (
-    <main className="min-h-screen bg-brand-paper">
+    <div className="space-y-6">
       <section className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-5 py-8 lg:px-8">
         <PageHeader
           title={
@@ -41,6 +41,6 @@ export default async function ShipmentDetailPage(props: { params: Promise<{ id: 
 
         <ShipmentDetailClient detail={detail} />
       </section>
-    </main>
+    </div>
   );
 }

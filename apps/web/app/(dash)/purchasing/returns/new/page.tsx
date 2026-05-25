@@ -32,12 +32,12 @@ export default async function NewPurchaseReturnPage({
   const user = session.user as Record<string, unknown>;
 
   return (
-    <main className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageHeader title={t('newReturn')} description={t('newReturnDesc')} />
       <NewReturnClient
         defaultGrnId={params.grnId ?? ''}
         defaultLocationId={String(user.locationId ?? '')}
       />
-    </main>
+    </div>
   );
 }

@@ -134,7 +134,10 @@
       "yes": "Ya",
       "no": "Tidak"
     },
-    "employee": "Karyawan"
+    "employee": "Karyawan",
+    "nav": {
+      "settings": "Pengaturan"
+    }
   },
   "auth": {
     "login": {
@@ -3544,8 +3547,25 @@
   },
   "ai": {
     "audit": {
-      "title": "AI Assistant — Audit Log",
-      "description": "Setiap message turn, tool call, dan draft mutasi yang dilakukan AI assistant lintas pengguna."
+      "title": "Log Asisten AI",
+      "description": "Catatan audit semua aksi AI",
+      "stat": {
+        "sessions": "Sesi",
+        "draft": "Draf"
+      },
+      "table": {
+        "time": "Waktu",
+        "user": "Pengguna",
+        "action": "Aksi",
+        "entity": "Entitas",
+        "entityId": "ID Entitas",
+        "detail": "Detail",
+        "empty": "Tidak ada data"
+      },
+      "filter": {
+        "all": "Semua",
+        "show": "Tampilkan"
+      }
     }
   },
   "hr.sop.filter.all": "Semua",
@@ -3577,5 +3597,22 @@
   "ai.audit.table.entityId": "Entity ID",
   "ai.audit.table.detail": "Detail",
   "ai.audit.table.empty": "Belum ada entri yang cocok dengan filter.",
-  "ai.provider.notConfigured": "AI provider belum dikonfigurasi. Pastikan API key sudah diatur di environment variable."
+  "ai.provider.notConfigured": "AI provider belum dikonfigurasi. Pastikan API key sudah diatur di environment variable.",
+  "aiAssistantChat": {
+    "disabledWarning": "AI assistant dinonaktifkan. Atur env AI_ASSISTANT_ENABLED=true dan DEEPSEEK_API_KEY untuk mengaktifkan.",
+    "welcomeHint": "Mulai dengan menulis pertanyaan, mis. \"Bagaimana cara input penjualan manual?\"",
+    "uploading": "Mengunggah...",
+    "attachReceipt": "Lampirkan foto struk",
+    "waitConfirm": "Menunggu konfirmasi Anda sebelum AI mengeksekusi tindakan.",
+    "aiTyping": "...AI sedang mengetik",
+    "placeholder": "Tulis pesan... (Enter untuk kirim, Shift+Enter untuk baris baru)",
+    "reasoningMode": "Mode penalaran (lebih lambat, lebih akurat)",
+    "allowWebSearch": "Izinkan pencarian web",
+    "send": "Kirim",
+    "sending": "Mengirim...",
+    "toolError": "Kesalahan alat: ",
+    "imageOnlyError": "Hanya file gambar yang didukung untuk OCR/visual.",
+    "failedUpload": "gagal mengunggah",
+    "delete": "hapus"
+  }
 }

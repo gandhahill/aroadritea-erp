@@ -30,7 +30,7 @@ export default async function PurchaseReturnsPage({
   const result = await fetchPurchaseReturnsAction({ status: params.status });
 
   return (
-    <main className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageHeader
         title={t('title')}
         description={t('description')}
@@ -113,7 +113,7 @@ export default async function PurchaseReturnsPage({
           </tbody>
         </table>
       </div>
-    </main>
+    </div>
   );
 }
 

@@ -52,7 +52,7 @@ export default async function WastePage({
   const result = await fetchWaste({ from, to, locationId, includePending });
 
   return (
-    <main className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageHeader title={t('title')} description={t('description')} />
       <WasteClient
         from={from}
@@ -63,6 +63,6 @@ export default async function WastePage({
         data={result.ok ? (result.data ?? null) : null}
         error={result.ok ? null : (result.error ?? null)}
       />
-    </main>
+    </div>
   );
 }

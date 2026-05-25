@@ -134,7 +134,10 @@
       "yes": "Yes",
       "no": "No"
     },
-    "employee": "Employee"
+    "employee": "Employee",
+    "nav": {
+      "settings": "Settings"
+    }
   },
   "auth": {
     "login": {
@@ -3545,8 +3548,25 @@
   },
   "ai": {
     "audit": {
-      "title": "AI Assistant — Audit Log",
-      "description": "Every message turn, tool call, and mutation draft performed by the AI assistant across users."
+      "title": "AI Assistant Log",
+      "description": "Audit log of all AI actions",
+      "stat": {
+        "sessions": "Sessions",
+        "draft": "Draft"
+      },
+      "table": {
+        "time": "Time",
+        "user": "User",
+        "action": "Action",
+        "entity": "Entity",
+        "entityId": "Entity ID",
+        "detail": "Detail",
+        "empty": "No records found"
+      },
+      "filter": {
+        "all": "All",
+        "show": "Filter"
+      }
     }
   },
   "hr.sop.filter.all": "All",
@@ -3578,5 +3598,22 @@
   "ai.audit.table.entityId": "Entity ID",
   "ai.audit.table.detail": "Detail",
   "ai.audit.table.empty": "No entries match the filter.",
-  "ai.provider.notConfigured": "AI provider is not configured. Please check the API key in the environment variables."
+  "ai.provider.notConfigured": "AI provider is not configured. Please check the API key in the environment variables.",
+  "aiAssistantChat": {
+    "disabledWarning": "AI assistant disabled. Set env AI_ASSISTANT_ENABLED=true and DEEPSEEK_API_KEY to enable.",
+    "welcomeHint": "Start by writing a question, e.g. \"How to manual sales entry?\"",
+    "uploading": "Uploading...",
+    "attachReceipt": "Attach receipt photo",
+    "waitConfirm": "Waiting for your confirmation before AI executes action.",
+    "aiTyping": "...AI is typing",
+    "placeholder": "Type a message... (Enter to send, Shift+Enter for new line)",
+    "reasoningMode": "Reasoning mode (slower, more accurate)",
+    "allowWebSearch": "Allow web search",
+    "send": "Send",
+    "sending": "Sending...",
+    "toolError": "Tool error: ",
+    "imageOnlyError": "Only image files are supported for OCR/visual.",
+    "failedUpload": "failed to upload",
+    "delete": "delete"
+  }
 }

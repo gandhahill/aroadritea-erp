@@ -134,7 +134,10 @@
       "yes": "是",
       "no": "否"
     },
-    "employee": "员工"
+    "employee": "员工",
+    "nav": {
+      "settings": "设置"
+    }
   },
   "auth": {
     "login": {
@@ -3621,8 +3624,25 @@
   },
   "ai": {
     "audit": {
-      "title": "AI 助手 — 审计日志",
-      "description": "AI 助手跨用户执行的每个消息轮次、工具调用和变动草稿。"
+      "title": "AI 助手日志",
+      "description": "所有 AI 操作的审计日志",
+      "stat": {
+        "sessions": "会话",
+        "draft": "草稿"
+      },
+      "table": {
+        "time": "时间",
+        "user": "用户",
+        "action": "操作",
+        "entity": "实体",
+        "entityId": "实体 ID",
+        "detail": "详细信息",
+        "empty": "没有记录"
+      },
+      "filter": {
+        "all": "全部",
+        "show": "过滤"
+      }
     }
   },
   "hr.sop.filter.all": "全部",
@@ -3654,5 +3674,22 @@
   "ai.audit.table.entityId": "实体 ID",
   "ai.audit.table.detail": "详情",
   "ai.audit.table.empty": "没有符合过滤条件的条目。",
-  "ai.provider.notConfigured": "未配置 AI 提供商。请在环境变量中检查 API 密钥。"
+  "ai.provider.notConfigured": "未配置 AI 提供商。请在环境变量中检查 API 密钥。",
+  "aiAssistantChat": {
+    "disabledWarning": "AI 助手已禁用。设置环境变量 AI_ASSISTANT_ENABLED=true 和 DEEPSEEK_API_KEY 以启用。",
+    "welcomeHint": "从写一个问题开始，例如 \"如何手动输入销售？\"",
+    "uploading": "上传中...",
+    "attachReceipt": "附上收据照片",
+    "waitConfirm": "等待您的确认，AI 才会执行操作。",
+    "aiTyping": "...AI 正在输入",
+    "placeholder": "输入消息... (按 Enter 发送，Shift+Enter 换行)",
+    "reasoningMode": "推理模式 (较慢，更准确)",
+    "allowWebSearch": "允许网络搜索",
+    "send": "发送",
+    "sending": "发送中...",
+    "toolError": "工具错误: ",
+    "imageOnlyError": "OCR/视觉仅支持图像文件。",
+    "failedUpload": "上传失败",
+    "delete": "删除"
+  }
 }

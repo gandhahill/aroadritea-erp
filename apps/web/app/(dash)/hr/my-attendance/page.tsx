@@ -81,7 +81,7 @@ export default async function MyAttendancePage({
   const totalWorked = items.reduce((s, r) => s + (r.workedMinutes ?? 0), 0);
 
   return (
-    <main className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageHeader title={t('title')} description={t('description')} />
 
       {/* Filter */}
@@ -176,7 +176,7 @@ export default async function MyAttendancePage({
           </tbody>
         </table>
       </div>
-    </main>
+    </div>
   );
 }
 

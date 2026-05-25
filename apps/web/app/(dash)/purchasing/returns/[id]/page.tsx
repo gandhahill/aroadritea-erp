@@ -32,7 +32,7 @@ export default async function PurchaseReturnDetailPage({
   const r = result.data;
 
   return (
-    <main className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageHeader title={`${t('detailTitle')} ${r.number}`} description={r.reason} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -81,7 +81,7 @@ export default async function PurchaseReturnDetailPage({
           <span className="font-mono text-brand-ink-2">{r.journalEntryId}</span>
         </p>
       ) : null}
-    </main>
+    </div>
   );
 }
 

@@ -16,9 +16,9 @@ export default async function NewHelpdeskTicketPage() {
   if (!session) redirect('/login');
   const t = await getTranslations('helpdesk');
   return (
-    <main className="space-y-6 p-6">
+    <div className="space-y-6">
       <PageHeader title={t('newTicket')} description={t('newTicketDesc')} />
       <NewTicketClient />
-    </main>
+    </div>
   );
 }
