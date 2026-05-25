@@ -40,8 +40,63 @@ type EntityFilter = (typeof ENTITY_FILTERS)[number];
 
 function renderCellValue(value: unknown): string {
   if (value === null || value === undefined) return '—';
-  if (typeof value === 'string') return value;
-  return JSON.stringify(value).slice(0, 200);
+  if (typeof value === 'string') {
+    return value.length > 200 ? `${value.slice(0, 197)}...` : value;
+  }
+  try {
+    const s = JSON.stringify(value);
+    return s.length > 200 ? `${s.slice(0, 197)}...` : s;
+  } catch {
+    return '[object]';
+  }
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function humanizeKey(key: string): string {
+  return key
+    .replace(/_/g, ' ')
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim();
+}
+
+function HumanReadablePayload({ payload, rawLabel }: { payload: unknown, rawLabel: string }) {
+  if (!isObject(payload)) {
+    return (
+      <pre className="max-w-xs overflow-hidden whitespace-pre-wrap break-words font-mono text-[10px] leading-snug text-brand-ink-2">
+        {renderCellValue(payload)}
+      </pre>
+    );
+  }
+
+  const keys = Object.keys(payload);
+  if (keys.length === 0) return <span className="text-brand-ink-3">—</span>;
+
+  return (
+    <div className="space-y-1">
+      <ul className="text-[11px] leading-relaxed">
+        {keys.map((k) => (
+          <li key={k} className="flex flex-wrap items-baseline gap-1">
+            <span className="font-semibold text-brand-ink">{humanizeKey(k)}:</span>
+            <span className="rounded bg-brand-jade/10 px-1.5 py-0.5 text-brand-jade">
+              {renderCellValue(payload[k])}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <details className="mt-1">
+        <summary className="cursor-pointer text-[10px] font-semibold text-brand-ink-3 hover:text-brand-red">
+          {rawLabel}
+        </summary>
+        <pre className="mt-1 max-h-32 max-w-xs overflow-auto rounded-md bg-brand-cream-1 p-2 font-mono text-[9px] leading-snug text-brand-ink-3">
+          {JSON.stringify(payload, null, 2)}
+        </pre>
+      </details>
+    </div>
+  );
 }
 
 function fmtDate(d: Date): string {
@@ -218,9 +273,7 @@ export default async function AiAssistantLogPage({
                     {row.entityId}
                   </TableCell>
                   <TableCell className="px-3 py-2">
-                    <pre className="max-w-xs overflow-hidden whitespace-pre-wrap break-words font-mono text-[10px] leading-snug text-brand-ink-2">
-                      {renderCellValue(row.after ?? row.before)}
-                    </pre>
+                    <HumanReadablePayload payload={row.after ?? row.before} rawLabel={t('table.rawJson')} />
                   </TableCell>
                 </tr>
               ))

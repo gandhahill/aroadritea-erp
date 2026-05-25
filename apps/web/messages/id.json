@@ -3611,7 +3611,8 @@
         "entity": "Entitas",
         "entityId": "ID Entitas",
         "detail": "Detail",
-        "empty": "Tidak ada data"
+        "empty": "Tidak ada data",
+        "rawJson": "JSON Mentah"
       },
       "filter": {
         "all": "Semua",

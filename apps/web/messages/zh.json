@@ -3688,7 +3688,8 @@
         "entity": "实体",
         "entityId": "实体 ID",
         "detail": "详细信息",
-        "empty": "没有记录"
+        "empty": "没有记录",
+        "rawJson": "原始 JSON"
       },
       "filter": {
         "all": "全部",

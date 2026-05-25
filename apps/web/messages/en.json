@@ -3612,7 +3612,8 @@
         "entity": "Entity",
         "entityId": "Entity ID",
         "detail": "Detail",
-        "empty": "No records found"
+        "empty": "No records found",
+        "rawJson": "Raw JSON"
       },
       "filter": {
         "all": "All",
