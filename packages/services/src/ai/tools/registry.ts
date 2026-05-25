@@ -341,7 +341,7 @@ registerTool({
 registerTool({
   name: 'web_search',
   description:
-    'Search the public web via Brave Search. Only available in chat sessions where the user has opted in via "izinkan pencarian web". Returns up to 10 titled snippets — use them to answer doc-lookup questions, never to scrape PII.',
+    'Search the public web via Exa Search. Only available in chat sessions where the user has opted in via "izinkan pencarian web". Returns up to 10 titled snippets (Exa highlights / summary) — use them to answer doc-lookup questions, never to scrape PII.',
   inputSchema: WebSearchInputSchema,
   parameters: {
     type: 'object',
