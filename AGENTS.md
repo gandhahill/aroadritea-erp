@@ -175,6 +175,8 @@ Full detail in **`SYSTEM-DESIGN.md`**. Operational summary:
 - ❌ Use `number` for money — use `Money` (bigint).
 - ❌ Start a task without entry in `TASK.md` + checkpoint.
 - ❌ Exit a session without updating checkpoint with explicit `Next step`.
+- ❌ **STRICT PROHIBITION**: Hardcode Bahasa Indonesia (or any language) strings in UI components. ALL UI text must use i18n keys and be added to the translation JSON files (`en.json`, `id.json`, `zh.json`) immediately.
+- ❌ **STRICT PROHIBITION**: Skip audit trails. Any transactional or state-changing action MUST include audit logs (either via audit columns in the table or an entry in the `audit_log` table).
 
 ---
 
@@ -323,6 +325,8 @@ Before AI writes the first code:
 - [ ] If new task → already moved from Backlog to Active + checkpoint created?
 - [ ] Know which module is touched, which files will be changed?
 - [ ] No decisions to be made that are not yet in Open Decisions (SD §30)?
+- [ ] **Are all UI strings extracted to i18n keys?** (DO NOT write hardcoded strings)
+- [ ] **Are all state-changing actions logged in the audit trail?** (DO NOT skip audit)
 
 If anything is unclear — **stop and ask the user**.
 
