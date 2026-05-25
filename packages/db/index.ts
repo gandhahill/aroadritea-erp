@@ -185,6 +185,7 @@ export {
   aiChatSessions,
   aiChatMessages,
   aiChatAttachments,
+  aiActionDrafts,
 } from './schema/ai';
 
 // Schema — Notifications

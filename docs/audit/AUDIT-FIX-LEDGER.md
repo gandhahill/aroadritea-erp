@@ -48,13 +48,24 @@
 | AI-P2-005 | ai / audit | 🟡 Med (Compliance) | `KNOWN_ENTITY_TYPES` di `audit/index.ts` belum mencakup tipe entitas baru → warning silent saat audit. | Tambah `sop_document`, `ai_chat_session`, `ai_chat_message`, `ai_tool_call`, `whistleblower_report` ke daftar. | ✅ | (no breaking test; audit insertion tetap berjalan) |
 | AI-P2-006 | ai / ui | 🔵 Info (Feature) | UI chat belum mendukung upload foto struk dan belum membedakan pesan tool. | `chat-session-client.tsx`: tombol "📷 Lampirkan foto struk" → upload ke area `ai-attachments` (sudah ada di T-0170) → forward URL ke service via `attachments[]`. Render pesan `role='tool'` sebagai blok JSON kecil yang ringkas. | ✅ | (manual smoke; typecheck PASS) |
 
+## T-0172 — AI Assistant Phase 3 (2026-05-25)
+
+| ID | Area | Severity | Temuan (path:line) | Perbaikan | Status | Test |
+|----|------|----------|--------------------|-----------|--------|------|
+| AI-P3-001 | ai / drafts | 🟠 High (Sec pattern) | Sebelumnya AI tidak punya jalur write yang aman; setiap tool langsung mengeksekusi akan rentan tampering antara proposal & klik user. | Schema `ai_action_drafts` (migrasi 0032) + service `drafts.ts` dengan pola DB-backed `draft → confirm → commit`. Klien hanya pegang `draft_id`; server re-fetch payload + re-cek permission *target* (mis. `pos.transact`) sebelum dispatch ke service nyata. TTL 30 menit. | ✅ | `ai-drafts.test.ts` (4 tests) |
+| AI-P3-002 | ai / tools | 🟢 Low (Feature) | Sekadar 3 tool baseline. | Tambah 4 tool read-only: `read_file` (allow-list + max 200 line), `get_product` (SKU + variants + price), `get_stock` (stock_levels tenant+location-scoped, lookup location by code/id), `get_today_sales_summary` (wrap `reporting/daily-summary`). | ✅ | typecheck PASS; unit test menyusul di T-0173 |
+| AI-P3-003 | ai / tools | 🟠 High (Feature) | OCR struk POS lama belum ada — use case headline owner. | Tool `ocr_receipt_struk` mem-panggil model reasoning DeepSeek (vision via `image_url` content part), system prompt JSON ketat, Zod-validate output, chain ke `create_manual_sale_draft` → user konfirmasi via `<ConfirmActionCard>`. | ✅ | (E2E manual smoke pending dengan struk asli) |
+| AI-P3-004 | ai / ui | 🔵 Info (UX) | Chat tidak punya cara menyetujui draft mutasi. | `<ConfirmActionCard>` baru: render dari `tool_payload` ketika output `requires_confirmation:true`. Tombol "Setujui & Posting" + "Batal" + countdown expiry + hasil commit dengan referensi ID. | ✅ | (manual smoke; typecheck PASS) |
+| AI-P3-005 | ai / actions | 🟠 High (Sec) | UI butuh server action yang re-cek permission. | `confirmDraftAction` / `cancelDraftAction` / `fetchDraftAction` di `apps/web/app/(dash)/ai-assistant/actions.ts`. Re-derive `ctx` server-side. | ✅ | (covered via drafts service tests) |
+
 ## Backlog (carry-over, updated 2026-05-25)
 
 | ID | Item | Severity | Catatan |
 |----|------|----------|---------|
-| BACKLOG-AI-TOOLS-MORE | Tambahan tool read-only: `read_file(path)`, `get_stock(product_code, location_code)`, `get_product(code)`, `get_today_sales_summary(location_id)`. | 🟡 Med | Pola sama: schema + permission + audit. |
-| BACKLOG-AI-WRITE | AI Phase 3: write tools `draft→confirm→commit` (manual sale, log complaint, correspondence). UI `<ConfirmActionCard>`. | 🟠 High | Permission re-check di commit; idempotency wajib. |
-| BACKLOG-AI-OCR | AI Phase 3 lanjutan: OCR struk POS lama via DeepSeek vision → struktur draft manual-sales → konfirmasi → commit. | 🟠 High | Tergantung BACKLOG-AI-WRITE. |
+| BACKLOG-AI-COMPLAINT | Draft kind kedua: `log_complaint_draft` + commit dispatcher untuk `logComplaint`. | 🟡 Med | Pola sama dengan `manual_sale`. |
+| BACKLOG-AI-WEBSEARCH | Web search opt-in via DeepSeek built-in tool flag (kolom `aiChatSessions.allowWebSearch` sudah ada, default off). | 🟢 Low | Tambah toggle UI di sidebar sesi. |
+| BACKLOG-AI-ADMIN-LOG | Page `/settings/ai-assistant/log` untuk role `ai.assistant.admin` — list draft + tool call lintas user. | 🟡 Med | Re-use audit_log entityType `ai_*`. |
+| BACKLOG-AI-SWEEPER | Scheduled job harian: tandai draft `pending` yang lewat `expires_at` jadi `expired`. | 🟢 Low | Tambah di `scheduled_jobs` seed. |
 | BACKLOG-T-0169 | Shift × Manual Sales integration (variance jurnal) | 🟡 Med | T-0169 belum selesai oleh owner sebelumnya; next step ada di checkpoint T-0169. |
 | BACKLOG-LINT | Lint cleanup branch (332 err / 488 warn) | 🟢 Low | Format/import/a11y mechanical debt. Pisah PR. |
 | BACKLOG-CSP | CSP `unsafe-inline` di `script-src` (apps/web + apps/site) | 🟢 Low | Next.js memerlukan inline untuk hidrasi; ganti ke nonce-based bila waktu memungkinkan. |

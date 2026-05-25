@@ -9,8 +9,11 @@
 import { getSession } from '@/lib/auth';
 import {
   archiveAiSession,
+  cancelDraft,
+  commitDraft,
   createAiSession,
   getAiSession,
+  getDraftForUser,
   isAiAssistantEnabled,
   listAllAiSessionsAdmin,
   listMyAiSessions,
@@ -83,6 +86,54 @@ export async function archiveSessionAction(id: string) {
   const r = await archiveAiSession(id, ctx);
   if (!r.ok) return { ok: false as const, error: r.error.messageKey };
   revalidatePath('/ai-assistant');
+  return { ok: true as const };
+}
+
+export async function fetchDraftAction(draftId: string) {
+  const ctx = await resolveCtx();
+  if (!ctx) return { ok: false as const, error: 'unauthenticated' };
+  const r = await getDraftForUser(draftId, ctx);
+  if (!r.ok) return { ok: false as const, error: r.error.messageKey ?? 'ai.draft.notFound' };
+  return {
+    ok: true as const,
+    draft: {
+      id: r.value.id,
+      kind: r.value.kind,
+      summary: r.value.summary,
+      status: r.value.status,
+      payload: r.value.payload,
+      expiresAt: r.value.expiresAt.toISOString(),
+      consumedAt: r.value.consumedAt?.toISOString() ?? null,
+      resultRef: r.value.resultRef,
+    },
+  };
+}
+
+export async function confirmDraftAction(draftId: string) {
+  const ctx = await resolveCtx();
+  if (!ctx) return { ok: false as const, error: 'unauthenticated' };
+  const r = await commitDraft(draftId, ctx);
+  if (!r.ok) {
+    return {
+      ok: false as const,
+      error: r.error.messageKey ?? 'ai.draft.commitFailed',
+      details: r.error.details ?? null,
+    };
+  }
+  revalidatePath('/ai-assistant');
+  return {
+    ok: true as const,
+    draftId: r.value.draftId,
+    kind: r.value.kind,
+    resultRef: r.value.resultRef,
+  };
+}
+
+export async function cancelDraftAction(draftId: string) {
+  const ctx = await resolveCtx();
+  if (!ctx) return { ok: false as const, error: 'unauthenticated' };
+  const r = await cancelDraft(draftId, ctx, 'user_cancel');
+  if (!r.ok) return { ok: false as const, error: r.error.messageKey ?? 'ai.draft.cancelFailed' };
   return { ok: true as const };
 }
 

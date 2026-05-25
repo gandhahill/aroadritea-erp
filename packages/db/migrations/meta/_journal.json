@@ -225,6 +225,13 @@
       "when": 1779639800000,
       "tag": "0031_ai_assistant",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1779726200000,
+      "tag": "0032_ai_action_drafts",
+      "breakpoints": true
     }
   ]
 }

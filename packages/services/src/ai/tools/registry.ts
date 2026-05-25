@@ -1,5 +1,5 @@
 /**
- * AI tool registry — T-0171 (Phase 2).
+ * AI tool registry — T-0171 (Phase 2) + T-0172 (Phase 3).
  *
  * Tools are pure functions the assistant can invoke. Every tool MUST:
  *   1. Declare the permission code it requires (gated through the same
@@ -7,14 +7,18 @@
  *      bypass).
  *   2. Validate input via Zod before touching the DB.
  *   3. Return JSON-serializable output (becomes the tool message content).
- *   4. Refuse mutations unless explicitly marked write-capable (Phase 3).
+ *   4. Refuse mutations directly — write-flow tools stage a row in
+ *      `ai_action_drafts` and the user must click "Setujui & Posting"
+ *      to call `commitDraft` (re-checks the *target* permission).
  *
  * The registry exposes:
  *   - `listAvailableTools(ctx)` — tools whose permission the caller has;
  *      used to build the OpenAI-compatible `tools` array.
- *   - `executeTool(ctx, name, args)` — single entrypoint the conversation
- *      runner calls when the model returns a tool_call. It runs the
- *      permission check + audit log, then dispatches to the implementation.
+ *   - `executeTool(ctx, name, args, deps?)` — single entrypoint the
+ *      conversation runner calls when the model returns a tool_call.
+ *      Runs the permission check + audit log, then dispatches to the
+ *      implementation. `deps` carries sessionId / messageId for tools
+ *      that need to associate state to the chat (drafts).
  */
 
 import { db } from '@erp/db';
@@ -26,9 +30,32 @@ import type { AuditContext } from '@erp/shared/types';
 import type { z } from 'zod';
 import { can } from '../../iam';
 import type { AiToolDefinition } from '../client';
+import {
+  CreateManualSaleDraftInputSchema,
+  type CreateManualSaleDraftToolDeps,
+  createManualSaleDraftTool,
+} from './create-manual-sale-draft';
+import { GetProductInputSchema, getProductTool } from './get-product';
 import { GetRecentOrdersInputSchema, getRecentOrdersTool } from './get-recent-orders';
+import { GetStockInputSchema, getStockTool } from './get-stock';
+import {
+  GetTodaySalesSummaryInputSchema,
+  getTodaySalesSummaryTool,
+} from './get-today-sales-summary';
+import { OcrReceiptStrukInputSchema, ocrReceiptStrukTool } from './ocr-receipt';
+import { ReadFileInputSchema, readFileTool } from './read-file';
 import { RequestAdminHelpInputSchema, requestAdminHelpTool } from './request-admin-help';
 import { SearchCodebaseInputSchema, searchCodebaseTool } from './search-codebase';
+
+/**
+ * Optional execution dependencies passed by the conversation runner to
+ * tools that need to know which session they're running inside (e.g.
+ * draft creators that persist sessionId / messageId on the draft row).
+ */
+export interface ToolExecutionDeps {
+  sessionId?: string;
+  messageId?: string;
+}
 
 export interface AiTool<TIn, TOut> {
   /** Name exposed to the model. Snake_case, no namespace dots. */
@@ -41,10 +68,11 @@ export interface AiTool<TIn, TOut> {
   parameters: Record<string, unknown>;
   /** Permission code required to call this tool. */
   permission: string;
-  /** Whether the tool can mutate data. Phase 2 must be `false`. */
+  /** Whether the tool can mutate data. Draft creators are `false` —
+   *  they only stage a row; the commit happens via the confirm flow. */
   mutates: boolean;
   /** Implementation. */
-  execute: (input: TIn, ctx: AuditContext) => Promise<TOut>;
+  execute: (input: TIn, ctx: AuditContext, deps?: ToolExecutionDeps) => Promise<TOut>;
 }
 
 // Internal-only union — registering a tool through `registerTool` is the
@@ -117,8 +145,6 @@ registerTool({
     },
     required: ['query'],
   },
-  // Reading source isn't sensitive data, but only assistants the operator
-  // explicitly enabled can use it.
   permission: 'ai.assistant.use',
   mutates: false,
   execute: searchCodebaseTool,
@@ -134,13 +160,9 @@ registerTool({
     properties: {
       location_id: {
         type: 'string',
-        description:
-          'Outlet ID. Defaults to the caller\'s session location when omitted.',
+        description: 'Outlet ID. Defaults to the caller\'s session location when omitted.',
       },
-      limit: {
-        type: 'integer',
-        description: 'Cap on returned orders (1–25, default 10).',
-      },
+      limit: { type: 'integer', description: 'Cap on returned orders (1–25, default 10).' },
       since_minutes: {
         type: 'integer',
         description:
@@ -148,11 +170,151 @@ registerTool({
       },
     },
   },
-  // Cashiers and supervisors already need pos.transact / reporting.view
-  // to see orders in the UI; the same gates apply here.
   permission: 'reporting.view',
   mutates: false,
   execute: getRecentOrdersTool,
+});
+
+registerTool({
+  name: 'read_file',
+  description:
+    'Read up to 200 lines of a specific file in the repo, gated to the same allow-list as search_codebase. Use this after search_codebase to quote exact context.',
+  inputSchema: ReadFileInputSchema,
+  parameters: {
+    type: 'object',
+    properties: {
+      path: {
+        type: 'string',
+        description:
+          'Repo-relative path, e.g. "packages/services/src/pos/manual-sales.ts".',
+      },
+      start_line: { type: 'integer', description: 'Start line (default 1).' },
+      line_count: { type: 'integer', description: 'Number of lines (1–200, default 80).' },
+    },
+    required: ['path'],
+  },
+  permission: 'ai.assistant.use',
+  mutates: false,
+  execute: readFileTool,
+});
+
+registerTool({
+  name: 'get_product',
+  description:
+    'Look up a product by SKU and return its variants and prices so you can answer questions like "berapa harga T01 Large?".',
+  inputSchema: GetProductInputSchema,
+  parameters: {
+    type: 'object',
+    properties: {
+      code: { type: 'string', description: 'Product SKU (case-sensitive).' },
+    },
+    required: ['code'],
+  },
+  permission: 'inventory.product.read',
+  mutates: false,
+  execute: getProductTool,
+});
+
+registerTool({
+  name: 'get_stock',
+  description:
+    'Return current on-hand stock for a product (optionally a specific variant) at one outlet. Use this for "berapa sisa tea_leaf di Malioboro?".',
+  inputSchema: GetStockInputSchema,
+  parameters: {
+    type: 'object',
+    properties: {
+      product_code: { type: 'string', description: 'Product SKU.' },
+      location: {
+        type: 'string',
+        description: 'Outlet code OR ID. Defaults to caller\'s session location when omitted.',
+      },
+      variant_code: { type: 'string', description: 'Optional variant SKU.' },
+    },
+    required: ['product_code'],
+  },
+  permission: 'inventory.view',
+  mutates: false,
+  execute: getStockTool,
+});
+
+registerTool({
+  name: 'get_today_sales_summary',
+  description:
+    'Daily sales summary for one outlet (gross/net/PB1/refunds/payment breakdown/top products). Defaults to today (WIB).',
+  inputSchema: GetTodaySalesSummaryInputSchema,
+  parameters: {
+    type: 'object',
+    properties: {
+      date: { type: 'string', description: 'YYYY-MM-DD; defaults to today.' },
+      location_id: {
+        type: 'string',
+        description: 'Outlet ID. Defaults to caller\'s session location.',
+      },
+    },
+  },
+  permission: 'reporting.view',
+  mutates: false,
+  execute: getTodaySalesSummaryTool,
+});
+
+registerTool({
+  name: 'create_manual_sale_draft',
+  description:
+    'Stage a manual-sales closing as a draft so the cashier can confirm it in the chat UI. NEVER posts directly — the user must click "Setujui & Posting", which re-checks pos.transact permission and dispatches to createManualSalesClosing.',
+  inputSchema: CreateManualSaleDraftInputSchema,
+  parameters: {
+    type: 'object',
+    properties: {
+      location_id: { type: 'string', description: 'Outlet ID; defaults to session location.' },
+      sales_date: { type: 'string', description: 'YYYY-MM-DD of the sales day.' },
+      channel: { type: 'string', description: 'walk_in | gofood | grabfood | shopeefood | …' },
+      payment_method: {
+        type: 'string',
+        description: 'cash | qris | bank_transfer | ewallet | …',
+      },
+      gross_sales: { type: 'string', description: 'Total rupiah as integer string (e.g. "320000").' },
+      discount_total: { type: 'string', description: 'Optional discount rupiah integer string.' },
+      transaction_count: { type: 'integer', description: 'Optional transaction count.' },
+      source_reference: { type: 'string', description: 'Optional reference, e.g. receipt file.' },
+      notes: { type: 'string', description: 'Operator notes / OCR caveats.' },
+    },
+    required: ['sales_date', 'gross_sales'],
+  },
+  permission: 'pos.transact',
+  mutates: false,
+  execute: (
+    input: import('./create-manual-sale-draft').CreateManualSaleDraftInput,
+    ctx: AuditContext,
+    deps?: ToolExecutionDeps,
+  ) => createManualSaleDraftTool(input, ctx, deps as CreateManualSaleDraftToolDeps | undefined),
+});
+
+registerTool({
+  name: 'ocr_receipt_struk',
+  description:
+    'OCR a photographed receipt printed by the legacy POS. Extracts the date / channel / payment / gross_sales / discount / transaction_count, then stages a manual-sales draft for the cashier to confirm.',
+  inputSchema: OcrReceiptStrukInputSchema,
+  parameters: {
+    type: 'object',
+    properties: {
+      attachment_url: {
+        type: 'string',
+        description:
+          'URL of an image previously uploaded via /api/uploads (area=ai-attachments).',
+      },
+      location_id: { type: 'string', description: 'Outlet ID; defaults to session location.' },
+      channel: { type: 'string', description: 'Override channel hint.' },
+      payment_method: { type: 'string', description: 'Override payment hint.' },
+    },
+    required: ['attachment_url'],
+  },
+  permission: 'pos.transact',
+  mutates: false,
+  execute: (
+    input: import('./ocr-receipt').OcrReceiptStrukInput,
+    ctx: AuditContext,
+    deps?: ToolExecutionDeps,
+  ) => ocrReceiptStrukTool(input, ctx, deps as CreateManualSaleDraftToolDeps | undefined),
 });
 
 // ───────────────────────────────────────────────────────────────────────
@@ -189,6 +351,7 @@ export async function executeTool(
   ctx: AuditContext,
   name: string,
   rawArgsJson: string,
+  deps?: ToolExecutionDeps,
 ): Promise<Result<{ output: unknown; log: ToolExecutionLog }>> {
   const tool = TOOLS[name];
   if (!tool) {
@@ -233,7 +396,7 @@ export async function executeTool(
   }
 
   try {
-    const output = await tool.execute(validated.data, ctx);
+    const output = await tool.execute(validated.data, ctx, deps);
     const log: ToolExecutionLog = {
       toolName: name,
       permission: tool.permission,

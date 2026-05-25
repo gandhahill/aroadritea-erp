@@ -259,6 +259,7 @@ export async function sendChatMessage(
     }
   }
 
+
   const assistantMessageId = await recordChatMessage({
     sessionId: input.sessionId,
     ctx,
@@ -281,7 +282,9 @@ async function runToolCall(
   call: AiToolCall,
   sessionId: string,
 ): Promise<string> {
-  const result = await executeTool(ctx, call.function.name, call.function.arguments);
+  const result = await executeTool(ctx, call.function.name, call.function.arguments, {
+    sessionId,
+  });
   if (!result.ok) {
     // The tool message format expects a string. Surface the error code
     // and message so the model can apologise / retry differently.

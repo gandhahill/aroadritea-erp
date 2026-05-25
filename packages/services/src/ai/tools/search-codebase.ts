@@ -64,8 +64,13 @@ const DENY_DIR_NAMES = new Set([
 ]);
 const DENY_FILE_PREFIXES = ['.env'];
 const MAX_FILE_BYTES = 256 * 1024; // skip huge files
-const TIME_BUDGET_MS = 5_000;
+const DEFAULT_TIME_BUDGET_MS = 5_000;
 const DEFAULT_MAX_RESULTS = 10;
+
+function timeBudgetMs(): number {
+  const raw = Number.parseInt(process.env.AROADRI_SEARCH_BUDGET_MS ?? '', 10);
+  return Number.isFinite(raw) && raw > 500 ? raw : DEFAULT_TIME_BUDGET_MS;
+}
 
 function repoRoot(): string {
   return process.env.AROADRI_REPO_ROOT ?? process.cwd();
@@ -141,7 +146,7 @@ export async function searchCodebaseTool(
   const matches: SearchCodebaseMatch[] = [];
   let scanned = 0;
   let truncated = false;
-  const deadline = Date.now() + TIME_BUDGET_MS;
+  const deadline = Date.now() + timeBudgetMs();
 
   for (const top of ALLOW_ROOTS) {
     if (matches.length >= maxResults) break;

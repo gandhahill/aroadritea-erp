@@ -153,25 +153,44 @@ describe('request_admin_help tool', () => {
 // ───────────────────────────────────────────────────────────────────────
 
 describe('search_codebase tool', () => {
+  // Use a tiny fixture tree so the test never walks the full repo (which
+  // flakes under heavy parallel vitest load). The budget override gives
+  // headroom on slow Windows runners.
+  const FIXTURE_ROOT = path.resolve(__dirname, 'fixtures/codebase-stub');
+
   beforeEach(() => {
-    // Vitest runs from packages/services; point the tool at the repo root.
-    process.env.AROADRI_REPO_ROOT = REPO_ROOT;
+    process.env.AROADRI_REPO_ROOT = FIXTURE_ROOT;
+    process.env.AROADRI_SEARCH_BUDGET_MS = '15000';
   });
 
-  it('finds a known string under packages/', async () => {
-    const { searchCodebaseTool } = await import('../src/ai/tools/search-codebase');
-    const out = await searchCodebaseTool({ query: 'sopDocuments', max_results: 5 }, ctx);
-    expect(out.matches.length).toBeGreaterThan(0);
-    expect(out.matches.every((m) => m.file.startsWith('packages/') || m.file.startsWith('docs/') || m.file.startsWith('apps/') || m.file.startsWith('scripts/'))).toBe(
-      true,
-    );
-  });
+  it(
+    'finds a known string under packages/',
+    async () => {
+      const { searchCodebaseTool } = await import('../src/ai/tools/search-codebase');
+      const out = await searchCodebaseTool({ query: 'sopDocuments', max_results: 5 }, ctx);
+      expect(out.matches.length).toBeGreaterThan(0);
+      expect(
+        out.matches.every(
+          (m) =>
+            m.file.startsWith('packages/') ||
+            m.file.startsWith('docs/') ||
+            m.file.startsWith('apps/') ||
+            m.file.startsWith('scripts/'),
+        ),
+      ).toBe(true);
+    },
+    15_000,
+  );
 
-  it('caps results at max_results', async () => {
-    const { searchCodebaseTool } = await import('../src/ai/tools/search-codebase');
-    const out = await searchCodebaseTool({ query: 'export', max_results: 3 }, ctx);
-    expect(out.matches.length).toBeLessThanOrEqual(3);
-  });
+  it(
+    'caps results at max_results',
+    async () => {
+      const { searchCodebaseTool } = await import('../src/ai/tools/search-codebase');
+      const out = await searchCodebaseTool({ query: 'export', max_results: 3 }, ctx);
+      expect(out.matches.length).toBeLessThanOrEqual(3);
+    },
+    15_000,
+  );
 
   it(
     'never returns paths outside the allow-list',

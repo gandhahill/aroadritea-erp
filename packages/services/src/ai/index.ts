@@ -14,9 +14,10 @@
 export * from './client';
 export * from './session';
 export * from './conversation';
+export * from './drafts';
 export {
   listAvailableTools,
   executeTool,
   _resetToolsForTests,
 } from './tools/registry';
-export type { ToolExecutionLog, AiTool } from './tools/registry';
+export type { ToolExecutionLog, AiTool, ToolExecutionDeps } from './tools/registry';

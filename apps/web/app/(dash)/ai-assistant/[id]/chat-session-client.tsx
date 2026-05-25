@@ -3,6 +3,7 @@
 import { Button } from '@erp/ui';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { sendMessageAction } from '../actions';
+import { ConfirmActionCard } from './confirm-action-card';
 
 interface Message {
   id: string;
@@ -12,6 +13,43 @@ interface Message {
   toolPayload?: unknown;
   createdAt: Date;
   requiresConfirmation: boolean;
+}
+
+interface DraftHint {
+  draftId: string;
+  kind: string;
+  summary: string;
+  expiresAt: string;
+}
+
+/**
+ * Tool messages carry their executed payload in `toolPayload`. If the
+ * payload's `output` includes `requires_confirmation: true` + `draft_id`,
+ * we surface the ConfirmActionCard instead of the raw JSON.
+ */
+function extractDraftHint(payload: unknown): DraftHint | null {
+  if (!payload || typeof payload !== 'object') return null;
+  const p = payload as Record<string, unknown>;
+  const inner = p.payload as { ok?: boolean; output?: unknown } | undefined;
+  const output = inner?.output as Record<string, unknown> | undefined;
+  if (
+    output &&
+    output.requires_confirmation === true &&
+    typeof output.draft_id === 'string' &&
+    typeof output.summary === 'string' &&
+    typeof output.expires_at === 'string'
+  ) {
+    return {
+      draftId: output.draft_id,
+      kind:
+        typeof (output as { kind?: string }).kind === 'string'
+          ? (output as { kind: string }).kind
+          : 'manual_sale',
+      summary: output.summary,
+      expiresAt: output.expires_at,
+    };
+  }
+  return null;
 }
 
 interface Props {
@@ -174,6 +212,21 @@ export function ChatSessionClient(props: Props) {
         ) : null}
         {messages.map((m) => {
           const isTool = m.role === 'tool';
+          const draftHint = isTool ? extractDraftHint(m.toolPayload) : null;
+
+          if (isTool && draftHint) {
+            return (
+              <div key={m.id} className="max-w-[85%]">
+                <ConfirmActionCard
+                  draftId={draftHint.draftId}
+                  kind={draftHint.kind}
+                  summary={draftHint.summary}
+                  expiresAt={draftHint.expiresAt}
+                />
+              </div>
+            );
+          }
+
           const bubbleClass = isTool
             ? 'bg-brand-cream-3/70 text-brand-ink-2 text-xs border border-brand-cream-3'
             : m.role === 'user'
