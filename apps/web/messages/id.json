@@ -701,6 +701,56 @@
       "statusReceived": "Diterima",
       "statusClosed": "Ditutup",
       "statusCancelled": "Dibatalkan"
+    },
+    "returns": {
+      "title": "Retur Pembelian",
+      "description": "Catat barang yang dikembalikan ke supplier setelah GRN (rusak / expired / salah kirim).",
+      "detailTitle": "Detail Retur",
+      "newReturn": "+ Retur Baru",
+      "newReturnDesc": "Pilih GRN sumber, tentukan baris yang dikembalikan, lalu submit untuk diapprove.",
+      "step1": "1. Pilih GRN sumber",
+      "step2": "2. Pilih baris yang dikembalikan",
+      "step3": "3. Alasan & simpan draft",
+      "grnId": "ID GRN",
+      "loadGrn": "Muat GRN",
+      "selectCol": "Pilih",
+      "returnDate": "Tanggal Retur",
+      "reason": "Alasan",
+      "reasonPlaceholder": "cth: rusak saat tiba",
+      "notesLabel": "Catatan",
+      "saveDraft": "Simpan Draft",
+      "terminalState": "Retur sudah di status final. Tidak ada aksi lebih lanjut.",
+      "journalEntryRef": "Referensi jurnal",
+      "empty": "Belum ada retur.",
+      "table": {
+        "number": "No. Retur",
+        "returnDate": "Tanggal",
+        "supplier": "Supplier",
+        "status": "Status",
+        "grandTotal": "Total"
+      },
+      "lineHeader": {
+        "product": "Produk",
+        "received": "Diterima",
+        "qty": "Qty Retur",
+        "uom": "UoM",
+        "unitCost": "Harga Satuan",
+        "lineTotal": "Subtotal"
+      },
+      "status": {
+        "all": "Semua",
+        "draft": "Draft",
+        "submitted": "Diajukan",
+        "approved": "Disetujui",
+        "posted": "Terposting",
+        "cancelled": "Dibatalkan"
+      },
+      "actions": {
+        "submit": "Ajukan",
+        "approve": "Setujui",
+        "post": "Posting",
+        "cancel": "Batalkan"
+      }
     }
   },
   "scheduledJobs": {
@@ -1251,6 +1301,7 @@
     "purchaseOrders": "Pesanan Pembelian",
     "newPo": "PO Baru",
     "grnReport": "Laporan Penerimaan",
+    "purchaseReturns": "Retur Pembelian",
     "tax": "Pajak",
     "taxRates": "Tarif Pajak",
     "taxRules": "Aturan Pajak",

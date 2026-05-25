@@ -22,3 +22,26 @@ export {
 export type { CreateGRNInput, GRNLineInput, ConfirmGRNInput } from './grn-schemas';
 export { trackPurchaseOrderShipment } from './shipment-tracking';
 export type { ShipmentTrackingResult } from './shipment-tracking';
+export {
+  createPurchaseReturn,
+  submitPurchaseReturn,
+  approvePurchaseReturn,
+  cancelPurchaseReturn,
+  postPurchaseReturn,
+  listPurchaseReturns,
+  getPurchaseReturn,
+} from './return-service';
+export type {
+  PurchaseReturnSummary,
+  PurchaseReturnDetail,
+} from './return-service';
+export {
+  CreatePurchaseReturnInputSchema,
+  PurchaseReturnLineInputSchema,
+  PurchaseReturnIdInputSchema,
+} from './return-schemas';
+export type {
+  CreatePurchaseReturnInput,
+  PurchaseReturnLineInput,
+  PurchaseReturnIdInput,
+} from './return-schemas';

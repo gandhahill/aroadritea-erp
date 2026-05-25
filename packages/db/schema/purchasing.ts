@@ -245,6 +245,98 @@ export const purchaseInvoiceLines = pgTable(
   ],
 );
 
+// ─── Purchase Returns (T-0180) ────────────────────────────────────────────────
+//
+// Tracks goods returned to a supplier *after* GRN — broken/expired stock,
+// wrong delivery, etc. Posts a JE (DR Accounts Payable / CR Inventory) on
+// `post` and decrements stock_levels via the standard stock movement path
+// (kind = 'purchase_return').
+
+export const purchaseReturns = pgTable(
+  'purchase_returns',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    number: text('number').notNull(), // PR-2026-05-0001
+
+    supplierId: text('supplier_id').notNull(), // FK partners (kind='supplier')
+
+    // Source GRN — required so we can validate qty (can't return more
+    // than was received). PO is derived through the GRN if needed.
+    grnId: text('grn_id').notNull(), // FK goods_receipt_notes
+
+    returnDate: date('return_date').notNull(),
+    reason: text('reason').notNull(), // free text; e.g. "broken on arrival"
+
+    status: text('status').notNull().default('draft'),
+    // 'draft' | 'submitted' | 'approved' | 'posted' | 'cancelled'
+
+    subtotal: bigint('subtotal', { mode: 'bigint' }).notNull().default(sql`0`),
+    taxTotal: bigint('tax_total', { mode: 'bigint' }).notNull().default(sql`0`),
+    grandTotal: bigint('grand_total', { mode: 'bigint' }).notNull().default(sql`0`),
+
+    notes: text('notes'),
+
+    submittedBy: text('submitted_by'),
+    submittedAt: timestamp('submitted_at', { withTimezone: true }),
+    approvedBy: text('approved_by'),
+    approvedAt: timestamp('approved_at', { withTimezone: true }),
+    postedBy: text('posted_by'),
+    postedAt: timestamp('posted_at', { withTimezone: true }),
+    cancelledBy: text('cancelled_by'),
+    cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+
+    // Reference to generated journal entry (reverses AP + Inventory).
+    journalEntryId: text('journal_entry_id'),
+
+    ...versionCol,
+    ...auditCols,
+  },
+  (t) => [
+    index('purchase_returns_tenant_loc_idx').on(t.tenantId, t.locationId),
+    index('purchase_returns_supplier_idx').on(t.supplierId),
+    index('purchase_returns_grn_idx').on(t.grnId),
+    index('purchase_returns_status_idx').on(t.status),
+    index('purchase_returns_number_idx').on(t.number),
+  ],
+);
+
+export const purchaseReturnLines = pgTable(
+  'purchase_return_lines',
+  {
+    ...pk,
+
+    returnId: text('return_id').notNull(), // FK purchase_returns
+    lineNo: integer('line_no').notNull(),
+
+    // Mirror of grn_lines so the return is self-contained — handles the
+    // edge case where the source GRN line is later corrected.
+    grnLineId: text('grn_line_id').notNull(),
+    productId: text('product_id').notNull(),
+    variantId: text('variant_id'),
+
+    qtyReturned: numeric('qty_returned', { precision: 14, scale: 3 }).notNull(),
+    uom: text('uom').notNull(),
+
+    unitCost: bigint('unit_cost', { mode: 'bigint' }).notNull(),
+    lineSubtotal: bigint('line_subtotal', { mode: 'bigint' }).notNull(),
+    lineTax: bigint('line_tax', { mode: 'bigint' }).notNull().default(sql`0`),
+    lineTotal: bigint('line_total', { mode: 'bigint' }).notNull(),
+
+    taxCode: text('tax_code'),
+    notes: text('notes'),
+
+    ...auditCols,
+  },
+  (t) => [
+    index('purchase_return_lines_return_idx').on(t.returnId),
+    index('purchase_return_lines_grn_line_idx').on(t.grnLineId),
+    index('purchase_return_lines_product_idx').on(t.productId),
+  ],
+);
+
 export const shipmentTrackingRequests = pgTable(
   'shipment_tracking_requests',
   {

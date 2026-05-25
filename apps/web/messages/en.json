@@ -701,6 +701,56 @@
       "statusReceived": "Received",
       "statusClosed": "Closed",
       "statusCancelled": "Cancelled"
+    },
+    "returns": {
+      "title": "Purchase Returns",
+      "description": "Record goods returned to a supplier after GRN (broken / expired / wrong delivery).",
+      "detailTitle": "Return Detail",
+      "newReturn": "+ New Return",
+      "newReturnDesc": "Pick a source GRN, choose which lines to return, then submit for approval.",
+      "step1": "1. Load source GRN",
+      "step2": "2. Select lines to return",
+      "step3": "3. Reason & save draft",
+      "grnId": "GRN ID",
+      "loadGrn": "Load GRN",
+      "selectCol": "Pick",
+      "returnDate": "Return Date",
+      "reason": "Reason",
+      "reasonPlaceholder": "e.g. broken on arrival",
+      "notesLabel": "Notes",
+      "saveDraft": "Save Draft",
+      "terminalState": "Return is in a terminal state. No further actions.",
+      "journalEntryRef": "Journal entry ref",
+      "empty": "No returns yet.",
+      "table": {
+        "number": "Return #",
+        "returnDate": "Date",
+        "supplier": "Supplier",
+        "status": "Status",
+        "grandTotal": "Total"
+      },
+      "lineHeader": {
+        "product": "Product",
+        "received": "Received",
+        "qty": "Return Qty",
+        "uom": "UoM",
+        "unitCost": "Unit Cost",
+        "lineTotal": "Subtotal"
+      },
+      "status": {
+        "all": "All",
+        "draft": "Draft",
+        "submitted": "Submitted",
+        "approved": "Approved",
+        "posted": "Posted",
+        "cancelled": "Cancelled"
+      },
+      "actions": {
+        "submit": "Submit",
+        "approve": "Approve",
+        "post": "Post",
+        "cancel": "Cancel"
+      }
     }
   },
   "scheduledJobs": {
@@ -1246,6 +1296,7 @@
     "purchaseOrders": "Purchase Orders",
     "newPo": "New PO",
     "grnReport": "GRN Report",
+    "purchaseReturns": "Purchase Returns",
     "tax": "Tax",
     "taxRates": "Tax Rates",
     "taxRules": "Tax Rules",

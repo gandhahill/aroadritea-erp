@@ -378,6 +378,21 @@ export const PERMISSIONS_SEED = [
     module: 'purchasing',
     description: n('Catat penerimaan barang', 'Record goods received', '记录收货'),
   },
+  {
+    code: 'purchasing.return.create',
+    module: 'purchasing',
+    description: n('Buat retur pembelian', 'Create purchase return', '创建采购退货'),
+  },
+  {
+    code: 'purchasing.return.approve',
+    module: 'purchasing',
+    description: n('Setujui retur pembelian', 'Approve purchase return', '批准采购退货'),
+  },
+  {
+    code: 'purchasing.return.post',
+    module: 'purchasing',
+    description: n('Posting jurnal retur pembelian', 'Post purchase-return journal', '过账采购退货分录'),
+  },
   // HR
   {
     code: 'hr.view',
@@ -650,6 +665,9 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'purchasing.view',
     'purchasing.po.create',
     'purchasing.grn.create',
+    'purchasing.return.create',
+    'purchasing.return.approve',
+    'purchasing.return.post',
     'hr.view',
     'hr.employee.read',
     'hr.employee.write',

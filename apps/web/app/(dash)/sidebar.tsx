@@ -272,6 +272,7 @@ export function Sidebar() {
         { label: t('purchaseOrders'), href: '/purchasing', icon: <></> },
         { label: t('newPo'), href: '/purchasing/po/new', icon: <></> },
         { label: t('grnReport'), href: '/purchasing/grn-report', icon: <></> },
+        { label: t('purchaseReturns'), href: '/purchasing/returns', icon: <></> },
       ],
     },
     {

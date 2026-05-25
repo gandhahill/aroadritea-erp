@@ -722,6 +722,56 @@
       "statusReceived": "已接收",
       "statusClosed": "已关闭",
       "statusCancelled": "已取消"
+    },
+    "returns": {
+      "title": "采购退货",
+      "description": "记录 GRN 之后退回供应商的货物（损坏 / 过期 / 误送）。",
+      "detailTitle": "退货明细",
+      "newReturn": "+ 新建退货",
+      "newReturnDesc": "选择源 GRN，挑选退回的明细行，然后提交审批。",
+      "step1": "1. 加载源 GRN",
+      "step2": "2. 选择退回的明细",
+      "step3": "3. 原因并保存草稿",
+      "grnId": "GRN ID",
+      "loadGrn": "加载 GRN",
+      "selectCol": "选择",
+      "returnDate": "退货日期",
+      "reason": "原因",
+      "reasonPlaceholder": "如：到货时已损坏",
+      "notesLabel": "备注",
+      "saveDraft": "保存草稿",
+      "terminalState": "退货已处于终态，无法继续操作。",
+      "journalEntryRef": "凭证号",
+      "empty": "暂无退货。",
+      "table": {
+        "number": "退货号",
+        "returnDate": "日期",
+        "supplier": "供应商",
+        "status": "状态",
+        "grandTotal": "总额"
+      },
+      "lineHeader": {
+        "product": "产品",
+        "received": "已收",
+        "qty": "退回数量",
+        "uom": "单位",
+        "unitCost": "单价",
+        "lineTotal": "小计"
+      },
+      "status": {
+        "all": "全部",
+        "draft": "Draft",
+        "submitted": "已提交",
+        "approved": "已批准",
+        "posted": "已过账",
+        "cancelled": "已取消"
+      },
+      "actions": {
+        "submit": "提交",
+        "approve": "批准",
+        "post": "过账",
+        "cancel": "取消"
+      }
     }
   },
   "scheduledJobs": {
@@ -1286,6 +1336,7 @@
     "purchaseOrders": "采购订单",
     "newPo": "新采购订单",
     "grnReport": "入库报告",
+    "purchaseReturns": "采购退货",
     "tax": "税务",
     "taxRates": "税率",
     "taxRules": "税务规则",
