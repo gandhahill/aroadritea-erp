@@ -250,6 +250,19 @@ export interface UserNotificationRow {
   createdAt: Date;
 }
 
+// T-0175 re-exports
+export {
+  sendTransactionalEmail,
+  type SendEmailInput,
+  type SendEmailResult,
+} from './email-transport';
+export {
+  notifyUser,
+  notifyUserByEmail,
+  type NotifyUserInput,
+  type NotifyUserResult,
+} from './notify-user';
+
 export async function listUserNotifications(
   tenantId: string,
   userId: string,

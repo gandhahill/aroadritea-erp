@@ -6,9 +6,149 @@ import { auditLog } from '@erp/db/schema/audit';
 import { locations } from '@erp/db/schema/auth';
 import { employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
 import { requirePermission } from '@erp/services/iam';
+import { notifyUserByEmail } from '@erp/services/notification';
 import { generateId } from '@erp/shared/id';
 import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
+
+/**
+ * T-0175 — fan-out a shift change notification (in-app + email) to the
+ * affected employee. Best-effort: the schedule mutation must not fail
+ * just because email is unreachable.
+ *
+ * `action` describes the change so the email can read naturally:
+ *   - 'created'  → "Shift baru ditambahkan untuk Anda"
+ *   - 'updated'  → "Shift Anda diperbarui"
+ *   - 'deleted'  → "Shift Anda dihapus"
+ */
+async function notifyShiftChange(args: {
+  tenantId: string;
+  employeeId: string;
+  action: 'created' | 'updated' | 'deleted';
+  workDate: string;
+  shiftLabel: string | null;
+  kind: 'shift' | 'off';
+  locationLabel: string | null;
+  notes?: string | null;
+}): Promise<void> {
+  try {
+    const [employee] = await db
+      .select({ name: employees.name, email: employees.email })
+      .from(employees)
+      .where(and(eq(employees.tenantId, args.tenantId), eq(employees.id, args.employeeId)))
+      .limit(1);
+    if (!employee?.email) return;
+
+    const labels = {
+      created: {
+        id: 'Jadwal shift baru',
+        en: 'New shift scheduled',
+        zh: '新班次已安排',
+      },
+      updated: {
+        id: 'Jadwal shift diperbarui',
+        en: 'Shift schedule updated',
+        zh: '班次安排已更新',
+      },
+      deleted: {
+        id: 'Jadwal shift dibatalkan',
+        en: 'Shift schedule cancelled',
+        zh: '班次安排已取消',
+      },
+    } as const;
+    const verb = labels[args.action];
+
+    const shiftLine =
+      args.kind === 'off'
+        ? 'Status: hari libur (off)'
+        : `Shift: ${args.shiftLabel ?? '—'}`;
+
+    const titleBahasa = `${verb.id} — ${args.workDate}`;
+    const bodyBahasa = [
+      `Hai ${employee.name},`,
+      '',
+      `${verb.id} untuk tanggal ${args.workDate}.`,
+      shiftLine,
+      args.locationLabel ? `Lokasi: ${args.locationLabel}` : null,
+      args.notes ? `Catatan: ${args.notes}` : null,
+      '',
+      'Mohon dicek di Aroadri Tea ERP → HR → Schedule. Jika ada pertanyaan, hubungi atasan langsung.',
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    const html =
+      `<p>Hai <strong>${escapeHtml(employee.name)}</strong>,</p>` +
+      `<p>${escapeHtml(verb.id)} untuk tanggal <strong>${escapeHtml(args.workDate)}</strong>.</p>` +
+      `<ul>` +
+      `<li>${escapeHtml(shiftLine)}</li>` +
+      (args.locationLabel ? `<li>Lokasi: ${escapeHtml(args.locationLabel)}</li>` : '') +
+      (args.notes ? `<li>Catatan: ${escapeHtml(args.notes)}</li>` : '') +
+      `</ul>` +
+      `<p>Buka aplikasi Aroadri Tea ERP → HR → Schedule untuk detail.</p>`;
+
+    await notifyUserByEmail({
+      tenantId: args.tenantId,
+      email: employee.email,
+      kind: 'shift',
+      title: titleBahasa,
+      body: bodyBahasa,
+      link: '/hr/schedule',
+      email_template: {
+        subject: `[Aroadri Tea] ${titleBahasa}`,
+        text: bodyBahasa,
+        html,
+      },
+    });
+  } catch {
+    // Notification is best-effort.
+  }
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function resolveShiftLabel(
+  shiftDefinitionId: string | null | undefined,
+): Promise<string | null> {
+  if (!shiftDefinitionId) return null;
+  const [s] = await db
+    .select({
+      code: shiftDefinitions.code,
+      name: shiftDefinitions.name,
+      startTime: shiftDefinitions.startTime,
+      endTime: shiftDefinitions.endTime,
+    })
+    .from(shiftDefinitions)
+    .where(eq(shiftDefinitions.id, shiftDefinitionId))
+    .limit(1);
+  if (!s) return null;
+  const label = (s.name as Record<string, string> | null)?.id
+    ?? (s.name as Record<string, string> | null)?.en
+    ?? s.code;
+  return `${label} ${s.startTime}-${s.endTime}`;
+}
+
+async function resolveLocationLabel(locationId: string | null | undefined): Promise<string | null> {
+  if (!locationId) return null;
+  const [loc] = await db
+    .select({ name: locations.name, code: locations.code })
+    .from(locations)
+    .where(eq(locations.id, locationId))
+    .limit(1);
+  if (!loc) return null;
+  return (
+    ((loc.name as Record<string, string> | null)?.id as string | undefined) ??
+    ((loc.name as Record<string, string> | null)?.en as string | undefined) ??
+    loc.code
+  );
+}
 
 async function buildCtx(): Promise<AuditContext | null> {
   const session = await getSession();
@@ -204,6 +344,23 @@ export async function upsertAssignmentAction(input: {
       },
     });
 
+    // T-0175 — notify the affected employee. Resolve label data in
+    // parallel so the notification fan-out adds < 100 ms.
+    const [shiftLabel, locationLabel] = await Promise.all([
+      resolveShiftLabel(input.shiftDefinitionId),
+      resolveLocationLabel(ctx.locationId),
+    ]);
+    void notifyShiftChange({
+      tenantId: ctx.tenantId,
+      employeeId: input.employeeId,
+      action: 'updated',
+      workDate: input.workDate,
+      shiftLabel,
+      kind: input.kind,
+      locationLabel,
+      notes: input.notes ?? null,
+    });
+
     revalidatePath('/hr/schedule');
     return { ok: true, id: existing[0].id };
   }
@@ -243,6 +400,22 @@ export async function upsertAssignmentAction(input: {
     },
   });
 
+  // T-0175 — same fan-out for the brand-new assignment branch.
+  const [shiftLabel, locationLabel] = await Promise.all([
+    resolveShiftLabel(input.shiftDefinitionId),
+    resolveLocationLabel(targetLocationId),
+  ]);
+  void notifyShiftChange({
+    tenantId: ctx.tenantId,
+    employeeId: input.employeeId,
+    action: 'created',
+    workDate: input.workDate,
+    shiftLabel,
+    kind: input.kind,
+    locationLabel,
+    notes: input.notes ?? null,
+  });
+
   revalidatePath('/hr/schedule');
   return { ok: true, id };
 }
@@ -252,6 +425,22 @@ export async function deleteAssignmentAction(id: string): Promise<{ ok: boolean;
   if (!ctx) return { ok: false, error: 'Unauthenticated' };
   const perm = await requirePermission(ctx.userId, 'hr.manage_attendance');
   if (!perm.ok) return { ok: false, error: 'Forbidden' };
+
+  // Snapshot the row BEFORE deletion so we can still resolve the
+  // employee + work date for the notification.
+  const [snapshot] = await db
+    .select({
+      employeeId: shiftAssignments.employeeId,
+      workDate: shiftAssignments.workDate,
+      kind: shiftAssignments.kind,
+      shiftDefinitionId: shiftAssignments.shiftDefinitionId,
+      locationId: shiftAssignments.locationId,
+      notes: shiftAssignments.notes,
+    })
+    .from(shiftAssignments)
+    .where(eq(shiftAssignments.id, id))
+    .limit(1);
+
   await db.delete(shiftAssignments).where(eq(shiftAssignments.id, id));
 
   await db.insert(auditLog).values({
@@ -262,6 +451,23 @@ export async function deleteAssignmentAction(id: string): Promise<{ ok: boolean;
     entityType: 'shift_assignment',
     entityId: id,
   });
+
+  if (snapshot) {
+    const [shiftLabel, locationLabel] = await Promise.all([
+      resolveShiftLabel(snapshot.shiftDefinitionId),
+      resolveLocationLabel(snapshot.locationId),
+    ]);
+    void notifyShiftChange({
+      tenantId: ctx.tenantId,
+      employeeId: snapshot.employeeId,
+      action: 'deleted',
+      workDate: String(snapshot.workDate).slice(0, 10),
+      shiftLabel,
+      kind: snapshot.kind as 'shift' | 'off',
+      locationLabel,
+      notes: snapshot.notes ?? null,
+    });
+  }
 
   revalidatePath('/hr/schedule');
   return { ok: true };
