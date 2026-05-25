@@ -5,12 +5,9 @@
  * Current step highlighted based on session status.
  */
 
-const STEPS = [
-  { key: 'draft', label: 'Buat Sesi', sub: 'Draf' },
-  { key: 'in_progress', label: 'Hitung Fisik', sub: 'Sedang Berlangsung' },
-  { key: 'submitted', label: 'Ajukan', sub: 'Diajukan' },
-  { key: 'approved', label: 'Setujui', sub: 'Disetujui' },
-];
+import { useTranslations } from 'next-intl';
+
+// STEPS is now dynamic inside the component
 
 type Status = 'draft' | 'in_progress' | 'submitted' | 'approved' | 'cancelled';
 
@@ -23,6 +20,13 @@ const STEP_INDEX: Record<Status, number> = {
 };
 
 export function OpnameWorkflowBar({ status }: { status: string }) {
+  const t = useTranslations('inventory.opnameDetail');
+  const STEPS = [
+    { key: 'draft', label: t('stepDraft'), sub: t('stepDraftSub') },
+    { key: 'in_progress', label: t('stepInProgress'), sub: t('stepInProgressSub') },
+    { key: 'submitted', label: t('stepSubmit'), sub: t('stepSubmitSub') },
+    { key: 'approved', label: t('stepApprove'), sub: t('stepApproveSub') },
+  ];
   const current = STEP_INDEX[status as Status] ?? 0;
   const isCancelled = status === 'cancelled';
 
@@ -38,7 +42,7 @@ export function OpnameWorkflowBar({ status }: { status: string }) {
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
-        <span className="text-sm font-medium text-rose-700">Sesi opname ini dibatalkan.</span>
+        <span className="text-sm font-medium text-rose-700">{t('workflowCancelled')}</span>
       </div>
     );
   }

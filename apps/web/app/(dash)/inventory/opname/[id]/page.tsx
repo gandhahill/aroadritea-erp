@@ -10,6 +10,7 @@
  */
 
 import { PageHeader } from '@/components/page-header';
+import { getTranslations } from 'next-intl/server';
 import { getSession } from '@/lib/auth';
 import type { OpnameLineResult } from '@erp/services/inventory/opname-service';
 import { Button } from '@erp/ui';
@@ -26,13 +27,7 @@ import { OpnameWorkflowBar } from './opname-workflow-bar';
 
 export const metadata: Metadata = { title: 'Stock Opname' };
 
-const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string }> = {
-  draft: { label: 'Draf', bg: 'bg-brand-cream-2', text: 'text-brand-ink-2' },
-  in_progress: { label: 'Sedang Berlangsung', bg: 'bg-brand-gold/10', text: 'text-brand-gold' },
-  submitted: { label: 'Diajukan', bg: 'bg-brand-gold/20', text: 'text-brand-gold' },
-  approved: { label: 'Disetujui', bg: 'bg-brand-jade/10', text: 'text-brand-jade' },
-  cancelled: { label: 'Dibatalkan', bg: 'bg-rose-50', text: 'text-rose-500' },
-};
+// STATUS_CONFIG is handled dynamically now
 
 function formatMoney(v: string | number | bigint | null | undefined): string {
   if (!v) return '—';
@@ -50,6 +45,7 @@ export default async function OpnameDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = await getTranslations('inventory.opnameDetail');
   const { id } = await params;
   const session = await getSession();
   if (!session) redirect('/login');
@@ -58,17 +54,23 @@ export default async function OpnameDetailPage({
   if (result.error || !result.data) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
-        <p className="text-brand-ink-3">Sesi opname tidak ditemukan.</p>
+        <p className="text-brand-ink-3">{t('notFound')}</p>
       </div>
     );
   }
 
   const data = result.data;
-  const statusCfg = STATUS_CONFIG[data.status] ?? {
-    label: data.status,
-    bg: 'bg-brand-cream-2',
-    text: 'text-brand-ink-2',
+  const getStatusCfg = (status: string) => {
+    switch (status) {
+      case 'draft': return { label: t('status.draft'), bg: 'bg-brand-cream-2', text: 'text-brand-ink-2' };
+      case 'in_progress': return { label: t('status.in_progress'), bg: 'bg-brand-gold/10', text: 'text-brand-gold' };
+      case 'submitted': return { label: t('status.submitted'), bg: 'bg-brand-gold/20', text: 'text-brand-gold' };
+      case 'approved': return { label: t('status.approved'), bg: 'bg-brand-jade/10', text: 'text-brand-jade' };
+      case 'cancelled': return { label: t('status.cancelled'), bg: 'bg-rose-50', text: 'text-rose-500' };
+      default: return { label: status, bg: 'bg-brand-cream-2', text: 'text-brand-ink-2' };
+    }
   };
+  const statusCfg = getStatusCfg(data.status);
 
   const totalLines = data.lines.length;
   const countedLines = data.lines.filter((l: OpnameLineResult) => l.isCounted).length;
@@ -98,14 +100,12 @@ export default async function OpnameDetailPage({
         title={<>{data.number}</>}
         description={
           <>
-            Tanggal sesi {data.sessionDate}· Periode {data.periodCode}
+            {t('sessionDate')} {data.sessionDate} · {t('period')} {data.periodCode}
           </>
         }
         eyebrow={
           <div className="mb-1.5 flex items-center gap-2 text-sm text-brand-ink-3">
-            <a href="/inventory/opname" className="hover:text-brand-ink">
-              Stock Opname
-            </a>
+            <a href="/inventory/opname" className="hover:text-brand-ink">{t('breadcrumbOpname')}</a>
             <span>/</span>
             <span className="font-medium">{data.number}</span>
           </div>
@@ -129,30 +129,30 @@ export default async function OpnameDetailPage({
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Total Baris"
+          label={t('statTotalLines')}
           value={String(totalLines)}
-          sub={`${countedLines} sudah dihitung`}
+          sub={t('statLinesCounted', { count: countedLines })}
           color="text-brand-ink"
         />
         <StatCard
-          label="Baris dengan Selisih"
+          label={t('statVarianceLines')}
           value={String(linesWithVariance.length)}
           sub={
             linesWithVariance.length > 0
               ? `${surplusLines.length} +, ${shortageLines.length} −`
-              : 'Semua sesuai'
+              : t('statAllMatch')
           }
           color={linesWithVariance.length > 0 ? 'text-brand-gold' : 'text-brand-jade'}
         />
         <StatCard
-          label="Total Nilai Selisih"
+          label={t('statTotalVarianceValue')}
           value={formatMoney(totalVarianceValue)}
           sub={
             totalVarianceValue === 0
-              ? 'Sesuai'
+              ? t('statValueMatch')
               : totalVarianceValue > 0
-                ? 'Kelebihan'
-                : 'Kekurangan'
+                ? t('statSurplus')
+                : t('statShortage')
           }
           color={
             totalVarianceValue === 0
@@ -163,9 +163,9 @@ export default async function OpnameDetailPage({
           }
         />
         <StatCard
-          label="Jurnal Penyesuaian"
-          value={data.journalEntryId ? 'Tercatat' : 'Belum'}
-          sub={data.journalEntryId ? 'Lihat di Jurnal' : 'Akan dibuat saat disetujui'}
+          label={t('statJournal')}
+          value={data.journalEntryId ? t('statRecorded') : t('statNotRecorded')}
+          sub={data.journalEntryId ? t('statViewJournal') : t('statJournalWillBeCreated')}
           color={data.journalEntryId ? 'text-brand-jade' : 'text-brand-ink-3'}
         />
       </div>
@@ -174,9 +174,9 @@ export default async function OpnameDetailPage({
       {(data.status === 'draft' || data.status === 'in_progress') && (
         <div className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-brand-ink">Input Hitung Fisik</h2>
+            <h2 className="text-sm font-semibold text-brand-ink">{t('inputTitle')}</h2>
             <span className="text-xs text-brand-ink-3">
-              {countedLines} / {totalLines} baris dihitung
+              {t('linesCountedSuffix', { counted: countedLines, total: totalLines })}
             </span>
           </div>
           <div className="mb-4 h-2 w-full overflow-hidden rounded-full bg-brand-cream-2">
@@ -187,8 +187,8 @@ export default async function OpnameDetailPage({
           </div>
           <p className="text-xs text-brand-ink-3">
             {countedLines < totalLines
-              ? `${totalLines - countedLines} baris belum dihitung. Isi kolom "Dihitung" lalu klik "Simpan".`
-              : 'Semua baris sudah dihitung. Klik "Ajukan Opname" untuk menghitung selisih.'}
+              ? t('uncountedInfo', { count: totalLines - countedLines })
+              : t('allCountedInfo')}
           </p>
         </div>
       )}
@@ -218,9 +218,7 @@ export default async function OpnameDetailPage({
                   strokeLinejoin="round"
                   d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
                 />
-              </svg>
-              Ajukan Opname
-            </button>
+              </svg> {t('btnSubmit')} </button>
           </form>
           <form
             action={async () => {
@@ -233,9 +231,7 @@ export default async function OpnameDetailPage({
               className="rounded-lg border border-rose-200 bg-card px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
               variant="danger"
               size="sm"
-            >
-              Batalkan
-            </Button>
+            > {t('btnCancel')} </Button>
           </form>
         </div>
       )}
@@ -260,9 +256,7 @@ export default async function OpnameDetailPage({
                 strokeWidth={2}
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-              </svg>
-              Setujui
-            </button>
+              </svg> {t('btnApprove')} </button>
           </form>
           <form
             action={async () => {
@@ -275,9 +269,7 @@ export default async function OpnameDetailPage({
               className="rounded-lg border border-rose-200 bg-card px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
               variant="danger"
               size="sm"
-            >
-              Batalkan
-            </Button>
+            > {t('btnCancel')} </Button>
           </form>
         </div>
       )}
@@ -285,9 +277,7 @@ export default async function OpnameDetailPage({
       {/* Variance info banner */}
       {data.status === 'submitted' && linesWithVariance.length > 0 && (
         <div className="rounded-lg border border-brand-gold/30 bg-brand-gold/5 px-4 py-3 text-sm text-brand-ink">
-          <strong>Selisih ditemukan:</strong> {linesWithVariance.length} baris. Setelah disetujui,
-          jurnal penyesuaian otomatis dibuat — shortage: DR Beban Operasional / CR Persediaan;
-          surplus: DR Persediaan / CR Pendapatan Lainnya.
+          <strong>{t('varianceFound', { count: linesWithVariance.length })}</strong> {t('varianceInfoSuffix')}
         </div>
       )}
 
