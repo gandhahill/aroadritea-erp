@@ -1315,6 +1315,8 @@
     "payroll": "Penggajian",
     "myPayslips": "Slip Gaji Saya",
     "myAttendance": "Presensi Saya",
+    "crm": "CRM",
+    "members": "Member",
     "disciplinary": "Surat Peringatan",
     "sop": "SOP & Prosedur",
     "aiAssistant": "Asisten AI",
@@ -1672,6 +1674,57 @@
     "errors": {
       "allLinesMustBeCounted": "Semua baris harus dihitung sebelum diajukan",
       "approvalRestricted": "Hanya director yang dapat menyetujui"
+    }
+  },
+  "crm": {
+    "members": {
+      "title": "Data Member",
+      "description": "Daftar member loyalty, saldo poin, dan riwayat aktivitas.",
+      "search": "Cari",
+      "searchPlaceholder": "Nama atau kota…",
+      "tier": "Tier",
+      "allTiers": "Semua tier",
+      "filter": "Tampilkan",
+      "empty": "Belum ada member.",
+      "memberSince": "Bergabung",
+      "lastEarned": "Earn terakhir",
+      "contactSection": "Kontak & Identitas",
+      "email": "Email",
+      "phone": "Telepon",
+      "address": "Alamat",
+      "city": "Kota",
+      "birthDate": "Tanggal Lahir",
+      "recentPoints": "Riwayat Poin (30 terbaru)",
+      "noTransactions": "Belum ada transaksi poin.",
+      "adjustNoPermission": "Anda tidak punya hak menyesuaikan poin.",
+      "pagination": "Halaman {page} dari {total} — {count} member",
+      "prev": "Sebelumnya",
+      "next": "Berikutnya",
+      "table": {
+        "name": "Nama",
+        "tier": "Tier",
+        "points": "Poin",
+        "lifetime": "Total Earned",
+        "joinedAt": "Bergabung"
+      },
+      "tx": {
+        "date": "Tanggal",
+        "type": "Tipe",
+        "delta": "Delta",
+        "balanceAfter": "Saldo",
+        "reason": "Alasan"
+      },
+      "adjust": {
+        "title": "Penyesuaian Poin",
+        "help": "Saldo saat ini: {balance}. Masukkan delta positif untuk menambah, negatif untuk mengurangi.",
+        "delta": "Delta poin",
+        "reason": "Alasan",
+        "reasonPlaceholder": "Mis. \"kompensasi keluhan pesanan rusak\"",
+        "submit": "Simpan Penyesuaian",
+        "deltaInvalid": "Delta harus angka selain 0.",
+        "reasonRequired": "Alasan minimal 3 karakter.",
+        "successMessage": "Berhasil. Saldo baru: {balance}."
+      }
     }
   },
   "hr": {

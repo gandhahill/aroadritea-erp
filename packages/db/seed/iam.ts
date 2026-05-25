@@ -393,6 +393,16 @@ export const PERMISSIONS_SEED = [
     module: 'purchasing',
     description: n('Posting jurnal retur pembelian', 'Post purchase-return journal', '过账采购退货分录'),
   },
+  {
+    code: 'crm.member.view',
+    module: 'crm',
+    description: n('Lihat data member', 'View member data', '查看会员数据'),
+  },
+  {
+    code: 'crm.member.adjustPoints',
+    module: 'crm',
+    description: n('Penyesuaian poin loyalitas member', 'Adjust loyalty points', '调整会员积分'),
+  },
   // HR
   {
     code: 'hr.view',
@@ -668,6 +678,8 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'purchasing.return.create',
     'purchasing.return.approve',
     'purchasing.return.post',
+    'crm.member.view',
+    'crm.member.adjustPoints',
     'hr.view',
     'hr.employee.read',
     'hr.employee.write',

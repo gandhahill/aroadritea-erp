@@ -1310,6 +1310,8 @@
     "payroll": "Payroll",
     "myPayslips": "My Payslips",
     "myAttendance": "My Attendance",
+    "crm": "CRM",
+    "members": "Members",
     "disciplinary": "Disciplinary Actions",
     "sop": "SOP & Procedures",
     "aiAssistant": "AI Assistant",
@@ -1590,6 +1592,57 @@
     "name": "Aroadri Tea ERP",
     "company": "PT Gandha Hill Catering Management Indonesia",
     "tagline": "Enterprise Resource Planning"
+  },
+  "crm": {
+    "members": {
+      "title": "Member Database",
+      "description": "Loyalty members, point balances, and activity history.",
+      "search": "Search",
+      "searchPlaceholder": "Name or city…",
+      "tier": "Tier",
+      "allTiers": "All tiers",
+      "filter": "Apply",
+      "empty": "No members yet.",
+      "memberSince": "Member since",
+      "lastEarned": "Last earn",
+      "contactSection": "Contact & Identity",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "city": "City",
+      "birthDate": "Birth date",
+      "recentPoints": "Recent Points (last 30)",
+      "noTransactions": "No point transactions yet.",
+      "adjustNoPermission": "You don't have permission to adjust points.",
+      "pagination": "Page {page} of {total} — {count} members",
+      "prev": "Prev",
+      "next": "Next",
+      "table": {
+        "name": "Name",
+        "tier": "Tier",
+        "points": "Points",
+        "lifetime": "Lifetime",
+        "joinedAt": "Joined"
+      },
+      "tx": {
+        "date": "Date",
+        "type": "Type",
+        "delta": "Delta",
+        "balanceAfter": "Balance",
+        "reason": "Reason"
+      },
+      "adjust": {
+        "title": "Adjust Points",
+        "help": "Current balance: {balance}. Positive delta adds points; negative redeems.",
+        "delta": "Delta",
+        "reason": "Reason",
+        "reasonPlaceholder": "e.g. \"compensation for damaged order complaint\"",
+        "submit": "Save Adjustment",
+        "deltaInvalid": "Delta must be a non-zero number.",
+        "reasonRequired": "Reason must be at least 3 characters.",
+        "successMessage": "Done. New balance: {balance}."
+      }
+    }
   },
   "hr": {
     "nav": "HR & Payroll",

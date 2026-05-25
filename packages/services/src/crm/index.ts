@@ -658,3 +658,7 @@ export async function redeemLoyaltyPoints(
     return err(AppError.internal('crm.redeemLoyaltyPoints.failed', e));
   }
 }
+
+
+// Re-export the member-data service (T-0183).
+export * from './member-service';

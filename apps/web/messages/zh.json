@@ -1350,6 +1350,8 @@
     "payroll": "工资单",
     "myPayslips": "我的工资单",
     "myAttendance": "我的考勤",
+    "crm": "客户关系",
+    "members": "会员",
     "disciplinary": "纪律处分",
     "sop": "标准操作流程",
     "aiAssistant": "AI 助手",
@@ -1633,6 +1635,57 @@
     "name": "Aroadri Tea ERP",
     "company": "PT Gandha Hill Catering Management Indonesia",
     "tagline": "企业资源规划"
+  },
+  "crm": {
+    "members": {
+      "title": "会员资料库",
+      "description": "忠诚度会员、积分余额与活动记录。",
+      "search": "搜索",
+      "searchPlaceholder": "姓名或城市…",
+      "tier": "等级",
+      "allTiers": "全部等级",
+      "filter": "查询",
+      "empty": "暂无会员。",
+      "memberSince": "加入时间",
+      "lastEarned": "上次累积",
+      "contactSection": "联系方式与身份信息",
+      "email": "邮箱",
+      "phone": "电话",
+      "address": "地址",
+      "city": "城市",
+      "birthDate": "出生日期",
+      "recentPoints": "积分明细（最近 30 条）",
+      "noTransactions": "暂无积分交易。",
+      "adjustNoPermission": "您无权调整积分。",
+      "pagination": "第 {page} 页 / 共 {total} 页 — {count} 位会员",
+      "prev": "上一页",
+      "next": "下一页",
+      "table": {
+        "name": "姓名",
+        "tier": "等级",
+        "points": "积分",
+        "lifetime": "累计获得",
+        "joinedAt": "加入"
+      },
+      "tx": {
+        "date": "日期",
+        "type": "类型",
+        "delta": "变动",
+        "balanceAfter": "余额",
+        "reason": "原因"
+      },
+      "adjust": {
+        "title": "积分调整",
+        "help": "当前余额：{balance}。正数为加，负数为减。",
+        "delta": "变动",
+        "reason": "原因",
+        "reasonPlaceholder": "例如：\"订单破损投诉补偿\"",
+        "submit": "保存调整",
+        "deltaInvalid": "变动必须为非 0 数值。",
+        "reasonRequired": "原因至少 3 个字符。",
+        "successMessage": "已完成。新余额：{balance}。"
+      }
+    }
   },
   "hr": {
     "nav": "人力资源与薪资",
