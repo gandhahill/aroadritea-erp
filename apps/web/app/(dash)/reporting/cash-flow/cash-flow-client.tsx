@@ -146,7 +146,7 @@ export function CashFlowClient(props: Props) {
             ))}
           </Select>
         </label>
-        <Button variant="secondary" size="md" onClick={() => router.refresh()} disabled={pending}>
+        <Button variant="primary" size="md" onClick={() => router.refresh()} disabled={pending}>
           {t('filter')}
         </Button>
         <Button variant="primary" size="md" onClick={exportCsv} disabled={!props.data}>

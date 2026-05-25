@@ -1330,6 +1330,13 @@
     "donations": "Donations",
     "dailyRevenue": "Daily Revenue",
     "businessIntelligence": "Business Intelligence",
+    "cashFlow": "Cash Flow",
+    "agingReceivables": "Aging Receivables",
+    "agingPayables": "Aging Payables",
+    "cogs": "Cost of Goods Sold",
+    "waste": "Waste",
+    "aiAssistant": "AI Assistant",
+    "aiAssistantLog": "AI Assistant Log",
     "posCashier": "POS Cashier",
     "manualSales": "Manual Sales Entry",
     "posOrders": "Order History",
@@ -3572,5 +3579,6 @@
   "ai.audit.table.entity": "Entity",
   "ai.audit.table.entityId": "Entity ID",
   "ai.audit.table.detail": "Detail",
-  "ai.audit.table.empty": "No entries match the filter."
+  "ai.audit.table.empty": "No entries match the filter.",
+  "ai.provider.notConfigured": "AI provider is not configured. Please check the API key in the environment variables."
 }

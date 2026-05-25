@@ -3574,5 +3574,6 @@
   "ai.audit.table.entity": "Entity",
   "ai.audit.table.entityId": "Entity ID",
   "ai.audit.table.detail": "Detail",
-  "ai.audit.table.empty": "Belum ada entri yang cocok dengan filter."
+  "ai.audit.table.empty": "Belum ada entri yang cocok dengan filter.",
+  "ai.provider.notConfigured": "AI provider belum dikonfigurasi. Pastikan API key sudah diatur di environment variable."
 }

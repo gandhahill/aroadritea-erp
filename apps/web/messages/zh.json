@@ -3651,5 +3651,6 @@
   "ai.audit.table.entity": "实体",
   "ai.audit.table.entityId": "实体 ID",
   "ai.audit.table.detail": "详情",
-  "ai.audit.table.empty": "没有符合过滤条件的条目。"
+  "ai.audit.table.empty": "没有符合过滤条件的条目。",
+  "ai.provider.notConfigured": "未配置 AI 提供商。请在环境变量中检查 API 密钥。"
 }

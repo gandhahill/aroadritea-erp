@@ -50,32 +50,26 @@ export function PageHeader({ title, description, breadcrumbs, actions, eyebrow }
   return (
     <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div>
-        {eyebrow ? (
-          <div className="mb-2 text-sm font-medium text-brand-ink-3 uppercase tracking-wider">
-            {eyebrow}
+        {displayBreadcrumbs.length > 0 && (
+          <div className="mb-2 flex items-center gap-2 text-sm text-brand-ink-3">
+            {displayBreadcrumbs.map((crumb, index) => {
+              const isLast = index === displayBreadcrumbs.length - 1;
+              return (
+                <div key={index} className="flex items-center gap-2">
+                  {!isLast && crumb.href ? (
+                    <Link href={crumb.href} className="hover:text-brand-ink transition-colors">
+                      {crumb.label}
+                    </Link>
+                  ) : (
+                    <span className={isLast ? 'font-medium text-brand-ink' : ''}>
+                      {crumb.label}
+                    </span>
+                  )}
+                  {!isLast && <span className="text-brand-cream-3">/</span>}
+                </div>
+              );
+            })}
           </div>
-        ) : (
-          displayBreadcrumbs.length > 0 && (
-            <div className="mb-2 flex items-center gap-2 text-sm text-brand-ink-3">
-              {displayBreadcrumbs.map((crumb, index) => {
-                const isLast = index === displayBreadcrumbs.length - 1;
-                return (
-                  <div key={index} className="flex items-center gap-2">
-                    {!isLast && crumb.href ? (
-                      <Link href={crumb.href} className="hover:text-brand-ink transition-colors">
-                        {crumb.label}
-                      </Link>
-                    ) : (
-                      <span className={isLast ? 'font-medium text-brand-ink' : ''}>
-                        {crumb.label}
-                      </span>
-                    )}
-                    {!isLast && <span className="text-brand-cream-3">/</span>}
-                  </div>
-                );
-              })}
-            </div>
-          )
         )}
         <h1 className="font-display text-2xl md:text-3xl font-semibold text-brand-ink">{title}</h1>
         {description && (
