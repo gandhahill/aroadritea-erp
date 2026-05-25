@@ -2081,11 +2081,21 @@
     },
     "schedule": {
       "title": "每周排班表",
-      "subtitle": "管理每位员工的班次和休息日。点击单元格以添加/删除分配。",
+      "subtitle": "管理每位员工的班次和休息日。点击单元格以添加/删除；点击 ⇄ 或 Alt+点击以替换值班员工。",
       "emptyEmployees": "暂无活跃员工。",
       "prevWeek": "上周",
       "nextWeek": "下周",
-      "weekOf": "星期"
+      "weekOf": "星期",
+      "swap": {
+        "button": "替换员工",
+        "short": "可替换",
+        "pickPrompt": "为 {date} 的班次选择替补员工：",
+        "pickInstruction": "输入上面列表中的编号，然后点击确定。",
+        "invalidIndex": "无效编号。",
+        "reasonPrompt": "替换原因（如 \"病假\"、\"家庭请假\"）：",
+        "reasonRequired": "原因至少 3 个字符。",
+        "noCandidates": "暂无其他员工可替换。"
+      }
     },
     "employee": {
       "notFound": "未找到员工。"

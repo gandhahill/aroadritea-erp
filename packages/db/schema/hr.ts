@@ -261,6 +261,42 @@ export const shiftAssignments = pgTable(
   ],
 );
 
+// ─── Schedule overrides — T-0182 ──────────────────────────────────────────────
+//
+// Records every per-date adjustment to the regular shift roster: who was
+// originally scheduled, who got swapped in, and why. Separate from
+// `shift_assignments` so the swap history survives any later edits to
+// the assignment itself. Pure audit/traceability — payroll reads from
+// `shift_assignments` only.
+
+export const scheduleOverrides = pgTable(
+  'schedule_overrides',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    workDate: date('work_date').notNull(),
+    shiftDefinitionId: text('shift_definition_id'),
+
+    originalEmployeeId: text('original_employee_id').notNull(),
+    substituteEmployeeId: text('substitute_employee_id').notNull(),
+    reason: text('reason').notNull(),
+
+    // Reference to the new assignment row (after the swap). NULL when
+    // we were unable to insert (rare; tracked for diagnostics).
+    newAssignmentId: text('new_assignment_id'),
+
+    ...auditCols,
+  },
+  (t) => [
+    index('schedule_overrides_date_idx').on(t.workDate),
+    index('schedule_overrides_tenant_date_idx').on(t.tenantId, t.workDate),
+    index('schedule_overrides_orig_emp_idx').on(t.originalEmployeeId),
+    index('schedule_overrides_subst_emp_idx').on(t.substituteEmployeeId),
+  ],
+);
+
 // ─── Attendance ───────────────────────────────────────────────────────────────
 
 /**

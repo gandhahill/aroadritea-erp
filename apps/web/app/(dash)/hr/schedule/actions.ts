@@ -4,7 +4,12 @@ import { getSession } from '@/lib/auth';
 import { and, db, eq, gte, lte, sql } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
 import { locations } from '@erp/db/schema/auth';
-import { employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
+import {
+  employees,
+  scheduleOverrides,
+  shiftAssignments,
+  shiftDefinitions,
+} from '@erp/db/schema/hr';
 import { requirePermission } from '@erp/services/iam';
 import { notifyUserByEmail } from '@erp/services/notification';
 import { generateId } from '@erp/shared/id';
@@ -468,4 +473,152 @@ export async function deleteAssignmentAction(id: string): Promise<{ ok: boolean;
 
   revalidatePath('/hr/schedule');
   return { ok: true };
+}
+
+/**
+ * Swap a shift assignment to a different employee for the same date —
+ * T-0182. Records the swap in `schedule_overrides` for traceability
+ * and fans out a "schedule changed" notification to BOTH the original
+ * employee (now off) and the substitute (now on).
+ *
+ * Permission: `hr.manage_attendance` — same as upsert/delete.
+ */
+export async function swapShiftAssignmentAction(input: {
+  assignmentId: string;
+  substituteEmployeeId: string;
+  reason: string;
+}): Promise<{ ok: boolean; error?: string; newAssignmentId?: string }> {
+  const ctx = await buildCtx();
+  if (!ctx) return { ok: false, error: 'Unauthenticated' };
+  const perm = await requirePermission(ctx.userId, 'hr.manage_attendance');
+  if (!perm.ok) return { ok: false, error: 'Forbidden' };
+
+  if (!input.reason?.trim() || input.reason.trim().length < 3) {
+    return { ok: false, error: 'Alasan minimal 3 karakter.' };
+  }
+  if (!input.substituteEmployeeId) {
+    return { ok: false, error: 'Pilih karyawan pengganti.' };
+  }
+
+  // Load the original assignment so we know who/what to swap.
+  const [original] = await db
+    .select()
+    .from(shiftAssignments)
+    .where(
+      and(
+        eq(shiftAssignments.tenantId, ctx.tenantId),
+        eq(shiftAssignments.id, input.assignmentId),
+      ),
+    )
+    .limit(1);
+  if (!original) {
+    return { ok: false, error: 'Assignment tidak ditemukan.' };
+  }
+  if (original.employeeId === input.substituteEmployeeId) {
+    return { ok: false, error: 'Karyawan pengganti sama dengan asal.' };
+  }
+
+  // Disallow swap if the substitute already has a row for the same
+  // date+shift — they can't work the same slot twice.
+  const conflictConds = [
+    eq(shiftAssignments.tenantId, ctx.tenantId),
+    eq(shiftAssignments.employeeId, input.substituteEmployeeId),
+    eq(shiftAssignments.workDate, original.workDate),
+  ];
+  if (original.shiftDefinitionId) {
+    conflictConds.push(eq(shiftAssignments.shiftDefinitionId, original.shiftDefinitionId));
+  } else {
+    conflictConds.push(sql`${shiftAssignments.shiftDefinitionId} is null`);
+  }
+  const conflicting = await db
+    .select({ id: shiftAssignments.id })
+    .from(shiftAssignments)
+    .where(and(...conflictConds))
+    .limit(1);
+  if (conflicting.length > 0) {
+    return { ok: false, error: 'Karyawan pengganti sudah punya shift di slot ini.' };
+  }
+
+  // Re-point the assignment to the substitute. We mutate in place
+  // (rather than delete+insert) so all downstream FKs (attendance,
+  // notifications) keep pointing at the same row id.
+  const updated = await db
+    .update(shiftAssignments)
+    .set({
+      employeeId: input.substituteEmployeeId,
+      updatedBy: ctx.userId,
+      updatedAt: new Date(),
+    })
+    .where(eq(shiftAssignments.id, original.id))
+    .returning({ id: shiftAssignments.id });
+  if (!updated || updated.length === 0) {
+    return { ok: false, error: 'Gagal memperbarui assignment.' };
+  }
+
+  // Record the override for traceability.
+  const overrideId = generateId();
+  await db.insert(scheduleOverrides).values({
+    id: overrideId,
+    tenantId: ctx.tenantId,
+    locationId: original.locationId,
+    workDate: original.workDate,
+    shiftDefinitionId: original.shiftDefinitionId ?? null,
+    originalEmployeeId: original.employeeId,
+    substituteEmployeeId: input.substituteEmployeeId,
+    reason: input.reason.trim(),
+    newAssignmentId: original.id,
+    createdBy: ctx.userId,
+    updatedBy: ctx.userId,
+  });
+
+  // Audit — use the shared helper so the immutable trigger + entity-type
+  // whitelist + PII scrub all apply uniformly.
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'update',
+    entityType: 'schedule_override',
+    entityId: overrideId,
+    before: { employeeId: original.employeeId, assignmentId: original.id } as Record<
+      string,
+      unknown
+    >,
+    after: {
+      substituteEmployeeId: input.substituteEmployeeId,
+      workDate: String(original.workDate).slice(0, 10),
+      reason: input.reason.trim(),
+    } as Record<string, unknown>,
+    metadata: null,
+  });
+
+  // Notify both sides.
+  const [shiftLabel, locationLabel] = await Promise.all([
+    resolveShiftLabel(original.shiftDefinitionId),
+    resolveLocationLabel(original.locationId),
+  ]);
+  const workDateStr = String(original.workDate).slice(0, 10);
+  void notifyShiftChange({
+    tenantId: ctx.tenantId,
+    employeeId: original.employeeId,
+    action: 'deleted',
+    workDate: workDateStr,
+    shiftLabel,
+    kind: original.kind as 'shift' | 'off',
+    locationLabel,
+    notes: `Digantikan: ${input.reason.trim()}`,
+  });
+  void notifyShiftChange({
+    tenantId: ctx.tenantId,
+    employeeId: input.substituteEmployeeId,
+    action: 'created',
+    workDate: workDateStr,
+    shiftLabel,
+    kind: original.kind as 'shift' | 'off',
+    locationLabel,
+    notes: `Menggantikan rekan: ${input.reason.trim()}`,
+  });
+
+  revalidatePath('/hr/schedule');
+  return { ok: true, newAssignmentId: original.id };
 }

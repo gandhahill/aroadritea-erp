@@ -2108,11 +2108,21 @@
     },
     "schedule": {
       "title": "Jadwal Shift Mingguan",
-      "subtitle": "Atur shift dan hari libur per karyawan. Klik sel untuk menambah / menghapus penugasan.",
+      "subtitle": "Atur shift dan hari libur per karyawan. Klik sel untuk menambah / menghapus penugasan. Klik ⇄ atau Alt+klik untuk swap karyawan.",
       "emptyEmployees": "Belum ada karyawan aktif.",
       "prevWeek": "Minggu sebelumnya",
       "nextWeek": "Minggu berikutnya",
-      "weekOf": "Minggu"
+      "weekOf": "Minggu",
+      "swap": {
+        "button": "Ganti karyawan",
+        "short": "untuk swap",
+        "pickPrompt": "Pilih karyawan pengganti untuk shift {date}:",
+        "pickInstruction": "Ketik nomor dari daftar di atas, lalu OK.",
+        "invalidIndex": "Nomor tidak valid.",
+        "reasonPrompt": "Alasan swap (mis. \"sakit\", \"izin keluarga\"):",
+        "reasonRequired": "Alasan minimal 3 karakter.",
+        "noCandidates": "Tidak ada karyawan lain yang bisa menggantikan."
+      }
     },
     "employee": {
       "notFound": "Karyawan tidak ditemukan."

@@ -136,6 +136,7 @@ const KNOWN_ENTITY_TYPES = new Set([
   'ai_action_draft', // T-0172 — draft → confirm → commit
   'whistleblower_report',
   'purchase_return', // T-0180
+  'schedule_override', // T-0182
 ]);
 
 /** Validate that before/after snapshots have primitive values only (no BigInt, Date, etc.). */

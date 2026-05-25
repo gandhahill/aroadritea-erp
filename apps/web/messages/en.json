@@ -2025,11 +2025,21 @@
     },
     "schedule": {
       "title": "Weekly Shift Schedule",
-      "subtitle": "Manage shifts and days off per employee. Click cells to add/remove assignments.",
+      "subtitle": "Manage shifts and days off per employee. Click cells to add/remove. Click ⇄ or Alt+click to swap to a substitute.",
       "emptyEmployees": "No active employees.",
       "prevWeek": "Previous week",
       "nextWeek": "Next week",
-      "weekOf": "Week of"
+      "weekOf": "Week of",
+      "swap": {
+        "button": "Swap employee",
+        "short": "to swap",
+        "pickPrompt": "Pick a substitute for the shift on {date}:",
+        "pickInstruction": "Type the number from the list above, then OK.",
+        "invalidIndex": "Invalid number.",
+        "reasonPrompt": "Reason for the swap (e.g. \"sick\", \"family leave\"):",
+        "reasonRequired": "Reason must be at least 3 characters.",
+        "noCandidates": "No other employees available to substitute."
+      }
     },
     "employee": {
       "notFound": "Employee not found."

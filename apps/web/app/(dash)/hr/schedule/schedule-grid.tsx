@@ -8,6 +8,7 @@ import {
   type RosterAssignment,
   type RosterOptions,
   deleteAssignmentAction,
+  swapShiftAssignmentAction,
   upsertAssignmentAction,
 } from './actions';
 import { TableBody, TableHeader } from "@erp/ui";
@@ -54,6 +55,56 @@ export function ScheduleGrid({ weekStart, locationId, locations, options, initia
     }
     return map;
   }, [assignments]);
+
+  async function swapAssignment(assignment: RosterAssignment) {
+    setErr(null);
+    // Build a quick "id — name" lookup for the prompt so the user can
+    // see the available substitutes. Anyone in the active employee
+    // pool except the original employee qualifies.
+    const candidates = options.employees.filter((e) => e.id !== assignment.employeeId);
+    if (candidates.length === 0) {
+      setErr(t('swap.noCandidates'));
+      return;
+    }
+    const list = candidates.map((c, i) => `${i + 1}. ${c.name}`).join('\n');
+    const pick = window.prompt(
+      `${t('swap.pickPrompt', { date: assignment.workDate })}\n\n${list}\n\n${t(
+        'swap.pickInstruction',
+      )}`,
+      '1',
+    );
+    if (!pick) return;
+    const idx = Number.parseInt(pick.trim(), 10) - 1;
+    if (Number.isNaN(idx) || idx < 0 || idx >= candidates.length) {
+      setErr(t('swap.invalidIndex'));
+      return;
+    }
+    const substitute = candidates[idx]!;
+    const reason = window.prompt(t('swap.reasonPrompt'));
+    if (!reason || reason.trim().length < 3) {
+      setErr(t('swap.reasonRequired'));
+      return;
+    }
+    startTransition(async () => {
+      const res = await swapShiftAssignmentAction({
+        assignmentId: assignment.id,
+        substituteEmployeeId: substitute.id,
+        reason: reason.trim(),
+      });
+      if (!res.ok) {
+        setErr(res.error ?? 'Gagal swap.');
+        return;
+      }
+      // Re-point the row locally; the assignment id is preserved.
+      setAssignments((prev) =>
+        prev.map((a) =>
+          a.id === assignment.id
+            ? { ...a, employeeId: substitute.id, employeeName: substitute.name }
+            : a,
+        ),
+      );
+    });
+  }
 
   async function toggle(
     employeeId: string,
@@ -188,24 +239,44 @@ export function ScheduleGrid({ weekStart, locationId, locations, options, initia
                     <td key={date} className="px-2 py-2 align-top">
                       <div className="flex flex-col gap-1">
                         {options.shifts.map((s) => {
-                          const on = cell.some(
+                          const onAssignment = cell.find(
                             (c) => c.shiftDefinitionId === s.id && c.kind === 'shift',
                           );
+                          const on = Boolean(onAssignment);
                           return (
-                            <button
-                              key={s.id}
-                              type="button"
-                              disabled={!canManage || busy}
-                              onClick={() => toggle(emp.id, date, 'shift', s.id)}
-                              title={`${s.label} ${s.time}`}
-                              className={`rounded-md px-2 py-1 text-[11px] font-semibold transition-colors ${
-                                on
-                                  ? 'bg-brand-red text-white shadow-sm'
-                                  : 'border border-brand-cream-3 text-brand-ink-3 hover:border-brand-red/40'
-                              } disabled:cursor-not-allowed disabled:opacity-50`}
-                            >
-                              {s.code}
-                            </button>
+                            <div key={s.id} className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                disabled={!canManage || busy}
+                                onClick={(e) => {
+                                  // Alt-click on an "on" cell triggers swap UX instead of toggle.
+                                  if (on && onAssignment && (e.altKey || e.metaKey)) {
+                                    void swapAssignment(onAssignment);
+                                    return;
+                                  }
+                                  void toggle(emp.id, date, 'shift', s.id);
+                                }}
+                                title={`${s.label} ${s.time}${on ? ` — Alt+Klik ${t('swap.short')}` : ''}`}
+                                className={`flex-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-colors ${
+                                  on
+                                    ? 'bg-brand-red text-white shadow-sm'
+                                    : 'border border-brand-cream-3 text-brand-ink-3 hover:border-brand-red/40'
+                                } disabled:cursor-not-allowed disabled:opacity-50`}
+                              >
+                                {s.code}
+                              </button>
+                              {on && onAssignment ? (
+                                <button
+                                  type="button"
+                                  disabled={!canManage || busy}
+                                  onClick={() => swapAssignment(onAssignment)}
+                                  title={t('swap.button')}
+                                  className="rounded-md border border-brand-cream-3 px-1.5 text-[11px] text-brand-ink-3 hover:border-brand-ink hover:text-brand-ink"
+                                >
+                                  ⇄
+                                </button>
+                              ) : null}
+                            </div>
                           );
                         })}
                         {(() => {
