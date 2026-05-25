@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3000",
-    "build": "next build",
+    "build": "pnpm typecheck && next build",
     "postbuild": "node ../../scripts/sync-next-standalone-assets.mjs web",
     "start": "next start",
     "typecheck": "tsc --noEmit"

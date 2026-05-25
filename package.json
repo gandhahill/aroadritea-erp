@@ -19,7 +19,7 @@
   },
   "scripts": {
     "dev": "pnpm -r --parallel dev",
-    "build": "pnpm -r build",
+    "build": "pnpm -r --workspace-concurrency=1 build",
     "typecheck": "pnpm -r typecheck",
     "lint": "biome check . --max-diagnostics=1000",
     "lint:fix": "biome check --write . --max-diagnostics=1000",

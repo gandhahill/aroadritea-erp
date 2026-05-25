@@ -49,6 +49,10 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   outputFileTracingRoot: repoRoot,
   poweredByHeader: false,
+  // The production VPS has 2 GB RAM. `pnpm typecheck` runs before this build,
+  // so Next can skip its duplicate validator and avoid worker heap OOM.
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: true },
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];
   },

@@ -202,7 +202,7 @@ export async function deactivateEmployeeAction(formData: FormData): Promise<Crea
 export async function serverExportEmployees(input: Omit<ListEmployeesInput, 'limit' | 'offset'>) {
   const result = await serverListEmployees({ ...input, limit: 1000, offset: 0 });
   if (!result.ok) {
-    return { ok: false, error: result.error };
+    return { ok: false, error: errorMessage(result.error) };
   }
 
   const headers = [
