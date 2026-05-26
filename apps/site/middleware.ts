@@ -41,14 +41,18 @@ function configuredOrigin(value: string | undefined, fallback: string) {
 }
 
 function getPublicOrigin(request: NextRequest) {
-  const forwardedHost = request.headers.get('x-forwarded-host');
+  const proxySecret = process.env.TRUSTED_PROXY_HEADER_SECRET;
+  const trustForwarded =
+    Boolean(proxySecret) && request.headers.get('x-aroadri-proxy-secret') === proxySecret;
+  const forwardedHost = trustForwarded ? request.headers.get('x-forwarded-host') : null;
   const host = forwardedHost ?? request.headers.get('host');
   const fallback =
     process.env.NODE_ENV === 'production' ? PRODUCTION_SITE_ORIGIN : request.nextUrl.origin;
 
   if (host && !isLoopbackHost(host) && !isLoopbackHost(request.nextUrl.host)) {
     const proto =
-      request.headers.get('x-forwarded-proto') ?? request.nextUrl.protocol.replace(':', '');
+      (trustForwarded ? request.headers.get('x-forwarded-proto') : null) ??
+      request.nextUrl.protocol.replace(':', '');
     const candidate = configuredOrigin(`${proto}://${host}`, fallback);
     if (process.env.NODE_ENV !== 'production' || isAllowedProductionOrigin(candidate, fallback)) {
       return candidate;

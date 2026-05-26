@@ -260,6 +260,21 @@ async function seed() {
   // 6. Optional bootstrap admin user
   const bootstrapAdmin = getBootstrapAdminConfig();
   if (bootstrapAdmin) {
+    const [existingBootstrapAdmin] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, bootstrapAdmin.email))
+      .limit(1);
+    if (
+      existingBootstrapAdmin &&
+      process.env.NODE_ENV === 'production' &&
+      process.env.SEED_ADMIN_ROTATE_CREDENTIAL !== '1'
+    ) {
+      throw new Error(
+        'Refusing to rotate an existing production bootstrap admin credential without SEED_ADMIN_ROTATE_CREDENTIAL=1.',
+      );
+    }
+
     const adminId = generateId();
     const passwordHash = await argon2.hash(bootstrapAdmin.password, {
       type: argon2.argon2id,
@@ -278,6 +293,7 @@ async function seed() {
         locale: bootstrapAdmin.locale,
         status: DEV_ADMIN_USER.status,
         emailVerified: new Date(),
+        requirePasswordChange: true,
       })
       .onConflictDoNothing();
     const [adminRow] = await db
@@ -304,6 +320,12 @@ async function seed() {
           updatedAt: new Date(),
         },
       });
+    if (existingBootstrapAdmin && process.env.SEED_ADMIN_ROTATE_CREDENTIAL === '1') {
+      await db
+        .update(users)
+        .set({ requirePasswordChange: true, updatedAt: new Date() })
+        .where(eq(users.id, resolvedAdminId));
+    }
     console.info('Bootstrap admin credential account ready');
 
     const directorRoleId = roleIds.get(bootstrapAdmin.roleCode);
@@ -615,12 +637,31 @@ function getBootstrapAdminConfig(): {
 } | null {
   const password = process.env.SEED_ADMIN_PASSWORD;
   if (!password) return null;
+  const isProduction = process.env.NODE_ENV === 'production';
+  if (isProduction && process.env.SEED_ADMIN_ALLOW_PRODUCTION !== '1') {
+    throw new Error('Production bootstrap admin seed requires SEED_ADMIN_ALLOW_PRODUCTION=1.');
+  }
   if (password.length < 12) {
     throw new Error('SEED_ADMIN_PASSWORD must be at least 12 characters.');
   }
+  if (
+    !/[a-z]/.test(password) ||
+    !/[A-Z]/.test(password) ||
+    !/[0-9]/.test(password) ||
+    !/[^A-Za-z0-9]/.test(password) ||
+    /aroadri|password|admin|1234/i.test(password)
+  ) {
+    throw new Error(
+      'SEED_ADMIN_PASSWORD must include upper/lowercase letters, a number, a symbol, and no default words.',
+    );
+  }
+  const email = process.env.SEED_ADMIN_EMAIL ?? DEV_ADMIN_USER.email;
+  if (isProduction && email === DEV_ADMIN_USER.email) {
+    throw new Error('Production bootstrap admin seed requires a non-default SEED_ADMIN_EMAIL.');
+  }
 
   return {
-    email: process.env.SEED_ADMIN_EMAIL ?? DEV_ADMIN_USER.email,
+    email,
     password,
     displayName: process.env.SEED_ADMIN_NAME ?? DEV_ADMIN_USER.displayName,
     locale: DEV_ADMIN_USER.locale,

@@ -7,7 +7,8 @@
 
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
-import { db, eq } from '@erp/db';
+import { requirePermissionAtLocation } from '@/lib/authz';
+import { and, db, eq } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import { employees, payrollLines, payrolls, salaryComponents } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
@@ -63,13 +64,16 @@ export default async function PayrollDetailPage({ params }: Props) {
 
   const user = session.user as Record<string, unknown>;
   const tenantId = String(user.tenantId ?? 'default');
-  const locationId = String(user.locationId ?? '');
   const userId = String(user.id ?? 'system');
 
   const t = await getTranslations('hr.payroll');
 
   // Load payroll
-  const [payroll] = await db.select().from(payrolls).where(eq(payrolls.id, id)).limit(1);
+  const [payroll] = await db
+    .select()
+    .from(payrolls)
+    .where(and(eq(payrolls.id, id), eq(payrolls.tenantId, tenantId)))
+    .limit(1);
 
   if (!payroll) {
     return (
@@ -84,12 +88,14 @@ export default async function PayrollDetailPage({ params }: Props) {
       </div>
     );
   }
+  const allowed = await requirePermissionAtLocation(userId, 'hr.payroll.read', payroll.locationId);
+  if (!allowed) redirect('/hr/payroll');
 
   // Load location name
   const [loc] = await db
     .select({ name: locations.name })
     .from(locations)
-    .where(eq(locations.id, payroll.locationId))
+    .where(and(eq(locations.id, payroll.locationId), eq(locations.tenantId, tenantId)))
     .limit(1);
 
   // Load lines joined with employee + component
@@ -102,9 +108,18 @@ export default async function PayrollDetailPage({ params }: Props) {
       componentKind: salaryComponents.kind,
     })
     .from(payrollLines)
-    .innerJoin(employees, eq(payrollLines.employeeId, employees.id))
-    .innerJoin(salaryComponents, eq(payrollLines.salaryComponentId, salaryComponents.id))
-    .where(eq(payrollLines.payrollId, id))
+    .innerJoin(
+      employees,
+      and(eq(payrollLines.employeeId, employees.id), eq(employees.tenantId, tenantId)),
+    )
+    .innerJoin(
+      salaryComponents,
+      and(
+        eq(payrollLines.salaryComponentId, salaryComponents.id),
+        eq(salaryComponents.tenantId, tenantId),
+      ),
+    )
+    .where(and(eq(payrollLines.payrollId, id), eq(payrollLines.tenantId, tenantId)))
     .orderBy(employees.name, salaryComponents.code);
 
   // Group by employee
@@ -137,8 +152,6 @@ export default async function PayrollDetailPage({ params }: Props) {
   const status = payroll.status;
   const canApprove = status === 'draft' || status === 'pending_approval';
   const canMarkPaid = status === 'approved';
-
-  const ctx = { userId, tenantId, locationId: payroll.locationId };
 
   return (
     <div className="space-y-6">

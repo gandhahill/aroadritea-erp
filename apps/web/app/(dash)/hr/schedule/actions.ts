@@ -1,7 +1,8 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, db, eq, gte, lte, sql } from '@erp/db';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
+import { and, db, eq, gte, inArray, lte, sql } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
 import { locations } from '@erp/db/schema/auth';
 import {
@@ -186,6 +187,22 @@ export async function fetchRoster(
 }> {
   const ctx = await buildCtx();
   if (!ctx) return { options: { shifts: [], employees: [] }, assignments: [] };
+  const locationScope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'hr.attendance.read',
+    ctx.tenantId,
+  );
+  if (locationScope.locationIds.length === 0) {
+    return { options: { shifts: [], employees: [] }, assignments: [] };
+  }
+  const allowedLocationIds = locationId
+    ? locationScope.locationIds.includes(locationId)
+      ? [locationId]
+      : []
+    : locationScope.locationIds;
+  if (allowedLocationIds.length === 0) {
+    return { options: { shifts: [], employees: [] }, assignments: [] };
+  }
 
   const start = new Date(weekStart);
   const end = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000);
@@ -209,7 +226,7 @@ export async function fetchRoster(
         and(
           eq(shiftDefinitions.tenantId, ctx.tenantId),
           eq(shiftDefinitions.isActive, true),
-          locationId ? eq(shiftDefinitions.locationId, locationId) : undefined,
+          inArray(shiftDefinitions.locationId, allowedLocationIds),
         ),
       )
       .orderBy(shiftDefinitions.startTime),
@@ -226,7 +243,7 @@ export async function fetchRoster(
         and(
           eq(employees.tenantId, ctx.tenantId),
           sql`${employees.status} in ('active','probation')`,
-          locationId ? eq(employees.locationId, locationId) : undefined,
+          inArray(employees.locationId, allowedLocationIds),
         ),
       )
       .orderBy(employees.name),
@@ -242,6 +259,7 @@ export async function fetchRoster(
       .where(
         and(
           eq(shiftAssignments.tenantId, ctx.tenantId),
+          inArray(shiftAssignments.locationId, allowedLocationIds),
           gte(shiftAssignments.workDate, startStr),
           lte(shiftAssignments.workDate, endStr),
         ),
@@ -301,8 +319,6 @@ export async function upsertAssignmentAction(input: {
 }): Promise<{ ok: boolean; id?: string; error?: string }> {
   const ctx = await buildCtx();
   if (!ctx) return { ok: false, error: 'Unauthenticated' };
-  const perm = await requirePermission(ctx.userId, 'hr.manage_attendance');
-  if (!perm.ok) return { ok: false, error: 'Forbidden' };
 
   if (input.kind === 'shift' && !input.shiftDefinitionId) {
     return { ok: false, error: 'Shift wajib dipilih.' };
@@ -311,8 +327,35 @@ export async function upsertAssignmentAction(input: {
     // For 'off' rows we still upsert one row per (employee,date) with no shift.
   }
 
+  const [employee] = await db
+    .select({ id: employees.id, locationId: employees.locationId })
+    .from(employees)
+    .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.id, input.employeeId)))
+    .limit(1);
+  if (!employee) return { ok: false, error: 'Employee not found' };
+
+  let targetLocationId = employee.locationId;
+  if (input.shiftDefinitionId) {
+    const [sd] = await db
+      .select({ locationId: shiftDefinitions.locationId })
+      .from(shiftDefinitions)
+      .where(
+        and(
+          eq(shiftDefinitions.tenantId, ctx.tenantId),
+          eq(shiftDefinitions.id, input.shiftDefinitionId),
+        ),
+      );
+    if (!sd) return { ok: false, error: 'Shift not found' };
+    targetLocationId = sd.locationId;
+  }
+  const perm = await requirePermission(ctx.userId, 'hr.manage_attendance', {
+    locationId: targetLocationId,
+  });
+  if (!perm.ok) return { ok: false, error: 'Forbidden' };
+
   // Find existing
   const conditions = [
+    eq(shiftAssignments.tenantId, ctx.tenantId),
     eq(shiftAssignments.employeeId, input.employeeId),
     eq(shiftAssignments.workDate, input.workDate),
   ];
@@ -337,7 +380,9 @@ export async function upsertAssignmentAction(input: {
         updatedBy: ctx.userId,
         updatedAt: new Date(),
       })
-      .where(eq(shiftAssignments.id, existing[0].id));
+      .where(
+        and(eq(shiftAssignments.tenantId, ctx.tenantId), eq(shiftAssignments.id, existing[0].id)),
+      );
 
     await db.insert(auditLog).values({
       id: generateId(),
@@ -356,7 +401,7 @@ export async function upsertAssignmentAction(input: {
     // parallel so the notification fan-out adds < 100 ms.
     const [shiftLabel, locationLabel] = await Promise.all([
       resolveShiftLabel(input.shiftDefinitionId),
-      resolveLocationLabel(ctx.locationId),
+      resolveLocationLabel(targetLocationId),
     ]);
     void notifyShiftChange({
       tenantId: ctx.tenantId,
@@ -371,15 +416,6 @@ export async function upsertAssignmentAction(input: {
 
     revalidatePath('/hr/schedule');
     return { ok: true, id: existing[0].id };
-  }
-
-  let targetLocationId = ctx.locationId;
-  if (input.shiftDefinitionId) {
-    const [sd] = await db
-      .select({ locationId: shiftDefinitions.locationId })
-      .from(shiftDefinitions)
-      .where(eq(shiftDefinitions.id, input.shiftDefinitionId));
-    if (sd) targetLocationId = sd.locationId;
   }
 
   const id = generateId();
@@ -434,8 +470,6 @@ export async function upsertAssignmentAction(input: {
 export async function deleteAssignmentAction(id: string): Promise<{ ok: boolean; error?: string }> {
   const ctx = await buildCtx();
   if (!ctx) return { ok: false, error: 'Unauthenticated' };
-  const perm = await requirePermission(ctx.userId, 'hr.manage_attendance');
-  if (!perm.ok) return { ok: false, error: 'Forbidden' };
 
   // Snapshot the row BEFORE deletion so we can still resolve the
   // employee + work date for the notification.
@@ -449,10 +483,17 @@ export async function deleteAssignmentAction(id: string): Promise<{ ok: boolean;
       notes: shiftAssignments.notes,
     })
     .from(shiftAssignments)
-    .where(eq(shiftAssignments.id, id))
+    .where(and(eq(shiftAssignments.tenantId, ctx.tenantId), eq(shiftAssignments.id, id)))
     .limit(1);
+  if (!snapshot) return { ok: false, error: 'Not found' };
+  const perm = await requirePermission(ctx.userId, 'hr.manage_attendance', {
+    locationId: snapshot.locationId,
+  });
+  if (!perm.ok) return { ok: false, error: 'Forbidden' };
 
-  await db.delete(shiftAssignments).where(eq(shiftAssignments.id, id));
+  await db
+    .delete(shiftAssignments)
+    .where(and(eq(shiftAssignments.tenantId, ctx.tenantId), eq(shiftAssignments.id, id)));
 
   await db.insert(auditLog).values({
     id: generateId(),
@@ -499,8 +540,6 @@ export async function swapShiftAssignmentAction(input: {
 }): Promise<{ ok: boolean; error?: string; newAssignmentId?: string }> {
   const ctx = await buildCtx();
   if (!ctx) return { ok: false, error: 'Unauthenticated' };
-  const perm = await requirePermission(ctx.userId, 'hr.manage_attendance');
-  if (!perm.ok) return { ok: false, error: 'Forbidden' };
 
   if (!input.reason?.trim() || input.reason.trim().length < 3) {
     return { ok: false, error: 'Alasan minimal 3 karakter.' };
@@ -520,9 +559,23 @@ export async function swapShiftAssignmentAction(input: {
   if (!original) {
     return { ok: false, error: 'Assignment tidak ditemukan.' };
   }
+  const perm = await requirePermission(ctx.userId, 'hr.manage_attendance', {
+    locationId: original.locationId,
+  });
+  if (!perm.ok) return { ok: false, error: 'Forbidden' };
   if (original.employeeId === input.substituteEmployeeId) {
     return { ok: false, error: 'Karyawan pengganti sama dengan asal.' };
   }
+  const [substitute] = await db
+    .select({ id: employees.id, locationId: employees.locationId })
+    .from(employees)
+    .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.id, input.substituteEmployeeId)))
+    .limit(1);
+  if (!substitute) return { ok: false, error: 'Karyawan pengganti tidak ditemukan.' };
+  const substitutePerm = await requirePermission(ctx.userId, 'hr.manage_attendance', {
+    locationId: substitute.locationId,
+  });
+  if (!substitutePerm.ok) return { ok: false, error: 'Forbidden' };
 
   // Disallow swap if the substitute already has a row for the same
   // date+shift — they can't work the same slot twice.
@@ -555,7 +608,7 @@ export async function swapShiftAssignmentAction(input: {
       updatedBy: ctx.userId,
       updatedAt: new Date(),
     })
-    .where(eq(shiftAssignments.id, original.id))
+    .where(and(eq(shiftAssignments.tenantId, ctx.tenantId), eq(shiftAssignments.id, original.id)))
     .returning({ id: shiftAssignments.id });
   if (!updated || updated.length === 0) {
     return { ok: false, error: 'Gagal memperbarui assignment.' };

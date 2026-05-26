@@ -6,6 +6,7 @@
 
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
@@ -18,12 +19,16 @@ export const metadata: Metadata = { title: 'Rekrutmen' };
 export default async function RecruitmentPage() {
   const session = await getSession();
   if (!session) redirect('/login');
-  const userId = String((session.user as Record<string, unknown>)?.id ?? '');
-  const allowed = await can(userId, 'hr.view');
-  if (!allowed) redirect('/dashboard');
+  const user = session.user as Record<string, unknown>;
+  const userId = String(user.id ?? '');
+  const tenantId = String(user.tenantId ?? 'default');
+  const readScope = await authorizedLocationIdsForTenant(userId, 'hr.recruitment.read', tenantId);
+  if (!readScope.global && readScope.locationIds.length === 0) redirect('/dashboard');
 
   const [openings, applicants] = await Promise.all([fetchOpenings(), fetchApplicants()]);
-  const canManage = await can(userId, 'hr.employee.write');
+  const canManage = await can(userId, 'hr.recruitment.manage', {
+    locationId: readScope.locationIds[0],
+  });
 
   const t = await getTranslations('hr.recruitment');
 

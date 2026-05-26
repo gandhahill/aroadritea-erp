@@ -97,7 +97,7 @@ function add(target: AgingBuckets, key: keyof AgingBuckets, value: bigint): void
 export async function aging(input: AgingInput, ctx: AuditContext): Promise<Result<AgingResult>> {
   const permCheck = await requirePermission(
     ctx.userId,
-    'accounting.view',
+    input.locationId ? 'accounting.view' : 'reporting.consolidated',
     input.locationId ? { locationId: input.locationId } : undefined,
   );
   if (!permCheck.ok) return permCheck;

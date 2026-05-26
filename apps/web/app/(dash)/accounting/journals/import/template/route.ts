@@ -1,3 +1,6 @@
+import { getSession } from '@/lib/auth';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
+
 const TEMPLATE = [
   [
     'posting_date',
@@ -35,7 +38,17 @@ function csvEscape(value: string): string {
   return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
 
-export function GET() {
+export async function GET() {
+  const session = await getSession();
+  if (!session?.user) return new Response(null, { status: 401 });
+  const user = session.user as Record<string, unknown>;
+  const scope = await authorizedLocationIdsForTenant(
+    String(user.id ?? ''),
+    'accounting.journal.create',
+    String(user.tenantId ?? 'default'),
+  );
+  if (!scope.global && scope.locationIds.length === 0) return new Response(null, { status: 403 });
+
   const body = TEMPLATE.map((row) => row.map(csvEscape).join(',')).join('\r\n');
   return new Response(body, {
     headers: {

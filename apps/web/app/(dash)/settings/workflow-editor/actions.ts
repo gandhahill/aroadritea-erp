@@ -45,7 +45,12 @@ export async function fetchWorkflowDefinitions(
 ): Promise<WorkflowDefinitionItem[]> {
   const session = await getSession();
   if (!session?.user) return [];
-  const tenantId = String((session.user as Record<string, unknown>).tenantId ?? 'default');
+  const user = session.user as Record<string, unknown>;
+  const tenantId = String(user.tenantId ?? 'default');
+  const userId = String(user.id ?? '');
+  const { requirePermission } = await import('@erp/services/iam');
+  const perm = await requirePermission(userId, 'settings.manage');
+  if (!perm.ok) return [];
 
   const conditions = [eq(workflowDefinitions.tenantId, tenantId)];
   if (entityType) conditions.push(eq(workflowDefinitions.entityType, entityType));
@@ -196,7 +201,7 @@ export async function serverUpdateWorkflowDefinition(
         stepsJson: input.stepsJson as never,
         updatedBy: userId,
       })
-      .where(eq(workflowDefinitions.id, input.id));
+      .where(and(eq(workflowDefinitions.id, input.id), eq(workflowDefinitions.tenantId, tenantId)));
 
     await db.insert(auditLog).values({
       id: crypto.randomUUID(),
@@ -244,7 +249,9 @@ export async function serverDeleteWorkflowDefinition(
 
     if (!existing[0]) return { success: false, error: 'Definition not found' };
 
-    await db.delete(workflowDefinitions).where(eq(workflowDefinitions.id, id));
+    await db
+      .delete(workflowDefinitions)
+      .where(and(eq(workflowDefinitions.id, id), eq(workflowDefinitions.tenantId, tenantId)));
 
     await db.insert(auditLog).values({
       id: crypto.randomUUID(),

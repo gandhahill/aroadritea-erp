@@ -1,7 +1,8 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, db, desc, eq, isNull } from '@erp/db';
+import { authorizedLocationIdsForTenant, requirePermissionAtLocation } from '@/lib/authz';
+import { and, db, desc, eq, inArray, isNull } from '@erp/db';
 import { pettyCashAccounts, pettyCashTransactions } from '@erp/db/schema/accounting';
 import { locations, users } from '@erp/db/schema/auth';
 import {
@@ -48,7 +49,26 @@ function pickName(name: unknown, locale: string, fallback: string): string {
   return rec[locale] ?? rec.id ?? rec.en ?? rec.zh ?? fallback;
 }
 
-export async function fetchPettyCashAccounts(tenantId: string): Promise<PettyCashAccountItem[]> {
+async function getSessionContext() {
+  const session = await getSession();
+  if (!session?.user) return null;
+  const user = session.user as Record<string, unknown>;
+  return {
+    userId: String(user.id ?? ''),
+    tenantId: String(user.tenantId ?? 'default'),
+  };
+}
+
+export async function fetchPettyCashAccounts(_tenantId: string): Promise<PettyCashAccountItem[]> {
+  const ctx = await getSessionContext();
+  if (!ctx) return [];
+  const scope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'accounting.petty_cash.view',
+    ctx.tenantId,
+  );
+  if (!scope.global && scope.locationIds.length === 0) return [];
+
   const locale = (await getLocale().catch(() => 'id')) as 'id' | 'en' | 'zh';
   const rows = await db
     .select({
@@ -59,7 +79,12 @@ export async function fetchPettyCashAccounts(tenantId: string): Promise<PettyCas
       lastReplenishAt: pettyCashAccounts.lastReplenishAt,
     })
     .from(pettyCashAccounts)
-    .where(eq(pettyCashAccounts.tenantId, tenantId));
+    .where(
+      and(
+        eq(pettyCashAccounts.tenantId, ctx.tenantId),
+        scope.global ? undefined : inArray(pettyCashAccounts.locationId, scope.locationIds),
+      ),
+    );
 
   const locationIds = rows.map((r) => r.locationId);
   // tenantId filter added — prior query loaded ALL tenants' locations,
@@ -69,7 +94,7 @@ export async function fetchPettyCashAccounts(tenantId: string): Promise<PettyCas
       ? await db
           .select({ id: locations.id, name: locations.name, code: locations.code })
           .from(locations)
-          .where(eq(locations.tenantId, tenantId))
+          .where(eq(locations.tenantId, ctx.tenantId))
       : [];
   const locMap = new Map(
     locRows.map((l) => [l.id, { name: l.name as LocaleString, code: l.code }]),
@@ -98,8 +123,17 @@ export async function fetchPettyCashAccounts(tenantId: string): Promise<PettyCas
  * outlet can be opened with its own plafond + opening balance.
  */
 export async function fetchEmptyPettyCashLocations(
-  tenantId: string,
+  _tenantId: string,
 ): Promise<PettyCashEmptyLocation[]> {
+  const ctx = await getSessionContext();
+  if (!ctx) return [];
+  const scope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'accounting.petty_cash.manage',
+    ctx.tenantId,
+  );
+  if (!scope.global && scope.locationIds.length === 0) return [];
+
   const locale = (await getLocale().catch(() => 'id')) as 'id' | 'en' | 'zh';
   const rows = await db
     .select({
@@ -110,13 +144,17 @@ export async function fetchEmptyPettyCashLocations(
     .from(locations)
     .leftJoin(
       pettyCashAccounts,
-      and(eq(pettyCashAccounts.locationId, locations.id), eq(pettyCashAccounts.tenantId, tenantId)),
+      and(
+        eq(pettyCashAccounts.locationId, locations.id),
+        eq(pettyCashAccounts.tenantId, ctx.tenantId),
+      ),
     )
     .where(
       and(
-        eq(locations.tenantId, tenantId),
+        eq(locations.tenantId, ctx.tenantId),
         eq(locations.status, 'active'),
         eq(locations.type, 'store'),
+        scope.global ? undefined : inArray(locations.id, scope.locationIds),
         isNull(pettyCashAccounts.id),
       ),
     );
@@ -131,20 +169,24 @@ export async function fetchPettyCashTransactions(
   accountId: string,
   limit = 50,
 ): Promise<PettyCashTransactionItem[]> {
-  const session = await getSession();
-  const tenantId = String(
-    (session?.user as Record<string, unknown> | undefined)?.tenantId ?? 'default',
-  );
+  const ctx = await getSessionContext();
+  if (!ctx) return [];
 
   // Look up the parent account first so we can tenant-scope the
   // transactions query — otherwise `accountId` from URL params could be
   // pointed at another tenant's account.
   const [account] = await db
-    .select({ id: pettyCashAccounts.id })
+    .select({ id: pettyCashAccounts.id, locationId: pettyCashAccounts.locationId })
     .from(pettyCashAccounts)
-    .where(and(eq(pettyCashAccounts.id, accountId), eq(pettyCashAccounts.tenantId, tenantId)))
+    .where(and(eq(pettyCashAccounts.id, accountId), eq(pettyCashAccounts.tenantId, ctx.tenantId)))
     .limit(1);
   if (!account) return [];
+  const allowed = await requirePermissionAtLocation(
+    ctx.userId,
+    'accounting.petty_cash.view',
+    account.locationId,
+  );
+  if (!allowed) return [];
 
   // JOIN against users so the UI shows display names, not UUIDs. The
   // join is tenant-scoped so a stray cross-tenant `users` row can't
@@ -162,7 +204,7 @@ export async function fetchPettyCashTransactions(
     .from(pettyCashTransactions)
     .leftJoin(
       users,
-      and(eq(users.id, pettyCashTransactions.createdBy), eq(users.tenantId, tenantId)),
+      and(eq(users.id, pettyCashTransactions.createdBy), eq(users.tenantId, ctx.tenantId)),
     )
     .where(eq(pettyCashTransactions.accountId, accountId))
     .orderBy(desc(pettyCashTransactions.createdAt))

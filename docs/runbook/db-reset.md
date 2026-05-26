@@ -20,17 +20,20 @@ Itu menjalankan, secara berurutan:
 3. `tsx packages/db/seed/index.ts` → seed tenant, role, permission, CoA,
    menu, recipes, dll.
 
-Setelah selesai, login dengan akun admin yang di-seed:
+Setelah selesai, login dengan akun admin yang di-seed hanya jika
+`SEED_ADMIN_PASSWORD` sengaja diisi untuk bootstrap satu kali:
 
 | Email | Password |
 | --- | --- |
-| `admin@aroadritea.com` | (env `SEED_ADMIN_PASSWORD`, default `aroadritea2026`) |
+| env `SEED_ADMIN_EMAIL` | env `SEED_ADMIN_PASSWORD` |
 
-Password dipakai dari env `SEED_ADMIN_PASSWORD` waktu seed. Set sebelum
-seed kalau mau ganti:
+Tidak ada password default. Password bootstrap harus kuat (huruf besar,
+huruf kecil, angka, simbol, dan bukan kata default seperti `admin` /
+`aroadri`). Setelah login pertama, sistem mewajibkan ganti password.
 
 ```bash
-SEED_ADMIN_PASSWORD='kata-sandi-yang-kuat' \
+SEED_ADMIN_EMAIL='nama-admin-pribadi@example.com' \
+SEED_ADMIN_PASSWORD='kata-sandi-kuat-sekali#2026' \
 CONFIRM_DB_RESET=YES \
 pnpm --filter @erp/db db:reset:migrate:seed
 ```
@@ -124,7 +127,21 @@ Jangan. Kalau benar-benar harus (mis. setelah pembersihan PoC), butuh:
    pnpm --filter @erp/db db:reset:migrate:seed
    ```
 
-5. Re-seed ulang, kemudian uji login + transaksi POS sebelum membuka
+5. Kalau benar-benar perlu bootstrap admin baru, gunakan email personal
+   non-default dan flag eksplisit:
+
+   ```bash
+   NODE_ENV=production \
+   SEED_ADMIN_ALLOW_PRODUCTION=1 \
+   SEED_ADMIN_EMAIL='nama-admin-pribadi@example.com' \
+   SEED_ADMIN_PASSWORD='kata-sandi-kuat-sekali#2026' \
+   pnpm --filter @erp/db db:seed
+   ```
+
+   Untuk merotasi credential admin yang sudah ada, tambah
+   `SEED_ADMIN_ROTATE_CREDENTIAL=1`; tanpa flag ini seed production akan
+   menolak overwrite credential.
+6. Re-seed ulang, kemudian uji login + transaksi POS sebelum membuka
    outlet.
 
 ## Hubungannya dengan idempotency POS

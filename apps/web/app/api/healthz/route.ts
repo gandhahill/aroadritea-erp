@@ -8,10 +8,14 @@ import { db, sql } from '@erp/db';
 
 const APP_VERSION = process.env.npm_package_version ?? '0.1.0';
 
-export async function GET() {
+function includeDiagnostics(request: Request): boolean {
+  const token = process.env.HEALTHZ_DETAIL_TOKEN;
+  return Boolean(token && request.headers.get('x-healthz-token') === token);
+}
+
+export async function GET(request: Request) {
   let dbStatus: 'ok' | 'error' = 'ok';
   let dbLatencyMs: number | null = null;
-  const memory = process.memoryUsage();
 
   try {
     const start = Date.now();
@@ -22,30 +26,24 @@ export async function GET() {
   }
 
   const healthy = dbStatus === 'ok';
+  const body = includeDiagnostics(request)
+    ? {
+        status: healthy ? 'ok' : 'degraded',
+        service: 'web',
+        version: APP_VERSION,
+        checks: {
+          db: {
+            status: dbStatus,
+            ...(dbLatencyMs !== null && { latencyMs: dbLatencyMs }),
+          },
+        },
+      }
+    : { status: healthy ? 'ok' : 'degraded' };
 
-  return Response.json(
-    {
-      status: healthy ? 'ok' : 'degraded',
-      service: 'web',
-      version: APP_VERSION,
-      timestamp: new Date().toISOString(),
-      checks: {
-        db: {
-          status: dbStatus,
-          ...(dbLatencyMs !== null && { latencyMs: dbLatencyMs }),
-        },
-        memory: {
-          rssMb: Math.round(memory.rss / 1024 / 1024),
-          heapUsedMb: Math.round(memory.heapUsed / 1024 / 1024),
-          heapTotalMb: Math.round(memory.heapTotal / 1024 / 1024),
-        },
-      },
+  return Response.json(body, {
+    status: healthy ? 200 : 503,
+    headers: {
+      'Cache-Control': 'no-store',
     },
-    {
-      status: healthy ? 200 : 503,
-      headers: {
-        'Cache-Control': 'no-store',
-      },
-    },
-  );
+  });
 }

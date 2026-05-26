@@ -1,10 +1,10 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, db, desc, eq, isNull } from '@erp/db';
+import { authorizedLocationIdsForTenant, requirePermissionAtLocation } from '@/lib/authz';
+import { and, db, desc, eq, inArray, isNull } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
 import { jobApplicants, jobOpenings } from '@erp/db/schema/hr';
-import { requirePermission } from '@erp/services/iam';
 import { encryptPii } from '@erp/services/security/pii';
 import { generateId } from '@erp/shared/id';
 import type { AuditContext } from '@erp/shared/types';
@@ -42,13 +42,56 @@ export interface ApplicantRow {
   appliedAt: string;
 }
 
+async function loadOpeningContext(tenantId: string, openingId: string) {
+  const [opening] = await db
+    .select({ id: jobOpenings.id, locationId: jobOpenings.locationId })
+    .from(jobOpenings)
+    .where(and(eq(jobOpenings.tenantId, tenantId), eq(jobOpenings.id, openingId)))
+    .limit(1);
+  return opening ?? null;
+}
+
+async function loadApplicantContext(tenantId: string, applicantId: string) {
+  const [applicant] = await db
+    .select({
+      id: jobApplicants.id,
+      openingId: jobApplicants.openingId,
+      locationId: jobOpenings.locationId,
+    })
+    .from(jobApplicants)
+    .innerJoin(
+      jobOpenings,
+      and(eq(jobApplicants.openingId, jobOpenings.id), eq(jobOpenings.tenantId, tenantId)),
+    )
+    .where(
+      and(
+        eq(jobApplicants.tenantId, tenantId),
+        eq(jobApplicants.id, applicantId),
+        isNull(jobApplicants.deletedAt),
+      ),
+    )
+    .limit(1);
+  return applicant ?? null;
+}
+
 export async function fetchOpenings(): Promise<OpeningRow[]> {
   const ctx = await buildCtx();
   if (!ctx) return [];
+  const scope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'hr.recruitment.read',
+    ctx.tenantId,
+  );
+  if (!scope.global && scope.locationIds.length === 0) return [];
   const rows = await db
     .select()
     .from(jobOpenings)
-    .where(eq(jobOpenings.tenantId, ctx.tenantId))
+    .where(
+      and(
+        eq(jobOpenings.tenantId, ctx.tenantId),
+        scope.global ? undefined : inArray(jobOpenings.locationId, scope.locationIds),
+      ),
+    )
     .orderBy(desc(jobOpenings.createdAt));
 
   // Applicant counts (one query, then map in code)
@@ -58,7 +101,16 @@ export async function fetchOpenings(): Promise<OpeningRow[]> {
       count: jobApplicants.id,
     })
     .from(jobApplicants)
-    .where(eq(jobApplicants.tenantId, ctx.tenantId));
+    .innerJoin(
+      jobOpenings,
+      and(eq(jobApplicants.openingId, jobOpenings.id), eq(jobOpenings.tenantId, ctx.tenantId)),
+    )
+    .where(
+      and(
+        eq(jobApplicants.tenantId, ctx.tenantId),
+        scope.global ? undefined : inArray(jobOpenings.locationId, scope.locationIds),
+      ),
+    );
   const map = new Map<string, number>();
   for (const c of counts) map.set(c.openingId, (map.get(c.openingId) ?? 0) + 1);
 
@@ -77,9 +129,19 @@ export async function fetchOpenings(): Promise<OpeningRow[]> {
 export async function fetchApplicants(openingId?: string): Promise<ApplicantRow[]> {
   const ctx = await buildCtx();
   if (!ctx) return [];
+  const scope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'hr.recruitment.read',
+    ctx.tenantId,
+  );
+  if (!scope.global && scope.locationIds.length === 0) return [];
   // Hide soft-deleted rows. The schema's auditCols includes deletedAt;
   // we only show null = active applicants in the pipeline.
-  const conditions = [eq(jobApplicants.tenantId, ctx.tenantId), isNull(jobApplicants.deletedAt)];
+  const conditions = [
+    eq(jobApplicants.tenantId, ctx.tenantId),
+    isNull(jobApplicants.deletedAt),
+    scope.global ? undefined : inArray(jobOpenings.locationId, scope.locationIds),
+  ];
   if (openingId) conditions.push(eq(jobApplicants.openingId, openingId));
 
   const rows = await db
@@ -124,8 +186,12 @@ export async function createOpeningAction(input: {
 }): Promise<{ ok: boolean; id?: string; error?: string }> {
   const ctx = await buildCtx();
   if (!ctx) return { ok: false, error: 'Unauthenticated' };
-  const perm = await requirePermission(ctx.userId, 'hr.employee.write');
-  if (!perm.ok) return { ok: false, error: 'Forbidden' };
+  const allowed = await requirePermissionAtLocation(
+    ctx.userId,
+    'hr.recruitment.manage',
+    ctx.locationId,
+  );
+  if (!allowed) return { ok: false, error: 'Forbidden' };
 
   if (!input.title.trim()) return { ok: false, error: 'Judul wajib diisi.' };
 
@@ -171,8 +237,14 @@ export async function updateOpeningStatusAction(input: {
 }): Promise<{ ok: boolean; error?: string }> {
   const ctx = await buildCtx();
   if (!ctx) return { ok: false, error: 'Unauthenticated' };
-  const perm = await requirePermission(ctx.userId, 'hr.employee.write');
-  if (!perm.ok) return { ok: false, error: 'Forbidden' };
+  const opening = await loadOpeningContext(ctx.tenantId, input.openingId);
+  if (!opening) return { ok: false, error: 'Forbidden' };
+  const allowed = await requirePermissionAtLocation(
+    ctx.userId,
+    'hr.recruitment.manage',
+    opening.locationId,
+  );
+  if (!allowed) return { ok: false, error: 'Forbidden' };
   await db
     .update(jobOpenings)
     .set({ status: input.status, updatedBy: ctx.userId, updatedAt: new Date() })
@@ -202,8 +274,14 @@ export async function createApplicantAction(input: {
 }): Promise<{ ok: boolean; id?: string; error?: string }> {
   const ctx = await buildCtx();
   if (!ctx) return { ok: false, error: 'Unauthenticated' };
-  const perm = await requirePermission(ctx.userId, 'hr.employee.write');
-  if (!perm.ok) return { ok: false, error: 'Forbidden' };
+  const opening = await loadOpeningContext(ctx.tenantId, input.openingId);
+  if (!opening) return { ok: false, error: 'Forbidden' };
+  const allowed = await requirePermissionAtLocation(
+    ctx.userId,
+    'hr.recruitment.manage',
+    opening.locationId,
+  );
+  if (!allowed) return { ok: false, error: 'Forbidden' };
 
   if (!input.name.trim()) return { ok: false, error: 'Nama wajib diisi.' };
 
@@ -246,8 +324,14 @@ export async function setApplicantStageAction(input: {
 }): Promise<{ ok: boolean; error?: string }> {
   const ctx = await buildCtx();
   if (!ctx) return { ok: false, error: 'Unauthenticated' };
-  const perm = await requirePermission(ctx.userId, 'hr.employee.write');
-  if (!perm.ok) return { ok: false, error: 'Forbidden' };
+  const applicant = await loadApplicantContext(ctx.tenantId, input.applicantId);
+  if (!applicant) return { ok: false, error: 'Forbidden' };
+  const allowed = await requirePermissionAtLocation(
+    ctx.userId,
+    'hr.recruitment.manage',
+    applicant.locationId,
+  );
+  if (!allowed) return { ok: false, error: 'Forbidden' };
   await db
     .update(jobApplicants)
     .set({ stage: input.stage, updatedBy: ctx.userId, updatedAt: new Date() })
@@ -281,8 +365,14 @@ export async function updateApplicantAction(input: {
 }): Promise<{ ok: boolean; error?: string }> {
   const ctx = await buildCtx();
   if (!ctx) return { ok: false, error: 'Unauthenticated' };
-  const perm = await requirePermission(ctx.userId, 'hr.employee.write');
-  if (!perm.ok) return { ok: false, error: 'Forbidden' };
+  const applicant = await loadApplicantContext(ctx.tenantId, input.applicantId);
+  if (!applicant) return { ok: false, error: 'Forbidden' };
+  const allowed = await requirePermissionAtLocation(
+    ctx.userId,
+    'hr.recruitment.manage',
+    applicant.locationId,
+  );
+  if (!allowed) return { ok: false, error: 'Forbidden' };
 
   if (!input.name.trim()) return { ok: false, error: 'Nama wajib diisi.' };
 
@@ -323,8 +413,14 @@ export async function deleteApplicantAction(input: {
 }): Promise<{ ok: boolean; error?: string }> {
   const ctx = await buildCtx();
   if (!ctx) return { ok: false, error: 'Unauthenticated' };
-  const perm = await requirePermission(ctx.userId, 'hr.employee.write');
-  if (!perm.ok) return { ok: false, error: 'Forbidden' };
+  const applicant = await loadApplicantContext(ctx.tenantId, input.applicantId);
+  if (!applicant) return { ok: false, error: 'Forbidden' };
+  const allowed = await requirePermissionAtLocation(
+    ctx.userId,
+    'hr.recruitment.manage',
+    applicant.locationId,
+  );
+  if (!allowed) return { ok: false, error: 'Forbidden' };
 
   await db
     .update(jobApplicants)

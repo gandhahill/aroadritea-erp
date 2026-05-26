@@ -232,11 +232,21 @@ export const PERMISSIONS_SEED = [
     description: n('Kelola tarif pajak', 'Manage tax rates', '管理税率'),
   },
   {
+    code: 'tax.manage_global_rates',
+    module: 'tax',
+    description: n('Kelola tarif pajak global', 'Manage global tax rates', '管理全局税率'),
+  },
+  {
     code: 'tax.export',
     module: 'tax',
     description: n('Export laporan pajak', 'Export tax reports', '导出税务报表'),
   },
   // POS
+  {
+    code: 'pos.view',
+    module: 'pos',
+    description: n('Lihat transaksi POS', 'View POS transactions', '查看POS交易'),
+  },
   {
     code: 'pos.transact',
     module: 'pos',
@@ -313,6 +323,25 @@ export const PERMISSIONS_SEED = [
     ),
   },
   {
+    code: 'inventory.product.upsert',
+    module: 'inventory',
+    description: n(
+      'Import atau upsert produk',
+      'Import or upsert products',
+      'å¯¼å…¥æˆ–æ›´æ–°äº§å“',
+    ),
+  },
+  {
+    code: 'inventory.recipe.read',
+    module: 'inventory',
+    description: n('Lihat resep/BOM', 'View recipes/BOM', '查看配方/BOM'),
+  },
+  {
+    code: 'inventory.recipe.manage',
+    module: 'inventory',
+    description: n('Kelola resep/BOM', 'Manage recipes/BOM', '管理配方/BOM'),
+  },
+  {
     code: 'inventory.category.read',
     module: 'inventory',
     description: n('Lihat kategori produk', 'View product categories', '查看产品分类'),
@@ -336,6 +365,11 @@ export const PERMISSIONS_SEED = [
     code: 'inventory.transfer',
     module: 'inventory',
     description: n('Transfer stok antar outlet', 'Transfer stock between outlets', '门店间调拨'),
+  },
+  {
+    code: 'inventory.stock.write',
+    module: 'inventory',
+    description: n('Import atau ubah stok', 'Import or update stock', 'å¯¼å…¥æˆ–æ›´æ–°åº“å­˜'),
   },
   {
     code: 'inventory.writeoff',
@@ -524,9 +558,25 @@ export const PERMISSIONS_SEED = [
     description: n('Proses penggajian', 'Process payroll', '处理工资'),
   },
   {
+    code: 'hr.payroll.read',
+    module: 'payroll',
+    description: n('Lihat payroll', 'View payroll', '查看工资'),
+  },
+  {
     code: 'hr.payroll.approve',
     module: 'payroll',
     description: n('Setujui payroll', 'Approve payroll', '批准工资'),
+  },
+  // Recruitment
+  {
+    code: 'hr.recruitment.read',
+    module: 'hr',
+    description: n('Lihat rekrutmen', 'View recruitment', 'æŸ¥çœ‹æ‹›è˜'),
+  },
+  {
+    code: 'hr.recruitment.manage',
+    module: 'hr',
+    description: n('Kelola rekrutmen', 'Manage recruitment', 'ç®¡ç†æ‹›è˜'),
   },
   // CRM
   {
@@ -629,6 +679,15 @@ export const PERMISSIONS_SEED = [
     module: 'reporting',
     description: n('Export laporan', 'Export reports', '导出报表'),
   },
+  {
+    code: 'reporting.consolidated',
+    module: 'reporting',
+    description: n(
+      'Lihat laporan konsolidasi semua lokasi',
+      'View consolidated reports across all locations',
+      '查看所有地点的合并报表',
+    ),
+  },
   // Audit
   {
     code: 'audit.view',
@@ -670,6 +729,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'accounting.bank_recon.view',
     'accounting.bank_recon.manage',
     'settings.bank_accounts.manage',
+    'pos.view',
     'pos.transact',
     'pos.void',
     'pos.refund',
@@ -682,10 +742,14 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'inventory.product.create',
     'inventory.product.update',
     'inventory.product.delete',
+    'inventory.product.upsert',
+    'inventory.recipe.read',
+    'inventory.recipe.manage',
     'inventory.category.read',
     'inventory.category.create',
     'inventory.category.update',
     'inventory.adjust',
+    'inventory.stock.write',
     'inventory.opname',
     'inventory.transfer',
     'purchasing.view',
@@ -705,6 +769,9 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'hr.manage_attendance',
     'hr.attendance.read',
     'hr.attendance.write',
+    'hr.payroll.read',
+    'hr.recruitment.read',
+    'hr.recruitment.manage',
     'hr.disciplinary.read',
     'hr.disciplinary.write',
     'hr.sop.read',
@@ -713,6 +780,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'kitchen.view',
     'reporting.view',
     'reporting.export',
+    'reporting.consolidated',
     'audit.view',
     'crm.view',
     'crm.logComplaint',
@@ -752,9 +820,11 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'settings.bank_accounts.manage',
     'tax.view',
     'tax.manage_rates',
+    'tax.manage_global_rates',
     'tax.export',
     'hr.view',
     'hr.employee.read',
+    'hr.payroll.read',
     'hr.attendance.read',
     'hr.disciplinary.read',
     'correspondence.view',
@@ -762,12 +832,14 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'correspondence.update',
     'reporting.view',
     'reporting.export',
+    'reporting.consolidated',
     'audit.view',
     'hr.sop.read',
     'ai.assistant.use',
     'docs.view',
   ],
   store_manager: [
+    'pos.view',
     'pos.transact',
     'pos.void',
     'pos.refund',
@@ -779,10 +851,13 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'inventory.product.read',
     'inventory.product.create',
     'inventory.product.update',
+    'inventory.product.upsert',
+    'inventory.recipe.read',
     'inventory.category.read',
     'inventory.category.create',
     'inventory.category.update',
     'inventory.adjust',
+    'inventory.stock.write',
     'inventory.opname',
     'accounting.petty_cash.view',
     'accounting.petty_cash.expense',
@@ -809,6 +884,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'helpdesk.view',
   ],
   cashier: [
+    'pos.view',
     'pos.transact',
     'pos.void',
     'pos.refund',

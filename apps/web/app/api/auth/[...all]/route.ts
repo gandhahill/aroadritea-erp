@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { and, db, eq, sql } from '@erp/db';
 import { loginAttempts } from '@erp/db/schema/auth';
 import { auth } from '@erp/services/auth';
+import { clientIpFromHeaders } from '@erp/shared/client-ip';
 import { generateId } from '@erp/shared/id';
 import { toNextJsHandler } from 'better-auth/next-js';
 
@@ -15,11 +16,6 @@ const LOGIN_FAILURE_LIMIT = 5;
 const ATTACK_FAILURE_LIMIT = 20;
 
 export const GET = handlers.GET;
-
-function getClientIp(request: Request): string {
-  const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  return forwardedFor || request.headers.get('x-real-ip') || 'unknown';
-}
 
 async function getEmailFromRequest(request: Request): Promise<string | null> {
   const contentType = request.headers.get('content-type') ?? '';
@@ -122,7 +118,7 @@ export async function POST(request: Request) {
   const isEmailLogin = new URL(request.url).pathname.endsWith('/sign-in/email');
   if (!isEmailLogin) return handlers.POST(request);
 
-  const ipAddress = getClientIp(request);
+  const ipAddress = clientIpFromHeaders(request.headers);
   const emailHash = hashEmail(await getEmailFromRequest(request));
   const userAgent = request.headers.get('user-agent');
 

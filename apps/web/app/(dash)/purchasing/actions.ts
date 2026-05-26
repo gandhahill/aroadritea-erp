@@ -2,6 +2,11 @@
 
 import { getSession } from '@/lib/auth';
 import {
+  authorizedLocationIdsForTenant,
+  hasGlobalPermission,
+  requirePermissionAtLocation,
+} from '@/lib/authz';
+import {
   and,
   asc,
   db,
@@ -9,6 +14,7 @@ import {
   eq,
   goodsReceiptNotes,
   grnLines,
+  inArray,
   locations,
   partners,
   products,
@@ -89,6 +95,19 @@ function localizedName(value: unknown): string {
 export async function fetchPurchasingDashboard(): Promise<PurchasingDashboardData> {
   const ctx = await getSessionContext();
   if (!ctx) return { purchaseOrders: [], suppliers: [], canCreate: false };
+  const viewScope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'purchasing.view',
+    ctx.tenantId,
+  );
+  const createScope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'purchasing.po.create',
+    ctx.tenantId,
+  );
+  if (viewScope.locationIds.length === 0) {
+    return { purchaseOrders: [], suppliers: [], canCreate: createScope.locationIds.length > 0 };
+  }
 
   const [poRows, supplierRows] = await Promise.all([
     db
@@ -117,7 +136,12 @@ export async function fetchPurchasingDashboard(): Promise<PurchasingDashboardDat
         and(eq(purchaseOrders.locationId, locations.id), eq(locations.tenantId, ctx.tenantId)),
       )
       .leftJoin(purchaseOrderLines, eq(purchaseOrderLines.purchaseOrderId, purchaseOrders.id))
-      .where(eq(purchaseOrders.tenantId, ctx.tenantId))
+      .where(
+        and(
+          eq(purchaseOrders.tenantId, ctx.tenantId),
+          inArray(purchaseOrders.locationId, viewScope.locationIds),
+        ),
+      )
       .orderBy(desc(purchaseOrders.orderDate), desc(purchaseOrders.createdAt)),
     db
       .select({
@@ -162,13 +186,21 @@ export async function fetchPurchasingDashboard(): Promise<PurchasingDashboardDat
   return {
     purchaseOrders: [...grouped.values()],
     suppliers: supplierRows,
-    canCreate: true,
+    canCreate: createScope.locationIds.length > 0,
   };
 }
 
 export async function fetchPurchaseOrderFormData(): Promise<PurchaseOrderFormData> {
   const ctx = await getSessionContext();
   if (!ctx) return { suppliers: [], locations: [], products: [], taxRates: [] };
+  const createScope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'purchasing.po.create',
+    ctx.tenantId,
+  );
+  if (createScope.locationIds.length === 0) {
+    return { suppliers: [], locations: [], products: [], taxRates: [] };
+  }
 
   const [supplierRows, locationRows, productRows, taxRows] = await Promise.all([
     db
@@ -190,6 +222,7 @@ export async function fetchPurchaseOrderFormData(): Promise<PurchaseOrderFormDat
           eq(locations.tenantId, ctx.tenantId),
           eq(locations.status, 'active'),
           eq(locations.type, 'store'),
+          inArray(locations.id, createScope.locationIds),
         ),
       )
       .orderBy(asc(locations.code)),
@@ -241,6 +274,8 @@ export async function createSupplierAction(
 ): Promise<ActionState> {
   const ctx = await getSessionContext();
   if (!ctx) return { success: false, error: 'Sesi login tidak valid.' };
+  const allowed = await hasGlobalPermission(ctx.userId, 'purchasing.po.create');
+  if (!allowed) return { success: false, error: 'Unauthorized' };
 
   const name = String(formData.get('supplierName') ?? '').trim();
   if (!name) return { success: false, error: 'Nama supplier wajib diisi.' };
@@ -287,6 +322,9 @@ export async function createPurchaseOrderAction(
 ): Promise<ActionState> {
   const ctx = await getSessionContext();
   if (!ctx) return { success: false, error: 'Sesi login tidak valid.' };
+  const locationId = String(formData.get('locationId') ?? ctx.locationId);
+  const allowed = await requirePermissionAtLocation(ctx.userId, 'purchasing.po.create', locationId);
+  if (!allowed) return { success: false, error: 'Unauthorized' };
 
   const lineCount = Number.parseInt(String(formData.get('lineCount') ?? '0'), 10);
   const lines = Array.from({ length: lineCount }, (_, index) => ({
@@ -313,7 +351,7 @@ export async function createPurchaseOrderAction(
     {
       tenantId: ctx.tenantId,
       userId: ctx.userId,
-      locationId: String(formData.get('locationId') ?? ctx.locationId),
+      locationId,
     },
   );
 
@@ -326,20 +364,33 @@ export async function createPurchaseOrderAction(
 export async function syncPurchaseShipmentAction(formData: FormData): Promise<ActionState> {
   const ctx = await getSessionContext();
   if (!ctx) return { success: false, error: 'Sesi login tidak valid.' };
+  const poId = String(formData.get('poId') ?? '');
+  const [poRow] = await db
+    .select({ locationId: purchaseOrders.locationId })
+    .from(purchaseOrders)
+    .where(and(eq(purchaseOrders.id, poId), eq(purchaseOrders.tenantId, ctx.tenantId)))
+    .limit(1);
+  if (!poRow) return { success: false, error: 'Unauthorized' };
+  const allowed = await requirePermissionAtLocation(
+    ctx.userId,
+    'purchasing.view',
+    poRow.locationId,
+  );
+  if (!allowed) return { success: false, error: 'Unauthorized' };
 
   const result = await trackPurchaseOrderShipment(
     {
-      poId: String(formData.get('poId') ?? ''),
+      poId,
       courierCode: String(formData.get('courierCode') ?? '') as never,
       awb: String(formData.get('awb') ?? ''),
       phoneLast5: String(formData.get('phoneLast5') ?? ''),
     },
-    ctx,
+    { ...ctx, locationId: poRow.locationId },
   );
 
   revalidatePath('/purchasing');
   revalidatePath('/purchasing/shipments');
-  revalidatePath(`/purchasing/po/${String(formData.get('poId') ?? '')}`);
+  revalidatePath(`/purchasing/po/${poId}`);
   if (!result.ok) return { success: false, error: result.error.messageKey };
   return { success: true };
 }
@@ -390,6 +441,14 @@ export async function fetchShipmentDashboard(): Promise<{
 }> {
   const ctx = await getSessionContext();
   if (!ctx) return { rows: [], total: 0, withShipping: 0, delivered: 0, inTransit: 0, errored: 0 };
+  const viewScope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'purchasing.view',
+    ctx.tenantId,
+  );
+  if (viewScope.locationIds.length === 0) {
+    return { rows: [], total: 0, withShipping: 0, delivered: 0, inTransit: 0, errored: 0 };
+  }
 
   const rows = await db
     .select({
@@ -416,7 +475,12 @@ export async function fetchShipmentDashboard(): Promise<{
       locations,
       and(eq(purchaseOrders.locationId, locations.id), eq(locations.tenantId, ctx.tenantId)),
     )
-    .where(eq(purchaseOrders.tenantId, ctx.tenantId))
+    .where(
+      and(
+        eq(purchaseOrders.tenantId, ctx.tenantId),
+        inArray(purchaseOrders.locationId, viewScope.locationIds),
+      ),
+    )
     .orderBy(desc(purchaseOrders.orderDate));
 
   const mapped: ShipmentSummaryRow[] = rows.map((row) => ({
@@ -462,6 +526,7 @@ export async function fetchShipmentDetail(poId: string): Promise<ShipmentDetail 
     .select({
       id: purchaseOrders.id,
       number: purchaseOrders.number,
+      locationId: purchaseOrders.locationId,
       supplierName: partners.name,
       locationName: locations.name,
       courierCode: purchaseOrders.shippingCourierCode,
@@ -486,6 +551,8 @@ export async function fetchShipmentDetail(poId: string): Promise<ShipmentDetail 
     .limit(1);
 
   if (!row) return null;
+  const allowed = await requirePermissionAtLocation(ctx.userId, 'purchasing.view', row.locationId);
+  if (!allowed) return null;
 
   return {
     poId: row.id,
@@ -512,6 +579,12 @@ export async function receiveGoodsAction(
 
   const poId = String(formData.get('poId') ?? '');
   const locationId = String(formData.get('locationId') ?? ctx.locationId);
+  const allowed = await requirePermissionAtLocation(
+    ctx.userId,
+    'purchasing.grn.create',
+    locationId,
+  );
+  if (!allowed) return { success: false, error: 'Unauthorized' };
   const notes = String(formData.get('notes') ?? '');
   const receivedDate = new Date().toISOString(); // or from formData if needed, but today is fine for GRN
 
@@ -556,7 +629,7 @@ export async function receiveGoodsAction(
     {
       tenantId: ctx.tenantId,
       userId: ctx.userId,
-      locationId: ctx.locationId,
+      locationId,
     },
   );
 
@@ -571,7 +644,7 @@ export async function receiveGoodsAction(
     {
       tenantId: ctx.tenantId,
       userId: ctx.userId,
-      locationId: ctx.locationId,
+      locationId,
     },
   );
 
@@ -594,13 +667,22 @@ export async function fetchGRNReport(
 ) {
   const ctx = await getSessionContext();
   if (!ctx) return { data: [], total: 0, locations: [] };
+  const viewScope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'purchasing.view',
+    ctx.tenantId,
+  );
+  if (viewScope.locationIds.length === 0) return { data: [], total: 0, locations: [] };
 
   const conditions = [eq(goodsReceiptNotes.tenantId, ctx.tenantId)];
   if (status) {
     conditions.push(eq(goodsReceiptNotes.status, status));
   }
   if (locationId) {
+    if (!viewScope.locationIds.includes(locationId)) return { data: [], total: 0, locations: [] };
     conditions.push(eq(goodsReceiptNotes.locationId, locationId));
+  } else {
+    conditions.push(inArray(goodsReceiptNotes.locationId, viewScope.locationIds));
   }
   if (startDate) {
     conditions.push(sql`${goodsReceiptNotes.receivedDate} >= ${startDate}`);
@@ -617,7 +699,13 @@ export async function fetchGRNReport(
     db
       .select({ id: locations.id, name: locations.name })
       .from(locations)
-      .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.status, 'active'))),
+      .where(
+        and(
+          eq(locations.tenantId, ctx.tenantId),
+          eq(locations.status, 'active'),
+          inArray(locations.id, viewScope.locationIds),
+        ),
+      ),
   ]);
 
   const total = countResult[0]?.count ?? 0;

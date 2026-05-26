@@ -7,7 +7,13 @@
  */
 
 import { auditLog, db } from '@erp/db';
-import { journalEntries, journalLines, taxRates, taxRules } from '@erp/db/schema/accounting';
+import {
+  accounts,
+  journalEntries,
+  journalLines,
+  taxRates,
+  taxRules,
+} from '@erp/db/schema/accounting';
 import { can } from '@erp/services/iam';
 import { listRates } from '@erp/services/tax';
 import { generateId } from '@erp/shared/id';
@@ -240,8 +246,23 @@ async function exportCoretaxHandler(input: z.infer<typeof ExportCoretaxSchema>, 
 }
 
 async function upsertTaxRateHandler(input: z.infer<typeof UpsertTaxRateSchema>, ctx: McpContext) {
-  const permitted = await checkPermission(ctx, 'tax.manage_rates');
-  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: tax.manage_rates');
+  const permitted = await checkPermission(ctx, 'tax.manage_global_rates');
+  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: tax.manage_global_rates');
+
+  const [postingAccount] = await db
+    .select({ id: accounts.id })
+    .from(accounts)
+    .where(
+      and(
+        eq(accounts.id, input.posting_account_id),
+        eq(accounts.tenantId, ctx.tenantId),
+        eq(accounts.isActive, true),
+        eq(accounts.isPostable, true),
+        isNull(accounts.deletedAt),
+      ),
+    )
+    .limit(1);
+  if (!postingAccount) return mcpError('INVALID_INPUT', 'posting_account_id is not valid');
 
   const now = new Date();
   const values = {
@@ -294,8 +315,8 @@ async function upsertTaxRateHandler(input: z.infer<typeof UpsertTaxRateSchema>, 
 }
 
 async function deleteTaxRateHandler(input: z.infer<typeof DeleteTaxRateSchema>, ctx: McpContext) {
-  const permitted = await checkPermission(ctx, 'tax.manage_rates');
-  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: tax.manage_rates');
+  const permitted = await checkPermission(ctx, 'tax.manage_global_rates');
+  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: tax.manage_global_rates');
 
   const [before] = await db.select().from(taxRates).where(eq(taxRates.id, input.id)).limit(1);
   if (!before) return mcpError('NOT_FOUND', `Tax rate ${input.id} not found`);
@@ -332,8 +353,8 @@ async function listTaxRulesHandler(input: z.infer<typeof ListTaxRulesSchema>, ct
 }
 
 async function upsertTaxRuleHandler(input: z.infer<typeof UpsertTaxRuleSchema>, ctx: McpContext) {
-  const permitted = await checkPermission(ctx, 'tax.manage_rates');
-  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: tax.manage_rates');
+  const permitted = await checkPermission(ctx, 'tax.manage_global_rates');
+  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: tax.manage_global_rates');
 
   const now = new Date();
   const values = {
@@ -393,8 +414,8 @@ async function upsertTaxRuleHandler(input: z.infer<typeof UpsertTaxRuleSchema>, 
 }
 
 async function deleteTaxRuleHandler(input: z.infer<typeof DeleteTaxRuleSchema>, ctx: McpContext) {
-  const permitted = await checkPermission(ctx, 'tax.manage_rates');
-  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: tax.manage_rates');
+  const permitted = await checkPermission(ctx, 'tax.manage_global_rates');
+  if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: tax.manage_global_rates');
 
   const [before] = await db
     .select()

@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
@@ -18,7 +19,14 @@ export default async function PettyCashPage() {
   const session = await getSession();
   if (!session) redirect('/login');
 
-  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
+  const user = session.user as Record<string, unknown>;
+  const tenantId = String(user.tenantId ?? 'default');
+  const scope = await authorizedLocationIdsForTenant(
+    String(user.id ?? ''),
+    'accounting.petty_cash.view',
+    tenantId,
+  );
+  if (!scope.global && scope.locationIds.length === 0) redirect('/dashboard');
   const [accounts, emptyLocations] = await Promise.all([
     fetchPettyCashAccounts(tenantId),
     fetchEmptyPettyCashLocations(tenantId),

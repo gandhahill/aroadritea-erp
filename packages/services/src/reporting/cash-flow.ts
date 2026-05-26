@@ -88,7 +88,11 @@ export async function cashFlow(
   input: CashFlowInput,
   ctx: AuditContext,
 ): Promise<Result<CashFlowResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'accounting.view');
+  const permCheck = await requirePermission(
+    ctx.userId,
+    input.locationId ? 'accounting.view' : 'reporting.consolidated',
+    input.locationId ? { locationId: input.locationId } : undefined,
+  );
   if (!permCheck.ok) return permCheck;
 
   if (input.from > input.to) {

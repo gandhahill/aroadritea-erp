@@ -14,6 +14,15 @@ const adminEmail =
   process.env.ADMIN_EMAIL ?? process.env.SEED_ADMIN_EMAIL ?? 'admin@aroadritea.com';
 
 async function ensureAdminAccess() {
+  if (process.env.NODE_ENV === 'production') {
+    if (process.env.ALLOW_PROD_ADMIN_ACCESS_REPAIR !== '1') {
+      throw new Error('Refusing production admin repair without ALLOW_PROD_ADMIN_ACCESS_REPAIR=1.');
+    }
+    if (!process.env.ADMIN_EMAIL || adminEmail === 'admin@aroadritea.com') {
+      throw new Error('Production admin repair requires explicit non-default ADMIN_EMAIL.');
+    }
+  }
+
   const wildcardPermissionId = await ensureWildcardPermission();
   const directorRoleId = await ensureDirectorRole();
 

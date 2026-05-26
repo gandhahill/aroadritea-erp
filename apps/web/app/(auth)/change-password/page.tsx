@@ -1,11 +1,10 @@
 'use client';
 
-import { authClient } from '@/lib/auth-client';
 import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
-import { clearPasswordRequirementAction } from './actions';
+import { changePasswordAction } from './actions';
 
 export default function ChangePasswordPage() {
   const t = useTranslations('auth.changePassword');
@@ -35,16 +34,20 @@ export default function ChangePasswordPage() {
     setLoading(true);
 
     try {
-      const result = await authClient.changePassword({
+      const result = await changePasswordAction({
         currentPassword,
         newPassword,
-        revokeOtherSessions: true,
+        confirmPassword,
       });
 
-      if (result.error) {
-        setError(result.error.message || t('errorServer'));
+      if (!result.ok) {
+        const key = result.error?.replace('auth.changePassword.', '') as
+          | 'errorMismatch'
+          | 'errorLength'
+          | 'errorServer'
+          | undefined;
+        setError(key ? t(key) : t('errorServer'));
       } else {
-        await clearPasswordRequirementAction();
         router.push('/');
         router.refresh();
       }

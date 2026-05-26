@@ -1,8 +1,9 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import { pickLocalized } from '@/lib/pick-localized';
-import { and, asc, db, eq, isNull, locations, users } from '@erp/db';
+import { and, asc, db, eq, inArray, isNull, locations, users } from '@erp/db';
 import {
   type CorrespondenceRecord,
   createCorrespondence,
@@ -56,6 +57,12 @@ function tags(formData: FormData) {
 }
 
 async function getOptions(ctx: AuditContext): Promise<CorrespondenceOptions> {
+  const locationScope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'correspondence.view',
+    ctx.tenantId,
+  );
+  if (locationScope.locationIds.length === 0) return { locations: [], users: [] };
   const rawLocale = await getLocale().catch(() => 'id');
   const locale = rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
   const [locationRows, userRows] = await Promise.all([
@@ -67,7 +74,13 @@ async function getOptions(ctx: AuditContext): Promise<CorrespondenceOptions> {
         type: locations.type,
       })
       .from(locations)
-      .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.status, 'active')))
+      .where(
+        and(
+          eq(locations.tenantId, ctx.tenantId),
+          eq(locations.status, 'active'),
+          inArray(locations.id, locationScope.locationIds),
+        ),
+      )
       .orderBy(asc(locations.code)),
     db
       .select({ id: users.id, name: users.displayName, email: users.email })

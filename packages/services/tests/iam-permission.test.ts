@@ -111,11 +111,6 @@ describe('Location-scoped permission resolution', () => {
       const locationPerms = perms.byLocation.get(context.locationId);
       if (locationPerms && matchesPermission(locationPerms, permission)) return true;
     }
-    if (!context?.locationId) {
-      for (const locationPerms of perms.byLocation.values()) {
-        if (matchesPermission(locationPerms, permission)) return true;
-      }
-    }
     return false;
   }
 
@@ -151,13 +146,12 @@ describe('Location-scoped permission resolution', () => {
     expect(canSimulated(perms, 'pos.transact', { locationId: 'loc-plz' })).toBe(false);
   });
 
-  it('should allow location-scoped permission without context (any location)', () => {
+  it('should deny location-scoped permission without context', () => {
     const perms: SimulatedPerms = {
       global: new Set(),
       byLocation: new Map([['loc-mli', new Set(['pos.transact'])]]),
     };
-    // Without locationId context, should check all locations
-    expect(canSimulated(perms, 'pos.transact')).toBe(true);
+    expect(canSimulated(perms, 'pos.transact')).toBe(false);
   });
 
   it('should deny permission not in any scope', () => {

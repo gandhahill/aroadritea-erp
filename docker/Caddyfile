@@ -37,7 +37,9 @@ aroadritea.com, www.aroadritea.com {
     header /assets/* Cache-Control "public, max-age=31536000, immutable"
     header /_next/static/* Cache-Control "public, max-age=31536000, immutable"
 
-    reverse_proxy site:3000
+    reverse_proxy site:3000 {
+        header_up X-Aroadri-Proxy-Secret "{$TRUSTED_PROXY_HEADER_SECRET}"
+    }
 }
 
 # ── ERP Web App ────────────────────────────────────────────────────────────
@@ -49,7 +51,9 @@ erp.aroadritea.com {
     # Static assets
     header /_next/static/* Cache-Control "public, max-age=31536000, immutable"
 
-    reverse_proxy web:3001
+    reverse_proxy web:3001 {
+        header_up X-Aroadri-Proxy-Secret "{$TRUSTED_PROXY_HEADER_SECRET}"
+    }
 }
 
 # ── MCP Server ─────────────────────────────────────────────────────────────
@@ -58,5 +62,12 @@ mcp.erp.aroadritea.com {
     import security_headers
     encode zstd gzip
 
-    reverse_proxy mcp:3002
+    reverse_proxy mcp:3002 {
+        header_up X-Aroadri-Proxy-Secret "{$TRUSTED_PROXY_HEADER_SECRET}"
+    }
+}
+
+# Unknown HTTP hosts must not fall through to an app.
+:80 {
+    respond "Not found" 404
 }

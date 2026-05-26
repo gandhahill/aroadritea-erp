@@ -6,6 +6,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import { getActiveLocationOptions } from '@/lib/location-options';
 import { pickLocalized } from '@/lib/pick-localized';
 import { and, asc, db, desc, eq, inArray, sql } from '@erp/db';
@@ -255,10 +256,21 @@ export async function fetchJournalList(page = 1, requestedPageSize = 20): Promis
     Math.min(100, Number.isFinite(requestedPageSize) ? requestedPageSize : 20),
   );
   if (!ctx) return { items: [], total: 0, page: 1, pageSize };
-  const perm = await requirePermission(ctx.userId, 'accounting.view');
-  if (!perm.ok) return { items: [], total: 0, page: 1, pageSize };
+  const locationScope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'accounting.view',
+    ctx.tenantId,
+  );
+  if (!locationScope.global && locationScope.locationIds.length === 0) {
+    return { items: [], total: 0, page: 1, pageSize };
+  }
   const currentPage = Math.max(1, Number.isFinite(page) ? page : 1);
-  const whereClause = eq(journalEntries.tenantId, ctx.tenantId);
+  const whereClause = and(
+    eq(journalEntries.tenantId, ctx.tenantId),
+    locationScope.global
+      ? undefined
+      : inArray(journalEntries.locationId, locationScope.locationIds),
+  );
 
   const [{ count = 0 } = { count: 0 }] = await db
     .select({ count: sql<number>`cast(count(*) as int)` })
@@ -334,8 +346,19 @@ export async function fetchJournalFormData(): Promise<JournalFormData> {
   const ctx = await getContext();
   if (!ctx) return { accounts: [], locations: [], partners: [] };
 
-  const perm = await requirePermission(ctx.userId, 'accounting.view');
-  if (!perm.ok) return { accounts: [], locations: [], partners: [] };
+  const viewScope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'accounting.view',
+    ctx.tenantId,
+  );
+  if (!viewScope.global && viewScope.locationIds.length === 0) {
+    return { accounts: [], locations: [], partners: [] };
+  }
+  const createScope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'accounting.journal.create',
+    ctx.tenantId,
+  );
 
   const [accountRows, partnerRows, locations] = await Promise.all([
     db
@@ -362,7 +385,10 @@ export async function fetchJournalFormData(): Promise<JournalFormData> {
     (async () => {
       const raw = await getLocale().catch(() => 'id');
       const locale: 'id' | 'en' | 'zh' = raw === 'en' || raw === 'zh' ? raw : 'id';
-      return getActiveLocationOptions({ tenantId: ctx.tenantId, locale });
+      const options = await getActiveLocationOptions({ tenantId: ctx.tenantId, locale });
+      if (createScope.global) return options;
+      const allowedIds = new Set(createScope.locationIds);
+      return options.filter((option) => allowedIds.has(option.id));
     })(),
   ]);
 
@@ -617,10 +643,15 @@ export async function fetchJournalDetail(journalId: string): Promise<JournalDeta
 export async function serverExportJournals() {
   const ctx = await getContext();
   if (!ctx) return { ok: false, error: 'Unauthenticated' };
-  const perm = await requirePermission(ctx.userId, 'accounting.view');
-  if (!perm.ok) return { ok: false, error: 'Unauthorized' };
+  const locationScope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'accounting.view',
+    ctx.tenantId,
+  );
+  if (!locationScope.global && locationScope.locationIds.length === 0) {
+    return { ok: false, error: 'Unauthorized' };
+  }
 
-  // Fetch up to 1000 latest journals for export
   const list = await fetchJournalList(1, 1000);
 
   const headers = ['Number', 'Posting Date', 'Status', 'Description', 'Total Debit'];

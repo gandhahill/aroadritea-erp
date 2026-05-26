@@ -15,6 +15,7 @@ import { and, db, desc, eq, gte, inArray, lte, sql } from '@erp/db';
 import { users } from '@erp/db/schema/auth';
 import { products } from '@erp/db/schema/inventory';
 import { payments, salesOrderLines, salesOrders } from '@erp/db/schema/pos';
+import { requirePermission } from '@erp/services/iam';
 import { refundSale, voidSale } from '@erp/services/pos';
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale } from 'next-intl/server';
@@ -103,6 +104,18 @@ export async function fetchTodaysOrders(
     };
   }
   const { ctx, locationId } = session;
+  const perm = await requirePermission(ctx.userId, 'pos.view', { locationId });
+  if (!perm.ok) {
+    return {
+      ok: false,
+      rows: [],
+      locationId: null,
+      total: 0,
+      page: 1,
+      pageSize: requestedPageSize,
+      error: 'Forbidden',
+    };
+  }
 
   const targetDate = date ?? new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
   const { start, end } = dayWindowJakarta(targetDate);
@@ -193,6 +206,8 @@ export async function fetchOrderDetail(orderId: string): Promise<{
   if (!session) return { ok: false, error: 'Unauthenticated' };
   const { ctx, locationId } = session;
   const locale = await getLocale();
+  const perm = await requirePermission(ctx.userId, 'pos.view', { locationId });
+  if (!perm.ok) return { ok: false, error: 'Forbidden' };
 
   const [row] = await db
     .select({

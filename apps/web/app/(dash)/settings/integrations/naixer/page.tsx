@@ -4,6 +4,7 @@
  */
 
 import { getSession } from '@/lib/auth';
+import { hasGlobalPermission } from '@/lib/authz';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import {
@@ -29,7 +30,11 @@ export default async function NaixerKdsPage() {
   const t = await getTranslations('settings.naixer');
   if (!session) redirect('/login');
 
-  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
+  const user = session.user as Record<string, unknown>;
+  const userId = String(user.id ?? '');
+  const tenantId = String(user.tenantId ?? 'default');
+  const allowed = await hasGlobalPermission(userId, 'settings.manage');
+  if (!allowed) redirect('/dashboard');
 
   const [productCodes, modifierCodes, formatConfigs, productOptions, modifierOptions] =
     await Promise.all([

@@ -14,6 +14,7 @@ import { and, db, desc, eq, gte } from '@erp/db';
 import { payments, salesOrders } from '@erp/db/schema/pos';
 import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
+import { can } from '../../iam';
 import { resolveLocationRef } from './resolve-location';
 
 export const GetRecentOrdersInputSchema = z.object({
@@ -57,6 +58,14 @@ export async function getRecentOrdersTool(
   if (!location) {
     return {
       location_id: '',
+      total_returned: 0,
+      cap: input.limit ?? DEFAULT_LIMIT,
+      orders: [],
+    };
+  }
+  if (!(await can(ctx.userId, 'reporting.view', { locationId: location.id }))) {
+    return {
+      location_id: location.id,
       total_returned: 0,
       cap: input.limit ?? DEFAULT_LIMIT,
       orders: [],

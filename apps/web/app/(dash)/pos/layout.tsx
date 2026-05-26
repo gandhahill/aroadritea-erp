@@ -7,6 +7,7 @@
  */
 
 import { getSession } from '@/lib/auth';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/location-options';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
@@ -23,9 +24,18 @@ export default async function PosLayout({ children }: { children: React.ReactNod
 
   const user = session.user as Record<string, unknown>;
   const tenantId = String(user.tenantId ?? 'default');
+  const locationScope = await authorizedLocationIdsForTenant(
+    String(user.id ?? ''),
+    'pos.view',
+    tenantId,
+  );
+  if (!locationScope.global && locationScope.locationIds.length === 0) redirect('/dashboard');
   const locale = (await getLocale()) as 'id' | 'en' | 'zh';
   const t = await getTranslations('pos');
-  const locationOptions = await getActiveLocationOptions({ tenantId, locale, type: 'store' });
+  const allLocationOptions = await getActiveLocationOptions({ tenantId, locale, type: 'store' });
+  const locationOptions = locationScope.global
+    ? allLocationOptions
+    : allLocationOptions.filter((option) => locationScope.locationIds.includes(option.id));
   const locationId = resolveDefaultLocationId(
     locationOptions,
     undefined,

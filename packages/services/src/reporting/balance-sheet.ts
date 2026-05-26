@@ -58,7 +58,7 @@ export async function balanceSheet(
 ): Promise<Result<BalanceSheetResult>> {
   const permCheck = await requirePermission(
     ctx.userId,
-    'accounting.view',
+    input.locationId ? 'accounting.view' : 'reporting.consolidated',
     input.locationId ? { locationId: input.locationId } : undefined,
   );
   if (!permCheck.ok) return permCheck;

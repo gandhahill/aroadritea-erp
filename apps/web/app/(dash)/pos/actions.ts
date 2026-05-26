@@ -213,6 +213,8 @@ export async function fetchProducts(params: {
   search?: string;
 }): Promise<ProductListItem[]> {
   const ctx = await getAuditContext();
+  const perm = await requirePermission(ctx.userId, 'pos.transact', { locationId: ctx.locationId });
+  if (!perm.ok) return [];
   const locale = normalizeLocale(await getLocale());
   const conditions = [
     eq(products.tenantId, ctx.tenantId),
@@ -374,6 +376,8 @@ export async function fetchProducts(params: {
 
 export async function fetchCategories(): Promise<{ id: string; name: string }[]> {
   const ctx = await getAuditContext();
+  const perm = await requirePermission(ctx.userId, 'pos.transact', { locationId: ctx.locationId });
+  if (!perm.ok) return [];
   const locale = normalizeLocale(await getLocale());
   const rows = await db
     .select({ id: productCategories.id, name: productCategories.name })
@@ -388,6 +392,10 @@ export async function fetchCategories(): Promise<{ id: string; name: string }[]>
 export async function fetchPosChannelOptions(locationId?: string): Promise<PosChannelOption[]> {
   const ctx = await getAuditContext();
   const targetLocationId = locationId || ctx.locationId;
+  const perm = await requirePermission(ctx.userId, 'pos.transact', {
+    locationId: targetLocationId,
+  });
+  if (!perm.ok) return [];
 
   const [setting] = await db
     .select({ deliveryChannelsJson: posSettings.deliveryChannelsJson })
@@ -439,6 +447,8 @@ export async function fetchRecentSales(params: {
 }): Promise<SaleListItem[]> {
   const ctx = await getAuditContext();
   const limit = params.limit ?? 20;
+  const perm = await requirePermission(ctx.userId, 'pos.view', { locationId: params.locationId });
+  if (!perm.ok) return [];
 
   const conditions = [
     eq(salesOrders.tenantId, ctx.tenantId),
@@ -469,6 +479,10 @@ export async function fetchRecentSales(params: {
 
 export async function fetchMasterDataRaw() {
   const ctx = await getAuditContext();
+  const perm = await requirePermission(ctx.userId, 'pos.transact', { locationId: ctx.locationId });
+  if (!perm.ok) {
+    return { products: [], variants: [], modifiers: [], promotions: [], taxRates: [] };
+  }
 
   const productRows = await db
     .select()

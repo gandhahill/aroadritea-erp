@@ -24,7 +24,7 @@ export interface TaxAccountOption {
   label: string;
 }
 
-async function getContext(requiredPermission: 'tax.view' | 'tax.manage_rates') {
+async function getContext(requiredPermission: 'tax.view' | 'tax.manage_global_rates') {
   const session = await getSession();
   if (!session?.user) return null;
 
@@ -81,7 +81,7 @@ export async function fetchTaxRates(locale: string): Promise<TaxRateRow[]> {
 }
 
 export async function fetchTaxAccountOptions(locale: string): Promise<TaxAccountOption[]> {
-  const ctx = await getContext('tax.manage_rates');
+  const ctx = await getContext('tax.manage_global_rates');
   if (!ctx) return [];
 
   const rows = await db
@@ -104,7 +104,7 @@ export async function fetchTaxAccountOptions(locale: string): Promise<TaxAccount
 }
 
 export async function saveTaxRateAction(formData: FormData) {
-  const ctx = await getContext('tax.manage_rates');
+  const ctx = await getContext('tax.manage_global_rates');
   if (!ctx) return;
 
   const id = String(formData.get('id') ?? '').trim();
@@ -123,6 +123,21 @@ export async function saveTaxRateAction(formData: FormData) {
   const effectiveUntilRaw = String(formData.get('effectiveUntil') ?? '').trim();
 
   if (!code || !nameId || !postingAccountId || !Number.isFinite(ratePercent)) return;
+
+  const [postingAccount] = await db
+    .select({ id: accounts.id })
+    .from(accounts)
+    .where(
+      and(
+        eq(accounts.id, postingAccountId),
+        eq(accounts.tenantId, ctx.tenantId),
+        eq(accounts.isActive, true),
+        eq(accounts.isPostable, true),
+        isNull(accounts.deletedAt),
+      ),
+    )
+    .limit(1);
+  if (!postingAccount) return;
 
   const values = {
     code,
@@ -173,7 +188,7 @@ export async function saveTaxRateAction(formData: FormData) {
 }
 
 export async function deleteTaxRateAction(formData: FormData) {
-  const ctx = await getContext('tax.manage_rates');
+  const ctx = await getContext('tax.manage_global_rates');
   if (!ctx) return;
   const id = String(formData.get('id') ?? '').trim();
   if (!id) return;

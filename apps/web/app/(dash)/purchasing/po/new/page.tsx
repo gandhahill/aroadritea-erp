@@ -1,10 +1,23 @@
 import { PageHeader } from '@/components/page-header';
+import { getSession } from '@/lib/auth';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { fetchPurchaseOrderFormData } from '../../actions';
 import { PurchaseOrderForm } from './purchase-order-form';
 
 export default async function NewPurchaseOrderPage() {
+  const session = await getSession();
+  if (!session) redirect('/login');
+  const user = session.user as Record<string, unknown>;
+  const scope = await authorizedLocationIdsForTenant(
+    String(user.id ?? ''),
+    'purchasing.po.create',
+    String(user.tenantId ?? 'default'),
+  );
+  if (!scope.global && scope.locationIds.length === 0) redirect('/dashboard');
+
   const [data, t] = await Promise.all([
     fetchPurchaseOrderFormData(),
     getTranslations('purchasing.po.new'),

@@ -64,6 +64,8 @@ export async function fetchRecipes(): Promise<{
 }> {
   const c = await ctx();
   if (!c) return { recipes: [], finishedGoods: [], ingredients: [] };
+  const perm = await requirePermission(c.userId, 'inventory.recipe.read');
+  if (!perm.ok) return { recipes: [], finishedGoods: [], ingredients: [] };
 
   const bomRows = await db
     .select({
@@ -85,6 +87,7 @@ export async function fetchRecipes(): Promise<{
       count: sql<number>`cast(count(*) as int)`,
     })
     .from(bomLines)
+    .innerJoin(boms, and(eq(bomLines.bomId, boms.id), eq(boms.tenantId, c.tenantId)))
     .groupBy(bomLines.bomId);
   const countMap = new Map(counts.map((r) => [r.bomId, r.count]));
 
@@ -137,6 +140,14 @@ export async function fetchRecipes(): Promise<{
 export async function fetchRecipeLines(bomId: string): Promise<RecipeLineRow[]> {
   const c = await ctx();
   if (!c) return [];
+  const perm = await requirePermission(c.userId, 'inventory.recipe.read');
+  if (!perm.ok) return [];
+  const [bom] = await db
+    .select({ id: boms.id })
+    .from(boms)
+    .where(and(eq(boms.tenantId, c.tenantId), eq(boms.id, bomId), isNull(boms.deletedAt)))
+    .limit(1);
+  if (!bom) return [];
   const rows = await db
     .select({
       id: bomLines.id,
@@ -177,9 +188,15 @@ export async function createRecipeAction(input: {
 }): Promise<{ ok: boolean; id?: string; error?: string }> {
   const c = await ctx();
   if (!c) return { ok: false, error: 'Unauthenticated' };
-  const perm = await requirePermission(c.userId, 'inventory.product.update');
+  const perm = await requirePermission(c.userId, 'inventory.recipe.manage');
   if (!perm.ok) return { ok: false, error: 'Forbidden' };
   if (!input.productId) return { ok: false, error: 'Produk wajib dipilih.' };
+  const [product] = await db
+    .select({ id: products.id })
+    .from(products)
+    .where(and(eq(products.tenantId, c.tenantId), eq(products.id, input.productId)))
+    .limit(1);
+  if (!product) return { ok: false, error: 'Product not found' };
 
   const id = generateId();
   await db.insert(boms).values({
@@ -222,13 +239,25 @@ export async function addRecipeLineAction(input: {
 }): Promise<{ ok: boolean; error?: string }> {
   const c = await ctx();
   if (!c) return { ok: false, error: 'Unauthenticated' };
-  const perm = await requirePermission(c.userId, 'inventory.product.update');
+  const perm = await requirePermission(c.userId, 'inventory.recipe.manage');
   if (!perm.ok) return { ok: false, error: 'Forbidden' };
   if (!input.bomId || !input.ingredientId) return { ok: false, error: 'Data tidak lengkap.' };
   const qtyNum = Number(input.qty);
   if (!Number.isFinite(qtyNum) || qtyNum <= 0) {
     return { ok: false, error: 'Qty harus angka positif.' };
   }
+  const [bom] = await db
+    .select({ id: boms.id })
+    .from(boms)
+    .where(and(eq(boms.tenantId, c.tenantId), eq(boms.id, input.bomId), isNull(boms.deletedAt)))
+    .limit(1);
+  if (!bom) return { ok: false, error: 'Recipe not found' };
+  const [ingredient] = await db
+    .select({ id: products.id })
+    .from(products)
+    .where(and(eq(products.tenantId, c.tenantId), eq(products.id, input.ingredientId)))
+    .limit(1);
+  if (!ingredient) return { ok: false, error: 'Ingredient not found' };
 
   const existing = await db
     .select({ lineNo: bomLines.lineNo })
@@ -272,8 +301,15 @@ export async function deleteRecipeLineAction(
 ): Promise<{ ok: boolean; error?: string }> {
   const c = await ctx();
   if (!c) return { ok: false, error: 'Unauthenticated' };
-  const perm = await requirePermission(c.userId, 'inventory.product.update');
+  const perm = await requirePermission(c.userId, 'inventory.recipe.manage');
   if (!perm.ok) return { ok: false, error: 'Forbidden' };
+  const [line] = await db
+    .select({ id: bomLines.id })
+    .from(bomLines)
+    .innerJoin(boms, and(eq(bomLines.bomId, boms.id), eq(boms.tenantId, c.tenantId)))
+    .where(and(eq(bomLines.id, lineId), isNull(boms.deletedAt)))
+    .limit(1);
+  if (!line) return { ok: false, error: 'Line not found' };
   await db.delete(bomLines).where(eq(bomLines.id, lineId));
 
   await db.insert(auditLog).values({
@@ -292,8 +328,14 @@ export async function deleteRecipeLineAction(
 export async function deleteRecipeAction(bomId: string): Promise<{ ok: boolean; error?: string }> {
   const c = await ctx();
   if (!c) return { ok: false, error: 'Unauthenticated' };
-  const perm = await requirePermission(c.userId, 'inventory.product.update');
+  const perm = await requirePermission(c.userId, 'inventory.recipe.manage');
   if (!perm.ok) return { ok: false, error: 'Forbidden' };
+  const [bom] = await db
+    .select({ id: boms.id })
+    .from(boms)
+    .where(and(eq(boms.tenantId, c.tenantId), eq(boms.id, bomId), isNull(boms.deletedAt)))
+    .limit(1);
+  if (!bom) return { ok: false, error: 'Recipe not found' };
   await db.delete(bomLines).where(eq(bomLines.bomId, bomId));
   await db
     .update(boms)

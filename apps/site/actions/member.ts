@@ -18,11 +18,20 @@ import {
   validateMemberSession,
   verifySignupOtp,
 } from '@erp/services/member';
+import { clientIpFromHeaders } from '@erp/shared/client-ip';
 import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
 const MEMBER_SESSION_COOKIE = '__Host-member-session';
+
+async function requestMetadata() {
+  const hdrs = await headers();
+  return {
+    ipAddress: clientIpFromHeaders(hdrs),
+    userAgent: hdrs.get('user-agent') ?? undefined,
+  };
+}
 
 export async function signupAction(formData: FormData) {
   const email = String(formData.get('email') ?? '');
@@ -36,11 +45,12 @@ export async function signupAction(formData: FormData) {
   const fallbackToken = String(formData.get('turnstileToken') ?? '').trim();
   const turnstileToken = challengeToken || fallbackToken || 'captcha-unreachable';
   const consent = formData.get('consentGiven') === 'on';
+  const meta = await requestMetadata();
 
   const result = await initiateSignup(
     { email, phone, name, birthDate, city, password, consentGiven: consent, turnstileToken },
-    undefined, // ip from headers
-    undefined, // userAgent
+    meta.ipAddress,
+    meta.userAgent,
     locale,
   );
 
@@ -59,8 +69,9 @@ export async function signupAction(formData: FormData) {
 export async function loginAction(formData: FormData) {
   const email = String(formData.get('email') ?? '');
   const password = String(formData.get('password') ?? '');
+  const meta = await requestMetadata();
 
-  const result = await loginMember({ email, password });
+  const result = await loginMember({ email, password }, meta.ipAddress, meta.userAgent);
 
   if (!result.ok) {
     return { success: false, error: 'Email atau kata sandi tidak valid.' };
@@ -82,8 +93,13 @@ export async function loginAction(formData: FormData) {
 export async function requestPasswordResetAction(formData: FormData) {
   const email = String(formData.get('email') ?? '');
   const locale = String(formData.get('locale') ?? 'id');
+  const meta = await requestMetadata();
 
-  const result = await requestMemberPasswordReset({ email, locale: locale as 'id' | 'en' | 'zh' });
+  const result = await requestMemberPasswordReset(
+    { email, locale: locale as 'id' | 'en' | 'zh' },
+    meta.ipAddress,
+    meta.userAgent,
+  );
   if (!result.ok) {
     return {
       success: false,
@@ -111,20 +127,27 @@ export async function resetPasswordAction(formData: FormData, token: string) {
 }
 
 export async function verifyOtpAction(token: string, code: string) {
-  const result = await verifySignupOtp({ token, code });
+  const meta = await requestMetadata();
+  const result = await verifySignupOtp({ token, code }, meta.ipAddress, meta.userAgent);
   if (!result.ok) return { success: false, error: String(result.error) };
   return { success: true };
 }
 
 export async function verifyAndCompleteSignupAction(token: string, code: string) {
-  const verifyResult = await verifySignupOtp({ token, code });
+  const meta = await requestMetadata();
+  const verifyResult = await verifySignupOtp({ token, code }, meta.ipAddress, meta.userAgent);
   if (!verifyResult.ok) return { success: false, error: String(verifyResult.error) };
 
-  const result = await completeSignup({ token, consentGiven: true }, undefined, undefined, {
-    userId: 'member',
-    tenantId: 'default',
-    locationId: 'default',
-  });
+  const result = await completeSignup(
+    { token, consentGiven: true },
+    meta.ipAddress,
+    meta.userAgent,
+    {
+      userId: 'member',
+      tenantId: 'default',
+      locationId: 'default',
+    },
+  );
 
   if (!result.ok) {
     return { success: false, error: 'Akun belum berhasil dibuat. Silakan coba lagi.' };
@@ -147,6 +170,7 @@ export async function completeSignupAction(formData: FormData, token: string) {
   const birthDate = String(formData.get('birthDate') ?? '').trim();
   const city = String(formData.get('city') ?? '').trim();
   const consent = formData.get('consentGiven') === 'on';
+  const meta = await requestMetadata();
 
   const result = await completeSignup(
     {
@@ -156,8 +180,8 @@ export async function completeSignupAction(formData: FormData, token: string) {
       ...(city ? { city } : {}),
       consentGiven: consent,
     },
-    undefined,
-    undefined,
+    meta.ipAddress,
+    meta.userAgent,
     { userId: 'member', tenantId: 'default', locationId: 'default' },
   );
 
