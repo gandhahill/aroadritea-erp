@@ -1,6 +1,7 @@
 'use client';
 
 import { exportWorkbook } from '@/lib/export-workbook';
+import { formatQty } from '@/lib/format-qty';
 import type { WasteResult } from '@erp/services/reporting';
 import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
@@ -142,7 +143,9 @@ export function WasteClient(props: Props) {
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-brand-cream-3 bg-card p-3">
             <p className="text-xs uppercase tracking-wide text-brand-ink-3">{t('totalQtyLabel')}</p>
-            <p className="mt-1 text-xl font-semibold text-brand-ink">{props.data.totalQty}</p>
+            <p className="mt-1 text-xl font-semibold text-brand-ink">
+              {formatQty(props.data.totalQty)}
+            </p>
           </div>
           <div className="rounded-xl border border-brand-cream-3 bg-card p-3">
             <p className="text-xs uppercase tracking-wide text-brand-ink-3">
@@ -192,7 +195,9 @@ export function WasteClient(props: Props) {
                   <TableCell className="px-3 py-2 text-brand-ink-2">
                     {row.variantSku ?? '—'}
                   </TableCell>
-                  <TableCell className="px-3 py-2 text-right font-mono">{row.qty}</TableCell>
+                  <TableCell className="px-3 py-2 text-right font-mono">
+                    {formatQty(row.qty)}
+                  </TableCell>
                   <TableCell className="px-3 py-2 text-brand-ink-2">{row.uom}</TableCell>
                   <TableCell className="px-3 py-2 text-right font-mono text-rose-600">
                     {fmt(row.valueIdr)}

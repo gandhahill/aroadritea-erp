@@ -835,6 +835,10 @@
       "label": "Reminder Utang Piutang",
       "description": "Kirim notifikasi jatuh tempo utang/piutang sesuai hari reminder di baris jurnal"
     },
+    "aiActionDraftsSweeper": {
+      "label": "Pembersih Draft Aksi AI",
+      "description": "Hapus draft aksi AI yang kedaluwarsa agar antrean konfirmasi tetap bersih"
+    },
     "fields": {
       "name": "Nama Job",
       "label": "Label",

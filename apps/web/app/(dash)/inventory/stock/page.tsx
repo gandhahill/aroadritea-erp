@@ -9,6 +9,7 @@
 
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
+import { formatQty as formatQuantity } from '@/lib/format-qty';
 import { pickLocalized } from '@/lib/pick-localized';
 import { and, db, eq, inArray, sql } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
@@ -245,6 +246,5 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
 }
 
 function formatQty(value: number): string {
-  if (Number.isInteger(value)) return String(value);
-  return value.toFixed(2);
+  return formatQuantity(value);
 }

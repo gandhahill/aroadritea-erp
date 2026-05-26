@@ -856,6 +856,10 @@
       "label": "应付/应收账款提醒",
       "description": "根据日记账行上设置的提醒天数发送到期通知"
     },
+    "aiActionDraftsSweeper": {
+      "label": "AI 操作草稿清理",
+      "description": "删除过期的 AI 操作草稿，保持确认队列整洁"
+    },
     "fields": {
       "name": "任务名称",
       "label": "标签",

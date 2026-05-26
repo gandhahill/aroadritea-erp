@@ -835,6 +835,10 @@
       "label": "Payable/Receivable Reminders",
       "description": "Send due-date notifications based on reminder days set on journal lines"
     },
+    "aiActionDraftsSweeper": {
+      "label": "AI Action Draft Cleanup",
+      "description": "Delete expired AI action drafts so the confirmation queue stays clean"
+    },
     "fields": {
       "name": "Job Name",
       "label": "Label",

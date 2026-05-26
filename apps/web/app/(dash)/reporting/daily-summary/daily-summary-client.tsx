@@ -12,6 +12,7 @@ import { Select } from '@erp/ui';
 import { FilterBar, FilterField } from '@/components/filter-bar';
 import { PageHeader } from '@/components/page-header';
 import { exportWorkbook } from '@/lib/export-workbook';
+import { formatQty as formatQuantity } from '@/lib/format-qty';
 import type { DailySummaryResult } from '@erp/services/reporting';
 import { Button } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
@@ -48,8 +49,7 @@ function computeDelta(
 }
 
 function formatQty(v: number | null | undefined): string {
-  if (!v) return '—';
-  return v.toLocaleString('id-ID');
+  return formatQuantity(v);
 }
 
 function formatDate(iso: string, locale = 'id-ID'): string {
