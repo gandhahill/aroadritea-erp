@@ -6,15 +6,15 @@ import { NextResponse } from 'next/server';
 const PRIVATE_READ_PERMISSION: Record<UploadArea, string[]> = {
   'product-images': ['inventory.product.read', 'inventory.product.update'],
   'cms-images': ['cms.manage'],
-  reimbursement: ['accounting.reimbursement.view', 'accounting.reimbursement.create'],
+  reimbursement: ['accounting.reimbursement.view'],
   disciplinary: ['hr.disciplinary.read', 'hr.disciplinary.write'],
   whistleblower: ['hr.whistleblower.read'],
-  'shift-expenses': ['pos.shift.close', 'accounting.journal.create'],
+  'shift-expenses': ['accounting.view'],
   general: ['settings.manage'],
   // Every authenticated employee may read SOPs (gated by hr.sop.read).
   sop: ['hr.sop.read', 'hr.sop.manage'],
   // AI assistant attachments — only the assistant operator + admins.
-  'ai-attachments': ['ai.assistant.use', 'ai.assistant.admin'],
+  'ai-attachments': ['ai.assistant.admin'],
 };
 
 export async function GET(_request: Request, { params }: { params: Promise<{ key: string[] }> }) {
@@ -33,6 +33,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ key
         'content-length': String(upload.info.size),
         'cache-control':
           upload.visibility === 'public' ? 'public, max-age=31536000, immutable' : 'no-store',
+        'x-content-type-options': 'nosniff',
+        'content-disposition': `${isInlineSafeImage(key.at(-1) ?? '') ? 'inline' : 'attachment'}; filename="${safeHeaderFileName(key.at(-1) ?? 'download')}"`,
       },
     });
   } catch {
@@ -68,4 +70,19 @@ function contentTypeFromName(fileName: string): string {
   if (lower.endsWith('.gif')) return 'image/gif';
   if (lower.endsWith('.pdf')) return 'application/pdf';
   return 'application/octet-stream';
+}
+
+function isInlineSafeImage(fileName: string): boolean {
+  const lower = fileName.toLowerCase();
+  return (
+    lower.endsWith('.png') ||
+    lower.endsWith('.jpg') ||
+    lower.endsWith('.jpeg') ||
+    lower.endsWith('.webp') ||
+    lower.endsWith('.gif')
+  );
+}
+
+function safeHeaderFileName(fileName: string): string {
+  return fileName.replace(/[^a-zA-Z0-9._-]/g, '-').slice(0, 160) || 'download';
 }

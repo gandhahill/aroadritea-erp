@@ -10,7 +10,7 @@ import { db } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
 import { locations, roles, userRoles, users } from '@erp/db/schema/auth';
 import { isActive } from '@erp/db/schema/common';
-import { type PermissionContext, can } from '@erp/services/iam';
+import { canGlobally } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
 import { and, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
@@ -55,19 +55,10 @@ export const DeleteLocationSchema = z.object({
 
 // --- Helpers ---
 
-async function checkPermission(
-  ctx: McpContext,
-  permission: string,
-  locationId?: string,
-): Promise<boolean> {
-  const context: PermissionContext = locationId ? { locationId } : {};
-  return can(ctx.userId, permission, context);
-}
-
 async function canManageLocations(ctx: McpContext): Promise<boolean> {
   return (
-    (await checkPermission(ctx, 'settings.manage')) ||
-    (await checkPermission(ctx, 'iam.manage_locations'))
+    (await canGlobally(ctx.userId, 'settings.manage')) ||
+    (await canGlobally(ctx.userId, 'iam.manage_locations'))
   );
 }
 

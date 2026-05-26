@@ -66,7 +66,7 @@ export async function wasteReport(
 ): Promise<Result<WasteResult>> {
   const permCheck = await requirePermission(
     ctx.userId,
-    'inventory.view',
+    input.locationId ? 'inventory.view' : 'reporting.consolidated',
     input.locationId ? { locationId: input.locationId } : undefined,
   );
   if (!permCheck.ok) return permCheck;

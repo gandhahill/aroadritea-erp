@@ -1,11 +1,24 @@
 import { PageHeader } from '@/components/page-header';
+import { getSession } from '@/lib/auth';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { fetchPurchasingDashboard } from './actions';
 import { PoFilterTable } from './po-filter-table';
 import { SupplierForm } from './supplier-form';
 
 export default async function PurchasingPage() {
+  const session = await getSession();
+  if (!session) redirect('/login');
+  const user = session.user as Record<string, unknown>;
+  const scope = await authorizedLocationIdsForTenant(
+    String(user.id ?? ''),
+    'purchasing.view',
+    String(user.tenantId ?? 'default'),
+  );
+  if (!scope.global && scope.locationIds.length === 0) redirect('/dashboard');
+
   const [data, t] = await Promise.all([fetchPurchasingDashboard(), getTranslations('purchasing')]);
 
   return (

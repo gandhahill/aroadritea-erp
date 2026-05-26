@@ -15,6 +15,7 @@ import { and, db, eq } from '@erp/db';
 import { customFieldDefinitions, customFieldValues } from '@erp/db/schema/customfield';
 import { createDefinition, deleteDefinition, updateDefinition } from '@erp/services/customfield';
 import type { DataType } from '@erp/services/customfield';
+import { requirePermission } from '@erp/services/iam';
 import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
 
@@ -56,6 +57,8 @@ async function resolveCtx(): Promise<AuditContext | null> {
 export async function fetchCustomFields(entityType?: string): Promise<CustomFieldItem[]> {
   const ctx = await resolveCtx();
   if (!ctx) return [];
+  const permission = await requirePermission(ctx.userId, 'settings.manage');
+  if (!permission.ok) return [];
 
   const conditions = [eq(customFieldDefinitions.tenantId, ctx.tenantId)];
   if (entityType) conditions.push(eq(customFieldDefinitions.entityType, entityType));
@@ -140,6 +143,8 @@ export async function serverDeleteCustomField(
 export async function fetchCustomFieldValues(entityId: string): Promise<Record<string, unknown>[]> {
   const ctx = await resolveCtx();
   if (!ctx) return [];
+  const permission = await requirePermission(ctx.userId, 'settings.manage');
+  if (!permission.ok) return [];
 
   const rows = await db
     .select({

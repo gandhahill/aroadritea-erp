@@ -1,6 +1,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import {
   and,
   asc,
@@ -9,6 +10,7 @@ import {
   desc,
   employees,
   eq,
+  inArray,
   isNull,
   leaveBalances,
   leaveRequests,
@@ -80,8 +82,8 @@ async function getContext() {
 export async function fetchLeaveDashboard(): Promise<LeaveDashboardData | null> {
   const ctx = await getContext();
   if (!ctx) return null;
-  const perm = await requirePermission(ctx.userId, 'hr.view');
-  if (!perm.ok) return null;
+  const locationScope = await authorizedLocationIdsForTenant(ctx.userId, 'hr.view', ctx.tenantId);
+  if (locationScope.locationIds.length === 0) return null;
 
   const [typeRows, requestRows, balanceRows] = await Promise.all([
     db
@@ -117,7 +119,12 @@ export async function fetchLeaveDashboard(): Promise<LeaveDashboardData | null> 
         leaveTypes,
         and(eq(leaveRequests.leaveTypeId, leaveTypes.id), eq(leaveTypes.tenantId, ctx.tenantId)),
       )
-      .where(eq(leaveRequests.tenantId, ctx.tenantId))
+      .where(
+        and(
+          eq(leaveRequests.tenantId, ctx.tenantId),
+          inArray(leaveRequests.locationId, locationScope.locationIds),
+        ),
+      )
       .orderBy(desc(leaveRequests.createdAt))
       .limit(50),
     db
@@ -139,7 +146,12 @@ export async function fetchLeaveDashboard(): Promise<LeaveDashboardData | null> 
         leaveTypes,
         and(eq(leaveBalances.leaveTypeId, leaveTypes.id), eq(leaveTypes.tenantId, ctx.tenantId)),
       )
-      .where(eq(leaveBalances.tenantId, ctx.tenantId))
+      .where(
+        and(
+          eq(leaveBalances.tenantId, ctx.tenantId),
+          inArray(employees.locationId, locationScope.locationIds),
+        ),
+      )
       .orderBy(desc(leaveBalances.year))
       .limit(100),
   ]);
@@ -147,9 +159,18 @@ export async function fetchLeaveDashboard(): Promise<LeaveDashboardData | null> 
   const empRows = await db
     .select({ id: employees.id, name: employees.name, status: employees.status })
     .from(employees)
-    .where(eq(employees.tenantId, ctx.tenantId))
+    .where(
+      and(
+        eq(employees.tenantId, ctx.tenantId),
+        inArray(employees.locationId, locationScope.locationIds),
+      ),
+    )
     .orderBy(asc(employees.name));
-  const approvePerm = await requirePermission(ctx.userId, 'hr.approve_leave');
+  const approveScope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'hr.approve_leave',
+    ctx.tenantId,
+  );
 
   return {
     types: typeRows.map((row) => ({ ...row, name: row.name as Record<string, string> })),
@@ -179,7 +200,7 @@ export async function fetchLeaveDashboard(): Promise<LeaveDashboardData | null> 
         const name = t.name as Record<string, string>;
         return { id: t.id, code: t.code, nameId: name.id ?? name.en ?? t.code };
       }),
-    canApprove: approvePerm.ok,
+    canApprove: approveScope.locationIds.length > 0,
   };
 }
 
@@ -333,8 +354,6 @@ function diffDaysInclusive(start: Date, end: Date): number {
 export async function createLeaveRequestAction(formData: FormData): Promise<void> {
   const ctx = await getContext();
   if (!ctx) return;
-  const perm = await requirePermission(ctx.userId, 'hr.view');
-  if (!perm.ok) return;
 
   const employeeId = String(formData.get('employeeId') ?? '').trim();
   const leaveTypeId = String(formData.get('leaveTypeId') ?? '').trim();
@@ -346,12 +365,22 @@ export async function createLeaveRequestAction(formData: FormData): Promise<void
   const start = new Date(`${startStr}T00:00:00+07:00`);
   const end = new Date(`${endStr}T23:59:59+07:00`);
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) return;
+  const [employee] = await db
+    .select({ id: employees.id, locationId: employees.locationId })
+    .from(employees)
+    .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.id, employeeId)))
+    .limit(1);
+  if (!employee) return;
+  const perm = await requirePermission(ctx.userId, 'hr.approve_leave', {
+    locationId: employee.locationId,
+  });
+  if (!perm.ok) return;
 
   const id = generateId();
   await db.insert(leaveRequests).values({
     id,
     tenantId: ctx.tenantId,
-    locationId: ctx.locationId,
+    locationId: employee.locationId,
     employeeId,
     leaveTypeId,
     startDate: start,
@@ -389,8 +418,6 @@ export async function createLeaveRequestAction(formData: FormData): Promise<void
 export async function decideLeaveRequestAction(formData: FormData): Promise<void> {
   const ctx = await getContext();
   if (!ctx) return;
-  const perm = await requirePermission(ctx.userId, 'hr.approve_leave');
-  if (!perm.ok) return;
 
   const id = String(formData.get('id') ?? '').trim();
   const decision = String(formData.get('decision') ?? '').trim();
@@ -403,6 +430,10 @@ export async function decideLeaveRequestAction(formData: FormData): Promise<void
     .where(and(eq(leaveRequests.tenantId, ctx.tenantId), eq(leaveRequests.id, id)))
     .limit(1);
   if (!before || before.deletedAt) return;
+  const perm = await requirePermission(ctx.userId, 'hr.approve_leave', {
+    locationId: before.locationId,
+  });
+  if (!perm.ok) return;
 
   await db
     .update(leaveRequests)
@@ -432,8 +463,6 @@ export async function decideLeaveRequestAction(formData: FormData): Promise<void
 export async function deleteLeaveRequestAction(formData: FormData): Promise<void> {
   const ctx = await getContext();
   if (!ctx) return;
-  const perm = await requirePermission(ctx.userId, 'hr.approve_leave');
-  if (!perm.ok) return;
   const id = String(formData.get('id') ?? '').trim();
   if (!id) return;
 
@@ -443,6 +472,10 @@ export async function deleteLeaveRequestAction(formData: FormData): Promise<void
     .where(and(eq(leaveRequests.tenantId, ctx.tenantId), eq(leaveRequests.id, id)))
     .limit(1);
   if (!before) return;
+  const perm = await requirePermission(ctx.userId, 'hr.approve_leave', {
+    locationId: before.locationId,
+  });
+  if (!perm.ok) return;
 
   const deletedAt = new Date();
   await db

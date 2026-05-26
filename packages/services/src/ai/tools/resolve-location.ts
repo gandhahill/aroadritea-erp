@@ -1,7 +1,8 @@
-import { and, db, eq, ilike, or, sql } from '@erp/db';
+import { and, db, eq, ilike, inArray, or, sql } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
+import { getAuthorizedLocations } from '../../iam';
 
 export const ResolveLocationInputSchema = z.object({
   query: z.string().min(1).max(120),
@@ -46,6 +47,11 @@ export async function findLocationCandidates(
     sql`${locations.name}->>'zh' ILIKE ${pattern}`,
   );
   if (!matchCondition) return [];
+  const scope = await getAuthorizedLocations(ctx.userId, 'ai.assistant.use');
+  if (scope.scope === 'location' && scope.locationIds.length === 0) return [];
+
+  const locationScopeCondition =
+    scope.scope === 'global' ? undefined : inArray(locations.id, scope.locationIds);
 
   const rows = await db
     .select({
@@ -56,7 +62,7 @@ export async function findLocationCandidates(
       status: locations.status,
     })
     .from(locations)
-    .where(and(eq(locations.tenantId, ctx.tenantId), matchCondition))
+    .where(and(eq(locations.tenantId, ctx.tenantId), matchCondition, locationScopeCondition))
     .limit(limit);
   return rows.map((r) => ({
     id: r.id,

@@ -21,6 +21,7 @@ import {
   naixerProductCodes,
   naixerQrFormatConfig,
 } from '@erp/db/schema/kitchen';
+import { requirePermission } from '@erp/services/iam';
 import { dashStrategy, pipeStrategy } from '@erp/services/kitchen';
 import { generateId } from '@erp/shared/id';
 import { getLocale } from 'next-intl/server';
@@ -84,7 +85,11 @@ type ActionResult = { success: boolean; error?: string };
 async function getSessionTenantId(): Promise<string | null> {
   const session = await getSession();
   if (!session?.user) return null;
-  return (((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default') || null;
+  const user = session.user as Record<string, unknown>;
+  const userId = String(user.id ?? '');
+  const permission = await requirePermission(userId, 'settings.manage');
+  if (!permission.ok) return null;
+  return String(user.tenantId ?? 'default') || null;
 }
 
 async function canAccessTenant(tenantId: string): Promise<boolean> {
@@ -657,6 +662,8 @@ export async function previewQrPayload(
   format: string,
   includeOrderId: boolean,
 ): Promise<{ payload: string; qrDataUrl: string }> {
+  const tenantId = await getSessionTenantId();
+  if (!tenantId) throw new Error('Forbidden');
   const strategy = format === 'pipe' ? pipeStrategy : dashStrategy;
   const payload = strategy.encode({
     orderNumber: includeOrderId ? 'ORD-PREVIEW' : undefined,

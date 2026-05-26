@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
@@ -14,6 +15,13 @@ export const metadata: Metadata = {
 export default async function BankReconPage() {
   const session = await getSession();
   if (!session) redirect('/login');
+  const user = session.user as Record<string, unknown>;
+  const scope = await authorizedLocationIdsForTenant(
+    String(user.id ?? ''),
+    'accounting.bank_recon.view',
+    String(user.tenantId ?? 'default'),
+  );
+  if (!scope.global && scope.locationIds.length === 0) redirect('/dashboard');
 
   const [statements, t] = await Promise.all([
     fetchStatements(),

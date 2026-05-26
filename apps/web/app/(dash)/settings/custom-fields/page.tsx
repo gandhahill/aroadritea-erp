@@ -9,6 +9,7 @@
  */
 
 import { getSession } from '@/lib/auth';
+import { hasGlobalPermission } from '@/lib/authz';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchCustomFields } from './actions';
@@ -21,6 +22,9 @@ export const metadata: Metadata = {
 export default async function CustomFieldsPage() {
   const session = await getSession();
   if (!session) redirect('/login');
+  const user = session.user as Record<string, unknown>;
+  const allowed = await hasGlobalPermission(String(user.id ?? ''), 'settings.manage');
+  if (!allowed) redirect('/dashboard');
 
   const fields = await fetchCustomFields();
   return <CustomFieldsClient initialFields={fields} />;

@@ -11,6 +11,7 @@
  */
 
 import { getSession } from '@/lib/auth';
+import { requirePermissionAtLocation } from '@/lib/authz';
 import { formatQty } from '@/lib/format-qty';
 import { pickLocalized } from '@/lib/pick-localized';
 import { and, db, eq } from '@erp/db';
@@ -81,6 +82,7 @@ export default async function ReceiptPrintPage({ params }: Props) {
   if (!session) redirect('/login');
   const user = session.user as Record<string, unknown>;
   const tenantId = String(user.tenantId ?? 'default');
+  const userId = String(user.id ?? '');
   const locale = await getLocale();
 
   const { orderId } = await params;
@@ -91,6 +93,8 @@ export default async function ReceiptPrintPage({ params }: Props) {
     .where(and(eq(salesOrders.tenantId, tenantId), eq(salesOrders.id, orderId)))
     .then((rows) => rows[0]);
   if (!order) notFound();
+  const allowed = await requirePermissionAtLocation(userId, 'pos.view', order.locationId);
+  if (!allowed) notFound();
 
   const lines = await db
     .select({

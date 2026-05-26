@@ -9,6 +9,7 @@ import { and, db, eq } from '@erp/db';
 import { salesOrders } from '@erp/db/schema/pos';
 import { auth } from '@erp/services/auth';
 import { type CreateSaleInput, CreateSaleInputSchema, createSale } from '@erp/services/pos';
+import { clientIpFromHeaders } from '@erp/shared/client-ip';
 import type { AuditContext } from '@erp/shared/types';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -28,7 +29,7 @@ async function getAuditContext(req: NextRequest, locationId: string): Promise<Au
     userId,
     tenantId,
     locationId,
-    ipAddress: req.headers.get('x-forwarded-for') ?? undefined,
+    ipAddress: clientIpFromHeaders(req.headers),
     userAgent: req.headers.get('user-agent') ?? undefined,
   };
 }

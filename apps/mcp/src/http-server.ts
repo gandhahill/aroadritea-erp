@@ -63,6 +63,16 @@ const ALLOWED_HOSTS = new Set(
 
 const app = new Hono();
 
+app.use('*', async (c, next) => {
+  c.header('X-Content-Type-Options', 'nosniff');
+  c.header('X-Frame-Options', 'DENY');
+  c.header('Referrer-Policy', 'no-referrer');
+  c.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  c.header('Cross-Origin-Resource-Policy', 'same-origin');
+  c.header('Cache-Control', 'no-store');
+  return next();
+});
+
 // DNS-rebinding guard — must run before any handler.
 app.use('*', async (c, next) => {
   const host = (c.req.header('host') ?? '').toLowerCase();
@@ -73,21 +83,15 @@ app.use('*', async (c, next) => {
 });
 
 app.get('/healthz', (c) => {
-  return c.json({
-    status: 'ok',
-    service: 'mcp',
-    version: APP_VERSION,
-    timestamp: new Date().toISOString(),
-  });
+  const detailToken = process.env.HEALTHZ_DETAIL_TOKEN;
+  if (detailToken && c.req.header('x-healthz-token') === detailToken) {
+    return c.json({ status: 'ok', service: 'mcp', version: APP_VERSION });
+  }
+  return c.json({ status: 'ok' });
 });
 
 app.get('/', (c) => {
-  return c.json({
-    name: 'aroadri-erp-mcp',
-    version: APP_VERSION,
-    transport: 'stdio + http',
-    healthz: '/healthz',
-  });
+  return c.json({ status: 'ok' });
 });
 
 const server = serve({

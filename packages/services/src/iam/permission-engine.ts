@@ -18,6 +18,10 @@ export interface PermissionContext {
   locationId?: string;
 }
 
+export type AuthorizedLocations =
+  | { scope: 'global'; locationIds: null }
+  | { scope: 'location'; locationIds: string[] };
+
 interface CachedPermissions {
   /** All permission codes the user has globally */
   global: Set<string>;
@@ -111,6 +115,42 @@ function matchesPermission(grantedCodes: Set<string>, requiredPermission: string
 }
 
 /**
+ * Check whether a user has a permission from a global role only.
+ * Use this for tenant-wide or global administration actions where a location
+ * scoped grant must not be treated as "any location".
+ */
+export async function canGlobally(userId: string, permission: string): Promise<boolean> {
+  const perms = await loadPermissions(userId);
+  return matchesPermission(perms.global, permission);
+}
+
+/**
+ * Return the user's authorized location scope for a permission.
+ *
+ * `scope: global` means the caller may include all tenant locations.
+ * `scope: location` returns the concrete location IDs granted by scoped roles.
+ */
+export async function getAuthorizedLocations(
+  userId: string,
+  permission: string,
+): Promise<AuthorizedLocations> {
+  const perms = await loadPermissions(userId);
+
+  if (matchesPermission(perms.global, permission)) {
+    return { scope: 'global', locationIds: null };
+  }
+
+  const locationIds: string[] = [];
+  for (const [locationId, locationPerms] of perms.byLocation.entries()) {
+    if (matchesPermission(locationPerms, permission)) {
+      locationIds.push(locationId);
+    }
+  }
+
+  return { scope: 'location', locationIds };
+}
+
+/**
  * Check if user has a specific permission.
  * SD §11.2.2: Reads user_roles → role_permissions → permissions with 60s cache.
  *
@@ -140,14 +180,6 @@ export async function can(
   if (context?.locationId) {
     const locationPerms = perms.byLocation.get(context.locationId);
     if (locationPerms && matchesPermission(locationPerms, permission)) return true;
-  }
-
-  // If no location context, check if ANY location-scoped role grants this
-  // (user has the permission somewhere, just not globally)
-  if (!context?.locationId) {
-    for (const locationPerms of perms.byLocation.values()) {
-      if (matchesPermission(locationPerms, permission)) return true;
-    }
   }
 
   return false;

@@ -36,8 +36,8 @@ import type { McpContext } from '../context';
 import { mcpError, mcpSuccess, serializeResult } from '../helpers';
 import { GetOmzetHarianSchema, getOmzetHarianHandler } from './reporting-omzet';
 
-async function checkPermission(ctx: McpContext, permission: string) {
-  return can(ctx.userId, permission);
+async function checkPermission(ctx: McpContext, permission: string, locationId: string) {
+  return can(ctx.userId, permission, { locationId });
 }
 
 // --- Schemas ---
@@ -67,6 +67,9 @@ export const GeneralLedgerSchema = z.object({
   account_id: z.string(),
   from: z.string(),
   to: z.string(),
+  location_id: z.string().min(1, 'location_id is required for MCP access'),
+  limit: z.number().int().min(1).max(200).optional().default(100),
+  offset: z.number().int().min(0).max(10_000).optional().default(0),
   locale: z.enum(['id', 'en', 'zh']).optional().default('id'),
 });
 
@@ -136,7 +139,7 @@ export const reportingTools = [
 // --- Handlers ---
 
 async function balanceSheetHandler(input: z.infer<typeof BalanceSheetSchema>, ctx: McpContext) {
-  const permitted = await checkPermission(ctx, 'reporting.view');
+  const permitted = await checkPermission(ctx, 'reporting.view', input.location_id);
   if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: reporting.view');
 
   const params: BalanceSheetInput = {
@@ -153,7 +156,7 @@ async function balanceSheetHandler(input: z.infer<typeof BalanceSheetSchema>, ct
 }
 
 async function profitLossHandler(input: z.infer<typeof ProfitLossSchema>, ctx: McpContext) {
-  const permitted = await checkPermission(ctx, 'reporting.view');
+  const permitted = await checkPermission(ctx, 'reporting.view', input.location_id);
   if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: reporting.view');
 
   const params: ProfitLossInput = {
@@ -171,7 +174,7 @@ async function profitLossHandler(input: z.infer<typeof ProfitLossSchema>, ctx: M
 }
 
 async function cashFlowHandler(input: z.infer<typeof CashFlowSchema>, ctx: McpContext) {
-  const permitted = await checkPermission(ctx, 'reporting.view');
+  const permitted = await checkPermission(ctx, 'reporting.view', input.location_id);
   if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: reporting.view');
 
   const params: CashFlowInput = {
@@ -190,7 +193,7 @@ async function cashFlowHandler(input: z.infer<typeof CashFlowSchema>, ctx: McpCo
 }
 
 async function generalLedgerHandler(input: z.infer<typeof GeneralLedgerSchema>, ctx: McpContext) {
-  const permitted = await checkPermission(ctx, 'reporting.view');
+  const permitted = await checkPermission(ctx, 'reporting.view', input.location_id);
   if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: reporting.view');
 
   // Get account info
@@ -222,12 +225,15 @@ async function generalLedgerHandler(input: z.infer<typeof GeneralLedgerSchema>, 
       and(
         eq(journalLines.accountId, input.account_id),
         eq(journalEntries.tenantId, ctx.tenantId),
+        eq(journalEntries.locationId, input.location_id),
         eq(journalEntries.status, 'posted'),
         gte(journalEntries.postingDate, input.from),
         lte(journalEntries.postingDate, input.to),
       ),
     )
-    .orderBy(journalEntries.postingDate);
+    .orderBy(journalEntries.postingDate)
+    .limit(input.limit)
+    .offset(input.offset);
 
   const accountName =
     (account.name as Record<string, string>)[locale] ?? (account.name as Record<string, string>).id;
@@ -240,6 +246,9 @@ async function generalLedgerHandler(input: z.infer<typeof GeneralLedgerSchema>, 
     },
     from: input.from,
     to: input.to,
+    location_id: input.location_id,
+    limit: input.limit,
+    offset: input.offset,
     lines: lines.map((l) => ({
       id: l.id,
       posting_date: l.postingDate,
@@ -254,7 +263,7 @@ async function generalLedgerHandler(input: z.infer<typeof GeneralLedgerSchema>, 
 }
 
 async function trialBalanceHandler(input: z.infer<typeof TrialBalanceSchema>, ctx: McpContext) {
-  const permitted = await checkPermission(ctx, 'reporting.view');
+  const permitted = await checkPermission(ctx, 'reporting.view', input.location_id);
   if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: reporting.view');
 
   const params: TrialBalanceInput = {
@@ -271,7 +280,7 @@ async function trialBalanceHandler(input: z.infer<typeof TrialBalanceSchema>, ct
 }
 
 async function dailySummaryHandler(input: z.infer<typeof DailySummarySchema>, ctx: McpContext) {
-  const permitted = await checkPermission(ctx, 'reporting.view');
+  const permitted = await checkPermission(ctx, 'reporting.view', input.location_id);
   if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: reporting.view');
 
   const params: DailySummaryParams = {
@@ -290,7 +299,7 @@ async function dailySummaryHandler(input: z.infer<typeof DailySummarySchema>, ct
 }
 
 async function donationReportHandler(input: z.infer<typeof DonationReportSchema>, ctx: McpContext) {
-  const permitted = await checkPermission(ctx, 'reporting.view');
+  const permitted = await checkPermission(ctx, 'reporting.view', input.location_id);
   if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: reporting.view');
 
   const params: DonationReportParams = {
@@ -308,7 +317,7 @@ async function donationReportHandler(input: z.infer<typeof DonationReportSchema>
 }
 
 async function hourlySalesHandler(input: z.infer<typeof HourlySalesSchema>, ctx: McpContext) {
-  const permitted = await checkPermission(ctx, 'reporting.view');
+  const permitted = await checkPermission(ctx, 'reporting.view', input.location_id);
   if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: reporting.view');
 
   const params: HourlySalesParams = {

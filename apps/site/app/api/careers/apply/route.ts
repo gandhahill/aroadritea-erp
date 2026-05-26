@@ -7,6 +7,7 @@
 import { and, db, eq } from '@erp/db';
 import { jobApplicants, jobOpenings } from '@erp/db/schema/hr';
 import { encryptPii } from '@erp/services/security/pii';
+import { clientIpFromHeaders } from '@erp/shared/client-ip';
 import { generateId } from '@erp/shared/id';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -29,10 +30,7 @@ function rateLimited(ip: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  const ip =
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    request.headers.get('x-real-ip') ??
-    'anon';
+  const ip = clientIpFromHeaders(request.headers);
   if (rateLimited(ip)) {
     return NextResponse.json({ ok: false, error: 'Too many requests' }, { status: 429 });
   }

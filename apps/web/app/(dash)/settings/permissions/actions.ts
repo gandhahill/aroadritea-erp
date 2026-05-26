@@ -14,7 +14,7 @@ import {
   roles,
   userRoles,
 } from '@erp/db';
-import { invalidatePermissionCache, requirePermission } from '@erp/services/iam';
+import { canGlobally, invalidatePermissionCache, requirePermission } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
 
@@ -132,6 +132,22 @@ export async function setRolePermission(input: {
     .limit(1);
 
   if (!role || !permissionRow) return { ok: false, error: 'Role or permission not found' };
+  if (input.granted && permissionRow.code === '*.*') {
+    return { ok: false, error: 'Wildcard access cannot be granted from this UI' };
+  }
+
+  const isSystemWildcard = await canGlobally(ctx.userId, '*.*');
+  if (!isSystemWildcard) {
+    const [selfAssignedRole] = await db
+      .select({ roleId: userRoles.roleId })
+      .from(userRoles)
+      .where(and(eq(userRoles.userId, ctx.userId), eq(userRoles.roleId, input.roleId)))
+      .limit(1);
+    if (selfAssignedRole) {
+      return { ok: false, error: 'Cannot modify permissions on your own active role' };
+    }
+  }
+
   // Prevent removing wildcard from any role that currently holds it (safety guard)
   if (!input.granted && permissionRow.code === '*.*') {
     const [wildcardGrant] = await db
@@ -149,11 +165,34 @@ export async function setRolePermission(input: {
     }
   }
 
+  const [existingGrant] = await db
+    .select({ roleId: rolePermissions.roleId })
+    .from(rolePermissions)
+    .where(
+      and(
+        eq(rolePermissions.roleId, input.roleId),
+        eq(rolePermissions.permissionId, input.permissionId),
+      ),
+    )
+    .limit(1);
+
   if (input.granted) {
     await db
       .insert(rolePermissions)
       .values({ roleId: input.roleId, permissionId: input.permissionId })
       .onConflictDoNothing();
+    if (!existingGrant) {
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'grant',
+        entityType: 'role_permission',
+        entityId: `${input.roleId}:${input.permissionId}`,
+        before: null,
+        after: { roleId: role.id, roleCode: role.code, permissionCode: permissionRow.code },
+      });
+    }
   } else {
     await db
       .delete(rolePermissions)
@@ -163,6 +202,18 @@ export async function setRolePermission(input: {
           eq(rolePermissions.permissionId, input.permissionId),
         ),
       );
+    if (existingGrant) {
+      await db.insert(auditLog).values({
+        id: generateId(),
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        action: 'revoke',
+        entityType: 'role_permission',
+        entityId: `${input.roleId}:${input.permissionId}`,
+        before: { roleId: role.id, roleCode: role.code, permissionCode: permissionRow.code },
+        after: null,
+      });
+    }
   }
 
   invalidatePermissionCache();

@@ -12,6 +12,7 @@
 import { getSession } from '@/lib/auth';
 import { db } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
+import { clientIpFromHeaders } from '@erp/shared/client-ip';
 import { generateId } from '@erp/shared/id';
 import { headers } from 'next/headers';
 
@@ -29,7 +30,7 @@ export async function recordAuthEvent(args: {
     const userId = user?.id ? String(user.id) : null;
 
     const hdrs = await headers();
-    const ip = hdrs.get('x-forwarded-for')?.split(',')[0]?.trim() ?? hdrs.get('x-real-ip') ?? null;
+    const ip = clientIpFromHeaders(hdrs);
     const ua = hdrs.get('user-agent') ?? null;
 
     await db.insert(auditLog).values({

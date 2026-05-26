@@ -4,6 +4,7 @@
  */
 
 import { getSession } from '@/lib/auth';
+import { hasGlobalPermission } from '@/lib/authz';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { fetchWorkflowDefinitions } from './actions';
@@ -19,6 +20,8 @@ export default async function WorkflowEditorPage() {
 
   const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
   const userId = ((session.user as Record<string, unknown>)?.id as string) ?? '';
+  const allowed = await hasGlobalPermission(userId, 'settings.manage');
+  if (!allowed) redirect('/dashboard');
   const definitions = await fetchWorkflowDefinitions(tenantId);
 
   const ctx = { userId, tenantId, locationId: '' };

@@ -13,10 +13,10 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import { auditRecord } from '../audit';
-import { requirePermission } from '../iam';
+import { getAuthorizedLocations, requirePermission } from '../iam';
 import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
 import {
   compensateIngredientDeductions,
@@ -335,17 +335,23 @@ export async function listManualSalesClosings(
 }
 
 export async function listManualSalesLocations(ctx: AuditContext) {
+  const locationScope = await getAuthorizedLocations(ctx.userId, 'pos.transact');
+  if (locationScope.scope === 'location' && locationScope.locationIds.length === 0) return [];
+
+  const conditions = [
+    eq(locations.tenantId, ctx.tenantId),
+    eq(locations.status, 'active'),
+    eq(locations.type, 'store'),
+    isNull(locations.deletedAt),
+  ];
+  if (locationScope.scope === 'location') {
+    conditions.push(inArray(locations.id, locationScope.locationIds));
+  }
+
   const rows = await db
     .select({ id: locations.id, code: locations.code, name: locations.name })
     .from(locations)
-    .where(
-      and(
-        eq(locations.tenantId, ctx.tenantId),
-        eq(locations.status, 'active'),
-        eq(locations.type, 'store'),
-        isNull(locations.deletedAt),
-      ),
-    )
+    .where(and(...conditions))
     .orderBy(locations.code);
   return rows;
 }

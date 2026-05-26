@@ -4,6 +4,7 @@
  */
 
 import { getSession } from '@/lib/auth';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
@@ -27,6 +28,13 @@ export default async function JournalsPage({
 }) {
   const session = await getSession();
   if (!session) redirect('/login');
+  const user = session.user as Record<string, unknown>;
+  const scope = await authorizedLocationIdsForTenant(
+    String(user.id ?? ''),
+    'accounting.view',
+    String(user.tenantId ?? 'default'),
+  );
+  if (!scope.global && scope.locationIds.length === 0) redirect('/dashboard');
 
   const params = await searchParams;
   const page = Number.parseInt(params?.page ?? '1', 10);

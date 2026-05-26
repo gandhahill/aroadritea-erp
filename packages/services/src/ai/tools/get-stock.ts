@@ -10,6 +10,7 @@ import { and, db, eq } from '@erp/db';
 import { productVariants, stockLevels } from '@erp/db/schema/inventory';
 import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
+import { can } from '../../iam';
 import { getProductTool } from './get-product';
 import { resolveLocationRef } from './resolve-location';
 
@@ -42,6 +43,9 @@ export async function getStockTool(
 ): Promise<GetStockOutput> {
   const location = await resolveLocationRef(input.location, ctx);
   if (!location) return { found: false };
+  if (!(await can(ctx.userId, 'inventory.view', { locationId: location.id }))) {
+    return { found: false };
+  }
 
   const productResult = await getProductTool(
     { code: input.product_code.trim(), query: input.product_code.trim() },

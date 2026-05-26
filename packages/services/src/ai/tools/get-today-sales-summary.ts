@@ -12,6 +12,7 @@
 
 import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
+import { can } from '../../iam';
 import { getDailySummary } from '../../reporting/daily-summary';
 import { resolveLocationRef } from './resolve-location';
 
@@ -65,6 +66,9 @@ export async function getTodaySalesSummaryTool(
   const location = await resolveLocationRef(input.location_id ?? input.location, ctx);
   if (!location) {
     return { ok: false, error: 'location is required or ambiguous' };
+  }
+  if (!(await can(ctx.userId, 'reporting.view', { locationId: location.id }))) {
+    return { ok: false, error: 'forbidden' };
   }
   const date = input.date ?? todayInJakarta();
 

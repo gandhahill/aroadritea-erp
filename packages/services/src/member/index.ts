@@ -35,8 +35,56 @@ import { hashMemberPassword, verifyMemberPassword } from './password';
 const OTP_EXPIRY_MINUTES = 10;
 const OTP_MAX_ATTEMPTS = 5;
 const RATE_LIMIT_SIGNUP_PER_IP = 3; // per hour
+const RATE_LIMIT_MEMBER_LOGIN_FAILED_PER_IP = 10; // per 15 minutes
+const RATE_LIMIT_MEMBER_LOGIN_FAILED_PER_EMAIL = 5; // per 15 minutes
+const RATE_LIMIT_PASSWORD_RESET_PER_IP = 5; // per hour
+const RATE_LIMIT_PASSWORD_RESET_PER_EMAIL = 3; // per hour
 const TOKEN_EXPIRY_MINUTES = 30;
 const PASSWORD_RESET_EXPIRY_MINUTES = 30;
+
+function rateLimitIp(ipAddress?: string): string {
+  return ipAddress?.trim() || 'direct';
+}
+
+async function countMemberAttempts(input: {
+  email?: string;
+  ipAddress?: string;
+  outcomes: string[];
+  since: Date;
+}): Promise<number> {
+  const conditions = [
+    gte(memberSignupAttempts.attemptedAt, input.since),
+    inArray(memberSignupAttempts.outcome, input.outcomes),
+  ];
+  if (input.email) conditions.push(eq(memberSignupAttempts.email, input.email));
+  if (input.ipAddress) conditions.push(eq(memberSignupAttempts.ipAddress, input.ipAddress));
+
+  const rows = await db
+    .select({ c: count() })
+    .from(memberSignupAttempts)
+    .where(and(...conditions));
+  const row = Array.isArray(rows) ? rows[0] : undefined;
+  return row?.c ?? 0;
+}
+
+async function recordMemberAttempt(input: {
+  email: string;
+  phone?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  outcome: string;
+  partnerId?: string | null;
+}) {
+  await db.insert(memberSignupAttempts).values({
+    id: crypto.randomUUID(),
+    email: input.email,
+    phone: input.phone,
+    ipAddress: rateLimitIp(input.ipAddress),
+    userAgent: input.userAgent,
+    outcome: input.outcome,
+    partnerId: input.partnerId ?? undefined,
+  });
+}
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
@@ -421,14 +469,14 @@ export async function initiateSignup(
   const email = data.email.trim().toLowerCase();
   const normalizedPhone = normalizeMemberPhone(data.phone);
   const phoneCandidates = buildPhoneLookupCandidates(data.phone);
+  const ipKey = rateLimitIp(ipAddress);
 
-  const turnstileValid = await verifyTurnstile(data.turnstileToken, ipAddress);
+  const turnstileValid = await verifyTurnstile(data.turnstileToken, ipKey);
   if (!turnstileValid) {
-    await db.insert(memberSignupAttempts).values({
-      id: crypto.randomUUID(),
+    await recordMemberAttempt({
       email,
       phone: normalizedPhone || data.phone,
-      ipAddress,
+      ipAddress: ipKey,
       userAgent,
       outcome: 'failed_captcha',
     });
@@ -437,19 +485,20 @@ export async function initiateSignup(
 
   // Rate limit per IP
   const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
-  const recentAttempts = await db
-    .select({ c: count() })
-    .from(memberSignupAttempts)
-    .where(
-      ipAddress
-        ? and(
-            gte(memberSignupAttempts.attemptedAt, hourAgo),
-            sql`${memberSignupAttempts.ipAddress} = ${ipAddress}`,
-          )
-        : sql`1=1`,
-    );
+  const recentAttempts = await countMemberAttempts({
+    ipAddress: ipKey,
+    outcomes: ['otp_sent', 'failed_captcha', 'rate_limited', 'email_exists', 'phone_exists'],
+    since: hourAgo,
+  });
 
-  if ((recentAttempts[0]?.c ?? 0) >= RATE_LIMIT_SIGNUP_PER_IP) {
+  if (recentAttempts >= RATE_LIMIT_SIGNUP_PER_IP) {
+    await recordMemberAttempt({
+      email,
+      phone: normalizedPhone || data.phone,
+      ipAddress: ipKey,
+      userAgent,
+      outcome: 'rate_limited',
+    });
     return err(AppError.conflict('member.signup.rateLimited'));
   }
 
@@ -469,11 +518,10 @@ export async function initiateSignup(
     .limit(1);
 
   if (existing[0]) {
-    await db.insert(memberSignupAttempts).values({
-      id: crypto.randomUUID(),
+    await recordMemberAttempt({
       email,
       phone: normalizedPhone || data.phone,
-      ipAddress,
+      ipAddress: ipKey,
       userAgent,
       outcome: 'email_exists',
     });
@@ -505,11 +553,10 @@ export async function initiateSignup(
     : [];
 
   if (existingPhone[0]) {
-    await db.insert(memberSignupAttempts).values({
-      id: crypto.randomUUID(),
+    await recordMemberAttempt({
       email,
       phone: normalizedPhone || data.phone,
-      ipAddress,
+      ipAddress: ipKey,
       userAgent,
       outcome: 'phone_exists',
     });
@@ -550,11 +597,10 @@ export async function initiateSignup(
   const sendResult = await sendSignupOtp(email, code, normalizeEmailLocale(locale));
   if (!sendResult.ok) return sendResult;
 
-  await db.insert(memberSignupAttempts).values({
-    id: crypto.randomUUID(),
+  await recordMemberAttempt({
     email,
     phone: normalizedPhone || data.phone,
-    ipAddress,
+    ipAddress: ipKey,
     userAgent,
     outcome: 'otp_sent',
   });
@@ -615,8 +661,7 @@ export async function verifySignupOtp(
       .update(memberOtpCodes)
       .set({ attempts: otpRecord.attempts + 1 })
       .where(eq(memberOtpCodes.id, otpRecord.id));
-    await db.insert(memberSignupAttempts).values({
-      id: crypto.randomUUID(),
+    await recordMemberAttempt({
       email: otpRecord.recipient,
       ipAddress,
       userAgent,
@@ -783,6 +828,7 @@ export async function completeSignup(
   }
 
   // Create member session
+  const ipKey = rateLimitIp(ipAddress);
   const sessionToken = randomBytes(48).toString('hex');
   const tokenHash = createHash('sha256').update(sessionToken).digest('hex');
   const expiresAt = minutesFromNow(30 * 24 * 60); // 30 days
@@ -792,7 +838,7 @@ export async function completeSignup(
     memberId,
     tokenHash,
     expiresAt,
-    ipAddress,
+    ipAddress: ipKey,
     userAgent,
   });
 
@@ -848,6 +894,34 @@ export async function requestMemberPasswordReset(
   const email = parsed.data.email.trim().toLowerCase();
   const locale = normalizeEmailLocale(parsed.data.locale);
   const emailCipher = encryptPiiForLookup(email, 'partners.email');
+  const ipKey = rateLimitIp(ipAddress);
+  const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+  const [recentIpResets, recentEmailResets] = await Promise.all([
+    countMemberAttempts({
+      ipAddress: ipKey,
+      outcomes: ['password_reset_requested'],
+      since: hourAgo,
+    }),
+    countMemberAttempts({
+      email,
+      outcomes: ['password_reset_requested'],
+      since: hourAgo,
+    }),
+  ]);
+
+  if (
+    recentIpResets >= RATE_LIMIT_PASSWORD_RESET_PER_IP ||
+    recentEmailResets >= RATE_LIMIT_PASSWORD_RESET_PER_EMAIL
+  ) {
+    await recordMemberAttempt({
+      email,
+      ipAddress: ipKey,
+      userAgent,
+      outcome: 'rate_limited',
+    });
+    return ok({ sent: true });
+  }
 
   const [partner] = await db
     .select({
@@ -865,10 +939,9 @@ export async function requestMemberPasswordReset(
     )
     .limit(1);
 
-  await db.insert(memberSignupAttempts).values({
-    id: crypto.randomUUID(),
+  await recordMemberAttempt({
     email,
-    ipAddress,
+    ipAddress: ipKey,
     userAgent,
     outcome: 'password_reset_requested',
     partnerId: partner?.id,
@@ -1024,11 +1097,40 @@ export async function loginMember(
   }
 
   const { email, password } = parsed.data;
+  const normalizedEmail = email.toLowerCase().trim();
+  const ipKey = rateLimitIp(ipAddress);
+  const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+
+  const [recentIpFailures, recentEmailFailures] = await Promise.all([
+    countMemberAttempts({
+      ipAddress: ipKey,
+      outcomes: ['login_failed'],
+      since: fifteenMinutesAgo,
+    }),
+    countMemberAttempts({
+      email: normalizedEmail,
+      outcomes: ['login_failed'],
+      since: fifteenMinutesAgo,
+    }),
+  ]);
+
+  if (
+    recentIpFailures >= RATE_LIMIT_MEMBER_LOGIN_FAILED_PER_IP ||
+    recentEmailFailures >= RATE_LIMIT_MEMBER_LOGIN_FAILED_PER_EMAIL
+  ) {
+    await recordMemberAttempt({
+      email: normalizedEmail,
+      ipAddress: ipKey,
+      userAgent,
+      outcome: 'rate_limited',
+    });
+    return err(AppError.conflict('member.login.rateLimited'));
+  }
 
   // Find member by email — partners.email is encrypted; deterministic
   // encryption means the same plaintext always produces the same
   // ciphertext, so a direct equality match still works.
-  const emailCipher = encryptPiiForLookup(email.toLowerCase().trim(), 'partners.email');
+  const emailCipher = encryptPiiForLookup(normalizedEmail, 'partners.email');
   const [partner] = await db
     .select({
       id: partners.id,
@@ -1047,6 +1149,12 @@ export async function loginMember(
     .limit(1);
 
   if (!partner || !partner.isMember || !partner.isActive) {
+    await recordMemberAttempt({
+      email: normalizedEmail,
+      ipAddress: ipKey,
+      userAgent,
+      outcome: 'login_failed',
+    });
     return err(AppError.unauthenticated('member.login.invalidCredentials'));
   }
 
@@ -1058,12 +1166,26 @@ export async function loginMember(
     .limit(1);
 
   if (!credential) {
+    await recordMemberAttempt({
+      email: normalizedEmail,
+      ipAddress: ipKey,
+      userAgent,
+      outcome: 'login_failed',
+      partnerId: partner.id,
+    });
     return err(AppError.unauthenticated('member.login.invalidCredentials'));
   }
 
   // Verify password
   const valid = await verifyMemberPassword(password, credential.passwordHash);
   if (!valid) {
+    await recordMemberAttempt({
+      email: normalizedEmail,
+      ipAddress: ipKey,
+      userAgent,
+      outcome: 'login_failed',
+      partnerId: partner.id,
+    });
     return err(AppError.unauthenticated('member.login.invalidCredentials'));
   }
 
@@ -1077,8 +1199,16 @@ export async function loginMember(
     memberId: partner.id,
     tokenHash,
     expiresAt,
-    ipAddress,
+    ipAddress: ipKey,
     userAgent,
+  });
+
+  await recordMemberAttempt({
+    email: normalizedEmail,
+    ipAddress: ipKey,
+    userAgent,
+    outcome: 'login_success',
+    partnerId: partner.id,
   });
 
   return ok({ memberId: partner.id, sessionToken });

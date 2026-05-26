@@ -59,7 +59,7 @@ export async function profitLoss(
 ): Promise<Result<ProfitLossResult>> {
   const permCheck = await requirePermission(
     ctx.userId,
-    'accounting.view',
+    input.locationId ? 'accounting.view' : 'reporting.consolidated',
     input.locationId ? { locationId: input.locationId } : undefined,
   );
   if (!permCheck.ok) return permCheck;

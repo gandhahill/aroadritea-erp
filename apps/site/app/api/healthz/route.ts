@@ -6,22 +6,16 @@
 
 const APP_VERSION = process.env.npm_package_version ?? '0.1.0';
 
-export async function GET() {
-  const memory = process.memoryUsage();
+function includeDiagnostics(request: Request): boolean {
+  const token = process.env.HEALTHZ_DETAIL_TOKEN;
+  return Boolean(token && request.headers.get('x-healthz-token') === token);
+}
+
+export async function GET(request: Request) {
   return Response.json(
-    {
-      status: 'ok',
-      service: 'site',
-      version: APP_VERSION,
-      timestamp: new Date().toISOString(),
-      checks: {
-        memory: {
-          rssMb: Math.round(memory.rss / 1024 / 1024),
-          heapUsedMb: Math.round(memory.heapUsed / 1024 / 1024),
-          heapTotalMb: Math.round(memory.heapTotal / 1024 / 1024),
-        },
-      },
-    },
+    includeDiagnostics(request)
+      ? { status: 'ok', service: 'site', version: APP_VERSION }
+      : { status: 'ok' },
     {
       headers: {
         'Cache-Control': 'no-store',
