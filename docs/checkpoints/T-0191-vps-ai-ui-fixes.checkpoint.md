@@ -2,8 +2,8 @@
 
 - **Owner**: Codex
 - **Started**: 2026-05-27 05:49 WIB
-- **Last updated**: 2026-05-27 06:09 WIB
-- **Status**: IN_PROGRESS
+- **Last updated**: 2026-05-27 06:18 WIB
+- **Status**: DONE
 
 ## Goal
 
@@ -25,7 +25,7 @@ Spec: SOURCE-OF-TRUTH §4-§6, SYSTEM-DESIGN §16, §25-§26, §37; pentest arti
 4. [x] Patch AI lookup/OCR fallback di repo dan test dengan kasus user.
 5. [x] Patch UI qty/i18n/sidebar duplikat.
 6. [x] Jalankan lint/typecheck/test/build lokal.
-7. [ ] Commit/push, pull/build/reload VPS, smoke test.
+7. [x] Commit/push, pull/build/reload VPS, smoke test.
 
 ## Done so far
 
@@ -45,6 +45,19 @@ Spec: SOURCE-OF-TRUTH §4-§6, SYSTEM-DESIGN §16, §25-§26, §37; pentest arti
   - `scheduledJobs.aiActionDraftsSweeper.*` ditambah ke ID/EN/ZH.
   - Item sidebar duplikat Promosi di bawah POS dihapus; Promosi tetap ada di Settings.
 - Gambar real `D:\KERJA\Aroadri Tea\WhatsApp Image 2026-05-26 at 14.09.18.jpeg` dites di VPS dengan Tesseract 5.3.4. Output OCR noisy berhasil diparse menjadi tanggal `2026-05-26`, gross `230000`, transaksi `5`.
+- Commit runtime: `06949f8 fix: harden vps and ai receipt workflows`, pushed to `origin/codex/t-0191-vps-ai-ui-fixes`.
+- VPS deploy:
+  - `git switch --track origin/codex/t-0191-vps-ai-ui-fixes`.
+  - `pnpm install --frozen-lockfile`.
+  - `pnpm --filter @erp/web build`.
+  - `pm2 reload ecosystem.config.cjs --update-env` + `pm2 save`.
+  - PM2 `aroadri-site`, `aroadri-web`, `aroadri-mcp`, `aroadri-worker` online.
+- VPS smoke:
+  - `https://erp.aroadritea.com/api/healthz` 200 + HSTS/CSP/security headers.
+  - `https://mcp.erp.aroadritea.com/healthz` 200 + HSTS/CSP/security headers.
+  - Host header `evil.example` ke IP default returns 421.
+  - Public ports 21, 53, 3000 blocked from external test.
+  - Port 8083 reachable only from current allowlisted admin IP; Hestia firewall list no longer has `0.0.0.0/0` 8083 rule.
 
 ## Decisions
 
@@ -58,7 +71,7 @@ Spec: SOURCE-OF-TRUTH §4-§6, SYSTEM-DESIGN §16, §25-§26, §37; pentest arti
 
 ## Next step
 
-Commit dan push branch `codex/t-0191-vps-ai-ui-fixes`, lalu SSH ke VPS, `git pull`, `pnpm install --frozen-lockfile`, `pnpm --filter @erp/web build`, reload PM2, dan smoke test `https://erp.aroadritea.com`, `https://mcp.erp.aroadritea.com`, Host-header 421, security headers, serta port checks.
+No next coding step. If revisiting this task, only follow-up left is optional: when HestiaCP publishes a release newer than 1.9.4, schedule a maintenance window to upgrade. Until then, web terminal is deleted and 8083 is IP-allowlisted.
 
 ## Test status
 
