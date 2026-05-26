@@ -2,8 +2,8 @@
 
 - **Owner**: Codex
 - **Started**: 2026-05-26 23:43 WIB
-- **Last updated**: 2026-05-27 00:14 WIB
-- **Status**: IN_PROGRESS
+- **Last updated**: 2026-05-27 00:34 WIB
+- **Status**: DONE
 
 ## Goal
 
@@ -21,8 +21,8 @@ Spec: AGENTS §5.8, SYSTEM-DESIGN §16, §25, §26, §37; ADR-0012 untuk runtime
 3. [x] Patch perilaku AI/OCR atau konfigurasi agar hasilnya tidak misleading.
 4. [x] Ubah label user-facing "whistleblower" menjadi "whistleblowing system".
 5. [x] Jalankan focused test/typecheck/build lokal.
-6. [ ] Commit + push branch.
-7. [ ] SSH VPS, pull branch/commit, build, migrate bila perlu, reload PM2, smoke test.
+6. [x] Commit + push branch.
+7. [x] SSH VPS, pull branch/commit, build, migrate bila perlu, reload PM2, smoke test.
 
 ## Done so far
 
@@ -39,6 +39,21 @@ Spec: AGENTS §5.8, SYSTEM-DESIGN §16, §25, §26, §37; ADR-0012 untuk runtime
   - `pnpm -w typecheck` PASS.
   - `pnpm -w test` PASS (690 tests total: shared 85, services 605).
   - `pnpm --filter @erp/web build`, `pnpm --filter @erp/site build`, `pnpm --filter @erp/mcp build`, `pnpm --filter @erp/worker build` PASS.
+- Commit/push:
+  - `a1bf4f7 fix: validate ai tools and whistleblowing copy`
+  - `f6d0193 fix: tolerate noisy receipt ocr text`
+- VPS deploy:
+  - Koneksi memakai detail dari `C:\Users\ASUS\Desktop\connect_aroadri_erp.bat`.
+  - VPS switch/pull ke branch `codex/t-0190-ai-tool-vps-validation`, commit aktif `f6d0193`.
+  - `pnpm install --frozen-lockfile` PASS.
+  - Build VPS `@erp/mcp`, `@erp/worker`, `@erp/site`, `@erp/web` PASS.
+  - PM2 reload/save PASS; `aroadri-site`, `aroadri-web`, `aroadri-mcp`, `aroadri-worker` online.
+  - Health internal PASS: `http://127.0.0.1:3000/api/healthz`, `http://127.0.0.1:3001/api/healthz`, `http://127.0.0.1:3002/healthz`.
+- VPS tool tests:
+  - `.env` masked check: `DEEPSEEK_API_KEY` dan `EXA_SEARCH_API_KEY` set.
+  - `tesseract-ocr` installed on VPS for DeepSeek text-only OCR fallback.
+  - Real `webSearchTool({ query: "Aroadri ERP bubble tea Indonesia", count: 3 })` returned `ok: true` and 3 hits.
+  - Real receipt image `D:\KERJA\Aroadri Tea\WhatsApp Image 2026-05-26 at 14.09.18.jpeg` copied to `/tmp/aroadri-test-receipt.jpeg`; Tesseract OCR + parser returned `{ sales_date: "2026-05-26", channel: "walk_in", payment_method: "cash", gross_sales: "230000", transaction_count: 5 }` without writing a production draft.
 
 ## Decisions
 
@@ -47,12 +62,11 @@ Spec: AGENTS §5.8, SYSTEM-DESIGN §16, §25, §26, §37; ADR-0012 untuk runtime
 
 ## Open issues
 
-- Perlu cek secret/config VPS: `EXA_SEARCH_API_KEY` tersedia atau belum.
-- Perlu cek apakah production akan deploy dari branch `codex/t-0190-ai-tool-vps-validation` atau tetap master. Karena patch pentest ada di branch T-0189, deploy harus memastikan commit T-0189 ikut terpasang.
+- VPS masih punya file untracked lama `packages/db/migrations/0023_fantastic_malice.sql`. File itu tidak berasal dari branch ini dan tidak disentuh.
 
 ## Next step
 
-Commit + push branch `codex/t-0190-ai-tool-vps-validation`, lalu SSH VPS memakai detail dari `C:\Users\ASUS\Desktop\connect_aroadri_erp.bat`, pull branch itu, build, reload PM2, dan smoke test.
+DONE. Jika ingin merapikan repo VPS berikutnya, audit file untracked `packages/db/migrations/0023_fantastic_malice.sql` untuk memastikan apakah migration itu perlu dicommit, dipindah, atau dihapus manual.
 
 ## Test status
 
@@ -63,4 +77,5 @@ Commit + push branch `codex/t-0190-ai-tool-vps-validation`, lalu SSH VPS memakai
 - Workspace typecheck: `pnpm -w typecheck` PASS.
 - Workspace tests: `pnpm -w test` PASS (690 tests).
 - Builds: `@erp/web`, `@erp/site`, `@erp/mcp`, `@erp/worker` PASS.
-- VPS deploy: belum.
+- VPS deploy: PASS.
+- VPS smoke: PASS.
