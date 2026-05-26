@@ -239,10 +239,12 @@ export function parseLegacyReceiptText(
     .trim();
   if (!flat) return null;
 
+  const dateMatch = [...flat.matchAll(/\b(\d{4})\s*[-/]\s*(\d{1,2})\s*[-/]\s*(\d{1,2})\b/g)].at(-1);
+  const [, year, month, day] = dateMatch ?? [];
   const date =
-    flat.match(/(?:start|end)\s*time\s*:?\s*(\d{4}[-/]\d{2}[-/]\d{2})/i)?.[1] ??
-    flat.match(/\b(\d{4}[-/]\d{2}[-/]\d{2})\b/)?.[1];
+    year && month && day ? `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}` : undefined;
   const amount =
+    flat.match(/amount[\s.]*recei\s*ved\s*:?\s*rp\s*([0-9][0-9.,]*)/i)?.[1] ??
     flat.match(/amount\s*received\s*:?\s*rp\s*([0-9][0-9.,]*)/i)?.[1] ??
     flat.match(/(?:gross|total)\s*(?:sales|amount)?\s*:?\s*rp?\s*([0-9][0-9.,]*)/i)?.[1];
   if (!date || !amount) return null;
@@ -250,7 +252,11 @@ export function parseLegacyReceiptText(
   const grossSales = amount.replace(/\D/g, '');
   if (!grossSales) return null;
 
-  const transactionCount = flat.match(/total\s*sales\s*:?\s*(\d+)/i)?.[1];
+  const categoryCount = flat.match(
+    new RegExp(String.raw`\[(\d+)\]\s*[\[\{]\s*${grossSales}\b`),
+  )?.[1];
+  const totalSalesCount = flat.match(/total\s*sales\s*:?\s*(\d+)/i)?.[1];
+  const transactionCount = categoryCount ?? totalSalesCount;
   const lower = flat.toLowerCase();
   const inferredChannel = lower.includes('gofood')
     ? 'gofood'
