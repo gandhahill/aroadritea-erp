@@ -30,6 +30,7 @@ import type { AuditContext } from '@erp/shared/types';
 import type { z } from 'zod';
 import { can } from '../../iam';
 import type { AiToolDefinition } from '../client';
+import type { AiRuntimeConfig } from '../settings';
 import {
   CreateManualSaleDraftInputSchema,
   type CreateManualSaleDraftToolDeps,
@@ -67,6 +68,7 @@ import { WebSearchInputSchema, webSearchTool } from './web-search';
 export interface ToolExecutionDeps {
   sessionId?: string;
   messageId?: string;
+  aiRuntimeConfig?: AiRuntimeConfig;
 }
 
 export interface AiTool<TIn, TOut> {

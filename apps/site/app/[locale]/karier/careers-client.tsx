@@ -44,7 +44,7 @@ export function CareersClient() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   async function submitApplication() {
     if (!activeOpening || !form.name.trim()) {

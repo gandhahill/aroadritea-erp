@@ -1452,8 +1452,8 @@
     "disciplinary": "纪律处分",
     "sop": "标准操作流程",
     "aiAssistant": "AI 助手",
-    "whistleblowerForm": "举报表单",
-    "whistleblowerReports": "举报记录",
+    "whistleblowerForm": "Whistleblowing System 表单",
+    "whistleblowerReports": "Whistleblowing System 记录",
     "account": "我的账户",
     "auditTrail": "审计轨迹",
     "locations": "地点",
@@ -3647,7 +3647,7 @@
     }
   },
   "whistleblower": {
-    "title": "举报渠道",
+    "title": "Whistleblowing System",
     "subtitle": "安全匿名地报告违规行为。",
     "reportTitle": "标题",
     "titlePlaceholder": "问题的简短总结",
@@ -3666,7 +3666,7 @@
     "submitAnother": "提交另一个",
     "uploadEvidence": "上传证据（可选）",
     "admin": {
-      "title": "举报人报告",
+      "title": "Whistleblowing System 记录",
       "subtitle": "管理匿名报告",
       "date": "日期",
       "category": "类别",

@@ -485,7 +485,11 @@ export const PERMISSIONS_SEED = [
   {
     code: 'hr.whistleblower.read',
     module: 'hr',
-    description: n('Lihat laporan whistleblower', 'View whistleblower reports', '查看举报人报告'),
+    description: n(
+      'Lihat laporan Whistleblowing System',
+      'View Whistleblowing System reports',
+      '查看 Whistleblowing System 记录',
+    ),
   },
   {
     code: 'hr.manage_attendance',

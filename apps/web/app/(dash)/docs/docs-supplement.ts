@@ -207,7 +207,7 @@ Tax module mengatur tarif dan aturan pajak. PB1/PBJT retail bersifat inclusive. 
 - Tax Rules: /tax/rules
 - Omzet Harian: /reporting/omzet-harian
 
-## HR detail: karyawan, jadwal, presensi, cuti, payroll, SOP, dan whistleblower {perm=hr.view}
+## HR detail: karyawan, jadwal, presensi, cuti, payroll, SOP, dan Whistleblowing System {perm=hr.view}
 HR menyimpan data karyawan, jadwal shift, presensi GPS, cuti, payroll, SP, SOP, rekrutmen, dan pelaporan pelanggaran. Data pribadi harus dibatasi sesuai permission.
 
 ### Step by step
@@ -224,7 +224,7 @@ HR menyimpan data karyawan, jadwal shift, presensi GPS, cuti, payroll, SP, SOP, 
 1. Disciplinary dipakai untuk SP1, SP2, SP3, lampiran, publish, dan acknowledgement.
 1. Recruitment mengikuti lowongan, applicant, screening, interview, offer, hired, atau rejected.
 1. SOP menyimpan dokumen final, status draft/published, download, dan archive.
-1. Whistleblower form dipakai untuk laporan anonim. Admin review memakai status open, investigating, dan resolved.
+1. Whistleblowing System form dipakai untuk laporan anonim. Admin review memakai status open, investigating, dan resolved.
 
 ### Control checks
 - Data KTP, NPWP, telepon, payroll, dan kontrak tidak boleh dibagikan di luar role berwenang.
@@ -245,8 +245,8 @@ HR menyimpan data karyawan, jadwal shift, presensi GPS, cuti, payroll, SP, SOP, 
 - Disciplinary: /hr/disciplinary
 - Recruitment: /hr/recruitment
 - SOP: /hr/sop
-- Whistleblower Form: /whistleblower
-- Whistleblower Reports: /hr/whistleblower
+- Whistleblowing System Form: /whistleblower
+- Whistleblowing System Reports: /hr/whistleblower
 
 ## CRM, loyalty, dan portal member {perm=crm.member.view}
 CRM member dipakai untuk melihat member, tier, histori poin, dan koreksi poin. Portal member publik berbeda dari akun staff ERP.
@@ -593,7 +593,7 @@ Tax module manages rates and tax application rules. Retail PB1/PBJT is inclusive
 - Tax Rules: /tax/rules
 - Omzet Harian: /reporting/omzet-harian
 
-## HR detail: employees, schedule, attendance, leave, payroll, SOP, and whistleblower {perm=hr.view}
+## HR detail: employees, schedule, attendance, leave, payroll, SOP, and Whistleblowing System {perm=hr.view}
 HR stores employees, shift schedule, GPS attendance, leave, payroll, warning letters, SOP, recruitment, and violation reports. Personal data must be limited by permission.
 
 ### Step by step
@@ -610,7 +610,7 @@ HR stores employees, shift schedule, GPS attendance, leave, payroll, warning let
 1. Disciplinary manages SP1, SP2, SP3, attachments, publish, and acknowledgement.
 1. Recruitment follows opening, applicant, screening, interview, offer, hired, or rejected.
 1. SOP stores final documents, draft/published status, download, and archive.
-1. Whistleblower form is for anonymous reports. Admin review uses open, investigating, and resolved statuses.
+1. Whistleblowing System form is for anonymous reports. Admin review uses open, investigating, and resolved statuses.
 
 ### Control checks
 - KTP, NPWP, phone, payroll, and contract data must not be shared outside authorized roles.
@@ -631,8 +631,8 @@ HR stores employees, shift schedule, GPS attendance, leave, payroll, warning let
 - Disciplinary: /hr/disciplinary
 - Recruitment: /hr/recruitment
 - SOP: /hr/sop
-- Whistleblower Form: /whistleblower
-- Whistleblower Reports: /hr/whistleblower
+- Whistleblowing System Form: /whistleblower
+- Whistleblowing System Reports: /hr/whistleblower
 
 ## CRM, loyalty, and member portal {perm=crm.member.view}
 CRM members is used to view members, tier, point history, and point corrections. Public member portal accounts are separate from staff ERP accounts.
@@ -996,7 +996,7 @@ HR 保存员工、班次、GPS 考勤、请假、工资、警告、SOP、招聘�
 1. Disciplinary 管理 SP1、SP2、SP3、附件、发布和确认。
 1. Recruitment 经过 opening、applicant、screening、interview、offer、hired 或 rejected。
 1. SOP 保存最终文档、draft/published 状态、下载和归档。
-1. Whistleblower form 用于匿名举报。管理员用 open、investigating 和 resolved 状态处理。
+1. Whistleblowing System form 用于匿名举报。管理员用 open、investigating 和 resolved 状态处理。
 
 ### Control checks
 - KTP、NPWP、电话、工资和合同数据不得在授权角色外分享。
@@ -1017,8 +1017,8 @@ HR 保存员工、班次、GPS 考勤、请假、工资、警告、SOP、招聘�
 - Disciplinary: /hr/disciplinary
 - Recruitment: /hr/recruitment
 - SOP: /hr/sop
-- Whistleblower Form: /whistleblower
-- Whistleblower Reports: /hr/whistleblower
+- Whistleblowing System Form: /whistleblower
+- Whistleblowing System Reports: /hr/whistleblower
 
 ## CRM、积分和会员门户 {perm=crm.member.view}
 CRM Members 用于查看会员、等级、积分历史和积分修正。公共会员门户账号与员工 ERP 账号不同。

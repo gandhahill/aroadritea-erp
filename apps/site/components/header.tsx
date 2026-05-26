@@ -92,8 +92,10 @@ export function PublicHeader({
           className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-brand-red/15 bg-brand-cream-1 text-brand-red md:hidden"
         >
           <svg
+            aria-hidden="true"
             className="h-5 w-5"
             fill="none"
+            focusable="false"
             viewBox="0 0 24 24"
             stroke="currentColor"
             strokeWidth={2}
@@ -113,8 +115,10 @@ export function PublicHeader({
               className="hidden items-center gap-2 rounded-full bg-brand-red px-4 py-2 text-sm font-bold text-brand-cream shadow-soft transition-brand hover:bg-brand-red-dark hover:shadow-pop focus-visible:outline-none focus-visible:shadow-focus sm:inline-flex"
             >
               <svg
+                aria-hidden="true"
                 className="h-4 w-4"
                 fill="none"
+                focusable="false"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth={2}

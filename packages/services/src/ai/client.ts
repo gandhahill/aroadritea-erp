@@ -19,6 +19,8 @@
  *     `reasoning_content` MUST be replayed or the API answers 400.
  */
 
+import { readSecret } from './secrets';
+
 const DEFAULT_BASE_URL = 'https://api.deepseek.com/v1';
 const DEFAULT_MODEL = 'deepseek-v4-flash';
 const DEFAULT_THINKING_MODEL = 'deepseek-v4-pro';
@@ -96,28 +98,7 @@ export function isAiAssistantEnabled(): boolean {
 export function loadProviderConfig(): AiProviderConfig {
   if (cachedConfig?.apiKey) return cachedConfig;
 
-  let apiKey = process.env.DEEPSEEK_API_KEY ?? process.env.AI_PROVIDER_KEY ?? '';
-
-  if (!apiKey) {
-    try {
-      // Bypass PM2 environment caching by explicitly reading the root .env
-      const fs = require('node:fs');
-      const path = require('node:path');
-      let rootEnvPath = path.join(process.cwd(), '../../.env');
-      if (!fs.existsSync(rootEnvPath)) {
-        rootEnvPath = path.join(process.cwd(), '.env');
-      }
-      if (fs.existsSync(rootEnvPath)) {
-        const envContent = fs.readFileSync(rootEnvPath, 'utf8');
-        const match = envContent.match(/^DEEPSEEK_API_KEY\s*=\s*(.*)$/m);
-        if (match?.[1]) {
-          apiKey = match[1].replace(/["']/g, '').trim();
-        }
-      }
-    } catch (e) {
-      // ignore
-    }
-  }
+  const apiKey = readSecret(['DEEPSEEK_API_KEY', 'AI_PROVIDER_KEY']);
   const config = {
     // Non-secret runtime knobs live in the ERP UI/database. Environment
     // variables are intentionally limited to secrets/backward-compatible

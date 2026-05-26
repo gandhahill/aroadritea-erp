@@ -52,24 +52,21 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={<>{t('title') || 'Whistleblower Reports (Admin)'}</>}
-        description={<>{t('subtitle') || 'Manage and review anonymous reports.'}</>}
-      />
+      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
 
       <form method="GET" className="mb-6">
         <FilterBar>
           <FilterField>
             <Select name="status" defaultValue={filterStatus} className="w-full sm:w-48">
-              <option value="">{t('allStatus') || 'All Status'}</option>
-              <option value="open">{t('statusOpen') || 'Open'}</option>
-              <option value="investigating">{t('statusInvestigating') || 'Investigating'}</option>
-              <option value="resolved">{t('statusResolved') || 'Resolved'}</option>
+              <option value="">{t('allStatus')}</option>
+              <option value="open">{t('statusOpen')}</option>
+              <option value="investigating">{t('statusInvestigating')}</option>
+              <option value="resolved">{t('statusResolved')}</option>
             </Select>
           </FilterField>
           {params?.pageSize && <input type="hidden" name="pageSize" value={params.pageSize} />}
           <Button type="submit" variant="primary" className="h-9">
-            {t('filterBtn') || 'Filter'}
+            {t('filterBtn')}
           </Button>
         </FilterBar>
       </form>
@@ -78,11 +75,9 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
         <table className="w-full text-left text-sm">
           <thead className="border-b border-brand-cream-3 bg-brand-cream/50 text-brand-ink-2">
             <tr>
-              <TableHead className="px-4 py-3 font-semibold">{t('date') || 'Date'}</TableHead>
-              <TableHead className="px-4 py-3 font-semibold">
-                {t('reportTitle') || 'Title'}
-              </TableHead>
-              <TableHead className="px-4 py-3 font-semibold">{t('status') || 'Status'}</TableHead>
+              <TableHead className="px-4 py-3 font-semibold">{t('date')}</TableHead>
+              <TableHead className="px-4 py-3 font-semibold">{t('reportTitle')}</TableHead>
+              <TableHead className="px-4 py-3 font-semibold">{t('status')}</TableHead>
             </tr>
           </thead>
           <TableBody className="divide-y divide-brand-cream-3">
@@ -103,7 +98,7 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
                       rel="noopener noreferrer"
                       className="mt-1 inline-block text-xs font-medium text-brand-red hover:underline"
                     >
-                      {t('viewEvidence') || 'View Evidence'}
+                      {t('viewEvidence')}
                     </a>
                   )}
                 </TableCell>
@@ -120,11 +115,11 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
                     }`}
                   >
                     {report.status === 'open'
-                      ? t('statusOpen') || 'Open'
+                      ? t('statusOpen')
                       : report.status === 'investigating'
-                        ? t('statusInvestigating') || 'Investigating'
+                        ? t('statusInvestigating')
                         : report.status === 'resolved'
-                          ? t('statusResolved') || 'Resolved'
+                          ? t('statusResolved')
                           : report.status}
                   </span>
                 </TableCell>
@@ -133,7 +128,7 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
             {reports.length === 0 && (
               <tr>
                 <td colSpan={3} className="px-4 py-8 text-center text-brand-ink-3">
-                  {t('noReports') || 'No reports found.'}
+                  {t('noReports')}
                 </td>
               </tr>
             )}

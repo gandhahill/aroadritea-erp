@@ -94,7 +94,11 @@ export default function middleware(request: NextRequest) {
   // idempotent and SEO-clean.
   const karirMatch = pathname.match(/^\/(id|en|zh)\/karir(\/.*)?$/);
   if (karirMatch) {
-    const locale = karirMatch[1]!;
+    const locale = karirMatch[1];
+    if (!locale) {
+      return NextResponse.next();
+    }
+
     const tail = karirMatch[2] ?? '';
     const target = new URL(`/${locale}/karier${tail}`, request.nextUrl.origin);
     target.search = search;
