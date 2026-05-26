@@ -274,7 +274,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           'Gunakan Leave untuk mengatur jenis cuti, memproses permintaan cuti, dan memastikan tukar libur atau cuti mendapat persetujuan atasan.',
           'Jalankan Payroll sesuai periode payroll, review komponen gaji, potongan telat/absen, BPJS, dan PPh 21 sebelum approval atau pembayaran.',
           'Gunakan Surat Peringatan untuk mencatat SP1/SP2/SP3 dengan tanggal kejadian dan alasan yang jelas.',
-          'Gunakan Saluran Whistleblower untuk melaporkan atau mengelola laporan pelanggaran (fraud, pelecehan, pelanggaran SOP) secara anonim.',
+          'Gunakan Whistleblowing System untuk melaporkan atau mengelola laporan pelanggaran (fraud, pelecehan, pelanggaran SOP) secara anonim.',
           'SOP pembukaan toko: seduh teh, buat creamer bila perlu, bersihkan meja/kursi/lantai, siram tanaman, rapikan bar dan pintu kaca, cek mesin, cek stok teh dan egg tart, lalu input mutasi stok bila ada pemakaian pagi.',
           'SOP penutupan toko: tutup order sekitar 22:00, mulai closing/cleaning solution sekitar 21:50, bersihkan mesin, wadah teh, pan oven, lantai, area bar, lalu buat laporan keuangan harian.',
         ],
@@ -294,7 +294,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           { label: 'Attendance', href: '/hr/attendance' },
           { label: 'Leave', href: '/hr/leave' },
           { label: 'Payroll', href: '/hr/payroll' },
-          { label: 'Whistleblower', href: '/hr/whistleblower' },
+          { label: 'Whistleblowing System', href: '/hr/whistleblower' },
         ],
       },
       {
@@ -663,7 +663,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           'Use Leave to maintain leave types, process requests, and make sure leave swaps or weekly-off changes have supervisor approval.',
           'Run Payroll for the correct period, then review salary components, late/absence deductions, BPJS, and PPh 21 before approval or payment.',
           'Use Disciplinary Actions for SP1/SP2/SP3 records with clear incident date and reason.',
-          'Use Whistleblower Channel to report or manage reports of violations (fraud, harassment, SOP violations) anonymously.',
+          'Use Whistleblowing System to report or manage reports of violations (fraud, harassment, SOP violations) anonymously.',
           'Opening SOP: brew tea, make creamer when needed, clean tables/chairs/floor, water plants, tidy the bar and glass doors, check machines, check tea and egg tart stock, then input stock mutation for morning usage.',
           'Closing SOP: close orders around 22:00, start closing/cleaning around 21:50, clean machines, tea containers, oven pans, floor, and bar area, then prepare the daily finance report.',
         ],
@@ -683,7 +683,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           { label: 'Attendance', href: '/hr/attendance' },
           { label: 'Leave', href: '/hr/leave' },
           { label: 'Payroll', href: '/hr/payroll' },
-          { label: 'Whistleblower', href: '/hr/whistleblower' },
+          { label: 'Whistleblowing System', href: '/hr/whistleblower' },
         ],
       },
       {
@@ -1031,7 +1031,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           '使用请假查看或处理请假申请。',
           '按正确期间运行工资，并在审批或付款前复核。',
           '用纪律记录登记SP1/SP2/SP3，并填写事件日期和明确原因。',
-          '使用举报通道（Whistleblower Channel）匿名报告违规行为（欺诈、骚扰、违反SOP等）。',
+          '使用 Whistleblowing System 匿名报告违规行为（欺诈、骚扰、违反SOP等）。',
         ],
         checks: [
           'KTP、NPWP、电话和工资属于个人数据，不得随意分享。',
@@ -1045,7 +1045,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           { label: '考勤', href: '/hr/attendance' },
           { label: '请假', href: '/hr/leave' },
           { label: '工资', href: '/hr/payroll' },
-          { label: '举报通道', href: '/hr/whistleblower' },
+          { label: 'Whistleblowing System', href: '/hr/whistleblower' },
         ],
       },
       {

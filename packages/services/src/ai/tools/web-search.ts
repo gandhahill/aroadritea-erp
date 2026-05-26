@@ -21,6 +21,7 @@
 
 import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
+import { readSecret } from '../secrets';
 
 export const WebSearchInputSchema = z.object({
   query: z.string().min(2).max(500),
@@ -67,7 +68,7 @@ export async function webSearchTool(
   input: WebSearchInput,
   _ctx: AuditContext,
 ): Promise<WebSearchOutput> {
-  const apiKey = process.env.EXA_SEARCH_API_KEY;
+  const apiKey = readSecret(['EXA_SEARCH_API_KEY', 'EXA_API_KEY']);
   if (!apiKey) {
     return {
       ok: false,

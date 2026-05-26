@@ -33,13 +33,8 @@ export default function WhistleblowerPage() {
               />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-brand-ink">
-            {t('successTitle') || 'Report Submitted'}
-          </h2>
-          <p className="mt-2 text-sm text-brand-ink-3">
-            {t('successMessage') ||
-              'Your report has been submitted anonymously. Thank you for speaking up.'}
-          </p>
+          <h2 className="text-xl font-bold text-brand-ink">{t('successTitle')}</h2>
+          <p className="mt-2 text-sm text-brand-ink-3">{t('successMessage')}</p>
           <button
             onClick={() => {
               setSuccess(false);
@@ -48,7 +43,7 @@ export default function WhistleblowerPage() {
             }}
             className="mt-6 rounded-lg bg-brand-red px-6 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
           >
-            {t('submitAnother') || 'Submit Another Report'}
+            {t('submitAnother')}
           </button>
         </div>
       </div>
@@ -58,15 +53,7 @@ export default function WhistleblowerPage() {
   return (
     <div className="space-y-6">
       <div className="mx-auto max-w-2xl">
-        <PageHeader
-          title={<>{t('title') || 'Whistleblower Channel'}</>}
-          description={
-            <>
-              {t('subtitle') ||
-                'Report misconduct, fraud, or violations safely and anonymously. Your identity is not recorded.'}
-            </>
-          }
-        />
+        <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
 
         <form
           action={submitAction}
@@ -78,54 +65,43 @@ export default function WhistleblowerPage() {
 
           <div className="space-y-4">
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-brand-ink">
-                {t('reportTitle') || 'Title'} *
-              </span>
+              <span className="text-sm font-medium text-brand-ink">{t('reportTitle')} *</span>
               <Input
                 name="title"
                 required
                 className="w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:ring-1 focus:ring-brand-red outline-none"
-                placeholder={t('titlePlaceholder') || 'Brief summary of the issue'}
+                placeholder={t('titlePlaceholder')}
               />
             </label>
 
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-brand-ink">
-                {t('category') || 'Category'} *
-              </span>
+              <span className="text-sm font-medium text-brand-ink">{t('category')} *</span>
               <Select
                 name="category"
                 required
                 className="w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:ring-1 focus:ring-brand-red outline-none"
               >
-                <option value="fraud">{t('catFraud') || 'Fraud / Corruption'}</option>
-                <option value="harassment">
-                  {t('catHarassment') || 'Harassment / Discrimination'}
-                </option>
-                <option value="safety">{t('catSafety') || 'Health & Safety Violation'}</option>
-                <option value="other">{t('catOther') || 'Other'}</option>
+                <option value="fraud">{t('catFraud')}</option>
+                <option value="harassment">{t('catHarassment')}</option>
+                <option value="safety">{t('catSafety')}</option>
+                <option value="other">{t('catOther')}</option>
               </Select>
             </label>
 
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-brand-ink">
-                {t('content') || 'Details'} *
-              </span>
+              <span className="text-sm font-medium text-brand-ink">{t('content')} *</span>
               <textarea
                 name="content"
                 required
                 rows={6}
                 className="w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:ring-1 focus:ring-brand-red outline-none"
-                placeholder={
-                  t('contentPlaceholder') ||
-                  'Please describe the incident in detail (who, what, when, where)...'
-                }
+                placeholder={t('contentPlaceholder')}
               />
             </label>
 
             <div>
               <FileUploadField
-                label={t('uploadEvidence') || 'Upload Evidence (Optional)'}
+                label={t('uploadEvidence')}
                 hiddenName="attachmentUrl"
                 value={attachmentUrl}
                 area="whistleblower"
@@ -134,10 +110,7 @@ export default function WhistleblowerPage() {
               />
             </div>
 
-            <p className="text-xs text-brand-ink-3">
-              {t('anonymityNote') ||
-                'Note: We do not collect your name, email, or IP address with this submission. It is completely anonymous.'}
-            </p>
+            <p className="text-xs text-brand-ink-3">{t('anonymityNote')}</p>
           </div>
 
           <div className="flex justify-end pt-4">
@@ -146,7 +119,7 @@ export default function WhistleblowerPage() {
               disabled={isPending}
               className="rounded-lg bg-brand-red px-6 py-2 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-red-dark disabled:opacity-50"
             >
-              {isPending ? t('submitting') || 'Submitting...' : t('submit') || 'Submit Report'}
+              {isPending ? t('submitting') : t('submit')}
             </button>
           </div>
         </form>

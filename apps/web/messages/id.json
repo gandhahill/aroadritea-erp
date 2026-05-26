@@ -1417,8 +1417,8 @@
     "disciplinary": "Surat Peringatan",
     "sop": "SOP & Prosedur",
     "aiAssistant": "Asisten AI",
-    "whistleblowerForm": "Form Whistleblower",
-    "whistleblowerReports": "Laporan Whistleblower",
+    "whistleblowerForm": "Form Whistleblowing System",
+    "whistleblowerReports": "Laporan Whistleblowing System",
     "account": "Akun Saya",
     "auditTrail": "Jejak Audit",
     "locations": "Lokasi",
@@ -3570,7 +3570,7 @@
     }
   },
   "whistleblower": {
-    "title": "Saluran Whistleblower",
+    "title": "Whistleblowing System",
     "subtitle": "Laporkan pelanggaran dengan aman dan anonim.",
     "reportTitle": "Judul",
     "titlePlaceholder": "Ringkasan singkat masalah",
@@ -3589,7 +3589,7 @@
     "submitAnother": "Kirim Laporan Lain",
     "uploadEvidence": "Unggah Bukti (Opsional)",
     "admin": {
-      "title": "Laporan Whistleblower",
+      "title": "Laporan Whistleblowing System",
       "subtitle": "Kelola laporan anonim",
       "date": "Tanggal",
       "category": "Kategori",

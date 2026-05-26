@@ -285,7 +285,7 @@ export async function sendChatMessage(
 
     for (const call of toolCalls) {
       await stream?.onToolCall?.(call.function.name);
-      const result = await runToolCall(ctx, call, input.sessionId);
+      const result = await runToolCall(ctx, call, input.sessionId, runtimeConfig);
       await stream?.onToolResult?.(call.function.name);
       providerMessages.push({
         role: 'tool',
@@ -317,9 +317,11 @@ async function runToolCall(
   ctx: AuditContext,
   call: AiToolCall,
   sessionId: string,
+  runtimeConfig: Awaited<ReturnType<typeof getAiRuntimeConfig>>,
 ): Promise<string> {
   const result = await executeTool(ctx, call.function.name, call.function.arguments, {
     sessionId,
+    aiRuntimeConfig: runtimeConfig,
   });
   if (!result.ok) {
     // The tool message format expects a string. Surface the error code

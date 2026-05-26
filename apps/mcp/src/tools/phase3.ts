@@ -216,7 +216,7 @@ export const hrToolsPhase3 = [
 
       let items = result.value;
       if (parsed.data.status) {
-        items = items.filter((r: any) => r.status === parsed.data.status);
+        items = items.filter((r) => r.status === parsed.data.status);
       }
       return mcpSuccess({ reports: items });
     },

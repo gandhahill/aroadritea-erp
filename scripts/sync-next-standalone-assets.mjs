@@ -28,4 +28,4 @@ function copyDir(source, destination) {
 copyDir(path.join(appDir, 'public'), path.join(standaloneAppDir, 'public'));
 copyDir(path.join(appDir, '.next', 'static'), path.join(standaloneAppDir, '.next', 'static'));
 
-console.log(`Synced standalone assets for apps/${appName}`);
+console.info(`Synced standalone assets for apps/${appName}`);

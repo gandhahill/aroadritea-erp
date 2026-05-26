@@ -1419,8 +1419,8 @@
     "helpdesk": "Helpdesk",
     "disciplinary": "Disciplinary Actions",
     "sop": "SOP & Procedures",
-    "whistleblowerForm": "Whistleblower Form",
-    "whistleblowerReports": "Whistleblower Reports",
+    "whistleblowerForm": "Whistleblowing System Form",
+    "whistleblowerReports": "Whistleblowing System Reports",
     "account": "My Account",
     "auditTrail": "Audit Trail",
     "locations": "Locations",
@@ -3571,7 +3571,7 @@
     }
   },
   "whistleblower": {
-    "title": "Whistleblower Channel",
+    "title": "Whistleblowing System",
     "subtitle": "Report misconduct safely and anonymously.",
     "reportTitle": "Title",
     "titlePlaceholder": "Brief summary of the issue",
@@ -3590,7 +3590,7 @@
     "submitAnother": "Submit Another",
     "uploadEvidence": "Upload Evidence (Optional)",
     "admin": {
-      "title": "Whistleblower Reports",
+      "title": "Whistleblowing System Reports",
       "subtitle": "Manage anonymous reports",
       "date": "Date",
       "category": "Category",

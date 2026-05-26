@@ -86,8 +86,11 @@ export default function ChangePasswordPage() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-brand-ink-2">{t('currentPassword')}</label>
+              <label htmlFor="current-password" className="text-sm font-medium text-brand-ink-2">
+                {t('currentPassword')}
+              </label>
               <Input
+                id="current-password"
                 type="password"
                 required
                 value={currentPassword}
@@ -97,8 +100,11 @@ export default function ChangePasswordPage() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-brand-ink-2">{t('newPassword')}</label>
+              <label htmlFor="new-password" className="text-sm font-medium text-brand-ink-2">
+                {t('newPassword')}
+              </label>
               <Input
+                id="new-password"
                 type="password"
                 required
                 value={newPassword}
@@ -108,8 +114,11 @@ export default function ChangePasswordPage() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-brand-ink-2">{t('confirmPassword')}</label>
+              <label htmlFor="confirm-password" className="text-sm font-medium text-brand-ink-2">
+                {t('confirmPassword')}
+              </label>
               <Input
+                id="confirm-password"
                 type="password"
                 required
                 value={confirmPassword}

@@ -158,7 +158,7 @@ export async function sendMessageAction(input: {
   useReasoning?: boolean;
   /** Optional uploaded attachments. Each `url` is the result of POSTing
    *  to /api/uploads with area=ai-attachments — the server-side service
-   *  forwards the URL to DeepSeek as an image_url content part. */
+   *  keeps the provider text-only unless an OCR/vision tool handles it. */
   attachments?: Array<{ url: string; mimeType: string }>;
 }) {
   const ctx = await resolveCtx();

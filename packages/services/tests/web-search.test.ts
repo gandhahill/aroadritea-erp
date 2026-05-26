@@ -3,6 +3,7 @@
  *
  * Validates the Exa Search backend wiring:
  *  - returns `not_configured` when EXA_SEARCH_API_KEY is missing
+ *  - reads EXA_SEARCH_API_KEY from the configured .env file fallback
  *  - returns `rate_limited` when Exa returns 429
  *  - returns `upstream_error` when Exa returns other non-2xx
  *  - maps a successful Exa response shape to the tool's contract
@@ -11,6 +12,9 @@
  * `fetch` is stubbed so we don't actually call Exa during tests.
  */
 
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { webSearchTool } from '../src/ai/tools/web-search';
 
@@ -20,6 +24,8 @@ const originalFetch = global.fetch;
 
 beforeEach(() => {
   vi.unstubAllEnvs();
+  vi.stubEnv('AROADRI_ENV_FILE', path.join(os.tmpdir(), 'aroadri-missing-env-file'));
+  vi.stubEnv('EXA_API_KEY', '');
 });
 
 afterEach(() => {
@@ -87,5 +93,22 @@ describe('webSearchTool (Exa)', () => {
     expect(out.hits[0].publishedDate).toBe('2026-05-01');
     expect(out.hits[1].snippet).toBe('highlight only');
     expect(out.hits[2].snippet.length).toBe(600);
+  });
+
+  it('reads EXA_SEARCH_API_KEY from .env fallback for PM2-style deploys', async () => {
+    vi.stubEnv('EXA_SEARCH_API_KEY', '');
+    const dir = await mkdtemp(path.join(os.tmpdir(), 'aroadri-web-search-'));
+    const envPath = path.join(dir, '.env');
+    await writeFile(envPath, 'EXA_SEARCH_API_KEY=file-key\n');
+    vi.stubEnv('AROADRI_ENV_FILE', envPath);
+
+    global.fetch = vi.fn(async (_url, init) => {
+      expect((init?.headers as Record<string, string>)['x-api-key']).toBe('file-key');
+      return new Response(JSON.stringify({ results: [] }), { status: 200 });
+    }) as unknown as typeof fetch;
+
+    const out = await webSearchTool({ query: 'Aroadri Tea', count: 1 }, ctx);
+    expect(out.ok).toBe(true);
+    await rm(dir, { recursive: true, force: true });
   });
 });
