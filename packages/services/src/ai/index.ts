@@ -15,6 +15,7 @@ export * from './client';
 export * from './session';
 export * from './conversation';
 export * from './drafts';
+export * from './settings';
 export {
   listAvailableTools,
   executeTool,

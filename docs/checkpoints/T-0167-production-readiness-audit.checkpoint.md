@@ -2,7 +2,7 @@
 
 ## Status
 
-🟨 IN_PROGRESS
+DONE
 
 ## Goal
 
@@ -203,7 +203,7 @@ Audit SOURCE-OF-TRUTH, SYSTEM-DESIGN, ADRs, TASK.md, and current code so product
 
 ## Next Step
 
-Deploy the 2026-05-25 maintenance build fix: commit/push the async wrapper in `apps/web/app/(dash)/reporting/aging-payables/actions.ts`, pull on VPS, run `pnpm -r build`, reload/save PM2, then smoke `/reporting/aging-payables` and `/reporting/aging-receivables`.
+T-0167 is closed locally. The 2026-05-25 aging-payables maintenance fix is already committed (`090addc`) and the broader first-prompt DoD was closed by T-0186. Any future production deploy/smoke should be tracked as a new deploy task tied to the specific release commit.
 
 ## Test Status
 

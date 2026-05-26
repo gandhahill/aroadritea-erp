@@ -55,6 +55,7 @@ import {
 import { OcrReceiptStrukInputSchema, ocrReceiptStrukTool } from './ocr-receipt';
 import { ReadFileInputSchema, readFileTool } from './read-file';
 import { RequestAdminHelpInputSchema, requestAdminHelpTool } from './request-admin-help';
+import { ResolveLocationInputSchema, resolveLocationTool } from './resolve-location';
 import { SearchCodebaseInputSchema, searchCodebaseTool } from './search-codebase';
 import { WebSearchInputSchema, webSearchTool } from './web-search';
 
@@ -164,7 +165,7 @@ registerTool({
 registerTool({
   name: 'get_recent_orders',
   description:
-    'List the most recent sales orders for an outlet so the assistant can answer "what did I sell today" or help a cashier reconcile. Scoped to the caller\'s tenant and the requested location.',
+    'List the most recent sales orders for an outlet so the assistant can answer "what did I sell today" or help a cashier reconcile. Accepts outlet ID/code/natural name such as "Plaza 1"; scoped to the caller\'s tenant.',
   inputSchema: GetRecentOrdersInputSchema,
   parameters: {
     type: 'object',
@@ -172,6 +173,10 @@ registerTool({
       location_id: {
         type: 'string',
         description: "Outlet ID. Defaults to the caller's session location when omitted.",
+      },
+      location: {
+        type: 'string',
+        description: 'Outlet code or natural name, e.g. "Plaza 1".',
       },
       limit: { type: 'integer', description: 'Cap on returned orders (1–25, default 10).' },
       since_minutes: {
@@ -211,14 +216,14 @@ registerTool({
 registerTool({
   name: 'get_product',
   description:
-    'Look up a product by SKU and return its variants and prices so you can answer questions like "berapa harga T01 Large?".',
+    'Look up a product by SKU or natural product name and return its variants and prices. Use natural names first, e.g. "Osmanthus Fresh Tea"; ask a follow-up only when candidates are ambiguous.',
   inputSchema: GetProductInputSchema,
   parameters: {
     type: 'object',
     properties: {
-      code: { type: 'string', description: 'Product SKU (case-sensitive).' },
+      code: { type: 'string', description: 'Product SKU, if the user gave one.' },
+      query: { type: 'string', description: 'Natural product name or partial name.' },
     },
-    required: ['code'],
   },
   permission: 'inventory.product.read',
   mutates: false,
@@ -228,15 +233,16 @@ registerTool({
 registerTool({
   name: 'get_stock',
   description:
-    'Return current on-hand stock for a product (optionally a specific variant) at one outlet. Use this for "berapa sisa tea_leaf di Malioboro?".',
+    'Return current on-hand stock for a product (optionally a specific variant) at one outlet. Product and location may be natural names, e.g. "Osmanthus Fresh Tea" at "Plaza 1".',
   inputSchema: GetStockInputSchema,
   parameters: {
     type: 'object',
     properties: {
-      product_code: { type: 'string', description: 'Product SKU.' },
+      product_code: { type: 'string', description: 'Product SKU or natural product name.' },
       location: {
         type: 'string',
-        description: "Outlet code OR ID. Defaults to caller's session location when omitted.",
+        description:
+          "Outlet code, ID, or natural name. Defaults to caller's session location when omitted.",
       },
       variant_code: { type: 'string', description: 'Optional variant SKU.' },
     },
@@ -260,11 +266,30 @@ registerTool({
         type: 'string',
         description: "Outlet ID. Defaults to caller's session location.",
       },
+      location: { type: 'string', description: 'Outlet code or natural name, e.g. "Plaza 1".' },
     },
   },
   permission: 'reporting.view',
   mutates: false,
   execute: getTodaySalesSummaryTool,
+});
+
+registerTool({
+  name: 'resolve_location',
+  description:
+    'Resolve a user-friendly outlet/location name or code into ERP location candidates. Use this before asking users for technical location IDs.',
+  inputSchema: ResolveLocationInputSchema,
+  parameters: {
+    type: 'object',
+    properties: {
+      query: { type: 'string', description: 'Outlet name/code/id, e.g. "Plaza 1".' },
+      limit: { type: 'integer', description: 'Cap candidates (1-10, default 5).' },
+    },
+    required: ['query'],
+  },
+  permission: 'ai.assistant.use',
+  mutates: false,
+  execute: resolveLocationTool,
 });
 
 registerTool({

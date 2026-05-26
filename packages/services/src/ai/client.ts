@@ -57,6 +57,7 @@ export interface AiCompletionRequest {
   messages: AiChatMessage[];
   temperature?: number;
   maxTokens?: number;
+  provider?: Partial<Omit<AiProviderConfig, 'apiKey'>>;
   /** OpenAI-compatible tools array. Pass only what the caller's RBAC allows. */
   tools?: AiToolDefinition[];
   /** Tell the model whether it must use a tool. Defaults to 'auto'. */
@@ -74,6 +75,8 @@ export interface AiCompletionResponse {
   reasoningContent?: string;
 }
 
+export type AiStreamDelta = { type: 'reasoning'; text: string } | { type: 'content'; text: string };
+
 export interface AiProviderConfig {
   baseUrl: string;
   apiKey: string;
@@ -81,24 +84,25 @@ export interface AiProviderConfig {
   reasoningModel: string;
   temperature: number;
   maxTokens: number;
+  supportsVision: boolean;
 }
 
 let cachedConfig: AiProviderConfig | null = null;
 
 export function isAiAssistantEnabled(): boolean {
-  return process.env.AI_ASSISTANT_ENABLED !== 'false';
+  return true;
 }
 
 export function loadProviderConfig(): AiProviderConfig {
   if (cachedConfig?.apiKey) return cachedConfig;
-  
+
   let apiKey = process.env.DEEPSEEK_API_KEY ?? process.env.AI_PROVIDER_KEY ?? '';
-  
+
   if (!apiKey) {
     try {
       // Bypass PM2 environment caching by explicitly reading the root .env
-      const fs = require('fs');
-      const path = require('path');
+      const fs = require('node:fs');
+      const path = require('node:path');
       let rootEnvPath = path.join(process.cwd(), '../../.env');
       if (!fs.existsSync(rootEnvPath)) {
         rootEnvPath = path.join(process.cwd(), '.env');
@@ -106,7 +110,7 @@ export function loadProviderConfig(): AiProviderConfig {
       if (fs.existsSync(rootEnvPath)) {
         const envContent = fs.readFileSync(rootEnvPath, 'utf8');
         const match = envContent.match(/^DEEPSEEK_API_KEY\s*=\s*(.*)$/m);
-        if (match && match[1]) {
+        if (match?.[1]) {
           apiKey = match[1].replace(/["']/g, '').trim();
         }
       }
@@ -115,12 +119,16 @@ export function loadProviderConfig(): AiProviderConfig {
     }
   }
   const config = {
-    baseUrl: process.env.AI_PROVIDER_BASE_URL ?? DEFAULT_BASE_URL,
+    // Non-secret runtime knobs live in the ERP UI/database. Environment
+    // variables are intentionally limited to secrets/backward-compatible
+    // provider keys.
+    baseUrl: DEFAULT_BASE_URL,
     apiKey,
-    model: process.env.AI_PROVIDER_MODEL ?? DEFAULT_MODEL,
-    reasoningModel: process.env.AI_PROVIDER_REASONING_MODEL ?? DEFAULT_THINKING_MODEL,
-    temperature: Number.parseFloat(process.env.AI_PROVIDER_TEMPERATURE ?? '0.4'),
-    maxTokens: Number.parseInt(process.env.AI_PROVIDER_MAX_TOKENS ?? '2048', 10),
+    model: DEFAULT_MODEL,
+    reasoningModel: DEFAULT_THINKING_MODEL,
+    temperature: 0.4,
+    maxTokens: 2048,
+    supportsVision: false,
   };
   if (apiKey) {
     cachedConfig = config;
@@ -150,7 +158,7 @@ export class AiProviderError extends Error {
 }
 
 export async function aiComplete(req: AiCompletionRequest): Promise<AiCompletionResponse> {
-  const config = loadProviderConfig();
+  const config = { ...loadProviderConfig(), ...(req.provider ?? {}) };
   if (!config.apiKey) {
     throw new AiProviderError(
       'AI provider API key is not configured. Set DEEPSEEK_API_KEY in the environment.',
@@ -224,5 +232,146 @@ export async function aiComplete(req: AiCompletionRequest): Promise<AiCompletion
     completionTokens: data.usage?.completion_tokens,
     toolCalls: message.tool_calls && message.tool_calls.length > 0 ? message.tool_calls : undefined,
     reasoningContent: message.reasoning_content,
+  };
+}
+
+export async function aiCompleteStream(
+  req: AiCompletionRequest,
+  onDelta: (delta: AiStreamDelta) => void | Promise<void>,
+): Promise<AiCompletionResponse> {
+  const config = { ...loadProviderConfig(), ...(req.provider ?? {}) };
+  if (!config.apiKey) {
+    throw new AiProviderError(
+      'AI provider API key is not configured. Set DEEPSEEK_API_KEY in the environment.',
+      500,
+    );
+  }
+  const model = req.model ?? config.model;
+  const thinking = req.thinkingMode ?? isThinkingModel(model);
+  const payload: Record<string, unknown> = {
+    model,
+    messages: req.messages,
+    max_tokens: req.maxTokens ?? config.maxTokens,
+    stream: true,
+  };
+  if (!thinking) {
+    payload.temperature = req.temperature ?? config.temperature;
+  }
+  if (req.tools && req.tools.length > 0) {
+    payload.tools = req.tools;
+    payload.tool_choice = req.toolChoice ?? 'auto';
+  }
+
+  const response = await fetch(`${config.baseUrl.replace(/\/$/, '')}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${config.apiKey}`,
+    },
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(60_000),
+  });
+
+  if (!response.ok || !response.body) {
+    let body: unknown;
+    try {
+      body = await response.json();
+    } catch {
+      body = await response.text().catch(() => null);
+    }
+    throw new AiProviderError(
+      `AI provider responded with ${response.status}`,
+      response.status,
+      body,
+    );
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let content = '';
+  let reasoningContent = '';
+  let modelUsed = model;
+  let promptTokens: number | undefined;
+  let completionTokens: number | undefined;
+  const toolCallParts = new Map<number, AiToolCall>();
+
+  async function consumeEvent(raw: string): Promise<void> {
+    const dataLines = raw
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith('data:'))
+      .map((line) => line.slice(5).trim());
+    for (const dataLine of dataLines) {
+      if (!dataLine || dataLine === '[DONE]') continue;
+      const chunk = JSON.parse(dataLine) as {
+        model?: string;
+        usage?: { prompt_tokens?: number; completion_tokens?: number };
+        choices?: Array<{
+          delta?: {
+            content?: string | null;
+            reasoning_content?: string | null;
+            tool_calls?: Array<{
+              index?: number;
+              id?: string;
+              type?: 'function';
+              function?: { name?: string; arguments?: string };
+            }>;
+          };
+        }>;
+      };
+      if (chunk.model) modelUsed = chunk.model;
+      if (chunk.usage) {
+        promptTokens = chunk.usage.prompt_tokens;
+        completionTokens = chunk.usage.completion_tokens;
+      }
+      const delta = chunk.choices?.[0]?.delta;
+      if (!delta) continue;
+      if (delta.reasoning_content) {
+        reasoningContent += delta.reasoning_content;
+        await onDelta({ type: 'reasoning', text: delta.reasoning_content });
+      }
+      if (delta.content) {
+        content += delta.content;
+        await onDelta({ type: 'content', text: delta.content });
+      }
+      for (const part of delta.tool_calls ?? []) {
+        const index = part.index ?? 0;
+        const existing =
+          toolCallParts.get(index) ??
+          ({
+            id: part.id ?? `call_${index}`,
+            type: 'function',
+            function: { name: '', arguments: '' },
+          } satisfies AiToolCall);
+        if (part.id) existing.id = part.id;
+        if (part.function?.name) existing.function.name += part.function.name;
+        if (part.function?.arguments) existing.function.arguments += part.function.arguments;
+        toolCallParts.set(index, existing);
+      }
+    }
+  }
+
+  for await (const chunk of response.body as unknown as AsyncIterable<Uint8Array>) {
+    buffer += decoder.decode(chunk, { stream: true });
+    let sep = buffer.indexOf('\n\n');
+    while (sep >= 0) {
+      const event = buffer.slice(0, sep);
+      buffer = buffer.slice(sep + 2);
+      await consumeEvent(event);
+      sep = buffer.indexOf('\n\n');
+    }
+  }
+  if (buffer.trim()) {
+    await consumeEvent(buffer);
+  }
+
+  const toolCalls = Array.from(toolCallParts.values()).filter((c) => c.function.name);
+  return {
+    content,
+    modelUsed,
+    promptTokens,
+    completionTokens,
+    toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+    reasoningContent: reasoningContent || undefined,
   };
 }

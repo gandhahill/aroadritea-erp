@@ -10,11 +10,11 @@
  */
 
 import { PageHeader } from '@/components/page-header';
-import { getTranslations } from 'next-intl/server';
 import { getSession } from '@/lib/auth';
 import type { OpnameLineResult } from '@erp/services/inventory/opname-service';
 import { Button } from '@erp/ui';
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import {
   approveOpnameAction,
@@ -62,12 +62,18 @@ export default async function OpnameDetailPage({
   const data = result.data;
   const getStatusCfg = (status: string) => {
     switch (status) {
-      case 'draft': return { label: t('status.draft'), bg: 'bg-brand-cream-2', text: 'text-brand-ink-2' };
-      case 'in_progress': return { label: t('status.in_progress'), bg: 'bg-brand-gold/10', text: 'text-brand-gold' };
-      case 'submitted': return { label: t('status.submitted'), bg: 'bg-brand-gold/20', text: 'text-brand-gold' };
-      case 'approved': return { label: t('status.approved'), bg: 'bg-brand-jade/10', text: 'text-brand-jade' };
-      case 'cancelled': return { label: t('status.cancelled'), bg: 'bg-rose-50', text: 'text-rose-500' };
-      default: return { label: status, bg: 'bg-brand-cream-2', text: 'text-brand-ink-2' };
+      case 'draft':
+        return { label: t('status.draft'), bg: 'bg-brand-cream-2', text: 'text-brand-ink-2' };
+      case 'in_progress':
+        return { label: t('status.in_progress'), bg: 'bg-brand-gold/10', text: 'text-brand-gold' };
+      case 'submitted':
+        return { label: t('status.submitted'), bg: 'bg-brand-gold/20', text: 'text-brand-gold' };
+      case 'approved':
+        return { label: t('status.approved'), bg: 'bg-brand-jade/10', text: 'text-brand-jade' };
+      case 'cancelled':
+        return { label: t('status.cancelled'), bg: 'bg-rose-50', text: 'text-rose-500' };
+      default:
+        return { label: status, bg: 'bg-brand-cream-2', text: 'text-brand-ink-2' };
     }
   };
   const statusCfg = getStatusCfg(data.status);
@@ -105,7 +111,9 @@ export default async function OpnameDetailPage({
         }
         eyebrow={
           <div className="mb-1.5 flex items-center gap-2 text-sm text-brand-ink-3">
-            <a href="/inventory/opname" className="hover:text-brand-ink">{t('breadcrumbOpname')}</a>
+            <a href="/inventory/opname" className="hover:text-brand-ink">
+              {t('breadcrumbOpname')}
+            </a>
             <span>/</span>
             <span className="font-medium">{data.number}</span>
           </div>
@@ -218,7 +226,9 @@ export default async function OpnameDetailPage({
                   strokeLinejoin="round"
                   d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
                 />
-              </svg> {t('btnSubmit')} </button>
+              </svg>{' '}
+              {t('btnSubmit')}{' '}
+            </button>
           </form>
           <form
             action={async () => {
@@ -231,7 +241,10 @@ export default async function OpnameDetailPage({
               className="rounded-lg border border-rose-200 bg-card px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
               variant="danger"
               size="sm"
-            > {t('btnCancel')} </Button>
+            >
+              {' '}
+              {t('btnCancel')}{' '}
+            </Button>
           </form>
         </div>
       )}
@@ -256,7 +269,9 @@ export default async function OpnameDetailPage({
                 strokeWidth={2}
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-              </svg> {t('btnApprove')} </button>
+              </svg>{' '}
+              {t('btnApprove')}{' '}
+            </button>
           </form>
           <form
             action={async () => {
@@ -269,7 +284,10 @@ export default async function OpnameDetailPage({
               className="rounded-lg border border-rose-200 bg-card px-4 py-2 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
               variant="danger"
               size="sm"
-            > {t('btnCancel')} </Button>
+            >
+              {' '}
+              {t('btnCancel')}{' '}
+            </Button>
           </form>
         </div>
       )}
@@ -277,7 +295,8 @@ export default async function OpnameDetailPage({
       {/* Variance info banner */}
       {data.status === 'submitted' && linesWithVariance.length > 0 && (
         <div className="rounded-lg border border-brand-gold/30 bg-brand-gold/5 px-4 py-3 text-sm text-brand-ink">
-          <strong>{t('varianceFound', { count: linesWithVariance.length })}</strong> {t('varianceInfoSuffix')}
+          <strong>{t('varianceFound', { count: linesWithVariance.length })}</strong>{' '}
+          {t('varianceInfoSuffix')}
         </div>
       )}
 

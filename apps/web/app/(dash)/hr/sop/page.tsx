@@ -8,8 +8,8 @@ import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
 import { fetchSopList } from './actions';
 import { SopListClient } from './sop-list-client';
 
@@ -46,15 +46,12 @@ export default async function SopPage({
       offset: (page - 1) * pageSize,
     }),
     can(userId, 'hr.sop.manage'),
-    getTranslations('hr.sop')
+    getTranslations('hr.sop'),
   ]);
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-      />
+      <PageHeader title={t('title')} description={t('description')} />
       <SopListClient
         rows={result.items}
         total={result.total}

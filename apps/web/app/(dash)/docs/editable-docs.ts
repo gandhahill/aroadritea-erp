@@ -1,5 +1,5 @@
-import type { AppLocale } from '@/i18n/config';
-import { DOCS_CONTENT, type DocsContent } from './docs-content';
+import { type AppLocale, DOCS_CONTENT, type DocsContent } from './docs-content';
+import { DOCS_SUPPLEMENT } from './docs-supplement';
 
 export const DOCS_SETTING_KEY = 'erp_docs_content';
 
@@ -11,7 +11,7 @@ export type EditableDocsLocaleContent = {
 
 export type EditableDocsContent = Record<AppLocale, EditableDocsLocaleContent>;
 
-function sectionToMarkdown(content: DocsContent): string {
+function sectionToMarkdown(locale: AppLocale, content: DocsContent): string {
   const lines: string[] = [];
 
   lines.push(`## ${content.quickTitle}`);
@@ -36,6 +36,11 @@ function sectionToMarkdown(content: DocsContent): string {
     }
   }
 
+  const supplement = DOCS_SUPPLEMENT[locale]?.trim();
+  if (supplement) {
+    lines.push(supplement);
+  }
+
   lines.push(`## ${content.assessorTitle}`);
   lines.push(content.assessorIntro);
   for (const item of content.assessorItems) {
@@ -55,17 +60,17 @@ export function getDefaultEditableDocs(): EditableDocsContent {
     id: {
       title: DOCS_CONTENT.id.title,
       subtitle: DOCS_CONTENT.id.subtitle,
-      body: sectionToMarkdown(DOCS_CONTENT.id),
+      body: sectionToMarkdown('id', DOCS_CONTENT.id),
     },
     en: {
       title: DOCS_CONTENT.en.title,
       subtitle: DOCS_CONTENT.en.subtitle,
-      body: sectionToMarkdown(DOCS_CONTENT.en),
+      body: sectionToMarkdown('en', DOCS_CONTENT.en),
     },
     zh: {
       title: DOCS_CONTENT.zh.title,
       subtitle: DOCS_CONTENT.zh.subtitle,
-      body: sectionToMarkdown(DOCS_CONTENT.zh),
+      body: sectionToMarkdown('zh', DOCS_CONTENT.zh),
     },
   };
 }

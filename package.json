@@ -34,6 +34,7 @@
     "db:migrate": "pnpm --filter @erp/db migrate",
     "db:seed": "pnpm --filter @erp/db seed",
     "admin:ensure-access": "tsx scripts/ensure-admin-access.ts",
+    "docs:refresh": "tsx scripts/refresh-erp-docs-content.ts",
     "seed:menu": "tsx scripts/seed-aroadri-menu.ts",
     "seed:naixer": "tsx scripts/seed-naixer-codes.ts",
     "jobs:disable-unconfigured": "tsx scripts/disable-unconfigured-scheduled-jobs.ts"

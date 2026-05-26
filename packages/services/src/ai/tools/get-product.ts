@@ -5,19 +5,32 @@
  * assistant can answer "berapa harga T01 Large dingin?".
  */
 
-import { and, db, eq } from '@erp/db';
+import { and, db, eq, ilike, or, sql } from '@erp/db';
 import { productVariants, products } from '@erp/db/schema/inventory';
 import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
 
-export const GetProductInputSchema = z.object({
-  code: z.string().min(1).max(64),
-});
+export const GetProductInputSchema = z
+  .object({
+    code: z.string().min(1).max(64).optional(),
+    query: z.string().min(1).max(120).optional(),
+  })
+  .refine((v) => Boolean(v.code || v.query), {
+    message: 'code or query is required',
+  });
 
 export type GetProductInput = z.infer<typeof GetProductInputSchema>;
 
 export interface GetProductOutput {
   found: boolean;
+  needs_clarification?: boolean;
+  candidates?: Array<{
+    id: string;
+    sku: string;
+    name: Record<string, unknown>;
+    kind: string;
+    default_sell_price: string;
+  }>;
   product?: {
     id: string;
     sku: string;
@@ -44,14 +57,42 @@ export async function getProductTool(
   input: GetProductInput,
   ctx: AuditContext,
 ): Promise<GetProductOutput> {
-  const code = input.code.trim();
-  const [product] = await db
+  const code = input.code?.trim();
+  const query = input.query?.trim() || code || '';
+  const pattern = `%${query}%`;
+  const matchCondition = or(
+    code ? eq(products.sku, code) : undefined,
+    ilike(products.sku, query),
+    ilike(products.sku, pattern),
+    sql`${products.name}->>'id' ILIKE ${pattern}`,
+    sql`${products.name}->>'en' ILIKE ${pattern}`,
+    sql`${products.name}->>'zh' ILIKE ${pattern}`,
+  );
+  if (!matchCondition) return { found: false };
+
+  const rows = await db
     .select()
     .from(products)
-    .where(and(eq(products.tenantId, ctx.tenantId), eq(products.sku, code)))
-    .limit(1);
+    .where(and(eq(products.tenantId, ctx.tenantId), matchCondition))
+    .limit(6);
 
-  if (!product) return { found: false };
+  const product =
+    rows.find((p) => code && p.sku.toLowerCase() === code.toLowerCase()) ??
+    (rows.length === 1 ? rows[0] : null);
+
+  if (!product) {
+    return {
+      found: rows.length > 0,
+      needs_clarification: rows.length > 1,
+      candidates: rows.map((p) => ({
+        id: p.id,
+        sku: p.sku,
+        name: p.name as Record<string, unknown>,
+        kind: p.kind,
+        default_sell_price: p.defaultSellPrice.toString(),
+      })),
+    };
+  }
 
   const variants = await db
     .select()

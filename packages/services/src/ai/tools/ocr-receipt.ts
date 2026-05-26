@@ -1,11 +1,11 @@
 /**
  * Tool: ocr_receipt_struk — T-0172 (Phase 3).
  *
- * Reads a photographed receipt from the legacy POS via DeepSeek's
- * multimodal /chat/completions endpoint (the same one used by the
- * normal chat — vision is just an `image_url` content part). The model
- * is asked to return strict JSON; the result becomes a manual-sales
- * draft via `create_manual_sale_draft`.
+ * Reads a photographed receipt from the legacy POS when the configured
+ * provider explicitly supports image input. DeepSeek's official Chat
+ * Completion schema is currently text/tool oriented, so the default
+ * runtime returns a structured "vision_not_supported" response instead
+ * of forwarding unsupported `image_url` payloads and crashing the chat.
  *
  * The tool itself does NOT post to manual_sales. It only stages a
  * draft so the cashier still has to click "Setujui & Posting" in the
@@ -20,7 +20,12 @@
 
 import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
-import { type AiChatMessage, aiComplete, loadProviderConfig } from '../client';
+import {
+  type AiChatMessage,
+  type AiCompletionResponse,
+  aiComplete,
+  loadProviderConfig,
+} from '../client';
 import {
   type CreateManualSaleDraftToolDeps,
   createManualSaleDraftTool,
@@ -98,6 +103,14 @@ export async function ocrReceiptStrukTool(
   if (!config.apiKey) {
     return { ok: false, error: 'ai.provider.notConfigured' };
   }
+  if (!config.supportsVision) {
+    return {
+      ok: false,
+      error: 'vision_not_supported',
+      summary:
+        'OCR gambar belum aktif untuk provider AI saat ini. Minta user mengetik tanggal, outlet, channel, metode bayar, total penjualan, diskon, dan jumlah transaksi dari struk.',
+    };
+  }
   const url = absolutizeAttachmentUrl(input.attachment_url);
 
   const systemPrompt = [
@@ -137,7 +150,7 @@ export async function ocrReceiptStrukTool(
     },
   ];
 
-  let providerResponse;
+  let providerResponse: AiCompletionResponse;
   try {
     providerResponse = await aiComplete({
       // Vision lives on the v4-pro family — flash does not accept image_url.

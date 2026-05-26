@@ -7,11 +7,17 @@ import { getSession } from '@/lib/auth';
 import { isAiAssistantEnabled } from '@erp/services/ai';
 import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { fetchSession } from '../actions';
 import { ChatSessionClient } from './chat-session-client';
 
-export const metadata: Metadata = { title: 'AI Chat' };
+export const dynamic = 'force-dynamic';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('aiAssistantChat');
+  return { title: t('title') };
+}
 
 export default async function ChatSessionPage({
   params,
@@ -27,10 +33,11 @@ export default async function ChatSessionPage({
   const { id } = await params;
   const result = await fetchSession(id);
   if (!result.ok) {
+    const t = await getTranslations('aiAssistantChat');
     if (result.error === 'ai.session.notFound') notFound();
     return (
       <div className="space-y-4">
-        <PageHeader title="AI Assistant" description="Sesi tidak dapat dimuat." />
+        <PageHeader title={t('title')} description={t('loadErrorDescription')} />
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
           {result.error}
         </div>
@@ -40,7 +47,12 @@ export default async function ChatSessionPage({
 
   return (
     <div className="flex h-full flex-col">
-      <PageHeader title={result.session.title} description={`Status: ${result.session.status}`} />
+      <PageHeader
+        title={result.session.title}
+        description={(await getTranslations('aiAssistantChat'))('status', {
+          status: result.session.status,
+        })}
+      />
       <ChatSessionClient
         enabled={isAiAssistantEnabled()}
         sessionId={result.session.id}

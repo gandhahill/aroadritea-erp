@@ -5,7 +5,7 @@
  *  - rate-limit gate (>= cap rejects without provider call)
  *  - empty / oversized content rejection
  *  - provider stub records both user and assistant turns
- *  - kill-switch via AI_ASSISTANT_ENABLED=false
+ *  - UI/database kill-switch
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -51,6 +51,7 @@ vi.mock('@erp/db', () => {
             orderBy: () => chain,
             limit: () => Promise.resolve(nextSelectRows()),
             offset: () => chain,
+            // biome-ignore lint/suspicious/noThenProperty: Drizzle query builders are thenable.
             then: (resolve) => resolve(nextSelectRows()),
           };
           return chain;
@@ -86,9 +87,20 @@ vi.mock('../src/iam', () => ({
 }));
 
 const aiComplete = vi.fn();
+let runtimeConfig = {
+  enabled: true,
+  baseUrl: 'http://stub',
+  model: 'deepseek-v4-flash',
+  reasoningModel: 'deepseek-v4-pro',
+  temperature: 0.4,
+  maxTokens: 2048,
+  hourlyCap: 30,
+  supportsVision: false,
+};
 vi.mock('../src/ai/client', () => ({
   aiComplete: (...args: unknown[]) => aiComplete(...args),
-  isAiAssistantEnabled: () => process.env.AI_ASSISTANT_ENABLED !== 'false',
+  aiCompleteStream: (...args: unknown[]) => aiComplete(...args),
+  isAiAssistantEnabled: () => true,
   isThinkingModel: (model: string) =>
     model.toLowerCase().includes('reasoner') || model.toLowerCase().includes('-pro'),
   loadProviderConfig: () => ({
@@ -98,9 +110,14 @@ vi.mock('../src/ai/client', () => ({
     reasoningModel: 'deepseek-v4-pro',
     temperature: 0.4,
     maxTokens: 2048,
+    supportsVision: false,
   }),
   resetProviderConfigCache: () => undefined,
   AiProviderError: class extends Error {},
+}));
+
+vi.mock('../src/ai/settings', () => ({
+  getAiRuntimeConfig: vi.fn(async () => runtimeConfig),
 }));
 
 // Phase 2 added a tool registry — short-circuit it so the existing chat
@@ -120,7 +137,16 @@ beforeEach(() => {
   inserts.length = 0;
   updates.length = 0;
   aiComplete.mockReset();
-  delete process.env.AI_ASSISTANT_ENABLED;
+  runtimeConfig = {
+    enabled: true,
+    baseUrl: 'http://stub',
+    model: 'deepseek-v4-flash',
+    reasoningModel: 'deepseek-v4-pro',
+    temperature: 0.4,
+    maxTokens: 2048,
+    hourlyCap: 30,
+    supportsVision: false,
+  };
 });
 
 afterEach(() => {
@@ -141,8 +167,8 @@ describe('sendChatMessage', () => {
     expect(aiComplete).not.toHaveBeenCalled();
   });
 
-  it('returns disabled error when AI_ASSISTANT_ENABLED=false', async () => {
-    process.env.AI_ASSISTANT_ENABLED = 'false';
+  it('returns disabled error when the UI setting disables AI', async () => {
+    runtimeConfig = { ...runtimeConfig, enabled: false };
     const result = await sendChatMessage({ sessionId: 's1', content: 'halo' }, ctx);
     expect(result.ok).toBe(false);
     expect(aiComplete).not.toHaveBeenCalled();
@@ -203,8 +229,54 @@ describe('sendChatMessage', () => {
     expect(auditInserts.length).toBeGreaterThanOrEqual(2);
   });
 
+  it('keeps uploaded images out of the DeepSeek message payload', async () => {
+    selectQueue = [
+      {
+        table: 'ai_chat_sessions',
+        rows: [
+          {
+            id: 's1',
+            tenantId: 'tenant-1',
+            userId: 'u1',
+            title: 'Tes',
+            status: 'active',
+            allowWebSearch: 'false',
+            modelKey: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            deletedAt: null,
+          },
+        ],
+      },
+      { table: 'ai_chat_messages', rows: [] },
+      { table: 'count', rows: [{ count: 0 }] },
+    ];
+    aiComplete.mockResolvedValueOnce({
+      content: 'Saya butuh total penjualan di struk.',
+      modelUsed: 'deepseek-v4-flash',
+    });
+
+    const result = await sendChatMessage(
+      {
+        sessionId: 's1',
+        content: 'tolong baca struk ini',
+        attachments: [{ url: '/api/uploads/ai-attachments/x.jpg', mimeType: 'image/jpeg' }],
+      },
+      ctx,
+    );
+
+    expect(result.ok).toBe(true);
+    const request = aiComplete.mock.calls[0]?.[0] as {
+      messages: Array<{ role: string; content: unknown }>;
+    };
+    const last = request.messages.at(-1);
+    expect(typeof last?.content).toBe('string');
+    expect(String(last?.content)).toContain('/api/uploads/ai-attachments/x.jpg');
+    expect(String(last?.content)).not.toContain('"image_url"');
+  });
+
   it('rejects when rate-limit cap reached', async () => {
-    process.env.AI_ASSISTANT_PER_USER_HOURLY_CAP = '5';
+    runtimeConfig = { ...runtimeConfig, hourlyCap: 5 };
     selectQueue = [
       {
         table: 'ai_chat_sessions',

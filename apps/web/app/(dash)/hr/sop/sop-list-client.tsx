@@ -4,8 +4,8 @@ import { FilterBar, FilterField } from '@/components/filter-bar';
 import { Pagination } from '@/components/pagination';
 import type { SopRow } from '@erp/services/hr';
 import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@erp/ui';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
 import { deleteSopAction, updateSopAction } from './actions';
 import { SopUploadForm } from './sop-upload-form';
@@ -264,9 +264,7 @@ export function SopListClient(props: Props) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-sm rounded-xl border border-brand-cream-3 bg-card p-6 shadow-2xl">
             <h2 className="text-base font-semibold text-brand-ink">{t('delete.title')}</h2>
-            <p className="mt-2 text-sm text-brand-ink-3">
-              {t('delete.desc')}
-            </p>
+            <p className="mt-2 text-sm text-brand-ink-3">{t('delete.desc')}</p>
             <div className="mt-4 flex justify-end gap-2">
               <Button variant="secondary" size="sm" onClick={() => setConfirmDeleteId(null)}>
                 {t('delete.cancel')}

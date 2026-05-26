@@ -133,6 +133,7 @@ const KNOWN_ENTITY_TYPES = new Set([
   'ai_chat_session',
   'ai_chat_message',
   'ai_tool_call',
+  'ai_provider_config',
   'ai_action_draft', // T-0172 — draft → confirm → commit
   'whistleblower_report',
   'purchase_return', // T-0180

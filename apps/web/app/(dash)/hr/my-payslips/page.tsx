@@ -10,8 +10,8 @@ import { getSession } from '@/lib/auth';
 import { listMyPayslips } from '@erp/services/payroll';
 import type { AuditContext } from '@erp/shared/types';
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('hr.payslip');
@@ -34,19 +34,13 @@ export default async function MyPayslipsPage() {
     locationId: String(user.locationId ?? ''),
   };
 
-  const [result, t] = await Promise.all([
-    listMyPayslips(ctx),
-    getTranslations('hr.payslip')
-  ]);
-  
+  const [result, t] = await Promise.all([listMyPayslips(ctx), getTranslations('hr.payslip')]);
+
   const items = result.ok ? result.value : [];
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-      />
+      <PageHeader title={t('title')} description={t('description')} />
 
       {items.length === 0 ? (
         <div className="rounded-xl border border-dashed border-brand-cream-3 bg-card p-10 text-center text-sm text-brand-ink-3">

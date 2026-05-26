@@ -1207,22 +1207,29 @@ export const promotionTools = [
 
 // --- Editable ERP Docs ---
 
-const DOCS_SETTING_KEY = 'erp_docs_content';
-
 const DocsLocaleContentSchema = z.object({
   title: z.string().min(1).max(200),
   subtitle: z.string().max(400).optional().default(''),
-  body: z.string().min(1).max(120_000),
+  body: z.string().min(1).max(500_000),
+});
+
+const DocsFullContentSchema = z.object({
+  id: DocsLocaleContentSchema,
+  en: DocsLocaleContentSchema,
+  zh: DocsLocaleContentSchema,
 });
 
 export const DocsGetSchema = z.object({});
 
 export const DocsUpdateSchema = z.object({
-  content: z.object({
-    id: DocsLocaleContentSchema,
-    en: DocsLocaleContentSchema,
-    zh: DocsLocaleContentSchema,
-  }),
+  content: DocsFullContentSchema,
+  reason: z.string().max(500).optional(),
+});
+
+export const DocsUpdateLocaleSchema = z.object({
+  locale: z.enum(['id', 'en', 'zh']),
+  content: DocsLocaleContentSchema,
+  reason: z.string().max(500).optional(),
 });
 
 export const docsTools = [
@@ -1234,8 +1241,8 @@ export const docsTools = [
       const parsed = DocsGetSchema.safeParse(input);
       if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
 
-      const { getSetting } = await import('@erp/services/cms');
-      const result = await getSetting(ctx.tenantId, DOCS_SETTING_KEY);
+      const { getDocsContent } = await import('@erp/services/cms');
+      const result = await getDocsContent(ctx.tenantId);
       return serializeResult(result);
     },
   },
@@ -1247,17 +1254,51 @@ export const docsTools = [
       const parsed = DocsUpdateSchema.safeParse(input);
       if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
 
-      const permitted =
-        (await checkPermission(ctx, 'cms.manage', ctx.locationId)) ||
-        (await checkPermission(ctx, 'settings.manage', ctx.locationId));
-      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: cms.manage');
+      const permitted = await checkPermission(ctx, 'docs.edit', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: docs.edit');
 
-      const { setSetting } = await import('@erp/services/cms');
-      const result = await setSetting(ctx.tenantId, DOCS_SETTING_KEY, parsed.data.content, {
-        userId: ctx.userId,
-        tenantId: ctx.tenantId,
-        locationId: ctx.locationId ?? '',
-      });
+      const { replaceDocsContent } = await import('@erp/services/cms');
+      const result = await replaceDocsContent(
+        {
+          tenantId: ctx.tenantId,
+          content: parsed.data.content,
+          reason: parsed.data.reason ?? 'MCP docs.update',
+        },
+        {
+          userId: ctx.userId,
+          tenantId: ctx.tenantId,
+          locationId: ctx.locationId ?? '',
+        },
+      );
+      return serializeResult(result);
+    },
+  },
+  {
+    name: 'docs.update_locale',
+    description:
+      'Update exactly one language of the editable ERP user guide while preserving the other languages.',
+    schema: DocsUpdateLocaleSchema,
+    handler: async (input: unknown, ctx: McpContext) => {
+      const parsed = DocsUpdateLocaleSchema.safeParse(input);
+      if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const permitted = await checkPermission(ctx, 'docs.edit', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: docs.edit');
+
+      const { replaceDocsLocale } = await import('@erp/services/cms');
+      const result = await replaceDocsLocale(
+        {
+          tenantId: ctx.tenantId,
+          locale: parsed.data.locale,
+          content: parsed.data.content,
+          reason: parsed.data.reason ?? `MCP docs.update_locale ${parsed.data.locale}`,
+        },
+        {
+          userId: ctx.userId,
+          tenantId: ctx.tenantId,
+          locationId: ctx.locationId ?? '',
+        },
+      );
       return serializeResult(result);
     },
   },

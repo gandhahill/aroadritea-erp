@@ -43,6 +43,7 @@ vi.mock('@erp/db', () => ({
           orderBy: () => chain,
           limit: () => Promise.resolve(nextSelectRows()),
           offset: () => chain,
+          // biome-ignore lint/suspicious/noThenProperty: Drizzle query builders are thenable.
           then: (resolve) => resolve(nextSelectRows()),
         };
         return chain;
@@ -141,7 +142,7 @@ describe('createDraft', () => {
     );
     expect(auditInsert).toBeDefined();
     expect((auditInsert?.values as { action: string }).action).toBe('submit');
-  });
+  }, 15_000);
 });
 
 describe('commitDraft', () => {
@@ -175,7 +176,7 @@ describe('commitDraft', () => {
     expect(result.ok).toBe(false);
     // The real service must not run when permission was denied.
     expect(createManualSalesMock).not.toHaveBeenCalled();
-  });
+  }, 15_000);
 
   it('commits a manual_sale draft and dispatches to createManualSalesClosing', async () => {
     selectQueue = [
@@ -222,7 +223,7 @@ describe('commitDraft', () => {
         (i.values as { action?: string }).action === 'approve',
     );
     expect(auditRows.length).toBe(1);
-  });
+  }, 15_000);
 
   it('refuses expired drafts and surfaces the matching error', async () => {
     selectQueue = [

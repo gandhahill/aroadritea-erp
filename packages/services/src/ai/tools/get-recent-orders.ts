@@ -14,9 +14,11 @@ import { and, db, desc, eq, gte } from '@erp/db';
 import { payments, salesOrders } from '@erp/db/schema/pos';
 import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
+import { resolveLocationRef } from './resolve-location';
 
 export const GetRecentOrdersInputSchema = z.object({
   location_id: z.string().min(1).max(64).optional(),
+  location: z.string().min(1).max(120).optional(),
   limit: z.number().int().min(1).max(25).optional(),
   since_minutes: z
     .number()
@@ -51,8 +53,8 @@ export async function getRecentOrdersTool(
   input: GetRecentOrdersInput,
   ctx: AuditContext,
 ): Promise<GetRecentOrdersOutput> {
-  const locationId = input.location_id?.trim() || ctx.locationId?.trim() || '';
-  if (!locationId) {
+  const location = await resolveLocationRef(input.location_id ?? input.location, ctx);
+  if (!location) {
     return {
       location_id: '',
       total_returned: 0,
@@ -64,7 +66,7 @@ export async function getRecentOrdersTool(
   const limit = input.limit ?? DEFAULT_LIMIT;
   const conditions = [
     eq(salesOrders.tenantId, ctx.tenantId),
-    eq(salesOrders.locationId, locationId),
+    eq(salesOrders.locationId, location.id),
   ];
   if (input.since_minutes) {
     const cutoff = new Date(Date.now() - input.since_minutes * 60 * 1000);
@@ -100,7 +102,7 @@ export async function getRecentOrdersTool(
   }
 
   return {
-    location_id: locationId,
+    location_id: location.id,
     total_returned: rows.length,
     cap: limit,
     orders: rows.map((r) => ({

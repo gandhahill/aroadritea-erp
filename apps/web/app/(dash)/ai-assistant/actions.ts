@@ -12,6 +12,7 @@ import {
   cancelDraft,
   commitDraft,
   createAiSession,
+  getAiRuntimeConfig,
   getAiSession,
   getDraftForUser,
   isAiAssistantEnabled,
@@ -35,7 +36,10 @@ async function resolveCtx(): Promise<AuditContext | null> {
 }
 
 export async function aiEnabledFlag() {
-  return { enabled: isAiAssistantEnabled() };
+  const ctx = await resolveCtx();
+  if (!ctx) return { enabled: false };
+  const config = await getAiRuntimeConfig(ctx.tenantId);
+  return { enabled: isAiAssistantEnabled() && config.enabled };
 }
 
 export async function fetchMySessions() {
@@ -168,11 +172,13 @@ export async function sendMessageAction(input: {
     };
   }
   revalidatePath(`/ai-assistant/${input.sessionId}`);
+  const refreshed = await getAiSession(input.sessionId, ctx);
   return {
     ok: true as const,
     reply: r.value.reply,
     reasoning: r.value.reasoning,
     messageId: r.value.assistantMessageId,
     toolRoundsExecuted: r.value.toolRoundsExecuted,
+    messages: refreshed.ok ? refreshed.value.messages : null,
   };
 }

@@ -1383,6 +1383,7 @@
     "cogs": "Settings",
     "waste": "Waste",
     "aiAssistant": "AI Assistant",
+    "aiAssistantSettings": "AI Assistant Settings",
     "aiAssistantLog": "AI Assistant Log",
     "posCashier": "POS Cashier",
     "manualSales": "Manual Sales Entry",
@@ -3205,9 +3206,16 @@
       "docSubtitle": "Summary",
       "body": "Guide body",
       "markdownHelp": "Use ## for section headings, ### for subsections, 1. for ordered steps, and - for control lists. Internal links can be written as ?Label: /page-path?.",
+      "refreshTitle": "Refresh default content by language",
+      "refreshDescription": "Use this when the source default guide has been updated but the database still stores an older version. Checked languages are replaced from system defaults; other languages keep the current editor content.",
+      "refreshLocale": "Replace {locale}",
+      "refreshDefaults": "Refresh defaults",
       "saved": "Docs saved.",
+      "refreshed": "Docs refreshed from system defaults.",
+      "selectRefreshLocale": "Select at least one language to refresh.",
       "saveFailed": "Could not save docs.",
-      "unauthorized": "Session expired. Please sign in again."
+      "unauthorized": "Session expired. Please sign in again.",
+      "forbidden": "This account cannot edit the guide."
     },
     "audiences": {
       "staff": "Staff",
@@ -3628,6 +3636,22 @@
     },
     "provider": {
       "notConfigured": "AI Assistant is disabled or the provider configuration (API Key) is missing."
+    },
+    "settings": {
+      "title": "AI Assistant Settings",
+      "description": "Configure non-secret AI runtime settings from the UI. Secrets remain in the environment.",
+      "saved": "AI settings saved.",
+      "secretConfigured": "Provider secret was detected in the environment.",
+      "secretMissing": "Provider secret was not detected. Set DEEPSEEK_API_KEY in the environment.",
+      "enabled": "Enable AI Assistant",
+      "baseUrl": "Provider base URL",
+      "model": "Default model",
+      "reasoningModel": "Reasoning model",
+      "temperature": "Temperature",
+      "maxTokens": "Max response tokens",
+      "hourlyCap": "Messages per user per hour",
+      "supportsVision": "Provider supports image/OCR input",
+      "save": "Save Settings"
     }
   },
   "hr.sop.filter.all": "All",
@@ -3661,7 +3685,7 @@
   "ai.audit.table.empty": "No entries match the filter.",
   "ai.provider.notConfigured": "AI provider is not configured. Please check the API key in the environment variables.",
   "aiAssistantChat": {
-    "disabledWarning": "AI assistant disabled. Set env AI_ASSISTANT_ENABLED=true and DEEPSEEK_API_KEY to enable.",
+    "disabledWarning": "AI assistant disabled. Admins can enable it from AI Assistant Settings.",
     "welcomeHint": "Start by writing a question, e.g. \"How to manual sales entry?\"",
     "uploading": "Uploading...",
     "attachReceipt": "Attach receipt photo",
@@ -3676,10 +3700,29 @@
     "imageOnlyError": "Only image files are supported for OCR/visual.",
     "failedUpload": "failed to upload",
     "delete": "delete",
-    "reasoningLabel": "Reasoning Process"
+    "reasoningLabel": "Reasoning Process",
+    "title": "AI Assistant",
+    "loadErrorDescription": "The session could not be loaded.",
+    "status": "Status: {status}",
+    "toolLabel": "tool: {tool}",
+    "roleUser": "user",
+    "roleAssistant": "assistant",
+    "roleTool": "tool",
+    "roleSystem": "system"
+  },
+  "aiAssistantConfirm": {
+    "title": "Approval required",
+    "expires": "expires in {minutes} min",
+    "processing": "Processing...",
+    "approve": "Approve & Post",
+    "cancel": "Cancel",
+    "permission": "Permission will be re-checked on the server before execution.",
+    "committed": "Posted. Reference:",
+    "cancelled": "Cancelled.",
+    "expired": "Expired - ask AI to create a new draft."
   },
   "aiAssistantLanding": {
-    "disabled": "AI Assistant is disabled by admin (AI_ASSISTANT_ENABLED=false). Contact administrator to re-enable.",
+    "disabled": "AI Assistant is disabled by admin. Contact an administrator to enable it from AI Assistant Settings.",
     "startNew": "Start new conversation",
     "policy": "Policy: 30 messages / hour / user · full audit · DeepSeek v4 model.",
     "titlePlaceholder": "Short title (optional)",

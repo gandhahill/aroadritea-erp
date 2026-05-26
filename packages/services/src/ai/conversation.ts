@@ -7,7 +7,7 @@
  * persists every turn + every tool call.
  *
  * Hard limits:
- *   - 30 messages / user / hour (env override AI_ASSISTANT_PER_USER_HOURLY_CAP).
+ *   - Per-user hourly cap configured in Settings -> AI Assistant.
  *   - Last 20 stored messages are passed back to the provider; older
  *     context is summarised by a "[truncated previous messages]" stub.
  *   - The user message is truncated to 8000 chars before send.
@@ -25,21 +25,20 @@ import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import {
   type AiChatMessage,
-  type AiContentPart,
+  type AiCompletionRequest,
+  type AiCompletionResponse,
   AiProviderError,
   type AiToolCall,
   aiComplete,
+  aiCompleteStream,
   isAiAssistantEnabled,
   isThinkingModel,
   loadProviderConfig,
 } from './client';
 import { getAiSession, getRecentUserMessageCount, recordChatMessage } from './session';
+import { getAiRuntimeConfig } from './settings';
 import { executeTool, listAvailableTools } from './tools/registry';
 
-const HARD_USER_TURN_CAP_PER_HOUR = Number.parseInt(
-  process.env['AI_ASSISTANT_PER_USER_HOURLY_CAP'] ?? '30',
-  10,
-);
 const HISTORY_CONTEXT_MESSAGES = 20;
 const MAX_TOOL_ROUNDS = 4;
 
@@ -61,6 +60,8 @@ function buildSystemPrompt(ctx: AuditContext, toolsExposed: number): string {
     '  product names, or employee IDs. If you do not know, say so.',
     '- You may not give legal, tax, or medical advice. Refer them to the',
     '  Accountant or HR Manager.',
+    '- Resolve natural names first: when users mention product/outlet names like "Osmanthus Fresh Tea" or "Plaza 1", use ERP lookup tools with those names. Do not ask users for SKU, product ID, or location ID unless the lookup returns multiple ambiguous candidates.',
+    '- If required business data is missing (qty, date, payment method, channel, nominal), ask one concise follow-up question with the missing fields.',
     '- Keep replies short: 3–6 sentences unless walking through a workflow.',
   ];
 
@@ -72,6 +73,9 @@ function buildSystemPrompt(ctx: AuditContext, toolsExposed: number): string {
     );
     lines.push(
       '- Tools you can call are read-only in this phase; you cannot create, edit, or delete data.',
+    );
+    lines.push(
+      '- Write-capable tools only create drafts; the user must approve a confirmation card before anything is committed.',
     );
     lines.push(
       '- When the user reports a real bug, broken page, or system error, call `log_helpdesk_ticket_draft`. The draft surfaces a confirmation card; once they click Setujui the ticket goes to handlers automatically (in-app + email). Do NOT tell them to "kontak admin" or "email IT" — file the ticket for them.',
@@ -101,6 +105,12 @@ export interface SendChatMessageInput {
 export async function sendChatMessage(
   input: SendChatMessageInput,
   ctx: AuditContext,
+  stream?: {
+    onReasoningDelta?: (text: string) => void | Promise<void>;
+    onContentDelta?: (text: string) => void | Promise<void>;
+    onToolCall?: (toolName: string) => void | Promise<void>;
+    onToolResult?: (toolName: string) => void | Promise<void>;
+  },
 ): Promise<
   Result<{
     assistantMessageId: string;
@@ -109,7 +119,8 @@ export async function sendChatMessage(
     toolRoundsExecuted: number;
   }>
 > {
-  if (!isAiAssistantEnabled()) {
+  const runtimeConfig = await getAiRuntimeConfig(ctx.tenantId);
+  if (!isAiAssistantEnabled() || !runtimeConfig.enabled) {
     return err(AppError.businessRule('ai.assistant.disabled'));
   }
   const trimmed = (input.content ?? '').trim();
@@ -131,30 +142,30 @@ export async function sendChatMessage(
   }
 
   const hourlyCount = await getRecentUserMessageCount(ctx);
-  if (hourlyCount >= HARD_USER_TURN_CAP_PER_HOUR) {
+  if (hourlyCount >= runtimeConfig.hourlyCap) {
     return err(
       AppError.businessRule('ai.message.rateLimit', {
-        cap: HARD_USER_TURN_CAP_PER_HOUR,
+        cap: runtimeConfig.hourlyCap,
         windowMinutes: 60,
       }),
     );
   }
 
-  // Build the new user turn — multimodal content when attachments are
-  // present, plain string otherwise (cheaper to serialise).
-  const userMessage: AiChatMessage =
+  const attachmentNote =
     input.attachments && input.attachments.length > 0
-      ? {
-          role: 'user',
-          content: [
-            ...(trimmed ? [{ type: 'text' as const, text: trimmed }] : []),
-            ...input.attachments.map((a) => ({
-              type: 'image_url' as const,
-              image_url: { url: a.url },
-            })),
-          ] satisfies AiContentPart[],
-        }
-      : { role: 'user', content: trimmed };
+      ? [
+          '',
+          '[Uploaded attachments]',
+          ...input.attachments.map((a, idx) => `${idx + 1}. ${a.url} (${a.mimeType})`),
+          '',
+          'Important: the current DeepSeek chat provider is text/tool-only and must not receive image_url content directly. If the user wants receipt OCR, call ocr_receipt_struk with the attachment URL; if OCR is not supported, ask the user for the missing receipt values in text.',
+        ].join('\n')
+      : '';
+
+  const userMessage: AiChatMessage = {
+    role: 'user',
+    content: `${trimmed}${attachmentNote}`.trim(),
+  };
 
   // Persist the user turn first so the audit trail captures it even if
   // the provider call fails downstream.
@@ -171,7 +182,7 @@ export async function sendChatMessage(
     return err(AppError.businessRule('ai.provider.notConfigured'));
   }
 
-  const modelToUse = input.useReasoning ? config.reasoningModel : config.model;
+  const modelToUse = input.useReasoning ? runtimeConfig.reasoningModel : runtimeConfig.model;
   const thinking = isThinkingModel(modelToUse);
 
   // T-0177 — web_search is gated by the session-level opt-in flag.
@@ -199,15 +210,31 @@ export async function sendChatMessage(
   let roundsExecuted = 0;
 
   for (let round = 0; round <= MAX_TOOL_ROUNDS; round += 1) {
-    let providerResponse;
+    let providerResponse: AiCompletionResponse;
     try {
-      providerResponse = await aiComplete({
+      const completionRequest: AiCompletionRequest = {
         model: modelToUse,
         messages: providerMessages,
+        provider: {
+          baseUrl: runtimeConfig.baseUrl,
+          model: runtimeConfig.model,
+          reasoningModel: runtimeConfig.reasoningModel,
+          temperature: runtimeConfig.temperature,
+          maxTokens: runtimeConfig.maxTokens,
+          supportsVision: runtimeConfig.supportsVision,
+        },
+        temperature: runtimeConfig.temperature,
+        maxTokens: runtimeConfig.maxTokens,
         tools: tools.length > 0 ? tools : undefined,
         toolChoice: tools.length > 0 ? 'auto' : undefined,
         thinkingMode: thinking,
-      });
+      };
+      providerResponse = stream
+        ? await aiCompleteStream(completionRequest, async (delta) => {
+            if (delta.type === 'reasoning') await stream.onReasoningDelta?.(delta.text);
+            if (delta.type === 'content') await stream.onContentDelta?.(delta.text);
+          })
+        : await aiComplete(completionRequest);
     } catch (e) {
       if (e instanceof AiProviderError) {
         return err(
@@ -257,7 +284,9 @@ export async function sendChatMessage(
     });
 
     for (const call of toolCalls) {
+      await stream?.onToolCall?.(call.function.name);
       const result = await runToolCall(ctx, call, input.sessionId);
+      await stream?.onToolResult?.(call.function.name);
       providerMessages.push({
         role: 'tool',
         tool_call_id: call.id,

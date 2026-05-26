@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { sendMessageAction, toggleSessionWebSearchAction } from '../actions';
+import { toggleSessionWebSearchAction } from '../actions';
 import { ConfirmActionCard } from './confirm-action-card';
 
 interface Message {
@@ -69,18 +69,39 @@ interface PendingAttachment {
   fileSize: number;
 }
 
-function summariseToolPayload(payload: unknown): string {
+type StreamEvent =
+  | { type: 'reasoning_delta'; text: string }
+  | { type: 'content_delta'; text: string }
+  | { type: 'tool_call'; toolName: string }
+  | { type: 'tool_result'; toolName: string }
+  | {
+      type: 'done';
+      reply: string;
+      reasoning: string | null;
+      messageId: string;
+      toolRoundsExecuted: number;
+      messages: Message[] | null;
+    }
+  | { type: 'error'; error: string; details?: unknown };
+
+function summariseToolPayload(payload: unknown, toolErrorPrefix: string): string {
   if (!payload || typeof payload !== 'object') return '';
   const p = payload as Record<string, unknown>;
   if (typeof p.call_id === 'string') {
     const inner = (p.payload as { ok?: boolean; output?: unknown; error?: string }) ?? null;
     if (inner) {
-      if (inner.ok === false) return `Tool error: ${inner.error}`;
+      if (inner.ok === false) return `${toolErrorPrefix}${inner.error}`;
       const outputJson = JSON.stringify(inner.output ?? null);
       return outputJson.length > 500 ? `${outputJson.slice(0, 500)}…` : outputJson;
     }
   }
   return JSON.stringify(p).slice(0, 500);
+}
+
+function getReasoningContent(payload: unknown): string | null {
+  if (!payload || typeof payload !== 'object') return null;
+  const value = (payload as { reasoning_content?: unknown }).reasoning_content;
+  return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
 export function ChatSessionClient(props: Props) {
@@ -93,6 +114,7 @@ export function ChatSessionClient(props: Props) {
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -102,7 +124,7 @@ export function ChatSessionClient(props: Props) {
     if (scrollerRef.current) {
       scrollerRef.current.scrollTop = scrollerRef.current.scrollHeight;
     }
-  }, [messages.length]);
+  });
 
   function handleKey(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey && !e.altKey) {
@@ -151,9 +173,10 @@ export function ChatSessionClient(props: Props) {
 
   async function submit() {
     const value = draft.trim();
-    if ((!value && attachments.length === 0) || pending) return;
+    if ((!value && attachments.length === 0) || pending || streamingMessageId) return;
     setError(null);
     const localId = `local-${Date.now()}`;
+    const assistantLocalId = `assistant-${Date.now()}`;
     const queuedAttachments = attachments;
     const composedPreview = queuedAttachments.length
       ? `${value}${value ? '\n\n' : ''}📎 ${queuedAttachments.map((a) => a.fileName).join(', ')}`
@@ -168,38 +191,135 @@ export function ChatSessionClient(props: Props) {
         createdAt: new Date(),
         requiresConfirmation: false,
       },
+      {
+        id: assistantLocalId,
+        role: 'assistant',
+        content: '',
+        toolPayload: useReasoning ? { reasoning_content: '' } : undefined,
+        createdAt: new Date(),
+        requiresConfirmation: false,
+      },
     ]);
     setDraft('');
     setAttachments([]);
+    setStreamingMessageId(assistantLocalId);
 
     startTransition(async () => {
-      const result = await sendMessageAction({
-        sessionId: props.sessionId,
-        content: value,
-        useReasoning,
-        attachments: queuedAttachments.length
-          ? queuedAttachments.map((a) => ({ url: a.url, mimeType: a.mimeType }))
-          : undefined,
-      });
-      if (!result.ok) {
-        setError(result.error);
-        setMessages((prev) => prev.filter((m) => m.id !== localId));
-        return;
+      try {
+        const res = await fetch(`/api/ai-assistant/${props.sessionId}/stream`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content: value,
+            useReasoning,
+            attachments: queuedAttachments.length
+              ? queuedAttachments.map((a) => ({ url: a.url, mimeType: a.mimeType }))
+              : undefined,
+          }),
+        });
+        if (!res.ok || !res.body) {
+          setError(`ai.stream.http.${res.status}`);
+          setMessages((prev) => prev.filter((m) => m.id !== localId && m.id !== assistantLocalId));
+          setStreamingMessageId(null);
+          return;
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        const handleEvent = (event: StreamEvent) => {
+          if (event.type === 'reasoning_delta') {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantLocalId
+                  ? {
+                      ...m,
+                      toolPayload: {
+                        reasoning_content: `${getReasoningContent(m.toolPayload) ?? ''}${event.text}`,
+                      },
+                    }
+                  : m,
+              ),
+            );
+            return;
+          }
+          if (event.type === 'content_delta') {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantLocalId ? { ...m, content: `${m.content}${event.text}` } : m,
+              ),
+            );
+            return;
+          }
+          if (event.type === 'error') {
+            setError(event.error);
+            setMessages((prev) =>
+              prev.filter((m) => m.id !== localId && m.id !== assistantLocalId),
+            );
+            setStreamingMessageId(null);
+            return;
+          }
+          if (event.type === 'done') {
+            if (event.messages) {
+              setMessages(
+                event.messages.map((m) => ({
+                  ...m,
+                  createdAt: new Date(String(m.createdAt)),
+                })),
+              );
+            } else {
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantLocalId
+                    ? {
+                        ...m,
+                        id: event.messageId,
+                        content: event.reply,
+                        toolPayload: event.reasoning
+                          ? { reasoning_content: event.reasoning }
+                          : m.toolPayload,
+                      }
+                    : m,
+                ),
+              );
+            }
+            setStreamingMessageId(null);
+            textareaRef.current?.focus();
+          }
+        };
+
+        while (true) {
+          const { done, value: chunk } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(chunk, { stream: true });
+          let sep = buffer.indexOf('\n\n');
+          while (sep >= 0) {
+            const raw = buffer.slice(0, sep);
+            buffer = buffer.slice(sep + 2);
+            for (const line of raw.split(/\r?\n/)) {
+              if (!line.startsWith('data:')) continue;
+              handleEvent(JSON.parse(line.slice(5).trim()) as StreamEvent);
+            }
+            sep = buffer.indexOf('\n\n');
+          }
+        }
+        setStreamingMessageId(null);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+        setMessages((prev) => prev.filter((m) => m.id !== localId && m.id !== assistantLocalId));
+        setStreamingMessageId(null);
       }
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: result.messageId,
-          role: 'assistant',
-          content: result.reply,
-          toolPayload: result.reasoning ? { reasoning_content: result.reasoning } : undefined,
-          createdAt: new Date(),
-          requiresConfirmation: false,
-        },
-      ]);
-      textareaRef.current?.focus();
     });
   }
+
+  const isSending = pending || Boolean(streamingMessageId);
+  const roleLabels: Record<string, string> = {
+    user: t('roleUser'),
+    assistant: t('roleAssistant'),
+    tool: t('roleTool'),
+    system: t('roleSystem'),
+  };
 
   if (!props.enabled) {
     return (
@@ -241,27 +361,27 @@ export function ChatSessionClient(props: Props) {
               : m.role === 'assistant'
                 ? 'bg-brand-cream-2 text-brand-ink'
                 : 'bg-brand-cream-3 text-brand-ink-2';
+          const reasoning = m.role === 'assistant' ? getReasoningContent(m.toolPayload) : null;
           return (
             <div key={m.id} className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${bubbleClass}`}>
               <div className="mb-1 text-[10px] uppercase tracking-wide text-brand-ink-3">
-                {isTool && m.toolName ? `tool: ${m.toolName}` : m.role}
+                {isTool && m.toolName
+                  ? t('toolLabel', { tool: m.toolName })
+                  : (roleLabels[m.role] ?? m.role)}
               </div>
               {isTool ? (
                 <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-snug">
-                  {summariseToolPayload(m.toolPayload ?? m.content)}
+                  {summariseToolPayload(m.toolPayload ?? m.content, t('toolError'))}
                 </pre>
               ) : (
                 <div className="flex flex-col gap-2">
-                  {m.role === 'assistant' &&
-                  m.toolPayload &&
-                  typeof m.toolPayload === 'object' &&
-                  (m.toolPayload as any).reasoning_content ? (
-                    <details className="group mt-1">
+                  {reasoning ? (
+                    <details className="group mt-1" open={streamingMessageId === m.id}>
                       <summary className="cursor-pointer text-xs font-semibold text-brand-ink-3 transition-colors hover:text-brand-ink-2">
                         {t('reasoningLabel')}
                       </summary>
                       <div className="mt-2 border-l-2 border-brand-cream-3 pl-3 text-xs italic leading-relaxed text-brand-ink-3">
-                        {(m.toolPayload as any).reasoning_content}
+                        {reasoning}
                       </div>
                     </details>
                   ) : null}
@@ -271,14 +391,12 @@ export function ChatSessionClient(props: Props) {
                 </div>
               )}
               {m.requiresConfirmation ? (
-                <div className="mt-2 text-xs text-amber-700">
-                  ⏳ {t('waitConfirm')}
-                </div>
+                <div className="mt-2 text-xs text-amber-700">⏳ {t('waitConfirm')}</div>
               ) : null}
             </div>
           );
         })}
-        {pending ? (
+        {isSending ? (
           <div className="max-w-[80%] rounded-lg bg-brand-cream-2 px-3 py-2 text-sm text-brand-ink-2">
             <span className="inline-block animate-pulse">{t('aiTyping')}</span>
           </div>
@@ -329,7 +447,7 @@ export function ChatSessionClient(props: Props) {
           rows={2}
           className="w-full resize-none rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
           maxLength={8000}
-          disabled={pending}
+          disabled={isSending}
         />
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-3">
@@ -365,7 +483,7 @@ export function ChatSessionClient(props: Props) {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              disabled={uploading || pending}
+              disabled={uploading || isSending}
               className="inline-flex items-center gap-1.5 rounded border border-brand-cream-3 px-2 py-1 text-xs text-brand-ink-2 hover:bg-brand-cream-2 disabled:opacity-50"
             >
               {uploading ? (
@@ -385,7 +503,9 @@ export function ChatSessionClient(props: Props) {
                       strokeLinejoin="round"
                       d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"
                     />
-                  </svg> {t('attachReceipt')} </>
+                  </svg>{' '}
+                  {t('attachReceipt')}{' '}
+                </>
               )}
             </button>
             <input
@@ -400,9 +520,9 @@ export function ChatSessionClient(props: Props) {
             variant="primary"
             size="sm"
             type="submit"
-            disabled={pending || (!draft.trim() && attachments.length === 0)}
+            disabled={isSending || (!draft.trim() && attachments.length === 0)}
           >
-            {pending ? t('sending') : t('send')}
+            {isSending ? t('sending') : t('send')}
           </Button>
         </div>
       </form>

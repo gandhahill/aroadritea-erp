@@ -1,4 +1,4 @@
-import type { AppLocale } from '@/i18n/config';
+export type AppLocale = 'id' | 'en' | 'zh';
 
 export type QuickPath = {
   title: string;

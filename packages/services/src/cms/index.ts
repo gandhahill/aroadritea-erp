@@ -112,6 +112,52 @@ export type UpdatePostInput = z.infer<typeof UpdatePostSchema>;
 export type CreateBannerInput = z.infer<typeof CreateBannerSchema>;
 export type CreateFaqInput = z.infer<typeof CreateFaqSchema>;
 
+export const ERP_DOCS_SETTING_KEY = 'erp_docs_content';
+
+export const DocsLocaleSchema = z.enum(['id', 'en', 'zh']);
+
+export const DocsLocaleContentSchema = z.object({
+  title: z.string().min(1).max(200),
+  subtitle: z.string().max(400).default(''),
+  body: z.string().min(1).max(500_000),
+});
+
+export const EditableDocsContentSchema = z.object({
+  id: DocsLocaleContentSchema,
+  en: DocsLocaleContentSchema,
+  zh: DocsLocaleContentSchema,
+});
+
+export const ReplaceDocsContentSchema = z.object({
+  tenantId: z.string().min(1).default('default'),
+  content: EditableDocsContentSchema,
+  reason: z.string().max(500).optional(),
+});
+
+export const ReplaceDocsLocaleSchema = z.object({
+  tenantId: z.string().min(1).default('default'),
+  locale: DocsLocaleSchema,
+  content: DocsLocaleContentSchema,
+  fallbackContent: EditableDocsContentSchema.optional(),
+  reason: z.string().max(500).optional(),
+});
+
+export type DocsLocale = z.infer<typeof DocsLocaleSchema>;
+export type EditableDocsLocaleContent = z.infer<typeof DocsLocaleContentSchema>;
+export type EditableDocsContent = z.infer<typeof EditableDocsContentSchema>;
+export type ReplaceDocsContentInput = z.infer<typeof ReplaceDocsContentSchema>;
+export type ReplaceDocsLocaleInput = z.infer<typeof ReplaceDocsLocaleSchema>;
+
+function normalizeDocsContent(
+  value: unknown,
+  fallback?: EditableDocsContent,
+): Result<EditableDocsContent> {
+  const parsed = EditableDocsContentSchema.safeParse(value);
+  if (parsed.success) return ok(parsed.data);
+  if (fallback) return ok(fallback);
+  return err(AppError.validation('cms.docs.fullContentRequired', { issues: parsed.error.issues }));
+}
+
 // ─── Pages ──────────────────────────────────────────────────────────────────
 
 /** Get a single page by ID, scoped to the caller's tenant. */
@@ -645,6 +691,114 @@ export async function listFaqs(
 }
 
 // ─── Settings ───────────────────────────────────────────────────────────────
+
+/** Get the editable ERP docs setting row. */
+export async function getDocsContent(
+  tenantId: string,
+): Promise<Result<Record<string, unknown> | null>> {
+  return getSetting(tenantId, ERP_DOCS_SETTING_KEY);
+}
+
+/** Replace the full editable ERP docs content. This is explicit by design: seed never overwrites it. */
+export async function replaceDocsContent(
+  input: ReplaceDocsContentInput,
+  ctx: AuditContext,
+): Promise<Result<void>> {
+  const permCheck = await requirePermission(ctx.userId, 'docs.edit', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  const parsed = ReplaceDocsContentSchema.safeParse(input);
+  if (!parsed.success) {
+    return err(AppError.validation('cms.docs.validationFailed', { issues: parsed.error.issues }));
+  }
+
+  const { tenantId, content, reason } = parsed.data;
+
+  try {
+    const existing = await db
+      .select({ id: cmsSettings.id, value: cmsSettings.value })
+      .from(cmsSettings)
+      .where(and(eq(cmsSettings.tenantId, tenantId), eq(cmsSettings.key, ERP_DOCS_SETTING_KEY)))
+      .limit(1);
+
+    const existingRow = existing[0] ?? null;
+    const id = existingRow?.id ?? crypto.randomUUID();
+
+    if (existingRow) {
+      await db
+        .update(cmsSettings)
+        .set({ value: content, updatedBy: ctx.userId, updatedAt: new Date() })
+        .where(eq(cmsSettings.id, existingRow.id));
+    } else {
+      await db.insert(cmsSettings).values({
+        id,
+        tenantId,
+        key: ERP_DOCS_SETTING_KEY,
+        value: content,
+        createdBy: ctx.userId,
+        updatedBy: ctx.userId,
+      });
+    }
+
+    await auditRecord({
+      action: existingRow ? 'update' : 'create',
+      entityType: 'cms_settings',
+      entityId: id,
+      before: existingRow
+        ? {
+            key: ERP_DOCS_SETTING_KEY,
+            value: existingRow.value,
+          }
+        : null,
+      after: {
+        key: ERP_DOCS_SETTING_KEY,
+        value: content,
+      },
+      metadata: {
+        purpose: 'erp_docs_content',
+        reason: reason ?? null,
+      },
+      ctx,
+    });
+
+    return ok(undefined);
+  } catch (e) {
+    return err(AppError.internal('cms.docs.replaceFailed', e));
+  }
+}
+
+/** Replace only one docs locale, preserving the other languages from existing content. */
+export async function replaceDocsLocale(
+  input: ReplaceDocsLocaleInput,
+  ctx: AuditContext,
+): Promise<Result<void>> {
+  const parsed = ReplaceDocsLocaleSchema.safeParse(input);
+  if (!parsed.success) {
+    return err(AppError.validation('cms.docs.validationFailed', { issues: parsed.error.issues }));
+  }
+
+  const current = await getDocsContent(parsed.data.tenantId);
+  if (!current.ok) return current;
+
+  const normalized = normalizeDocsContent(current.value?.value, parsed.data.fallbackContent);
+  if (!normalized.ok) return normalized;
+
+  const next = {
+    ...normalized.value,
+    [parsed.data.locale]: parsed.data.content,
+  };
+
+  return replaceDocsContent(
+    {
+      tenantId: parsed.data.tenantId,
+      content: next,
+      reason: parsed.data.reason,
+    },
+    ctx,
+  );
+}
 
 /** Get a site setting by key. */
 export async function getSetting(

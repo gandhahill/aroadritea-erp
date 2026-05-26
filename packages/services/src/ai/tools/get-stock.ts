@@ -7,10 +7,11 @@
  */
 
 import { and, db, eq } from '@erp/db';
-import { locations } from '@erp/db/schema/auth';
-import { productVariants, products, stockLevels } from '@erp/db/schema/inventory';
+import { productVariants, stockLevels } from '@erp/db/schema/inventory';
 import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
+import { getProductTool } from './get-product';
+import { resolveLocationRef } from './resolve-location';
 
 export const GetStockInputSchema = z.object({
   product_code: z.string().min(1).max(64),
@@ -35,39 +36,19 @@ export interface GetStockOutput {
   batches?: Array<{ batch_no: string | null; qty_on_hand: string; expiry: string | null }>;
 }
 
-async function resolveLocationId(
-  raw: string | undefined,
-  ctx: AuditContext,
-): Promise<{ id: string; code: string } | null> {
-  const trimmed = raw?.trim() || ctx.locationId?.trim() || '';
-  if (!trimmed) return null;
-  const [byCode] = await db
-    .select({ id: locations.id, code: locations.code })
-    .from(locations)
-    .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.code, trimmed)))
-    .limit(1);
-  if (byCode) return byCode;
-  const [byId] = await db
-    .select({ id: locations.id, code: locations.code })
-    .from(locations)
-    .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.id, trimmed)))
-    .limit(1);
-  return byId ?? null;
-}
-
 export async function getStockTool(
   input: GetStockInput,
   ctx: AuditContext,
 ): Promise<GetStockOutput> {
-  const location = await resolveLocationId(input.location, ctx);
+  const location = await resolveLocationRef(input.location, ctx);
   if (!location) return { found: false };
 
-  const [product] = await db
-    .select({ id: products.id, sku: products.sku, uom: products.uom })
-    .from(products)
-    .where(and(eq(products.tenantId, ctx.tenantId), eq(products.sku, input.product_code.trim())))
-    .limit(1);
-  if (!product) return { found: false };
+  const productResult = await getProductTool(
+    { code: input.product_code.trim(), query: input.product_code.trim() },
+    ctx,
+  );
+  if (!productResult.found || !productResult.product) return { found: false };
+  const product = productResult.product;
 
   let variantId: string | null = null;
   let variantSku: string | null = null;

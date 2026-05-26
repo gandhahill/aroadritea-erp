@@ -435,6 +435,7 @@ export function Sidebar() {
         { label: t('customFields'), href: '/settings/custom-fields', icon: <></> },
         { label: t('bankAccounts'), href: '/settings/bank-accounts', icon: <></> },
         { label: t('workflowEditor'), href: '/settings/workflow-editor', icon: <></> },
+        { label: t('aiAssistantSettings'), href: '/settings/ai-assistant', icon: <></> },
         { label: t('aiAssistantLog'), href: '/settings/ai-assistant/log', icon: <></> },
       ],
     },
@@ -472,11 +473,13 @@ export function Sidebar() {
           )}
         </div>
         <button
+          type="button"
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={`shrink-0 p-1 text-brand-ink-3 hover:text-brand-ink hover:bg-brand-cream-2 rounded-md transition-colors ${isCollapsed ? 'hidden' : 'block'}`}
           title={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
         >
           <svg
+            aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             width="16"
             height="16"
@@ -493,11 +496,13 @@ export function Sidebar() {
       </div>
       {isCollapsed && (
         <button
+          type="button"
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="mx-auto mt-2 p-1.5 text-brand-ink-3 hover:text-brand-ink hover:bg-brand-cream-2 rounded-md transition-colors"
           title={t('expandSidebar')}
         >
           <svg
+            aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             width="16"
             height="16"

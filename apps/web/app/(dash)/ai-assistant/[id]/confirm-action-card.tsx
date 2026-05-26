@@ -17,8 +17,9 @@
  */
 
 import { Button } from '@erp/ui';
-import { useState, useTransition } from 'react';
-import { cancelDraftAction, confirmDraftAction } from '../actions';
+import { useTranslations } from 'next-intl';
+import { useEffect, useState, useTransition } from 'react';
+import { cancelDraftAction, confirmDraftAction, fetchDraftAction } from '../actions';
 
 interface Props {
   draftId: string;
@@ -30,12 +31,25 @@ interface Props {
 }
 
 export function ConfirmActionCard(props: Props) {
+  const t = useTranslations('aiAssistantConfirm');
   const [status, setStatus] = useState<'pending' | 'committed' | 'cancelled' | 'expired'>(
     props.initialStatus ?? 'pending',
   );
   const [resultRef, setResultRef] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, startTransition] = useTransition();
+
+  useEffect(() => {
+    let alive = true;
+    fetchDraftAction(props.draftId).then((r) => {
+      if (!alive || !r.ok) return;
+      setStatus(r.draft.status);
+      setResultRef(r.draft.resultRef ?? null);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [props.draftId]);
 
   function commit() {
     setError(null);
@@ -71,13 +85,13 @@ export function ConfirmActionCard(props: Props) {
   return (
     <div className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-3">
       <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-amber-700">
-        <span>🤝 Persetujuan diperlukan</span>
+        <span>{t('title')}</span>
         <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] text-amber-800">
           {props.kind.replace(/_/g, ' ')}
         </span>
         {status === 'pending' ? (
           <span className="ml-auto text-[10px] font-normal text-amber-700">
-            kedaluwarsa {expiresInMinutes} mnt
+            {t('expires', { minutes: expiresInMinutes })}
           </span>
         ) : null}
       </div>
@@ -95,23 +109,21 @@ export function ConfirmActionCard(props: Props) {
       {status === 'pending' ? (
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant="primary" onClick={commit} disabled={busy}>
-            {busy ? 'Memproses…' : 'Setujui & Posting'}
+            {busy ? t('processing') : t('approve')}
           </Button>
           <Button size="sm" variant="secondary" onClick={cancel} disabled={busy}>
-            Batal
+            {t('cancel')}
           </Button>
-          <span className="text-[11px] text-brand-ink-3">
-            Permission akan dicek ulang di server sebelum eksekusi.
-          </span>
+          <span className="text-[11px] text-brand-ink-3">{t('permission')}</span>
         </div>
       ) : status === 'committed' ? (
         <div className="text-xs text-emerald-700">
-          ✅ Diposting. Referensi: <span className="font-mono">{resultRef ?? '—'}</span>
+          {t('committed')} <span className="font-mono">{resultRef ?? '-'}</span>
         </div>
       ) : status === 'cancelled' ? (
-        <div className="text-xs text-brand-ink-3">↩️ Dibatalkan.</div>
+        <div className="text-xs text-brand-ink-3">{t('cancelled')}</div>
       ) : (
-        <div className="text-xs text-brand-ink-3">⌛ Kedaluwarsa — minta AI buat draft baru.</div>
+        <div className="text-xs text-brand-ink-3">{t('expired')}</div>
       )}
     </div>
   );

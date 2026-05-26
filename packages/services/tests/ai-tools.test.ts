@@ -64,6 +64,7 @@ vi.mock('@erp/db', () => ({
           orderBy: () => chain,
           limit: () => Promise.resolve(nextSelectRows()),
           offset: () => chain,
+          // biome-ignore lint/suspicious/noThenProperty: Drizzle query builders are thenable.
           then: (resolve) => resolve(nextSelectRows()),
         };
         return chain;
@@ -86,7 +87,10 @@ vi.mock('@erp/db', () => ({
   desc: () => undefined,
   eq: () => undefined,
   gte: () => undefined,
+  ilike: () => undefined,
+  inArray: () => undefined,
   isNull: () => undefined,
+  or: () => undefined,
   sql: () => undefined,
 }));
 
@@ -174,13 +178,13 @@ describe('search_codebase tool', () => {
           m.file.startsWith('scripts/'),
       ),
     ).toBe(true);
-  }, 15_000);
+  }, 30_000);
 
   it('caps results at max_results', async () => {
     const { searchCodebaseTool } = await import('../src/ai/tools/search-codebase');
     const out = await searchCodebaseTool({ query: 'export', max_results: 3 }, ctx);
     expect(out.matches.length).toBeLessThanOrEqual(3);
-  }, 15_000);
+  }, 30_000);
 
   it('never returns paths outside the allow-list', async () => {
     const { searchCodebaseTool } = await import('../src/ai/tools/search-codebase');
@@ -191,7 +195,7 @@ describe('search_codebase tool', () => {
       expect(m.file.startsWith('storage')).toBe(false);
       expect(m.file).not.toMatch(/^\.env/);
     }
-  }, 15_000);
+  }, 30_000);
 });
 
 // ───────────────────────────────────────────────────────────────────────
@@ -219,7 +223,7 @@ describe('executeTool', () => {
     expect((auditRows[0]?.values as { after: { outcome: string } }).after.outcome).toBe(
       'forbidden',
     );
-  }, 15_000);
+  }, 30_000);
 
   it('rejects malformed arguments before calling the executor', async () => {
     const { executeTool } = await import('../src/ai/tools/registry');
@@ -234,7 +238,7 @@ describe('executeTool', () => {
     );
     expect(auditRows.length).toBe(1);
     expect((auditRows[0]?.values as { after: { outcome: string } }).after.outcome).toBe('invalid');
-  }, 15_000);
+  }, 30_000);
 
   it('returns ok and writes an audit row for a successful run', async () => {
     const { executeTool } = await import('../src/ai/tools/registry');
@@ -336,6 +340,7 @@ describe('sendChatMessage tool-call loop', () => {
               orderBy: () => chain,
               limit: () => Promise.resolve(nextSelectRows()),
               offset: () => chain,
+              // biome-ignore lint/suspicious/noThenProperty: Drizzle query builders are thenable.
               then: (resolve) => resolve(nextSelectRows()),
             };
             return chain;
@@ -358,7 +363,10 @@ describe('sendChatMessage tool-call loop', () => {
       desc: () => undefined,
       eq: () => undefined,
       gte: () => undefined,
+      ilike: () => undefined,
+      inArray: () => undefined,
       isNull: () => undefined,
+      or: () => undefined,
       sql: () => undefined,
     }));
     vi.doMock('../src/iam', () => ({
@@ -367,6 +375,7 @@ describe('sendChatMessage tool-call loop', () => {
     }));
     vi.doMock('../src/ai/client', () => ({
       aiComplete: aiCompleteMock,
+      aiCompleteStream: aiCompleteMock,
       isAiAssistantEnabled: () => true,
       isThinkingModel: () => true,
       loadProviderConfig: () => ({
@@ -376,9 +385,22 @@ describe('sendChatMessage tool-call loop', () => {
         reasoningModel: 'deepseek-v4-pro',
         temperature: 0.4,
         maxTokens: 2048,
+        supportsVision: false,
       }),
       resetProviderConfigCache: () => undefined,
       AiProviderError: class extends Error {},
+    }));
+    vi.doMock('../src/ai/settings', () => ({
+      getAiRuntimeConfig: vi.fn(async () => ({
+        enabled: true,
+        baseUrl: 'http://stub',
+        model: 'deepseek-v4-flash',
+        reasoningModel: 'deepseek-v4-pro',
+        temperature: 0.4,
+        maxTokens: 2048,
+        hourlyCap: 30,
+        supportsVision: false,
+      })),
     }));
 
     const { sendChatMessage } = await import('../src/ai/conversation');

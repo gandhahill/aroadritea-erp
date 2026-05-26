@@ -13,6 +13,7 @@
 import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
 import { getDailySummary } from '../../reporting/daily-summary';
+import { resolveLocationRef } from './resolve-location';
 
 export const GetTodaySalesSummaryInputSchema = z.object({
   /** YYYY-MM-DD (defaults to today in WIB). */
@@ -22,6 +23,8 @@ export const GetTodaySalesSummaryInputSchema = z.object({
     .optional(),
   /** Outlet ID. Defaults to caller's session location. */
   location_id: z.string().min(1).max(64).optional(),
+  /** Outlet code or natural name, e.g. "Plaza 1". */
+  location: z.string().min(1).max(120).optional(),
 });
 
 export type GetTodaySalesSummaryInput = z.infer<typeof GetTodaySalesSummaryInputSchema>;
@@ -59,13 +62,16 @@ export async function getTodaySalesSummaryTool(
   input: GetTodaySalesSummaryInput,
   ctx: AuditContext,
 ): Promise<GetTodaySalesSummaryOutput> {
-  const locationId = input.location_id?.trim() || ctx.locationId?.trim() || '';
-  if (!locationId) {
-    return { ok: false, error: 'location_id is required' };
+  const location = await resolveLocationRef(input.location_id ?? input.location, ctx);
+  if (!location) {
+    return { ok: false, error: 'location is required or ambiguous' };
   }
   const date = input.date ?? todayInJakarta();
 
-  const result = await getDailySummary({ locationId, startDate: date, endDate: date }, ctx);
+  const result = await getDailySummary(
+    { locationId: location.id, startDate: date, endDate: date },
+    ctx,
+  );
   if (!result.ok) {
     return { ok: false, error: result.error.messageKey ?? 'summary.failed' };
   }
@@ -73,7 +79,7 @@ export async function getTodaySalesSummaryTool(
   return {
     ok: true,
     date,
-    location_id: locationId,
+    location_id: location.id,
     gross_sales: v.grossSales,
     discount_total: v.discountTotal,
     net_sales: v.netSales,

@@ -129,7 +129,11 @@ export function CogsClient(props: Props) {
           />
           {t('includeInactive')}
         </label>
-        <ExportXlsxButton onExport={exportCsv} disabled={!props.data || pending} label={t('exportXlsx')} />
+        <ExportXlsxButton
+          onExport={exportCsv}
+          disabled={!props.data || pending}
+          label={t('exportXlsx')}
+        />
       </div>
 
       {props.data && props.data.missingBomProductIds.length > 0 ? (

@@ -8,7 +8,7 @@
 
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
-import { isAiAssistantEnabled } from '@erp/services/ai';
+import { getAiRuntimeConfig, isAiAssistantEnabled } from '@erp/services/ai';
 import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
@@ -16,17 +16,25 @@ import { redirect } from 'next/navigation';
 import { fetchAllSessionsAdmin, fetchMySessions } from './actions';
 import { AiAssistantClient } from './ai-assistant-client';
 
-export const metadata: Metadata = { title: 'AI Assistant' };
+export const dynamic = 'force-dynamic';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('aiAssistantLanding');
+  return { title: t('title') };
+}
 
 export default async function AiAssistantLandingPage() {
   const session = await getSession();
   if (!session) redirect('/login');
-  const userId = String((session.user as Record<string, unknown>).id ?? '');
+  const sessionUser = session.user as Record<string, unknown>;
+  const userId = String(sessionUser.id ?? '');
+  const tenantId = String(sessionUser.tenantId ?? 'default');
   const canUse = await can(userId, 'ai.assistant.use');
   if (!canUse) redirect('/dashboard');
   const isAdmin = await can(userId, 'ai.assistant.admin');
 
-  const enabled = isAiAssistantEnabled();
+  const runtimeConfig = await getAiRuntimeConfig(tenantId);
+  const enabled = isAiAssistantEnabled() && runtimeConfig.enabled;
   const mySessions = await fetchMySessions();
   const adminSessions = isAdmin ? await fetchAllSessionsAdmin() : { ok: true as const, items: [] };
 
@@ -34,10 +42,7 @@ export default async function AiAssistantLandingPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-      />
+      <PageHeader title={t('title')} description={t('description')} />
       <AiAssistantClient
         enabled={enabled}
         canAdmin={isAdmin}

@@ -1,8 +1,8 @@
-# Audit Fix Report — Final Closure T-0170..T-0186
+# Audit Fix Report — Final Closure T-0170..T-0188
 
 - **Auditor**: Codex / Claude Opus 4.7
 - **Tanggal finalisasi**: 2026-05-25
-- **Scope**: prompt audit pertama 26 dimensi + permintaan tambahan user T-0171..T-0185
+- **Scope**: prompt audit pertama 26 dimensi + permintaan tambahan user T-0171..T-0188
 - **Ledger detil**: [docs/audit/AUDIT-FIX-LEDGER.md](AUDIT-FIX-LEDGER.md)
 - **Checkpoint final**: [docs/checkpoints/T-0186-final-audit-dod.checkpoint.md](../checkpoints/T-0186-final-audit-dod.checkpoint.md)
 
@@ -13,17 +13,17 @@ Prompt audit pertama sekarang ditutup sebagai **DONE untuk blocker Critical/High
 | Verifikasi akhir | Status | Catatan |
 |---|---|---|
 | `pnpm -w typecheck` | ✅ PASS | 10/10 workspaces. |
-| `pnpm -w test` | ✅ PASS | 685/685 tests: shared 85 + services 600. |
-| `pnpm -w lint` | ✅ PASS | Biome exit 0. Sisa 884 warning non-blocking dicatat sebagai hygiene debt, bukan error. |
-| `pnpm build` | ✅ PASS | Root build serial: worker, MCP, site, web. |
+| `pnpm -w test` | ✅ PASS | 687/687 tests: shared 85 + services 602. |
+| `pnpm -w lint` | ✅ PASS | Biome exit 0. Sisa 863 warning non-blocking dicatat sebagai hygiene debt, bukan error. |
+| `pnpm --filter @erp/web build` | ✅ PASS | Next/Serwist build selesai; standalone assets synced. |
 | Native `alert/confirm/prompt` sweep | ✅ PASS | Tidak ada call produksi tersisa; grep hanya komentar di `confirm-dialog.tsx`. |
 
 | Severity | Found | Fixed | Backlog | Catatan |
 |---|---:|---:|---:|---|
 | Critical | 1 | 1 | 0 | Whistleblower anonymity leak fixed + regression tests. |
-| High | 18 | 18 | 0 | Security, auth, RBAC, AI write safety, purchase return, member deletion, helpdesk, upload hardening. |
-| Medium | 24 | 24 | 0 | BI gaps, reporting export, attendance, shift override, session management, lint blockers. |
-| Low / Hygiene | 9 | 8 | 1 | 884 Biome warnings remain as non-blocking cleanup after error-level lint is green. |
+| High | 20 | 20 | 0 | Security, auth, RBAC, AI write safety, purchase return, member deletion, helpdesk, upload hardening, AI provider/draft UX hotfix. |
+| Medium | 26 | 26 | 0 | BI gaps, reporting export, attendance, shift override, session management, lint blockers, AI config/natural lookup. |
+| Low / Hygiene | 9 | 8 | 1 | 863 Biome warnings remain as non-blocking cleanup after error-level lint is green. |
 | User Req | 11 | 11 | 0 | AI chatbot, SOP, payslip, NIK optional, attendance history, shift override, member management, helpdesk, BinderByte tracking, Exa, purchase return. |
 
 ## Ringkasan per 26 Dimensi
@@ -61,6 +61,17 @@ Prompt audit pertama sekarang ditutup sebagai **DONE untuk blocker Critical/High
 | E18 BI interaktif | ✅ | BI/daily summary get period compare; aging/cogs/waste pages added. |
 | E19 Export XLSX | ✅ | Aging/COGS/Waste upgraded from CSV to XLSX with workbook utility. |
 | F10 i18n + audit | ✅ | New UI namespaces kept in id/en/zh; sensitive actions audit logged; whistleblower remains anonymous. |
+
+## T-0188 Follow-up Closure
+
+After user production feedback on 2026-05-26, the first-prompt closure was extended with:
+
+- AI image upload hotfix: unsupported `image_url` payloads no longer hit DeepSeek text chat completion; uploads are safe text attachments unless a future provider supports vision.
+- Real-time AI reasoning stream: UI now consumes SSE `reasoning_delta`, `content_delta`, `tool_call`, and `tool_result` events and refreshes the final server snapshot.
+- Helpdesk draft UX: confirmation card appears without refresh and buttons are removed once the draft is committed/cancelled/expired.
+- Helpdesk DB crash: raw `ANY($1)` query replaced with Drizzle `inArray`.
+- AI runtime configuration: non-secret settings moved from env to `/settings/ai-assistant`, audit logged.
+- Natural ERP lookup: AI tools now fuzzy-resolve product/location names before asking user for clarification.
 
 ## Perbaikan Utama
 

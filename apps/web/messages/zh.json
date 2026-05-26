@@ -1464,6 +1464,7 @@
     "permissions": "权限",
     "customFields": "自定义字段",
     "workflowEditor": "工作流编辑器",
+    "aiAssistantSettings": "AI 助手设置",
     "aiAssistantLog": "AI 助手日志",
     "docsSettings": "编辑指南",
     "promotions": "促销",
@@ -3256,9 +3257,16 @@
       "docSubtitle": "摘要",
       "body": "指南正文",
       "markdownHelp": "使用 ## 作为部分标题，### 作为小节，1. 作为顺序步骤，- 作为清单。内部链接可以写成 [标签](/路径)。",
+      "refreshTitle": "按语言刷新默认内容",
+      "refreshDescription": "当 source 中的默认指南已更新，但数据库仍保存旧版本时使用。勾选的语言会被系统默认内容替换；其他语言保留当前编辑器内容。",
+      "refreshLocale": "替换 {locale}",
+      "refreshDefaults": "刷新默认内容",
       "saved": "指南已保存。",
+      "refreshed": "指南已从系统默认内容刷新。",
+      "selectRefreshLocale": "请至少选择一种要刷新的语言。",
       "saveFailed": "指南保存失败。",
-      "unauthorized": "会话已失效，请重新登录。"
+      "unauthorized": "会话已失效，请重新登录。",
+      "forbidden": "此账号无权编辑指南。"
     },
     "audiences": {
       "staff": "员工",
@@ -3704,6 +3712,22 @@
     },
     "provider": {
       "notConfigured": "AI助手已禁用或提供商配置（API Key）未设置。"
+    },
+    "settings": {
+      "title": "AI 助手设置",
+      "description": "从界面配置非机密 AI 运行参数。密钥仍保存在环境变量中。",
+      "saved": "AI 设置已保存。",
+      "secretConfigured": "已在环境变量中检测到提供商密钥。",
+      "secretMissing": "未检测到提供商密钥。请在环境变量中设置 DEEPSEEK_API_KEY。",
+      "enabled": "启用 AI 助手",
+      "baseUrl": "提供商 Base URL",
+      "model": "默认模型",
+      "reasoningModel": "推理模型",
+      "temperature": "Temperature",
+      "maxTokens": "最大回复 token",
+      "hourlyCap": "每用户每小时消息数",
+      "supportsVision": "提供商支持图片/OCR 输入",
+      "save": "保存设置"
     }
   },
   "hr.sop.filter.all": "全部",
@@ -3737,7 +3761,7 @@
   "ai.audit.table.empty": "没有符合过滤条件的条目。",
   "ai.provider.notConfigured": "未配置 AI 提供商。请在环境变量中检查 API 密钥。",
   "aiAssistantChat": {
-    "disabledWarning": "AI 助手已禁用。设置环境变量 AI_ASSISTANT_ENABLED=true 和 DEEPSEEK_API_KEY 以启用。",
+    "disabledWarning": "AI 助手已禁用。管理员可在 AI 助手设置中启用。",
     "welcomeHint": "从写一个问题开始，例如 \"如何手动输入销售？\"",
     "uploading": "上传中...",
     "attachReceipt": "附上收据照片",
@@ -3752,10 +3776,29 @@
     "imageOnlyError": "OCR/视觉仅支持图像文件。",
     "failedUpload": "上传失败",
     "delete": "删除",
-    "reasoningLabel": "推理过程"
+    "reasoningLabel": "推理过程",
+    "title": "AI 助手",
+    "loadErrorDescription": "无法加载会话。",
+    "status": "状态：{status}",
+    "toolLabel": "工具：{tool}",
+    "roleUser": "用户",
+    "roleAssistant": "助手",
+    "roleTool": "工具",
+    "roleSystem": "系统"
+  },
+  "aiAssistantConfirm": {
+    "title": "需要批准",
+    "expires": "{minutes} 分钟后过期",
+    "processing": "处理中...",
+    "approve": "批准并过账",
+    "cancel": "取消",
+    "permission": "执行前将在服务器重新检查权限。",
+    "committed": "已过账。参考：",
+    "cancelled": "已取消。",
+    "expired": "已过期 - 请让 AI 创建新的草稿。"
   },
   "aiAssistantLanding": {
-    "disabled": "管理员已禁用 AI 助手 (AI_ASSISTANT_ENABLED=false)。请联系管理员重新启用。",
+    "disabled": "管理员已禁用 AI 助手。请联系管理员在 AI 助手设置中重新启用。",
     "startNew": "开始新对话",
     "policy": "政策：每用户每小时 30 条消息 · 完整审计 · DeepSeek v4 模型。",
     "titlePlaceholder": "简短标题（可选）",

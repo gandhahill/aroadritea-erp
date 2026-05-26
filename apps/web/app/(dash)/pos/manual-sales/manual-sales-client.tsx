@@ -145,7 +145,9 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     </Select>
                   </div>
                   <div className="w-24">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('qty')}</span>
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                      {t('qty')}
+                    </span>
                     <Input
                       type="number"
                       min={1}
@@ -168,7 +170,9 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     />
                   </div>
                   <div className="w-32">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('price')}</span>
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                      {t('price')}
+                    </span>
                     <Input
                       type="text"
                       inputMode="numeric"
@@ -191,7 +195,9 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     />
                   </div>
                   <div className="w-32">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('total')}</span>
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                      {t('total')}
+                    </span>
                     <Input
                       type="text"
                       readOnly

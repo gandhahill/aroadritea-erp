@@ -47,9 +47,7 @@ export default async function PosOrdersPage({ searchParams }: Props) {
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-8 text-center text-rose-700">
           <p className="font-medium">{t('loadError')}</p>
           <p className="text-sm mt-1">
-            {data.error === 'Unauthenticated'
-              ? t('errors.noLocation')
-              : data.error}
+            {data.error === 'Unauthenticated' ? t('errors.noLocation') : data.error}
           </p>
         </div>
       </div>

@@ -1,10 +1,10 @@
 'use client';
 
 import { Button, Input } from '@erp/ui';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { archiveSessionAction, renameSessionAction, startSessionAction } from './actions';
-import { useTranslations } from 'next-intl';
 
 interface SessionRow {
   id: string;
@@ -85,9 +85,7 @@ export function AiAssistantClient(props: Props) {
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-4">
         <h2 className="text-sm font-semibold text-brand-ink">{t('startNew')}</h2>
-        <p className="text-xs text-brand-ink-3">
-          {t('policy')}
-        </p>
+        <p className="text-xs text-brand-ink-3">{t('policy')}</p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
           <Input
             value={newTitle}

@@ -20,8 +20,8 @@ import { users } from '@erp/db/schema/auth';
 import { can } from '@erp/services/iam';
 import { Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import type { Metadata } from 'next';
-import { notFound, redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
+import { notFound, redirect } from 'next/navigation';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('ai.audit');
@@ -63,7 +63,7 @@ function humanizeKey(key: string): string {
     .trim();
 }
 
-function HumanReadablePayload({ payload, rawLabel }: { payload: unknown, rawLabel: string }) {
+function HumanReadablePayload({ payload, rawLabel }: { payload: unknown; rawLabel: string }) {
   if (!isObject(payload)) {
     return (
       <pre className="max-w-xs overflow-hidden whitespace-pre-wrap break-words font-mono text-[10px] leading-snug text-brand-ink-2">
@@ -120,7 +120,7 @@ export default async function AiAssistantLogPage({
   const tenantId = String(sessionUser.tenantId ?? 'default');
   const [isAdmin, t] = await Promise.all([
     can(userId, 'ai.assistant.admin'),
-    getTranslations('ai.audit')
+    getTranslations('ai.audit'),
   ]);
   if (!isAdmin) notFound();
 
@@ -181,10 +181,7 @@ export default async function AiAssistantLogPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title={t('title')}
-        description={t('description')}
-      />
+      <PageHeader title={t('title')} description={t('description')} />
 
       {/* Summary cards */}
       <div className="grid gap-3 sm:grid-cols-4">
@@ -194,7 +191,9 @@ export default async function AiAssistantLogPage({
         </div>
         {draftStat.map((d) => (
           <div key={d.status} className="rounded-xl border border-brand-cream-3 bg-card p-3">
-            <p className="text-xs uppercase tracking-wide text-brand-ink-3">{t('stat.draft')} {d.status}</p>
+            <p className="text-xs uppercase tracking-wide text-brand-ink-3">
+              {t('stat.draft')} {d.status}
+            </p>
             <p className="mt-1 text-xl font-semibold text-brand-ink">{d.count}</p>
           </div>
         ))}
@@ -268,12 +267,17 @@ export default async function AiAssistantLogPage({
                       {row.action}
                     </span>
                   </TableCell>
-                  <TableCell className="px-3 py-2 text-brand-ink-2">{t(`entities.${row.entityType as EntityFilter}`) ?? row.entityType}</TableCell>
+                  <TableCell className="px-3 py-2 text-brand-ink-2">
+                    {t(`entities.${row.entityType as EntityFilter}`) ?? row.entityType}
+                  </TableCell>
                   <TableCell className="px-3 py-2 font-mono text-[11px] text-brand-ink-3">
                     {row.entityId}
                   </TableCell>
                   <TableCell className="px-3 py-2">
-                    <HumanReadablePayload payload={row.after ?? row.before} rawLabel={t('table.rawJson')} />
+                    <HumanReadablePayload
+                      payload={row.after ?? row.before}
+                      rawLabel={t('table.rawJson')}
+                    />
                   </TableCell>
                 </tr>
               ))

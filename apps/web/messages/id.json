@@ -1429,6 +1429,7 @@
     "permissions": "Hak Akses",
     "customFields": "Bidang Kustom",
     "workflowEditor": "Editor Alur Kerja",
+    "aiAssistantSettings": "Pengaturan Asisten AI",
     "aiAssistantLog": "Log Asisten AI",
     "docsSettings": "Edit Panduan",
     "supplies": "Bahan & Perlengkapan",
@@ -3204,9 +3205,16 @@
       "docSubtitle": "Ringkasan",
       "body": "Isi panduan",
       "markdownHelp": "Gunakan heading ## untuk judul bagian, ### untuk subbagian, 1. untuk langkah berurutan, dan - untuk daftar kontrol. Link internal bisa ditulis seperti ?Label: /alamat-halaman?.",
+      "refreshTitle": "Refresh konten default per bahasa",
+      "refreshDescription": "Gunakan ini bila default panduan di source sudah diperbarui tetapi database masih menyimpan versi lama. Bahasa yang dicentang akan diganti dari default sistem; bahasa lain tetap memakai isi editor saat ini.",
+      "refreshLocale": "Ganti {locale}",
+      "refreshDefaults": "Refresh default",
       "saved": "Docs berhasil disimpan.",
+      "refreshed": "Docs berhasil direfresh dari default sistem.",
+      "selectRefreshLocale": "Pilih minimal satu bahasa yang ingin direfresh.",
       "saveFailed": "Docs gagal disimpan.",
-      "unauthorized": "Sesi tidak valid. Silakan login ulang."
+      "unauthorized": "Sesi tidak valid. Silakan login ulang.",
+      "forbidden": "Akun ini tidak memiliki akses untuk mengubah panduan."
     },
     "audiences": {
       "staff": "Karyawan",
@@ -3627,6 +3635,22 @@
     },
     "provider": {
       "notConfigured": "Asisten AI dinonaktifkan atau konfigurasi penyedia (API Key) belum diatur."
+    },
+    "settings": {
+      "title": "Pengaturan Asisten AI",
+      "description": "Atur runtime AI non-rahasia dari UI. Secret tetap disimpan di environment.",
+      "saved": "Pengaturan AI disimpan.",
+      "secretConfigured": "Secret provider sudah terdeteksi di environment.",
+      "secretMissing": "Secret provider belum terdeteksi. Isi DEEPSEEK_API_KEY di environment.",
+      "enabled": "Aktifkan Asisten AI",
+      "baseUrl": "Base URL provider",
+      "model": "Model default",
+      "reasoningModel": "Model penalaran",
+      "temperature": "Temperature",
+      "maxTokens": "Maks token jawaban",
+      "hourlyCap": "Batas pesan per user per jam",
+      "supportsVision": "Provider mendukung input gambar/OCR",
+      "save": "Simpan Pengaturan"
     }
   },
   "hr.sop.filter.all": "Semua",
@@ -3660,7 +3684,7 @@
   "ai.audit.table.empty": "Belum ada entri yang cocok dengan filter.",
   "ai.provider.notConfigured": "AI provider belum dikonfigurasi. Pastikan API key sudah diatur di environment variable.",
   "aiAssistantChat": {
-    "disabledWarning": "AI assistant dinonaktifkan. Atur env AI_ASSISTANT_ENABLED=true dan DEEPSEEK_API_KEY untuk mengaktifkan.",
+    "disabledWarning": "AI assistant dinonaktifkan. Admin dapat mengaktifkannya dari Pengaturan Asisten AI.",
     "welcomeHint": "Mulai dengan menulis pertanyaan, mis. \"Bagaimana cara input penjualan manual?\"",
     "uploading": "Mengunggah...",
     "attachReceipt": "Lampirkan foto struk",
@@ -3675,10 +3699,29 @@
     "imageOnlyError": "Hanya file gambar yang didukung untuk OCR/visual.",
     "failedUpload": "gagal mengunggah",
     "delete": "hapus",
-    "reasoningLabel": "Proses Pemikiran"
+    "reasoningLabel": "Proses Pemikiran",
+    "title": "Asisten AI",
+    "loadErrorDescription": "Sesi tidak dapat dimuat.",
+    "status": "Status: {status}",
+    "toolLabel": "alat: {tool}",
+    "roleUser": "pengguna",
+    "roleAssistant": "asisten",
+    "roleTool": "alat",
+    "roleSystem": "sistem"
+  },
+  "aiAssistantConfirm": {
+    "title": "Persetujuan diperlukan",
+    "expires": "kedaluwarsa {minutes} mnt",
+    "processing": "Memproses...",
+    "approve": "Setujui & Posting",
+    "cancel": "Batal",
+    "permission": "Permission akan dicek ulang di server sebelum eksekusi.",
+    "committed": "Diposting. Referensi:",
+    "cancelled": "Dibatalkan.",
+    "expired": "Kedaluwarsa - minta AI buat draft baru."
   },
   "aiAssistantLanding": {
-    "disabled": "Asisten AI dinonaktifkan oleh admin (AI_ASSISTANT_ENABLED=false). Hubungi administrator untuk mengaktifkan kembali.",
+    "disabled": "Asisten AI dinonaktifkan oleh admin. Hubungi administrator untuk mengaktifkan kembali dari Pengaturan Asisten AI.",
     "startNew": "Mulai percakapan baru",
     "policy": "Kebijakan: 30 pesan / jam / pengguna · audit lengkap · model DeepSeek v4.",
     "titlePlaceholder": "Judul singkat (opsional)",

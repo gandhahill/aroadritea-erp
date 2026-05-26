@@ -17,7 +17,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, desc, eq, or, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { can, requirePermission } from '../iam';
@@ -94,7 +94,7 @@ async function generateTicketNumber(tenantId: string): Promise<string> {
     .where(
       and(
         eq(helpdeskTickets.tenantId, tenantId),
-        sql`${helpdeskTickets.number} LIKE ${prefix + '%'}`,
+        sql`${helpdeskTickets.number} LIKE ${`${prefix}%`}`,
       ),
     );
   const next = (Number(row?.count ?? 0) + 1).toString().padStart(4, '0');
@@ -211,12 +211,11 @@ export async function listTickets(
   if (filter.status) conds.push(eq(helpdeskTickets.status, filter.status));
   // Non-handler: scope to own tickets (reporter or assignee).
   if (!handleAllowed || filter.mine) {
-    conds.push(
-      or(
-        eq(helpdeskTickets.reporterUserId, ctx.userId),
-        eq(helpdeskTickets.assigneeUserId, ctx.userId),
-      )!,
+    const ownCondition = or(
+      eq(helpdeskTickets.reporterUserId, ctx.userId),
+      eq(helpdeskTickets.assigneeUserId, ctx.userId),
     );
+    if (ownCondition) conds.push(ownCondition);
   }
   const limit = Math.min(filter.limit ?? 100, 500);
 
@@ -237,7 +236,7 @@ export async function listTickets(
     ? await db
         .select({ id: users.id, name: users.displayName })
         .from(users)
-        .where(sql`${users.id} = ANY(${userIds})`)
+        .where(inArray(users.id, userIds))
     : [];
   const nameMap = new Map(userRows.map((u) => [u.id, u.name]));
 
@@ -297,10 +296,12 @@ export async function getTicket(
       ...visibleReplies.map((r) => r.authorUserId),
     ]),
   ];
-  const userRows = await db
-    .select({ id: users.id, name: users.displayName })
-    .from(users)
-    .where(sql`${users.id} = ANY(${userIds})`);
+  const userRows = userIds.length
+    ? await db
+        .select({ id: users.id, name: users.displayName })
+        .from(users)
+        .where(inArray(users.id, userIds))
+    : [];
   const nameMap = new Map(userRows.map((u) => [u.id, u.name]));
 
   return ok({
