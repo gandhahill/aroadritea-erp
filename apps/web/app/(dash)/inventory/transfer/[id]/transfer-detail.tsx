@@ -20,6 +20,7 @@ interface Props {
 
 export function TransferDetail({ data, currentUserId }: Props) {
   const t = useTranslations('inventory.transfer');
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [receiveData, setReceiveData] = useState<Record<string, number>>(
@@ -117,7 +118,7 @@ export function TransferDetail({ data, currentUserId }: Props) {
 
       {confirmAction && (
         <ConfirmDialog
-          title={t('common.actions.confirm' as any) || 'Konfirmasi'}
+          title={tCommon('actions.confirm')}
           message={
             confirmAction === 'cancel'
               ? 'Are you sure you want to cancel this transfer?'
@@ -140,7 +141,7 @@ export function TransferDetail({ data, currentUserId }: Props) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('common.labels.product' as any) || 'Produk'}</TableHead>
+                  <TableHead>{tCommon('labels.product')}</TableHead>
                   <TableHead>UoM</TableHead>
                   <TableHead className="text-right">{t('qtySent')}</TableHead>
                   <TableHead className="text-right">{t('qtyReceived')}</TableHead>
@@ -177,7 +178,7 @@ export function TransferDetail({ data, currentUserId }: Props) {
 
         <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-brand-cream-3 pb-4">
-            <h2 className="font-semibold text-brand-ink">{t('common.labels.details' as any) || 'Rincian'}</h2>
+            <h2 className="font-semibold text-brand-ink">{tCommon('labels.details')}</h2>
           </div>
           <div className="space-y-4">
             <div>

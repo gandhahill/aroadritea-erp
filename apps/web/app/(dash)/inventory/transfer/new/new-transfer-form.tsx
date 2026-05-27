@@ -16,6 +16,7 @@ interface Props {
 
 export function NewTransferForm({ locations, products, defaultLocationId }: Props) {
   const t = useTranslations('inventory.transfer');
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const [state, submitAction, isPending] = useActionState(createTransferAction, null);
 
@@ -59,7 +60,7 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                 onChange={(e) => setFromLocationId(e.target.value)}
                 required
               >
-                <option value="" disabled>{t('common.actions.select' as any) || 'Pilih'} {t('fromLocation')}</option>
+                <option value="" disabled>{tCommon('actions.select')} {t('fromLocation')}</option>
                 {locations.map((loc) => (
                   <option key={loc.id} value={loc.id}>
                     {loc.name} ({loc.code})
@@ -77,7 +78,7 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                 onChange={(e) => setToLocationId(e.target.value)}
                 required
               >
-                <option value="" disabled>{t('common.actions.select' as any) || 'Pilih'} {t('toLocation')}</option>
+                <option value="" disabled>{tCommon('actions.select')} {t('toLocation')}</option>
                 {locations.map((loc) => (
                   <option key={loc.id} value={loc.id}>
                     {loc.name} ({loc.code})
@@ -112,7 +113,7 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                 >
                   <div className="flex-1 min-w-[200px]">
                     <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
-                      {t('common.labels.product' as any) || 'Produk'}
+                      {tCommon('labels.product')}
                     </span>
                     <Select
                       value={line.productId}
@@ -129,7 +130,7 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                         setLines(newLines);
                       }}
                     >
-                      <option value="" disabled>{t('common.actions.select' as any) || 'Pilih'} {t('common.labels.product' as any) || 'Produk'}</option>
+                      <option value="" disabled>{tCommon('actions.select')} {tCommon('labels.product')}</option>
                       {products.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name}
@@ -168,7 +169,7 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                       setLines(lines.filter((_, i) => i !== index));
                     }}
                   >
-                    {t('common.actions.delete' as any) || 'Hapus'}
+                    {tCommon('actions.delete')}
                   </Button>
                 </div>
               ))}
@@ -179,7 +180,7 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                   setLines([...lines, { productId: '', name: '', qty: 1, uom: '' }]);
                 }}
               >
-                + {t('common.actions.add' as any) || 'Tambah'}
+                + {tCommon('actions.add')}
               </Button>
             </div>
             <input
@@ -191,10 +192,10 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-brand-cream-3">
             <Link href="/inventory/transfer" className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-red disabled:pointer-events-none disabled:opacity-50 border border-brand-cream-3 bg-card hover:bg-brand-cream-2 text-brand-ink h-9 px-4 py-2">
-              {t('common.actions.cancel' as any) || 'Batal'}
+              {tCommon('actions.cancel')}
             </Link>
             <Button type="submit" disabled={isPending || lines.filter(l => l.productId).length === 0}>
-              {isPending ? (t('common.actions.saving' as any) || 'Menyimpan...') : (t('common.actions.create' as any) || 'Buat Draft')}
+              {isPending ? tCommon('actions.saving') : tCommon('actions.create')}
             </Button>
           </div>
         </form>
