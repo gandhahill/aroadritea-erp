@@ -309,7 +309,7 @@ function extractLineItemsFromText(text: string): ExtractedLineItem[] {
   const items: ExtractedLineItem[] = [];
   // Match: <name with brackets>  <qty>  <amount>
   // Amount is at least 3 digits (allowing thin separators .,).
-  const itemRe = /^(.+?\])\s+(\d{1,3})\s+([0-9][0-9.,]{2,})\s*$/;
+  const itemRe = /^(.+?)\s+(\d{1,3})\s+([0-9][0-9.,]{2,})\s*$/;
   for (const line of joined) {
     // Skip the bracketed category total line "[Milk Tea] [5] [230000]".
     if (/^\[[^\]]+\]\s*\[\d+\]\s*\[[\d.,]+\]\s*$/.test(line)) continue;
@@ -576,17 +576,9 @@ export async function ocrReceiptStrukTool(
   };
   const attachment = await resolveAttachmentForOcr(input.attachment_url, ctx);
 
-  if (!config.supportsVision) {
+  if (!config.apiKey) {
     const localDraft = await tryLocalReceiptOcr(input, attachment, ctx, deps);
     if (localDraft) return localDraft;
-    return {
-      ok: false,
-      error: 'vision_not_supported',
-      summary:
-        'OCR gambar belum aktif untuk provider AI saat ini dan fallback OCR lokal belum tersedia/berhasil. Minta user mengetik tanggal, outlet, channel, metode bayar, total penjualan, diskon, dan jumlah transaksi dari struk.',
-    };
-  }
-  if (!config.apiKey) {
     return { ok: false, error: 'ai.provider.notConfigured' };
   }
   const url = attachment.providerUrl;
@@ -621,19 +613,40 @@ export async function ocrReceiptStrukTool(
     '- If a field is genuinely unreadable, omit it. Do not guess.',
   ].join('\n');
 
-  const messages: AiChatMessage[] = [
-    { role: 'system', content: systemPrompt },
-    {
-      role: 'user',
-      content: [
-        {
-          type: 'text',
-          text: 'Ekstrak isi struk berikut menjadi JSON sesuai skema.',
-        },
-        { type: 'image_url', image_url: { url } },
-      ],
-    },
-  ];
+  let messages: AiChatMessage[];
+  if (config.supportsVision) {
+    messages = [
+      { role: 'system', content: systemPrompt },
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: 'Ekstrak isi struk berikut menjadi JSON sesuai skema.',
+          },
+          { type: 'image_url', image_url: { url } },
+        ],
+      },
+    ];
+  } else {
+    const localText = deps?.localOcrText ?? (await runLocalTesseractOcr(attachment));
+    if (!localText) {
+      return {
+        ok: false,
+        error: 'vision_not_supported',
+        summary:
+          'OCR gambar belum aktif untuk provider AI saat ini dan fallback OCR lokal tidak berhasil membaca teks gambar. Minta user mengetik tanggal, outlet, channel, metode bayar, total penjualan, diskon, dan jumlah transaksi dari struk.',
+      };
+    }
+    if (deps) deps.localOcrText = localText;
+    messages = [
+      { role: 'system', content: systemPrompt },
+      {
+        role: 'user',
+        content: `Ekstrak isi struk berikut menjadi JSON sesuai skema. Karena provider AI saat ini tidak mendukung input gambar secara langsung, berikut adalah teks mentah hasil ekstraksi OCR lokal (Tesseract). Format struk mungkin berantakan atau ada yang salah baca, harap teliti dalam mengekstrak data JSON yang diminta dari teks ini:\n\n${localText}`,
+      },
+    ];
+  }
 
   let providerResponse: AiCompletionResponse;
   try {
