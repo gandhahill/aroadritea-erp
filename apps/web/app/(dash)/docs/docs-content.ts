@@ -381,6 +381,26 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           { label: 'Scheduled Jobs', href: '/settings/scheduled-jobs' },
         ],
       },
+      {
+        id: 'ai-assistant',
+        eyebrow: 'AI',
+        title: 'Penggunaan AI Assistant & OCR Struk',
+        summary:
+          'AI Assistant dapat membantu membuat draf Manual Sales dari foto struk. Namun karena menggunakan engine lokal, hasil ekstraksi struk berantakan seringkali tidak maksimal.',
+        steps: [
+          'Gunakan chat AI Assistant lewat widget di sudut layar.',
+          'Jika Anda mengunggah foto struk dan AI salah membaca baris atau kuantitas, batalkan draf tersebut.',
+          'Sangat disarankan: gunakan ChatGPT atau Gemini milik Anda sendiri yang memiliki fitur Vision.',
+          'Unggah foto struk ke ChatGPT/Gemini, lalu beri perintah "tolong ekstrak teks dari struk berikut".',
+          'Copy hasil teks dari ChatGPT/Gemini, lalu paste ke chat AI Assistant ERP agar draf dapat dibuat otomatis dengan akurat, atau gunakan input Manual Sales biasa.',
+          'Selalu periksa ulang draf manual sales sebelum menekan Setujui & Posting.',
+        ],
+        checks: [
+          'Jangan menyetujui draf jika total harga atau kuantitas item tidak sesuai dengan fisik struk.',
+          'Jika OCR AI Assistant gagal total, segera gunakan fitur Manual Sales tanpa AI.',
+        ],
+        links: [{ label: 'Manual Sales', href: '/pos/manual-sales' }],
+      },
     ],
     assessorTitle: 'Kontrol assessor',
     assessorIntro:
@@ -768,6 +788,26 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           { label: 'Scheduled Jobs', href: '/settings/scheduled-jobs' },
         ],
       },
+      {
+        id: 'ai-assistant',
+        eyebrow: 'AI',
+        title: 'AI Assistant & Receipt OCR limitations',
+        summary:
+          'The AI Assistant can help draft Manual Sales from receipt photos. However, because it relies on a local engine, reading scrambled receipts is currently suboptimal.',
+        steps: [
+          'Use the AI Assistant chat widget on the screen corner.',
+          'If you upload a receipt photo and the AI misreads quantities or lines, cancel the drafted sale.',
+          'Highly recommended: use your own ChatGPT or Gemini which supports Vision.',
+          'Upload the receipt photo to ChatGPT/Gemini, and prompt "please extract text from this receipt".',
+          'Copy the result from ChatGPT/Gemini, then paste it to the ERP AI Assistant chat to generate an accurate automatic draft, or use the standard Manual Sales input.',
+          'Always review the drafted manual sales before clicking Approve & Post.',
+        ],
+        checks: [
+          'Do not approve the draft if the total price or item quantities do not match the physical receipt.',
+          'If the AI Assistant OCR fails completely, use the standard Manual Sales feature immediately.',
+        ],
+        links: [{ label: 'Manual Sales', href: '/pos/manual-sales' }],
+      },
     ],
     assessorTitle: 'Assessor controls',
     assessorIntro:
@@ -1123,6 +1163,26 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           { label: '通知', href: '/settings/notifications' },
           { label: '定时任务', href: '/settings/scheduled-jobs' },
         ],
+      },
+      {
+        id: 'ai-assistant',
+        eyebrow: 'AI',
+        title: 'AI 助手和收据 OCR 限制',
+        summary:
+          'AI 助手可以通过收据照片帮助起草手动销售记录。但由于它依赖本地引擎，目前读取混乱的收据效果不佳。',
+        steps: [
+          '使用屏幕角落的 AI 助手聊天小工具。',
+          '如果您上传了收据照片，而 AI 读错了数量或行数，请取消该草稿。',
+          '强烈建议：使用您自己支持 Vision 的 ChatGPT 或 Gemini。',
+          '将收据照片上传到 ChatGPT/Gemini，并提示“请提取此收据的文本”。',
+          '从 ChatGPT/Gemini 复制结果，然后将其粘贴到 ERP AI 助手聊天中以自动生成准确的草稿，或使用标准的手动销售输入。',
+          '在点击“批准并发布”之前，请始终检查起草的手动销售记录。',
+        ],
+        checks: [
+          '如果总价或商品数量与实体收据不符，请勿批准草稿。',
+          '如果 AI 助手 OCR 完全失败，请立即使用标准的手动销售功能。',
+        ],
+        links: [{ label: '手动销售', href: '/pos/manual-sales' }],
       },
     ],
     assessorTitle: '评估控制',

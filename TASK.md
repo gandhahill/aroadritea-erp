@@ -24,6 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0200 | Add AI Assistant and OCR limitations to documentation | Antigravity | 2026-05-27 18:06 WIB | 2026-05-27 18:07 WIB | 🟩 DONE | Added a new "ai-assistant" section to `docs-content.ts` in all languages (ID, EN, ZH) instructing users to leverage external ChatGPT/Gemini vision capabilities as a workaround for the current local OCR limitations. |
 | T-0199 | Improve OCR prompt for Tesseract fallback wrapping issues | Antigravity | 2026-05-27 18:03 WIB | 2026-05-27 18:04 WIB | 🟩 DONE | Added specific instructions to DeepSeek `systemPrompt` to extract quantities that get scrambled into the middle of item names (e.g., `S 2 tandard` -> Qty 2) due to receipt line wrapping when processed by Tesseract. |
 | T-0198 | Fix read_file tool invalidArguments due to regex and path | Antigravity | 2026-05-27 17:44 WIB | 2026-05-27 17:46 WIB | 🟩 DONE | Allowed parentheses in `path` validation schema to support Next.js route groups `(dash)`, and fixed `repoRoot()` to use `__dirname` instead of `process.cwd()` to prevent relative path failures inside `apps/web`. |
 | T-0197 | Fix truncated OCR notes in manual sale draft | Antigravity | 2026-05-27 17:39 WIB | 2026-05-27 17:41 WIB | 🟩 DONE | Removed `.slice(0, 120)` from `create-manual-sale-draft.ts` so OCR notes / unresolved items are not truncated in the UI confirmation card. |
