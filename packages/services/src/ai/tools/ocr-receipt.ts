@@ -37,6 +37,12 @@ import {
   type CreateManualSaleDraftToolDeps,
   createManualSaleDraftTool,
 } from './create-manual-sale-draft';
+import {
+  type ResolvedLineItem,
+  type ResolvedOrUnresolved,
+  type UnresolvedLineItem,
+  resolveOcrLineItems,
+} from './resolve-line-items';
 import { type LocationCandidate, findLocationCandidates } from './resolve-location';
 
 const execFile = promisify(execFileCb);
@@ -428,17 +434,31 @@ async function stageExtractedReceipt(
   ctx: AuditContext,
   deps?: OcrReceiptToolDeps,
 ): Promise<OcrReceiptStrukOutput> {
-  // Resolve outlet: prefer explicit input/session location; otherwise
-  // try to auto-match the outlet_hint printed on the receipt header so
-  // the cashier doesn't have to type the outlet name twice.
+  // Resolve outlet — priority order:
+  //   1. Explicit `location_id` in the tool call.
+  //   2. Caller's session locationId (cashier signed in at their outlet).
+  //   3. Top-scoring outlet that matches the printed header (≥1 cand).
+  // Only when ALL three fail do we return location_required. Without
+  // this relaxation, a director with no session location + a struk
+  // whose header doesn't have a perfect outlet match would never see
+  // the Setujui & Posting button.
   let resolvedLocationId: string | undefined =
     input.location_id?.trim() || ctx.locationId?.trim() || undefined;
   let candidates: LocationCandidate[] = [];
+  let pickedFromMultipleHint: string | undefined;
   if (!resolvedLocationId && extracted.outlet_hint) {
     candidates = await findLocationCandidates(extracted.outlet_hint, ctx, 5);
-    const only = candidates.length === 1 ? candidates[0] : undefined;
-    if (only) {
-      resolvedLocationId = only.id;
+    const top = candidates[0];
+    if (top) {
+      resolvedLocationId = top.id;
+      if (candidates.length > 1) {
+        // Cashier sees this as a warning in the summary — they can
+        // Batal and re-issue the call with the right outlet if wrong.
+        pickedFromMultipleHint = candidates
+          .slice(0, 3)
+          .map((c) => c.code)
+          .join(', ');
+      }
     }
   }
 
@@ -455,6 +475,24 @@ async function stageExtractedReceipt(
     };
   }
 
+  // Fuzzy-match every line item against the product catalogue so the
+  // commit path (createManualSalesClosing → deductIngredients) can run
+  // BOM deduction per line. Items the resolver can't match end up in
+  // display_line_items with a warning — they show on the card but do
+  // NOT trigger BOM.
+  const resolvedItems: ResolvedOrUnresolved[] =
+    extracted.line_items && extracted.line_items.length > 0
+      ? await resolveOcrLineItems(extracted.line_items, ctx)
+      : [];
+  const realLineItems = resolvedItems.filter((i): i is ResolvedLineItem => i.resolved);
+  const unresolvedItems = resolvedItems.filter((i): i is UnresolvedLineItem => !i.resolved);
+  const ocrNotesParts = [extracted.notes ?? ''].filter(Boolean);
+  if (pickedFromMultipleHint) {
+    ocrNotesParts.push(
+      `Outlet auto-pilih dari kandidat: ${pickedFromMultipleHint}. Verifikasi sebelum Setujui.`,
+    );
+  }
+
   const draft = await createManualSaleDraftTool(
     {
       location_id: resolvedLocationId,
@@ -465,8 +503,24 @@ async function stageExtractedReceipt(
       discount_total: extracted.discount_total ?? '0',
       transaction_count: extracted.transaction_count ?? 0,
       source_reference: `ocr:${input.attachment_url.slice(0, 100)}`,
-      notes: extracted.notes,
-      display_line_items: extracted.line_items,
+      notes: ocrNotesParts.join(' | ') || undefined,
+      line_items: realLineItems.map((item) => ({
+        productId: item.productId,
+        variantId: item.variantId,
+        name: item.name,
+        qty: item.qty,
+        price: item.price,
+        total: item.total,
+        matched_product_sku: item.matchedProductSku,
+        matched_product_name: item.matchedProductName,
+        matched_variant_name: item.matchedVariantName,
+        confidence: item.confidence,
+      })),
+      display_line_items: unresolvedItems.map((item) => ({
+        name: item.name,
+        qty: item.qty,
+        amount: item.total,
+      })),
       outlet_hint: extracted.outlet_hint,
     },
     ctx,

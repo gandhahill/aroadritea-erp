@@ -3,9 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   aiComplete: vi.fn(),
   createManualSaleDraftTool: vi.fn(async () => ({
+    ok: true as const,
     draft_id: 'draft-1',
     expires_at: '2026-05-27T12:00:00.000Z',
     summary: 'Draft penjualan siap dikonfirmasi.',
+    requires_confirmation: true as const,
+    payload: {},
   })),
 }));
 

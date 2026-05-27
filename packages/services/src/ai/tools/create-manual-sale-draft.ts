@@ -27,6 +27,27 @@ const DisplayLineItemSchema = z.object({
   amount: z.string().regex(/^\d+$/),
 });
 
+/**
+ * Real sale-line shape that gets passed straight into
+ * createManualSalesClosing → deductIngredients (BOM auto-deduct).
+ * Mirrors CreateManualSalesClosingInputSchema.lineItems.
+ */
+const SaleLineItemSchema = z.object({
+  productId: z.string().min(1),
+  variantId: z.string().min(1).optional(),
+  name: z.string().min(1).max(200),
+  qty: z.number().positive().max(999),
+  /** Per-unit price as integer rupiah string. */
+  price: z.string().regex(/^\d+$/),
+  /** Line total as integer rupiah string. */
+  total: z.string().regex(/^\d+$/),
+  /** Optional badges surfaced in ConfirmActionCard summary. */
+  matched_product_sku: z.string().optional(),
+  matched_product_name: z.string().optional(),
+  matched_variant_name: z.string().optional(),
+  confidence: z.enum(['high', 'medium', 'low']).optional(),
+});
+
 export const CreateManualSaleDraftInputSchema = z.object({
   /** Outlet ID. Defaults to caller's session location. */
   location_id: z.string().min(1).max(64).optional(),
@@ -50,10 +71,13 @@ export const CreateManualSaleDraftInputSchema = z.object({
   source_reference: z.string().max(120).optional(),
   /** Operator notes / OCR caveats. */
   notes: z.string().max(1000).optional(),
-  /** Display-only items (from OCR / cashier dictation). Stored on the
-   *  draft payload for the ConfirmActionCard so the cashier can verify
-   *  the totals before commit. Stripped by createManualSalesClosing — the
-   *  service requires resolved productIds which OCR cannot produce. */
+  /** Resolved sale lines that get persisted into the manual_sales row.
+   *  Each line carries productId (+ optional variantId) so the commit
+   *  path runs deductIngredients(BOM) for the right product/variant. */
+  line_items: z.array(SaleLineItemSchema).max(50).optional(),
+  /** Display-only rows for items the OCR could NOT confidently match
+   *  to a product. Rendered in the ConfirmActionCard with a warning so
+   *  the cashier knows BOM was not deducted for these. */
   display_line_items: z.array(DisplayLineItemSchema).max(50).optional(),
   /** Outlet name as printed on the receipt header; surfaced in the
    *  confirmation summary so the cashier sees "is this the right
@@ -156,6 +180,19 @@ export async function createManualSaleDraftTool(
   }
   const idempotencyKey = `ai-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
+  // Map to the camelCase shape CreateManualSalesClosingInputSchema
+  // expects. The schema's `lineItems` requires productId/qty/price/total
+  // — extra metadata (matched_*, confidence) gets stripped at commit
+  // time but is preserved on the draft payload for audit.
+  const lineItems = (input.line_items ?? []).map((item) => ({
+    productId: item.productId,
+    variantId: item.variantId,
+    name: item.name,
+    qty: item.qty,
+    price: item.price,
+    total: item.total,
+  }));
+
   const payload = {
     locationId,
     salesDate: input.sales_date,
@@ -167,10 +204,24 @@ export async function createManualSaleDraftTool(
     sourceReference: input.source_reference ?? null,
     notes: input.notes ?? null,
     idempotencyKey,
-    // Display-only — stripped by CreateManualSalesClosingInputSchema at
-    // commit time but rendered on the ConfirmActionCard.
+    // Real sale lines — consumed by createManualSalesClosing →
+    // deductIngredients(BOM). Empty array = closing total only (no
+    // automatic stock movement, matches the pre-AI manual entry).
+    lineItems,
+    // Display-only rows for items OCR couldn't match. Stripped by
+    // CreateManualSalesClosingInputSchema at commit time but rendered
+    // on the ConfirmActionCard so the cashier can correct manually.
     displayLineItems: input.display_line_items ?? [],
     outletHint: input.outlet_hint ?? null,
+    // Match metadata for the card. Stripped at commit.
+    lineItemBadges: (input.line_items ?? []).map((item) => ({
+      productId: item.productId,
+      variantId: item.variantId ?? null,
+      matchedProductSku: item.matched_product_sku ?? null,
+      matchedProductName: item.matched_product_name ?? null,
+      matchedVariantName: item.matched_variant_name ?? null,
+      confidence: item.confidence ?? null,
+    })),
   };
 
   const gross = Number(input.gross_sales);
@@ -183,10 +234,26 @@ export async function createManualSaleDraftTool(
     `${input.transaction_count ?? 0} transaksi`,
   ];
 
-  if (input.display_line_items && input.display_line_items.length > 0) {
-    summaryLines.push('Rincian:');
-    for (const item of input.display_line_items) {
-      summaryLines.push(`• ${item.name} × ${item.qty} — ${IDR.format(Number(item.amount))}`);
+  const resolvedCount = input.line_items?.length ?? 0;
+  const unresolvedCount = input.display_line_items?.length ?? 0;
+  if (resolvedCount > 0 || unresolvedCount > 0) {
+    summaryLines.push(
+      `Rincian: ${resolvedCount} item terhubung BOM, ${unresolvedCount} item belum bisa di-match.`,
+    );
+    for (const item of input.line_items ?? []) {
+      const confidenceMark =
+        item.confidence === 'high' ? '✓' : item.confidence === 'low' ? '⚠' : '·';
+      const matchedSuffix = item.matched_product_name
+        ? ` → ${item.matched_product_sku ?? '?'} ${item.matched_product_name}${item.matched_variant_name ? ` (${item.matched_variant_name})` : ''}`
+        : '';
+      summaryLines.push(
+        `${confidenceMark} ${item.name} × ${item.qty} — ${IDR.format(Number(item.total))}${matchedSuffix}`,
+      );
+    }
+    for (const item of input.display_line_items ?? []) {
+      summaryLines.push(
+        `⚠ ${item.name} × ${item.qty} — ${IDR.format(Number(item.amount))} (belum match, stok TIDAK dikurangi)`,
+      );
     }
   }
 
