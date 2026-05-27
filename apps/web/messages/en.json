@@ -1612,7 +1612,16 @@
       "selectProduct": "Select Product",
       "qty": "Qty",
       "price": "Price",
-      "delete": "Delete"
+      "delete": "Delete",
+      "deductBom": "Automatically Deduct BOM Stock",
+      "loadingDetail": "Loading details...",
+      "noProducts": "No product details available.",
+      "stockAdjustment": "Stock Adjustment (BOM Deducted)",
+      "productOrIngredient": "Product / Ingredient",
+      "change": "Change",
+      "noStockAdjustment": "No stock adjustments recorded.",
+      "failedToLoad": "Failed to load data.",
+      "close": "Close"
     },
     "openShift": "Open Shift",
     "drawerExpense": "Drawer Expense",

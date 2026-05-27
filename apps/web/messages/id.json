@@ -1612,7 +1612,16 @@
       "selectProduct": "Pilih Produk",
       "qty": "Kuantitas",
       "price": "Harga",
-      "delete": "Hapus"
+      "delete": "Hapus",
+      "deductBom": "Kurangi Stok BOM Otomatis",
+      "loadingDetail": "Memuat detail...",
+      "noProducts": "Tidak ada rincian produk.",
+      "stockAdjustment": "Penyesuaian Stok (BOM Terpotong)",
+      "productOrIngredient": "Produk / Bahan",
+      "change": "Perubahan",
+      "noStockAdjustment": "Tidak ada penyesuaian stok yang terpotong.",
+      "failedToLoad": "Gagal memuat data.",
+      "close": "Tutup"
     },
     "openShift": "Buka Shift",
     "drawerExpense": "Pengeluaran Laci",

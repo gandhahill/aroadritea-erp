@@ -250,7 +250,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                 className="h-4 w-4 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
               />
               <label htmlFor="deductBom" className="text-sm font-medium text-brand-ink">
-                Kurangi Stok BOM Otomatis
+                {t('deductBom')}
               </label>
             </div>
           </div>
@@ -367,7 +367,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             </div>
             <div className="overflow-y-auto p-6 space-y-6">
               {loadingDetail ? (
-                <p className="text-center text-sm text-brand-ink-3">Memuat detail...</p>
+                <p className="text-center text-sm text-brand-ink-3">{t('loadingDetail')}</p>
               ) : detailData ? (
                 <>
                   <div>
@@ -394,18 +394,18 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                         </tbody>
                       </table>
                     ) : (
-                      <p className="text-sm text-brand-ink-3 italic">Tidak ada rincian produk.</p>
+                      <p className="text-sm text-brand-ink-3 italic">{t('noProducts')}</p>
                     )}
                   </div>
                   
                   <div>
-                    <h4 className="font-semibold text-sm mb-2 text-brand-ink">Penyesuaian Stok (BOM Terpotong)</h4>
+                    <h4 className="font-semibold text-sm mb-2 text-brand-ink">{t('stockAdjustment')}</h4>
                     {detailData.stockMovements && detailData.stockMovements.length > 0 ? (
                       <table className="w-full text-sm border border-brand-cream-3 rounded-lg overflow-hidden">
                         <thead className="bg-brand-cream-2 text-left">
                           <tr>
-                            <th className="px-3 py-2 font-medium text-brand-ink-2">Produk / Bahan</th>
-                            <th className="px-3 py-2 font-medium text-brand-ink-2 text-right">Perubahan</th>
+                            <th className="px-3 py-2 font-medium text-brand-ink-2">{t('productOrIngredient')}</th>
+                            <th className="px-3 py-2 font-medium text-brand-ink-2 text-right">{t('change')}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-brand-cream-3">
@@ -418,17 +418,17 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                         </tbody>
                       </table>
                     ) : (
-                      <p className="text-sm text-brand-ink-3 italic">Tidak ada penyesuaian stok yang terpotong.</p>
+                      <p className="text-sm text-brand-ink-3 italic">{t('noStockAdjustment')}</p>
                     )}
                   </div>
                 </>
               ) : (
-                <p className="text-center text-sm text-rose-600">Gagal memuat data.</p>
+                <p className="text-center text-sm text-rose-600">{t('failedToLoad')}</p>
               )}
             </div>
             <div className="border-t border-brand-cream-3 p-4 bg-brand-cream flex justify-end">
               <Button type="button" variant="secondary" onClick={() => setDetailModalOpen(false)}>
-                Tutup
+                {t('close')}
               </Button>
             </div>
           </div>
