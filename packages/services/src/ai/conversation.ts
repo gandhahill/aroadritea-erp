@@ -42,6 +42,43 @@ import { executeTool, listAvailableTools } from './tools/registry';
 const HISTORY_CONTEXT_MESSAGES = 20;
 const MAX_TOOL_ROUNDS = 4;
 
+interface ChatAttachment {
+  url: string;
+  mimeType: string;
+}
+
+function buildAttachmentNote(attachments: ChatAttachment[] | undefined): string {
+  if (!attachments || attachments.length === 0) return '';
+  return [
+    '',
+    '[Uploaded attachments]',
+    ...attachments.map((a, idx) => `${idx + 1}. ${a.url} (${a.mimeType})`),
+    '',
+    'Important: the current DeepSeek chat provider is text/tool-only and must not receive image_url content directly. If the user wants receipt OCR, call ocr_receipt_struk with the attachment URL; if OCR is not supported, ask the user for the missing receipt values in text.',
+  ].join('\n');
+}
+
+function extractAttachmentsFromPayload(payload: unknown): ChatAttachment[] | undefined {
+  if (!payload || typeof payload !== 'object') return undefined;
+  const raw = (payload as { attachments?: unknown }).attachments;
+  if (!Array.isArray(raw)) return undefined;
+  const out: ChatAttachment[] = [];
+  for (const item of raw) {
+    if (
+      item &&
+      typeof item === 'object' &&
+      typeof (item as { url?: unknown }).url === 'string' &&
+      typeof (item as { mimeType?: unknown }).mimeType === 'string'
+    ) {
+      out.push({
+        url: (item as { url: string }).url,
+        mimeType: (item as { mimeType: string }).mimeType,
+      });
+    }
+  }
+  return out.length > 0 ? out : undefined;
+}
+
 function buildSystemPrompt(ctx: AuditContext, toolsExposed: number): string {
   const lines: string[] = [
     'You are the Aroadri Tea ERP in-product assistant.',
@@ -152,16 +189,7 @@ export async function sendChatMessage(
     );
   }
 
-  const attachmentNote =
-    input.attachments && input.attachments.length > 0
-      ? [
-          '',
-          '[Uploaded attachments]',
-          ...input.attachments.map((a, idx) => `${idx + 1}. ${a.url} (${a.mimeType})`),
-          '',
-          'Important: the current DeepSeek chat provider is text/tool-only and must not receive image_url content directly. If the user wants receipt OCR, call ocr_receipt_struk with the attachment URL; if OCR is not supported, ask the user for the missing receipt values in text.',
-        ].join('\n')
-      : '';
+  const attachmentNote = buildAttachmentNote(input.attachments);
 
   const userMessage: AiChatMessage = {
     role: 'user',
@@ -197,10 +225,22 @@ export async function sendChatMessage(
     { role: 'system', content: buildSystemPrompt(ctx, tools.length) },
     ...history
       .filter((m) => m.role === 'user' || m.role === 'assistant')
-      .map<AiChatMessage>((m) => ({
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-      })),
+      .map<AiChatMessage>((m) => {
+        // Re-attach the [Uploaded attachments] note for past user turns
+        // that carried images. Without this, on a follow-up turn the
+        // model only sees plain text and "forgets" the receipt was ever
+        // uploaded — which is exactly the bug the cashier hit when they
+        // said "itu ada rincian itemnya" and the assistant asked them
+        // to re-upload.
+        if (m.role === 'user') {
+          const note = buildAttachmentNote(extractAttachmentsFromPayload(m.toolPayload));
+          return {
+            role: 'user',
+            content: note ? `${m.content}${note}`.trim() : m.content,
+          };
+        }
+        return { role: 'assistant', content: m.content };
+      }),
     userMessage,
   ];
 
