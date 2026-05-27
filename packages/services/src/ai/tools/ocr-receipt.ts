@@ -609,6 +609,7 @@ export async function ocrReceiptStrukTool(
     '- If the date is ambiguous, use Asia/Jakarta today.',
     '- gross_sales is the TOTAL the customer paid (Amount Received) in rupiah (e.g. "230000").',
     '- line_items: extract every product row visible. Use the printed line exactly (do NOT translate or rename); join wrapped lines into one string; if a qty is bracketed like "[5]" treat that as the GROUP total, not a row qty.',
+    '- Pay close attention to line wrapping and bad OCR spacing! A quantity might be accidentally merged into the middle of text (e.g., "S 2 tandard" means Qty 2 and "Standard", "L 1 ess" means Qty 1 and "Less"). Extract the hidden qty and clean up the item name.',
     '- outlet_hint: take only the location/branch part of the header. For "AROADRI TEA Plaza Malioboro", outlet_hint is "Plaza Malioboro". Never invent.',
     '- If a field is genuinely unreadable, omit it. Do not guess.',
   ].join('\n');
