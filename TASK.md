@@ -24,6 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0197 | Fix truncated OCR notes in manual sale draft | Antigravity | 2026-05-27 17:39 WIB | 2026-05-27 17:41 WIB | 🟩 DONE | Removed `.slice(0, 120)` from `create-manual-sale-draft.ts` so OCR notes / unresolved items are not truncated in the UI confirmation card. |
 | T-0196 | Fix search_codebase path resolution bug | Antigravity | 2026-05-27 17:21 WIB | 2026-05-27 17:23 WIB | 🟩 DONE | Replaced `process.cwd()` with `__dirname` relative resolution so `searchCodebaseTool` correctly scans the repo root instead of 0 files. |
 | T-0195 | Upgrade OCR fallback to route local text through LLM | Antigravity | 2026-05-27 17:15 WIB | 2026-05-27 17:16 WIB | 🟩 DONE | Refactor `ocr-receipt.ts` to feed Tesseract output into DeepSeek for JSON parsing when `supportsVision` is false. Verified unit tests. |
 | T-0194 | Fix AI OCR receipt parsing for lines without brackets | Antigravity | 2026-05-27 17:07 WIB | 2026-05-27 17:15 WIB | 🟩 DONE | Fixed regex in `ocr-receipt.ts` to capture line items without closing brackets. Verified tests pass. |

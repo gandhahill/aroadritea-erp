@@ -258,7 +258,7 @@ export async function createManualSaleDraftTool(
   }
 
   if (input.notes) {
-    summaryLines.push(`Catatan: ${input.notes.slice(0, 120)}`);
+    summaryLines.push(`Catatan: ${input.notes}`);
   }
 
   const summary = summaryLines.filter(Boolean).join('\n');
