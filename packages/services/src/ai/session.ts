@@ -13,6 +13,11 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { can, requirePermission } from '../iam';
+import { aiComplete, loadProviderConfig } from './client';
+import { getAiRuntimeConfig } from './settings';
+
+/** Default session title — used to detect sessions that need auto-titling. */
+export const DEFAULT_SESSION_TITLE = 'Percakapan baru';
 
 export interface SessionRow {
   id: string;
@@ -81,7 +86,7 @@ export async function createAiSession(
     id,
     tenantId: ctx.tenantId,
     userId: ctx.userId,
-    title: (input.title?.trim() || 'Percakapan baru').slice(0, 200),
+    title: (input.title?.trim() || DEFAULT_SESSION_TITLE).slice(0, 200),
     status: 'active',
     allowWebSearch: input.allowWebSearch ? 'true' : 'false',
     createdAt: now,
@@ -307,6 +312,80 @@ export async function getRecentUserMessageCount(ctx: AuditContext): Promise<numb
       ),
     );
   return count;
+}
+
+/**
+ * Auto-generate a short descriptive title for a session from the first
+ * user message + assistant reply. Uses the cheap flash model with a tiny
+ * token budget so cost is negligible (~0.001 IDR per call).
+ *
+ * Designed to be called fire-and-forget after the first assistant reply.
+ * If anything fails, the title stays as-is silently — no user impact.
+ */
+export async function autoGenerateTitle(
+  sessionId: string,
+  userMessage: string,
+  assistantReply: string,
+  ctx: AuditContext,
+): Promise<void> {
+  try {
+    const providerConfig = loadProviderConfig();
+    if (!providerConfig.apiKey) return;
+    const runtimeConfig = await getAiRuntimeConfig(ctx.tenantId);
+
+    const response = await aiComplete({
+      // Use the fast/cheap model — NOT the reasoning model.
+      model: runtimeConfig.model,
+      provider: {
+        baseUrl: runtimeConfig.baseUrl,
+        model: runtimeConfig.model,
+        reasoningModel: runtimeConfig.reasoningModel,
+        temperature: 0.3,
+        maxTokens: 60,
+        supportsVision: false,
+      },
+      temperature: 0.3,
+      maxTokens: 60,
+      thinkingMode: false,
+      messages: [
+        {
+          role: 'system',
+          content: [
+            'Generate a short conversation title (3-8 words) in the SAME LANGUAGE the user wrote in.',
+            'The title should summarize the topic/intent of the conversation.',
+            'Return ONLY the title text, no quotes, no prefix, no explanation.',
+            'Examples: "Rekap penjualan shift siang", "Stok Osmanthus habis", "Cara input manual sales"',
+          ].join('\n'),
+        },
+        {
+          role: 'user',
+          content: `User: ${userMessage.slice(0, 500)}\n\nAssistant: ${assistantReply.slice(0, 500)}`,
+        },
+      ],
+    });
+
+    const title = response.content
+      .replace(/^["'`]+|["'`]+$/g, '') // Strip wrapping quotes
+      .replace(/^(Judul|Title|标题)[:\s]*/i, '') // Strip common prefixes
+      .trim()
+      .slice(0, 200);
+
+    if (!title || title.length < 2) return;
+
+    await db
+      .update(aiChatSessions)
+      .set({ title, updatedAt: new Date(), updatedBy: ctx.userId })
+      .where(
+        and(
+          eq(aiChatSessions.id, sessionId),
+          eq(aiChatSessions.tenantId, ctx.tenantId),
+          eq(aiChatSessions.userId, ctx.userId),
+          isNull(aiChatSessions.deletedAt),
+        ),
+      );
+  } catch {
+    // Best-effort — never block the main conversation flow.
+  }
 }
 
 export async function attachToMessage(input: {

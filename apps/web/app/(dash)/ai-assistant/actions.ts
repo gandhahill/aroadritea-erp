@@ -180,5 +180,6 @@ export async function sendMessageAction(input: {
     messageId: r.value.assistantMessageId,
     toolRoundsExecuted: r.value.toolRoundsExecuted,
     messages: refreshed.ok ? refreshed.value.messages : null,
+    generatedTitle: r.value.generatedTitle ?? null,
   };
 }

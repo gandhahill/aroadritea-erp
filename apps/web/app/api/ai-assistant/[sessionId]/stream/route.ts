@@ -78,6 +78,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ session
           messageId: result.value.assistantMessageId,
           toolRoundsExecuted: result.value.toolRoundsExecuted,
           messages: refreshed.ok ? refreshed.value.messages : null,
+          generatedTitle: result.value.generatedTitle ?? null,
         });
         controller.close();
       } catch (e) {

@@ -348,7 +348,7 @@ registerTool({
 registerTool({
   name: 'create_manual_sale_draft',
   description:
-    'Stage a manual-sales closing as a draft so the cashier can confirm it in the chat UI. NEVER posts directly — the user must click "Setujui & Posting", which re-checks pos.transact permission and dispatches to createManualSalesClosing.',
+    'Stage a manual-sales closing as a draft so the cashier can confirm it in the chat UI. NEVER posts directly — the user must click "Setujui & Posting". PREFERRED: pass product names via `raw_line_items` (name+qty+amount) — the server auto-resolves to product IDs with fuzzy matching and BOM deduction. Do NOT manually call get_product for each line item; raw_line_items handles it in one shot. Include bracket modifiers in the name if the user typed them, e.g. "Osmanthus Oolong Milk Tea[700ml, Less sugar]".',
   inputSchema: CreateManualSaleDraftInputSchema,
   parameters: {
     type: 'object',
@@ -370,7 +370,7 @@ registerTool({
       notes: { type: 'string', description: 'Operator notes / OCR caveats.' },
       raw_line_items: {
         type: 'array',
-        description: 'Raw items (name, qty, amount) from user input or OCR. The tool automatically maps these to product IDs and deducts BOM.',
+        description: 'PREFERRED — raw items from user input or receipt. Server auto-resolves names to product IDs via fuzzy matching; you do NOT need to call get_product first. Include bracket modifiers like [700ml, Less sugar] in the name for better variant matching.',
         items: {
           type: 'object',
           properties: {

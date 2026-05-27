@@ -2,6 +2,7 @@
 
 import { Button } from '@erp/ui';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useTransition } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -112,6 +113,7 @@ type StreamEvent =
       messageId: string;
       toolRoundsExecuted: number;
       messages: Message[] | null;
+      generatedTitle: string | null;
     }
   | { type: 'error'; error: string; details?: unknown };
 
@@ -162,6 +164,7 @@ export function ChatSessionClient(props: Props) {
   const [error, setError] = useState<string | null>(null);
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -338,6 +341,12 @@ export function ChatSessionClient(props: Props) {
             }
             setStreamingMessageId(null);
             textareaRef.current?.focus();
+            // Update browser title + sidebar if the system generated a title
+            if (event.generatedTitle) {
+              document.title = `${event.generatedTitle} — Aroadri Tea ERP`;
+              // Trigger a Next.js router refresh so the sidebar session list picks up the new title
+              router.refresh();
+            }
           }
         };
 

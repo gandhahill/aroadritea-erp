@@ -35,12 +35,12 @@ import {
   isThinkingModel,
   loadProviderConfig,
 } from './client';
-import { getAiSession, getRecentUserMessageCount, recordChatMessage } from './session';
+import { DEFAULT_SESSION_TITLE, autoGenerateTitle, getAiSession, getRecentUserMessageCount, recordChatMessage } from './session';
 import { getAiRuntimeConfig } from './settings';
 import { executeTool, listAvailableTools } from './tools/registry';
 
 const HISTORY_CONTEXT_MESSAGES = 20;
-const MAX_TOOL_ROUNDS = 4;
+const MAX_TOOL_ROUNDS = 8;
 
 interface ChatAttachment {
   url: string;
@@ -121,6 +121,17 @@ function buildSystemPrompt(ctx: AuditContext, toolsExposed: number): string {
     lines.push(
       '- Use `request_admin_help` only for ambiguous "I am stuck, please help" requests where filing a ticket would be premature — it just drafts a forwardable template the user copies.',
     );
+    lines.push('');
+    lines.push('Manual sales workflow:');
+    lines.push(
+      '- When the user gives you product names + quantities for manual sales, use `raw_line_items` in `create_manual_sale_draft`. Do NOT call `get_product` for each line item — the server auto-resolves names to product IDs with fuzzy matching. This saves tool rounds and produces more accurate matches.',
+    );
+    lines.push(
+      '- ALWAYS pass `location_id` when creating a manual sale draft. If you already resolved it earlier in this conversation, reuse that ID. Only call `resolve_location` if you genuinely do not know the outlet.',
+    );
+    lines.push(
+      '- Include bracket modifiers exactly as the user/struk typed them (e.g. "Osmanthus Oolong Milk Tea[700ml, Less sugar, Standard ice]") — the server uses them to pick the right variant.',
+    );
   } else {
     lines.push('');
     lines.push(
@@ -155,6 +166,8 @@ export async function sendChatMessage(
     reply: string;
     reasoning?: string;
     toolRoundsExecuted: number;
+    /** Non-null when the system auto-generated a title for the session. */
+    generatedTitle?: string;
   }>
 > {
   const runtimeConfig = await getAiRuntimeConfig(ctx.tenantId);
@@ -346,11 +359,33 @@ export async function sendChatMessage(
     toolPayload: assistantReasoning ? { reasoning_content: assistantReasoning } : undefined,
   });
 
+  // Auto-generate a descriptive title for the session when this is the
+  // first real exchange (session title is still the default placeholder).
+  // Fire-and-forget — we await the title so we can return it to the
+  // frontend, but a failure here never blocks the response.
+  let generatedTitle: string | undefined;
+  const isFirstExchange =
+    session.title === DEFAULT_SESSION_TITLE &&
+    messages.filter((m) => m.role === 'user').length === 0;
+  if (isFirstExchange && assistantContent) {
+    try {
+      await autoGenerateTitle(input.sessionId, trimmed, assistantContent, ctx);
+      // Re-read the session to get the generated title for the frontend.
+      const refreshed = await getAiSession(input.sessionId, ctx);
+      if (refreshed.ok && refreshed.value.session.title !== DEFAULT_SESSION_TITLE) {
+        generatedTitle = refreshed.value.session.title;
+      }
+    } catch {
+      // Best-effort — never block.
+    }
+  }
+
   return ok({
     assistantMessageId,
     reply: assistantContent,
     reasoning: assistantReasoning,
     toolRoundsExecuted: roundsExecuted,
+    generatedTitle,
   });
 }
 
