@@ -7,6 +7,7 @@
 
 'use client';
 
+import { formatQty as formatQuantity } from '@/lib/format-qty';
 import { Select } from '@erp/ui';
 
 import type { OpnameLineResult } from '@erp/services/inventory/opname-service';
@@ -22,9 +23,7 @@ interface Props {
 }
 
 function formatQty(v: string | number | null | undefined): string {
-  if (!v) return '—';
-  const n = typeof v === 'string' ? Number.parseFloat(v) : Number(v);
-  return isNaN(n) ? '—' : n.toLocaleString('id-ID');
+  return formatQuantity(v);
 }
 
 function formatMoney(v: string | number | null | undefined): string {

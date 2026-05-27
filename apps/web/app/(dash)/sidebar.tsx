@@ -217,7 +217,6 @@ export function Sidebar() {
         { label: t('manualSales'), href: '/pos/manual-sales', icon: <></> },
         { label: t('posOrders'), href: '/pos/orders', icon: <></> },
         { label: t('demoMode'), href: '/pos/demo', icon: <></> },
-        { label: t('promotions'), href: '/settings/promotions', icon: <></> },
       ],
     },
     {

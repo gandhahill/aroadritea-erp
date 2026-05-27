@@ -37,7 +37,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ session
   const body = (await req.json().catch(() => ({}))) as {
     content?: string;
     useReasoning?: boolean;
-    attachments?: Array<{ url: string; mimeType: string }>;
+    attachments?: Array<{ url: string; mimeType: string; fileName?: string; fileSize?: number }>;
   };
 
   const encoder = new TextEncoder();

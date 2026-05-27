@@ -265,6 +265,9 @@
       "normalBalance": "Saldo Normal",
       "expandAll": "Buka Semua",
       "collapseAll": "Tutup Semua",
+      "expandNode": "Buka akun turunan",
+      "collapseNode": "Tutup akun turunan",
+      "searchAria": "Cari berdasarkan kode atau nama akun",
       "account": "Akun",
       "subtype": "Subtipe",
       "balance": "Saldo",
@@ -496,7 +499,14 @@
         "failed": "Gagal mencatat transaksi.",
         "plafondRequired": "Plafond kas kecil wajib diisi.",
         "balanceExceedsPlafond": "Modal pembukaan tidak boleh melebihi plafond.",
-        "createFailed": "Gagal membuat akun kas kecil"
+        "createFailed": "Gagal membuat akun kas kecil.",
+        "accountAlreadyExists": "Kas kecil untuk outlet ini sudah pernah dibuka.",
+        "accountsMissing": "Akun kas/kas kecil belum lengkap di COA atau setting POS outlet.",
+        "openingExceedsLimit": "Modal pembukaan tidak boleh melebihi plafond.",
+        "exceedsMaxLimit": "Saldo kas kecil akan melebihi plafond.",
+        "insufficientBalance": "Saldo kas kecil tidak cukup.",
+        "validationFailed": "Periksa kembali nominal dan outlet.",
+        "unauthenticated": "Sesi login sudah habis. Silakan masuk ulang."
       }
     },
     "bankRecon": {
@@ -834,6 +844,10 @@
     "partyLedgerReminders": {
       "label": "Reminder Utang Piutang",
       "description": "Kirim notifikasi jatuh tempo utang/piutang sesuai hari reminder di baris jurnal"
+    },
+    "aiActionDraftsSweeper": {
+      "label": "Pembersih Draft Aksi AI",
+      "description": "Hapus draft aksi AI yang kedaluwarsa agar antrean konfirmasi tetap bersih"
     },
     "fields": {
       "name": "Nama Job",
@@ -2051,7 +2065,9 @@
       "statusOnLeave": "Cuti",
       "statusTerminated": "Diberhentikan",
       "addTitle": "Tambah Karyawan",
-      "addSubtitle": "Masukkan data karyawan baru"
+      "addSubtitle": "Masukkan data karyawan baru",
+      "editTitle": "Edit {name}",
+      "editSubtitle": "Perbarui data karyawan yang sudah tersimpan."
     },
     "contracts": {
       "title": "Kontrak Kerja",

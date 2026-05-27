@@ -497,6 +497,17 @@ async function stageExtractedReceipt(
   };
 }
 
+async function tryLocalReceiptOcr(
+  input: OcrReceiptStrukInput,
+  attachment: AttachmentForOcr,
+  ctx: AuditContext,
+  deps?: OcrReceiptToolDeps,
+): Promise<OcrReceiptStrukOutput | null> {
+  const localText = deps?.localOcrText ?? (await runLocalTesseractOcr(attachment));
+  const localExtracted = localText ? parseLegacyReceiptText(localText, input) : null;
+  return localExtracted ? stageExtractedReceipt(input, localExtracted, ctx, deps) : null;
+}
+
 export async function ocrReceiptStrukTool(
   input: OcrReceiptStrukInput,
   ctx: AuditContext,
@@ -512,11 +523,8 @@ export async function ocrReceiptStrukTool(
   const attachment = await resolveAttachmentForOcr(input.attachment_url, ctx);
 
   if (!config.supportsVision) {
-    const localText = deps?.localOcrText ?? (await runLocalTesseractOcr(attachment));
-    const localExtracted = localText ? parseLegacyReceiptText(localText, input) : null;
-    if (localExtracted) {
-      return stageExtractedReceipt(input, localExtracted, ctx, deps);
-    }
+    const localDraft = await tryLocalReceiptOcr(input, attachment, ctx, deps);
+    if (localDraft) return localDraft;
     return {
       ok: false,
       error: 'vision_not_supported',
@@ -589,20 +597,28 @@ export async function ocrReceiptStrukTool(
       messages,
     });
   } catch (e) {
+    const localDraft = await tryLocalReceiptOcr(input, attachment, ctx, deps);
+    if (localDraft) return localDraft;
     return {
       ok: false,
       error: `provider_error:${e instanceof Error ? e.message : String(e)}`,
+      summary:
+        'Provider AI gagal membaca gambar dan fallback OCR lokal belum berhasil. Minta user mengetik tanggal, outlet, channel, metode bayar, total penjualan, diskon, dan jumlah transaksi dari struk.',
     };
   }
 
   const rawJson = extractFirstJsonBlock(providerResponse.content);
   if (!rawJson) {
+    const localDraft = await tryLocalReceiptOcr(input, attachment, ctx, deps);
+    if (localDraft) return localDraft;
     return { ok: false, error: 'no_json_in_response' };
   }
   let parsed: unknown;
   try {
     parsed = JSON.parse(rawJson);
   } catch {
+    const localDraft = await tryLocalReceiptOcr(input, attachment, ctx, deps);
+    if (localDraft) return localDraft;
     return { ok: false, error: 'invalid_json_in_response' };
   }
   if (
@@ -611,11 +627,15 @@ export async function ocrReceiptStrukTool(
     'error' in (parsed as Record<string, unknown>) &&
     (parsed as { error?: string }).error === 'unreadable'
   ) {
+    const localDraft = await tryLocalReceiptOcr(input, attachment, ctx, deps);
+    if (localDraft) return localDraft;
     return { ok: false, error: 'receipt_unreadable' };
   }
 
   const validated = ExtractedSchema.safeParse(parsed);
   if (!validated.success) {
+    const localDraft = await tryLocalReceiptOcr(input, attachment, ctx, deps);
+    if (localDraft) return localDraft;
     return {
       ok: false,
       error: `invalid_extracted:${validated.error.issues.map((i) => i.message).join('; ')}`,

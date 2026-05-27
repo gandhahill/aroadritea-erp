@@ -44,6 +44,12 @@ import {
   getTodaySalesSummaryTool,
 } from './get-today-sales-summary';
 import {
+  ListLocationsInputSchema,
+  ListProductsInputSchema,
+  listLocationsTool,
+  listProductsTool,
+} from './list-options';
+import {
   LogComplaintDraftInputSchema,
   type LogComplaintDraftToolDeps,
   logComplaintDraftTool,
@@ -233,6 +239,31 @@ registerTool({
 });
 
 registerTool({
+  name: 'list_products',
+  description:
+    'List product options from live ERP data, optionally filtered by partial natural name/SKU or product kind. Use after get_product returns no match or ambiguous candidates, and when the user asks what products exist. Present results as "Mungkin maksud Anda..." instead of inventing product names.',
+  inputSchema: ListProductsInputSchema,
+  parameters: {
+    type: 'object',
+    properties: {
+      query: {
+        type: 'string',
+        description: 'Optional product keyword, partial name, or SKU fragment.',
+      },
+      kind: {
+        type: 'string',
+        enum: ['finished_good', 'raw_material', 'merchandise', 'consumable', 'service'],
+        description: 'Optional product kind filter.',
+      },
+      limit: { type: 'integer', description: 'Cap on returned products (1-50, default 20).' },
+    },
+  },
+  permission: 'inventory.product.read',
+  mutates: false,
+  execute: listProductsTool,
+});
+
+registerTool({
   name: 'get_stock',
   description:
     'Return current on-hand stock for a product (optionally a specific variant) at one outlet. Product and location may be natural names, e.g. "Osmanthus Fresh Tea" at "Plaza 1".',
@@ -292,6 +323,26 @@ registerTool({
   permission: 'ai.assistant.use',
   mutates: false,
   execute: resolveLocationTool,
+});
+
+registerTool({
+  name: 'list_locations',
+  description:
+    'List location options from live ERP data, optionally filtered by partial outlet/location name or code. Use after resolve_location returns no match or ambiguous candidates, and when the user asks what outlets/locations exist. Present results as "Mungkin maksud Anda..." instead of inventing branch names.',
+  inputSchema: ListLocationsInputSchema,
+  parameters: {
+    type: 'object',
+    properties: {
+      query: {
+        type: 'string',
+        description: 'Optional outlet/location keyword, partial name, or code fragment.',
+      },
+      limit: { type: 'integer', description: 'Cap on returned locations (1-50, default 20).' },
+    },
+  },
+  permission: 'ai.assistant.use',
+  mutates: false,
+  execute: listLocationsTool,
 });
 
 registerTool({

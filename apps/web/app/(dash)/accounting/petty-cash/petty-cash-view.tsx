@@ -35,6 +35,11 @@ function formatDate(d: Date | string): string {
   });
 }
 
+function errorKeyTail(error: string): string {
+  const parts = error.split('.');
+  return parts[parts.length - 1] ?? error;
+}
+
 interface Props {
   accounts: PettyCashAccountItem[];
   transactions: Record<string, PettyCashTransactionItem[]>;
@@ -104,15 +109,35 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
     startActionTransition(async () => {
       try {
         if (actionModal === 'topup') {
-          await replenishAction(acct.locationId, amountNum, actionNote || 'Isi ulang kas kecil');
+          const result = await replenishAction(
+            acct.locationId,
+            amountNum,
+            actionNote || t('modalTopupPlaceholder'),
+          );
+          if (!result.ok) {
+            setActionError(translateActionError(result.error, 'errors.failed'));
+            return;
+          }
         } else if (actionModal === 'expense') {
           if (!actionNote.trim()) {
             setActionError(t('errors.noteRequired'));
             return;
           }
-          await expenseAction(acct.locationId, amountNum, actionNote);
+          const result = await expenseAction(acct.locationId, amountNum, actionNote);
+          if (!result.ok) {
+            setActionError(translateActionError(result.error, 'errors.failed'));
+            return;
+          }
         } else if (actionModal === 'deposit_to_bank') {
-          await depositToBankAction(acct.locationId, amountNum, actionNote || t('depositToBank'));
+          const result = await depositToBankAction(
+            acct.locationId,
+            amountNum,
+            actionNote || t('depositToBank'),
+          );
+          if (!result.ok) {
+            setActionError(translateActionError(result.error, 'errors.failed'));
+            return;
+          }
         }
         setActionModal(null);
         router.refresh();
@@ -137,7 +162,11 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
         setErrorMessage(t('errors.balanceExceedsPlafond'));
         return;
       }
-      await createAccountAction(locationId, limitNum, openNum);
+      const result = await createAccountAction(locationId, limitNum, openNum);
+      if (!result.ok) {
+        setErrorMessage(translateActionError(result.error, 'errors.createFailed'));
+        return;
+      }
       router.refresh();
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : t('errors.createFailed'));
@@ -157,6 +186,14 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
     return raw.filter((t) => t.kind === filterKind);
   }, [transactions, selectedAccountId, filterKind]);
 
+  function translateActionError(error: string, fallbackKey: string): string {
+    try {
+      return t(`errors.${errorKeyTail(error)}` as never);
+    } catch {
+      return t(fallbackKey as never);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {errorMessage && (
@@ -173,6 +210,7 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
 
           return (
             <button
+              type="button"
               key={acct.id}
               onClick={() => setSelectedAccountId(acct.id)}
               className={`surface-card interactive w-full p-5 text-left ${
@@ -335,6 +373,7 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
                       : t('depositToBank');
               return (
                 <button
+                  type="button"
                   key={kind}
                   onClick={() => setFilterKind(kind === 'all' ? null : kind)}
                   className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
@@ -447,27 +486,28 @@ export function PettyCashView({ accounts, transactions, emptyLocations }: Props)
               </p>
             </div>
             <div className="space-y-3 p-5">
-              <label className="block">
+              <label htmlFor="pettyCashActionAmount" className="block">
                 <span className="text-xs font-medium uppercase tracking-wider text-brand-ink-2">
                   {t('modalNominal')}
                 </span>
                 <div className="mt-1 flex items-center rounded-md border border-brand-cream-3 bg-card px-3 py-2">
                   <span className="text-sm text-brand-ink-3">Rp</span>
                   <input
+                    id="pettyCashActionAmount"
                     inputMode="numeric"
                     value={actionAmount}
                     onChange={(e) => setActionAmount(e.target.value.replace(/\D/g, ''))}
                     placeholder="0"
                     className="ml-2 flex-1 bg-transparent text-sm text-brand-ink focus:outline-none"
-                    autoFocus
                   />
                 </div>
               </label>
-              <label className="block">
+              <label htmlFor="pettyCashActionNote" className="block">
                 <span className="text-xs font-medium uppercase tracking-wider text-brand-ink-2">
                   {actionModal === 'expense' ? t('modalNoteRequired') : t('modalNoteOptional')}
                 </span>
                 <Input
+                  id="pettyCashActionNote"
                   type="text"
                   value={actionNote}
                   onChange={(e) => setActionNote(e.target.value)}

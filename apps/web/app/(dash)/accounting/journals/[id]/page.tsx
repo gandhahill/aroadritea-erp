@@ -63,7 +63,7 @@ export default async function JournalDetailPage({
       <div className="surface-card p-6">
         <div className="flex items-start justify-between">
           <div>
-            <PageHeader title={<>{journal.number}</>} />
+            <PageHeader title={journal.number} />
             <p className="mt-2 text-sm text-brand-ink-2">{journal.description}</p>
           </div>
         </div>
@@ -72,7 +72,7 @@ export default async function JournalDetailPage({
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <MetaItem label="Posting Date" value={journal.postingDate} />
           <MetaItem label="Reference Type" value={journal.referenceType ?? '-'} />
-          <MetaItem label="Location" value={journal.locationId} />
+          <MetaItem label="Location" value={journal.locationLabel} />
           <MetaItem label="Version" value={`v${journal.version}`} />
         </div>
       </div>

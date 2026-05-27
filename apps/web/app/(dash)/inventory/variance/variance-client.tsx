@@ -10,6 +10,7 @@
 import { FilterBar, FilterField } from '@/components/filter-bar';
 import { PageHeader } from '@/components/page-header';
 import { exportWorkbook } from '@/lib/export-workbook';
+import { formatQty as formatQuantity } from '@/lib/format-qty';
 import type { VarianceReportResult } from '@erp/services/inventory';
 import { Select, TableCell, TableHead } from '@erp/ui';
 import { Button } from '@erp/ui';
@@ -32,8 +33,7 @@ function formatIDR(v: string | number | bigint | null | undefined): string {
 }
 
 function formatQty(v: number | null | undefined): string {
-  if (v == null) return '—';
-  return v.toLocaleString('id-ID');
+  return formatQuantity(v);
 }
 
 function formatDate(iso: string): string {

@@ -2,7 +2,7 @@
 
 import { Button, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
-import { useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import type { ReactNode } from 'react';
 import { type COAAccountDraft, type COANode, deleteCOAAccount, saveCOAAccount } from './actions';
 
@@ -101,6 +101,20 @@ export function COAEditor({ tree }: Props) {
   const accounts = useMemo(() => flatten(tree), [tree]);
 
   const selectedId = draft.id ?? '';
+
+  useEffect(() => {
+    function handleSelect(event: Event) {
+      const id = (event as CustomEvent<{ id?: string }>).detail?.id ?? '';
+      const node = accounts.find((account) => account.id === id);
+      if (!node) return;
+      setDraft(toDraft(node));
+      setReplacementAccountId('');
+      setMessage(null);
+    }
+
+    window.addEventListener('coa:select-account', handleSelect);
+    return () => window.removeEventListener('coa:select-account', handleSelect);
+  }, [accounts]);
 
   function update(patch: Partial<COAAccountDraft>) {
     setDraft((current) => ({ ...current, ...patch }));

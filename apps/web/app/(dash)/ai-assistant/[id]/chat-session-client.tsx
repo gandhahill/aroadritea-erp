@@ -69,6 +69,37 @@ interface PendingAttachment {
   fileSize: number;
 }
 
+function attachmentFileName(attachment: Pick<PendingAttachment, 'url'> & { fileName?: string }) {
+  if (attachment.fileName) return attachment.fileName;
+  const raw = attachment.url.split('/').pop() ?? 'attachment';
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
+function messageAttachments(payload: unknown): PendingAttachment[] {
+  if (!payload || typeof payload !== 'object') return [];
+  const rawAttachments = (payload as { attachments?: unknown }).attachments;
+  if (!Array.isArray(rawAttachments)) return [];
+  return rawAttachments
+    .map((item): PendingAttachment | null => {
+      if (!item || typeof item !== 'object') return null;
+      const value = item as Record<string, unknown>;
+      const url = typeof value.url === 'string' ? value.url : '';
+      const mimeType = typeof value.mimeType === 'string' ? value.mimeType : '';
+      if (!url || !mimeType) return null;
+      const fileName =
+        typeof value.fileName === 'string' && value.fileName
+          ? value.fileName
+          : attachmentFileName({ url });
+      const fileSize = typeof value.fileSize === 'number' ? value.fileSize : 0;
+      return { url, mimeType, fileName, fileSize };
+    })
+    .filter((item): item is PendingAttachment => Boolean(item));
+}
+
 type StreamEvent =
   | { type: 'reasoning_delta'; text: string }
   | { type: 'content_delta'; text: string }
@@ -203,6 +234,7 @@ export function ChatSessionClient(props: Props) {
         id: localId,
         role: 'user',
         content: composedPreview,
+        toolPayload: { attachments: queuedAttachments },
         createdAt: new Date(),
         requiresConfirmation: false,
       },
@@ -228,7 +260,12 @@ export function ChatSessionClient(props: Props) {
             content: value,
             useReasoning,
             attachments: queuedAttachments.length
-              ? queuedAttachments.map((a) => ({ url: a.url, mimeType: a.mimeType }))
+              ? queuedAttachments.map((a) => ({
+                  url: a.url,
+                  mimeType: a.mimeType,
+                  fileName: a.fileName,
+                  fileSize: a.fileSize,
+                }))
               : undefined,
           }),
         });
@@ -377,6 +414,7 @@ export function ChatSessionClient(props: Props) {
                 ? 'bg-brand-cream-2 text-brand-ink'
                 : 'bg-brand-cream-3 text-brand-ink-2';
           const reasoning = m.role === 'assistant' ? getReasoningContent(m.toolPayload) : null;
+          const visibleAttachments = messageAttachments(m.toolPayload);
           return (
             <div key={m.id} className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${bubbleClass}`}>
               <div className="mb-1 text-[10px] uppercase tracking-wide text-brand-ink-3">
@@ -403,6 +441,31 @@ export function ChatSessionClient(props: Props) {
                   <div className="prose prose-sm max-w-none leading-relaxed prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-pre:my-2 prose-pre:p-2 prose-pre:bg-brand-cream-1 prose-pre:text-brand-ink prose-pre:border-brand-cream-3 prose-pre:border">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
                   </div>
+                  {visibleAttachments.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {visibleAttachments.map((attachment) => (
+                        <a
+                          key={attachment.url}
+                          href={attachment.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="block overflow-hidden rounded-md border border-brand-cream-3 bg-card"
+                        >
+                          {attachment.mimeType.startsWith('image/') ? (
+                            <img
+                              src={attachment.url}
+                              alt={attachment.fileName}
+                              className="h-24 w-24 object-cover"
+                            />
+                          ) : (
+                            <span className="block max-w-40 truncate px-2 py-1 text-xs text-brand-ink-2">
+                              {attachment.fileName}
+                            </span>
+                          )}
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               )}
               {m.requiresConfirmation ? (
