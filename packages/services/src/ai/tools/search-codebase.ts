@@ -17,8 +17,12 @@
 
 import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const SearchCodebaseInputSchema = z.object({
   query: z.string().min(2).max(120),
@@ -73,7 +77,7 @@ function timeBudgetMs(): number {
 }
 
 function repoRoot(): string {
-  return process.env.AROADRI_REPO_ROOT ?? process.cwd();
+  return process.env.AROADRI_REPO_ROOT ?? path.resolve(__dirname, '../../../../..');
 }
 
 function isAllowedFile(relativePath: string, extFilter: string | undefined): boolean {

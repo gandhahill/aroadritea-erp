@@ -24,6 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0196 | Fix search_codebase path resolution bug | Antigravity | 2026-05-27 17:21 WIB | 2026-05-27 17:23 WIB | 🟩 DONE | Replaced `process.cwd()` with `__dirname` relative resolution so `searchCodebaseTool` correctly scans the repo root instead of 0 files. |
 | T-0195 | Upgrade OCR fallback to route local text through LLM | Antigravity | 2026-05-27 17:15 WIB | 2026-05-27 17:16 WIB | 🟩 DONE | Refactor `ocr-receipt.ts` to feed Tesseract output into DeepSeek for JSON parsing when `supportsVision` is false. Verified unit tests. |
 | T-0194 | Fix AI OCR receipt parsing for lines without brackets | Antigravity | 2026-05-27 17:07 WIB | 2026-05-27 17:15 WIB | 🟩 DONE | Fixed regex in `ocr-receipt.ts` to capture line items without closing brackets. Verified tests pass. |
 | T-0193 | Patch ERP bug batch: petty cash, variants, HR edit, POS orders, AI OCR/chat attachments | Codex | 2026-05-27 10:32 WIB | 2026-05-27 11:23 WIB | 🟩 DONE | Commit `54b81ed` pushed/deployed. Verified local: services/web typecheck, services tests 611/611, web build, receipt parser. Verified VPS: pull/build, PM2 web/MCP/worker reload, health OK, Tesseract OCR parsed real receipt image as 2026-05-26 / 230000 / 5 tx. |
