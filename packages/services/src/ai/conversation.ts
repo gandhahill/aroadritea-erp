@@ -40,7 +40,7 @@ import { getAiRuntimeConfig } from './settings';
 import { executeTool, listAvailableTools } from './tools/registry';
 
 const HISTORY_CONTEXT_MESSAGES = 20;
-const MAX_TOOL_ROUNDS = 8;
+const MAX_TOOL_ROUNDS = 64;
 
 interface ChatAttachment {
   url: string;
@@ -285,9 +285,9 @@ export async function sendChatMessage(
       };
       providerResponse = stream
         ? await aiCompleteStream(completionRequest, async (delta) => {
-            if (delta.type === 'reasoning') await stream.onReasoningDelta?.(delta.text);
-            if (delta.type === 'content') await stream.onContentDelta?.(delta.text);
-          })
+          if (delta.type === 'reasoning') await stream.onReasoningDelta?.(delta.text);
+          if (delta.type === 'content') await stream.onContentDelta?.(delta.text);
+        })
         : await aiComplete(completionRequest);
     } catch (e) {
       if (e instanceof AiProviderError) {
