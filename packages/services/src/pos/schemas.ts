@@ -95,14 +95,14 @@ export const CreateManualSalesClosingInputSchema = z.object({
   grossSales: z.string().regex(/^\d+$/),
   discountTotal: z.string().regex(/^\d+$/).optional().default('0'),
   transactionCount: z.number().int().min(0).optional().default(0),
-  sourceReference: z.string().max(120).optional(),
-  notes: z.string().max(1000).optional(),
+  sourceReference: z.string().max(120).nullish(),
+  notes: z.string().max(1000).nullish(),
   idempotencyKey: z.string().min(1).max(64),
   lineItems: z
     .array(
       z.object({
         productId: z.string().min(1),
-        variantId: z.string().optional(),
+        variantId: z.string().nullish(),
         name: z.string(),
         qty: z.number().positive(),
         price: z.string(),
