@@ -36,6 +36,10 @@ import {
   type CreateManualSaleDraftToolDeps,
   createManualSaleDraftTool,
 } from './create-manual-sale-draft';
+import {
+  CreateStockAdjustmentDraftInputSchema,
+  createStockAdjustmentDraftTool,
+} from './create-stock-adjustment-draft';
 import { GetProductInputSchema, getProductTool } from './get-product';
 import { GetRecentOrdersInputSchema, getRecentOrdersTool } from './get-recent-orders';
 import { GetStockInputSchema, getStockTool } from './get-stock';
@@ -391,6 +395,38 @@ registerTool({
     ctx: AuditContext,
     deps?: ToolExecutionDeps,
   ) => createManualSaleDraftTool(input, ctx, deps as CreateManualSaleDraftToolDeps | undefined),
+});
+
+registerTool({
+  name: 'create_stock_adjustment_draft',
+  description:
+    'Stage a stock adjustment (waste, damage, correction) as a draft. PREFERRED: pass product names via `raw_line_items` (name + qty_delta, e.g. qty_delta: -2 for waste). Server will auto-resolve names to product IDs and calculate qtyBefore/qtyAfter. Do NOT manually call get_product.',
+  inputSchema: CreateStockAdjustmentDraftInputSchema,
+  parameters: {
+    type: 'object',
+    properties: {
+      location_id: { type: 'string', description: 'Outlet ID' },
+      adjustment_date: { type: 'string', description: 'YYYY-MM-DD' },
+      reason: { type: 'string', description: 'waste | damage | count_correction | other' },
+      notes: { type: 'string', description: 'Operator notes' },
+      raw_line_items: {
+        type: 'array',
+        description: 'Raw items to adjust. Pass negative qty_delta for waste/loss.',
+        items: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            qty_delta: { type: 'number', description: 'Negative for waste/loss, positive for gain' }
+          },
+          required: ['name', 'qty_delta']
+        }
+      }
+    },
+    required: ['adjustment_date', 'reason', 'raw_line_items'],
+  },
+  permission: 'inventory.adjust',
+  mutates: false,
+  execute: (input, ctx, deps) => createStockAdjustmentDraftTool(input, ctx, deps),
 });
 
 registerTool({

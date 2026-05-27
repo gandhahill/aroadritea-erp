@@ -155,7 +155,7 @@ export async function createManualSalesClosing(
     appliedStockDeductions = [];
   };
 
-  if (data.lineItems.length > 0) {
+  if (data.deductBom && data.lineItems.length > 0) {
     for (const line of data.lineItems) {
       const ingredients = await getBOMIngredients(
         ctx.tenantId,

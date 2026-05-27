@@ -127,7 +127,13 @@ function buildSystemPrompt(ctx: AuditContext, toolsExposed: number): string {
       '- When the user gives you product names + quantities for manual sales, use `raw_line_items` in `create_manual_sale_draft`. Do NOT call `get_product` for each line item — the server auto-resolves names to product IDs with fuzzy matching. This saves tool rounds and produces more accurate matches.',
     );
     lines.push(
-      '- ALWAYS pass `location_id` when creating a manual sale draft. If you already resolved it earlier in this conversation, reuse that ID. Only call `resolve_location` if you genuinely do not know the outlet.',
+      '- For "penjualan akumulasi" (accumulated sales without details), simply OMIT `raw_line_items` entirely.',
+    );
+    lines.push(
+      '- If the user wants to record "stock out" (waste, damage, etc.), do NOT use manual sale draft. Use `create_stock_adjustment_draft` and pass the negative qty in `raw_line_items` (e.g., `qty_delta: -2`).',
+    );
+    lines.push(
+      '- ALWAYS pass `location_id` when creating drafts. If you already resolved it earlier in this conversation, reuse that ID. Only call `resolve_location` if you genuinely do not know the outlet.',
     );
     lines.push(
       '- Include bracket modifiers exactly as the user/struk typed them (e.g. "Osmanthus Oolong Milk Tea[700ml, Less sugar, Standard ice]") — the server uses them to pick the right variant.',

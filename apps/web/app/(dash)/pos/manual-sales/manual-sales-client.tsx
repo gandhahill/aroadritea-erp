@@ -32,6 +32,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailData, setDetailData] = useState<any>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [deductBom, setDeductBom] = useState(true);
 
   // Automatically calculate grossSales from lineItems
   useEffect(() => {
@@ -238,6 +239,20 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
               name="lineItemsJson"
               value={JSON.stringify(lineItems.filter((i) => i.productId))}
             />
+            <div className="mt-4 flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="deductBom"
+                name="deductBom"
+                value="true"
+                checked={deductBom}
+                onChange={(e) => setDeductBom(e.target.checked)}
+                className="h-4 w-4 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
+              />
+              <label htmlFor="deductBom" className="text-sm font-medium text-brand-ink">
+                Kurangi Stok BOM Otomatis
+              </label>
+            </div>
           </div>
 
           <Field label={t('grossSales')}>

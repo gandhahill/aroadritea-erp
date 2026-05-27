@@ -502,6 +502,7 @@ async function stageExtractedReceipt(
       gross_sales: extracted.gross_sales,
       discount_total: extracted.discount_total ?? '0',
       transaction_count: extracted.transaction_count ?? 0,
+      deduct_bom: true,
       source_reference: `ocr:${input.attachment_url.slice(0, 100)}`,
       notes: ocrNotesParts.join(' | ') || undefined,
       line_items: realLineItems.map((item) => ({

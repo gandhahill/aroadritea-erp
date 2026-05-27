@@ -30,7 +30,7 @@ import { requirePermission } from '../iam';
 
 const DRAFT_TTL_MINUTES = 30;
 
-export type DraftKind = 'manual_sale' | 'complaint' | 'helpdesk_ticket';
+export type DraftKind = 'manual_sale' | 'complaint' | 'helpdesk_ticket' | 'stock_adjustment';
 
 export interface DraftRow {
   id: string;
@@ -182,6 +182,7 @@ const COMMIT_PERMISSION_BY_KIND: Record<DraftKind, string> = {
   manual_sale: 'pos.transact',
   complaint: 'crm.logComplaint',
   helpdesk_ticket: 'helpdesk.create',
+  stock_adjustment: 'inventory.adjust',
 };
 
 export interface CommitResult {
@@ -299,6 +300,17 @@ async function dispatchCommit(draft: DraftRow, ctx: AuditContext): Promise<strin
       });
       if (!result.ok) {
         throw new Error(result.error.messageKey ?? 'helpdesk.commitFailed');
+      }
+      return result.value.id;
+    }
+    case 'stock_adjustment': {
+      const { createAdjustmentDraft } = await import('../inventory/adjustment-service');
+      const result = await createAdjustmentDraft(draft.payload as never, {
+        ...ctx,
+        locationId: draft.locationId ?? ctx.locationId,
+      });
+      if (!result.ok) {
+        throw new Error(result.error.messageKey ?? 'inventory.adjustFailed');
       }
       return result.value.id;
     }

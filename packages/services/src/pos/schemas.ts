@@ -111,6 +111,7 @@ export const CreateManualSalesClosingInputSchema = z.object({
     )
     .optional()
     .default([]),
+  deductBom: z.boolean().default(true),
 });
 
 export type CreateManualSalesClosingInput = z.infer<typeof CreateManualSalesClosingInputSchema>;

@@ -92,6 +92,8 @@ export const CreateManualSaleDraftInputSchema = z.object({
     qty: z.number().positive().max(999),
     amount: z.string().regex(/^\d+$/),
   })).max(50).optional(),
+  /** Whether to automatically deduct BOM stock for matched items. Defaults to true. */
+  deduct_bom: z.boolean().optional().default(true),
 });
 
 export type CreateManualSaleDraftInput = z.infer<typeof CreateManualSaleDraftInputSchema>;
@@ -263,6 +265,7 @@ export async function createManualSaleDraftTool(
       matchedVariantName: item.matched_variant_name ?? null,
       confidence: item.confidence ?? null,
     })),
+    deductBom: input.deduct_bom,
   };
 
   const gross = Number(input.gross_sales);
@@ -274,6 +277,10 @@ export async function createManualSaleDraftTool(
     `Gross ${IDR.format(gross)}${input.discount_total && input.discount_total !== '0' ? ` (diskon ${IDR.format(Number(input.discount_total))})` : ''}`,
     `${input.transaction_count ?? 0} transaksi`,
   ];
+
+  if (input.deduct_bom === false) {
+    summaryLines.push('⚠ Pengurangan stok BOM dinonaktifkan.');
+  }
 
   const resolvedCount = finalLineItems.length;
   const unresolvedCount = finalDisplayItems.length;

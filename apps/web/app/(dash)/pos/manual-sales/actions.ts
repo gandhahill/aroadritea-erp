@@ -200,6 +200,7 @@ export async function createManualSalesAction(
       notes: text(formData, 'notes') || undefined,
       idempotencyKey: crypto.randomUUID(),
       lineItems,
+      deductBom: formData.get('deductBom') === 'true',
     },
     ctx,
   );
