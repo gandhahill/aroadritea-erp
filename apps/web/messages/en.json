@@ -265,6 +265,9 @@
       "normalBalance": "Normal Balance",
       "expandAll": "Expand All",
       "collapseAll": "Collapse All",
+      "expandNode": "Expand child accounts",
+      "collapseNode": "Collapse child accounts",
+      "searchAria": "Search by account code or name",
       "account": "Account",
       "subtype": "Subtype",
       "balance": "Balance",
@@ -496,7 +499,14 @@
         "failed": "Failed to record transaction.",
         "plafondRequired": "Petty cash limit is required.",
         "balanceExceedsPlafond": "Opening balance cannot exceed the limit.",
-        "createFailed": "Failed to create petty cash account."
+        "createFailed": "Failed to create petty cash account.",
+        "accountAlreadyExists": "Petty cash for this outlet has already been opened.",
+        "accountsMissing": "Cash / petty cash accounts are incomplete in COA or outlet POS settings.",
+        "openingExceedsLimit": "Opening balance cannot exceed the limit.",
+        "exceedsMaxLimit": "Petty cash balance would exceed the limit.",
+        "insufficientBalance": "Petty cash balance is insufficient.",
+        "validationFailed": "Please check the amount and outlet.",
+        "unauthenticated": "Your login session has expired. Please sign in again."
       }
     },
     "bankRecon": {
@@ -1977,7 +1987,9 @@
         "requirePasswordChange": "Require password change"
       },
       "addTitle": "Add Employee",
-      "addSubtitle": "Enter new employee details"
+      "addSubtitle": "Enter new employee details",
+      "editTitle": "Edit {name}",
+      "editSubtitle": "Update an existing employee record."
     },
     "contracts": {
       "title": "Employment Contracts",

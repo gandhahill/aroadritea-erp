@@ -19,7 +19,7 @@ import { type Result, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { can, requirePermission } from '../iam';
-import { decryptPii } from '../security/pii';
+import { decryptPiiForDisplay } from '../security/pii';
 
 export interface EmployeeContract {
   id: string;
@@ -84,6 +84,7 @@ export interface EmployeeDetailResult {
   locationId: string | null;
   createdAt: Date;
   updatedAt: Date;
+  version: number;
   contracts: EmployeeContract[];
   attendanceSummary: AttendanceSummary;
   leaveBalances: LeaveBalanceRow[];
@@ -241,11 +242,11 @@ export async function getEmployee(
 
       const result: EmployeeDetailResult = {
         id: row.id,
-        nik: decryptPii(row.nik, 'employees.nik') ?? row.nik,
+        nik: decryptPiiForDisplay(row.nik, 'employees.nik'),
         name: row.name,
-        email: decryptPii(row.email, 'employees.email') ?? row.email,
-        phone: decryptPii(row.phone, 'employees.phone'),
-        address: decryptPii(row.address, 'employees.address'),
+        email: decryptPiiForDisplay(row.email, 'employees.email') ?? '',
+        phone: decryptPiiForDisplay(row.phone, 'employees.phone'),
+        address: decryptPiiForDisplay(row.address, 'employees.address'),
         status: row.status,
         position: row.position,
         department: row.department,
@@ -253,11 +254,11 @@ export async function getEmployee(
         probationEndDate: row.probationEndDate,
         contractType: row.contractType,
         workSchedule: row.workSchedule,
-        npwp: decryptPii(row.npwp, 'employees.npwp'),
-        bpjsKesehatan: decryptPii(row.bpjsKesehatan, 'employees.bpjsKesehatan'),
-        bpjsTenagakerja: decryptPii(row.bpjsTenagakerja, 'employees.bpjsTenagakerja'),
+        npwp: decryptPiiForDisplay(row.npwp, 'employees.npwp'),
+        bpjsKesehatan: decryptPiiForDisplay(row.bpjsKesehatan, 'employees.bpjsKesehatan'),
+        bpjsTenagakerja: decryptPiiForDisplay(row.bpjsTenagakerja, 'employees.bpjsTenagakerja'),
         emergencyContactName: row.emergencyContactName,
-        emergencyContactPhone: decryptPii(
+        emergencyContactPhone: decryptPiiForDisplay(
           row.emergencyContactPhone,
           'employees.emergencyContactPhone',
         ),
@@ -265,6 +266,7 @@ export async function getEmployee(
         locationId: row.locationId,
         createdAt: row.createdAt!,
         updatedAt: row.updatedAt!,
+        version: row.version,
         contracts: contracts.map((c) => ({
           id: c.id,
           contractType: c.contractType,

@@ -265,6 +265,9 @@
       "normalBalance": "余额方向",
       "expandAll": "全部展开",
       "collapseAll": "全部折叠",
+      "expandNode": "展开下级科目",
+      "collapseNode": "折叠下级科目",
+      "searchAria": "按科目编码或名称搜索",
       "account": "科目",
       "subtype": "子类型",
       "balance": "余额",
@@ -426,7 +429,14 @@
         "failed": "记录交易失败。",
         "plafondRequired": "零用金限额必填。",
         "balanceExceedsPlafond": "期初余额不能超过限额。",
-        "createFailed": "创建零用金账户失败。"
+        "createFailed": "创建零用金账户失败。",
+        "accountAlreadyExists": "该门店的零用金已经开通。",
+        "accountsMissing": "会计科目或门店 POS 设置中的现金 / 零用金账户不完整。",
+        "openingExceedsLimit": "期初余额不能超过限额。",
+        "exceedsMaxLimit": "零用金余额将超过限额。",
+        "insufficientBalance": "零用金余额不足。",
+        "validationFailed": "请检查金额和门店。",
+        "unauthenticated": "登录会话已过期，请重新登录。"
       }
     },
     "bankAccounts": {
@@ -2015,7 +2025,9 @@
         "requirePasswordChange": "要求更改密码"
       },
       "addTitle": "添加员工",
-      "addSubtitle": "输入新员工详细信息"
+      "addSubtitle": "输入新员工详细信息",
+      "editTitle": "编辑 {name}",
+      "editSubtitle": "更新已保存的员工资料。"
     },
     "contracts": {
       "title": "劳动合同",

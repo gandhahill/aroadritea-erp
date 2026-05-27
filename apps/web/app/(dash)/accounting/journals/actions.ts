@@ -32,6 +32,7 @@ export interface JournalListItem {
   description: string;
   referenceType: string | null;
   locationId: string;
+  locationLabel: string;
   totalDebit: string;
   createdAt: Date;
   /** Preview of the journal lines (account code/name + debit/credit). */
@@ -51,6 +52,7 @@ export interface JournalLineDetail {
   debit: string;
   credit: string;
   locationId: string;
+  locationLabel: string;
   partnerName: string | null;
   dueDate: string | null;
   reminderDaysBefore: number | null;
@@ -65,6 +67,7 @@ export interface JournalDetail {
   referenceType: string | null;
   referenceId: string | null;
   locationId: string;
+  locationLabel: string;
   totalDebit: string;
   totalCredit: string;
   version: number;
@@ -298,25 +301,40 @@ export async function fetchJournalList(page = 1, requestedPageSize = 20): Promis
   if (rows.length === 0) return { items: [], total: count, page: currentPage, pageSize };
 
   const ids = rows.map((r) => r.id);
-  const lines = await db
-    .select({
-      journalEntryId: journalLines.journalEntryId,
-      accountCode: accounts.code,
-      accountName: accounts.name,
-      debit: journalLines.debit,
-      credit: journalLines.credit,
-      lineNumber: journalLines.lineNo,
-    })
-    .from(journalLines)
-    .leftJoin(accounts, eq(journalLines.accountId, accounts.id))
-    .where(inArray(journalLines.journalEntryId, ids))
-    .orderBy(asc(journalLines.lineNo));
+  const locationIds = [...new Set(rows.map((r) => r.locationId))];
+  const [lines, locationRows] = await Promise.all([
+    db
+      .select({
+        journalEntryId: journalLines.journalEntryId,
+        accountCode: accounts.code,
+        accountName: accounts.name,
+        debit: journalLines.debit,
+        credit: journalLines.credit,
+        lineNumber: journalLines.lineNo,
+      })
+      .from(journalLines)
+      .leftJoin(accounts, eq(journalLines.accountId, accounts.id))
+      .where(inArray(journalLines.journalEntryId, ids))
+      .orderBy(asc(journalLines.lineNo)),
+    locationIds.length > 0
+      ? db
+          .select({ id: locations.id, code: locations.code, name: locations.name })
+          .from(locations)
+          .where(and(eq(locations.tenantId, ctx.tenantId), inArray(locations.id, locationIds)))
+      : Promise.resolve([]),
+  ]);
 
   const linesByJournal = new Map<
     string,
     Array<{ accountCode: string; accountName: string; debit: string; credit: string }>
   >();
   const locale = await getLocale();
+  const locationById = new Map(
+    locationRows.map((location) => [
+      location.id,
+      `${location.code} - ${pickLocalized(location.name, locale, location.code)}`,
+    ]),
+  );
   for (const line of lines) {
     const arr = linesByJournal.get(line.journalEntryId) ?? [];
     const accountLabel = pickLocalized(line.accountName, locale, line.accountCode ?? '—');
@@ -332,6 +350,7 @@ export async function fetchJournalList(page = 1, requestedPageSize = 20): Promis
   return {
     items: rows.map((r) => ({
       ...r,
+      locationLabel: locationById.get(r.locationId) ?? r.locationId,
       totalDebit: String(r.totalDebit),
       createdAt: r.createdAt ?? new Date(0),
       linesPreview: linesByJournal.get(r.id) ?? [],
@@ -596,6 +615,22 @@ export async function fetchJournalDetail(journalId: string): Promise<JournalDeta
     )
     .where(eq(journalLines.journalEntryId, journalId));
 
+  const locale = await getLocale();
+  const lineLocationIds = [...new Set([entry.locationId, ...lines.map((line) => line.locationId)])];
+  const locationRows =
+    lineLocationIds.length > 0
+      ? await db
+          .select({ id: locations.id, code: locations.code, name: locations.name })
+          .from(locations)
+          .where(and(eq(locations.tenantId, ctx.tenantId), inArray(locations.id, lineLocationIds)))
+      : [];
+  const locationById = new Map(
+    locationRows.map((location) => [
+      location.id,
+      `${location.code} - ${pickLocalized(location.name, locale, location.code)}`,
+    ]),
+  );
+
   // Fetch account details for display
   const accountIds = [...new Set(lines.map((l) => l.accountId))];
   const acctRows =
@@ -617,6 +652,7 @@ export async function fetchJournalDetail(journalId: string): Promise<JournalDeta
     referenceType: entry.referenceType,
     referenceId: entry.referenceId,
     locationId: entry.locationId,
+    locationLabel: locationById.get(entry.locationId) ?? entry.locationId,
     totalDebit: String(entry.totalDebit),
     totalCredit: String(entry.totalCredit),
     version: entry.version,
@@ -632,6 +668,7 @@ export async function fetchJournalDetail(journalId: string): Promise<JournalDeta
         debit: String(l.debit),
         credit: String(l.credit),
         locationId: l.locationId,
+        locationLabel: locationById.get(l.locationId) ?? l.locationId,
         partnerName: l.partnerName,
         dueDate: l.dueDate ? String(l.dueDate) : null,
         reminderDaysBefore: l.reminderDaysBefore,

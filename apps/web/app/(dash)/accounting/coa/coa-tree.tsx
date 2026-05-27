@@ -76,6 +76,10 @@ export function COATreeView({ tree }: COATreeViewProps) {
     setExpandedIds(new Set());
   };
 
+  const selectAccount = (id: string) => {
+    window.dispatchEvent(new CustomEvent('coa:select-account', { detail: { id } }));
+  };
+
   const accountTypes = ['asset', 'liability', 'equity', 'income', 'cogs', 'expense'];
 
   return (
@@ -102,7 +106,7 @@ export function COATreeView({ tree }: COATreeViewProps) {
             <Input
               id="coa-search"
               type="text"
-              aria-label="Search by code or name"
+              aria-label={t('searchAria')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full rounded-md border border-brand-cream-3 bg-brand-cream py-2 pl-9 pr-4 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20 transition-colors"
@@ -192,7 +196,14 @@ export function COATreeView({ tree }: COATreeViewProps) {
                 depth={0}
                 expandedIds={expandedIds}
                 onToggle={toggleExpand}
-                labels={{ active: t('active'), inactive: t('inactive'), typeLabels: TYPE_LABELS }}
+                onSelect={selectAccount}
+                labels={{
+                  active: t('active'),
+                  collapseNode: t('collapseNode'),
+                  expandNode: t('expandNode'),
+                  inactive: t('inactive'),
+                  typeLabels: TYPE_LABELS,
+                }}
                 locale={locale}
               />
             ))}
@@ -210,11 +221,18 @@ interface TreeNodeProps {
   depth: number;
   expandedIds: Set<string>;
   onToggle: (id: string) => void;
-  labels: { active: string; inactive: string; typeLabels: Record<string, string> };
+  onSelect: (id: string) => void;
+  labels: {
+    active: string;
+    collapseNode: string;
+    expandNode: string;
+    inactive: string;
+    typeLabels: Record<string, string>;
+  };
   locale: string;
 }
 
-function TreeNode({ node, depth, expandedIds, onToggle, labels, locale }: TreeNodeProps) {
+function TreeNode({ node, depth, expandedIds, onToggle, onSelect, labels, locale }: TreeNodeProps) {
   const hasChildren = node.children.length > 0;
   const isExpanded = expandedIds.has(node.id);
   const colors = TYPE_COLORS[node.type] ?? {
@@ -226,10 +244,11 @@ function TreeNode({ node, depth, expandedIds, onToggle, labels, locale }: TreeNo
   return (
     <>
       <div
-        className={`group grid grid-cols-12 items-center gap-2 px-4 py-2 text-sm transition-colors hover:bg-brand-cream/70 ${
+        className={`group grid cursor-pointer grid-cols-12 items-center gap-2 px-4 py-2 text-sm transition-colors hover:bg-brand-cream/70 ${
           !node.isActive ? 'opacity-50' : ''
         }`}
         style={{ paddingLeft: `${16 + depth * 24}px` }}
+        onClick={() => onSelect(node.id)}
       >
         {/* Account code + name */}
         <div className="col-span-5 flex items-center gap-2 min-w-0">
@@ -237,9 +256,12 @@ function TreeNode({ node, depth, expandedIds, onToggle, labels, locale }: TreeNo
           {hasChildren ? (
             <button
               type="button"
-              onClick={() => onToggle(node.id)}
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggle(node.id);
+              }}
               className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-brand-ink-3 hover:bg-brand-cream-2 hover:text-brand-ink transition-all"
-              aria-label={isExpanded ? 'Collapse' : 'Expand'}
+              aria-label={isExpanded ? labels.collapseNode : labels.expandNode}
             >
               <svg
                 className={`h-3.5 w-3.5 transition-transform duration-150 ${isExpanded ? 'rotate-90' : ''}`}
@@ -338,6 +360,7 @@ function TreeNode({ node, depth, expandedIds, onToggle, labels, locale }: TreeNo
               depth={depth + 1}
               expandedIds={expandedIds}
               onToggle={onToggle}
+              onSelect={onSelect}
               labels={labels}
               locale={locale}
             />

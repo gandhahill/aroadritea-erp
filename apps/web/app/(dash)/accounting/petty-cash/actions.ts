@@ -43,6 +43,8 @@ export interface PettyCashEmptyLocation {
   code: string;
 }
 
+type PettyCashActionResult<T = unknown> = { ok: true; value: T } | { ok: false; error: string };
+
 function pickName(name: unknown, locale: string, fallback: string): string {
   if (!name) return fallback;
   const rec = name as Record<string, string>;
@@ -225,9 +227,9 @@ export async function createAccountAction(
   locationId: string,
   maxLimit: number,
   openingBalance: number,
-) {
+): Promise<PettyCashActionResult> {
   const session = await getSession();
-  if (!session) throw new Error('Unauthenticated');
+  if (!session) return { ok: false, error: 'common.errors.unauthenticated' };
   const user = session.user as Record<string, unknown>;
   const tenantId = String(user.tenantId ?? 'default');
   const userId = String(user.id ?? '');
@@ -240,14 +242,14 @@ export async function createAccountAction(
     },
     { userId, tenantId, locationId },
   );
-  if (!result.ok) throw new Error(result.error.messageKey);
+  if (!result.ok) return { ok: false, error: result.error.messageKey };
   revalidatePath('/accounting/petty-cash');
-  return result.value;
+  return { ok: true, value: result.value };
 }
 
 async function getActionContext() {
   const session = await getSession();
-  if (!session) throw new Error('Unauthenticated');
+  if (!session) return null;
   const user = session.user as Record<string, unknown>;
   return {
     userId: String(user.id ?? ''),
@@ -255,30 +257,45 @@ async function getActionContext() {
   };
 }
 
-export async function replenishAction(locationId: string, amount: number, description: string) {
+export async function replenishAction(
+  locationId: string,
+  amount: number,
+  description: string,
+): Promise<PettyCashActionResult> {
   const ctx = await getActionContext();
+  if (!ctx) return { ok: false, error: 'common.errors.unauthenticated' };
   const result = await replenishPettyCash(
     { locationId, amount: amount.toString(), description: description || 'Isi ulang kas kecil' },
     { ...ctx, locationId },
   );
-  if (!result.ok) throw new Error(result.error.messageKey);
+  if (!result.ok) return { ok: false, error: result.error.messageKey };
   revalidatePath('/accounting/petty-cash');
-  return result.value;
+  return { ok: true, value: result.value };
 }
 
-export async function expenseAction(locationId: string, amount: number, description: string) {
+export async function expenseAction(
+  locationId: string,
+  amount: number,
+  description: string,
+): Promise<PettyCashActionResult> {
   const ctx = await getActionContext();
+  if (!ctx) return { ok: false, error: 'common.errors.unauthenticated' };
   const result = await recordPettyCashExpense(
     { locationId, amount: amount.toString(), description },
     { ...ctx, locationId },
   );
-  if (!result.ok) throw new Error(result.error.messageKey);
+  if (!result.ok) return { ok: false, error: result.error.messageKey };
   revalidatePath('/accounting/petty-cash');
-  return result.value;
+  return { ok: true, value: result.value };
 }
 
-export async function depositToBankAction(locationId: string, amount: number, description: string) {
+export async function depositToBankAction(
+  locationId: string,
+  amount: number,
+  description: string,
+): Promise<PettyCashActionResult> {
   const ctx = await getActionContext();
+  if (!ctx) return { ok: false, error: 'common.errors.unauthenticated' };
   const result = await depositPettyCashToBank(
     {
       locationId,
@@ -287,7 +304,7 @@ export async function depositToBankAction(locationId: string, amount: number, de
     },
     { ...ctx, locationId },
   );
-  if (!result.ok) throw new Error(result.error.messageKey);
+  if (!result.ok) return { ok: false, error: result.error.messageKey };
   revalidatePath('/accounting/petty-cash');
-  return result.value;
+  return { ok: true, value: result.value };
 }

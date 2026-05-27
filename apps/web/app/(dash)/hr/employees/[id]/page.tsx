@@ -46,8 +46,9 @@ export default async function EmployeeDetailPage({
     tenantId: String(user.tenantId ?? 'default'),
     locationId: String(user.locationId ?? ''),
   };
-  const [t, contractT, attendanceT, leaveT, locale] = await Promise.all([
+  const [t, commonT, contractT, attendanceT, leaveT, locale] = await Promise.all([
     getTranslations('hr.employees'),
+    getTranslations('common.actions'),
     getTranslations('hr.contracts'),
     getTranslations('hr.attendance'),
     getTranslations('hr.leave'),
@@ -81,6 +82,7 @@ export default async function EmployeeDetailPage({
           className="inline-flex items-center gap-1.5 text-sm text-brand-ink-3 transition-colors hover:text-brand-ember-5"
         >
           <svg
+            aria-hidden="true"
             className="h-4 w-4"
             fill="none"
             viewBox="0 0 24 24"
@@ -91,11 +93,19 @@ export default async function EmployeeDetailPage({
           </svg>
           {t('title')}
         </a>
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${statusCfg.bg} ${statusCfg.text}`}
-        >
-          {statusLabel}
-        </span>
+        <div className="flex items-center gap-2">
+          <a
+            href={`/hr/employees/${emp.id}/edit`}
+            className="inline-flex h-8 items-center rounded-md border border-brand-cream-3 px-3 text-xs font-semibold text-brand-ink-2 transition-colors hover:bg-brand-cream-2"
+          >
+            {commonT('edit')}
+          </a>
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${statusCfg.bg} ${statusCfg.text}`}
+          >
+            {statusLabel}
+          </span>
+        </div>
       </div>
 
       <div className="flex items-center gap-4 rounded-xl border border-brand-cream-3 bg-card p-6">

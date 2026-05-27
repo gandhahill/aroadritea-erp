@@ -31,6 +31,7 @@ export interface ProductMasterData {
 export interface ActionState {
   ok?: boolean;
   error?: string;
+  fieldErrors?: Record<string, string>;
   productId?: string;
 }
 
@@ -93,14 +94,14 @@ function positiveNumber(formData: FormData, key: string) {
 }
 
 function localeName(formData: FormData, prefix: string) {
-  // Product names are English-only (per requirement). The form posts a
-  // single `${prefix}En` field; we mirror it into id/zh so the existing
-  // JSONB `{id,en,zh}` shape and `pickLocalized()` consumers keep working.
-  // Older form posts that still include nameId/nameZh are honoured.
-  const en = text(formData, `${prefix}En`);
-  const id = optionalText(formData, `${prefix}Id`) ?? en;
-  const zh = optionalText(formData, `${prefix}Zh`) ?? en;
-  return { id, en, zh };
+  // Some forms post one primary language only (product uses `nameEn`,
+  // variant uses `variantNameId`). Mirror the first non-empty value so
+  // the JSONB `{id,en,zh}` schema remains valid.
+  const enRaw = optionalText(formData, `${prefix}En`);
+  const idRaw = optionalText(formData, `${prefix}Id`);
+  const zhRaw = optionalText(formData, `${prefix}Zh`);
+  const fallback = enRaw ?? idRaw ?? zhRaw ?? '';
+  return { id: idRaw ?? fallback, en: enRaw ?? fallback, zh: zhRaw ?? fallback };
 }
 
 function nullableLocaleDescription(formData: FormData) {
@@ -111,7 +112,6 @@ function nullableLocaleDescription(formData: FormData) {
 }
 
 function errorMessage(error: unknown) {
-  console.error('Action error:', error);
   if (error && typeof error === 'object' && 'message' in error) {
     const msg = String((error as { message: unknown }).message);
     const cause =
@@ -119,6 +119,24 @@ function errorMessage(error: unknown) {
     return msg + cause;
   }
   return String(error);
+}
+
+function validationFieldErrors(error: unknown): Record<string, string> | undefined {
+  if (!error || typeof error !== 'object' || !('details' in error)) return undefined;
+  const details = (error as { details?: unknown }).details;
+  if (!details || typeof details !== 'object' || !('issues' in details)) return undefined;
+  const issues = (details as { issues?: unknown }).issues;
+  if (!Array.isArray(issues)) return undefined;
+
+  const fieldErrors: Record<string, string> = {};
+  for (const issue of issues) {
+    if (!issue || typeof issue !== 'object') continue;
+    const pathValue = (issue as { path?: unknown }).path;
+    const path = Array.isArray(pathValue) ? pathValue.map(String).join('.') : '';
+    const message = String((issue as { message?: unknown }).message ?? '');
+    if (path && message) fieldErrors[path] = message;
+  }
+  return Object.keys(fieldErrors).length > 0 ? fieldErrors : undefined;
 }
 
 // Kinds that belong on the "Produk & Menu" page (i.e. things actually
@@ -312,7 +330,9 @@ export async function createVariantAction(
     ctx,
   );
 
-  if (!result.ok) return { error: errorMessage(result.error) };
+  if (!result.ok) {
+    return { error: errorMessage(result.error), fieldErrors: validationFieldErrors(result.error) };
+  }
   revalidatePath(`/inventory/products/${productId}`);
   return { ok: true, productId };
 }

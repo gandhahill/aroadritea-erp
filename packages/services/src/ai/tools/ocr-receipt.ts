@@ -324,21 +324,43 @@ async function stageExtractedReceipt(
   ctx: AuditContext,
   deps?: OcrReceiptToolDeps,
 ): Promise<OcrReceiptStrukOutput> {
-  const draft = await createManualSaleDraftTool(
-    {
-      location_id: input.location_id,
-      sales_date: extracted.sales_date,
-      channel: input.channel ?? extracted.channel,
-      payment_method: input.payment_method ?? extracted.payment_method,
-      gross_sales: extracted.gross_sales,
-      discount_total: extracted.discount_total ?? '0',
-      transaction_count: extracted.transaction_count ?? 0,
-      source_reference: `ocr:${input.attachment_url.slice(0, 100)}`,
-      notes: extracted.notes,
-    },
-    ctx,
-    deps,
-  );
+  const targetLocationId = input.location_id?.trim() || ctx.locationId?.trim() || '';
+  if (!targetLocationId) {
+    return {
+      ok: false,
+      error: 'location_required',
+      extracted,
+      summary:
+        'OCR berhasil membaca struk, tetapi outlet belum diketahui. Minta user menyebutkan outlet/lokasi sebelum membuat draft penjualan.',
+    };
+  }
+
+  let draft: Awaited<ReturnType<typeof createManualSaleDraftTool>>;
+  try {
+    draft = await createManualSaleDraftTool(
+      {
+        location_id: targetLocationId,
+        sales_date: extracted.sales_date,
+        channel: input.channel ?? extracted.channel,
+        payment_method: input.payment_method ?? extracted.payment_method,
+        gross_sales: extracted.gross_sales,
+        discount_total: extracted.discount_total ?? '0',
+        transaction_count: extracted.transaction_count ?? 0,
+        source_reference: `ocr:${input.attachment_url.slice(0, 100)}`,
+        notes: extracted.notes,
+      },
+      ctx,
+      deps,
+    );
+  } catch (e) {
+    return {
+      ok: false,
+      error: `draft_stage_failed:${e instanceof Error ? e.message : String(e)}`,
+      extracted,
+      summary:
+        'OCR berhasil membaca struk, tetapi draft penjualan belum bisa dibuat. Minta user cek outlet, tanggal, channel, metode bayar, dan nominal sebelum mencoba lagi.',
+    };
+  }
 
   return {
     ok: true,

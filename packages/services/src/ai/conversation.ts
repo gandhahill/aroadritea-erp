@@ -99,7 +99,7 @@ export interface SendChatMessageInput {
   content: string;
   /** Optional image attachments — pass an URL the AI provider can fetch
    *  or a `data:image/...;base64,…` URI. */
-  attachments?: Array<{ url: string; mimeType: string }>;
+  attachments?: Array<{ url: string; mimeType: string; fileName?: string; fileSize?: number }>;
   useReasoning?: boolean;
 }
 

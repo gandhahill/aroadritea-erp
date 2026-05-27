@@ -280,7 +280,7 @@ export function DemoPaymentModal({ grandTotal, onClose }: DemoPaymentModalProps)
                     inputMode="numeric"
                     value={inputAmount}
                     onChange={(event) => setInputAmount(event.target.value.replace(/\D/g, ''))}
-                    placeholder={formatRupiah(remaining.toString())}
+                    placeholder={formatRupiahInputPlaceholder(remaining.toString())}
                     className="h-12 w-full rounded-lg border border-brand-cream-3 bg-card py-2 pl-8 pr-3 text-base font-semibold text-brand-ink placeholder:text-brand-ink-3/50 focus-visible:outline-none focus-visible:shadow-[0_0_0_2px_var(--color-brand-cream),0_0_0_4px_var(--color-brand-red)]"
                   />
                 </div>
@@ -475,6 +475,12 @@ function formatRupiah(value: string | bigint): string {
     currency: 'IDR',
     maximumFractionDigits: 0,
   }).format(num);
+}
+
+function formatRupiahInputPlaceholder(value: string | bigint): string {
+  const num = Number(value);
+  if (Number.isNaN(num)) return '0';
+  return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(num);
 }
 
 function parseMoney(value: string): bigint {

@@ -11,6 +11,7 @@ import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { and, db, eq, gte, isNull, sql } from '@erp/db';
 import { accountingPeriods } from '@erp/db/schema/accounting';
+import { users } from '@erp/db/schema/auth';
 import { attendance, employees } from '@erp/db/schema/hr';
 import { manualSalesClosings, payments, salesOrders, shifts } from '@erp/db/schema/pos';
 import { purchaseOrders } from '@erp/db/schema/purchasing';
@@ -146,6 +147,26 @@ async function loadKpis(tenantId: string) {
   };
 }
 
+async function resolveDashboardDisplayName(user: Record<string, unknown>, fallback: string) {
+  const rawDisplayName = String(user.displayName ?? '').trim();
+  const rawEmail = String(user.email ?? '').trim();
+  if (rawDisplayName && rawDisplayName !== rawEmail) return rawDisplayName;
+
+  const userId = String(user.id ?? '');
+  const tenantId = String(user.tenantId ?? 'default');
+  if (userId) {
+    const [row] = await db
+      .select({ displayName: users.displayName })
+      .from(users)
+      .where(and(eq(users.id, userId), eq(users.tenantId, tenantId)))
+      .limit(1);
+    const dbDisplayName = row?.displayName?.trim();
+    if (dbDisplayName && dbDisplayName !== rawEmail) return dbDisplayName;
+  }
+
+  return fallback;
+}
+
 interface QuickLink {
   href: string;
   key: string;
@@ -213,7 +234,7 @@ export default async function DashboardPage() {
   const userId = String(user.id ?? '');
   const locale = await getLocale();
   const t = await getTranslations('dashboard');
-  const displayName = String(user.displayName ?? user.email ?? t('fallbackUser'));
+  const displayName = await resolveDashboardDisplayName(user, t('fallbackUser'));
 
   const kpis = await loadKpis(tenantId);
 
@@ -243,7 +264,7 @@ export default async function DashboardPage() {
             {hello}, {displayName.split(' ')[0]}.
           </>
         }
-        description={<>{t('subtitle')}</>}
+        description={t('subtitle')}
         eyebrow={<>Aroadri Tea ERP</>}
       />
 

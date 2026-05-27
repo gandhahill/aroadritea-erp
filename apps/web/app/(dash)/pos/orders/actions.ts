@@ -10,11 +10,12 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
+import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/location-options';
 import { pickLocalized } from '@/lib/pick-localized';
 import { and, db, desc, eq, gte, inArray, lte, sql } from '@erp/db';
 import { users } from '@erp/db/schema/auth';
 import { products } from '@erp/db/schema/inventory';
-import { payments, salesOrderLines, salesOrders } from '@erp/db/schema/pos';
+import { payments, salesOrderLines, salesOrders, shifts } from '@erp/db/schema/pos';
 import { requirePermission } from '@erp/services/iam';
 import { refundSale, voidSale } from '@erp/services/pos';
 import type { AuditContext } from '@erp/shared/types';
@@ -58,13 +59,27 @@ async function resolveCtx(): Promise<{ ctx: AuditContext; locationId: string } |
   const session = await getSession();
   if (!session?.user) return null;
   const user = session.user as Record<string, unknown>;
-  const locationId = String(user.locationId ?? '');
+  const userId = String(user.id ?? '');
+  const tenantId = String(user.tenantId ?? 'default');
+  const [activeShift] = await db
+    .select({ locationId: shifts.locationId })
+    .from(shifts)
+    .where(
+      and(eq(shifts.tenantId, tenantId), eq(shifts.openedBy, userId), eq(shifts.status, 'open')),
+    )
+    .orderBy(desc(shifts.openedAt))
+    .limit(1);
+  const sessionLocationId = String(user.locationId ?? '');
+  const locationOptions = await getActiveLocationOptions({ tenantId, locale: 'id', type: 'store' });
+  const locationId =
+    activeShift?.locationId ??
+    resolveDefaultLocationId(locationOptions, undefined, sessionLocationId);
   if (!locationId) return null;
   return {
     locationId,
     ctx: {
-      userId: String(user.id ?? ''),
-      tenantId: String(user.tenantId ?? 'default'),
+      userId,
+      tenantId,
       locationId,
     },
   };

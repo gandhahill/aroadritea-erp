@@ -91,6 +91,17 @@ export function decryptPii(value: string | null | undefined, field: string): str
   ]).toString('utf8');
 }
 
+export function decryptPiiForDisplay(
+  value: string | null | undefined,
+  field: string,
+): string | null {
+  try {
+    return decryptPii(value, field);
+  } catch {
+    return value && !isEncrypted(value) ? value : null;
+  }
+}
+
 export function maskPii(value: string | null | undefined): string | null {
   const plain = value ?? null;
   if (!plain) return null;

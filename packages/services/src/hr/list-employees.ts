@@ -12,7 +12,7 @@ import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, ilike, inArray, or, sql } from 'drizzle-orm';
 import { can, requirePermission } from '../iam';
-import { decryptPii, encryptPiiForLookup } from '../security/pii';
+import { decryptPiiForDisplay, encryptPiiForLookup } from '../security/pii';
 import { type ListEmployeesInput, ListEmployeesInputSchema } from './schemas';
 
 export interface EmployeeListItem {
@@ -147,10 +147,10 @@ export async function listEmployees(
 
       const items: EmployeeListItem[] = rows.map((r) => ({
         id: r.id,
-        nik: decryptPii(r.nik, 'employees.nik') ?? r.nik,
+        nik: decryptPiiForDisplay(r.nik, 'employees.nik'),
         name: r.name,
-        email: r.email,
-        phone: decryptPii(r.phone, 'employees.phone'),
+        email: decryptPiiForDisplay(r.email, 'employees.email') ?? '',
+        phone: decryptPiiForDisplay(r.phone, 'employees.phone'),
         status: r.status,
         position: r.position,
         department: r.department,
