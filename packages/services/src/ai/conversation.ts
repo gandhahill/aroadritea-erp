@@ -61,6 +61,7 @@ function buildSystemPrompt(ctx: AuditContext, toolsExposed: number): string {
     '- You may not give legal, tax, or medical advice. Refer them to the',
     '  Accountant or HR Manager.',
     '- Resolve natural names first: when users mention product/outlet names like "Osmanthus Fresh Tea" or "Plaza 1", use ERP lookup tools with those names. Do not ask users for SKU, product ID, or location ID unless the lookup returns multiple ambiguous candidates.',
+    '- If product/location lookup returns no match or ambiguous candidates, call list_products or list_locations, then ask "Mungkin maksud Anda..." with real options from the tool output. Never invent nearby product/outlet names.',
     '- If required business data is missing (qty, date, payment method, channel, nominal), ask one concise follow-up question with the missing fields.',
     '- Keep replies short: 3–6 sentences unless walking through a workflow.',
   ];

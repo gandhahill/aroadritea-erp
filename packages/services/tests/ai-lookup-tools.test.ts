@@ -116,4 +116,100 @@ describe('AI lookup tools', () => {
       },
     });
   });
+
+  it('lists real location options for a maybe-you-mean fallback', async () => {
+    selectQueue = [
+      {
+        rows: [
+          {
+            id: 'loc-plz',
+            code: 'PLZ',
+            name: {
+              id: 'Aroadri Tea Plaza Malioboro',
+              en: 'Aroadri Tea Plaza Malioboro',
+              zh: 'Aroadri Tea Plaza Malioboro',
+            },
+            type: 'store',
+            status: 'active',
+          },
+          {
+            id: 'loc-office',
+            code: 'YK-OFC',
+            name: {
+              id: 'Kantor Yogyakarta',
+              en: 'Yogyakarta Office',
+              zh: '日惹办公室',
+            },
+            type: 'office',
+            status: 'active',
+          },
+        ],
+      },
+    ];
+
+    const { listLocationsTool } = await import('../src/ai/tools/list-options');
+    const out = await listLocationsTool({ limit: 10 }, ctx);
+
+    expect(out).toMatchObject({
+      found: true,
+      needs_clarification: true,
+      total_returned: 2,
+    });
+    expect(out.locations.map((loc) => loc.code)).toEqual(['PLZ', 'YK-OFC']);
+  });
+
+  it('lists product options with full candidate fields for a maybe-you-mean fallback', async () => {
+    selectQueue = [
+      {
+        rows: [
+          {
+            id: 'prd-ft-osm',
+            sku: 'FT-OSM',
+            name: {
+              id: 'Osmanthus Oolong Fresh Tea',
+              en: 'Osmanthus Oolong Fresh Tea',
+              zh: '桂花乌龙鲜茶',
+            },
+            categoryId: 'cat-fresh-tea',
+            kind: 'finished_good',
+            uom: 'cup',
+            isActive: true,
+            defaultSellPrice: '32000',
+            defaultCostPrice: '0',
+          },
+          {
+            id: 'prd-lft-osm',
+            sku: 'LFT-OSM',
+            name: {
+              id: 'Osmanthus Oolong Lemon Tea',
+              en: 'Osmanthus Oolong Lemon Tea',
+              zh: '桂花乌龙柠檬茶',
+            },
+            categoryId: 'cat-lemon-tea',
+            kind: 'finished_good',
+            uom: 'cup',
+            isActive: true,
+            defaultSellPrice: '43000',
+            defaultCostPrice: '0',
+          },
+        ],
+      },
+    ];
+
+    const { listProductsTool } = await import('../src/ai/tools/list-options');
+    const out = await listProductsTool({ query: 'osmanthus', limit: 10 }, ctx);
+
+    expect(out).toMatchObject({
+      found: true,
+      needs_clarification: true,
+      query: 'osmanthus',
+      total_returned: 2,
+    });
+    expect(out.products[0]).toMatchObject({
+      sku: 'FT-OSM',
+      kind: 'finished_good',
+      uom: 'cup',
+      default_sell_price: '32000',
+    });
+  });
 });
