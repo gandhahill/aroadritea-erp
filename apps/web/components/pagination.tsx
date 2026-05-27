@@ -58,8 +58,33 @@ export function Pagination({
           <span>{t('rows')}</span>
         </div>
         <span className="hidden text-brand-cream-3 sm:inline">|</span>
-        <span>
-          {t('page')} {currentPage} {t('of')} {totalPages} ({totalItems} total)
+        <span className="flex items-center gap-1.5">
+          {t('page')}
+          <input
+            type="number"
+            min={1}
+            max={totalPages}
+            defaultValue={currentPage}
+            key={currentPage} // Forces remount if props change externally
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                const val = Number(e.currentTarget.value);
+                if (val >= 1 && val <= totalPages) {
+                  handlePageChange(val);
+                }
+              }
+            }}
+            onBlur={(e) => {
+              const val = Number(e.target.value);
+              if (val >= 1 && val <= totalPages && val !== currentPage) {
+                handlePageChange(val);
+              } else {
+                e.target.value = String(currentPage);
+              }
+            }}
+            className="w-14 rounded border border-brand-cream-3 bg-white px-1 py-0.5 text-center text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red/20"
+          />
+          {t('of')} {totalPages} ({totalItems} total)
         </span>
       </div>
 
