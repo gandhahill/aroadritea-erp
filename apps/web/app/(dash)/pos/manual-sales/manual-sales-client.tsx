@@ -6,7 +6,7 @@ import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useActionState, useEffect, useState } from 'react';
-import { type ManualSalesPageData, createManualSalesAction } from './actions';
+import { type ManualSalesPageData, createManualSalesAction, fetchManualSaleDetailAction } from './actions';
 import { ExportManualSalesButton } from './export-manual-sales-button';
 
 interface Props {
@@ -29,6 +29,9 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
     }>
   >([]);
   const [grossSales, setGrossSales] = useState('');
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [detailData, setDetailData] = useState<any>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   // Automatically calculate grossSales from lineItems
   useEffect(() => {
@@ -312,7 +315,16 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                 </tr>
               ) : (
                 data.items.map((item) => (
-                  <tr key={item.id} className="text-brand-ink">
+                  <tr key={item.id} className="text-brand-ink cursor-pointer hover:bg-brand-cream/50" onClick={async () => {
+    setDetailModalOpen(true);
+    setDetailData(null);
+    setLoadingDetail(true);
+    const res = await fetchManualSaleDetailAction(item.id);
+    if (res.ok) {
+      setDetailData(res.value);
+    }
+    setLoadingDetail(false);
+  }}>
                     <Td>{item.number}</Td>
                     <Td>{item.salesDate}</Td>
                     <Td>{item.channel}</Td>
@@ -329,6 +341,85 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
         </div>
         <Pagination currentPage={data.page} totalItems={data.total} pageSize={data.pageSize} />
       </section>
+
+      {detailModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
+          <button type="button" aria-label="close" className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDetailModalOpen(false)} />
+          <div className="relative z-10 flex w-full max-w-2xl flex-col rounded-2xl bg-card shadow-2xl overflow-hidden max-h-[90vh]">
+            <div className="border-b border-brand-cream-3 px-6 py-4 flex justify-between items-center bg-brand-cream">
+              <h3 className="text-lg font-semibold text-brand-ink">{t('history')} - Detail</h3>
+              <button type="button" onClick={() => setDetailModalOpen(false)} className="text-brand-ink-3 hover:text-brand-ink">&times;</button>
+            </div>
+            <div className="overflow-y-auto p-6 space-y-6">
+              {loadingDetail ? (
+                <p className="text-center text-sm text-brand-ink-3">Memuat detail...</p>
+              ) : detailData ? (
+                <>
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2 text-brand-ink">{t('products')}</h4>
+                    {detailData.lineItems && detailData.lineItems.length > 0 ? (
+                      <table className="w-full text-sm border border-brand-cream-3 rounded-lg overflow-hidden">
+                        <thead className="bg-brand-cream-2 text-left">
+                          <tr>
+                            <th className="px-3 py-2 font-medium text-brand-ink-2">{t('product')}</th>
+                            <th className="px-3 py-2 font-medium text-brand-ink-2 text-right">{t('qty')}</th>
+                            <th className="px-3 py-2 font-medium text-brand-ink-2 text-right">{t('price')}</th>
+                            <th className="px-3 py-2 font-medium text-brand-ink-2 text-right">{t('total')}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-brand-cream-3">
+                          {detailData.lineItems.map((l: any, i: number) => (
+                            <tr key={i}>
+                              <td className="px-3 py-2 text-brand-ink">{l.name}</td>
+                              <td className="px-3 py-2 text-right text-brand-ink-2">{l.qty}</td>
+                              <td className="px-3 py-2 text-right text-brand-ink-2">{formatRupiah(l.price)}</td>
+                              <td className="px-3 py-2 text-right text-brand-ink-2">{formatRupiah(l.total)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p className="text-sm text-brand-ink-3 italic">Tidak ada rincian produk.</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2 text-brand-ink">Penyesuaian Stok (BOM Terpotong)</h4>
+                    {detailData.stockMovements && detailData.stockMovements.length > 0 ? (
+                      <table className="w-full text-sm border border-brand-cream-3 rounded-lg overflow-hidden">
+                        <thead className="bg-brand-cream-2 text-left">
+                          <tr>
+                            <th className="px-3 py-2 font-medium text-brand-ink-2">Produk / Bahan</th>
+                            <th className="px-3 py-2 font-medium text-brand-ink-2 text-right">Perubahan</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-brand-cream-3">
+                          {detailData.stockMovements.map((m: any, i: number) => (
+                            <tr key={i}>
+                              <td className="px-3 py-2 text-brand-ink">{m.productName}</td>
+                              <td className="px-3 py-2 text-right text-brand-red">{m.qtyDelta} {m.uom}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p className="text-sm text-brand-ink-3 italic">Tidak ada penyesuaian stok yang terpotong.</p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p className="text-center text-sm text-rose-600">Gagal memuat data.</p>
+              )}
+            </div>
+            <div className="border-t border-brand-cream-3 p-4 bg-brand-cream flex justify-end">
+              <Button type="button" variant="secondary" onClick={() => setDetailModalOpen(false)}>
+                Tutup
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

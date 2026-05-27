@@ -7,10 +7,19 @@ import {
   createManualSalesClosing,
   listManualSalesClosings,
   listManualSalesLocations,
+  getManualSalesClosingDetail,
 } from '@erp/services/pos';
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
+
+export async function fetchManualSaleDetailAction(id: string) {
+  const ctx = await getAuditContext();
+  if (!ctx) return { ok: false, error: 'Unauthenticated' };
+  const res = await getManualSalesClosingDetail(id, ctx);
+  if (!res.ok) return { ok: false, error: errorMessage(res.error) };
+  return { ok: true, value: res.value };
+}
 
 export interface ManualSalesPageData {
   locations: Array<{ id: string; label: string; code: string }>;

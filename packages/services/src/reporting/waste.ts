@@ -77,13 +77,7 @@ export async function wasteReport(
         eq(stockAdjustments.tenantId, ctx.tenantId),
         gte(stockAdjustments.adjustmentDate, input.from),
         lte(stockAdjustments.adjustmentDate, input.to),
-        or(
-          ilike(stockAdjustments.reason, '%waste%'),
-          ilike(stockAdjustments.reason, '%susut%'),
-          ilike(stockAdjustments.reason, '%spoil%'),
-          ilike(stockAdjustments.reason, '%basi%'),
-          ilike(stockAdjustments.reason, '%expir%'),
-        )!,
+        inArray(stockAdjustments.reason, ['waste', 'damage']),
       ];
       if (!input.includePending) conditions.push(eq(stockAdjustments.status, 'approved'));
       if (input.locationId) conditions.push(eq(stockAdjustments.locationId, input.locationId));

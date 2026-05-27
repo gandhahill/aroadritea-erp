@@ -355,3 +355,50 @@ export async function listManualSalesLocations(ctx: AuditContext) {
     .orderBy(locations.code);
   return rows;
 }
+
+
+export async function getManualSalesClosingDetail(id: string, ctx: AuditContext) {
+  const permCheck = await requirePermission(ctx.userId, 'pos.transact', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  return tryCatch(
+    async () => {
+      const closing = await db.query.manualSalesClosings.findFirst({
+        where: eq(manualSalesClosings.id, id)
+      });
+      if (!closing || closing.tenantId !== ctx.tenantId) {
+        throw new Error('Not found');
+      }
+
+      const { stockMovements, products } = await import('@erp/db/schema/inventory');
+      const movements = await db
+        .select({
+          productId: stockMovements.productId,
+          productName: products.name,
+          qtyDelta: stockMovements.qtyDelta,
+          uom: stockMovements.uom,
+        })
+        .from(stockMovements)
+        .innerJoin(products, eq(stockMovements.productId, products.id))
+        .where(
+          and(
+            eq(stockMovements.tenantId, ctx.tenantId),
+            eq(stockMovements.referenceType, 'manual_sales_closing'),
+            eq(stockMovements.referenceId, id)
+          )
+        );
+
+      return {
+        closing: toResult(closing),
+        lineItems: closing.lineItemsJson || [],
+        stockMovements: movements.map(m => ({
+          ...m,
+          productName: m.productName as Record<string, string>
+        }))
+      };
+    },
+    (e) => AppError.internal('pos.manualSales.detailFailed', e)
+  );
+}

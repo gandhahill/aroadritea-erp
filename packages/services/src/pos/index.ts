@@ -7,6 +7,7 @@ export {
   createManualSalesClosing,
   listManualSalesClosings,
   listManualSalesLocations,
+  getManualSalesClosingDetail,
 } from './manual-sales';
 export { refundSale } from './refund-sale';
 export { openShift, closeShift, getOpenShift } from './shift-service';

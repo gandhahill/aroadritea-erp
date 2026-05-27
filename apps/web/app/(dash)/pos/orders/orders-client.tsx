@@ -99,7 +99,7 @@ export function OrdersClient({ rows }: Props) {
     const res = await fetchOrderDetail(orderId);
     setLoadingDetail(false);
     if (!res.ok || !res.detail) {
-      setError(res.error ?? 'Gagal memuat detail pesanan.');
+      setError(res.error ?? t('loadError'));
       return;
     }
     setDetail(res.detail);
@@ -131,7 +131,7 @@ export function OrdersClient({ rows }: Props) {
     if (!detail || !modal) return;
     const trimmed = reason.trim();
     if (trimmed.length < 3) {
-      setError('Alasan wajib diisi (minimal 3 karakter).');
+      setError(t('errors.reasonRequired'));
       return;
     }
     startSubmit(async () => {
@@ -142,7 +142,7 @@ export function OrdersClient({ rows }: Props) {
           version: detail.version,
         });
         if (!res.ok) {
-          setError(res.error ?? 'Gagal memproses permintaan.');
+          setError(res.error ?? t('errors.processFailed'));
           return;
         }
       } else {
@@ -150,7 +150,7 @@ export function OrdersClient({ rows }: Props) {
           .filter(([, qty]) => qty > 0)
           .map(([lineId, qty]) => ({ lineId, qty }));
         if (lines.length === 0) {
-          setError('Pilih minimal satu item untuk di-refund.');
+          setError(t('errors.selectOneItem'));
           return;
         }
         const res = await refundOrderAction({
@@ -160,7 +160,7 @@ export function OrdersClient({ rows }: Props) {
           lines,
         });
         if (!res.ok) {
-          setError(res.error ?? 'Gagal memproses permintaan.');
+          setError(res.error ?? t('errors.processFailed'));
           return;
         }
       }
@@ -186,8 +186,8 @@ export function OrdersClient({ rows }: Props) {
               <TableHead className="px-4 py-3">{t('table.orderNo')}</TableHead>
               <TableHead className="px-4 py-3">{t('table.time')}</TableHead>
               <TableHead className="px-4 py-3">{t('table.channel')}</TableHead>
-              <TableHead className="px-4 py-3">Kasir</TableHead>
-              <TableHead className="px-4 py-3">Metode</TableHead>
+              <TableHead className="px-4 py-3">{t('table.cashier')}</TableHead>
+              <TableHead className="px-4 py-3">{t('table.method')}</TableHead>
               <TableHead className="px-4 py-3 text-right">{t('table.total')}</TableHead>
               <TableHead className="px-4 py-3">{t('table.status')}</TableHead>
               <TableHead className="px-4 py-3" />
@@ -250,19 +250,19 @@ export function OrdersClient({ rows }: Props) {
       <aside className="rounded-xl border border-brand-cream-3 bg-card p-4 shadow-sm">
         {!selectedId ? (
           <div className="py-10 text-center text-sm text-brand-ink-3">
-            Pilih pesanan di tabel untuk melihat detail.
+            {t('selectOrderHint')}
           </div>
         ) : loadingDetail ? (
-          <div className="py-10 text-center text-sm text-brand-ink-3">Memuat detail…</div>
+          <div className="py-10 text-center text-sm text-brand-ink-3">{t('loadingDetail')}</div>
         ) : !detail ? (
           <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
-            {error ?? 'Detail tidak tersedia.'}
+            {error ?? t('detailNotAvailable')}
           </div>
         ) : (
           <>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-widest text-brand-ink-3">Pesanan</p>
+                <p className="text-xs uppercase tracking-widest text-brand-ink-3">{t('modal.order')}</p>
                 <p className="font-mono text-base font-semibold text-brand-ink">{detail.number}</p>
                 <p className="mt-0.5 text-xs text-brand-ink-3">
                   {channelLabel(detail.channel, t)} · {detail.cashierName} ·{' '}
@@ -292,10 +292,10 @@ export function OrdersClient({ rows }: Props) {
               <table className="w-full text-xs">
                 <TableHeader className="bg-brand-cream-1 text-left uppercase tracking-wider text-brand-ink-3">
                   <tr>
-                    <th className="px-2.5 py-1.5">Produk</th>
-                    <th className="px-2.5 py-1.5 text-right">Qty</th>
-                    <th className="px-2.5 py-1.5 text-right">Harga</th>
-                    <th className="px-2.5 py-1.5 text-right">Total</th>
+                    <th className="px-2.5 py-1.5">{t('modal.product')}</th>
+                    <th className="px-2.5 py-1.5 text-right">{t('modal.qty')}</th>
+                    <th className="px-2.5 py-1.5 text-right">{t('modal.price')}</th>
+                    <th className="px-2.5 py-1.5 text-right">{t('modal.total')}</th>
                   </tr>
                 </TableHeader>
                 <TableBody className="divide-y divide-brand-cream-3">
@@ -316,15 +316,15 @@ export function OrdersClient({ rows }: Props) {
             </div>
 
             <dl className="mt-3 space-y-1 text-xs text-brand-ink-2">
-              <Row label="Subtotal" value={formatRupiah(detail.subtotal)} />
+              <Row label={t('modal.subtotal')} value={formatRupiah(detail.subtotal)} />
               {detail.discountTotal !== '0' ? (
-                <Row label="Diskon" value={`-${formatRupiah(detail.discountTotal)}`} />
+                <Row label={t('modal.discount')} value={`-${formatRupiah(detail.discountTotal)}`} />
               ) : null}
-              <Row label="PB1 (incl.)" value={formatRupiah(detail.taxTotal)} />
-              <Row label="Total" value={formatRupiah(detail.grandTotal)} bold />
+              <Row label={t('modal.taxIncl')} value={formatRupiah(detail.taxTotal)} />
+              <Row label={t('modal.total')} value={formatRupiah(detail.grandTotal)} bold />
               <div className="mt-2 border-t border-dashed border-brand-cream-3 pt-2 space-y-0.5">
                 {detail.paymentRows.length === 0 ? (
-                  <p className="text-brand-ink-3">Belum ada pembayaran.</p>
+                  <p className="text-brand-ink-3">{t('modal.noPayments')}</p>
                 ) : (
                   detail.paymentRows.map((p) => (
                     <div key={p.id} className="flex justify-between">
@@ -336,7 +336,7 @@ export function OrdersClient({ rows }: Props) {
               </div>
               {detail.notes ? (
                 <p className="mt-2 rounded-md bg-brand-cream-1 px-2 py-1.5 text-[11px] text-brand-ink-3">
-                  <span className="font-semibold">Catatan: </span>
+                  <span className="font-semibold">{t('modal.note')}: </span>
                   {detail.notes}
                 </p>
               ) : null}
@@ -348,18 +348,18 @@ export function OrdersClient({ rows }: Props) {
                 disabled={detail.status !== 'open'}
                 onClick={() => openModal('void')}
                 className="flex-1 rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-40"
-                title={detail.status !== 'open' ? 'Hanya pesanan terbuka yang bisa di-void.' : ''}
+                title={detail.status !== 'open' ? t('modal.voidHint') : ''}
               >
-                Void Pesanan
+                {t('modal.voidBtn')}
               </button>
               <button
                 type="button"
                 disabled={detail.status !== 'paid'}
                 onClick={() => openModal('refund')}
                 className="flex-1 rounded-md border border-brand-clay/40 bg-brand-clay-light px-3 py-2 text-xs font-semibold text-brand-clay hover:bg-brand-clay/15 disabled:cursor-not-allowed disabled:opacity-40"
-                title={detail.status !== 'paid' ? 'Hanya pesanan lunas yang bisa di-refund.' : ''}
+                title={detail.status !== 'paid' ? t('modal.refundHint') : ''}
               >
-                Refund Pesanan
+                {t('modal.refundBtn')}
               </button>
             </div>
 
@@ -379,27 +379,27 @@ export function OrdersClient({ rows }: Props) {
           <div className="relative z-10 flex w-full max-w-md flex-col rounded-t-2xl bg-card shadow-2xl sm:rounded-2xl">
             <div className="border-b border-brand-cream-3 px-5 py-4">
               <h3 className="text-base font-semibold text-brand-ink">
-                {modal === 'void' ? 'Void Pesanan' : 'Refund Pesanan'} · {detail.number}
+                {modal === 'void' ? t('modal.voidTitle') : t('modal.refundTitle')} · {detail.number}
               </h3>
               <p className="mt-0.5 text-xs text-brand-ink-3">
                 {modal === 'void'
-                  ? 'Void hanya bisa dilakukan pada pesanan terbuka — tidak akan membalik jurnal karena belum diposting.'
-                  : 'Refund membalik jurnal asli, mengembalikan stok bahan baku, dan menandai pesanan sebagai refunded.'}
+                  ? t('modal.voidDesc')
+                  : t('modal.refundDesc')}
               </p>
             </div>
             <div className="space-y-3 p-5">
               {modal === 'refund' && detail ? (
                 <div>
                   <span className="text-xs font-medium uppercase tracking-wider text-brand-ink-2">
-                    Item & Qty Refund
+                    {t('modal.refundItemQty')}
                   </span>
                   <div className="mt-1 rounded-md border border-brand-cream-3">
                     <table className="w-full text-xs">
                       <TableHeader className="bg-brand-cream-1 text-left uppercase tracking-wider text-brand-ink-3">
                         <tr>
-                          <th className="px-2.5 py-1.5">Produk</th>
-                          <th className="px-2.5 py-1.5 text-right">Asli</th>
-                          <th className="w-20 px-2.5 py-1.5 text-right">Refund</th>
+                          <th className="px-2.5 py-1.5">{t('modal.product')}</th>
+                          <th className="px-2.5 py-1.5 text-right">{t('modal.original')}</th>
+                          <th className="w-20 px-2.5 py-1.5 text-right">{t('modal.refund')}</th>
                         </tr>
                       </TableHeader>
                       <TableBody className="divide-y divide-brand-cream-3">
@@ -439,7 +439,7 @@ export function OrdersClient({ rows }: Props) {
                     </table>
                   </div>
                   <p className="mt-1.5 text-right text-xs font-medium text-brand-ink">
-                    Est. refund:{' '}
+                    {t('modal.estRefund')}{' '}
                     <span className="tabular-nums">
                       {formatRupiah(
                         detail.lines.reduce((sum, l) => {
@@ -456,7 +456,7 @@ export function OrdersClient({ rows }: Props) {
 
               <label className="block">
                 <span className="text-xs font-medium uppercase tracking-wider text-brand-ink-2">
-                  Alasan
+                  {t('modal.reason')}
                 </span>
                 <textarea
                   value={reason}
@@ -465,14 +465,14 @@ export function OrdersClient({ rows }: Props) {
                   maxLength={255}
                   placeholder={
                     modal === 'void'
-                      ? 'mis. pelanggan batal pesan'
-                      : 'mis. minuman tumpah, salah produk, dsb.'
+                      ? t('modal.reasonPlaceholderVoid')
+                      : t('modal.reasonPlaceholderRefund')
                   }
                   className="mt-1 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
                   autoFocus={modal === 'void'}
                 />
                 <p className="mt-0.5 text-[11px] text-brand-ink-3">
-                  Alasan akan disimpan di audit log dan tidak bisa diubah.
+                  {t('modal.reasonHint')}
                 </p>
               </label>
               {error ? <p className="text-xs text-rose-600">{error}</p> : null}
@@ -484,7 +484,7 @@ export function OrdersClient({ rows }: Props) {
                 disabled={submitting}
                 className="h-10 rounded-md border border-brand-cream-3 text-sm font-medium text-brand-ink-2 hover:bg-brand-cream-2 disabled:opacity-50"
               >
-                Batal
+                {t('modal.cancelBtn')}
               </button>
               <button
                 type="button"
@@ -497,10 +497,10 @@ export function OrdersClient({ rows }: Props) {
                 }`}
               >
                 {submitting
-                  ? 'Memproses…'
+                  ? t('modal.processingBtn')
                   : modal === 'void'
-                    ? 'Konfirmasi Void'
-                    : 'Konfirmasi Refund'}
+                    ? t('modal.confirmVoidBtn')
+                    : t('modal.confirmRefundBtn')}
               </button>
             </div>
           </div>
