@@ -368,6 +368,19 @@ registerTool({
       transaction_count: { type: 'integer', description: 'Optional transaction count.' },
       source_reference: { type: 'string', description: 'Optional reference, e.g. receipt file.' },
       notes: { type: 'string', description: 'Operator notes / OCR caveats.' },
+      raw_line_items: {
+        type: 'array',
+        description: 'Raw items (name, qty, amount) from user input or OCR. The tool automatically maps these to product IDs and deducts BOM.',
+        items: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', description: 'Product name as typed/printed' },
+            qty: { type: 'integer', description: 'Quantity' },
+            amount: { type: 'string', description: 'Line total amount as integer string' }
+          },
+          required: ['name', 'qty', 'amount']
+        }
+      }
     },
     required: ['sales_date', 'gross_sales'],
   },

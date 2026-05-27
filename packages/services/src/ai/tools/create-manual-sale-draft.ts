@@ -19,6 +19,7 @@
 import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
 import { createDraft } from '../drafts';
+import { resolveOcrLineItems, type ResolvedLineItem, type UnresolvedLineItem } from './resolve-line-items';
 import { type LocationCandidate, findLocationCandidates } from './resolve-location';
 
 const DisplayLineItemSchema = z.object({
@@ -83,6 +84,14 @@ export const CreateManualSaleDraftInputSchema = z.object({
    *  confirmation summary so the cashier sees "is this the right
    *  outlet?" at a glance. */
   outlet_hint: z.string().min(1).max(200).optional(),
+  /** Raw line items (e.g. typed by the user or from OCR) where the productId is unknown.
+   *  The system will automatically fuzzy-match these against the product catalog and
+   *  move successful matches into line_items so BOM deduction works. */
+  raw_line_items: z.array(z.object({
+    name: z.string().min(1).max(200),
+    qty: z.number().positive().max(999),
+    amount: z.string().regex(/^\d+$/),
+  })).max(50).optional(),
 });
 
 export type CreateManualSaleDraftInput = z.infer<typeof CreateManualSaleDraftInputSchema>;
@@ -178,13 +187,45 @@ export async function createManualSaleDraftTool(
       };
     }
   }
+
+  let finalLineItems = input.line_items ? [...input.line_items] : [];
+  let finalDisplayItems = input.display_line_items ? [...input.display_line_items] : [];
+
+  if (input.raw_line_items && input.raw_line_items.length > 0) {
+    const resolvedItems = await resolveOcrLineItems(input.raw_line_items, ctx);
+    const resolvedLineItems = resolvedItems.filter((i): i is ResolvedLineItem => i.resolved);
+    const unresolvedLineItems = resolvedItems.filter((i): i is UnresolvedLineItem => !i.resolved);
+
+    for (const item of resolvedLineItems) {
+      finalLineItems.push({
+        productId: item.productId,
+        variantId: item.variantId,
+        name: item.name,
+        qty: item.qty,
+        price: item.price,
+        total: item.total,
+        matched_product_sku: item.matchedProductSku,
+        matched_product_name: item.matchedProductName,
+        matched_variant_name: item.matchedVariantName,
+        confidence: item.confidence,
+      });
+    }
+    for (const item of unresolvedLineItems) {
+      finalDisplayItems.push({
+        name: item.name,
+        qty: item.qty,
+        amount: item.total,
+      });
+    }
+  }
+
   const idempotencyKey = `ai-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
   // Map to the camelCase shape CreateManualSalesClosingInputSchema
-  // expects. The schema's `lineItems` requires productId/qty/price/total
+  // expects.  // The schema's `lineItems` requires productId/qty/price/total
   // — extra metadata (matched_*, confidence) gets stripped at commit
   // time but is preserved on the draft payload for audit.
-  const lineItems = (input.line_items ?? []).map((item) => ({
+  const lineItems = finalLineItems.map((item) => ({
     productId: item.productId,
     variantId: item.variantId,
     name: item.name,
@@ -211,10 +252,10 @@ export async function createManualSaleDraftTool(
     // Display-only rows for items OCR couldn't match. Stripped by
     // CreateManualSalesClosingInputSchema at commit time but rendered
     // on the ConfirmActionCard so the cashier can correct manually.
-    displayLineItems: input.display_line_items ?? [],
+    displayLineItems: finalDisplayItems,
     outletHint: input.outlet_hint ?? null,
     // Match metadata for the card. Stripped at commit.
-    lineItemBadges: (input.line_items ?? []).map((item) => ({
+    lineItemBadges: finalLineItems.map((item) => ({
       productId: item.productId,
       variantId: item.variantId ?? null,
       matchedProductSku: item.matched_product_sku ?? null,
@@ -234,13 +275,13 @@ export async function createManualSaleDraftTool(
     `${input.transaction_count ?? 0} transaksi`,
   ];
 
-  const resolvedCount = input.line_items?.length ?? 0;
-  const unresolvedCount = input.display_line_items?.length ?? 0;
+  const resolvedCount = finalLineItems.length;
+  const unresolvedCount = finalDisplayItems.length;
   if (resolvedCount > 0 || unresolvedCount > 0) {
     summaryLines.push(
       `Rincian: ${resolvedCount} item terhubung BOM, ${unresolvedCount} item belum bisa di-match.`,
     );
-    for (const item of input.line_items ?? []) {
+    for (const item of finalLineItems) {
       const confidenceMark =
         item.confidence === 'high' ? '✓' : item.confidence === 'low' ? '⚠' : '·';
       const matchedSuffix = item.matched_product_name
@@ -250,7 +291,7 @@ export async function createManualSaleDraftTool(
         `${confidenceMark} ${item.name} × ${item.qty} — ${IDR.format(Number(item.total))}${matchedSuffix}`,
       );
     }
-    for (const item of input.display_line_items ?? []) {
+    for (const item of finalDisplayItems) {
       summaryLines.push(
         `⚠ ${item.name} × ${item.qty} — ${IDR.format(Number(item.amount))} (belum match, stok TIDAK dikurangi)`,
       );
