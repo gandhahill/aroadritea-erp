@@ -2,7 +2,7 @@
 
 ## Status
 
-🟨 IN_PROGRESS
+🟩 DONE
 
 ## Owner
 
@@ -59,8 +59,15 @@ Patch user-reported production bugs:
 - PASS: `pnpm --filter @erp/web build`
 - PASS: provided receipt image opened locally: `D:\KERJA\Aroadri Tea\WhatsApp Image 2026-05-26 at 14.09.18.jpeg`; visible values are Plaza Malioboro, `2026-05-26`, `Total sales: 5`, `Amount Received: Rp230000`.
 - PASS: parser smoke with text transcribed from that image returned `sales_date=2026-05-26`, `gross_sales=230000`, `transaction_count=5`.
-- NOTE: local Windows does not have `tesseract.exe`; verify/install Tesseract on VPS before final OCR runtime claim.
+- PASS: commit `54b81ed` pushed to `origin/codex/t-0191-vps-ai-ui-fixes`.
+- PASS: VPS already has `/usr/bin/tesseract` 5.3.4.
+- PASS: VPS `git pull --ff-only origin codex/t-0191-vps-ai-ui-fixes`.
+- PASS: VPS `pnpm --filter @erp/web build`.
+- PASS: VPS `pm2 reload aroadri-web`, `aroadri-mcp`, `aroadri-worker`; all online.
+- PASS: VPS local health: web `127.0.0.1:3000/api/healthz`, site `127.0.0.1:3001/api/healthz`, MCP `127.0.0.1:3002/healthz`.
+- PASS: public health: `https://erp.aroadritea.com/api/healthz`.
+- PASS: VPS OCR runtime on the provided real image via Tesseract + service parser returned `sales_date=2026-05-26`, `gross_sales=230000`, `transaction_count=5`.
 
 ## Next step
 
-Commit and push local patch, then SSH to VPS, ensure Tesseract OCR binary exists (install if missing), pull/build the branch, reload PM2, and smoke test health + OCR runtime.
+No pending next step for T-0193. If new UI regressions are found, open a new task/checkpoint with the affected module and exact reproduction path.
