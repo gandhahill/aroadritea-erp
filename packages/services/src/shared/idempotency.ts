@@ -100,6 +100,7 @@ export async function saveIdempotency(
   await tx
     .insert(idempotencyRecords)
     .values({
+      id: generateId(),
       idempotencyKey,
       locationId,
       responseStatus,
