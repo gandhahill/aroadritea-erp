@@ -136,9 +136,9 @@ async function loadKpis(tenantId: string) {
     .limit(1);
 
   return {
-    todayGross: (todaySales?.gross ?? 0n) + (todayManualSales?.gross ?? 0n),
-    todayOrders: (todaySales?.orders ?? 0) + (todayManualSales?.orders ?? 0),
-    monthGross: (monthSales?.gross ?? 0n) + (monthManualSales?.gross ?? 0n),
+    todayGross: BigInt(todaySales?.gross ?? 0) + BigInt(todayManualSales?.gross ?? 0),
+    todayOrders: Number(todaySales?.orders ?? 0) + Number(todayManualSales?.orders ?? 0),
+    monthGross: BigInt(monthSales?.gross ?? 0) + BigInt(monthManualSales?.gross ?? 0),
     openShifts: openShifts?.count ?? 0,
     openPos: openPos?.count ?? 0,
     lateToday: lateToday?.count ?? 0,
