@@ -37,6 +37,7 @@ import {
   type CreateManualSaleDraftToolDeps,
   createManualSaleDraftTool,
 } from './create-manual-sale-draft';
+import { type LocationCandidate, findLocationCandidates } from './resolve-location';
 
 const execFile = promisify(execFileCb);
 const MAX_LOCAL_OCR_BYTES = 10 * 1024 * 1024;
@@ -57,6 +58,12 @@ export const OcrReceiptStrukInputSchema = z.object({
 
 export type OcrReceiptStrukInput = z.infer<typeof OcrReceiptStrukInputSchema>;
 
+export interface ExtractedLineItem {
+  name: string;
+  qty: number;
+  amount: string;
+}
+
 interface ExtractedReceipt {
   sales_date: string;
   channel: string;
@@ -64,6 +71,9 @@ interface ExtractedReceipt {
   gross_sales: string;
   discount_total?: string;
   transaction_count?: number;
+  outlet_hint?: string;
+  outlet_address?: string;
+  line_items?: ExtractedLineItem[];
   notes?: string;
 }
 
@@ -205,6 +215,12 @@ function extractFirstJsonBlock(text: string): string | null {
   return match?.[1]?.trim() ?? null;
 }
 
+const LineItemSchema = z.object({
+  name: z.string().min(1).max(200),
+  qty: z.number().positive().max(999),
+  amount: z.string().regex(/^\d+$/),
+});
+
 const ExtractedSchema = z.object({
   sales_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   channel: z.string().min(2).max(32).default('walk_in'),
@@ -215,6 +231,9 @@ const ExtractedSchema = z.object({
   gross_sales: z.string().regex(/^\d+$/),
   discount_total: z.string().regex(/^\d+$/).optional(),
   transaction_count: z.number().int().min(0).optional(),
+  outlet_hint: z.string().min(1).max(200).optional(),
+  outlet_address: z.string().min(1).max(300).optional(),
+  line_items: z.array(LineItemSchema).max(50).optional(),
   notes: z.string().max(500).optional(),
 });
 
@@ -222,10 +241,82 @@ export interface OcrReceiptStrukOutput {
   ok: boolean;
   error?: string;
   extracted?: ExtractedReceipt;
+  /** Populated when location cannot be resolved — the model should call
+   *  `resolve_location` with `outlet_hint` or ask the user which outlet. */
+  outlet_hint?: string;
+  /** Up to 5 location candidates when outlet_hint matches >1 outlet. */
+  location_candidates?: Array<{ id: string; code: string; name: Record<string, unknown> }>;
   draft_id?: string;
   expires_at?: string;
   summary?: string;
   requires_confirmation?: true;
+}
+
+function extractOutletHintFromText(text: string): string | undefined {
+  // Header on the legacy POS is typically the FIRST non-empty printed
+  // line, e.g. "AROADRI TEA Plaza Malioboro" — sometimes split across
+  // two lines by the printer. Find the line directly before
+  // "Product Sales Report" and strip the brand prefix.
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+  let header: string | undefined;
+  const reportIdx = lines.findIndex((line) => /product\s*sales\s*report/i.test(line));
+  if (reportIdx > 0) {
+    // Take the line(s) before the report title — handle the line-wrap
+    // case where "Plaza Mali" is on one line and "oboro" on the next.
+    const headerLines = lines.slice(0, reportIdx).join(' ');
+    header = headerLines;
+  } else if (lines.length > 0) {
+    header = lines[0];
+  }
+  if (!header) return undefined;
+  const cleaned = header
+    .replace(/aroadri\s*tea/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return cleaned.length > 0 ? cleaned.slice(0, 200) : undefined;
+}
+
+function extractLineItemsFromText(text: string): ExtractedLineItem[] {
+  // Strategy: split on newlines, then for each line look for a pattern
+  // where a product name (with bracketed modifiers) is followed by an
+  // integer qty and an integer amount at the end. The legacy printer
+  // sometimes wraps a long product name onto a second line — we glue
+  // any line ending in an open bracket to the next.
+  const rawLines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  // Join wrapped product lines (closing bracket missing).
+  const joined: string[] = [];
+  for (const line of rawLines) {
+    const prev = joined[joined.length - 1];
+    if (prev?.includes('[') && !prev.includes(']') && !/^[\[\{]?\d+[\]\}]?$/.test(line)) {
+      joined[joined.length - 1] = `${prev} ${line}`;
+    } else {
+      joined.push(line);
+    }
+  }
+
+  const items: ExtractedLineItem[] = [];
+  // Match: <name with brackets>  <qty>  <amount>
+  // Amount is at least 3 digits (allowing thin separators .,).
+  const itemRe = /^(.+?\])\s+(\d{1,3})\s+([0-9][0-9.,]{2,})\s*$/;
+  for (const line of joined) {
+    // Skip the bracketed category total line "[Milk Tea] [5] [230000]".
+    if (/^\[[^\]]+\]\s*\[\d+\]\s*\[[\d.,]+\]\s*$/.test(line)) continue;
+    const match = line.match(itemRe);
+    if (!match) continue;
+    const [, name, qtyStr, amountStr] = match;
+    const qty = Number(qtyStr);
+    const amount = (amountStr ?? '').replace(/\D/g, '');
+    if (!name || !Number.isFinite(qty) || qty <= 0 || !amount) continue;
+    items.push({ name: name.trim().slice(0, 200), qty, amount });
+    if (items.length >= 50) break;
+  }
+  return items;
 }
 
 export function parseLegacyReceiptText(
@@ -275,12 +366,17 @@ export function parseLegacyReceiptText(
           ? 'ewallet'
           : 'cash';
 
+  const outletHint = extractOutletHintFromText(text);
+  const lineItems = extractLineItemsFromText(text);
+
   return {
     sales_date: date.replace(/\//g, '-'),
     channel: hints.channel ?? inferredChannel,
     payment_method: hints.payment_method ?? inferredPayment,
     gross_sales: grossSales,
     transaction_count: transactionCount ? Number(transactionCount) : undefined,
+    outlet_hint: outletHint,
+    line_items: lineItems.length > 0 ? lineItems : undefined,
     notes:
       'OCR lokal dari Product Sales Report lama; cek ulang channel/metode bayar bila struk tidak menampilkannya jelas.',
   };
@@ -318,15 +414,50 @@ async function resolveRuntimeConfig(
   }
 }
 
+function summariseCandidate(c: LocationCandidate): {
+  id: string;
+  code: string;
+  name: Record<string, unknown>;
+} {
+  return { id: c.id, code: c.code, name: c.name };
+}
+
 async function stageExtractedReceipt(
   input: OcrReceiptStrukInput,
   extracted: ExtractedReceipt,
   ctx: AuditContext,
   deps?: OcrReceiptToolDeps,
 ): Promise<OcrReceiptStrukOutput> {
+  // Resolve outlet: prefer explicit input/session location; otherwise
+  // try to auto-match the outlet_hint printed on the receipt header so
+  // the cashier doesn't have to type the outlet name twice.
+  let resolvedLocationId: string | undefined =
+    input.location_id?.trim() || ctx.locationId?.trim() || undefined;
+  let candidates: LocationCandidate[] = [];
+  if (!resolvedLocationId && extracted.outlet_hint) {
+    candidates = await findLocationCandidates(extracted.outlet_hint, ctx, 5);
+    const only = candidates.length === 1 ? candidates[0] : undefined;
+    if (only) {
+      resolvedLocationId = only.id;
+    }
+  }
+
+  if (!resolvedLocationId) {
+    return {
+      ok: false,
+      error: 'location_required',
+      extracted,
+      outlet_hint: extracted.outlet_hint,
+      location_candidates: candidates.length > 0 ? candidates.map(summariseCandidate) : undefined,
+      summary: extracted.outlet_hint
+        ? `OCR berhasil. Struk menyebut outlet "${extracted.outlet_hint}" tapi tidak ada outlet yang cocok di sesi. Minta user mengonfirmasi outlet, lalu panggil create_manual_sale_draft langsung dengan location_id yang benar.`
+        : 'OCR berhasil tapi outlet tidak tercetak di struk. Tanyakan outlet ke user, lalu panggil create_manual_sale_draft dengan location_id yang benar.',
+    };
+  }
+
   const draft = await createManualSaleDraftTool(
     {
-      location_id: input.location_id,
+      location_id: resolvedLocationId,
       sales_date: extracted.sales_date,
       channel: input.channel ?? extracted.channel,
       payment_method: input.payment_method ?? extracted.payment_method,
@@ -335,10 +466,26 @@ async function stageExtractedReceipt(
       transaction_count: extracted.transaction_count ?? 0,
       source_reference: `ocr:${input.attachment_url.slice(0, 100)}`,
       notes: extracted.notes,
+      display_line_items: extracted.line_items,
+      outlet_hint: extracted.outlet_hint,
     },
     ctx,
     deps,
   );
+
+  if (!draft.ok) {
+    // OCR pre-resolves locationId above, so this branch is only reached
+    // when the draft tool's own fallback resolution returns no exact
+    // match — forward the structured error untouched.
+    return {
+      ok: false,
+      error: draft.error,
+      extracted,
+      outlet_hint: draft.outlet_hint,
+      location_candidates: draft.location_candidates,
+      summary: draft.summary,
+    };
+  }
 
   return {
     ok: true,
@@ -395,14 +542,21 @@ export async function ocrReceiptStrukTool(
     '  "gross_sales": "<integer rupiah, no separators>",',
     '  "discount_total": "<integer rupiah, optional>",',
     '  "transaction_count": <integer, optional>,',
+    '  "outlet_hint": "<branch/outlet name as printed on the receipt header, e.g. \\"Plaza Malioboro\\". Drop the brand prefix (\\"AROADRI TEA\\") if present.>",',
+    '  "outlet_address": "<short address line if visible, optional>",',
+    '  "line_items": [',
+    '    { "name": "<product + modifiers as printed, single line>", "qty": <integer>, "amount": "<integer rupiah>" }',
+    '  ],',
     '  "notes": "<short free text, optional - mention if anything was unreadable>"',
     '}',
     '',
     'Rules:',
     '- If the receipt is unreadable, return {"error":"unreadable"} and nothing else.',
     '- If the date is ambiguous, use Asia/Jakarta today.',
-    "- Don't invent line items; only fill what you can see clearly.",
-    '- gross_sales is the TOTAL before tax/discount, in rupiah (e.g. "320000").',
+    '- gross_sales is the TOTAL the customer paid (Amount Received) in rupiah (e.g. "230000").',
+    '- line_items: extract every product row visible. Use the printed line exactly (do NOT translate or rename); join wrapped lines into one string; if a qty is bracketed like "[5]" treat that as the GROUP total, not a row qty.',
+    '- outlet_hint: take only the location/branch part of the header. For "AROADRI TEA Plaza Malioboro", outlet_hint is "Plaza Malioboro". Never invent.',
+    '- If a field is genuinely unreadable, omit it. Do not guess.',
   ].join('\n');
 
   const messages: AiChatMessage[] = [

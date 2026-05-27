@@ -91,6 +91,21 @@ function summariseToolPayload(payload: unknown, toolErrorPrefix: string): string
     const inner = (p.payload as { ok?: boolean; output?: unknown; error?: string }) ?? null;
     if (inner) {
       if (inner.ok === false) return `${toolErrorPrefix}${inner.error}`;
+      // When the tool result itself surfaces a human-readable summary
+      // (e.g. OCR/draft tools), show that — the raw JSON dump otherwise
+      // floods the chat with debug noise the cashier doesn't need.
+      const output = inner.output as Record<string, unknown> | null | undefined;
+      if (output && typeof output === 'object') {
+        if (output.ok === false && typeof output.summary === 'string') {
+          return output.summary;
+        }
+        if (output.ok === false && typeof output.error === 'string') {
+          return `${toolErrorPrefix}${output.error}`;
+        }
+        if (typeof output.summary === 'string' && output.requires_confirmation === true) {
+          return output.summary;
+        }
+      }
       const outputJson = JSON.stringify(inner.output ?? null);
       return outputJson.length > 500 ? `${outputJson.slice(0, 500)}…` : outputJson;
     }
