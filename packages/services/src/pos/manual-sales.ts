@@ -155,6 +155,22 @@ export async function createManualSalesClosing(
     appliedStockDeductions = [];
   };
 
+  if (data.consumedIngredients && data.consumedIngredients.length > 0) {
+    const deductResult = await deductIngredients(
+      ctx.tenantId,
+      data.locationId,
+      data.consumedIngredients,
+      id,
+      ctx,
+    );
+    if (!deductResult.ok) {
+      await rollbackAppliedStockDeductions();
+      await releaseIdempotencyClaim(claimedIdempotencyId, 500, { error: 'deduction_failed' });
+      return err(deductResult.error);
+    }
+    appliedStockDeductions.push(...deductResult.value);
+  }
+
   if (data.deductBom && data.lineItems.length > 0) {
     for (const line of data.lineItems) {
       const ingredients = await getBOMIngredients(

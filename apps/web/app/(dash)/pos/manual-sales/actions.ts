@@ -24,6 +24,7 @@ export async function fetchManualSaleDetailAction(id: string) {
 export interface ManualSalesPageData {
   locations: Array<{ id: string; label: string; code: string }>;
   products: Array<{ id: string; name: string; sellPrice: string; variantId: string | null }>;
+  ingredients: Array<{ id: string; name: string; uom: string }>;
   items: Array<{
     id: string;
     number: string;
@@ -101,6 +102,7 @@ export async function fetchManualSalesPageData(
     return {
       locations: [],
       products: [],
+      ingredients: [],
       items: [],
       total: 0,
       page: 1,
@@ -111,7 +113,7 @@ export async function fetchManualSalesPageData(
   const currentPage = Math.max(1, Number.isFinite(page) ? page : 1);
   const activeLocationId = locationId || ctx.locationId || undefined;
 
-  const [locationRows, closings, productList] = await Promise.all([
+  const [locationRows, closings, productList, ingredientsList] = await Promise.all([
     listManualSalesLocations(ctx),
     listManualSalesClosings(
       { locationId: activeLocationId, limit: pageSize, offset: (currentPage - 1) * pageSize },
@@ -137,12 +139,30 @@ export async function fetchManualSalesPageData(
       `,
       )
       .then((res) => res.rows),
+    db
+      .execute<{
+        id: string;
+        name: string;
+        uom: string;
+      }>(
+        sql`
+      SELECT 
+        p.id, 
+        COALESCE(p.name->>'id', p.name->>'en', 'Ingredient') as name,
+        p.uom
+      FROM products p
+      WHERE p.tenant_id = ${ctx.tenantId} AND p.is_active = true AND p.kind IN ('raw_material', 'consumable')
+      ORDER BY p.sku ASC
+      `,
+      )
+      .then((res) => res.rows),
   ]);
 
   if (!closings.ok) {
     return {
       locations: [],
       products: [],
+      ingredients: [],
       items: [],
       total: 0,
       page: currentPage,
@@ -162,6 +182,11 @@ export async function fetchManualSalesPageData(
       name: p.name,
       sellPrice: p.sellPrice,
       variantId: p.variantId,
+    })),
+    ingredients: ingredientsList.map((i) => ({
+      id: i.id,
+      name: i.name,
+      uom: i.uom,
     })),
     items: closings.value.items,
     total: closings.value.total,
@@ -187,6 +212,16 @@ export async function createManualSalesAction(
     return { error: 'Invalid line items data' };
   }
 
+  let consumedIngredients = [];
+  try {
+    const rawConsumed = text(formData, 'consumedIngredientsJson');
+    if (rawConsumed) {
+      consumedIngredients = JSON.parse(rawConsumed);
+    }
+  } catch (e) {
+    return { error: 'Invalid consumed ingredients data' };
+  }
+
   const result = await createManualSalesClosing(
     {
       locationId: text(formData, 'locationId') || ctx.locationId,
@@ -201,6 +236,7 @@ export async function createManualSalesAction(
       idempotencyKey: crypto.randomUUID(),
       lineItems,
       deductBom: formData.get('deductBom') === 'true',
+      consumedIngredients: consumedIngredients.length > 0 ? consumedIngredients : undefined,
     },
     ctx,
   );

@@ -96,6 +96,15 @@ export const CreateManualSalesClosingInputSchema = z.object({
   discountTotal: z.string().regex(/^\d+$/).optional().default('0'),
   transactionCount: z.number().int().min(0).optional().default(0),
   sourceReference: z.string().max(120).nullish(),
+  consumedIngredients: z
+    .array(
+      z.object({
+        ingredientId: z.string().min(1),
+        qty: z.string().min(1),
+        uom: z.string().min(1),
+      }),
+    )
+    .optional(),
   notes: z.string().max(1000).nullish(),
   idempotencyKey: z.string().min(1).max(64),
   lineItems: z

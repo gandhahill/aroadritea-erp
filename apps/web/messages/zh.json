@@ -1350,8 +1350,32 @@
     "costPrice": "成本价/单位",
     "suppliesEmpty": "未找到耗材商品。",
     "transfer": {
-      "versionMismatch": "数据已被其他用户修改（版本冲突）。",
-      "shipFailed": "发货失败。"
+      "title": "库存转移",
+      "subtitle": "在门店或仓库之间转移物品。",
+      "new": "+ 新建转移",
+      "transferNumber": "转移单号",
+      "date": "日期",
+      "fromLocation": "调出位置",
+      "toLocation": "调入位置",
+      "status": "状态",
+      "notes": "备注",
+      "lines": "项目",
+      "qtySent": "已发",
+      "qtyReceived": "已收",
+      "actionShip": "发货 (Ship)",
+      "actionReceive": "收货 (Receive)",
+      "actionCancel": "取消 (Cancel)",
+      "createSuccess": "转移草稿已成功创建",
+      "shipSuccess": "物品已成功发货",
+      "receiveSuccess": "物品已成功接收",
+      "cancelSuccess": "转移已取消",
+      "errorSameLocation": "调出和调入位置不能相同",
+      "searchPlaceholder": "搜索转移单号...",
+      "statusDraft": "草稿",
+      "statusInTransit": "运输中",
+      "statusReceived": "已接收",
+      "statusCancelled": "已取消",
+      "empty": "未找到库存转移记录。"
     },
     "opnameDetail": {
       "status": {
@@ -1492,7 +1516,8 @@
     "bankAccounts": "银行账户",
     "variance": "差异",
     "expandSidebar": "展开侧边栏",
-    "collapseSidebar": "折叠侧边栏"
+    "collapseSidebar": "折叠侧边栏",
+    "stockTransfer": "库存转移"
   },
   "pos": {
     "title": "收银",
@@ -1609,7 +1634,13 @@
       "products": "产品",
       "addProduct": "添加产品",
       "product": "产品",
-      "selectProduct": "选择产品",
+      "selectProduct": "选择产品...",
+      "consumedIngredients": "直接原料消耗",
+      "consumedIngredientsDesc": "可选：如果您未在上方输入产品详细信息，但希望汇总扣除在此班次中消耗的原料，请使用此表。",
+      "ingredient": "原料",
+      "selectIngredient": "选择原料...",
+      "uom": "单位",
+      "addIngredient": "添加原料",
       "qty": "数量",
       "price": "单价",
       "delete": "删除",
@@ -2412,7 +2443,33 @@
     },
     "sop": {
       "title": "SOP / 标准操作程序",
-      "description": "每位员工必须了解的正式工作程序。"
+      "description": "每位员工必须了解的正式工作程序。",
+      "filter": {
+        "all": "全部",
+        "searchLabel": "搜索标题/描述",
+        "searchPlaceholder": "搜索…",
+        "upload": "+ 上传 SOP"
+      },
+      "table": {
+        "title": "标题",
+        "category": "类别",
+        "status": "状态",
+        "size": "尺寸",
+        "action": "行动",
+        "empty": "没有符合过滤条件的 SOP。"
+      },
+      "action": {
+        "download": "下载",
+        "draft": "设为草稿",
+        "publish": "发布",
+        "delete": "删除"
+      },
+      "delete": {
+        "title": "删除 SOP？",
+        "desc": "文档将被归档（软删除）。如需恢复，可以联系 DBA。",
+        "cancel": "取消",
+        "confirm": "删除"
+      }
     }
   },
   "display": {
@@ -3759,22 +3816,22 @@
       "title": "AI 助手日志",
       "description": "所有 AI 操作的审计日志",
       "stat": {
-        "sessions": "会话",
+        "sessions": "总会话数",
         "draft": "草稿"
       },
       "table": {
         "time": "时间",
         "user": "用户",
-        "action": "操作",
+        "action": "行动",
         "entity": "实体",
         "entityId": "实体 ID",
-        "detail": "详细信息",
-        "empty": "没有记录",
+        "detail": "详情",
+        "empty": "没有符合过滤条件的条目。",
         "rawJson": "原始 JSON"
       },
       "filter": {
         "all": "全部",
-        "show": "过滤"
+        "show": "显示"
       },
       "entities": {
         "ai_chat_session": "AI 聊天会话",
@@ -3784,7 +3841,7 @@
       }
     },
     "provider": {
-      "notConfigured": "AI助手已禁用或提供商配置（API Key）未设置。"
+      "notConfigured": "未配置 AI 提供商。请在环境变量中检查 API 密钥。"
     },
     "settings": {
       "title": "AI 助手设置",
@@ -3806,36 +3863,6 @@
       "commitFailed": "无法保存草稿。请确保没有冲突数据。"
     }
   },
-  "hr.sop.filter.all": "全部",
-  "hr.sop.filter.searchLabel": "搜索标题/描述",
-  "hr.sop.filter.searchPlaceholder": "搜索…",
-  "hr.sop.filter.upload": "+ 上传 SOP",
-  "hr.sop.table.title": "标题",
-  "hr.sop.table.category": "类别",
-  "hr.sop.table.status": "状态",
-  "hr.sop.table.size": "尺寸",
-  "hr.sop.table.action": "行动",
-  "hr.sop.table.empty": "没有符合过滤条件的 SOP。",
-  "hr.sop.action.download": "下载",
-  "hr.sop.action.draft": "设为草稿",
-  "hr.sop.action.publish": "发布",
-  "hr.sop.action.delete": "删除",
-  "hr.sop.delete.title": "删除 SOP？",
-  "hr.sop.delete.desc": "文档将被归档（软删除）。如需恢复，可以联系 DBA。",
-  "hr.sop.delete.cancel": "取消",
-  "hr.sop.delete.confirm": "删除",
-  "ai.audit.filter.all": "全部",
-  "ai.audit.filter.show": "显示",
-  "ai.audit.stat.sessions": "总会话数",
-  "ai.audit.stat.draft": "草稿",
-  "ai.audit.table.time": "时间",
-  "ai.audit.table.user": "用户",
-  "ai.audit.table.action": "行动",
-  "ai.audit.table.entity": "实体",
-  "ai.audit.table.entityId": "实体 ID",
-  "ai.audit.table.detail": "详情",
-  "ai.audit.table.empty": "没有符合过滤条件的条目。",
-  "ai.provider.notConfigured": "未配置 AI 提供商。请在环境变量中检查 API 密钥。",
   "aiAssistantChat": {
     "disabledWarning": "AI 助手已禁用。管理员可在 AI 助手设置中启用。",
     "welcomeHint": "从写一个问题开始，例如 \"如何手动输入销售？\"",

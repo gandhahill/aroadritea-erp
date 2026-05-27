@@ -1333,8 +1333,32 @@
       }
     },
     "transfer": {
-      "versionMismatch": "Data telah diubah oleh pengguna lain (Konflik Versi).",
-      "shipFailed": "Gagal mengirim barang."
+      "title": "Transfer Stok",
+      "subtitle": "Pindahkan barang antar outlet atau gudang.",
+      "new": "+ Transfer Baru",
+      "transferNumber": "No. Transfer",
+      "date": "Tanggal",
+      "fromLocation": "Dari Lokasi",
+      "toLocation": "Ke Lokasi",
+      "status": "Status",
+      "notes": "Catatan",
+      "lines": "Baris Item",
+      "qtySent": "Dikirim",
+      "qtyReceived": "Diterima",
+      "actionShip": "Kirim (Ship)",
+      "actionReceive": "Terima (Receive)",
+      "actionCancel": "Batalkan (Cancel)",
+      "createSuccess": "Draft transfer berhasil dibuat",
+      "shipSuccess": "Barang berhasil dikirim",
+      "receiveSuccess": "Barang berhasil diterima",
+      "cancelSuccess": "Transfer dibatalkan",
+      "errorSameLocation": "Lokasi asal dan tujuan tidak boleh sama",
+      "searchPlaceholder": "Cari no transfer...",
+      "statusDraft": "Draft",
+      "statusInTransit": "Dalam Perjalanan",
+      "statusReceived": "Diterima",
+      "statusCancelled": "Dibatalkan",
+      "empty": "Tidak ada transfer stok ditemukan."
     },
     "opnameDetail": {
       "status": {
@@ -1492,7 +1516,8 @@
     "bankAccounts": "Akun Bank",
     "expandSidebar": "Perluas Sidebar",
     "collapseSidebar": "Perkecil Sidebar",
-    "variance": "Selisih Stok"
+    "variance": "Selisih Stok",
+    "stockTransfer": "Transfer Stok"
   },
   "pos": {
     "title": "Kasir",
@@ -1609,7 +1634,13 @@
       "products": "Produk",
       "addProduct": "Tambah Produk",
       "product": "Produk",
-      "selectProduct": "Pilih Produk",
+      "selectProduct": "Pilih produk...",
+      "consumedIngredients": "Pemakaian Bahan Baku Langsung",
+      "consumedIngredientsDesc": "Opsional: Gunakan tabel ini jika Anda tidak memasukkan rincian produk di atas, melainkan hanya ingin memotong stok bahan baku yang terpakai selama shift ini secara agregat.",
+      "ingredient": "Bahan Baku",
+      "selectIngredient": "Pilih bahan baku...",
+      "uom": "Satuan",
+      "addIngredient": "Tambah Bahan Baku",
       "qty": "Kuantitas",
       "price": "Harga",
       "delete": "Hapus",
@@ -2491,7 +2522,33 @@
     },
     "sop": {
       "title": "SOP / Standar Operasional",
-      "description": "Dokumen prosedur kerja resmi yang wajib diketahui setiap karyawan."
+      "description": "Dokumen prosedur kerja resmi yang wajib diketahui setiap karyawan.",
+      "filter": {
+        "all": "Semua",
+        "searchLabel": "Cari judul / deskripsi",
+        "searchPlaceholder": "cari…",
+        "upload": "+ Upload SOP"
+      },
+      "table": {
+        "title": "Judul",
+        "category": "Kategori",
+        "status": "Status",
+        "size": "Ukuran",
+        "action": "Aksi",
+        "empty": "Belum ada SOP yang sesuai dengan filter."
+      },
+      "action": {
+        "download": "Unduh",
+        "draft": "Jadikan draft",
+        "publish": "Publikasikan",
+        "delete": "Hapus"
+      },
+      "delete": {
+        "title": "Hapus SOP?",
+        "desc": "Dokumen akan diarsipkan (soft-delete). Anda dapat menghubungi DBA jika perlu memulihkan.",
+        "cancel": "Batal",
+        "confirm": "Hapus"
+      }
     }
   },
   "workflow": {
@@ -3734,17 +3791,17 @@
       "title": "Log Asisten AI",
       "description": "Catatan audit semua aksi AI",
       "stat": {
-        "sessions": "Sesi",
-        "draft": "Draf"
+        "sessions": "Total sesi",
+        "draft": "Draft"
       },
       "table": {
         "time": "Waktu",
-        "user": "Pengguna",
-        "action": "Aksi",
-        "entity": "Entitas",
-        "entityId": "ID Entitas",
+        "user": "User",
+        "action": "Action",
+        "entity": "Entity",
+        "entityId": "Entity ID",
         "detail": "Detail",
-        "empty": "Tidak ada data",
+        "empty": "Belum ada entri yang cocok dengan filter.",
         "rawJson": "JSON Mentah"
       },
       "filter": {
@@ -3759,7 +3816,7 @@
       }
     },
     "provider": {
-      "notConfigured": "Asisten AI dinonaktifkan atau konfigurasi penyedia (API Key) belum diatur."
+      "notConfigured": "AI provider belum dikonfigurasi. Pastikan API key sudah diatur di environment variable."
     },
     "settings": {
       "title": "Pengaturan Asisten AI",
@@ -3781,36 +3838,6 @@
       "commitFailed": "Gagal menyimpan draf. Pastikan data tidak berkonflik."
     }
   },
-  "hr.sop.filter.all": "Semua",
-  "hr.sop.filter.searchLabel": "Cari judul / deskripsi",
-  "hr.sop.filter.searchPlaceholder": "cari…",
-  "hr.sop.filter.upload": "+ Upload SOP",
-  "hr.sop.table.title": "Judul",
-  "hr.sop.table.category": "Kategori",
-  "hr.sop.table.status": "Status",
-  "hr.sop.table.size": "Ukuran",
-  "hr.sop.table.action": "Aksi",
-  "hr.sop.table.empty": "Belum ada SOP yang sesuai dengan filter.",
-  "hr.sop.action.download": "Unduh",
-  "hr.sop.action.draft": "Jadikan draft",
-  "hr.sop.action.publish": "Publikasikan",
-  "hr.sop.action.delete": "Hapus",
-  "hr.sop.delete.title": "Hapus SOP?",
-  "hr.sop.delete.desc": "Dokumen akan diarsipkan (soft-delete). Anda dapat menghubungi DBA jika perlu memulihkan.",
-  "hr.sop.delete.cancel": "Batal",
-  "hr.sop.delete.confirm": "Hapus",
-  "ai.audit.filter.all": "Semua",
-  "ai.audit.filter.show": "Tampilkan",
-  "ai.audit.stat.sessions": "Total sesi",
-  "ai.audit.stat.draft": "Draft",
-  "ai.audit.table.time": "Waktu",
-  "ai.audit.table.user": "User",
-  "ai.audit.table.action": "Action",
-  "ai.audit.table.entity": "Entity",
-  "ai.audit.table.entityId": "Entity ID",
-  "ai.audit.table.detail": "Detail",
-  "ai.audit.table.empty": "Belum ada entri yang cocok dengan filter.",
-  "ai.provider.notConfigured": "AI provider belum dikonfigurasi. Pastikan API key sudah diatur di environment variable.",
   "aiAssistantChat": {
     "disabledWarning": "AI assistant dinonaktifkan. Admin dapat mengaktifkannya dari Pengaturan Asisten AI.",
     "welcomeHint": "Mulai dengan menulis pertanyaan, mis. \"Bagaimana cara input penjualan manual?\"",

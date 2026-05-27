@@ -28,6 +28,9 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
       total: string;
     }>
   >([]);
+  const [consumedIngredients, setConsumedIngredients] = useState<
+    Array<{ ingredientId: string; name: string; qty: number; uom: string }>
+  >([]);
   const [grossSales, setGrossSales] = useState('');
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailData, setDetailData] = useState<any>(null);
@@ -249,10 +252,102 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                 onChange={(e) => setDeductBom(e.target.checked)}
                 className="h-4 w-4 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
               />
-              <label htmlFor="deductBom" className="text-sm font-medium text-brand-ink">
+              <label htmlFor="deductBom" className="text-sm font-medium text-brand-ink-2">
                 {t('deductBom')}
               </label>
             </div>
+          </div>
+
+          <div className="lg:col-span-4 rounded-xl border border-brand-cream-3 p-4">
+            <h3 className="mb-3 text-sm font-semibold text-brand-ink">{t('consumedIngredients')}</h3>
+            <p className="mb-4 text-xs text-brand-ink-3">{t('consumedIngredientsDesc')}</p>
+            <div className="space-y-3">
+              {consumedIngredients.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex flex-wrap items-end gap-3 rounded-lg border border-brand-cream-3 bg-brand-cream-2/50 p-3"
+                >
+                  <div className="flex-1 min-w-[200px]">
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                      {t('ingredient')}
+                    </span>
+                    <Select
+                      value={item.ingredientId}
+                      onChange={(e) => {
+                        const ingredient = data.ingredients.find((p) => p.id === e.target.value);
+                        if (!ingredient) return;
+                        const newItems = [...consumedIngredients];
+                        newItems[index] = {
+                          ingredientId: ingredient.id,
+                          name: ingredient.name,
+                          qty: newItems[index]?.qty || 1,
+                          uom: ingredient.uom,
+                        };
+                        setConsumedIngredients(newItems);
+                      }}
+                    >
+                      <option value="" disabled>
+                        {t('selectIngredient')}
+                      </option>
+                      {data.ingredients.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({p.uom})
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                  <div className="w-24">
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                      {t('qty')}
+                    </span>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={item.qty}
+                      onChange={(e) => {
+                        const qty = Math.max(1, Number.parseInt(e.target.value) || 1);
+                        const newItems = [...consumedIngredients];
+                        newItems[index] = { ...newItems[index]!, qty };
+                        setConsumedIngredients(newItems);
+                      }}
+                    />
+                  </div>
+                  <div className="w-24">
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                      {t('uom')}
+                    </span>
+                    <Input type="text" readOnly value={item.uom} className="bg-brand-cream/50" />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-brand-red mb-1"
+                    onClick={() => {
+                      setConsumedIngredients(consumedIngredients.filter((_, i) => i !== index));
+                    }}
+                  >
+                    {t('delete')}
+                  </Button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setConsumedIngredients([
+                    ...consumedIngredients,
+                    { ingredientId: '', name: '', qty: 1, uom: '' },
+                  ]);
+                }}
+              >
+                + {t('addIngredient')}
+              </Button>
+            </div>
+            <input
+              type="hidden"
+              name="consumedIngredientsJson"
+              value={JSON.stringify(consumedIngredients.filter((i) => i.ingredientId))}
+            />
           </div>
 
           <Field label={t('grossSales')}>

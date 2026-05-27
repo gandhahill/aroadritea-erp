@@ -243,6 +243,7 @@ export function Sidebar() {
         { label: t('supplies'), href: '/inventory/supplies', icon: <></> },
         { label: t('categories'), href: '/inventory/categories', icon: <></> },
         { label: t('stockByOutlet'), href: '/inventory/stock', icon: <></> },
+        { label: t('stockTransfer'), href: '/inventory/transfer', icon: <></> },
         { label: t('recipes'), href: '/inventory/recipes', icon: <></> },
         { label: t('stockOpname'), href: '/inventory/opname', icon: <></> },
         { label: t('inventoryVariance'), href: '/inventory/variance', icon: <></> },

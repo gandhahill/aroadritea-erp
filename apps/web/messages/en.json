@@ -1333,8 +1333,32 @@
       }
     },
     "transfer": {
-      "versionMismatch": "Data has been modified by another user (Version Conflict).",
-      "shipFailed": "Failed to ship items."
+      "title": "Stock Transfer",
+      "subtitle": "Move items between outlets or warehouses.",
+      "new": "+ New Transfer",
+      "transferNumber": "Transfer No.",
+      "date": "Date",
+      "fromLocation": "From Location",
+      "toLocation": "To Location",
+      "status": "Status",
+      "notes": "Notes",
+      "lines": "Line Items",
+      "qtySent": "Sent",
+      "qtyReceived": "Received",
+      "actionShip": "Ship",
+      "actionReceive": "Receive",
+      "actionCancel": "Cancel",
+      "createSuccess": "Transfer draft created successfully",
+      "shipSuccess": "Items shipped successfully",
+      "receiveSuccess": "Items received successfully",
+      "cancelSuccess": "Transfer cancelled",
+      "errorSameLocation": "Source and destination locations cannot be the same",
+      "searchPlaceholder": "Search transfer no...",
+      "statusDraft": "Draft",
+      "statusInTransit": "In Transit",
+      "statusReceived": "Received",
+      "statusCancelled": "Cancelled",
+      "empty": "No stock transfers found."
     },
     "opnameDetail": {
       "status": {
@@ -1492,7 +1516,8 @@
     "bankAccounts": "Bank Accounts",
     "variance": "Variance",
     "expandSidebar": "Expand Sidebar",
-    "collapseSidebar": "Collapse Sidebar"
+    "collapseSidebar": "Collapse Sidebar",
+    "stockTransfer": "Stock Transfer"
   },
   "pos": {
     "title": "Point of Sale",
@@ -1609,7 +1634,13 @@
       "products": "Products",
       "addProduct": "Add Product",
       "product": "Product",
-      "selectProduct": "Select Product",
+      "selectProduct": "Select product...",
+      "consumedIngredients": "Direct Ingredient Consumption",
+      "consumedIngredientsDesc": "Optional: Use this table if you do not input product details above, but want to deduct the ingredients used during this shift in aggregate.",
+      "ingredient": "Ingredient",
+      "selectIngredient": "Select ingredient...",
+      "uom": "UoM",
+      "addIngredient": "Add Ingredient",
       "qty": "Qty",
       "price": "Price",
       "delete": "Delete",
@@ -2412,7 +2443,33 @@
     },
     "sop": {
       "title": "SOP / Standard Operating Procedures",
-      "description": "Official work procedures that every employee must know."
+      "description": "Official work procedures that every employee must know.",
+      "filter": {
+        "all": "All",
+        "searchLabel": "Search title / description",
+        "searchPlaceholder": "search…",
+        "upload": "+ Upload SOP"
+      },
+      "table": {
+        "title": "Title",
+        "category": "Category",
+        "status": "Status",
+        "size": "Size",
+        "action": "Action",
+        "empty": "No SOP matches the filter."
+      },
+      "action": {
+        "download": "Download",
+        "draft": "Make draft",
+        "publish": "Publish",
+        "delete": "Delete"
+      },
+      "delete": {
+        "title": "Delete SOP?",
+        "desc": "Document will be archived (soft-delete). You can contact DBA to restore.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      }
     }
   },
   "display": {
@@ -3734,7 +3791,7 @@
       "title": "AI Assistant Log",
       "description": "Audit log of all AI actions",
       "stat": {
-        "sessions": "Sessions",
+        "sessions": "Total sessions",
         "draft": "Draft"
       },
       "table": {
@@ -3744,12 +3801,12 @@
         "entity": "Entity",
         "entityId": "Entity ID",
         "detail": "Detail",
-        "empty": "No records found",
+        "empty": "No entries match the filter.",
         "rawJson": "Raw JSON"
       },
       "filter": {
         "all": "All",
-        "show": "Filter"
+        "show": "Show"
       },
       "entities": {
         "ai_chat_session": "AI Chat Session",
@@ -3759,7 +3816,7 @@
       }
     },
     "provider": {
-      "notConfigured": "AI Assistant is disabled or the provider configuration (API Key) is missing."
+      "notConfigured": "AI provider is not configured. Please check the API key in the environment variables."
     },
     "settings": {
       "title": "AI Assistant Settings",
@@ -3781,36 +3838,6 @@
       "commitFailed": "Failed to save draft. Make sure there are no conflicting data."
     }
   },
-  "hr.sop.filter.all": "All",
-  "hr.sop.filter.searchLabel": "Search title / description",
-  "hr.sop.filter.searchPlaceholder": "search…",
-  "hr.sop.filter.upload": "+ Upload SOP",
-  "hr.sop.table.title": "Title",
-  "hr.sop.table.category": "Category",
-  "hr.sop.table.status": "Status",
-  "hr.sop.table.size": "Size",
-  "hr.sop.table.action": "Action",
-  "hr.sop.table.empty": "No SOP matches the filter.",
-  "hr.sop.action.download": "Download",
-  "hr.sop.action.draft": "Make draft",
-  "hr.sop.action.publish": "Publish",
-  "hr.sop.action.delete": "Delete",
-  "hr.sop.delete.title": "Delete SOP?",
-  "hr.sop.delete.desc": "Document will be archived (soft-delete). You can contact DBA to restore.",
-  "hr.sop.delete.cancel": "Cancel",
-  "hr.sop.delete.confirm": "Delete",
-  "ai.audit.filter.all": "All",
-  "ai.audit.filter.show": "Show",
-  "ai.audit.stat.sessions": "Total sessions",
-  "ai.audit.stat.draft": "Draft",
-  "ai.audit.table.time": "Time",
-  "ai.audit.table.user": "User",
-  "ai.audit.table.action": "Action",
-  "ai.audit.table.entity": "Entity",
-  "ai.audit.table.entityId": "Entity ID",
-  "ai.audit.table.detail": "Detail",
-  "ai.audit.table.empty": "No entries match the filter.",
-  "ai.provider.notConfigured": "AI provider is not configured. Please check the API key in the environment variables.",
   "aiAssistantChat": {
     "disabledWarning": "AI assistant disabled. Admins can enable it from AI Assistant Settings.",
     "welcomeHint": "Start by writing a question, e.g. \"How to manual sales entry?\"",
