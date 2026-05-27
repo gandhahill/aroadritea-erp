@@ -604,6 +604,27 @@
     },
     "journals": {
       "attachmentHint": "Upload transaction proof or supporting documents. The file will be automatically attached once the draft journal is successfully created. Maximum 10 MB per file."
+    },
+    "bankAccounts": {
+      "title": "Bank Accounts",
+      "subtitle": "Manage company bank accounts, currencies, and linked GL accounts.",
+      "name": "Account Name",
+      "bank": "Bank",
+      "accountNumber": "Account Number",
+      "currency": "Currency",
+      "glAccount": "GL Account",
+      "add": "Add Bank Account",
+      "save": "Save Account",
+      "empty": "No bank accounts yet.",
+      "deactivate": "Deactivate",
+      "confirmDeactivate": "Deactivate this bank account?",
+      "edit": "Edit Account"
+    },
+    "nav": {
+      "accounting": "Accounting",
+      "purchasing": "Purchasing",
+      "inventory": "Inventory",
+      "settings": "Settings"
     }
   },
   "purchasing": {
@@ -1358,7 +1379,24 @@
       "stepSubmitSub": "Submitted",
       "stepApprove": "Approve",
       "stepApproveSub": "Approved"
-    }
+    },
+    "suppliesLink": "Manage Supplies",
+    "sellableDescriptionPrefix": "Manage sellable items (menu items) for customers. Each item must have a ",
+    "sellableDescriptionSuffix": " category to appear on the POS.",
+    "productsSold": "Products Sold",
+    "searchLabel": "Search Products",
+    "searchInputPlaceholder": "Search by name or SKU...",
+    "count": "{count} items",
+    "suppliesTitle": "Supplies & Raw Materials",
+    "suppliesDescriptionPrefix": "Manage raw materials, packaging, and non-sellable inventory. These items can be consumed as part of a ",
+    "sellableLink": "sellable item",
+    "suppliesDescriptionSuffix": " recipe.",
+    "addItem": "Add Item",
+    "searchSupplies": "Search Supplies/Raw Materials",
+    "searchItemPlaceholder": "Search by name or SKU...",
+    "itemCount": "{count} items",
+    "costPrice": "Cost Price/Unit",
+    "suppliesEmpty": "No supplies found."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -2067,7 +2105,20 @@
           "checkInFailed": "Check-in failed. Please try again.",
           "noShift": "No shift is available. Contact an administrator to activate shift master data.",
           "noEmployeeLinked": "This account is not linked to an employee record. Contact an administrator."
-        }
+        },
+        "kind": "Attendance Type",
+        "dailyTitle": "Daily Attendance",
+        "dailyDesc": "Record daily clock-in and clock-out times, validated by GPS location.",
+        "weeklyDesc": "Set weekly schedules or attendance status.",
+        "monthlyTitle": "Monthly Attendance Summary",
+        "monthlyDesc": "View detailed summary of monthly attendance records and any deductions.",
+        "sessionDate": "Session Date",
+        "periodCode": "Attendance Period",
+        "periodPlaceholder": "e.g., 2026-05",
+        "periodHint": "Enter the attendance period you want to view (e.g., 2026-05).",
+        "locationRequired": "Location is required",
+        "sessionDateRequired": "Session date is required",
+        "periodCodeRequired": "Period code is required"
       },
       "emptyTitle": "No Attendance Data",
       "validationFailed": "Attendance data validation failed.",
@@ -2299,8 +2350,16 @@
     },
     "payslip": {
       "title": "My Payslips",
-      "description": "List of payslips released to you. Click Download to open print view (Save as PDF).",
-      "empty": "No payslips have been released for your account yet."
+      "description": "Your monthly payslip history",
+      "empty": "No payslip history yet",
+      "table": {
+        "period": "Period",
+        "outlet": "Outlet",
+        "status": "Status",
+        "netSalary": "Net Salary",
+        "actions": "Actions"
+      },
+      "download": "Download / Print"
     },
     "sop": {
       "title": "SOP / Standard Operating Procedures",
@@ -3668,6 +3727,9 @@
       "hourlyCap": "Messages per user per hour",
       "supportsVision": "Provider supports image/OCR input",
       "save": "Save Settings"
+    },
+    "draft": {
+      "commitFailed": "Failed to save draft. Make sure there are no conflicting data."
     }
   },
   "hr.sop.filter.all": "All",
@@ -3752,5 +3814,30 @@
     "btnSave": "Save",
     "title": "AI Assistant",
     "description": "Ask about workflows, detect errors, or get help with OCR for old POS receipts. Your identity and permissions are respected on every command."
+  },
+  "purchase": {
+    "suppliers": {
+      "noPartner": "No partner selected"
+    },
+    "dashboardTitle": "Purchasing Dashboard",
+    "dashboardSubtitle": "Monitor your purchase orders and goods receipt from here.",
+    "newPo": "+ New Purchase Order",
+    "purchaseOrder": "Purchase Order",
+    "draftSubmitted": "Draft / Submitted",
+    "addSupplierHelp": "Add new supplier details here.",
+    "supplierSaved": "Supplier saved successfully.",
+    "supplierName": "Supplier Name",
+    "paymentTermsDays": "Payment Terms (Days)",
+    "supplierPkp": "Is PKP (Taxable Entrepreneur)",
+    "saving": "Saving...",
+    "contactMissing": "Contact info missing",
+    "searchPlaceholder": "Search supplier by name...",
+    "allStatuses": "All Statuses",
+    "fromDate": "From Date",
+    "toDate": "To Date",
+    "emptyFilter": "No purchase orders match the filters.",
+    "awb": "Airway Bill (AWB)",
+    "phoneLast5": "Phone (Last 5 digits)",
+    "notSynced": "Not Synced"
   }
 }

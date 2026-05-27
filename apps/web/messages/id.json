@@ -604,6 +604,27 @@
     },
     "journals": {
       "attachmentHint": "Unggah bukti transaksi atau dokumen pendukung. File akan otomatis terpasang setelah draft jurnal berhasil dibuat. Maksimum 10 MB per file."
+    },
+    "bankAccounts": {
+      "title": "Akun Bank",
+      "subtitle": "Kelola akun bank perusahaan, mata uang, dan tautan akun buku besar.",
+      "name": "Nama Akun",
+      "bank": "Bank",
+      "accountNumber": "Nomor Rekening",
+      "currency": "Mata Uang",
+      "glAccount": "Akun Buku Besar (GL)",
+      "add": "Tambah Akun Bank",
+      "save": "Simpan Akun",
+      "empty": "Belum ada akun bank.",
+      "deactivate": "Nonaktifkan",
+      "confirmDeactivate": "Nonaktifkan akun bank ini?",
+      "edit": "Edit Akun"
+    },
+    "nav": {
+      "accounting": "Akuntansi",
+      "purchasing": "Pembelian",
+      "inventory": "Inventaris",
+      "settings": "Pengaturan"
     }
   },
   "purchasing": {
@@ -1358,7 +1379,24 @@
       "stepSubmitSub": "Diajukan",
       "stepApprove": "Setujui",
       "stepApproveSub": "Disetujui"
-    }
+    },
+    "suppliesLink": "Kelola Suplai",
+    "sellableDescriptionPrefix": "Kelola barang yang dijual ke pelanggan (menu). Setiap barang harus memiliki ",
+    "sellableDescriptionSuffix": " kategori agar muncul di POS.",
+    "productsSold": "Produk Dijual",
+    "searchLabel": "Cari Produk",
+    "searchInputPlaceholder": "Cari berdasarkan nama atau SKU...",
+    "count": "{count} barang",
+    "suppliesTitle": "Suplai & Bahan Baku",
+    "suppliesDescriptionPrefix": "Kelola bahan baku, kemasan, dan inventaris tidak dijual. Barang-barang ini dapat dikonsumsi sebagai bagian dari resep ",
+    "sellableLink": "barang dijual",
+    "suppliesDescriptionSuffix": ".",
+    "addItem": "Tambah Barang",
+    "searchSupplies": "Cari Suplai/Bahan Baku",
+    "searchItemPlaceholder": "Cari berdasarkan nama atau SKU...",
+    "itemCount": "{count} barang",
+    "costPrice": "Harga Modal/Unit",
+    "suppliesEmpty": "Barang suplai tidak ditemukan."
   },
   "nav": {
     "dashboard": "Dasbor",
@@ -1453,7 +1491,8 @@
     "bankReconciliation": "Rekon Bank",
     "bankAccounts": "Akun Bank",
     "expandSidebar": "Perluas Sidebar",
-    "collapseSidebar": "Perkecil Sidebar"
+    "collapseSidebar": "Perkecil Sidebar",
+    "variance": "Selisih Stok"
   },
   "pos": {
     "title": "Kasir",
@@ -2145,7 +2184,20 @@
           "checkInFailed": "Presensi gagal. Coba lagi.",
           "noShift": "Shift belum tersedia. Hubungi administrator untuk mengaktifkan master shift.",
           "noEmployeeLinked": "Akun ini belum terhubung ke data karyawan. Hubungi administrator."
-        }
+        },
+        "kind": "Jenis Presensi",
+        "dailyTitle": "Presensi Harian",
+        "dailyDesc": "Catat waktu check-in dan check-out harian, diverifikasi dengan lokasi GPS.",
+        "weeklyDesc": "Atur jadwal mingguan atau status kehadiran.",
+        "monthlyTitle": "Ringkasan Presensi Bulanan",
+        "monthlyDesc": "Lihat ringkasan detail presensi bulanan dan potongan jika ada.",
+        "sessionDate": "Tanggal Sesi",
+        "periodCode": "Periode Presensi",
+        "periodPlaceholder": "Contoh: 2026-05",
+        "periodHint": "Masukkan periode presensi yang ingin dilihat (contoh: 2026-05).",
+        "locationRequired": "Lokasi wajib diisi",
+        "sessionDateRequired": "Tanggal sesi wajib diisi",
+        "periodCodeRequired": "Kode periode wajib diisi"
       },
       "emptyTitle": "Data Kehadiran Kosong",
       "validationFailed": "Validasi data presensi gagal.",
@@ -2377,8 +2429,16 @@
     },
     "payslip": {
       "title": "Slip Gaji Saya",
-      "description": "Daftar slip gaji yang sudah pernah dirilis untuk Anda. Klik Unduh untuk membuka tampilan cetak (Save as PDF).",
-      "empty": "Belum ada slip gaji yang dirilis untuk akun Anda."
+      "description": "Riwayat slip gaji bulanan Anda",
+      "empty": "Belum ada riwayat slip gaji",
+      "table": {
+        "period": "Periode",
+        "outlet": "Outlet",
+        "status": "Status",
+        "netSalary": "Gaji Bersih",
+        "actions": "Aksi"
+      },
+      "download": "Unduh / Cetak"
     },
     "sop": {
       "title": "SOP / Standar Operasional",
@@ -3667,6 +3727,9 @@
       "hourlyCap": "Batas pesan per user per jam",
       "supportsVision": "Provider mendukung input gambar/OCR",
       "save": "Simpan Pengaturan"
+    },
+    "draft": {
+      "commitFailed": "Gagal menyimpan draf. Pastikan data tidak berkonflik."
     }
   },
   "hr.sop.filter.all": "Semua",
@@ -3751,5 +3814,30 @@
     "btnSave": "Simpan",
     "title": "Asisten AI",
     "description": "Tanyakan alur kerja, deteksi error, atau bantu OCR struk POS lama. Identitas dan izin Anda dihormati pada setiap perintah."
+  },
+  "purchase": {
+    "suppliers": {
+      "noPartner": "Tidak ada mitra dipilih"
+    },
+    "dashboardTitle": "Dasbor Pembelian",
+    "dashboardSubtitle": "Pantau pesanan pembelian (PO) dan penerimaan barang dari sini.",
+    "newPo": "+ PO Baru",
+    "purchaseOrder": "Pesanan Pembelian",
+    "draftSubmitted": "Draf / Dikirim",
+    "addSupplierHelp": "Tambahkan detail pemasok baru di sini.",
+    "supplierSaved": "Pemasok berhasil disimpan.",
+    "supplierName": "Nama Pemasok",
+    "paymentTermsDays": "Termin Pembayaran (Hari)",
+    "supplierPkp": "Apakah PKP (Pengusaha Kena Pajak)",
+    "saving": "Menyimpan...",
+    "contactMissing": "Info kontak hilang",
+    "searchPlaceholder": "Cari pemasok berdasarkan nama...",
+    "allStatuses": "Semua Status",
+    "fromDate": "Dari Tanggal",
+    "toDate": "Sampai Tanggal",
+    "emptyFilter": "Tidak ada pesanan pembelian yang sesuai dengan filter.",
+    "awb": "Nomor Resi",
+    "phoneLast5": "Telepon (5 digit terakhir)",
+    "notSynced": "Belum Disinkron"
   }
 }

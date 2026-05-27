@@ -51,11 +51,11 @@ export default async function MyPayslipsPage() {
           <table className="w-full text-sm">
             <thead className="bg-brand-cream-2/60 text-left text-xs uppercase text-brand-ink-2">
               <tr>
-                <th className="px-4 py-3">Periode</th>
-                <th className="px-4 py-3">Outlet</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Gaji Bersih</th>
-                <th className="px-4 py-3 text-right">Aksi</th>
+                <th className="px-4 py-3">{t('table.period')}</th>
+                <th className="px-4 py-3">{t('table.outlet')}</th>
+                <th className="px-4 py-3">{t('table.status')}</th>
+                <th className="px-4 py-3 text-right">{t('table.netSalary')}</th>
+                <th className="px-4 py-3 text-right">{t('table.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -77,7 +77,7 @@ export default async function MyPayslipsPage() {
                       rel="noreferrer"
                       className="rounded-lg border border-brand-cream-3 px-3 py-1 text-xs text-brand-ink hover:bg-brand-cream-2"
                     >
-                      Unduh / Cetak
+                      {t('download')}
                     </a>
                   </td>
                 </tr>

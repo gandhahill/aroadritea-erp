@@ -2350,8 +2350,16 @@
     },
     "payslip": {
       "title": "我的工资单",
-      "description": "已向您发布的工资单列表。单击下载以打开打印视图（另存为 PDF）。",
-      "empty": "您的帐户尚未发布任何工资单。"
+      "description": "您的月度工资单记录",
+      "empty": "暂无工资单记录",
+      "table": {
+        "period": "周期",
+        "outlet": "门店",
+        "status": "状态",
+        "netSalary": "净薪资",
+        "actions": "操作"
+      },
+      "download": "下载 / 打印"
     },
     "sop": {
       "title": "SOP / 标准操作程序",
@@ -3744,6 +3752,9 @@
       "hourlyCap": "每用户每小时消息数",
       "supportsVision": "提供商支持图片/OCR 输入",
       "save": "保存设置"
+    },
+    "draft": {
+      "commitFailed": "无法保存草稿。请确保没有冲突数据。"
     }
   },
   "hr.sop.filter.all": "全部",
