@@ -9,15 +9,19 @@
 
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { AuditContext } from '@erp/shared/types';
 import { z } from 'zod';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const ReadFileInputSchema = z.object({
   path: z
     .string()
     .min(1)
     .max(400)
-    .regex(/^[A-Za-z0-9._\-\/]+$/, 'path must be repo-relative with safe characters'),
+    .regex(/^[A-Za-z0-9._\-\/()]+$/, 'path must be repo-relative with safe characters'),
   /** Line where the excerpt starts (default 1). */
   start_line: z.number().int().min(1).max(50_000).optional(),
   /** Number of lines to return (default 80, max 200). */
@@ -55,7 +59,7 @@ const DENY_FILE_PREFIXES = ['.env'];
 const MAX_BYTES = 512 * 1024;
 
 function repoRoot(): string {
-  return process.env.AROADRI_REPO_ROOT ?? process.cwd();
+  return process.env.AROADRI_REPO_ROOT ?? path.resolve(__dirname, '../../../../..');
 }
 
 function isAllowedRelativePath(relative: string): boolean {
