@@ -6,7 +6,7 @@
  */
 
 import { db } from '@erp/db';
-import { roles, userRoles, users } from '@erp/db/schema/auth';
+import { roles, userRoles, users, authAccounts } from '@erp/db/schema/auth';
 import { employees } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -131,6 +131,12 @@ export async function createEmployee(
           userId,
           roleId: role.id,
           locationId: data.loginScope === 'global' ? null : targetLocationId,
+        });
+        await db.insert(authAccounts).values({
+          userId,
+          accountId: data.email,
+          providerId: 'credential',
+          password: hash,
         });
       }
 

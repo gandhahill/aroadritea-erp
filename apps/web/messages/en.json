@@ -4119,5 +4119,16 @@
       "autofillPartner": "Autofill from Partner (Optional)",
       "selectPartner": "-- Select Partner --"
     }
+  },
+  "iam": {
+    "user": {
+      "notFound": "User not found."
+    },
+    "password": {
+      "validationFailed": "Password validation failed.",
+      "invalidOldPassword": "The old password you entered is incorrect.",
+      "changeFailed": "Failed to change password.",
+      "resetFailed": "Failed to reset password."
+    }
   }
 }

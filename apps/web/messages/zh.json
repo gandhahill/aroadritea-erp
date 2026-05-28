@@ -4119,5 +4119,16 @@
       "autofillPartner": "从合作伙伴自动填写（可选）",
       "selectPartner": "-- 选择合作伙伴 --"
     }
+  },
+  "iam": {
+    "user": {
+      "notFound": "找不到用户。"
+    },
+    "password": {
+      "validationFailed": "密码验证失败。",
+      "invalidOldPassword": "您输入的旧密码不正确。",
+      "changeFailed": "更改密码失败。",
+      "resetFailed": "重置密码失败。"
+    }
   }
 }

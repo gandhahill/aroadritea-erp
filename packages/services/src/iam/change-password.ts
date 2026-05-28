@@ -1,5 +1,5 @@
 import { db } from '@erp/db';
-import { users } from '@erp/db/schema/auth';
+import { users, authAccounts } from '@erp/db/schema/auth';
 import { hashPassword, verifyPassword } from '@erp/services/auth/password';
 import { AppError } from '@erp/shared/errors';
 import { Result, err, ok, tryCatch } from '@erp/shared/result';
@@ -60,6 +60,14 @@ export async function changeMyPassword(
           updatedBy: ctx.userId,
         })
         .where(eq(users.id, ctx.userId));
+
+      await db
+        .update(authAccounts)
+        .set({
+          password: newHash,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(authAccounts.userId, ctx.userId), eq(authAccounts.providerId, 'credential')));
 
       await auditRecord({
         action: 'change_password',
@@ -123,6 +131,14 @@ export async function adminResetPassword(
           updatedBy: ctx.userId,
         })
         .where(eq(users.id, userId));
+
+      await db
+        .update(authAccounts)
+        .set({
+          password: newHash,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(authAccounts.userId, userId), eq(authAccounts.providerId, 'credential')));
 
       await auditRecord({
         action: 'reset_password_by_admin',

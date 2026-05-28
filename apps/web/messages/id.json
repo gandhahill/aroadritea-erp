@@ -4133,5 +4133,16 @@
       "autofillPartner": "Isi otomatis dari Mitra/Partner (Opsional)",
       "selectPartner": "-- Pilih Partner --"
     }
+  },
+  "iam": {
+    "user": {
+      "notFound": "Pengguna tidak ditemukan."
+    },
+    "password": {
+      "validationFailed": "Validasi password gagal.",
+      "invalidOldPassword": "Password lama yang Anda masukkan salah.",
+      "changeFailed": "Gagal mengubah password.",
+      "resetFailed": "Gagal me-reset password."
+    }
   }
 }
