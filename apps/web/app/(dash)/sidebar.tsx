@@ -550,6 +550,9 @@ export function Sidebar({
     // CRM
     '/crm/members': 'crm.member',
 
+    // AI
+    '/ai-assistant': 'ai.assistant.use',
+
     // Settings overrides
     '/audit': 'audit',
     '/settings/locations': 'iam.manage_locations',
