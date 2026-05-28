@@ -28,7 +28,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0207 | HR My Schedule Employee View | Antigravity | 2026-05-28 | 2026-05-28 | 🟨 IN_PROGRESS | Add /hr/my-schedule and listMySchedule action |
+| T-0207 | HR My Schedule Employee View | Antigravity | 2026-05-28 | 2026-05-28 | 🟩 DONE | Added /hr/my-schedule and listMySchedule action |
 | T-0206 | POS Manual Sales UI Refactor | Antigravity | 2026-05-28 20:30 WIB | 2026-05-28 20:41 WIB | 🟩 DONE | Refactored manual sales UI to support multiple payment methods, moved consumed ingredients to a sub-page, and added createdByName to the history table. Replaced Debit/Credit with Card. |
 | T-0205 | Invoice & Kuitansi Best Practice Fixes | Antigravity | 2026-05-28 18:22 WIB | 2026-05-28 18:30 WIB | 🟩 DONE | Added sequential numbering, tax amount calculation, terbilang utility, partner address & NPWP, full i18n support, and migrated database to support new columns. Typecheck passed. |
 | T-0204 | Accounting Settings UI (Global AP Mapping) | Antigravity | 2026-05-28 18:13 WIB | 2026-05-28 18:17 WIB | 🟩 DONE | Added Settings > Accounting UI for `cms_settings` `accounting.payables.accountIds`. Typecheck passed. |
