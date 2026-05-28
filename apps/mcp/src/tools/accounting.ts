@@ -1,3 +1,4 @@
+import type { PermissionCode } from '@erp/shared/types';
 /**
  * Accounting MCP tools — SD §16.4, §20
  *
@@ -34,7 +35,7 @@ import { mcpError, requireConfirmation, serializeResult } from '../helpers';
 
 // --- Permission ---
 
-async function checkPermission(ctx: McpContext, permission: string, locationId?: string) {
+async function checkPermission(ctx: McpContext, permission: PermissionCode, locationId?: string) {
   const context: PermissionContext = locationId ? { locationId } : {};
   return can(ctx.userId, permission, context);
 }

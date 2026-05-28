@@ -1,3 +1,4 @@
+import type { PermissionCode } from '@erp/shared/types';
 import { getSession } from '@/lib/auth';
 import { type UploadArea, readUpload } from '@/lib/upload-storage';
 import { requirePermission } from '@erp/services/iam';

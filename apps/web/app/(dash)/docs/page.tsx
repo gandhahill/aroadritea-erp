@@ -1,3 +1,4 @@
+import type { PermissionCode } from '@erp/shared/types';
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { getSetting } from '@erp/services/cms';

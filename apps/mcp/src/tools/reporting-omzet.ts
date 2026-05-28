@@ -1,3 +1,4 @@
+import type { PermissionCode } from '@erp/shared/types';
 /**
  * reporting.get_omzet_harian MCP tool — SD §25.5b.6, SoT §21.3b
  */
@@ -13,7 +14,7 @@ export const GetOmzetHarianSchema = z.object({
   locale: z.enum(['id', 'en', 'zh']).optional().default('id'),
 });
 
-async function checkPermission(ctx: McpContext, permission: string, locationId?: string) {
+async function checkPermission(ctx: McpContext, permission: PermissionCode, locationId?: string) {
   const { can } = await import('@erp/services/iam');
   return can(ctx.userId, permission, locationId ? { locationId } : {});
 }

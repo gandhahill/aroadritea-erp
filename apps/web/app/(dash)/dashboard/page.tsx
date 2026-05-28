@@ -1,3 +1,4 @@
+import type { PermissionCode } from '@erp/shared/types';
 /**
  * Dashboard Utama — landing page after login.
  *

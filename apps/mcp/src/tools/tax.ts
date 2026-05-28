@@ -1,3 +1,4 @@
+import type { PermissionCode } from '@erp/shared/types';
 /**
  * Tax MCP tools — SD §16.4, §19
  *
@@ -22,7 +23,7 @@ import { z } from 'zod';
 import type { McpContext } from '../context';
 import { mcpError, mcpSuccess, serializeResult } from '../helpers';
 
-async function checkPermission(ctx: McpContext, permission: string) {
+async function checkPermission(ctx: McpContext, permission: PermissionCode) {
   return can(ctx.userId, permission);
 }
 

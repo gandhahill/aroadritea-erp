@@ -1,9 +1,10 @@
+import type { PermissionCode } from '@erp/shared/types';
 import { and, db, eq, inArray, locations } from '@erp/db';
 import { can, canGlobally, getAuthorizedLocations } from '@erp/services/iam';
 
 export async function hasPermissionAtLocation(
   userId: string,
-  permission: string,
+  permission: PermissionCode,
   locationId: string | null | undefined,
 ): Promise<boolean> {
   if (!userId || !locationId) return false;
@@ -12,20 +13,20 @@ export async function hasPermissionAtLocation(
 
 export async function requirePermissionAtLocation(
   userId: string,
-  permission: string,
+  permission: PermissionCode,
   locationId: string | null | undefined,
 ): Promise<boolean> {
   return hasPermissionAtLocation(userId, permission, locationId);
 }
 
-export async function hasGlobalPermission(userId: string, permission: string): Promise<boolean> {
+export async function hasGlobalPermission(userId: string, permission: PermissionCode): Promise<boolean> {
   if (!userId) return false;
   return canGlobally(userId, permission);
 }
 
 export async function authorizedLocationIdsForTenant(
   userId: string,
-  permission: string,
+  permission: PermissionCode,
   tenantId: string,
 ): Promise<{ global: boolean; locationIds: string[] }> {
   if (!userId) return { global: false, locationIds: [] };

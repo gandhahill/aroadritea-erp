@@ -1,3 +1,4 @@
+import type { PermissionCode } from '@erp/shared/types';
 /**
  * Reporting MCP tools — SD §16.4, §21.2
  *
@@ -36,7 +37,7 @@ import type { McpContext } from '../context';
 import { mcpError, mcpSuccess, serializeResult } from '../helpers';
 import { GetOmzetHarianSchema, getOmzetHarianHandler } from './reporting-omzet';
 
-async function checkPermission(ctx: McpContext, permission: string, locationId: string) {
+async function checkPermission(ctx: McpContext, permission: PermissionCode, locationId: string) {
   return can(ctx.userId, permission, { locationId });
 }
 

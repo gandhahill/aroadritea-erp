@@ -1,3 +1,4 @@
+import type { PermissionCode } from '@erp/shared/types';
 /**
  * Inventory, Purchasing, POS, HR, Payroll, CRM, Audit MCP tools.
  * These handlers route every call through the same service and permission
@@ -611,7 +612,7 @@ export const PayrollMarkPaidSchema = z.object({
   payroll_id: z.string(),
 });
 
-async function checkPermission(ctx: McpContext, permission: string, locationId?: string) {
+async function checkPermission(ctx: McpContext, permission: PermissionCode, locationId?: string) {
   return can(ctx.userId, permission, locationId ? { locationId } : {});
 }
 

@@ -1,3 +1,4 @@
+import type { PermissionCode } from '@erp/shared/types';
 import { getSession } from '@/lib/auth';
 import { getEmployee } from '@erp/services/hr';
 import { can } from '@erp/services/iam';
