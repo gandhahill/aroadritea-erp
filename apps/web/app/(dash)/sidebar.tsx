@@ -16,6 +16,7 @@ interface NavItem {
   href: string;
   icon: React.ReactNode;
   children?: NavItem[];
+  permissionModule?: string;
 }
 
 export function Sidebar({
@@ -146,21 +147,22 @@ export function Sidebar({
         </svg>
       ),
       children: [
-        { label: t('coa'), href: '/accounting/coa', icon: <></> },
-        { label: t('journals'), href: '/accounting/journals', icon: <></> },
-        { label: t('invoices'), href: '/accounting/invoices', icon: <></> },
+        { label: t('coa'), href: '/accounting/coa', icon: <></>, permissionModule: 'accounting.coa' },
+        { label: t('journals'), href: '/accounting/journals', icon: <></>, permissionModule: 'accounting.journal' },
+        { label: t('invoices'), href: '/accounting/invoices', icon: <></>, permissionModule: 'accounting.view' },
         {
           label: t('accountingEvidence'),
           href: '/correspondence?classification=finance&direction=internal',
           icon: <></>,
+          permissionModule: 'correspondence.view',
         },
-        { label: t('fixedAssets'), href: '/accounting/assets', icon: <></> },
-        { label: t('payables'), href: '/accounting/payables', icon: <></> },
-        { label: t('receivables'), href: '/accounting/receivables', icon: <></> },
-        { label: t('periods'), href: '/accounting/periods', icon: <></> },
-        { label: t('pettyCash'), href: '/accounting/petty-cash', icon: <></> },
-        { label: t('reimbursement'), href: '/accounting/reimbursement', icon: <></> },
-        { label: t('bankReconciliation'), href: '/accounting/bank-recon', icon: <></> },
+        { label: t('fixedAssets'), href: '/accounting/assets', icon: <></>, permissionModule: 'accounting.fixed_asset' },
+        { label: t('payables'), href: '/accounting/payables', icon: <></>, permissionModule: 'accounting.view' },
+        { label: t('receivables'), href: '/accounting/receivables', icon: <></>, permissionModule: 'accounting.view' },
+        { label: t('periods'), href: '/accounting/periods', icon: <></>, permissionModule: 'accounting.period' },
+        { label: t('pettyCash'), href: '/accounting/petty-cash', icon: <></>, permissionModule: 'accounting.petty_cash' },
+        { label: t('reimbursement'), href: '/accounting/reimbursement', icon: <></>, permissionModule: 'accounting.reimbursement' },
+        { label: t('bankReconciliation'), href: '/accounting/bank-recon', icon: <></>, permissionModule: 'accounting.bank_recon' },
       ],
     },
     {
@@ -511,7 +513,7 @@ export function Sidebar({
       children = children.filter((child) => {
         if (['/dashboard', '/account'].includes(child.href)) return true;
         
-        let childMod = PATH_TO_MODULE[child.href] || child.href.substring(1).split('/')[0] || '';
+        let childMod = child.permissionModule || PATH_TO_MODULE[child.href] || child.href.substring(1).split('/')[0] || '';
         return hasModuleAccess(childMod);
       });
     }
@@ -524,14 +526,29 @@ export function Sidebar({
       return item.children.length > 0;
     }
 
-    const mod = PATH_TO_MODULE[item.href] || item.href.substring(1).split('/')[0] || '';
+    const mod = item.permissionModule || PATH_TO_MODULE[item.href] || item.href.substring(1).split('/')[0] || '';
     return hasModuleAccess(mod);
   });
 
   function hasModuleAccess(moduleName: string) {
+    if (!moduleName) return true;
+
     const matchesModule = (granted: string[]) => {
+      // 1. Super admin wildcard
       if (granted.includes('*.*')) return true;
-      if (granted.includes(`${moduleName}.*`)) return true;
+      
+      // 2. Exact match
+      if (granted.includes(moduleName)) return true;
+
+      // 3. Parent wildcard match
+      const parts = moduleName.split('.');
+      let current = '';
+      for (const part of parts) {
+        current += current ? `.${part}` : part;
+        if (granted.includes(`${current}.*`)) return true;
+      }
+
+      // 4. Descendant match
       return granted.some((p) => p.startsWith(`${moduleName}.`));
     };
 
