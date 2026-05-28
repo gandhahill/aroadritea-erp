@@ -13,7 +13,7 @@
  */
 
 import { Button } from '@erp/ui';
-import { useTranslations } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { revokeAllOtherSessionsAction, revokeSessionAction } from './actions';
@@ -31,24 +31,33 @@ interface Props {
   sessions: SessionRow[];
 }
 
-function fmtDateTime(iso: string): string {
-  const d = new Date(iso);
-  return d.toISOString().replace('T', ' ').slice(0, 16);
-}
-
 function summariseUserAgent(ua: string | null): string {
   if (!ua) return '—';
-  // Very small heuristic so the row is readable without bundling a UA parser.
-  if (/Edg\//.test(ua)) return 'Edge';
-  if (/Chrome\//.test(ua) && !/Edg\//.test(ua) && !/OPR\//.test(ua)) return 'Chrome';
-  if (/Firefox\//.test(ua)) return 'Firefox';
-  if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) return 'Safari';
-  if (/Mobile|Android|iPhone/.test(ua)) return 'Mobile';
-  return ua.slice(0, 64);
+  
+  let browser = 'Unknown Browser';
+  if (/Edg\//i.test(ua)) browser = 'Edge';
+  else if (/OPR\//i.test(ua)) browser = 'Opera';
+  else if (/Chrome\//i.test(ua)) browser = 'Chrome';
+  else if (/Firefox\//i.test(ua)) browser = 'Firefox';
+  else if (/Safari\//i.test(ua) && !/Chrome\//i.test(ua)) browser = 'Safari';
+
+  let os = 'Unknown OS';
+  if (/Windows/i.test(ua)) os = 'Windows';
+  else if (/Mac OS X/i.test(ua)) os = 'macOS';
+  else if (/Android/i.test(ua)) os = 'Android';
+  else if (/iPhone|iPad|iPod/i.test(ua)) os = 'iOS';
+  else if (/Linux/i.test(ua)) os = 'Linux';
+
+  if (browser === 'Unknown Browser' && os === 'Unknown OS') {
+    return ua.slice(0, 32);
+  }
+  
+  return `${os} · ${browser}`;
 }
 
 export function SessionsSection({ sessions }: Props) {
   const t = useTranslations('account.sessions');
+  const format = useFormatter();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null);
@@ -142,10 +151,10 @@ export function SessionsSection({ sessions }: Props) {
                 </div>
                 <div className="text-xs text-brand-ink-3">
                   {t('ipLabel')}: {s.ipAddress ?? '—'} · {t('createdLabel')}:{' '}
-                  {fmtDateTime(s.createdAt)}
+                  {format.dateTime(new Date(s.createdAt), { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' })}
                 </div>
                 <div className="text-[11px] text-brand-ink-3">
-                  {t('expiresLabel')}: {fmtDateTime(s.expiresAt)}
+                  {t('expiresLabel')}: {format.dateTime(new Date(s.expiresAt), { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' })}
                 </div>
               </div>
               {!s.isCurrent ? (
