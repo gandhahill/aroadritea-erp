@@ -71,7 +71,8 @@ export default async function InvoicesPage() {
                 <td className="px-6 py-4 text-brand-ink-2">{inv.partnerName}</td>
                 <td className="px-6 py-4">
                   <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    inv.status === 'posted' ? 'bg-brand-jade-light text-brand-jade' : 
+                    inv.status === 'posted' ? 'bg-brand-cream-2 text-brand-ink-2' : 
+                    inv.status === 'paid' ? 'bg-brand-jade-light text-brand-jade' :
                     inv.status === 'draft' ? 'bg-brand-cream-3 text-brand-ink-2' : 
                     'bg-brand-red-light text-brand-red'
                   }`}>
@@ -80,13 +81,24 @@ export default async function InvoicesPage() {
                 </td>
                 <td className="px-6 py-4 font-mono text-brand-ink">{inv.total.toString()}</td>
                 <td className="px-6 py-4 text-brand-ink-2 flex gap-4">
-                  {inv.journalId ? (
-                    <Link href={`/accounting/journals/${inv.journalId}`} className="text-brand-red hover:underline">
-                      {t('viewJournal')}
-                    </Link>
-                  ) : (
+                  {inv.status === 'draft' && (
                     <Link href={`/accounting/invoices/${inv.id}/post`} className="text-brand-jade hover:underline">
                       {t('post')}
+                    </Link>
+                  )}
+                  {inv.status === 'posted' && (
+                    <Link href={`/accounting/invoices/${inv.id}/pay`} className="text-brand-jade hover:underline font-semibold">
+                      {t('payAction')}
+                    </Link>
+                  )}
+                  {inv.status === 'paid' && inv.paymentJournalId && (
+                    <Link href={`/accounting/journals/${inv.paymentJournalId}/print?type=kuitansi`} target="_blank" className="text-brand-red hover:underline font-semibold">
+                      {t('printKuitansi')}
+                    </Link>
+                  )}
+                  {inv.journalId && (
+                    <Link href={`/accounting/journals/${inv.journalId}`} className="text-brand-ink-3 hover:underline text-xs mt-1 block">
+                      {t('viewJournal')}
                     </Link>
                   )}
                 </td>

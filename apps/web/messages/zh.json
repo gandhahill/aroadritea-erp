@@ -3977,16 +3977,16 @@
     "description": "询问工作流程、检测错误或获取旧版POS收据的OCR帮助。您的身份和权限将在每次命令中受到尊重。"
   },
   "logistics": {
-    "outgoingShipments": "出库运输 (Outgoing Shipments)",
-    "outgoingShipmentsSubtitle": "使用 BinderByte 跟踪出库的公司货物和信件 (Track outgoing corporate goods and letters via BinderByte).",
-    "number": "号码 (Number)",
-    "subject": "主题 (Subject)",
-    "recipient": "收件人 (Recipient)",
-    "courier": "快递与运单 (Courier & AWB)",
-    "status": "状态 (Status)",
-    "actions": "操作 (Actions)",
-    "noShipments": "暂无出库运输 (No outgoing shipments yet).",
-    "sync": "同步 (Sync)",
-    "syncing": "同步中 (Syncing...)"
+    "outgoingShipments": "出库运输",
+    "outgoingShipmentsSubtitle": "使用 BinderByte 跟踪出库的公司货物和信件",
+    "number": "号码",
+    "subject": "主题",
+    "recipient": "收件人",
+    "courier": "快递与运单",
+    "status": "状态",
+    "actions": "操作",
+    "noShipments": "暂无出库运输",
+    "sync": "同步",
+    "syncing": "同步中"
   }
 }

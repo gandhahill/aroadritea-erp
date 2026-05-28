@@ -93,17 +93,7 @@ export function InvoiceForm({ accounts, locations }: { accounts: any[], location
             onChange={e => setFormData({ ...formData, partnerName: e.target.value })}
           />
         </div>
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-brand-ink-3">{t('type')}</label>
-          <select
-            className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
-            value={formData.type}
-            onChange={e => setFormData({ ...formData, type: e.target.value })}
-          >
-            <option value="sales">{t('new.salesInvoice')}</option>
-            <option value="purchase">{t('new.purchaseInvoice')}</option>
-          </select>
-        </div>
+
         <div className="space-y-2">
           <label className="text-sm font-semibold text-brand-ink-3">{t('new.location')}</label>
           <select

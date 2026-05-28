@@ -74,3 +74,26 @@ export async function postInvoiceAction(invoiceId: string, accountId: string) {
   revalidatePath('/accounting/invoices');
   return { success: true, journalId: res.value.journalId };
 }
+
+export async function payInvoiceAction(invoiceId: string, paymentAccountId: string, date: string) {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthorized');
+  const user = session.user as any;
+
+  const ctx: AuditContext = {
+    userId: String(user.id),
+    tenantId: String(user.tenantId ?? 'default'),
+    locationId: String(user.locationId ?? ''),
+    userAgent: 'ERP Web',
+    ipAddress: '127.0.0.1',
+  };
+
+  // We need to import payInvoice
+  const { payInvoice } = await import('@erp/services/accounting');
+
+  const res = await payInvoice(invoiceId, paymentAccountId, date, ctx);
+  if (!res.ok) throw new Error(res.error.message);
+
+  revalidatePath('/accounting/invoices');
+  return { success: true, paymentJournalId: res.value.paymentJournalId };
+}

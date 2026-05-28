@@ -178,3 +178,80 @@ export async function postInvoice(
 
   return ok({ success: true, journalId });
 }
+
+export async function payInvoice(
+  invoiceId: string,
+  paymentAccountId: string,
+  date: string,
+  ctx: AuditContext,
+): Promise<Result<{ success: boolean; paymentJournalId: string }>> {
+  const invoiceRows = await db.select().from(invoices).where(and(eq(invoices.id, invoiceId), eq(invoices.tenantId, ctx.tenantId)));
+  const invoice = invoiceRows[0];
+  if (!invoice) return err(AppError.notFound('invoice.notFound'));
+  
+  if (invoice.status !== 'posted') {
+    return err(AppError.businessRule('invoice.notPosted'));
+  }
+
+  // Generate Payment Journal Entry
+  // If Sales: Debit Cash, Credit AR
+  // If Purchase: Debit AP, Credit Cash
+  const journalLinesData = [
+    {
+      accountId: paymentAccountId, // Cash/Bank
+      locationId: invoice.locationId,
+      description: `Payment Receipt for Invoice ${invoice.number}`,
+      debit: invoice.type === 'sales' ? invoice.total.toString() : '0',
+      credit: invoice.type === 'purchase' ? invoice.total.toString() : '0',
+    },
+  ];
+
+  // We need to fetch the AR/AP account from the original posting journal
+  // To keep it simple, we reverse the balance of the original posting journal's partner line
+  const journalInput = {
+    postingDate: date,
+    locationId: invoice.locationId,
+    description: `Payment for Invoice ${invoice.number} (${invoice.partnerName})`,
+    referenceType: (invoice.type === 'sales' ? 'sales' : 'purchase') as 'sales' | 'purchase',
+    referenceId: invoiceId,
+    lines: [
+      ...journalLinesData,
+      // To determine AR/AP account, we'll fetch the original journal lines
+    ],
+  };
+
+  // Wait, better to just query the original journal to find the AR account
+  const { journalLines } = await import('@erp/db/schema/accounting');
+  const originalLines = await db.select().from(journalLines).where(eq(journalLines.journalEntryId, invoice.journalId!));
+  const partnerLine = originalLines.find(l => (invoice.type === 'sales' ? l.debit > 0n : l.credit > 0n)); // The AR/AP line
+  
+  if (!partnerLine) return err(AppError.internal('invoice.partnerLineNotFound'));
+
+  journalInput.lines.push({
+    accountId: partnerLine.accountId,
+    locationId: invoice.locationId,
+    description: `Clear AR/AP for Invoice ${invoice.number}`,
+    debit: invoice.type === 'purchase' ? invoice.total.toString() : '0',
+    credit: invoice.type === 'sales' ? invoice.total.toString() : '0',
+  });
+
+  const createRes = await createJournal(journalInput, ctx);
+  if (!createRes.ok) return createRes;
+  const paymentJournalId = createRes.value.id;
+
+  const postRes = await postJournal({ journalId: paymentJournalId }, ctx);
+  if (!postRes.ok) return postRes;
+
+  await db.update(invoices).set({ status: 'paid', paymentJournalId, updatedBy: ctx.userId }).where(eq(invoices.id, invoiceId));
+
+  await auditRecord({
+    action: 'update',
+    entityType: 'invoice',
+    entityId: invoiceId,
+    before: { status: invoice.status },
+    after: { status: 'paid', paymentJournalId },
+    ctx,
+  });
+
+  return ok({ success: true, paymentJournalId });
+}

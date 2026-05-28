@@ -24,6 +24,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0204 | Accounting Settings UI (Global AP Mapping) | Antigravity | 2026-05-28 18:13 WIB | 2026-05-28 18:17 WIB | 🟩 DONE | Added Settings > Accounting UI for `cms_settings` `accounting.payables.accountIds`. Typecheck passed. |
 | T-0203 | Outgoing Shipments Module (BinderByte) & Invoice Sidebar | Antigravity | 2026-05-28 17:21 WIB | 2026-05-28 17:48 WIB | 🟩 DONE | Add Logistics module for outgoing shipments, Invoice menu, and fix print types. IDE errors resolved, pnpm typecheck successful. |
 | T-0202 | Automated PDF Invoice Generation (Print View) | Antigravity | 2026-05-28 17:08 WIB | 2026-05-28 17:15 WIB | 🟩 DONE | Added Print View for Journal Entries to support invoices and receipts. |
 | T-0200 | Add AI Assistant and OCR limitations to documentation | Antigravity | 2026-05-27 18:06 WIB | 2026-05-27 18:07 WIB | 🟩 DONE | Added a new "ai-assistant" section to `docs-content.ts` in all languages (ID, EN, ZH) instructing users to leverage external ChatGPT/Gemini vision capabilities as a workaround for the current local OCR limitations. |

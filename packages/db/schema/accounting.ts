@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Accounting schema â€” SD Â§9.2
  *
  * Tables: accounting_periods, accounts (COA), journal_entries,
@@ -748,7 +748,8 @@ export const invoices = pgTable(
     taxAmount: bigint('tax_amount', { mode: 'bigint' }).notNull().default(sql`0`),
     total: bigint('total', { mode: 'bigint' }).notNull().default(sql`0`),
     notes: text('notes'),
-    journalId: text('journal_id'), // FK journal_entries
+    journalId: text('journal_id'), // The posted accrual/revenue journal
+    paymentJournalId: text('payment_journal_id'), // The cash receipt/disbursement journal for payment
     locationId: text('location_id').notNull(),
     ...auditCols,
   },

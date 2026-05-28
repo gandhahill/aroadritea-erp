@@ -64,3 +64,23 @@ export async function syncTrackingAction(shipmentId: string, courierCode: string
     throw new Error(res.error.message);
   }
 }
+
+export async function createOutgoingShipmentAction(input: any) {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthorized');
+  
+  const user = session.user as Record<string, unknown>;
+  const ctx: AuditContext = {
+    userId: String(user.id),
+    tenantId: String(user.tenantId ?? 'default'),
+    locationId: String(user.locationId ?? ''),
+    userAgent: 'ERP Web',
+    ipAddress: '127.0.0.1',
+  };
+
+  const res = await createOutgoingShipment(input, ctx);
+  if (!res.ok) throw new Error(res.error.message);
+
+  revalidatePath('/logistics/outgoing-shipments');
+  return { success: true, id: res.value };
+}
