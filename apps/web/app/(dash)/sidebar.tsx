@@ -490,6 +490,9 @@ export function Sidebar({
     '/cms/pages': 'cms',
     '/cms/posts': 'cms',
     
+    // Correspondence
+    '/correspondence?classification=finance&direction=internal': 'correspondence.view',
+    
     // Reporting
     '/reporting/business-intelligence': 'reporting.view',
     '/reporting/trial-balance': 'accounting.reports',
