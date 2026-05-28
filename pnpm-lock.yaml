@@ -20,6 +20,9 @@ importers:
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
+      hash-wasm:
+        specifier: ^4.12.0
+        version: 4.12.0
       tsx:
         specifier: ^4.21.0
         version: 4.21.0
