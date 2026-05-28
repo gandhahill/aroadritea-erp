@@ -1638,7 +1638,8 @@
     "outgoingShipments": "发出货物",
     "companySettings": "公司信息",
     "accountingSettings": "会计",
-    "consumedIngredients": "已消耗原料"
+    "consumedIngredients": "已消耗原料",
+    "mySchedule": "我的排班"
   },
   "pos": {
     "title": "收银",
@@ -2595,6 +2596,23 @@
         "cancel": "取消",
         "confirm": "删除"
       }
+    },
+    "mySchedule": {
+      "title": "我的排班",
+      "description": "查看您即将到来和过去的班次安排。",
+      "from": "从日期",
+      "to": "至日期",
+      "filter": "过滤",
+      "table": {
+        "date": "日期",
+        "status": "状态",
+        "shift": "班次",
+        "time": "时间",
+        "notes": "备注"
+      },
+      "empty": "在此日期范围内未找到排班。",
+      "off": "休息",
+      "work": "工作"
     }
   },
   "display": {

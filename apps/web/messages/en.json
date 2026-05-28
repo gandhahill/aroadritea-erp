@@ -1638,7 +1638,8 @@
     "outgoingShipments": "Outgoing Shipments",
     "companySettings": "Company Info",
     "accountingSettings": "Accounting",
-    "consumedIngredients": "Consumed Ingredients"
+    "consumedIngredients": "Consumed Ingredients",
+    "mySchedule": "My Schedule"
   },
   "pos": {
     "title": "Point of Sale",
@@ -2595,6 +2596,23 @@
         "cancel": "Cancel",
         "confirm": "Delete"
       }
+    },
+    "mySchedule": {
+      "title": "My Schedule",
+      "description": "View your upcoming and past shift schedules.",
+      "from": "Date From",
+      "to": "Date To",
+      "filter": "Filter",
+      "table": {
+        "date": "Date",
+        "status": "Status",
+        "shift": "Shift",
+        "time": "Time",
+        "notes": "Notes"
+      },
+      "empty": "No schedule found for this date range.",
+      "off": "Off",
+      "work": "Work"
     }
   },
   "display": {

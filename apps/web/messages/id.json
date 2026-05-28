@@ -1652,7 +1652,8 @@
     "stockTransfer": "Transfer Stok",
     "companySettings": "Info Perusahaan",
     "accountingSettings": "Akuntansi",
-    "consumedIngredients": "Pemakaian Bahan"
+    "consumedIngredients": "Pemakaian Bahan",
+    "mySchedule": "Jadwal Saya"
   },
   "pos": {
     "title": "Kasir",
@@ -2688,6 +2689,23 @@
         "cancel": "Batal",
         "confirm": "Hapus"
       }
+    },
+    "mySchedule": {
+      "title": "Jadwal Saya",
+      "description": "Lihat jadwal shift Anda yang akan datang dan sebelumnya.",
+      "from": "Dari Tanggal",
+      "to": "Sampai Tanggal",
+      "filter": "Filter",
+      "table": {
+        "date": "Tanggal",
+        "status": "Status",
+        "shift": "Shift",
+        "time": "Waktu",
+        "notes": "Catatan"
+      },
+      "empty": "Tidak ada jadwal pada rentang tanggal ini.",
+      "off": "Libur",
+      "work": "Kerja"
     }
   },
   "workflow": {

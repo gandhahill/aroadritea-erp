@@ -14,3 +14,4 @@ export * from './attendance-service';
 export * from './disciplinary-service';
 export * from './whistleblower';
 export * from './sop';
+export * from './list-my-schedule';
