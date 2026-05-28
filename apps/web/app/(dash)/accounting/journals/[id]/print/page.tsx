@@ -38,6 +38,17 @@ export default async function PrintJournalPage({
         preparedBy: t('preparedBy'),
         authorizedBy: t('authorizedBy'),
         printOrSavePdf: t('printOrSavePdf'),
+        description: t('description'),
+        debit: t('debit'),
+        credit: t('credit'),
+        amountInWords: t('amountInWords'),
+        printHint: t('printHint'),
+        companyAddress: t('companyAddress'),
+        companyNpwp: t('companyNpwp'),
+        companyPhone: t('companyPhone'),
+        paymentTerms: t('paymentTerms'),
+        subtotal: t('subtotal'),
+        tax: t('tax'),
       }}
     />
   );

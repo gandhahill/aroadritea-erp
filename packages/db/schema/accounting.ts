@@ -743,6 +743,9 @@ export const invoices = pgTable(
     date: date('date').notNull(),
     dueDate: date('due_date'),
     partnerName: text('partner_name').notNull(),
+    partnerAddress: text('partner_address'),
+    partnerNpwp: text('partner_npwp'),
+    paymentTerms: text('payment_terms'),
     status: text('status').notNull().default('draft'), // 'draft' | 'posted' | 'void' | 'paid'
     subtotal: bigint('subtotal', { mode: 'bigint' }).notNull().default(sql`0`),
     taxAmount: bigint('tax_amount', { mode: 'bigint' }).notNull().default(sql`0`),
@@ -775,6 +778,7 @@ export const invoiceLines = pgTable(
     quantity: integer('quantity').notNull().default(1),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull().default(sql`0`),
     subtotal: bigint('subtotal', { mode: 'bigint' }).notNull().default(sql`0`),
+    taxAmount: bigint('tax_amount', { mode: 'bigint' }).notNull().default(sql`0`),
     ...auditCols,
   },
   (t) => [

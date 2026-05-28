@@ -16,6 +16,7 @@
     "./log-scrub": "./src/security/log-scrub.ts",
     "./hmac": "./src/security/hmac.ts",
     "./i18n-keys": "./src/i18n-keys/index.ts",
+    "./amount-to-words": "./src/amount-to-words.ts",
     "./ports/*": "./src/ports/*.ts"
   },
   "scripts": {

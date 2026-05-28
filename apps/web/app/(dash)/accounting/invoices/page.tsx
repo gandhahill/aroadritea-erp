@@ -79,7 +79,7 @@ export default async function InvoicesPage() {
                     {inv.status}
                   </span>
                 </td>
-                <td className="px-6 py-4 font-mono text-brand-ink">{inv.total.toString()}</td>
+                <td className="px-6 py-4 font-mono text-brand-ink">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(inv.total))}</td>
                 <td className="px-6 py-4 text-brand-ink-2 flex gap-4">
                   {inv.status === 'draft' && (
                     <Link href={`/accounting/invoices/${inv.id}/post`} className="text-brand-jade hover:underline">

@@ -253,6 +253,13 @@
       "when": 1779966111547,
       "tag": "0035_wealthy_human_torch",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1779967702166,
+      "tag": "0036_clammy_firebrand",
+      "breakpoints": true
     }
   ]
 }

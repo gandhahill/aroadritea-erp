@@ -13,24 +13,26 @@ export function InvoiceForm({ accounts, locations }: { accounts: any[], location
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
-    number: `INV-${Date.now()}`,
-    type: 'sales',
+    type: 'sales' as 'sales' | 'purchase',
     date: new Date().toISOString().split('T')[0],
     dueDate: '',
     partnerName: '',
+    partnerAddress: '',
+    partnerNpwp: '',
+    paymentTerms: '',
     notes: '',
     locationId: locations[0]?.id || '',
   });
 
   const [lines, setLines] = useState([
-    { accountId: '', description: '', quantity: 1, unitPrice: '0' }
+    { accountId: '', description: '', quantity: 1, unitPrice: '0', taxRate: 0 }
   ]);
 
   const addLine = () => {
-    setLines([...lines, { accountId: '', description: '', quantity: 1, unitPrice: '0' }]);
+    setLines([...lines, { accountId: '', description: '', quantity: 1, unitPrice: '0', taxRate: 0 }]);
   };
 
-  const updateLine = (index: number, field: keyof typeof lines[0], value: string | number) => {
+  const updateLine = (index: number, field: string, value: string | number) => {
     const newLines = [...lines];
     newLines[index] = { ...newLines[index], [field]: value } as any;
     setLines(newLines);
@@ -40,6 +42,17 @@ export function InvoiceForm({ accounts, locations }: { accounts: any[], location
     setLines(lines.filter((_, i) => i !== index));
   };
 
+  // Calculate totals for display
+  const subtotal = lines.reduce((sum, line) => sum + (line.quantity * Number(line.unitPrice)), 0);
+  const totalTax = lines.reduce((sum, line) => {
+    const lineSubtotal = line.quantity * Number(line.unitPrice);
+    return sum + Math.floor((lineSubtotal * line.taxRate) / 10000);
+  }, 0);
+  const grandTotal = subtotal + totalTax;
+
+  const formatRp = (amount: number) =>
+    new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -48,9 +61,15 @@ export function InvoiceForm({ accounts, locations }: { accounts: any[], location
     try {
       const payload = {
         ...formData,
+        dueDate: formData.dueDate || null,
+        paymentTerms: formData.paymentTerms || null,
+        partnerAddress: formData.partnerAddress || null,
+        partnerNpwp: formData.partnerNpwp || null,
+        notes: formData.notes || null,
         lines: lines.map(line => ({
           ...line,
-          subtotal: (line.quantity * Number(line.unitPrice)).toString()
+          subtotal: (line.quantity * Number(line.unitPrice)).toString(),
+          unitPrice: line.unitPrice,
         }))
       };
 
@@ -72,17 +91,8 @@ export function InvoiceForm({ accounts, locations }: { accounts: any[], location
         </div>
       )}
 
+      {/* Partner & Date Section */}
       <div className="grid grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-brand-ink-3">{t('number')}</label>
-          <input
-            type="text"
-            required
-            className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
-            value={formData.number}
-            onChange={e => setFormData({ ...formData, number: e.target.value })}
-          />
-        </div>
         <div className="space-y-2">
           <label className="text-sm font-semibold text-brand-ink-3">{t('new.partnerName')}</label>
           <input
@@ -93,7 +103,24 @@ export function InvoiceForm({ accounts, locations }: { accounts: any[], location
             onChange={e => setFormData({ ...formData, partnerName: e.target.value })}
           />
         </div>
-
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-brand-ink-3">{t('new.partnerAddress')}</label>
+          <input
+            type="text"
+            className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
+            value={formData.partnerAddress}
+            onChange={e => setFormData({ ...formData, partnerAddress: e.target.value })}
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-brand-ink-3">{t('new.partnerNpwp')}</label>
+          <input
+            type="text"
+            className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
+            value={formData.partnerNpwp}
+            onChange={e => setFormData({ ...formData, partnerNpwp: e.target.value })}
+          />
+        </div>
         <div className="space-y-2">
           <label className="text-sm font-semibold text-brand-ink-3">{t('new.location')}</label>
           <select
@@ -125,8 +152,28 @@ export function InvoiceForm({ accounts, locations }: { accounts: any[], location
             onChange={e => setFormData({ ...formData, dueDate: e.target.value })}
           />
         </div>
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-brand-ink-3">{t('new.paymentTerms')}</label>
+          <input
+            type="text"
+            className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
+            placeholder={t('new.paymentTermsPlaceholder')}
+            value={formData.paymentTerms}
+            onChange={e => setFormData({ ...formData, paymentTerms: e.target.value })}
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-brand-ink-3">{t('new.notesLabel')}</label>
+          <input
+            type="text"
+            className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
+            value={formData.notes}
+            onChange={e => setFormData({ ...formData, notes: e.target.value })}
+          />
+        </div>
       </div>
 
+      {/* Line Items */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-brand-ink">{t('new.lineItems')}</h3>
@@ -180,6 +227,17 @@ export function InvoiceForm({ accounts, locations }: { accounts: any[], location
                   onChange={e => updateLine(idx, 'unitPrice', e.target.value)}
                 />
               </div>
+              <div className="w-28 space-y-2">
+                <select
+                  className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
+                  value={line.taxRate}
+                  onChange={e => updateLine(idx, 'taxRate', Number(e.target.value))}
+                >
+                  <option value="0">{t('new.noTax')}</option>
+                  <option value="1000">PB1 10%</option>
+                  <option value="1100">PPN 11%</option>
+                </select>
+              </div>
               {lines.length > 1 && (
                 <button
                   type="button"
@@ -191,6 +249,24 @@ export function InvoiceForm({ accounts, locations }: { accounts: any[], location
               )}
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Totals */}
+      <div className="flex justify-end">
+        <div className="w-80 space-y-2 rounded-lg bg-brand-cream-1 p-4 border border-brand-cream-3">
+          <div className="flex justify-between text-sm text-brand-ink-2">
+            <span>{t('subtotal')}</span>
+            <span className="font-mono">{formatRp(subtotal)}</span>
+          </div>
+          <div className="flex justify-between text-sm text-brand-ink-2">
+            <span>{t('tax')}</span>
+            <span className="font-mono">{formatRp(totalTax)}</span>
+          </div>
+          <div className="flex justify-between text-base font-bold text-brand-ink border-t border-brand-cream-3 pt-2">
+            <span>{t('total')}</span>
+            <span className="font-mono">{formatRp(grandTotal)}</span>
+          </div>
         </div>
       </div>
 

@@ -15,13 +15,16 @@ import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { createJournal } from './create-journal';
 import { postJournal } from './post-journal';
+import { generateInvoiceNumber } from '../shared/number-generator';
 
 export interface CreateInvoiceInput {
-  number: string;
   type: 'sales' | 'purchase';
   date: string;
   dueDate: string | null;
   partnerName: string;
+  partnerAddress?: string | null;
+  partnerNpwp?: string | null;
+  paymentTerms?: string | null;
   notes: string | null;
   locationId: string;
   lines: Array<{
@@ -30,13 +33,15 @@ export interface CreateInvoiceInput {
     quantity: number;
     unitPrice: string; // From UI as string to avoid precision loss
     subtotal: string;
+    taxCode?: string | null;
+    taxRate?: number | null; // basis points, e.g. 1000 = 10%
   }>;
 }
 
 export async function createInvoice(
   input: CreateInvoiceInput,
   ctx: AuditContext,
-): Promise<Result<{ id: string }>> {
+): Promise<Result<{ id: string; number: string }>> {
   // 1. Permission check
   const permCheck = await requirePermission(ctx.userId, 'accounting.journal.create', {
     locationId: input.locationId,
@@ -45,35 +50,51 @@ export async function createInvoice(
 
   const invoiceId = generateId();
   
+  // Generate sequential invoice number server-side
+  const invoiceNumber = await generateInvoiceNumber(ctx.tenantId, input.date);
+
   let totalSubtotal = 0n;
+  let totalTax = 0n;
   const parsedLines = input.lines.map((line, idx) => {
     const unitPrice = BigInt(line.unitPrice);
     const subtotal = BigInt(line.subtotal);
     totalSubtotal += subtotal;
+    // Calculate tax per line if rate is provided (bps → e.g. 1000 = 10%)
+    let lineTax = 0n;
+    if (line.taxRate && line.taxRate > 0) {
+      lineTax = (subtotal * BigInt(line.taxRate)) / 10000n;
+    }
+    totalTax += lineTax;
     return {
       ...line,
       unitPrice,
       subtotal,
+      lineTax,
       lineNo: idx + 1,
     };
   });
+
+  const grandTotal = totalSubtotal + totalTax;
 
   const result = await tryCatch(
     async () => {
       await db.insert(invoices).values({
         id: invoiceId,
         tenantId: ctx.tenantId,
-        number: input.number,
+        number: invoiceNumber,
         type: input.type,
         date: input.date,
         dueDate: input.dueDate,
         partnerName: input.partnerName,
+        partnerAddress: input.partnerAddress,
+        partnerNpwp: input.partnerNpwp,
+        paymentTerms: input.paymentTerms,
         notes: input.notes,
         status: 'draft',
         locationId: input.locationId,
         subtotal: totalSubtotal,
-        taxAmount: 0n,
-        total: totalSubtotal,
+        taxAmount: totalTax,
+        total: grandTotal,
         createdBy: ctx.userId,
         updatedBy: ctx.userId,
       });
@@ -87,6 +108,7 @@ export async function createInvoice(
         quantity: line.quantity,
         unitPrice: line.unitPrice,
         subtotal: line.subtotal,
+        taxAmount: line.lineTax,
       }));
 
       await db.insert(invoiceLines).values(lineValues);
@@ -98,8 +120,10 @@ export async function createInvoice(
         before: null,
         after: {
           id: invoiceId,
-          number: input.number,
-          total: totalSubtotal.toString(),
+          number: invoiceNumber,
+          subtotal: totalSubtotal.toString(),
+          taxAmount: totalTax.toString(),
+          total: grandTotal.toString(),
         },
         metadata: {
           ip: ctx.ipAddress ?? null,
@@ -108,7 +132,7 @@ export async function createInvoice(
         ctx,
       });
 
-      return { id: invoiceId };
+      return { id: invoiceId, number: invoiceNumber };
     },
     (e) => AppError.internal('accounting.invoice.createFailed', e)
   );

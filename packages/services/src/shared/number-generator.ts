@@ -7,11 +7,36 @@
  */
 
 import { db } from '@erp/db';
-import { journalEntries } from '@erp/db/schema/accounting';
+import { invoices, journalEntries } from '@erp/db/schema/accounting';
 import { stockAdjustments, stockTransfers } from '@erp/db/schema/inventory';
 import { purchaseOrders } from '@erp/db/schema/purchasing';
 import { stockOpnameSessions } from '@erp/db/schema/stock-opname';
 import { and, desc, eq, sql } from 'drizzle-orm';
+
+/**
+ * Generate the next invoice number.
+ * Format: INV/YYYY/MM/NNNN
+ */
+export async function generateInvoiceNumber(
+  tenantId: string,
+  invoiceDate: string,
+): Promise<string> {
+  const yymm = invoiceDate.substring(0, 7).replace('-', '/');
+  const prefix = `INV/${yymm}/`;
+  const result = await db
+    .select({ number: invoices.number })
+    .from(invoices)
+    .where(
+      and(
+        eq(invoices.tenantId, tenantId),
+        sql`${invoices.number} LIKE ${prefix + '%'}`,
+      ),
+    )
+    .orderBy(desc(invoices.number))
+    .limit(1);
+
+  return calculateNextNumber(result[0]?.number, prefix);
+}
 
 /**
  * Generate the next journal entry number.

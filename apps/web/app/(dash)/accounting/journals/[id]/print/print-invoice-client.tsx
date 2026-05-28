@@ -3,6 +3,7 @@
 import type { PrintJournalData, BankAccountDetail } from '../../actions';
 import { useEffect } from 'react';
 import Image from 'next/image';
+import { amountToWords } from '@erp/shared/amount-to-words';
 
 interface PrintInvoiceClientProps {
   data: PrintJournalData;
@@ -18,6 +19,17 @@ interface PrintInvoiceClientProps {
     preparedBy: string;
     authorizedBy: string;
     printOrSavePdf: string;
+    description: string;
+    debit: string;
+    credit: string;
+    amountInWords: string;
+    printHint: string;
+    companyAddress: string;
+    companyNpwp: string;
+    companyPhone: string;
+    paymentTerms: string;
+    subtotal: string;
+    tax: string;
   };
 }
 
@@ -34,10 +46,6 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
   }, []);
 
   // Determine if this is an invoice (AR) or a receipt
-  // Naive check: if it has positive AR (receivable) lines, it's an invoice.
-  // We'll just check if any line has an account name containing 'Piutang' or 'Receivable' 
-  // or we can rely on standard AR normal balance. 
-  // For simplicity, let's assume if it has partner and dueDate, it's an invoice.
   const isInvoice = journal.lines.some((l: any) => l.dueDate !== null);
   const documentTitle = isInvoice ? labels.invoice : labels.receipt;
   
@@ -51,6 +59,10 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
     })[0];
 
   const primaryDueDate = journal.lines.find((l: any) => l.dueDate)?.dueDate;
+
+  // Calculate total amount for terbilang
+  const totalDebitNum = Number.parseInt(journal.totalDebit, 10);
+  const terbilang = amountToWords(totalDebitNum);
 
   return (
     <div className="min-h-screen bg-brand-cream font-sans text-brand-ink selection:bg-brand-red/20 print:bg-white print:p-0">
@@ -69,9 +81,12 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
                 className="object-contain object-left" 
               />
             </div>
-            <div className="mt-2 text-sm text-brand-ink-2">
+            <div className="mt-2 text-sm text-brand-ink-2 space-y-0.5">
               <p className="font-semibold text-brand-ink">PT. Gandha Hill Catering Management Indonesia</p>
               <p>Aroadri Tea — {journal.locationLabel}</p>
+              <p className="text-xs">{labels.companyAddress}</p>
+              <p className="text-xs">{labels.companyNpwp}</p>
+              <p className="text-xs">{labels.companyPhone}</p>
             </div>
           </div>
           
@@ -118,9 +133,9 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b-2 border-brand-cream-3">
-                <th className="pb-3 text-left font-semibold text-brand-ink-3 uppercase tracking-wider text-xs">Description</th>
-                <th className="pb-3 text-right font-semibold text-brand-ink-3 uppercase tracking-wider text-xs">Debit</th>
-                <th className="pb-3 text-right font-semibold text-brand-ink-3 uppercase tracking-wider text-xs">Credit</th>
+                <th className="pb-3 text-left font-semibold text-brand-ink-3 uppercase tracking-wider text-xs">{labels.description}</th>
+                <th className="pb-3 text-right font-semibold text-brand-ink-3 uppercase tracking-wider text-xs">{labels.debit}</th>
+                <th className="pb-3 text-right font-semibold text-brand-ink-3 uppercase tracking-wider text-xs">{labels.credit}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
@@ -164,8 +179,20 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
           </table>
         </div>
 
+        {/* Terbilang (Amount in Words) */}
+        {terbilang && (
+          <div className="mt-8 rounded-lg border border-brand-cream-3 bg-brand-cream-1 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-brand-ink-3 mb-1">
+              {labels.amountInWords}
+            </p>
+            <p className="text-sm font-medium text-brand-ink italic">
+              # {terbilang} #
+            </p>
+          </div>
+        )}
+
         {/* Footer Section */}
-        <div className="mt-24 grid grid-cols-2 gap-12 border-t border-brand-cream-2 pt-8">
+        <div className="mt-16 grid grid-cols-2 gap-12 border-t border-brand-cream-2 pt-8">
           <div>
             {bankAccounts.length > 0 && (
               <>
@@ -213,7 +240,7 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
         {/* Print instruction banner (hidden on print) */}
         <div className="mt-12 text-center print:hidden">
           <p className="text-sm text-brand-ink-3">
-            Press <kbd className="font-mono text-xs">Ctrl+P</kbd> or <kbd className="font-mono text-xs">Cmd+P</kbd> to print this document.
+            {labels.printHint}
           </p>
           <button 
             onClick={() => window.print()}
