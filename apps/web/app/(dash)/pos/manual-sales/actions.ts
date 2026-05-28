@@ -129,7 +129,7 @@ export async function fetchManualSalesPageData(
         sql`
       SELECT 
         p.id, 
-        COALESCE(v.name->>'id', v.name->>'en', p.name->>'id', p.name->>'en', 'Product') as name,
+        COALESCE(p.name->>'id', p.name->>'en', 'Product') || COALESCE(' - ' || COALESCE(v.name->>'id', v.name->>'en'), '') as name,
         COALESCE(v.sell_price, p.default_sell_price) as "sellPrice",
         v.id as "variantId"
       FROM products p
