@@ -45,7 +45,7 @@ export function AccountingSettingsForm({ accounts, defaultApId }: { accounts: an
         <div>
           <h3 className="text-lg font-semibold text-brand-ink-1 mb-2">{t('purchasing')}</h3>
           <p className="text-sm text-brand-ink-3 mb-4">{t('purchasingDesc')}</p>
-          
+
           <div className="space-y-2">
             <label className="text-sm font-semibold text-brand-ink-3">{t('apAccount')}</label>
             <select

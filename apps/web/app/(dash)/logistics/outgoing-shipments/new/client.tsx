@@ -2,13 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { createOutgoingShipmentAction } from '../actions';
 import { Button, toast } from '@erp/ui';
+import { pickLocalized } from '@/lib/pick-localized';
 
 export function OutgoingShipmentForm({ locations, partners = [] }: { locations: any[]; partners?: any[] }) {
   const router = useRouter();
   const t = useTranslations('logistics.outgoingShipment');
+  const locale = useLocale();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -91,7 +93,7 @@ export function OutgoingShipmentForm({ locations, partners = [] }: { locations: 
           >
             <option value="" disabled>{t('selectLocation')}</option>
             {locations.map(l => (
-              <option key={l.id} value={l.id}>{l.name}</option>
+              <option key={l.id} value={l.id}>{pickLocalized(l.name, locale, l.code)}</option>
             ))}
           </select>
         </div>
@@ -181,10 +183,10 @@ export function OutgoingShipmentForm({ locations, partners = [] }: { locations: 
       </div>
 
       <div className="flex justify-end gap-3 pt-6 border-t border-brand-cream-2">
-        <Button variant="secondary" onClick={() => router.back()} type="button">
+        <Button variant="secondary" size="md" className="rounded-lg" onClick={() => router.back()} type="button">
           {t('cancel')}
         </Button>
-        <Button type="submit" disabled={loading}>
+        <Button variant="primary" size="lg" className="rounded-lg" type="submit" disabled={loading}>
           {loading ? t('saving') : t('saveAction')}
         </Button>
       </div>
