@@ -335,6 +335,11 @@ export function OpnameLineTable({ lines, status, sessionId }: Props) {
                           min="0"
                           step="1"
                           value={line.countedQty ?? ''}
+                          onKeyDown={(e) => {
+                            if (['.', ',', 'e', 'E', '+', '-'].includes(e.key)) {
+                              e.preventDefault();
+                            }
+                          }}
                           onChange={(e) => handleCountChange(line.id, e.target.value)}
                           placeholder="0"
                           className="w-24 rounded border border-brand-cream-3 bg-card px-2 py-1 text-right text-sm text-brand-ink shadow-sm transition-colors focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5"

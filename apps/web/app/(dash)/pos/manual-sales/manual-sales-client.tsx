@@ -257,9 +257,15 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     <Input
                       type="number"
                       min={1}
+                      step="1"
                       value={item.qty}
+                      onKeyDown={(e) => {
+                        if (['.', ',', 'e', 'E', '+', '-'].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
                       onChange={(e) => {
-                        const qty = Math.max(1, Number.parseInt(e.target.value) || 1);
+                        const qty = Math.max(1, Number.parseInt(e.target.value, 10) || 1);
                         const newItems = [...lineItems];
                         const current = newItems[index];
                         if (!current) return;
