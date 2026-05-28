@@ -7,6 +7,7 @@
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import { type PermissionContext, can } from './permission-engine';
+import type { PermissionCode } from '@erp/shared/types';
 
 /**
  * Check permission and return a Result.
@@ -21,7 +22,7 @@ import { type PermissionContext, can } from './permission-engine';
  */
 export async function requirePermission(
   userId: string,
-  permission: string,
+  permission: PermissionCode,
   context?: PermissionContext,
 ): Promise<Result<void>> {
   const allowed = await can(userId, permission, context);

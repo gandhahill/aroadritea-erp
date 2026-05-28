@@ -9,6 +9,7 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import type { PermissionCode } from '@erp/shared/types';
 import { useEffect, useRef, useState } from 'react';
 
 interface NavItem {
@@ -16,7 +17,7 @@ interface NavItem {
   href: string;
   icon: React.ReactNode;
   children?: NavItem[];
-  permissionModule?: string;
+  permission?: PermissionCode;
 }
 
 export function Sidebar({
@@ -147,22 +148,22 @@ export function Sidebar({
         </svg>
       ),
       children: [
-        { label: t('coa'), href: '/accounting/coa', icon: <></>, permissionModule: 'accounting.coa' },
-        { label: t('journals'), href: '/accounting/journals', icon: <></>, permissionModule: 'accounting.journal' },
-        { label: t('invoices'), href: '/accounting/invoices', icon: <></>, permissionModule: 'accounting.view' },
+        { label: t('coa'), href: '/accounting/coa', icon: <></>, permission: 'accounting.coa.manage' },
+        { label: t('journals'), href: '/accounting/journals', icon: <></>, permission: 'accounting.journal.create' },
+        { label: t('invoices'), href: '/accounting/invoices', icon: <></>, permission: 'accounting.view' },
         {
           label: t('accountingEvidence'),
           href: '/correspondence?classification=finance&direction=internal',
           icon: <></>,
-          permissionModule: 'correspondence.view',
+          permission: 'correspondence.view',
         },
-        { label: t('fixedAssets'), href: '/accounting/assets', icon: <></>, permissionModule: 'accounting.fixed_asset' },
-        { label: t('payables'), href: '/accounting/payables', icon: <></>, permissionModule: 'accounting.view' },
-        { label: t('receivables'), href: '/accounting/receivables', icon: <></>, permissionModule: 'accounting.view' },
-        { label: t('periods'), href: '/accounting/periods', icon: <></>, permissionModule: 'accounting.period' },
-        { label: t('pettyCash'), href: '/accounting/petty-cash', icon: <></>, permissionModule: 'accounting.petty_cash' },
-        { label: t('reimbursement'), href: '/accounting/reimbursement', icon: <></>, permissionModule: 'accounting.reimbursement' },
-        { label: t('bankReconciliation'), href: '/accounting/bank-recon', icon: <></>, permissionModule: 'accounting.bank_recon' },
+        { label: t('fixedAssets'), href: '/accounting/assets', icon: <></>, permission: 'accounting.fixed_asset.view' },
+        { label: t('payables'), href: '/accounting/payables', icon: <></>, permission: 'accounting.view' },
+        { label: t('receivables'), href: '/accounting/receivables', icon: <></>, permission: 'accounting.view' },
+        { label: t('periods'), href: '/accounting/periods', icon: <></>, permission: 'accounting.period.open' },
+        { label: t('pettyCash'), href: '/accounting/petty-cash', icon: <></>, permission: 'accounting.petty_cash.view' },
+        { label: t('reimbursement'), href: '/accounting/reimbursement', icon: <></>, permission: 'accounting.reimbursement.view' },
+        { label: t('bankReconciliation'), href: '/accounting/bank-recon', icon: <></>, permission: 'accounting.bank_recon.view' },
       ],
     },
     {
@@ -593,7 +594,7 @@ export function Sidebar({
       children = children.filter((child) => {
         if (ALWAYS_VISIBLE.includes(child.href)) return true;
         
-        let childMod = child.permissionModule || PATH_TO_MODULE[child.href] || child.href.substring(1).split('/')[0] || '';
+        let childMod = child.permission || PATH_TO_MODULE[child.href] || child.href.substring(1).split('/')[0] || '';
         return hasModuleAccess(childMod);
       });
     }
@@ -606,7 +607,7 @@ export function Sidebar({
       return item.children.length > 0;
     }
 
-    const mod = item.permissionModule || PATH_TO_MODULE[item.href] || item.href.substring(1).split('/')[0] || '';
+    const mod = item.permission || PATH_TO_MODULE[item.href] || item.href.substring(1).split('/')[0] || '';
     return hasModuleAccess(mod);
   });
 

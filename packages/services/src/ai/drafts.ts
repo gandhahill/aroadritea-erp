@@ -25,7 +25,7 @@ import { auditLog } from '@erp/db/schema/audit';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
-import type { AuditContext } from '@erp/shared/types';
+import type { AuditContext, PermissionCode } from '@erp/shared/types';
 import { requirePermission } from '../iam';
 
 const DRAFT_TTL_MINUTES = 30;
@@ -216,7 +216,7 @@ export async function commitDraft(
   if (!permission) {
     return err(AppError.internal('ai.draft.unknownKind', { kind: draft.kind }));
   }
-  const permCheck = await requirePermission(ctx.userId, permission, {
+  const permCheck = await requirePermission(ctx.userId, permission as PermissionCode, {
     locationId: draft.locationId ?? ctx.locationId,
   });
   if (!permCheck.ok) return permCheck;

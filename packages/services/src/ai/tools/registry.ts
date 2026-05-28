@@ -2,7 +2,7 @@
  * AI tool registry — T-0171 (Phase 2) + T-0172 (Phase 3).
  *
  * Tools are pure functions the assistant can invoke. Every tool MUST:
- *   1. Declare the permission code it requires (gated through the same
+ *   1. Declare the permission code it requires (gated through the
  *      `requirePermission()` engine the UI uses — never a "super-AI"
  *      bypass).
  *   2. Validate input via Zod before touching the DB.
@@ -25,6 +25,7 @@ import { db } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
+import type { PermissionCode } from '@erp/shared/types';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import type { z } from 'zod';
@@ -563,7 +564,7 @@ export async function listAvailableTools(
   const out: AiToolDefinition[] = [];
   for (const tool of Object.values(TOOLS)) {
     if (tool.name === 'web_search' && !options.includeWebSearch) continue;
-    const allowed = await can(ctx.userId, tool.permission, { locationId: ctx.locationId });
+    const allowed = await can(ctx.userId, tool.permission as PermissionCode, { locationId: ctx.locationId });
     if (!allowed) continue;
     out.push({
       type: 'function',

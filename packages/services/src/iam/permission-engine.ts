@@ -11,6 +11,7 @@
 import { db } from '@erp/db';
 import { permissions, rolePermissions, userRoles } from '@erp/db/schema/auth';
 import { eq } from 'drizzle-orm';
+import type { PermissionCode } from '@erp/shared/types';
 
 // --- Types ---
 
@@ -135,7 +136,7 @@ function matchesPermission(grantedCodes: Set<string>, requiredPermission: string
  * Use this for tenant-wide or global administration actions where a location
  * scoped grant must not be treated as "any location".
  */
-export async function canGlobally(userId: string, permission: string): Promise<boolean> {
+export async function canGlobally(userId: string, permission: PermissionCode): Promise<boolean> {
   const perms = await loadPermissions(userId);
   return matchesPermission(perms.global, permission);
 }
@@ -148,7 +149,7 @@ export async function canGlobally(userId: string, permission: string): Promise<b
  */
 export async function getAuthorizedLocations(
   userId: string,
-  permission: string,
+  permission: PermissionCode,
 ): Promise<AuthorizedLocations> {
   const perms = await loadPermissions(userId);
 
@@ -184,7 +185,7 @@ export async function getAuthorizedLocations(
  */
 export async function can(
   userId: string,
-  permission: string,
+  permission: PermissionCode,
   context?: PermissionContext,
 ): Promise<boolean> {
   const perms = await loadPermissions(userId);

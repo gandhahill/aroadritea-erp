@@ -6,6 +6,7 @@
  */
 
 import { db } from '@erp/db';
+import type { PermissionCode } from '@erp/shared/types';
 import { products } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -21,7 +22,7 @@ async function toggleProductActive(
   ctx: AuditContext,
   permKey: string,
 ): Promise<Result<{ id: string }>> {
-  const permCheck = await requirePermission(ctx.userId, permKey, {
+  const permCheck = await requirePermission(ctx.userId, permKey as PermissionCode, {
     locationId: ctx.locationId,
   });
   if (!permCheck.ok) return permCheck;

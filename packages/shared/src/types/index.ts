@@ -89,3 +89,5 @@ export type JournalEntryId = Brand<string, 'JournalEntryId'>;
 export type PeriodId = Brand<string, 'PeriodId'>;
 export type RoleId = Brand<string, 'RoleId'>;
 export type PermissionId = Brand<string, 'PermissionId'>;
+
+export * from './permissions';

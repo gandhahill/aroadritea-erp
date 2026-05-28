@@ -22,6 +22,7 @@
  */
 
 import { db } from '@erp/db';
+import type { PermissionCode } from '@erp/shared/types';
 import { accountingPeriods, accounts } from '@erp/db/schema/accounting';
 import { products, stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import {
@@ -331,7 +332,7 @@ async function transitionStatus(
     .limit(1);
   if (!row) return err(AppError.notFound('purchasing.errors.return_not_found'));
 
-  const permCheck = await requirePermission(ctx.userId, permission, {
+  const permCheck = await requirePermission(ctx.userId, permission as PermissionCode, {
     locationId: row.locationId,
   });
   if (!permCheck.ok) return permCheck;

@@ -348,7 +348,7 @@ async function transitionStatus(
 
   // Scope permission to the request's actual location, not the caller's
   // current location (cross-outlet privilege escalation guard).
-  const permCheck = await requirePermission(ctx.userId, permission, {
+  const permCheck = await requirePermission(ctx.userId, permission as PermissionCode, {
     locationId: req.locationId,
   });
   if (!permCheck.ok) return permCheck;
@@ -424,3 +424,5 @@ async function transitionStatus(
     },
   );
 }
+
+import type { PermissionCode } from '@erp/shared/types';
