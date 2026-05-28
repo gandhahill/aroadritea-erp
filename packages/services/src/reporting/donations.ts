@@ -47,7 +47,7 @@ export async function getDonationReport(
   params: DonationReportParams,
   ctx: AuditContext,
 ): Promise<Result<DonationReportResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'accounting.view', {
+  const permCheck = await requirePermission(ctx.userId, 'reporting.view', {
     locationId: params.locationId ?? ctx.locationId,
   });
   if (!permCheck.ok) return permCheck;

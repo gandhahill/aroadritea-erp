@@ -128,7 +128,7 @@ export async function getDailySummary(
   params: DailySummaryParams,
   ctx: AuditContext,
 ): Promise<Result<DailySummary>> {
-  const permCheck = await requirePermission(ctx.userId, 'accounting.view', {
+  const permCheck = await requirePermission(ctx.userId, 'reporting.view', {
     locationId: params.locationId,
   });
   if (!permCheck.ok) return permCheck;

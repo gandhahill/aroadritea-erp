@@ -96,7 +96,7 @@ export async function getHourlySales(
   params: HourlySalesParams,
   ctx: AuditContext,
 ): Promise<Result<HourlySalesResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'accounting.view', {
+  const permCheck = await requirePermission(ctx.userId, 'reporting.view', {
     locationId: params.locationId,
   });
   if (!permCheck.ok) return permCheck;
