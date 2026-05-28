@@ -49,6 +49,7 @@ const host = (() => {
 
 console.info(`WARNING Resetting database on host: ${host}`);
 console.info('   DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
+console.info('   DROP SCHEMA IF EXISTS drizzle CASCADE;');
 
 const sql = neon(DATABASE_URL);
 
@@ -56,6 +57,7 @@ try {
   await sql`DROP SCHEMA IF EXISTS public CASCADE`;
   await sql`CREATE SCHEMA public`;
   await sql`GRANT ALL ON SCHEMA public TO public`;
+  await sql`DROP SCHEMA IF EXISTS drizzle CASCADE`;
   console.info('Schema reset complete. Next steps:');
   console.info('     pnpm --filter @erp/db db:migrate');
   console.info('     pnpm --filter @erp/db db:seed');
