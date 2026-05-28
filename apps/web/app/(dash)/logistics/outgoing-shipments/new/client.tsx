@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createOutgoingShipmentAction } from '../actions';
-import { Button } from '@erp/ui';
+import { Button, toast } from '@erp/ui';
 
 export function OutgoingShipmentForm({ locations, partners = [] }: { locations: any[]; partners?: any[] }) {
   const router = useRouter();
@@ -52,6 +52,7 @@ export function OutgoingShipmentForm({ locations, partners = [] }: { locations: 
     try {
       if (!formData.locationId) throw new Error(t('errorSelectLocation'));
       await createOutgoingShipmentAction(formData);
+      toast.success(t('successCreated') || 'Shipment created successfully');
       router.push('/logistics/outgoing-shipments');
       router.refresh();
     } catch (err: any) {

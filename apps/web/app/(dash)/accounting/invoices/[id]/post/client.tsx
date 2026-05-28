@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from '@erp/ui';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { postInvoiceAction } from '../../actions';
@@ -20,6 +21,7 @@ export function PostInvoiceForm({ invoice, accounts }: { invoice: any, accounts:
 
     try {
       await postInvoiceAction(invoice.id, accountId);
+      toast.success(t('success') || 'Berhasil disimpan');
       router.push('/accounting/invoices');
       router.refresh();
     } catch (err: any) {

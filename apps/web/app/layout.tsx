@@ -4,6 +4,7 @@ import { getLocale, getMessages } from 'next-intl/server';
 import { Montserrat } from 'next/font/google';
 import './globals.css';
 import RegisterPWA from './register-pwa';
+import { Toaster } from '@erp/ui';
 
 // Brand wordmark "Aroadri Tea" uses Montserrat ExtraBold (BRAND.md).
 const montserrat = Montserrat({
@@ -46,6 +47,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <NextIntlClientProvider locale={locale} messages={messages} timeZone="Asia/Jakarta">
           <RegisterPWA />
           {children}
+          <Toaster position="bottom-right" />
         </NextIntlClientProvider>
       </body>
     </html>

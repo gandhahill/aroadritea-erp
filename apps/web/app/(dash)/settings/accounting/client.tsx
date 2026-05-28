@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from '@erp/ui';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { saveAccountingSettingsAction } from './actions';
@@ -22,6 +23,7 @@ export function AccountingSettingsForm({ accounts, defaultApId }: { accounts: an
     try {
       if (!apAccountId) throw new Error(t('errorSelectAccount'));
       await saveAccountingSettingsAction(apAccountId);
+      toast.success('Berhasil disimpan');
       router.refresh();
       // Optional: show a success toast here
     } catch (err: any) {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from '@erp/ui';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { saveCompanySettingsAction, type CompanyInfo } from './actions';
@@ -24,6 +25,7 @@ export function CompanySettingsForm({ defaults }: { defaults: CompanyInfo }) {
     try {
       await saveCompanySettingsAction(form);
       setSuccess(true);
+      toast.success('Berhasil disimpan');
       router.refresh();
     } catch (err: any) {
       setError(err.message);

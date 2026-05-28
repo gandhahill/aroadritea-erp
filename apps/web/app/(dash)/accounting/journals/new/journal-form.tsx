@@ -10,6 +10,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
+  toast,
 } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -82,6 +83,7 @@ export function JournalForm({ accounts, locations, partners }: Props) {
     const journalId = state.journalId;
     if (pendingFiles.length === 0) {
       router.push(`/accounting/journals/${journalId}`);
+      toast.success('Berhasil disimpan');
       router.refresh();
       return;
     }

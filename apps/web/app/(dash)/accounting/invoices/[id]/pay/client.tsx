@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from '@erp/ui';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { payInvoiceAction } from '../../actions';
@@ -23,6 +24,7 @@ export function PayInvoiceForm({ invoice, bankAccounts }: { invoice: any, bankAc
     try {
       if (!accountId) throw new Error(t('errorSelectAccount'));
       await payInvoiceAction(String(invoice.id), accountId, date);
+      toast.success(t('success') || 'Berhasil disimpan');
       router.push('/accounting/invoices');
       router.refresh();
     } catch (err: any) {
