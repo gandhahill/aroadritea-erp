@@ -638,7 +638,15 @@
       "printOrSavePdf": "Print / Save PDF",
       "notes": "Notes",
       "preparedBy": "Prepared By",
-      "authorizedBy": "Authorized By"
+      "authorizedBy": "Authorized By",
+      "description": "Description",
+      "debit": "Debit",
+      "credit": "Credit",
+      "amountInWords": "Amount in Words",
+      "printHint": "Print this document for your records.",
+      "paymentTerms": "Payment Terms",
+      "subtotal": "Subtotal",
+      "tax": "Tax"
     },
     "invoice": {
       "title": "Invoices",
@@ -693,7 +701,19 @@
         "cancel": "Cancel",
         "postCreate": "Post & Create Journal",
         "posting": "Posting..."
-      }
+      },
+      "subtotal": "Subtotal",
+      "tax": "Tax",
+      "payAction": "Pay",
+      "printKuitansi": "Print Receipt",
+      "errorSelectAccount": "Please select an account.",
+      "amountToPay": "Amount to Pay",
+      "paymentDate": "Payment Date",
+      "paymentAccount": "Payment Account",
+      "selectAccount": "Select Account...",
+      "cancel": "Cancel",
+      "processing": "Processing...",
+      "payInvoice": "Pay Invoice"
     }
   },
   "purchasing": {
@@ -902,7 +922,14 @@
         "historyTitle": "Shipment History",
         "historyEmpty": "No history yet. Run a sync to fetch data from the courier."
       }
-    }
+    },
+    "statusDraft": "Draft",
+    "statusSubmitted": "Submitted",
+    "statusApproved": "Approved",
+    "statusPartial": "Partial",
+    "statusReceived": "Received",
+    "statusClosed": "Closed",
+    "statusCancelled": "Cancelled"
   },
   "scheduledJobs": {
     "title": "Scheduled Jobs",
@@ -1074,7 +1101,15 @@
         "varianceQty": "Variance Qty",
         "varianceRate": "Variance Rate",
         "worstSession": "Worst Session",
-        "actions": "Actions"
+        "actions": "Actions",
+        "lines": "Lines",
+        "withVariance": "With Variance",
+        "netQty": "Net Qty",
+        "product": "Product",
+        "session": "Session",
+        "netVariance": "Net Variance",
+        "value": "Value",
+        "rate": "Rate"
       },
       "tabs": {
         "sessions": "By Session",
@@ -1090,6 +1125,12 @@
         "netRevenueLost": "Net Revenue Lost",
         "surplus": "surplus",
         "noSurplus": "No surplus"
+      },
+      "emptySessions": "No opname sessions found.",
+      "emptyProducts": "No products with variance found.",
+      "charts": {
+        "varianceDistribution": "Variance Distribution",
+        "topVarianceProducts": "Top Products with Variance"
       }
     },
     "products": {
@@ -1373,8 +1414,13 @@
         "countedQty": "Counted",
         "variance": "Variance",
         "status": "Status",
-        "action": "Action"
-      }
+        "action": "Action",
+        "varianceValue": "Variance Value"
+      },
+      "saveChanges": "Save Changes",
+      "emptyList": "No items found.",
+      "noMatchFilter": "No items match the filter.",
+      "saveAction": "Save"
     },
     "adjust": {
       "title": "Quick Adjustment",
@@ -2282,7 +2328,8 @@
       "outsideLocationRadius": "You are outside the permitted outlet location radius.",
       "checkInFailed": "Failed to check in.",
       "notFound": "Attendance data not found.",
-      "alreadyCheckedOut": "You have already checked out."
+      "alreadyCheckedOut": "You have already checked out.",
+      "onTime": "On Time"
     },
     "myAttendance": {
       "title": "My Attendance History",
@@ -2884,7 +2931,8 @@
       "companyNpwpHelp": "Tax identification number.",
       "companyPhone": "Phone Number",
       "saved": "Company info saved successfully.",
-      "saveAction": "Save Changes"
+      "saveAction": "Save Changes",
+      "saving": "Saving..."
     },
     "accounting": {
       "title": "Accounting Settings",
@@ -2894,7 +2942,9 @@
       "apAccount": "Accounts Payable (AP)",
       "selectAccount": "Select AP Account...",
       "apAccountHelp": "This account will be credited when posting a purchase invoice.",
-      "saveAction": "Save Settings"
+      "saveAction": "Save Settings",
+      "errorSelectAccount": "Please select an account.",
+      "saving": "Saving..."
     }
   },
   "workflow": {
@@ -3040,7 +3090,8 @@
       "vsPrevious": "vs previous period",
       "vsPreviousRange": "vs {from} to {to}",
       "noBaseline": "No prior baseline",
-      "comparisonTitle": "Compared to Previous Period"
+      "comparisonTitle": "Compared to Previous Period",
+      "shiftSummary": "Shift Summary"
     },
     "donations": {
       "title": "Donation Report",
@@ -4021,6 +4072,25 @@
     "actions": "Actions",
     "noShipments": "No outgoing shipments yet.",
     "sync": "Sync",
-    "syncing": "Syncing..."
+    "syncing": "Syncing...",
+    "outgoingShipment": {
+      "errorSelectLocation": "Please select a location.",
+      "number": "Number",
+      "location": "Location",
+      "selectLocation": "Select Location...",
+      "subject": "Subject",
+      "subjectPlaceholder": "e.g. Goods delivery",
+      "recipientName": "Recipient Name",
+      "recipientPhone": "Recipient Phone",
+      "recipientAddress": "Recipient Address",
+      "shippingDetails": "Shipping Details",
+      "courierCode": "Courier Code",
+      "awb": "AWB",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "saveAction": "Save",
+      "title": "Outgoing Shipment",
+      "createNew": "Create New"
+    }
   }
 }

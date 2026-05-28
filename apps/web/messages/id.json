@@ -638,7 +638,15 @@
       "printOrSavePdf": "Cetak / Simpan PDF",
       "notes": "Catatan",
       "preparedBy": "Dibuat Oleh",
-      "authorizedBy": "Disetujui Oleh"
+      "authorizedBy": "Disetujui Oleh",
+      "description": "Keterangan",
+      "debit": "Debit",
+      "credit": "Kredit",
+      "amountInWords": "Terbilang",
+      "printHint": "Cetak dokumen ini untuk arsip Anda.",
+      "paymentTerms": "Termin",
+      "subtotal": "Subtotal",
+      "tax": "Pajak"
     },
     "invoice": {
       "title": "Invoice",
@@ -693,7 +701,19 @@
         "cancel": "Batal",
         "postCreate": "Post & Buat Jurnal",
         "posting": "Mem-posting..."
-      }
+      },
+      "subtotal": "Subtotal",
+      "tax": "Pajak",
+      "payAction": "Bayar",
+      "printKuitansi": "Cetak Kuitansi",
+      "errorSelectAccount": "Harap pilih akun.",
+      "amountToPay": "Jumlah Dibayar",
+      "paymentDate": "Tanggal Pembayaran",
+      "paymentAccount": "Akun Pembayaran",
+      "selectAccount": "Pilih Akun...",
+      "cancel": "Batal",
+      "processing": "Memproses...",
+      "payInvoice": "Bayar Invoice"
     }
   },
   "purchasing": {
@@ -902,7 +922,14 @@
         "historyTitle": "Riwayat Pengiriman",
         "historyEmpty": "Belum ada riwayat. Lakukan sinkron untuk mengambil data dari kurir."
       }
-    }
+    },
+    "statusDraft": "Draf",
+    "statusSubmitted": "Diajukan",
+    "statusApproved": "Disetujui",
+    "statusPartial": "Sebagian",
+    "statusReceived": "Diterima",
+    "statusClosed": "Selesai",
+    "statusCancelled": "Dibatalkan"
   },
   "scheduledJobs": {
     "title": "Jadwal Otomatis",
@@ -1074,7 +1101,15 @@
         "varianceQty": "Selisih Qty",
         "varianceRate": "Tingkat Selisih",
         "worstSession": "Sesi Terburuk",
-        "actions": "Aksi"
+        "actions": "Aksi",
+        "lines": "Baris",
+        "withVariance": "Ada Selisih",
+        "netQty": "Kuantitas Bersih",
+        "product": "Produk",
+        "session": "Sesi",
+        "netVariance": "Selisih Bersih",
+        "value": "Nilai",
+        "rate": "Tingkat"
       },
       "tabs": {
         "sessions": "Berdasarkan Sesi",
@@ -1090,6 +1125,12 @@
         "netRevenueLost": "Kehilangan Pendapatan Bersih",
         "surplus": "surplus",
         "noSurplus": "Tidak ada surplus"
+      },
+      "emptySessions": "Tidak ada sesi opname.",
+      "emptyProducts": "Tidak ada produk dengan selisih.",
+      "charts": {
+        "varianceDistribution": "Distribusi Selisih",
+        "topVarianceProducts": "Produk Teratas (Selisih)"
       }
     },
     "products": {
@@ -1387,8 +1428,13 @@
         "countedQty": "Fisik",
         "variance": "Selisih",
         "status": "Status",
-        "action": "Aksi"
-      }
+        "action": "Aksi",
+        "varianceValue": "Nilai Selisih"
+      },
+      "saveChanges": "Simpan Perubahan",
+      "emptyList": "Data kosong.",
+      "noMatchFilter": "Data tidak ditemukan.",
+      "saveAction": "Simpan"
     },
     "adjust": {
       "title": "Adjustment Cepat",
@@ -2375,7 +2421,8 @@
       "outsideLocationRadius": "Anda berada di luar radius lokasi outlet yang diizinkan.",
       "checkInFailed": "Gagal melakukan check-in.",
       "notFound": "Data presensi tidak ditemukan.",
-      "alreadyCheckedOut": "Anda sudah melakukan check-out."
+      "alreadyCheckedOut": "Anda sudah melakukan check-out.",
+      "onTime": "Tepat Waktu"
     },
     "myAttendance": {
       "title": "Riwayat Presensi Saya",
@@ -2779,7 +2826,8 @@
       "vsPrevious": "vs periode sebelumnya",
       "vsPreviousRange": "vs {from} s/d {to}",
       "noBaseline": "Belum ada baseline",
-      "comparisonTitle": "Perbandingan vs Periode Sebelumnya"
+      "comparisonTitle": "Perbandingan vs Periode Sebelumnya",
+      "shiftSummary": "Ringkasan Shift"
     },
     "donations": {
       "title": "Laporan Donasi",
@@ -3374,7 +3422,8 @@
       "companyNpwpHelp": "Nomor Pokok Wajib Pajak.",
       "companyPhone": "Nomor Telepon",
       "saved": "Info perusahaan berhasil disimpan.",
-      "saveAction": "Simpan Perubahan"
+      "saveAction": "Simpan Perubahan",
+      "saving": "Menyimpan..."
     },
     "accounting": {
       "title": "Pengaturan Akuntansi",
@@ -3384,7 +3433,9 @@
       "apAccount": "Akun Utang (AP)",
       "selectAccount": "Pilih Akun Utang...",
       "apAccountHelp": "Akun ini akan dikreditkan saat mem-posting invoice pembelian.",
-      "saveAction": "Simpan Pengaturan"
+      "saveAction": "Simpan Pengaturan",
+      "errorSelectAccount": "Harap pilih akun.",
+      "saving": "Menyimpan..."
     }
   },
   "shell": {
@@ -4035,6 +4086,25 @@
     "actions": "Aksi",
     "noShipments": "Belum ada pengiriman keluar.",
     "sync": "Sinkron",
-    "syncing": "Sinkronisasi..."
+    "syncing": "Sinkronisasi...",
+    "outgoingShipment": {
+      "errorSelectLocation": "Harap pilih lokasi.",
+      "number": "Nomor",
+      "location": "Lokasi",
+      "selectLocation": "Pilih Lokasi...",
+      "subject": "Subjek",
+      "subjectPlaceholder": "Cth: Pengiriman barang",
+      "recipientName": "Nama Penerima",
+      "recipientPhone": "No. HP Penerima",
+      "recipientAddress": "Alamat Penerima",
+      "shippingDetails": "Detail Pengiriman",
+      "courierCode": "Kode Kurir",
+      "awb": "Resi (AWB)",
+      "cancel": "Batal",
+      "saving": "Menyimpan...",
+      "saveAction": "Simpan",
+      "title": "Pengiriman Keluar",
+      "createNew": "Buat Baru"
+    }
   }
 }

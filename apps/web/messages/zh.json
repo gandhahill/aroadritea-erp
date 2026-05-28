@@ -638,7 +638,15 @@
       "printOrSavePdf": "打印 / 保存为PDF",
       "notes": "备注",
       "preparedBy": "制单人",
-      "authorizedBy": "授权人"
+      "authorizedBy": "授权人",
+      "description": "描述",
+      "debit": "借方",
+      "credit": "贷方",
+      "amountInWords": "大写金额",
+      "printHint": "打印此文件以供存档。",
+      "paymentTerms": "付款条件",
+      "subtotal": "小计",
+      "tax": "税金"
     },
     "invoice": {
       "title": "发票 (Invoices)",
@@ -693,7 +701,19 @@
         "cancel": "取消",
         "postCreate": "过账并创建凭证",
         "posting": "过账中..."
-      }
+      },
+      "subtotal": "小计",
+      "tax": "税金",
+      "payAction": "支付",
+      "printKuitansi": "打印收据",
+      "errorSelectAccount": "请选择账户。",
+      "amountToPay": "支付金额",
+      "paymentDate": "付款日期",
+      "paymentAccount": "付款账户",
+      "selectAccount": "选择账户...",
+      "cancel": "取消",
+      "processing": "处理中...",
+      "payInvoice": "支付发票"
     }
   },
   "purchasing": {
@@ -902,7 +922,14 @@
         "historyTitle": "物流轨迹",
         "historyEmpty": "暂无轨迹,执行同步以获取快递数据。"
       }
-    }
+    },
+    "statusDraft": "草稿",
+    "statusSubmitted": "已提交",
+    "statusApproved": "已批准",
+    "statusPartial": "部分",
+    "statusReceived": "已接收",
+    "statusClosed": "已关闭",
+    "statusCancelled": "已取消"
   },
   "scheduledJobs": {
     "title": "定时任务",
@@ -1074,7 +1101,15 @@
         "varianceQty": "差异数量",
         "varianceRate": "差异率",
         "worstSession": "最差盘点",
-        "actions": "操作"
+        "actions": "操作",
+        "lines": "行",
+        "withVariance": "有差异",
+        "netQty": "净数量",
+        "product": "产品",
+        "session": "盘点",
+        "netVariance": "净差异",
+        "value": "金额",
+        "rate": "费率"
       },
       "tabs": {
         "sessions": "按盘点",
@@ -1090,6 +1125,12 @@
         "netRevenueLost": "净收入损失",
         "surplus": "盘盈",
         "noSurplus": "无盘盈"
+      },
+      "emptySessions": "未找到盘点。",
+      "emptyProducts": "未找到有差异的产品。",
+      "charts": {
+        "varianceDistribution": "差异分布",
+        "topVarianceProducts": "顶级差异产品"
       }
     },
     "products": {
@@ -1325,8 +1366,13 @@
         "countedQty": "盘点",
         "variance": "差异",
         "status": "状态",
-        "action": "操作"
-      }
+        "action": "操作",
+        "varianceValue": "差异金额"
+      },
+      "saveChanges": "保存更改",
+      "emptyList": "无数据。",
+      "noMatchFilter": "没有符合过滤条件的数据。",
+      "saveAction": "保存"
     },
     "categories": {
       "title": "产品分类",
@@ -2282,7 +2328,8 @@
       "outsideLocationRadius": "您在允许的门店位置半径之外。",
       "checkInFailed": "签到失败。",
       "notFound": "未找到考勤数据。",
-      "alreadyCheckedOut": "您已经签退了。"
+      "alreadyCheckedOut": "您已经签退了。",
+      "onTime": "准时"
     },
     "myAttendance": {
       "title": "我的考勤记录",
@@ -2884,7 +2931,8 @@
       "companyNpwpHelp": "税务识别号。",
       "companyPhone": "电话号码",
       "saved": "公司信息已成功保存。",
-      "saveAction": "保存更改"
+      "saveAction": "保存更改",
+      "saving": "保存中..."
     },
     "accounting": {
       "title": "会计设置",
@@ -2894,7 +2942,9 @@
       "apAccount": "应付账款 (AP)",
       "selectAccount": "选择应付账款...",
       "apAccountHelp": "过账采购发票时将贷记此账户。",
-      "saveAction": "保存设置"
+      "saveAction": "保存设置",
+      "errorSelectAccount": "请选择账户。",
+      "saving": "保存中..."
     }
   },
   "workflow": {
@@ -3065,7 +3115,8 @@
       "vsPrevious": "对比上期",
       "vsPreviousRange": "对比 {from} 至 {to}",
       "noBaseline": "无历史基准",
-      "comparisonTitle": "与上期对比"
+      "comparisonTitle": "与上期对比",
+      "shiftSummary": "班次摘要"
     },
     "donations": {
       "title": "捐款报告",
@@ -4021,6 +4072,25 @@
     "actions": "操作",
     "noShipments": "暂无出库运输",
     "sync": "同步",
-    "syncing": "同步中"
+    "syncing": "同步中",
+    "outgoingShipment": {
+      "errorSelectLocation": "请选择地点。",
+      "number": "编号",
+      "location": "地点",
+      "selectLocation": "选择地点...",
+      "subject": "主题",
+      "subjectPlaceholder": "例如：货物交付",
+      "recipientName": "收件人姓名",
+      "recipientPhone": "收件人电话",
+      "recipientAddress": "收件人地址",
+      "shippingDetails": "运输详情",
+      "courierCode": "快递代码",
+      "awb": "运单号",
+      "cancel": "取消",
+      "saving": "保存中...",
+      "saveAction": "保存",
+      "title": "发出货物",
+      "createNew": "创建新的"
+    }
   }
 }
