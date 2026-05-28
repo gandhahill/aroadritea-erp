@@ -28,7 +28,8 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
-| T-0208 | Change Password (Self Service & Admin) | Antigravity | 2026-05-28 | 2026-05-28 | 🟨 IN_PROGRESS | Add profile setting and HR reset password |
+| T-0209 | Fix UI Object Rendering, Timezone, and CSP bugs | Antigravity | 2026-05-28 18:14 WIB | 2026-05-28 18:22 WIB | 🟩 DONE | Fixed React object rendering bugs, updated CSP, corrected timezone and UA parser in sessions. Build passed, pushed. |
+| T-0208 | Change Password (Self Service & Admin) | Antigravity | 2026-05-28 | 2026-05-28 | 🟩 DONE | Add profile setting and HR reset password |
 | T-0207 | HR My Schedule Employee View | Antigravity | 2026-05-28 | 2026-05-28 | 🟩 DONE | Added /hr/my-schedule and listMySchedule action |
 | T-0206 | POS Manual Sales UI Refactor | Antigravity | 2026-05-28 20:30 WIB | 2026-05-28 20:41 WIB | 🟩 DONE | Refactored manual sales UI to support multiple payment methods, moved consumed ingredients to a sub-page, and added createdByName to the history table. Replaced Debit/Credit with Card. |
 | T-0205 | Invoice & Kuitansi Best Practice Fixes | Antigravity | 2026-05-28 18:22 WIB | 2026-05-28 18:30 WIB | 🟩 DONE | Added sequential numbering, tax amount calculation, terbilang utility, partner address & NPWP, full i18n support, and migrated database to support new columns. Typecheck passed. |
