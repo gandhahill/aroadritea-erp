@@ -1,6 +1,6 @@
 import { and, db, eq, gte, lte } from '@erp/db';
 import { shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
-import { Result } from '@erp/shared/result';
+import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 
 export interface MyScheduleRow {
@@ -47,7 +47,7 @@ export async function listMySchedule(
       )
       .orderBy(shiftAssignments.workDate);
 
-    return Result.ok(
+    return ok(
       rows.map((r) => ({
         id: r.id,
         workDate: String(r.workDate).slice(0, 10),
@@ -60,6 +60,6 @@ export async function listMySchedule(
       })),
     );
   } catch (error: any) {
-    return Result.err(error.message || 'Failed to list schedule');
+    return err(error.message || 'Failed to list schedule');
   }
 }
