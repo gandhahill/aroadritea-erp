@@ -247,6 +247,22 @@ export default async function DashboardPage() {
   );
   const links = allowed.filter((l): l is QuickLink => Boolean(l));
 
+  const [
+    canViewReporting,
+    canViewPos,
+    canViewAttendance,
+    canViewPurchasing,
+    canViewEmployees,
+    canViewAccounting
+  ] = await Promise.all([
+    can(userId, 'reporting.view' as PermissionCode),
+    can(userId, 'pos.view' as PermissionCode),
+    can(userId, 'hr.attendance.read' as PermissionCode),
+    can(userId, 'purchasing.view' as PermissionCode),
+    can(userId, 'hr.employee.read' as PermissionCode),
+    can(userId, 'accounting.view' as PermissionCode),
+  ]);
+
   const now = new Date();
   const hello =
     now.getHours() < 11
@@ -270,29 +286,48 @@ export default async function DashboardPage() {
       />
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <Kpi
-          title={t('kpis.todayGross')}
-          value={rupiah(kpis.todayGross, locale)}
-          subtitle={t('kpis.transactions', { count: kpis.todayOrders })}
-        />
-        <Kpi title={t('kpis.monthGross')} value={rupiah(kpis.monthGross, locale)} />
-        <Kpi
-          title={t('kpis.openShifts')}
-          value={String(kpis.openShifts)}
-          subtitle={t('kpis.activePos')}
-        />
-        <Kpi
-          title={t('kpis.lateToday')}
-          value={String(kpis.lateToday)}
-          subtitle={t('kpis.notForgiven')}
-        />
-        <Kpi title={t('kpis.openPo')} value={String(kpis.openPos)} />
-        <Kpi title={t('kpis.activeEmployees')} value={String(kpis.activeEmployees)} />
-        <Kpi
-          title={t('kpis.accountingPeriod')}
-          value={kpis.openPeriod ?? '—'}
-          subtitle={kpis.openPeriod ? t('kpis.open') : t('kpis.notOpened')}
-        />
+        {canViewReporting && (
+          <>
+            <Kpi
+              title={t('kpis.todayGross')}
+              value={rupiah(kpis.todayGross, locale)}
+              subtitle={t('kpis.transactions', { count: kpis.todayOrders })}
+            />
+            <Kpi title={t('kpis.monthGross')} value={rupiah(kpis.monthGross, locale)} />
+          </>
+        )}
+        
+        {canViewPos && (
+          <Kpi
+            title={t('kpis.openShifts')}
+            value={String(kpis.openShifts)}
+            subtitle={t('kpis.activePos')}
+          />
+        )}
+        
+        {canViewAttendance && (
+          <Kpi
+            title={t('kpis.lateToday')}
+            value={String(kpis.lateToday)}
+            subtitle={t('kpis.notForgiven')}
+          />
+        )}
+        
+        {canViewPurchasing && (
+          <Kpi title={t('kpis.openPo')} value={String(kpis.openPos)} />
+        )}
+        
+        {canViewEmployees && (
+          <Kpi title={t('kpis.activeEmployees')} value={String(kpis.activeEmployees)} />
+        )}
+        
+        {canViewAccounting && (
+          <Kpi
+            title={t('kpis.accountingPeriod')}
+            value={kpis.openPeriod ?? '—'}
+            subtitle={kpis.openPeriod ? t('kpis.open') : t('kpis.notOpened')}
+          />
+        )}
       </section>
 
       <section>
