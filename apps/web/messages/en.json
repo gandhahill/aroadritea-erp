@@ -1637,7 +1637,8 @@
     "logistics": "Logistics",
     "outgoingShipments": "Outgoing Shipments",
     "companySettings": "Company Info",
-    "accountingSettings": "Accounting"
+    "accountingSettings": "Accounting",
+    "consumedIngredients": "Consumed Ingredients"
   },
   "pos": {
     "title": "Point of Sale",

@@ -216,6 +216,7 @@ export function Sidebar() {
       children: [
         { label: t('posCashier'), href: '/pos', icon: <></> },
         { label: t('manualSales'), href: '/pos/manual-sales', icon: <></> },
+        { label: t('consumedIngredients'), href: '/pos/manual-sales/consumed', icon: <></> },
         { label: t('posOrders'), href: '/pos/orders', icon: <></> },
         { label: t('demoMode'), href: '/pos/demo', icon: <></> },
       ],

@@ -1651,7 +1651,8 @@
     "variance": "Selisih Stok",
     "stockTransfer": "Transfer Stok",
     "companySettings": "Info Perusahaan",
-    "accountingSettings": "Akuntansi"
+    "accountingSettings": "Akuntansi",
+    "consumedIngredients": "Pemakaian Bahan"
   },
   "pos": {
     "title": "Kasir",

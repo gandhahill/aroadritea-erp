@@ -1637,7 +1637,8 @@
     "logistics": "物流 (Logistics)",
     "outgoingShipments": "发出货物",
     "companySettings": "公司信息",
-    "accountingSettings": "会计"
+    "accountingSettings": "会计",
+    "consumedIngredients": "已消耗原料"
   },
   "pos": {
     "title": "收银",
