@@ -482,29 +482,65 @@ export function Sidebar({
     });
   };
 
-  const filteredNavItems = NAV_ITEMS.filter((item) => {
-    const mod = item.href.substring(1).split('/')[0] ?? '';
-    if (['dashboard', 'account', 'settings'].includes(mod)) return true;
+  const PATH_TO_MODULE: Record<string, string> = {
+    '/audit': 'audit',
+    '/settings/locations': 'iam',
+    '/settings/pos': 'pos',
+    '/settings/promotions': 'promotion',
+    '/settings/loyalty': 'member',
+    '/settings/attendance': 'hr',
+    '/settings/scheduled-jobs': 'scheduled-jobs',
+    '/settings/notifications': 'notification',
+    '/settings/integrations/naixer': 'kitchen',
+    '/settings/permissions': 'iam',
+    '/settings/custom-fields': 'customfield',
+    '/settings/company': 'iam',
+    '/settings/accounting': 'accounting',
+    '/settings/bank-accounts': 'accounting',
+    '/settings/workflow-editor': 'workflow',
+    '/settings/ai-assistant': 'ai',
+    '/settings/ai-assistant/log': 'ai',
+    '/whistleblower': 'hr',
+    '/crm/members': 'member',
+  };
+
+  const filteredNavItems = NAV_ITEMS.map((item) => {
+    // If it has children, filter them first
+    let children = item.children;
+    if (children) {
+      children = children.filter((child) => {
+        if (['/dashboard', '/account'].includes(child.href)) return true;
+        
+        let childMod = PATH_TO_MODULE[child.href] || child.href.substring(1).split('/')[0] || '';
+        return hasModuleAccess(childMod);
+      });
+    }
+    return { ...item, children };
+  }).filter((item) => {
+    if (['/dashboard', '/account'].includes(item.href)) return true;
     
-    const reqPerm = `${mod}.*`;
-    
-    const matches = (granted: string[], req: string) => {
-      if (granted.includes(req)) return true;
+    // If it had children originally, keep it if any children survived
+    if (item.children) {
+      return item.children.length > 0;
+    }
+
+    const mod = PATH_TO_MODULE[item.href] || item.href.substring(1).split('/')[0] || '';
+    return hasModuleAccess(mod);
+  });
+
+  function hasModuleAccess(moduleName: string) {
+    const matchesModule = (granted: string[]) => {
       if (granted.includes('*.*')) return true;
-      const dotIndex = req.indexOf('.');
-      if (dotIndex > 0) {
-        const m = req.substring(0, dotIndex);
-        if (granted.includes(`${m}.*`)) return true;
-      }
-      return false;
+      if (granted.includes(`${moduleName}.*`)) return true;
+      return granted.some((p) => p.startsWith(`${moduleName}.`));
     };
 
-    if (matches(permissions.global, reqPerm)) return true;
+    if (matchesModule(permissions.global)) return true;
     for (const locPerms of Object.values(permissions.byLocation)) {
-      if (matches(locPerms, reqPerm)) return true;
+      if (matchesModule(locPerms)) return true;
     }
     return false;
-  });
+  }
 
   return (
     <aside
@@ -514,7 +550,7 @@ export function Sidebar({
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-brand-cream-3 px-4">
         <div className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'hidden' : ''}`}>
           <img
-            src="/aroadri-logo.png"
+            src="/logo-primary.png"
             alt="Aroadri Logo"
             className="h-8 w-8 object-contain shrink-0"
             onError={(e) => {
