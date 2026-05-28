@@ -2,7 +2,7 @@ import { db } from '@erp/db';
 import { users, authAccounts } from '@erp/db/schema/auth';
 import { hashPassword, verifyPassword } from '@erp/services/auth/password';
 import { AppError } from '@erp/shared/errors';
-import { Result, err, ok, tryCatch } from '@erp/shared/result';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
@@ -70,7 +70,7 @@ export async function changeMyPassword(
         .where(and(eq(authAccounts.userId, ctx.userId), eq(authAccounts.providerId, 'credential')));
 
       await auditRecord({
-        action: 'change_password',
+        action: 'update',
         entityType: 'user',
         entityId: ctx.userId,
         before: null, // Jangan rekam password hash di log
@@ -141,7 +141,7 @@ export async function adminResetPassword(
         .where(and(eq(authAccounts.userId, userId), eq(authAccounts.providerId, 'credential')));
 
       await auditRecord({
-        action: 'reset_password_by_admin',
+        action: 'update',
         entityType: 'user',
         entityId: userId,
         before: null,

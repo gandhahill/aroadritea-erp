@@ -133,6 +133,7 @@ export async function createEmployee(
           locationId: data.loginScope === 'global' ? null : targetLocationId,
         });
         await db.insert(authAccounts).values({
+          id: generateId(),
           userId,
           accountId: data.email,
           providerId: 'credential',

@@ -1,7 +1,7 @@
 'use client';
 
 import { PageHeader } from '@/components/page-header';
-import { Button, Input, Select } from '@erp/ui';
+import { Button, Input, Select, SearchableSelect, Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useActionState, useEffect, useState } from 'react';
@@ -75,10 +75,19 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
                     <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
                       {t('ingredient', { defaultValue: 'Bahan Baku' })}
                     </span>
-                    <Select
+                    <SearchableSelect
+                      options={[
+                        { value: '', label: t('selectIngredient', { defaultValue: 'Pilih Bahan...' }) },
+                        ...data.ingredients.map((p) => ({
+                          value: p.id,
+                          label: `${p.name} (${p.uom})`,
+                        })),
+                      ]}
                       value={item.ingredientId}
-                      onChange={(e) => {
-                        const ingredient = data.ingredients.find((p) => p.id === e.target.value);
+                      searchPlaceholder={t('search', { defaultValue: 'Cari...' })}
+                      emptyMessage={t('noResultsFound', { defaultValue: 'Tidak ada hasil' })}
+                      onChange={(val) => {
+                        const ingredient = data.ingredients.find((p) => p.id === val);
                         if (!ingredient) return;
                         const newItems = [...consumedIngredients];
                         newItems[index] = {
@@ -89,16 +98,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
                         };
                         setConsumedIngredients(newItems);
                       }}
-                    >
-                      <option value="" disabled>
-                        {t('selectIngredient', { defaultValue: 'Pilih Bahan Baku...' })}
-                      </option>
-                      {data.ingredients.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} ({p.uom})
-                        </option>
-                      ))}
-                    </Select>
+                    />
                   </div>
                   <div className="w-24">
                     <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">

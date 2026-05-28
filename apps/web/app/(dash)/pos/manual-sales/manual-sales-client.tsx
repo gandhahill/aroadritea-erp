@@ -2,7 +2,7 @@
 
 import { PageHeader } from '@/components/page-header';
 import { Pagination } from '@/components/pagination';
-import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@erp/ui';
+import { Button, Input, Select, SearchableSelect, Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useActionState, useEffect, useState } from 'react';
@@ -215,10 +215,19 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
                       {t('product')}
                     </span>
-                    <Select
+                    <SearchableSelect
+                      options={[
+                        { value: '', label: t('selectProduct', { defaultValue: 'Select Product...' }) },
+                        ...data.products.map(p => ({
+                          value: `${p.id}::${p.variantId || ''}`,
+                          label: p.name
+                        }))
+                      ]}
                       value={`${item.productId}::${item.variantId || ''}`}
-                      onChange={(e) => {
-                        const [pid, vid] = e.target.value.split('::');
+                      searchPlaceholder={t('search', { defaultValue: 'Cari...' })}
+                      emptyMessage={t('noResultsFound', { defaultValue: 'Tidak ada hasil' })}
+                      onChange={(val) => {
+                        const [pid, vid] = val.split('::');
                         const product = data.products.find(
                           (p) => p.id === pid && (p.variantId || '') === vid,
                         );
@@ -236,19 +245,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                         };
                         setLineItems(newItems);
                       }}
-                    >
-                      <option value="::" disabled>
-                        {t('selectProduct')}
-                      </option>
-                      {data.products.map((p) => (
-                        <option
-                          key={`${p.id}::${p.variantId || ''}`}
-                          value={`${p.id}::${p.variantId || ''}`}
-                        >
-                          {p.name}
-                        </option>
-                      ))}
-                    </Select>
+                    />
                   </div>
                   <div className="w-24">
                     <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
