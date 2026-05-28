@@ -1,9 +1,12 @@
 import { getSession } from '@/lib/auth';
 import { getEmployee } from '@erp/services/hr';
+import { can } from '@erp/services/iam';
 import type { AuditContext } from '@erp/shared/types';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { notFound, redirect } from 'next/navigation';
+import { forbidden, notFound, redirect } from 'next/navigation';
+import { fetchAssignableRoles } from '../actions';
+import { EditLoginModal } from './edit-login-modal';
 
 export const metadata: Metadata = { title: 'Employee Detail | Aroadri ERP' };
 
@@ -58,9 +61,13 @@ export default async function EmployeeDetailPage({
   const result = await getEmployee(id, ctx);
   if (!result.ok) {
     if (result.error.code === 'NOT_FOUND') notFound();
+    if (result.error.code === 'FORBIDDEN') forbidden();
     throw new Error(result.error.message ?? result.error.messageKey ?? 'Failed to load employee');
   }
   const emp = result.value;
+  
+  const canEditLogin = await can(ctx.userId, 'iam.user.update', { locationId: emp.locationId ?? undefined });
+  const roles = canEditLogin ? await fetchAssignableRoles() : [];
   const year = new Date().getFullYear();
   const statusCfg = STATUS_COLOR[emp.status] ?? {
     bg: 'bg-brand-cream-2',
@@ -100,6 +107,7 @@ export default async function EmployeeDetailPage({
           >
             {commonT('edit')}
           </a>
+          {canEditLogin && <EditLoginModal employeeId={emp.id} roles={roles} />}
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${statusCfg.bg} ${statusCfg.text}`}
           >

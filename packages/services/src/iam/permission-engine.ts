@@ -94,6 +94,22 @@ async function loadPermissions(userId: string): Promise<CachedPermissions> {
 }
 
 /**
+ * Get all raw permissions for a user (useful for client-side UI filtering).
+ * Converts Sets/Maps to Arrays/Objects for Next.js serialization.
+ */
+export async function getUserPermissions(userId: string) {
+  const perms = await loadPermissions(userId);
+  const byLocationObj: Record<string, string[]> = {};
+  for (const [locId, set] of perms.byLocation.entries()) {
+    byLocationObj[locId] = Array.from(set);
+  }
+  return {
+    global: Array.from(perms.global),
+    byLocation: byLocationObj,
+  };
+}
+
+/**
  * Check if a permission code matches against a user's granted permissions.
  * Supports wildcards: `*.*` matches everything, `module.*` matches all in module.
  */

@@ -18,7 +18,11 @@ interface NavItem {
   children?: NavItem[];
 }
 
-export function Sidebar() {
+export function Sidebar({
+  permissions,
+}: {
+  permissions: { global: string[]; byLocation: Record<string, string[]> };
+}) {
   const pathname = usePathname();
   const t = useTranslations('nav');
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
@@ -478,21 +482,44 @@ export function Sidebar() {
     });
   };
 
+  const filteredNavItems = NAV_ITEMS.filter((item) => {
+    const mod = item.href.substring(1).split('/')[0] ?? '';
+    if (['dashboard', 'account', 'settings'].includes(mod)) return true;
+    
+    const reqPerm = `${mod}.*`;
+    
+    const matches = (granted: string[], req: string) => {
+      if (granted.includes(req)) return true;
+      if (granted.includes('*.*')) return true;
+      const dotIndex = req.indexOf('.');
+      if (dotIndex > 0) {
+        const m = req.substring(0, dotIndex);
+        if (granted.includes(`${m}.*`)) return true;
+      }
+      return false;
+    };
+
+    if (matches(permissions.global, reqPerm)) return true;
+    for (const locPerms of Object.values(permissions.byLocation)) {
+      if (matches(locPerms, reqPerm)) return true;
+    }
+    return false;
+  });
+
   return (
     <aside
-      className={`flex flex-col border-r border-brand-cream-3 bg-card transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-56'}`}
+      className={`flex h-full flex-col border-r border-brand-cream-3 bg-card transition-[width] duration-300 ${isCollapsed ? 'w-[72px]' : 'w-64'}`}
     >
-      {/* Logo */}
-      <div
-        className={`flex h-14 items-center border-b border-brand-cream-3 px-4 ${isCollapsed ? 'justify-center' : 'justify-between'}`}
-      >
-        <div className="flex items-center gap-3 overflow-hidden">
+      {/* Brand */}
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-brand-cream-3 px-4">
+        <div className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'hidden' : ''}`}>
           <img
-            src="/logo-primary.png"
-            alt="Aroadri Tea"
-            width={28}
-            height={28}
-            className="h-7 w-7 shrink-0"
+            src="/aroadri-logo.png"
+            alt="Aroadri Logo"
+            className="h-8 w-8 object-contain shrink-0"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
           />
           {!isCollapsed && (
             <span className="font-display text-base font-semibold text-brand-ink shrink-0">
@@ -549,7 +576,7 @@ export function Sidebar() {
       {/* Nav */}
       <nav ref={navRef} className="flex-1 overflow-y-auto py-3 px-2 overflow-x-hidden">
         <ul className="space-y-0.5">
-          {NAV_ITEMS.map((item) => {
+          {filteredNavItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
             const hasChildren = item.children && item.children.length > 0;
             const isSectionCollapsed = collapsedSections.has(item.href);

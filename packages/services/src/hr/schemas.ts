@@ -93,3 +93,16 @@ export const UpdateEmployeeInputSchema = z.object({
 });
 
 export type UpdateEmployeeInput = z.infer<typeof UpdateEmployeeInputSchema>;
+
+// ─── Update Employee Login ─────────────────────────────────────────────────
+
+export const UpdateEmployeeLoginInputSchema = z.object({
+  employeeId: z.string().min(1),
+  roleCode: z.string().min(1).optional(), // empty means remove login
+  password: z.string().min(8).max(72).optional(),
+  requirePasswordChange: z.boolean().optional().default(false),
+  loginScope: z.enum(['same_location', 'global']).optional().default('same_location'),
+});
+
+export type UpdateEmployeeLoginInput = z.infer<typeof UpdateEmployeeLoginInputSchema>;
+

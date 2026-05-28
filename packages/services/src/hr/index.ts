@@ -8,7 +8,8 @@
 export * from './schemas';
 export * from './list-employees';
 export * from './get-employee';
-export * from './create-employee';
+export { createEmployee } from './create-employee';
+export { updateEmployeeLogin } from './update-employee-login';
 export * from './update-employee';
 export * from './attendance-service';
 export * from './disciplinary-service';

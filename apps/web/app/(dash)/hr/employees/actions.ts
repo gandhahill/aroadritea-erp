@@ -9,14 +9,15 @@
 
 import { getSession } from '@/lib/auth';
 import { type LocationOption, getActiveLocationOptions } from '@/lib/location-options';
-import { and, db, eq } from '@erp/db';
+import { and, db, eq, isNull } from '@erp/db';
 import { roles } from '@erp/db/schema/auth';
-import { createEmployee, deactivateEmployee, updateEmployee } from '@erp/services/hr';
+import { createEmployee, deactivateEmployee, updateEmployee, updateEmployeeLogin } from '@erp/services/hr';
 import { getEmployee, listEmployees } from '@erp/services/hr';
 import type {
   CreateEmployeeInput,
   ListEmployeesInput,
   UpdateEmployeeInput,
+  UpdateEmployeeLoginInput,
 } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale } from 'next-intl/server';
@@ -35,7 +36,7 @@ export async function fetchAssignableRoles(): Promise<RoleOption[]> {
   const rows = await db
     .select({ code: roles.code, name: roles.name })
     .from(roles)
-    .where(eq(roles.tenantId, ctx.tenantId))
+    .where(and(eq(roles.tenantId, ctx.tenantId), isNull(roles.deletedAt)))
     .orderBy(roles.code);
   return rows.map((row) => {
     const nameField = row.name as Record<string, string> | null;
@@ -238,5 +239,77 @@ export async function serverExportEmployees(input: Omit<ListEmployeesInput, 'lim
         },
       ],
     },
+  };
+}
+
+export async function updateEmployeeLoginAction(
+  _prev: CreateEmployeeState | null,
+  formData: FormData,
+): Promise<CreateEmployeeState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+
+  const employeeId = text(formData, 'employeeId');
+  const roleCode = optionalText(formData, 'roleCode');
+  
+  const input: UpdateEmployeeLoginInput = {
+    employeeId,
+    roleCode,
+    password: optionalText(formData, 'password'),
+    requirePasswordChange: formData.get('requirePasswordChange') === 'on',
+    loginScope: text(formData, 'loginScope') === 'global' ? 'global' : 'same_location',
+  };
+
+  const result = await updateEmployeeLogin(input, ctx);
+  if (!result.ok) return { error: errorMessage(result.error) };
+
+  revalidatePath(`/hr/employees/${employeeId}`);
+  return { ok: true, employeeId };
+}
+
+export async function fetchEmployeeLoginInfo(employeeId: string) {
+  const ctx = await getAuditContext();
+  if (!ctx) return null;
+
+  const { users, userRoles, roles } = await import('@erp/db/schema/auth');
+  const { employees } = await import('@erp/db/schema/hr');
+  const { decryptPii } = await import('@erp/services/security/pii');
+
+  const [emp] = await db
+    .select({ email: employees.email })
+    .from(employees)
+    .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.id, employeeId)))
+    .limit(1);
+
+  if (!emp) return null;
+
+  const email = decryptPii(emp.email, 'employees.email');
+  if (!email) return null;
+
+  const [user] = await db
+    .select({
+      id: users.id,
+      requirePasswordChange: users.requirePasswordChange,
+    })
+    .from(users)
+    .where(and(eq(users.tenantId, ctx.tenantId), eq(users.email, email)))
+    .limit(1);
+
+  if (!user) return null;
+
+  const [roleData] = await db
+    .select({
+      roleCode: roles.code,
+      locationId: userRoles.locationId,
+    })
+    .from(userRoles)
+    .innerJoin(roles, eq(roles.id, userRoles.roleId))
+    .where(eq(userRoles.userId, user.id))
+    .limit(1);
+
+  return {
+    requirePasswordChange: user.requirePasswordChange,
+    roleCode: roleData?.roleCode ?? null,
+    loginScope: roleData?.locationId === null ? 'global' : 'same_location',
   };
 }

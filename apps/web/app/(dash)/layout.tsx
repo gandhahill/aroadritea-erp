@@ -11,6 +11,7 @@ import { redirect } from 'next/navigation';
 import { LocaleSwitcher } from './locale-switcher';
 import { LogoutButton } from './logout-button';
 import { NotificationBell } from './notification-bell';
+import { getUserPermissions } from '@erp/services/iam';
 import { Sidebar } from './sidebar';
 
 export const dynamic = 'force-dynamic';
@@ -35,10 +36,12 @@ export default async function DashboardLayout({
     redirect('/change-password');
   }
 
+  const permissions = await getUserPermissions(session.user.id);
+
   return (
     <div className="flex h-dvh min-h-0 overflow-hidden">
       {/* Sidebar navigation */}
-      <Sidebar />
+      <Sidebar permissions={permissions} />
 
       {/* Main content */}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">

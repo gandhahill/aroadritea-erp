@@ -1,4 +1,5 @@
 /**
+/**
  * @erp/services/iam — Identity & Access Management service barrel export.
  */
 
@@ -7,6 +8,7 @@ export {
   canGlobally,
   getAuthorizedLocations,
   invalidatePermissionCache,
+  getUserPermissions,
   type AuthorizedLocations,
   type PermissionContext,
 } from './permission-engine';

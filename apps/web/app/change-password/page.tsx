@@ -48,7 +48,7 @@ export default function ChangePasswordPage() {
           | undefined;
         setError(key ? t(key) : t('errorServer'));
       } else {
-        router.push('/');
+        router.push('/dashboard');
         router.refresh();
       }
     } catch {
