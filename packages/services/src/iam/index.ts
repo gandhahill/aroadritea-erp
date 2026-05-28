@@ -11,3 +11,4 @@ export {
   type PermissionContext,
 } from './permission-engine';
 export { requirePermission } from './require-permission';
+export { changeMyPassword, adminResetPassword } from './change-password';
