@@ -20,9 +20,9 @@ export default async function OutgoingShipmentsPage() {
         actions={
           <Link
             href="/logistics/outgoing-shipments/new"
-            className="inline-flex h-9 items-center justify-center rounded-md bg-brand-ink px-4 py-2 text-sm font-medium text-brand-cream shadow transition-colors hover:bg-brand-ink/90"
+            className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark"
           >
-            {t('createNew')}
+            {t('outgoingShipment.createNew')}
           </Link>
         }
       />
