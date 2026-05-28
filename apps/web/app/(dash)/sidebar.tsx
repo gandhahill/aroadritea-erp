@@ -485,33 +485,107 @@ export function Sidebar({
   };
 
   const PATH_TO_MODULE: Record<string, string> = {
+    // CMS
+    '/cms/docs': 'cms',
+    '/cms/pages': 'cms',
+    '/cms/posts': 'cms',
+    
+    // Reporting
+    '/reporting/business-intelligence': 'reporting.view',
+    '/reporting/trial-balance': 'reporting.view',
+    '/reporting/balance-sheet': 'reporting.view',
+    '/reporting/profit-loss': 'reporting.view',
+    '/reporting/cash-flow': 'reporting.view',
+    '/reporting/aging-receivables': 'reporting.view',
+    '/reporting/aging-payables': 'reporting.view',
+    '/reporting/cogs': 'reporting.view',
+    '/reporting/waste': 'reporting.view',
+    '/reporting/daily-summary': 'reporting.view',
+    '/reporting/hourly-sales': 'reporting.view',
+    '/reporting/donations': 'reporting.view',
+    '/reporting/omzet-harian': 'reporting.view',
+
+    // POS
+    '/pos': 'pos.view',
+    '/pos/manual-sales': 'pos.transact',
+    '/pos/manual-sales/consumed': 'pos.transact',
+    '/pos/orders': 'pos.view',
+    '/pos/demo': 'pos.demo.use',
+
+    // Inventory
+    '/inventory/products': 'inventory.product',
+    '/inventory/supplies': 'inventory.product',
+    '/inventory/categories': 'inventory.category',
+    '/inventory/stock': 'inventory.view',
+    '/inventory/transfer': 'inventory.transfer',
+    '/inventory/recipes': 'inventory.recipe',
+    '/inventory/opname': 'inventory.opname',
+    '/inventory/variance': 'inventory.view',
+
+    // Purchasing
+    '/purchasing': 'purchasing.view',
+    '/purchasing/po/new': 'purchasing.po.create',
+    '/purchasing/grn-report': 'purchasing.view',
+    '/purchasing/returns': 'purchasing.return',
+    '/purchasing/shipments': 'purchasing.view',
+
+    // Logistics
+    '/logistics/outgoing-shipments': 'inventory.transfer',
+
+    // Tax
+    '/tax/rates': 'tax.manage_rates',
+    '/tax/rules': 'tax.manage_global_rates',
+
+    // HR
+    '/hr/employees': 'hr.employee',
+    '/hr/recruitment': 'hr.recruitment',
+    '/hr/schedule': 'hr.manage_attendance',
+    '/hr/attendance': 'hr.attendance',
+    '/hr/leave': 'hr.approve_leave',
+    '/hr/payroll': 'hr.payroll',
+    '/hr/disciplinary': 'hr.disciplinary',
+    '/hr/sop': 'hr.sop',
+    '/hr/whistleblower': 'hr.whistleblower',
+
+    // CRM
+    '/crm/members': 'crm.member',
+
+    // Settings overrides
     '/audit': 'audit',
-    '/settings/locations': 'iam',
-    '/settings/pos': 'pos',
-    '/settings/promotions': 'promotion',
-    '/settings/loyalty': 'member',
-    '/settings/attendance': 'hr',
-    '/settings/scheduled-jobs': 'scheduled-jobs',
-    '/settings/notifications': 'notification',
-    '/settings/integrations/naixer': 'kitchen',
-    '/settings/permissions': 'iam',
-    '/settings/custom-fields': 'customfield',
-    '/settings/company': 'iam',
-    '/settings/accounting': 'accounting',
-    '/settings/bank-accounts': 'accounting',
-    '/settings/workflow-editor': 'workflow',
-    '/settings/ai-assistant': 'ai',
-    '/settings/ai-assistant/log': 'ai',
-    '/whistleblower': 'hr',
-    '/crm/members': 'member',
+    '/settings/locations': 'iam.manage_locations',
+    '/settings/pos': 'settings.manage',
+    '/settings/promotions': 'promotion.manage',
+    '/settings/loyalty': 'settings.manage',
+    '/settings/attendance': 'settings.manage',
+    '/settings/scheduled-jobs': 'settings.manage',
+    '/settings/notifications': 'settings.manage',
+    '/settings/integrations/naixer': 'settings.manage',
+    '/settings/permissions': 'iam.manage_permissions',
+    '/settings/custom-fields': 'settings.manage',
+    '/settings/company': 'settings.manage',
+    '/settings/accounting': 'settings.manage',
+    '/settings/bank-accounts': 'settings.bank_accounts',
+    '/settings/workflow-editor': 'workflow.view',
+    '/settings/ai-assistant': 'ai.assistant.admin',
+    '/settings/ai-assistant/log': 'ai.assistant.admin',
   };
+
+  const ALWAYS_VISIBLE = [
+    '/dashboard',
+    '/account',
+    '/hr/my-schedule',
+    '/hr/checkin',
+    '/hr/my-attendance',
+    '/hr/my-payslips',
+    '/whistleblower'
+  ];
 
   const filteredNavItems = NAV_ITEMS.map((item) => {
     // If it has children, filter them first
     let children = item.children;
     if (children) {
       children = children.filter((child) => {
-        if (['/dashboard', '/account'].includes(child.href)) return true;
+        if (ALWAYS_VISIBLE.includes(child.href)) return true;
         
         let childMod = child.permissionModule || PATH_TO_MODULE[child.href] || child.href.substring(1).split('/')[0] || '';
         return hasModuleAccess(childMod);
@@ -519,7 +593,7 @@ export function Sidebar({
     }
     return { ...item, children };
   }).filter((item) => {
-    if (['/dashboard', '/account'].includes(item.href)) return true;
+    if (ALWAYS_VISIBLE.includes(item.href)) return true;
     
     // If it had children originally, keep it if any children survived
     if (item.children) {
