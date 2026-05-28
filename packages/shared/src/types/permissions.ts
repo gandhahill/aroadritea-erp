@@ -110,4 +110,4 @@ export type PermissionCode =
   | 'audit.view'
   | 'cms.manage'
   | 'docs.view'
-  | 'docs.edit' | 'logistics.shipments.view' | 'logistics.shipments.create' | 'iam.user.update';
+  | 'docs.edit' | 'logistics.shipments.view' | 'logistics.shipments.create' | 'iam.user.update' | 'accounting.journal.view';

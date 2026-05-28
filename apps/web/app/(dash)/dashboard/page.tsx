@@ -242,7 +242,7 @@ export default async function DashboardPage() {
   // Filter quick links by user permission.
   const allowed = await Promise.all(
     QUICK_LINKS.map(async (link) =>
-      !link.permission || (await can(userId, link.permission)) ? link : null,
+      !link.permission || (await can(userId, link.permission as PermissionCode)) ? link : null,
     ),
   );
   const links = allowed.filter((l): l is QuickLink => Boolean(l));

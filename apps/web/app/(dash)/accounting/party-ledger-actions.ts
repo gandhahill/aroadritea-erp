@@ -86,7 +86,7 @@ async function getAccountingContext(requiredPermission: string) {
   const user = session.user as Record<string, unknown>;
   const tenantId = String(user.tenantId ?? 'default');
   const userId = String(user.id ?? '');
-  const perm = await requirePermission(userId, requiredPermission);
+  const perm = await requirePermission(userId, requiredPermission as PermissionCode);
   if (!perm.ok) return null;
   return { tenantId, userId };
 }

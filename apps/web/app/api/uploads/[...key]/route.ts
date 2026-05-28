@@ -57,7 +57,7 @@ async function canReadPrivateUpload(
   }
 
   for (const permission of PRIVATE_READ_PERMISSION[upload.area]) {
-    const result = await requirePermission(userId, permission);
+    const result = await requirePermission(userId, permission as PermissionCode);
     if (result.ok) return true;
   }
   return false;

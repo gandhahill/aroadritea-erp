@@ -57,7 +57,7 @@ export async function POST(request: Request) {
   }
 
   if (area !== 'whistleblower') {
-    const permission = await requirePermission(userId, UPLOAD_WRITE_PERMISSION[area]);
+    const permission = await requirePermission(userId, UPLOAD_WRITE_PERMISSION[area] as PermissionCode);
     if (!permission.ok) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

@@ -1,3 +1,4 @@
+import type { PermissionCode } from '@erp/shared/types';
 'use server';
 
 import { getSession } from '@/lib/auth';
@@ -26,7 +27,7 @@ async function getContext() {
 
 async function requireLocationPermission(
   userId: string,
-  permission: string,
+  permission: PermissionCode,
   locationId: string,
 ): Promise<boolean> {
   return requirePermissionAtLocation(userId, permission, locationId);

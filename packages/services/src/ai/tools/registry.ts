@@ -14,7 +14,7 @@
  * The registry exposes:
  *   - `listAvailableTools(ctx)` — tools whose permission the caller has;
  *      used to build the OpenAI-compatible `tools` array.
- *   - `executeTool(ctx, name, args, deps?)` — single entrypoint the
+ *   - `executeTool(ctx, name as PermissionCode, args, deps?)` — single entrypoint the
  *      conversation runner calls when the model returns a tool_call.
  *      Runs the permission check + audit log, then dispatches to the
  *      implementation. `deps` carries sessionId / messageId for tools
@@ -623,7 +623,7 @@ export async function executeTool(
     );
   }
 
-  const allowed = await can(ctx.userId, tool.permission, { locationId: ctx.locationId });
+  const allowed = await can(ctx.userId, tool.permission as PermissionCode, { locationId: ctx.locationId });
   if (!allowed) {
     const log: ToolExecutionLog = {
       toolName: name,

@@ -185,7 +185,7 @@ export default async function DocsPage({
   const t = await getTranslations('docs');
   const content = await loadDocsContent(locale);
   const allBlocks = parseDocsMarkdown(content.body);
-  const canEditDocs = userId ? await can(userId, 'docs.edit') : false;
+  const canEditDocs = userId ? await can(userId, 'docs.edit' as PermissionCode) : false;
   const params = await searchParams;
   const audience: Audience =
     params.audience === 'management' || params.audience === 'developer' ? params.audience : 'staff';
@@ -197,7 +197,7 @@ export default async function DocsPage({
       .filter((b): b is Extract<Block, { type: 'h2' }> => b.type === 'h2')
       .map(async (h2) => ({
         id: h2.id,
-        allowed: h2.perm ? await can(userId, h2.perm) : true,
+        allowed: h2.perm ? await can(userId, h2.perm as PermissionCode) : true,
       })),
   );
   for (const check of permChecks) {
