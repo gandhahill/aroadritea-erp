@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { createOutgoingShipmentAction } from '../actions';
-import { Button, toast } from '@erp/ui';
+import { Button, Select, toast } from '@erp/ui';
 import { pickLocalized } from '@/lib/pick-localized';
+import { COURIERS } from '@erp/shared/binderbyte-couriers';
 
 export function OutgoingShipmentForm({ locations, partners = [] }: { locations: any[]; partners?: any[] }) {
   const router = useRouter();
   const t = useTranslations('logistics.outgoingShipment');
+  const tCommon = useTranslations('common.actions');
   const locale = useLocale();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +56,7 @@ export function OutgoingShipmentForm({ locations, partners = [] }: { locations: 
     try {
       if (!formData.locationId) throw new Error(t('errorSelectLocation'));
       await createOutgoingShipmentAction(formData);
-      toast.success(t('successCreated') || 'Shipment created successfully');
+      toast.success(tCommon('successCreated'));
       router.push('/logistics/outgoing-shipments');
       router.refresh();
     } catch (err: any) {
@@ -161,13 +163,16 @@ export function OutgoingShipmentForm({ locations, partners = [] }: { locations: 
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-brand-ink-3">{t('courierCode')}</label>
-              <input
-                type="text"
-                className="w-full rounded-lg border border-brand-cream-3 px-4 py-2 focus:ring-2 focus:ring-brand-red"
+              <Select
                 value={formData.shippingCourierCode}
                 onChange={e => setFormData({ ...formData, shippingCourierCode: e.target.value })}
-                placeholder="sicepat, jne, jnt..."
-              />
+                className="w-full"
+              >
+                <option value="">{t('selectCourier')}</option>
+                {COURIERS.map(c => (
+                  <option key={c.code} value={c.code}>{c.name}</option>
+                ))}
+              </Select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-brand-ink-3">{t('awb')}</label>

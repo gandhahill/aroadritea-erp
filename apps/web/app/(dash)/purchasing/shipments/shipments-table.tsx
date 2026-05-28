@@ -7,33 +7,9 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { syncPurchaseShipmentAction } from '../actions';
 import type { ShipmentSummaryRow } from '../actions';
+import { COURIERS } from '@erp/shared/binderbyte-couriers';
 
-const COURIERS = [
-  'jne',
-  'pos',
-  'jnt',
-  'jnt_cargo',
-  'sicepat',
-  'tiki',
-  'anteraja',
-  'wahana',
-  'ninja',
-  'lion',
-  'pcp',
-  'jet',
-  'rex',
-  'first',
-  'ide',
-  'shopee',
-  'kgx',
-  'sap',
-  'jx',
-  'rpx',
-  'lazada',
-  'indah',
-  'dakota',
-  'kurir_rekomendasi',
-];
+
 
 type Filter = 'all' | 'in_transit' | 'delivered' | 'errored' | 'no_shipping';
 
@@ -187,8 +163,8 @@ export function ShipmentsTable({ rows }: { rows: ShipmentSummaryRow[] }) {
                           className="h-8 rounded border border-brand-cream-3 bg-card px-2 text-xs"
                         >
                           {COURIERS.map((c) => (
-                            <option key={c} value={c}>
-                              {c}
+                            <option key={c.code} value={c.code}>
+                              {c.name}
                             </option>
                           ))}
                         </Select>

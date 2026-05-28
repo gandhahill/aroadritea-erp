@@ -10,6 +10,7 @@ import { Button } from '@erp/ui';
 export function PayInvoiceForm({ invoice, bankAccounts }: { invoice: any, bankAccounts: any[] }) {
   const router = useRouter();
   const t = useTranslations('accounting.invoice');
+  const tCommon = useTranslations('common.actions');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +25,7 @@ export function PayInvoiceForm({ invoice, bankAccounts }: { invoice: any, bankAc
     try {
       if (!accountId) throw new Error(t('errorSelectAccount'));
       await payInvoiceAction(String(invoice.id), accountId, date);
-      toast.success(t('success') || 'Berhasil disimpan');
+      toast.success(tCommon('successSaved'));
       router.push('/accounting/invoices');
       router.refresh();
     } catch (err: any) {

@@ -24,7 +24,12 @@
       "download": "Unduh",
       "upload": "Unggah",
       "view": "Lihat",
-      "select": "Pilih"
+      "select": "Pilih",
+      "successCreated": "Berhasil dibuat",
+      "successSaved": "Berhasil disimpan",
+      "success": "Berhasil",
+      "uploading": "Mengunggah...",
+      "deleting": "Menghapus..."
     },
     "status": {
       "active": "Aktif",
@@ -98,7 +103,12 @@
       "saveFailed": "Gagal menyimpan.",
       "deleteFailed": "Gagal menghapus.",
       "createFailed": "Gagal membuat data.",
-      "noData": "Belum ada data."
+      "noData": "Belum ada data.",
+      "uploadFailed": "Gagal mengunggah.",
+      "updateFailed": "Gagal memperbarui.",
+      "swapFailed": "Gagal menukar.",
+      "publishFailed": "Gagal mempublikasikan.",
+      "unknown": "Terjadi kesalahan."
     },
     "pagination": {
       "page": "Halaman",
@@ -249,7 +259,16 @@
         "error": "Gagal import jurnal.",
         "templateHint": "Gunakan kode akun dari COA dan kode lokasi aktif. Debit dan kredit diisi dalam Rupiah tanpa desimal.",
         "missingMasterData": "Akun postable atau lokasi aktif belum tersedia."
-      }
+      },
+      "referenceId": "ID Referensi",
+      "errors": {
+        "uploadFailed": "Gagal mengunggah lampiran.",
+        "deleteFailed": "Gagal menghapus."
+      },
+      "uploadAction": "Unggah",
+      "attachmentsHint": "Bukti transaksi atau dokumen pendukung.",
+      "uploadAttachment": "Unggah Lampiran",
+      "noAttachments": "Belum ada lampiran."
     },
     "coa": {
       "title": "Bagan Akun (Chart of Accounts)",
@@ -1249,7 +1268,13 @@
       "addProductDesc": "Buat produk/menu baru. Varian Regular/Large dan Hot/Cold bisa ditambahkan setelah produk tersimpan.",
       "editProduct": "Edit Produk",
       "editProductDesc": "Edit data produk, harga default, gambar, dan varian POS.",
-      "loadFailed": "Produk tidak bisa dimuat"
+      "loadFailed": "Produk tidak bisa dimuat",
+      "errors": {
+        "deactivateFailed": "Gagal menonaktifkan produk.",
+        "activateFailed": "Gagal mengaktifkan produk.",
+        "deleteFailed": "Gagal menghapus produk."
+      },
+      "confirmDelete": "Hapus permanen produk ini? Hanya produk yang belum pernah dijual, dipakai, dibeli, masuk stok, atau tercatat di transaksi yang dapat dihapus."
     },
     "categories": {
       "title": "Kategori Produk",
@@ -2238,6 +2263,14 @@
         "hired": "Hired",
         "rejected": "Rejected",
         "withdrawn": "Withdrawn"
+      },
+      "errors": {
+        "saveJobFailed": "Gagal menyimpan lowongan.",
+        "updateStatusFailed": "Gagal mengubah status.",
+        "saveCandidateFailed": "Gagal menyimpan kandidat.",
+        "updateStageFailed": "Gagal mengubah tahap.",
+        "editCandidateFailed": "Gagal menyimpan perubahan kandidat.",
+        "deleteCandidateFailed": "Gagal menghapus kandidat."
       }
     },
     "employees": {
@@ -2430,7 +2463,11 @@
       "checkInFailed": "Gagal melakukan check-in.",
       "notFound": "Data presensi tidak ditemukan.",
       "alreadyCheckedOut": "Anda sudah melakukan check-out.",
-      "onTime": "Tepat Waktu"
+      "onTime": "Tepat Waktu",
+      "errors": {
+        "forgiveFailed": "Gagal memberi dispensasi keterlambatan."
+      },
+      "reasonMinLength": "Alasan minimal 3 karakter."
     },
     "myAttendance": {
       "title": "Riwayat Presensi Saya",
@@ -2623,7 +2660,16 @@
       "sp2Desc": "SP2 — Surat Peringatan 2",
       "sp3Desc": "SP3 — Surat Peringatan 3",
       "statusIssued": "Diterbitkan",
-      "statusEscalated": "Dieselakan"
+      "statusEscalated": "Dieselakan",
+      "errors": {
+        "createFailed": "Gagal membuat surat peringatan."
+      },
+      "successIssued": "berhasil diterbitkan.",
+      "requiredFields": "Semua field wajib diisi.",
+      "incidentLabel": "Insiden",
+      "issuedByLabel": "Diterbitkan oleh",
+      "attachmentLink": "Lampiran",
+      "acknowledge": "Teken"
     },
     "fields": {
       "required": "Wajib diisi",
@@ -2645,6 +2691,11 @@
         "reasonPrompt": "Alasan swap (mis. \"sakit\", \"izin keluarga\"):",
         "reasonRequired": "Alasan minimal 3 karakter.",
         "noCandidates": "Tidak ada karyawan lain yang bisa menggantikan."
+      },
+      "errors": {
+        "swapFailed": "Gagal menukar shift.",
+        "deleteFailed": "Gagal menghapus jadwal.",
+        "saveFailed": "Gagal menyimpan jadwal."
       }
     },
     "employee": {
@@ -2691,6 +2742,11 @@
         "desc": "Dokumen akan diarsipkan (soft-delete). Anda dapat menghubungi DBA jika perlu memulihkan.",
         "cancel": "Batal",
         "confirm": "Hapus"
+      },
+      "uploading": "Mengunggah…",
+      "saveAction": "Simpan SOP",
+      "errors": {
+        "saveFailed": "Gagal menyimpan SOP."
       }
     },
     "mySchedule": {
@@ -2990,7 +3046,13 @@
       "exportExcel": "Ekspor Excel",
       "notePlaceholder": "cth: Retur 2x milk tea",
       "less": "lebih kecil",
-      "more": "lebih besar"
+      "more": "lebih besar",
+      "errors": {
+        "loadFailed": "Gagal memuat omzet.",
+        "saveFailed": "Gagal menyimpan"
+      },
+      "saved": "Tersimpan",
+      "saving": "Menyimpan..."
     },
     "aging": {
       "receivablesTitle": "Aging Piutang",
@@ -3846,7 +3908,13 @@
       "titleZh": "Judul post (ZH)",
       "contentId": "Konten post (ID)",
       "contentEn": "Konten post (EN)",
-      "contentZh": "Konten post (ZH)"
+      "contentZh": "Konten post (ZH)",
+      "errors": {
+        "saveFailed": "Gagal menyimpan.",
+        "publishFailed": "Gagal mempublikasikan.",
+        "deleteFailed": "Gagal menghapus.",
+        "unknown": "Terjadi kesalahan."
+      }
     }
   },
   "tax": {
@@ -4134,7 +4202,29 @@
       "title": "Pengiriman Keluar",
       "createNew": "Buat Baru",
       "autofillPartner": "Isi otomatis dari Mitra/Partner (Opsional)",
-      "selectPartner": "-- Pilih Partner --"
+      "selectPartner": "-- Pilih Partner --",
+      "successCreated": "Berhasil dibuat",
+      "successSaved": "Berhasil disimpan",
+      "success": "Berhasil",
+      "selectCourier": "Pilih Kurir",
+      "detail": {
+        "title": "Detail Pengiriman",
+        "metaTitle": "Informasi Pengiriman",
+        "service": "Layanan",
+        "lastStatus": "Status Terakhir",
+        "lastUpdate": "Pembaruan Terakhir",
+        "errorLabel": "Error",
+        "syncTitle": "Sinkronisasi Pelacakan",
+        "syncHint": "Masukkan kode kurir dan nomor resi untuk melacak paket.",
+        "historyTitle": "Riwayat Pengiriman",
+        "historyEmpty": "Belum ada data riwayat. Klik \"Lacak\" untuk memulai.",
+        "recipientTitle": "Informasi Penerima",
+        "back": "Kembali",
+        "eyebrow": "Logistik",
+        "track": "Lacak",
+        "tracking": "Melacak...",
+        "noAwb": "Belum ada resi"
+      }
     }
   },
   "iam": {

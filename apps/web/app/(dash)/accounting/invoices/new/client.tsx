@@ -27,6 +27,7 @@ export function InvoiceForm({
 }) {
   const router = useRouter();
   const t = useTranslations('accounting.invoice');
+  const tCommon = useTranslations('common.actions');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -139,7 +140,7 @@ export function InvoiceForm({
       };
 
       await createInvoiceAction(payload);
-      toast.success(t('success') || 'Berhasil disimpan');
+      toast.success(tCommon('successSaved'));
       router.push('/accounting/invoices');
       router.refresh();
     } catch (err: any) {

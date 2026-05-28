@@ -77,7 +77,7 @@ export function AttendanceListClient({
   async function submitForgive() {
     if (!forgiveId) return;
     if (forgiveReason.trim().length < 3) {
-      setForgiveErr('Alasan minimal 3 karakter.');
+      setForgiveErr(t('reasonMinLength'));
       return;
     }
     setForgiving(true);
@@ -85,7 +85,7 @@ export function AttendanceListClient({
     const res = await forgiveLateAction(forgiveId, forgiveReason.trim());
     setForgiving(false);
     if (!res.ok) {
-      setForgiveErr(res.error ?? 'Gagal memberi dispensasi keterlambatan.');
+      setForgiveErr(res.error ?? t('errors.forgiveFailed'));
       return;
     }
     setForgiveId(null);

@@ -24,7 +24,12 @@
       "download": "Download",
       "upload": "Upload",
       "view": "View",
-      "select": "Select"
+      "select": "Select",
+      "successCreated": "Successfully created",
+      "successSaved": "Successfully saved",
+      "success": "Success",
+      "uploading": "Uploading...",
+      "deleting": "Deleting..."
     },
     "status": {
       "active": "Active",
@@ -98,7 +103,12 @@
       "saveFailed": "Failed to save.",
       "deleteFailed": "Failed to delete.",
       "createFailed": "Failed to create.",
-      "noData": "No data yet."
+      "noData": "No data yet.",
+      "uploadFailed": "Failed to upload.",
+      "updateFailed": "Failed to update.",
+      "swapFailed": "Failed to swap.",
+      "publishFailed": "Failed to publish.",
+      "unknown": "An error occurred."
     },
     "pagination": {
       "page": "Page",
@@ -249,7 +259,16 @@
         "error": "Failed to import journals.",
         "templateHint": "Use account codes from the COA and active location codes. Debit and credit are in Rupiah with no decimals.",
         "missingMasterData": "Postable accounts or active locations are not ready."
-      }
+      },
+      "referenceId": "Reference ID",
+      "errors": {
+        "uploadFailed": "Failed to upload attachment.",
+        "deleteFailed": "Failed to delete."
+      },
+      "uploadAction": "Upload",
+      "attachmentsHint": "Transaction evidence or supporting documents.",
+      "uploadAttachment": "Upload Attachment",
+      "noAttachments": "No attachments yet."
     },
     "coa": {
       "title": "Chart of Accounts",
@@ -1249,7 +1268,13 @@
       "addProductDesc": "Create a new product/menu.",
       "editProduct": "Edit Product",
       "editProductDesc": "Edit product data, prices, images, and POS variants.",
-      "loadFailed": "Product failed to load"
+      "loadFailed": "Product failed to load",
+      "errors": {
+        "deactivateFailed": "Failed to deactivate product.",
+        "activateFailed": "Failed to activate product.",
+        "deleteFailed": "Failed to delete product."
+      },
+      "confirmDelete": "Permanently delete this product? Only products that have never been sold, used, purchased, stocked, or recorded in transactions can be deleted."
     },
     "categories": {
       "title": "Product Categories",
@@ -2145,6 +2170,14 @@
         "hired": "Hired",
         "rejected": "Rejected",
         "withdrawn": "Withdrawn"
+      },
+      "errors": {
+        "saveJobFailed": "Failed to save job.",
+        "updateStatusFailed": "Failed to update status.",
+        "saveCandidateFailed": "Failed to save candidate.",
+        "updateStageFailed": "Failed to update stage.",
+        "editCandidateFailed": "Failed to save candidate changes.",
+        "deleteCandidateFailed": "Failed to delete candidate."
       }
     },
     "employees": {
@@ -2337,7 +2370,11 @@
       "checkInFailed": "Failed to check in.",
       "notFound": "Attendance data not found.",
       "alreadyCheckedOut": "You have already checked out.",
-      "onTime": "On Time"
+      "onTime": "On Time",
+      "errors": {
+        "forgiveFailed": "Failed to forgive tardiness."
+      },
+      "reasonMinLength": "Reason must be at least 3 characters."
     },
     "myAttendance": {
       "title": "My Attendance History",
@@ -2530,7 +2567,16 @@
       "sp2Desc": "SP2 — Disciplinary Letter 2",
       "sp3Desc": "SP3 — Disciplinary Letter 3",
       "statusIssued": "Issued",
-      "statusEscalated": "Escalated"
+      "statusEscalated": "Escalated",
+      "errors": {
+        "createFailed": "Failed to create warning letter."
+      },
+      "successIssued": "issued successfully.",
+      "requiredFields": "All fields are required.",
+      "incidentLabel": "Incident",
+      "issuedByLabel": "Issued by",
+      "attachmentLink": "Attachment",
+      "acknowledge": "Acknowledge"
     },
     "fields": {
       "required": "Required field",
@@ -2552,6 +2598,11 @@
         "reasonPrompt": "Reason for the swap (e.g. \"sick\", \"family leave\"):",
         "reasonRequired": "Reason must be at least 3 characters.",
         "noCandidates": "No other employees available to substitute."
+      },
+      "errors": {
+        "swapFailed": "Failed to swap shift.",
+        "deleteFailed": "Failed to delete schedule.",
+        "saveFailed": "Failed to save schedule."
       }
     },
     "employee": {
@@ -2598,6 +2649,11 @@
         "desc": "Document will be archived (soft-delete). You can contact DBA to restore.",
         "cancel": "Cancel",
         "confirm": "Delete"
+      },
+      "uploading": "Uploading…",
+      "saveAction": "Save SOP",
+      "errors": {
+        "saveFailed": "Failed to save SOP."
       }
     },
     "mySchedule": {
@@ -3254,7 +3310,13 @@
       "exportExcel": "Export Excel",
       "notePlaceholder": "e.g. 2x milk tea returns",
       "less": "less",
-      "more": "more"
+      "more": "more",
+      "errors": {
+        "loadFailed": "Failed to load revenue.",
+        "saveFailed": "Failed to save"
+      },
+      "saved": "Saved",
+      "saving": "Saving..."
     },
     "aging": {
       "receivablesTitle": "Receivables Aging",
@@ -3832,7 +3894,13 @@
       "titleZh": "Post title (ZH)",
       "contentId": "Post content (ID)",
       "contentEn": "Post content (EN)",
-      "contentZh": "Post content (ZH)"
+      "contentZh": "Post content (ZH)",
+      "errors": {
+        "saveFailed": "Failed to save.",
+        "publishFailed": "Failed to publish.",
+        "deleteFailed": "Failed to delete.",
+        "unknown": "An error occurred."
+      }
     }
   },
   "tax": {
@@ -4120,7 +4188,29 @@
       "title": "Outgoing Shipment",
       "createNew": "Create New",
       "autofillPartner": "Autofill from Partner (Optional)",
-      "selectPartner": "-- Select Partner --"
+      "selectPartner": "-- Select Partner --",
+      "successCreated": "Successfully created",
+      "successSaved": "Successfully saved",
+      "success": "Success",
+      "selectCourier": "Select Courier",
+      "detail": {
+        "title": "Shipment Detail",
+        "metaTitle": "Shipment Info",
+        "service": "Service",
+        "lastStatus": "Last Status",
+        "lastUpdate": "Last Update",
+        "errorLabel": "Error",
+        "syncTitle": "Tracking Sync",
+        "syncHint": "Enter courier code and AWB number to track the package.",
+        "historyTitle": "Shipment History",
+        "historyEmpty": "No history data yet. Click \"Track\" to start.",
+        "recipientTitle": "Recipient Info",
+        "back": "Back",
+        "eyebrow": "Logistics",
+        "track": "Track",
+        "tracking": "Tracking...",
+        "noAwb": "No AWB yet"
+      }
     }
   },
   "iam": {

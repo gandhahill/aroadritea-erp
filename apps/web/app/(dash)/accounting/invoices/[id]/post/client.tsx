@@ -10,6 +10,7 @@ import { Button } from '@erp/ui';
 export function PostInvoiceForm({ invoice, accounts }: { invoice: any, accounts: any[] }) {
   const router = useRouter();
   const t = useTranslations('accounting.invoice');
+  const tCommon = useTranslations('common.actions');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [accountId, setAccountId] = useState('');
@@ -21,7 +22,7 @@ export function PostInvoiceForm({ invoice, accounts }: { invoice: any, accounts:
 
     try {
       await postInvoiceAction(invoice.id, accountId);
-      toast.success(t('success') || 'Berhasil disimpan');
+      toast.success(tCommon('successSaved'));
       router.push('/accounting/invoices');
       router.refresh();
     } catch (err: any) {

@@ -38,6 +38,45 @@ export async function fetchOutgoingShipments() {
   return query;
 }
 
+export async function fetchOutgoingShipmentById(id: string) {
+  const session = await getSession();
+  if (!session) return null;
+
+  const user = session.user as Record<string, unknown>;
+  const tenantId = String(user.tenantId ?? 'default');
+
+  const [shipment] = await db
+    .select()
+    .from(outgoingShipments)
+    .where(and(eq(outgoingShipments.tenantId, tenantId), eq(outgoingShipments.id, id)))
+    .limit(1);
+
+  if (!shipment) return null;
+
+  return {
+    id: shipment.id,
+    number: shipment.number,
+    subject: shipment.subject,
+    notes: shipment.notes,
+    recipientName: shipment.recipientName,
+    recipientAddress: shipment.recipientAddress,
+    recipientPhone: shipment.recipientPhone,
+    status: shipment.status,
+    courierCode: shipment.shippingCourierCode,
+    awb: shipment.shippingAwb,
+    phoneLast5: shipment.shippingPhoneLast5,
+    trackingStatus: shipment.shippingTrackingStatus,
+    trackingSummary: shipment.shippingTrackingSummary as Record<string, unknown> | null,
+    trackingHistory: (shipment.shippingTrackingHistory ?? []) as Record<string, unknown>[],
+    trackingSyncedAt: shipment.shippingTrackingSyncedAt?.toISOString() ?? null,
+    trackingError: shipment.shippingTrackingError,
+    locationId: shipment.locationId,
+    createdAt: shipment.createdAt?.toISOString() ?? null,
+  };
+}
+
+export type OutgoingShipmentDetail = NonNullable<Awaited<ReturnType<typeof fetchOutgoingShipmentById>>>;
+
 export async function syncTrackingAction(shipmentId: string, courierCode: string, awb: string) {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
@@ -59,6 +98,7 @@ export async function syncTrackingAction(shipmentId: string, courierCode: string
 
   if (res.ok) {
     revalidatePath('/logistics/outgoing-shipments');
+    revalidatePath(`/logistics/outgoing-shipments/${shipmentId}`);
     return { success: true, status: res.value.status };
   } else {
     throw new Error(res.error.message);

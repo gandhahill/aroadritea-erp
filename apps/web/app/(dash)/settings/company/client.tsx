@@ -10,6 +10,7 @@ import { Button } from '@erp/ui';
 export function CompanySettingsForm({ defaults }: { defaults: CompanyInfo }) {
   const router = useRouter();
   const t = useTranslations('settings.company');
+  const tCommon = useTranslations('common.actions');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -25,7 +26,7 @@ export function CompanySettingsForm({ defaults }: { defaults: CompanyInfo }) {
     try {
       await saveCompanySettingsAction(form);
       setSuccess(true);
-      toast.success('Berhasil disimpan');
+      toast.success(tCommon('successSaved'));
       router.refresh();
     } catch (err: any) {
       setError(err.message);

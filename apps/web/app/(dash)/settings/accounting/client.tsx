@@ -10,6 +10,7 @@ import { Button } from '@erp/ui';
 export function AccountingSettingsForm({ accounts, defaultApId }: { accounts: any[], defaultApId: string }) {
   const router = useRouter();
   const t = useTranslations('settings.accounting');
+  const tCommon = useTranslations('common.actions');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +24,7 @@ export function AccountingSettingsForm({ accounts, defaultApId }: { accounts: an
     try {
       if (!apAccountId) throw new Error(t('errorSelectAccount'));
       await saveAccountingSettingsAction(apAccountId);
-      toast.success('Berhasil disimpan');
+      toast.success(tCommon('successSaved'));
       router.refresh();
       // Optional: show a success toast here
     } catch (err: any) {

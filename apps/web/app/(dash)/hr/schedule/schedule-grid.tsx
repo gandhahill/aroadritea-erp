@@ -105,7 +105,7 @@ export function ScheduleGrid({
         reason,
       });
       if (!response.ok) {
-        setErr(response.error ?? 'Gagal swap.');
+        setErr(response.error ?? t('errors.swapFailed'));
         return;
       }
       setAssignments((prev) =>
@@ -137,7 +137,7 @@ export function ScheduleGrid({
       if (existing) {
         const response = await deleteAssignmentAction(existing.id);
         if (!response.ok) {
-          setErr(response.error ?? 'Gagal menghapus.');
+          setErr(response.error ?? t('errors.deleteFailed'));
           return;
         }
         setAssignments((prev) => prev.filter((assignment) => assignment.id !== existing.id));
@@ -150,7 +150,7 @@ export function ScheduleGrid({
         shiftDefinitionId,
       });
       if (!response.ok || !response.id) {
-        setErr(response.error ?? 'Gagal menyimpan.');
+        setErr(response.error ?? t('errors.saveFailed'));
         return;
       }
       const shift = options.shifts.find((item) => item.id === shiftDefinitionId);

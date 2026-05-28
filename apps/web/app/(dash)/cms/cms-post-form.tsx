@@ -86,14 +86,14 @@ export function CmsPostForm({ post, isNew = false }: Props) {
       }
 
       if (!result.success) {
-        setError(result.error ?? 'Gagal menyimpan');
+        setError(result.error ?? t('errors.saveFailed'));
         return;
       }
 
       if (publishAfter && !isNew) {
         const pub = await publishCmsPost(post!.id as string, 'publish');
         if (!pub.success) {
-          setError(pub.error ?? 'Gagal mempublikasikan');
+          setError(pub.error ?? t('errors.publishFailed'));
           return;
         }
       }
@@ -110,7 +110,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
     startTransition(async () => {
       const result = await deleteCmsPost(post!.id as string);
       if (!result.success) {
-        setError(result.error ?? 'Gagal menghapus');
+        setError(result.error ?? t('errors.deleteFailed'));
         return;
       }
       router.push('/cms/posts');
@@ -126,7 +126,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
         status === 'published' ? 'draft' : 'publish',
       );
       if (!result.success) {
-        setError(result.error ?? 'Gagal');
+        setError(result.error ?? t('errors.unknown'));
         return;
       }
       router.refresh();

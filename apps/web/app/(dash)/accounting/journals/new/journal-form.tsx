@@ -83,7 +83,7 @@ export function JournalForm({ accounts, locations, partners }: Props) {
     const journalId = state.journalId;
     if (pendingFiles.length === 0) {
       router.push(`/accounting/journals/${journalId}`);
-      toast.success('Berhasil disimpan');
+      toast.success(tc('actions.successSaved'));
       router.refresh();
       return;
     }
@@ -103,7 +103,7 @@ export function JournalForm({ accounts, locations, partners }: Props) {
         }
       } catch (err) {
         if (!cancelled) {
-          setUploadError(err instanceof Error ? err.message : 'Gagal mengunggah lampiran.');
+          setUploadError(err instanceof Error ? err.message : t('errors.uploadFailed'));
           setUploadingAttachments(false);
           return;
         }
@@ -188,7 +188,7 @@ export function JournalForm({ accounts, locations, partners }: Props) {
             <Input name="description" required />
           </label>
           <label className="space-y-1.5 md:col-span-2">
-            <span className="text-sm font-medium text-brand-ink">Reference ID</span>
+            <span className="text-sm font-medium text-brand-ink">{t('referenceId')}</span>
             <Input name="referenceId" />
           </label>
         </div>

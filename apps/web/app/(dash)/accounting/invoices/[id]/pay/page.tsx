@@ -6,7 +6,8 @@ import { PayInvoiceForm } from './client';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/page-header';
 
-export default async function PayInvoicePage({ params }: { params: { id: string } }) {
+export default async function PayInvoicePage(props: { params: Promise<{ id: string }> }) {
+  const { id } = await props.params;
   const session = await getSession();
   if (!session) redirect('/login');
   const user = session.user as any;
@@ -15,11 +16,11 @@ export default async function PayInvoicePage({ params }: { params: { id: string 
   const [invoice] = await db
     .select()
     .from(invoices)
-    .where(and(eq(invoices.id, params.id), eq(invoices.tenantId, String(user.tenantId ?? 'default'))))
+    .where(and(eq(invoices.id, id), eq(invoices.tenantId, String(user.tenantId ?? 'default'))))
     .limit(1);
 
   if (!invoice) redirect('/accounting/invoices');
-  if (invoice.status !== 'posted') redirect(`/accounting/invoices/${params.id}`);
+  if (invoice.status !== 'posted') redirect(`/accounting/invoices/${id}`);
 
   // Fetch asset accounts (cash/bank usually)
   const bankAccounts = await db

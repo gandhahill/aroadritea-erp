@@ -14,6 +14,7 @@ interface Props {
 export function ProductRowActions({ productId, isActive }: Props) {
   const router = useRouter();
   const tc = useTranslations('common');
+  const t = useTranslations('inventory.products');
   const [pending, startTransition] = useTransition();
   const [confirmAction, setConfirmAction] = useState<{
     message: string;
@@ -27,7 +28,7 @@ export function ProductRowActions({ productId, isActive }: Props) {
     startTransition(async () => {
       const res = await deactivateProductAction(fd);
       if (!res.ok) {
-        setErrorMessage(res.error ?? 'Gagal menonaktifkan produk.');
+        setErrorMessage(res.error ?? t('errors.deactivateFailed'));
         return;
       }
       router.refresh();
@@ -48,7 +49,7 @@ export function ProductRowActions({ productId, isActive }: Props) {
     startTransition(async () => {
       const res = await reactivateProductAction(fd);
       if (!res.ok) {
-        setErrorMessage(res.error ?? 'Gagal mengaktifkan produk.');
+        setErrorMessage(res.error ?? t('errors.activateFailed'));
         return;
       }
       router.refresh();
@@ -61,7 +62,7 @@ export function ProductRowActions({ productId, isActive }: Props) {
     startTransition(async () => {
       const res = await deleteProductAction(fd);
       if (!res.ok) {
-        setErrorMessage(res.error ?? 'Gagal menghapus produk.');
+        setErrorMessage(res.error ?? t('errors.deleteFailed'));
         return;
       }
       router.refresh();
@@ -104,8 +105,8 @@ export function ProductRowActions({ productId, isActive }: Props) {
       {confirmAction && (
         <ConfirmDialog
           message={confirmAction.message}
-          confirmLabel="Lanjutkan"
-          cancelLabel="Batal"
+          confirmLabel={tc('actions.confirm')}
+          cancelLabel={tc('actions.cancel')}
           tone="danger"
           onConfirm={() => {
             confirmAction.onConfirm();

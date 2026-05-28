@@ -17,6 +17,7 @@
     "./hmac": "./src/security/hmac.ts",
     "./i18n-keys": "./src/i18n-keys/index.ts",
     "./amount-to-words": "./src/amount-to-words.ts",
+    "./binderbyte-couriers": "./src/binderbyte-couriers.ts",
     "./ports/*": "./src/ports/*.ts"
   },
   "scripts": {

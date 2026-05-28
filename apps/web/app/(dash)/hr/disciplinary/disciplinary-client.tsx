@@ -98,7 +98,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
     setFormSuccess('');
 
     if (!employeeId || !reason || !incidentDate) {
-      setFormError('Semua field wajib diisi.');
+      setFormError(t('requiredFields'));
       return;
     }
 
@@ -111,14 +111,14 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
     });
 
     if (result.ok) {
-      setFormSuccess(`${level} berhasil diterbitkan.`);
+      setFormSuccess(`${level} ${t('successIssued')}`);
       setReason('');
       setAttachmentUrl('');
       setIncidentDate('');
       setShowForm(false);
       handleFilter();
     } else {
-      setFormError(result.error?.message ?? 'Gagal membuat surat peringatan.');
+      setFormError(result.error?.message ?? t('errors.createFailed'));
     }
   }
 
@@ -311,8 +311,8 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                     </p>
                     <p className="mt-1 text-sm text-brand-ink-3">{action.reason}</p>
                     <p className="mt-1.5 text-xs text-brand-ink-3">
-                      Insiden: {formatDate(action.incidentDate)}
-                      {action.issuedByName ? ` · Diterbitkan oleh ${action.issuedByName}` : ''}
+                      {t('incidentLabel')}: {formatDate(action.incidentDate)}
+                      {action.issuedByName ? ` · ${t('issuedByLabel')} ${action.issuedByName}` : ''}
                     </p>
                     {action.attachmentUrl && (
                       <a
@@ -321,7 +321,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                         rel="noopener noreferrer"
                         className="mt-1.5 inline-block text-xs text-brand-ember-5 hover:text-brand-ember-6"
                       >
-                        Lampiran
+                        {t('attachmentLink')}
                       </a>
                     )}
                   </div>
@@ -330,7 +330,7 @@ export function DisciplinaryClient({ initialActions, employees }: Props) {
                       onClick={() => handleAcknowledge(action.id)}
                       className="shrink-0 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-xs font-medium text-brand-ink hover:bg-brand-cream-1"
                     >
-                      Teken
+                      {t('acknowledge')}
                     </button>
                   )}
                 </div>

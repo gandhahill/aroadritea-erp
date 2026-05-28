@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { syncTrackingAction } from './actions';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 
 export function ShipmentsClient({ shipments }: { shipments: any[] }) {
   const t = useTranslations('logistics');
+  const tDetail = useTranslations('logistics.outgoingShipment.detail');
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,7 +52,9 @@ export function ShipmentsClient({ shipments }: { shipments: any[] }) {
             ) : (
               shipments.map((s) => (
                 <tr key={s.id} className="hover:bg-brand-cream/30 transition-colors">
-                  <td className="px-6 py-4 font-medium text-brand-ink">{s.number}</td>
+                <td className="px-6 py-4 font-mono text-xs font-semibold text-brand-red hover:underline">
+                    <Link href={`/logistics/outgoing-shipments/${s.id}`}>{s.number}</Link>
+                  </td>
                   <td className="px-6 py-4">{s.subject}</td>
                   <td className="px-6 py-4">
                     <p className="font-medium">{s.recipientName}</p>
@@ -58,7 +62,7 @@ export function ShipmentsClient({ shipments }: { shipments: any[] }) {
                   </td>
                   <td className="px-6 py-4">
                     <p className="font-medium">{s.shippingCourierCode || '-'}</p>
-                    <p className="text-xs text-brand-ink-3 font-mono">{s.shippingAwb || 'No AWB'}</p>
+                    <p className="text-xs text-brand-ink-3 font-mono">{s.shippingAwb || tDetail('noAwb')}</p>
                   </td>
                   <td className="px-6 py-4">
                     <span className="inline-flex items-center rounded-md bg-brand-cream-2 px-2 py-1 text-xs font-medium text-brand-ink">
@@ -75,6 +79,12 @@ export function ShipmentsClient({ shipments }: { shipments: any[] }) {
                         {syncingId === s.id ? t('syncing') : t('sync')}
                       </button>
                     )}
+                    <Link
+                      href={`/logistics/outgoing-shipments/${s.id}`}
+                      className="ml-2 text-xs font-semibold text-brand-red hover:underline"
+                    >
+                      Detail →
+                    </Link>
                   </td>
                 </tr>
               ))

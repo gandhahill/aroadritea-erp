@@ -92,7 +92,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
     startTransition(async () => {
       const res = await createOpeningAction(newOpening);
       if (!res.ok || !res.id) {
-        setErr(res.error ?? 'Gagal menyimpan lowongan.');
+        setErr(res.error ?? t('errors.saveJobFailed'));
         return;
       }
       setOpenings((prev) => [
@@ -125,7 +125,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
     startTransition(async () => {
       const res = await updateOpeningStatusAction({ openingId, status });
       if (!res.ok) {
-        setErr(res.error ?? 'Gagal update status.');
+        setErr(res.error ?? t('errors.updateStatusFailed'));
         return;
       }
       setOpenings((prev) => prev.map((o) => (o.id === openingId ? { ...o, status } : o)));
@@ -137,7 +137,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
     startTransition(async () => {
       const res = await createApplicantAction({ openingId, ...newApplicant });
       if (!res.ok || !res.id) {
-        setErr(res.error ?? 'Gagal menyimpan kandidat.');
+        setErr(res.error ?? t('errors.saveCandidateFailed'));
         return;
       }
       const opening = openings.find((o) => o.id === openingId);
@@ -176,7 +176,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
           | 'withdrawn',
       });
       if (!res.ok) {
-        setErr(res.error ?? 'Gagal update tahap.');
+        setErr(res.error ?? t('errors.updateStageFailed'));
         return;
       }
       setApplicants((prev) => prev.map((a) => (a.id === applicantId ? { ...a, stage } : a)));
@@ -220,7 +220,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
         notes: editForm.notes || null,
       });
       if (!res.ok) {
-        setErr(res.error ?? 'Gagal menyimpan perubahan kandidat.');
+        setErr(res.error ?? t('errors.editCandidateFailed'));
         return;
       }
       setApplicants((prev) =>
@@ -237,7 +237,7 @@ export function RecruitmentClient({ initialOpenings, initialApplicants, canManag
     startTransition(async () => {
       const res = await deleteApplicantAction({ applicantId });
       if (!res.ok) {
-        setErr(res.error ?? 'Gagal menghapus kandidat.');
+        setErr(res.error ?? t('errors.deleteCandidateFailed'));
         return;
       }
       setApplicants((prev) => prev.filter((a) => a.id !== applicantId));

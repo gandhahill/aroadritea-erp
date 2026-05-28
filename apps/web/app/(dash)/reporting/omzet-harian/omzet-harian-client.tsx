@@ -94,7 +94,7 @@ export function OmzetHarianClient({
         const message =
           (result.error as { message?: string; messageKey?: string } | undefined)?.message ??
           (result.error as { messageKey?: string } | undefined)?.messageKey ??
-          'Gagal memuat omzet.';
+          t('errors.loadFailed');
         setLoadError(message);
       }
     });
@@ -374,12 +374,12 @@ export function OmzetHarianClient({
                       clipRule="evenodd"
                     />
                   </svg>
-                  Tersimpan
+                  {t('saved')}
                 </span>
               )}
               {saveError && (
                 <span className="flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-600">
-                  Gagal menyimpan: {saveError}
+                  {t('errors.saveFailed')}: {saveError}
                 </span>
               )}
             </div>
@@ -391,7 +391,7 @@ export function OmzetHarianClient({
                 variant="secondary"
                 size="md"
               >
-                {isPending && isDirty ? 'Menyimpan...' : t('saveAdjustment')}
+                {isPending && isDirty ? t('saving') : t('saveAdjustment')}
               </Button>
               <ExportXlsxButton
                 onExport={handleExport}

@@ -24,7 +24,12 @@
       "download": "下载",
       "upload": "上传",
       "view": "查看",
-      "select": "选择"
+      "select": "选择",
+      "successCreated": "创建成功",
+      "successSaved": "保存成功",
+      "success": "成功",
+      "uploading": "上传中...",
+      "deleting": "删除中..."
     },
     "status": {
       "active": "活跃",
@@ -98,7 +103,12 @@
       "saveFailed": "保存失败。",
       "deleteFailed": "删除失败。",
       "createFailed": "创建失败。",
-      "noData": "暂无数据。"
+      "noData": "暂无数据。",
+      "uploadFailed": "上传失败。",
+      "updateFailed": "更新失败。",
+      "swapFailed": "交换失败。",
+      "publishFailed": "发布失败。",
+      "unknown": "发生错误。"
     },
     "pagination": {
       "page": "页",
@@ -249,7 +259,16 @@
         "error": "导入日记账失败。",
         "templateHint": "请使用科目表中的科目代码和有效位置代码。借方和贷方金额以印尼盾填写，不含小数。",
         "missingMasterData": "可记账科目或有效位置尚未准备好。"
-      }
+      },
+      "referenceId": "参考编号",
+      "errors": {
+        "uploadFailed": "上传附件失败。",
+        "deleteFailed": "删除失败。"
+      },
+      "uploadAction": "上传",
+      "attachmentsHint": "交易凭证或支持文件。",
+      "uploadAttachment": "上传附件",
+      "noAttachments": "暂无附件。"
     },
     "coa": {
       "title": "会计科目表",
@@ -1249,7 +1268,13 @@
       "addProductDesc": "创建新产品/菜单。",
       "editProduct": "编辑产品",
       "editProductDesc": "编辑产品数据、价格、图像和 POS 变量。",
-      "loadFailed": "产品加载失败"
+      "loadFailed": "产品加载失败",
+      "errors": {
+        "deactivateFailed": "停用产品失败。",
+        "activateFailed": "激活产品失败。",
+        "deleteFailed": "删除产品失败。"
+      },
+      "confirmDelete": "永久删除此产品？只有从未售出、使用、购买、入库或记录在交易中的产品才能被删除。"
     },
     "opname": {
       "title": "库存盘点",
@@ -2145,6 +2170,14 @@
         "hired": "已入职",
         "rejected": "拒绝",
         "withdrawn": "放弃"
+      },
+      "errors": {
+        "saveJobFailed": "保存职位失败。",
+        "updateStatusFailed": "更新状态失败。",
+        "saveCandidateFailed": "保存候选人失败。",
+        "updateStageFailed": "更新阶段失败。",
+        "editCandidateFailed": "保存候选人更改失败。",
+        "deleteCandidateFailed": "删除候选人失败。"
       }
     },
     "employees": {
@@ -2337,7 +2370,11 @@
       "checkInFailed": "签到失败。",
       "notFound": "未找到考勤数据。",
       "alreadyCheckedOut": "您已经签退了。",
-      "onTime": "准时"
+      "onTime": "准时",
+      "errors": {
+        "forgiveFailed": "宽恕迟到失败。"
+      },
+      "reasonMinLength": "原因至少需要3个字符。"
     },
     "myAttendance": {
       "title": "我的考勤记录",
@@ -2530,7 +2567,16 @@
       "sp2Desc": "SP2 — 警告信 2",
       "sp3Desc": "SP3 — 警告信 3",
       "statusIssued": "已发布",
-      "statusEscalated": "已升级"
+      "statusEscalated": "已升级",
+      "errors": {
+        "createFailed": "创建警告信失败。"
+      },
+      "successIssued": "已成功发布。",
+      "requiredFields": "所有字段均为必填。",
+      "incidentLabel": "事件",
+      "issuedByLabel": "发布者",
+      "attachmentLink": "附件",
+      "acknowledge": "确认"
     },
     "fields": {
       "required": "必填项",
@@ -2552,6 +2598,11 @@
         "reasonPrompt": "替换原因（如 \"病假\"、\"家庭请假\"）：",
         "reasonRequired": "原因至少 3 个字符。",
         "noCandidates": "暂无其他员工可替换。"
+      },
+      "errors": {
+        "swapFailed": "交换班次失败。",
+        "deleteFailed": "删除日程失败。",
+        "saveFailed": "保存日程失败。"
       }
     },
     "employee": {
@@ -2598,6 +2649,11 @@
         "desc": "文档将被归档（软删除）。如需恢复，可以联系 DBA。",
         "cancel": "取消",
         "confirm": "删除"
+      },
+      "uploading": "上传中…",
+      "saveAction": "保存SOP",
+      "errors": {
+        "saveFailed": "保存SOP失败。"
       }
     },
     "mySchedule": {
@@ -3076,7 +3132,13 @@
       "exportExcel": "导出 Excel",
       "notePlaceholder": "例：2杯奶茶退货",
       "less": "较少",
-      "more": "较多"
+      "more": "较多",
+      "errors": {
+        "loadFailed": "加载营收失败。",
+        "saveFailed": "保存失败"
+      },
+      "saved": "已保存",
+      "saving": "保存中..."
     },
     "dailySummary": {
       "title": "日汇总",
@@ -3857,7 +3919,13 @@
       "titleZh": "文章标题 (ZH)",
       "contentId": "文章内容 (ID)",
       "contentEn": "文章内容 (EN)",
-      "contentZh": "文章内容 (ZH)"
+      "contentZh": "文章内容 (ZH)",
+      "errors": {
+        "saveFailed": "保存失败。",
+        "publishFailed": "发布失败。",
+        "deleteFailed": "删除失败。",
+        "unknown": "发生错误。"
+      }
     }
   },
   "tax": {
@@ -4120,7 +4188,29 @@
       "title": "发出货物",
       "createNew": "创建新的",
       "autofillPartner": "从合作伙伴自动填写（可选）",
-      "selectPartner": "-- 选择合作伙伴 --"
+      "selectPartner": "-- 选择合作伙伴 --",
+      "successCreated": "创建成功",
+      "successSaved": "保存成功",
+      "success": "成功",
+      "selectCourier": "选择快递",
+      "detail": {
+        "title": "发货详情",
+        "metaTitle": "发货信息",
+        "service": "服务",
+        "lastStatus": "最新状态",
+        "lastUpdate": "最后更新",
+        "errorLabel": "错误",
+        "syncTitle": "追踪同步",
+        "syncHint": "输入快递代码和运单号以追踪包裹。",
+        "historyTitle": "发货历史",
+        "historyEmpty": "暂无历史数据。点击\"追踪\"开始。",
+        "recipientTitle": "收件人信息",
+        "back": "返回",
+        "eyebrow": "物流",
+        "track": "追踪",
+        "tracking": "追踪中...",
+        "noAwb": "暂无运单号"
+      }
     }
   },
   "iam": {

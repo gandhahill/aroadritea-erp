@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { syncPurchaseShipmentAction } from './actions';
+import { COURIERS } from '@erp/shared/binderbyte-couriers';
 
 interface PoRow {
   id: string;
@@ -22,32 +23,7 @@ interface PoRow {
   shippingTrackingError: string | null;
 }
 
-const COURIERS = [
-  'jne',
-  'pos',
-  'jnt',
-  'jnt_cargo',
-  'sicepat',
-  'tiki',
-  'anteraja',
-  'wahana',
-  'ninja',
-  'lion',
-  'pcp',
-  'jet',
-  'rex',
-  'first',
-  'ide',
-  'shopee',
-  'kgx',
-  'sap',
-  'jx',
-  'rpx',
-  'lazada',
-  'indah',
-  'dakota',
-  'kurir_rekomendasi',
-];
+
 
 function formatIdr(value: string): string {
   return new Intl.NumberFormat('id-ID', {
@@ -191,8 +167,8 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
                         className="h-8 rounded border border-brand-cream-3 bg-card px-2 text-xs"
                       >
                         {COURIERS.map((courier) => (
-                          <option key={courier} value={courier}>
-                            {courier}
+                          <option key={courier.code} value={courier.code}>
+                            {courier.name}
                           </option>
                         ))}
                       </Select>

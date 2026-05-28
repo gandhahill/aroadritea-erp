@@ -7,6 +7,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { deleteAttachmentAction, uploadAttachmentAction } from '../attachments/actions';
 
 function formatBytes(bytes: number): string {
@@ -43,6 +44,8 @@ interface Props {
 
 export function JournalAttachmentsList({ journalEntryId, initialAttachments }: Props) {
   const [attachments, setAttachments] = useState<Attachment[]>(initialAttachments);
+  const t = useTranslations('accounting.journal');
+  const tc = useTranslations('common');
   const [isPending, startTransition] = useTransition();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
@@ -57,7 +60,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
     startTransition(async () => {
       const result = await deleteAttachmentAction(attachmentId);
       if (result.error) {
-        setDeleteError(`Gagal menghapus: ${result.error}`);
+        setDeleteError(`${t('errors.deleteFailed')}: ${result.error}`);
       } else {
         setAttachments((prev) => prev.filter((a) => a.id !== attachmentId));
       }
@@ -90,8 +93,8 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-brand-ink">Lampiran</h3>
-          <p className="mt-0.5 text-xs text-brand-ink-3">Bukti transaksi atau dokumen pendukung.</p>
+          <h3 className="text-sm font-semibold text-brand-ink">{t('attachments')}</h3>
+          <p className="mt-0.5 text-xs text-brand-ink-3">{t('attachmentsHint')}</p>
         </div>
         <button
           type="button"
@@ -112,14 +115,14 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
               d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
             />
           </svg>
-          Unggah Lampiran
+          {t('uploadAttachment')}
         </button>
       </div>
 
       {/* Upload form */}
       {showUploadForm && (
         <div className="rounded-lg border border-brand-gold/30 bg-brand-gold/5 px-4 py-3">
-          <p className="text-sm font-medium text-brand-ink">Unggah Lampiran</p>
+          <p className="text-sm font-medium text-brand-ink">{t('uploadAttachment')}</p>
           <form
             action={handleUpload}
             className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center"
@@ -136,7 +139,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
               disabled={isPending}
               className="rounded-lg bg-brand-ember-5 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-ember-6 disabled:opacity-50"
             >
-              {isPending ? 'Mengunggah...' : 'Unggah'}
+              {isPending ? tc('actions.uploading') : t('uploadAction')}
             </button>
           </form>
           {uploadError && <p className="mt-2 text-xs text-rose-600">{uploadError}</p>}
@@ -160,7 +163,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
               d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
             />
           </svg>
-          <p className="mt-2 text-sm text-brand-ink-3">Belum ada lampiran.</p>
+          <p className="mt-2 text-sm text-brand-ink-3">{t('noAttachments')}</p>
         </div>
       ) : (
         <ul className="divide-y divide-brand-cream-2 rounded-lg border border-brand-cream-3 overflow-hidden">
@@ -216,7 +219,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
                       d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
                     />
                   </svg>
-                  Unduh
+                  {tc('actions.download')}
                 </a>
                 <button
                   type="button"
@@ -248,7 +251,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                         />
                       </svg>
-                      Menghapus...
+                      {tc('actions.deleting')}
                     </>
                   ) : (
                     <>
@@ -266,7 +269,7 @@ export function JournalAttachmentsList({ journalEntryId, initialAttachments }: P
                           d="M6 18L18 6M6 6l12 12"
                         />
                       </svg>
-                      Hapus
+                      {tc('actions.delete')}
                     </>
                   )}
                 </button>

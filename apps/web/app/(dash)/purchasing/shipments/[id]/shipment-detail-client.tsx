@@ -4,33 +4,9 @@ import { Input, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { syncPurchaseShipmentAction } from '../../actions';
 import type { ShipmentDetail } from '../../actions';
+import { COURIERS } from '@erp/shared/binderbyte-couriers';
 
-const COURIERS = [
-  'jne',
-  'pos',
-  'jnt',
-  'jnt_cargo',
-  'sicepat',
-  'tiki',
-  'anteraja',
-  'wahana',
-  'ninja',
-  'lion',
-  'pcp',
-  'jet',
-  'rex',
-  'first',
-  'ide',
-  'shopee',
-  'kgx',
-  'sap',
-  'jx',
-  'rpx',
-  'lazada',
-  'indah',
-  'dakota',
-  'kurir_rekomendasi',
-];
+
 
 function pickString(record: Record<string, unknown> | null, key: string): string | null {
   if (!record) return null;
@@ -96,8 +72,8 @@ export function ShipmentDetailClient({ detail }: { detail: ShipmentDetail }) {
               className="w-full"
             >
               {COURIERS.map((c) => (
-                <option key={c} value={c}>
-                  {c}
+                <option key={c.code} value={c.code}>
+                  {c.name}
                 </option>
               ))}
             </Select>
