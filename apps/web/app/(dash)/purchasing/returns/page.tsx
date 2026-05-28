@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchPurchaseReturnsAction } from './actions';
 
-export const metadata: Metadata = { title: 'Purchase Returns' };
+export const metadata: Metadata = { title: 'Purchase Returns | Aroadri ERP' };
 
 const IDR = new Intl.NumberFormat('id-ID', {
   style: 'currency',

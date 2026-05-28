@@ -16,7 +16,7 @@ import { fetchCustomFields } from './actions';
 import { CustomFieldsClient } from './custom-fields-client';
 
 export const metadata: Metadata = {
-  title: 'Custom Fields — Settings',
+  title: 'Custom Fields | Aroadri ERP',
 };
 
 export default async function CustomFieldsPage() {

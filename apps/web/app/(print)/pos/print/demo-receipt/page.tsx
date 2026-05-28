@@ -13,7 +13,7 @@
 import type { Metadata } from 'next';
 import { DemoReceiptClient } from './receipt-client';
 
-export const metadata: Metadata = { title: '[DEMO] Receipt' };
+export const metadata: Metadata = { title: '[DEMO] Receipt | Aroadri ERP' };
 
 export default function DemoReceiptPage() {
   return <DemoReceiptClient />;

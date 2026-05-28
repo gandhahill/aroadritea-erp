@@ -4,7 +4,7 @@ import { AuditTrailClient } from './audit-trail-client';
 
 export async function generateMetadata() {
   const t = await getTranslations('audit');
-  return { title: t('title') };
+  return { title: `${t('title')} | Aroadri ERP` };
 }
 
 export default async function AuditTrailPage({

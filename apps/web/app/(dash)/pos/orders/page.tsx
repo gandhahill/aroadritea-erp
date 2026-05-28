@@ -18,7 +18,7 @@ import { PageHeader } from '@/components/page-header';
 import { Pagination } from '@/components/pagination';
 import { ExportOrdersButton } from './export-orders-button';
 
-export const metadata: Metadata = { title: 'Riwayat Pesanan — POS' }; // Needs generating dynamically later if want fully i18n title
+export const metadata: Metadata = { title: 'Order History | Aroadri ERP' }; // Needs generating dynamically later if want fully i18n title
 export const dynamic = 'force-dynamic';
 
 interface Props {

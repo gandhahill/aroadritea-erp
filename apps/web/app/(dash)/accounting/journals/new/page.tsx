@@ -8,7 +8,7 @@ import { fetchJournalFormData } from '../actions';
 import { JournalForm } from './journal-form';
 
 export const metadata: Metadata = {
-  title: 'New Journal - Aroadri ERP',
+  title: 'New Journal Entry | Aroadri ERP',
 };
 
 export default async function NewJournalPage() {

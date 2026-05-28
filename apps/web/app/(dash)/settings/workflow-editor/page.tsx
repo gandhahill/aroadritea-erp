@@ -11,7 +11,7 @@ import { fetchWorkflowDefinitions } from './actions';
 import { WorkflowEditorClient } from './workflow-editor-client';
 
 export const metadata: Metadata = {
-  title: 'Workflow Editor — Settings',
+  title: 'Workflow Editor | Aroadri ERP',
 };
 
 export default async function WorkflowEditorPage() {

@@ -14,7 +14,7 @@ import { redirect } from 'next/navigation';
 import { fetchRoster } from './actions';
 import { ScheduleGrid } from './schedule-grid';
 
-export const metadata: Metadata = { title: 'Jadwal Shift' };
+export const metadata: Metadata = { title: 'Shift Schedule | Aroadri ERP' };
 
 /** Anchor: previous (or same) Monday for the given ISO date. UTC-based to
  *  avoid the WIB↔UTC date-shift bug that froze the next-week navigation. */

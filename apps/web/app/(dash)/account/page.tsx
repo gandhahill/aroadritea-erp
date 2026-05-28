@@ -7,7 +7,7 @@ import { SessionsSection } from './sessions-section';
 
 export async function generateMetadata() {
   const t = await getTranslations('account');
-  return { title: t('title') };
+  return { title: `${t('title')} | Aroadri ERP` };
 }
 
 export default async function AccountPage() {

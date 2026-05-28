@@ -13,7 +13,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  return { title: `Edit Page — ${id.slice(0, 8)}… — CMS` };
+  return { title: `Edit Page - ${id.slice(0, 8)} | Aroadri ERP` };
 }
 
 export default async function EditCmsPagePage({ params }: Props) {

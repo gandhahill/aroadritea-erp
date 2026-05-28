@@ -6,7 +6,7 @@ import { fetchTransferDetail } from '../actions';
 import { TransferDetail } from './transfer-detail';
 
 export const metadata: Metadata = {
-  title: 'Transfer Detail | Aroadri Tea ERP',
+  title: 'Transfer Detail | Aroadri ERP',
 };
 
 export default async function TransferDetailPage(props: { params: Promise<{ id: string }> }) {

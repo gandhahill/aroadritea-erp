@@ -7,7 +7,7 @@ import { fetchLocations } from './actions';
 import { LocationsClient } from './locations-client';
 
 export const metadata: Metadata = {
-  title: 'Locations - Settings',
+  title: 'Locations | Aroadri ERP',
 };
 
 export default async function LocationsPage() {

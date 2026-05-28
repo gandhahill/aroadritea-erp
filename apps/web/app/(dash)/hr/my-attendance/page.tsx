@@ -15,7 +15,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = { title: 'Riwayat Presensi' };
+export const metadata: Metadata = { title: 'My Attendance | Aroadri ERP' };
 
 function firstOfMonth(): string {
   const d = new Date();

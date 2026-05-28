@@ -12,7 +12,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { DisciplinaryClient } from './disciplinary-client';
 
-export const metadata: Metadata = { title: 'Surat Peringatan' };
+export const metadata: Metadata = { title: 'Disciplinary Actions | Aroadri ERP' };
 
 export default async function DisciplinaryPage() {
   const session = await getSession();

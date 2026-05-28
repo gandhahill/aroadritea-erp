@@ -9,7 +9,7 @@ import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { NewTicketClient } from './new-ticket-client';
 
-export const metadata: Metadata = { title: 'New Ticket' };
+export const metadata: Metadata = { title: 'New Ticket | Aroadri ERP' };
 
 export default async function NewHelpdeskTicketPage() {
   const session = await getSession();

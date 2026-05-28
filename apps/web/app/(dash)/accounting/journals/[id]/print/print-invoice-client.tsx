@@ -1,6 +1,6 @@
 'use client';
 
-import type { PrintJournalData, BankAccountDetail } from '../../actions';
+import type { PrintJournalData, BankAccountDetail, CompanyInfo } from '../../actions';
 import { useEffect } from 'react';
 import Image from 'next/image';
 import { amountToWords } from '@erp/shared/amount-to-words';
@@ -24,9 +24,6 @@ interface PrintInvoiceClientProps {
     credit: string;
     amountInWords: string;
     printHint: string;
-    companyAddress: string;
-    companyNpwp: string;
-    companyPhone: string;
     paymentTerms: string;
     subtotal: string;
     tax: string;
@@ -34,11 +31,10 @@ interface PrintInvoiceClientProps {
 }
 
 export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
-  const { journal, bankAccounts } = data;
+  const { journal, bankAccounts, companyInfo } = data;
 
   // Trigger print immediately on mount
   useEffect(() => {
-    // Slight delay to ensure fonts and images load
     const timer = setTimeout(() => {
       window.print();
     }, 500);
@@ -48,8 +44,8 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
   // Determine if this is an invoice (AR) or a receipt
   const isInvoice = journal.lines.some((l: any) => l.dueDate !== null);
   const documentTitle = isInvoice ? labels.invoice : labels.receipt;
-  
-  // Find main partner (the one with the largest debit/credit)
+
+  // Find main partner
   const mainPartnerLine = [...journal.lines]
     .filter((l: any) => l.partnerName)
     .sort((a, b) => {
@@ -71,25 +67,23 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
         <div className="flex items-start justify-between border-b border-brand-cream-2 pb-8">
           <div className="flex flex-col">
             <div className="relative mb-2 h-12 w-32">
-              {/* Use monochrome logo for printing if preferred, but primary logo looks premium. 
-                  We use priority to ensure it loads before window.print. */}
-              <Image 
-                src="/logo-primary.png" 
-                alt="Aroadri Tea" 
-                fill 
+              <Image
+                src="/logo-primary.png"
+                alt="Aroadri Tea"
+                fill
                 priority
-                className="object-contain object-left" 
+                className="object-contain object-left"
               />
             </div>
             <div className="mt-2 text-sm text-brand-ink-2 space-y-0.5">
-              <p className="font-semibold text-brand-ink">PT. Gandha Hill Catering Management Indonesia</p>
+              <p className="font-semibold text-brand-ink">{companyInfo.name}</p>
               <p>Aroadri Tea — {journal.locationLabel}</p>
-              <p className="text-xs">{labels.companyAddress}</p>
-              <p className="text-xs">{labels.companyNpwp}</p>
-              <p className="text-xs">{labels.companyPhone}</p>
+              {companyInfo.address && <p className="text-xs">{companyInfo.address}</p>}
+              {companyInfo.npwp && <p className="text-xs">NPWP: {companyInfo.npwp}</p>}
+              {companyInfo.phone && <p className="text-xs">Telp: {companyInfo.phone}</p>}
             </div>
           </div>
-          
+
           <div className="text-right">
             <h1 className="text-3xl font-light tracking-wide text-brand-ink">{documentTitle}</h1>
             <p className="mt-2 font-mono text-sm text-brand-ink-2">{journal.number}</p>
@@ -109,7 +103,7 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
               <p className="mt-4 text-sm text-brand-ink-2 max-w-xs">{journal.description}</p>
             )}
           </div>
-          
+
           <div className="w-1/3 text-right">
             <div className="mb-4">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
@@ -133,16 +127,22 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b-2 border-brand-cream-3">
-                <th className="pb-3 text-left font-semibold text-brand-ink-3 uppercase tracking-wider text-xs">{labels.description}</th>
-                <th className="pb-3 text-right font-semibold text-brand-ink-3 uppercase tracking-wider text-xs">{labels.debit}</th>
-                <th className="pb-3 text-right font-semibold text-brand-ink-3 uppercase tracking-wider text-xs">{labels.credit}</th>
+                <th className="pb-3 text-left font-semibold text-brand-ink-3 uppercase tracking-wider text-xs">
+                  {labels.description}
+                </th>
+                <th className="pb-3 text-right font-semibold text-brand-ink-3 uppercase tracking-wider text-xs">
+                  {labels.debit}
+                </th>
+                <th className="pb-3 text-right font-semibold text-brand-ink-3 uppercase tracking-wider text-xs">
+                  {labels.credit}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
               {journal.lines.map((line: any) => {
                 const debit = BigInt(line.debit);
                 const credit = BigInt(line.credit);
-                
+
                 return (
                   <tr key={line.id} className="group">
                     <td className="py-4">
@@ -185,9 +185,7 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
             <p className="text-xs font-semibold uppercase tracking-wider text-brand-ink-3 mb-1">
               {labels.amountInWords}
             </p>
-            <p className="text-sm font-medium text-brand-ink italic">
-              # {terbilang} #
-            </p>
+            <p className="text-sm font-medium text-brand-ink italic"># {terbilang} #</p>
           </div>
         )}
 
@@ -210,13 +208,15 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
                 </div>
               </>
             )}
-            
+
             {journal.description && (
               <div className="mt-8">
                 <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   {labels.notes}
                 </h3>
-                <p className="text-sm text-brand-ink-2 whitespace-pre-wrap">{journal.description}</p>
+                <p className="text-sm text-brand-ink-2 whitespace-pre-wrap">
+                  {journal.description}
+                </p>
               </div>
             )}
           </div>
@@ -239,10 +239,8 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
 
         {/* Print instruction banner (hidden on print) */}
         <div className="mt-12 text-center print:hidden">
-          <p className="text-sm text-brand-ink-3">
-            {labels.printHint}
-          </p>
-          <button 
+          <p className="text-sm text-brand-ink-3">{labels.printHint}</p>
+          <button
             onClick={() => window.print()}
             className="mt-4 rounded-md bg-brand-red px-6 py-2 text-sm font-medium text-white shadow-pop hover:bg-brand-red-dark transition-colors"
           >

@@ -17,7 +17,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = { title: 'Stock Opname' };
+export const metadata: Metadata = { title: 'Stock Opname | Aroadri ERP' };
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   draft: { bg: 'bg-brand-cream-2', text: 'text-brand-ink-2', label: 'Draf' },

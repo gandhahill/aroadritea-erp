@@ -6,7 +6,7 @@ import { fetchProductMasterData } from '../actions';
 import { ProductForm } from '../product-form';
 
 export const metadata: Metadata = {
-  title: 'Tambah Produk - Aroadri ERP',
+  title: 'New Product | Aroadri ERP',
 };
 
 type ProductKind = 'finished_good' | 'raw_material' | 'merchandise' | 'consumable' | 'service';

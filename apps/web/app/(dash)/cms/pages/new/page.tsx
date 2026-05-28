@@ -6,7 +6,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { CmsPageForm } from '../../cms-page-form';
 
-export const metadata: Metadata = { title: 'New Page — CMS' };
+export const metadata: Metadata = { title: 'New CMS Page | Aroadri ERP' };
 
 export default async function NewCmsPagePage() {
   const session = await getSession();

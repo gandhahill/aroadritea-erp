@@ -18,7 +18,7 @@ import { Pagination } from '@/components/pagination';
 import { ExportJournalsButton } from './export-journals-button';
 
 export const metadata: Metadata = {
-  title: 'Journal Entries',
+  title: 'Journal Entries | Aroadri ERP',
 };
 
 export default async function JournalsPage({

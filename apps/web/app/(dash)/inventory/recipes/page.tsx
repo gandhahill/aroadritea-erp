@@ -13,7 +13,7 @@ import { getTranslations } from 'next-intl/server';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('inventory.recipes');
-  return { title: t('title') };
+  return { title: `${t('title')} | Aroadri ERP` };
 }
 
 export default async function RecipesPage() {

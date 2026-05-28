@@ -12,7 +12,7 @@ import { redirect } from 'next/navigation';
 import { AgingClient } from '../_components/aging-client';
 import { fetchAgingReceivables } from './actions';
 
-export const metadata: Metadata = { title: 'Aging Receivables' };
+export const metadata: Metadata = { title: 'Aging Receivables | Aroadri ERP' };
 
 function todayWib(): string {
   return new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);

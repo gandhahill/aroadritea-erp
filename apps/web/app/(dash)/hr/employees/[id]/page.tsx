@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 
-export const metadata: Metadata = { title: 'Employee Detail' };
+export const metadata: Metadata = { title: 'Employee Detail | Aroadri ERP' };
 
 const STATUS_COLOR: Record<string, { bg: string; text: string }> = {
   probation: { bg: 'bg-brand-gold/10', text: 'text-brand-gold' },

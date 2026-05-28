@@ -10,7 +10,7 @@ import { db, eq } from '@erp/db';
 import { invoices } from '@erp/db/schema/accounting';
 
 export const metadata: Metadata = {
-  title: 'Post Invoice - Aroadri ERP',
+  title: 'Post Invoice | Aroadri ERP',
 };
 
 export default async function PostInvoicePage({ params }: { params: Promise<{ id: string }> }) {

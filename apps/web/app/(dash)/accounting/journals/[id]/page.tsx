@@ -12,7 +12,7 @@ import { fetchJournalAttachments } from '../attachments/actions';
 import { JournalAttachmentsList } from './attachments-list';
 
 export const metadata: Metadata = {
-  title: 'Journal Entry Detail',
+  title: 'Journal Detail | Aroadri ERP',
 };
 
 export default async function JournalDetailPage({

@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { listMembersAction } from './actions';
 
-export const metadata: Metadata = { title: 'Member Database' };
+export const metadata: Metadata = { title: 'Member Database | Aroadri ERP' };
 
 export default async function MembersPage({
   searchParams,

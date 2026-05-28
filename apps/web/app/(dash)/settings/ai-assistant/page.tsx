@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('ai.settings');
-  return { title: t('title') };
+  return { title: `${t('title')} | Aroadri ERP` };
 }
 
 export default async function AiAssistantSettingsPage({

@@ -13,7 +13,7 @@ import { ExportXlsxButton } from '../export-button';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('reporting.balanceSheet');
-  return { title: t('title') };
+  return { title: `${t('title')} | Aroadri ERP` };
 }
 
 export default async function BalanceSheetPage({

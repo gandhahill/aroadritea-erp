@@ -7,7 +7,7 @@ import { fetchAssetPageData } from './actions';
 import { AssetsClient } from './assets-client';
 
 export const metadata: Metadata = {
-  title: 'Aset Tetap',
+  title: 'Fixed Assets | Aroadri ERP',
 };
 
 export default async function FixedAssetsPage({

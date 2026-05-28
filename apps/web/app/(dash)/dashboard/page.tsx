@@ -22,7 +22,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
-  title: 'Dashboard - Aroadri ERP',
+  title: 'Dashboard | Aroadri ERP',
 };
 
 function rupiah(value: bigint | string | number | null | undefined, locale: string): string {

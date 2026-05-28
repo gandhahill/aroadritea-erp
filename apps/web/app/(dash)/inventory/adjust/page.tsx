@@ -6,7 +6,7 @@ import { fetchQuickAdjustData } from './actions';
 import { QuickAdjustForm } from './quick-adjust-form';
 
 export const metadata: Metadata = {
-  title: 'Quick Adjustment - Inventory',
+  title: 'Quick Adjustment | Aroadri ERP',
 };
 
 export default async function QuickAdjustPage() {

@@ -5,7 +5,7 @@ import { fetchPrintJournalData } from '../../actions';
 import { PrintInvoiceClient } from './print-invoice-client';
 
 export const metadata = {
-  title: 'Print Journal',
+  title: 'Print Journal | Aroadri ERP',
 };
 
 export default async function PrintJournalPage({
@@ -43,9 +43,6 @@ export default async function PrintJournalPage({
         credit: t('credit'),
         amountInWords: t('amountInWords'),
         printHint: t('printHint'),
-        companyAddress: t('companyAddress'),
-        companyNpwp: t('companyNpwp'),
-        companyPhone: t('companyPhone'),
         paymentTerms: t('paymentTerms'),
         subtotal: t('subtotal'),
         tax: t('tax'),

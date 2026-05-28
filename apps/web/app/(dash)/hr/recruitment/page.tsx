@@ -14,7 +14,7 @@ import { redirect } from 'next/navigation';
 import { fetchApplicants, fetchOpenings } from './actions';
 import { RecruitmentClient } from './recruitment-client';
 
-export const metadata: Metadata = { title: 'Rekrutmen' };
+export const metadata: Metadata = { title: 'Recruitment | Aroadri ERP' };
 
 export default async function RecruitmentPage() {
   const session = await getSession();

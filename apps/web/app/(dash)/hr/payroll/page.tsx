@@ -19,7 +19,7 @@ import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { PayrollRunClient } from './payroll-run-client';
 
-export const metadata: Metadata = { title: 'Payroll' };
+export const metadata: Metadata = { title: 'Payroll | Aroadri ERP' };
 
 export default async function PayrollPage() {
   const session = await getSession();

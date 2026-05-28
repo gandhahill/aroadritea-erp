@@ -11,7 +11,7 @@ import { notFound, redirect } from 'next/navigation';
 import { fetchMemberDetailAction } from '../actions';
 import { PointsAdjustClient } from './points-adjust-client';
 
-export const metadata: Metadata = { title: 'Member Detail' };
+export const metadata: Metadata = { title: 'Member Detail | Aroadri ERP' };
 
 export default async function MemberDetailPage({
   params,

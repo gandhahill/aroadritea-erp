@@ -12,7 +12,7 @@ import { serverGetOmzetHarian } from './actions';
 import { OmzetHarianClient } from './omzet-harian-client';
 
 export const metadata: Metadata = {
-  title: 'Omzet Harian — Reporting',
+  title: 'Daily Sales | Aroadri ERP',
 };
 
 export default async function OmzetHarianPage({

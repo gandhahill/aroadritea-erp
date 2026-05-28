@@ -12,7 +12,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { CheckInClient } from './check-in-client';
 
-export const metadata: Metadata = { title: 'Check In' };
+export const metadata: Metadata = { title: 'Check In | Aroadri ERP' };
 
 export default async function CheckInPage() {
   const session = await getSession();

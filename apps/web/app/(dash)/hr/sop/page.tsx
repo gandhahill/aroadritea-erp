@@ -15,7 +15,7 @@ import { SopListClient } from './sop-list-client';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('hr.sop');
-  return { title: `${t('title')} — Aroadri Tea` };
+  return { title: `${t('title')} | Aroadri ERP` };
 }
 
 export default async function SopPage({

@@ -10,7 +10,7 @@ import { CategoryForm } from './category-form';
 import { ProductRowActions } from './row-actions';
 
 export const metadata: Metadata = {
-  title: 'Produk & Menu - Aroadri ERP',
+  title: 'Products | Aroadri ERP',
 };
 
 type ProductKind = 'finished_good' | 'raw_material' | 'merchandise' | 'consumable' | 'service';

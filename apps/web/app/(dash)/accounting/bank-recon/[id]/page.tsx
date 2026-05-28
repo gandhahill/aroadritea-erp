@@ -8,7 +8,7 @@ import { fetchStatementDetails } from '../actions';
 import { DetailClient } from './detail-client';
 
 export const metadata: Metadata = {
-  title: 'Bank Reconciliation Detail - Settings',
+  title: 'Bank Reconciliation Detail | Aroadri ERP',
 };
 
 export default async function BankReconDetailPage({ params }: { params: Promise<{ id: string }> }) {

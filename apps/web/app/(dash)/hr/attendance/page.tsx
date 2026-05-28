@@ -13,7 +13,7 @@ import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { AttendanceListClient } from './attendance-list-client';
 
-export const metadata: Metadata = { title: 'Attendance' };
+export const metadata: Metadata = { title: 'Attendance | Aroadri ERP' };
 
 export default async function AttendancePage({
   searchParams,

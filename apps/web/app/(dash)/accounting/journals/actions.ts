@@ -18,6 +18,7 @@ import {
   partners,
   bankAccounts,
 } from '@erp/db/schema/accounting';
+import { cmsSettings } from '@erp/db/schema/cms';
 import { locations } from '@erp/db/schema/auth';
 import { createJournal } from '@erp/services/accounting';
 import { requirePermission } from '@erp/services/iam';
@@ -95,6 +96,9 @@ export interface JournalFormPartner {
   id: string;
   name: string;
   kind: string;
+  address: string | null;
+  npwp: string | null;
+  paymentTermsDays: number | null;
 }
 
 export interface JournalFormData {
@@ -399,7 +403,14 @@ export async function fetchJournalFormData(): Promise<JournalFormData> {
       )
       .orderBy(asc(accounts.code)),
     db
-      .select({ id: partners.id, name: partners.name, kind: partners.kind })
+      .select({
+        id: partners.id,
+        name: partners.name,
+        kind: partners.kind,
+        address: partners.address,
+        npwp: partners.npwp,
+        paymentTermsDays: partners.paymentTermsDays,
+      })
       .from(partners)
       .where(and(eq(partners.tenantId, ctx.tenantId), eq(partners.isActive, true)))
       .orderBy(asc(partners.name)),
@@ -723,9 +734,17 @@ export interface BankAccountDetail {
   accountHolder: string;
 }
 
+export interface CompanyInfo {
+  name: string;
+  address: string;
+  npwp: string;
+  phone: string;
+}
+
 export interface PrintJournalData {
   journal: JournalDetail;
   bankAccounts: BankAccountDetail[];
+  companyInfo: CompanyInfo;
 }
 
 export async function fetchPrintJournalData(journalId: string): Promise<PrintJournalData | null> {
@@ -746,8 +765,32 @@ export async function fetchPrintJournalData(journalId: string): Promise<PrintJou
     .where(and(eq(bankAccounts.tenantId, ctx.tenantId), eq(bankAccounts.isActive, true)))
     .orderBy(asc(bankAccounts.bankName));
 
+  // Fetch company info from cms_settings
+  const companyRows = await db
+    .select({ key: cmsSettings.key, value: cmsSettings.value })
+    .from(cmsSettings)
+    .where(
+      and(
+        eq(cmsSettings.tenantId, ctx.tenantId),
+        inArray(cmsSettings.key, ['company.name', 'company.address', 'company.npwp', 'company.phone']),
+      ),
+    );
+
+  const companyMap = new Map<string, unknown>();
+  for (const row of companyRows) {
+    companyMap.set(row.key, row.value);
+  }
+
+  const companyInfo: CompanyInfo = {
+    name: (companyMap.get('company.name') as string) ?? 'PT. Gandha Hill Catering Management Indonesia',
+    address: (companyMap.get('company.address') as string) ?? '',
+    npwp: (companyMap.get('company.npwp') as string) ?? '',
+    phone: (companyMap.get('company.phone') as string) ?? '',
+  };
+
   return {
     journal,
     bankAccounts: activeBanks,
+    companyInfo,
   };
 }

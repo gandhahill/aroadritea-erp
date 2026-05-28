@@ -7,7 +7,7 @@ import { fetchAccountOptions, fetchPosSettings } from './actions';
 import { PosSettingsClient } from './pos-settings-client';
 
 export const metadata: Metadata = {
-  title: 'POS Settings - Settings',
+  title: 'POS Settings | Aroadri ERP',
 };
 
 export default async function PosSettingsPage() {

@@ -6,7 +6,7 @@ import { fetchLocationOptions, fetchProductOptions } from '../actions';
 import { NewTransferForm } from './new-transfer-form';
 
 export const metadata: Metadata = {
-  title: 'New Stock Transfer | Aroadri Tea ERP',
+  title: 'New Stock Transfer | Aroadri ERP',
 };
 
 export default async function NewTransferPage() {

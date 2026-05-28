@@ -5,7 +5,7 @@ import { fetchPromotionPageData } from './actions';
 import { PromotionsClient } from './promotions-client';
 
 export const metadata: Metadata = {
-  title: 'Promotions - Settings',
+  title: 'Promotions | Aroadri ERP',
 };
 
 export default async function PromotionsPage() {
