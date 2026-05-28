@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { createOutgoingShipmentAction } from '../actions';
 import { Button } from '@erp/ui';
 
-export function OutgoingShipmentForm({ locations }: { locations: any[] }) {
+export function OutgoingShipmentForm({ locations, partners = [] }: { locations: any[]; partners?: any[] }) {
   const router = useRouter();
   const t = useTranslations('logistics.outgoingShipment');
   const [loading, setLoading] = useState(false);
@@ -23,7 +23,26 @@ export function OutgoingShipmentForm({ locations }: { locations: any[] }) {
     shippingCourierCode: '',
     shippingAwb: '',
     shippingPhoneLast5: '',
+    partnerId: '', // For the select dropdown
   });
+
+  const handlePartnerChange = (partnerId: string) => {
+    const partner = partners.find(p => p.id === partnerId);
+    if (partner) {
+      setFormData(prev => ({
+        ...prev,
+        partnerId,
+        recipientName: partner.name,
+        recipientAddress: partner.address || '',
+        recipientPhone: partner.phone || '',
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        partnerId: '',
+      }));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +105,20 @@ export function OutgoingShipmentForm({ locations }: { locations: any[] }) {
             onChange={e => setFormData({ ...formData, subject: e.target.value })}
             placeholder={t('subjectPlaceholder')}
           />
+        </div>
+
+        <div className="col-span-2 space-y-2">
+          <label className="text-sm font-semibold text-brand-ink-3">{t('autofillPartner')}</label>
+          <select
+            className="w-full rounded-lg border border-brand-cream-3 px-4 py-2 focus:ring-2 focus:ring-brand-red"
+            value={formData.partnerId}
+            onChange={e => handlePartnerChange(e.target.value)}
+          >
+            <option value="">{t('selectPartner')}</option>
+            {partners.map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
         </div>
 
         <div className="space-y-2">

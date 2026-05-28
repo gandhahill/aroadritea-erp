@@ -1,6 +1,7 @@
 import { getSession } from '@/lib/auth';
-import { db, eq } from '@erp/db';
+import { db, eq, and } from '@erp/db';
 import { locations } from '@erp/db';
+import { partners } from '@erp/db/schema/accounting';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/page-header';
@@ -26,11 +27,21 @@ export default async function NewOutgoingShipmentPage() {
     locs = locs.filter((l) => scope.locationIds.includes(l.id));
   }
 
+  const activePartners = await db
+    .select({
+      id: partners.id,
+      name: partners.name,
+      address: partners.address,
+      phone: partners.phone,
+    })
+    .from(partners)
+    .where(and(eq(partners.tenantId, String(user.tenantId ?? 'default')), eq(partners.isActive, true)));
+
   return (
     <div className="space-y-6">
       <PageHeader title={<>{t('title')}</>} description={<>{t('createNew')}</>} />
 
-      <OutgoingShipmentForm locations={locs} />
+      <OutgoingShipmentForm locations={locs} partners={activePartners} />
     </div>
   );
 }

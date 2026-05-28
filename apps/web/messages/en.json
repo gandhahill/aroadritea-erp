@@ -4090,7 +4090,9 @@
       "saving": "Saving...",
       "saveAction": "Save",
       "title": "Outgoing Shipment",
-      "createNew": "Create New"
+      "createNew": "Create New",
+      "autofillPartner": "Autofill from Partner (Optional)",
+      "selectPartner": "-- Select Partner --"
     }
   }
 }

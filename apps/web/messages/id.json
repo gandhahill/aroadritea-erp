@@ -4104,7 +4104,9 @@
       "saving": "Menyimpan...",
       "saveAction": "Simpan",
       "title": "Pengiriman Keluar",
-      "createNew": "Buat Baru"
+      "createNew": "Buat Baru",
+      "autofillPartner": "Isi otomatis dari Mitra/Partner (Opsional)",
+      "selectPartner": "-- Pilih Partner --"
     }
   }
 }
