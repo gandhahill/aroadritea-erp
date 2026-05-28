@@ -37,6 +37,7 @@ export interface ManualSalesPageData {
     taxTotal: string;
     netRevenue: string;
     journalEntryId: string | null;
+    createdByName?: string | null;
   }>;
   total: number;
   page: number;
@@ -212,36 +213,61 @@ export async function createManualSalesAction(
     return { error: 'Invalid line items data' };
   }
 
-  let consumedIngredients = [];
+  let payments = [];
   try {
-    const rawConsumed = text(formData, 'consumedIngredientsJson');
-    if (rawConsumed) {
-      consumedIngredients = JSON.parse(rawConsumed);
+    const rawPayments = text(formData, 'paymentsJson');
+    if (rawPayments) {
+      payments = JSON.parse(rawPayments);
     }
   } catch (e) {
-    return { error: 'Invalid consumed ingredients data' };
+    return { error: 'Invalid payments data' };
   }
 
-  const result = await createManualSalesClosing(
-    {
-      locationId: text(formData, 'locationId') || ctx.locationId,
-      salesDate: text(formData, 'salesDate'),
-      channel: text(formData, 'channel') || 'walk_in',
-      paymentMethod: text(formData, 'paymentMethod') || 'cash',
-      grossSales: money(formData, 'grossSales'),
-      discountTotal: money(formData, 'discountTotal'),
-      transactionCount: intValue(formData, 'transactionCount'),
-      sourceReference: text(formData, 'sourceReference') || undefined,
-      notes: text(formData, 'notes') || undefined,
-      idempotencyKey: crypto.randomUUID(),
-      lineItems,
-      deductBom: formData.get('deductBom') === 'true',
-      consumedIngredients: consumedIngredients.length > 0 ? consumedIngredients : undefined,
-    },
-    ctx,
-  );
+  if (payments.length === 0) {
+    return { error: 'Minimal harus ada 1 metode pembayaran' };
+  }
 
-  if (!result.ok) return { error: errorMessage(result.error) };
+  const baseDeductBom = formData.get('deductBom') === 'true';
+  let remainingDiscount = BigInt(money(formData, 'discountTotal'));
+
+  for (let i = 0; i < payments.length; i++) {
+    const payment = payments[i];
+    const isFirst = i === 0;
+    
+    const grossSales = BigInt(payment.grossSales || '0');
+    
+    // Distribute discount: take up to grossSales amount from remainingDiscount
+    const appliedDiscount = remainingDiscount > grossSales ? grossSales : remainingDiscount;
+    remainingDiscount -= appliedDiscount;
+
+    const result = await createManualSalesClosing(
+      {
+        locationId: text(formData, 'locationId') || ctx.locationId,
+        salesDate: text(formData, 'salesDate'),
+        channel: payment.channel || 'walk_in',
+        paymentMethod: payment.method || 'cash',
+        grossSales: grossSales.toString(),
+        discountTotal: appliedDiscount.toString(),
+        transactionCount: payment.transactionCount || 0,
+        sourceReference: text(formData, 'sourceReference') || undefined,
+        notes: text(formData, 'notes') || undefined,
+        idempotencyKey: crypto.randomUUID(),
+        // Attach line items and deduct BOM only on the first payment row
+        lineItems: isFirst ? lineItems : [],
+        deductBom: isFirst ? baseDeductBom : false,
+      },
+      ctx,
+    );
+
+    if (!result.ok) {
+      return { error: `Gagal pada pembayaran ${payment.method}: ` + errorMessage(result.error) };
+    }
+  }
+
+  if (remainingDiscount > 0n) {
+    return { error: 'Diskon melebihi total seluruh penjualan kotor.' };
+  }
+
   revalidatePath('/pos/manual-sales');
   revalidatePath('/reporting/daily-summary');
   revalidatePath('/reporting/omzet-harian');

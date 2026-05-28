@@ -28,20 +28,31 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
       total: string;
     }>
   >([]);
-  const [consumedIngredients, setConsumedIngredients] = useState<
-    Array<{ ingredientId: string; name: string; qty: number; uom: string }>
-  >([]);
-  const [grossSales, setGrossSales] = useState('');
+  
+  const [payments, setPayments] = useState<
+    Array<{
+      id: string;
+      channel: string;
+      method: string;
+      grossSales: string;
+      transactionCount: number;
+    }>
+  >([{ id: Date.now().toString(), channel: 'walk_in', method: 'cash', grossSales: '', transactionCount: 0 }]);
+
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailData, setDetailData] = useState<any>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [deductBom, setDeductBom] = useState(true);
 
-  // Automatically calculate grossSales from lineItems
+  // Automatically calculate grossSales from lineItems if only 1 payment exists
   useEffect(() => {
-    if (lineItems.length > 0) {
+    if (lineItems.length > 0 && payments.length === 1) {
       const sum = lineItems.reduce((acc, curr) => acc + BigInt(curr.total || '0'), BigInt(0));
-      setGrossSales(sum.toString());
+      setPayments((prev) => {
+        const newPayments = [...prev];
+        newPayments[0] = { ...newPayments[0]!, grossSales: sum.toString() };
+        return newPayments;
+      });
     }
   }, [lineItems]);
 
@@ -49,6 +60,8 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
     if (state?.ok) {
       const form = document.getElementById('manual-sales-form') as HTMLFormElement | null;
       form?.reset();
+      setPayments([{ id: Date.now().toString(), channel: 'walk_in', method: 'cash', grossSales: '', transactionCount: 0 }]);
+      setLineItems([]);
     }
   }, [state]);
 
@@ -65,11 +78,19 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
 
   return (
     <div className="h-full w-full overflow-y-auto space-y-6 pb-24 px-4 pt-4">
-      <PageHeader
-        title={<>{t('title')}</>}
-        description={<>{t('subtitle')}</>}
-        eyebrow={<>{t('eyebrow')}</>}
-      />
+      <div className="flex items-start justify-between">
+        <PageHeader
+          title={<>{t('title')}</>}
+          description={<>{t('subtitle')}</>}
+          eyebrow={<>{t('eyebrow')}</>}
+        />
+        <Link 
+          href="/pos/manual-sales/consumed" 
+          className="inline-flex items-center justify-center rounded-lg bg-brand-cream px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-2 border border-brand-cream-3"
+        >
+          {t('consumedIngredients', { defaultValue: 'Pemakaian Bahan' })} &rarr;
+        </Link>
+      </div>
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
         <form id="manual-sales-form" action={submitAction} className="grid gap-4 lg:grid-cols-4">
@@ -85,25 +106,103 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
           <Field label={t('salesDate')}>
             <Input name="salesDate" type="date" defaultValue={today} required />
           </Field>
-          <Field label={t('channel')}>
-            <Select name="channel" defaultValue="walk_in">
-              <option value="walk_in">{t('walkIn')}</option>
-              <option value="gofood">GoFood</option>
-              <option value="grabfood">GrabFood</option>
-              <option value="shopeefood">ShopeeFood</option>
-            </Select>
+          <Field label={t('sourceReference')}>
+            <Input name="sourceReference" />
           </Field>
-          <Field label={t('paymentMethod')}>
-            <Select name="paymentMethod" defaultValue="cash">
-              <option value="cash">{t('cash')}</option>
-              <option value="qris">QRIS</option>
-              <option value="debit">Debit</option>
-              <option value="credit">{t('credit')}</option>
-              <option value="gofood">GoFood</option>
-              <option value="grabfood">GrabFood</option>
-              <option value="shopeefood">ShopeeFood</option>
-            </Select>
+          <Field label={t('notes')}>
+            <Input name="notes" />
           </Field>
+
+          {/* Payments Section */}
+          <div className="lg:col-span-4 rounded-xl border border-brand-cream-3 p-4 bg-brand-cream-2/30">
+            <h3 className="mb-3 text-sm font-semibold text-brand-ink">{t('payments', { defaultValue: 'Metode Pembayaran' })}</h3>
+            <div className="space-y-3">
+              {payments.map((payment, index) => (
+                <div key={payment.id} className="flex flex-wrap items-end gap-3 rounded-lg border border-brand-cream-3 bg-card p-3 shadow-sm">
+                  <div className="w-32">
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('channel')}</span>
+                    <Select
+                      value={payment.channel}
+                      onChange={(e) => {
+                        const newPayments = [...payments];
+                        newPayments[index] = { ...newPayments[index]!, channel: e.target.value };
+                        setPayments(newPayments);
+                      }}
+                    >
+                      <option value="walk_in">{t('walkIn')}</option>
+                      <option value="gofood">GoFood</option>
+                      <option value="grabfood">GrabFood</option>
+                      <option value="shopeefood">ShopeeFood</option>
+                    </Select>
+                  </div>
+                  <div className="w-32">
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('paymentMethod')}</span>
+                    <Select
+                      value={payment.method}
+                      onChange={(e) => {
+                        const newPayments = [...payments];
+                        newPayments[index] = { ...newPayments[index]!, method: e.target.value };
+                        setPayments(newPayments);
+                      }}
+                    >
+                      <option value="cash">{t('cash')}</option>
+                      <option value="qris">QRIS</option>
+                      <option value="card">{t('card', { defaultValue: 'Kartu' })}</option>
+                      <option value="gofood">GoFood</option>
+                      <option value="grabfood">GrabFood</option>
+                      <option value="shopeefood">ShopeeFood</option>
+                    </Select>
+                  </div>
+                  <div className="flex-1 min-w-[120px]">
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('grossSales')}</span>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      value={payment.grossSales}
+                      required
+                      onChange={(e) => {
+                        const newPayments = [...payments];
+                        newPayments[index] = { ...newPayments[index]!, grossSales: e.target.value.replace(/\D/g, '') };
+                        setPayments(newPayments);
+                      }}
+                    />
+                  </div>
+                  <div className="w-24">
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('transactionCount')}</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={payment.transactionCount}
+                      onChange={(e) => {
+                        const newPayments = [...payments];
+                        newPayments[index] = { ...newPayments[index]!, transactionCount: Number.parseInt(e.target.value) || 0 };
+                        setPayments(newPayments);
+                      }}
+                    />
+                  </div>
+                  {payments.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="text-brand-red mb-1"
+                      onClick={() => setPayments(payments.filter((_, i) => i !== index))}
+                    >
+                      {t('delete')}
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setPayments([...payments, { id: Date.now().toString(), channel: 'walk_in', method: 'cash', grossSales: '', transactionCount: 0 }])}
+              >
+                + {t('addPayment', { defaultValue: 'Tambah Pembayaran' })}
+              </Button>
+            </div>
+            <input type="hidden" name="paymentsJson" value={JSON.stringify(payments)} />
+          </div>
+
           <div className="lg:col-span-4 rounded-xl border border-brand-cream-3 p-4">
             <h3 className="mb-3 text-sm font-semibold text-brand-ink">{t('products')}</h3>
             <div className="space-y-3">
@@ -258,122 +357,11 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             </div>
           </div>
 
-          <div className="lg:col-span-4 rounded-xl border border-brand-cream-3 p-4">
-            <h3 className="mb-3 text-sm font-semibold text-brand-ink">{t('consumedIngredients')}</h3>
-            <p className="mb-4 text-xs text-brand-ink-3">{t('consumedIngredientsDesc')}</p>
-            <div className="space-y-3">
-              {consumedIngredients.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex flex-wrap items-end gap-3 rounded-lg border border-brand-cream-3 bg-brand-cream-2/50 p-3"
-                >
-                  <div className="flex-1 min-w-[200px]">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
-                      {t('ingredient')}
-                    </span>
-                    <Select
-                      value={item.ingredientId}
-                      onChange={(e) => {
-                        const ingredient = data.ingredients.find((p) => p.id === e.target.value);
-                        if (!ingredient) return;
-                        const newItems = [...consumedIngredients];
-                        newItems[index] = {
-                          ingredientId: ingredient.id,
-                          name: ingredient.name,
-                          qty: newItems[index]?.qty || 1,
-                          uom: ingredient.uom,
-                        };
-                        setConsumedIngredients(newItems);
-                      }}
-                    >
-                      <option value="" disabled>
-                        {t('selectIngredient')}
-                      </option>
-                      {data.ingredients.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} ({p.uom})
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                  <div className="w-24">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
-                      {t('qty')}
-                    </span>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={item.qty}
-                      onChange={(e) => {
-                        const qty = Math.max(1, Number.parseInt(e.target.value) || 1);
-                        const newItems = [...consumedIngredients];
-                        newItems[index] = { ...newItems[index]!, qty };
-                        setConsumedIngredients(newItems);
-                      }}
-                    />
-                  </div>
-                  <div className="w-24">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
-                      {t('uom')}
-                    </span>
-                    <Input type="text" readOnly value={item.uom} className="bg-brand-cream/50" />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="text-brand-red mb-1"
-                    onClick={() => {
-                      setConsumedIngredients(consumedIngredients.filter((_, i) => i !== index));
-                    }}
-                  >
-                    {t('delete')}
-                  </Button>
-                </div>
-              ))}
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => {
-                  setConsumedIngredients([
-                    ...consumedIngredients,
-                    { ingredientId: '', name: '', qty: 1, uom: '' },
-                  ]);
-                }}
-              >
-                + {t('addIngredient')}
-              </Button>
-            </div>
-            <input
-              type="hidden"
-              name="consumedIngredientsJson"
-              value={JSON.stringify(consumedIngredients.filter((i) => i.ingredientId))}
-            />
-          </div>
-
-          <Field label={t('grossSales')}>
-            <Input
-              name="grossSales"
-              inputMode="numeric"
-              required
-              value={grossSales}
-              onChange={(e) => setGrossSales(e.target.value.replace(/\D/g, ''))}
-            />
-          </Field>
           <Field label={t('discountTotal')}>
             <Input name="discountTotal" inputMode="numeric" defaultValue="0" />
           </Field>
-          <Field label={t('transactionCount')}>
-            <Input name="transactionCount" type="number" min={0} defaultValue={0} />
-          </Field>
-          <Field label={t('sourceReference')}>
-            <Input name="sourceReference" />
-          </Field>
-          <div className="lg:col-span-3">
-            <Field label={t('notes')}>
-              <textarea name="notes" rows={3} />
-            </Field>
-          </div>
-          <div className="flex items-end">
+          
+          <div className="lg:col-span-3 flex items-end">
             <Button
               type="submit"
               disabled={isPending || data.locations.length === 0}
@@ -414,6 +402,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                 <Th align="right">{t('taxTotal')}</Th>
                 <Th align="right">{t('netRevenue')}</Th>
                 <Th>{t('journal')}</Th>
+                <Th>{t('postedBy', { defaultValue: 'Dibuat Oleh' })}</Th>
               </tr>
             </thead>
             <TableBody className="divide-y divide-brand-cream-3">
@@ -443,6 +432,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     <Td align="right">{formatRupiah(item.taxTotal)}</Td>
                     <Td align="right">{formatRupiah(item.netRevenue)}</Td>
                     <Td>{item.journalEntryId ? t('synced') : t('notSynced')}</Td>
+                    <Td>{item.createdByName || '-'}</Td>
                   </tr>
                 ))
               )}

@@ -337,14 +337,28 @@ export async function listManualSalesClosings(
         .select({ count: sql<number>`cast(count(*) as int)` })
         .from(manualSalesClosings)
         .where(whereClause);
+        
+      const { users } = await import('@erp/db/schema/auth');
+      
       const rows = await db
-        .select()
+        .select({
+          closing: manualSalesClosings,
+          createdByName: users.displayName,
+        })
         .from(manualSalesClosings)
+        .leftJoin(users, eq(manualSalesClosings.createdBy, users.id))
         .where(whereClause)
         .orderBy(desc(manualSalesClosings.salesDate), desc(manualSalesClosings.createdAt))
         .limit(params.limit ?? 25)
         .offset(params.offset ?? 0);
-      return { items: rows.map(toResult), total: count };
+        
+      return { 
+        items: rows.map(r => ({
+          ...toResult(r.closing),
+          createdByName: r.createdByName,
+        })), 
+        total: count 
+      };
     },
     (e) => AppError.internal('pos.manualSales.listFailed', e),
   );
