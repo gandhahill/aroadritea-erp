@@ -26,6 +26,8 @@ export interface PayrollEmployeeContext {
   dependentsCount: 0 | 1 | 2 | 3; // PTKP tier
   /** Additional taxable earnings this period (bonus, THR, lembur) */
   additionalEarnings: PayrollEarning[];
+  /** Additional deductions this period (kasbon, etc) */
+  additionalDeductions?: PayrollDeduction[];
   /** Total late minutes this period, kept for payroll audit notes. */
   lateMinutes: number;
   /** Number of late events this period. SOP grants 3 free late events/month. */
@@ -41,6 +43,12 @@ export interface PayrollEarning {
   amount: bigint; // IDR amount
   isTaxable: boolean;
   isBpjsBase: boolean;
+  notes?: string;
+}
+
+export interface PayrollDeduction {
+  code: string;
+  amount: bigint;
   notes?: string;
 }
 
@@ -264,7 +272,23 @@ export function calculatePayroll(ctx: PayrollEmployeeContext): PayrollResult {
     });
   }
 
-  const totalDeductions = pph21Amount + bpjsKesEmployee + bpjsTkEmp + latePenalty + absentPenalty;
+  // 8. Additional manual deductions (kasbon, dll)
+  let manualDeductions = 0n;
+  if (ctx.additionalDeductions) {
+    for (const deduction of ctx.additionalDeductions) {
+      lines.push({
+        componentCode: deduction.code,
+        componentKind: 'deduction',
+        amount: deduction.amount,
+        baseAmount: 0n,
+        percentageApplied: null,
+        notes: deduction.notes ?? '',
+      });
+      manualDeductions += deduction.amount;
+    }
+  }
+
+  const totalDeductions = pph21Amount + bpjsKesEmployee + bpjsTkEmp + latePenalty + absentPenalty + manualDeductions;
   const netSalary = grossMonthly - totalDeductions;
 
   return {

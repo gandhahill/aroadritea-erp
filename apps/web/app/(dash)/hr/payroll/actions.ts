@@ -33,6 +33,12 @@ export async function runPayrollAction(input: {
     amount: string;
     notes?: string;
   }>;
+  additionalDeductions?: Array<{
+    employeeId: string;
+    componentCode?: string;
+    amount: string;
+    notes?: string;
+  }>;
 }) {
   const ctx = await resolveCtx(input.locationId);
   return runPayroll(input, ctx);

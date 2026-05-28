@@ -2545,7 +2545,10 @@
         "runBtn": "Run Payroll",
         "runningBtn": "Running...",
         "success": "Payroll untuk {period} dibuat. {empCount} karyawan, total {totalNet}.",
-        "errorLocation": "Silakan pilih lokasi terlebih dahulu."
+        "errorLocation": "Silakan pilih lokasi terlebih dahulu.",
+        "deductionTitle": "Potongan Manual (Tambahan)",
+        "deductionDesc": "Potongan cicilan kasbon, denda khusus, dll.",
+        "deductionCount": "{count} potongan"
       },
       "history": {
         "title": "Riwayat Payroll",

@@ -2452,7 +2452,10 @@
         "runBtn": "Run Payroll",
         "runningBtn": "Running...",
         "success": "Payroll for {period} created. {empCount} employees, total {totalNet}.",
-        "errorLocation": "Please select a location."
+        "errorLocation": "Please select a location.",
+        "deductionTitle": "Manual Deductions (Ad-hoc)",
+        "deductionDesc": "Cash advance installments, disciplinary fines, etc.",
+        "deductionCount": "{count} deductions"
       },
       "history": {
         "title": "Payroll History",

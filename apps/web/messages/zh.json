@@ -2452,7 +2452,10 @@
         "runBtn": "运行计算",
         "runningBtn": "运行中...",
         "success": "已生成 {period} 的薪资单。{empCount} 名员工，总净额 {totalNet}。",
-        "errorLocation": "请先选择位置。"
+        "errorLocation": "请先选择位置。",
+        "deductionTitle": "人工扣款 (额外)",
+        "deductionDesc": "预支工资分期付款、违纪罚款等",
+        "deductionCount": "{count} 项扣款"
       },
       "history": {
         "title": "薪资单历史记录",

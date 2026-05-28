@@ -73,6 +73,7 @@ export function PayrollRunClient({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [bonusByEmployeeId, setBonusByEmployeeId] = useState<Record<string, string>>({});
+  const [deductionByEmployeeId, setDeductionByEmployeeId] = useState<Record<string, string>>({});
 
   const periodStart = `${periodCode}-01`;
   const periodEnd = (() => {
@@ -100,6 +101,25 @@ export function PayrollRunClient({
         earning !== null,
     );
 
+  const additionalDeductions = selectedEmployees
+    .map((employee) => {
+      const amount = (deductionByEmployeeId[employee.id] ?? '').replace(/\D/g, '');
+      return amount && Number.parseInt(amount, 10) > 0
+        ? {
+            employeeId: employee.id,
+            componentCode: 'PINJAMAN',
+            amount,
+            notes: `Potongan manual payroll ${periodCode}`,
+          }
+        : null;
+    })
+    .filter(
+      (
+        deduction,
+      ): deduction is { employeeId: string; componentCode: string; amount: string; notes: string } =>
+        deduction !== null,
+    );
+
   const handleRun = async () => {
     if (!locationId) {
       setError(t('form.errorLocation'));
@@ -115,6 +135,7 @@ export function PayrollRunClient({
       periodEnd: `${periodEnd}T23:59:59Z`,
       locationId,
       additionalEarnings,
+      additionalDeductions,
     });
 
     setSubmitting(false);
@@ -210,6 +231,49 @@ export function PayrollRunClient({
                     value={bonusByEmployeeId[employee.id] ?? ''}
                     onChange={(event) =>
                       setBonusByEmployeeId((current) => ({
+                        ...current,
+                        [employee.id]: event.target.value.replace(/\D/g, ''),
+                      }))
+                    }
+                    placeholder="0"
+                    className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
+                  />
+                </label>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="mt-5 rounded-lg border border-brand-cream-3 bg-brand-cream-1/40 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-brand-ink">{t('form.deductionTitle')}</h3>
+              <p className="mt-1 text-xs text-brand-ink-3">{t('form.deductionDesc')}</p>
+            </div>
+            <span className="rounded-full bg-rose-500/10 px-3 py-1 text-xs font-medium text-rose-600">
+              {t('form.deductionCount', { count: additionalDeductions.length })}
+            </span>
+          </div>
+
+          {locationId && selectedEmployees.length === 0 ? (
+            <p className="mt-4 rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink-3">
+              {t('form.noEmployees')}
+            </p>
+          ) : null}
+
+          {selectedEmployees.length > 0 ? (
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {selectedEmployees.map((employee) => (
+                <label key={employee.id} className="block">
+                  <span className="mb-1 block text-xs font-medium text-brand-ink-2">
+                    {employee.name}
+                  </span>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={deductionByEmployeeId[employee.id] ?? ''}
+                    onChange={(event) =>
+                      setDeductionByEmployeeId((current) => ({
                         ...current,
                         [employee.id]: event.target.value.replace(/\D/g, ''),
                       }))

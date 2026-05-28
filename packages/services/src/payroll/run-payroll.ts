@@ -82,6 +82,17 @@ export const RunPayrollInputSchema = z.object({
     )
     .optional()
     .default([]),
+  additionalDeductions: z
+    .array(
+      z.object({
+        employeeId: z.string().min(1),
+        componentCode: z.string().min(1).max(64).default('PINJAMAN'),
+        amount: z.string().regex(/^[1-9]\d*$/),
+        notes: z.string().max(240).optional(),
+      }),
+    )
+    .optional()
+    .default([]),
 });
 
 export type RunPayrollInput = z.input<typeof RunPayrollInputSchema>;
@@ -237,6 +248,36 @@ export async function runPayroll(
         additionalEarningsByEmployeeId.set(earning.employeeId, list);
       }
 
+      const additionalDeductionsByEmployeeId = new Map<
+        string,
+        Array<{
+          code: string;
+          amount: bigint;
+          notes?: string;
+        }>
+      >();
+      for (const deduction of data.additionalDeductions) {
+        if (!employeeIdSet.has(deduction.employeeId)) {
+          throw AppError.validation('hr.payroll.adjustmentEmployeeNotInLocation', {
+            employeeId: deduction.employeeId,
+            locationId: data.locationId,
+          });
+        }
+        const component = getComponent(deduction.componentCode);
+        if (component.kind !== 'deduction') {
+          throw AppError.validation('hr.payroll.invalidAdditionalDeductionComponent', {
+            componentCode: deduction.componentCode,
+          });
+        }
+        const list = additionalDeductionsByEmployeeId.get(deduction.employeeId) ?? [];
+        list.push({
+          code: component.code,
+          amount: BigInt(deduction.amount),
+          notes: deduction.notes,
+        });
+        additionalDeductionsByEmployeeId.set(deduction.employeeId, list);
+      }
+
       // 5. Fetch attendance for the period
       const periodStart = new Date(data.periodStart);
       const periodEnd = new Date(data.periodEnd);
@@ -299,6 +340,7 @@ export async function runPayroll(
           isTaxable: true,
           dependentsCount: 0,
           additionalEarnings: additionalEarningsByEmployeeId.get(emp.id) ?? [],
+          additionalDeductions: additionalDeductionsByEmployeeId.get(emp.id) ?? [],
           lateMinutes: att.lateMinutes,
           lateCount: att.lateCount,
           absentCount: att.absentDays,
