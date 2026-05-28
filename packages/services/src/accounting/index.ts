@@ -43,6 +43,7 @@ export {
   type PettyCashTransactionResult,
   type PettyCashTransactionListResult,
 } from './petty-cash';
+export * from './invoice';
 export {
   RecordPettyCashExpenseSchema,
   ReplenishPettyCashSchema,

@@ -625,6 +625,66 @@
       "purchasing": "Pembelian",
       "inventory": "Inventaris",
       "settings": "Pengaturan"
+    },
+    "print": {
+      "title": "Bukti Transaksi",
+      "invoice": "INVOICE",
+      "receipt": "KUITANSI",
+      "billTo": "Kepada",
+      "date": "Tanggal",
+      "dueDate": "Jatuh Tempo",
+      "paymentTo": "Pembayaran Ke",
+      "total": "Total",
+      "printOrSavePdf": "Cetak / Simpan PDF",
+      "notes": "Catatan",
+      "preparedBy": "Dibuat Oleh",
+      "authorizedBy": "Disetujui Oleh"
+    },
+    "invoice": {
+      "title": "Invoice",
+      "subtitle": "Kelola invoice penjualan dan pembelian",
+      "count": "{count} Invoice",
+      "create": "Buat Invoice",
+      "number": "Nomor",
+      "date": "Tanggal",
+      "dueDate": "Jatuh Tempo",
+      "type": "Tipe",
+      "partner": "Partner",
+      "status": "Status",
+      "total": "Total",
+      "actions": "Aksi",
+      "viewJournal": "Lihat Jurnal",
+      "post": "Post",
+      "empty": "Tidak ada invoice.",
+      "sales": "Penjualan",
+      "purchase": "Pembelian",
+      "new": {
+        "title": "Invoice Baru",
+        "subtitle": "Buat Invoice Penjualan atau Pembelian baru",
+        "partnerName": "Nama Partner",
+        "salesInvoice": "Invoice Penjualan (Piutang)",
+        "purchaseInvoice": "Invoice Pembelian (Utang)",
+        "location": "Lokasi",
+        "lineItems": "Baris Item",
+        "addLine": "Tambah Baris",
+        "remove": "Hapus",
+        "selectAccount": "Pilih Akun...",
+        "description": "Deskripsi",
+        "saveDraft": "Simpan Draf Invoice",
+        "saving": "Menyimpan..."
+      },
+      "postAction": {
+        "title": "Post Invoice",
+        "subtitle": "Tinjau dan pilih akun Partner (Utang/Piutang) sebelum mem-posting.",
+        "details": "Detail Invoice",
+        "receivableLabel": "Akun Piutang (AR)",
+        "payableLabel": "Akun Utang (AP)",
+        "receivableDesc": "Pilih akun untuk memetakan total saldo piutang dari invoice ini pada jurnal yang akan dibuat.",
+        "payableDesc": "Pilih akun untuk memetakan total saldo utang dari invoice ini pada jurnal yang akan dibuat.",
+        "cancel": "Batal",
+        "postCreate": "Post & Buat Jurnal",
+        "posting": "Mem-posting..."
+      }
     }
   },
   "purchasing": {
@@ -1250,7 +1310,21 @@
         "shortage": "Kekurangan",
         "emptyState": {
           "title": "Tidak ada varians",
-          "subtitle": "Tidak ditemukan varians pada rentang tanggal ini."
+          "subtitle": "Tidak ditemukan varians pada rentang tanggal ini.",
+          "error": "Nomor WhatsApp tidak terdeteksi. Pastikan format nomor diawali dengan 62 tanpa + atau 0, misalnya 62812345678."
+        },
+        "logistics": {
+          "outgoingShipments": "Pengiriman Keluar",
+          "outgoingShipmentsSubtitle": "Lacak pengiriman barang atau surat keluar perusahaan menggunakan BinderByte.",
+          "number": "Nomor",
+          "subject": "Perihal",
+          "recipient": "Penerima",
+          "courier": "Kurir & Resi",
+          "status": "Status",
+          "actions": "Aksi",
+          "noShipments": "Belum ada pengiriman keluar.",
+          "sync": "Sinkron",
+          "syncing": "Sinkronisasi..."
         },
         "export": {
           "title": "Laporan Varians",
@@ -1437,6 +1511,7 @@
     "docs": "Panduan",
     "coa": "Bagan Akun",
     "journals": "Jurnal Umum",
+    "invoices": "Invoices",
     "accountingEvidence": "Bukti Transaksi",
     "fixedAssets": "Aset Tetap",
     "payables": "Utang",
@@ -1474,6 +1549,8 @@
     "grnReport": "Laporan Penerimaan",
     "purchaseReturns": "Retur Pembelian",
     "shipments": "Pengiriman",
+    "logistics": "Logistik",
+    "outgoingShipments": "Pengiriman Keluar",
     "tax": "Pajak",
     "taxRates": "Tarif Pajak",
     "taxRules": "Aturan Pajak",
@@ -3912,5 +3989,18 @@
     "awb": "Nomor Resi",
     "phoneLast5": "Telepon (5 digit terakhir)",
     "notSynced": "Belum Disinkron"
+  },
+  "logistics": {
+    "outgoingShipments": "Pengiriman Keluar",
+    "outgoingShipmentsSubtitle": "Lacak pengiriman barang atau surat keluar perusahaan menggunakan BinderByte.",
+    "number": "Nomor",
+    "subject": "Perihal",
+    "recipient": "Penerima",
+    "courier": "Kurir & Resi",
+    "status": "Status",
+    "actions": "Aksi",
+    "noShipments": "Belum ada pengiriman keluar.",
+    "sync": "Sinkron",
+    "syncing": "Sinkronisasi..."
   }
 }

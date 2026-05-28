@@ -40,6 +40,8 @@ export {
   bankAccounts,
   bankStatements,
   bankStatementLines,
+  invoices,
+  invoiceLines,
 } from './schema/accounting';
 
 // Schema — Audit
@@ -179,6 +181,12 @@ export { correspondenceRecords } from './schema/correspondence';
 
 // Schema — SOP documents (User Req 2)
 export { sopDocuments } from './schema/sop';
+
+// Schema — Logistics / Shipments
+export {
+  outgoingShipments,
+  outgoingShipmentTrackingRequests,
+} from './schema/logistics';
 
 // Schema — AI assistant (User Req 1, ADR-0013)
 export {

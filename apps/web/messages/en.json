@@ -625,6 +625,66 @@
       "purchasing": "Purchasing",
       "inventory": "Inventory",
       "settings": "Settings"
+    },
+    "print": {
+      "title": "Transaction Proof",
+      "invoice": "INVOICE",
+      "receipt": "RECEIPT",
+      "billTo": "Bill To",
+      "date": "Date",
+      "dueDate": "Due Date",
+      "paymentTo": "Payment To",
+      "total": "Total",
+      "printOrSavePdf": "Print / Save PDF",
+      "notes": "Notes",
+      "preparedBy": "Prepared By",
+      "authorizedBy": "Authorized By"
+    },
+    "invoice": {
+      "title": "Invoices",
+      "subtitle": "Manage sales and purchase invoices",
+      "count": "{count} Invoices",
+      "create": "Create Invoice",
+      "number": "Number",
+      "date": "Date",
+      "dueDate": "Due Date",
+      "type": "Type",
+      "partner": "Partner",
+      "status": "Status",
+      "total": "Total",
+      "actions": "Actions",
+      "viewJournal": "View Journal",
+      "post": "Post",
+      "empty": "No invoices found.",
+      "sales": "Sales",
+      "purchase": "Purchase",
+      "new": {
+        "title": "New Invoice",
+        "subtitle": "Create a new Sales or Purchase Invoice",
+        "partnerName": "Partner Name",
+        "salesInvoice": "Sales Invoice (Receivable)",
+        "purchaseInvoice": "Purchase Invoice (Payable)",
+        "location": "Location",
+        "lineItems": "Line Items",
+        "addLine": "Add Line",
+        "remove": "Remove",
+        "selectAccount": "Select Account...",
+        "description": "Description",
+        "saveDraft": "Save Draft Invoice",
+        "saving": "Saving..."
+      },
+      "postAction": {
+        "title": "Post Invoice",
+        "subtitle": "Review and select the Partner (AR/AP) account before posting.",
+        "details": "Invoice Details",
+        "receivableLabel": "Receivable Account (AR)",
+        "payableLabel": "Payable Account (AP)",
+        "receivableDesc": "Select the account to map the total receivable balance for this invoice in the resulting journal entry.",
+        "payableDesc": "Select the account to map the total payable balance for this invoice in the resulting journal entry.",
+        "cancel": "Cancel",
+        "postCreate": "Post & Create Journal",
+        "posting": "Posting..."
+      }
     }
   },
   "purchasing": {
@@ -1517,7 +1577,10 @@
     "variance": "Variance",
     "expandSidebar": "Expand Sidebar",
     "collapseSidebar": "Collapse Sidebar",
-    "stockTransfer": "Stock Transfer"
+    "stockTransfer": "Stock Transfer",
+    "invoices": "Invoices",
+    "logistics": "Logistics",
+    "outgoingShipments": "Outgoing Shipments"
   },
   "pos": {
     "title": "Point of Sale",
@@ -3912,5 +3975,18 @@
     "awb": "Airway Bill (AWB)",
     "phoneLast5": "Phone (Last 5 digits)",
     "notSynced": "Not Synced"
+  },
+  "logistics": {
+    "outgoingShipments": "Outgoing Shipments",
+    "outgoingShipmentsSubtitle": "Track outgoing corporate goods and letters via BinderByte.",
+    "number": "Number",
+    "subject": "Subject",
+    "recipient": "Recipient",
+    "courier": "Courier & AWB",
+    "status": "Status",
+    "actions": "Actions",
+    "noShipments": "No outgoing shipments yet.",
+    "sync": "Sync",
+    "syncing": "Syncing..."
   }
 }

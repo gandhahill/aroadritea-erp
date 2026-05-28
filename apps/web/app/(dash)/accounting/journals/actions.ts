@@ -16,6 +16,7 @@ import {
   journalEntries,
   journalLines,
   partners,
+  bankAccounts,
 } from '@erp/db/schema/accounting';
 import { locations } from '@erp/db/schema/auth';
 import { createJournal } from '@erp/services/accounting';
@@ -66,6 +67,7 @@ export interface JournalDetail {
   description: string;
   referenceType: string | null;
   referenceId: string | null;
+  notes: string | null;
   locationId: string;
   locationLabel: string;
   totalDebit: string;
@@ -651,6 +653,7 @@ export async function fetchJournalDetail(journalId: string): Promise<JournalDeta
     description: entry.description,
     referenceType: entry.referenceType,
     referenceId: entry.referenceId,
+    notes: null,
     locationId: entry.locationId,
     locationLabel: locationById.get(entry.locationId) ?? entry.locationId,
     totalDebit: String(entry.totalDebit),
@@ -710,5 +713,41 @@ export async function serverExportJournals() {
         },
       ],
     },
+  };
+}
+
+export interface BankAccountDetail {
+  id: string;
+  bankName: string;
+  accountNumber: string;
+  accountHolder: string;
+}
+
+export interface PrintJournalData {
+  journal: JournalDetail;
+  bankAccounts: BankAccountDetail[];
+}
+
+export async function fetchPrintJournalData(journalId: string): Promise<PrintJournalData | null> {
+  const ctx = await getContext();
+  if (!ctx) return null;
+
+  const journal = await fetchJournalDetail(journalId);
+  if (!journal) return null;
+
+  const activeBanks = await db
+    .select({
+      id: bankAccounts.id,
+      bankName: bankAccounts.bankName,
+      accountNumber: bankAccounts.accountNumber,
+      accountHolder: bankAccounts.accountHolder,
+    })
+    .from(bankAccounts)
+    .where(and(eq(bankAccounts.tenantId, ctx.tenantId), eq(bankAccounts.isActive, true)))
+    .orderBy(asc(bankAccounts.bankName));
+
+  return {
+    journal,
+    bankAccounts: activeBanks,
   };
 }

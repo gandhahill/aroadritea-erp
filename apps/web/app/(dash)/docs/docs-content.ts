@@ -192,6 +192,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           'Gunakan filter tipe dan pencarian kode/nama untuk menemukan akun dengan cepat.',
           'Buka Jurnal untuk melihat transaksi yang sudah dibuat sistem atau manual.',
           'Saat membuat jurnal manual, isi tanggal posting, lokasi, deskripsi, dan baris debit/kredit.',
+          'Gunakan tombol "Cetak / Simpan PDF" pada halaman detail jurnal untuk mencetak invoice, kuitansi, atau bukti transaksi secara otomatis dengan logo dan nama perusahaan.',
           'Jika director atau outlet mengirim bukti transaksi lewat WhatsApp atau kanal lain, buka Accounting > Bukti Transaksi, daftarkan bukti sebagai incoming/internal finance, lampirkan file bila ada, lalu ubah status dari Terdaftar menjadi Diproses dan Selesai setelah jurnalnya dibuat.',
           'Untuk transaksi utang/piutang, isi partner, tanggal jatuh tempo, dan reminder H- pada baris jurnal yang memakai akun utang/piutang.',
           'Gunakan Import CSV bila banyak jurnal perlu dimasukkan sekaligus; unduh template terlebih dahulu agar kolom akun, lokasi, debit, dan kredit sesuai format.',
@@ -254,6 +255,24 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           { label: 'Purchasing', href: '/purchasing' },
           { label: 'PO Baru', href: '/purchasing/po/new' },
           { label: 'Workflow Editor', href: '/settings/workflow-editor' },
+        ],
+      },
+      {
+        id: 'logistics',
+        eyebrow: 'Logistik',
+        title: 'Pengiriman Keluar dan Pelacakan Resi',
+        summary:
+          'Modul Logistik dipakai untuk melacak pengiriman keluar dari perusahaan ke pihak eksternal, dengan dukungan pelacakan otomatis (BinderByte).',
+        steps: [
+          'Buka Logistik > Pengiriman Keluar.',
+          'Lihat daftar pengiriman, nomor resi, kurir, dan alamat tujuan.',
+          'Tekan Sinkron Resi untuk mengambil status pelacakan terkini dari kurir (memotong kuota bulanan API).',
+        ],
+        checks: [
+          'Batas kuota BinderByte adalah 500 request per bulan; sinkron ulang hanya bila status memang harus dicek.',
+        ],
+        links: [
+          { label: 'Pengiriman Keluar', href: '/logistics/outgoing-shipments' },
         ],
       },
       {
@@ -600,6 +619,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
         steps: [
           'Use Chart of Accounts to review official accounts.',
           'Open Journals to review system and manual entries.',
+          'Use the "Print / Save PDF" button on the journal details page to automatically generate invoices, receipts, or transaction evidence with company logo and name.',
           'For manual journals, fill posting date, location, description, and debit/credit lines.',
           'If a director or outlet sends transaction proof through WhatsApp or another channel, open Accounting > Transaction Evidence, register it as incoming/internal finance evidence, attach files when available, then move the status from Registered to In Progress and Closed after the journal is created.',
           'For payable/receivable entries, fill partner, due date, and reminder days on the journal line that uses the mapped payable/receivable account.',
@@ -663,6 +683,24 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           { label: 'Purchasing', href: '/purchasing' },
           { label: 'New PO', href: '/purchasing/po/new' },
           { label: 'Workflow Editor', href: '/settings/workflow-editor' },
+        ],
+      },
+      {
+        id: 'logistics',
+        eyebrow: 'Logistics',
+        title: 'Outgoing Shipments and Tracking',
+        summary:
+          'The Logistics module is used to track outgoing corporate shipments to external parties using automatic tracking (BinderByte).',
+        steps: [
+          'Open Logistics > Outgoing Shipments.',
+          'Review the shipment list, AWB, courier, and destination.',
+          'Click Sync to fetch the latest tracking status from the courier (consumes monthly API quota).',
+        ],
+        checks: [
+          'BinderByte quota is limited to 500 requests per month; only sync when you need the updated status.',
+        ],
+        links: [
+          { label: 'Outgoing Shipments', href: '/logistics/outgoing-shipments' },
         ],
       },
       {
@@ -1001,6 +1039,7 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
         steps: [
           '使用科目表查看公司正式科目。',
           '打开凭证查看系统和手工凭证。',
+          '在凭证详情页，可使用“打印 / 保存PDF”按钮，自动生成带公司标识和名称的发票、收据或交易凭证。',
           '创建手工凭证时填写过账日期、地点、说明和借贷行。',
           '如果董事或门店通过WhatsApp或其他渠道发送交易凭证，请打开 会计 > 交易凭证，将其登记为财务来件或内部凭证；有文件时上传附件，并在建好凭证后把状态从已登记改为处理中和已完成。',
           '对于应付或应收交易，请在使用已映射应付/应收科目的凭证行填写往来单位、到期日和提醒天数。',
@@ -1056,6 +1095,23 @@ export const DOCS_CONTENT: Record<AppLocale, DocsContent> = {
           { label: '采购', href: '/purchasing' },
           { label: '新建PO', href: '/purchasing/po/new' },
           { label: '工作流编辑器', href: '/settings/workflow-editor' },
+        ],
+      },
+      {
+        id: 'logistics',
+        eyebrow: '物流',
+        title: '出库运输与跟踪',
+        summary: '物流模块用于跟踪公司发往外部的货物和信件，通过 BinderByte 自动获取最新物流状态。',
+        steps: [
+          '打开 物流 > 出库运输。',
+          '查看出库列表、运单号、快递公司和收件人。',
+          '点击同步按钮，获取最新的物流状态（每次同步消耗API月度额度）。',
+        ],
+        checks: [
+          'BinderByte 每月限额500次请求；仅在确实需要更新状态时才进行同步。',
+        ],
+        links: [
+          { label: '出库运输', href: '/logistics/outgoing-shipments' },
         ],
       },
       {

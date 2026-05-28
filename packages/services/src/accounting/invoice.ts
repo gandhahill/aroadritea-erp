@@ -1,0 +1,180 @@
+/**
+ * accounting.invoice
+ * 
+ * Handles creation, updating, and posting of Invoices, which syncs to Journals.
+ */
+
+import { db } from '@erp/db';
+import { invoices, invoiceLines } from '@erp/db/schema/accounting';
+import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
+import type { AuditContext } from '@erp/shared/types';
+import { and, eq } from 'drizzle-orm';
+import { auditRecord } from '../audit';
+import { requirePermission } from '../iam';
+import { createJournal } from './create-journal';
+import { postJournal } from './post-journal';
+
+export interface CreateInvoiceInput {
+  number: string;
+  type: 'sales' | 'purchase';
+  date: string;
+  dueDate: string | null;
+  partnerName: string;
+  notes: string | null;
+  locationId: string;
+  lines: Array<{
+    accountId: string;
+    description: string;
+    quantity: number;
+    unitPrice: string; // From UI as string to avoid precision loss
+    subtotal: string;
+  }>;
+}
+
+export async function createInvoice(
+  input: CreateInvoiceInput,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
+  // 1. Permission check
+  const permCheck = await requirePermission(ctx.userId, 'accounting.journal.create', {
+    locationId: input.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  const invoiceId = generateId();
+  
+  let totalSubtotal = 0n;
+  const parsedLines = input.lines.map((line, idx) => {
+    const unitPrice = BigInt(line.unitPrice);
+    const subtotal = BigInt(line.subtotal);
+    totalSubtotal += subtotal;
+    return {
+      ...line,
+      unitPrice,
+      subtotal,
+      lineNo: idx + 1,
+    };
+  });
+
+  const result = await tryCatch(
+    async () => {
+      await db.insert(invoices).values({
+        id: invoiceId,
+        tenantId: ctx.tenantId,
+        number: input.number,
+        type: input.type,
+        date: input.date,
+        dueDate: input.dueDate,
+        partnerName: input.partnerName,
+        notes: input.notes,
+        status: 'draft',
+        locationId: input.locationId,
+        subtotal: totalSubtotal,
+        taxAmount: 0n,
+        total: totalSubtotal,
+        createdBy: ctx.userId,
+        updatedBy: ctx.userId,
+      });
+
+      const lineValues = parsedLines.map((line) => ({
+        id: generateId(),
+        invoiceId: invoiceId,
+        lineNo: line.lineNo,
+        accountId: line.accountId,
+        description: line.description,
+        quantity: line.quantity,
+        unitPrice: line.unitPrice,
+        subtotal: line.subtotal,
+      }));
+
+      await db.insert(invoiceLines).values(lineValues);
+
+      await auditRecord({
+        action: 'create',
+        entityType: 'invoice',
+        entityId: invoiceId,
+        before: null,
+        after: {
+          id: invoiceId,
+          number: input.number,
+          total: totalSubtotal.toString(),
+        },
+        metadata: {
+          ip: ctx.ipAddress ?? null,
+          userAgent: ctx.userAgent ?? null,
+        },
+        ctx,
+      });
+
+      return { id: invoiceId };
+    },
+    (e) => AppError.internal('accounting.invoice.createFailed', e)
+  );
+
+  return result;
+}
+
+export async function postInvoice(
+  invoiceId: string,
+  receivableOrPayableAccountId: string,
+  ctx: AuditContext,
+): Promise<Result<{ success: boolean; journalId: string }>> {
+  // Get Invoice
+  const invoiceRows = await db.select().from(invoices).where(and(eq(invoices.id, invoiceId), eq(invoices.tenantId, ctx.tenantId)));
+  const invoice = invoiceRows[0];
+  if (!invoice) return err(AppError.notFound('invoice.notFound'));
+  
+  if (invoice.status !== 'draft') {
+    return err(AppError.businessRule('invoice.notDraft'));
+  }
+
+  const lines = await db.select().from(invoiceLines).where(eq(invoiceLines.invoiceId, invoiceId));
+
+  // Build Journal Entries
+  // Sales Invoice: Debit Receivable (total), Credit Income (lines)
+  // Purchase Invoice: Credit Payable (total), Debit Expense/Asset (lines)
+  const journalLinesData: Array<any> = [];
+
+  // Line for Partner (AR/AP)
+  journalLinesData.push({
+    accountId: receivableOrPayableAccountId,
+    locationId: invoice.locationId,
+    description: `Invoice ${invoice.number} - ${invoice.partnerName}`,
+    debit: invoice.type === 'sales' ? invoice.total.toString() : '0',
+    credit: invoice.type === 'purchase' ? invoice.total.toString() : '0',
+    dueDate: invoice.dueDate,
+  });
+
+  // Lines for income/expense
+  for (const line of lines) {
+    journalLinesData.push({
+      accountId: line.accountId,
+      locationId: invoice.locationId,
+      description: line.description,
+      debit: invoice.type === 'purchase' ? line.subtotal.toString() : '0',
+      credit: invoice.type === 'sales' ? line.subtotal.toString() : '0',
+    });
+  }
+
+  const journalInput = {
+    postingDate: invoice.date,
+    locationId: invoice.locationId,
+    description: `Sync from Invoice ${invoice.number} (${invoice.partnerName})`,
+    referenceType: (invoice.type === 'sales' ? 'sales' : 'purchase') as 'sales' | 'purchase',
+    referenceId: invoiceId,
+    lines: journalLinesData,
+  };
+
+  const createRes = await createJournal(journalInput, ctx);
+  if (!createRes.ok) return createRes;
+  const journalId = createRes.value.id;
+
+  const postRes = await postJournal({ journalId }, ctx);
+  if (!postRes.ok) return postRes;
+
+  await db.update(invoices).set({ status: 'posted', journalId, updatedBy: ctx.userId }).where(eq(invoices.id, invoiceId));
+
+  return ok({ success: true, journalId });
+}

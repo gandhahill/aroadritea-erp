@@ -9,18 +9,9 @@ import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { type TrackShipmentInput, TrackShipmentInputSchema } from './schemas';
 
-const BINDERBYTE_ENDPOINT = 'https://api.binderbyte.com/v1/track';
-const MONTHLY_REQUEST_LIMIT = 500;
+import { type BinderByteResult, fetchBinderByteTracking } from '../shared/binderbyte';
 
-interface BinderByteTrackResponse {
-  status?: number;
-  message?: string;
-  data?: {
-    summary?: Record<string, unknown>;
-    detail?: Record<string, unknown>;
-    history?: Array<Record<string, unknown>>;
-  };
-}
+const MONTHLY_REQUEST_LIMIT = 500;
 
 export interface ShipmentTrackingResult {
   poId: string;
@@ -58,8 +49,6 @@ export async function trackPurchaseOrderShipment(
   });
   if (!permCheck.ok) return permCheck;
 
-  const apiKey = process.env.BINDERBYTE_API_KEY;
-  if (!apiKey) return err(AppError.internal('purchasing.shipmentTracking.apiKeyMissing'));
 
   const monthStart = new Date();
   monthStart.setUTCDate(1);
@@ -83,31 +72,11 @@ export async function trackPurchaseOrderShipment(
 
   return tryCatch(
     async () => {
-      const url = new URL(BINDERBYTE_ENDPOINT);
-      url.searchParams.set('api_key', apiKey);
-      url.searchParams.set('courier', data.courierCode);
-      url.searchParams.set('awb', data.awb);
-      if (data.phoneLast5) url.searchParams.set('number', data.phoneLast5);
-
-      let httpStatus: number | null = null;
-      let payload: BinderByteTrackResponse | null = null;
-      let errorMessage: string | null = null;
-
-      try {
-        const response = await fetch(url, {
-          method: 'GET',
-          signal: AbortSignal.timeout(10_000),
-        });
-        httpStatus = response.status;
-        payload = (await response.json()) as BinderByteTrackResponse;
-        if (!response.ok || payload.status !== 200) {
-          errorMessage = payload.message ?? `BinderByte HTTP ${response.status}`;
-        }
-      } catch (error) {
-        errorMessage = error instanceof Error ? error.message : String(error);
-      }
-
-      const success = !errorMessage && payload?.status === 200;
+      const { success, httpStatus, errorMessage, payload } = await fetchBinderByteTracking(
+        data.courierCode,
+        data.awb,
+        data.phoneLast5,
+      );
       const summary = payload?.data?.summary ?? null;
       const history = payload?.data?.history ?? [];
       const syncedAt = new Date();

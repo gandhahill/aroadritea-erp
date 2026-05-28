@@ -625,6 +625,66 @@
     },
     "journals": {
       "attachmentHint": "上传交易凭证或支持文件。文件将在草稿日记账成功创建后自动附加。每个文件最大 10 MB。"
+    },
+    "print": {
+      "title": "交易凭证",
+      "invoice": "发票",
+      "receipt": "收据",
+      "billTo": "致",
+      "date": "日期",
+      "dueDate": "到期日",
+      "paymentTo": "付款至",
+      "total": "总计",
+      "printOrSavePdf": "打印 / 保存为PDF",
+      "notes": "备注",
+      "preparedBy": "制单人",
+      "authorizedBy": "授权人"
+    },
+    "invoice": {
+      "title": "发票 (Invoices)",
+      "subtitle": "管理销售和采购发票",
+      "count": "{count} 张发票",
+      "create": "创建发票",
+      "number": "编号",
+      "date": "日期",
+      "dueDate": "到期日",
+      "type": "类型",
+      "partner": "合作伙伴",
+      "status": "状态",
+      "total": "总计",
+      "actions": "操作",
+      "viewJournal": "查看凭证",
+      "post": "过账",
+      "empty": "未找到发票。",
+      "sales": "销售",
+      "purchase": "采购",
+      "new": {
+        "title": "新发票",
+        "subtitle": "创建新的销售或采购发票",
+        "partnerName": "合作伙伴名称",
+        "salesInvoice": "销售发票 (应收)",
+        "purchaseInvoice": "采购发票 (应付)",
+        "location": "地点",
+        "lineItems": "行项目",
+        "addLine": "添加行",
+        "remove": "移除",
+        "selectAccount": "选择账户...",
+        "description": "描述",
+        "saveDraft": "保存发票草稿",
+        "saving": "保存中..."
+      },
+      "postAction": {
+        "title": "过账发票",
+        "subtitle": "在过账之前审查并选择合作伙伴（应收/应付）账户。",
+        "details": "发票详情",
+        "receivableLabel": "应收账户 (AR)",
+        "payableLabel": "应付账户 (AP)",
+        "receivableDesc": "选择用于将此发票的总应收余额映射到生成的会计凭证中的账户。",
+        "payableDesc": "选择用于将此发票的总应付余额映射到生成的会计凭证中的账户。",
+        "cancel": "取消",
+        "postCreate": "过账并创建凭证",
+        "posting": "过账中..."
+      }
     }
   },
   "purchasing": {
@@ -1517,7 +1577,10 @@
     "variance": "差异",
     "expandSidebar": "展开侧边栏",
     "collapseSidebar": "折叠侧边栏",
-    "stockTransfer": "库存转移"
+    "stockTransfer": "库存转移",
+    "invoices": "发票 (Invoices)",
+    "logistics": "物流 (Logistics)",
+    "outgoingShipments": "出库运输 (Outgoing Shipments)"
   },
   "pos": {
     "title": "收银",
@@ -3912,5 +3975,18 @@
     "btnSave": "保存",
     "title": "AI 助手",
     "description": "询问工作流程、检测错误或获取旧版POS收据的OCR帮助。您的身份和权限将在每次命令中受到尊重。"
+  },
+  "logistics": {
+    "outgoingShipments": "出库运输 (Outgoing Shipments)",
+    "outgoingShipmentsSubtitle": "使用 BinderByte 跟踪出库的公司货物和信件 (Track outgoing corporate goods and letters via BinderByte).",
+    "number": "号码 (Number)",
+    "subject": "主题 (Subject)",
+    "recipient": "收件人 (Recipient)",
+    "courier": "快递与运单 (Courier & AWB)",
+    "status": "状态 (Status)",
+    "actions": "操作 (Actions)",
+    "noShipments": "暂无出库运输 (No outgoing shipments yet).",
+    "sync": "同步 (Sync)",
+    "syncing": "同步中 (Syncing...)"
   }
 }

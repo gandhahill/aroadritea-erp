@@ -24,6 +24,8 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0203 | Outgoing Shipments Module (BinderByte) & Invoice Sidebar | Antigravity | 2026-05-28 17:21 WIB | 2026-05-28 17:48 WIB | 🟩 DONE | Add Logistics module for outgoing shipments, Invoice menu, and fix print types. IDE errors resolved, pnpm typecheck successful. |
+| T-0202 | Automated PDF Invoice Generation (Print View) | Antigravity | 2026-05-28 17:08 WIB | 2026-05-28 17:15 WIB | 🟩 DONE | Added Print View for Journal Entries to support invoices and receipts. |
 | T-0200 | Add AI Assistant and OCR limitations to documentation | Antigravity | 2026-05-27 18:06 WIB | 2026-05-27 18:07 WIB | 🟩 DONE | Added a new "ai-assistant" section to `docs-content.ts` in all languages (ID, EN, ZH) instructing users to leverage external ChatGPT/Gemini vision capabilities as a workaround for the current local OCR limitations. |
 | T-0201 | Fix AI draft manual sales validation & idempotency save errors | Antigravity | 2026-05-27 18:15 WIB | 2026-05-27 18:42 WIB | 🟩 DONE | Fixed `pos.manualSales.validationFailed` by updating `CreateManualSalesClosingInputSchema` to use `.nullish()`. Fixed subsequent `pos.manualSales.duplicateRequest` by adding `id: generateId()` in `saveIdempotency` to satisfy Postgres `NOT NULL` constraint during `INSERT ... ON CONFLICT DO UPDATE` evaluation. |
 | T-0199 | Improve OCR prompt for Tesseract fallback wrapping issues | Antigravity | 2026-05-27 18:03 WIB | 2026-05-27 18:04 WIB | 🟩 DONE | Added specific instructions to DeepSeek `systemPrompt` to extract quantities that get scrambled into the middle of item names (e.g., `S 2 tandard` -> Qty 2) due to receipt line wrapping when processed by Tesseract. |
@@ -65,6 +67,7 @@
 > After 7 days, move to `docs/checkpoints/archive/` and delete from here.
 
 ### Phase 1 â€” Foundation + Accounting + Reporting + Tax + MCP + Infra
+### Phase 1 — Foundation + Accounting + Reporting + Tax + MCP + Infra
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
