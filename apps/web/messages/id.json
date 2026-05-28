@@ -671,7 +671,16 @@
         "selectAccount": "Pilih Akun...",
         "description": "Deskripsi",
         "saveDraft": "Simpan Draf Invoice",
-        "saving": "Menyimpan..."
+        "saving": "Menyimpan...",
+        "typeSales": "Penjualan",
+        "typePurchase": "Pembelian",
+        "partnerAddress": "Alamat Partner",
+        "selectPartner": "Pilih Partner...",
+        "partnerNpwp": "NPWP Partner",
+        "paymentTerms": "Termin Pembayaran",
+        "paymentTermsPlaceholder": "Cth: Net 30",
+        "notesLabel": "Catatan",
+        "noTax": "Tanpa Pajak"
       },
       "postAction": {
         "title": "Post Invoice",
@@ -1594,7 +1603,9 @@
     "expandSidebar": "Perluas Sidebar",
     "collapseSidebar": "Perkecil Sidebar",
     "variance": "Selisih Stok",
-    "stockTransfer": "Transfer Stok"
+    "stockTransfer": "Transfer Stok",
+    "companySettings": "Info Perusahaan",
+    "accountingSettings": "Akuntansi"
   },
   "pos": {
     "title": "Kasir",
@@ -3351,6 +3362,29 @@
       "selectModifierOption": "— Pilih opsi modifier —",
       "addProductMapping": "Tambah Pemetaan Produk",
       "addModifierMapping": "Tambah Pemetaan Modifier"
+    },
+    "company": {
+      "title": "Pengaturan Perusahaan",
+      "subtitle": "Kelola identitas perusahaan PT. Gandha Hill",
+      "companyName": "Nama Perusahaan",
+      "companyNameHelp": "Ditampilkan pada cetakan invoice dan kuitansi.",
+      "companyAddress": "Alamat Perusahaan",
+      "companyAddressHelp": "Ditampilkan pada cetakan invoice dan kuitansi.",
+      "companyNpwp": "NPWP Perusahaan",
+      "companyNpwpHelp": "Nomor Pokok Wajib Pajak.",
+      "companyPhone": "Nomor Telepon",
+      "saved": "Info perusahaan berhasil disimpan.",
+      "saveAction": "Simpan Perubahan"
+    },
+    "accounting": {
+      "title": "Pengaturan Akuntansi",
+      "subtitle": "Atur akun default untuk modul akuntansi",
+      "purchasing": "Pembelian",
+      "purchasingDesc": "Akun default yang dipetakan untuk invoice pembelian",
+      "apAccount": "Akun Utang (AP)",
+      "selectAccount": "Pilih Akun Utang...",
+      "apAccountHelp": "Akun ini akan dikreditkan saat mem-posting invoice pembelian.",
+      "saveAction": "Simpan Pengaturan"
     }
   },
   "shell": {
@@ -3992,7 +4026,7 @@
   },
   "logistics": {
     "outgoingShipments": "Pengiriman Keluar",
-    "outgoingShipmentsSubtitle": "Lacak pengiriman barang atau surat keluar perusahaan menggunakan BinderByte.",
+    "outgoingShipmentsSubtitle": "Kelola pengiriman barang dan lacak status pesanan",
     "number": "Nomor",
     "subject": "Perihal",
     "recipient": "Penerima",

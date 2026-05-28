@@ -671,7 +671,16 @@
         "selectAccount": "Select Account...",
         "description": "Description",
         "saveDraft": "Save Draft Invoice",
-        "saving": "Saving..."
+        "saving": "Saving...",
+        "typeSales": "Sales",
+        "typePurchase": "Purchase",
+        "partnerAddress": "Partner Address",
+        "selectPartner": "Select Partner...",
+        "partnerNpwp": "Partner NPWP",
+        "paymentTerms": "Payment Terms",
+        "paymentTermsPlaceholder": "e.g. Net 30",
+        "notesLabel": "Notes",
+        "noTax": "No Tax"
       },
       "postAction": {
         "title": "Post Invoice",
@@ -1580,7 +1589,9 @@
     "stockTransfer": "Stock Transfer",
     "invoices": "Invoices",
     "logistics": "Logistics",
-    "outgoingShipments": "Outgoing Shipments"
+    "outgoingShipments": "Outgoing Shipments",
+    "companySettings": "Company Info",
+    "accountingSettings": "Accounting"
   },
   "pos": {
     "title": "Point of Sale",
@@ -2861,6 +2872,29 @@
       "selectModifierOption": "— Select modifier option —",
       "addProductMapping": "Add Product Mapping",
       "addModifierMapping": "Add Modifier Mapping"
+    },
+    "company": {
+      "title": "Company Settings",
+      "subtitle": "Manage PT. Gandha Hill company identity",
+      "companyName": "Company Name",
+      "companyNameHelp": "Displayed on printed invoices and receipts.",
+      "companyAddress": "Company Address",
+      "companyAddressHelp": "Displayed on printed invoices and receipts.",
+      "companyNpwp": "Company NPWP",
+      "companyNpwpHelp": "Tax identification number.",
+      "companyPhone": "Phone Number",
+      "saved": "Company info saved successfully.",
+      "saveAction": "Save Changes"
+    },
+    "accounting": {
+      "title": "Accounting Settings",
+      "subtitle": "Configure default accounts for accounting modules",
+      "purchasing": "Purchasing",
+      "purchasingDesc": "Default account mapped for purchase invoices",
+      "apAccount": "Accounts Payable (AP)",
+      "selectAccount": "Select AP Account...",
+      "apAccountHelp": "This account will be credited when posting a purchase invoice.",
+      "saveAction": "Save Settings"
     }
   },
   "workflow": {
@@ -3978,7 +4012,7 @@
   },
   "logistics": {
     "outgoingShipments": "Outgoing Shipments",
-    "outgoingShipmentsSubtitle": "Track outgoing corporate goods and letters via BinderByte.",
+    "outgoingShipmentsSubtitle": "Manage shipments and track delivery statuses",
     "number": "Number",
     "subject": "Subject",
     "recipient": "Recipient",

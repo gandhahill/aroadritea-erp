@@ -671,7 +671,16 @@
         "selectAccount": "选择账户...",
         "description": "描述",
         "saveDraft": "保存发票草稿",
-        "saving": "保存中..."
+        "saving": "保存中...",
+        "typeSales": "销售",
+        "typePurchase": "采购",
+        "partnerAddress": "合作伙伴地址",
+        "selectPartner": "选择合作伙伴...",
+        "partnerNpwp": "合作伙伴税号 (NPWP)",
+        "paymentTerms": "付款条件",
+        "paymentTermsPlaceholder": "例如：Net 30",
+        "notesLabel": "备注",
+        "noTax": "免税"
       },
       "postAction": {
         "title": "过账发票",
@@ -1580,7 +1589,9 @@
     "stockTransfer": "库存转移",
     "invoices": "发票 (Invoices)",
     "logistics": "物流 (Logistics)",
-    "outgoingShipments": "出库运输 (Outgoing Shipments)"
+    "outgoingShipments": "发出货物",
+    "companySettings": "公司信息",
+    "accountingSettings": "会计"
   },
   "pos": {
     "title": "收银",
@@ -2861,6 +2872,29 @@
       "selectModifierOption": "— 选择修饰符选项 —",
       "addProductMapping": "添加产品映射",
       "addModifierMapping": "添加修饰符映射"
+    },
+    "company": {
+      "title": "公司设置",
+      "subtitle": "管理 PT. Gandha Hill 公司身份",
+      "companyName": "公司名称",
+      "companyNameHelp": "显示在打印的发票和收据上。",
+      "companyAddress": "公司地址",
+      "companyAddressHelp": "显示在打印的发票和收据上。",
+      "companyNpwp": "公司税号 (NPWP)",
+      "companyNpwpHelp": "税务识别号。",
+      "companyPhone": "电话号码",
+      "saved": "公司信息已成功保存。",
+      "saveAction": "保存更改"
+    },
+    "accounting": {
+      "title": "会计设置",
+      "subtitle": "配置会计模块的默认账户",
+      "purchasing": "采购",
+      "purchasingDesc": "采购发票映射的默认账户",
+      "apAccount": "应付账款 (AP)",
+      "selectAccount": "选择应付账款...",
+      "apAccountHelp": "过账采购发票时将贷记此账户。",
+      "saveAction": "保存设置"
     }
   },
   "workflow": {
@@ -3977,8 +4011,8 @@
     "description": "询问工作流程、检测错误或获取旧版POS收据的OCR帮助。您的身份和权限将在每次命令中受到尊重。"
   },
   "logistics": {
-    "outgoingShipments": "出库运输",
-    "outgoingShipmentsSubtitle": "使用 BinderByte 跟踪出库的公司货物和信件",
+    "outgoingShipments": "发出货物",
+    "outgoingShipmentsSubtitle": "管理货物发送并跟踪交付状态",
     "number": "号码",
     "subject": "主题",
     "recipient": "收件人",
