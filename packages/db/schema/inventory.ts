@@ -118,6 +118,33 @@ export const products = pgTable(
   ],
 );
 
+// ─── UOM Conversions (T-0234) ──────────────────────────────────────────────────
+
+export const uomConversions = pgTable(
+  'uom_conversions',
+  {
+    ...pk,
+    ...tenantCol,
+
+    // If productId is null, it's a global conversion (e.g. 1 kg = 1000 g)
+    // If productId is set, it overrides or defines product-specific conversion (e.g. 1 box = 12 pcs)
+    productId: text('product_id'), // FK products
+
+    fromUom: text('from_uom').notNull(),
+    toUom: text('to_uom').notNull(),
+    
+    // fromUom * multiplyBy = toUom (e.g., kg -> g => multiplyBy = 1000)
+    multiplyBy: numeric('multiply_by', { precision: 14, scale: 6 }).notNull(),
+
+    ...auditCols,
+  },
+  (t) => [
+    index('uom_conversions_tenant_idx').on(t.tenantId),
+    index('uom_conversions_product_idx').on(t.productId),
+    uniqueIndex('uom_conversions_unique_idx').on(t.tenantId, t.productId, t.fromUom, t.toUom),
+  ],
+);
+
 // ─── Product Variants ─────────────────────────────────────────────────────────
 
 export const productVariants = pgTable(
@@ -232,6 +259,14 @@ export const boms = pgTable(
 
     bomVersion: integer('bom_version').notNull().default(1),
     description: text('description'),
+
+    // T-0237: Yield & Sub-recipe support
+    yieldQty: numeric('yield_qty', { precision: 14, scale: 3 }).notNull().default('1'),
+    yieldUom: text('yield_uom').notNull().default('portion'),
+    
+    // T-0237: Effective versions
+    effectiveFrom: date('effective_from'),
+    effectiveUntil: date('effective_until'),
 
     ...isActiveFlag,
     ...versionCol,

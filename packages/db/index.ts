@@ -58,6 +58,7 @@ export {
   productModifierGroups,
   productModifierOptions,
   productModifierLinks,
+  uomConversions,
   boms,
   bomLines,
   bomSubstitutes,

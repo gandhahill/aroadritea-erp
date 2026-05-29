@@ -283,11 +283,11 @@
 
 | ID | Title | Effort | Priority | Status |
 |----|-------|--------|----------|--------|
-| T-0233 | Reorder point min/max + alert low-stock per lokasi | M | P2 | 🟦 PENDING |
-| T-0234 | Engine konversi UOM (kg↔gram, box↔pcs) | M | P1 | 🟦 PENDING |
-| T-0235 | Halaman kartu stok (stock ledger) per item/lokasi | S | P2 | 🟦 PENDING |
-| T-0236 | FEFO depletion + alert kadaluarsa (perishable) | M | P1 | 🟦 PENDING |
-| T-0237 | BOM: sub-recipe, yield/porsi, versi efektif, substitusi | M | P2 | 🟦 PENDING |
+| T-0233 | Reorder point min/max + alert low-stock per lokasi | M | P2 | 🟩 DONE |
+| T-0234 | Engine konversi UOM (kg↔gram, box↔pcs) | M | P1 | 🟩 DONE |
+| T-0235 | Halaman kartu stok (stock ledger) per item/lokasi | S | P2 | 🟩 DONE |
+| T-0236 | FEFO depletion + alert kadaluarsa (perishable) | M | P1 | 🟩 DONE |
+| T-0237 | BOM: sub-recipe, yield/porsi, versi efektif, substitusi | M | P2 | 🟩 DONE |
 
 ### Tier 2 — POS / CRM
 
