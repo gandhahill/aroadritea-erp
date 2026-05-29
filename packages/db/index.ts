@@ -69,6 +69,8 @@ export {
   stockAdjustmentLines,
   stockTransfers,
   stockTransferLines,
+  productionBatches,
+  productionBatchLines,
 } from './schema/inventory';
 
 // Schema — POS / Sales (SD §9.5)

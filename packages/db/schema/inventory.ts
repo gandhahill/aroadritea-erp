@@ -561,3 +561,63 @@ export const stockAdjustmentLines = pgTable(
     index('stock_adjustment_lines_product_idx').on(t.productId),
   ],
 );
+
+// ─── Production Batches (T-0248) ──────────────────────────────────────────────
+
+export const productionBatches = pgTable(
+  'production_batches',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    number: text('number').notNull(), // PROD-2026-05-0001
+    productionDate: date('production_date').notNull(),
+
+    productId: text('product_id').notNull(), // Target product (finished good / semi-finished)
+    variantId: text('variant_id'),
+    
+    qtyProduced: numeric('qty_produced', { precision: 14, scale: 3 }).notNull(),
+    uom: text('uom').notNull(),
+
+    status: text('status').notNull().default('draft'), // 'draft' | 'completed' | 'cancelled'
+    
+    // Cost calculation (T-0249 COGM)
+    totalCost: bigint('total_cost', { mode: 'bigint' }), 
+    journalEntryId: text('journal_entry_id'), // Ref to COGM journal entry
+
+    notes: text('notes'),
+
+    ...auditCols,
+  },
+  (t) => [
+    index('production_batches_tenant_loc_idx').on(t.tenantId, t.locationId),
+    index('production_batches_product_idx').on(t.productId),
+    index('production_batches_status_idx').on(t.status),
+  ]
+);
+
+export const productionBatchLines = pgTable(
+  'production_batch_lines',
+  {
+    ...pk,
+    ...tenantCol,
+
+    batchId: text('batch_id').notNull(), // FK production_batches
+    
+    // Ingredient consumed
+    productId: text('product_id').notNull(), // FK products
+    variantId: text('variant_id'),
+    
+    qtyConsumed: numeric('qty_consumed', { precision: 14, scale: 3 }).notNull(),
+    uom: text('uom').notNull(),
+
+    unitCost: bigint('unit_cost', { mode: 'bigint' }), // Cost of raw material per UOM via FEFO
+
+    ...auditCols,
+  },
+  (t) => [
+    index('production_batch_lines_batch_idx').on(t.batchId),
+    index('production_batch_lines_product_idx').on(t.productId),
+  ]
+);
