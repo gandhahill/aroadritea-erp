@@ -21,7 +21,7 @@ export type CreateNotificationInput = z.infer<typeof CreateNotificationInputSche
 
 export async function createNotification(input: CreateNotificationInput, ctx: AuditContext): Promise<Result<{ id: string }>> {
   const parsed = CreateNotificationInputSchema.safeParse(input);
-  if (!parsed.success) return err(new Error(parsed.error.message));
+  if (!parsed.success) return err(AppError.validation(parsed.error.message));
 
   // Check preferences
   if (input.eventCode) {

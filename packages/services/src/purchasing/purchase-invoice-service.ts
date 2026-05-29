@@ -87,18 +87,18 @@ async function generateInvoiceNumber(tenantId: string, invoiceDate: string): Pro
   const prefix = `PINV-${invoiceDate.substring(0, 7)}-`;
 
   const result = await db
-    .select({ count: sql<number>\`count(*)\` })
+    .select({ count: sql<number>`count(*)` })
     .from(purchaseInvoices)
     .where(
       and(
         eq(purchaseInvoices.tenantId, tenantId),
-        sql\`\${purchaseInvoices.number} LIKE \${prefix + '%'}\`,
+        sql`\${purchaseInvoices.number} LIKE \${prefix + '%'}`,
       ),
     );
 
   const currentCount = Number(result[0]?.count ?? 0);
   const nextSeq = (currentCount + 1).toString().padStart(4, '0');
-  return \`\${prefix}\${nextSeq}\`;
+  return `\${prefix}\${nextSeq}`;
 }
 
 export async function createPurchaseInvoice(
@@ -287,7 +287,7 @@ export async function verifyPurchaseInvoice(
     linesToPost.push({
       accountId: grniAccountId,
       locationId: null, // AP is usually global, but could be location specific
-      description: \`Invoice \${invoice.number} GRNI Clearing\`,
+      description: `Invoice \${invoice.number} GRNI Clearing`,
       debit: invoice.subtotal.toString(),
       credit: '0',
       partnerId: invoice.supplierId,
@@ -299,7 +299,7 @@ export async function verifyPurchaseInvoice(
     linesToPost.push({
       accountId: vatInAccountId,
       locationId: null,
-      description: \`Invoice \${invoice.number} VAT In\`,
+      description: `Invoice \${invoice.number} VAT In`,
       debit: invoice.taxTotal.toString(),
       credit: '0',
       partnerId: invoice.supplierId,
@@ -311,7 +311,7 @@ export async function verifyPurchaseInvoice(
     linesToPost.push({
       accountId: apAccountId,
       locationId: null,
-      description: \`Invoice \${invoice.number} Accounts Payable\`,
+      description: `Invoice \${invoice.number} Accounts Payable`,
       debit: '0',
       credit: invoice.grandTotal.toString(),
       partnerId: invoice.supplierId,
@@ -326,7 +326,7 @@ export async function verifyPurchaseInvoice(
       {
         postingDate: invoice.invoiceDate,
         locationId: 'GLOBAL', // Usually AP is tracked head-office
-        description: \`Purchase Invoice \${invoice.number} / \${invoice.invoiceNumber}\`,
+        description: `Purchase Invoice \${invoice.number} / \${invoice.invoiceNumber}`,
         referenceType: 'purchase',
         referenceId: invoice.id,
         lines: linesToPost as any,
@@ -368,3 +368,4 @@ export async function cancelPurchaseInvoice(
   // Implementation of cancel (not shown fully, just basic structure)
   return ok({ id: parsed.data.invoiceId, status: 'cancelled' });
 }
+

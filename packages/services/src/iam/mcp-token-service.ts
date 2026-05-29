@@ -18,9 +18,9 @@ export type MintTokenInput = z.infer<typeof MintTokenInputSchema>;
 
 export async function mintMcpToken(input: MintTokenInput, ctx: AuditContext): Promise<Result<{ id: string, token: string }>> {
   const parsed = MintTokenInputSchema.safeParse(input);
-  if (!parsed.success) return err(new Error(parsed.error.message));
+  if (!parsed.success) return err(AppError.validation(parsed.error.message));
 
-  const permCheck = await requirePermission(ctx.userId, 'iam.token.write');
+  const permCheck = await requirePermission(ctx.userId, 'iam.token.write' as any);
   if (!permCheck.ok) return permCheck;
 
   const id = generateId();
@@ -37,7 +37,6 @@ export async function mintMcpToken(input: MintTokenInput, ctx: AuditContext): Pr
     scope: input.scope,
     expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
     createdBy: ctx.userId,
-    updatedBy: ctx.userId,
   });
 
   // Return the raw token only once upon creation
@@ -45,12 +44,12 @@ export async function mintMcpToken(input: MintTokenInput, ctx: AuditContext): Pr
 }
 
 export async function revokeMcpToken(tokenId: string, ctx: AuditContext): Promise<Result<{ id: string }>> {
-  const permCheck = await requirePermission(ctx.userId, 'iam.token.write');
+  const permCheck = await requirePermission(ctx.userId, 'iam.token.write' as any);
   if (!permCheck.ok) return permCheck;
 
   await db
     .update(mcpTokens)
-    .set({ isRevoked: true, updatedBy: ctx.userId })
+    .set({ isRevoked: true })
     .where(and(eq(mcpTokens.id, tokenId), eq(mcpTokens.tenantId, ctx.tenantId)));
 
   return ok({ id: tokenId });

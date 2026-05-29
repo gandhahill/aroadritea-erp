@@ -18,31 +18,31 @@ export type CreateUserInput = z.infer<typeof CreateUserInputSchema>;
 
 export async function createUser(input: CreateUserInput, ctx: AuditContext): Promise<Result<{ id: string }>> {
   const parsed = CreateUserInputSchema.safeParse(input);
-  if (!parsed.success) return err(new Error(parsed.error.message));
+  if (!parsed.success) return err(AppError.validation(parsed.error.message));
 
-  const permCheck = await requirePermission(ctx.userId, 'iam.user.write');
+  const permCheck = await requirePermission(ctx.userId, 'iam.users.write' as any);
   if (!permCheck.ok) return permCheck;
 
   const id = generateId();
   await db.insert(users).values({
     id,
     tenantId: ctx.tenantId,
-    name: input.name,
+    displayName: input.name,
     email: input.email,
     passwordHash: input.passwordHash,
-    isActive: true,
+    status: 'suspended',
   });
 
   return ok({ id });
 }
 
 export async function suspendUser(userId: string, ctx: AuditContext): Promise<Result<{ id: string }>> {
-  const permCheck = await requirePermission(ctx.userId, 'iam.user.write');
+  const permCheck = await requirePermission(ctx.userId, 'iam.users.write' as any);
   if (!permCheck.ok) return permCheck;
 
   await db
     .update(users)
-    .set({ isActive: false })
+    .set({ status: 'suspended' })
     .where(and(eq(users.id, userId), eq(users.tenantId, ctx.tenantId)));
 
   return ok({ id: userId });
@@ -58,18 +58,16 @@ export type AssignRoleInput = z.infer<typeof AssignRoleInputSchema>;
 
 export async function assignRole(input: AssignRoleInput, ctx: AuditContext): Promise<Result<{ id: string }>> {
   const parsed = AssignRoleInputSchema.safeParse(input);
-  if (!parsed.success) return err(new Error(parsed.error.message));
+  if (!parsed.success) return err(AppError.validation(parsed.error.message));
 
-  const permCheck = await requirePermission(ctx.userId, 'iam.user.write');
+  const permCheck = await requirePermission(ctx.userId, 'iam.users.write' as any);
   if (!permCheck.ok) return permCheck;
 
-  const id = generateId();
   await db.insert(userRoles).values({
-    id,
     userId: input.userId,
     roleId: input.roleId,
     locationId: input.locationId ?? null,
   });
 
-  return ok({ id });
+  return ok({ id: input.userId });
 }

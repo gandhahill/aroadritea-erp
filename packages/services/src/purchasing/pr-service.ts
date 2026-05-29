@@ -14,39 +14,39 @@ import {
 } from './pr-schemas';
 
 async function generatePRNumber(tenantId: string, requestDate: string): Promise<string> {
-  const prefix = \`PRQ-\${requestDate.substring(0, 7)}-\`;
+  const prefix = `PRQ-${requestDate.substring(0, 7)}-`;
 
   const result = await db
-    .select({ count: sql<number>\`count(*)\` })
+    .select({ count: sql<number>`count(*)` })
     .from(purchaseRequisitions)
     .where(
       and(
         eq(purchaseRequisitions.tenantId, tenantId),
-        sql\`\${purchaseRequisitions.number} LIKE \${prefix + '%'}\`,
+        sql`${purchaseRequisitions.number} LIKE ${prefix + '%'}`,
       ),
     );
 
   const currentCount = Number(result[0]?.count ?? 0);
   const nextSeq = (currentCount + 1).toString().padStart(4, '0');
-  return \`\${prefix}\${nextSeq}\`;
+  return `${prefix}${nextSeq}`;
 }
 
 async function generateRFQNumber(tenantId: string, rfqDate: string): Promise<string> {
-  const prefix = \`RFQ-\${rfqDate.substring(0, 7)}-\`;
+  const prefix = `RFQ-${rfqDate.substring(0, 7)}-`;
 
   const result = await db
-    .select({ count: sql<number>\`count(*)\` })
+    .select({ count: sql<number>`count(*)` })
     .from(rfqs)
     .where(
       and(
         eq(rfqs.tenantId, tenantId),
-        sql\`\${rfqs.number} LIKE \${prefix + '%'}\`,
+        sql`${rfqs.number} LIKE ${prefix + '%'}`,
       ),
     );
 
   const currentCount = Number(result[0]?.count ?? 0);
   const nextSeq = (currentCount + 1).toString().padStart(4, '0');
-  return \`\${prefix}\${nextSeq}\`;
+  return `${prefix}${nextSeq}`;
 }
 
 export async function createPurchaseRequisition(

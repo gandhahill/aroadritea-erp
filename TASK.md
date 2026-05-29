@@ -348,21 +348,21 @@
 
 ### Tier 1 — P0 Critical
 
-#### T-0211 — Payroll: field gaji pokok + pembuatan `employmentContracts` · `P0` · `M`
+#### T-0211 — Payroll: field gaji pokok + pembuatan `employmentContracts` · `P0` · `M` 🟩 DONE
 - **Masalah**: `employmentContracts` tidak pernah di-insert; form karyawan tak punya input `baseSalary`. `run-payroll.ts` fallback gaji pokok `?? 0n` → seluruh gaji, PPh21, dan BPJS dihitung dari basis Rp 0. Payroll tidak fungsional end-to-end.
 - **Bukti**: `packages/db/schema/hr.ts:104` (tabel `employmentContracts` ada), `packages/services/src/hr/create-employee.ts:114`, `packages/services/src/payroll/run-payroll.ts:333`.
 - **Sudah ada**: tabel kontrak, engine payroll, seed komponen gaji (`salary-components-seed.ts:29,40`).
 - **Scope**: tambah field `baseSalary` + komponen kontrak di form `hr/employees/new` dan `[id]/edit`; insert/aktifkan `employmentContracts` saat create/update karyawan; guard validasi tolak run payroll jika baseSalary = 0.
 - **Wajib**: i18n; audit saat tulis kontrak.
 
-#### T-0212 — Inventory: valuasi weighted-average + jurnal HPP saat penjualan · `P0` · `L`
+#### T-0212 — Inventory: valuasi weighted-average + jurnal HPP saat penjualan · `P0` · `L` 🟩 DONE
 - **Masalah**: `avgUnitCost` selalu ditulis `null` di GRN/transfer/opname; tidak ada perhitungan weighted-average/FIFO; tidak ada jurnal HPP (DR HPP / CR Persediaan) saat penjualan. Varians opname sering Rp 0; HPP hanya laporan teoretis.
 - **Bukti**: `packages/services/src/purchasing/grn-service.ts:552`, `packages/services/src/inventory/transfer-service.ts:550`, `packages/services/src/pos/create-sale.ts:444-680`, `packages/services/src/reporting/cogs.ts:178`.
 - **Sudah ada**: kolom `avgUnitCost` di schema, `stock_movements` append-only, depletion BOM di `create-sale.ts:444-475`.
 - **Scope**: hitung & simpan weighted-average `avgUnitCost` saat GRN/transfer; posting jurnal HPP saat `createSale` pakai cost aktual; pastikan `varianceValue` opname terisi.
 - **Wajib**: audit; jurnal lewat period guard yang sudah ada.
 
-#### T-0213 — Wire `postJournal`/`reverseJournal` ke server action + tombol UI · `P0` · `S`
+#### T-0213 — Wire `postJournal`/`reverseJournal` ke server action + tombol UI · `P0` · `S` 🟩 DONE
 - **Masalah**: fungsi `postJournal`/`reverseJournal` ada di service & MCP tapi tidak diekspos sebagai server action web → jurnal manual dari web mandek di status `draft` selamanya. Tombol Buka Periode juga tak pernah dirender.
 - **Bukti**: `apps/mcp/src/tools/accounting.ts:129,152` (fungsi ada), `apps/web/app/(dash)/accounting/journals/actions.ts` (belum ada action), `apps/web/app/(dash)/accounting/periods/page.tsx:7` (import) vs `:212-219` (tak dirender).
 - **Sudah ada**: backend post/reverse aman (cek balance, periode, audit). Tinggal wiring.
