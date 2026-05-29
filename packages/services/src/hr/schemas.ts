@@ -51,6 +51,7 @@ export const CreateEmployeeInputSchema = z.object({
   hireDate: z.string().datetime(), // ISO date string
   probationEndDate: z.string().datetime().optional(),
   contractType: z.enum(['pkwt', 'pkwtt']),
+  baseSalary: z.string().regex(/^[0-9]+$/).optional().default('0'),
   workSchedule: z.enum(['fulltime', 'parttime', 'shift']).optional().default('fulltime'),
   npwp: z.string().optional(),
   bpjsKesehatan: z.string().optional(),
@@ -83,6 +84,7 @@ export const UpdateEmployeeInputSchema = z.object({
   department: z.string().optional(),
   status: z.enum(['probation', 'active', 'on_leave', 'terminated']).optional(),
   contractType: z.enum(['pkwt', 'pkwtt']).optional(),
+  baseSalary: z.string().regex(/^[0-9]+$/).optional(),
   workSchedule: z.enum(['fulltime', 'parttime', 'shift']).optional(),
   npwp: z.string().optional(),
   bpjsKesehatan: z.string().optional(),

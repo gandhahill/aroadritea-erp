@@ -2243,6 +2243,7 @@
         "hireDate": "Hire date",
         "probationEnd": "Probation end",
         "contractType": "Contract type",
+        "baseSalary": "Base Salary",
         "workSchedule": "Work schedule",
         "npwp": "NPWP",
         "bpjsKesehatan": "BPJS Kesehatan",
@@ -2476,6 +2477,7 @@
       "totalNet": "Total Net",
       "statusCancelled": "Cancelled",
       "noPayrolls": "No payroll records",
+      "baseSalaryZero": "Base salary not set for {employeeName}. Please configure the base salary first.",
       "subtitle": "Run payroll — calculates PPh 21 TER, BPJS, and late penalties.",
       "form": {
         "title": "Run Payroll",
@@ -4223,5 +4225,17 @@
       "changeFailed": "Failed to change password.",
       "resetFailed": "Failed to reset password."
     }
+  },
+  "journals": {
+    "postJournal": "Post Journal",
+    "posting": "Posting...",
+    "deleteDraft": "Delete Draft",
+    "deleting": "Deleting...",
+    "reverseJournal": "Reverse Journal",
+    "reversalDate": "Reversal Date",
+    "confirmReverse": "Confirm",
+    "reversing": "Reversing...",
+    "cancel": "Cancel",
+    "confirmDelete": "Are you sure you want to delete this draft?"
   }
 }

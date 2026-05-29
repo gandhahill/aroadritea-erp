@@ -516,14 +516,25 @@ export async function receiveTransfer(
         ? eq(stockLevels.variantId, line.variantId)
         : eq(stockLevels.variantId, '' as unknown as string);
 
-      const incremented = await db
-        .update(stockLevels)
-        .set({
-          qtyOnHand: sql`${stockLevels.qtyOnHand} + ${qtyReceived}::numeric`,
-          qtyAvailable: sql`${stockLevels.qtyAvailable} + ${qtyReceived}::numeric`,
-          updatedBy: ctx.userId,
-          lastMovementAt: now,
-        })
+      const sourceStock = await db
+        .select({ avgUnitCost: stockLevels.avgUnitCost })
+        .from(stockLevels)
+        .where(
+          and(
+            eq(stockLevels.tenantId, ctx.tenantId),
+            eq(stockLevels.locationId, trf.fromLocationId),
+            eq(stockLevels.productId, line.productId),
+            variantCondition,
+          ),
+        )
+        .limit(1)
+        .then((r) => r[0]);
+
+      const sourceAvgCost = sourceStock?.avgUnitCost ?? 0n;
+
+      const existingDest = await db
+        .select({ id: stockLevels.id, qtyOnHand: stockLevels.qtyOnHand, avgUnitCost: stockLevels.avgUnitCost })
+        .from(stockLevels)
         .where(
           and(
             eq(stockLevels.tenantId, ctx.tenantId),
@@ -532,9 +543,31 @@ export async function receiveTransfer(
             variantCondition,
           ),
         )
-        .returning({ id: stockLevels.id });
+        .limit(1)
+        .then((r) => r[0]);
 
-      if (!incremented || incremented.length === 0) {
+      if (existingDest) {
+        const oldQty = Number.parseFloat(existingDest.qtyOnHand || '0');
+        const recQty = Number.parseFloat(qtyReceived);
+        const newQty = oldQty + recQty;
+        const oldAvgCost = existingDest.avgUnitCost ?? 0n;
+        
+        let newAvgCost = sourceAvgCost;
+        if (newQty > 0.001) {
+          newAvgCost = (BigInt(Math.round(oldQty * 1000)) * oldAvgCost + BigInt(Math.round(recQty * 1000)) * sourceAvgCost) / BigInt(Math.round(newQty * 1000));
+        }
+
+        await db
+          .update(stockLevels)
+          .set({
+            qtyOnHand: sql`${stockLevels.qtyOnHand} + ${qtyReceived}::numeric`,
+            qtyAvailable: sql`${stockLevels.qtyAvailable} + ${qtyReceived}::numeric`,
+            avgUnitCost: newAvgCost,
+            updatedBy: ctx.userId,
+            lastMovementAt: now,
+          })
+          .where(eq(stockLevels.id, existingDest.id));
+      } else {
         await db.insert(stockLevels).values({
           id: generateId(),
           tenantId: ctx.tenantId,
@@ -547,7 +580,7 @@ export async function receiveTransfer(
           qtyReserved: '0',
           qtyAvailable: qtyReceived,
           uom: line.uom,
-          avgUnitCost: null,
+          avgUnitCost: sourceAvgCost,
           createdBy: ctx.userId,
           updatedBy: ctx.userId,
         });

@@ -110,6 +110,13 @@ export function EmployeeForm({
             <option value="pkwtt">PKWTT</option>
           </Select>
         </label>
+        <Field
+          label={f('baseSalary')}
+          name="baseSalary"
+          type="number"
+          required
+          defaultValue={employee?.contracts?.[0]?.baseSalary ?? '0'}
+        />
         {!isEdit ? (
           <label htmlFor="loginScope" className="space-y-1.5">
             <span className="text-sm font-medium text-brand-ink">{f('loginScope')}</span>

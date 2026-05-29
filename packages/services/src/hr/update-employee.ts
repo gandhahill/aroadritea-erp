@@ -6,7 +6,7 @@
  */
 
 import { db } from '@erp/db';
-import { employees } from '@erp/db/schema/hr';
+import { employees, employmentContracts } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
@@ -36,6 +36,7 @@ export async function updateEmployee(
           id: employees.id,
           locationId: employees.locationId,
           version: employees.version,
+          currentContractId: employees.currentContractId,
         })
         .from(employees)
         .where(and(eq(employees.id, employeeId), eq(employees.tenantId, ctx.tenantId)))
@@ -95,6 +96,42 @@ export async function updateEmployee(
           'employees.emergencyContactPhone',
         );
 
+      if (data.baseSalary !== undefined || data.contractType !== undefined) {
+        if (existing.currentContractId) {
+          const contractSetCols: Record<string, unknown> = {
+            updatedBy: ctx.userId,
+            updatedAt: new Date(),
+          };
+          if (data.baseSalary !== undefined) contractSetCols.baseSalary = BigInt(data.baseSalary);
+          if (data.contractType !== undefined) contractSetCols.contractType = data.contractType;
+          
+          await db
+            .update(employmentContracts)
+            .set(contractSetCols)
+            .where(
+              and(
+                eq(employmentContracts.id, existing.currentContractId),
+                eq(employmentContracts.tenantId, ctx.tenantId),
+              )
+            );
+        } else if (data.baseSalary !== undefined) {
+           const contractId = generateId();
+           await db.insert(employmentContracts).values({
+             id: contractId,
+             tenantId: ctx.tenantId,
+             locationId: existing.locationId,
+             employeeId: existing.id,
+             contractType: data.contractType ?? 'pkwt',
+             startDate: new Date(),
+             isActive: true,
+             baseSalary: BigInt(data.baseSalary),
+             createdBy: ctx.userId,
+             updatedBy: ctx.userId,
+           });
+           setCols.currentContractId = contractId;
+        }
+      }
+
       const [updated] = await db
         .update(employees)
         .set(setCols)
@@ -123,6 +160,7 @@ export async function updateEmployee(
         'locationId',
         'status',
         'contractType',
+        'baseSalary',
         'workSchedule',
         'emergencyContactName',
       ] as const) {

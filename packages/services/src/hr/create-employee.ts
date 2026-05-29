@@ -7,7 +7,7 @@
 
 import { db } from '@erp/db';
 import { roles, userRoles, users, authAccounts } from '@erp/db/schema/auth';
-import { employees } from '@erp/db/schema/hr';
+import { employees, employmentContracts } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
@@ -50,6 +50,7 @@ export async function createEmployee(
   return tryCatch(
     async () => {
       const empId = generateId();
+      const contractId = generateId();
 
       const [emp] = await db
         .insert(employees)
@@ -83,12 +84,27 @@ export async function createEmployee(
             data.emergencyContactPhone,
             'employees.emergencyContactPhone',
           ),
+          currentContractId: contractId,
         })
         .returning({ id: employees.id });
 
       if (!emp) {
         throw AppError.internal('hr.employee.createFailed', new Error('No rows returned'));
       }
+
+      await db.insert(employmentContracts).values({
+        id: contractId,
+        tenantId: ctx.tenantId,
+        locationId: targetLocationId,
+        employeeId: emp.id,
+        contractType: data.contractType,
+        startDate: new Date(data.hireDate),
+        endDate: data.contractType === 'pkwt' && data.probationEndDate ? new Date(data.probationEndDate) : null,
+        isActive: true,
+        baseSalary: BigInt(data.baseSalary),
+        createdBy: ctx.userId,
+        updatedBy: ctx.userId,
+      });
 
       // Optional: provision ERP login account for this employee.
       if (data.password && data.roleCode) {
@@ -156,6 +172,7 @@ export async function createEmployee(
           position: data.position,
           department: data.department ?? null,
           contractType: data.contractType,
+          baseSalary: data.baseSalary,
           hireDate: data.hireDate,
           locationId: targetLocationId,
           loginScope: data.password && data.roleCode ? data.loginScope : null,

@@ -2327,6 +2327,7 @@
         "hireDate": "Tanggal mulai kerja",
         "probationEnd": "Akhir probation",
         "contractType": "Tipe kontrak",
+        "baseSalary": "Gaji Pokok",
         "workSchedule": "Jadwal kerja",
         "npwp": "NPWP",
         "bpjsKesehatan": "BPJS Kesehatan",
@@ -2569,6 +2570,7 @@
       "totalNet": "Total Gaji Net",
       "statusCancelled": "Dibatalkan",
       "noPayrolls": "Belum ada data payroll",
+      "baseSalaryZero": "Gaji pokok belum disetel (0) untuk {employeeName}. Harap atur gaji pokok terlebih dahulu sebelum menjalankan payroll.",
       "subtitle": "Jalankan payroll — menghitung PPh 21 TER, BPJS, dan denda telat.",
       "form": {
         "title": "Jalankan Payroll",
@@ -4237,5 +4239,17 @@
       "changeFailed": "Gagal mengubah password.",
       "resetFailed": "Gagal me-reset password."
     }
+  },
+  "journals": {
+    "postJournal": "Posting Jurnal",
+    "posting": "Memposting...",
+    "deleteDraft": "Hapus Draf",
+    "deleting": "Menghapus...",
+    "reverseJournal": "Jurnal Balik",
+    "reversalDate": "Tanggal Pembalikan",
+    "confirmReverse": "Konfirmasi",
+    "reversing": "Membalik...",
+    "cancel": "Batal",
+    "confirmDelete": "Yakin ingin menghapus draf jurnal ini?"
   }
 }

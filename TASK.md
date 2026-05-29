@@ -28,6 +28,9 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0211 | Payroll: field gaji pokok + pembuatan `employmentContracts` | Antigravity | 2026-05-29 09:54 WIB | 2026-05-29 09:58 WIB | 🟩 DONE | Added baseSalary field, insert to employmentContracts, added payroll guard. |
+| T-0213 | Wire `postJournal`/`reverseJournal` ke server action + tombol UI | Antigravity | 2026-05-29 10:02 WIB | 2026-05-29 10:11 WIB | 🟩 DONE | Added server actions, deleted service, and JournalActionsUI to the UI. |
+| T-0212 | Inventory: valuasi weighted-average + jurnal HPP saat penjualan | Antigravity | 2026-05-29 09:58 WIB | 2026-05-29 10:01 WIB | 🟩 DONE | Calculated avgUnitCost during GRN/transfer, and posted COGS journal on sale using the product and ingredient accounts. |
 | T-0209 | Fix UI Object Rendering, Timezone, and CSP bugs | Antigravity | 2026-05-28 18:14 WIB | 2026-05-28 18:22 WIB | 🟩 DONE | Fixed React object rendering bugs, updated CSP, corrected timezone and UA parser in sessions. Build passed, pushed. |
 | T-0208 | Change Password (Self Service & Admin) | Antigravity | 2026-05-28 | 2026-05-28 | 🟩 DONE | Add profile setting and HR reset password |
 | T-0207 | HR My Schedule Employee View | Antigravity | 2026-05-28 | 2026-05-28 | 🟩 DONE | Added /hr/my-schedule and listMySchedule action |
@@ -239,9 +242,8 @@
 
 | ID | Title | Effort | Priority | Status |
 |----|-------|--------|----------|--------|
-| T-0211 | Payroll: field gaji pokok + pembuatan `employmentContracts` | M | P0 | 🟦 PENDING |
-| T-0212 | Inventory: valuasi weighted-average + jurnal HPP saat penjualan | L | P0 | 🟦 PENDING |
-| T-0213 | Wire `postJournal`/`reverseJournal` ke server action + tombol UI | S | P0 | 🟦 PENDING |
+
+| T-0213 | Wire `postJournal`/`reverseJournal` ke server action + tombol UI | S | P0 | 🟩 DONE |
 | T-0214 | POS: panggil promo engine otomatis saat checkout | M | P0 | 🟦 PENDING |
 | T-0215 | POS: konsumsi voucher redemption + UI redeem di kasir | M | P0 | 🟦 PENDING |
 | T-0216 | Purchasing: perbaiki double-DR persediaan + timing pengakuan AP | L | P0 | 🟦 PENDING |

@@ -518,14 +518,9 @@ export async function confirmGRN(
       ? eq(stockLevels.variantId, line.variantId)
       : eq(stockLevels.variantId, '' as unknown as string);
 
-    const incremented = await db
-      .update(stockLevels)
-      .set({
-        qtyOnHand: sql`${stockLevels.qtyOnHand} + ${line.qtyReceived}::numeric`,
-        qtyAvailable: sql`${stockLevels.qtyAvailable} + ${line.qtyReceived}::numeric`,
-        updatedBy: ctx.userId,
-        lastMovementAt: new Date(),
-      })
+    const existingStock = await db
+      .select({ id: stockLevels.id, qtyOnHand: stockLevels.qtyOnHand, avgUnitCost: stockLevels.avgUnitCost })
+      .from(stockLevels)
       .where(
         and(
           eq(stockLevels.tenantId, ctx.tenantId),
@@ -534,9 +529,36 @@ export async function confirmGRN(
           variantCondition,
         ),
       )
-      .returning({ id: stockLevels.id });
+      .limit(1)
+      .then((r) => r[0]);
 
-    if (!incremented || incremented.length === 0) {
+    if (existingStock) {
+      const oldQty = Number.parseFloat(existingStock.qtyOnHand || '0');
+      const recQty = Number.parseFloat(line.qtyReceived);
+      const newQty = oldQty + recQty;
+      const oldAvgCost = existingStock.avgUnitCost ?? 0n;
+      const poLine = poLineMap.get(line.poLineId);
+      const unitCost = poLine?.unitPrice ?? 0n;
+      
+      let newAvgCost = unitCost;
+      if (newQty > 0.001) {
+        newAvgCost = (BigInt(Math.round(oldQty * 1000)) * oldAvgCost + BigInt(Math.round(recQty * 1000)) * unitCost) / BigInt(Math.round(newQty * 1000));
+      }
+
+      await db
+        .update(stockLevels)
+        .set({
+          qtyOnHand: sql`${stockLevels.qtyOnHand} + ${line.qtyReceived}::numeric`,
+          qtyAvailable: sql`${stockLevels.qtyAvailable} + ${line.qtyReceived}::numeric`,
+          avgUnitCost: newAvgCost,
+          updatedBy: ctx.userId,
+          lastMovementAt: new Date(),
+        })
+        .where(eq(stockLevels.id, existingStock.id));
+    } else {
+      const poLine = poLineMap.get(line.poLineId);
+      const unitCost = poLine?.unitPrice ?? 0n;
+
       await db.insert(stockLevels).values({
         id: generateId(),
         tenantId: ctx.tenantId,
@@ -549,7 +571,7 @@ export async function confirmGRN(
         qtyReserved: '0',
         qtyAvailable: line.qtyReceived,
         uom: line.uom,
-        avgUnitCost: null,
+        avgUnitCost: unitCost,
         createdBy: ctx.userId,
         updatedBy: ctx.userId,
       });

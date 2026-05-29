@@ -104,6 +104,8 @@ interface PosPostingConfig {
   cashAccountId: string;
   revenueAccountId: string;
   donationTrustAccountId: string;
+  defaultCogsAccountId: string;
+  defaultInventoryAccountId: string;
   deliveryChannels: Map<string, DeliveryChannelConfig>;
 }
 
@@ -283,6 +285,12 @@ async function resolvePosPostingConfig(
   );
   if (!donationTrustAccount.ok) return donationTrustAccount;
 
+  const defaultCogsAccountId = await resolveAccountIdByCode(tenantId, '5-1100');
+  if (!defaultCogsAccountId.ok) return defaultCogsAccountId;
+
+  const defaultInventoryAccountId = await resolveAccountIdByCode(tenantId, '1-1210');
+  if (!defaultInventoryAccountId.ok) return defaultInventoryAccountId;
+
   return ok({
     taxCode: taxRate.code,
     taxRateBps: taxRate.rateBps,
@@ -290,6 +298,8 @@ async function resolvePosPostingConfig(
     cashAccountId: cashAccount.value,
     revenueAccountId: revenueAccount.value,
     donationTrustAccountId: donationTrustAccount.value,
+    defaultCogsAccountId: defaultCogsAccountId.value,
+    defaultInventoryAccountId: defaultInventoryAccountId.value,
     deliveryChannels: new Map(
       normalizeDeliveryChannelConfig(setting?.deliveryChannelsJson)
         .filter((channel) => channel.enabled)
@@ -494,6 +504,9 @@ type IngredientDeduction = {
   qty: string;
   uom: string;
   referenceId: string;
+  avgUnitCost: bigint;
+  cogsAccountId: string | null;
+  inventoryAccountId: string | null;
 };
 
 type IngredientDeductionDecision =
@@ -605,8 +618,12 @@ export async function deductIngredients(
           uom: stockLevels.uom,
           qtyOnHand: stockLevels.qtyOnHand,
           qtyAvailable: stockLevels.qtyAvailable,
+          avgUnitCost: stockLevels.avgUnitCost,
+          cogsAccountId: products.cogsAccountId,
+          inventoryAccountId: products.inventoryAccountId,
         })
         .from(stockLevels)
+        .innerJoin(products, eq(products.id, stockLevels.productId))
         .where(
           and(
             eq(stockLevels.tenantId, tenantId),
@@ -626,6 +643,9 @@ export async function deductIngredients(
         qty: ing.qty,
         uom: ing.uom,
         referenceId,
+        avgUnitCost: existing.avgUnitCost ?? 0n,
+        cogsAccountId: existing.cogsAccountId,
+        inventoryAccountId: existing.inventoryAccountId,
       };
       const decision = resolveIngredientDeductionDecision(existing, deduction);
       if (decision.action === 'skip') continue;
@@ -989,12 +1009,22 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       const p = productMap.get(line.productId);
       if (p?.kind === 'service') continue; // skip service items
 
-      const ingredients = await getBOMIngredients(
+      let ingredients = await getBOMIngredients(
         ctx.tenantId,
         line.productId,
         line.variantId ?? null,
         line.qty,
       );
+
+      // Deduct product directly if no BOM (e.g. merchandise, pre-packaged)
+      if (ingredients.length === 0) {
+        const uom = (p as any).uom ?? 'pcs';
+        ingredients = [{
+          ingredientId: line.productId,
+          qty: line.qty.toString(),
+          uom,
+        }];
+      }
 
       const deductResult = await deductIngredients(
         ctx.tenantId,
@@ -1150,6 +1180,37 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       credit: netPB1.toString(),
       taxCode: postingConfig.taxCode,
     });
+
+    const cogsGroups = new Map<string, { cogsAcc: string; invAcc: string; amount: bigint }>();
+    for (const d of appliedStockDeductions) {
+      const qtyNum = Number.parseFloat(d.qty);
+      const cogsAmount = (d.avgUnitCost * BigInt(Math.round(qtyNum * 1000))) / 1000n;
+      if (cogsAmount > 0n) {
+        const cAcc = d.cogsAccountId ?? postingConfig.defaultCogsAccountId;
+        const iAcc = d.inventoryAccountId ?? postingConfig.defaultInventoryAccountId;
+        const key = `${cAcc}-${iAcc}`;
+        const existing = cogsGroups.get(key) ?? { cogsAcc: cAcc, invAcc: iAcc, amount: 0n };
+        existing.amount += cogsAmount;
+        cogsGroups.set(key, existing);
+      }
+    }
+
+    for (const group of cogsGroups.values()) {
+      jeLines.push({
+        accountId: group.cogsAcc,
+        locationId: data.locationId,
+        description: `HPP ${saleNumber}`,
+        debit: group.amount.toString(),
+        credit: '0',
+      });
+      jeLines.push({
+        accountId: group.invAcc,
+        locationId: data.locationId,
+        description: `HPP ${saleNumber}`,
+        debit: '0',
+        credit: group.amount.toString(),
+      });
+    }
 
     const jeResult = await createJournal(
       {

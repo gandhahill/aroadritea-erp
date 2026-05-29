@@ -10,6 +10,7 @@ import { notFound, redirect } from 'next/navigation';
 import { fetchJournalDetail } from '../actions';
 import { fetchJournalAttachments } from '../attachments/actions';
 import { JournalAttachmentsList } from './attachments-list';
+import { JournalActionsUI } from './journal-actions-ui';
 
 export const metadata: Metadata = {
   title: 'Journal Detail | Aroadri ERP',
@@ -28,16 +29,16 @@ export default async function JournalDetailPage({
 
   if (!journal) notFound();
 
-  const statusStyles: Record<string, { bg: string; text: string; dot: string }> = {
+  const statusStyles = {
     draft: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-400' },
     posted: { bg: 'bg-brand-jade-light', text: 'text-brand-jade', dot: 'bg-brand-jade' },
     reversed: { bg: 'bg-brand-clay-light', text: 'text-brand-clay', dot: 'bg-brand-clay' },
-  };
+  } as const;
   const [attachments, attachmentsError] = await fetchJournalAttachments(id).then(
     (r) => [r.data ?? [], r.error ?? null] as [unknown[], string | null],
   );
 
-  const style = statusStyles[journal.status] ?? statusStyles.draft;
+  const style = statusStyles[journal.status as keyof typeof statusStyles] ?? statusStyles.draft;
 
   return (
     <div className="space-y-6">
@@ -64,9 +65,20 @@ export default async function JournalDetailPage({
         <div className="flex items-start justify-between">
           <div>
             <PageHeader title={journal.number} />
-            <p className="mt-2 text-sm text-brand-ink-2">{journal.description}</p>
+            <div className="mt-2 flex items-center gap-3">
+              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${style.bg} ${style.text}`}>
+                <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${style.dot}`} />
+                {journal.status.toUpperCase()}
+              </span>
+              <p className="text-sm text-brand-ink-2">{journal.description}</p>
+            </div>
           </div>
-          <div>
+          <div className="flex items-center gap-3">
+            <JournalActionsUI 
+              journalId={id} 
+              status={journal.status} 
+              defaultDate={new Date().toISOString().split('T')[0]!} 
+            />
             <a
               href={`/accounting/journals/${id}/print`}
               target="_blank"

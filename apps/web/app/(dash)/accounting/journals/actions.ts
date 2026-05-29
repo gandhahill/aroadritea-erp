@@ -20,7 +20,7 @@ import {
 } from '@erp/db/schema/accounting';
 import { cmsSettings } from '@erp/db/schema/cms';
 import { locations } from '@erp/db/schema/auth';
-import { createJournal } from '@erp/services/accounting';
+import { createJournal, postJournal, reverseJournal, deleteJournal } from '@erp/services/accounting';
 import { requirePermission } from '@erp/services/iam';
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale } from 'next-intl/server';
@@ -488,6 +488,63 @@ export async function createJournalAction(
   if (!result.ok) return { error: errorMessage(result.error) };
   revalidatePath('/accounting/journals');
   return { ok: true, journalId: result.value.id };
+}
+
+export async function postJournalAction(
+  _prev: JournalCreateState | null,
+  formData: FormData,
+): Promise<JournalCreateState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+  
+  const journalId = text(formData, 'journalId');
+  if (!journalId) return { error: 'Journal ID required' };
+  
+  const result = await postJournal({ journalId }, ctx);
+  if (!result.ok) return { error: errorMessage(result.error) };
+  
+  revalidatePath('/accounting/journals');
+  revalidatePath(`/accounting/journals/${journalId}`);
+  return { ok: true, journalId: result.value.id };
+}
+
+export async function reverseJournalAction(
+  _prev: JournalCreateState | null,
+  formData: FormData,
+): Promise<JournalCreateState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+  
+  const journalId = text(formData, 'journalId');
+  const postingDate = text(formData, 'postingDate');
+  
+  if (!journalId) return { error: 'Journal ID required' };
+  if (!postingDate) return { error: 'Posting Date required' };
+  
+  const result = await reverseJournal({ journalId, postingDate }, ctx);
+  if (!result.ok) return { error: errorMessage(result.error) };
+  
+  revalidatePath('/accounting/journals');
+  revalidatePath(`/accounting/journals/${journalId}`);
+  revalidatePath(`/accounting/journals/${result.value.id}`);
+  return { ok: true, journalId: result.value.id };
+}
+
+export async function deleteJournalAction(
+  _prev: JournalCreateState | null,
+  formData: FormData,
+): Promise<JournalCreateState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+  
+  const journalId = text(formData, 'journalId');
+  if (!journalId) return { error: 'Journal ID required' };
+  
+  const result = await deleteJournal(journalId, ctx);
+  if (!result.ok) return { error: errorMessage(result.error) };
+  
+  revalidatePath('/accounting/journals');
+  return { ok: true };
 }
 
 export async function importJournalCsvAction(

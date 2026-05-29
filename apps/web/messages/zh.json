@@ -2243,6 +2243,7 @@
         "hireDate": "入职日期",
         "probationEnd": "试用期结束",
         "contractType": "合同类型",
+        "baseSalary": "基本工资",
         "workSchedule": "工作时间",
         "npwp": "NPWP",
         "bpjsKesehatan": "BPJS 健康保险",
@@ -2476,6 +2477,7 @@
       "totalNet": "总净工资",
       "statusCancelled": "已取消",
       "noPayrolls": "暂无工资单",
+      "baseSalaryZero": "{employeeName} 的基本工资尚未设置(0)。请先配置基本工资。",
       "subtitle": "运行薪资计算 — 计算个人所得税 (PPh 21 TER)、社保 (BPJS) 和迟到扣款。",
       "form": {
         "title": "运行薪资计算",
@@ -4223,5 +4225,17 @@
       "changeFailed": "更改密码失败。",
       "resetFailed": "重置密码失败。"
     }
+  },
+  "journals": {
+    "postJournal": "过账日记账",
+    "posting": "过账中...",
+    "deleteDraft": "删除草稿",
+    "deleting": "删除中...",
+    "reverseJournal": "冲销日记账",
+    "reversalDate": "冲销日期",
+    "confirmReverse": "确认",
+    "reversing": "冲销中...",
+    "cancel": "取消",
+    "confirmDelete": "您确定要删除此草稿吗？"
   }
 }

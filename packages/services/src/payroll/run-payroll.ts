@@ -331,6 +331,9 @@ export async function runPayroll(
 
       for (const emp of empRows) {
         const baseSalary = contractMap.get(emp.currentContractId ?? '') ?? 0n;
+        if (baseSalary === 0n) {
+          throw AppError.validation('hr.payroll.baseSalaryZero', { employeeName: emp.name });
+        }
         const att = attMap.get(emp.id) ?? { lateMinutes: 0, lateCount: 0, absentDays: 0 };
 
         const payrollCtx: PayrollEmployeeContext = {

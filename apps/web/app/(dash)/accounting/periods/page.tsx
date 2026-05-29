@@ -142,7 +142,11 @@ export default async function AccountingPeriodsPage() {
   return (
     <div className="space-y-6">
       <section className="flex flex-col gap-6">
-        <PageHeader title={<>{copy.title}</>} description={<>{copy.subtitle}</>} />
+        <PageHeader 
+          title={<>{copy.title}</>} 
+          description={<>{copy.subtitle}</>} 
+          actions={<OpenPeriodButton copy={{ period: copy.periodAction }} />}
+        />
 
         <div className="grid gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-brand-jade/20 bg-brand-jade/10 p-4">
