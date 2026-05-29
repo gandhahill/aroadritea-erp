@@ -42,7 +42,8 @@
       "posted": "Terposting",
       "reversed": "Dibalik",
       "pending": "Menunggu",
-      "cancelled": "Dibatalkan"
+      "cancelled": "Dibatalkan",
+      "paid": "Dibayar"
     },
     "labels": {
       "name": "Nama",
@@ -282,7 +283,11 @@
       "newAccount": "Akun baru",
       "saveAccount": "Simpan akun",
       "saved": "Akun berhasil disimpan.",
-      "deactivated": "Akun berhasil dinonaktifkan.",
+      "deactivated": "Akun dinonaktifkan.",
+      "replaceAccountInfo": "Akun pengganti untuk konfigurasi dan jurnal draft",
+      "noAccount": "Tidak ada",
+      "deleteInfo": "Akun yang belum pernah dipakai jurnal akan dihapus dari daftar. Akun yang sudah memiliki histori jurnal hanya dinonaktifkan agar audit dan laporan lama tetap utuh.",
+      "safeDelete": "Hapus aman",
       "code": "Kode Akun",
       "name": "Nama Akun",
       "type": "Jenis",
@@ -1758,7 +1763,9 @@
     "taxEfaktur": "e-Faktur (NSFP)",
     "taxSpt": "SPT Masa PPN",
     "taxBupot": "Bukti Potong",
-    "taxPb1Monthly": "PB1 Bulanan"
+    "taxPb1Monthly": "PB1 Bulanan",
+    "users": "Manajemen Pengguna",
+    "mcpTokens": "Token MCP"
   },
   "pos": {
     "title": "Kasir",
@@ -2174,8 +2181,8 @@
       "draft": "Draf",
       "in_progress": "Sedang Berlangsung",
       "submitted": "Diajukan",
-      "approved": "Disetujui",
-      "cancelled": "Dibatalkan"
+      "cancelled": "Dibatalkan",
+      "paid": "Dibayar"
     },
     "lines": {
       "systemQty": "Stok Sistem",
@@ -3355,11 +3362,19 @@
     "title": "Pengaturan",
     "users": {
       "title": "Manajemen Pengguna",
-      "subtitle": "Kelola daftar pengguna sistem dan hak akses."
+      "subtitle": "Kelola daftar pengguna sistem dan hak akses.",
+      "name": "Nama",
+      "email": "Email",
+      "status": "Status",
+      "empty": "Tidak ada pengguna."
     },
     "mcpTokens": {
       "title": "Token MCP",
-      "subtitle": "Kelola token akses untuk integrasi AI dan layanan pihak ketiga."
+      "subtitle": "Kelola token akses untuk integrasi AI dan layanan pihak ketiga.",
+      "name": "Nama Token",
+      "createdAt": "Dibuat",
+      "lastUsedAt": "Terakhir Dipakai",
+      "empty": "Tidak ada token MCP."
     },
     "permissions": {
       "title": "Izin & Hak Akses",
@@ -4104,6 +4119,13 @@
         "unknown": "Terjadi kesalahan."
       },
       "slugPlaceholder": "url-slug"
+    },
+    "mediaLibrary": {
+      "title": "Pustaka Media",
+      "uploading": "Mengunggah...",
+      "uploadImage": "Unggah Gambar",
+      "hint": "Unggahan disimpan sebagai gambar CMS publik",
+      "uploadFailed": "Gagal mengunggah"
     }
   },
   "tax": {

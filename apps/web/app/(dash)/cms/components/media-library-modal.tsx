@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@erp/ui';
+import { Button } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useState, useRef } from 'react';
 
@@ -51,19 +45,22 @@ export function MediaLibraryModal({
       }
     } catch (err) {
       console.error(err);
-      alert('Upload failed');
+      alert(t('mediaLibrary.uploadFailed'));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Media Library (T-0257)</DialogTitle>
-        </DialogHeader>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md rounded-lg bg-card shadow-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold text-brand-ink">{t('mediaLibrary.title')}</h2>
+          <button onClick={() => onOpenChange(false)} className="text-brand-ink-3 hover:text-brand-ink">&times;</button>
+        </div>
         <div className="py-8 flex flex-col items-center justify-center border-2 border-dashed border-brand-cream-3 rounded-lg bg-brand-cream-1/30">
           <input
             type="file"
@@ -75,12 +72,13 @@ export function MediaLibraryModal({
           <Button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
+            variant="primary"
           >
-            {uploading ? 'Uploading...' : 'Upload Image'}
+            {uploading ? t('mediaLibrary.uploading') : t('mediaLibrary.uploadImage')}
           </Button>
-          <p className="mt-2 text-xs text-brand-ink-3">Uploads are saved as public CMS images</p>
+          <p className="mt-2 text-xs text-brand-ink-3">{t('mediaLibrary.hint')}</p>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }

@@ -58,8 +58,8 @@ export default function PosPage() {
           <div className="flex h-14 shrink-0 items-center justify-between border-b border-brand-cream-3 px-4">
             <h2 className="text-base font-semibold text-brand-ink">{t('orderLines')}</h2>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setShowRecall(true)}>{t('recallCart.btn') || 'Recalls'}</Button>
-              <Button variant="outline" size="sm" disabled={state.lines.length === 0} onClick={() => setShowPark(true)}>{t('parkCart.btn') || 'Hold'}</Button>
+              <Button variant="secondary" size="sm" onClick={() => setShowRecall(true)}>{t('recallCart.btn') || 'Recalls'}</Button>
+              <Button variant="secondary" size="sm" disabled={state.lines.length === 0} onClick={() => setShowPark(true)}>{t('parkCart.btn') || 'Hold'}</Button>
               {state.lines.length > 0 && (
                 <span className="text-xs text-brand-ink-3">
                   {t('itemCount', { count: state.lines.length })}

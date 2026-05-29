@@ -10,7 +10,7 @@ export async function fetchMcpTokens() {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
 
-  const perm = await requirePermission(session.userId, 'iam.users.read' as any);
+  const perm = await requirePermission(String(session.user?.id), 'iam.users.read' as any);
   if (!perm.ok) throw new Error('Forbidden');
 
   return db
@@ -21,5 +21,5 @@ export async function fetchMcpTokens() {
       lastUsedAt: mcpTokens.lastUsedAt,
     })
     .from(mcpTokens)
-    .where(eq(mcpTokens.tenantId, session.tenantId));
+    .where(eq(mcpTokens.tenantId, String(session.user?.tenantId)));
 }

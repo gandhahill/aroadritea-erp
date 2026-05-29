@@ -34,7 +34,7 @@ export default async function COAPage() {
           <>
             <div className="flex items-center gap-3 text-sm text-brand-ink-3">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
-                {tree.reduce((sum, node) => sum + countNodes(node), 0)} accounts
+                {tree.reduce((sum, node) => sum + countNodes(node), 0)} {t('account')}
               </span>
             </div>
           </>

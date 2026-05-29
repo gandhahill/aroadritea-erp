@@ -94,6 +94,8 @@ export {
   type RunFixedAssetDepreciationInput,
   type UpdateFixedAssetCategoryInput,
   type DepreciationMethod,
+  DisposeFixedAssetSchema,
+  type DisposeFixedAssetInput,
 } from './schemas';
 export {
   createFixedAsset,
@@ -101,6 +103,7 @@ export {
   listFixedAssetCategories,
   runFixedAssetDepreciation,
   updateFixedAssetCategory,
+  disposeFixedAsset,
   validateFixedAssetDepreciationJournalCanReverse,
   voidFixedAssetDepreciationForJournal,
   type FixedAssetCategoryItem,

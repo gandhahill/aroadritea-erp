@@ -42,7 +42,8 @@
       "rejected": "已拒绝",
       "in_progress": "进行中",
       "submitted": "已提交",
-      "cancelled": "已取消"
+      "cancelled": "已取消",
+      "paid": "已支付"
     },
     "labels": {
       "name": "名称",
@@ -281,8 +282,12 @@
       "manage": "管理科目",
       "newAccount": "新科目",
       "saveAccount": "保存科目",
-      "saved": "科目已保存。",
-      "deactivated": "科目已停用。",
+      "saved": "账户已保存。",
+      "deactivated": "账户已停用。",
+      "replaceAccountInfo": "配置和草稿凭证的替代账户",
+      "noAccount": "无",
+      "deleteInfo": "从未使用过的账户将被删除。有历史记录的账户只会被停用，以确保审计和旧报告的完整性。",
+      "safeDelete": "安全删除",
       "code": "科目代码",
       "name": "科目名称",
       "type": "类型",
@@ -1758,7 +1763,9 @@
     "taxEfaktur": "电子发票 (NSFP)",
     "taxSpt": "增值税申报 (SPT)",
     "taxBupot": "扣税凭证",
-    "taxPb1Monthly": "每月 PB1"
+    "taxPb1Monthly": "每月 PB1",
+    "users": "用户管理",
+    "mcpTokens": "MCP 令牌"
   },
   "pos": {
     "title": "收银",
@@ -2827,11 +2834,19 @@
     "title": "设置",
     "users": {
       "title": "用户管理",
-      "subtitle": "管理系统用户和访问权限。"
+      "subtitle": "管理系统用户和访问权限。",
+      "name": "姓名",
+      "email": "邮箱",
+      "status": "状态",
+      "empty": "未找到用户。"
     },
     "mcpTokens": {
       "title": "MCP 令牌",
-      "subtitle": "管理用于 AI 集成和第三方服务的访问令牌。"
+      "subtitle": "管理用于 AI 集成和第三方服务的访问令牌。",
+      "name": "令牌名称",
+      "createdAt": "创建时间",
+      "lastUsedAt": "最后使用",
+      "empty": "未找到 MCP 令牌。"
     },
     "bankAccounts": {
       "title": "银行账户",
@@ -4129,6 +4144,13 @@
         "unknown": "发生错误。"
       },
       "slugPlaceholder": "url-slug"
+    },
+    "mediaLibrary": {
+      "title": "媒体库",
+      "uploading": "上传中...",
+      "uploadImage": "上传图片",
+      "hint": "上传内容将保存为公开的 CMS 图片",
+      "uploadFailed": "上传失败"
     }
   },
   "tax": {

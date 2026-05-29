@@ -1,4 +1,4 @@
-﻿# TASK.md Ã¢â‚¬â€ Active Implementation Tasks
+# TASK.md Ã¢â‚¬â€ Active Implementation Tasks
 
 > **Single source of truth runtime** for all implementation tasks being worked on (or to be worked on) by AI developers.
 >

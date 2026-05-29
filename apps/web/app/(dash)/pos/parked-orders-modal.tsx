@@ -2,14 +2,7 @@
 
 import {
   Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
   Input,
-  Label,
 } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
@@ -45,31 +38,31 @@ export function ParkCartDialog({
     onOpenChange(false);
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t('parkCart.title')}</DialogTitle>
-          <DialogDescription>{t('parkCart.description')}</DialogDescription>
-        </DialogHeader>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md rounded-lg bg-card shadow-lg p-6">
+        <h2 className="text-lg font-semibold text-brand-ink">{t('parkCart.title')}</h2>
+        <p className="mt-1 text-sm text-brand-ink-3">{t('parkCart.description')}</p>
         <div className="py-4">
-          <Label htmlFor="park-name">{t('parkCart.nameLabel')}</Label>
+          <label htmlFor="park-name" className="text-sm font-medium text-brand-ink">{t('parkCart.nameLabel')}</label>
           <Input
             id="park-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t('parkCart.namePlaceholder')}
-            className="mt-2"
+            className="mt-2 w-full"
           />
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <div className="flex justify-end gap-2 mt-4">
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
-          <Button onClick={handlePark}>{t('parkCart.confirm')}</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <Button variant="primary" onClick={handlePark}>{t('parkCart.confirm')}</Button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -106,13 +99,18 @@ export function RecallCartDialog({
     fetchCarts();
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{t('recallCart.title')}</DialogTitle>
-          <DialogDescription>{t('recallCart.description')}</DialogDescription>
-        </DialogHeader>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-2xl rounded-lg bg-card shadow-lg p-6">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-brand-ink">{t('recallCart.title')}</h2>
+            <p className="mt-1 text-sm text-brand-ink-3">{t('recallCart.description')}</p>
+          </div>
+          <button onClick={() => onOpenChange(false)} className="text-brand-ink-3 hover:text-brand-ink">&times;</button>
+        </div>
         <div className="py-4 max-h-[60vh] overflow-y-auto">
           {carts.length === 0 ? (
             <p className="text-center text-sm text-brand-ink-3 py-8">
@@ -132,10 +130,10 @@ export function RecallCartDialog({
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(cart.id)}>
+                    <Button variant="danger" size="sm" onClick={() => handleDelete(cart.id)}>
                       {t('common.delete')}
                     </Button>
-                    <Button size="sm" onClick={() => handleRecall(cart)}>
+                    <Button variant="primary" size="sm" onClick={() => handleRecall(cart)}>
                       {t('recallCart.recall')}
                     </Button>
                   </div>
@@ -144,7 +142,7 @@ export function RecallCartDialog({
             </ul>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }

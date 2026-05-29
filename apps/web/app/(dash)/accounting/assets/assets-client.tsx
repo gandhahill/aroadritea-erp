@@ -85,7 +85,7 @@ export function AssetsClient({
   // Set default dispose asset id when data loads
   useEffect(() => {
     if (activeAssets.length > 0 && !disposeAssetId) {
-      setDisposeAssetId(activeAssets[0].id);
+      setDisposeAssetId(activeAssets[0]?.id ?? '');
     }
   }, [activeAssets, disposeAssetId]);
 

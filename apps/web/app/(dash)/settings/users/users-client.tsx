@@ -1,6 +1,6 @@
 'use client';
 
-import { Card } from '@erp/ui';
+import { useTranslations } from 'next-intl';
 
 interface User {
   id: string;
@@ -10,15 +10,16 @@ interface User {
 }
 
 export function UsersClient({ users }: { users: User[] }) {
+  const t = useTranslations('settings.users');
   return (
-    <Card className="overflow-hidden border-brand-cream-3">
+    <div className="overflow-hidden border-brand-cream-3 rounded-xl border bg-card text-card-foreground shadow">
       <div className="overflow-x-auto">
         <table className="w-full min-w-max text-left text-sm">
           <thead className="bg-brand-cream-2 text-brand-ink-2">
             <tr>
-              <th className="px-4 py-3 font-semibold">Name</th>
-              <th className="px-4 py-3 font-semibold">Email</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
+              <th className="px-4 py-3 font-semibold">{t('name')}</th>
+              <th className="px-4 py-3 font-semibold">{t('email')}</th>
+              <th className="px-4 py-3 font-semibold">{t('status')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-3">
@@ -42,13 +43,13 @@ export function UsersClient({ users }: { users: User[] }) {
             {users.length === 0 && (
               <tr>
                 <td colSpan={3} className="px-4 py-8 text-center text-brand-ink-3">
-                  No users found.
+                  {t('empty')}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
-    </Card>
+    </div>
   );
 }

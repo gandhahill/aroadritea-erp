@@ -313,13 +313,13 @@ export function COAEditor({ tree }: Props) {
         {draft.id && (
           <div className="flex flex-col gap-2 rounded-md border border-brand-cream-3 bg-brand-cream-1 p-3">
             <label className="text-xs font-semibold text-brand-ink-3">
-              Akun pengganti untuk konfigurasi dan jurnal draft
+              {t('replaceAccountInfo')}
               <Select
                 value={replacementAccountId}
                 onChange={(event) => setReplacementAccountId(event.target.value)}
                 className="mt-1 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink"
               >
-                <option value="">Tidak ada</option>
+                <option value="">{t('noAccount')}</option>
                 {accounts
                   .filter(
                     (account) =>
@@ -336,8 +336,7 @@ export function COAEditor({ tree }: Props) {
               </Select>
             </label>
             <p className="max-w-xl text-xs leading-5 text-brand-ink-3">
-              Akun yang belum pernah dipakai jurnal akan dihapus dari daftar. Akun yang sudah
-              memiliki histori jurnal hanya dinonaktifkan agar audit dan laporan lama tetap utuh.
+              {t('deleteInfo')}
             </p>
             <Button
               type="button"
@@ -347,7 +346,7 @@ export function COAEditor({ tree }: Props) {
               variant="primary"
               size="md"
             >
-              Hapus aman
+              {t('safeDelete')}
             </Button>
           </div>
         )}

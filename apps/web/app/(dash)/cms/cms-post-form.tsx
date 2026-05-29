@@ -18,11 +18,10 @@ const LOCALE_TABS = [
   { code: 'en', label: 'English' },
   { code: 'zh', label: '中文' },
 ];
-
-
-
 import { PageHeader } from '@/components/page-header';
-import { Button, Input, Label, Select } from '@erp/ui';
+
+
+import { Button, Input, Select } from '@erp/ui';
 import { MarkdownEditor } from './components/markdown-editor';
 import { useTranslations } from 'next-intl';
 

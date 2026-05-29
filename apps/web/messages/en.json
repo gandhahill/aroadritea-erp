@@ -42,7 +42,8 @@
       "rejected": "Rejected",
       "in_progress": "In Progress",
       "submitted": "Submitted",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "paid": "Paid"
     },
     "labels": {
       "name": "Name",
@@ -283,6 +284,10 @@
       "saveAccount": "Save account",
       "saved": "Account saved.",
       "deactivated": "Account deactivated.",
+      "replaceAccountInfo": "Replacement account for config and draft journals",
+      "noAccount": "None",
+      "deleteInfo": "Accounts never used in journals will be deleted. Accounts with journal history will only be deactivated so audits and old reports remain intact.",
+      "safeDelete": "Safe delete",
       "code": "Account Code",
       "name": "Account Name",
       "type": "Type",
@@ -1758,7 +1763,9 @@
     "taxEfaktur": "e-Faktur (NSFP)",
     "taxSpt": "VAT Return (SPT)",
     "taxBupot": "Withholding (Bupot)",
-    "taxPb1Monthly": "Monthly PB1"
+    "taxPb1Monthly": "Monthly PB1",
+    "users": "User Management",
+    "mcpTokens": "MCP Tokens"
   },
   "pos": {
     "title": "POS",
@@ -2827,11 +2834,19 @@
     "title": "Settings",
     "users": {
       "title": "User Management",
-      "subtitle": "Manage system users and access rights."
+      "subtitle": "Manage system users and access rights.",
+      "name": "Name",
+      "email": "Email",
+      "status": "Status",
+      "empty": "No users found."
     },
     "mcpTokens": {
       "title": "MCP Tokens",
-      "subtitle": "Manage access tokens for AI integration and third-party services."
+      "subtitle": "Manage access tokens for AI integration and third-party services.",
+      "name": "Token Name",
+      "createdAt": "Created At",
+      "lastUsedAt": "Last Used At",
+      "empty": "No MCP tokens found."
     },
     "permissions": {
       "title": "Permissions & Access Rights",
@@ -4104,6 +4119,13 @@
         "unknown": "An error occurred."
       },
       "slugPlaceholder": "url-slug"
+    },
+    "mediaLibrary": {
+      "title": "Media Library",
+      "uploading": "Uploading...",
+      "uploadImage": "Upload Image",
+      "hint": "Uploads are saved as public CMS images",
+      "uploadFailed": "Upload failed"
     }
   },
   "tax": {

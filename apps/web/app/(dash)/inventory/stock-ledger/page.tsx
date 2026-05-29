@@ -7,10 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 export default async function StockLedgerPage({
   searchParams,
 }: {
-  searchParams: { productId?: string; locationId?: string; tenantId?: string };
+  searchParams: Promise<{ productId?: string; locationId?: string; tenantId?: string }>;
 }) {
   const t = await getTranslations('inventory.stockLedger');
-  const { productId, locationId, tenantId = 'TENANT-001' } = searchParams;
+  const sp = await searchParams;
+  const { productId, locationId, tenantId = 'TENANT-001' } = sp;
 
   if (!productId || !locationId) {
     return (

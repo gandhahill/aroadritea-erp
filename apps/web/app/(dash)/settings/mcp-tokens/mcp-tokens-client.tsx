@@ -1,6 +1,6 @@
 'use client';
 
-import { Card } from '@erp/ui';
+import { useTranslations } from 'next-intl';
 
 interface McpToken {
   id: string;
@@ -10,15 +10,16 @@ interface McpToken {
 }
 
 export function McpTokensClient({ tokens }: { tokens: McpToken[] }) {
+  const t = useTranslations('settings.mcpTokens');
   return (
-    <Card className="overflow-hidden border-brand-cream-3">
+    <div className="overflow-hidden border-brand-cream-3 rounded-xl border bg-card text-card-foreground shadow">
       <div className="overflow-x-auto">
         <table className="w-full min-w-max text-left text-sm">
           <thead className="bg-brand-cream-2 text-brand-ink-2">
             <tr>
-              <th className="px-4 py-3 font-semibold">Token Name</th>
-              <th className="px-4 py-3 font-semibold">Created At</th>
-              <th className="px-4 py-3 font-semibold">Last Used At</th>
+              <th className="px-4 py-3 font-semibold">{t('name')}</th>
+              <th className="px-4 py-3 font-semibold">{t('createdAt')}</th>
+              <th className="px-4 py-3 font-semibold">{t('lastUsedAt')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-cream-3">
@@ -32,13 +33,13 @@ export function McpTokensClient({ tokens }: { tokens: McpToken[] }) {
             {tokens.length === 0 && (
               <tr>
                 <td colSpan={3} className="px-4 py-8 text-center text-brand-ink-3">
-                  No MCP tokens found.
+                  {t('empty')}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
-    </Card>
+    </div>
   );
 }

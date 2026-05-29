@@ -59,7 +59,7 @@ export function MarkdownEditor({ value, onChange, placeholder }: MarkdownEditorP
           &lt;/&gt;
         </Button>
         <div className="mx-2 h-4 w-px bg-brand-cream-3" />
-        <Button variant="outline" size="sm" type="button" onClick={() => setShowMedia(true)} className="h-8">
+        <Button variant="secondary" size="sm" type="button" onClick={() => setShowMedia(true)} className="h-8">
           + Media Library
         </Button>
       </div>

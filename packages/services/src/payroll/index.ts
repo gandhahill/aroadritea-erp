@@ -10,6 +10,8 @@ export {
   ApprovePayrollInputSchema, 
   MarkPaidInputSchema, 
   CancelPayrollInputSchema, 
+  type ApprovePayrollInput,
+  type MarkPaidInput,
   approvePayroll, 
   markPayrollPaid, 
   cancelPayroll 

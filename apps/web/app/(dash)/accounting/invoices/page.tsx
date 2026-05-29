@@ -22,9 +22,10 @@ export default async function InvoicesPage() {
   );
   if (!scope.global && scope.locationIds.length === 0) redirect('/dashboard');
 
-  const [invoicesList, t] = await Promise.all([
+  const [invoicesList, t, tc] = await Promise.all([
     fetchInvoicesAction(),
-    getTranslations('accounting.invoice')
+    getTranslations('accounting.invoice'),
+    getTranslations('common')
   ]);
 
   return (
@@ -77,7 +78,7 @@ export default async function InvoicesPage() {
                     inv.status === 'draft' ? 'bg-brand-cream-3 text-brand-ink-2' : 
                     'bg-brand-red-light text-brand-red'
                   }`}>
-                    {inv.status === 'partial' ? t('partial') : inv.status}
+                    {inv.status === 'partial' ? t('partial') : tc(`status.${inv.status}` as any)}
                   </span>
                 </td>
                 <td className="px-6 py-4 font-mono text-brand-ink">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(inv.total))}</td>
