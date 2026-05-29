@@ -358,8 +358,7 @@ export async function cancelPayroll(
     if (payroll.journalEntryId) {
       const reverseRes = await reverseJournal({
         journalId: payroll.journalEntryId,
-        reversalDate: new Date().toISOString().split('T')[0]!,
-        notes: `Payroll cancellation: ${input.reason}`,
+        postingDate: new Date().toISOString().split('T')[0]!,
       }, ctx);
 
       if (!reverseRes.ok) {
