@@ -299,6 +299,15 @@ export const COA_SEED: AccountSeed[] = [
     'credit',
   ),
   account(
+    '2-1110',
+    'Penerimaan Belum Ditagih (GRNI)',
+    'Goods Received Not Invoiced',
+    '未开票收货',
+    'liability',
+    'current_liability',
+    'credit',
+  ),
+  account(
     '2-1200',
     'Utang Beban',
     'Expense Payable',

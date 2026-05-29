@@ -31,6 +31,13 @@ export {
 } from './equity-changes';
 
 export {
+  getGeneralLedger,
+  type GeneralLedgerInput,
+  type GeneralLedgerResult,
+  type GeneralLedgerLine,
+} from './general-ledger';
+
+export {
   cashFlow,
   type CashFlowInput,
   type CashFlowMovement,

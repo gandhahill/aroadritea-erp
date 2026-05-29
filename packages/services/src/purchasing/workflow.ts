@@ -22,7 +22,7 @@ import { ApprovePOInputSchema, CancelPOInputSchema, SubmitPOInputSchema } from '
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const AP_ACCOUNT_CODE = '2-1010'; // Utang Usaha
+const AP_ACCOUNT_CODE = '2-1100'; // Utang Usaha
 const DEFAULT_INVENTORY_ACCOUNT_CODE = '1-1210'; // Persediaan Barang Dagangan
 const AP_SETTING_KEY = 'accounting.payables.accountIds';
 
@@ -194,10 +194,14 @@ export async function approvePO(
     return err(AppError.notFound('purchasing.errors.po_not_found'));
   }
 
+  const HIGH_VALUE_THRESHOLD = 5000000n; // 5,000,000
+  const isHighValue = po.grandTotal > HIGH_VALUE_THRESHOLD;
+  const requiredPerm = isHighValue ? 'purchasing.po.approve_high_value' : 'purchasing.po.approve';
+
   // Permission scoped to the PO's own location so a director currently
   // checked in at outlet B cannot approve outlet A's PO unless they
   // have approve permission on A.
-  const permCheck = await requirePermission(ctx.userId, 'purchasing.po.approve', {
+  const permCheck = await requirePermission(ctx.userId, requiredPerm as any, {
     locationId: po.locationId,
   });
   if (!permCheck.ok) return permCheck;

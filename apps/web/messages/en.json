@@ -1606,6 +1606,7 @@
     "businessIntelligence": "Business Intelligence",
     "cashFlow": "Cash Flow",
     "equityChanges": "Changes in Equity",
+    "generalLedger": "General Ledger",
     "agingReceivables": "Aging Receivables",
     "agingPayables": "Aging Payables",
     "cogs": "COGS",

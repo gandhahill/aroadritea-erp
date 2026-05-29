@@ -143,6 +143,113 @@ export const goodsReceiptNotes = pgTable(
   ],
 );
 
+// ─── Purchase Requisitions (T-0229) ─────────────────────────────────────────────
+
+export const purchaseRequisitions = pgTable(
+  'purchase_requisitions',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    number: text('number').notNull(), // PRQ-2026-05-0001
+    requestDate: date('request_date').notNull(),
+    requestedBy: text('requested_by').notNull(), // FK users
+
+    status: text('status').notNull().default('draft'),
+    // 'draft' | 'submitted' | 'approved' | 'rejected' | 'converted'
+
+    notes: text('notes'),
+
+    submittedBy: text('submitted_by'),
+    submittedAt: timestamp('submitted_at', { withTimezone: true }),
+    approvedBy: text('approved_by'),
+    approvedAt: timestamp('approved_at', { withTimezone: true }),
+
+    ...versionCol,
+    ...auditCols,
+  },
+  (t) => [
+    index('purchase_requisitions_tenant_loc_idx').on(t.tenantId, t.locationId),
+    index('purchase_requisitions_status_idx').on(t.status),
+    index('purchase_requisitions_number_idx').on(t.number),
+  ],
+);
+
+export const purchaseRequisitionLines = pgTable(
+  'purchase_requisition_lines',
+  {
+    ...pk,
+
+    prId: text('pr_id').notNull(), // FK purchase_requisitions
+    lineNo: integer('line_no').notNull(),
+
+    productId: text('product_id').notNull(), // FK products
+    variantId: text('variant_id'), // FK product_variants
+
+    qtyRequested: numeric('qty_requested', { precision: 14, scale: 3 }).notNull(),
+    uom: text('uom').notNull(),
+
+    notes: text('notes'),
+
+    ...auditCols,
+  },
+  (t) => [
+    index('purchase_requisition_lines_pr_idx').on(t.prId),
+    index('purchase_requisition_lines_product_idx').on(t.productId),
+  ],
+);
+
+// ─── RFQ / Quotation (T-0229) ──────────────────────────────────────────────────
+
+export const rfqs = pgTable(
+  'rfqs',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    number: text('number').notNull(), // RFQ-2026-05-0001
+    prId: text('pr_id'), // FK purchase_requisitions (optional)
+
+    rfqDate: date('rfq_date').notNull(),
+    deadlineDate: date('deadline_date').notNull(),
+
+    status: text('status').notNull().default('draft'),
+    // 'draft' | 'sent' | 'closed' | 'cancelled'
+
+    notes: text('notes'),
+
+    ...versionCol,
+    ...auditCols,
+  },
+  (t) => [
+    index('rfqs_tenant_loc_idx').on(t.tenantId, t.locationId),
+    index('rfqs_status_idx').on(t.status),
+  ],
+);
+
+export const rfqLines = pgTable(
+  'rfq_lines',
+  {
+    ...pk,
+
+    rfqId: text('rfq_id').notNull(), // FK rfqs
+    lineNo: integer('line_no').notNull(),
+
+    productId: text('product_id').notNull(), // FK products
+    variantId: text('variant_id'), // FK product_variants
+
+    qty: numeric('qty', { precision: 14, scale: 3 }).notNull(),
+    uom: text('uom').notNull(),
+
+    ...auditCols,
+  },
+  (t) => [
+    index('rfq_lines_rfq_idx').on(t.rfqId),
+  ],
+);
+
 // ─── GRN Lines ────────────────────────────────────────────────────────────────
 
 export const grnLines = pgTable(
@@ -356,5 +463,61 @@ export const shipmentTrackingRequests = pgTable(
   (t) => [
     index('shipment_tracking_req_tenant_month_idx').on(t.tenantId, t.requestedAt),
     index('shipment_tracking_req_po_idx').on(t.purchaseOrderId),
+  ],
+);
+
+// ─── Supplier Price List (T-0231) ─────────────────────────────────────────────
+
+export const supplierProducts = pgTable(
+  'supplier_products',
+  {
+    ...pk,
+    ...tenantCol,
+
+    supplierId: text('supplier_id').notNull(), // FK partners
+    productId: text('product_id').notNull(), // FK products
+    supplierProductCode: text('supplier_product_code'),
+    supplierProductName: text('supplier_product_name'),
+
+    unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
+    uom: text('uom').notNull(),
+    minOrderQty: numeric('min_order_qty', { precision: 14, scale: 3 }).notNull().default('1'),
+    leadTimeDays: integer('lead_time_days').notNull().default(0),
+
+    isDefault: boolean('is_default').notNull().default(false),
+    isActive: boolean('is_active').notNull().default(true),
+
+    ...auditCols,
+  },
+  (t) => [
+    index('supplier_products_supplier_idx').on(t.supplierId),
+    index('supplier_products_product_idx').on(t.productId),
+    uniqueIndex('supplier_products_supplier_product_idx').on(t.supplierId, t.productId),
+  ],
+);
+
+// ─── Landed Costs (T-0231) ──────────────────────────────────────────────────
+
+export const landedCosts = pgTable(
+  'landed_costs',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    grnId: text('grn_id').notNull(), // FK goods_receipt_notes
+    costType: text('cost_type').notNull(), // 'shipping' | 'insurance' | 'customs' | 'other'
+    
+    amount: bigint('amount', { mode: 'bigint' }).notNull(),
+    allocationMethod: text('allocation_method').notNull().default('value'), // 'value' | 'qty' | 'weight' | 'volume' | 'manual'
+    
+    invoiceId: text('invoice_id'), // FK purchase_invoices (optional, if cost came from a separate invoice)
+    
+    notes: text('notes'),
+
+    ...auditCols,
+  },
+  (t) => [
+    index('landed_costs_grn_idx').on(t.grnId),
   ],
 );

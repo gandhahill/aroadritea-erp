@@ -23,7 +23,7 @@
 
 import { db } from '@erp/db';
 import type { PermissionCode } from '@erp/shared/types';
-import { accountingPeriods, accounts } from '@erp/db/schema/accounting';
+import { accountingPeriods, accounts, taxRates } from '@erp/db/schema/accounting';
 import { products, stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import {
   goodsReceiptNotes,
@@ -49,7 +49,7 @@ import {
 // ─── Constants ─────────────────────────────────────────────────────────────
 
 /** Mirror of the GRN posting account — "Barang Diterima Belum Ditagih". */
-const GRNI_ACCOUNT_CODE = '2-1120';
+const GRNI_ACCOUNT_CODE = '2-1110';
 const DEFAULT_INVENTORY_ACCOUNT_CODE = '1-1210';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -541,7 +541,7 @@ export async function postPurchaseReturn(
     .where(eq(purchaseReturnLines.returnId, row.id))
     .orderBy(purchaseReturnLines.lineNo);
 
-  // JE: DR GRNI / CR Inventory (reverse of the original GRN posting).
+  // JE: DR GRNI / CR Inventory / CR Tax (reverse of the original GRN posting).
   let journalEntryId: string | null = null;
   if (row.grandTotal > 0n && lines.length > 0) {
     const grniAccountId = await resolveAccountId(ctx.tenantId, GRNI_ACCOUNT_CODE);
@@ -553,8 +553,79 @@ export async function postPurchaseReturn(
         .where(eq(purchaseReturns.id, row.id));
       return err(AppError.businessRule('purchasing.errors.grni_account_not_found'));
     }
-    const firstLine = lines[0]!;
-    const invAccountId = await resolveInventoryAccountForProduct(ctx.tenantId, firstLine.productId);
+
+    // Pre-fetch tax rates for posting accounts
+    const allTaxRates = await db.select().from(taxRates).where(eq(taxRates.isActive, true));
+    const taxRateMap = new Map(allTaxRates.map(tr => [tr.code, tr.postingAccountId]));
+
+    const inventoryValueByAccount = new Map<string, bigint>();
+    const taxValueByAccount = new Map<string, bigint>();
+
+    for (const line of lines) {
+      // Inventory (Subtotal)
+      if (line.lineSubtotal > 0n) {
+        const invAccountId = await resolveInventoryAccountForProduct(ctx.tenantId, line.productId);
+        if (!invAccountId) {
+          return err(AppError.businessRule('purchasing.errors.inventory_account_not_found'));
+        }
+        inventoryValueByAccount.set(
+          invAccountId,
+          (inventoryValueByAccount.get(invAccountId) ?? 0n) + line.lineSubtotal
+        );
+      }
+      
+      // Tax
+      if (line.lineTax > 0n && line.taxCode) {
+        const taxAccountId = taxRateMap.get(line.taxCode);
+        if (!taxAccountId) {
+          return err(AppError.businessRule('purchasing.errors.tax_account_not_found', { code: line.taxCode }));
+        }
+        taxValueByAccount.set(
+          taxAccountId,
+          (taxValueByAccount.get(taxAccountId) ?? 0n) + line.lineTax
+        );
+      }
+    }
+
+    const jeLines = [];
+
+    // DR GRNI by Grand Total
+    jeLines.push({
+      accountId: grniAccountId,
+      locationId: row.locationId,
+      description: `Return ${row.number} GRNI`,
+      debit: row.grandTotal.toString(),
+      credit: '0',
+      partnerId: row.supplierId,
+    });
+
+    // CR Inventory by Subtotal per Account
+    for (const [accountId, amount] of inventoryValueByAccount.entries()) {
+      if (amount > 0n) {
+        jeLines.push({
+          accountId,
+          locationId: row.locationId,
+          description: `Return ${row.number} inventory`,
+          debit: '0',
+          credit: amount.toString(),
+          partnerId: row.supplierId,
+        });
+      }
+    }
+
+    // CR Tax per Account
+    for (const [accountId, amount] of taxValueByAccount.entries()) {
+      if (amount > 0n) {
+        jeLines.push({
+          accountId,
+          locationId: row.locationId,
+          description: `Return ${row.number} tax`,
+          debit: '0',
+          credit: amount.toString(),
+          partnerId: row.supplierId,
+        });
+      }
+    }
 
     const jeResult = await createJournal(
       {
@@ -563,24 +634,7 @@ export async function postPurchaseReturn(
         description: `Purchase return ${row.number} (supplier ${row.supplierId})`,
         referenceType: 'purchase',
         referenceId: row.id,
-        lines: [
-          {
-            accountId: grniAccountId,
-            locationId: row.locationId,
-            description: `Return ${row.number} GRNI`,
-            debit: row.grandTotal.toString(),
-            credit: '0',
-            partnerId: row.supplierId,
-          },
-          {
-            accountId: invAccountId,
-            locationId: row.locationId,
-            description: `Return ${row.number} inventory`,
-            debit: '0',
-            credit: row.grandTotal.toString(),
-            partnerId: row.supplierId,
-          },
-        ],
+        lines: jeLines,
       },
       ctx,
     );

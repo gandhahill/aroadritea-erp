@@ -92,6 +92,12 @@ export {
   purchaseInvoices,
   purchaseInvoiceLines,
   shipmentTrackingRequests,
+  purchaseRequisitions,
+  purchaseRequisitionLines,
+  rfqs,
+  rfqLines,
+  supplierProducts,
+  landedCosts,
 } from './schema/purchasing';
 
 // Schema — Scheduled Jobs

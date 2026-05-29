@@ -29,6 +29,13 @@ import {
   createGRN,
   createPO,
   trackPurchaseOrderShipment,
+  createPurchaseInvoice,
+  verifyPurchaseInvoice,
+  cancelPurchaseInvoice,
+  createPurchaseRequisition,
+  submitPurchaseRequisition,
+  approvePurchaseRequisition,
+  createRFQ,
 } from '@erp/services/purchasing';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
@@ -388,6 +395,7 @@ export async function syncPurchaseShipmentAction(formData: FormData): Promise<Ac
     { ...ctx, locationId: poRow.locationId },
   );
 
+
   revalidatePath('/purchasing');
   revalidatePath('/purchasing/shipments');
   revalidatePath(`/purchasing/po/${poId}`);
@@ -739,4 +747,74 @@ export async function fetchGRNReport(
     total,
     locations: locationRows.map((l) => ({ id: l.id, name: localizedName(l.name) })),
   };
+}
+
+export async function createPurchaseInvoiceAction(input: unknown) {
+  const ctx = await getSessionContext();
+  if (!ctx) return { success: false, error: 'Unauthorized' };
+  const res = await createPurchaseInvoice(input, ctx as any);
+  if (res.ok) {
+    revalidatePath('/purchasing');
+  }
+  return res;
+}
+
+export async function verifyPurchaseInvoiceAction(input: unknown) {
+  const ctx = await getSessionContext();
+  if (!ctx) return { success: false, error: 'Unauthorized' };
+  const res = await verifyPurchaseInvoice(input, ctx as any);
+  if (res.ok) {
+    revalidatePath('/purchasing');
+  }
+  return res;
+}
+
+export async function cancelPurchaseInvoiceAction(input: unknown) {
+  const ctx = await getSessionContext();
+  if (!ctx) return { success: false, error: 'Unauthorized' };
+  const res = await cancelPurchaseInvoice(input, ctx as any);
+  if (res.ok) {
+    revalidatePath('/purchasing');
+  }
+  return res;
+}
+
+export async function createPurchaseRequisitionAction(input: unknown) {
+  const ctx = await getSessionContext();
+  if (!ctx) return { success: false, error: 'Unauthorized' };
+  const res = await createPurchaseRequisition(input, ctx as any);
+  if (res.ok) {
+    revalidatePath('/purchasing');
+  }
+  return res;
+}
+
+export async function submitPurchaseRequisitionAction(input: unknown) {
+  const ctx = await getSessionContext();
+  if (!ctx) return { success: false, error: 'Unauthorized' };
+  const res = await submitPurchaseRequisition(input, ctx as any);
+  if (res.ok) {
+    revalidatePath('/purchasing');
+  }
+  return res;
+}
+
+export async function approvePurchaseRequisitionAction(input: unknown) {
+  const ctx = await getSessionContext();
+  if (!ctx) return { success: false, error: 'Unauthorized' };
+  const res = await approvePurchaseRequisition(input, ctx as any);
+  if (res.ok) {
+    revalidatePath('/purchasing');
+  }
+  return res;
+}
+
+export async function createRFQAction(input: unknown) {
+  const ctx = await getSessionContext();
+  if (!ctx) return { success: false, error: 'Unauthorized' };
+  const res = await createRFQ(input, ctx as any);
+  if (res.ok) {
+    revalidatePath('/purchasing');
+  }
+  return res;
 }

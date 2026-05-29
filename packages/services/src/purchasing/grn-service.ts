@@ -27,8 +27,7 @@ import { ConfirmGRNInputSchema, CreateGRNInputSchema, type GRNLineInput } from '
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const AP_ACCOUNT_CODE = '2-1010'; // Utang Usaha
-const AP_SETTING_KEY = 'accounting.payables.accountIds';
+const GRNI_ACCOUNT_CODE = '2-1110'; // Goods Received Not Invoiced
 const DEFAULT_INVENTORY_ACCOUNT_CODE = '1-1210'; // Persediaan Barang Dagangan
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -42,35 +41,8 @@ async function resolveAccountId(tenantId: string, code: string): Promise<string 
   return row?.id ?? null;
 }
 
-async function resolvePayablesAccountId(tenantId: string): Promise<string | null> {
-  const [setting] = await db
-    .select({ value: cmsSettings.value })
-    .from(cmsSettings)
-    .where(and(eq(cmsSettings.tenantId, tenantId), eq(cmsSettings.key, AP_SETTING_KEY)))
-    .limit(1);
-
-  const configuredIds = Array.isArray(setting?.value)
-    ? setting.value.filter((value): value is string => typeof value === 'string')
-    : [];
-
-  if (configuredIds.length > 0) {
-    const rows = await db
-      .select({ id: accounts.id })
-      .from(accounts)
-      .where(
-        and(
-          eq(accounts.tenantId, tenantId),
-          eq(accounts.isActive, true),
-          eq(accounts.isPostable, true),
-          isNull(accounts.deletedAt),
-          inArray(accounts.id, configuredIds),
-        ),
-      )
-      .limit(1);
-    if (rows[0]?.id) return rows[0].id;
-  }
-
-  return resolveAccountId(tenantId, AP_ACCOUNT_CODE);
+async function resolveGrniAccountId(tenantId: string): Promise<string | null> {
+  return resolveAccountId(tenantId, GRNI_ACCOUNT_CODE);
 }
 
 function addDays(date: string, days: number): string {
@@ -431,9 +403,9 @@ export async function confirmGRN(
     return err(AppError.conflict('purchasing.errors.version_mismatch'));
   }
 
-  const apAccountId = await resolvePayablesAccountId(ctx.tenantId);
-  if (!apAccountId) {
-    return err(AppError.businessRule('purchasing.errors.ap_account_not_found'));
+  const grniAccountId = await resolveGrniAccountId(ctx.tenantId);
+  if (!grniAccountId) {
+    return err(AppError.businessRule('purchasing.errors.grni_account_not_found'));
   }
 
   const [supplier] = await db
@@ -453,11 +425,29 @@ export async function confirmGRN(
   // Compute total value with bigint math (3-decimal scaling) before
   // mutating anything. This drives the JE amount.
   let totalValue = 0n;
+  const inventoryValueByAccount = new Map<string, bigint>();
+
   for (const line of lines) {
     const poLine = poLineMap.get(line.poLineId);
     if (poLine) {
       const qty = BigInt(Math.round(Number.parseFloat(line.qtyReceived) * 1000));
-      totalValue += (qty * poLine.unitPrice) / 1000n;
+      const lineValue = (qty * poLine.unitPrice) / 1000n;
+      totalValue += lineValue;
+
+      const invAccountId = await resolveInventoryAccountForProduct(
+        ctx.tenantId,
+        line.productId,
+      );
+      if (!invAccountId) {
+        return err(
+          AppError.businessRule('purchasing.errors.inventory_account_not_found')
+        );
+      }
+
+      inventoryValueByAccount.set(
+        invAccountId,
+        (inventoryValueByAccount.get(invAccountId) ?? 0n) + lineValue,
+      );
     }
   }
 
@@ -465,11 +455,31 @@ export async function confirmGRN(
   // inactive), roll the GRN status back so nothing else runs.
   let journalEntryId: string | null = null;
   if (totalValue > 0n) {
-    const firstProduct = lines[0]!;
-    const invAccountId = await resolveInventoryAccountForProduct(
-      ctx.tenantId,
-      firstProduct.productId,
-    );
+    const jeLines = [];
+
+    // Debit each inventory account
+    for (const [accountId, amount] of inventoryValueByAccount.entries()) {
+      if (amount > 0n) {
+        jeLines.push({
+          accountId,
+          locationId: grn.locationId,
+          description: `GRN ${grn.number} inventory`,
+          debit: amount.toString(),
+          credit: '0',
+          partnerId: po.supplierId,
+        });
+      }
+    }
+
+    // Credit GRNI
+    jeLines.push({
+      accountId: grniAccountId,
+      locationId: grn.locationId,
+      description: `GRN ${grn.number} GRNI`,
+      debit: '0',
+      credit: totalValue.toString(),
+      partnerId: po.supplierId,
+    });
 
     const jeResult = await createJournal(
       {
@@ -478,26 +488,7 @@ export async function confirmGRN(
         description: `GRN ${grn.number} — goods received (PO ${po.number})`,
         referenceType: 'purchase',
         referenceId: grn.id,
-        lines: [
-          {
-            accountId: invAccountId,
-            locationId: grn.locationId,
-            description: `GRN ${grn.number} inventory`,
-            debit: totalValue.toString(),
-            credit: '0',
-            partnerId: po.supplierId,
-          },
-          {
-            accountId: apAccountId,
-            locationId: grn.locationId,
-            description: `GRN ${grn.number} accounts payable`,
-            debit: '0',
-            credit: totalValue.toString(),
-            partnerId: po.supplierId,
-            dueDate: apDueDate,
-            reminderDaysBefore: 7,
-          },
-        ],
+        lines: jeLines,
       },
       ctx,
     );

@@ -45,3 +45,43 @@ export type {
   PurchaseReturnLineInput,
   PurchaseReturnIdInput,
 } from './return-schemas';
+
+export {
+  createPurchaseInvoice,
+  verifyPurchaseInvoice,
+  cancelPurchaseInvoice,
+} from './purchase-invoice-service';
+
+export {
+  CreatePurchaseInvoiceInputSchema,
+  PurchaseInvoiceLineInputSchema,
+  VerifyPurchaseInvoiceInputSchema,
+  CancelPurchaseInvoiceInputSchema,
+} from './purchase-invoice-schemas';
+export type {
+  CreatePurchaseInvoiceInput,
+  PurchaseInvoiceLineInput,
+} from './purchase-invoice-schemas';
+
+export {
+  createPurchaseRequisition,
+  submitPurchaseRequisition,
+  approvePurchaseRequisition,
+  createRFQ,
+} from './pr-service';
+
+export {
+  CreatePurchaseRequisitionInputSchema,
+  PurchaseRequisitionLineInputSchema,
+  PRIdInputSchema,
+  CreateRFQInputSchema,
+} from './pr-schemas';
+
+export type {
+  CreatePurchaseRequisitionInput,
+  PurchaseRequisitionLineInput,
+} from './pr-schemas';
+
+export { allocateLandedCost } from './landed-cost-service';
+export { AllocateLandedCostInputSchema } from './landed-cost-service';
+export type { AllocateLandedCostInput } from './landed-cost-service';

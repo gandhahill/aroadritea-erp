@@ -166,6 +166,8 @@ export const partners = pgTable(
     isMember: boolean('is_member').notNull().default(false),
     loyaltyTier: text('loyalty_tier').default('bronze'),
     paymentTermsDays: integer('payment_terms_days').default(0),
+    rating: integer('rating').default(0),
+    leadTimeDays: integer('lead_time_days').default(0),
     isActive: boolean('is_active').notNull().default(true),
     ...auditCols,
     ...versionCol,

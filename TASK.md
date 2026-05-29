@@ -267,17 +267,17 @@
 | T-0224 | Disposal aset tetap (workflow + jurnal) | S | P2 | 🟩 DONE |
 | T-0225 | Pembayaran invoice parsial/cicilan + payment allocation | M | P1 | 🟩 DONE |
 | T-0226 | Laporan Perubahan Ekuitas (SAK ETAP) | S | P2 | 🟩 DONE |
-| T-0227 | Buku Besar drill-down per akun + comparative period | M | P2 | 🟦 PENDING |
+| T-0227 | Buku Besar drill-down per akun + comparative period | M | P2 | 🟩 DONE |
 
 ### Tier 2 — Purchasing
 
 | ID | Title | Effort | Priority | Status |
 |----|-------|--------|----------|--------|
-| T-0228 | Purchase invoice service + 3-way matching (PO↔GRN↔Invoice) | L | P1 | 🟦 PENDING |
-| T-0229 | Purchase Requisition (PR) + RFQ/quotation | M | P2 | 🟦 PENDING |
-| T-0230 | Approval PO berjenjang (threshold nilai/multi-approver) | S | P2 | 🟦 PENDING |
-| T-0231 | Master supplier (price list, lead time, rating) + landed cost | M | P2 | 🟦 PENDING |
-| T-0232 | Perbaiki JE GRN/PO per inventory account + pajak retur | S | P1 | 🟦 PENDING |
+| T-0228 | Purchase invoice service + 3-way matching (PO↔GRN↔Invoice) | L | P1 | 🟩 DONE |
+| T-0229 | Purchase Requisition (PR) + RFQ/quotation | M | P2 | 🟩 DONE |
+| T-0230 | Approval PO berjenjang (threshold nilai/multi-approver) | S | P2 | 🟩 DONE |
+| T-0231 | Master supplier (price list, lead time, rating) + landed cost | M | P2 | 🟩 DONE |
+| T-0232 | Perbaiki JE GRN/PO per inventory account + pajak retur | S | P1 | 🟩 DONE |
 
 ### Tier 2 — Inventory / Kitchen
 
