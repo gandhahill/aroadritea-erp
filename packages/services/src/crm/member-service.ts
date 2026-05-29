@@ -16,6 +16,7 @@
 import { db } from '@erp/db';
 import { partners } from '@erp/db/schema/accounting';
 import { memberLoyalty, memberPointsTransactions } from '@erp/db/schema/member';
+import { salesOrders } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
@@ -271,3 +272,40 @@ export async function adjustMemberPoints(
 
   return ok({ balanceAfter: newBalance });
 }
+
+// ─── purchase history ─────────────────────────────────────────────────────
+
+export async function getMemberPurchaseHistory(
+  memberId: string,
+  ctx: AuditContext,
+): Promise<Result<{ items: Record<string, unknown>[] }>> {
+  const permCheck = await requirePermission(ctx.userId, 'crm.member.view');
+  if (!permCheck.ok) return permCheck;
+
+  try {
+    const rows = await db
+      .select({
+        id: salesOrders.id,
+        number: salesOrders.number,
+        placedAt: salesOrders.placedAt,
+        channel: salesOrders.channel,
+        grandTotal: salesOrders.grandTotal,
+        status: salesOrders.status,
+      })
+      .from(salesOrders)
+      .where(and(eq(salesOrders.tenantId, ctx.tenantId), eq(salesOrders.customerId, memberId)))
+      .orderBy(desc(salesOrders.placedAt))
+      .limit(50);
+
+    return ok({
+      items: rows.map(r => ({
+        ...r,
+        grandTotal: r.grandTotal.toString(),
+        placedAt: r.placedAt.toISOString(),
+      }))
+    });
+  } catch (e) {
+    return err(AppError.internal('crm.member.historyFailed', e));
+  }
+}
+

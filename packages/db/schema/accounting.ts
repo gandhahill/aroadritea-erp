@@ -164,7 +164,8 @@ export const partners = pgTable(
     city: text('city'),
     isPkp: boolean('is_pkp').notNull().default(false),
     isMember: boolean('is_member').notNull().default(false),
-    loyaltyTier: text('loyalty_tier').default('bronze'),
+    loyaltyTier: text('loyalty_tier').default('bronze'), // T-0242
+    lifetimeSpend: bigint('lifetime_spend', { mode: 'bigint' }).notNull().default(sql`0`), // T-0242
     paymentTermsDays: integer('payment_terms_days').default(0),
     rating: integer('rating').default(0),
     leadTimeDays: integer('lead_time_days').default(0),

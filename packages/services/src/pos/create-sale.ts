@@ -1529,8 +1529,8 @@ export async function voidSale(input: unknown, ctx: AuditContext): Promise<Resul
     });
     if (!permCheck.ok) return permCheck;
 
-    if (sale.status !== 'open') {
-      return err(AppError.businessRule('pos.void.notOpen', { currentStatus: sale.status }));
+    if (sale.status !== 'open' && sale.status !== 'parked') {
+      return err(AppError.businessRule('pos.void.notOpenOrParked', { currentStatus: sale.status }));
     }
     if (sale.version !== data.version) {
       return err(AppError.conflict('pos.void.versionMismatch'));

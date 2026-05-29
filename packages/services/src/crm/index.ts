@@ -661,3 +661,4 @@ export async function redeemLoyaltyPoints(
 
 // Re-export the member-data service (T-0183).
 export * from './member-service';
+export { evaluateLoyaltyTier, addLifetimeSpend, TIER_THRESHOLDS } from './loyalty-service';

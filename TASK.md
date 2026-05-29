@@ -293,11 +293,11 @@
 
 | ID | Title | Effort | Priority | Status |
 |----|-------|--------|----------|--------|
-| T-0238 | POS: hold/recall (park) order | S | P2 | 🟦 PENDING |
-| T-0239 | POS: open cash drawer (ESC/POS) + scan barcode/SKU | M | P2 | 🟦 PENDING |
-| T-0240 | POS: tempel payload QR Naixer KDS ke sale lines | M | P1 | 🟦 PENDING |
-| T-0241 | POS: perbaiki guard `voidSale` (status `paid` tak bisa void) | S | P1 | 🟦 PENDING |
-| T-0242 | CRM: riwayat pembelian + benefit tier otomatis + segmentasi | M | P2 | 🟦 PENDING |
+| T-0238 | POS: hold/recall (park) order | S | P2 | 🟩 DONE |
+| T-0239 | POS: open cash drawer (ESC/POS) + scan barcode/SKU | M | P2 | 🟩 DONE |
+| T-0240 | POS: tempel payload QR Naixer KDS ke sale lines | M | P1 | 🟩 DONE |
+| T-0241 | POS: perbaiki guard `voidSale` (status `paid` tak bisa void) | S | P1 | 🟩 DONE |
+| T-0242 | CRM: riwayat pembelian + benefit tier otomatis + segmentasi | M | P2 | 🟩 DONE |
 
 ### Tier 2 — HR / Payroll
 

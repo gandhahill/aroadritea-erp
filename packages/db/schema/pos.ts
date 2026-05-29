@@ -226,7 +226,13 @@ export const salesOrders = pgTable(
 
     // SD §9.5: order status
     status: text('status').notNull().default('open'),
-    // 'open' | 'paid' | 'refunded' | 'voided'
+    // 'open' | 'parked' | 'paid' | 'refunded' | 'voided'
+
+    parkedAt: timestamp('parked_at', { withTimezone: true }),
+    parkNote: text('park_note'),
+
+    // T-0240: Naixer KDS payload
+    naixerPayload: text('naixer_payload'),
 
     placedAt: timestamp('placed_at', { withTimezone: true }).notNull().defaultNow(),
 
