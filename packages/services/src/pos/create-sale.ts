@@ -64,6 +64,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import { generateQrPayload } from '../kitchen/generate-qr';
+import { queueOrderItems } from '../kitchen/kds-service';
 import { earnLoyaltyPoints } from '../crm';
 import { requirePermission } from '../iam';
 import { notifyByPermission } from '../notification';
@@ -1172,7 +1173,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     }
 
     // 11. Insert order lines
-    const orderLines = [];
+    const orderLines: any[] = [];
     for (let idx = 0; idx < lineResults.length; idx++) {
       const lr = lineResults[idx]!;
       let kdsQrToken: string | null = null;
@@ -1471,6 +1472,11 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
         // Non-fatal: do not fail the sale if loyalty earning fails
       });
     }
+
+    // Auto-queue to KDS (T-0258)
+    queueOrderItems({ salesOrderId: saleId }, ctx).catch(() => {
+      // Non-fatal: do not fail the sale if KDS queueing fails synchronously
+    });
 
     // 16. Build result
     const result: SaleResult = {

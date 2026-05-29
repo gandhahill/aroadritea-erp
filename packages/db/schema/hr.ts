@@ -337,6 +337,10 @@ export const attendance = pgTable(
     checkOutAt: timestamp('check_out_at', { withTimezone: true }),
     checkOutGps: jsonb('check_out_gps'),
 
+    // T-0254: Face matching attendance verification API (Mock)
+    isFaceVerified: boolean('is_face_verified').notNull().default(false),
+    faceMatchScore: integer('face_match_score'),
+
     // SOP late rules (SD §21.8 §Attendance SOP)
     isLate: boolean('is_late').notNull().default(false),
     lateMinutes: integer('late_minutes').notNull().default(0),

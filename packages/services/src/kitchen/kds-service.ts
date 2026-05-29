@@ -22,7 +22,7 @@ export type KdsStatus = 'queued' | 'making' | 'ready' | 'served' | 'cancelled';
 
 export interface QueueOrderItemsInput {
   salesOrderId: string;
-  pickupNumber: number;
+  pickupNumber?: number;
 }
 
 export interface UpdateKdsStatusInput {
@@ -115,6 +115,7 @@ export async function queueOrderItems(
 
   const now = new Date();
   const results: KdsItemResult[] = [];
+  const resolvedPickupNumber = input.pickupNumber ?? Math.floor(Math.random() * 999) + 1;
 
   for (const line of lines) {
     const productSummary = buildProductSummary(line);
@@ -127,7 +128,7 @@ export async function queueOrderItems(
       salesOrderId: input.salesOrderId,
       salesOrderLineId: line.id,
       status: 'queued',
-      pickupNumber: input.pickupNumber,
+      pickupNumber: resolvedPickupNumber,
       productSummary,
       qrPayload: line.kdsQrPayload,
       queuedAt: now,
@@ -140,7 +141,7 @@ export async function queueOrderItems(
       salesOrderId: input.salesOrderId,
       salesOrderLineId: line.id,
       status: 'queued',
-      pickupNumber: input.pickupNumber,
+      pickupNumber: resolvedPickupNumber,
       productSummary,
       qrPayload: line.kdsQrPayload,
       queuedAt: now,

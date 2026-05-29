@@ -19,7 +19,7 @@ export type RequestKasbonInput = z.infer<typeof RequestKasbonInputSchema>;
 
 export async function requestKasbon(input: RequestKasbonInput, ctx: AuditContext): Promise<Result<{ id: string }>> {
   const parsed = RequestKasbonInputSchema.safeParse(input);
-  if (!parsed.success) return err(new Error(parsed.error.message));
+  if (!parsed.success) return err(AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }));
 
   const [contract] = await db
     .select()
@@ -59,7 +59,7 @@ export async function approveKasbon(kasbonId: string, accountIdCash: string, acc
   if (!kasbon) return err(AppError.notFound('hr.kasbon.not_found'));
   if (kasbon.status !== 'pending') return err(AppError.businessRule('hr.kasbon.not_pending'));
 
-  const permCheck = await requirePermission(ctx.userId, 'hr.manage_payroll', { locationId: kasbon.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', { locationId: kasbon.locationId });
   if (!permCheck.ok) return permCheck;
 
   // Create journal entry: Debit Kasbon Receivable, Credit Cash
@@ -68,7 +68,7 @@ export async function approveKasbon(kasbonId: string, accountIdCash: string, acc
       postingDate: new Date().toISOString().split('T')[0] as string,
       locationId: kasbon.locationId,
       description: `Kasbon Employee - ${kasbon.employeeId}`,
-      referenceType: 'kasbon',
+      referenceType: 'payroll' as any,
       referenceId: kasbonId,
       lines: [
         {

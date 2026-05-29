@@ -31,11 +31,11 @@ export async function getProfitAndLoss(
   ctx: AuditContext,
 ): Promise<Result<ProfitAndLossResult>> {
   const parsed = GetProfitAndLossInputSchema.safeParse(input);
-  if (!parsed.success) return err(new Error(parsed.error.message));
+  if (!parsed.success) return err(AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }));
   const { locationId, startDate, endDate } = parsed.data;
 
   // View permission is needed to view reporting.
-  const permCheck = await requirePermission(ctx.userId, 'accounting.reports.view', locationId ? { locationId } : undefined);
+  const permCheck = await requirePermission(ctx.userId, 'accounting.reports', locationId ? { locationId } : undefined);
   if (!permCheck.ok) return permCheck;
 
   // 1. Fetch relevant accounts (income, cogs, expense)

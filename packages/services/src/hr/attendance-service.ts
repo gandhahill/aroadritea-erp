@@ -69,6 +69,7 @@ export const CheckInInputSchema = z.object({
   shiftDefinitionId: z.string().optional(), // if null, derive from employee's current schedule
   method: z.enum(['gps']),
   gpsData: GpsDataSchema.optional(),
+  photoUrl: z.string().url().optional(),
   /** Override current date/time (for testing/import) */
   performedAt: z.string().datetime().optional(),
 });
@@ -78,6 +79,7 @@ export type CheckInInput = z.infer<typeof CheckInInputSchema>;
 export const CheckOutInputSchema = z.object({
   attendanceId: z.string().min(1),
   gpsData: GpsDataSchema.optional(),
+  photoUrl: z.string().url().optional(),
   performedAt: z.string().datetime().optional(),
 });
 
@@ -185,6 +187,15 @@ async function getLocationGpsConfig(
 
   if (!Number.isFinite(lat) || !Number.isFinite(lng) || !Number.isFinite(radiusM)) return null;
   return { lat: lat!, lng: lng!, radiusM };
+}
+
+// ─── Face Verification Mock (T-0254) ─────────────────────────────────────────
+
+export async function verifyFaceMatching(photoUrl: string, employeeId: string): Promise<{ isVerified: boolean; score: number }> {
+  // Simulate API call to an AI face matching service
+  console.log(`[FaceMatch] Verifying photo ${photoUrl} for employee ${employeeId}`);
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  return { isVerified: true, score: 98 };
 }
 
 // ─── checkIn ────────────────────────────────────────────────────────────────
@@ -365,6 +376,14 @@ export async function checkIn(
         shiftCode = shiftDef.code;
       }
 
+        let faceMatchScore: number | null = null;
+        let isFaceVerified = false;
+        if (data.photoUrl) {
+          const faceRes = await verifyFaceMatching(data.photoUrl, resolvedEmployeeId);
+          isFaceVerified = faceRes.isVerified;
+          faceMatchScore = faceRes.score;
+        }
+
       // 5. Create attendance record
       const attId = generateId();
       const [record] = await db
@@ -381,6 +400,8 @@ export async function checkIn(
           checkInMethod: data.method,
           checkInGps: data.gpsData ?? null,
           shiftDefinitionCode: shiftCode,
+          isFaceVerified,
+          faceMatchScore,
           isLate,
           lateMinutes,
         })

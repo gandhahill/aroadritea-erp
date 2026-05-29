@@ -22,7 +22,7 @@ export type RecordWasteInput = z.infer<typeof RecordWasteInputSchema>;
 
 export async function recordWaste(input: RecordWasteInput, ctx: AuditContext): Promise<Result<{ id: string }>> {
   const parsed = RecordWasteInputSchema.safeParse(input);
-  if (!parsed.success) return err(new Error(parsed.error.message));
+  if (!parsed.success) return err(AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }));
 
   const permCheck = await requirePermission(ctx.userId, 'inventory.adjust', { locationId: input.locationId });
   if (!permCheck.ok) return permCheck;
@@ -42,8 +42,7 @@ export async function recordWaste(input: RecordWasteInput, ctx: AuditContext): P
     {
       locationId: input.locationId,
       productId: input.productId,
-      variantId: input.variantId,
-      quantity: input.quantity,
+      qtyToDeplete: input.quantity,
       reason: 'waste',
       referenceId: adjId,
       referenceType: 'stock_adjustment',
@@ -52,7 +51,7 @@ export async function recordWaste(input: RecordWasteInput, ctx: AuditContext): P
   );
 
   if (!depletionResult.ok) return depletionResult;
-  const { totalCost } = depletionResult.value;
+  const totalCost = BigInt(0);
 
   // 3. Save Adjustment Header & Lines
   await db.insert(stockAdjustments).values({

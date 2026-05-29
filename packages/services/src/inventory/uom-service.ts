@@ -76,5 +76,5 @@ export async function convertQty(
     return ok(qty / multiplyBy);
   }
 
-  return err(AppError.serverError('inventory.errors.uom_resolution_failed'));
+  return err(AppError.internal('inventory.errors.uom_resolution_failed'));
 }

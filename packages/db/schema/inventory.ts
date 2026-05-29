@@ -407,6 +407,8 @@ export const stockLevels = pgTable(
     // Current quantity (recalculated from stock_movements)
     qtyOnHand: numeric('qty_on_hand', { precision: 14, scale: 3 }).notNull().default('0'),
     qtyReserved: numeric('qty_reserved', { precision: 14, scale: 3 }).notNull().default('0'),
+    // T-0239: Stock allocation
+    allocatedQty: numeric('allocated_qty', { precision: 14, scale: 3 }).notNull().default('0'),
     qtyAvailable: numeric('qty_available', { precision: 14, scale: 3 }).notNull().default('0'),
     // qty_available = qty_on_hand - qty_reserved
 

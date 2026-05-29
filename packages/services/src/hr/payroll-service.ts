@@ -1,5 +1,6 @@
 import { db } from '@erp/db';
 import { payrolls, payrollLines, employmentContracts, attendance, cashAdvances, salaryComponents } from '@erp/db/schema/hr';
+import { accountingPeriods } from '@erp/db/schema/accounting';
 import { accounts } from '@erp/db/schema/accounting';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
@@ -21,9 +22,9 @@ export type RunPayrollInput = z.infer<typeof RunPayrollInputSchema>;
 
 export async function generatePayrollRun(input: RunPayrollInput, ctx: AuditContext): Promise<Result<{ id: string }>> {
   const parsed = RunPayrollInputSchema.safeParse(input);
-  if (!parsed.success) return err(new Error(parsed.error.message));
+  if (!parsed.success) return err(AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }));
 
-  const permCheck = await requirePermission(ctx.userId, 'hr.manage_payroll', { locationId: input.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', { locationId: input.locationId });
   if (!permCheck.ok) return permCheck;
 
   // Find active contracts in location
@@ -168,7 +169,7 @@ export async function approvePayroll(payrollId: string, expenseAccountId: string
   if (!payroll) return err(AppError.notFound('hr.payroll.not_found'));
   if (payroll.status !== 'draft') return err(AppError.businessRule('hr.payroll.not_draft'));
 
-  const permCheck = await requirePermission(ctx.userId, 'hr.manage_payroll', { locationId: payroll.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', { locationId: payroll.locationId });
   if (!permCheck.ok) return permCheck;
 
   // Auto-journal
@@ -244,7 +245,7 @@ export async function cancelPayroll(payrollId: string, ctx: AuditContext): Promi
   if (!payroll) return err(AppError.notFound('hr.payroll.not_found'));
   if (payroll.status === 'cancelled') return err(AppError.businessRule('hr.payroll.already_cancelled'));
 
-  const permCheck = await requirePermission(ctx.userId, 'hr.manage_payroll', { locationId: payroll.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', { locationId: payroll.locationId });
   if (!permCheck.ok) return permCheck;
 
   // Check if accounting period is open

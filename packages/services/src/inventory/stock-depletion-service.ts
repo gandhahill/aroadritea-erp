@@ -28,7 +28,7 @@ export async function depleteStock(
 ): Promise<Result<{ depletedBatches: { batchNo: string | null; qty: number }[] }>> {
   const parsed = DepleteStockInputSchema.safeParse(input);
   if (!parsed.success) {
-    return err(new Error(parsed.error.message));
+    return err(AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }));
   }
 
   // 1. Fetch all available stock levels for this product at this location, ordered by FEFO.

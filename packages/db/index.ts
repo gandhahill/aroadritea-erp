@@ -185,6 +185,9 @@ export {
   complaintCompensations,
 } from './schema/crm';
 
+// Schema - Reservations (T-0260)
+export { reservations } from './schema/reservations';
+
 // Schema — Whistleblower
 export {
   whistleblowerReports,

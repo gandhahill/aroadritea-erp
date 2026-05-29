@@ -118,3 +118,4 @@ export * from './ledger-service';
 export * from './stock-depletion-service';
 export * from './production-service';
 export * from './waste-service';
+export * from './stock-allocation-service';

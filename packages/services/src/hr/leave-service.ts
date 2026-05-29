@@ -20,7 +20,7 @@ export type RequestLeaveInput = z.infer<typeof RequestLeaveInputSchema>;
 
 export async function requestLeave(input: RequestLeaveInput, ctx: AuditContext): Promise<Result<{ id: string }>> {
   const parsed = RequestLeaveInputSchema.safeParse(input);
-  if (!parsed.success) return err(new Error(parsed.error.message));
+  if (!parsed.success) return err(AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }));
 
   const start = new Date(input.startDate);
   const end = new Date(input.endDate);
@@ -82,7 +82,7 @@ export async function approveLeave(leaveId: string, ctx: AuditContext): Promise<
   if (!leave) return err(AppError.notFound('hr.leave.not_found'));
   if (leave.status !== 'pending') return err(AppError.businessRule('hr.leave.not_pending'));
 
-  const permCheck = await requirePermission(ctx.userId, 'hr.manage_leave', { locationId: leave.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'hr.approve_leave', { locationId: leave.locationId });
   if (!permCheck.ok) return permCheck;
 
   await db

@@ -432,7 +432,6 @@ export async function cancelPO(
           const revRes = await reverseJournal({
              journalId: je.id,
              postingDate: new Date().toISOString().slice(0, 10),
-             notes: `PO Cancellation: ${parsed.data.reason}`,
           }, ctx);
           if (!revRes.ok) return err(AppError.businessRule('purchasing.errors.grn_reverse_failed'));
         }
@@ -444,7 +443,7 @@ export async function cancelPO(
           expiryDate: grnLines.expiryDate,
           qtyReceived: grnLines.qtyReceived,
           uom: grnLines.uom,
-          unitCost: purchaseOrderLines.unitCost,
+          unitPrice: purchaseOrderLines.unitPrice,
         }).from(grnLines).innerJoin(purchaseOrderLines, eq(grnLines.poLineId, purchaseOrderLines.id)).where(eq(grnLines.grnId, grn.id));
         
         const movementValues = lines.map((line) => ({
@@ -462,7 +461,7 @@ export async function cancelPO(
           reason: 'purchase_return' as any,
           referenceType: 'purchase_order' as any,
           referenceId: po.id,
-          unitCost: line.unitCost,
+          unitCost: line.unitPrice,
           createdBy: ctx.userId,
           updatedBy: ctx.userId,
         }));
