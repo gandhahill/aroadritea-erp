@@ -231,7 +231,470 @@
 > Filled during initial scoping. AI picks from here when no Active Task can be continued.
 > Completed tasks are moved to Done This Sprint and **removed from here**.
 
-_(no items â€” all backlog tasks completed)_
+> **Audit kelengkapan fitur 2026-05-29** — 8 subagen memindai 137 halaman ERP + situs publik vs best-practice ERP F&B Indonesia. Detail implementasi tiap task (file:baris, backend yang sudah ada, scope, kewajiban i18n/audit) ada di section **"Backlog Detail — Audit 2026-05-29"** di bawah.
+>
+> Prioritas: `P0` = modul tampak jadi tapi alurnya putus / tidak berfungsi end-to-end; `P1` = kepatuhan pajak/ketenagakerjaan atau financial correctness; `P2` = kelengkapan fitur.
+
+### Tier 1 — P0 Critical (alur putus / modul tidak berfungsi)
+
+| ID | Title | Effort | Priority | Status |
+|----|-------|--------|----------|--------|
+| T-0211 | Payroll: field gaji pokok + pembuatan `employmentContracts` | M | P0 | 🟦 PENDING |
+| T-0212 | Inventory: valuasi weighted-average + jurnal HPP saat penjualan | L | P0 | 🟦 PENDING |
+| T-0213 | Wire `postJournal`/`reverseJournal` ke server action + tombol UI | S | P0 | 🟦 PENDING |
+| T-0214 | POS: panggil promo engine otomatis saat checkout | M | P0 | 🟦 PENDING |
+| T-0215 | POS: konsumsi voucher redemption + UI redeem di kasir | M | P0 | 🟦 PENDING |
+| T-0216 | Purchasing: perbaiki double-DR persediaan + timing pengakuan AP | L | P0 | 🟦 PENDING |
+| T-0217 | Logistik: outgoing shipment harus tulis `stockMovements` | M | P0 | 🟦 PENDING |
+| T-0218 | HR: perbaiki `listMySchedule` + resolusi karyawan di check-in | S | P0 | 🟦 PENDING |
+
+### Tier 2 — Pajak (kepatuhan DJP/Pemda)
+
+| ID | Title | Effort | Priority | Status |
+|----|-------|--------|----------|--------|
+| T-0219 | e-Faktur / Faktur Pajak keluaran (NSFP + ekspor DJP) | L | P1 | 🟦 PENDING |
+| T-0220 | SPT Masa PPN + ledger pajak masukan vs keluaran | L | P1 | 🟦 PENDING |
+| T-0221 | PPh 23 / final + bukti potong (bupot) | M | P1 | 🟦 PENDING |
+| T-0222 | Rekap PB1 bulanan per outlet (SPTPD/e-PBJT Pemda) | M | P1 | 🟦 PENDING |
+
+### Tier 2 — Akuntansi
+
+| ID | Title | Effort | Priority | Status |
+|----|-------|--------|----------|--------|
+| T-0223 | Jurnal penutup akhir tahun (Income Summary → Laba Ditahan) | M | P1 | 🟦 PENDING |
+| T-0224 | Disposal aset tetap (workflow + jurnal) | S | P2 | 🟦 PENDING |
+| T-0225 | Pembayaran invoice parsial/cicilan + payment allocation | M | P1 | 🟦 PENDING |
+| T-0226 | Laporan Perubahan Ekuitas (SAK ETAP) | S | P2 | 🟦 PENDING |
+| T-0227 | Buku Besar drill-down per akun + comparative period | M | P2 | 🟦 PENDING |
+
+### Tier 2 — Purchasing
+
+| ID | Title | Effort | Priority | Status |
+|----|-------|--------|----------|--------|
+| T-0228 | Purchase invoice service + 3-way matching (PO↔GRN↔Invoice) | L | P1 | 🟦 PENDING |
+| T-0229 | Purchase Requisition (PR) + RFQ/quotation | M | P2 | 🟦 PENDING |
+| T-0230 | Approval PO berjenjang (threshold nilai/multi-approver) | S | P2 | 🟦 PENDING |
+| T-0231 | Master supplier (price list, lead time, rating) + landed cost | M | P2 | 🟦 PENDING |
+| T-0232 | Perbaiki JE GRN/PO per inventory account + pajak retur | S | P1 | 🟦 PENDING |
+
+### Tier 2 — Inventory / Kitchen
+
+| ID | Title | Effort | Priority | Status |
+|----|-------|--------|----------|--------|
+| T-0233 | Reorder point min/max + alert low-stock per lokasi | M | P2 | 🟦 PENDING |
+| T-0234 | Engine konversi UOM (kg↔gram, box↔pcs) | M | P1 | 🟦 PENDING |
+| T-0235 | Halaman kartu stok (stock ledger) per item/lokasi | S | P2 | 🟦 PENDING |
+| T-0236 | FEFO depletion + alert kadaluarsa (perishable) | M | P1 | 🟦 PENDING |
+| T-0237 | BOM: sub-recipe, yield/porsi, versi efektif, substitusi | M | P2 | 🟦 PENDING |
+
+### Tier 2 — POS / CRM
+
+| ID | Title | Effort | Priority | Status |
+|----|-------|--------|----------|--------|
+| T-0238 | POS: hold/recall (park) order | S | P2 | 🟦 PENDING |
+| T-0239 | POS: open cash drawer (ESC/POS) + scan barcode/SKU | M | P2 | 🟦 PENDING |
+| T-0240 | POS: tempel payload QR Naixer KDS ke sale lines | M | P1 | 🟦 PENDING |
+| T-0241 | POS: perbaiki guard `voidSale` (status `paid` tak bisa void) | S | P1 | 🟦 PENDING |
+| T-0242 | CRM: riwayat pembelian + benefit tier otomatis + segmentasi | M | P2 | 🟦 PENDING |
+
+### Tier 2 — HR / Payroll
+
+| ID | Title | Effort | Priority | Status |
+|----|-------|--------|----------|--------|
+| T-0243 | Payroll: beban BPJS pemberi kerja (engine + jurnal) | M | P1 | 🟦 PENDING |
+| T-0244 | Payroll: engine THR (pro-rata) + lembur (/173 ×1.5/2) | M | P1 | 🟦 PENDING |
+| T-0245 | Payroll: deteksi absen otomatis (ganti `absentDays:0`) | M | P1 | 🟦 PENDING |
+| T-0246 | Payroll: file transfer bank + field rekening karyawan | S | P2 | 🟦 PENDING |
+| T-0247 | Payroll: PPh21 TER bulanan (PMK 168/2023) + PTKP dari data | M | P1 | 🟦 PENDING |
+| T-0248 | Payroll: lock periode vs periode akuntansi + reverse JE saat cancel | S | P1 | 🟦 PENDING |
+| T-0249 | Whistleblower: schema `locationId` + kategori + severity | S | P2 | 🟦 PENDING |
+
+### Tier 2 — IAM / Platform
+
+| ID | Title | Effort | Priority | Status |
+|----|-------|--------|----------|--------|
+| T-0250 | UI User Management (CRUD user, assign role per lokasi, reset, suspend) | M | P1 | 🟦 PENDING |
+| T-0251 | UI API Token MCP (mint/scope/revoke) | S | P2 | 🟦 PENDING |
+| T-0252 | Tegakkan approver-role di workflow (separation of duties) | S | P1 | 🟦 PENDING |
+| T-0253 | Scheduled-jobs: audit log + retry/history + `requirePermission` | S | P1 | 🟦 PENDING |
+| T-0254 | Export audit log + password policy/lockout dari `loginAttempts` | M | P2 | 🟦 PENDING |
+| T-0255 | Notifikasi: preferensi per-user + event bisnis per pengguna | M | P2 | 🟦 PENDING |
+| T-0256 | Ekspansi MCP: roles/permissions, users, workflow, custom-fields | S | P2 | 🟦 PENDING |
+
+### Tier 2 — CMS / Situs Publik / Support
+
+| ID | Title | Effort | Priority | Status |
+|----|-------|--------|----------|--------|
+| T-0257 | CMS: editor rich-text/markdown + media library | M | P2 | 🟦 PENDING |
+| T-0258 | CMS: wire revisi + scheduling + SEO meta di Post + filter tag blog | M | P2 | 🟦 PENDING |
+| T-0259 | Situs publik: CTA link delivery + peta embed + jam buka per-outlet | S | P1 | 🟦 PENDING |
+| T-0260 | Member: UI redeem poin + riwayat order dari `sales_orders` | S | P2 | 🟦 PENDING |
+| T-0261 | Korespondensi: auto-nomor agenda + disposisi + multi-lampiran | M | P2 | 🟦 PENDING |
+| T-0262 | Helpdesk: SLA per prioritas + indikator breach/eskalasi | S | P2 | 🟦 PENDING |
+
+### Tier 3 — Kepatuhan aturan repo (CLAUDE.md)
+
+| ID | Title | Effort | Priority | Status |
+|----|-------|--------|----------|--------|
+| T-0263 | i18n sweep: ekstrak string hardcode ke key (6 halaman) | S | P1 | 🟦 PENDING |
+
+---
+
+## Backlog Detail — Audit 2026-05-29
+
+> Detail implementasi per task backlog hasil audit. Tiap entri: **Masalah** (gap), **Bukti** (file:baris), **Sudah ada** (backend yang bisa dipakai ulang, jangan dibangun ulang), **Scope** (acceptance), **Wajib** (i18n id/en/zh + audit trail per CLAUDE.md §5.7). Sebelum memperbaiki temuan P0 #T-0211/#T-0212/#T-0216, **verifikasi langsung** karena ini klaim paling berdampak.
+
+### Tier 1 — P0 Critical
+
+#### T-0211 — Payroll: field gaji pokok + pembuatan `employmentContracts` · `P0` · `M`
+- **Masalah**: `employmentContracts` tidak pernah di-insert; form karyawan tak punya input `baseSalary`. `run-payroll.ts` fallback gaji pokok `?? 0n` → seluruh gaji, PPh21, dan BPJS dihitung dari basis Rp 0. Payroll tidak fungsional end-to-end.
+- **Bukti**: `packages/db/schema/hr.ts:104` (tabel `employmentContracts` ada), `packages/services/src/hr/create-employee.ts:114`, `packages/services/src/payroll/run-payroll.ts:333`.
+- **Sudah ada**: tabel kontrak, engine payroll, seed komponen gaji (`salary-components-seed.ts:29,40`).
+- **Scope**: tambah field `baseSalary` + komponen kontrak di form `hr/employees/new` dan `[id]/edit`; insert/aktifkan `employmentContracts` saat create/update karyawan; guard validasi tolak run payroll jika baseSalary = 0.
+- **Wajib**: i18n; audit saat tulis kontrak.
+
+#### T-0212 — Inventory: valuasi weighted-average + jurnal HPP saat penjualan · `P0` · `L`
+- **Masalah**: `avgUnitCost` selalu ditulis `null` di GRN/transfer/opname; tidak ada perhitungan weighted-average/FIFO; tidak ada jurnal HPP (DR HPP / CR Persediaan) saat penjualan. Varians opname sering Rp 0; HPP hanya laporan teoretis.
+- **Bukti**: `packages/services/src/purchasing/grn-service.ts:552`, `packages/services/src/inventory/transfer-service.ts:550`, `packages/services/src/pos/create-sale.ts:444-680`, `packages/services/src/reporting/cogs.ts:178`.
+- **Sudah ada**: kolom `avgUnitCost` di schema, `stock_movements` append-only, depletion BOM di `create-sale.ts:444-475`.
+- **Scope**: hitung & simpan weighted-average `avgUnitCost` saat GRN/transfer; posting jurnal HPP saat `createSale` pakai cost aktual; pastikan `varianceValue` opname terisi.
+- **Wajib**: audit; jurnal lewat period guard yang sudah ada.
+
+#### T-0213 — Wire `postJournal`/`reverseJournal` ke server action + tombol UI · `P0` · `S`
+- **Masalah**: fungsi `postJournal`/`reverseJournal` ada di service & MCP tapi tidak diekspos sebagai server action web → jurnal manual dari web mandek di status `draft` selamanya. Tombol Buka Periode juga tak pernah dirender.
+- **Bukti**: `apps/mcp/src/tools/accounting.ts:129,152` (fungsi ada), `apps/web/app/(dash)/accounting/journals/actions.ts` (belum ada action), `apps/web/app/(dash)/accounting/periods/page.tsx:7` (import) vs `:212-219` (tak dirender).
+- **Sudah ada**: backend post/reverse aman (cek balance, periode, audit). Tinggal wiring.
+- **Scope**: tambah `postJournalAction` + `reverseJournalAction` di `journals/actions.ts`; tombol di `journals/[id]/page.tsx`; render `OpenPeriodButton` di `periods/page.tsx`. Sertakan edit/hapus draft.
+- **Wajib**: i18n; audit sudah ditangani service.
+
+#### T-0214 — POS: panggil promo engine otomatis saat checkout · `P0` · `M`
+- **Masalah**: engine `listActivePromotionsForSale` ada tapi tidak pernah dipanggil di `create-sale.ts` maupun web. Diskon hanya manual per-line. Happy hour, buy-X-get-Y, promo member tidak otomatis.
+- **Bukti**: `packages/services/src/promotion/index.ts` (engine), `packages/services/src/pos/create-sale.ts` (tak ada panggilan), `apps/web/app/(dash)/pos/pos-cart-context.tsx` (diskon manual).
+- **Sudah ada**: engine promosi, tabel `promotionApplications`, settings promosi (`settings/promotions`).
+- **Scope**: panggil `listActivePromotionsForSale` di `createSale`; tampilkan preview promo di cart; simpan hasil ke `promotionApplications`.
+- **Wajib**: i18n; audit pada aplikasi promo; jaga idempotency sync POS.
+
+#### T-0215 — POS: konsumsi voucher redemption + UI redeem di kasir · `P0` · `M`
+- **Masalah**: `redeemLoyaltyPoints` membuat `memberVouchers` (`PTS-*`) tapi `usedAt`/`usedInOrderId` tak pernah di-set; `payment-modal.tsx` tak punya field voucher → poin bisa ditukar tapi tak bisa dibelanjakan; risiko double-spend.
+- **Bukti**: `packages/services/src/member/index.ts:1535` (`redeemPoints`), `apps/web/app/(dash)/pos/payment-modal.tsx` (tak ada field voucher).
+- **Sudah ada**: service redeem, schema `memberVouchers`, member lookup di POS.
+- **Scope**: field input voucher di `payment-modal`; set `usedAt`/`usedInOrderId` dalam transaksi `createSale` (cegah double-spend, jaga idempotency).
+- **Wajib**: i18n; audit penggunaan voucher.
+
+#### T-0216 — Purchasing: perbaiki double-DR persediaan + timing pengakuan AP · `P0` · `L`
+- **Masalah**: PO-approve posting `DR Persediaan / CR Utang`, lalu GRN-confirm posting lagi `DR Persediaan / CR GRNI` → inventory ter-debit 2×, AP diakui saat approve (sebelum barang datang). Pola standar: GRN→GRNI, Invoice→balik GRNI ke AP.
+- **Bukti**: `packages/services/src/purchasing/workflow.ts:310-339`, `packages/services/src/purchasing/grn-service.ts:429-456`.
+- **Sudah ada**: GRNI account, optimistic locking, audit. **Verifikasi dengan akuntan sebelum ubah.**
+- **Scope**: pindahkan pengakuan AP dari PO-approve ke purchase invoice (lihat T-0228); PO-approve hanya komitmen (tanpa JE persediaan); GRN→GRNI; hindari double-DR.
+- **Wajib**: audit; review SAK ETAP.
+
+#### T-0217 — Logistik: outgoing shipment harus tulis `stockMovements` · `P0` · `M`
+- **Masalah**: `outgoing-shipment.ts` tidak membuat `stockMovements` sama sekali → barang keluar tidak mengurangi stok. Tidak ada penerimaan antar-lokasi.
+- **Bukti**: `packages/services/src/logistics/outgoing-shipment.ts`, `packages/db/schema/logistics.ts:18-24` (alamat free-text, tanpa line item).
+- **Sudah ada**: modul transfer antar-lokasi (`inventory/transfer-service.ts`) sebagai pola referensi.
+- **Scope**: tambah line item + qty pada outgoing shipment; tulis `stockMovements` (out) saat kirim; jika antar-lokasi, pasangkan dengan movement (in) saat diterima.
+- **Wajib**: audit; period guard.
+
+#### T-0218 — HR: perbaiki `listMySchedule` + resolusi karyawan di check-in · `P0` · `S`
+- **Masalah**: `list-my-schedule.ts:43` asumsi `user.id === employee.id` (padahal `createEmployee` membuat `users.id` terpisah) → my-schedule kosong. `checkin/page.tsx:38` banding email plaintext vs kolom terenkripsi-lookup → bisa gagal match.
+- **Bukti**: `packages/services/src/hr/list-my-schedule.ts:43`, `packages/services/src/hr/create-employee.ts:114`, `apps/web/app/(dash)/hr/checkin/page.tsx:38`.
+- **Sudah ada**: pola `encryptPiiForLookup` + resolusi user→employee via email terenkripsi di service lain (mis. `listMyPayslips`, `listMyAttendance`).
+- **Scope**: resolve employee via email terenkripsi konsisten di kedua tempat.
+- **Wajib**: jangan log PII plaintext.
+
+### Tier 2 — Pajak
+
+#### T-0219 — e-Faktur / Faktur Pajak keluaran (NSFP + ekspor DJP) · `P1` · `L`
+- **Masalah**: tidak ada penomoran NSFP, tabel faktur, atau output XML/CSV e-Faktur DJP. Kritis untuk B2B PKP.
+- **Bukti**: schema pajak hanya `taxRates`+`taxRules` di `packages/db/schema/accounting.ts:183-227`; ekspor yang ada (`apps/mcp/src/tools/tax.ts:151-247`) hanya CSV ringkasan, bukan layout DJP.
+- **Scope**: schema faktur pajak + NSFP; service create/post faktur dari invoice penjualan B2B; ekspor XML/CSV layout e-Faktur/Coretax terbaru; UI daftar faktur.
+- **Wajib**: i18n; audit; jangan hardcode tarif (pakai `taxRates`).
+
+#### T-0220 — SPT Masa PPN + ledger pajak masukan vs keluaran · `P1` · `L`
+- **Masalah**: tidak ada rekap PPN keluaran vs masukan per masa; kode `PPN_IN` ada tapi tak ada ledger pengkreditan/rekonsiliasi.
+- **Bukti**: `packages/db/schema/accounting.ts:183-227`; tak ada service rekap masa.
+- **Scope**: ledger pajak masukan/keluaran per masa; rekap SPT Masa PPN (induk + lampiran); rekonsiliasi terhadap journal lines berkode pajak.
+- **Wajib**: i18n; audit; ekspor.
+
+#### T-0221 — PPh 23 / final + bukti potong (bupot) · `P1` · `M`
+- **Masalah**: hanya PPh 21 yang dihitung (payroll). Tidak ada PPh 23 (jasa/sewa supplier), PPh final, atau dokumen bupot.
+- **Bukti**: `packages/services/src/payroll/payroll-engine.ts:133-209` (hanya PPh21); tak ada modul PPh 23.
+- **Scope**: hook pemotongan PPh 23 di pembayaran supplier (purchasing/AP); generate & ekspor bukti potong untuk DJP/penerima.
+- **Wajib**: i18n; audit; tarif dari `taxRates`.
+
+#### T-0222 — Rekap PB1 bulanan per outlet (SPTPD/e-PBJT Pemda) · `P1` · `M`
+- **Masalah**: omzet PB1 ada di omzet-harian/BI tapi tidak ada form rekap bulanan per outlet untuk lapor Pemda.
+- **Bukti**: `packages/services/src/reporting/daily-omzet.ts` (sumber data ada), tak ada rekap masa per lokasi.
+- **Scope**: rekap PB1 bulanan per `location_id` (DPP, tarif, PB1 terutang); ekspor format SPTPD/e-PBJT; filter periode + outlet.
+- **Wajib**: i18n; ekspor; multi-lokasi.
+
+### Tier 2 — Akuntansi
+
+#### T-0223 — Jurnal penutup akhir tahun (Income Summary → Laba Ditahan) · `P1` · `M`
+- **Masalah**: `close-period.ts:15-19` hanya komentar; tidak ada jurnal penutup pendapatan/beban → Income Summary → Laba Ditahan.
+- **Bukti**: `packages/services/src/accounting/close-period.ts:15-19`.
+- **Scope**: generate closing entries saat tutup tahun fiskal; saldo nominal di-nol-kan; neraca saldo setelah penutupan benar.
+- **Wajib**: audit; tolak jika periode sudah tertutup.
+
+#### T-0224 — Disposal aset tetap (workflow + jurnal) · `P2` · `S`
+- **Masalah**: schema punya `disposalDate`/`disposalJournalEntryId` tapi tidak ada fungsi `disposeFixedAsset`; "disposed" hanya opsi filter.
+- **Bukti**: `packages/db/schema/accounting.ts:374-376`, `apps/web/app/(dash)/accounting/assets/assets-client.tsx:125`.
+- **Scope**: service `disposeFixedAsset` (hitung nilai buku, untung/rugi pelepasan, jurnal); tombol disposal di UI aset.
+- **Wajib**: i18n; audit.
+
+#### T-0225 — Pembayaran invoice parsial/cicilan + payment allocation · `P1` · `M`
+- **Masalah**: `payInvoice` selalu melunasi `invoice.total` penuh; tidak ada cicilan/alokasi pembayaran. Tidak ada edit/void invoice posted.
+- **Bukti**: `packages/services/src/accounting/invoice.ts:206`.
+- **Scope**: dukung pembayaran parsial + alokasi ke beberapa invoice; status partially_paid; jejak sisa tagihan; mekanisme void/koreksi invoice posted (jurnal pembalik).
+- **Wajib**: audit; period guard.
+
+#### T-0226 — Laporan Perubahan Ekuitas (SAK ETAP) · `P2` · `S`
+- **Masalah**: tidak ada halaman/service Laporan Perubahan Ekuitas (wajib SAK ETAP).
+- **Bukti**: `apps/web/app/(dash)/reporting/` (tidak ada page); service reporting tak punya fungsi ini.
+- **Scope**: service + UI Laporan Perubahan Ekuitas (modal awal, laba bersih, prive/dividen, modal akhir) + export.
+- **Wajib**: i18n; export XLSX (ikuti pola reporting lain).
+
+#### T-0227 — Buku Besar drill-down per akun + comparative period · `P2` · `M`
+- **Masalah**: tidak ada halaman Buku Besar per akun; trial-balance tak punya drill-down ke jurnal; P&L/Neraca single-period (idealnya komparatif 2 periode).
+- **Bukti**: `apps/web/app/(dash)/reporting/trial-balance/page.tsx` (tanpa drill-down).
+- **Sudah ada**: helper `periodCompare`/`previousPeriod` di `@erp/services/reporting`.
+- **Scope**: halaman Buku Besar (mutasi per akun + saldo berjalan, filter akun/periode/lokasi); drill-down dari trial-balance; comparative period di P&L/Neraca formal.
+- **Wajib**: i18n; export.
+
+### Tier 2 — Purchasing
+
+#### T-0228 — Purchase invoice service + 3-way matching (PO↔GRN↔Invoice) · `P1` · `L`
+- **Masalah**: tabel `purchaseInvoices`/`purchaseInvoiceLines` ada tapi tidak ada service/UI → invoice supplier tak bisa diinput/dicocokkan. (Terkait T-0216.)
+- **Bukti**: `packages/db/schema/purchasing.ts:179-246` (tabel ada, nol service).
+- **Scope**: service create/post purchase invoice; 3-way matching (qty & harga PO vs GRN vs invoice + toleransi); pengakuan AP di tahap invoice (balik GRNI→AP); UI input & match.
+- **Wajib**: i18n; audit; period guard.
+
+#### T-0229 — Purchase Requisition (PR) + RFQ/quotation · `P2` · `M`
+- **Masalah**: alur mulai langsung dari PO; tidak ada permintaan internal cabang→pusat maupun perbandingan penawaran supplier.
+- **Bukti**: `apps/web/app/(dash)/purchasing/` (tidak ada PR/RFQ).
+- **Scope**: schema + service + UI PR (request→approve→jadi PO); RFQ (kirim ke beberapa supplier, banding harga, pilih → PO).
+- **Wajib**: i18n; audit; gunakan workflow engine.
+
+#### T-0230 — Approval PO berjenjang (threshold nilai/multi-approver) · `P2` · `S`
+- **Masalah**: approval PO hanya 1 tingkat (`purchasing.po.approve`); tak ada threshold nilai/multi-approver.
+- **Bukti**: `packages/services/src/purchasing/workflow.ts:200`.
+- **Sudah ada**: workflow engine (`packages/services/src/workflow/`).
+- **Scope**: aturan approval berjenjang berbasis nilai PO via workflow definitions; UI status multi-step.
+- **Wajib**: audit; lihat T-0252 (enforce approver role).
+
+#### T-0231 — Master supplier (price list, lead time, rating) + landed cost · `P2` · `M`
+- **Masalah**: form supplier hanya nama/email/telp/termin/PKP. Tidak ada price list/harga kontrak, lead time, rating. Landed cost (ongkir/bea/PPN impor) tak masuk HPP.
+- **Bukti**: `apps/web/app/(dash)/purchasing/supplier-form.tsx`, `packages/db/schema/accounting.ts:168` (`partners.paymentTermsDays` saja).
+- **Scope**: perluas master supplier (price list per item, lead time, rating); alokasikan landed cost ke nilai persediaan saat GRN.
+- **Wajib**: i18n; audit.
+
+#### T-0232 — Perbaiki JE GRN/PO per inventory account + pajak retur · `P1` · `S`
+- **Masalah**: JE GRN/PO memakai akun produk `lines[0]` untuk seluruh nilai (salah bila multi-kategori akun). `taxTotal` retur pembelian di-hardcode `0n` (salah untuk supplier PKP).
+- **Bukti**: `packages/services/src/purchasing/grn-service.ts:424`, `workflow.ts:263-268`, `packages/services/src/purchasing/return-service.ts:219`.
+- **Scope**: group JE per `inventoryAccountId` (bukan `lines[0]`); hitung pajak retur sesuai tarif.
+- **Wajib**: audit.
+
+### Tier 2 — Inventory / Kitchen
+
+#### T-0233 — Reorder point min/max + alert low-stock per lokasi · `P2` · `M`
+- **Masalah**: `stock_levels.minStock/maxStock` ada di schema tapi tak dipakai; halaman stock pakai threshold hardcode `< 5`.
+- **Bukti**: `apps/web/app/(dash)/inventory/stock/page.tsx:219`.
+- **Scope**: input min/max di form produk; halaman/notifikasi low-stock per lokasi memakai nilai nyata; integrasi ke purchasing (saran PO).
+- **Wajib**: i18n; pakai sistem notifikasi.
+
+#### T-0234 — Engine konversi UOM (kg↔gram, box↔pcs) · `P1` · `M`
+- **Masalah**: tidak ada logika konversi satuan; depletion BOM hanya cocok jika `uom` identik — beda UOM di-skip diam-diam (stok tak terkurang).
+- **Bukti**: `packages/services/src/pos/create-sale.ts:520`.
+- **Scope**: tabel base UOM + faktor konversi; terapkan di depletion BOM, GRN, transfer, opname; tolak/alert bila konversi tak tersedia (jangan skip diam-diam).
+- **Wajib**: audit; uji unit konversi.
+
+#### T-0235 — Halaman kartu stok (stock ledger) per item/lokasi · `P2` · `S`
+- **Masalah**: `stock_movements` append-only ada tapi tidak ada UI riwayat pergerakan per item/lokasi.
+- **Bukti**: `packages/db/schema/inventory.ts` (`stock_movements`), tak ada page.
+- **Scope**: halaman kartu stok (mutasi masuk/keluar + saldo berjalan, filter item/lokasi/tanggal) + export.
+- **Wajib**: i18n; export.
+
+#### T-0236 — FEFO depletion + alert kadaluarsa (perishable) · `P1` · `M`
+- **Masalah**: batch/expiry ditangkap di GRN tapi depletion abaikan `expiryDate`/`batchNo` (tak FEFO) dan tak ada alert kadaluarsa — kritis untuk teh/susu/lemon.
+- **Bukti**: `packages/services/src/pos/create-sale.ts` (`deductIngredients` abaikan expiry), `shelfLifeDays` di schema produk.
+- **Scope**: urutkan depletion & opname per `expiryDate` (FEFO); laporan/alert mendekati kadaluarsa (manfaatkan `shelfLifeDays`).
+- **Wajib**: audit.
+
+#### T-0237 — BOM: sub-recipe, yield/porsi, versi efektif, substitusi · `P2` · `M`
+- **Masalah**: BOM tak bisa pakai finished_good lain (sub-recipe berjenjang); hanya qty per 1 unit (tanpa yield/porsi); `bomVersion` tanpa workflow aktivasi; `bom_substitutes` ada di schema tapi tanpa UI/logika; tak ada laporan theoretical-vs-actual.
+- **Bukti**: `packages/db/schema/kitchen.ts` (`bomVersion`, `bom_substitutes`), `apps/web/app/(dash)/inventory/recipes/`.
+- **Sudah ada**: auto-consume BOM (`create-sale.ts:444-475`).
+- **Scope**: sub-recipe berjenjang; yield/porsi; aktivasi versi BOM efektif; logika substitusi; laporan pemakaian teoretis vs opname; tampilkan food cost di editor resep.
+- **Wajib**: i18n; audit.
+
+### Tier 2 — POS / CRM
+
+#### T-0238 — POS: hold/recall (park) order · `P2` · `S`
+- **Masalah**: tidak ada hold/recall/park order — kasir tak bisa parkir order saat antrean ramai.
+- **Bukti**: `apps/web/app/(dash)/pos/` (0 match hold/recall).
+- **Scope**: simpan order sementara (lokal/IndexedDB) + recall; jaga kompatibel offline.
+- **Wajib**: i18n.
+
+#### T-0239 — POS: open cash drawer (ESC/POS) + scan barcode/SKU · `P2` · `M`
+- **Masalah**: tidak ada perintah buka laci kas; `product-search.tsx` tanpa scan barcode/SKU (input manual saja).
+- **Bukti**: `apps/web/app/(dash)/pos/product-search.tsx`.
+- **Scope**: kick laci ESC/POS saat pembayaran tunai; input scan barcode → tambah item; cari produk via SKU/barcode.
+- **Wajib**: i18n.
+
+#### T-0240 — POS: tempel payload QR Naixer KDS ke sale lines · `P1` · `M`
+- **Masalah**: `generateQrPayload` tidak dipanggil saat sale; `kdsQrToken`/`kdsQrPayload` tak diisi; label cetak pakai nomor pickup, bukan payload KDS Naixer → integrasi dapur tak tersambung dari penjualan.
+- **Bukti**: `packages/services/src/kitchen/generate-qr.ts`, `packages/services/src/pos/create-sale.ts`, `apps/web/app/(print)/pos/print/label/[orderId]/page.tsx:106`.
+- **Sudah ada**: strategy QR dash/pipe (ADR-0007), mapping kode Naixer.
+- **Scope**: panggil `generateQrPayload` saat `createSale`, isi `kdsQrToken`/`kdsQrPayload` per line; label cetak QR Naixer (pisah dari QR pickup).
+- **Wajib**: audit.
+
+#### T-0241 — POS: perbaiki guard `voidSale` (status `paid` tak bisa void) · `P1` · `S`
+- **Masalah**: `voidSale` syaratkan `status !== 'open'` lalu tolak, padahal `createSale` selalu tulis `status: 'paid'` → order POS normal tak pernah bisa di-void.
+- **Bukti**: `packages/services/src/pos/create-sale.ts:1344` (guard) vs `:1021,:1264` (selalu `paid`).
+- **Scope**: izinkan void status `paid` dalam window/shift sama (atau hapus jalur mati agar tidak menyesatkan); konsistenkan dengan jalur refund.
+- **Wajib**: audit; period guard.
+
+#### T-0242 — CRM: riwayat pembelian + benefit tier otomatis + segmentasi · `P2` · `M`
+- **Masalah**: tidak ada tampilan riwayat pembelian pelanggan (hanya transaksi poin, limit 30); tier (bronze/silver/gold) ada tapi tak beri benefit otomatis; tak ada segmentasi/campaign; tak ada bundle/combo.
+- **Bukti**: `packages/services/src/crm/member-service.ts` (limit 30 poin), `packages/services/src/member/index.ts`.
+- **Scope**: riwayat order pelanggan dari `sales_orders`; benefit tier otomatis di harga/promo; segmentasi + broadcast campaign; tipe benefit bundle/combo.
+- **Wajib**: i18n; audit.
+
+### Tier 2 — HR / Payroll
+
+#### T-0243 — Payroll: beban BPJS pemberi kerja (engine + jurnal) · `P1` · `M`
+- **Masalah**: engine & jurnal hanya potong porsi karyawan (1% Kes + 2% TK); tidak ada beban pemberi kerja (Kes 4%, JKK/JKM/JHT, JP 2%) → beban gaji & utang BPJS understated.
+- **Bukti**: `packages/services/src/payroll/approve-payroll.ts:120-176`, `payroll-engine.ts`.
+- **Scope**: tambah komponen beban pemberi kerja ke engine; jurnal beban + utang BPJS lengkap.
+- **Wajib**: audit; tarif dari konfigurasi (jangan hardcode).
+
+#### T-0244 — Payroll: engine THR (pro-rata) + lembur (/173 ×1.5/2) · `P1` · `M`
+- **Masalah**: komponen THR/lembur ada di seed tapi tanpa perhitungan; hanya bisa input manual via `additionalEarnings`.
+- **Bukti**: `packages/services/src/payroll/salary-components-seed.ts:29,40`.
+- **Scope**: engine THR pro-rata masa kerja (gross-up Des); lembur rumus /173 ×1.5/2 dari jam lembur attendance.
+- **Wajib**: audit; uji unit perhitungan.
+
+#### T-0245 — Payroll: deteksi absen otomatis (ganti `absentDays:0`) · `P1` · `M`
+- **Masalah**: `run-payroll.ts:289` `absentDays: sql\`0\`` di-hardcode → `POTONGAN_ABSEN` tak pernah jalan otomatis.
+- **Bukti**: `packages/services/src/payroll/run-payroll.ts:289`.
+- **Sudah ada**: `shift_assignments` + attendance.
+- **Scope**: hitung absen riil (shift terjadwal tanpa attendance) per periode payroll → potongan absen otomatis.
+- **Wajib**: audit.
+
+#### T-0246 — Payroll: file transfer bank + field rekening karyawan · `P2` · `S`
+- **Masalah**: tidak ada generator file transfer bank; karyawan tak punya kolom rekening.
+- **Bukti**: form karyawan (`packages/services/src/hr/schemas.ts:30`).
+- **Scope**: kolom rekening (bank, no rek, nama) di master karyawan; generator file/CSV transfer payroll per bank.
+- **Wajib**: enkripsi PII rekening; audit.
+
+#### T-0247 — Payroll: PPh21 TER bulanan (PMK 168/2023) + PTKP dari data · `P1` · `M`
+- **Masalah**: engine annualisasi×12 (bukan TER bulanan kategori A/B/C); PTKP/status pajak di-hardcode (`dependentsCount:0`, `isTaxable:true`, `isBpjsBase:true`) — NPWP/PTKP disimpan tapi tak dipakai.
+- **Bukti**: `packages/services/src/payroll/run-payroll.ts:339-341`, `payroll-engine.ts:133-209`.
+- **Scope**: terapkan skema TER bulanan PMK 168/2023; baca PTKP/`isTaxable`/`isBpjsBase` dari data karyawan; gross-up THR/bonus Des.
+- **Wajib**: audit; uji terhadap contoh resmi.
+
+#### T-0248 — Payroll: lock periode vs periode akuntansi + reverse JE saat cancel · `P1` · `S`
+- **Masalah**: tidak ada lock payroll terhadap periode akuntansi tertutup; status `cancelled` ada tapi tanpa reverse JE.
+- **Bukti**: `packages/services/src/payroll/approve-payroll.ts`.
+- **Scope**: tolak posting payroll ke periode tertutup; reverse JE otomatis saat payroll dibatalkan.
+- **Wajib**: audit.
+
+#### T-0249 — Whistleblower: schema `locationId` + kategori + severity · `P2` · `S`
+- **Masalah**: schema tanpa `locationId`, kategori disisipkan ke `description` string, tanpa severity; reporter tanpa audit (by design anonim).
+- **Bukti**: `packages/db/schema/whistleblower.ts:53`.
+- **Scope**: kolom `locationId`, `category`, `severity` terstruktur; pertahankan anonimitas reporter.
+- **Wajib**: i18n; jangan log identitas reporter.
+
+### Tier 2 — IAM / Platform
+
+#### T-0250 — UI User Management (CRUD user, assign role per lokasi, reset, suspend) · `P1` · `M`
+- **Masalah**: tidak ada UI user management terpusat; provisioning hanya lewat HR > Employees > edit-login atau seed.
+- **Bukti**: tak ada `apps/web/app/(dash)/settings/users`; `packages/services/src/hr/update-employee-login.ts`.
+- **Sudah ada**: permission engine location-scoped (`permission-engine.ts`), better-auth.
+- **Scope**: halaman `settings/users` (daftar, buat user, assign/cabut role per `location_id`, reset password, suspend/enable).
+- **Wajib**: i18n; audit; gate `iam`/`settings.manage`.
+
+#### T-0251 — UI API Token MCP (mint/scope/revoke) · `P2` · `S`
+- **Masalah**: schema `apiTokens`+scope ada, MCP verifikasi, `generateRawToken()` ada, tapi tak ada layar mint/revoke/scope.
+- **Bukti**: `packages/db/schema/auth.ts:248`, `apps/mcp/src/auth.ts`.
+- **Scope**: UI buat token (tampil sekali), set scope = scope user, daftar + revoke.
+- **Wajib**: i18n; audit; jangan simpan token plaintext.
+
+#### T-0252 — Tegakkan approver-role di workflow (separation of duties) · `P1` · `S`
+- **Masalah**: pengecekan approver role tidak ditegakkan — siapa pun dengan `workflow.approve` bisa approve step milik role lain.
+- **Bukti**: `packages/services/src/workflow/index.ts:264-266` (komentar "simplified").
+- **Scope**: di `resolveStep`, verifikasi role user cocok dengan `approverRole` step sebelum izinkan approve.
+- **Wajib**: audit; uji SoD.
+
+#### T-0253 — Scheduled-jobs: audit log + retry/history + `requirePermission` · `P1` · `S`
+- **Masalah**: `createScheduledJob`/`updateScheduledJob` tidak panggil `auditRecord` (langgar CLAUDE.md §5.7); tak ada retry/riwayat eksekusi (hanya `lastRunStatus/Error` 1 baris); page hanya cek session.
+- **Bukti**: `packages/services/src/scheduled-jobs/index.ts`, `apps/web/app/(dash)/settings/scheduled-jobs/page.tsx`.
+- **Scope**: tambah `auditRecord` pada create/update; riwayat eksekusi + retry; `requirePermission('settings.manage')` di page (defense-in-depth).
+- **Wajib**: audit (wajib).
+
+#### T-0254 — Export audit log + password policy/lockout · `P2` · `M`
+- **Masalah**: audit punya filter+diff tapi tanpa export; password policy hanya `min(12)` hardcode; `loginAttempts` ada tapi rate-limit hanya bawaan better-auth (tak ada lockout terkonfigurasi).
+- **Bukti**: `apps/web/app/(dash)/audit/page.tsx`, `apps/web/app/(dash)/account/actions.ts:24`, `packages/services/src/auth/auth.server.ts:110`.
+- **Scope**: export audit (CSV/XLSX dengan filter); password policy terkonfigurasi (complexity/history) + lockout berbasis `loginAttempts`.
+- **Wajib**: i18n.
+
+#### T-0255 — Notifikasi: preferensi per-user + event bisnis per pengguna · `P2` · `M`
+- **Masalah**: kanal hanya untuk outage/stock; tidak ada preferensi opt-in/out per user per kanal; bukan event bisnis per pengguna.
+- **Bukti**: `apps/web/app/(dash)/settings/notifications/page.tsx`.
+- **Scope**: tabel preferensi notifikasi per user/kanal; perluas trigger ke event bisnis (approval, due date, dll).
+- **Wajib**: i18n; audit perubahan preferensi.
+
+#### T-0256 — Ekspansi MCP: roles/permissions, users, workflow, custom-fields · `P2` · `S`
+- **Masalah**: MCP belum expose manajemen roles/permissions, users/employee-login, workflow approve/list, custom-fields (`iam.ts` hanya `whoami` + locations).
+- **Bukti**: `apps/mcp/src/tools/iam.ts`.
+- **Scope**: tambah MCP tools untuk modul tersebut, lewat permission engine yang sama (tanpa super-user) per CLAUDE.md §6.
+- **Wajib**: audit; scope per user.
+
+### Tier 2 — CMS / Situs Publik / Support
+
+#### T-0257 — CMS: editor rich-text/markdown + media library · `P2` · `M`
+- **Masalah**: editor konten masih `<textarea>` polos (plain text di kolom jsonb); tidak ada media library.
+- **Bukti**: `apps/web/app/(dash)/cms/cms-post-form.tsx:210`, `cms-page-form.tsx:204`.
+- **Scope**: editor rich-text/markdown (atau block); media library bersama (reuse pipeline upload `api/uploads`).
+- **Wajib**: i18n; sanitasi HTML (cegah XSS).
+
+#### T-0258 — CMS: wire revisi + scheduling + SEO meta Post + filter tag blog · `P2` · `M`
+- **Masalah**: tabel `cmsRevisions` ada tapi tak pernah ditulis; `scheduledAt` ada di schema tapi tak di Zod/form; publish tak set `publishedAt`; SEO meta hanya di Page (tak ada di Post); blog publik tanpa filter kategori/tag.
+- **Bukti**: `packages/db/schema/cms.ts:30,121`, `packages/services/src/cms/index.ts` (publishPage 326-363, publishPost 576-613), `cms-page-form.tsx:217-247`, `apps/site/app/[locale]/blog/page.tsx`.
+- **Scope**: tulis `cmsRevisions` saat update; tambah `scheduledAt` ke schema+form + worker cron publish; set `publishedAt` saat publish; SEO meta di Post form; filter kategori/tag di `/blog`.
+- **Wajib**: i18n; audit.
+
+#### T-0259 — Situs publik: CTA link delivery + peta embed + jam buka per-outlet · `P1` · `S`
+- **Masalah**: tidak ada link delivery/pemesanan (GoFood/Grab/Shopee/WA) — padahal komisi delivery 20% aturan bisnis inti; lokasi hanya link "search" Google Maps + jam statis (`t('defaultHours')`), tidak baca jam dari DB.
+- **Bukti**: `apps/site/app/[locale]/lokasi/page.tsx:184`; home/menu tanpa CTA delivery.
+- **Scope**: CTA link delivery + WA di home & menu; peta embed per outlet; jam buka per-outlet dari DB; halaman/form kontak.
+- **Wajib**: i18n (id/en/zh); situs publik hanya tampilkan outlet (bukan kantor).
+
+#### T-0260 — Member: UI redeem poin + riwayat order dari `sales_orders` · `P2` · `S`
+- **Masalah**: `redeemPoints` ada di service tapi tak ada UI redeem di halaman akun (voucher hanya ditampilkan); riwayat hanya poin, bukan order.
+- **Bukti**: `packages/services/src/member/index.ts:1535`, `apps/site/app/[locale]/member/akun/page.tsx`.
+- **Scope**: UI redeem poin→voucher; riwayat order ditarik dari `sales_orders`.
+- **Wajib**: i18n (perbaiki judul hardcode `member/akun/page.tsx:19,147`).
+
+#### T-0261 — Korespondensi: auto-nomor agenda + disposisi + multi-lampiran · `P2` · `M`
+- **Masalah**: nomor surat (`documentNo`) manual (tanpa generator/agenda); tanpa disposisi/routing (hanya `ownerUserId`); lampiran tunggal (`storageUrl`).
+- **Bukti**: `packages/db/schema/correspondence.ts:22`.
+- **Scope**: auto-generator nomor agenda (surat masuk/keluar); disposisi multi-step (workflow); multi-lampiran.
+- **Wajib**: i18n; audit (sudah ada di jalur edit).
+
+#### T-0262 — Helpdesk: SLA per prioritas + indikator breach/eskalasi · `P2` · `S`
+- **Masalah**: `firstResponseAt` direkam tapi tanpa target SLA/deadline/breach/eskalasi.
+- **Bukti**: `packages/db/schema/helpdesk.ts:51`.
+- **Scope**: definisi SLA per prioritas (target first-response & resolution); indikator breach + eskalasi (notifikasi/auto-assign).
+- **Wajib**: i18n; audit.
+
+### Tier 3 — Kepatuhan aturan repo
+
+#### T-0263 — i18n sweep: ekstrak string hardcode ke key (6 halaman) · `P1` · `S`
+- **Masalah**: string Bahasa Indonesia/Inggris di-hardcode (langgar CLAUDE.md §5.7 prohibition absolut).
+- **Bukti**: `apps/web/app/display/page.tsx` (baris 69,80,91,113,150,181); `accounting/journals/[id]/page.tsx` (108,113-130); `accounting/periods/page.tsx` (13-107,184); `hr/payroll/[id]/page.tsx` (38-47); `settings/attendance/page.tsx:28`; `apps/site/app/[locale]/member/akun/page.tsx` (19,147).
+- **Scope**: pindahkan semua string ke key `next-intl`; tambah ke `en.json`, `id.json`, `zh.json` (paritas penuh).
+- **Wajib**: jangan tinggalkan string hardcode baru.
 
 ---
 
