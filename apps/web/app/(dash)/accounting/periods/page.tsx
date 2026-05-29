@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 
 import { PageHeader } from '@/components/page-header';
 import { TableCell, TableHead } from '@erp/ui';
@@ -10,108 +10,9 @@ export const metadata: Metadata = {
   title: 'Accounting Periods | Aroadri ERP',
 };
 
-const PAGE_COPY = {
-  id: {
-    title: 'Periode Akuntansi',
-    subtitle: 'Pantau periode buku, status tutup buku, dan jumlah jurnal per periode.',
-    open: 'Terbuka',
-    closing: 'Proses tutup',
-    closed: 'Tertutup',
-    empty: 'Belum ada periode akuntansi.',
-    emptyHint:
-      'Periode akan muncul setelah data awal akuntansi di-seed atau dibuat dari pengaturan akuntansi.',
-    period: 'Periode',
-    dateRange: 'Rentang tanggal',
-    status: 'Status',
-    journals: 'Jurnal',
-    actions: 'Aksi',
-    closedAt: 'Ditutup pada',
-    notClosed: 'Belum ditutup',
-    draft: 'draft',
-    posted: 'posted',
-    reversed: 'reversed',
-    periodAction: {
-      openPeriod: 'Buka Periode',
-      openPeriodSubtitle: 'Buat periode akuntansi baru. Pastikan tidak ada duplikasi kode periode.',
-      closePeriod: 'Tutup Periode',
-      confirmClose: 'Konfirmasi Penutupan',
-      confirmCloseMessage: 'Apakah Anda yakin ingin menutup periode ini?',
-      forceClose: 'Tutup Paksa',
-      draftWarning: 'Peringatan: Masih ada {count} jurnal berstatus draft di periode ini.',
-      code: 'Kode Periode (YYYY-MM)',
-      startDate: 'Tanggal Mulai',
-      endDate: 'Tanggal Selesai',
-    },
-  },
-  en: {
-    title: 'Accounting Periods',
-    subtitle: 'Review bookkeeping periods, closing status, and journal volume per period.',
-    open: 'Open',
-    closing: 'Closing',
-    closed: 'Closed',
-    empty: 'No accounting periods yet.',
-    emptyHint:
-      'Periods will appear after accounting seed data is loaded or created from accounting settings.',
-    period: 'Period',
-    dateRange: 'Date range',
-    status: 'Status',
-    journals: 'Journals',
-    actions: 'Actions',
-    closedAt: 'Closed at',
-    notClosed: 'Not closed',
-    draft: 'draft',
-    posted: 'posted',
-    reversed: 'reversed',
-    periodAction: {
-      openPeriod: 'Open Period',
-      openPeriodSubtitle:
-        'Create a new accounting period. Ensure there are no duplicate period codes.',
-      closePeriod: 'Close Period',
-      confirmClose: 'Confirm Close',
-      confirmCloseMessage: 'Are you sure you want to close this period?',
-      forceClose: 'Force Close',
-      draftWarning: 'Warning: There are {count} draft journals in this period.',
-      code: 'Period Code (YYYY-MM)',
-      startDate: 'Start Date',
-      endDate: 'End Date',
-    },
-  },
-  zh: {
-    title: '会计期间',
-    subtitle: '查看会计期间、结账状态和每期凭证数量。',
-    open: '开放',
-    closing: '结账中',
-    closed: '已关闭',
-    empty: '暂无会计期间。',
-    emptyHint: '导入或创建会计基础数据后，会计期间会显示在这里。',
-    period: '期间',
-    dateRange: '日期范围',
-    status: '状态',
-    journals: '凭证',
-    actions: '操作',
-    closedAt: '关闭时间',
-    notClosed: '未关闭',
-    draft: '草稿',
-    posted: '已过账',
-    reversed: '已冲销',
-    periodAction: {
-      openPeriod: '开立期间',
-      openPeriodSubtitle: '创建一个新的会计期间。确保没有重复的期间代码。',
-      closePeriod: '结账',
-      confirmClose: '确认结账',
-      confirmCloseMessage: '您确定要结束此期间吗？',
-      forceClose: '强制结账',
-      draftWarning: '警告：此期间还有 {count} 个草稿凭证。',
-      code: '期间代码 (YYYY-MM)',
-      startDate: '开始日期',
-      endDate: '结束日期',
-    },
-  },
-} as const;
 
-function getCopy(locale: string) {
-  return PAGE_COPY[locale as keyof typeof PAGE_COPY] ?? PAGE_COPY.id;
-}
+
+
 
 function toIntlLocale(locale: string) {
   if (locale === 'zh') return 'zh-CN';
@@ -136,7 +37,27 @@ function statusClass(status: string) {
 
 export default async function AccountingPeriodsPage() {
   const locale = await getLocale();
-  const copy = getCopy(locale);
+  const t = await getTranslations('accounting.periods');
+  const copy = {
+    title: t('title'),
+    subtitle: t('subtitle'),
+    open: t('open'),
+    closing: t('closing'),
+    closed: t('closed'),
+    empty: t('empty'),
+    emptyHint: t('emptyHint'),
+    period: t('period'),
+    dateRange: t('dateRange'),
+    status: t('status'),
+    journals: t('journals'),
+    actions: t('actions'),
+    closedAt: t('closedAt'),
+    notClosed: t('notClosed'),
+    draft: t('draft'),
+    posted: t('posted'),
+    reversed: t('reversed'),
+    periodAction: t.raw('periodAction')
+  };
   const rows = await fetchAccountingPeriods();
   const openCount = rows.filter((row) => row.status === 'open').length;
   const closingCount = rows.filter((row) => row.status === 'closing').length;

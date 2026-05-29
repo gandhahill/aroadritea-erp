@@ -772,6 +772,37 @@
       "cancel": "Batal",
       "processing": "Memproses...",
       "payInvoice": "Bayar Invoice"
+    },
+    "periods": {
+      "title": "Periode Akuntansi",
+      "subtitle": "Pantau periode buku, status tutup buku, dan jumlah jurnal per periode.",
+      "open": "Terbuka",
+      "closing": "Proses tutup",
+      "closed": "Tertutup",
+      "empty": "Belum ada periode akuntansi.",
+      "emptyHint": "Periode akan muncul setelah data awal akuntansi di-seed atau dibuat dari pengaturan akuntansi.",
+      "period": "Periode",
+      "dateRange": "Rentang tanggal",
+      "status": "Status",
+      "journals": "Jurnal",
+      "actions": "Aksi",
+      "closedAt": "Ditutup pada",
+      "notClosed": "Belum ditutup",
+      "draft": "draft",
+      "posted": "posted",
+      "reversed": "reversed",
+      "periodAction": {
+        "openPeriod": "Buka Periode",
+        "openPeriodSubtitle": "Buat periode akuntansi baru. Pastikan tidak ada duplikasi kode periode.",
+        "closePeriod": "Tutup Periode",
+        "confirmClose": "Konfirmasi Penutupan",
+        "confirmCloseMessage": "Apakah Anda yakin ingin menutup periode ini?",
+        "forceClose": "Tutup Paksa",
+        "draftWarning": "Peringatan: Masih ada {count} jurnal berstatus draft di periode ini.",
+        "code": "Kode Periode (YYYY-MM)",
+        "startDate": "Tanggal Mulai",
+        "endDate": "Tanggal Selesai"
+      }
     }
   },
   "purchasing": {
@@ -3286,8 +3317,17 @@
     }
   },
   "display": {
-    "orderList": "Daftar Pesanan Anda",
-    "noOrders": "Belum ada pesanan"
+    "pleaseOrderAtCashier": "Silakan pesan di kasir",
+    "demoModeWarning": "Mode Demo — bukan transaksi sebenarnya",
+    "yourOrderList": "Daftar Pesanan Anda",
+    "member": "Member",
+    "noOrdersYet": "Belum ada pesanan",
+    "totalPayment": "Total Pembayaran",
+    "total": "Total",
+    "paid": "Dibayar",
+    "remainingBalance": "Sisa",
+    "paidInFull": "Lunas!",
+    "thankYouForOrder": "Terima kasih atas pesanannya"
   },
   "settings": {
     "title": "Pengaturan",

@@ -15,8 +15,9 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'member' });
   return {
-    title: locale === 'id' ? 'Akun Saya' : locale === 'zh' ? '我的账户' : 'My Account',
+    title: t('title'),
   };
 }
 
@@ -143,8 +144,7 @@ export default async function MemberAccountPage({ params }: Props) {
               if (kind === 'discount_percent') label = `${val}% OFF`;
               else if (kind === 'discount_fixed') label = `Rp${val.toLocaleString()}`;
               else if (kind === 'free_delivery')
-                label =
-                  locale === 'id' ? 'Gratis Ongkir' : locale === 'zh' ? '免配送' : 'Free Delivery';
+                label = t('freeDelivery');
               else label = `${val}`;
               return (
                 <div

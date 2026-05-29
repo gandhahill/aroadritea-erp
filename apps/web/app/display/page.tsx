@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface CartLine {
   id: string;
@@ -43,6 +44,7 @@ export default function PosDisplayPage() {
   const [remainingBalance, setRemainingBalance] = useState<string>('0');
   const [channelName, setChannelName] = useState<string>('pos-display');
   const [isDemo, setIsDemo] = useState(false);
+  const t = useTranslations('display');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -66,7 +68,7 @@ export default function PosDisplayPage() {
       <div className="flex h-screen flex-col items-center justify-center bg-brand-cream">
         <img src="/logo-primary.png" alt="Aroadri Tea" className="h-32 w-32 opacity-40 mb-6" />
         <h1 className="text-4xl font-display font-semibold text-brand-ink/50">Aroadri Tea</h1>
-        <p className="mt-4 text-xl text-brand-ink-3">Silakan pesan di kasir</p>
+        <p className="mt-4 text-xl text-brand-ink-3">{t('pleaseOrderAtCashier')}</p>
       </div>
     );
   }
@@ -77,7 +79,7 @@ export default function PosDisplayPage() {
     <div className="flex h-screen w-full flex-col bg-brand-cream overflow-hidden">
       {isDemo ? (
         <div className="border-b border-amber-300 bg-amber-50 px-6 py-1 text-center text-xs font-semibold uppercase tracking-widest text-amber-700">
-          Mode Demo — bukan transaksi sebenarnya
+          {t('demoModeWarning')}
         </div>
       ) : null}
 
@@ -88,10 +90,10 @@ export default function PosDisplayPage() {
           <span className="font-display text-2xl font-bold text-brand-ink">Aroadri Tea</span>
         </div>
         <div className="text-right">
-          <h1 className="text-xl font-medium text-brand-ink-2">Daftar Pesanan Anda</h1>
+          <h1 className="text-xl font-medium text-brand-ink-2">{t('yourOrderList')}</h1>
           {displayState.customer && (
             <p className="text-sm text-brand-ink-3">
-              Member:{' '}
+              {t('member')}:{' '}
               <span className="font-semibold text-brand-red">{displayState.customer.name}</span>
               {displayState.customer.loyaltyTier && (
                 <span className="ml-2 rounded-full bg-brand-gold/10 px-2 py-0.5 text-xs font-medium text-brand-gold">
@@ -110,7 +112,7 @@ export default function PosDisplayPage() {
           <div className="flex-1 overflow-y-auto p-8">
             {lines.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center opacity-50">
-                <p className="text-2xl text-brand-ink-3">Belum ada pesanan</p>
+                <p className="text-2xl text-brand-ink-3">{t('noOrdersYet')}</p>
               </div>
             ) : (
               <ul className="space-y-4">
@@ -147,12 +149,12 @@ export default function PosDisplayPage() {
         <div className="flex w-1/3 flex-col bg-brand-cream-1 p-8 justify-center">
           <div className="rounded-2xl border-2 border-brand-cream-3 bg-card p-8 shadow-md">
             <h2 className="mb-6 text-center font-display text-3xl font-bold text-brand-ink">
-              Total Pembayaran
+              {t('totalPayment')}
             </h2>
 
             <div className="space-y-6">
               <div className="flex justify-between items-center border-b border-brand-cream-3 pb-6">
-                <span className="text-2xl text-brand-ink-2">Total</span>
+                <span className="text-2xl text-brand-ink-2">{t('total')}</span>
                 <span className="text-4xl font-bold text-brand-ink">
                   {formatRupiah(grandTotal)}
                 </span>
@@ -160,7 +162,7 @@ export default function PosDisplayPage() {
 
               {BigInt(totalPaid) > BigInt(0) && (
                 <div className="flex justify-between items-center border-b border-brand-cream-3 pb-6">
-                  <span className="text-xl text-brand-ink-3">Dibayar</span>
+                  <span className="text-xl text-brand-ink-3">{t('paid')}</span>
                   <span className="text-2xl font-semibold text-green-600">
                     {formatRupiah(totalPaid)}
                   </span>
@@ -169,7 +171,7 @@ export default function PosDisplayPage() {
 
               {BigInt(remainingBalance) > BigInt(0) && (
                 <div className="flex justify-between items-center pt-2">
-                  <span className="text-2xl font-semibold text-brand-ink-2">Sisa</span>
+                  <span className="text-2xl font-semibold text-brand-ink-2">{t('remainingBalance')}</span>
                   <span className="text-4xl font-bold text-brand-red">
                     {formatRupiah(remainingBalance)}
                   </span>
@@ -178,8 +180,8 @@ export default function PosDisplayPage() {
 
               {BigInt(remainingBalance) === BigInt(0) && BigInt(totalPaid) > BigInt(0) && (
                 <div className="mt-8 rounded-xl bg-green-100 p-6 text-center">
-                  <p className="text-2xl font-bold text-green-700">Lunas!</p>
-                  <p className="text-lg text-green-600">Terima kasih atas pesanannya</p>
+                  <p className="text-2xl font-bold text-green-700">{t('paidInFull')}</p>
+                  <p className="text-lg text-green-600">{t('thankYouForOrder')}</p>
                 </div>
               )}
             </div>

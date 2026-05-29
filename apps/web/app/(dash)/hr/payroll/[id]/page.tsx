@@ -35,14 +35,7 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
-function statusLabel(status: string): string {
-  const map: Record<string, string> = {
-    draft: 'Draf',
-    pending_approval: 'Menunggu Persetujuan',
-    approved: 'Disetujui',
-    paid: 'Dibayar',
-    cancelled: 'Dibatalkan',
-  };
+;
   return map[status] ?? status;
 }
 

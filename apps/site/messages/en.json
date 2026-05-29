@@ -222,7 +222,8 @@
         "error": "The reset link is invalid or has expired.",
         "invalidToken": "The reset link is invalid. Please request a new password reset."
       }
-    }
+    },
+    "freeDelivery": "Free Delivery"
   },
   "legal": {
     "terms": {

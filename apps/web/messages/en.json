@@ -772,6 +772,37 @@
       "cancel": "Cancel",
       "processing": "Processing...",
       "payInvoice": "Pay Invoice"
+    },
+    "periods": {
+      "title": "Accounting Periods",
+      "subtitle": "Review bookkeeping periods, closing status, and journal volume per period.",
+      "open": "Open",
+      "closing": "Closing",
+      "closed": "Closed",
+      "empty": "No accounting periods yet.",
+      "emptyHint": "Periods will appear after accounting seed data is loaded or created from accounting settings.",
+      "period": "Period",
+      "dateRange": "Date range",
+      "status": "Status",
+      "journals": "Journals",
+      "actions": "Actions",
+      "closedAt": "Closed at",
+      "notClosed": "Not closed",
+      "draft": "draft",
+      "posted": "posted",
+      "reversed": "reversed",
+      "periodAction": {
+        "openPeriod": "Open Period",
+        "openPeriodSubtitle": "Create a new accounting period. Ensure there are no duplicate period codes.",
+        "closePeriod": "Close Period",
+        "confirmClose": "Confirm Close",
+        "confirmCloseMessage": "Are you sure you want to close this period?",
+        "forceClose": "Force Close",
+        "draftWarning": "Warning: There are {count} draft journals in this period.",
+        "code": "Period Code (YYYY-MM)",
+        "startDate": "Start Date",
+        "endDate": "End Date"
+      }
     }
   },
   "purchasing": {
@@ -2758,8 +2789,17 @@
     }
   },
   "display": {
-    "orderList": "Your Orders",
-    "noOrders": "No orders yet"
+    "pleaseOrderAtCashier": "Please order at the cashier",
+    "demoModeWarning": "Demo Mode — not a real transaction",
+    "yourOrderList": "Your Order List",
+    "member": "Member",
+    "noOrdersYet": "No orders yet",
+    "totalPayment": "Total Payment",
+    "total": "Total",
+    "paid": "Paid",
+    "remainingBalance": "Remaining Balance",
+    "paidInFull": "Paid in Full!",
+    "thankYouForOrder": "Thank you for your order"
   },
   "settings": {
     "title": "Settings",

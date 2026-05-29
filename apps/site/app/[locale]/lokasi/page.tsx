@@ -86,7 +86,7 @@ export default async function LocationsPage({ params }: Props) {
                 </div>
                 <p className="mt-4 text-sm leading-6 text-brand-ink-2">{location.address}</p>
                 <p className="mt-4 text-sm font-bold text-brand-ink">{t('defaultHours')}</p>
-                {location.openingHours && (
+                {Boolean(location.openingHours) && (
                   <ul className="mt-2 text-sm text-brand-ink-2 space-y-1">
                     {Object.entries(location.openingHours as Record<string, string>).map(([day, hours]) => (
                       <li key={day} className="flex justify-between">

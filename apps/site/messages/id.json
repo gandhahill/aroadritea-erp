@@ -222,7 +222,8 @@
         "error": "Link reset password tidak valid atau sudah kedaluwarsa.",
         "invalidToken": "Link reset password tidak valid. Silakan ajukan reset password ulang."
       }
-    }
+    },
+    "freeDelivery": "Gratis Ongkir"
   },
   "legal": {
     "terms": {

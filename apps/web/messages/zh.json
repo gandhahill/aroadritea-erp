@@ -772,6 +772,37 @@
       "cancel": "取消",
       "processing": "处理中...",
       "payInvoice": "支付发票"
+    },
+    "periods": {
+      "title": "会计期间",
+      "subtitle": "查看会计期间、结账状态和每期凭证数量。",
+      "open": "开放",
+      "closing": "结账中",
+      "closed": "已关闭",
+      "empty": "暂无会计期间。",
+      "emptyHint": "导入或创建会计基础数据后，会计期间会显示在这里。",
+      "period": "期间",
+      "dateRange": "日期范围",
+      "status": "状态",
+      "journals": "凭证",
+      "actions": "操作",
+      "closedAt": "关闭时间",
+      "notClosed": "未关闭",
+      "draft": "草稿",
+      "posted": "已过账",
+      "reversed": "已冲销",
+      "periodAction": {
+        "openPeriod": "开立期间",
+        "openPeriodSubtitle": "创建一个新的会计期间。确保没有重复的期间代码。",
+        "closePeriod": "结账",
+        "confirmClose": "确认结账",
+        "confirmCloseMessage": "您确定要结束此期间吗？",
+        "forceClose": "强制结账",
+        "draftWarning": "警告：此期间还有 {count} 个草稿凭证。",
+        "code": "期间代码 (YYYY-MM)",
+        "startDate": "开始日期",
+        "endDate": "结束日期"
+      }
     }
   },
   "purchasing": {
@@ -2758,8 +2789,17 @@
     }
   },
   "display": {
-    "orderList": "您的订单",
-    "noOrders": "暂无订单"
+    "pleaseOrderAtCashier": "请在收银台点餐",
+    "demoModeWarning": "演示模式 — 非真实交易",
+    "yourOrderList": "您的订单列表",
+    "member": "会员",
+    "noOrdersYet": "暂无订单",
+    "totalPayment": "支付总额",
+    "total": "总计",
+    "paid": "已支付",
+    "remainingBalance": "余额",
+    "paidInFull": "已结清！",
+    "thankYouForOrder": "感谢您的订购"
   },
   "settings": {
     "title": "设置",
