@@ -6,6 +6,7 @@
 
 import { PageHeader } from '@/components/page-header';
 import { Button, Input, Select } from '@erp/ui';
+import { MarkdownEditor } from './components/markdown-editor';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -201,11 +202,9 @@ export function CmsPageForm({ page, isNew = false }: Props) {
               {LOCALE_TABS.map((tab) => (
                 <div key={tab.code}>
                   <p className="mb-1 text-xs font-medium text-brand-ink-3">{tab.label}</p>
-                  <textarea
+                  <MarkdownEditor
                     value={contentVals[tab.code] ?? ''}
-                    onChange={(e) => setContentVals((v) => ({ ...v, [tab.code]: e.target.value }))}
-                    rows={6}
-                    className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+                    onChange={(val) => setContentVals((v) => ({ ...v, [tab.code]: val }))}
                     placeholder={`${t('pageContentPlaceholder')} (${tab.code.toUpperCase()})`}
                   />
                 </div>

@@ -631,7 +631,35 @@
       }
     },
     "journals": {
-      "attachmentHint": "Unggah bukti transaksi atau dokumen pendukung. File akan otomatis terpasang setelah draft jurnal berhasil dibuat. Maksimum 10 MB per file."
+      "attachmentHint": "Unggah bukti transaksi atau dokumen pendukung. File akan otomatis terpasang setelah draft jurnal berhasil dibuat. Maksimum 10 MB per file.",
+      "postJournal": "Posting Jurnal",
+      "posting": "Memposting...",
+      "deleteDraft": "Hapus Draf",
+      "deleting": "Menghapus...",
+      "reverseJournal": "Balik Jurnal",
+      "reversalDate": "Tanggal Pembalikan",
+      "confirmReverse": "Konfirmasi",
+      "reversing": "Membalik...",
+      "cancel": "Batal",
+      "confirmDelete": "Yakin ingin menghapus draf ini?",
+      "detail": {
+        "journalEntries": "Entri Jurnal",
+        "printPdf": "Cetak / PDF",
+        "postingDate": "Tanggal Posting",
+        "referenceType": "Jenis Referensi",
+        "location": "Lokasi",
+        "version": "Versi",
+        "linesTitle": "Baris Jurnal",
+        "account": "Akun",
+        "description": "Keterangan",
+        "partner": "Mitra",
+        "dueDate": "Jatuh Tempo",
+        "debit": "Debit",
+        "credit": "Kredit",
+        "total": "Total",
+        "created": "Dibuat",
+        "updated": "Diperbarui"
+      }
     },
     "bankAccounts": {
       "title": "Akun Bank",
@@ -1396,21 +1424,7 @@
         "shortage": "Kekurangan",
         "emptyState": {
           "title": "Tidak ada varians",
-          "subtitle": "Tidak ditemukan varians pada rentang tanggal ini.",
-          "error": "Nomor WhatsApp tidak terdeteksi. Pastikan format nomor diawali dengan 62 tanpa + atau 0, misalnya 62812345678."
-        },
-        "logistics": {
-          "outgoingShipments": "Pengiriman Keluar",
-          "outgoingShipmentsSubtitle": "Lacak pengiriman barang atau surat keluar perusahaan menggunakan BinderByte.",
-          "number": "Nomor",
-          "subject": "Perihal",
-          "recipient": "Penerima",
-          "courier": "Kurir & Resi",
-          "status": "Status",
-          "actions": "Aksi",
-          "noShipments": "Belum ada pengiriman keluar.",
-          "sync": "Sinkron",
-          "syncing": "Sinkronisasi..."
+          "subtitle": "Tidak ditemukan varians pada rentang tanggal ini."
         },
         "export": {
           "title": "Laporan Varians",
@@ -1585,7 +1599,19 @@
     "searchItemPlaceholder": "Cari berdasarkan nama atau SKU...",
     "itemCount": "{count} barang",
     "costPrice": "Harga Modal/Unit",
-    "suppliesEmpty": "Barang suplai tidak ditemukan."
+    "suppliesEmpty": "Barang suplai tidak ditemukan.",
+    "stockLedger": {
+      "title": "Kartu Stok",
+      "selectPrompt": "Silakan pilih produk dan lokasi untuk melihat kartu stok.",
+      "productAt": "{product} di {location}",
+      "movementHistory": "Riwayat Pergerakan",
+      "date": "Tanggal",
+      "reason": "Alasan",
+      "reference": "Referensi",
+      "qtyDelta": "Perubahan Qty",
+      "uom": "Satuan",
+      "noMovements": "Tidak ada pergerakan untuk produk dan lokasi ini."
+    }
   },
   "nav": {
     "dashboard": "Dasbor",
@@ -1691,10 +1717,22 @@
     "companySettings": "Info Perusahaan",
     "accountingSettings": "Akuntansi",
     "consumedIngredients": "Pemakaian Bahan",
-    "mySchedule": "Jadwal Saya"
+    "mySchedule": "Jadwal Saya",
+    "stockLedger": "Kartu Stok",
+    "taxEfaktur": "e-Faktur (NSFP)",
+    "taxSpt": "SPT Masa PPN",
+    "taxBupot": "Bukti Potong",
+    "taxPb1Monthly": "PB1 Bulanan"
   },
   "pos": {
     "title": "Kasir",
+    "voucherMember": "Voucher Member",
+    "voucherDiscount": "Diskon Voucher: ",
+    "voucherRemove": "Hapus",
+    "voucherInputPlaceholder": "Masukkan kode voucher...",
+    "voucherChecking": "Cek...",
+    "voucherApply": "Pakai",
+    "voucherCheckError": "Terjadi kesalahan sistem saat mengecek voucher.",
     "operations": {
       "orders": "Riwayat Pesanan",
       "manualClosing": "Closing POS Lama",
@@ -2014,6 +2052,22 @@
     },
     "errors": {
       "noLocation": "Anda belum memiliki lokasi POS yang diatur pada sesi ini."
+    },
+    "parkCart": {
+      "btn": "Hold",
+      "title": "Simpan Pesanan Sementara (Park)",
+      "description": "Pesanan akan disimpan dan keranjang akan dikosongkan.",
+      "nameLabel": "Nama/Meja (Opsional)",
+      "namePlaceholder": "Misal: Meja 4",
+      "confirm": "Simpan (Park)"
+    },
+    "recallCart": {
+      "btn": "Daftar Park",
+      "title": "Pesanan Tersimpan (Parked)",
+      "description": "Pilih pesanan untuk dilanjutkan.",
+      "empty": "Tidak ada pesanan yang tersimpan.",
+      "items": "item",
+      "recall": "Lanjutkan"
     }
   },
   "app": {
@@ -3116,7 +3170,15 @@
       "dividends": "Kurangi: Dividen / Prive",
       "endingBalance": "Saldo Akhir",
       "endingCapital": "Saldo Akhir Modal",
-      "endingRetainedEarnings": "Saldo Akhir Laba Ditahan"
+      "endingRetainedEarnings": "Saldo Akhir Laba Ditahan",
+      "from": "Dari",
+      "to": "Sampai",
+      "location": "Lokasi",
+      "allLocations": "Semua Lokasi (Konsolidasi)",
+      "filter": "Tampilkan",
+      "exportCsv": "Ekspor CSV",
+      "periodRange": "Periode {from} – {to}",
+      "csvDocTitle": "Laporan Perubahan Ekuitas"
     },
     "cashFlowPage": {
       "title": "Arus Kas",
@@ -3197,6 +3259,30 @@
       "totalValueLabel": "Total Nilai",
       "empty": "Tidak ada catatan susut pada periode ini.",
       "exportSheet": "Susut"
+    },
+    "generalLedgerPage": {
+      "title": "Buku Besar",
+      "subtitle": "Laporan mutasi per akun dengan komparasi.",
+      "account": "Akun",
+      "selectAccount": "-- Pilih Akun --",
+      "from": "Dari",
+      "to": "Sampai",
+      "location": "Lokasi",
+      "allLocations": "Semua Lokasi",
+      "filter": "Tampilkan",
+      "exportCsv": "Ekspor CSV",
+      "currentPeriod": "Periode Saat Ini",
+      "comparativePeriod": "Periode Perbandingan (Tahun/Bulan Lalu)",
+      "beginningBalance": "Saldo Awal",
+      "endingBalance": "Saldo Akhir",
+      "date": "Tanggal",
+      "journalNo": "No. Jurnal",
+      "description": "Keterangan",
+      "debit": "Debit",
+      "credit": "Kredit",
+      "balance": "Saldo",
+      "noTransactions": "Tidak ada transaksi pada periode ini.",
+      "csvDocTitle": "Buku Besar"
     }
   },
   "display": {
@@ -3205,6 +3291,14 @@
   },
   "settings": {
     "title": "Pengaturan",
+    "users": {
+      "title": "Manajemen Pengguna",
+      "subtitle": "Kelola daftar pengguna sistem dan hak akses."
+    },
+    "mcpTokens": {
+      "title": "Token MCP",
+      "subtitle": "Kelola token akses untuk integrasi AI dan layanan pihak ketiga."
+    },
     "permissions": {
       "title": "Izin & Hak Akses",
       "subtitle": "Kelola roles dan matrix akses secara global di satu tempat.",
@@ -3302,7 +3396,8 @@
       "forbidden": "Akun ini tidak memiliki akses untuk mengatur pengaturan sistem.",
       "invalidLate": "Denda keterlambatan tidak valid.",
       "invalidFreeLates": "Jatah terlambat tidak valid.",
-      "invalidAbsent": "Denda mangkir tidak valid."
+      "invalidAbsent": "Denda mangkir tidak valid.",
+      "noAccess": "Akun ini tidak memiliki akses untuk mengatur pengaturan sistem."
     },
     "loyalty": {
       "title": "Pengaturan Loyalty",
@@ -4002,6 +4097,93 @@
       "edit": "Edit",
       "save": "Simpan",
       "delete": "Hapus"
+    },
+    "efaktur": {
+      "title": "e-Faktur / NSFP",
+      "subtitle": "Kelola blok NSFP dan ekspor CSV e-Faktur untuk DJP.",
+      "registerBlock": "Daftarkan Blok NSFP",
+      "registerBlockDesc": "Masukkan rentang NSFP yang diberikan DJP.",
+      "startNsfp": "NSFP Awal",
+      "endNsfp": "NSFP Akhir",
+      "issueDate": "Tanggal Terbit",
+      "startNsfpPlaceholder": "mis. 9002100000001",
+      "endNsfpPlaceholder": "mis. 9002100000100",
+      "saving": "Menyimpan...",
+      "registerBlockBtn": "Daftarkan Blok",
+      "exportTitle": "Ekspor CSV e-Faktur",
+      "exportDesc": "Hasilkan CSV Coretax / e-Faktur untuk masa pajak tertentu.",
+      "taxPeriodYm": "Masa Pajak (YYYY-MM)",
+      "downloadCsv": "Unduh CSV",
+      "blocksTitle": "Blok NSFP",
+      "noBlocks": "Belum ada blok NSFP terdaftar.",
+      "range": "Rentang",
+      "lastUsed": "Terakhir Dipakai",
+      "status": "Status",
+      "active": "Aktif",
+      "exhausted": "Habis",
+      "recentInvoices": "Faktur Pajak Terbaru",
+      "noInvoices": "Belum ada faktur pajak dibuat.",
+      "date": "Tanggal",
+      "nsfp": "NSFP",
+      "customer": "Pelanggan",
+      "ppn": "PPN",
+      "fillAllFields": "Mohon isi semua kolom blok NSFP",
+      "registerSuccess": "Blok NSFP berhasil didaftarkan"
+    },
+    "spt": {
+      "title": "SPT Masa PPN",
+      "subtitle": "Rekapitulasi Pajak Masukan (PPN IN) dan Pajak Keluaran (PPN OUT) per masa pajak.",
+      "exportCsv": "Ekspor CSV",
+      "loading": "Memuat...",
+      "totalPpnOut": "Total Pajak Keluaran (PPN OUT)",
+      "totalPpnIn": "Total Pajak Masukan (PPN IN)",
+      "netLabel": "Kurang/(Lebih) Bayar",
+      "payable": "Kurang Bayar",
+      "overpaid": "Lebih Bayar",
+      "nihil": "Nihil",
+      "taxOut": "Pajak Keluaran",
+      "taxIn": "Pajak Masukan",
+      "date": "Tanggal",
+      "reference": "Referensi",
+      "partner": "Mitra",
+      "nsfp": "NSFP",
+      "dpp": "DPP",
+      "ppn": "PPN",
+      "noTransactions": "Tidak ada transaksi."
+    },
+    "bupot": {
+      "title": "Bukti Potong (Bupot)",
+      "subtitle": "Daftar Bukti Potong PPh 23 dan PPh Final yang dipungut dari vendor/supplier.",
+      "taxPeriodYm": "Masa Pajak (YYYY-MM)",
+      "exportCsv": "Ekspor CSV",
+      "listTitle": "Daftar Bukti Potong",
+      "bupotNo": "No. Bupot",
+      "date": "Tanggal",
+      "vendor": "Vendor",
+      "taxCode": "Kode Pajak",
+      "type": "Jenis",
+      "dpp": "DPP",
+      "taxAmount": "Jumlah Pajak",
+      "loading": "Memuat...",
+      "noData": "Belum ada pemotongan pajak untuk masa ini."
+    },
+    "pb1Monthly": {
+      "title": "Rekap PB1 Bulanan (SPTPD)",
+      "subtitle": "Laporan Rekapitulasi Pajak Restoran (PB1) bulanan per outlet untuk pelaporan e-SPTPD / e-PBJT Pemda.",
+      "taxPeriod": "Masa Pajak",
+      "location": "Lokasi",
+      "locationIdPlaceholder": "ID Lokasi",
+      "exportExcel": "Ekspor Excel",
+      "summaryTitle": "Rekap PB1 Bulanan",
+      "date": "Tanggal",
+      "grossSales": "Penjualan Bruto",
+      "netOmzet": "Omzet Bersih (DPP)",
+      "pb1": "PB1 (10%)",
+      "adjustment": "Penyesuaian",
+      "fiscalOmzet": "Omzet Fiskal",
+      "loading": "Memuat...",
+      "noData": "Tidak ada data.",
+      "total": "TOTAL"
     }
   },
   "fields": {
@@ -4269,17 +4451,5 @@
       "changeFailed": "Gagal mengubah password.",
       "resetFailed": "Gagal me-reset password."
     }
-  },
-  "journals": {
-    "postJournal": "Posting Jurnal",
-    "posting": "Memposting...",
-    "deleteDraft": "Hapus Draf",
-    "deleting": "Menghapus...",
-    "reverseJournal": "Jurnal Balik",
-    "reversalDate": "Tanggal Pembalikan",
-    "confirmReverse": "Konfirmasi",
-    "reversing": "Membalik...",
-    "cancel": "Batal",
-    "confirmDelete": "Yakin ingin menghapus draf jurnal ini?"
   }
 }

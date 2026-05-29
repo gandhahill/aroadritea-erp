@@ -24,6 +24,7 @@ const PAGE_COPY = {
     dateRange: 'Rentang tanggal',
     status: 'Status',
     journals: 'Jurnal',
+    actions: 'Aksi',
     closedAt: 'Ditutup pada',
     notClosed: 'Belum ditutup',
     draft: 'draft',
@@ -55,6 +56,7 @@ const PAGE_COPY = {
     dateRange: 'Date range',
     status: 'Status',
     journals: 'Journals',
+    actions: 'Actions',
     closedAt: 'Closed at',
     notClosed: 'Not closed',
     draft: 'draft',
@@ -86,6 +88,7 @@ const PAGE_COPY = {
     dateRange: '日期范围',
     status: '状态',
     journals: '凭证',
+    actions: '操作',
     closedAt: '关闭时间',
     notClosed: '未关闭',
     draft: '草稿',
@@ -185,7 +188,7 @@ export default async function AccountingPeriodsPage() {
                     <TableHead className="px-4 py-3 font-semibold">{copy.status}</TableHead>
                     <TableHead className="px-4 py-3 font-semibold">{copy.journals}</TableHead>
                     <TableHead className="px-4 py-3 font-semibold">{copy.closedAt}</TableHead>
-                    <TableHead className="px-4 py-3 font-semibold">Aksi</TableHead>
+                    <TableHead className="px-4 py-3 font-semibold">{copy.actions}</TableHead>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-brand-ink/10">

@@ -258,6 +258,7 @@ export function Sidebar({
         { label: t('recipes'), href: '/inventory/recipes', icon: <></> },
         { label: t('stockOpname'), href: '/inventory/opname', icon: <></> },
         { label: t('inventoryVariance'), href: '/inventory/variance', icon: <></> },
+        { label: t('stockLedger'), href: '/inventory/stock-ledger', icon: <></> },
       ],
     },
     {
@@ -332,6 +333,10 @@ export function Sidebar({
       children: [
         { label: t('taxRates'), href: '/tax/rates', icon: <></> },
         { label: t('taxRules'), href: '/tax/rules', icon: <></> },
+        { label: t('taxEfaktur'), href: '/tax/efaktur', icon: <></> },
+        { label: t('taxSpt'), href: '/tax/spt', icon: <></> },
+        { label: t('taxBupot'), href: '/tax/bupot', icon: <></> },
+        { label: t('taxPb1Monthly'), href: '/tax/pb1-monthly', icon: <></> },
       ],
     },
     {
@@ -529,6 +534,7 @@ export function Sidebar({
     '/inventory/recipes': 'inventory.recipe',
     '/inventory/opname': 'inventory.opname',
     '/inventory/variance': 'inventory.view',
+    '/inventory/stock-ledger': 'inventory.view',
 
     // Purchasing
     '/purchasing': 'purchasing.view',
@@ -543,6 +549,10 @@ export function Sidebar({
     // Tax
     '/tax/rates': 'tax.manage_rates',
     '/tax/rules': 'tax.manage_global_rates',
+    '/tax/efaktur': 'tax.export',
+    '/tax/spt': 'tax.view',
+    '/tax/bupot': 'tax.view',
+    '/tax/pb1-monthly': 'tax.view',
 
     // HR
     '/hr/employees': 'hr.employee',

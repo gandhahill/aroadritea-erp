@@ -4,6 +4,7 @@ import { eq, desc } from '@erp/db';
 import { getSession } from '@/lib/auth';
 import { requirePermission } from '@erp/services/iam';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import EFakturClient from './client';
 
 export const metadata = {
@@ -23,6 +24,8 @@ export default async function EFakturPage() {
   const perm = await requirePermission(ctx.userId, 'tax.export');
   if (!perm.ok) redirect('/');
 
+  const t = await getTranslations('tax.efaktur');
+
   // Load NSFP blocks
   const blocks = await db
     .select()
@@ -41,8 +44,8 @@ export default async function EFakturPage() {
   return (
     <div className="flex flex-col gap-6 p-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">e-Faktur / NSFP</h1>
-        <p className="text-muted-foreground">Manage NSFP blocks and export e-Faktur CSV for DJP.</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
+        <p className="text-muted-foreground">{t('subtitle')}</p>
       </div>
 
       <EFakturClient initialBlocks={blocks} initialInvoices={invoices} />

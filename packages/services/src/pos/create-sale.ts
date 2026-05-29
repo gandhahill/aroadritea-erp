@@ -63,6 +63,7 @@ import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
+import { generateQrPayload } from '../kitchen/generate-qr';
 import { earnLoyaltyPoints } from '../crm';
 import { requirePermission } from '../iam';
 import { notifyByPermission } from '../notification';
@@ -1171,23 +1172,50 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     }
 
     // 11. Insert order lines
-    const orderLines = lineResults.map((lr, idx) => ({
-      id: generateId(),
-      salesOrderId: saleId,
-      lineNo: idx + 1,
-      productId: lr.productId,
-      variantId: lr.variantId,
-      qty: lr.qty,
-      unitPrice: lr.unitPrice,
-      lineSubtotal: lr.lineSubtotal,
-      lineDiscount: lr.lineDiscount,
-      lineTax: lr.lineTax,
-      lineTotal: lr.lineTotal,
-      modifierJson: lr.modifierJson as never,
-      notes: lr.notes,
-      createdBy: ctx.userId,
-      updatedBy: ctx.userId,
-    }));
+    const orderLines = [];
+    for (let idx = 0; idx < lineResults.length; idx++) {
+      const lr = lineResults[idx]!;
+      let kdsQrToken: string | null = null;
+      let kdsQrPayload: string | null = null;
+      
+      const qrRes = await generateQrPayload({
+        locationId: data.locationId,
+        productId: lr.productId,
+        variantId: lr.variantId,
+        orderNumber: saleNumber,
+        modifiers: (lr.modifierJson as any) || [],
+      }, ctx);
+
+      if (qrRes.ok) {
+        kdsQrToken = qrRes.value.payload;
+        kdsQrPayload = JSON.stringify({
+          productCode: qrRes.value.productCode,
+          specCodes: qrRes.value.specCodes,
+          format: qrRes.value.format,
+        });
+      }
+
+      orderLines.push({
+        id: generateId(),
+        salesOrderId: saleId,
+        lineNo: idx + 1,
+        productId: lr.productId,
+        variantId: lr.variantId,
+        qty: lr.qty,
+        unitPrice: lr.unitPrice,
+        lineSubtotal: lr.lineSubtotal,
+        lineDiscount: lr.lineDiscount,
+        lineTax: lr.lineTax,
+        lineTotal: lr.lineTotal,
+        modifierJson: lr.modifierJson as never,
+        kdsQrToken,
+        kdsQrPayload,
+        notes: lr.notes,
+        createdBy: ctx.userId,
+        updatedBy: ctx.userId,
+      });
+    }
+
     await db.insert(salesOrderLines).values(orderLines);
 
     const manualDiscountApplications = lineResults

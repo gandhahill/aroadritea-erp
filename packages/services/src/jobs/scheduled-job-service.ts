@@ -1,6 +1,6 @@
 import { db } from '@erp/db';
 import { scheduledJobs } from '@erp/db/schema/scheduled-jobs';
-import { auditLog } from '@erp/db/schema/auth';
+import { auditLog } from '@erp/db/schema/audit';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -17,10 +17,10 @@ export type RunJobInput = z.infer<typeof RunJobInputSchema>;
 
 export async function runScheduledJob(input: RunJobInput, ctx: AuditContext): Promise<Result<{ historyId: string }>> {
   const parsed = RunJobInputSchema.safeParse(input);
-  if (!parsed.success) return err(new Error(parsed.error.message));
+  if (!parsed.success) return err(AppError.validation(parsed.error.message));
 
   // T-0253: Require permission to run jobs
-  const permCheck = await requirePermission(ctx.userId, 'jobs.run');
+  const permCheck = await requirePermission(ctx.userId, 'settings.manage');
   if (!permCheck.ok) return permCheck;
 
   const [job] = await db
@@ -42,7 +42,7 @@ export async function runScheduledJob(input: RunJobInput, ctx: AuditContext): Pr
     entityId: job.id,
     action: 'start_job',
     userId: ctx.userId,
-    afterJson: { historyId },
+    after: { historyId },
   });
 
   // Simulated execution logic would go here.

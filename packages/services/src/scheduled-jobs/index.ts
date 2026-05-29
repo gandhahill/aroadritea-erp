@@ -13,6 +13,7 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq } from 'drizzle-orm';
+import { auditRecord } from '../audit';
 
 // --- Zod schemas ---
 
@@ -150,6 +151,22 @@ export async function createScheduledJob(
     enabled: data.enabled,
   });
 
+  if (_ctx) {
+    await auditRecord({
+      action: 'create',
+      entityType: 'scheduled_job',
+      entityId: id,
+      before: null,
+      after: {
+        name: data.name,
+        label: data.label,
+        cronExpression: data.cronExpression,
+        enabled: data.enabled,
+      },
+      ctx: _ctx,
+    });
+  }
+
   return getScheduledJob(id, tenantId);
 }
 
@@ -174,13 +191,14 @@ export async function updateScheduledJob(
 
   // Verify job exists
   const existing = await db
-    .select({ id: scheduledJobs.id })
+    .select()
     .from(scheduledJobs)
     .where(and(eq(scheduledJobs.id, id), eq(scheduledJobs.tenantId, tenantId)))
     .limit(1);
   if (!existing[0]) {
     return err(new AppError('NOT_FOUND', 'Scheduled job not found', 404));
   }
+  const job = existing[0];
 
   await db
     .update(scheduledJobs)
@@ -189,6 +207,25 @@ export async function updateScheduledJob(
       updatedAt: new Date(),
     })
     .where(and(eq(scheduledJobs.id, id), eq(scheduledJobs.tenantId, tenantId)));
+
+  if (_ctx) {
+    await auditRecord({
+      action: 'update',
+      entityType: 'scheduled_job',
+      entityId: id,
+      before: {
+        label: String(job.label),
+        cronExpression: String(job.cronExpression),
+        enabled: Boolean(job.enabled),
+      },
+      after: {
+        label: data.label ?? String(job.label),
+        cronExpression: data.cronExpression ?? String(job.cronExpression),
+        enabled: data.enabled ?? Boolean(job.enabled),
+      },
+      ctx: _ctx,
+    });
+  }
 
   return getScheduledJob(id, tenantId);
 }

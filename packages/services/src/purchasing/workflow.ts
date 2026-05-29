@@ -14,7 +14,13 @@ import { purchaseOrderLines, purchaseOrders } from '@erp/db/schema/purchasing';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, inArray, isNull } from 'drizzle-orm';
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { reverseJournal } from '../accounting/reverse-journal';
+import { journalEntries } from '@erp/db/schema/accounting';
+import { goodsReceiptNotes, grnLines } from '@erp/db/schema/purchasing';
+import { stockMovements, stockLevels } from '@erp/db/schema/inventory';
+import { generateId } from '@erp/shared/id';
+
 import { createJournal } from '../accounting/create-journal';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
@@ -392,7 +398,7 @@ export async function cancelPO(
   });
   if (!permCheck.ok) return permCheck;
 
-  const NON_CANCELLABLE = new Set(['closed', 'cancelled', 'received']);
+  const NON_CANCELLABLE = new Set(['closed', 'cancelled']); // T-0238 allowed received
   if (NON_CANCELLABLE.has(po.status)) {
     return err(
       AppError.businessRule('purchasing.errors.cannot_cancel', {
@@ -406,13 +412,86 @@ export async function cancelPO(
   }
 
   // Approved POs: only creator or users with approval authority can cancel.
-  if (po.status === 'approved') {
+  if (po.status === 'approved' || po.status === 'received') {
     const isCreator = po.createdBy === ctx.userId;
-    const approvePerm = await requirePermission(ctx.userId, 'purchasing.po.approve', {
+    const approvePerm = await requirePermission(ctx.userId, 'purchasing.po.approve' as any, {
       locationId: po.locationId,
     });
     if (!isCreator && !approvePerm.ok) {
       return err(AppError.forbidden('purchasing.errors.cancel_not_authorized'));
+    }
+  }
+
+  if (po.status === 'received') {
+    // Reverse all confirmed GRNs (T-0238)
+    const grns = await db.select().from(goodsReceiptNotes).where(eq(goodsReceiptNotes.purchaseOrderId, po.id));
+    for (const grn of grns) {
+      if (grn.status === 'confirmed') {
+        const [je] = await db.select().from(journalEntries).where(and(eq(journalEntries.referenceType, 'goods_receipt'), eq(journalEntries.referenceId, grn.id))).limit(1);
+        if (je) {
+          const revRes = await reverseJournal({
+             journalId: je.id,
+             postingDate: new Date().toISOString().slice(0, 10),
+             notes: `PO Cancellation: ${parsed.data.reason}`,
+          }, ctx);
+          if (!revRes.ok) return err(AppError.businessRule('purchasing.errors.grn_reverse_failed'));
+        }
+
+        const lines = await db.select({
+          productId: grnLines.productId,
+          variantId: grnLines.variantId,
+          batchNo: grnLines.batchNo,
+          expiryDate: grnLines.expiryDate,
+          qtyReceived: grnLines.qtyReceived,
+          uom: grnLines.uom,
+          unitCost: purchaseOrderLines.unitCost,
+        }).from(grnLines).innerJoin(purchaseOrderLines, eq(grnLines.poLineId, purchaseOrderLines.id)).where(eq(grnLines.grnId, grn.id));
+        
+        const movementValues = lines.map((line) => ({
+          id: generateId(),
+          tenantId: ctx.tenantId,
+          locationId: grn.locationId,
+          occurredAt: new Date(),
+          stockLocationId: null,
+          productId: line.productId,
+          variantId: line.variantId ?? null,
+          batchNo: line.batchNo,
+          expiryDate: line.expiryDate,
+          qtyDelta: `-${line.qtyReceived}`,
+          uom: line.uom,
+          reason: 'purchase_return' as any,
+          referenceType: 'purchase_order' as any,
+          referenceId: po.id,
+          unitCost: line.unitCost,
+          createdBy: ctx.userId,
+          updatedBy: ctx.userId,
+        }));
+        if (movementValues.length > 0) {
+          await db.insert(stockMovements).values(movementValues);
+          for (const line of lines) {
+            const variantCondition = line.variantId
+              ? eq(stockLevels.variantId, line.variantId)
+              : eq(stockLevels.variantId, '' as unknown as string);
+            await db
+              .update(stockLevels)
+              .set({
+                qtyOnHand: sql`${stockLevels.qtyOnHand} - ${line.qtyReceived}::numeric`,
+                qtyAvailable: sql`${stockLevels.qtyAvailable} - ${line.qtyReceived}::numeric`,
+                updatedBy: ctx.userId,
+                lastMovementAt: new Date(),
+              })
+              .where(
+                and(
+                  eq(stockLevels.tenantId, ctx.tenantId),
+                  eq(stockLevels.locationId, grn.locationId),
+                  eq(stockLevels.productId, line.productId),
+                  variantCondition,
+                ),
+              );
+          }
+        }
+        await db.update(goodsReceiptNotes).set({ status: 'draft', updatedBy: ctx.userId, version: grn.version + 1 }).where(eq(goodsReceiptNotes.id, grn.id));
+      }
     }
   }
 

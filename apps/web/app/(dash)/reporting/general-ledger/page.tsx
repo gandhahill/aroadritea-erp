@@ -65,9 +65,11 @@ export default async function GeneralLedgerPage({
     }
   }
 
+  const t = await getTranslations('reporting.generalLedgerPage');
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Buku Besar (General Ledger)" description="Laporan mutasi per akun dengan komparasi." />
+      <PageHeader title={t('title')} description={t('subtitle')} />
       <LedgerClient
         from={from}
         to={to}

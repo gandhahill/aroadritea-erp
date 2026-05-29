@@ -16,6 +16,7 @@ import {
   partyLedgerReminderHandler,
   payrollBatchHandler,
   stockLowAlertHandler,
+  helpdeskSlaCheckHandler,
 } from './jobs/index';
 import type {
   AiActionDraftsSweeperJobData,
@@ -25,6 +26,7 @@ import type {
   PartyLedgerReminderJobData,
   PayrollJobData,
   StockAlertJobData,
+  HelpdeskSlaCheckJobData,
 } from './jobs/index';
 
 // --- Handler map ---
@@ -37,6 +39,7 @@ const handlerMap: Record<string, JobHandler> = {
   backup: (data) => backupHandler(data as BackupJobData),
   'payroll-batch': (data) => payrollBatchHandler(data as unknown as PayrollJobData),
   'stock-low-alert': (data) => stockLowAlertHandler(data as unknown as StockAlertJobData),
+  'helpdesk-sla-check': (data) => helpdeskSlaCheckHandler(data as unknown as HelpdeskSlaCheckJobData),
   'isr-revalidate': (data) => isrRevalidateHandler(data as unknown as IsrRevalidateJobData),
   'outage-monitor': (data) => outageMonitorHandler(data as unknown as OutageMonitorJobData),
   'party-ledger-reminders': (data) =>

@@ -125,7 +125,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
           setVoucherError(result.error);
        }
     } catch (e) {
-       setVoucherError("Terjadi kesalahan sistem saat mengecek voucher.");
+       setVoucherError(t('voucherCheckError'));
     } finally {
        setIsApplyingVoucher(false);
     }
@@ -304,14 +304,14 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
 
           {/* Voucher Section */}
           <div className="rounded-xl border border-brand-cream-3 bg-brand-cream-2/50 p-4">
-             <p className="mb-2 text-xs font-medium uppercase tracking-widest text-brand-ink-3">Voucher Member</p>
+             <p className="mb-2 text-xs font-medium uppercase tracking-widest text-brand-ink-3">{t('voucherMember')}</p>
              {state.voucherCode ? (
                 <div className="flex items-center justify-between rounded-lg bg-card border border-brand-jade/30 px-3 py-2">
                    <div>
                       <p className="text-sm font-semibold text-brand-jade">{state.voucherCode}</p>
-                      <p className="text-xs text-brand-ink-3">Diskon Voucher: {formatRupiah(appliedVoucherDiscount.toString())}</p>
+                      <p className="text-xs text-brand-ink-3">{t('voucherDiscount')}{formatRupiah(appliedVoucherDiscount.toString())}</p>
                    </div>
-                   <button type="button" onClick={handleRemoveVoucher} className="text-xs font-medium text-red-500 hover:underline">Hapus</button>
+                   <button type="button" onClick={handleRemoveVoucher} className="text-xs font-medium text-red-500 hover:underline">{t('voucherRemove')}</button>
                 </div>
              ) : (
                 <div className="space-y-2">
@@ -319,7 +319,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
                       <Input 
                          value={voucherInput} 
                          onChange={(e) => setVoucherInput(e.target.value)} 
-                         placeholder="Masukkan kode voucher..." 
+                         placeholder={t('voucherInputPlaceholder')} 
                          className="h-10 text-sm flex-1 bg-card border-brand-cream-3" 
                          disabled={isApplyingVoucher}
                       />
@@ -329,7 +329,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
                          disabled={isApplyingVoucher || !voucherInput.trim()} 
                          className="h-10 px-4 rounded-lg bg-brand-ink text-white text-sm font-medium hover:bg-brand-ink-2 disabled:opacity-50"
                       >
-                         {isApplyingVoucher ? 'Cek...' : 'Pakai'}
+                         {isApplyingVoucher ? t('voucherChecking') : t('voucherApply')}
                       </button>
                    </div>
                    {voucherError && <p className="text-xs text-red-500">{voucherError}</p>}

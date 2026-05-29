@@ -11,6 +11,7 @@ import { fetchJournalDetail } from '../actions';
 import { fetchJournalAttachments } from '../attachments/actions';
 import { JournalAttachmentsList } from './attachments-list';
 import { JournalActionsUI } from './journal-actions-ui';
+import { getTranslations } from 'next-intl/server';
 
 export const metadata: Metadata = {
   title: 'Journal Detail | Aroadri ERP',
@@ -39,13 +40,14 @@ export default async function JournalDetailPage({
   );
 
   const style = statusStyles[journal.status as keyof typeof statusStyles] ?? statusStyles.draft;
+  const t = await getTranslations('accounting.journals');
 
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-brand-ink-3">
         <a href="/accounting/journals" className="hover:text-brand-red transition-colors">
-          Journal Entries
+          {t('detail.journalEntries')}
         </a>
         <svg
           className="h-3.5 w-3.5"
@@ -100,45 +102,45 @@ export default async function JournalDetailPage({
                 <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                 <rect width="12" height="8" x="6" y="14" />
               </svg>
-              Print / PDF
+              {t('detail.printPdf')}
             </a>
           </div>
         </div>
 
         {/* Metadata grid */}
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <MetaItem label="Posting Date" value={journal.postingDate} />
-          <MetaItem label="Reference Type" value={journal.referenceType ?? '-'} />
-          <MetaItem label="Location" value={journal.locationLabel} />
-          <MetaItem label="Version" value={`v${journal.version}`} />
+          <MetaItem label={t('detail.postingDate')} value={journal.postingDate} />
+          <MetaItem label={t('detail.referenceType')} value={journal.referenceType ?? '-'} />
+          <MetaItem label={t('detail.location')} value={journal.locationLabel} />
+          <MetaItem label={t('detail.version')} value={`v${journal.version}`} />
         </div>
       </div>
 
       {/* Lines table */}
       <div className="surface-card overflow-hidden">
         <div className="border-b border-brand-cream-2 px-6 py-4">
-          <h2 className="text-base font-semibold text-brand-ink">Journal Lines</h2>
+          <h2 className="text-base font-semibold text-brand-ink">{t('detail.linesTitle')}</h2>
         </div>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
               <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Account
+                {t('detail.account')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Description
+                {t('detail.description')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Partner
+                {t('detail.partner')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Due Date
+                {t('detail.dueDate')}
               </th>
               <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Debit
+                {t('detail.debit')}
               </th>
               <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                Credit
+                {t('detail.credit')}
               </th>
             </tr>
           </thead>
@@ -191,7 +193,7 @@ export default async function JournalDetailPage({
           <tfoot>
             <tr className="border-t-2 border-brand-cream-3 bg-brand-cream/30 font-semibold">
               <td className="px-6 py-3 text-brand-ink" colSpan={4}>
-                Total
+                {t('detail.total')}
               </td>
               <td className="px-6 py-3 text-right font-mono tabular-nums text-brand-jade">
                 {formatRp(journal.totalDebit)}
@@ -225,8 +227,8 @@ export default async function JournalDetailPage({
 
       {/* Audit info */}
       <div className="flex items-center gap-6 text-xs text-brand-ink-3">
-        <span>Created: {new Date(journal.createdAt).toLocaleString('id-ID')}</span>
-        <span>Updated: {new Date(journal.updatedAt).toLocaleString('id-ID')}</span>
+        <span>{t('detail.created')}: {new Date(journal.createdAt).toLocaleString('id-ID')}</span>
+        <span>{t('detail.updated')}: {new Date(journal.updatedAt).toLocaleString('id-ID')}</span>
       </div>
     </div>
   );

@@ -50,7 +50,8 @@ export type AuditAction =
   | 'reactivate'
   | 'master_import'
   | 'movement_import'
-  | 'receive';
+  | 'receive'
+  | 'generate_bank_transfer';
 
 /** Input for a single audit log entry. */
 export interface AuditRecordInput {

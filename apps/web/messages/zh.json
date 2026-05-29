@@ -652,7 +652,35 @@
       "saving": "保存中..."
     },
     "journals": {
-      "attachmentHint": "上传交易凭证或支持文件。文件将在草稿日记账成功创建后自动附加。每个文件最大 10 MB。"
+      "attachmentHint": "上传交易凭证或支持文件。文件将在草稿日记账成功创建后自动附加。每个文件最大 10 MB。",
+      "postJournal": "过账",
+      "posting": "过账中...",
+      "deleteDraft": "删除草稿",
+      "deleting": "删除中...",
+      "reverseJournal": "冲销",
+      "reversalDate": "冲销日期",
+      "confirmReverse": "确认",
+      "reversing": "冲销中...",
+      "cancel": "取消",
+      "confirmDelete": "确定要删除此草稿吗？",
+      "detail": {
+        "journalEntries": "日记账",
+        "printPdf": "打印 / PDF",
+        "postingDate": "过账日期",
+        "referenceType": "参考类型",
+        "location": "地点",
+        "version": "版本",
+        "linesTitle": "日记账明细",
+        "account": "账户",
+        "description": "摘要",
+        "partner": "往来单位",
+        "dueDate": "到期日",
+        "debit": "借方",
+        "credit": "贷方",
+        "total": "合计",
+        "created": "创建",
+        "updated": "更新"
+      }
     },
     "print": {
       "title": "交易凭证",
@@ -1571,6 +1599,18 @@
       "stepSubmitSub": "已提交",
       "stepApprove": "批准",
       "stepApproveSub": "已批准"
+    },
+    "stockLedger": {
+      "title": "库存卡",
+      "selectPrompt": "请选择商品和地点以查看库存卡。",
+      "productAt": "{location} 的 {product}",
+      "movementHistory": "变动历史",
+      "date": "日期",
+      "reason": "原因",
+      "reference": "参考",
+      "qtyDelta": "数量变动",
+      "uom": "单位",
+      "noMovements": "未找到该商品和地点的变动。"
     }
   },
   "nav": {
@@ -1677,10 +1717,22 @@
     "companySettings": "公司信息",
     "accountingSettings": "会计",
     "consumedIngredients": "已消耗原料",
-    "mySchedule": "我的排班"
+    "mySchedule": "我的排班",
+    "stockLedger": "库存卡",
+    "taxEfaktur": "电子发票 (NSFP)",
+    "taxSpt": "增值税申报 (SPT)",
+    "taxBupot": "扣税凭证",
+    "taxPb1Monthly": "每月 PB1"
   },
   "pos": {
     "title": "收银",
+    "voucherMember": "会员优惠券",
+    "voucherDiscount": "优惠券折扣：",
+    "voucherRemove": "移除",
+    "voucherInputPlaceholder": "输入优惠券代码...",
+    "voucherChecking": "检查中...",
+    "voucherApply": "应用",
+    "voucherCheckError": "检查优惠券时发生系统错误。",
     "operations": {
       "orders": "订单历史",
       "manualClosing": "旧POS收班",
@@ -2000,6 +2052,22 @@
     },
     "errors": {
       "noLocation": "您尚未在此会话中设置POS位置。"
+    },
+    "parkCart": {
+      "btn": "Hold",
+      "title": "???? (Park)",
+      "description": "?????????????",
+      "nameLabel": "??/?? (??)",
+      "namePlaceholder": "??:4??",
+      "confirm": "?? (Park)"
+    },
+    "recallCart": {
+      "btn": "???",
+      "title": "?????",
+      "description": "?????????",
+      "empty": "????????",
+      "items": "???",
+      "recall": "??"
     }
   },
   "app": {
@@ -2695,6 +2763,14 @@
   },
   "settings": {
     "title": "设置",
+    "users": {
+      "title": "用户管理",
+      "subtitle": "管理系统用户和访问权限。"
+    },
+    "mcpTokens": {
+      "title": "MCP 令牌",
+      "subtitle": "管理用于 AI 集成和第三方服务的访问令牌。"
+    },
     "bankAccounts": {
       "title": "银行账户",
       "subtitle": "管理用于对账和现金记录的银行账户列表。",
@@ -2833,7 +2909,8 @@
       "forbidden": "此账户没有权限管理系统设置。",
       "invalidLate": "迟到罚款无效。",
       "invalidFreeLates": "免迟到次数无效。",
-      "invalidAbsent": "缺勤罚款无效。"
+      "invalidAbsent": "缺勤罚款无效。",
+      "noAccess": "您没有管理系统设置的权限。"
     },
     "loyalty": {
       "title": "会员积分设置",
@@ -3380,7 +3457,15 @@
       "dividends": "减：股利/提款",
       "endingBalance": "期末余额",
       "endingCapital": "期末资本",
-      "endingRetainedEarnings": "期末留存收益"
+      "endingRetainedEarnings": "期末留存收益",
+      "from": "从",
+      "to": "至",
+      "location": "地点",
+      "allLocations": "所有地点（合并）",
+      "filter": "筛选",
+      "exportCsv": "导出 CSV",
+      "periodRange": "期间 {from} – {to}",
+      "csvDocTitle": "权益变动表"
     },
     "cashFlowPage": {
       "title": "现金流",
@@ -3461,6 +3546,30 @@
       "totalValueLabel": "总金额",
       "empty": "本期间无损耗记录。",
       "exportSheet": "损耗"
+    },
+    "generalLedgerPage": {
+      "title": "总账",
+      "subtitle": "按账户的明细变动报表（含对比）。",
+      "account": "账户",
+      "selectAccount": "-- 选择账户 --",
+      "from": "从",
+      "to": "至",
+      "location": "地点",
+      "allLocations": "所有地点",
+      "filter": "筛选",
+      "exportCsv": "导出 CSV",
+      "currentPeriod": "当前期间",
+      "comparativePeriod": "对比期间（上年/上月）",
+      "beginningBalance": "期初余额",
+      "endingBalance": "期末余额",
+      "date": "日期",
+      "journalNo": "日记账编号",
+      "description": "摘要",
+      "debit": "借方",
+      "credit": "贷方",
+      "balance": "余额",
+      "noTransactions": "此期间没有交易。",
+      "csvDocTitle": "总账"
     }
   },
   "opname": {
@@ -4013,6 +4122,93 @@
       "edit": "编辑",
       "save": "保存",
       "delete": "删除"
+    },
+    "efaktur": {
+      "title": "电子发票 / NSFP",
+      "subtitle": "管理 NSFP 区块并为税务局 (DJP) 导出电子发票 CSV。",
+      "registerBlock": "登记 NSFP 区块",
+      "registerBlockDesc": "输入税务局提供的 NSFP 范围。",
+      "startNsfp": "起始 NSFP",
+      "endNsfp": "结束 NSFP",
+      "issueDate": "开具日期",
+      "startNsfpPlaceholder": "例如 9002100000001",
+      "endNsfpPlaceholder": "例如 9002100000100",
+      "saving": "保存中...",
+      "registerBlockBtn": "登记区块",
+      "exportTitle": "导出电子发票 CSV",
+      "exportDesc": "为指定税期生成 Coretax / 电子发票 CSV。",
+      "taxPeriodYm": "税期 (YYYY-MM)",
+      "downloadCsv": "下载 CSV",
+      "blocksTitle": "NSFP 区块",
+      "noBlocks": "尚未登记 NSFP 区块。",
+      "range": "范围",
+      "lastUsed": "最后使用",
+      "status": "状态",
+      "active": "启用",
+      "exhausted": "已用尽",
+      "recentInvoices": "最近的税务发票",
+      "noInvoices": "尚未生成税务发票。",
+      "date": "日期",
+      "nsfp": "NSFP",
+      "customer": "客户",
+      "ppn": "增值税",
+      "fillAllFields": "请填写所有 NSFP 区块字段",
+      "registerSuccess": "NSFP 区块登记成功"
+    },
+    "spt": {
+      "title": "增值税申报 (SPT Masa PPN)",
+      "subtitle": "按税期汇总进项税 (PPN IN) 和销项税 (PPN OUT)。",
+      "exportCsv": "导出 CSV",
+      "loading": "加载中...",
+      "totalPpnOut": "销项税合计 (PPN OUT)",
+      "totalPpnIn": "进项税合计 (PPN IN)",
+      "netLabel": "应补（退）税额",
+      "payable": "应补税额",
+      "overpaid": "多缴税额",
+      "nihil": "零",
+      "taxOut": "销项税",
+      "taxIn": "进项税",
+      "date": "日期",
+      "reference": "参考",
+      "partner": "往来单位",
+      "nsfp": "NSFP",
+      "dpp": "计税基础",
+      "ppn": "增值税",
+      "noTransactions": "未找到交易。"
+    },
+    "bupot": {
+      "title": "扣税凭证 (Bupot)",
+      "subtitle": "已从供应商处代扣的 PPh 23 和最终所得税凭证清单。",
+      "taxPeriodYm": "税期 (YYYY-MM)",
+      "exportCsv": "导出 CSV",
+      "listTitle": "扣税凭证清单",
+      "bupotNo": "凭证编号",
+      "date": "日期",
+      "vendor": "供应商",
+      "taxCode": "税码",
+      "type": "类型",
+      "dpp": "计税基础",
+      "taxAmount": "税额",
+      "loading": "加载中...",
+      "noData": "此期间未生成扣税。"
+    },
+    "pb1Monthly": {
+      "title": "每月 PB1 汇总 (SPTPD)",
+      "subtitle": "按门店的每月餐饮税 (PB1) 汇总，用于 e-SPTPD / e-PBJT 申报。",
+      "taxPeriod": "税期",
+      "location": "地点",
+      "locationIdPlaceholder": "地点 ID",
+      "exportExcel": "导出 Excel",
+      "summaryTitle": "每月 PB1 汇总",
+      "date": "日期",
+      "grossSales": "销售总额",
+      "netOmzet": "净营业额 (DPP)",
+      "pb1": "PB1 (10%)",
+      "adjustment": "调整",
+      "fiscalOmzet": "计税营业额",
+      "loading": "加载中...",
+      "noData": "暂无数据。",
+      "total": "合计"
     }
   },
   "fields": {
@@ -4255,17 +4451,5 @@
       "changeFailed": "更改密码失败。",
       "resetFailed": "重置密码失败。"
     }
-  },
-  "journals": {
-    "postJournal": "过账日记账",
-    "posting": "过账中...",
-    "deleteDraft": "删除草稿",
-    "deleting": "删除中...",
-    "reverseJournal": "冲销日记账",
-    "reversalDate": "冲销日期",
-    "confirmReverse": "确认",
-    "reversing": "冲销中...",
-    "cancel": "取消",
-    "confirmDelete": "您确定要删除此草稿吗？"
   }
 }

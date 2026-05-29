@@ -60,7 +60,7 @@ export async function recordWaste(input: RecordWasteInput, ctx: AuditContext): P
     tenantId: ctx.tenantId,
     locationId: input.locationId,
     number: `ADJ-WST-${Date.now()}`,
-    adjustmentDate: new Date(),
+    adjustmentDate: new Date().toISOString().slice(0, 10),
     reason: 'waste',
     notes: input.reason,
     status: 'approved',
@@ -72,7 +72,6 @@ export async function recordWaste(input: RecordWasteInput, ctx: AuditContext): P
 
   await db.insert(stockAdjustmentLines).values({
     id: generateId(),
-    tenantId: ctx.tenantId,
     adjustmentId: adjId,
     lineNo: 1,
     productId: input.productId,
@@ -97,7 +96,7 @@ export async function recordWaste(input: RecordWasteInput, ctx: AuditContext): P
       postingDate: new Date().toISOString().split('T')[0] as string,
       locationId: input.locationId,
       description: `Waste Adjustment ${adjId}`,
-      referenceType: 'inventory_adjustment',
+      referenceType: 'stock_adjustment',
       referenceId: adjId,
       lines: [
         {

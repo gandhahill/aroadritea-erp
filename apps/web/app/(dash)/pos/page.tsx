@@ -13,7 +13,9 @@ import { useState } from 'react';
 import { ChannelSelector } from './channel-selector';
 import { MemberLookup } from './member-lookup';
 import { OrderCart } from './order-cart';
+import { ParkCartDialog, RecallCartDialog } from './parked-orders-modal';
 import { PaymentModal } from './payment-modal';
+import { Button } from '@erp/ui';
 import { usePosCart } from './pos-cart-context';
 import { ProductSearch } from './product-search';
 
@@ -21,6 +23,8 @@ export default function PosPage() {
   const t = useTranslations('pos');
   const { state, grandTotal, remainingBalance, autoDiscountTotal } = usePosCart();
   const [showPayment, setShowPayment] = useState(false);
+  const [showPark, setShowPark] = useState(false);
+  const [showRecall, setShowRecall] = useState(false);
   const hasInvalidManualDiscount = state.lines.some(
     (line) => BigInt(line.lineDiscount ?? '0') > BigInt(0) && !line.lineDiscountReason?.trim(),
   );
@@ -53,11 +57,15 @@ export default function PosPage() {
           {/* Cart header */}
           <div className="flex h-14 shrink-0 items-center justify-between border-b border-brand-cream-3 px-4">
             <h2 className="text-base font-semibold text-brand-ink">{t('orderLines')}</h2>
-            {state.lines.length > 0 && (
-              <span className="text-xs text-brand-ink-3">
-                {t('itemCount', { count: state.lines.length })}
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setShowRecall(true)}>{t('recallCart.btn') || 'Recalls'}</Button>
+              <Button variant="outline" size="sm" disabled={state.lines.length === 0} onClick={() => setShowPark(true)}>{t('parkCart.btn') || 'Hold'}</Button>
+              {state.lines.length > 0 && (
+                <span className="text-xs text-brand-ink-3">
+                  {t('itemCount', { count: state.lines.length })}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="shrink-0">
@@ -127,6 +135,9 @@ export default function PosPage() {
         {showPayment && (
           <PaymentModal grandTotal={grandTotal.toString()} onClose={() => setShowPayment(false)} />
         )}
+
+        <ParkCartDialog open={showPark} onOpenChange={setShowPark} />
+        <RecallCartDialog open={showRecall} onOpenChange={setShowRecall} />
       </div>
     </div>
   );

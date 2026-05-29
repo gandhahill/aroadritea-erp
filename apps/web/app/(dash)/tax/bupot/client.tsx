@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import { Button, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from '@erp/ui';
+import { useTranslations } from 'next-intl';
 import { fetchBuktiPotongAction, exportBuktiPotongCsvAction } from './actions';
 import type { BupotSummaryRow } from '@erp/services/tax';
 
 export default function BupotClient() {
+  const t = useTranslations('tax.bupot');
   const [period, setPeriod] = useState<string>(
     `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
   );
@@ -44,42 +46,42 @@ export default function BupotClient() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="w-full sm:w-64 grid gap-2">
-          <label className="text-sm font-medium leading-none">Tax Period (YYYY-MM)</label>
+          <label className="text-sm font-medium leading-none">{t('taxPeriodYm')}</label>
           <Input type="month" value={period} onChange={(e: any) => setPeriod(e.target.value)} />
         </div>
         <Button onClick={handleExport} disabled={isPending || rows.length === 0} variant="secondary">
-          Export CSV
+          {t('exportCsv')}
         </Button>
       </div>
 
       <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
         <div className="flex flex-col space-y-1.5 p-6 border-b">
-          <h3 className="font-semibold leading-none tracking-tight">Daftar Bukti Potong</h3>
+          <h3 className="font-semibold leading-none tracking-tight">{t('listTitle')}</h3>
         </div>
         <div className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>No. Bupot</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Vendor</TableHead>
-                <TableHead>Tax Code</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead className="text-right">DPP</TableHead>
-                <TableHead className="text-right">Tax Amount</TableHead>
+                <TableHead>{t('bupotNo')}</TableHead>
+                <TableHead>{t('date')}</TableHead>
+                <TableHead>{t('vendor')}</TableHead>
+                <TableHead>{t('taxCode')}</TableHead>
+                <TableHead>{t('type')}</TableHead>
+                <TableHead className="text-right">{t('dpp')}</TableHead>
+                <TableHead className="text-right">{t('taxAmount')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isPending ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                    Loading...
+                    {t('loading')}
                   </TableCell>
                 </TableRow>
               ) : rows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                    No withholding taxes generated for this period.
+                    {t('noData')}
                   </TableCell>
                 </TableRow>
               ) : (

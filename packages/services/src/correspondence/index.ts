@@ -60,6 +60,8 @@ export const CreateCorrespondenceInputSchema = z.object({
   summary: z.string().trim().max(2000).optional().nullable(),
   storageUrl: z.string().trim().max(500).optional().nullable(),
   tags: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
+  attachments: z.array(z.string().trim()).default([]),
+  dispositions: z.array(z.any()).default([]),
 });
 
 export const UpdateCorrespondenceInputSchema = CreateCorrespondenceInputSchema.partial().extend({
@@ -99,6 +101,9 @@ function toResult(row: typeof correspondenceRecords.$inferSelect) {
     summary: row.summary,
     storageUrl: row.storageUrl,
     tags: row.tags,
+    agendaNo: row.agendaNo,
+    attachments: row.attachments,
+    dispositions: row.dispositions,
     version: row.version,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -168,6 +173,9 @@ export async function createCorrespondence(
           summary: data.summary ?? null,
           storageUrl: data.storageUrl ?? null,
           tags: data.tags,
+          agendaNo: `AGD-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`,
+          attachments: data.attachments,
+          dispositions: data.dispositions,
           createdBy: ctx.userId,
           updatedBy: ctx.userId,
         })
@@ -302,6 +310,8 @@ export async function updateCorrespondence(
           ...(data.summary !== undefined && { summary: data.summary ?? null }),
           ...(data.storageUrl !== undefined && { storageUrl: data.storageUrl ?? null }),
           ...(data.tags !== undefined && { tags: data.tags }),
+          ...(data.attachments !== undefined && { attachments: data.attachments }),
+          ...(data.dispositions !== undefined && { dispositions: data.dispositions }),
           updatedBy: ctx.userId,
           updatedAt: new Date(),
           version: sql`${correspondenceRecords.version} + 1`,

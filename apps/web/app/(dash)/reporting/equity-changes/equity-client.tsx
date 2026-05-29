@@ -56,8 +56,8 @@ export function EquityChangesClient(props: Props) {
   function exportCsv() {
     if (!props.data) return;
     const rows: string[][] = [];
-    rows.push(['Laporan Perubahan Ekuitas (Statement of Changes in Equity)', '', '']);
-    rows.push([`Periode: ${props.from} - ${props.to}`, '', '']);
+    rows.push([t('csvDocTitle'), '', '']);
+    rows.push([t('periodRange', { from: props.from, to: props.to }), '', '']);
     rows.push(['', '', '']);
     rows.push([t('beginningBalance'), '', fmt(props.data.totalBeginningEquity)]);
     rows.push(['  ' + t('beginningCapital'), '', fmt(props.data.beginningCapital)]);
@@ -90,7 +90,7 @@ export function EquityChangesClient(props: Props) {
 
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-3">
         <label className="space-y-1 text-sm">
-          <span className="text-brand-ink-2">Dari (From)</span>
+          <span className="text-brand-ink-2">{t('from')}</span>
           <Input
             type="date"
             defaultValue={props.from}
@@ -99,7 +99,7 @@ export function EquityChangesClient(props: Props) {
           />
         </label>
         <label className="space-y-1 text-sm">
-          <span className="text-brand-ink-2">Sampai (To)</span>
+          <span className="text-brand-ink-2">{t('to')}</span>
           <Input
             type="date"
             defaultValue={props.to}
@@ -108,13 +108,13 @@ export function EquityChangesClient(props: Props) {
           />
         </label>
         <label className="space-y-1 text-sm">
-          <span className="text-brand-ink-2">Lokasi (Location)</span>
+          <span className="text-brand-ink-2">{t('location')}</span>
           <Select
             value={props.locationId}
             onChange={(e) => updateParam('locationId', e.target.value)}
             className="w-56"
           >
-            <option value="">Semua Lokasi (Consolidated)</option>
+            <option value="">{t('allLocations')}</option>
             {props.locationOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
@@ -123,16 +123,16 @@ export function EquityChangesClient(props: Props) {
           </Select>
         </label>
         <Button variant="primary" size="md" onClick={() => router.refresh()} disabled={pending}>
-          Tampilkan (Filter)
+          {t('filter')}
         </Button>
-        <ExportXlsxButton onExport={exportCsv} disabled={!props.data} label="Ekspor CSV" />
+        <ExportXlsxButton onExport={exportCsv} disabled={!props.data} label={t('exportCsv')} />
       </div>
 
       {props.data ? (
         <div className="mx-auto max-w-4xl overflow-hidden rounded-xl border border-brand-cream-3 bg-card text-sm">
           <div className="border-b border-brand-cream-3 bg-brand-cream-1 p-6 text-center">
             <h2 className="text-lg font-bold text-brand-ink">{t('title')}</h2>
-            <p className="text-brand-ink-2 mt-1">Periode {props.from} s/d {props.to}</p>
+            <p className="text-brand-ink-2 mt-1">{t('periodRange', { from: props.from, to: props.to })}</p>
           </div>
           <div className="p-6 space-y-6">
             

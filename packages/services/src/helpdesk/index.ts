@@ -111,6 +111,22 @@ async function resolveUserName(userId: string): Promise<string | null> {
   return u?.name ?? null;
 }
 
+function computeSlaDueDate(priority: string): Date {
+  const now = new Date();
+  switch (priority) {
+    case 'urgent':
+      return new Date(now.getTime() + 4 * 60 * 60 * 1000); // 4 hours
+    case 'high':
+      return new Date(now.getTime() + 12 * 60 * 60 * 1000); // 12 hours
+    case 'normal':
+      return new Date(now.getTime() + 48 * 60 * 60 * 1000); // 48 hours
+    case 'low':
+      return new Date(now.getTime() + 96 * 60 * 60 * 1000); // 96 hours
+    default:
+      return new Date(now.getTime() + 48 * 60 * 60 * 1000);
+  }
+}
+
 // ─── Create ───────────────────────────────────────────────────────────────
 
 export async function createTicket(
@@ -140,6 +156,9 @@ export async function createTicket(
     createdVia: parsed.data.createdVia,
     sourceAiSessionId: parsed.data.sourceAiSessionId ?? null,
     contextJson: parsed.data.context ?? null,
+    slaDueDate: computeSlaDueDate(parsed.data.priority),
+    isSlaBreached: false,
+    escalationLevel: 0,
     createdBy: ctx.userId,
     updatedBy: ctx.userId,
   });

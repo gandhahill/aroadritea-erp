@@ -166,6 +166,15 @@ export async function createCorrespondenceAction(formData: FormData) {
       summary: nullableText(formData, 'summary'),
       storageUrl: nullableText(formData, 'storageUrl'),
       tags: tags(formData),
+      attachments: formData.getAll('attachments').map((v) => String(v)),
+      dispositions: (() => {
+        try {
+          const raw = formData.get('dispositions');
+          return raw ? JSON.parse(String(raw)) : [];
+        } catch {
+          return [];
+        }
+      })(),
     },
     ctx,
   );
@@ -196,6 +205,15 @@ export async function updateCorrespondenceAction(id: string, formData: FormData)
       summary: nullableText(formData, 'summary'),
       storageUrl: nullableText(formData, 'storageUrl'),
       tags: tags(formData),
+      attachments: formData.getAll('attachments').map((v) => String(v)),
+      dispositions: (() => {
+        try {
+          const raw = formData.get('dispositions');
+          return raw ? JSON.parse(String(raw)) : [];
+        } catch {
+          return [];
+        }
+      })(),
     },
     ctx,
   );

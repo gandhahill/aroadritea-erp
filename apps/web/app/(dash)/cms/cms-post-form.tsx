@@ -22,7 +22,8 @@ const LOCALE_TABS = [
 
 
 import { PageHeader } from '@/components/page-header';
-import { Button, Input, Select } from '@erp/ui';
+import { Button, Input, Label, Select } from '@erp/ui';
+import { MarkdownEditor } from './components/markdown-editor';
 import { useTranslations } from 'next-intl';
 
 export function CmsPostForm({ post, isNew = false }: Props) {
@@ -202,13 +203,11 @@ export function CmsPostForm({ post, isNew = false }: Props) {
               {LOCALE_TABS.map((tab) => (
                 <div key={tab.code}>
                   <p className="mb-1 text-xs font-medium text-brand-ink-3">{tab.label}</p>
-                  <textarea
-                    value={contentVals[tab.code] ?? ''}
-                    onChange={(e) => setContentVals((v) => ({ ...v, [tab.code]: e.target.value }))}
-                    rows={8}
-                    className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-                    placeholder={`${tc('labels.content')} (${tab.code.toUpperCase()})`}
-                  />
+                    <MarkdownEditor
+                      value={contentVals[tab.code] ?? ''}
+                      onChange={(val) => setContentVals((v) => ({ ...v, [tab.code]: val }))}
+                      placeholder={`${tc('labels.content')} (${tab.code.toUpperCase()})`}
+                    />
                 </div>
               ))}
             </div>

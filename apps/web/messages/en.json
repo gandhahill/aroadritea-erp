@@ -631,7 +631,35 @@
       }
     },
     "journals": {
-      "attachmentHint": "Upload transaction proof or supporting documents. The file will be automatically attached once the draft journal is successfully created. Maximum 10 MB per file."
+      "attachmentHint": "Upload transaction proof or supporting documents. The file will be automatically attached once the draft journal is successfully created. Maximum 10 MB per file.",
+      "postJournal": "Post Journal",
+      "posting": "Posting...",
+      "deleteDraft": "Delete Draft",
+      "deleting": "Deleting...",
+      "reverseJournal": "Reverse Journal",
+      "reversalDate": "Reversal Date",
+      "confirmReverse": "Confirm",
+      "reversing": "Reversing...",
+      "cancel": "Cancel",
+      "confirmDelete": "Are you sure you want to delete this draft?",
+      "detail": {
+        "journalEntries": "Journal Entries",
+        "printPdf": "Print / PDF",
+        "postingDate": "Posting Date",
+        "referenceType": "Reference Type",
+        "location": "Location",
+        "version": "Version",
+        "linesTitle": "Journal Lines",
+        "account": "Account",
+        "description": "Description",
+        "partner": "Partner",
+        "dueDate": "Due Date",
+        "debit": "Debit",
+        "credit": "Credit",
+        "total": "Total",
+        "created": "Created",
+        "updated": "Updated"
+      }
     },
     "bankAccounts": {
       "title": "Bank Accounts",
@@ -1571,7 +1599,19 @@
     "searchItemPlaceholder": "Search by name or SKU...",
     "itemCount": "{count} items",
     "costPrice": "Cost Price/Unit",
-    "suppliesEmpty": "No supplies found."
+    "suppliesEmpty": "No supplies found.",
+    "stockLedger": {
+      "title": "Stock Ledger",
+      "selectPrompt": "Please select a product and location to view the stock ledger.",
+      "productAt": "{product} at {location}",
+      "movementHistory": "Movement History",
+      "date": "Date",
+      "reason": "Reason",
+      "reference": "Reference",
+      "qtyDelta": "Qty Delta",
+      "uom": "UOM",
+      "noMovements": "No movements found for this product and location."
+    }
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -1677,10 +1717,22 @@
     "companySettings": "Company Info",
     "accountingSettings": "Accounting",
     "consumedIngredients": "Consumed Ingredients",
-    "mySchedule": "My Schedule"
+    "mySchedule": "My Schedule",
+    "stockLedger": "Stock Ledger",
+    "taxEfaktur": "e-Faktur (NSFP)",
+    "taxSpt": "VAT Return (SPT)",
+    "taxBupot": "Withholding (Bupot)",
+    "taxPb1Monthly": "Monthly PB1"
   },
   "pos": {
-    "title": "Point of Sale",
+    "title": "POS",
+    "voucherMember": "Member Voucher",
+    "voucherDiscount": "Voucher Discount: ",
+    "voucherRemove": "Remove",
+    "voucherInputPlaceholder": "Enter voucher code...",
+    "voucherChecking": "Checking...",
+    "voucherApply": "Apply",
+    "voucherCheckError": "System error occurred while checking voucher.",
     "operations": {
       "orders": "Order History",
       "manualClosing": "Legacy POS Closing",
@@ -2000,6 +2052,22 @@
     },
     "errors": {
       "noLocation": "You don't have a POS location set for this session."
+    },
+    "parkCart": {
+      "btn": "Hold",
+      "title": "Park Order",
+      "description": "Order will be saved and cart will be cleared.",
+      "nameLabel": "Name/Table (Optional)",
+      "namePlaceholder": "e.g., Table 4",
+      "confirm": "Park Cart"
+    },
+    "recallCart": {
+      "btn": "Recalls",
+      "title": "Parked Orders",
+      "description": "Select an order to resume.",
+      "empty": "No parked orders.",
+      "items": "items",
+      "recall": "Recall"
     }
   },
   "app": {
@@ -2695,6 +2763,14 @@
   },
   "settings": {
     "title": "Settings",
+    "users": {
+      "title": "User Management",
+      "subtitle": "Manage system users and access rights."
+    },
+    "mcpTokens": {
+      "title": "MCP Tokens",
+      "subtitle": "Manage access tokens for AI integration and third-party services."
+    },
     "permissions": {
       "title": "Permissions & Access Rights",
       "subtitle": "Manage roles and access matrix globally in one place.",
@@ -2792,7 +2868,8 @@
       "forbidden": "Account does not have permission to manage system settings.",
       "invalidLate": "Late penalty is invalid.",
       "invalidFreeLates": "Free-late allowance is invalid.",
-      "invalidAbsent": "Absent penalty is invalid."
+      "invalidAbsent": "Absent penalty is invalid.",
+      "noAccess": "You do not have permission to manage system settings."
     },
     "loyalty": {
       "title": "Loyalty Settings",
@@ -3380,7 +3457,15 @@
       "dividends": "Less: Dividends / Withdrawals",
       "endingBalance": "Ending Balance",
       "endingCapital": "Ending Capital",
-      "endingRetainedEarnings": "Ending Retained Earnings"
+      "endingRetainedEarnings": "Ending Retained Earnings",
+      "from": "From",
+      "to": "To",
+      "location": "Location",
+      "allLocations": "All Locations (Consolidated)",
+      "filter": "Filter",
+      "exportCsv": "Export CSV",
+      "periodRange": "Period {from} – {to}",
+      "csvDocTitle": "Statement of Changes in Equity"
     },
     "cashFlowPage": {
       "title": "Cash Flow",
@@ -3461,6 +3546,30 @@
       "totalValueLabel": "Total value",
       "empty": "No waste recorded in this period.",
       "exportSheet": "Waste"
+    },
+    "generalLedgerPage": {
+      "title": "General Ledger",
+      "subtitle": "Per-account movement report with comparison.",
+      "account": "Account",
+      "selectAccount": "-- Select Account --",
+      "from": "From",
+      "to": "To",
+      "location": "Location",
+      "allLocations": "All Locations",
+      "filter": "Filter",
+      "exportCsv": "Export CSV",
+      "currentPeriod": "Current Period",
+      "comparativePeriod": "Comparative Period (Prev Year/Month)",
+      "beginningBalance": "Beginning Balance",
+      "endingBalance": "Ending Balance",
+      "date": "Date",
+      "journalNo": "Journal No.",
+      "description": "Description",
+      "debit": "Debit",
+      "credit": "Credit",
+      "balance": "Balance",
+      "noTransactions": "No transactions in this period.",
+      "csvDocTitle": "General Ledger"
     }
   },
   "opname": {
@@ -3988,6 +4097,93 @@
       "edit": "Edit",
       "save": "Save",
       "delete": "Delete"
+    },
+    "efaktur": {
+      "title": "e-Faktur / NSFP",
+      "subtitle": "Manage NSFP blocks and export e-Faktur CSV for DJP.",
+      "registerBlock": "Register NSFP Block",
+      "registerBlockDesc": "Input the NSFP range provided by DJP.",
+      "startNsfp": "Start NSFP",
+      "endNsfp": "End NSFP",
+      "issueDate": "Issue Date",
+      "startNsfpPlaceholder": "e.g. 9002100000001",
+      "endNsfpPlaceholder": "e.g. 9002100000100",
+      "saving": "Saving...",
+      "registerBlockBtn": "Register Block",
+      "exportTitle": "Export e-Faktur CSV",
+      "exportDesc": "Generate Coretax / e-Faktur CSV for a specific tax period.",
+      "taxPeriodYm": "Tax Period (YYYY-MM)",
+      "downloadCsv": "Download CSV",
+      "blocksTitle": "NSFP Blocks",
+      "noBlocks": "No NSFP blocks registered.",
+      "range": "Range",
+      "lastUsed": "Last Used",
+      "status": "Status",
+      "active": "Active",
+      "exhausted": "Exhausted",
+      "recentInvoices": "Recent Tax Invoices",
+      "noInvoices": "No tax invoices generated yet.",
+      "date": "Date",
+      "nsfp": "NSFP",
+      "customer": "Customer",
+      "ppn": "PPN",
+      "fillAllFields": "Please fill in all NSFP block fields",
+      "registerSuccess": "NSFP block registered successfully"
+    },
+    "spt": {
+      "title": "VAT Return (SPT Masa PPN)",
+      "subtitle": "Recap of input VAT (PPN IN) and output VAT (PPN OUT) per tax period.",
+      "exportCsv": "Export CSV",
+      "loading": "Loading...",
+      "totalPpnOut": "Total Output VAT (PPN OUT)",
+      "totalPpnIn": "Total Input VAT (PPN IN)",
+      "netLabel": "Underpayment / (Overpayment)",
+      "payable": "Underpayment (Payable)",
+      "overpaid": "Overpayment",
+      "nihil": "Nil",
+      "taxOut": "Output VAT",
+      "taxIn": "Input VAT",
+      "date": "Date",
+      "reference": "Reference",
+      "partner": "Partner",
+      "nsfp": "NSFP",
+      "dpp": "DPP",
+      "ppn": "PPN",
+      "noTransactions": "No transactions found."
+    },
+    "bupot": {
+      "title": "Withholding Slip (Bupot)",
+      "subtitle": "List of PPh 23 and final income tax withholding slips collected from vendors/suppliers.",
+      "taxPeriodYm": "Tax Period (YYYY-MM)",
+      "exportCsv": "Export CSV",
+      "listTitle": "Withholding Slips",
+      "bupotNo": "Slip No.",
+      "date": "Date",
+      "vendor": "Vendor",
+      "taxCode": "Tax Code",
+      "type": "Type",
+      "dpp": "DPP",
+      "taxAmount": "Tax Amount",
+      "loading": "Loading...",
+      "noData": "No withholding taxes generated for this period."
+    },
+    "pb1Monthly": {
+      "title": "Monthly PB1 Recap (SPTPD)",
+      "subtitle": "Monthly restaurant tax (PB1) recap per outlet for e-SPTPD / e-PBJT reporting.",
+      "taxPeriod": "Tax Period",
+      "location": "Location",
+      "locationIdPlaceholder": "Location ID",
+      "exportExcel": "Export Excel",
+      "summaryTitle": "Monthly PB1 Recap",
+      "date": "Date",
+      "grossSales": "Gross Sales",
+      "netOmzet": "Net Turnover (DPP)",
+      "pb1": "PB1 (10%)",
+      "adjustment": "Adjustment",
+      "fiscalOmzet": "Fiscal Turnover",
+      "loading": "Loading...",
+      "noData": "No data available.",
+      "total": "TOTAL"
     }
   },
   "fields": {
@@ -4255,17 +4451,5 @@
       "changeFailed": "Failed to change password.",
       "resetFailed": "Failed to reset password."
     }
-  },
-  "journals": {
-    "postJournal": "Post Journal",
-    "posting": "Posting...",
-    "deleteDraft": "Delete Draft",
-    "deleting": "Deleting...",
-    "reverseJournal": "Reverse Journal",
-    "reversalDate": "Reversal Date",
-    "confirmReverse": "Confirm",
-    "reversing": "Reversing...",
-    "cancel": "Cancel",
-    "confirmDelete": "Are you sure you want to delete this draft?"
   }
 }

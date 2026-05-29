@@ -20,17 +20,17 @@ export default async function AttendancePolicyPage() {
   if (!session) redirect('/login');
   const userId = String((session.user as Record<string, unknown>)?.id ?? '');
 
+  const t = await getTranslations('settings.attendance');
   const allowed = await can(userId, 'settings.manage');
   if (!allowed) {
     return (
       <div className="rounded-lg border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
-        Akun ini tidak memiliki akses untuk mengatur pengaturan sistem.
+        {t('noAccess')}
       </div>
     );
   }
 
   const policy = await fetchAttendancePolicy();
-  const t = await getTranslations('settings.attendance');
 
   return (
     <div className="space-y-6">

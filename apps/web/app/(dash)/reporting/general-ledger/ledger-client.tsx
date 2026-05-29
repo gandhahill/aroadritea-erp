@@ -1,6 +1,8 @@
 'use client';
 
 import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@erp/ui';
+import type { GeneralLedgerResult } from '@erp/services/reporting';
+import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
 import { ExportXlsxButton } from '../export-button';
@@ -24,33 +26,12 @@ interface Props {
   accountId: string;
   locationOptions: Array<{ value: string; label: string }>;
   accountOptions: Array<{ value: string; label: string; code: string }>;
-  data: {
-    accountId: string;
-    accountCode: string;
-    accountName: Record<string, string>;
-    accountType: string;
-    normalBalance: string;
-    startDate: string;
-    endDate: string;
-    locationId: string | null;
-    beginningBalance: bigint;
-    lines: Array<{
-      journalEntryId: string;
-      journalNumber: string;
-      postingDate: string;
-      description: string;
-      debit: bigint;
-      credit: bigint;
-      balance: bigint;
-    }>;
-    endingBalance: bigint;
-    comparativeBeginningBalance: bigint;
-    comparativeEndingBalance: bigint;
-  } | null;
+  data: GeneralLedgerResult | null;
   error: string | null;
 }
 
 export function LedgerClient(props: Props) {
+  const t = useTranslations('reporting.generalLedgerPage');
   const router = useRouter();
   const search = useSearchParams();
   const [pending, startTransition] = useTransition();
@@ -65,26 +46,26 @@ export function LedgerClient(props: Props) {
   function exportCsv() {
     if (!props.data) return;
     const rows: string[][] = [];
-    rows.push(['Buku Besar (General Ledger)', '', '', '', '', '']);
-    const name = props.data.accountName?.id || props.data.accountName?.en || 'Account';
-    rows.push([`Akun: ${props.data.accountCode} - ${name}`, '', '', '', '', '']);
-    rows.push([`Periode: ${props.from} s/d ${props.to}`, '', '', '', '', '']);
+    rows.push([t('csvDocTitle'), '', '', '', '', '']);
+    const name = props.data.accountName?.id || props.data.accountName?.en || t('account');
+    rows.push([`${t('account')}: ${props.data.accountCode} - ${name}`, '', '', '', '', '']);
+    rows.push([`${props.from} – ${props.to}`, '', '', '', '', '']);
     rows.push(['', '', '', '', '', '']);
-    rows.push(['Tanggal', 'No. Jurnal', 'Keterangan', 'Debit', 'Kredit', 'Saldo']);
-    
-    rows.push([props.from, '-', 'Saldo Awal', '', '', props.data.beginningBalance.toString()]);
+    rows.push([t('date'), t('journalNo'), t('description'), t('debit'), t('credit'), t('balance')]);
+
+    rows.push([props.from, '-', t('beginningBalance'), '', '', props.data.beginningBalance.toString()]);
     for (const m of props.data.lines) {
       rows.push([
         m.postingDate,
         m.journalNumber,
-        m.description,
+        m.description ?? '',
         m.debit.toString(),
         m.credit.toString(),
         m.balance.toString(),
       ]);
     }
-    rows.push([props.to, '-', 'Saldo Akhir', '', '', props.data.endingBalance.toString()]);
-    
+    rows.push([props.to, '-', t('endingBalance'), '', '', props.data.endingBalance.toString()]);
+
     const csv = rows
       .map((r) => r.map((c) => `"${(c ?? '').replace(/"/g, '""')}"`).join(','))
       .join('\n');
@@ -106,13 +87,13 @@ export function LedgerClient(props: Props) {
 
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-brand-cream-3 bg-card p-3">
         <label className="space-y-1 text-sm">
-          <span className="text-brand-ink-2">Akun (Account)</span>
+          <span className="text-brand-ink-2">{t('account')}</span>
           <Select
             value={props.accountId}
             onChange={(e) => updateParam('accountId', e.target.value)}
             className="w-64"
           >
-            <option value="">-- Pilih Akun --</option>
+            <option value="">{t('selectAccount')}</option>
             {props.accountOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.code} - {opt.label}
@@ -121,7 +102,7 @@ export function LedgerClient(props: Props) {
           </Select>
         </label>
         <label className="space-y-1 text-sm">
-          <span className="text-brand-ink-2">Dari (From)</span>
+          <span className="text-brand-ink-2">{t('from')}</span>
           <Input
             type="date"
             defaultValue={props.from}
@@ -130,7 +111,7 @@ export function LedgerClient(props: Props) {
           />
         </label>
         <label className="space-y-1 text-sm">
-          <span className="text-brand-ink-2">Sampai (To)</span>
+          <span className="text-brand-ink-2">{t('to')}</span>
           <Input
             type="date"
             defaultValue={props.to}
@@ -139,13 +120,13 @@ export function LedgerClient(props: Props) {
           />
         </label>
         <label className="space-y-1 text-sm">
-          <span className="text-brand-ink-2">Lokasi (Location)</span>
+          <span className="text-brand-ink-2">{t('location')}</span>
           <Select
             value={props.locationId}
             onChange={(e) => updateParam('locationId', e.target.value)}
             className="w-56"
           >
-            <option value="">Semua Lokasi</option>
+            <option value="">{t('allLocations')}</option>
             {props.locationOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
@@ -154,54 +135,54 @@ export function LedgerClient(props: Props) {
           </Select>
         </label>
         <Button variant="primary" size="md" onClick={() => router.refresh()} disabled={pending}>
-          Filter
+          {t('filter')}
         </Button>
-        <ExportXlsxButton onExport={exportCsv} disabled={!props.data} label="Ekspor CSV" />
+        <ExportXlsxButton onExport={exportCsv} disabled={!props.data} label={t('exportCsv')} />
       </div>
 
       {props.data ? (
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
              <div className="rounded-xl border border-brand-cream-3 bg-card p-4">
-               <h3 className="text-sm font-semibold text-brand-ink mb-3 border-b border-brand-cream-3 pb-2">Periode Saat Ini</h3>
+               <h3 className="text-sm font-semibold text-brand-ink mb-3 border-b border-brand-cream-3 pb-2">{t('currentPeriod')}</h3>
                <div className="flex justify-between py-1 text-sm">
-                 <span className="text-brand-ink-3">Saldo Awal</span>
+                 <span className="text-brand-ink-3">{t('beginningBalance')}</span>
                  <span className="font-semibold text-brand-ink">{fmt(props.data.beginningBalance)}</span>
                </div>
                <div className="flex justify-between py-1 text-sm font-semibold">
-                 <span className="text-brand-ink">Saldo Akhir</span>
+                 <span className="text-brand-ink">{t('endingBalance')}</span>
                  <span className="text-brand-ink">{fmt(props.data.endingBalance)}</span>
                </div>
              </div>
-             
+
              <div className="rounded-xl border border-brand-cream-3 bg-card p-4">
-               <h3 className="text-sm font-semibold text-brand-ink mb-3 border-b border-brand-cream-3 pb-2">Periode Perbandingan (Tahun/Bulan Lalu)</h3>
+               <h3 className="text-sm font-semibold text-brand-ink mb-3 border-b border-brand-cream-3 pb-2">{t('comparativePeriod')}</h3>
                <div className="flex justify-between py-1 text-sm">
-                 <span className="text-brand-ink-3">Saldo Awal</span>
+                 <span className="text-brand-ink-3">{t('beginningBalance')}</span>
                  <span className="font-semibold text-brand-ink">{fmt(props.data.comparativeBeginningBalance)}</span>
                </div>
                <div className="flex justify-between py-1 text-sm font-semibold">
-                 <span className="text-brand-ink">Saldo Akhir</span>
+                 <span className="text-brand-ink">{t('endingBalance')}</span>
                  <span className="text-brand-ink">{fmt(props.data.comparativeEndingBalance)}</span>
                </div>
              </div>
           </div>
-          
+
           <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card">
             <Table>
               <thead className="bg-brand-cream-2/20 text-left text-[11px] uppercase text-brand-ink-3">
                 <tr>
-                  <TableHead className="px-3 py-2">Tanggal</TableHead>
-                  <TableHead className="px-3 py-2">No. Jurnal</TableHead>
-                  <TableHead className="px-3 py-2">Keterangan</TableHead>
-                  <TableHead className="px-3 py-2 text-right">Debit</TableHead>
-                  <TableHead className="px-3 py-2 text-right">Kredit</TableHead>
-                  <TableHead className="px-3 py-2 text-right">Saldo</TableHead>
+                  <TableHead className="px-3 py-2">{t('date')}</TableHead>
+                  <TableHead className="px-3 py-2">{t('journalNo')}</TableHead>
+                  <TableHead className="px-3 py-2">{t('description')}</TableHead>
+                  <TableHead className="px-3 py-2 text-right">{t('debit')}</TableHead>
+                  <TableHead className="px-3 py-2 text-right">{t('credit')}</TableHead>
+                  <TableHead className="px-3 py-2 text-right">{t('balance')}</TableHead>
                 </tr>
               </thead>
               <TableBody>
                 <tr className="border-t border-brand-cream-3 text-xs bg-brand-cream-1/30">
-                  <TableCell className="px-3 py-3 font-semibold text-brand-ink-2" colSpan={5}>Saldo Awal (Beginning Balance)</TableCell>
+                  <TableCell className="px-3 py-3 font-semibold text-brand-ink-2" colSpan={5}>{t('beginningBalance')}</TableCell>
                   <TableCell className="px-3 py-3 text-right font-semibold text-brand-ink">{fmt(props.data.beginningBalance)}</TableCell>
                 </tr>
                 {props.data.lines.map((m, idx) => (
@@ -229,11 +210,11 @@ export function LedgerClient(props: Props) {
                 ))}
                 {props.data.lines.length === 0 && (
                   <tr>
-                     <TableCell colSpan={6} className="px-3 py-8 text-center text-brand-ink-3">Tidak ada transaksi pada periode ini.</TableCell>
+                     <TableCell colSpan={6} className="px-3 py-8 text-center text-brand-ink-3">{t('noTransactions')}</TableCell>
                   </tr>
                 )}
                 <tr className="border-t border-brand-cream-3 text-xs bg-brand-cream-1/30">
-                  <TableCell className="px-3 py-3 font-semibold text-brand-ink-2" colSpan={5}>Saldo Akhir (Ending Balance)</TableCell>
+                  <TableCell className="px-3 py-3 font-semibold text-brand-ink-2" colSpan={5}>{t('endingBalance')}</TableCell>
                   <TableCell className="px-3 py-3 text-right font-semibold text-brand-ink">{fmt(props.data.endingBalance)}</TableCell>
                 </tr>
               </TableBody>

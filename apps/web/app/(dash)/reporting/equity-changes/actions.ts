@@ -3,7 +3,6 @@
 import { getSession } from '@/lib/auth';
 import { type EquityChangesResult, equityChanges } from '@erp/services/reporting';
 import type { AuditContext } from '@erp/shared/types';
-import dayjs from 'dayjs';
 
 export async function getEquityChangesAction(
   startDate: string,
@@ -23,7 +22,8 @@ export async function getEquityChangesAction(
   };
 
   // Prevent accessing future dates that break accounting equations
-  const maxDate = dayjs().endOf('month').format('YYYY-MM-DD');
+  const now = new Date();
+  const maxDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
   const safeEndDate = endDate > maxDate ? maxDate : endDate;
 
   const res = await equityChanges(

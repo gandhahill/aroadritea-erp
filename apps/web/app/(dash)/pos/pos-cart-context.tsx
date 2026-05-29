@@ -66,6 +66,7 @@ interface PosCartContextValue {
   removePayment: (id: string) => void;
   setNotes: (n: string) => void;
   clearCart: () => void;
+  loadCart: (state: CartState) => void;
   subtotal: bigint;
   totalPaid: bigint;
   remainingBalance: bigint;
@@ -182,6 +183,10 @@ export function PosCartProvider({
     setState((s) => ({ ...s, notes: n }));
   }, []);
 
+  const loadCart = useCallback((newState: CartState) => {
+    setState(newState);
+  }, []);
+
   const clearCart = useCallback(() => {
     setState((s) => ({ ...s, lines: [], payments: [], customer: null, notes: '', voucherCode: '' }));
     setAppliedVoucherDiscount(BigInt(0));
@@ -265,6 +270,7 @@ export function PosCartProvider({
         removePayment,
         setNotes,
         clearCart,
+        loadCart,
         subtotal: subtotalAfterDiscount,
         totalPaid,
         remainingBalance,

@@ -1,22 +1,22 @@
 import { getStockLedger } from '@erp/services/inventory';
-import { db } from '@erp/db';
+import { db, eq } from '@erp/db';
 import { products, stockLocations } from '@erp/db/schema/inventory';
-import { eq } from 'drizzle-orm';
-import { Card, CardContent, CardHeader, CardTitle } from '@erp/ui/components/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@erp/ui/components/table';
+import { getTranslations } from 'next-intl/server';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@erp/ui';
 
 export default async function StockLedgerPage({
   searchParams,
 }: {
   searchParams: { productId?: string; locationId?: string; tenantId?: string };
 }) {
+  const t = await getTranslations('inventory.stockLedger');
   const { productId, locationId, tenantId = 'TENANT-001' } = searchParams;
 
   if (!productId || !locationId) {
     return (
       <div className="p-6">
-        <h1 className="text-2xl font-semibold mb-4">Stock Ledger</h1>
-        <p>Please select a product and location to view the stock ledger.</p>
+        <h1 className="text-2xl font-semibold mb-4">{t('title')}</h1>
+        <p>{t('selectPrompt')}</p>
       </div>
     );
   }
@@ -36,33 +36,36 @@ export default async function StockLedgerPage({
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-semibold">Stock Ledger</h1>
+          <h1 className="text-2xl font-semibold">{t('title')}</h1>
           <p className="text-brand-muted">
-            {product?.name?.id ?? productId} at {location?.name?.id ?? locationId}
+            {t('productAt', {
+              product: product?.name?.id ?? productId,
+              location: location?.name?.id ?? locationId,
+            })}
           </p>
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Movement History</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="surface-card overflow-hidden">
+        <div className="border-b border-brand-cream-2 px-6 py-4">
+          <h2 className="text-base font-semibold text-brand-ink">{t('movementHistory')}</h2>
+        </div>
+        <div className="p-6">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Reason</TableHead>
-                <TableHead>Reference</TableHead>
-                <TableHead className="text-right">Qty Delta</TableHead>
-                <TableHead>UOM</TableHead>
+                <TableHead>{t('date')}</TableHead>
+                <TableHead>{t('reason')}</TableHead>
+                <TableHead>{t('reference')}</TableHead>
+                <TableHead className="text-right">{t('qtyDelta')}</TableHead>
+                <TableHead>{t('uom')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {movements.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-brand-muted">
-                    No movements found for this product and location.
+                    {t('noMovements')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -82,8 +85,8 @@ export default async function StockLedgerPage({
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

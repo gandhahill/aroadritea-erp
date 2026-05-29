@@ -131,7 +131,7 @@ export async function runPayroll(
 
       // 1. Check for duplicate payroll run for this period/location
       const [existing] = await db
-        .select({ id: payrolls.id })
+        .select({ id: payrolls.id, status: payrolls.status })
         .from(payrolls)
         .where(
           and(
@@ -143,10 +143,16 @@ export async function runPayroll(
         .limit(1);
 
       if (existing) {
-        throw AppError.conflict('hr.payroll.alreadyRun', {
-          periodCode: data.periodCode,
-          locationId: data.locationId,
-        });
+        if (existing.status !== 'draft') {
+          throw AppError.conflict('hr.payroll.alreadyRun', {
+            periodCode: data.periodCode,
+            locationId: data.locationId,
+          });
+        }
+        
+        // T-0257: Allow recalculating draft
+        await db.delete(payrollLines).where(eq(payrollLines.payrollId, existing.id));
+        await db.delete(payrolls).where(eq(payrolls.id, existing.id));
       }
 
       // 2. Fetch active employees with current contracts + tax/BPJS data (T-0247)

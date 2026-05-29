@@ -15,3 +15,4 @@ export {
   aiActionDraftsSweeperHandler,
   type AiActionDraftsSweeperJobData,
 } from './ai-action-drafts-sweeper';
+export { helpdeskSlaCheckHandler, type HelpdeskSlaCheckJobData } from './helpdesk-sla-check';

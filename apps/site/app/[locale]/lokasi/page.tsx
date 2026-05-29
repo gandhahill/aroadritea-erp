@@ -28,6 +28,9 @@ const PUBLIC_STORE_FALLBACKS = [
     type: 'store',
     address:
       'Malioboro Mall, Jl. Mataram No. 31, Suryatmajan, Danurejan, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55213',
+    openingHours: { monday: '10:00 - 22:00', tuesday: '10:00 - 22:00', wednesday: '10:00 - 22:00', thursday: '10:00 - 22:00', friday: '10:00 - 22:00', saturday: '10:00 - 22:00', sunday: '10:00 - 22:00' },
+    deliveryLink: 'https://gofood.co.id/yogyakarta/restaurant/aroadri-tea-malioboro-mall',
+    mapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3953.0312015091724!2d110.36440537494412!3d-7.791783992226279!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a574218dc65b5%3A0x6b44ab50fcdab44!2sMalioboro%20Mall!5e0!3m2!1sen!2sid!4v1700000000000!5m2!1sen!2sid',
   },
   {
     id: 'fallback-plz',
@@ -40,6 +43,9 @@ const PUBLIC_STORE_FALLBACKS = [
     type: 'store',
     address:
       'Plaza Malioboro, Jl. Malioboro No. 52-58, Suryatmajan, Danurejan, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55213',
+    openingHours: { monday: '10:00 - 22:00', tuesday: '10:00 - 22:00', wednesday: '10:00 - 22:00', thursday: '10:00 - 22:00', friday: '10:00 - 22:00', saturday: '10:00 - 22:00', sunday: '10:00 - 22:00' },
+    deliveryLink: 'https://gofood.co.id/yogyakarta/restaurant/aroadri-tea-plaza-malioboro',
+    mapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3953.0312015091724!2d110.36440537494412!3d-7.791783992226279!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a574218dc65b5%3A0x6b44ab50fcdab44!2sMalioboro%20Mall!5e0!3m2!1sen!2sid!4v1700000000000!5m2!1sen!2sid',
   },
 ] as const;
 
@@ -80,16 +86,51 @@ export default async function LocationsPage({ params }: Props) {
                 </div>
                 <p className="mt-4 text-sm leading-6 text-brand-ink-2">{location.address}</p>
                 <p className="mt-4 text-sm font-bold text-brand-ink">{t('defaultHours')}</p>
+                {location.openingHours && (
+                  <ul className="mt-2 text-sm text-brand-ink-2 space-y-1">
+                    {Object.entries(location.openingHours as Record<string, string>).map(([day, hours]) => (
+                      <li key={day} className="flex justify-between">
+                        <span className="capitalize">{day}</span>
+                        <span>{hours}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 <div className="mt-5 flex flex-wrap gap-3 text-sm font-bold">
-                  <a
-                    href={location.mapUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-full bg-brand-red px-4 py-2 text-brand-cream transition-brand hover:bg-brand-red-dark"
-                  >
-                    {t('map')}
-                  </a>
+                  {location.deliveryLink && (
+                    <a
+                      href={location.deliveryLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-full bg-brand-gold px-4 py-2 text-brand-ink transition-brand hover:bg-brand-gold/80"
+                    >
+                      {t('orderDelivery') || 'Order Delivery'}
+                    </a>
+                  )}
+                  {location.mapUrl && !location.mapEmbedUrl && (
+                    <a
+                      href={location.mapUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-full bg-brand-red px-4 py-2 text-brand-cream transition-brand hover:bg-brand-red-dark"
+                    >
+                      {t('map')}
+                    </a>
+                  )}
                 </div>
+                {location.mapEmbedUrl && (
+                  <div className="mt-6 aspect-video w-full overflow-hidden rounded-lg">
+                    <iframe
+                      src={location.mapEmbedUrl}
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  </div>
+                )}
               </article>
             ))}
           </div>
@@ -108,6 +149,9 @@ async function getPublicLocations(locale: Locale) {
     name: unknown;
     type: string;
     address: string | null;
+    openingHours: unknown;
+    deliveryLink: string | null;
+    mapEmbedUrl: string | null;
   }>;
 
   try {
@@ -124,6 +168,9 @@ async function getPublicLocations(locale: Locale) {
         name: locations.name,
         type: locations.type,
         address: locations.address,
+        openingHours: locations.openingHours,
+        deliveryLink: locations.deliveryLink,
+        mapEmbedUrl: locations.mapEmbedUrl,
       })
       .from(locations)
       .where(
@@ -148,6 +195,9 @@ async function getPublicLocations(locale: Locale) {
       name: localized(row.name as LocalizedText, locale),
       type: row.type,
       address,
+      openingHours: row.openingHours,
+      deliveryLink: row.deliveryLink,
+      mapEmbedUrl: row.mapEmbedUrl,
       mapUrl: mapSearchUrl(address || localized(row.name as LocalizedText, locale), locale),
     };
   });
@@ -164,6 +214,9 @@ function fallbackLocations(locale: Locale) {
     name: localized(store.name, locale),
     type: store.type,
     address: store.address,
+    openingHours: store.openingHours,
+    deliveryLink: store.deliveryLink,
+    mapEmbedUrl: store.mapEmbedUrl,
     mapUrl: mapSearchUrl(store.address, locale),
   }));
 }

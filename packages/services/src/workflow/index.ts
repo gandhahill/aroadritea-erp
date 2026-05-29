@@ -13,6 +13,7 @@ import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, sql } from 'drizzle-orm';
+import { roles, userRoles } from '@erp/db/schema/auth';
 import { requirePermission } from '../iam';
 
 // ─── Condition evaluation ────────────────────────────────────────────────────
@@ -262,7 +263,23 @@ async function resolveStep(
     }
 
     // Check user has the right role for this step
-    // (Role check is simplified: in production, you'd verify user role matches approverRole)
+    const userRoleCheck = await db
+      .select({ id: userRoles.roleId })
+      .from(userRoles)
+      .innerJoin(roles, eq(userRoles.roleId, roles.id))
+      .where(
+        and(
+          eq(userRoles.userId, ctx.userId),
+          eq(roles.code, currentStep.approverRole),
+          eq(roles.tenantId, ctx.tenantId)
+        )
+      )
+      .limit(1);
+
+    if (userRoleCheck.length === 0) {
+      return err(AppError.forbidden('workflow.resolveStep.unauthorizedRole', { requiredRole: currentStep.approverRole }));
+    }
+
     if (input.action === 'approve') {
       // Mark current step approved
       await db

@@ -49,6 +49,12 @@ export async function changePasswordAction(input: {
     .set({ password: passwordHash, updatedAt: now })
     .where(and(eq(authAccounts.userId, userId), eq(authAccounts.providerId, 'credential')));
 
+  // Clear better-auth session cache cookie so the next getSession() reads the updated DB row
+  const { cookies } = await import('next/headers');
+  const cookieStore = await cookies();
+  cookieStore.delete('aroadri.session_data');
+  cookieStore.delete('__Secure-aroadri.session_data');
+
   revalidatePath('/', 'layout');
   return { ok: true };
 }

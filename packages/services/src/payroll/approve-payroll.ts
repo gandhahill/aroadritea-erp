@@ -19,6 +19,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { createJournal } from '../accounting/create-journal';
+import { reverseJournal } from '../accounting/reverse-journal';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 
@@ -31,8 +32,14 @@ export const MarkPaidInputSchema = z.object({
   payrollId: z.string().min(1),
 });
 
+export const CancelPayrollInputSchema = z.object({
+  payrollId: z.string().min(1),
+  reason: z.string().min(1),
+});
+
 export type ApprovePayrollInput = z.infer<typeof ApprovePayrollInputSchema>;
 export type MarkPaidInput = z.infer<typeof MarkPaidInputSchema>;
+export type CancelPayrollInput = z.infer<typeof CancelPayrollInputSchema>;
 
 // ─── Approve ────────────────────────────────────────────────────────────────
 
@@ -316,3 +323,74 @@ export async function markPayrollPaid(
     return err(AppError.internal('hr.payroll.markPaidFailed', e));
   }
 }
+
+// ─── Cancel Payroll ────────────────────────────────────────────────────────
+
+export async function cancelPayroll(
+  input: CancelPayrollInput,
+  ctx: AuditContext,
+): Promise<Result<{ payrollId: string }>> {
+  const parsed = CancelPayrollInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return err(AppError.validation('hr.payroll.validationFailed', { issues: parsed.error.issues }));
+  }
+
+  try {
+    const [payroll] = await db
+      .select()
+      .from(payrolls)
+      .where(and(eq(payrolls.id, input.payrollId), eq(payrolls.tenantId, ctx.tenantId)))
+      .limit(1);
+
+    if (!payroll) throw AppError.notFound('hr.payroll.notFound', { payrollId: input.payrollId });
+
+    const permCheck = await requirePermission(ctx.userId, 'hr.payroll.write', {
+      locationId: payroll.locationId,
+    });
+    if (!permCheck.ok) {
+      throw permCheck.error;
+    }
+
+    if (payroll.status === 'cancelled') {
+      throw AppError.conflict('hr.payroll.cannotCancel', { status: payroll.status });
+    }
+
+    if (payroll.journalEntryId) {
+      const reverseRes = await reverseJournal({
+        journalId: payroll.journalEntryId,
+        reversalDate: new Date().toISOString().split('T')[0]!,
+        notes: `Payroll cancellation: ${input.reason}`,
+      }, ctx);
+
+      if (!reverseRes.ok) {
+        return err(AppError.internal('hr.payroll.cancelFailed', { error: reverseRes.error }));
+      }
+    }
+
+    const claimed = await db
+      .update(payrolls)
+      .set({ status: 'cancelled', updatedBy: ctx.userId })
+      .where(and(eq(payrolls.id, input.payrollId), eq(payrolls.status, payroll.status)))
+      .returning({ id: payrolls.id });
+
+    if (!claimed || claimed.length === 0) {
+      throw AppError.conflict('hr.payroll.cannotCancel', { status: payroll.status });
+    }
+
+    await auditRecord({
+      action: 'cancel',
+      entityType: 'payroll',
+      entityId: input.payrollId,
+      before: { status: payroll.status },
+      after: { status: 'cancelled', reason: input.reason },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
+
+    return ok({ payrollId: input.payrollId });
+  } catch (e) {
+    if (e instanceof AppError) return err(e);
+    return err(AppError.internal('hr.payroll.cancelFailed', e));
+  }
+}
+

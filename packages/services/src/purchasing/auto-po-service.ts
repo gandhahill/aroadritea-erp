@@ -84,7 +84,7 @@ export async function generateAutoPO(
   }
 
   const poId = generateId();
-  const currentDate = orderDate ? new Date(orderDate) : new Date();
+  const currentDate = orderDate ?? new Date().toISOString().slice(0, 10);
 
   await db.insert(purchaseOrders).values({
     id: poId,

@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useTransition } from 'react';
 import { Button, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from '@erp/ui';
-import { fetchPeriodsAction, calculateSptMasaAction, fetchVatLedgerAction, exportSptMasaAction, type PeriodOption } from './actions';
+import { useTranslations } from 'next-intl';
+import { calculateSptMasaAction, fetchVatLedgerAction, exportSptMasaAction, type PeriodOption } from './actions';
 import type { SptMasaSummary, VatLedgerRow } from '@erp/services/tax';
 
 export default function SptMasaClient({ initialPeriods }: { initialPeriods: PeriodOption[] }) {
+  const t = useTranslations('tax.spt');
   const [selectedPeriod, setSelectedPeriod] = useState<string>(initialPeriods[0]?.id ?? '');
   const [summary, setSummary] = useState<SptMasaSummary | null>(null);
   const [outLedger, setOutLedger] = useState<VatLedgerRow[]>([]);
@@ -67,27 +69,27 @@ export default function SptMasaClient({ initialPeriods }: { initialPeriods: Peri
           </Select>
         </div>
         <Button onClick={handleExport} disabled={isPending || !summary}>
-          Export CSV
+          {t('exportCsv')}
         </Button>
       </div>
 
-      {isPending && <p className="text-sm text-muted-foreground">Loading...</p>}
+      {isPending && <p className="text-sm text-muted-foreground">{t('loading')}</p>}
 
       {!isPending && summary && (
         <>
           <div className="grid gap-6 md:grid-cols-3">
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
-              <h3 className="text-sm font-medium leading-none mb-2">Total Pajak Keluaran (PPN OUT)</h3>
+              <h3 className="text-sm font-medium leading-none mb-2">{t('totalPpnOut')}</h3>
               <p className="text-2xl font-bold">{Number(summary.totalPpnOut).toLocaleString('id-ID')}</p>
             </div>
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
-              <h3 className="text-sm font-medium leading-none mb-2">Total Pajak Masukan (PPN IN)</h3>
+              <h3 className="text-sm font-medium leading-none mb-2">{t('totalPpnIn')}</h3>
               <p className="text-2xl font-bold">{Number(summary.totalPpnIn).toLocaleString('id-ID')}</p>
             </div>
             <div className={`rounded-lg border shadow-sm p-6 ${summary.netPayable > 0n ? 'bg-red-50 text-red-900 border-red-200' : 'bg-green-50 text-green-900 border-green-200'}`}>
-              <h3 className="text-sm font-medium leading-none mb-2">Kurang/(Lebih) Bayar</h3>
+              <h3 className="text-sm font-medium leading-none mb-2">{t('netLabel')}</h3>
               <p className="text-2xl font-bold">{Number(summary.netPayable).toLocaleString('id-ID')}</p>
-              <p className="text-xs mt-1 opacity-80">{summary.netPayable > 0n ? 'Kurang Bayar (Payable)' : summary.netPayable < 0n ? 'Lebih Bayar (Overpaid)' : 'Nihil'}</p>
+              <p className="text-xs mt-1 opacity-80">{summary.netPayable > 0n ? t('payable') : summary.netPayable < 0n ? t('overpaid') : t('nihil')}</p>
             </div>
           </div>
 
@@ -97,32 +99,32 @@ export default function SptMasaClient({ initialPeriods }: { initialPeriods: Peri
                 className={`px-4 py-3 text-sm font-medium ${activeTab === 'out' ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                 onClick={() => setActiveTab('out')}
               >
-                Pajak Keluaran ({outLedger.length})
+                {t('taxOut')} ({outLedger.length})
               </button>
               <button
                 className={`px-4 py-3 text-sm font-medium ${activeTab === 'in' ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground hover:text-foreground'}`}
                 onClick={() => setActiveTab('in')}
               >
-                Pajak Masukan ({inLedger.length})
+                {t('taxIn')} ({inLedger.length})
               </button>
             </div>
             <div className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Reference</TableHead>
-                    <TableHead>Partner</TableHead>
-                    <TableHead>NSFP</TableHead>
-                    <TableHead className="text-right">DPP</TableHead>
-                    <TableHead className="text-right">PPN</TableHead>
+                    <TableHead>{t('date')}</TableHead>
+                    <TableHead>{t('reference')}</TableHead>
+                    <TableHead>{t('partner')}</TableHead>
+                    <TableHead>{t('nsfp')}</TableHead>
+                    <TableHead className="text-right">{t('dpp')}</TableHead>
+                    <TableHead className="text-right">{t('ppn')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {activeLedger.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                        No transactions found.
+                        {t('noTransactions')}
                       </TableCell>
                     </TableRow>
                   ) : (

@@ -7,7 +7,7 @@ import type { OmzetBulananResult } from '@erp/services/reporting';
 import { useTranslations } from 'next-intl';
 
 export default function Pb1MonthlyClient({ initialLocationId }: { initialLocationId: string }) {
-  const t = useTranslations('reporting');
+  const t = useTranslations('tax.pb1Monthly');
   const [period, setPeriod] = useState<string>(
     `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
   );
@@ -59,43 +59,43 @@ export default function Pb1MonthlyClient({ initialLocationId }: { initialLocatio
           </div>
           <div className="w-full sm:w-64 grid gap-2">
             <label className="text-sm font-medium leading-none">{t('location')}</label>
-            <Input type="text" placeholder="Location ID" value={locationId} onChange={(e: any) => setLocationId(e.target.value)} />
+            <Input type="text" placeholder={t('locationIdPlaceholder')} value={locationId} onChange={(e: any) => setLocationId(e.target.value)} />
           </div>
         </div>
         <Button onClick={handleExport} disabled={isPending || !data} variant="secondary">
-          Export Excel
+          {t('exportExcel')}
         </Button>
       </div>
 
       <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
         <div className="flex flex-col space-y-1.5 p-6 border-b">
           <h3 className="font-semibold leading-none tracking-tight">
-            {t('monthlyPb1Summary')} - {data?.locationName ?? '...'}
+            {t('summaryTitle')} - {data?.locationName ?? '...'}
           </h3>
         </div>
         <div className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Tanggal</TableHead>
-                <TableHead className="text-right">Gross Sales</TableHead>
-                <TableHead className="text-right">Net Omzet (DPP)</TableHead>
-                <TableHead className="text-right">PB1 (10%)</TableHead>
-                <TableHead className="text-right">Adjustment</TableHead>
-                <TableHead className="text-right">Omzet Fiskal</TableHead>
+                <TableHead>{t('date')}</TableHead>
+                <TableHead className="text-right">{t('grossSales')}</TableHead>
+                <TableHead className="text-right">{t('netOmzet')}</TableHead>
+                <TableHead className="text-right">{t('pb1')}</TableHead>
+                <TableHead className="text-right">{t('adjustment')}</TableHead>
+                <TableHead className="text-right">{t('fiscalOmzet')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isPending ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                    Loading...
+                    {t('loading')}
                   </TableCell>
                 </TableRow>
               ) : !data ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                    No data available.
+                    {t('noData')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -111,7 +111,7 @@ export default function Pb1MonthlyClient({ initialLocationId }: { initialLocatio
                     </TableRow>
                   ))}
                   <TableRow className="bg-muted/50 font-bold">
-                    <TableCell>TOTAL</TableCell>
+                    <TableCell>{t('total')}</TableCell>
                     <TableCell className="text-right">{(Number(data.totals.grossSales) / 100).toLocaleString('id-ID')}</TableCell>
                     <TableCell className="text-right">{(Number(data.totals.netOmzet) / 100).toLocaleString('id-ID')}</TableCell>
                     <TableCell className="text-right">{(Number(data.totals.pb1Amount) / 100).toLocaleString('id-ID')}</TableCell>

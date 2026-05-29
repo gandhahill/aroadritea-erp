@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
-import { users } from './auth';
+import { locations, users } from './auth';
 import { auditCols, pk, tenantCol, versionCol } from './common';
 
 /**
@@ -14,6 +14,9 @@ export const whistleblowerReports = pgTable('whistleblower_reports', {
 
   title: text('title').notNull(),
   description: text('description').notNull(),
+  locationId: text('location_id'),
+  category: text('category').notNull().default('general'), // e.g. 'general', 'harassment', 'fraud', 'safety'
+  severity: text('severity').notNull().default('medium'), // e.g. 'low', 'medium', 'high', 'critical'
   status: text('status').notNull().default('open'), // 'open' | 'investigating' | 'resolved'
   resolutionNotes: text('resolution_notes'),
 
@@ -32,5 +35,9 @@ export const whistleblowerReportsRelations = relations(whistleblowerReports, ({ 
   updatedByUser: one(users, {
     fields: [whistleblowerReports.updatedByUserId],
     references: [users.id],
+  }),
+  location: one(locations, {
+    fields: [whistleblowerReports.locationId],
+    references: [locations.id],
   }),
 }));
