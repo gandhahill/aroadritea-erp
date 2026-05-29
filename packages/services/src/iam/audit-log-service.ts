@@ -28,15 +28,15 @@ export async function exportAuditLog(input: ExportAuditLogInput, ctx: AuditConte
     .where(
       and(
         eq(auditLog.tenantId, ctx.tenantId),
-        sql`${auditLog.timestamp} >= ${new Date(input.startDate)}`,
-        sql`${auditLog.timestamp} <= ${new Date(input.endDate)}`
+        sql`${auditLog.createdAt} >= ${new Date(input.startDate)}`,
+        sql`${auditLog.createdAt} <= ${new Date(input.endDate)}`
       )
     )
-    .orderBy(auditLog.timestamp);
+    .orderBy(auditLog.createdAt);
 
   // In real implementation this would stream to a CSV, for now we just return a stub
   const csvData = `id,action,entity_type,entity_id,user_id,timestamp\n` +
-    logs.map(l => `${l.id},${l.action},${l.entityType},${l.entityId},${l.userId},${l.timestamp.toISOString()}`).join('\n');
+    logs.map(l => `${l.id},${l.action},${l.entityType},${l.entityId},${l.userId},${l.createdAt.toISOString()}`).join('\n');
 
   return ok({ csvData });
 }
