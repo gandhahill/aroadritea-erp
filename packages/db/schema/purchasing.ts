@@ -22,6 +22,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { auditCols, locationCol, pk, tenantCol, versionCol } from './common';
 

@@ -213,6 +213,15 @@ export async function approvePO(
       }),
     );
   }
+  
+  // Separation of duties (T-0252): The submitter cannot be the approver
+  if (po.submittedBy === ctx.userId) {
+    return err(
+      AppError.businessRule('purchasing.errors.separation_of_duties', {
+        detail: 'The user who submitted the PO cannot also approve it.',
+      }),
+    );
+  }
 
   // Load PO lines for journal entry
   const lines = await db

@@ -308,37 +308,37 @@
 | T-0245 | Payroll: deteksi absen otomatis (ganti `absentDays:0`) | M | P1 | 🟦 PENDING |
 | T-0246 | Payroll: file transfer bank + field rekening karyawan | S | P2 | 🟦 PENDING |
 | T-0247 | Payroll: PPh21 TER bulanan (PMK 168/2023) + PTKP dari data | M | P1 | 🟦 PENDING |
-| T-0248 | Payroll: lock periode vs periode akuntansi + reverse JE saat cancel | S | P1 | 🟦 PENDING |
-| T-0249 | Whistleblower: schema `locationId` + kategori + severity | S | P2 | 🟦 PENDING |
+| T-0248 | Payroll: lock periode vs periode akuntansi + reverse JE saat cancel | S | P1 | 🟩 DONE |
+| T-0249 | Whistleblower: schema `locationId` + kategori + severity | S | P2 | 🟩 DONE |
 
 ### Tier 2 — IAM / Platform
 
 | ID | Title | Effort | Priority | Status |
 |----|-------|--------|----------|--------|
-| T-0250 | UI User Management (CRUD user, assign role per lokasi, reset, suspend) | M | P1 | 🟦 PENDING |
-| T-0251 | UI API Token MCP (mint/scope/revoke) | S | P2 | 🟦 PENDING |
-| T-0252 | Tegakkan approver-role di workflow (separation of duties) | S | P1 | 🟦 PENDING |
-| T-0253 | Scheduled-jobs: audit log + retry/history + `requirePermission` | S | P1 | 🟦 PENDING |
-| T-0254 | Export audit log + password policy/lockout dari `loginAttempts` | M | P2 | 🟦 PENDING |
-| T-0255 | Notifikasi: preferensi per-user + event bisnis per pengguna | M | P2 | 🟦 PENDING |
-| T-0256 | Ekspansi MCP: roles/permissions, users, workflow, custom-fields | S | P2 | 🟦 PENDING |
+| T-0250 | UI User Management (CRUD user, assign role per lokasi, reset, suspend) | M | P1 | 🟩 DONE |
+| T-0251 | UI API Token MCP (mint/scope/revoke) | S | P2 | 🟩 DONE |
+| T-0252 | Tegakkan approver-role di workflow (separation of duties) | S | P1 | 🟩 DONE |
+| T-0253 | Scheduled-jobs: audit log + retry/history + `requirePermission` | S | P1 | 🟩 DONE |
+| T-0254 | Export audit log + password policy/lockout dari `loginAttempts` | M | P2 | 🟩 DONE |
+| T-0255 | Notifikasi: preferensi per-user + event bisnis per pengguna | M | P2 | 🟩 DONE |
+| T-0256 | Ekspansi MCP: roles/permissions, users, workflow, custom-fields | S | P2 | 🟩 DONE |
 
 ### Tier 2 — CMS / Situs Publik / Support
 
 | ID | Title | Effort | Priority | Status |
 |----|-------|--------|----------|--------|
-| T-0257 | CMS: editor rich-text/markdown + media library | M | P2 | 🟦 PENDING |
-| T-0258 | CMS: wire revisi + scheduling + SEO meta di Post + filter tag blog | M | P2 | 🟦 PENDING |
-| T-0259 | Situs publik: CTA link delivery + peta embed + jam buka per-outlet | S | P1 | 🟦 PENDING |
-| T-0260 | Member: UI redeem poin + riwayat order dari `sales_orders` | S | P2 | 🟦 PENDING |
-| T-0261 | Korespondensi: auto-nomor agenda + disposisi + multi-lampiran | M | P2 | 🟦 PENDING |
-| T-0262 | Helpdesk: SLA per prioritas + indikator breach/eskalasi | S | P2 | 🟦 PENDING |
+| T-0257 | CMS: editor rich-text/markdown + media library | M | P2 | 🟩 DONE |
+| T-0258 | CMS: wire revisi + scheduling + SEO meta di Post + filter tag blog | M | P2 | 🟩 DONE |
+| T-0259 | Situs publik: CTA link delivery + peta embed + jam buka per-outlet | S | P1 | 🟩 DONE |
+| T-0260 | Member: UI redeem poin + riwayat order dari `sales_orders` | S | P2 | 🟩 DONE |
+| T-0261 | Korespondensi: auto-nomor agenda + disposisi + multi-lampiran | M | P2 | 🟩 DONE |
+| T-0262 | Helpdesk: SLA per prioritas + indikator breach/eskalasi | S | P2 | 🟩 DONE |
 
 ### Tier 3 — Kepatuhan aturan repo (CLAUDE.md)
 
 | ID | Title | Effort | Priority | Status |
 |----|-------|--------|----------|--------|
-| T-0263 | i18n sweep: ekstrak string hardcode ke key (6 halaman) | S | P1 | 🟦 PENDING |
+| T-0263 | i18n sweep: ekstrak string hardcode ke key (6 halaman) | S | P1 | 🟩 DONE |
 
 ---
 

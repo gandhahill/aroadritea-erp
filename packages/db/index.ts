@@ -18,6 +18,7 @@ export {
   tenants,
   userRoles,
   users,
+  mcpTokens,
 } from './schema/auth';
 
 // Schema — Accounting
@@ -146,7 +147,16 @@ export {
   payrollLines,
   disciplinaryActions,
   cashAdvances,
+  whistleblowers,
 } from './schema/hr';
+
+
+
+// Schema — Notifications
+export {
+  notifications,
+  userNotificationPreferences,
+} from './schema/notifications';
 
 // Schema — CMS (SD §31.2)
 export {
@@ -156,6 +166,7 @@ export {
   cmsFaqs,
   cmsSettings,
   cmsRevisions,
+  cmsMediaLibrary,
 } from './schema/cms';
 
 // Schema — Member / Loyalty (SD §31.5)

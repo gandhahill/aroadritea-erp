@@ -607,3 +607,36 @@ export const cashAdvances = pgTable(
     index('cash_advances_status_idx').on(t.status),
   ]
 );
+
+// ─── Whistleblower (T-0249) ───────────────────────────────────────────────────
+
+export const whistleblowers = pgTable(
+  'whistleblowers',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    category: text('category').notNull(), // 'fraud' | 'harassment' | 'safety' | 'other'
+    severity: text('severity').notNull(), // 'low' | 'medium' | 'high' | 'critical'
+    
+    title: text('title').notNull(),
+    description: text('description').notNull(),
+    
+    isAnonymous: boolean('is_anonymous').notNull().default(true),
+    reportedBy: text('reported_by'), // FK users (nullable if anonymous)
+    
+    status: text('status').notNull().default('new'), // 'new' | 'investigating' | 'resolved' | 'dismissed'
+    
+    resolvedBy: text('resolved_by'), // FK users
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+    resolutionNotes: text('resolution_notes'),
+
+    ...auditCols,
+  },
+  (table) => [
+    index('whistleblowers_location_idx').on(table.locationId),
+    index('whistleblowers_status_idx').on(table.status),
+    index('whistleblowers_severity_idx').on(table.severity),
+  ]
+);

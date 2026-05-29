@@ -39,6 +39,11 @@ export const correspondenceRecords = pgTable(
     storageUrl: text('storage_url'),
     tags: jsonb('tags').$type<string[]>().notNull().default([]),
 
+    // T-0261: Auto-nomor agenda, multi-lampiran, disposisi
+    agendaNo: text('agenda_no'), // e.g. 'AGD-2026-05-001'
+    attachments: jsonb('attachments').$type<string[]>().notNull().default([]), // array of storageUrls
+    dispositions: jsonb('dispositions').$type<any[]>().notNull().default([]), // array of disposition objects
+
     ...versionCol,
     ...auditCols,
   },
