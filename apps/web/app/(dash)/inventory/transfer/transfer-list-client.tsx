@@ -25,6 +25,7 @@ interface Props {
 
 export function TransferListClient({ data, locations, searchParams }: Props) {
   const t = useTranslations('inventory.transfer');
+  const tFilters = useTranslations('common.filters');
   const pagination = useTranslations('common.pagination');
   const router = useRouter();
   const pathname = usePathname();
@@ -105,7 +106,7 @@ export function TransferListClient({ data, locations, searchParams }: Props) {
           value={searchParams.status || ''}
           onChange={(e) => updateFilter('status', e.target.value)}
         >
-          <option value="">Semua Status</option>
+          <option value="">{tFilters('allStatus')}</option>
           <option value="draft">{t('statusDraft')}</option>
           <option value="in_transit">{t('statusInTransit')}</option>
           <option value="received">{t('statusReceived')}</option>

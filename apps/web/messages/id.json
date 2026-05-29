@@ -147,6 +147,11 @@
     "employee": "Karyawan",
     "nav": {
       "settings": "Pengaturan"
+    },
+    "filters": {
+      "allStatus": "Semua status",
+      "allTypes": "Semua jenis",
+      "allCategories": "Semua kategori"
     }
   },
   "auth": {
@@ -2099,6 +2104,23 @@
       "empty": "Tidak ada pesanan yang tersimpan.",
       "items": "item",
       "recall": "Lanjutkan"
+    },
+    "receipt": {
+      "change": "Kembali",
+      "thankYou": "Terima kasih atas kunjungan Anda",
+      "queueNumber": "No. Antrian",
+      "demoWarning": "Struk DEMO - tidak masuk pembukuan",
+      "noDemoReceipt": "Tidak ada struk demo untuk dicetak. Lakukan pembayaran di mode demo terlebih dahulu.",
+      "subtotal": "Subtotal",
+      "discount": "Diskon",
+      "taxIncluded": "PB1 (incl.)",
+      "total": "TOTAL",
+      "guest": "Pelanggan",
+      "notes": "Cat",
+      "cashier": "Kasir",
+      "channel": "Channel",
+      "date": "Tgl",
+      "orderNumber": "No."
     }
   },
   "app": {

@@ -31,6 +31,7 @@ interface Props {
 
 export function PostsTableClient({ posts }: Props) {
   const t = useTranslations('cms.posts');
+  const tFilters = useTranslations('common.filters');
   const [q, setQ] = useState('');
   const [kind, setKind] = useState('');
   const [status, setStatus] = useState('');
@@ -68,7 +69,7 @@ export function PostsTableClient({ posts }: Props) {
             onChange={(e) => setKind(e.target.value)}
             className="h-9 w-full sm:w-36"
           >
-            <option value="">Semua kategori</option>
+            <option value="">{tFilters('allCategories')}</option>
             <option value="news">{t('types.news')}</option>
             <option value="promo">{t('types.promo')}</option>
             <option value="recipe">{t('types.recipe')}</option>
@@ -81,7 +82,7 @@ export function PostsTableClient({ posts }: Props) {
             onChange={(e) => setStatus(e.target.value)}
             className="h-9 w-full sm:w-36"
           >
-            <option value="">Semua status</option>
+            <option value="">{tFilters('allStatus')}</option>
             <option value="draft">Draft</option>
             <option value="review">Review</option>
             <option value="published">Published</option>

@@ -3,6 +3,7 @@
 import { FilterBar, FilterField } from '@/components/filter-bar';
 import { Input, Select, TableCell, TableHead } from '@erp/ui';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
@@ -29,6 +30,7 @@ interface Row {
 }
 
 export function OpnameListClient({ rows }: { rows: Row[] }) {
+  const tFilters = useTranslations('common.filters');
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('');
   const [kind, setKind] = useState('');
@@ -69,7 +71,7 @@ export function OpnameListClient({ rows }: { rows: Row[] }) {
             onChange={(e) => setKind(e.target.value)}
             className="h-9 w-full sm:w-36"
           >
-            <option value="">Semua jenis</option>
+            <option value="">{tFilters('allTypes')}</option>
             <option value="daily">Harian</option>
             <option value="monthly">Bulanan</option>
           </Select>
@@ -80,7 +82,7 @@ export function OpnameListClient({ rows }: { rows: Row[] }) {
             onChange={(e) => setStatus(e.target.value)}
             className="h-9 w-full sm:w-36"
           >
-            <option value="">Semua status</option>
+            <option value="">{tFilters('allStatus')}</option>
             {Object.entries(STATUS_COLORS).map(([k, v]) => (
               <option key={k} value={k}>
                 {v.label}

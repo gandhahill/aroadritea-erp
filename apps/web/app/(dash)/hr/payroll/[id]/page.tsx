@@ -35,9 +35,7 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
-;
-  return map[status] ?? status;
-}
+
 
 function statusColor(status: string): string {
   const map: Record<string, string> = {

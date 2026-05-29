@@ -36,10 +36,10 @@ export function MarkdownEditor({ value, onChange, placeholder }: MarkdownEditorP
   const handleBold = () => insertText('**', '**');
   const handleItalic = () => insertText('*', '*');
   const handleLink = () => insertText('[', '](url)');
-  const handleCode = () => insertText('\`', '\`');
+  const handleCode = () => insertText('`', '`');
 
   const handleSelectImage = (url: string, alt: string) => {
-    insertText(\`![\${alt}](\${url})\`);
+    insertText(`![${alt}](${url})`);
   };
 
   return (

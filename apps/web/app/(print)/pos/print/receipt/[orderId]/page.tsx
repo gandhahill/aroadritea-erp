@@ -21,7 +21,7 @@ import { users as usersTable } from '@erp/db/schema/auth';
 import { products } from '@erp/db/schema/inventory';
 import { posSettings } from '@erp/db/schema/pos';
 import { payments, salesOrderLines, salesOrders } from '@erp/db/schema/pos';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { notFound, redirect } from 'next/navigation';
 import { ReceiptAutoPrint } from './auto-print';
 
@@ -84,6 +84,7 @@ export default async function ReceiptPrintPage({ params }: Props) {
   const tenantId = String(user.tenantId ?? 'default');
   const userId = String(user.id ?? '');
   const locale = await getLocale();
+  const t = await getTranslations('pos.receipt');
 
   const { orderId } = await params;
 
@@ -208,30 +209,30 @@ td { vertical-align: top; padding: 1px 0; }
         <div className="r-sep" />
 
         <div className="r-row">
-          <span>No.</span>
+          <span>{t('orderNumber')}</span>
           <span className="r-bold">{order.number}</span>
         </div>
         <div className="r-row">
-          <span>Tgl</span>
+          <span>{t('date')}</span>
           <span>{new Date(order.placedAt).toLocaleString('id-ID')}</span>
         </div>
         <div className="r-row">
-          <span>Channel</span>
+          <span>{t('channel')}</span>
           <span className="r-bold">{channelLabel(order.channel)}</span>
         </div>
         <div className="r-row">
-          <span>Kasir</span>
+          <span>{t('cashier')}</span>
           <span>{cashier?.displayName ?? '—'}</span>
         </div>
         {guestName ? (
           <div className="r-row">
-            <span>Pelanggan</span>
+            <span>{t('guest')}</span>
             <span>{guestName}</span>
           </div>
         ) : null}
         {noteText ? (
           <div className="r-row">
-            <span>Cat</span>
+            <span>{t('notes')}</span>
             <span>{noteText}</span>
           </div>
         ) : null}
@@ -259,24 +260,24 @@ td { vertical-align: top; padding: 1px 0; }
         <div className="r-sep" />
 
         <div className="r-row">
-          <span>Subtotal</span>
+          <span>{t('subtotal')}</span>
           <span>{rupiah(order.subtotal)}</span>
         </div>
         {order.discountTotal > 0n ? (
           <div className="r-row">
-            <span>Diskon</span>
+            <span>{t('discount')}</span>
             <span>-{rupiah(order.discountTotal)}</span>
           </div>
         ) : null}
         {order.taxTotal > 0n ? (
           <div className="r-row">
-            <span>PB1 (incl.)</span>
+            <span>{t('taxIncluded')}</span>
             <span>{rupiah(order.taxTotal)}</span>
           </div>
         ) : null}
         <div className="r-double" />
         <div className="r-row r-bold" style={{ fontSize: '12px' }}>
-          <span>TOTAL</span>
+          <span>{t('total')}</span>
           <span>{rupiah(order.grandTotal)}</span>
         </div>
 
@@ -290,14 +291,14 @@ td { vertical-align: top; padding: 1px 0; }
         ))}
         {change > 0n ? (
           <div className="r-row r-bold">
-            <span>Kembali</span>
+            <span>{t('change')}</span>
             <span>{rupiah(change)}</span>
           </div>
         ) : null}
 
         <div className="r-sep" />
 
-        <div className="r-center r-tiny">Terima kasih atas kunjungan Anda</div>
+        <div className="r-center r-tiny">{t('thankYou')}</div>
         <div className="r-social">
           <span className="ig">{instagram}</span>
           <span className="tt">{tiktok}</span>
@@ -310,7 +311,7 @@ td { vertical-align: top; padding: 1px 0; }
         ) : null}
 
         <div className="r-center" style={{ marginTop: '6px' }}>
-          <div className="r-tiny">No. Antrian</div>
+          <div className="r-tiny">{t('queueNumber')}</div>
           <div className="r-pickup">{order.number.split('-').pop() ?? order.number}</div>
         </div>
       </div>

@@ -147,6 +147,11 @@
     "employee": "Employee",
     "nav": {
       "settings": "Settings"
+    },
+    "filters": {
+      "allStatus": "All status",
+      "allTypes": "All types",
+      "allCategories": "All categories"
     }
   },
   "auth": {
@@ -2099,6 +2104,23 @@
       "empty": "No parked orders.",
       "items": "items",
       "recall": "Recall"
+    },
+    "receipt": {
+      "change": "Change",
+      "thankYou": "Thank you for your visit",
+      "queueNumber": "Queue No.",
+      "demoWarning": "DEMO Receipt - not recorded",
+      "noDemoReceipt": "No demo receipt to print. Please make a payment in demo mode first.",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "taxIncluded": "Tax (incl.)",
+      "total": "TOTAL",
+      "guest": "Guest",
+      "notes": "Notes",
+      "cashier": "Cashier",
+      "channel": "Channel",
+      "date": "Date",
+      "orderNumber": "No."
     }
   },
   "app": {

@@ -147,6 +147,11 @@
     "employee": "员工",
     "nav": {
       "settings": "设置"
+    },
+    "filters": {
+      "allStatus": "所有状态",
+      "allTypes": "所有类型",
+      "allCategories": "所有类别"
     }
   },
   "auth": {
@@ -2099,6 +2104,23 @@
       "empty": "????????",
       "items": "???",
       "recall": "??"
+    },
+    "receipt": {
+      "change": "找零",
+      "thankYou": "感谢您的光临",
+      "queueNumber": "排队号",
+      "demoWarning": "演示收据 - 不计入账本",
+      "noDemoReceipt": "没有可打印的演示收据。请先在演示模式下付款。",
+      "subtotal": "小计",
+      "discount": "折扣",
+      "taxIncluded": "税 (含)",
+      "total": "总计",
+      "guest": "顾客",
+      "notes": "备注",
+      "cashier": "收银员",
+      "channel": "渠道",
+      "date": "日期",
+      "orderNumber": "订单号"
     }
   },
   "app": {

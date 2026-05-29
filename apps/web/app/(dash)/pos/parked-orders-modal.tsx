@@ -32,7 +32,7 @@ export function ParkCartDialog({
       onOpenChange(false);
       return;
     }
-    const cartName = name.trim() || \`Order \${new Date().toLocaleTimeString()}\`;
+    const cartName = name.trim() || `Order ${new Date().toLocaleTimeString()}`;
     const cart: ParkedCart = {
       id: crypto.randomUUID(),
       name: cartName,

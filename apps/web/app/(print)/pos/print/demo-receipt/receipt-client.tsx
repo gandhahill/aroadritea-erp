@@ -6,6 +6,7 @@
 'use client';
 
 import type { DemoOrder } from '@erp/offline';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'aroadri:demo:lastReceipt';
@@ -44,6 +45,7 @@ function channelLabel(channel: string): string {
 }
 
 export function DemoReceiptClient() {
+  const t = useTranslations('pos.receipt');
   const [order, setOrder] = useState<DemoOrder | null>(null);
 
   useEffect(() => {
@@ -65,7 +67,7 @@ export function DemoReceiptClient() {
   if (!order) {
     return (
       <div className="flex min-h-screen items-center justify-center p-6 text-center text-sm text-brand-ink-3">
-        Tidak ada struk demo untuk dicetak. Lakukan pembayaran di mode demo terlebih dahulu.
+        {t('noDemoReceipt')}
       </div>
     );
   }
@@ -132,24 +134,24 @@ td { vertical-align: top; padding: 1px 0; }
       <div className="receipt">
         <img className="r-logo" src="/logo-primary.png" alt="" />
         <div className="r-center r-brand">AROADRI TEA</div>
-        <div className="r-center r-tiny">[DEMO MODE — Tidak Ditagih]</div>
+        <div className="r-center r-tiny">[{t('demoWarning')}]</div>
 
         <div className="r-sep" />
 
         <div className="r-row">
-          <span>No.</span>
+          <span>{t('orderNumber')}</span>
           <span className="r-bold">{order.orderNumber}</span>
         </div>
         <div className="r-row">
-          <span>Tgl</span>
+          <span>{t('date')}</span>
           <span>{new Date(order.placedAt).toLocaleString('id-ID')}</span>
         </div>
         <div className="r-row">
-          <span>Channel</span>
+          <span>{t('channel')}</span>
           <span className="r-bold">{channelLabel(order.channel)}</span>
         </div>
         <div className="r-row">
-          <span>Kasir</span>
+          <span>{t('cashier')}</span>
           <span>DEMO</span>
         </div>
         {order.customer ? (
@@ -160,13 +162,13 @@ td { vertical-align: top; padding: 1px 0; }
         ) : null}
         {order.guestName ? (
           <div className="r-row">
-            <span>Pelanggan</span>
+            <span>{t('guest')}</span>
             <span>{order.guestName}</span>
           </div>
         ) : null}
         {order.notes ? (
           <div className="r-row">
-            <span>Cat</span>
+            <span>{t('notes')}</span>
             <span>{order.notes}</span>
           </div>
         ) : null}
@@ -191,18 +193,18 @@ td { vertical-align: top; padding: 1px 0; }
         <div className="r-sep" />
 
         <div className="r-row">
-          <span>Subtotal</span>
+          <span>{t('subtotal')}</span>
           <span>{rupiah(order.subtotal)}</span>
         </div>
         {BigInt(order.taxTotal) > 0n ? (
           <div className="r-row">
-            <span>PB1 (incl.)</span>
+            <span>{t('taxIncluded')}</span>
             <span>{rupiah(order.taxTotal)}</span>
           </div>
         ) : null}
         <div className="r-double" />
         <div className="r-row r-bold" style={{ fontSize: '12px' }}>
-          <span>TOTAL</span>
+          <span>{t('total')}</span>
           <span>{rupiah(order.grandTotal)}</span>
         </div>
 
@@ -216,25 +218,25 @@ td { vertical-align: top; padding: 1px 0; }
         ))}
         {change > 0n ? (
           <div className="r-row r-bold">
-            <span>Kembali</span>
+            <span>{t('change')}</span>
             <span>{rupiah(change)}</span>
           </div>
         ) : null}
 
         <div className="r-sep" />
 
-        <div className="r-center r-tiny">Terima kasih atas kunjungan Anda</div>
+        <div className="r-center r-tiny">{t('thankYou')}</div>
         <div className="r-social">
           <span className="ig">@aroadri.tea</span>
           <span className="tt">@aroadri.tea</span>
         </div>
         <div className="r-center r-tiny">aroadritea.com</div>
         <div className="r-center r-tiny" style={{ marginTop: '3px' }}>
-          Struk DEMO - tidak masuk pembukuan
+          {t('demoWarning')}
         </div>
 
         <div className="r-center" style={{ marginTop: '6px' }}>
-          <div className="r-tiny">No. Antrian</div>
+          <div className="r-tiny">{t('queueNumber')}</div>
           <div className="r-pickup">{order.orderNumber.split('-').pop() ?? order.orderNumber}</div>
         </div>
       </div>
