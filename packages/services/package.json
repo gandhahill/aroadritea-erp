@@ -40,6 +40,7 @@
     "@erp/shared": "workspace:*",
     "bcryptjs": "^3.0.3",
     "better-auth": "^1.6.9",
+    "dayjs": "^1.11.21",
     "drizzle-orm": "^0.45.2",
     "exceljs": "^4.4.0",
     "hash-wasm": "^4.12.0",

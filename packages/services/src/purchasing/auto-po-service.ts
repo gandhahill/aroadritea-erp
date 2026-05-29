@@ -1,5 +1,5 @@
 import { db } from '@erp/db';
-import { purchaseOrders, purchaseOrderLines, type PurchaseOrderKind } from '@erp/db/schema/purchasing';
+import { purchaseOrders, purchaseOrderLines } from '@erp/db/schema/purchasing';
 import { stockLevels, products } from '@erp/db/schema/inventory';
 import { partners } from '@erp/db/schema/accounting';
 import { AppError } from '@erp/shared/errors';
@@ -22,10 +22,10 @@ export async function generateAutoPO(
   ctx: AuditContext,
 ): Promise<Result<{ poIds: string[] }>> {
   const parsed = GenerateAutoPOInputSchema.safeParse(input);
-  if (!parsed.success) return err(new Error(parsed.error.message));
+  if (!parsed.success) return err(AppError.validation(parsed.error.message));
   const { locationId, orderDate } = parsed.data;
 
-  const permCheck = await requirePermission(ctx.userId, 'purchasing.write', { locationId });
+  const permCheck = await requirePermission(ctx.userId, 'purchasing.po.create' as any, { locationId });
   if (!permCheck.ok) return permCheck;
 
   // 1. Find all stock levels where qtyOnHand < minStock
@@ -86,7 +86,6 @@ export async function generateAutoPO(
   const poId = generateId();
   const currentDate = orderDate ? new Date(orderDate) : new Date();
 
-  // Create Header
   await db.insert(purchaseOrders).values({
     id: poId,
     tenantId: ctx.tenantId,
@@ -94,11 +93,10 @@ export async function generateAutoPO(
     number: `PO-AUTO-${Date.now()}`,
     orderDate: currentDate,
     supplierId: supplier.id,
-    kind: 'standard',
     status: 'draft',
-    currency: 'IDR',
-    exchangeRate: '1.0',
-    totalAmount: 0n, // We'll update this
+    subtotal: 0n,
+    taxTotal: 0n,
+    grandTotal: 0n,
     createdBy: ctx.userId,
     updatedBy: ctx.userId,
   });
@@ -107,6 +105,7 @@ export async function generateAutoPO(
   const lines = lowStockItems.map((item, idx) => {
     // Order up to maxStock, or a default amount if not set
     const qtyToOrder = item.maxStock ? Math.max(0, Number(item.maxStock) - Number(item.qtyOnHand)) : 10;
+    const subtotal = item.defaultCostPrice * BigInt(Math.ceil(qtyToOrder));
     
     return {
       id: generateId(),
@@ -114,20 +113,20 @@ export async function generateAutoPO(
       lineNo: idx + 1,
       productId: item.productId,
       variantId: item.variantId ?? null,
-      qty: qtyToOrder.toString(),
+      qtyOrdered: qtyToOrder.toString(),
       uom: item.uom,
       unitPrice: item.defaultCostPrice, // Use default cost price
-      totalPrice: item.defaultCostPrice * BigInt(Math.ceil(qtyToOrder)),
+      lineSubtotal: subtotal,
+      lineTax: 0n,
+      lineTotal: subtotal,
       taxCode: null,
-      taxAmount: 0n,
-      netAmount: item.defaultCostPrice * BigInt(Math.ceil(qtyToOrder)),
-      status: 'pending', // line status
+      createdBy: ctx.userId,
     };
   });
 
-  let totalAmount = 0n;
+  let subtotal = 0n;
   for (const line of lines) {
-    totalAmount += line.totalPrice;
+    subtotal += line.lineTotal;
   }
 
   if (lines.length > 0) {
@@ -136,7 +135,7 @@ export async function generateAutoPO(
 
   await db
     .update(purchaseOrders)
-    .set({ totalAmount, updatedBy: ctx.userId })
+    .set({ subtotal, grandTotal: subtotal, updatedBy: ctx.userId })
     .where(eq(purchaseOrders.id, poId));
 
   return ok({ poIds: [poId] });

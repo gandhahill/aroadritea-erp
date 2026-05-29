@@ -11,7 +11,7 @@ import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { requirePermission } from '../iam';
-import { db, eq, and, lte, gte, sum, sql, desc, asc, lt } from '@erp/db';
+import { db, eq, and, lte, gte, sql, desc, asc, lt } from '@erp/db';
 import { journalEntries, journalLines, accounts } from '@erp/db/schema/accounting';
 import dayjs from 'dayjs';
 
@@ -26,7 +26,7 @@ export interface GeneralLedgerLine {
   journalEntryId: string;
   journalNumber: string;
   postingDate: string;
-  description: string;
+  description: string | null;
   debit: bigint;
   credit: bigint;
   balance: bigint;

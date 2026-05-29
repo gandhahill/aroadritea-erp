@@ -15,7 +15,7 @@ export type ParkSaleInput = z.infer<typeof ParkSaleInputSchema>;
 
 export async function parkSale(input: ParkSaleInput, ctx: AuditContext): Promise<Result<{ id: string }>> {
   const parsed = ParkSaleInputSchema.safeParse(input);
-  if (!parsed.success) return err(new Error(parsed.error.message));
+  if (!parsed.success) return err(AppError.validation(parsed.error.message));
 
   const [sale] = await db
     .select()

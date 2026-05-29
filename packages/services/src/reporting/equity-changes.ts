@@ -106,7 +106,7 @@ export async function equityChanges(
       const dividends = endingDividends - beginningDividends;
 
       // 3. Get net income for the current period
-      const plRes = await profitLoss({ startDate: input.startDate, endDate: input.endDate, locationId: input.locationId }, ctx);
+      const plRes = await profitLoss({ from: input.startDate, to: input.endDate, locationId: input.locationId }, ctx);
       if (!plRes.ok) throw plRes.error;
       const netIncome = plRes.value.netIncome;
 
