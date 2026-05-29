@@ -16,3 +16,6 @@ export * from './disciplinary-service';
 export * from './whistleblower';
 export * from './sop';
 export * from './list-my-schedule';
+export * from './leave-service';
+export * from './kasbon-service';
+export * from './payroll-service';

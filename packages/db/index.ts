@@ -143,6 +143,7 @@ export {
   payrolls,
   payrollLines,
   disciplinaryActions,
+  cashAdvances,
 } from './schema/hr';
 
 // Schema — CMS (SD §31.2)

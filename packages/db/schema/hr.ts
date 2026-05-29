@@ -578,3 +578,32 @@ export const disciplinaryActions = pgTable(
     index('disciplinary_level_idx').on(table.level),
   ],
 );
+
+// ─── Cash Advances (Kasbon) ───────────────────────────────────────────────────
+
+export const cashAdvances = pgTable(
+  'cash_advances',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    employeeId: text('employee_id').notNull(), // FK employees
+    amount: bigint('amount', { mode: 'bigint' }).notNull(),
+    reason: text('reason').notNull(),
+
+    status: text('status').notNull().default('pending'), // 'pending' | 'approved' | 'rejected' | 'deducted'
+    
+    // Limits applied: Kasbon max 30% of base salary.
+    approvedBy: text('approved_by'),
+    approvedAt: timestamp('approved_at', { withTimezone: true }),
+
+    journalEntryId: text('journal_entry_id'), // reference to accounting when approved
+
+    ...auditCols,
+  },
+  (t) => [
+    index('cash_advances_employee_idx').on(t.employeeId),
+    index('cash_advances_status_idx').on(t.status),
+  ]
+);
