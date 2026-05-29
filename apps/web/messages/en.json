@@ -118,7 +118,10 @@
       "previous": "Previous",
       "showing": "Showing",
       "show": "Show",
-      "rows": "rows"
+      "rows": "rows",
+      "firstPage": "To first page",
+      "lastPage": "To last page",
+      "total": "total"
     },
     "fields": {
       "code": "Code",

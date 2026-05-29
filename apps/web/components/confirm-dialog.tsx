@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
 
 interface ConfirmDialogProps {
@@ -18,13 +19,17 @@ interface ConfirmDialogProps {
  */
 export function ConfirmDialog({
   message,
-  title = 'Konfirmasi',
-  confirmLabel = 'Ya, lanjutkan',
-  cancelLabel = 'Batal',
+  title,
+  confirmLabel,
+  cancelLabel,
   tone = 'danger',
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const t = useTranslations('common.actions');
+  const tTitle = title ?? t('confirm');
+  const tConfirm = confirmLabel ?? t('confirm');
+  const tCancel = cancelLabel ?? t('cancel');
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onCancel();
@@ -49,7 +54,7 @@ export function ConfirmDialog({
     >
       <div className="w-full max-w-md rounded-xl border border-brand-jade/15 bg-brand-paper p-6 shadow-xl">
         <h2 id="confirm-dialog-title" className="text-base font-semibold text-brand-ink">
-          {title}
+          {tTitle}
         </h2>
         <p className="mt-2 whitespace-pre-line text-sm text-brand-ink/80">{message}</p>
         <div className="mt-5 flex flex-wrap justify-end gap-2">
@@ -58,14 +63,14 @@ export function ConfirmDialog({
             onClick={onCancel}
             className="rounded-md border border-brand-jade/30 bg-brand-paper px-3 py-1.5 text-xs font-semibold text-brand-ink hover:bg-brand-jade-light"
           >
-            {cancelLabel}
+            {tCancel}
           </button>
           <button
             type="button"
             onClick={onConfirm}
             className={`rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${confirmClasses}`}
           >
-            {confirmLabel}
+            {tConfirm}
           </button>
         </div>
       </div>
@@ -83,6 +88,7 @@ interface InlineAlertProps {
  * Inline alert banner. Replaces browser-native window.alert() in non-blocking flows.
  */
 export function InlineAlert({ message, tone = 'error', onDismiss }: InlineAlertProps) {
+  const t = useTranslations('common.actions');
   const toneClasses =
     tone === 'error'
       ? 'border-rose-200 bg-rose-50 text-rose-700'
@@ -101,9 +107,9 @@ export function InlineAlert({ message, tone = 'error', onDismiss }: InlineAlertP
           type="button"
           onClick={onDismiss}
           className="shrink-0 text-xs font-semibold underline-offset-2 hover:underline"
-          aria-label="Tutup pesan"
+          aria-label={t('close')}
         >
-          Tutup
+          {t('close')}
         </button>
       )}
     </div>

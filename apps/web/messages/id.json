@@ -118,7 +118,10 @@
       "previous": "Sebelumnya",
       "showing": "Menampilkan",
       "show": "Tampilkan",
-      "rows": "baris"
+      "rows": "baris",
+      "firstPage": "Ke halaman pertama",
+      "lastPage": "Ke halaman terakhir",
+      "total": "total"
     },
     "fields": {
       "code": "Kode",

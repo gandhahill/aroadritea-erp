@@ -84,7 +84,7 @@ export function Pagination({
             }}
             className="w-14 rounded border border-brand-cream-3 bg-white px-1 py-0.5 text-center text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red/20"
           />
-          {t('of')} {totalPages} ({totalItems} total)
+          {t('of')} {totalPages} ({totalItems} {t('total')})
         </span>
       </div>
 
@@ -93,7 +93,7 @@ export function Pagination({
           onClick={() => handlePageChange(1)}
           disabled={!hasPrevious}
           className="rounded-md border border-brand-cream-3 px-2 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream disabled:opacity-50 disabled:hover:bg-transparent"
-          title="Ke halaman pertama"
+          title={t('firstPage')}
         >
           &laquo;
         </button>
@@ -115,7 +115,7 @@ export function Pagination({
           onClick={() => handlePageChange(totalPages)}
           disabled={!hasNext}
           className="rounded-md border border-brand-cream-3 px-2 py-1.5 font-medium text-brand-ink transition-colors hover:bg-brand-cream disabled:opacity-50 disabled:hover:bg-transparent"
-          title="Ke halaman terakhir"
+          title={t('lastPage')}
         >
           &raquo;
         </button>
