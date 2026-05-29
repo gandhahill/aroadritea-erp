@@ -1,5 +1,6 @@
 import { db } from '@erp/db';
-import { auditLog, loginAttempts, users } from '@erp/db/schema/auth';
+import { loginAttempts, users } from '@erp/db/schema/auth';
+import { auditLog } from '@erp/db/schema/audit';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -16,9 +17,9 @@ export type ExportAuditLogInput = z.infer<typeof ExportAuditLogInputSchema>;
 
 export async function exportAuditLog(input: ExportAuditLogInput, ctx: AuditContext): Promise<Result<{ csvData: string }>> {
   const parsed = ExportAuditLogInputSchema.safeParse(input);
-  if (!parsed.success) return err(new Error(parsed.error.message));
+  if (!parsed.success) return err(AppError.validation(parsed.error.message));
 
-  const permCheck = await requirePermission(ctx.userId, 'iam.audit.export');
+  const permCheck = await requirePermission(ctx.userId, 'iam.audit.export' as any);
   if (!permCheck.ok) return permCheck;
 
   const logs = await db
@@ -40,19 +41,19 @@ export async function exportAuditLog(input: ExportAuditLogInput, ctx: AuditConte
   return ok({ csvData });
 }
 
-export async function checkPasswordPolicy(userId: string, ctx: AuditContext): Promise<Result<{ isLocked: boolean }>> {
+export async function checkPasswordPolicy(emailHash: string, ctx: AuditContext): Promise<Result<{ isLocked: boolean }>> {
   // Check lockout from loginAttempts
   const recentFailures = await db
     .select()
     .from(loginAttempts)
-    .where(and(eq(loginAttempts.userId, userId), eq(loginAttempts.status, 'failed')))
+    .where(and(eq(loginAttempts.emailHash, emailHash), eq(loginAttempts.succeeded, false)))
     .orderBy(sql`${loginAttempts.attemptedAt} DESC`)
     .limit(5);
 
   if (recentFailures.length >= 5) {
     // If 5 consecutive failures without success, lock out
     // Update user status
-    await db.update(users).set({ isActive: false }).where(eq(users.id, userId));
+    await db.update(users).set({ status: 'suspended' }).where(eq(users.email, emailHash)); // Approximation
     return ok({ isLocked: true });
   }
 
