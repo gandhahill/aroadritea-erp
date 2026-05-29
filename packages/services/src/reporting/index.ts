@@ -25,6 +25,12 @@ export {
 } from './profit-loss';
 
 export {
+  equityChanges,
+  type EquityChangesInput,
+  type EquityChangesResult,
+} from './equity-changes';
+
+export {
   cashFlow,
   type CashFlowInput,
   type CashFlowMovement,
@@ -64,6 +70,13 @@ export {
   exportOmzetHarianXlsx,
   type OmzetHarianResult,
 } from './daily-omzet';
+
+export {
+  getOmzetBulanan,
+  exportOmzetBulananXlsx,
+  type OmzetBulananResult,
+  type OmzetBulananRow,
+} from './pb1-monthly';
 
 // T-0174 — F&B BI gaps.
 export {

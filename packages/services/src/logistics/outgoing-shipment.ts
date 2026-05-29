@@ -1,10 +1,11 @@
 import { db } from '@erp/db';
-import { outgoingShipmentTrackingRequests, outgoingShipments } from '@erp/db/schema/logistics';
+import { outgoingShipmentLines, outgoingShipmentTrackingRequests, outgoingShipments } from '@erp/db/schema/logistics';
+import { stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, count, eq, gte } from 'drizzle-orm';
+import { and, count, eq, gte, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
@@ -21,6 +22,15 @@ export const CreateOutgoingShipmentSchema = z.object({
   shippingCourierCode: z.string().optional(),
   shippingAwb: z.string().optional(),
   shippingPhoneLast5: z.string().optional(),
+  lines: z.array(
+    z.object({
+      productId: z.string().min(1),
+      variantId: z.string().nullable().optional(),
+      qty: z.number().positive(),
+      uom: z.string().min(1),
+      notes: z.string().optional(),
+    })
+  ).default([]),
 });
 export type CreateOutgoingShipmentInput = z.infer<typeof CreateOutgoingShipmentSchema>;
 
@@ -71,6 +81,68 @@ export async function createOutgoingShipment(
         after: data,
         ctx,
       });
+
+      if (data.lines.length > 0) {
+        for (const [index, line] of data.lines.entries()) {
+          const lineId = generateId();
+          await db.insert(outgoingShipmentLines).values({
+            id: lineId,
+            tenantId: ctx.tenantId,
+            shipmentId: id,
+            lineNo: index + 1,
+            productId: line.productId,
+            variantId: line.variantId || null,
+            qty: line.qty.toString(),
+            uom: line.uom,
+            notes: line.notes || null,
+            createdBy: ctx.userId,
+            updatedBy: ctx.userId,
+          });
+
+          // Deduct stock
+          const variantFilter = line.variantId ? eq(stockLevels.variantId, line.variantId) : sql`variant_id IS NULL`;
+          
+          const [currentLevel] = await db.select({ id: stockLevels.id }).from(stockLevels)
+            .where(
+              and(
+                eq(stockLevels.tenantId, ctx.tenantId),
+                eq(stockLevels.locationId, data.locationId),
+                eq(stockLevels.productId, line.productId),
+                variantFilter
+              )
+            ).limit(1);
+          
+          if (!currentLevel) {
+            throw AppError.businessRule('logistics.outgoingShipment.insufficientStock');
+          }
+          
+          await db.update(stockLevels).set({
+            qtyOnHand: sql`${stockLevels.qtyOnHand} - ${line.qty.toString()}::numeric`,
+            qtyAvailable: sql`${stockLevels.qtyAvailable} - ${line.qty.toString()}::numeric`,
+            updatedBy: ctx.userId,
+            lastMovementAt: new Date(),
+          }).where(eq(stockLevels.id, currentLevel.id));
+          
+          await db.insert(stockMovements).values({
+            id: generateId(),
+            tenantId: ctx.tenantId,
+            locationId: data.locationId,
+            occurredAt: new Date(),
+            stockLocationId: null as unknown as string,
+            productId: line.productId,
+            variantId: line.variantId || null,
+            batchNo: null,
+            qtyDelta: (-line.qty).toString(),
+            uom: line.uom,
+            reason: 'outgoing_shipment',
+            referenceType: 'outgoing_shipment',
+            referenceId: id,
+            unitCost: null,
+            createdBy: ctx.userId,
+            updatedBy: ctx.userId,
+          });
+        }
+      }
 
       return id;
     },

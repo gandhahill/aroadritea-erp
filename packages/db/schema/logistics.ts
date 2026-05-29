@@ -2,7 +2,7 @@
  * Logistics schema — handling outgoing shipments and related tracking.
  */
 
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, jsonb, numeric, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { auditCols, locationCol, pk, tenantCol, versionCol } from './common';
 
 export const outgoingShipments = pgTable(
@@ -44,6 +44,27 @@ export const outgoingShipments = pgTable(
     index('outgoing_shipments_tenant_loc_idx').on(t.tenantId, t.locationId),
     index('outgoing_shipments_status_idx').on(t.status),
     index('outgoing_shipments_number_idx').on(t.number),
+  ],
+);
+
+export const outgoingShipmentLines = pgTable(
+  'outgoing_shipment_lines',
+  {
+    ...pk,
+    ...tenantCol,
+    
+    shipmentId: text('shipment_id').notNull(),
+    lineNo: integer('line_no').notNull(),
+    productId: text('product_id').notNull(),
+    variantId: text('variant_id'),
+    qty: numeric('qty', { precision: 14, scale: 3 }).notNull(),
+    uom: text('uom').notNull(),
+    notes: text('notes'),
+    
+    ...auditCols,
+  },
+  (t) => [
+    index('outgoing_shipment_lines_shipment_idx').on(t.shipmentId),
   ],
 );
 

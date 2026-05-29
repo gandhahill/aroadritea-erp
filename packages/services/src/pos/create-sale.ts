@@ -56,6 +56,7 @@ import {
   shifts,
 } from '@erp/db/schema/pos';
 import { promotionApplications } from '@erp/db/schema/promotion';
+import { memberVouchers } from '@erp/db/schema/member';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
@@ -65,6 +66,7 @@ import { createJournal } from '../accounting/create-journal';
 import { earnLoyaltyPoints } from '../crm';
 import { requirePermission } from '../iam';
 import { notifyByPermission } from '../notification';
+import { evaluatePromotions, type Cart, listActivePromotionsForSale } from '../promotion';
 import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
 import { type DonationResult, type RoundingOption, calculateDonation } from './donation';
 import {
@@ -914,7 +916,34 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       );
     }
 
-    // 6. Calculate totals
+    // 6. Evaluate promotions
+    const activePromotions = await listActivePromotionsForSale({
+      tenantId: ctx.tenantId,
+      locationId: data.locationId,
+      channel: data.channel,
+    });
+
+    const cartForEval: Cart = {
+      lines: data.lines.map((l) => {
+        const up = BigInt(l.unitPrice);
+        const qty = Math.round(l.qty);
+        return {
+          id: l.productId, // using productId as id for line matching in pure promo engine
+          productId: l.productId,
+          qty,
+          unitPrice: up,
+          subtotal: up * BigInt(qty),
+        };
+      }),
+      subtotal: data.lines.reduce(
+        (sum, l) => sum + BigInt(l.unitPrice) * BigInt(Math.round(l.qty)),
+        BigInt(0),
+      ),
+    };
+
+    const promoResult = evaluatePromotions(cartForEval, activePromotions);
+
+    // 7. Calculate totals
     let totalSubtotal = BigInt(0);
     let totalDiscount = BigInt(0);
     let totalTax = BigInt(0);
@@ -937,22 +966,25 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     for (const line of data.lines) {
       const unitPrice = BigInt(line.unitPrice);
       const lineSubtotal = unitPrice * BigInt(Math.round(line.qty));
-      const lineDiscount = BigInt(line.lineDiscount ?? '0');
-      if (lineDiscount > lineSubtotal) {
+      // For now, distribute order-level auto-discounts across lines proportionally or apply manually
+      const lineManualDiscount = BigInt(line.lineDiscount ?? '0');
+      const lineTotalDiscount = lineManualDiscount; // Auto discounts will be added at the order level for now to avoid rounding issues
+
+      if (lineTotalDiscount > lineSubtotal) {
         return err(
           AppError.businessRule('pos.createSale.discountExceedsLineTotal', {
             productId: line.productId,
-            discount: lineDiscount.toString(),
+            discount: lineTotalDiscount.toString(),
             lineSubtotal: lineSubtotal.toString(),
           }),
         );
       }
-      const lineTotal = lineSubtotal - lineDiscount; // unitPrice already includes PB1
+      const lineTotal = lineSubtotal - lineTotalDiscount; // unitPrice already includes PB1
       const { tax } = extractInclusiveTax(lineTotal, postingConfig.taxRateBps);
       const lineTax = tax;
 
       totalSubtotal += lineSubtotal;
-      totalDiscount += lineDiscount;
+      totalDiscount += lineTotalDiscount;
       totalTax += lineTax;
       totalGrand += lineTotal;
 
@@ -962,7 +994,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
         qty: line.qty.toString(),
         unitPrice,
         lineSubtotal,
-        lineDiscount,
+        lineDiscount: lineTotalDiscount,
         lineTax,
         lineTotal,
         lineDiscountReason: line.lineDiscountReason ?? null,
@@ -971,7 +1003,62 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       });
     }
 
-    // 7. Validate payment coverage, cash change, and donation rounding.
+    // Apply order-level promo discounts to grand total
+    const autoDiscountTotal = promoResult.totalDiscount;
+    if (autoDiscountTotal > totalGrand) {
+       totalDiscount += totalGrand;
+       totalGrand = BigInt(0);
+    } else {
+       totalDiscount += autoDiscountTotal;
+       totalGrand -= autoDiscountTotal;
+    }
+
+    // Validate and apply voucher if provided
+    let totalVoucherDiscount = BigInt(0);
+    let voucherToUpdate: { id: string, code: string } | null = null;
+    if (data.voucherCode) {
+      if (!data.customerId) {
+         return err(AppError.businessRule('pos.createSale.voucherRequiresCustomer', { code: data.voucherCode }));
+      }
+      const voucher = await db.select().from(memberVouchers).where(and(eq(memberVouchers.tenantId, ctx.tenantId), eq(memberVouchers.code, data.voucherCode))).then(r => r[0]);
+      if (!voucher) {
+         return err(AppError.notFound('pos.createSale.voucherNotFound', { code: data.voucherCode }));
+      }
+      if (voucher.memberId !== data.customerId) {
+         return err(AppError.businessRule('pos.createSale.voucherOwnerMismatch', { code: data.voucherCode }));
+      }
+      if (!voucher.isActive) {
+         return err(AppError.businessRule('pos.createSale.voucherInactive', { code: data.voucherCode }));
+      }
+      if (voucher.usedInOrderId) {
+         return err(AppError.businessRule('pos.createSale.voucherAlreadyUsed', { code: data.voucherCode }));
+      }
+      const now = new Date();
+      if (now < voucher.validFrom || now > voucher.validUntil) {
+         return err(AppError.businessRule('pos.createSale.voucherExpired', { code: data.voucherCode }));
+      }
+      if (totalGrand < BigInt(voucher.minOrderValue)) {
+         return err(AppError.businessRule('pos.createSale.voucherMinOrderNotMet', { code: data.voucherCode, minOrder: voucher.minOrderValue.toString() }));
+      }
+
+      if (voucher.kind === 'discount_fixed') {
+         totalVoucherDiscount = BigInt(voucher.value);
+      } else if (voucher.kind === 'discount_percent') {
+         let calculated = (totalGrand * BigInt(voucher.value)) / 100n;
+         if (voucher.maxDiscountValue && calculated > BigInt(voucher.maxDiscountValue)) {
+            calculated = BigInt(voucher.maxDiscountValue);
+         }
+         totalVoucherDiscount = calculated;
+      }
+      
+      if (totalVoucherDiscount > totalGrand) {
+         totalVoucherDiscount = totalGrand;
+      }
+      totalGrand -= totalVoucherDiscount;
+      voucherToUpdate = { id: voucher.id, code: voucher.code };
+    }
+
+    // 8. Validate payment coverage, cash change, and donation rounding.
     const normalizedPayments = normalizeSalePayments(data.payments, totalGrand);
     if (!normalizedPayments.ok) return normalizedPayments;
     const { donationResult, records: normalizedPaymentRecords } = normalizedPayments.value;
@@ -1052,6 +1139,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       placedAt: new Date(),
       subtotal: totalSubtotal,
       discountTotal: totalDiscount,
+      voucherDiscount: totalVoucherDiscount,
       taxTotal: totalTax,
       grandTotal: totalGrand,
       customerId: data.customerId ?? null,
@@ -1061,6 +1149,26 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       createdBy: ctx.userId,
       updatedBy: ctx.userId,
     });
+
+    if (voucherToUpdate) {
+       await db.update(memberVouchers).set({
+         usedAt: new Date(),
+         usedInOrderId: saleId,
+         isActive: false,
+         updatedBy: ctx.userId,
+       }).where(eq(memberVouchers.id, voucherToUpdate.id));
+
+       await db.insert(auditLog).values({
+         id: generateId(),
+         tenantId: ctx.tenantId,
+         userId: ctx.userId,
+         action: 'redeem',
+         entityType: 'member_voucher',
+         entityId: voucherToUpdate.id,
+         before: { isActive: true, usedInOrderId: null },
+         after: { isActive: false, usedInOrderId: saleId },
+       });
+    }
 
     // 11. Insert order lines
     const orderLines = lineResults.map((lr, idx) => ({
@@ -1212,6 +1320,23 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       });
     }
 
+      // Insert auto-promotions into promotionApplications
+      if (promoResult.appliedPromotions.length > 0) {
+        await db.insert(promotionApplications).values(
+          promoResult.appliedPromotions.map((p) => ({
+            id: generateId(),
+            tenantId: ctx.tenantId,
+            promotionId: p.promotionId,
+            salesOrderId: saleId,
+            lineId: p.lineId ?? null,
+            benefitType: 'discount',
+            discountAmount: p.discountAmount.toString(),
+            createdBy: ctx.userId,
+            updatedBy: ctx.userId,
+          }))
+        );
+      }
+
     const jeResult = await createJournal(
       {
         postingDate,
@@ -1283,6 +1408,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
         channel: data.channel,
         subtotal: totalSubtotal.toString(),
         discountTotal: totalDiscount.toString(),
+        voucherDiscount: totalVoucherDiscount.toString(),
         taxTotal: totalTax.toString(),
         grandTotal: totalGrand.toString(),
         lineCount: lineResults.length,
@@ -1326,6 +1452,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       channel: data.channel,
       subtotal: totalSubtotal.toString(),
       discountTotal: totalDiscount.toString(),
+      voucherDiscount: totalVoucherDiscount.toString(),
       taxTotal: totalTax.toString(),
       grandTotal: totalGrand.toString(),
       lines: orderLines.map((ol) => ({
@@ -1458,6 +1585,7 @@ export async function voidSale(input: unknown, ctx: AuditContext): Promise<Resul
       discountTotal: sale.discountTotal.toString(),
       taxTotal: sale.taxTotal.toString(),
       grandTotal: sale.grandTotal.toString(),
+      voucherDiscount: sale.voucherDiscount.toString(),
       lines: lines.map((l) => ({
         id: l.id,
         lineNo: l.lineNo,

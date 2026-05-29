@@ -13,6 +13,7 @@ import { and, desc, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+export * from './evaluator';
 
 const LocaleNameSchema = z.object({
   id: z.string().min(1).max(160),

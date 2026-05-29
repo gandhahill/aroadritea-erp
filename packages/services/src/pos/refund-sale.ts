@@ -293,6 +293,7 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
       channel: sale.channel as SaleResult['channel'],
       subtotal: sale.subtotal.toString(),
       discountTotal: sale.discountTotal.toString(),
+      voucherDiscount: sale.voucherDiscount.toString(),
       taxTotal: sale.taxTotal.toString(),
       grandTotal: sale.grandTotal.toString(),
       lines: originalLines.map((l) => ({

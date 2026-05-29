@@ -76,7 +76,7 @@ export async function postInvoiceAction(invoiceId: string, accountId: string) {
   return { success: true, journalId: res.value.journalId };
 }
 
-export async function payInvoiceAction(invoiceId: string, paymentAccountId: string, date: string) {
+export async function payInvoiceAction(invoiceId: string, paymentAccountId: string, amount: string, date: string) {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
   const user = session.user as any;
@@ -92,7 +92,7 @@ export async function payInvoiceAction(invoiceId: string, paymentAccountId: stri
   // We need to import payInvoice
   const { payInvoice } = await import('@erp/services/accounting');
 
-  const res = await payInvoice(invoiceId, paymentAccountId, date, ctx);
+  const res = await payInvoice(invoiceId, paymentAccountId, amount, date, ctx);
   if (!res.ok) throw new Error(res.error.message);
 
   revalidatePath('/accounting/invoices');

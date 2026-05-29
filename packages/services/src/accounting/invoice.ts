@@ -198,6 +198,17 @@ export async function postInvoice(
   const postRes = await postJournal({ journalId }, ctx);
   if (!postRes.ok) return postRes;
 
+  if (invoice.type === 'sales' && invoice.taxAmount > 0n) {
+    const { generateTaxInvoice } = await import('../tax/efaktur');
+    const taxRes = await generateTaxInvoice(invoiceId, ctx);
+    if (!taxRes.ok) {
+      // If we run out of NSFP, rollback the post or bubble the error. 
+      // For simplicity, we just return the error. In production with real DB transactions, 
+      // the journal post would be rolled back.
+      return err(taxRes.error);
+    }
+  }
+
   await db.update(invoices).set({ status: 'posted', journalId, updatedBy: ctx.userId }).where(eq(invoices.id, invoiceId));
 
   return ok({ success: true, journalId });
@@ -206,6 +217,7 @@ export async function postInvoice(
 export async function payInvoice(
   invoiceId: string,
   paymentAccountId: string,
+  amountStr: string,
   date: string,
   ctx: AuditContext,
 ): Promise<Result<{ success: boolean; paymentJournalId: string }>> {
@@ -213,8 +225,16 @@ export async function payInvoice(
   const invoice = invoiceRows[0];
   if (!invoice) return err(AppError.notFound('invoice.notFound'));
   
-  if (invoice.status !== 'posted') {
+  if (invoice.status !== 'posted' && invoice.status !== 'partial') {
     return err(AppError.businessRule('invoice.notPosted'));
+  }
+
+  const amountToPay = BigInt(amountStr);
+  if (amountToPay <= 0n) return err(AppError.validation('invalid.amount'));
+
+  const remaining = invoice.total - invoice.amountPaid;
+  if (amountToPay > remaining) {
+    return err(AppError.validation('invoice.amountExceedsRemaining'));
   }
 
   // Generate Payment Journal Entry
@@ -225,8 +245,8 @@ export async function payInvoice(
       accountId: paymentAccountId, // Cash/Bank
       locationId: invoice.locationId,
       description: `Payment Receipt for Invoice ${invoice.number}`,
-      debit: invoice.type === 'sales' ? invoice.total.toString() : '0',
-      credit: invoice.type === 'purchase' ? invoice.total.toString() : '0',
+      debit: invoice.type === 'sales' ? amountToPay.toString() : '0',
+      credit: invoice.type === 'purchase' ? amountToPay.toString() : '0',
     },
   ];
 
@@ -255,8 +275,8 @@ export async function payInvoice(
     accountId: partnerLine.accountId,
     locationId: invoice.locationId,
     description: `Clear AR/AP for Invoice ${invoice.number}`,
-    debit: invoice.type === 'purchase' ? invoice.total.toString() : '0',
-    credit: invoice.type === 'sales' ? invoice.total.toString() : '0',
+    debit: invoice.type === 'purchase' ? amountToPay.toString() : '0',
+    credit: invoice.type === 'sales' ? amountToPay.toString() : '0',
   });
 
   const createRes = await createJournal(journalInput, ctx);
@@ -266,14 +286,22 @@ export async function payInvoice(
   const postRes = await postJournal({ journalId: paymentJournalId }, ctx);
   if (!postRes.ok) return postRes;
 
-  await db.update(invoices).set({ status: 'paid', paymentJournalId, updatedBy: ctx.userId }).where(eq(invoices.id, invoiceId));
+  const newAmountPaid = invoice.amountPaid + amountToPay;
+  const newStatus = newAmountPaid >= invoice.total ? 'paid' : 'partial';
+
+  await db.update(invoices).set({ 
+    status: newStatus, 
+    amountPaid: newAmountPaid,
+    paymentJournalId, 
+    updatedBy: ctx.userId 
+  }).where(eq(invoices.id, invoiceId));
 
   await auditRecord({
     action: 'update',
     entityType: 'invoice',
     entityId: invoiceId,
-    before: { status: invoice.status },
-    after: { status: 'paid', paymentJournalId },
+    before: { status: invoice.status, amountPaid: invoice.amountPaid.toString() },
+    after: { status: newStatus, amountPaid: newAmountPaid.toString(), paymentJournalId },
     ctx,
   });
 

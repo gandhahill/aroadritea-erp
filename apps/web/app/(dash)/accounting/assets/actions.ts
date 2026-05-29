@@ -12,6 +12,7 @@ import {
   listFixedAssets,
   runFixedAssetDepreciation,
   updateFixedAssetCategory,
+  disposeFixedAsset,
 } from '@erp/services/accounting';
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale } from 'next-intl/server';
@@ -215,4 +216,29 @@ export async function updateAssetCategoryAction(formData: FormData): Promise<voi
   if (!result.ok) return;
 
   revalidatePath('/accounting/assets');
+}
+
+export async function disposeAssetAction(
+  _prev: AssetActionState | null,
+  formData: FormData,
+): Promise<AssetActionState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+
+  const result = await disposeFixedAsset(
+    {
+      id: text(formData, 'assetId'),
+      locationId: text(formData, 'locationId'),
+      disposalDate: text(formData, 'disposalDate'),
+      salePrice: money(formData, 'salePrice'),
+      saleAccountId: optionalText(formData, 'saleAccountId'),
+      disposalNotes: optionalText(formData, 'disposalNotes'),
+    },
+    ctx,
+  );
+  if (!result.ok) return { error: errorMessage(result.error) };
+
+  revalidatePath('/accounting/assets');
+  revalidatePath('/accounting/journals');
+  return { ok: true, journalEntryId: result.value.journalEntryId };
 }

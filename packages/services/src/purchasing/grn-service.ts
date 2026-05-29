@@ -6,7 +6,8 @@
  */
 
 import { db } from '@erp/db';
-import { accountingPeriods, accounts } from '@erp/db/schema/accounting';
+import { accountingPeriods, accounts, partners } from '@erp/db/schema/accounting';
+import { cmsSettings } from '@erp/db/schema/cms';
 import { products, stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import {
   goodsReceiptNotes,
@@ -18,7 +19,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
@@ -26,7 +27,8 @@ import { ConfirmGRNInputSchema, CreateGRNInputSchema, type GRNLineInput } from '
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const GRNI_ACCOUNT_CODE = '2-1120'; // Barang Diterima Belum Ditagih
+const AP_ACCOUNT_CODE = '2-1010'; // Utang Usaha
+const AP_SETTING_KEY = 'accounting.payables.accountIds';
 const DEFAULT_INVENTORY_ACCOUNT_CODE = '1-1210'; // Persediaan Barang Dagangan
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -38,6 +40,44 @@ async function resolveAccountId(tenantId: string, code: string): Promise<string 
     .where(and(eq(accounts.tenantId, tenantId), eq(accounts.code, code)))
     .limit(1);
   return row?.id ?? null;
+}
+
+async function resolvePayablesAccountId(tenantId: string): Promise<string | null> {
+  const [setting] = await db
+    .select({ value: cmsSettings.value })
+    .from(cmsSettings)
+    .where(and(eq(cmsSettings.tenantId, tenantId), eq(cmsSettings.key, AP_SETTING_KEY)))
+    .limit(1);
+
+  const configuredIds = Array.isArray(setting?.value)
+    ? setting.value.filter((value): value is string => typeof value === 'string')
+    : [];
+
+  if (configuredIds.length > 0) {
+    const rows = await db
+      .select({ id: accounts.id })
+      .from(accounts)
+      .where(
+        and(
+          eq(accounts.tenantId, tenantId),
+          eq(accounts.isActive, true),
+          eq(accounts.isPostable, true),
+          isNull(accounts.deletedAt),
+          inArray(accounts.id, configuredIds),
+        ),
+      )
+      .limit(1);
+    if (rows[0]?.id) return rows[0].id;
+  }
+
+  return resolveAccountId(tenantId, AP_ACCOUNT_CODE);
+}
+
+function addDays(date: string, days: number): string {
+  const value = new Date(`${date.slice(0, 10)}T00:00:00.000Z`);
+  value.setUTCDate(value.getUTCDate() + Math.max(0, days));
+  return value.toISOString().slice(0, 10);
+
 }
 
 async function resolveInventoryAccountForProduct(
@@ -391,12 +431,17 @@ export async function confirmGRN(
     return err(AppError.conflict('purchasing.errors.version_mismatch'));
   }
 
-  // Resolve accounts BEFORE any state mutation. Failing here means the
-  // CoA isn't seeded — surface the error before we corrupt stock.
-  const grniAccountId = await resolveAccountId(ctx.tenantId, GRNI_ACCOUNT_CODE);
-  if (!grniAccountId) {
-    return err(AppError.businessRule('purchasing.errors.grni_account_not_found'));
+  const apAccountId = await resolvePayablesAccountId(ctx.tenantId);
+  if (!apAccountId) {
+    return err(AppError.businessRule('purchasing.errors.ap_account_not_found'));
   }
+
+  const [supplier] = await db
+    .select({ paymentTermsDays: partners.paymentTermsDays })
+    .from(partners)
+    .where(and(eq(partners.tenantId, ctx.tenantId), eq(partners.id, po.supplierId)))
+    .limit(1);
+  const apDueDate = addDays(grn.receivedDate, supplier?.paymentTermsDays ?? 0);
 
   // Load PO lines once so we can compute totals and remaining qty.
   const poLines = await db
@@ -443,12 +488,14 @@ export async function confirmGRN(
             partnerId: po.supplierId,
           },
           {
-            accountId: grniAccountId,
+            accountId: apAccountId,
             locationId: grn.locationId,
-            description: `GRN ${grn.number} GRNI`,
+            description: `GRN ${grn.number} accounts payable`,
             debit: '0',
             credit: totalValue.toString(),
             partnerId: po.supplierId,
+            dueDate: apDueDate,
+            reminderDaysBefore: 7,
           },
         ],
       },

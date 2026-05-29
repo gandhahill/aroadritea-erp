@@ -26,6 +26,8 @@ import {
   RunFixedAssetDepreciationSchema,
   type UpdateFixedAssetCategoryInput,
   UpdateFixedAssetCategorySchema,
+  type DisposeFixedAssetInput,
+  DisposeFixedAssetSchema,
 } from './schemas';
 
 type FixedAssetRow = typeof fixedAssets.$inferSelect;
@@ -964,4 +966,175 @@ function validateFixedAssetCategoryAccount(
   if (expectedSubtype && account.subtype !== expectedSubtype) {
     throw AppError.businessRule('accounting.fixedAsset.invalidCategoryAccount');
   }
+}
+
+export async function disposeFixedAsset(
+  input: DisposeFixedAssetInput,
+  ctx: AuditContext,
+): Promise<Result<{ journalEntryId: string }>> {
+  const parsed = DisposeFixedAssetSchema.safeParse(input);
+  if (!parsed.success) {
+    return err(
+      AppError.validation('accounting.fixedAsset.validationFailed', {
+        issues: parsed.error.issues,
+      }),
+    );
+  }
+  const data = parsed.data;
+
+  const permCheck = await requirePermission(ctx.userId, 'accounting.fixed_asset.manage', {
+    locationId: data.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  return tryCatch(
+    async () => {
+      const [row] = await db
+        .select({
+          asset: fixedAssets,
+          assetAccountId: fixedAssetCategories.assetAccountId,
+          accumulatedAccountId: fixedAssetCategories.accumulatedDepreciationAccountId,
+        })
+        .from(fixedAssets)
+        .innerJoin(
+          fixedAssetCategories,
+          and(
+            eq(fixedAssetCategories.id, fixedAssets.categoryId),
+            eq(fixedAssetCategories.tenantId, ctx.tenantId),
+          ),
+        )
+        .where(
+          and(
+            eq(fixedAssets.id, data.id),
+            eq(fixedAssets.tenantId, ctx.tenantId),
+            isNull(fixedAssets.deletedAt),
+          ),
+        )
+        .limit(1);
+
+      if (!row) throw AppError.notFound('accounting.fixedAsset.notFound');
+      if (row.asset.status === 'disposed') {
+        throw AppError.businessRule('accounting.fixedAsset.alreadyDisposed');
+      }
+
+      const bookValue = row.asset.acquisitionCost - row.asset.accumulatedDepreciation;
+      const salePrice = BigInt(data.salePrice);
+      const gainLoss = salePrice - bookValue;
+
+      const [gainLossAcct] = await db
+        .select({ id: accounts.id })
+        .from(accounts)
+        .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.code, '7-1200')))
+        .limit(1);
+
+      if (!gainLossAcct) {
+        throw AppError.businessRule('accounting.fixedAsset.gainLossAccountNotFound');
+      }
+
+      if (salePrice > 0n && !data.saleAccountId) {
+        throw AppError.businessRule('accounting.fixedAsset.saleAccountRequired');
+      }
+
+      const lines = [];
+
+      lines.push({
+        accountId: row.assetAccountId,
+        locationId: data.locationId,
+        debit: '0',
+        credit: row.asset.acquisitionCost.toString(),
+      });
+
+      if (row.asset.accumulatedDepreciation > 0n) {
+        lines.push({
+          accountId: row.accumulatedAccountId,
+          locationId: data.locationId,
+          debit: row.asset.accumulatedDepreciation.toString(),
+          credit: '0',
+        });
+      }
+
+      if (salePrice > 0n && data.saleAccountId) {
+        lines.push({
+          accountId: data.saleAccountId,
+          locationId: data.locationId,
+          debit: salePrice.toString(),
+          credit: '0',
+        });
+      }
+
+      if (gainLoss > 0n) {
+        lines.push({
+          accountId: gainLossAcct.id,
+          locationId: data.locationId,
+          debit: '0',
+          credit: gainLoss.toString(),
+        });
+      } else if (gainLoss < 0n) {
+        lines.push({
+          accountId: gainLossAcct.id,
+          locationId: data.locationId,
+          debit: (-gainLoss).toString(),
+          credit: '0',
+        });
+      }
+
+      const journalResult = await createJournal(
+        {
+          postingDate: data.disposalDate,
+          locationId: data.locationId,
+          description: `Pelepasan aset tetap: ${row.asset.code} - ${row.asset.name}`,
+          referenceType: 'manual',
+          lines,
+        },
+        ctx,
+      );
+
+      if (!journalResult.ok) throw journalResult.error;
+
+      const postResult = await postJournal({ journalId: journalResult.value.id }, ctx);
+      if (!postResult.ok) throw postResult.error;
+
+      await db
+        .update(fixedAssets)
+        .set({
+          status: 'disposed',
+          disposalDate: data.disposalDate,
+          disposalJournalEntryId: journalResult.value.id,
+          updatedAt: new Date(),
+          updatedBy: ctx.userId,
+          version: row.asset.version + 1,
+        })
+        .where(
+          and(
+            eq(fixedAssets.id, data.id),
+            eq(fixedAssets.tenantId, ctx.tenantId),
+            eq(fixedAssets.version, row.asset.version),
+          ),
+        );
+
+      await auditRecord({
+        action: 'dispose',
+        entityType: 'fixed_asset',
+        entityId: data.id,
+        before: {
+          status: row.asset.status,
+        },
+        after: {
+          status: 'disposed',
+          disposalDate: data.disposalDate,
+          salePrice: salePrice.toString(),
+          gainLoss: gainLoss.toString(),
+          journalEntryId: journalResult.value.id,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
+
+      return { journalEntryId: journalResult.value.id };
+    },
+    (e) => {
+      if (e instanceof AppError) return e;
+      return AppError.internal('accounting.fixedAsset.disposeFailed', e);
+    },
+  );
 }

@@ -14,8 +14,10 @@ export function PayInvoiceForm({ invoice, bankAccounts }: { invoice: any, bankAc
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const remaining = Number(invoice.total) - Number(invoice.amountPaid || 0);
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]!);
   const [accountId, setAccountId] = useState(bankAccounts[0]?.id || '');
+  const [amountStr, setAmountStr] = useState(String(remaining));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +26,11 @@ export function PayInvoiceForm({ invoice, bankAccounts }: { invoice: any, bankAc
 
     try {
       if (!accountId) throw new Error(t('errorSelectAccount'));
-      await payInvoiceAction(String(invoice.id), accountId, date);
+      const amt = BigInt(amountStr);
+      if (amt <= 0n) throw new Error(t('invalidAmount') || 'Invalid amount');
+      if (amt > BigInt(remaining)) throw new Error(t('amountExceeds') || 'Amount exceeds remaining balance');
+
+      await payInvoiceAction(String(invoice.id), accountId, amountStr, date);
       toast.success(tCommon('successSaved'));
       router.push('/accounting/invoices');
       router.refresh();
@@ -39,6 +45,11 @@ export function PayInvoiceForm({ invoice, bankAccounts }: { invoice: any, bankAc
     style: 'currency',
     currency: 'IDR',
   }).format(Number(invoice.total));
+  
+  const formattedRemaining = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+  }).format(remaining);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 rounded-xl border border-brand-cream-3 bg-card p-6 shadow-soft max-w-2xl">
@@ -51,7 +62,16 @@ export function PayInvoiceForm({ invoice, bankAccounts }: { invoice: any, bankAc
       <div className="grid grid-cols-1 gap-6">
         <div className="space-y-2">
           <label className="text-sm font-semibold text-brand-ink-3">{t('amountToPay')}</label>
-          <div className="text-3xl font-bold text-brand-ink-1">{formattedTotal}</div>
+          <p className="text-xs text-brand-ink-3 mb-1">Total: {formattedTotal} • Remaining: {formattedRemaining}</p>
+          <input
+            type="number"
+            required
+            className="w-full rounded-lg border border-brand-cream-3 px-4 py-2 focus:ring-2 focus:ring-brand-red text-2xl font-bold"
+            value={amountStr}
+            onChange={e => setAmountStr(e.target.value)}
+            max={remaining}
+            min={1}
+          />
         </div>
 
         <div className="space-y-2">

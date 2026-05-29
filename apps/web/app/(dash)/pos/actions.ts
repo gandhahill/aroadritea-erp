@@ -20,6 +20,7 @@ import {
 } from '@erp/db/schema/inventory';
 import { posSettings, salesOrders, shifts } from '@erp/db/schema/pos';
 import { promotions } from '@erp/db/schema/promotion';
+import { memberVouchers } from '@erp/db/schema/member';
 import { requirePermission } from '@erp/services/iam';
 import { type MemberLookupResult, findMemberByPhone } from '@erp/services/member';
 import { closeShift, createSale, openShift, refundSale, voidSale } from '@erp/services/pos';
@@ -34,6 +35,7 @@ import type {
   VoidSaleInput,
 } from '@erp/services/pos/schemas';
 import { getLocale } from 'next-intl/server';
+import { evaluatePromotions, type Cart, listActivePromotionsForSale, type EvaluationResult } from '@erp/services/promotion';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -578,5 +580,111 @@ export async function fetchMasterDataRaw() {
       calculation: t.calculation as 'inclusive' | 'exclusive',
       appliesTo: [],
     })),
+  };
+}
+
+export async function evaluateCartPromotionsAction(params: {
+  channel: string;
+  lines: { productId: string; qty: number; unitPrice: string }[];
+}): Promise<EvaluationResult> {
+  const ctx = await getAuditContext();
+  
+  const activePromotions = await listActivePromotionsForSale({
+    tenantId: ctx.tenantId,
+    locationId: ctx.locationId,
+    channel: params.channel,
+  });
+
+  const cartForEval: Cart = {
+    lines: params.lines.map((l) => {
+      const up = BigInt(l.unitPrice);
+      const qty = Math.round(l.qty);
+      return {
+        id: l.productId,
+        productId: l.productId,
+        qty,
+        unitPrice: up,
+        subtotal: up * BigInt(qty),
+      };
+    }),
+    subtotal: params.lines.reduce(
+      (sum, l) => sum + BigInt(l.unitPrice) * BigInt(Math.round(l.qty)),
+      BigInt(0),
+    ),
+  };
+
+  const result = evaluatePromotions(cartForEval, activePromotions);
+  // Convert BigInts to strings for serialization
+  return {
+    appliedPromotions: result.appliedPromotions.map((p) => ({
+      ...p,
+      discountAmount: p.discountAmount.toString() as unknown as bigint,
+    })),
+    totalDiscount: result.totalDiscount.toString() as unknown as bigint,
+  };
+}
+
+export type ApplyVoucherResult =
+  | { ok: true; discountAmount: string; voucherCode: string }
+  | { ok: false; error: string };
+
+export async function applyVoucherAction(params: {
+  voucherCode: string;
+  customerId: string | null;
+  grandTotal: string; // Grand total after promotions, before voucher
+}): Promise<ApplyVoucherResult> {
+  const ctx = await getAuditContext();
+
+  if (!params.customerId) {
+    return { ok: false, error: 'Member harus dipilih untuk menggunakan voucher.' };
+  }
+
+  const voucher = await db
+    .select()
+    .from(memberVouchers)
+    .where(and(eq(memberVouchers.tenantId, ctx.tenantId), eq(memberVouchers.code, params.voucherCode)))
+    .then((r) => r[0]);
+
+  if (!voucher) {
+    return { ok: false, error: 'Voucher tidak ditemukan.' };
+  }
+  if (voucher.memberId !== params.customerId) {
+    return { ok: false, error: 'Voucher tidak berlaku untuk member ini.' };
+  }
+  if (!voucher.isActive) {
+    return { ok: false, error: 'Voucher sudah tidak aktif.' };
+  }
+  if (voucher.usedInOrderId) {
+    return { ok: false, error: 'Voucher sudah pernah digunakan.' };
+  }
+  const now = new Date();
+  if (now < voucher.validFrom || now > voucher.validUntil) {
+    return { ok: false, error: 'Voucher sudah kadaluarsa atau belum aktif.' };
+  }
+
+  const totalGrand = BigInt(params.grandTotal);
+  if (totalGrand < BigInt(voucher.minOrderValue)) {
+    return { ok: false, error: `Minimum order untuk voucher ini adalah ${voucher.minOrderValue}` };
+  }
+
+  let totalVoucherDiscount = BigInt(0);
+  if (voucher.kind === 'discount_fixed') {
+    totalVoucherDiscount = BigInt(voucher.value);
+  } else if (voucher.kind === 'discount_percent') {
+    let calculated = (totalGrand * BigInt(voucher.value)) / 100n;
+    if (voucher.maxDiscountValue && calculated > BigInt(voucher.maxDiscountValue)) {
+      calculated = BigInt(voucher.maxDiscountValue);
+    }
+    totalVoucherDiscount = calculated;
+  }
+
+  if (totalVoucherDiscount > totalGrand) {
+    totalVoucherDiscount = totalGrand;
+  }
+
+  return {
+    ok: true,
+    discountAmount: totalVoucherDiscount.toString(),
+    voucherCode: voucher.code,
   };
 }

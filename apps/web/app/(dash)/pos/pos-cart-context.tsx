@@ -5,7 +5,8 @@
 
 'use client';
 
-import { type ReactNode, createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { type ReactNode, createContext, useCallback, useContext, useEffect, useState, useRef } from 'react';
+import { evaluateCartPromotionsAction, applyVoucherAction } from './actions';
 
 export interface CartLine {
   id: string;
@@ -45,6 +46,7 @@ export interface CartState {
   payments: CartPayment[];
   customer: CartCustomer | null;
   notes: string;
+  voucherCode: string;
 }
 
 interface PosCartContextValue {
@@ -58,6 +60,8 @@ interface PosCartContextValue {
   updateLineDiscount: (lineId: string, discount: string, reason: string) => void;
   setCustomer: (customer: CartCustomer) => void;
   clearCustomer: () => void;
+  setVoucherCode: (code: string) => void;
+  setAppliedVoucherDiscount: (discount: bigint) => void;
   addPayment: (payment: Omit<CartPayment, 'id'>) => void;
   removePayment: (id: string) => void;
   setNotes: (n: string) => void;
@@ -66,6 +70,8 @@ interface PosCartContextValue {
   totalPaid: bigint;
   remainingBalance: bigint;
   grandTotal: bigint;
+  autoDiscountTotal: bigint;
+  appliedVoucherDiscount: bigint;
 }
 
 const defaultState: CartState = {
@@ -77,6 +83,7 @@ const defaultState: CartState = {
   payments: [],
   customer: null,
   notes: '',
+  voucherCode: '',
 };
 
 const PosCartContext = createContext<PosCartContextValue | null>(null);
@@ -95,6 +102,9 @@ export function PosCartProvider({
     locationId,
     tenantId,
   });
+  const [autoDiscountTotal, setAutoDiscountTotal] = useState<bigint>(BigInt(0));
+  const [appliedVoucherDiscount, setAppliedVoucherDiscount] = useState<bigint>(BigInt(0));
+  const debounceRef = useRef<NodeJS.Timeout>(undefined);
 
   const setShiftId = useCallback((id: string | null) => {
     setState((s) => ({ ...s, shiftId: id }));
@@ -149,7 +159,12 @@ export function PosCartProvider({
   }, []);
 
   const clearCustomer = useCallback(() => {
-    setState((s) => ({ ...s, customer: null }));
+    setState((s) => ({ ...s, customer: null, voucherCode: '' }));
+    setAppliedVoucherDiscount(BigInt(0));
+  }, []);
+
+  const setVoucherCode = useCallback((code: string) => {
+    setState((s) => ({ ...s, voucherCode: code }));
   }, []);
 
   const addPayment = useCallback((payment: Omit<CartPayment, 'id'>) => {
@@ -168,7 +183,8 @@ export function PosCartProvider({
   }, []);
 
   const clearCart = useCallback(() => {
-    setState((s) => ({ ...s, lines: [], payments: [], customer: null, notes: '' }));
+    setState((s) => ({ ...s, lines: [], payments: [], customer: null, notes: '', voucherCode: '' }));
+    setAppliedVoucherDiscount(BigInt(0));
   }, []);
 
   // Derived values
@@ -181,9 +197,37 @@ export function PosCartProvider({
     BigInt(0),
   );
   const subtotalAfterDiscount = subtotal - totalDiscount;
-  const grandTotal = subtotalAfterDiscount;
+  
+  let finalGrandTotal = subtotalAfterDiscount - autoDiscountTotal - appliedVoucherDiscount;
+  if (finalGrandTotal < BigInt(0)) finalGrandTotal = BigInt(0);
+  const grandTotal = finalGrandTotal;
+  
   const totalPaid = state.payments.reduce((sum, p) => sum + BigInt(p.amount), BigInt(0));
   const remainingBalance = grandTotal - totalPaid > BigInt(0) ? grandTotal - totalPaid : BigInt(0);
+
+  useEffect(() => {
+    if (state.lines.length === 0) {
+      setAutoDiscountTotal(BigInt(0));
+      return;
+    }
+    
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const result = await evaluateCartPromotionsAction({
+          channel: state.channel,
+          lines: state.lines.map((l) => ({
+            productId: l.productId,
+            qty: l.qty,
+            unitPrice: l.unitPrice,
+          })),
+        });
+        setAutoDiscountTotal(BigInt(result.totalDiscount));
+      } catch (e) {
+        console.error('Failed to evaluate promotions', e);
+      }
+    }, 500);
+  }, [state.lines, state.channel]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
@@ -215,6 +259,8 @@ export function PosCartProvider({
         updateLineDiscount,
         setCustomer,
         clearCustomer,
+        setVoucherCode,
+        setAppliedVoucherDiscount,
         addPayment,
         removePayment,
         setNotes,
@@ -223,6 +269,8 @@ export function PosCartProvider({
         totalPaid,
         remainingBalance,
         grandTotal,
+        autoDiscountTotal,
+        appliedVoucherDiscount,
       }}
     >
       {children}

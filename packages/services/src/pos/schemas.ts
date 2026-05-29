@@ -76,6 +76,7 @@ export const CreateSaleInputSchema = z.object({
   lines: z.array(LineInputSchema).min(1, 'At least one line item is required'),
   payments: z.array(PaymentInputSchema).min(1, 'At least one payment is required'),
 
+  voucherCode: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -187,6 +188,7 @@ export interface SaleResult {
   channel: Channel;
   subtotal: string;
   discountTotal: string;
+  voucherDiscount: string;
   taxTotal: string;
   grandTotal: string;
   lines: SaleLineResult[];

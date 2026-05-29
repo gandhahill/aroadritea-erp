@@ -304,67 +304,14 @@ export async function approvePO(
     return err(AppError.conflict('purchasing.errors.version_mismatch'));
   }
 
-  // Create AP journal entry after the approval soft lock. If accounting
-  // rejects it, the lock is rolled back before returning.
-  const grandTotal = po.grandTotal.toString();
-  const jeResult = await createJournal(
-    {
-      postingDate: po.orderDate,
-      locationId: po.locationId,
-      description: `Purchase Order ${po.number} - AP recognition`,
-      referenceType: 'purchase',
-      referenceId: po.id,
-      lines: [
-        {
-          accountId: invAccountId,
-          locationId: po.locationId,
-          description: `PO ${po.number} inventory`,
-          debit: grandTotal,
-          credit: '0',
-          partnerId: po.supplierId,
-        },
-        {
-          accountId: apAccountId,
-          locationId: po.locationId,
-          description: `PO ${po.number} accounts payable`,
-          debit: '0',
-          credit: grandTotal,
-          partnerId: po.supplierId,
-          dueDate: apDueDate,
-          reminderDaysBefore: 7,
-        },
-      ],
-    },
-    ctx,
-  );
-  if (!jeResult.ok) {
-    await db
-      .update(purchaseOrders)
-      .set({
-        approvedBy: null,
-        approvedAt: null,
-        updatedBy: ctx.userId,
-        version: po.version,
-      })
-      .where(
-        and(
-          eq(purchaseOrders.tenantId, ctx.tenantId),
-          eq(purchaseOrders.id, po.id),
-          eq(purchaseOrders.version, po.version + 1),
-          eq(purchaseOrders.status, 'submitted'),
-          eq(purchaseOrders.approvedBy, ctx.userId),
-        ),
-      );
-    return jeResult;
-  }
-  const journalEntryId = jeResult.value.id;
+  // Removed journal entry creation here to fix double-DR and AP timing.
+  // AP is recognized upon goods receipt (GRN) instead.
 
   // Finalize the approval only if this caller still owns the soft lock.
   const finalized = await db
     .update(purchaseOrders)
     .set({
       status: 'approved',
-      journalEntryId,
       updatedBy: ctx.userId,
       version: po.version + 2,
     })
@@ -390,8 +337,7 @@ export async function approvePO(
     after: {
       status: 'approved',
       approvedBy: ctx.userId,
-      journalEntryId,
-      grandTotal: grandTotal,
+      grandTotal: po.grandTotal.toString(),
     },
     ctx,
   });
@@ -400,7 +346,6 @@ export async function approvePO(
     id: po.id,
     number: po.number,
     status: 'approved',
-    journalEntryId,
   });
 }
 

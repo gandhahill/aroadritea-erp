@@ -227,6 +227,33 @@ export const taxRules = pgTable(
 );
 
 // ================================================================
+// WITHHOLDING TAXES (Bukti Potong) — T-0221
+// ================================================================
+
+export const withholdingTaxes = pgTable(
+  'withholding_taxes',
+  {
+    ...pk,
+    ...tenantCol,
+    bupotNumber: text('bupot_number').notNull(),
+    vendorId: text('vendor_id').notNull(),
+    taxCode: text('tax_code').notNull(), // 'PPH23' or 'PPH_FINAL'
+    incomeType: text('income_type').notNull(), // e.g. '04' (jasa), '01' (sewa)
+    dpp: bigint('dpp', { mode: 'bigint' }).notNull(),
+    taxAmount: bigint('tax_amount', { mode: 'bigint' }).notNull(),
+    period: text('period').notNull(), // YYYY-MM
+    issueDate: date('issue_date').notNull(),
+    paymentId: text('payment_id'), // reference to the payment transaction
+    ...auditCols,
+  },
+  (t) => [
+    uniqueIndex('withholding_taxes_bupot_idx').on(t.tenantId, t.bupotNumber),
+    index('withholding_taxes_vendor_idx').on(t.vendorId),
+    index('withholding_taxes_period_idx').on(t.period),
+  ],
+);
+
+// ================================================================
 // PETTY CASH ACCOUNTS â€” SD Â§25.7
 // ================================================================
 
@@ -746,10 +773,11 @@ export const invoices = pgTable(
     partnerAddress: text('partner_address'),
     partnerNpwp: text('partner_npwp'),
     paymentTerms: text('payment_terms'),
-    status: text('status').notNull().default('draft'), // 'draft' | 'posted' | 'void' | 'paid'
+    status: text('status').notNull().default('draft'), // 'draft' | 'posted' | 'void' | 'partial' | 'paid'
     subtotal: bigint('subtotal', { mode: 'bigint' }).notNull().default(sql`0`),
     taxAmount: bigint('tax_amount', { mode: 'bigint' }).notNull().default(sql`0`),
     total: bigint('total', { mode: 'bigint' }).notNull().default(sql`0`),
+    amountPaid: bigint('amount_paid', { mode: 'bigint' }).notNull().default(sql`0`),
     notes: text('notes'),
     journalId: text('journal_id'), // The posted accrual/revenue journal
     paymentJournalId: text('payment_journal_id'), // The cash receipt/disbursement journal for payment
@@ -763,7 +791,7 @@ export const invoices = pgTable(
     index('invoices_date_idx').on(t.date),
     index('invoices_location_idx').on(t.locationId),
     check('invoices_type_check', sql`type IN ('sales', 'purchase')`),
-    check('invoices_status_check', sql`status IN ('draft', 'posted', 'void', 'paid')`),
+    check('invoices_status_check', sql`status IN ('draft', 'posted', 'void', 'partial', 'paid')`),
   ],
 );
 
@@ -805,3 +833,57 @@ export const invoiceLinesRelations = relations(invoiceLines, ({ one }) => ({
     references: [accounts.id],
   }),
 }));
+
+// ================================================================
+// TAX INVOICES / E-FAKTUR (T-0219)
+// ================================================================
+
+export const nsfpBlocks = pgTable(
+  'nsfp_blocks',
+  {
+    ...pk,
+    ...tenantCol,
+    startNsfp: text('start_nsfp').notNull(),
+    endNsfp: text('end_nsfp').notNull(),
+    lastUsedNsfp: text('last_used_nsfp'), // The most recent NSFP assigned from this block
+    issueDate: date('issue_date').notNull(),
+    isActive: boolean('is_active').notNull().default(true),
+    ...auditCols,
+  },
+  (t) => [
+    index('nsfp_blocks_tenant_active_idx').on(t.tenantId, t.isActive),
+  ]
+);
+
+export const taxInvoices = pgTable(
+  'tax_invoices',
+  {
+    ...pk,
+    ...tenantCol,
+    nsfp: text('nsfp').notNull(), // The assigned NSFP
+    invoiceId: text('invoice_id').notNull(), // FK invoices
+    issueDate: date('issue_date').notNull(),
+    taxPeriod: text('tax_period').notNull(), // e.g., '2026-05'
+    customerName: text('customer_name').notNull(),
+    customerNpwp: text('customer_npwp'), // Required for B2B e-Faktur usually
+    dpp: bigint('dpp', { mode: 'bigint' }).notNull(),
+    ppn: bigint('ppn', { mode: 'bigint' }).notNull(),
+    status: text('status').notNull().default('draft'), // 'draft' | 'posted' | 'cancelled' | 'replaced'
+    ...auditCols,
+  },
+  (t) => [
+    uniqueIndex('tax_invoices_nsfp_idx').on(t.nsfp),
+    index('tax_invoices_invoice_idx').on(t.invoiceId),
+    index('tax_invoices_tenant_period_idx').on(t.tenantId, t.taxPeriod),
+    check('tax_invoices_status_check', sql`status IN ('draft', 'posted', 'cancelled', 'replaced')`),
+  ]
+);
+
+export const nsfpBlocksRelations = relations(nsfpBlocks, ({ one }) => ({
+  createdByUser: one(users, { fields: [nsfpBlocks.createdBy], references: [users.id] }),
+}));
+
+export const taxInvoicesRelations = relations(taxInvoices, ({ one }) => ({
+  invoice: one(invoices, { fields: [taxInvoices.invoiceId], references: [invoices.id] }),
+}));
+

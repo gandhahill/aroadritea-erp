@@ -21,13 +21,10 @@
  * Permission: accounting.period.close
  */
 
-import { db } from '@erp/db';
-import { accountingPeriods, journalEntries } from '@erp/db/schema/accounting';
-import { AppError } from '@erp/shared/errors';
-import { generateId } from '@erp/shared/id';
-import { type Result, err, ok, tryCatch } from '@erp/shared/result';
+import { and, eq, inArray, lte, sql } from 'drizzle-orm';
+import { accounts, journalEntries, journalLines, accountingPeriods } from '@erp/db/schema/accounting';
+import { locations } from '@erp/db/schema/auth';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, sql } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import {
@@ -36,6 +33,12 @@ import {
   type GetPeriodStatusInput,
   GetPeriodStatusInputSchema,
 } from './schemas';
+import { createJournal } from './create-journal';
+import { postJournal } from './post-journal';
+import { db } from '@erp/db';
+import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 
 // --- Return types ---
 
@@ -224,7 +227,153 @@ export async function closePeriod(
     }
   }
 
-  // 6. Update period status
+  // 6. Generate closing entries if this is the fiscal year end and we are closing it
+  if (newStatus === 'closing' && periodCode.endsWith('-12')) {
+    // Determine the default location for the closing JEs
+    const loc = await db
+      .select({ id: locations.id })
+      .from(locations)
+      .where(eq(locations.tenantId, ctx.tenantId))
+      .limit(1)
+      .then((r) => r[0]);
+
+    if (loc) {
+      // Find nominal accounts with non-zero balances as of period.endDate
+      const nominalBalances = await db
+        .select({
+          accountId: journalLines.accountId,
+          normalBalance: accounts.normalBalance,
+          totalDebit: sql<string>`COALESCE(SUM(${journalLines.debit}), 0)`,
+          totalCredit: sql<string>`COALESCE(SUM(${journalLines.credit}), 0)`,
+        })
+        .from(journalLines)
+        .innerJoin(journalEntries, eq(journalLines.journalEntryId, journalEntries.id))
+        .innerJoin(accounts, eq(journalLines.accountId, accounts.id))
+        .where(
+          and(
+            eq(journalEntries.tenantId, ctx.tenantId),
+            eq(journalEntries.status, 'posted'),
+            lte(journalEntries.postingDate, period.endDate),
+            inArray(accounts.type, ['income', 'expense', 'cogs'])
+          )
+        )
+        .groupBy(journalLines.accountId, accounts.normalBalance);
+
+      const linesToClose: { accountId: string; debit: bigint; credit: bigint }[] = [];
+      let netIncomeDebit = 0n;
+      let netIncomeCredit = 0n;
+
+      for (const row of nominalBalances) {
+        const debit = BigInt(row.totalDebit);
+        const credit = BigInt(row.totalCredit);
+        const isDebitNormal = row.normalBalance === 'debit';
+        const balance = isDebitNormal ? debit - credit : credit - debit;
+
+        if (balance === 0n) continue;
+
+        let closeDebit = 0n;
+        let closeCredit = 0n;
+
+        if (isDebitNormal) {
+          if (balance > 0n) closeCredit = balance;
+          else closeDebit = -balance;
+        } else {
+          if (balance > 0n) closeDebit = balance;
+          else closeCredit = -balance;
+        }
+
+        linesToClose.push({
+          accountId: row.accountId,
+          debit: closeDebit,
+          credit: closeCredit,
+        });
+
+        netIncomeDebit += closeCredit;
+        netIncomeCredit += closeDebit;
+      }
+
+      if (linesToClose.length > 0) {
+        const isumAcct = await db
+          .select({ id: accounts.id })
+          .from(accounts)
+          .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.code, '3-1300')))
+          .limit(1)
+          .then((r) => r[0]);
+        const reAcct = await db
+          .select({ id: accounts.id })
+          .from(accounts)
+          .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.code, '3-1400')))
+          .limit(1)
+          .then((r) => r[0]);
+
+        if (isumAcct && reAcct) {
+          const isumDebit = netIncomeDebit > netIncomeCredit ? netIncomeDebit - netIncomeCredit : 0n;
+          const isumCredit = netIncomeCredit > netIncomeDebit ? netIncomeCredit - netIncomeDebit : 0n;
+
+          // Add Income Summary line to balance JE 1
+          linesToClose.push({
+            accountId: isumAcct.id,
+            debit: isumDebit,
+            credit: isumCredit,
+          });
+
+          // Create and post JE 1 (Nominal -> Income Summary)
+          const je1 = await createJournal(
+            {
+              postingDate: period.endDate,
+              locationId: loc.id,
+              description: `Closing Entry - Nominal Accounts to Income Summary (${period.code})`,
+              referenceType: 'manual',
+              lines: linesToClose.map((l) => ({
+                accountId: l.accountId,
+                locationId: loc.id,
+                debit: l.debit.toString(),
+                credit: l.credit.toString(),
+              })),
+            },
+            ctx
+          );
+
+          if (je1.ok) {
+            await postJournal({ journalId: je1.value.id }, ctx);
+          }
+
+          // Create and post JE 2 (Income Summary -> Retained Earnings)
+          if (isumDebit > 0n || isumCredit > 0n) {
+            const je2 = await createJournal(
+              {
+                postingDate: period.endDate,
+                locationId: loc.id,
+                description: `Closing Entry - Income Summary to Retained Earnings (${period.code})`,
+                referenceType: 'manual',
+                lines: [
+                  {
+                    accountId: isumAcct.id,
+                    locationId: loc.id,
+                    debit: isumCredit.toString(), // reverse
+                    credit: isumDebit.toString(),
+                  },
+                  {
+                    accountId: reAcct.id,
+                    locationId: loc.id,
+                    debit: isumDebit.toString(),
+                    credit: isumCredit.toString(),
+                  },
+                ],
+              },
+              ctx
+            );
+
+            if (je2.ok) {
+              await postJournal({ journalId: je2.value.id }, ctx);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 7. Update period status
   const now = new Date();
   const closedAt = newStatus === 'closed' ? now : null;
   const closedBy = newStatus === 'closed' ? ctx.userId : null;

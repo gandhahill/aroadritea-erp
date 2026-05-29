@@ -233,6 +233,7 @@ export const salesOrders = pgTable(
     // Totals (bigint rupiah — SD §7.8)
     subtotal: bigint('subtotal', { mode: 'bigint' }).notNull().default(sql`0`),
     discountTotal: bigint('discount_total', { mode: 'bigint' }).notNull().default(sql`0`),
+    voucherDiscount: bigint('voucher_discount', { mode: 'bigint' }).notNull().default(sql`0`),
     taxTotal: bigint('tax_total', { mode: 'bigint' }).notNull().default(sql`0`),
     // PB1 inclusive — back-out from subtotal for reporting
     grandTotal: bigint('grand_total', { mode: 'bigint' }).notNull().default(sql`0`),

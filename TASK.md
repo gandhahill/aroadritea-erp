@@ -244,29 +244,29 @@
 |----|-------|--------|----------|--------|
 
 | T-0213 | Wire `postJournal`/`reverseJournal` ke server action + tombol UI | S | P0 | 🟩 DONE |
-| T-0214 | POS: panggil promo engine otomatis saat checkout | M | P0 | 🟦 PENDING |
-| T-0215 | POS: konsumsi voucher redemption + UI redeem di kasir | M | P0 | 🟦 PENDING |
-| T-0216 | Purchasing: perbaiki double-DR persediaan + timing pengakuan AP | L | P0 | 🟦 PENDING |
-| T-0217 | Logistik: outgoing shipment harus tulis `stockMovements` | M | P0 | 🟦 PENDING |
-| T-0218 | HR: perbaiki `listMySchedule` + resolusi karyawan di check-in | S | P0 | 🟦 PENDING |
+| T-0214 | POS: panggil promo engine otomatis saat checkout | M | P0 | 🟩 DONE |
+| T-0215 | POS: konsumsi voucher redemption + UI redeem di kasir | M | P0 | 🟩 DONE |
+| T-0216 | Purchasing: perbaiki double-DR persediaan + timing pengakuan AP | L | P0 | 🟩 DONE |
+| T-0217 | Logistik: outgoing shipment harus tulis `stockMovements` | M | P0 | 🟩 DONE |
+| T-0218 | HR: perbaiki `listMySchedule` + resolusi karyawan di check-in | S | P0 | 🟩 DONE |
 
 ### Tier 2 — Pajak (kepatuhan DJP/Pemda)
 
 | ID | Title | Effort | Priority | Status |
 |----|-------|--------|----------|--------|
-| T-0219 | e-Faktur / Faktur Pajak keluaran (NSFP + ekspor DJP) | L | P1 | 🟦 PENDING |
-| T-0220 | SPT Masa PPN + ledger pajak masukan vs keluaran | L | P1 | 🟦 PENDING |
-| T-0221 | PPh 23 / final + bukti potong (bupot) | M | P1 | 🟦 PENDING |
-| T-0222 | Rekap PB1 bulanan per outlet (SPTPD/e-PBJT Pemda) | M | P1 | 🟦 PENDING |
+| T-0219 | e-Faktur / Faktur Pajak keluaran (NSFP + ekspor DJP) | L | P1 | 🟩 DONE |
+| T-0220 | SPT Masa PPN + ledger pajak masukan vs keluaran | L | P1 | 🟩 DONE |
+| T-0221 | PPh 23 / final + bukti potong (bupot) | M | P1 | 🟩 DONE |
+| T-0222 | Rekap PB1 bulanan per outlet (SPTPD/e-PBJT Pemda) | M | P1 | 🟩 DONE |
 
 ### Tier 2 — Akuntansi
 
 | ID | Title | Effort | Priority | Status |
 |----|-------|--------|----------|--------|
-| T-0223 | Jurnal penutup akhir tahun (Income Summary → Laba Ditahan) | M | P1 | 🟦 PENDING |
-| T-0224 | Disposal aset tetap (workflow + jurnal) | S | P2 | 🟦 PENDING |
-| T-0225 | Pembayaran invoice parsial/cicilan + payment allocation | M | P1 | 🟦 PENDING |
-| T-0226 | Laporan Perubahan Ekuitas (SAK ETAP) | S | P2 | 🟦 PENDING |
+| T-0223 | Jurnal penutup akhir tahun (Income Summary → Laba Ditahan) | M | P1 | 🟩 DONE |
+| T-0224 | Disposal aset tetap (workflow + jurnal) | S | P2 | 🟩 DONE |
+| T-0225 | Pembayaran invoice parsial/cicilan + payment allocation | M | P1 | 🟩 DONE |
+| T-0226 | Laporan Perubahan Ekuitas (SAK ETAP) | S | P2 | 🟩 DONE |
 | T-0227 | Buku Besar drill-down per akun + comparative period | M | P2 | 🟦 PENDING |
 
 ### Tier 2 — Purchasing

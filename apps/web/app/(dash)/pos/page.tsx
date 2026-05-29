@@ -19,7 +19,7 @@ import { ProductSearch } from './product-search';
 
 export default function PosPage() {
   const t = useTranslations('pos');
-  const { state, grandTotal, remainingBalance } = usePosCart();
+  const { state, grandTotal, remainingBalance, autoDiscountTotal } = usePosCart();
   const [showPayment, setShowPayment] = useState(false);
   const hasInvalidManualDiscount = state.lines.some(
     (line) => BigInt(line.lineDiscount ?? '0') > BigInt(0) && !line.lineDiscountReason?.trim(),
@@ -78,6 +78,14 @@ export default function PosPage() {
                   {formatRupiah(grandTotal.toString())}
                 </span>
               </div>
+              {autoDiscountTotal > BigInt(0) && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-brand-ink-3">Promo Otomatis</span>
+                  <span className="font-medium text-brand-red">
+                    -{formatRupiah(autoDiscountTotal.toString())}
+                  </span>
+                </div>
+              )}
               {remainingBalance > BigInt(0) && (
                 <div className="flex justify-between text-sm">
                   <span className="text-brand-ink-3">{t('remainingBalance')}</span>

@@ -297,3 +297,14 @@ export const RunFixedAssetDepreciationSchema = z.object({
 });
 
 export type RunFixedAssetDepreciationInput = z.infer<typeof RunFixedAssetDepreciationSchema>;
+
+export const DisposeFixedAssetSchema = z.object({
+  id: z.string().min(1),
+  locationId: z.string().min(1),
+  disposalDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  salePrice: z.string().regex(/^\d+$/).optional().default('0'),
+  saleAccountId: z.string().optional(),
+  disposalNotes: z.string().max(1000).optional(),
+});
+
+export type DisposeFixedAssetInput = z.infer<typeof DisposeFixedAssetSchema>;

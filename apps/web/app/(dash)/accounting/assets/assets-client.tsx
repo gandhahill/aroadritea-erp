@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useMemo, useState } from 'react';
-import { createAssetAction, runDepreciationAction, updateAssetCategoryAction } from './actions';
+import { createAssetAction, runDepreciationAction, updateAssetCategoryAction, disposeAssetAction } from './actions';
 import type { AssetPageData } from './actions';
 
 const METHOD_VALUES = [
@@ -38,7 +38,9 @@ export function AssetsClient({
   const router = useRouter();
   const [createState, createAction, createPending] = useActionState(createAssetAction, null);
   const [runState, runAction, runPending] = useActionState(runDepreciationAction, null);
+  const [disposeState, disposeAction, disposePending] = useActionState(disposeAssetAction, null);
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? '');
+  const [disposeAssetId, setDisposeAssetId] = useState('');
   const selectedCategory = useMemo(
     () => categories.find((category) => category.id === categoryId) ?? categories[0],
     [categories, categoryId],
@@ -71,6 +73,21 @@ export function AssetsClient({
     if (!runState?.ok) return;
     router.refresh();
   }, [runState, router]);
+
+  useEffect(() => {
+    if (!disposeState?.ok) return;
+    router.refresh();
+  }, [disposeState, router]);
+
+  const activeAssets = useMemo(() => assets.filter(a => a.status !== 'disposed'), [assets]);
+  const disposeAsset = useMemo(() => activeAssets.find(a => a.id === disposeAssetId) ?? activeAssets[0], [activeAssets, disposeAssetId]);
+  
+  // Set default dispose asset id when data loads
+  useEffect(() => {
+    if (activeAssets.length > 0 && !disposeAssetId) {
+      setDisposeAssetId(activeAssets[0].id);
+    }
+  }, [activeAssets, disposeAssetId]);
 
   const formatMoney = (value: string) =>
     new Intl.NumberFormat(locale, {
@@ -236,6 +253,79 @@ export function AssetsClient({
                 size="md"
               >
                 {runPending ? t('posting') : t('run')}
+              </Button>
+            </div>
+          </form>
+
+          <form
+            action={disposeAction}
+            className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm"
+          >
+            <h2 className="text-base font-semibold text-brand-ink">{t('disposeTitle')}</h2>
+            <p className="mt-1 text-sm text-brand-ink-3">{t('disposeDescription')}</p>
+            {disposeState?.error ? (
+              <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                {disposeState.error}
+              </div>
+            ) : null}
+            {disposeState?.ok ? (
+              <div className="mt-4 rounded-lg border border-brand-jade/20 bg-brand-jade/10 px-3 py-2 text-sm text-brand-jade">
+                {t('disposeSuccess')}{' '}
+                <Link
+                  href={`/accounting/journals/${disposeState.journalEntryId}`}
+                  className="underline"
+                >
+                  {t('openJournal')}
+                </Link>
+              </div>
+            ) : null}
+            <div className="mt-4 space-y-3">
+              <label className="space-y-1.5">
+                <span className="text-sm font-medium text-brand-ink">{t('assetToDispose')}</span>
+                <Select name="assetId" value={disposeAsset?.id ?? ''} onChange={(e) => setDisposeAssetId(e.target.value)} required>
+                  {activeAssets.map((asset) => (
+                    <option key={asset.id} value={asset.id}>
+                      {asset.code} - {asset.name}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+              <input type="hidden" name="locationId" value={disposeAsset?.locationId ?? ''} />
+              <Field
+                label={t('disposalDate')}
+                name="disposalDate"
+                type="date"
+                defaultValue={today}
+                required
+              />
+              <Field
+                label={t('salePrice')}
+                name="salePrice"
+                inputMode="numeric"
+                defaultValue="0"
+              />
+              <SelectAccount
+                label={t('saleAccount')}
+                name="saleAccountId"
+                accounts={accountOptions.filter(a => a.type === 'asset')}
+                defaultValue={accountOptions.find(a => a.code.startsWith('1-11'))?.id ?? ''}
+                pickName={pickName}
+              />
+              <label className="block space-y-1.5">
+                <span className="text-sm font-medium text-brand-ink">{t('notes')}</span>
+                <textarea
+                  name="disposalNotes"
+                  className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-1 focus:ring-brand-ember-5 min-h-20"
+                />
+              </label>
+              <Button
+                type="submit"
+                disabled={disposePending || activeAssets.length === 0}
+                className="w-full rounded-lg "
+                variant="primary"
+                size="md"
+              >
+                {disposePending ? t('disposing') : t('disposeBtn')}
               </Button>
             </div>
           </form>

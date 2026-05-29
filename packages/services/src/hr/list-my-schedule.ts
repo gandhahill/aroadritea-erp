@@ -2,6 +2,7 @@ import { and, db, eq, gte, lte } from '@erp/db';
 import { shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { resolveEmployeeForUser } from './resolve-employee';
 
 export interface MyScheduleRow {
   id: string;
@@ -23,6 +24,11 @@ export async function listMySchedule(
   ctx: AuditContext,
 ): Promise<Result<MyScheduleRow[], string>> {
   try {
+    const employee = await resolveEmployeeForUser(ctx.tenantId, ctx.userId);
+    if (!employee) {
+      return err('hr.attendance.employeeNotResolved');
+    }
+
     const rows = await db
       .select({
         id: shiftAssignments.id,
@@ -39,8 +45,8 @@ export async function listMySchedule(
       .where(
         and(
           eq(shiftAssignments.tenantId, ctx.tenantId),
-          // We map user.id to employee.id. In this system they match.
-          eq(shiftAssignments.employeeId, ctx.userId),
+          // Resolved via encrypted email match
+          eq(shiftAssignments.employeeId, employee.id),
           gte(shiftAssignments.workDate, params.dateFrom),
           lte(shiftAssignments.workDate, params.dateTo),
         ),

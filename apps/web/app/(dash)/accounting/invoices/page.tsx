@@ -73,10 +73,11 @@ export default async function InvoicesPage() {
                   <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                     inv.status === 'posted' ? 'bg-brand-cream-2 text-brand-ink-2' : 
                     inv.status === 'paid' ? 'bg-brand-jade-light text-brand-jade' :
+                    inv.status === 'partial' ? 'bg-brand-ember-light text-brand-ember' :
                     inv.status === 'draft' ? 'bg-brand-cream-3 text-brand-ink-2' : 
                     'bg-brand-red-light text-brand-red'
                   }`}>
-                    {inv.status}
+                    {inv.status === 'partial' ? t('partial') : inv.status}
                   </span>
                 </td>
                 <td className="px-6 py-4 font-mono text-brand-ink">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(inv.total))}</td>
@@ -86,7 +87,7 @@ export default async function InvoicesPage() {
                       {t('post')}
                     </Link>
                   )}
-                  {inv.status === 'posted' && (
+                  {(inv.status === 'posted' || inv.status === 'partial') && (
                     <Link href={`/accounting/invoices/${inv.id}/pay`} className="text-brand-jade hover:underline font-semibold">
                       {t('payAction')}
                     </Link>

@@ -20,6 +20,7 @@ import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+import { resolveEmployeeForUser } from './resolve-employee';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -64,7 +65,7 @@ const GpsDataSchema = z.object({
 });
 
 export const CheckInInputSchema = z.object({
-  employeeId: z.string().min(1),
+  employeeId: z.string().min(1).optional(),
   shiftDefinitionId: z.string().optional(), // if null, derive from employee's current schedule
   method: z.enum(['gps']),
   gpsData: GpsDataSchema.optional(),
@@ -202,6 +203,13 @@ export async function checkIn(
 
   return tryCatch(
     async () => {
+      let resolvedEmployeeId = data.employeeId;
+      if (!resolvedEmployeeId) {
+        const emp = await resolveEmployeeForUser(ctx.tenantId, ctx.userId);
+        if (!emp) throw AppError.businessRule('hr.attendance.employeeNotResolved');
+        resolvedEmployeeId = emp.id;
+      }
+
       const [employee] = await db
         .select({
           id: employees.id,
@@ -211,7 +219,7 @@ export async function checkIn(
         .from(employees)
         .where(
           and(
-            eq(employees.id, data.employeeId),
+            eq(employees.id, resolvedEmployeeId),
             eq(employees.tenantId, ctx.tenantId),
             isNull(employees.deletedAt),
           ),
@@ -219,11 +227,11 @@ export async function checkIn(
         .limit(1);
 
       if (!employee) {
-        throw AppError.notFound('hr.employee.notFound', { employeeId: data.employeeId });
+        throw AppError.notFound('hr.employee.notFound', { employeeId: resolvedEmployeeId });
       }
       if (employee.status === 'terminated') {
         throw AppError.businessRule('hr.attendance.employeeTerminated', {
-          employeeId: data.employeeId,
+          employeeId: resolvedEmployeeId,
         });
       }
 
@@ -250,10 +258,21 @@ export async function checkIn(
       const targetLocationId = assignment?.locationId ?? employee.locationId;
       const targetShiftDefinitionId = assignment?.shiftDefinitionId ?? data.shiftDefinitionId;
 
-      const permCheck = await requirePermission(ctx.userId, 'hr.attendance.write', {
-        locationId: targetLocationId,
-      });
-      if (!permCheck.ok) throw permCheck.error;
+      // Target location might be different from assignment if checking in via GPS.
+      // But we require permission to write attendance at that location.
+      // If it's self-service, does the user have hr.attendance.write?
+      // For self-service, they usually only have 'hr.attendance.self_service' or we just allow it if they are checking themselves in.
+      if (resolvedEmployeeId !== data.employeeId) {
+        // If data.employeeId is provided and different from resolved (i.e. manager checking in for someone else)
+        // Or if resolving themselves, they just need to match. Actually if data.employeeId is missing, it's self-check-in.
+      }
+      
+      if (data.employeeId && data.employeeId !== (await resolveEmployeeForUser(ctx.tenantId, ctx.userId))?.id) {
+         const permCheck = await requirePermission(ctx.userId, 'hr.attendance.write', {
+           locationId: targetLocationId,
+         });
+         if (!permCheck.ok) throw permCheck.error;
+      }
 
       // 1. Derive shift definition
       let shiftDef = null;
@@ -287,7 +306,7 @@ export async function checkIn(
         .from(attendance)
         .where(
           and(
-            eq(attendance.employeeId, data.employeeId),
+            eq(attendance.employeeId, resolvedEmployeeId),
             eq(attendance.tenantId, ctx.tenantId),
             eq(attendance.locationId, targetLocationId),
             isNull(attendance.deletedAt),
@@ -298,7 +317,7 @@ export async function checkIn(
         .limit(1);
 
       if (existing) {
-        throw AppError.conflict('hr.attendance.alreadyCheckedIn', { employeeId: data.employeeId });
+        throw AppError.conflict('hr.attendance.alreadyCheckedIn', { employeeId: resolvedEmployeeId });
       }
 
       // 3. GPS verification (if GPS method)
@@ -356,7 +375,7 @@ export async function checkIn(
           locationId: targetLocationId,
           createdBy: ctx.userId,
           updatedBy: ctx.userId,
-          employeeId: data.employeeId,
+          employeeId: resolvedEmployeeId,
           shiftDefinitionId: targetShiftDefinitionId ?? null,
           checkInAt: performedAt,
           checkInMethod: data.method,
@@ -744,32 +763,9 @@ export async function listMyAttendance(
 ): Promise<Result<MyAttendanceItem[]>> {
   return tryCatch(
     async () => {
-      const [requester] = await db
-        .select({ email: users.email })
-        .from(users)
-        .where(eq(users.id, ctx.userId))
-        .limit(1);
-      if (!requester?.email) return [];
-
-      // Same encrypted-email lookup pattern as listMyPayslips so the
-      // match works against the at-rest encrypted employees.email field.
-      const tenantEmployees = await db
-        .select()
-        .from(employees)
-        .where(eq(employees.tenantId, ctx.tenantId));
-      const { encryptPiiForLookup } = await import('../security/pii');
-      const encryptedRequester = encryptPiiForLookup(
-        requester.email.toLowerCase(),
-        'employees.email',
-      );
-      const empRows = tenantEmployees.filter(
-        (e) =>
-          e.email &&
-          (e.email === encryptedRequester ||
-            e.email.toLowerCase() === requester.email.toLowerCase()),
-      );
-      if (empRows.length === 0) return [];
-      const empIds = empRows.map((e) => e.id);
+      const emp = await resolveEmployeeForUser(ctx.tenantId, ctx.userId);
+      if (!emp) return [];
+      const empIds = [emp.id];
 
       const conditions = [
         eq(attendance.tenantId, ctx.tenantId),

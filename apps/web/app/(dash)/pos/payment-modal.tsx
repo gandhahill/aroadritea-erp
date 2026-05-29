@@ -10,7 +10,7 @@
 import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
-import { createSaleAction } from './actions';
+import { createSaleAction, applyVoucherAction } from './actions';
 import { type RoundingOption, getDonationOptions } from './lib/donation-options';
 import { useOfflineSync } from './lib/offline-sync-context';
 import { usePosCart } from './pos-cart-context';
@@ -36,7 +36,7 @@ interface SplitPayment {
 
 export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   const t = useTranslations('pos');
-  const { state, totalPaid, clearCart } = usePosCart();
+  const { state, totalPaid, clearCart, setVoucherCode, setAppliedVoucherDiscount, appliedVoucherDiscount } = usePosCart();
   const { isOnline, enqueueOrder, syncNow } = useOfflineSync();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +50,11 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
   const [donationChoice, setDonationChoice] = useState<RoundingOption>('no_donation');
   /** Custom donation amount entered by the cashier when `donationChoice === 'custom'`. */
   const [customDonationInput, setCustomDonationInput] = useState('');
+  
+  const [voucherInput, setVoucherInput] = useState(state.voucherCode);
+  const [voucherError, setVoucherError] = useState<string | null>(null);
+  const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
+
   const paymentMethods = useMemo(() => {
     if (state.channel === 'walk_in' || state.channel === 'dine_in' || state.channel === 'take_away')
       return [...BASE_PAYMENT_METHODS];
@@ -100,6 +105,37 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
 
   function handleRemoveSplit(id: string) {
     setSplitPayments((prev) => prev.filter((payment) => payment.id !== id));
+  }
+
+  async function handleApplyVoucher() {
+    if (!voucherInput.trim()) return;
+    setIsApplyingVoucher(true);
+    setVoucherError(null);
+    try {
+       const grandTotalBeforeVoucher = totalBig + appliedVoucherDiscount;
+       const result = await applyVoucherAction({ 
+          voucherCode: voucherInput.trim(), 
+          customerId: state.customer?.id ?? null, 
+          grandTotal: grandTotalBeforeVoucher.toString() 
+       });
+       if (result.ok) {
+          setVoucherCode(result.voucherCode);
+          setAppliedVoucherDiscount(BigInt(result.discountAmount));
+       } else {
+          setVoucherError(result.error);
+       }
+    } catch (e) {
+       setVoucherError("Terjadi kesalahan sistem saat mengecek voucher.");
+    } finally {
+       setIsApplyingVoucher(false);
+    }
+  }
+
+  function handleRemoveVoucher() {
+    setVoucherCode('');
+    setVoucherInput('');
+    setAppliedVoucherDiscount(BigInt(0));
+    setVoucherError(null);
   }
 
   async function handleConfirm() {
@@ -175,6 +211,7 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
       payments,
       customerId: state.customer?.id,
       notes: state.notes,
+      voucherCode: state.voucherCode || undefined,
     };
 
     startTransition(async () => {
@@ -263,6 +300,41 @@ export function PaymentModal({ grandTotal, onClose }: PaymentModalProps) {
           <div className="flex items-center justify-between rounded-xl border border-brand-red/20 bg-brand-red/5 px-4 py-3">
             <span className="text-sm font-medium text-brand-ink-2">{t('grandTotal')}</span>
             <span className="text-xl font-bold text-brand-red">{formatRupiah(grandTotal)}</span>
+          </div>
+
+          {/* Voucher Section */}
+          <div className="rounded-xl border border-brand-cream-3 bg-brand-cream-2/50 p-4">
+             <p className="mb-2 text-xs font-medium uppercase tracking-widest text-brand-ink-3">Voucher Member</p>
+             {state.voucherCode ? (
+                <div className="flex items-center justify-between rounded-lg bg-card border border-brand-jade/30 px-3 py-2">
+                   <div>
+                      <p className="text-sm font-semibold text-brand-jade">{state.voucherCode}</p>
+                      <p className="text-xs text-brand-ink-3">Diskon Voucher: {formatRupiah(appliedVoucherDiscount.toString())}</p>
+                   </div>
+                   <button type="button" onClick={handleRemoveVoucher} className="text-xs font-medium text-red-500 hover:underline">Hapus</button>
+                </div>
+             ) : (
+                <div className="space-y-2">
+                   <div className="flex gap-2">
+                      <Input 
+                         value={voucherInput} 
+                         onChange={(e) => setVoucherInput(e.target.value)} 
+                         placeholder="Masukkan kode voucher..." 
+                         className="h-10 text-sm flex-1 bg-card border-brand-cream-3" 
+                         disabled={isApplyingVoucher}
+                      />
+                      <button 
+                         type="button" 
+                         onClick={handleApplyVoucher} 
+                         disabled={isApplyingVoucher || !voucherInput.trim()} 
+                         className="h-10 px-4 rounded-lg bg-brand-ink text-white text-sm font-medium hover:bg-brand-ink-2 disabled:opacity-50"
+                      >
+                         {isApplyingVoucher ? 'Cek...' : 'Pakai'}
+                      </button>
+                   </div>
+                   {voucherError && <p className="text-xs text-red-500">{voucherError}</p>}
+                </div>
+             )}
           </div>
 
           {/* Payment method grid */}

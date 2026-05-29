@@ -42,6 +42,9 @@ export {
   bankStatementLines,
   invoices,
   invoiceLines,
+  nsfpBlocks,
+  taxInvoices,
+  withholdingTaxes,
 } from './schema/accounting';
 
 // Schema — Audit
