@@ -4,8 +4,9 @@
  * Creates a payroll run for a period/location:
  * 1. Fetch all active employees for the location
  * 2. Fetch attendance records for the period (late minutes, absent days)
- * 3. For each employee: calculate payroll via payroll-engine
- * 4. Insert payrolls header + payroll_lines
+ * 3. T-0245: Detect absences from shift_assignments vs attendance
+ * 4. For each employee: calculate payroll via payroll-engine
+ * 5. Insert payrolls header + payroll_lines
  *
  * Permission: hr.payroll.write
  */
@@ -19,6 +20,7 @@ import {
   payrollLines,
   payrolls,
   salaryComponents,
+  shiftAssignments,
 } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -104,6 +106,8 @@ export interface RunPayrollResult {
   totalEarnings: bigint;
   totalDeductions: bigint;
   totalNet: bigint;
+  /** T-0243: total employer BPJS expense (not deducted from employee net) */
+  totalEmployerBpjs: bigint;
 }
 
 export async function runPayroll(
@@ -145,13 +149,17 @@ export async function runPayroll(
         });
       }
 
-      // 2. Fetch active employees with current contracts
+      // 2. Fetch active employees with current contracts + tax/BPJS data (T-0247)
       const empRows = await db
         .select({
           id: employees.id,
           name: employees.name,
           status: employees.status,
           currentContractId: employees.currentContractId,
+          maritalStatus: employees.maritalStatus,
+          dependentsCount: employees.dependentsCount,
+          isBpjsBase: employees.isBpjsBase,
+          isTaxable: employees.isTaxable,
         })
         .from(employees)
         .where(
@@ -286,7 +294,7 @@ export async function runPayroll(
           employeeId: attendance.employeeId,
           lateMinutes: sql<number>`coalesce(sum(case when ${attendance.lateForgiven} then 0 else ${attendance.lateMinutes} end), 0)`,
           lateCount: sql<number>`cast(count(case when ${attendance.isLate} and not ${attendance.lateForgiven} then 1 end) as int)`,
-          absentDays: sql<number>`0`,
+          attendanceDays: sql<number>`cast(count(distinct date(${attendance.checkInAt})) as int)`,
         })
         .from(attendance)
         .where(
@@ -305,15 +313,40 @@ export async function runPayroll(
           {
             lateMinutes: a.lateMinutes,
             lateCount: a.lateCount,
-            absentDays: a.absentDays,
+            attendanceDays: a.attendanceDays,
           },
         ]),
+      );
+
+      // T-0245: Count scheduled shift days per employee from shift_assignments
+      const periodStartDate = data.periodStart.split('T')[0]!;
+      const periodEndDate = data.periodEnd.split('T')[0]!;
+      const shiftCountRows = await db
+        .select({
+          employeeId: shiftAssignments.employeeId,
+          scheduledDays: sql<number>`cast(count(*) as int)`,
+        })
+        .from(shiftAssignments)
+        .where(
+          and(
+            eq(shiftAssignments.tenantId, ctx.tenantId),
+            eq(shiftAssignments.locationId, data.locationId),
+            eq(shiftAssignments.kind, 'shift'),
+            sql`${shiftAssignments.workDate} >= ${periodStartDate}`,
+            sql`${shiftAssignments.workDate} <= ${periodEndDate}`,
+          ),
+        )
+        .groupBy(shiftAssignments.employeeId);
+
+      const shiftCountMap = new Map(
+        shiftCountRows.map((s) => [s.employeeId, s.scheduledDays]),
       );
 
       // 6. Calculate payroll for each employee
       let totalEarnings = 0n;
       let totalDeductions = 0n;
       let totalNet = 0n;
+      let totalEmployerBpjs = 0n;
       const allLines: Array<{
         id: string;
         tenantId: string;
@@ -334,19 +367,28 @@ export async function runPayroll(
         if (baseSalary === 0n) {
           throw AppError.validation('hr.payroll.baseSalaryZero', { employeeName: emp.name });
         }
-        const att = attMap.get(emp.id) ?? { lateMinutes: 0, lateCount: 0, absentDays: 0 };
+        const att = attMap.get(emp.id) ?? { lateMinutes: 0, lateCount: 0, attendanceDays: 0 };
+
+        // T-0245: Detect absences = scheduled shifts - actual attendance days
+        const scheduledDays = shiftCountMap.get(emp.id) ?? 0;
+        const absentDays = Math.max(0, scheduledDays - att.attendanceDays);
+
+        // T-0247: Read maritalStatus + dependentsCount from employee data
+        const maritalStatus = (emp.maritalStatus === 'K' ? 'K' : 'TK') as 'TK' | 'K';
+        const dependentsCount = Math.min(3, Math.max(0, emp.dependentsCount ?? 0)) as 0 | 1 | 2 | 3;
 
         const payrollCtx: PayrollEmployeeContext = {
           employeeId: emp.id,
           baseSalary,
-          isBpjsBase: true,
-          isTaxable: true,
-          dependentsCount: 0,
+          isBpjsBase: emp.isBpjsBase,
+          isTaxable: emp.isTaxable,
+          maritalStatus,
+          dependentsCount,
           additionalEarnings: additionalEarningsByEmployeeId.get(emp.id) ?? [],
           additionalDeductions: additionalDeductionsByEmployeeId.get(emp.id) ?? [],
           lateMinutes: att.lateMinutes,
           lateCount: att.lateCount,
-          absentCount: att.absentDays,
+          absentCount: absentDays,
           attendancePolicy,
         };
 
@@ -355,10 +397,28 @@ export async function runPayroll(
         totalEarnings += result.totalEarnings;
         totalDeductions += result.totalDeductions;
         totalNet += result.netSalary;
+        // T-0243: track employer BPJS total
+        totalEmployerBpjs +=
+          result.bpjsKesEmployer +
+          result.bpjsJkkEmployer +
+          result.bpjsJkmEmployer +
+          result.bpjsJhtEmployer +
+          result.bpjsJpEmployer;
 
         // Build payroll lines
         for (const line of result.lines) {
-          const comp = getComponent(line.componentCode);
+          // Employer BPJS lines use the same component for now, or a new one
+          const compCode = line.componentCode;
+          let comp = componentMap.get(compCode);
+          if (!comp) {
+            // For employer BPJS lines that might not have a salary component yet,
+            // use the base BPJS component and mark with notes
+            if (compCode.endsWith('_ER')) {
+              const baseCode = compCode.replace('_ER', '').replace('BPJS_JKK', 'BPJS_TK').replace('BPJS_JKM', 'BPJS_TK').replace('BPJS_JHT', 'BPJS_TK').replace('BPJS_JP', 'BPJS_TK');
+              comp = componentMap.get(baseCode === 'BPJS_KES' ? 'BPJS_KES' : 'BPJS_TK');
+            }
+            if (!comp) continue; // skip if no matching component
+          }
           allLines.push({
             id: generateId(),
             tenantId: ctx.tenantId,
@@ -416,6 +476,7 @@ export async function runPayroll(
           totalEarnings,
           totalDeductions,
           totalNet,
+          totalEmployerBpjs,
         } as never,
         metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
         ctx,
@@ -428,6 +489,7 @@ export async function runPayroll(
         totalEarnings,
         totalDeductions,
         totalNet,
+        totalEmployerBpjs,
       };
     },
     (e) => {

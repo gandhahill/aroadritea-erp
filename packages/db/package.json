@@ -24,6 +24,7 @@
     "./schema/customfield": "./schema/customfield.ts",
     "./schema/workflow": "./schema/workflow.ts",
     "./schema/notification": "./schema/notification.ts",
+    "./schema/notifications": "./schema/notifications.ts",
     "./schema/stock-opname": "./schema/stock-opname.ts",
     "./schema/whistleblower": "./schema/whistleblower.ts",
     "./schema/sop": "./schema/sop.ts",

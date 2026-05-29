@@ -303,11 +303,11 @@
 
 | ID | Title | Effort | Priority | Status |
 |----|-------|--------|----------|--------|
-| T-0243 | Payroll: beban BPJS pemberi kerja (engine + jurnal) | M | P1 | 🟦 PENDING |
-| T-0244 | Payroll: engine THR (pro-rata) + lembur (/173 ×1.5/2) | M | P1 | 🟦 PENDING |
-| T-0245 | Payroll: deteksi absen otomatis (ganti `absentDays:0`) | M | P1 | 🟦 PENDING |
-| T-0246 | Payroll: file transfer bank + field rekening karyawan | S | P2 | 🟦 PENDING |
-| T-0247 | Payroll: PPh21 TER bulanan (PMK 168/2023) + PTKP dari data | M | P1 | 🟦 PENDING |
+| T-0243 | Payroll: beban BPJS pemberi kerja (engine + jurnal) | M | P1 | 🟩 DONE |
+| T-0244 | Payroll: engine THR (pro-rata) + lembur (/173 ×1.5/2) | M | P1 | 🟩 DONE |
+| T-0245 | Payroll: deteksi absen otomatis (ganti `absentDays:0`) | M | P1 | 🟩 DONE |
+| T-0246 | Payroll: file transfer bank + field rekening karyawan | S | P2 | 🟩 DONE |
+| T-0247 | Payroll: PPh21 TER bulanan (PMK 168/2023) + PTKP dari data | M | P1 | 🟩 DONE |
 | T-0248 | Payroll: lock periode vs periode akuntansi + reverse JE saat cancel | S | P1 | 🟩 DONE |
 | T-0249 | Whistleblower: schema `locationId` + kategori + severity | S | P2 | 🟩 DONE |
 

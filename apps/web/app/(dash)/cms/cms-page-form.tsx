@@ -229,7 +229,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                       setMetaTitleVals((v) => ({ ...v, [tab.code]: e.target.value }))
                     }
                     className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-                    placeholder="Meta title untuk SEO"
+                    placeholder={`${t('metaTitlePlaceholder')} (${tab.code.toUpperCase()})`}
                   />
                   <p className="mb-1 mt-2 text-xs font-medium text-brand-ink-3">
                     Meta Description — {tab.label}
@@ -239,7 +239,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                     onChange={(e) => setMetaDescVals((v) => ({ ...v, [tab.code]: e.target.value }))}
                     rows={2}
                     className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-                    placeholder="Meta description untuk SEO"
+                    placeholder={`${t('metaDescPlaceholder')} (${tab.code.toUpperCase()})`}
                   />
                 </div>
               ))}
@@ -261,7 +261,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                   value={formData.slug}
                   onChange={(e) => setFormData((v) => ({ ...v, slug: e.target.value }))}
                   className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-                  placeholder="url-slug"
+                  placeholder={t('slugPlaceholder')}
                   disabled={!isNew}
                 />
                 {isNew && <p className="mt-1 text-xs text-brand-ink-3">{t('slugHint')}</p>}
@@ -334,7 +334,7 @@ export function CmsPageForm({ page, isNew = false }: Props) {
                   disabled={isPending}
                   className="w-full rounded-md border border-red-300 bg-card px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
                 >
-                  {t('delete')}
+                  {tc('actions.delete')}
                 </button>
               )}
             </div>

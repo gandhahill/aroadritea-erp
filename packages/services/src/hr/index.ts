@@ -19,3 +19,4 @@ export * from './list-my-schedule';
 export * from './leave-service';
 export * from './kasbon-service';
 export * from './payroll-service';
+export * from './resolve-employee';

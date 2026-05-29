@@ -3,6 +3,7 @@
 import { FilterBar, FilterField } from '@/components/filter-bar';
 import { Input, Select, TableBody, TableCell, TableHead } from '@erp/ui';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -12,12 +13,7 @@ const STATUS_COLORS: Record<string, string> = {
   archived: 'bg-brand-ink/5 text-brand-ink-3',
 };
 
-const KIND_LABELS: Record<string, string> = {
-  news: 'Berita',
-  promo: 'Promo',
-  recipe: 'Resep',
-  event: 'Event',
-};
+
 
 export interface PostRow {
   id: string;
@@ -34,6 +30,7 @@ interface Props {
 }
 
 export function PostsTableClient({ posts }: Props) {
+  const t = useTranslations('cms.posts');
   const [q, setQ] = useState('');
   const [kind, setKind] = useState('');
   const [status, setStatus] = useState('');
@@ -72,10 +69,10 @@ export function PostsTableClient({ posts }: Props) {
             className="h-9 w-full sm:w-36"
           >
             <option value="">Semua kategori</option>
-            <option value="news">Berita</option>
-            <option value="promo">Promo</option>
-            <option value="recipe">Resep</option>
-            <option value="event">Event</option>
+            <option value="news">{t('types.news')}</option>
+            <option value="promo">{t('types.promo')}</option>
+            <option value="recipe">{t('types.recipe')}</option>
+            <option value="event">{t('types.event')}</option>
           </Select>
         </FilterField>
         <FilterField>
@@ -137,7 +134,7 @@ export function PostsTableClient({ posts }: Props) {
                     </TableCell>
                     <TableCell className="px-4 py-3">
                       <span className="rounded bg-brand-cream-2 px-2 py-0.5 text-xs font-medium text-brand-ink-2">
-                        {KIND_LABELS[post.kind] ?? post.kind}
+                        {t(`types.${post.kind}`) ?? post.kind}
                       </span>
                     </TableCell>
                     <TableCell className="px-4 py-3">

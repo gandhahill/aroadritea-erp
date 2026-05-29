@@ -3886,7 +3886,10 @@
         "archived": "Diarsipkan"
       },
       "pageTitlePlaceholder": "Judul halaman",
-      "pageContentPlaceholder": "Konten halaman"
+      "pageContentPlaceholder": "Konten halaman",
+      "metaTitlePlaceholder": "Meta title untuk SEO",
+      "metaDescPlaceholder": "Meta description untuk SEO",
+      "slugPlaceholder": "url-slug"
     },
     "posts": {
       "title": "Post & Berita",
@@ -3921,7 +3924,7 @@
         "news": "Berita",
         "promo": "Promo",
         "recipe": "Resep",
-        "event": "Acara"
+        "event": "Event"
       },
       "status": {
         "draft": "Draf",
@@ -3942,7 +3945,8 @@
         "publishFailed": "Gagal mempublikasikan.",
         "deleteFailed": "Gagal menghapus.",
         "unknown": "Terjadi kesalahan."
-      }
+      },
+      "slugPlaceholder": "url-slug"
     }
   },
   "tax": {

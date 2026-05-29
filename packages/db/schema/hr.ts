@@ -78,6 +78,21 @@ export const employees = pgTable(
     bpjsKesehatan: text('bpjs_kesehatan'), // encrypted
     bpjsTenagakerja: text('bpjs_tenagakerja'), // encrypted
 
+    // T-0247: PTKP/TER data — read by payroll engine
+    /** Marital status for PTKP: 'TK' (single) | 'K' (married). Defaults to 'TK'. */
+    maritalStatus: text('marital_status').notNull().default('TK'), // 'TK' | 'K'
+    /** Number of dependents (0–3) for PTKP tier */
+    dependentsCount: integer('dependents_count').notNull().default(0),
+    /** T-0243: Per-employee override for BPJS eligibility */
+    isBpjsBase: boolean('is_bpjs_base').notNull().default(true),
+    /** T-0247: Per-employee override for PPh 21 taxability (e.g. probation/expatriate exclusion) */
+    isTaxable: boolean('is_taxable').notNull().default(true),
+
+    // T-0246: Bank account for payroll transfer — encrypted at rest (UU PDP)
+    bankName: text('bank_name'), // e.g. 'BCA', 'Mandiri', 'BNI'
+    bankAccountNumber: text('bank_account_number'), // encrypted
+    bankAccountHolder: text('bank_account_holder'), // encrypted
+
     // Emergency contact
     emergencyContactName: text('emergency_contact_name'),
     emergencyContactPhone: text('emergency_contact_phone'), // encrypted

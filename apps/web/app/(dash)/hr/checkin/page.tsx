@@ -29,17 +29,8 @@ export default async function CheckInPage() {
 
   let employeeId = sessionEmployeeId;
   if (userEmail && (!employeeId || !locationId)) {
-    const [employee] = await db
-      .select({ id: employees.id, locationId: employees.locationId })
-      .from(employees)
-      .where(
-        and(
-          eq(employees.tenantId, tenantId),
-          eq(employees.email, userEmail),
-          isNull(employees.deletedAt),
-        ),
-      )
-      .limit(1);
+    const { resolveEmployeeForUser } = await import('@erp/services/hr');
+    const employee = await resolveEmployeeForUser(tenantId, userId);
     employeeId = employee?.id ?? '';
     locationId = locationId || employee?.locationId || '';
   }

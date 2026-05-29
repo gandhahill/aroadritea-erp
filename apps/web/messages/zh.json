@@ -3897,7 +3897,10 @@
         "archived": "已归档"
       },
       "pageTitlePlaceholder": "页面标题",
-      "pageContentPlaceholder": "页面内容"
+      "pageContentPlaceholder": "页面内容",
+      "metaTitlePlaceholder": "SEO 元标题",
+      "metaDescPlaceholder": "SEO 元描述",
+      "slugPlaceholder": "url-slug"
     },
     "posts": {
       "title": "文章与新闻",
@@ -3953,7 +3956,8 @@
         "publishFailed": "发布失败。",
         "deleteFailed": "删除失败。",
         "unknown": "发生错误。"
-      }
+      },
+      "slugPlaceholder": "url-slug"
     }
   },
   "tax": {

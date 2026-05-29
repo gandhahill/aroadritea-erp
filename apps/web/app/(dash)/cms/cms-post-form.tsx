@@ -19,12 +19,7 @@ const LOCALE_TABS = [
   { code: 'zh', label: '中文' },
 ];
 
-const KIND_OPTIONS = [
-  { value: 'news', label: 'Berita' },
-  { value: 'promo', label: 'Promo' },
-  { value: 'recipe', label: 'Resep' },
-  { value: 'event', label: 'Event' },
-];
+
 
 import { PageHeader } from '@/components/page-header';
 import { Button, Input, Select } from '@erp/ui';
@@ -251,7 +246,7 @@ export function CmsPostForm({ post, isNew = false }: Props) {
                   value={formData.slug}
                   onChange={(e) => setFormData((v) => ({ ...v, slug: e.target.value }))}
                   className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-                  placeholder="url-slug"
+                  placeholder={t('slugPlaceholder')}
                   disabled={!isNew}
                 />
                 {isNew && <p className="mt-1 text-xs text-brand-ink-3">{t('slugHint')}</p>}
@@ -266,11 +261,10 @@ export function CmsPostForm({ post, isNew = false }: Props) {
                   onChange={(e) => setFormData((v) => ({ ...v, kind: e.target.value }))}
                   className="w-full rounded-md border border-brand-cream-3 bg-background px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                 >
-                  {KIND_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
+                  <option value="news">{t('types.news')}</option>
+                  <option value="promo">{t('types.promo')}</option>
+                  <option value="recipe">{t('types.recipe')}</option>
+                  <option value="event">{t('types.event')}</option>
                 </Select>
               </div>
 
@@ -314,10 +308,10 @@ export function CmsPostForm({ post, isNew = false }: Props) {
 
           {!isNew && (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-              <h3 className="mb-2 text-sm font-semibold text-red-700">{t('dangerZone')}</h3>
+              <h3 className="mb-2 text-sm font-semibold text-red-700">{tc('labels.dangerZone')}</h3>
               {showDeleteConfirm ? (
                 <div className="space-y-2">
-                  <p className="text-sm text-red-600">{t('confirmDelete')}</p>
+                  <p className="text-sm text-red-600">{tc('labels.confirmDelete') || t('confirmDelete')}</p>
                   <div className="flex gap-2">
                     <button
                       onClick={handleDelete}

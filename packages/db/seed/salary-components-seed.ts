@@ -137,4 +137,60 @@ export const SALARY_COMPONENTS_SEED = [
     isBpjsBase: false,
     isActive: true,
   },
+  // T-0243: Employer BPJS components (beban perusahaan)
+  {
+    id: 'comp-bpjs-kes-er',
+    code: 'BPJS_KES_ER',
+    name: { id: 'BPJS Kes Pemberi Kerja', en: 'BPJS Kes Employer', zh: 'BPJS健康雇主' },
+    kind: 'deduction',
+    fixedAmount: null,
+    percentage: '0.04', // 4%
+    isTaxable: false,
+    isBpjsBase: false,
+    isActive: true,
+  },
+  {
+    id: 'comp-bpjs-jkk-er',
+    code: 'BPJS_JKK_ER',
+    name: { id: 'BPJS JKK Pemberi Kerja', en: 'BPJS JKK Employer', zh: 'BPJS工伤雇主' },
+    kind: 'deduction',
+    fixedAmount: null,
+    percentage: '0.0024', // 0.24%
+    isTaxable: false,
+    isBpjsBase: false,
+    isActive: true,
+  },
+  {
+    id: 'comp-bpjs-jkm-er',
+    code: 'BPJS_JKM_ER',
+    name: { id: 'BPJS JKM Pemberi Kerja', en: 'BPJS JKM Employer', zh: 'BPJS死亡雇主' },
+    kind: 'deduction',
+    fixedAmount: null,
+    percentage: '0.003', // 0.3%
+    isTaxable: false,
+    isBpjsBase: false,
+    isActive: true,
+  },
+  {
+    id: 'comp-bpjs-jht-er',
+    code: 'BPJS_JHT_ER',
+    name: { id: 'BPJS JHT Pemberi Kerja', en: 'BPJS JHT Employer', zh: 'BPJS养老雇主' },
+    kind: 'deduction',
+    fixedAmount: null,
+    percentage: '0.037', // 3.7%
+    isTaxable: false,
+    isBpjsBase: false,
+    isActive: true,
+  },
+  {
+    id: 'comp-bpjs-jp-er',
+    code: 'BPJS_JP_ER',
+    name: { id: 'BPJS JP Pemberi Kerja', en: 'BPJS JP Employer', zh: 'BPJS退休雇主' },
+    kind: 'deduction',
+    fixedAmount: null,
+    percentage: '0.02', // 2%
+    isTaxable: false,
+    isBpjsBase: false,
+    isActive: true,
+  },
 ];

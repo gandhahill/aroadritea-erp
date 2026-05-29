@@ -87,15 +87,41 @@ export async function approvePayroll(
     let totalPPh21 = 0n;
     let totalBpjsKes = 0n;
     let totalBpjsTk = 0n;
+    // T-0243: employer BPJS
+    let totalBpjsKesEmployer = 0n;
+    let totalBpjsJkkEmployer = 0n;
+    let totalBpjsJkmEmployer = 0n;
+    let totalBpjsJhtEmployer = 0n;
+    let totalBpjsJpEmployer = 0n;
 
     for (const row of lines) {
       if (row.componentKind === 'earning') {
         totalEarnings += row.line.amount;
       }
       if (row.componentCode === 'PPh21') totalPPh21 += row.line.amount;
-      if (row.componentCode === 'BPJS_KES') totalBpjsKes += row.line.amount;
-      if (row.componentCode === 'BPJS_TK') totalBpjsTk += row.line.amount;
+      if (row.componentCode === 'BPJS_KES') {
+        // Check if it's employer or employee portion by notes
+        if (row.line.notes?.includes('employer') || row.line.notes?.includes('perusahaan')) {
+          totalBpjsKesEmployer += row.line.amount;
+        } else {
+          totalBpjsKes += row.line.amount;
+        }
+      }
+      if (row.componentCode === 'BPJS_TK') {
+        if (row.line.notes?.includes('employer') || row.line.notes?.includes('perusahaan')) {
+          // Aggregate all employer TK components
+          if (row.line.notes?.includes('JKK')) totalBpjsJkkEmployer += row.line.amount;
+          else if (row.line.notes?.includes('JKM')) totalBpjsJkmEmployer += row.line.amount;
+          else if (row.line.notes?.includes('JHT')) totalBpjsJhtEmployer += row.line.amount;
+          else if (row.line.notes?.includes('JP')) totalBpjsJpEmployer += row.line.amount;
+          else totalBpjsJhtEmployer += row.line.amount; // fallback
+        } else {
+          totalBpjsTk += row.line.amount;
+        }
+      }
     }
+
+    const totalEmployerBpjs = totalBpjsKesEmployer + totalBpjsJkkEmployer + totalBpjsJkmEmployer + totalBpjsJhtEmployer + totalBpjsJpEmployer;
 
     // Look up account IDs by code (SD §21.8)
     const accountCodes = ['BS-6201', 'LS-2201', 'LS-2202', 'LS-2203', 'AS-1101'];
@@ -125,6 +151,7 @@ export async function approvePayroll(
         referenceType: 'payroll',
         referenceId: data.payrollId,
         lines: [
+          // DR: Salary Expense (employee earnings)
           {
             accountId: getAccountId('BS-6201'),
             locationId: payroll.locationId,
@@ -132,6 +159,18 @@ export async function approvePayroll(
             credit: '0',
             description: 'Beban Gaji & Upah',
           },
+          // T-0243: DR: Employer BPJS Expense
+          ...(totalEmployerBpjs > 0n
+            ? [
+                {
+                  accountId: getAccountId('BS-6201'),
+                  locationId: payroll.locationId,
+                  debit: String(totalEmployerBpjs),
+                  credit: '0',
+                  description: 'Beban BPJS Pemberi Kerja (Kes 4% + JKK + JKM + JHT 3.7% + JP 2%)',
+                },
+              ]
+            : []),
           ...(totalPPh21 > 0n
             ? [
                 {
@@ -143,28 +182,31 @@ export async function approvePayroll(
                 },
               ]
             : []),
-          ...(totalBpjsKes > 0n
+          // CR: BPJS Kes payable (employee + employer)
+          ...(totalBpjsKes + totalBpjsKesEmployer > 0n
             ? [
                 {
                   accountId: getAccountId('LS-2202'),
                   locationId: payroll.locationId,
                   debit: '0',
-                  credit: String(totalBpjsKes),
-                  description: 'Utang BPJS Kesehatan',
+                  credit: String(totalBpjsKes + totalBpjsKesEmployer),
+                  description: `Utang BPJS Kesehatan (EE ${totalBpjsKes} + ER ${totalBpjsKesEmployer})`,
                 },
               ]
             : []),
-          ...(totalBpjsTk > 0n
+          // CR: BPJS TK payable (employee JHT + employer JKK/JKM/JHT/JP)
+          ...(totalBpjsTk + totalBpjsJkkEmployer + totalBpjsJkmEmployer + totalBpjsJhtEmployer + totalBpjsJpEmployer > 0n
             ? [
                 {
                   accountId: getAccountId('LS-2203'),
                   locationId: payroll.locationId,
                   debit: '0',
-                  credit: String(totalBpjsTk),
-                  description: 'Utang BPJS TK',
+                  credit: String(totalBpjsTk + totalBpjsJkkEmployer + totalBpjsJkmEmployer + totalBpjsJhtEmployer + totalBpjsJpEmployer),
+                  description: `Utang BPJS TK (EE JHT ${totalBpjsTk} + ER JKK/JKM/JHT/JP ${totalBpjsJkkEmployer + totalBpjsJkmEmployer + totalBpjsJhtEmployer + totalBpjsJpEmployer})`,
                 },
               ]
             : []),
+          // CR: Cash/Bank (net salary disbursement)
           {
             accountId: getAccountId('AS-1101'),
             locationId: payroll.locationId,
