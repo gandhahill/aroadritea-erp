@@ -83,6 +83,7 @@ export const auth = betterAuth({
       email: 'email',
       emailVerified: 'emailVerified',
       image: undefined, // We don't use image field
+      password: 'passwordHash',
     },
     additionalFields: {
       tenantId: {
