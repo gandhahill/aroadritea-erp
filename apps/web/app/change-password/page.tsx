@@ -2,6 +2,7 @@
 
 import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
+import { authClient } from '@/lib/auth-client';
 import { type FormEvent, useState } from 'react';
 import { changePasswordAction } from './actions';
 
@@ -48,6 +49,7 @@ export default function ChangePasswordPage() {
       } else {
         // Sessions are destroyed after password change — redirect to
         // login so the user can sign in with the new password.
+        await authClient.signOut();
         window.location.href = '/login?success=password_changed';
       }
     } catch {
