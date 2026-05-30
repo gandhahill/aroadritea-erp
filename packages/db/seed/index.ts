@@ -16,10 +16,10 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 import { generateId } from '@erp/shared/id';
-import { neon } from '@neondatabase/serverless';
+import postgres from 'postgres';
 import * as argon2 from 'argon2';
 import { and, eq, inArray } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { drizzle } from 'drizzle-orm/postgres-js';
 import type { Database } from '../client';
 import { accountingPeriods, accounts, taxRates, taxRules } from '../schema/accounting';
 import {
@@ -66,9 +66,6 @@ if (!DATABASE_URL) {
   process.exit(1);
 }
 
-const sql = neon(DATABASE_URL);
-const db = drizzle(sql);
-
 const DEFAULT_DELIVERY_CHANNELS = [
   { id: 'gofood', label: 'GoFood', netBps: 8000, commissionBps: 2000, enabled: true },
   { id: 'grabfood', label: 'GrabFood', netBps: 8000, commissionBps: 2000, enabled: true },
@@ -76,6 +73,8 @@ const DEFAULT_DELIVERY_CHANNELS = [
 ];
 
 async function seed() {
+  const sql = postgres(process.env.DATABASE_URL as string, { max: 1 });
+  const db = drizzle(sql) as unknown as Database;
   console.info('Starting seed...\n');
 
   // 1. Tenant
@@ -624,6 +623,7 @@ async function seed() {
   console.info(`${SCHEDULED_JOBS_SEED.length} scheduled jobs seeded`);
 
   console.info('\nSeed complete!');
+  await sql.end();
 }
 
 function getBootstrapAdminConfig(): {
