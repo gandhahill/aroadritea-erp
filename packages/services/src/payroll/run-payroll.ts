@@ -307,8 +307,8 @@ export async function runPayroll(
           and(
             eq(attendance.tenantId, ctx.tenantId),
             eq(attendance.locationId, data.locationId),
-            sql`${attendance.checkInAt} >= ${periodStart}`,
-            sql`${attendance.checkInAt} <= ${periodEnd}`,
+            sql`${attendance.checkInAt} >= ${periodStart.toISOString()}`,
+            sql`${attendance.checkInAt} <= ${periodEnd.toISOString()}`,
           ),
         )
         .groupBy(attendance.employeeId);

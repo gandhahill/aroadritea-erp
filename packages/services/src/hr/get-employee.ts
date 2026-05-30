@@ -139,8 +139,8 @@ export async function getEmployee(
 
       // Attendance summary (current year)
       const year = new Date().getFullYear();
-      const yearStart = new Date(`${year}-01-01T00:00:00Z`);
-      const yearEnd = new Date(`${year}-12-31T23:59:59Z`);
+      const yearStart = new Date(`${year}-01-01T00:00:00Z`).toISOString();
+      const yearEnd = new Date(`${year}-12-31T23:59:59Z`).toISOString();
 
       const attRows = await db
         .select({
