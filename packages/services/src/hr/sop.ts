@@ -13,7 +13,7 @@
  * remain traceable (operational accountability).
  */
 
-import { and, db, desc, eq, ilike, isNull, or, sql } from '@erp/db';
+import { and, db, desc, eq, ilike, inArray, isNull, or, sql } from '@erp/db';
 import { sopDocuments } from '@erp/db/schema/sop';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -111,19 +111,34 @@ export async function listSopDocuments(
   if (!parsed.success) {
     return err(AppError.validation('hr.sop.validationFailed', { issues: parsed.error.issues }));
   }
-  const perm = await requirePermission(ctx.userId, 'hr.sop.read', { locationId: ctx.locationId });
-  if (!perm.ok) return perm;
+  const { getAuthorizedLocations } = await import('../iam/permission-engine');
+  const authLocs = await getAuthorizedLocations(ctx.userId, 'hr.sop.read');
+
+  if (authLocs.scope === 'location' && authLocs.locationIds.length === 0) {
+    return err(AppError.forbidden('common.errors.forbidden', { permission: 'hr.sop.read' }));
+  }
 
   const data = parsed.data;
   const conditions = [eq(sopDocuments.tenantId, ctx.tenantId), isNull(sopDocuments.deletedAt)];
   if (data.status) conditions.push(eq(sopDocuments.status, data.status));
   if (data.category) conditions.push(eq(sopDocuments.category, data.category));
-  if (data.locationId) {
-    // Show SOPs that target the given location OR are global (locationId IS NULL).
-    conditions.push(
-      or(eq(sopDocuments.locationId, data.locationId), isNull(sopDocuments.locationId))!,
-    );
+  
+  if (authLocs.scope === 'location') {
+    if (data.locationId) {
+      if (!authLocs.locationIds.includes(data.locationId)) {
+        return err(AppError.forbidden('common.errors.forbidden', { permission: 'hr.sop.read' }));
+      }
+      conditions.push(or(eq(sopDocuments.locationId, data.locationId), isNull(sopDocuments.locationId))!);
+    } else {
+      conditions.push(or(inArray(sopDocuments.locationId, authLocs.locationIds), isNull(sopDocuments.locationId))!);
+    }
+  } else {
+    // Global scope
+    if (data.locationId) {
+      conditions.push(or(eq(sopDocuments.locationId, data.locationId), isNull(sopDocuments.locationId))!);
+    }
   }
+
   if (data.search) {
     const q = `%${data.search.toLowerCase()}%`;
     conditions.push(or(ilike(sopDocuments.title, q), ilike(sopDocuments.description, q))!);
@@ -147,8 +162,12 @@ export async function listSopDocuments(
 }
 
 export async function getSopDocument(id: string, ctx: AuditContext): Promise<Result<SopRow>> {
-  const perm = await requirePermission(ctx.userId, 'hr.sop.read', { locationId: ctx.locationId });
-  if (!perm.ok) return perm;
+  const { getAuthorizedLocations } = await import('../iam/permission-engine');
+  const authLocs = await getAuthorizedLocations(ctx.userId, 'hr.sop.read');
+
+  if (authLocs.scope === 'location' && authLocs.locationIds.length === 0) {
+    return err(AppError.forbidden('common.errors.forbidden', { permission: 'hr.sop.read' }));
+  }
 
   const [row] = await db
     .select()
@@ -163,6 +182,13 @@ export async function getSopDocument(id: string, ctx: AuditContext): Promise<Res
     .limit(1);
 
   if (!row) return err(AppError.notFound('hr.sop.notFound', { id }));
+
+  if (authLocs.scope === 'location') {
+    if (row.locationId && !authLocs.locationIds.includes(row.locationId)) {
+      return err(AppError.forbidden('common.errors.forbidden', { permission: 'hr.sop.read' }));
+    }
+  }
+
   return ok(rowOf(row));
 }
 
@@ -174,12 +200,17 @@ export async function createSopDocument(
   if (!parsed.success) {
     return err(AppError.validation('hr.sop.validationFailed', { issues: parsed.error.issues }));
   }
-  const perm = await requirePermission(ctx.userId, 'hr.sop.manage', {
-    locationId: ctx.locationId,
-  });
-  if (!perm.ok) return perm;
-
   const data = parsed.data;
+
+  if (data.locationId) {
+    const perm = await requirePermission(ctx.userId, 'hr.sop.manage', { locationId: data.locationId });
+    if (!perm.ok) return perm;
+  } else {
+    const { canGlobally } = await import('../iam/permission-engine');
+    const hasGlobal = await canGlobally(ctx.userId, 'hr.sop.manage');
+    if (!hasGlobal) return err(AppError.forbidden('common.errors.forbidden', { permission: 'hr.sop.manage' }));
+  }
+
   const id = generateId();
   const now = new Date();
 
@@ -231,12 +262,8 @@ export async function updateSopDocument(
   if (!parsed.success) {
     return err(AppError.validation('hr.sop.validationFailed', { issues: parsed.error.issues }));
   }
-  const perm = await requirePermission(ctx.userId, 'hr.sop.manage', {
-    locationId: ctx.locationId,
-  });
-  if (!perm.ok) return perm;
-
   const data = parsed.data;
+
   const [existing] = await db
     .select()
     .from(sopDocuments)
@@ -250,6 +277,17 @@ export async function updateSopDocument(
     .limit(1);
 
   if (!existing) return err(AppError.notFound('hr.sop.notFound', { id: data.id }));
+
+  const targetLocationId = data.locationId !== undefined ? data.locationId : existing.locationId;
+  
+  if (targetLocationId) {
+    const perm = await requirePermission(ctx.userId, 'hr.sop.manage', { locationId: targetLocationId });
+    if (!perm.ok) return perm;
+  } else {
+    const { canGlobally } = await import('../iam/permission-engine');
+    const hasGlobal = await canGlobally(ctx.userId, 'hr.sop.manage');
+    if (!hasGlobal) return err(AppError.forbidden('common.errors.forbidden', { permission: 'hr.sop.manage' }));
+  }
 
   const now = new Date();
   const nextStatus = data.status ?? existing.status;
@@ -293,11 +331,6 @@ export async function updateSopDocument(
 }
 
 export async function deleteSopDocument(id: string, ctx: AuditContext): Promise<Result<void>> {
-  const perm = await requirePermission(ctx.userId, 'hr.sop.manage', {
-    locationId: ctx.locationId,
-  });
-  if (!perm.ok) return perm;
-
   const [existing] = await db
     .select()
     .from(sopDocuments)
@@ -311,6 +344,15 @@ export async function deleteSopDocument(id: string, ctx: AuditContext): Promise<
     .limit(1);
 
   if (!existing) return err(AppError.notFound('hr.sop.notFound', { id }));
+
+  if (existing.locationId) {
+    const perm = await requirePermission(ctx.userId, 'hr.sop.manage', { locationId: existing.locationId });
+    if (!perm.ok) return perm;
+  } else {
+    const { canGlobally } = await import('../iam/permission-engine');
+    const hasGlobal = await canGlobally(ctx.userId, 'hr.sop.manage');
+    if (!hasGlobal) return err(AppError.forbidden('common.errors.forbidden', { permission: 'hr.sop.manage' }));
+  }
 
   const now = new Date();
   await db
