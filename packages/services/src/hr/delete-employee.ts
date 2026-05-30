@@ -23,65 +23,69 @@ export async function deleteEmployee(
 ): Promise<Result<{ id: string }>> {
   return tryCatch(
     async () => {
+      requirePermission(ctx, 'hr.employee.write');
+
       const [emp] = await db
-        .select({
-          id: employees.id,
-          locationId: employees.locationId,
-          email: employees.email,
-          nik: employees.nik,
-        })
+        .select()
         .from(employees)
-        .where(and(eq(employees.id, employeeId), eq(employees.tenantId, ctx.tenantId)))
+        .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.id, employeeId)))
         .limit(1);
 
       if (!emp) throw AppError.notFound('hr.employee.notFound');
 
-      const permCheck = await requirePermission(ctx.userId, 'hr.employee.write', {
-        locationId: emp.locationId,
-      });
-      if (!permCheck.ok) throw permCheck.error;
+      // Pengecekan scope location
+      if (emp.locationId) {
+        requirePermission(ctx, 'hr.employee.write', emp.locationId);
+      }
 
       const email = decryptPii(emp.email, 'employees.email');
-      const deletedAt = new Date();
+      const nik = emp.nik ? decryptPii(emp.nik, 'employees.nik') : null;
       const deletedSuffix = `_deleted_${Date.now()}`;
-      
-      // 1. Soft-delete the employee & scramble unique fields
-      await db
-        .update(employees)
-        .set({ 
-          status: 'terminated', 
-          deletedAt,
-          email: `${emp.email}${deletedSuffix}`,
-          nik: emp.nik ? `${emp.nik}${deletedSuffix}` : null
-        })
-        .where(eq(employees.id, employeeId));
+      const deletedAt = new Date();
 
-      // 2. Soft-delete the associated user account if it exists
-      if (email) {
-        const [user] = await db
-          .select()
-          .from(users)
-          .where(and(eq(users.tenantId, ctx.tenantId), eq(users.email, email)))
-          .limit(1);
+      // Enkripsi kembali dengan suffix untuk menghindari unique constraint
+      const scrambledEmail = encryptPiiForLookup(email ? `${email}${deletedSuffix}` : `deleted_${deletedSuffix}`, 'employees.email') ?? `deleted_${deletedSuffix}`;
+      const scrambledNik = nik ? (encryptPiiForLookup(`${nik}${deletedSuffix}`, 'employees.nik') ?? null) : null;
 
-        if (user) {
-          // Rename the email to free up the unique constraint so the user can be recreated
-          const deletedEmail = `${email}${deletedSuffix}`;
-          
-          await db
-            .update(users)
-            .set({ 
-              status: 'suspended', 
-              deletedAt,
-              email: deletedEmail 
-            })
-            .where(eq(users.id, user.id));
+      await db.transaction(async (tx) => {
+        // 1. Soft-delete the employee & scramble unique fields
+        await tx
+          .update(employees)
+          .set({ 
+            status: 'terminated', 
+            deletedAt,
+            email: scrambledEmail,
+            nik: scrambledNik
+          })
+          .where(eq(employees.id, employeeId));
 
-          // Revoke roles and auth accounts immediately
-          await db.delete(userRoles).where(eq(userRoles.userId, user.id));
-          await db.delete(authAccounts).where(eq(authAccounts.userId, user.id));
+        // 2. Soft-delete the associated user account if it exists
+        if (email) {
+          const [user] = await tx
+            .select()
+            .from(users)
+            .where(and(eq(users.tenantId, ctx.tenantId), eq(users.email, email)))
+            .limit(1);
+
+          if (user) {
+            // Rename the email to free up the unique constraint so the user can be recreated
+            const deletedEmail = `${email}${deletedSuffix}`;
+            
+            await tx
+              .update(users)
+              .set({ 
+                status: 'suspended', 
+                deletedAt,
+                email: deletedEmail 
+              })
+              .where(eq(users.id, user.id));
+
+            // Revoke roles and auth accounts immediately
+            await tx.delete(userRoles).where(eq(userRoles.userId, user.id));
+            await tx.delete(authAccounts).where(eq(authAccounts.userId, user.id));
+          }
         }
-      }
+      });
 
       await auditRecord({
         action: 'delete',
@@ -96,6 +100,7 @@ export async function deleteEmployee(
       return { id: emp.id };
     },
     (e) => {
+      console.error('deleteEmployee Error:', e);
       if (e instanceof AppError) return e;
       return AppError.internal('hr.employee.deleteFailed', e);
     },
