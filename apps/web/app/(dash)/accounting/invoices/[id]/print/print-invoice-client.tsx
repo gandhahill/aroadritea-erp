@@ -67,7 +67,12 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
                   ? companyInfo.name?.id || companyInfo.name?.en || companyInfo.name?.zh
                   : companyInfo.name}
               </p>
-              <p>Aroadri Tea — {invoice.locationName}</p>
+              <p>
+                Aroadri Tea —{' '}
+                {typeof invoice.locationName === 'object'
+                  ? invoice.locationName?.id || invoice.locationName?.en || invoice.locationName?.zh
+                  : invoice.locationName}
+              </p>
               {companyInfo.address && <p className="text-xs">{companyInfo.address}</p>}
               {companyInfo.npwp && <p className="text-xs">NPWP: {companyInfo.npwp}</p>}
               {companyInfo.phone && <p className="text-xs">Telp: {companyInfo.phone}</p>}
