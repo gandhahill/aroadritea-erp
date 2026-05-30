@@ -8,6 +8,7 @@ import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchShiftDefinitions } from './actions';
 import { ShiftList } from './shift-list';
+import { ShiftLocationSelector } from './shift-location-selector';
 
 export const metadata: Metadata = { title: 'Shift Master Data' };
 
@@ -53,20 +54,10 @@ export default async function ShiftsPage({
             <label className="text-sm font-medium text-brand-ink-3">
               {tc('labels.location')}:
             </label>
-            <form action="">
-              <select
-                name="locationId"
-                value={currentLocationId}
-                onChange={(e) => e.target.form?.submit()}
-                className="rounded-md border border-brand-cream-3 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-red"
-              >
-                {parsedLocations.map((loc) => (
-                  <option key={loc.id} value={loc.id}>
-                    {loc.name}
-                  </option>
-                ))}
-              </select>
-            </form>
+            <ShiftLocationSelector
+              locations={parsedLocations}
+              currentLocationId={currentLocationId}
+            />
           </div>
 
           <ShiftList 
