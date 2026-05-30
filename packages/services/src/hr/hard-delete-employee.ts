@@ -7,7 +7,7 @@
  */
 
 import { db } from '@erp/db';
-import { authAccounts, userRoles, users } from '@erp/db/schema/auth';
+import { authAccounts, userRoles, users, sessions, apiTokens, mcpTokens, twoFactor } from '@erp/db/schema/auth';
 import { 
   employees, 
   employmentContracts, 
@@ -16,7 +16,10 @@ import {
   leaveRequests, 
   disciplinaryActions, 
   cashAdvances, 
-  shiftAssignments 
+  shiftAssignments,
+  leaveBalances,
+  jobApplicants,
+  scheduleOverrides
 } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, tryCatch } from '@erp/shared/result';
@@ -68,7 +71,13 @@ export async function hardDeleteEmployee(
 
       // 4. Perform Hard Delete in transaction
       await db.transaction(async (tx) => {
-        // Delete employment contracts
+        // Detach from optional tables first
+        await tx.update(jobApplicants).set({ hiredEmployeeId: null }).where(eq(jobApplicants.hiredEmployeeId, employeeId));
+        await tx.delete(scheduleOverrides).where(eq(scheduleOverrides.originalEmployeeId, employeeId));
+        await tx.delete(scheduleOverrides).where(eq(scheduleOverrides.substituteEmployeeId, employeeId));
+
+        // Delete hr dependencies
+        await tx.delete(leaveBalances).where(eq(leaveBalances.employeeId, employeeId));
         await tx.delete(employmentContracts).where(eq(employmentContracts.employeeId, employeeId));
 
         // Delete associated user account if it exists (using the decrypted email)
@@ -80,6 +89,12 @@ export async function hardDeleteEmployee(
             .limit(1);
 
           if (user) {
+            // Delete IAM dependencies
+            await tx.delete(sessions).where(eq(sessions.userId, user.id));
+            await tx.delete(apiTokens).where(eq(apiTokens.userId, user.id));
+            await tx.delete(mcpTokens).where(eq(mcpTokens.userId, user.id));
+            await tx.delete(twoFactor).where(eq(twoFactor.userId, user.id));
+
             await tx.delete(userRoles).where(eq(userRoles.userId, user.id));
             await tx.delete(authAccounts).where(eq(authAccounts.userId, user.id));
             await tx.delete(users).where(eq(users.id, user.id));
@@ -105,6 +120,7 @@ export async function hardDeleteEmployee(
     },
     (e) => {
       if (e instanceof AppError) return e;
+      console.error('[hardDeleteEmployee] Unexpected error:', e);
       return AppError.internal('hr.employee.deleteFailed', e);
     },
   );
