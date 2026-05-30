@@ -46,9 +46,9 @@ export default function ChangePasswordPage() {
           | undefined;
         setError(key ? t(key) : t('errorServer'));
       } else {
-        // Full page navigation (not client-side) to ensure the session
-        // cache is re-read from the server with requirePasswordChange=false.
-        window.location.href = '/dashboard';
+        // Sessions are destroyed after password change — redirect to
+        // login so the user can sign in with the new password.
+        window.location.href = '/login?success=password_changed';
       }
     } catch {
       setError(t('errorServer'));

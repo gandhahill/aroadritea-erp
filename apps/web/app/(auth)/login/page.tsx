@@ -39,6 +39,7 @@ function LoginContent() {
 
   const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard';
   const suspendedError = searchParams.get('error') === 'suspended';
+  const passwordChanged = searchParams.get('success') === 'password_changed';
 
   function handleLocaleChange(nextLocale: string) {
     setSelectedLocale(nextLocale);
@@ -123,6 +124,17 @@ function LoginContent() {
 
         {/* Login card */}
         <div className="surface-card p-6">
+          {/* Password changed success */}
+          {passwordChanged && (
+            <div
+              className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-700"
+              role="status"
+              id="password-changed-success"
+            >
+              {t('passwordChanged')}
+            </div>
+          )}
+
           {/* Suspended account warning */}
           {suspendedError && (
             <div

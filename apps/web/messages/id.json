@@ -187,7 +187,8 @@
       "invalidCredentials": "Email atau kata sandi salah",
       "suspended": "Akun Anda ditangguhkan",
       "totpCode": "Kode OTP",
-      "errorInvalidTotp": "Kode OTP salah"
+      "errorInvalidTotp": "Kode OTP salah",
+      "passwordChanged": "Kata sandi berhasil diubah. Silakan masuk kembali."
     },
     "changePassword": {
       "title": "Ubah Kata Sandi",

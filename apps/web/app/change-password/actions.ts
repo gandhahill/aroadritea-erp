@@ -2,9 +2,8 @@
 
 import { getSession } from '@/lib/auth';
 import { and, db, eq } from '@erp/db';
-import { authAccounts, users } from '@erp/db/schema/auth';
+import { authAccounts, sessions, users } from '@erp/db/schema/auth';
 import { hashPassword, verifyPassword } from '@erp/services/auth/password';
-import { revalidatePath } from 'next/cache';
 
 function passwordMeetsPolicy(password: string): boolean {
   return password.length >= 8 && password.length <= 128;
@@ -36,34 +35,38 @@ export async function changePasswordAction(input: {
   const currentValid = await verifyPassword(user.passwordHash, input.currentPassword);
   if (!currentValid) return { ok: false, error: 'auth.changePassword.errorServer' };
 
-  const passwordHash = await hashPassword(input.newPassword);
+  const newHash = await hashPassword(input.newPassword);
   const now = new Date();
 
+  // 1. Update password & clear force-change flag in users table.
   await db
     .update(users)
-    .set({ passwordHash, requirePasswordChange: false, updatedAt: now })
+    .set({ passwordHash: newHash, requirePasswordChange: false, updatedAt: now })
     .where(eq(users.id, userId));
 
+  // 2. Update password in better-auth accounts table.
   await db
     .update(authAccounts)
-    .set({ password: passwordHash, updatedAt: now })
+    .set({ password: newHash, updatedAt: now })
     .where(and(eq(authAccounts.userId, userId), eq(authAccounts.providerId, 'credential')));
 
-  // Clear better-auth session cache cookies so the next getSession() reads
-  // the updated DB row. better-auth may chunk large cookies (e.g.
-  // aroadri.session_data.0, .1, …) so we match by prefix.
+  // 3. Delete ALL sessions for this user from DB.
+  //    This invalidates any cached session_data cookie because the session
+  //    token will no longer resolve to a valid DB row — better-auth's
+  //    getSession flow falls through to findSession(), finds nothing,
+  //    and returns null (which triggers the login redirect).
+  await db.delete(sessions).where(eq(sessions.userId, userId));
+
+  // 4. Delete every auth-related cookie from the browser so the next
+  //    request doesn't even try to present a stale session token.
   const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   const allCookies = cookieStore.getAll();
   for (const c of allCookies) {
-    if (
-      c.name.includes('session_data') ||
-      c.name.includes('account_data')
-    ) {
+    if (c.name.includes('aroadri')) {
       cookieStore.delete(c.name);
     }
   }
 
-  revalidatePath('/', 'layout');
   return { ok: true };
 }

@@ -187,7 +187,8 @@
       "invalidCredentials": "Invalid email or password",
       "suspended": "Your account has been suspended",
       "totpCode": "OTP Code",
-      "errorInvalidTotp": "Invalid OTP code"
+      "errorInvalidTotp": "Invalid OTP code",
+      "passwordChanged": "Password changed successfully. Please sign in again."
     },
     "changePassword": {
       "title": "Change Password",
