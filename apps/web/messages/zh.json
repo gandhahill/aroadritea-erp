@@ -2465,6 +2465,7 @@
       "hardDeleteAccount": "永久删除",
       "hardDeleteHint": "从数据库中永久删除该员工的所有数据（仅当该员工没有交易/发薪记录时可用）。",
       "hardDeleteAccountConfirm": "严重警告！\n\n您确定要永久删除此员工吗？此操作无法撤销。",
+      "hardDeleteBlocked": "无法永久删除已有考勤或薪资记录的员工。请使用标准的解雇操作。",
       "deleteSuccess": "员工删除成功"
     },
     "contracts": {

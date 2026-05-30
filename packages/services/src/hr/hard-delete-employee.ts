@@ -11,7 +11,7 @@ import { authAccounts, userRoles, users } from '@erp/db/schema/auth';
 import { 
   employees, 
   employmentContracts, 
-  attendances, 
+  attendance, 
   payrollLines, 
   leaveRequests, 
   disciplinaryActions, 
@@ -33,7 +33,7 @@ export async function hardDeleteEmployee(
   return tryCatch(
     async () => {
       // 1. Initial permission check
-      requirePermission(ctx, 'hr.employee.write');
+      await requirePermission(ctx.userId, 'hr.employee.write');
 
       const [emp] = await db
         .select()
@@ -45,12 +45,12 @@ export async function hardDeleteEmployee(
 
       // 2. Scoped location check
       if (emp.locationId) {
-        requirePermission(ctx, 'hr.employee.write', emp.locationId);
+        await requirePermission(ctx.userId, 'hr.employee.write', { locationId: emp.locationId });
       }
 
       // 3. Validation: Prevent hard delete if ANY transactional records exist
       const queries = await Promise.all([
-        db.select({ id: attendances.id }).from(attendances).where(eq(attendances.employeeId, employeeId)).limit(1),
+        db.select({ id: attendance.id }).from(attendance).where(eq(attendance.employeeId, employeeId)).limit(1),
         db.select({ id: payrollLines.id }).from(payrollLines).where(eq(payrollLines.employeeId, employeeId)).limit(1),
         db.select({ id: leaveRequests.id }).from(leaveRequests).where(eq(leaveRequests.employeeId, employeeId)).limit(1),
         db.select({ id: disciplinaryActions.id }).from(disciplinaryActions).where(eq(disciplinaryActions.employeeId, employeeId)).limit(1),
@@ -61,9 +61,7 @@ export async function hardDeleteEmployee(
       const hasHistory = queries.some(result => result.length > 0);
       
       if (hasHistory) {
-        throw AppError.validation('hr.employee.hardDeleteBlocked', {
-          message: 'Cannot hard delete employee with existing transaction history (attendance, payroll, etc). Please use soft delete (Diberhentikan).'
-        });
+        throw AppError.validation('hr.employee.hardDeleteBlocked');
       }
 
       const email = decryptPii(emp.email, 'employees.email');

@@ -15,7 +15,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
-import { decryptPii } from '../security/pii';
+import { decryptPii, encryptPiiForLookup } from '../security/pii';
 
 export async function deleteEmployee(
   employeeId: string,
@@ -23,7 +23,7 @@ export async function deleteEmployee(
 ): Promise<Result<{ id: string }>> {
   return tryCatch(
     async () => {
-      requirePermission(ctx, 'hr.employee.write');
+      await requirePermission(ctx.userId, 'hr.employee.write');
 
       const [emp] = await db
         .select()
@@ -35,7 +35,7 @@ export async function deleteEmployee(
 
       // Pengecekan scope location
       if (emp.locationId) {
-        requirePermission(ctx, 'hr.employee.write', emp.locationId);
+        await requirePermission(ctx.userId, 'hr.employee.write', { locationId: emp.locationId });
       }
 
       const email = decryptPii(emp.email, 'employees.email');

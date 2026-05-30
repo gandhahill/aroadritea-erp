@@ -2544,6 +2544,7 @@
       "hardDeleteAccount": "Hapus Permanen",
       "hardDeleteHint": "Hapus seluruh data karyawan ini secara permanen dari database (hanya bisa jika belum ada riwayat transaksi/gaji).",
       "hardDeleteAccountConfirm": "PERINGATAN KERAS!\n\nApakah Anda yakin ingin MENGHAPUS PERMANEN karyawan ini? Tindakan ini tidak bisa dibatalkan.",
+      "hardDeleteBlocked": "Tidak bisa menghapus permanen karyawan yang sudah memiliki riwayat presensi atau penggajian. Silakan gunakan Hapus Karyawan biasa (Diberhentikan).",
       "deleteSuccess": "Karyawan berhasil dihapus"
     },
     "contracts": {
