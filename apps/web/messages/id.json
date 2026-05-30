@@ -3803,6 +3803,11 @@
       "notFound": "Akun tidak ditemukan/nonaktif",
       "resetToDefault": "Kembalikan ke {code}",
       "defaultLabel": "Default: {code}",
+      "errors": {
+        "unauthorized": "Sesi Anda sudah berakhir atau tidak valid.",
+        "forbidden": "Anda tidak memiliki akses untuk mengubah pemetaan akun jurnal.",
+        "invalidAccount": "Akun berikut tidak ditemukan, tidak aktif, atau tidak dapat di-posting: {codes}"
+      },
       "groups": {
         "pos": "Point of Sale (Kasir)",
         "inventory": "Persediaan",

@@ -3275,6 +3275,11 @@
       "notFound": "Account not found/inactive",
       "resetToDefault": "Reset to {code}",
       "defaultLabel": "Default: {code}",
+      "errors": {
+        "unauthorized": "Your session has expired or is invalid.",
+        "forbidden": "You do not have permission to modify account mappings.",
+        "invalidAccount": "The following accounts are not found, inactive, or not postable: {codes}"
+      },
       "groups": {
         "pos": "Point of Sale",
         "inventory": "Inventory",

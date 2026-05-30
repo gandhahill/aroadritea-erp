@@ -3275,6 +3275,11 @@
       "notFound": "科目未找到/停用",
       "resetToDefault": "重置为 {code}",
       "defaultLabel": "默认: {code}",
+      "errors": {
+        "unauthorized": "您的会话已过期或无效。",
+        "forbidden": "您没有权限修改科目映射。",
+        "invalidAccount": "以下科目未找到、已停用或不可过账: {codes}"
+      },
       "groups": {
         "pos": "收银台 (POS)",
         "inventory": "库存",
