@@ -99,9 +99,14 @@ export default async function InvoicesPage() {
                     </Link>
                   )}
                   {inv.journalId && (
-                    <Link href={`/accounting/journals/${inv.journalId}`} className="text-brand-ink-3 hover:underline text-xs mt-1 block">
-                      {t('viewJournal')}
-                    </Link>
+                    <div className="flex flex-col gap-1 mt-1">
+                      <Link href={`/accounting/invoices/${inv.id}/print`} target="_blank" className="text-brand-red hover:underline font-semibold">
+                        {t('printInvoice')}
+                      </Link>
+                      <Link href={`/accounting/journals/${inv.journalId}`} className="text-brand-ink-3 hover:underline text-xs">
+                        {t('viewJournal')}
+                      </Link>
+                    </div>
                   )}
                 </td>
               </tr>

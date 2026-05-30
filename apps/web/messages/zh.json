@@ -716,7 +716,11 @@
       "printHint": "打印此文件以供存档。",
       "paymentTerms": "付款条件",
       "subtotal": "小计",
-      "tax": "税金"
+      "tax": "税金",
+      "qty": "数量",
+      "unitPrice": "单价",
+      "amount": "金额",
+      "purchaseInvoice": "采购发票"
     },
     "invoice": {
       "title": "发票 (Invoices)",
@@ -748,6 +752,7 @@
         "remove": "移除",
         "selectAccount": "选择账户...",
         "description": "描述",
+        "unit": "单位",
         "saveDraft": "保存发票草稿",
         "saving": "保存中...",
         "typeSales": "销售",
@@ -777,6 +782,7 @@
       "tax": "税金",
       "payAction": "支付",
       "printKuitansi": "打印收据",
+      "printInvoice": "打印发票",
       "errorSelectAccount": "请选择账户。",
       "amountToPay": "支付金额",
       "amountExceeds": "支付金额超出未结余额",

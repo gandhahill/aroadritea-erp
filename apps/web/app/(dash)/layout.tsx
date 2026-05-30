@@ -39,14 +39,16 @@ export default async function DashboardLayout({
   const permissions = await getUserPermissions(session.user.id);
 
   return (
-    <div className="flex h-dvh min-h-0 overflow-hidden">
+    <div className="flex h-dvh min-h-0 overflow-hidden print:h-auto print:block">
       {/* Sidebar navigation */}
-      <Sidebar permissions={permissions} />
+      <div className="print:hidden h-full flex shrink-0">
+        <Sidebar permissions={permissions} />
+      </div>
 
       {/* Main content */}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden print:overflow-visible print:block">
         {/* Top bar */}
-        <header className="flex h-14 items-center justify-end border-b border-brand-cream-3 bg-card px-6 shrink-0">
+        <header className="print:hidden flex h-14 items-center justify-end border-b border-brand-cream-3 bg-card px-6 shrink-0">
           <div className="flex items-center gap-3">
             <NotificationBell />
             <LocaleSwitcher />
@@ -75,7 +77,7 @@ export default async function DashboardLayout({
         </header>
 
         {/* Page content */}
-        <main className="min-h-0 flex-1 overflow-y-auto bg-brand-cream p-4 sm:p-6">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto bg-brand-cream p-4 sm:p-6 print:p-0 print:bg-white print:overflow-visible print:h-auto print:block">{children}</main>
       </div>
     </div>
   );

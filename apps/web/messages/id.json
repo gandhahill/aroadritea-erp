@@ -716,7 +716,11 @@
       "printHint": "Cetak dokumen ini untuk arsip Anda.",
       "paymentTerms": "Termin",
       "subtotal": "Subtotal",
-      "tax": "Pajak"
+      "tax": "Pajak",
+      "qty": "Qty",
+      "unitPrice": "Harga Satuan",
+      "amount": "Jumlah",
+      "purchaseInvoice": "Faktur Pembelian"
     },
     "invoice": {
       "title": "Invoice",
@@ -748,6 +752,7 @@
         "remove": "Hapus",
         "selectAccount": "Pilih Akun...",
         "description": "Deskripsi",
+        "unit": "Satuan",
         "saveDraft": "Simpan Draf Invoice",
         "saving": "Menyimpan...",
         "typeSales": "Penjualan",
@@ -777,6 +782,7 @@
       "tax": "Pajak",
       "payAction": "Bayar",
       "printKuitansi": "Cetak Kuitansi",
+      "printInvoice": "Cetak Invoice",
       "errorSelectAccount": "Pilih akun terlebih dahulu.",
       "amountToPay": "Jumlah Bayar",
       "amountExceeds": "Jumlah bayar melebihi sisa tagihan",

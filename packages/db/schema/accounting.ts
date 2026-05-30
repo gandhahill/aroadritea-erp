@@ -807,6 +807,7 @@ export const invoiceLines = pgTable(
     lineNo: integer('line_no').notNull(),
     accountId: text('account_id').notNull(), // FK accounts
     description: text('description').notNull(),
+    unit: text('unit'),
     quantity: integer('quantity').notNull().default(1),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull().default(sql`0`),
     subtotal: bigint('subtotal', { mode: 'bigint' }).notNull().default(sql`0`),

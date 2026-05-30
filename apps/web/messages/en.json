@@ -716,7 +716,11 @@
       "printHint": "Print this document for your records.",
       "paymentTerms": "Payment Terms",
       "subtotal": "Subtotal",
-      "tax": "Tax"
+      "tax": "Tax",
+      "qty": "Qty",
+      "unitPrice": "Unit Price",
+      "amount": "Amount",
+      "purchaseInvoice": "Purchase Invoice"
     },
     "invoice": {
       "title": "Invoices",
@@ -748,6 +752,7 @@
         "remove": "Remove",
         "selectAccount": "Select Account...",
         "description": "Description",
+        "unit": "Unit",
         "saveDraft": "Save Draft Invoice",
         "saving": "Saving...",
         "typeSales": "Sales",
@@ -777,6 +782,7 @@
       "tax": "Tax",
       "payAction": "Pay",
       "printKuitansi": "Print Receipt",
+      "printInvoice": "Print Invoice",
       "errorSelectAccount": "Please select an account.",
       "amountToPay": "Amount to Pay",
       "amountExceeds": "Amount to pay exceeds remaining balance",

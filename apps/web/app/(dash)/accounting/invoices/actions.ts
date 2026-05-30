@@ -6,6 +6,9 @@ import { db, desc, eq, inArray, and } from '@erp/db';
 import { invoices } from '@erp/db';
 import { createInvoice, postInvoice } from '@erp/services/accounting';
 import type { AuditContext } from '@erp/shared/types';
+import { invoiceLines } from '@erp/db/schema/accounting';
+import { cmsSettings } from '@erp/db/schema/cms';
+import { locations } from '@erp/db/schema/auth';
 import { revalidatePath } from 'next/cache';
 import { authorizedLocationIdsForTenant } from '@/lib/authz';
 
@@ -98,3 +101,64 @@ export async function payInvoiceAction(invoiceId: string, paymentAccountId: stri
   revalidatePath('/accounting/invoices');
   return { success: true, paymentJournalId: res.value.paymentJournalId };
 }
+
+export async function fetchPrintInvoiceData(invoiceId: string) {
+  const session = await getSession();
+  if (!session) return null;
+  const user = session.user as any;
+  const tenantId = String(user.tenantId ?? 'default');
+
+  const invoiceRows = await db
+    .select({
+      id: invoices.id,
+      number: invoices.number,
+      type: invoices.type,
+      date: invoices.date,
+      dueDate: invoices.dueDate,
+      partnerName: invoices.partnerName,
+      partnerAddress: invoices.partnerAddress,
+      partnerNpwp: invoices.partnerNpwp,
+      paymentTerms: invoices.paymentTerms,
+      status: invoices.status,
+      subtotal: invoices.subtotal,
+      taxAmount: invoices.taxAmount,
+      total: invoices.total,
+      notes: invoices.notes,
+      locationName: locations.name,
+    })
+    .from(invoices)
+    .leftJoin(locations, eq(invoices.locationId, locations.id))
+    .where(and(eq(invoices.id, invoiceId), eq(invoices.tenantId, tenantId)));
+
+  if (invoiceRows.length === 0) return null;
+  const invoice = invoiceRows[0];
+
+  const lines = await db
+    .select({
+      id: invoiceLines.id,
+      invoiceId: invoiceLines.invoiceId,
+      lineNo: invoiceLines.lineNo,
+      accountId: invoiceLines.accountId,
+      description: invoiceLines.description,
+      unit: invoiceLines.unit,
+      quantity: invoiceLines.quantity,
+      unitPrice: invoiceLines.unitPrice,
+      subtotal: invoiceLines.subtotal,
+      taxAmount: invoiceLines.taxAmount,
+    })
+    .from(invoiceLines)
+    .where(eq(invoiceLines.invoiceId, invoiceId))
+    .orderBy(invoiceLines.lineNo);
+
+  const settings = await db.select().from(cmsSettings).where(eq(cmsSettings.tenantId, tenantId));
+  const companyInfoSetting = settings.find((s) => s.key === 'companyInfo')?.value as any;
+  const companyInfo = companyInfoSetting ?? {
+    name: 'PT. Gandha Hill Catering Management Indonesia',
+    address: '',
+    npwp: '',
+    phone: '',
+  };
+
+  return { invoice, lines, companyInfo };
+}
+

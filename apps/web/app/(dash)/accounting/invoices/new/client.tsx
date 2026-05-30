@@ -44,8 +44,8 @@ export function InvoiceForm({
     locationId: locations[0]?.id || '',
   });
 
-  const [lines, setLines] = useState([
-    { accountId: '', description: '', quantity: 1, unitPrice: '0', taxRate: 0 },
+  const [lines, setLines] = useState<any[]>([
+    { accountId: '', description: '', unit: '', quantity: 1, unitPrice: '0', taxRate: 0 },
   ]);
 
   // When a partner is selected from the dropdown, autofill address/NPWP/terms
@@ -77,7 +77,7 @@ export function InvoiceForm({
   const addLine = () => {
     setLines([
       ...lines,
-      { accountId: '', description: '', quantity: 1, unitPrice: '0', taxRate: 0 },
+      { accountId: '', description: '', unit: '', quantity: 1, unitPrice: '0', taxRate: 0 },
     ]);
   };
 
@@ -339,6 +339,15 @@ export function InvoiceForm({
                   className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
                   value={line.description}
                   onChange={(e) => updateLine(idx, 'description', e.target.value)}
+                />
+              </div>
+              <div className="w-24 space-y-2">
+                <input
+                  type="text"
+                  placeholder={t('new.unit')}
+                  className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
+                  value={line.unit}
+                  onChange={(e) => updateLine(idx, 'unit', e.target.value)}
                 />
               </div>
               <div className="w-24 space-y-2">

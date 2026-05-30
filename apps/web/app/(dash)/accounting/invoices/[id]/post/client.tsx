@@ -66,7 +66,7 @@ export function PostInvoiceForm({ invoice, accounts }: { invoice: any, accounts:
           >
             <option value="">{t('new.selectAccount')}</option>
             {accounts.map(acc => (
-              <option key={acc.id} value={acc.id}>{acc.code} - {acc.nameId ?? acc.nameEn}</option>
+              <option key={acc.id} value={acc.id}>{acc.code} - {acc.name?.id ?? acc.name?.en ?? acc.nameId ?? acc.nameEn}</option>
             ))}
           </select>
         </div>

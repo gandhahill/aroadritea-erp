@@ -30,6 +30,7 @@ export interface CreateInvoiceInput {
   lines: Array<{
     accountId: string;
     description: string;
+    unit?: string;
     quantity: number;
     unitPrice: string; // From UI as string to avoid precision loss
     subtotal: string;
@@ -105,6 +106,7 @@ export async function createInvoice(
         lineNo: line.lineNo,
         accountId: line.accountId,
         description: line.description,
+        unit: line.unit,
         quantity: line.quantity,
         unitPrice: line.unitPrice,
         subtotal: line.subtotal,
