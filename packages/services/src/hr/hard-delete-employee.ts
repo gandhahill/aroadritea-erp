@@ -27,7 +27,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
-import { decryptPii } from '../security/pii';
+import { decryptPiiForDisplay } from '../security/pii';
 
 export async function hardDeleteEmployee(
   employeeId: string,
@@ -67,7 +67,7 @@ export async function hardDeleteEmployee(
         throw AppError.validation('hr.employee.hardDeleteBlocked');
       }
 
-      const email = decryptPii(emp.email, 'employees.email');
+      const email = decryptPiiForDisplay(emp.email, 'employees.email');
 
       // 4. Perform Hard Delete in transaction
       await db.transaction(async (tx) => {
