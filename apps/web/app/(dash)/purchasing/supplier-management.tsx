@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useTransition, useActionState, useEffect } from 'react';
-import { Button, Input } from '@erp/ui';
+import { Button, Input, toast } from '@erp/ui';
 import { createSupplierAction, updateSupplierAction, deleteSupplierAction } from './actions';
 import { useTranslations } from 'next-intl';
 
 export function SupplierManagement({ suppliers }: { suppliers: any[] }) {
   const t = useTranslations('purchasing');
   const [editingSupplier, setEditingSupplier] = useState<any>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -44,20 +45,46 @@ export function SupplierManagement({ suppliers }: { suppliers: any[] }) {
                   >
                     {t('editSupplier').split(' ')[0] || 'Edit'}
                   </button>
-                  <button
-                    type="button"
-                    disabled={isPending}
-                    onClick={() => {
-                      if (confirm(t('confirmDelete'))) {
-                        startTransition(async () => {
-                          await deleteSupplierAction(supplier.id);
-                        });
-                      }
-                    }}
-                    className="text-brand-red hover:underline text-sm font-medium"
-                  >
-                    {t('delete')}
-                  </button>
+                  {deletingId === supplier.id ? (
+                    <div className="flex items-center gap-2 rounded-md bg-rose-50 px-2 py-1">
+                      <span className="text-xs text-brand-ink-3">{t('confirmDelete')}</span>
+                      <button
+                        type="button"
+                        disabled={isPending}
+                        onClick={() => {
+                          startTransition(async () => {
+                            const res = await deleteSupplierAction(supplier.id);
+                            if (res.success) {
+                              setDeletingId(null);
+                              toast.success(t('deleteSuccess'));
+                            } else {
+                              toast.error(res.error || t('deleteError'));
+                            }
+                          });
+                        }}
+                        className="text-brand-red hover:underline text-xs font-bold"
+                      >
+                        {t('confirm')}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isPending}
+                        onClick={() => setDeletingId(null)}
+                        className="text-brand-ink-3 hover:underline text-xs font-medium"
+                      >
+                        {t('cancel')}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={isPending}
+                      onClick={() => setDeletingId(supplier.id)}
+                      className="text-brand-red hover:underline text-sm font-medium"
+                    >
+                      {t('delete')}
+                    </button>
+                  )}
                 </div>
               </div>
             ))
