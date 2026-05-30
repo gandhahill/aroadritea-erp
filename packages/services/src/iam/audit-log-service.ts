@@ -19,7 +19,7 @@ export async function exportAuditLog(input: ExportAuditLogInput, ctx: AuditConte
   const parsed = ExportAuditLogInputSchema.safeParse(input);
   if (!parsed.success) return err(AppError.validation(parsed.error.message));
 
-  const permCheck = await requirePermission(ctx.userId, 'iam.audit.export' as any);
+  const permCheck = await requirePermission(ctx.userId, 'audit.view');
   if (!permCheck.ok) return permCheck;
 
   const logs = await db

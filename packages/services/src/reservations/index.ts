@@ -36,7 +36,7 @@ export async function createReservation(
 
   // No specific permission required if public API, but if via ERP:
   if (ctx.userId) {
-    const perm = await requirePermission(ctx.userId, 'crm.manage', { locationId: ctx.locationId });
+    const perm = await requirePermission(ctx.userId, 'crm.manage_members', { locationId: ctx.locationId });
     if (!perm.ok) return perm;
   }
 
@@ -78,7 +78,7 @@ export async function updateReservationStatus(
 ): Promise<Result<void>> {
   if (!ctx.userId) return err(AppError.unauthenticated('auth.required'));
   
-  const perm = await requirePermission(ctx.userId, 'crm.manage', { locationId: ctx.locationId });
+  const perm = await requirePermission(ctx.userId, 'crm.manage_members', { locationId: ctx.locationId });
   if (!perm.ok) return perm;
 
   const [existing] = await db

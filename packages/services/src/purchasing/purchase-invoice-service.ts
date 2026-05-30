@@ -127,7 +127,7 @@ export async function createPurchaseInvoice(
   }
   const input = parsed.data;
 
-  const permCheck = await requirePermission(ctx.userId, 'purchasing.invoice.create');
+  const permCheck = await requirePermission(ctx.userId, 'purchasing.po.create');
   if (!permCheck.ok) return permCheck;
 
   // Calculate totals
@@ -223,7 +223,7 @@ export async function verifyPurchaseInvoice(
 
   if (!invoice) return err(AppError.notFound('purchasing.errors.invoice_not_found'));
 
-  const permCheck = await requirePermission(ctx.userId, 'purchasing.invoice.verify');
+  const permCheck = await requirePermission(ctx.userId, 'purchasing.po.approve');
   if (!permCheck.ok) return permCheck;
 
   if (invoice.status !== 'draft') {

@@ -28,7 +28,7 @@ export async function createProductionBatch(
   const parsed = CreateProductionInputSchema.safeParse(input);
   if (!parsed.success) return err(AppError.validation('common.errors.validationFailed', { issues: parsed.error.issues }));
 
-  const permCheck = await requirePermission(ctx.userId, 'inventory.write', { locationId: input.locationId });
+  const permCheck = await requirePermission(ctx.userId, 'inventory.stock.write', { locationId: input.locationId });
   if (!permCheck.ok) return permCheck;
 
   // 1. Fetch Target Product

@@ -18,7 +18,7 @@ export async function exportSalesSummaryCsv(
 ): Promise<Result<string>> {
   if (!ctx.userId) return err(AppError.unauthenticated('auth.required'));
   
-  const perm = await requirePermission(ctx.userId, 'sales.view', { locationId: input.locationId ?? ctx.locationId });
+  const perm = await requirePermission(ctx.userId, 'reporting.export', { locationId: input.locationId ?? ctx.locationId });
   if (!perm.ok) return perm;
 
   const conditions = [eq(salesOrders.tenantId, ctx.tenantId)];

@@ -20,7 +20,7 @@ export async function createUser(input: CreateUserInput, ctx: AuditContext): Pro
   const parsed = CreateUserInputSchema.safeParse(input);
   if (!parsed.success) return err(AppError.validation(parsed.error.message));
 
-  const permCheck = await requirePermission(ctx.userId, 'iam.users.write' as any);
+  const permCheck = await requirePermission(ctx.userId, 'iam.manage_users');
   if (!permCheck.ok) return permCheck;
 
   const id = generateId();
@@ -37,7 +37,7 @@ export async function createUser(input: CreateUserInput, ctx: AuditContext): Pro
 }
 
 export async function suspendUser(userId: string, ctx: AuditContext): Promise<Result<{ id: string }>> {
-  const permCheck = await requirePermission(ctx.userId, 'iam.users.write' as any);
+  const permCheck = await requirePermission(ctx.userId, 'iam.manage_users');
   if (!permCheck.ok) return permCheck;
 
   await db
@@ -60,7 +60,7 @@ export async function assignRole(input: AssignRoleInput, ctx: AuditContext): Pro
   const parsed = AssignRoleInputSchema.safeParse(input);
   if (!parsed.success) return err(AppError.validation(parsed.error.message));
 
-  const permCheck = await requirePermission(ctx.userId, 'iam.users.write' as any);
+  const permCheck = await requirePermission(ctx.userId, 'iam.manage_users');
   if (!permCheck.ok) return permCheck;
 
   await db.insert(userRoles).values({
