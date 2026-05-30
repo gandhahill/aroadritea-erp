@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchPurchasingDashboard } from './actions';
 import { PoFilterTable } from './po-filter-table';
-import { SupplierForm } from './supplier-form';
+import { SupplierManagement } from './supplier-management';
 
 export default async function PurchasingPage() {
   const session = await getSession();
@@ -68,7 +68,6 @@ export default async function PurchasingPage() {
           </div>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
           <div className="space-y-6">
             <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
               <div className="border-b border-brand-cream-3 px-5 py-4">
@@ -76,41 +75,10 @@ export default async function PurchasingPage() {
               </div>
               <PoFilterTable purchaseOrders={data.purchaseOrders} />
             </div>
-
-            <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
-              <div className="border-b border-brand-cream-3 px-5 py-4">
-                <h2 className="text-base font-semibold text-brand-ink">{t('supplierTitle')}</h2>
-              </div>
-              <div className="divide-y divide-brand-cream-3">
-                {data.suppliers.length === 0 ? (
-                  <p className="px-5 py-8 text-center text-sm text-brand-ink-3">
-                    {t('emptySupplier')}
-                  </p>
-                ) : (
-                  data.suppliers.map((supplier) => (
-                    <div
-                      key={supplier.id}
-                      className="flex items-center justify-between gap-4 px-5 py-3"
-                    >
-                      <div>
-                        <p className="font-semibold text-brand-ink">{supplier.name}</p>
-                        <p className="mt-0.5 text-xs text-brand-ink-3">
-                          {[supplier.phone, supplier.email].filter(Boolean).join(' - ') ||
-                            t('contactMissing')}
-                        </p>
-                      </div>
-                      <span className="rounded-full bg-brand-cream-1 px-2.5 py-1 text-xs font-semibold text-brand-muted">
-                        {supplier.isPkp ? 'PKP' : 'Non-PKP'}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
           </div>
 
-          <SupplierForm />
-        </div>
+        {/* Supplier Management Section */}
+        <SupplierManagement suppliers={data.suppliers} />
       </section>
     </div>
   );

@@ -758,7 +758,8 @@
         "paymentTerms": "Termin Pembayaran",
         "paymentTermsPlaceholder": "Cth: Net 30",
         "notesLabel": "Catatan",
-        "noTax": "Tanpa Pajak"
+        "noTax": "Tanpa Pajak",
+        "writePartnerName": "Tulis nama partner (jika tidak ada di daftar)"
       },
       "postAction": {
         "title": "Post Invoice",
@@ -821,6 +822,15 @@
     }
   },
   "purchasing": {
+    "errors": {
+      "invalidSession": "Sesi login tidak valid.",
+      "unauthorized": "Anda tidak memiliki akses (Unauthorized).",
+      "supplierNameRequired": "Nama supplier wajib diisi.",
+      "supplierIdRequired": "ID supplier wajib ada.",
+      "minOneLineRequired": "Minimal satu baris pembelian wajib diisi.",
+      "invalidLinesData": "Data baris tidak valid.",
+      "noItemsToReceive": "Tidak ada item untuk diterima."
+    },
     "grnReport": {
       "title": "Laporan Penerimaan",
       "subtitle": "Histori penerimaan barang (Goods Receipt Note).",
@@ -857,6 +867,13 @@
     "supplierPkp": "Supplier PKP",
     "saving": "Menyimpan...",
     "contactMissing": "Kontak belum diisi",
+    "editSupplier": "Edit Supplier",
+    "editSupplierHelp": "Ubah data supplier ini.",
+    "saveChanges": "Simpan Perubahan",
+    "delete": "Hapus",
+    "cancel": "Batal",
+    "noContact": "Kontak tidak tersedia",
+    "noSupplier": "Tidak ada supplier.",
     "searchPlaceholder": "Cari nomor, supplier, lokasi...",
     "allStatuses": "Semua status",
     "fromDate": "Dari tanggal",

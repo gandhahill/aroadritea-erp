@@ -758,7 +758,8 @@
         "paymentTerms": "付款条件",
         "paymentTermsPlaceholder": "例如：Net 30",
         "notesLabel": "备注",
-        "noTax": "免税"
+        "noTax": "免税",
+        "writePartnerName": "输入合作伙伴名称 (如不在列表中)"
       },
       "postAction": {
         "title": "过账发票",
@@ -821,6 +822,15 @@
     }
   },
   "purchasing": {
+    "errors": {
+      "invalidSession": "登录会话无效。",
+      "unauthorized": "未授权访问。",
+      "supplierNameRequired": "供应商名称为必填项。",
+      "supplierIdRequired": "需要供应商 ID。",
+      "minOneLineRequired": "至少需要一行采购信息。",
+      "invalidLinesData": "行数据无效。",
+      "noItemsToReceive": "没有可接收的项目。"
+    },
     "grnReport": {
       "title": "入库报告",
       "subtitle": "商品入库（GRN）记录。",
@@ -881,6 +891,13 @@
     "supplierPkp": "PKP供应商",
     "saving": "保存中...",
     "contactMissing": "联系人尚未填写",
+    "editSupplier": "编辑供应商",
+    "editSupplierHelp": "修改此供应商的详细信息。",
+    "saveChanges": "保存更改",
+    "delete": "删除",
+    "cancel": "取消",
+    "noContact": "联系人不可用",
+    "noSupplier": "暂无供应商。",
     "searchPlaceholder": "搜索单号、供应商、位置...",
     "allStatuses": "所有状态",
     "fromDate": "开始日期",

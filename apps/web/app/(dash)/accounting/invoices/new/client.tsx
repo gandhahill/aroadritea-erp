@@ -195,7 +195,7 @@ export function InvoiceForm({
         <div className="space-y-2">
           <label className="text-sm font-semibold text-brand-ink-3">{t('new.partnerName')}</label>
           <select
-            required
+            required={!formData.partnerName && !formData.partnerId}
             className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
             value={formData.partnerId}
             onChange={(e) => handlePartnerChange(e.target.value)}
@@ -207,6 +207,16 @@ export function InvoiceForm({
               </option>
             ))}
           </select>
+          {formData.partnerId === '' && (
+            <input
+              type="text"
+              placeholder={t('new.writePartnerName')}
+              required
+              className="mt-2 w-full rounded-lg border border-brand-cream-3 px-4 py-2"
+              value={formData.partnerName}
+              onChange={(e) => setFormData({ ...formData, partnerName: e.target.value })}
+            />
+          )}
         </div>
 
         {/* Partner Address — autofilled, editable */}

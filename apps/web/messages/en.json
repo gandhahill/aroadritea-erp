@@ -758,7 +758,8 @@
         "paymentTerms": "Payment Terms",
         "paymentTermsPlaceholder": "e.g. Net 30",
         "notesLabel": "Notes",
-        "noTax": "No Tax"
+        "noTax": "No Tax",
+        "writePartnerName": "Enter partner name (if not in list)"
       },
       "postAction": {
         "title": "Post Invoice",
@@ -821,6 +822,15 @@
     }
   },
   "purchasing": {
+    "errors": {
+      "invalidSession": "Invalid login session.",
+      "unauthorized": "Unauthorized access.",
+      "supplierNameRequired": "Supplier name is required.",
+      "supplierIdRequired": "Supplier ID is required.",
+      "minOneLineRequired": "At least one purchase line is required.",
+      "invalidLinesData": "Invalid lines data.",
+      "noItemsToReceive": "No items to receive."
+    },
     "grnReport": {
       "title": "GRN Report",
       "subtitle": "Goods Receipt Note history.",
@@ -857,6 +867,13 @@
     "supplierPkp": "PKP supplier",
     "saving": "Saving...",
     "contactMissing": "Contact is not filled yet",
+    "editSupplier": "Edit Supplier",
+    "editSupplierHelp": "Edit this supplier's details.",
+    "saveChanges": "Save Changes",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "noContact": "Contact not available",
+    "noSupplier": "No supplier available.",
     "searchPlaceholder": "Search number, supplier, location...",
     "allStatuses": "All statuses",
     "fromDate": "From date",

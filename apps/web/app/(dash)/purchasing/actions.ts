@@ -39,6 +39,7 @@ import {
 } from '@erp/services/purchasing';
 import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
 
 export interface PurchasingDashboardData {
   purchaseOrders: Array<{
@@ -61,6 +62,8 @@ export interface PurchasingDashboardData {
     name: string;
     phone: string | null;
     email: string | null;
+    address: string | null;
+    paymentTermsDays: number | null;
     isPkp: boolean;
     isActive: boolean;
   }>;
@@ -156,6 +159,8 @@ export async function fetchPurchasingDashboard(): Promise<PurchasingDashboardDat
         name: partners.name,
         phone: partners.phone,
         email: partners.email,
+        address: partners.address,
+        paymentTermsDays: partners.paymentTermsDays,
         isPkp: partners.isPkp,
         isActive: partners.isActive,
       })
@@ -280,12 +285,13 @@ export async function createSupplierAction(
   formData: FormData,
 ): Promise<ActionState> {
   const ctx = await getSessionContext();
-  if (!ctx) return { success: false, error: 'Sesi login tidak valid.' };
+  const t = await getTranslations('purchasing.errors');
+  if (!ctx) return { success: false, error: t('invalidSession') };
   const allowed = await hasGlobalPermission(ctx.userId, 'purchasing.po.create');
-  if (!allowed) return { success: false, error: 'Unauthorized' };
+  if (!allowed) return { success: false, error: t('unauthorized') };
 
   const name = String(formData.get('supplierName') ?? '').trim();
-  if (!name) return { success: false, error: 'Nama supplier wajib diisi.' };
+  if (!name) return { success: false, error: t('supplierNameRequired') };
 
   const id = generateId();
   await db.insert(partners).values({
@@ -323,15 +329,97 @@ export async function createSupplierAction(
   return { success: true };
 }
 
+export async function updateSupplierAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const t = await getTranslations('purchasing.errors');
+  if (!ctx) return { success: false, error: t('invalidSession') };
+  const allowed = await hasGlobalPermission(ctx.userId, 'purchasing.po.create');
+  if (!allowed) return { success: false, error: t('unauthorized') };
+
+  const id = String(formData.get('id') ?? '').trim();
+  if (!id) return { success: false, error: t('supplierIdRequired') };
+
+  const name = String(formData.get('supplierName') ?? '').trim();
+  if (!name) return { success: false, error: t('supplierNameRequired') };
+
+  await db.update(partners)
+    .set({
+      name,
+      phone: String(formData.get('supplierPhone') ?? '').trim() || null,
+      email: String(formData.get('supplierEmail') ?? '').trim() || null,
+      address: String(formData.get('supplierAddress') ?? '').trim() || null,
+      isPkp: formData.get('supplierIsPkp') === 'on',
+      paymentTermsDays: Number.parseInt(String(formData.get('paymentTermsDays') ?? '0'), 10) || 0,
+      updatedBy: ctx.userId,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(partners.id, id), eq(partners.tenantId, ctx.tenantId)));
+
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'update',
+    entityType: 'partner',
+    entityId: id,
+    after: {
+      name,
+      phone: String(formData.get('supplierPhone') ?? '').trim() || null,
+      email: String(formData.get('supplierEmail') ?? '').trim() || null,
+      isPkp: formData.get('supplierIsPkp') === 'on',
+    },
+  });
+
+  revalidatePath('/purchasing');
+  revalidatePath('/purchasing/po/new');
+  return { success: true };
+}
+
+export async function deleteSupplierAction(id: string, formData?: FormData): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const t = await getTranslations('purchasing.errors');
+  if (!ctx) return { success: false, error: t('invalidSession') };
+  const allowed = await hasGlobalPermission(ctx.userId, 'purchasing.po.create');
+  if (!allowed) return { success: false, error: t('unauthorized') };
+
+  await db.update(partners)
+    .set({
+      isActive: false,
+      updatedBy: ctx.userId,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(partners.id, id), eq(partners.tenantId, ctx.tenantId)));
+
+  await db.insert(auditLog).values({
+    id: generateId(),
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    action: 'delete',
+    entityType: 'partner',
+    entityId: id,
+    after: {
+      isActive: false,
+    },
+  });
+
+  revalidatePath('/purchasing');
+  revalidatePath('/purchasing/po/new');
+  return { success: true };
+}
+
 export async function createPurchaseOrderAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
   const ctx = await getSessionContext();
-  if (!ctx) return { success: false, error: 'Sesi login tidak valid.' };
+  const t = await getTranslations('purchasing.errors');
+  if (!ctx) return { success: false, error: t('invalidSession') };
   const locationId = String(formData.get('locationId') ?? ctx.locationId);
   const allowed = await requirePermissionAtLocation(ctx.userId, 'purchasing.po.create', locationId);
-  if (!allowed) return { success: false, error: 'Unauthorized' };
+  if (!allowed) return { success: false, error: t('unauthorized') };
 
   const lineCount = Number.parseInt(String(formData.get('lineCount') ?? '0'), 10);
   const lines = Array.from({ length: lineCount }, (_, index) => ({
@@ -343,7 +431,7 @@ export async function createPurchaseOrderAction(
   })).filter((line) => line.productId && line.qtyOrdered && line.uom && line.unitPrice);
 
   if (lines.length === 0) {
-    return { success: false, error: 'Minimal satu baris pembelian wajib diisi.' };
+    return { success: false, error: t('minOneLineRequired') };
   }
 
   const result = await createPO(
@@ -370,20 +458,21 @@ export async function createPurchaseOrderAction(
 
 export async function syncPurchaseShipmentAction(formData: FormData): Promise<ActionState> {
   const ctx = await getSessionContext();
-  if (!ctx) return { success: false, error: 'Sesi login tidak valid.' };
+  const t = await getTranslations('purchasing.errors');
+  if (!ctx) return { success: false, error: t('invalidSession') };
   const poId = String(formData.get('poId') ?? '');
   const [poRow] = await db
     .select({ locationId: purchaseOrders.locationId })
     .from(purchaseOrders)
     .where(and(eq(purchaseOrders.id, poId), eq(purchaseOrders.tenantId, ctx.tenantId)))
     .limit(1);
-  if (!poRow) return { success: false, error: 'Unauthorized' };
+  if (!poRow) return { success: false, error: t('unauthorized') };
   const allowed = await requirePermissionAtLocation(
     ctx.userId,
     'purchasing.view',
     poRow.locationId,
   );
-  if (!allowed) return { success: false, error: 'Unauthorized' };
+  if (!allowed) return { success: false, error: t('unauthorized') };
 
   const result = await trackPurchaseOrderShipment(
     {
@@ -583,7 +672,8 @@ export async function receiveGoodsAction(
   formData: FormData,
 ): Promise<ActionState> {
   const ctx = await getSessionContext();
-  if (!ctx) return { success: false, error: 'Sesi login tidak valid.' };
+  const t = await getTranslations('purchasing.errors');
+  if (!ctx) return { success: false, error: t('invalidSession') };
 
   const poId = String(formData.get('poId') ?? '');
   const locationId = String(formData.get('locationId') ?? ctx.locationId);
@@ -592,7 +682,7 @@ export async function receiveGoodsAction(
     'purchasing.grn.create',
     locationId,
   );
-  if (!allowed) return { success: false, error: 'Unauthorized' };
+  if (!allowed) return { success: false, error: t('unauthorized') };
   const notes = String(formData.get('notes') ?? '');
   const receivedDate = new Date().toISOString(); // or from formData if needed, but today is fine for GRN
 
@@ -619,11 +709,11 @@ export async function receiveGoodsAction(
       }
     }
   } catch (e) {
-    return { success: false, error: 'Invalid lines data' };
+    return { success: false, error: t('invalidLinesData') };
   }
 
   if (lines.length === 0) {
-    return { success: false, error: 'No items to receive.' };
+    return { success: false, error: t('noItemsToReceive') };
   }
 
   const grnResult = await createGRN(
@@ -751,7 +841,8 @@ export async function fetchGRNReport(
 
 export async function createPurchaseInvoiceAction(input: unknown) {
   const ctx = await getSessionContext();
-  if (!ctx) return { success: false, error: 'Unauthorized' };
+  const t = await getTranslations('purchasing.errors');
+  if (!ctx) return { success: false, error: t('unauthorized') };
   const res = await createPurchaseInvoice(input, ctx as any);
   if (res.ok) {
     revalidatePath('/purchasing');
@@ -761,7 +852,8 @@ export async function createPurchaseInvoiceAction(input: unknown) {
 
 export async function verifyPurchaseInvoiceAction(input: unknown) {
   const ctx = await getSessionContext();
-  if (!ctx) return { success: false, error: 'Unauthorized' };
+  const t = await getTranslations('purchasing.errors');
+  if (!ctx) return { success: false, error: t('unauthorized') };
   const res = await verifyPurchaseInvoice(input, ctx as any);
   if (res.ok) {
     revalidatePath('/purchasing');
@@ -771,7 +863,8 @@ export async function verifyPurchaseInvoiceAction(input: unknown) {
 
 export async function cancelPurchaseInvoiceAction(input: unknown) {
   const ctx = await getSessionContext();
-  if (!ctx) return { success: false, error: 'Unauthorized' };
+  const t = await getTranslations('purchasing.errors');
+  if (!ctx) return { success: false, error: t('unauthorized') };
   const res = await cancelPurchaseInvoice(input, ctx as any);
   if (res.ok) {
     revalidatePath('/purchasing');
@@ -781,7 +874,8 @@ export async function cancelPurchaseInvoiceAction(input: unknown) {
 
 export async function createPurchaseRequisitionAction(input: unknown) {
   const ctx = await getSessionContext();
-  if (!ctx) return { success: false, error: 'Unauthorized' };
+  const t = await getTranslations('purchasing.errors');
+  if (!ctx) return { success: false, error: t('unauthorized') };
   const res = await createPurchaseRequisition(input, ctx as any);
   if (res.ok) {
     revalidatePath('/purchasing');
@@ -791,7 +885,8 @@ export async function createPurchaseRequisitionAction(input: unknown) {
 
 export async function submitPurchaseRequisitionAction(input: unknown) {
   const ctx = await getSessionContext();
-  if (!ctx) return { success: false, error: 'Unauthorized' };
+  const t = await getTranslations('purchasing.errors');
+  if (!ctx) return { success: false, error: t('unauthorized') };
   const res = await submitPurchaseRequisition(input, ctx as any);
   if (res.ok) {
     revalidatePath('/purchasing');
@@ -801,7 +896,8 @@ export async function submitPurchaseRequisitionAction(input: unknown) {
 
 export async function approvePurchaseRequisitionAction(input: unknown) {
   const ctx = await getSessionContext();
-  if (!ctx) return { success: false, error: 'Unauthorized' };
+  const t = await getTranslations('purchasing.errors');
+  if (!ctx) return { success: false, error: t('unauthorized') };
   const res = await approvePurchaseRequisition(input, ctx as any);
   if (res.ok) {
     revalidatePath('/purchasing');
@@ -811,7 +907,8 @@ export async function approvePurchaseRequisitionAction(input: unknown) {
 
 export async function createRFQAction(input: unknown) {
   const ctx = await getSessionContext();
-  if (!ctx) return { success: false, error: 'Unauthorized' };
+  const t = await getTranslations('purchasing.errors');
+  if (!ctx) return { success: false, error: t('unauthorized') };
   const res = await createRFQ(input, ctx as any);
   if (res.ok) {
     revalidatePath('/purchasing');
