@@ -62,7 +62,11 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
               />
             </div>
             <div className="mt-2 text-sm text-brand-ink-2 space-y-0.5">
-              <p className="font-semibold text-brand-ink">{companyInfo.name}</p>
+              <p className="font-semibold text-brand-ink">
+                {typeof companyInfo.name === 'object'
+                  ? companyInfo.name?.id || companyInfo.name?.en || companyInfo.name?.zh
+                  : companyInfo.name}
+              </p>
               <p>Aroadri Tea — {invoice.locationName}</p>
               {companyInfo.address && <p className="text-xs">{companyInfo.address}</p>}
               {companyInfo.npwp && <p className="text-xs">NPWP: {companyInfo.npwp}</p>}
