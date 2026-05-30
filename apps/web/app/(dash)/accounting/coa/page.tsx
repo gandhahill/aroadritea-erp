@@ -13,7 +13,7 @@ import { COAEditor } from './coa-editor';
 import { COATreeView } from './coa-tree';
 
 export const metadata: Metadata = {
-  title: 'Chart of Accounts | Aroadri ERP',
+  title: 'Chart of Accounts',
 };
 
 export default async function COAPage() {

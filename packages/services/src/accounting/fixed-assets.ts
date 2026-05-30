@@ -16,6 +16,7 @@ import { auditRecord } from '../audit';
 import { can, requirePermission } from '../iam';
 import { createJournal } from './create-journal';
 import { postJournal } from './post-journal';
+import { getPostingAccountCodes } from './posting-accounts';
 import {
   type CreateFixedAssetInput,
   CreateFixedAssetSchema,
@@ -1021,10 +1022,16 @@ export async function disposeFixedAsset(
       const salePrice = BigInt(data.salePrice);
       const gainLoss = salePrice - bookValue;
 
+      const disposalCodes = await getPostingAccountCodes(ctx.tenantId);
       const [gainLossAcct] = await db
         .select({ id: accounts.id })
         .from(accounts)
-        .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.code, '7-1200')))
+        .where(
+          and(
+            eq(accounts.tenantId, ctx.tenantId),
+            eq(accounts.code, disposalCodes['fixedAsset.gainOnDisposal']),
+          ),
+        )
         .limit(1);
 
       if (!gainLossAcct) {

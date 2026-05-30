@@ -37,6 +37,7 @@ import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
+import { getPostingAccountCodes } from '../accounting/posting-accounts';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import {
@@ -46,11 +47,9 @@ import {
   PurchaseReturnIdInputSchema,
 } from './return-schemas';
 
-// ─── Constants ─────────────────────────────────────────────────────────────
-
-/** Mirror of the GRN posting account — "Barang Diterima Belum Ditagih". */
-const GRNI_ACCOUNT_CODE = '2-1110';
-const DEFAULT_INVENTORY_ACCOUNT_CODE = '1-1210';
+// GRNI & inventory posting accounts come from the configurable account map
+// (Settings → Accounting → Account Mapping); see accounting/posting-accounts.ts.
+// A product may override its own inventory account via products.inventoryAccountId.
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -73,8 +72,9 @@ async function resolveInventoryAccountForProduct(
     .where(and(eq(products.tenantId, tenantId), eq(products.id, productId)))
     .limit(1);
   if (row?.inventoryAccountId) return row.inventoryAccountId;
-  const fallback = await resolveAccountId(tenantId, DEFAULT_INVENTORY_ACCOUNT_CODE);
-  return fallback ?? DEFAULT_INVENTORY_ACCOUNT_CODE;
+  const codes = await getPostingAccountCodes(tenantId);
+  const fallback = await resolveAccountId(tenantId, codes.inventory);
+  return fallback ?? codes.inventory;
 }
 
 async function generateReturnNumber(
@@ -544,7 +544,8 @@ export async function postPurchaseReturn(
   // JE: DR GRNI / CR Inventory / CR Tax (reverse of the original GRN posting).
   let journalEntryId: string | null = null;
   if (row.grandTotal > 0n && lines.length > 0) {
-    const grniAccountId = await resolveAccountId(ctx.tenantId, GRNI_ACCOUNT_CODE);
+    const returnCodes = await getPostingAccountCodes(ctx.tenantId);
+    const grniAccountId = await resolveAccountId(ctx.tenantId, returnCodes['purchasing.grni']);
     if (!grniAccountId) {
       // Roll back so we don't leave a posted row without a JE.
       await db

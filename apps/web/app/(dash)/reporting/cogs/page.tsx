@@ -10,7 +10,7 @@ import { redirect } from 'next/navigation';
 import { fetchCogs } from './actions';
 import { CogsClient } from './cogs-client';
 
-export const metadata: Metadata = { title: 'COGS & Recipe Costing | Aroadri ERP' };
+export const metadata: Metadata = { title: 'COGS & Recipe Costing' };
 
 export default async function CogsPage({
   searchParams,

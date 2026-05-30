@@ -5,7 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import BupotClient from './client';
 
 export const metadata = {
-  title: 'Bukti Potong PPh - Aroadri Tea ERP',
+  title: 'Bukti Potong PPh',
 };
 
 export default async function BuktiPotongPage() {

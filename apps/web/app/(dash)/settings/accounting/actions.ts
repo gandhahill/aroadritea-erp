@@ -1,69 +1,136 @@
-'use server';
+import { eq } from 'drizzle-orm';
+import { db } from '@erp/db';
+import { cmsSettings } from '@erp/db/schema';
+import { getCurrentUser } from '@erp/services/auth';
+import { auditLogService } from '@erp/services/audit';
+import { DEFAULT_POSTING_ACCOUNTS } from '@erp/services/accounting/posting-accounts';
+import { resolveAccountIdsByCodes } from '@erp/services/accounting';
 
-import { getSession } from '@/lib/auth';
-import { db, eq, and } from '@erp/db';
-import { cmsSettings } from '@erp/db/schema/cms';
-import { revalidatePath } from 'next/cache';
-import type { AuditContext } from '@erp/shared/types';
-import { auditRecord } from '@erp/services/audit';
+export async function saveAccountingSettingsAction(formData: FormData) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      throw new Error('Unauthorized');
+    }
 
-export async function saveAccountingSettingsAction(apAccountId: string) {
-  const session = await getSession();
-  if (!session) throw new Error('Unauthorized');
-  
-  const user = session.user as Record<string, unknown>;
-  const tenantId = String(user.tenantId ?? 'default');
-  
-  const ctx: AuditContext = {
-    userId: String(user.id),
-    tenantId,
-    locationId: String(user.locationId ?? ''),
-    userAgent: 'ERP Web',
-    ipAddress: '127.0.0.1',
-  };
+    const tenantId = user.tenantId;
 
-  const key = 'accounting.payables.accountIds';
-  const newValue = [apAccountId]; // Always save as array for compatibility
+    // Extract all accounts
+    const formKeys = Array.from(formData.keys());
+    const accounts: Record<string, string> = {};
+    let hasValues = false;
 
-  const [existing] = await db
-    .select()
-    .from(cmsSettings)
-    .where(and(eq(cmsSettings.tenantId, tenantId), eq(cmsSettings.key, key)))
-    .limit(1);
+    for (const key of formKeys) {
+      if (key.startsWith('accounts.')) {
+        const value = formData.get(key)?.toString().trim();
+        if (value) {
+          const mapKey = key.replace('accounts.', '');
+          accounts[mapKey] = value;
+          hasValues = true;
+        }
+      }
+    }
 
-  if (existing) {
-    await db
-      .update(cmsSettings)
-      .set({ value: newValue })
-      .where(eq(cmsSettings.id, existing.id));
+    if (!hasValues) {
+      throw new Error('No account mappings provided');
+    }
 
-    await auditRecord({
-      action: 'update',
-      entityType: 'cms_settings',
-      entityId: existing.id,
-      before: { value: existing.value },
-      after: { value: newValue },
-      ctx,
+    // Merge with defaults for validation
+    const mergedMapping = { ...DEFAULT_POSTING_ACCOUNTS, ...accounts };
+
+    // Validate that all codes actually exist in DB
+    const allCodesToValidate = Object.values(mergedMapping);
+    const resolvedIds = await resolveAccountIdsByCodes(allCodesToValidate, tenantId);
+
+    // If any code failed to resolve, it doesn't exist
+    for (const [purpose, code] of Object.entries(mergedMapping)) {
+      if (!resolvedIds[code]) {
+        throw new Error(`Account code ${code} (for ${purpose}) does not exist or is inactive.`);
+      }
+    }
+
+    // Load existing to get previous state for audit
+    const existingRow = await db.query.cmsSettings.findFirst({
+      where: eq(cmsSettings.key, 'accounting_posting_map'),
     });
-  } else {
-    const id = `SET-${Date.now()}`;
-    await db.insert(cmsSettings).values({
-      id,
+
+    let prevJson = null;
+
+    if (existingRow) {
+      try {
+        prevJson = typeof existingRow.value === 'string' ? JSON.parse(existingRow.value) : existingRow.value;
+      } catch (e) {
+        prevJson = existingRow.value;
+      }
+
+      await db
+        .update(cmsSettings)
+        .set({
+          value: JSON.stringify(accounts),
+          updatedAt: new Date(),
+          updatedByUserId: user.id,
+        })
+        .where(eq(cmsSettings.key, 'accounting_posting_map'));
+    } else {
+      await db.insert(cmsSettings).values({
+        key: 'accounting_posting_map',
+        value: JSON.stringify(accounts),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdByUserId: user.id,
+        updatedByUserId: user.id,
+        locationId: null,
+      });
+    }
+
+    // Backward compatibility: AP setting used by purchase-invoice-service
+    if (accounts.purchasingAp) {
+      const apAccountId = resolvedIds[accounts.purchasingAp];
+      if (apAccountId) {
+        const apRow = await db.query.cmsSettings.findFirst({
+          where: eq(cmsSettings.key, 'accounting_settings'),
+        });
+
+        if (apRow) {
+          let apSettings: any = {};
+          try {
+             apSettings = typeof apRow.value === 'string' ? JSON.parse(apRow.value) : apRow.value;
+          } catch(e) {}
+          apSettings.apAccountId = apAccountId;
+          await db.update(cmsSettings).set({
+            value: JSON.stringify(apSettings),
+            updatedAt: new Date(),
+            updatedByUserId: user.id,
+          }).where(eq(cmsSettings.key, 'accounting_settings'));
+        } else {
+          await db.insert(cmsSettings).values({
+            key: 'accounting_settings',
+            value: JSON.stringify({ apAccountId }),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            createdByUserId: user.id,
+            updatedByUserId: user.id,
+            locationId: null,
+          });
+        }
+      }
+    }
+
+
+    await auditLogService.log({
       tenantId,
-      key,
-      value: newValue,
-    });
-
-    await auditRecord({
-      action: 'create',
+      locationId: null,
+      userId: user.id,
       entityType: 'cms_settings',
-      entityId: id,
-      before: null,
-      after: { key, value: newValue },
-      ctx,
+      entityId: 'accounting_posting_map',
+      action: existingRow ? 'UPDATE' : 'CREATE',
+      beforeJson: prevJson,
+      afterJson: accounts,
     });
-  }
 
-  revalidatePath('/settings/accounting');
-  return { success: true };
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error saving posting mapping:', error);
+    return { success: false, error: error.message || 'Failed to save mapping' };
+  }
 }

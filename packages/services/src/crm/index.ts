@@ -18,6 +18,7 @@ import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, asc, desc, eq, gte } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
+import { getPostingAccountCodes } from '../accounting/posting-accounts';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { decryptPii, encryptPii, encryptPiiForLookup } from '../security/pii';
@@ -372,9 +373,10 @@ export async function awardCompensation(
     // For cash/refund → create journal entry
     let jeId: string | undefined;
     if (input.kind === 'refund_cash' && input.value > 0) {
-      const expenseAccount = await resolveAccountIdByCode(ctx.tenantId, '6-2100');
+      const acctCodes = await getPostingAccountCodes(ctx.tenantId);
+      const expenseAccount = await resolveAccountIdByCode(ctx.tenantId, acctCodes['refund.expense']);
       if (!expenseAccount.ok) return expenseAccount;
-      const cashAccount = await resolveAccountIdByCode(ctx.tenantId, '1-1300');
+      const cashAccount = await resolveAccountIdByCode(ctx.tenantId, acctCodes.bank);
       if (!cashAccount.ok) return cashAccount;
       const postingDate = new Date().toISOString().slice(0, 10);
       const jeResult = await createJournal(

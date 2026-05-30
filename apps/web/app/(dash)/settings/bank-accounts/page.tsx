@@ -7,7 +7,7 @@ import { fetchBankAccounts, fetchCoaAccounts } from './actions';
 import { BankAccountsClient } from './bank-accounts-client';
 
 export const metadata: Metadata = {
-  title: 'Bank Accounts | Aroadri ERP',
+  title: 'Bank Accounts',
 };
 
 export default async function BankAccountsPage() {

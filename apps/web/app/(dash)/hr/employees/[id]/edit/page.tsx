@@ -9,7 +9,7 @@ import { fetchEmployeeLocationOptions } from '../../actions';
 import { EmployeeForm } from '../../new/employee-form';
 
 export const metadata: Metadata = {
-  title: 'Edit Employee - Aroadri ERP',
+  title: 'Edit Employee',
 };
 
 export default async function EditEmployeePage({

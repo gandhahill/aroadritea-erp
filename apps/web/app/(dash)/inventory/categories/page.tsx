@@ -7,7 +7,7 @@ import { fetchCategories } from './actions';
 import { CategoriesClient } from './categories-client';
 
 export const metadata: Metadata = {
-  title: 'Product Categories | Aroadri ERP',
+  title: 'Product Categories',
 };
 
 export default async function CategoriesPage() {

@@ -7,7 +7,7 @@ import { fetchAccountingPeriods } from './actions';
 import { ClosePeriodButton, OpenPeriodButton } from './periods-client';
 
 export const metadata: Metadata = {
-  title: 'Accounting Periods | Aroadri ERP',
+  title: 'Accounting Periods',
 };
 
 

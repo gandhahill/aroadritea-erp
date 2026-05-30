@@ -12,7 +12,7 @@ import { fetchAttendancePolicy } from './actions';
 import { AttendancePolicyForm } from './attendance-policy-form';
 
 export const metadata: Metadata = {
-  title: 'Attendance Policy | Aroadri ERP',
+  title: 'Attendance Policy',
 };
 
 export default async function AttendancePolicyPage() {

@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 import { fetchDonationReport } from './actions';
 import { DonationsClient } from './donations-client';
 
-export const metadata: Metadata = { title: 'Donation Report | Aroadri ERP' };
+export const metadata: Metadata = { title: 'Donation Report' };
 
 export default async function DonationsPage({
   searchParams,

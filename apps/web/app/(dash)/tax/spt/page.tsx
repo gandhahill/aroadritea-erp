@@ -6,7 +6,7 @@ import SptMasaClient from './client';
 import { fetchPeriodsAction } from './actions';
 
 export const metadata = {
-  title: 'SPT Masa PPN - Aroadri Tea ERP',
+  title: 'SPT Masa PPN',
 };
 
 export default async function SptMasaPage() {

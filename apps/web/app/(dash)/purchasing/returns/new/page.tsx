@@ -18,7 +18,7 @@ import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { NewReturnClient } from './new-return-client';
 
-export const metadata: Metadata = { title: 'New Purchase Return | Aroadri ERP' };
+export const metadata: Metadata = { title: 'New Purchase Return' };
 
 export default async function NewPurchaseReturnPage({
   searchParams,

@@ -20,7 +20,7 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('aiAssistantLanding');
-  return { title: `${t('title')} | Aroadri ERP` };
+  return { title: `${t('title')}` };
 }
 
 export default async function AiAssistantLandingPage() {

@@ -22,14 +22,19 @@ import { stockMovements, stockLevels } from '@erp/db/schema/inventory';
 import { generateId } from '@erp/shared/id';
 
 import { createJournal } from '../accounting/create-journal';
+import {
+  POSTING_ACCOUNT_DEFAULTS,
+  getPostingAccountCodes,
+  getPostingAccountOverrides,
+} from '../accounting/posting-accounts';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { ApprovePOInputSchema, CancelPOInputSchema, SubmitPOInputSchema } from './schemas';
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const AP_ACCOUNT_CODE = '2-1100'; // Utang Usaha
-const DEFAULT_INVENTORY_ACCOUNT_CODE = '1-1210'; // Persediaan Barang Dagangan
+// Posting accounts (AP, inventory) come from the configurable account map
+// (Settings → Accounting → Account Mapping); see accounting/posting-accounts.ts.
+// Legacy AP setting (id-based) kept for back-compat. A product may override its
+// own inventory account via products.inventoryAccountId.
 const AP_SETTING_KEY = 'accounting.payables.accountIds';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -55,11 +60,19 @@ async function resolveInventoryAccountForProduct(
 
   if (row?.inventoryAccountId) return row.inventoryAccountId;
 
-  const fallback = await resolveAccountId(tenantId, DEFAULT_INVENTORY_ACCOUNT_CODE);
-  return fallback;
+  const codes = await getPostingAccountCodes(tenantId);
+  return resolveAccountId(tenantId, codes.inventory);
 }
 
 async function resolvePayablesAccountId(tenantId: string): Promise<string | null> {
+  // 1. Explicit override from the new account map wins.
+  const overrides = await getPostingAccountOverrides(tenantId);
+  if (overrides['purchasing.ap']) {
+    const id = await resolveAccountId(tenantId, overrides['purchasing.ap']);
+    if (id) return id;
+  }
+
+  // 2. Back-compat: legacy id-based AP setting.
   const [setting] = await db
     .select({ value: cmsSettings.value })
     .from(cmsSettings)
@@ -87,7 +100,8 @@ async function resolvePayablesAccountId(tenantId: string): Promise<string | null
     if (rows[0]?.id) return rows[0].id;
   }
 
-  return resolveAccountId(tenantId, AP_ACCOUNT_CODE);
+  // 3. Default.
+  return resolveAccountId(tenantId, POSTING_ACCOUNT_DEFAULTS['purchasing.ap']);
 }
 
 // ─── Result types ───────────────────────────────────────────────────────────
@@ -286,9 +300,10 @@ export async function approvePO(
     firstProduct.productId,
   );
   if (!invAccountId) {
+    const codes = await getPostingAccountCodes(ctx.tenantId);
     return err(
       AppError.businessRule('purchasing.errors.inventory_account_not_found', {
-        code: DEFAULT_INVENTORY_ACCOUNT_CODE,
+        code: codes.inventory,
       }),
     );
   }

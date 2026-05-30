@@ -115,3 +115,14 @@ export {
   resolveAccountIdsByCodes,
   requireAccountIdByCode,
 } from './account-resolver';
+export {
+  ACCOUNT_MAP_SETTING_KEY,
+  POSTING_ACCOUNT_DEFAULTS,
+  POSTING_ACCOUNT_PURPOSES,
+  getPostingAccountCodes,
+  getPostingAccountOverrides,
+  resolvePostingCode,
+  resolvePostingAccountId,
+  type PostingAccountPurpose,
+  type PostingAccountCodes,
+} from './posting-accounts';

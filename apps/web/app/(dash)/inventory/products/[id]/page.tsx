@@ -9,7 +9,7 @@ import { VariantManager } from '../variant-manager';
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('inventory.products');
   return {
-    title: `${t('editProduct')} - Aroadri ERP`,
+    title: `${t('editProduct')}`,
   };
 }
 

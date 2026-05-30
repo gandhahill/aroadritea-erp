@@ -12,7 +12,7 @@ import { redirect } from 'next/navigation';
 import { fetchCashFlow } from './actions';
 import { CashFlowClient } from './cash-flow-client';
 
-export const metadata: Metadata = { title: 'Cash Flow | Aroadri ERP' };
+export const metadata: Metadata = { title: 'Cash Flow' };
 
 function todayWib(): string {
   return new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);

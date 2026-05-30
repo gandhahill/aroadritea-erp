@@ -7,7 +7,7 @@ import { fetchMcpTokens } from './actions';
 import { McpTokensClient } from './mcp-tokens-client';
 
 export const metadata: Metadata = {
-  title: 'MCP Tokens | Aroadri ERP',
+  title: 'MCP Tokens',
 };
 
 export default async function McpTokensPage() {

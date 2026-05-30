@@ -35,6 +35,7 @@ import {
 } from './schemas';
 import { createJournal } from './create-journal';
 import { postJournal } from './post-journal';
+import { getPostingAccountCodes } from './posting-accounts';
 import { db } from '@erp/db';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -293,16 +294,21 @@ export async function closePeriod(
       }
 
       if (linesToClose.length > 0) {
+        const acctCodes = await getPostingAccountCodes(ctx.tenantId);
         const isumAcct = await db
           .select({ id: accounts.id })
           .from(accounts)
-          .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.code, '3-1300')))
+          .where(
+            and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.code, acctCodes['period.incomeSummary'])),
+          )
           .limit(1)
           .then((r) => r[0]);
         const reAcct = await db
           .select({ id: accounts.id })
           .from(accounts)
-          .where(and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.code, '3-1400')))
+          .where(
+            and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.code, acctCodes['period.retainedEarnings'])),
+          )
           .limit(1)
           .then((r) => r[0]);
 

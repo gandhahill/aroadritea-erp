@@ -12,7 +12,7 @@ import { fetchScheduledJobs } from './actions';
 import { ScheduledJobsTable } from './jobs-table';
 
 export const metadata: Metadata = {
-  title: 'Scheduled Jobs | Aroadri ERP',
+  title: 'Scheduled Jobs',
 };
 
 export default async function ScheduledJobsPage() {

@@ -25,7 +25,7 @@ import { notFound, redirect } from 'next/navigation';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('ai.audit');
-  return { title: `${t('title')} | Aroadri ERP` };
+  return { title: `${t('title')}` };
 }
 
 export const dynamic = 'force-dynamic';

@@ -9,7 +9,7 @@ import { forbidden, notFound, redirect } from 'next/navigation';
 import { fetchAssignableRoles } from '../actions';
 import { EditLoginModal } from './edit-login-modal';
 
-export const metadata: Metadata = { title: 'Employee Detail | Aroadri ERP' };
+export const metadata: Metadata = { title: 'Employee Detail' };
 
 const STATUS_COLOR: Record<string, { bg: string; text: string }> = {
   probation: { bg: 'bg-brand-gold/10', text: 'text-brand-gold' },

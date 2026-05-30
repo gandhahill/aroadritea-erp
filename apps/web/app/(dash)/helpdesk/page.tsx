@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { listTicketsAction } from './actions';
 
-export const metadata: Metadata = { title: 'Helpdesk | Aroadri ERP' };
+export const metadata: Metadata = { title: 'Helpdesk' };
 
 export default async function HelpdeskPage({
   searchParams,

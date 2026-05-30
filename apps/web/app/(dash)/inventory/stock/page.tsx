@@ -22,7 +22,7 @@ import { redirect } from 'next/navigation';
 import { ExportXlsxButton } from '../../reporting/export-button';
 
 export const metadata: Metadata = {
-  title: 'Stock Levels | Aroadri ERP',
+  title: 'Stock Levels',
 };
 
 export const dynamic = 'force-dynamic';

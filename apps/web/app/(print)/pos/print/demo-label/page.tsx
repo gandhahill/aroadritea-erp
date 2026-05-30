@@ -9,7 +9,7 @@
 import type { Metadata } from 'next';
 import { DemoLabelClient } from './label-client';
 
-export const metadata: Metadata = { title: '[DEMO] Label | Aroadri ERP' };
+export const metadata: Metadata = { title: '[DEMO] Label' };
 
 export default function DemoLabelPage() {
   return <DemoLabelClient />;

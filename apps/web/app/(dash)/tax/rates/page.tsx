@@ -9,7 +9,7 @@ import {
 } from './actions';
 
 export const metadata: Metadata = {
-  title: 'Tax Rates - Aroadri ERP',
+  title: 'Tax Rates',
 };
 
 import { PageHeader } from '@/components/page-header';

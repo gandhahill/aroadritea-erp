@@ -6,7 +6,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = { title: 'My Schedule | Aroadri ERP' };
+export const metadata: Metadata = { title: 'My Schedule' };
 
 function firstOfWeek(): string {
   const d = new Date();

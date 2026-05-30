@@ -7,11 +7,9 @@ import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, sql } from 'drizzle-orm';
 import { auditRecord } from '../audit';
+import { getPostingAccountCodes } from '../accounting/posting-accounts';
 
 const DEFAULT_PB1_TAX_CODE = 'PB1';
-const DEFAULT_CASH_ACCOUNT_CODE = '1-1300';
-const DEFAULT_REVENUE_ACCOUNT_CODE = '4-1100';
-const DEFAULT_DONATION_TRUST_ACCOUNT_CODE = '2-2050';
 const DEFAULT_DELIVERY_CHANNELS = [
   { id: 'gofood', label: 'GoFood', netBps: 8000, enabled: true },
   { id: 'grabfood', label: 'GrabFood', netBps: 8000, enabled: true },
@@ -130,21 +128,24 @@ export async function resolvePosPostingConfig(
     return err(AppError.businessRule('pos.posting.taxRateMustBeInclusive', { taxCode }));
   }
 
+  // Per-location posSettings override → configurable global account map → default.
+  const acctCodes = await getPostingAccountCodes(tenantId);
+
   const cashAccount = await resolveAccountIdByCode(
     tenantId,
-    setting?.cashAccountCode ?? DEFAULT_CASH_ACCOUNT_CODE,
+    setting?.cashAccountCode ?? acctCodes['pos.cash'],
   );
   if (!cashAccount.ok) return cashAccount;
 
   const revenueAccount = await resolveAccountIdByCode(
     tenantId,
-    setting?.revenueAccountCode ?? DEFAULT_REVENUE_ACCOUNT_CODE,
+    setting?.revenueAccountCode ?? acctCodes['pos.revenue'],
   );
   if (!revenueAccount.ok) return revenueAccount;
 
   const donationTrustAccount = await resolveAccountIdByCode(
     tenantId,
-    setting?.donationTrustAccountCode ?? DEFAULT_DONATION_TRUST_ACCOUNT_CODE,
+    setting?.donationTrustAccountCode ?? acctCodes['pos.donationTrust'],
   );
   if (!donationTrustAccount.ok) return donationTrustAccount;
 

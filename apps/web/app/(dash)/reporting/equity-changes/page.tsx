@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 import { getEquityChangesAction } from './actions';
 import { EquityChangesClient } from './equity-client';
 
-export const metadata: Metadata = { title: 'Changes in Equity | Aroadri ERP' };
+export const metadata: Metadata = { title: 'Changes in Equity' };
 
 function todayWib(): string {
   return new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);

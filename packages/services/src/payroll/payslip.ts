@@ -21,6 +21,7 @@ import { and, db, eq, inArray } from '@erp/db';
 import { journalEntries } from '@erp/db/schema/accounting';
 import { locations, users } from '@erp/db/schema/auth';
 import { employees, payrollLines, payrolls, salaryComponents } from '@erp/db/schema/hr';
+import { cmsSettings } from '@erp/db/schema/cms';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -184,6 +185,20 @@ export async function getEmployeePayslip(
     journalEntryNumber = je?.number ?? null;
   }
 
+  const companySettingsRows = await db
+    .select({ key: cmsSettings.key, value: cmsSettings.value })
+    .from(cmsSettings)
+    .where(
+      and(
+        eq(cmsSettings.tenantId, ctx.tenantId),
+        inArray(cmsSettings.key, ['company.name', 'company.address'])
+      )
+    );
+
+  const companyMap = new Map(companySettingsRows.map((r) => [r.key, r.value]));
+  const companyName = String(companyMap.get('company.name') ?? 'PT Gandha Hill Catering Management Indonesia');
+  const companyAddress = companyMap.get('company.address') ? String(companyMap.get('company.address')) : null;
+
   return ok({
     payrollId: payroll.payroll.id,
     periodCode: payroll.payroll.periodCode,
@@ -193,14 +208,14 @@ export async function getEmployeePayslip(
     approvedAt: payroll.payroll.approvedAt,
     journalEntryNumber,
     employer: {
-      legalName: 'PT Gandha Hill Catering Management Indonesia',
+      legalName: companyName,
       locationName:
         (payroll.location?.name as { id?: string; en?: string })?.id ??
         (payroll.location?.name as { id?: string; en?: string })?.en ??
         payroll.location?.code ??
         payroll.payroll.locationId,
       locationCode: payroll.location?.code ?? payroll.payroll.locationId,
-      address: payroll.location?.address ?? null,
+      address: companyAddress ?? payroll.location?.address ?? null,
     },
     employee: {
       id: employee.id,

@@ -8,7 +8,7 @@ import { fetchJournalFormData } from '../../journals/actions';
 import { InvoiceForm } from './client';
 
 export const metadata: Metadata = {
-  title: 'New Invoice | Aroadri ERP',
+  title: 'New Invoice',
 };
 
 export default async function NewInvoicePage() {

@@ -14,7 +14,7 @@ import { JournalActionsUI } from './journal-actions-ui';
 import { getTranslations } from 'next-intl/server';
 
 export const metadata: Metadata = {
-  title: 'Journal Detail | Aroadri ERP',
+  title: 'Journal Detail',
 };
 
 export default async function JournalDetailPage({

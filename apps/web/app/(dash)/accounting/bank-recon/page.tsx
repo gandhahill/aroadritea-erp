@@ -9,7 +9,7 @@ import { fetchStatements } from './actions';
 import { BankReconListClient } from './list-client';
 
 export const metadata: Metadata = {
-  title: 'Bank Reconciliation | Aroadri ERP',
+  title: 'Bank Reconciliation',
 };
 
 export default async function BankReconPage() {

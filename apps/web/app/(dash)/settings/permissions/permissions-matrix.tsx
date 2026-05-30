@@ -4,6 +4,12 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, useTransition } from 'react';
 import {
+  NAV_ACCESS,
+  type NavAccessEntry,
+  pagesForPermission,
+  permissionsForGate,
+} from '@/lib/nav-access';
+import {
   type PermissionMatrix,
   createRoleAction,
   deleteRoleAction,
@@ -14,6 +20,7 @@ import {
 export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
   const t = useTranslations('settings.permissions');
   const tc = useTranslations('common');
+  const tn = useTranslations('nav');
   const locale = useLocale();
   const router = useRouter();
   const [grants, setGrants] = useState(matrix.grants);
@@ -47,6 +54,21 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
     }
     return [...map.entries()];
   }, [matrix.permissions]);
+
+  // All available permission codes (used by the Page → permission reference).
+  const allCodes = useMemo(() => matrix.permissions.map((p) => p.code), [matrix.permissions]);
+
+  // Navigable pages grouped by their top-level menu section, for the reverse
+  // "which permission unlocks page X?" reference table.
+  const navSections = useMemo(() => {
+    const map = new Map<string, NavAccessEntry[]>();
+    for (const entry of NAV_ACCESS) {
+      const list = map.get(entry.sectionKey) ?? [];
+      list.push(entry);
+      map.set(entry.sectionKey, list);
+    }
+    return [...map.entries()];
+  }, []);
 
   function isGranted(roleId: string, permissionId: string) {
     return new Set(grants[roleId] ?? []).has(permissionId);
@@ -134,8 +156,55 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
           <li>{t('hint.perPage')}</li>
           <li>{t('hint.moduleWildcard')}</li>
           <li>{t('hint.systemWildcard')}</li>
+          <li>{t('hint.pageReference')}</li>
         </ul>
       </div>
+
+      <details className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
+        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-semibold text-brand-ink hover:bg-brand-cream-1">
+          {t('pageReference.title')}
+        </summary>
+        <div className="space-y-4 border-t border-brand-cream-3 px-5 py-4">
+          <p className="text-xs text-brand-ink-3">{t('pageReference.hint')}</p>
+          {navSections.map(([sectionKey, entries]) => (
+            <div key={sectionKey}>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-brand-red">
+                {tn(sectionKey as never)}
+              </h3>
+              <table className="mt-1 w-full text-sm">
+                <tbody className="divide-y divide-brand-cream-3">
+                  {entries.map((entry) => {
+                    const codes = permissionsForGate(entry.gate, allCodes);
+                    return (
+                      <tr key={entry.href} className="align-top">
+                        <td className="w-1/3 py-1.5 pr-4 text-brand-ink">{tn(entry.labelKey as never)}</td>
+                        <td className="py-1.5">
+                          <div className="flex flex-wrap gap-1">
+                            {codes.length === 0 ? (
+                              <span className="text-[11px] text-brand-ink-3">
+                                {t('pageReference.systemOnly')}
+                              </span>
+                            ) : (
+                              codes.map((code) => (
+                                <code
+                                  key={code}
+                                  className="rounded bg-brand-cream-2 px-1.5 py-0.5 font-mono text-[11px] text-brand-ink-2"
+                                >
+                                  {code}
+                                </code>
+                              ))
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
+      </details>
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
         <div className="mb-4">
@@ -272,6 +341,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
               <tbody className="divide-y divide-brand-cream-3 bg-card">
                 {permissions.map((permission) => {
                   const desc = permission.description as Record<string, string> | null;
+                  const unlocked = pagesForPermission(permission.code);
                   return (
                     <tr key={permission.id} className="hover:bg-brand-cream-1/60">
                       <td className="sticky left-0 z-10 bg-card px-4 py-3">
@@ -283,6 +353,16 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                             {desc[locale] ?? desc.id ?? desc.en ?? ''}
                           </p>
                         )}
+                        {permission.code === '*.*' ? (
+                          <p className="mt-1 text-[11px] font-medium text-brand-jade">
+                            {t('entireSystem')}
+                          </p>
+                        ) : unlocked.length > 0 ? (
+                          <p className="mt-1 text-[11px] text-brand-ink-3">
+                            <span className="font-semibold text-brand-ink-2">{t('unlocks')}: </span>
+                            {unlocked.map((page) => tn(page.labelKey as never)).join(' · ')}
+                          </p>
+                        ) : null}
                       </td>
                       {matrix.roles.map((role) => (
                         <td key={role.id} className="px-4 py-3 text-center">

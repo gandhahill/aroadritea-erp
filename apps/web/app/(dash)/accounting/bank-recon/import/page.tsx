@@ -8,7 +8,7 @@ import { fetchImportMasterData } from '../actions';
 import { ImportClient } from './import-client';
 
 export const metadata: Metadata = {
-  title: 'Import Bank Statement | Aroadri ERP',
+  title: 'Import Bank Statement',
 };
 
 export default async function ImportBankReconPage() {

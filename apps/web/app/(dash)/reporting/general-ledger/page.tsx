@@ -9,7 +9,7 @@ import { LedgerClient } from './ledger-client';
 import { db, eq } from '@erp/db';
 import { accounts } from '@erp/db/schema/accounting';
 
-export const metadata: Metadata = { title: 'General Ledger | Aroadri ERP' };
+export const metadata: Metadata = { title: 'General Ledger' };
 
 function todayWib(): string {
   return new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);

@@ -21,6 +21,11 @@ import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, isNull, sql, desc } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
+import {
+  POSTING_ACCOUNT_DEFAULTS,
+  getPostingAccountCodes,
+  getPostingAccountOverrides,
+} from '../accounting/posting-accounts';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import {
@@ -30,10 +35,10 @@ import {
   type CreatePurchaseInvoiceInput,
 } from './purchase-invoice-schemas';
 
-const AP_ACCOUNT_CODE = '2-1100'; // Utang Usaha
+// Legacy AP setting (id-based) kept for back-compat; the configurable account
+// map (Settings → Accounting → Account Mapping) now takes priority. GRNI &
+// PPN Masukan also come from that map. See accounting/posting-accounts.ts.
 const AP_SETTING_KEY = 'accounting.payables.accountIds';
-const GRNI_ACCOUNT_CODE = '2-1110'; // Goods Received Not Invoiced
-const VAT_IN_ACCOUNT_CODE = '1-4100'; // PPN Masukan
 
 async function resolveAccountId(tenantId: string, code: string): Promise<string | null> {
   const [row] = await db
@@ -45,6 +50,14 @@ async function resolveAccountId(tenantId: string, code: string): Promise<string 
 }
 
 async function resolvePayablesAccountId(tenantId: string): Promise<string | null> {
+  // 1. Explicit override from the new account map wins.
+  const overrides = await getPostingAccountOverrides(tenantId);
+  if (overrides['purchasing.ap']) {
+    const id = await resolveAccountId(tenantId, overrides['purchasing.ap']);
+    if (id) return id;
+  }
+
+  // 2. Back-compat: legacy id-based AP setting.
   const [setting] = await db
     .select({ value: cmsSettings.value })
     .from(cmsSettings)
@@ -72,15 +85,18 @@ async function resolvePayablesAccountId(tenantId: string): Promise<string | null
     if (rows[0]?.id) return rows[0].id;
   }
 
-  return resolveAccountId(tenantId, AP_ACCOUNT_CODE);
+  // 3. Default.
+  return resolveAccountId(tenantId, POSTING_ACCOUNT_DEFAULTS['purchasing.ap']);
 }
 
 async function resolveGrniAccountId(tenantId: string): Promise<string | null> {
-  return resolveAccountId(tenantId, GRNI_ACCOUNT_CODE);
+  const codes = await getPostingAccountCodes(tenantId);
+  return resolveAccountId(tenantId, codes['purchasing.grni']);
 }
 
 async function resolveVatInAccountId(tenantId: string): Promise<string | null> {
-  return resolveAccountId(tenantId, VAT_IN_ACCOUNT_CODE);
+  const codes = await getPostingAccountCodes(tenantId);
+  return resolveAccountId(tenantId, codes['purchasing.vatIn']);
 }
 
 async function generateInvoiceNumber(tenantId: string, invoiceDate: string): Promise<string> {

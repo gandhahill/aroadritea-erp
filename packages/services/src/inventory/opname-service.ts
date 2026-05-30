@@ -29,22 +29,16 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
 import { createJournal } from '../accounting/create-journal';
+import { getPostingAccountCodes } from '../accounting/posting-accounts';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { generateOpnameNumber } from '../shared/number-generator';
 
 type SupportedLocale = 'id' | 'en' | 'zh';
 
-// ─── Default COA codes for variance JE ────────────────────────────────────
-//
-// COA *codes* — resolved to UUIDs at posting time via
-// `resolveAccountIdsByCodes`. createJournal validates accountId against
-// accounts.id (UUID), so passing the code directly would fail with
-// `accountNotFound`.
-
-const DEFAULT_INVENTORY_CODE = '1-1210'; // Persediaan Barang Dagangan
-const EXPENSE_CODE = '6-1110'; // Beban Operasional Lainnya (shortage)
-const INCOME_CODE = '4-2020'; // Pendapatan Lainnya (surplus)
+// Variance JE accounts (inventory + shortage expense / surplus income) come
+// from the configurable account map (Settings → Accounting → Account Mapping);
+// see accounting/posting-accounts.ts. Resolved to UUIDs at posting time.
 
 // ─── Return types ─────────────────────────────────────────────────────────────
 
@@ -691,21 +685,25 @@ export async function approveOpname(
   if (totalVarianceValue !== BigInt(0)) {
     // Resolve codes to UUIDs once (both shortage and surplus need the
     // inventory account + one of expense/income).
+    const acctCodes = await getPostingAccountCodes(ctx.tenantId);
+    const inventoryCode = acctCodes.inventory;
+    const expenseCode = acctCodes['adjustment.expense'];
+    const incomeCode = acctCodes['adjustment.income'];
     const codeMap = await resolveAccountIdsByCodes(ctx.tenantId, [
-      DEFAULT_INVENTORY_CODE,
-      EXPENSE_CODE,
-      INCOME_CODE,
+      inventoryCode,
+      expenseCode,
+      incomeCode,
     ]);
-    const inventoryAccountId = codeMap.get(DEFAULT_INVENTORY_CODE);
-    const expenseAccountId = codeMap.get(EXPENSE_CODE);
-    const incomeAccountId = codeMap.get(INCOME_CODE);
+    const inventoryAccountId = codeMap.get(inventoryCode);
+    const expenseAccountId = codeMap.get(expenseCode);
+    const incomeAccountId = codeMap.get(incomeCode);
     if (!inventoryAccountId || !expenseAccountId || !incomeAccountId) {
       return err(
         AppError.businessRule('inventory.opname.varianceAccountsMissing', {
           missing: [
-            !inventoryAccountId ? DEFAULT_INVENTORY_CODE : null,
-            !expenseAccountId ? EXPENSE_CODE : null,
-            !incomeAccountId ? INCOME_CODE : null,
+            !inventoryAccountId ? inventoryCode : null,
+            !expenseAccountId ? expenseCode : null,
+            !incomeAccountId ? incomeCode : null,
           ].filter(Boolean),
         }),
       );

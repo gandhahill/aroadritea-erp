@@ -3,7 +3,7 @@ import { fetchDocsEditorContent } from './actions';
 import { DocsEditorForm } from './docs-editor-form';
 
 export const metadata: Metadata = {
-  title: 'CMS Documentation | Aroadri ERP',
+  title: 'CMS Documentation',
 };
 
 export default async function CmsDocsPage() {

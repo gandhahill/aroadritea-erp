@@ -8,7 +8,7 @@ import { fetchInvoicesAction } from './actions';
 import { PageHeader } from '@/components/page-header';
 
 export const metadata: Metadata = {
-  title: 'Invoices | Aroadri ERP',
+  title: 'Invoices',
 };
 
 export default async function InvoicesPage() {

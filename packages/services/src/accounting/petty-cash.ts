@@ -16,6 +16,7 @@ import { and, desc, eq, gte, sql } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { createJournal } from './create-journal';
+import { getPostingAccountCodes } from './posting-accounts';
 import {
   type CreatePettyCashAccountInput,
   CreatePettyCashAccountSchema,
@@ -533,8 +534,9 @@ async function postBankDepositJournal(
     )
     .limit(1)
     .then((rows) => rows[0]);
-  const bankCode = setting?.bankCode ?? '1-1200';
-  const pettyCode = '1-1310';
+  const acctCodes = await getPostingAccountCodes(args.tenantId);
+  const bankCode = setting?.bankCode ?? acctCodes.bank;
+  const pettyCode = acctCodes.pettyCash;
 
   const accountRows = await db
     .select({ id: accounts.id, code: accounts.code })
@@ -727,8 +729,9 @@ async function postOpeningCashTransfer(
     .limit(1)
     .then((rows) => rows[0]);
 
-  const cashCode = setting?.cashCode ?? '1-1100';
-  const pettyCode = '1-1310';
+  const acctCodes = await getPostingAccountCodes(args.tenantId);
+  const cashCode = setting?.cashCode ?? acctCodes.cash;
+  const pettyCode = acctCodes.pettyCash;
 
   const accountRows = await db
     .select({ id: accounts.id, code: accounts.code })

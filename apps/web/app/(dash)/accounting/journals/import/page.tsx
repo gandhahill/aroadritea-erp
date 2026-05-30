@@ -9,7 +9,7 @@ import { fetchJournalFormData } from '../actions';
 import { ImportJournalForm } from './import-journal-form';
 
 export const metadata: Metadata = {
-  title: 'Import Journal CSV - Aroadri ERP',
+  title: 'Import Journal CSV',
 };
 
 export default async function ImportJournalPage() {

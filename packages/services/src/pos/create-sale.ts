@@ -63,6 +63,7 @@ import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
+import { getPostingAccountCodes } from '../accounting/posting-accounts';
 import { generateQrPayload } from '../kitchen/generate-qr';
 import { queueOrderItems } from '../kitchen/kds-service';
 import { earnLoyaltyPoints } from '../crm';
@@ -83,9 +84,6 @@ import {
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const DEFAULT_PB1_TAX_CODE = 'PB1';
-const DEFAULT_CASH_ACCOUNT_CODE = '1-1300';
-const DEFAULT_REVENUE_ACCOUNT_CODE = '4-1100';
-const DEFAULT_DONATION_TRUST_ACCOUNT_CODE = '2-2050';
 const MANUAL_DISCOUNT_PROMOTION_ID = 'manual-pos-discount';
 const DEFAULT_DELIVERY_CHANNELS = [
   { id: 'gofood', label: 'GoFood', netBps: 8000, enabled: true },
@@ -271,28 +269,31 @@ async function resolvePosPostingConfig(
     return err(AppError.businessRule('pos.createSale.taxRateMustBeInclusive', { taxCode }));
   }
 
+  // Per-location posSettings override → configurable global account map → default.
+  const acctCodes = await getPostingAccountCodes(tenantId);
+
   const cashAccount = await resolveAccountIdByCode(
     tenantId,
-    setting?.cashAccountCode ?? DEFAULT_CASH_ACCOUNT_CODE,
+    setting?.cashAccountCode ?? acctCodes['pos.cash'],
   );
   if (!cashAccount.ok) return cashAccount;
 
   const revenueAccount = await resolveAccountIdByCode(
     tenantId,
-    setting?.revenueAccountCode ?? DEFAULT_REVENUE_ACCOUNT_CODE,
+    setting?.revenueAccountCode ?? acctCodes['pos.revenue'],
   );
   if (!revenueAccount.ok) return revenueAccount;
 
   const donationTrustAccount = await resolveAccountIdByCode(
     tenantId,
-    setting?.donationTrustAccountCode ?? DEFAULT_DONATION_TRUST_ACCOUNT_CODE,
+    setting?.donationTrustAccountCode ?? acctCodes['pos.donationTrust'],
   );
   if (!donationTrustAccount.ok) return donationTrustAccount;
 
-  const defaultCogsAccountId = await resolveAccountIdByCode(tenantId, '5-1100');
+  const defaultCogsAccountId = await resolveAccountIdByCode(tenantId, acctCodes.cogs);
   if (!defaultCogsAccountId.ok) return defaultCogsAccountId;
 
-  const defaultInventoryAccountId = await resolveAccountIdByCode(tenantId, '1-1210');
+  const defaultInventoryAccountId = await resolveAccountIdByCode(tenantId, acctCodes.inventory);
   if (!defaultInventoryAccountId.ok) return defaultInventoryAccountId;
 
   return ok({

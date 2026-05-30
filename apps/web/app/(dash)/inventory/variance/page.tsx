@@ -11,7 +11,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { VarianceClient } from './variance-client';
 
-export const metadata: Metadata = { title: 'Inventory Variance | Aroadri ERP' };
+export const metadata: Metadata = { title: 'Inventory Variance' };
 
 export default async function VariancePage() {
   const session = await getSession();

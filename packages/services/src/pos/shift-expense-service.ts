@@ -9,6 +9,7 @@ import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
+import { getPostingAccountCodes } from '../accounting/posting-accounts';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { autoPostJournalEntry } from './posting';
@@ -177,7 +178,8 @@ export async function approveShiftExpense(
         )
         .then((r) => r[0]);
 
-      const cashCode = setting?.cashCode ?? '1-1100';
+      const acctCodes = await getPostingAccountCodes(ctx.tenantId);
+      const cashCode = setting?.cashCode ?? acctCodes.cash;
 
       // We need the cashAccount's ID, not its code, for createJournal.
       // We will look it up inside createJournal flow or here.

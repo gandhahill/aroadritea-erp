@@ -2931,7 +2931,15 @@
         "title": "How permissions work",
         "perPage": "Each permission unlocks specific pages/actions — read the description under each code to see which page it covers.",
         "moduleWildcard": "A module wildcard (e.g. accounting.*) grants every permission inside that module.",
-        "systemWildcard": "*.* grants full access to the entire system (Director only)."
+        "systemWildcard": "*.* grants full access to the entire system (Director only).",
+        "pageReference": "Not sure which permission a page needs? Open “Find the permission for a page” below to look it up by page."
+      },
+      "unlocks": "Unlocks",
+      "entireSystem": "Unlocks every page in the system",
+      "pageReference": {
+        "title": "Find the permission for a page",
+        "hint": "Left: the page. Right: grant a role any one of these permissions to unlock that page (the Director’s full access *.* always works too).",
+        "systemOnly": "Full access only (*.*)"
       }
     },
     "bankAccounts": {
@@ -3258,16 +3266,46 @@
       "saving": "Saving..."
     },
     "accounting": {
-      "title": "Accounting Settings",
-      "subtitle": "Configure default accounts for accounting modules",
-      "purchasing": "Purchasing",
-      "purchasingDesc": "Default account mapped for purchase invoices",
-      "apAccount": "Accounts Payable (AP)",
-      "selectAccount": "Select AP Account...",
-      "apAccountHelp": "This account will be credited when posting a purchase invoice.",
-      "saveAction": "Save Settings",
-      "errorSelectAccount": "Please select an account.",
-      "saving": "Saving..."
+      "title": "Posting Account Mapping",
+      "subtitle": "Configure COA account mappings for modules that perform automatic journal posting.",
+      "hint": "Each module has a default account you can override. Changing an account will apply to new transactions only; historical transactions are unaffected.",
+      "missingWarning": "Some currently configured accounts are not found in the COA (they may have been deleted or deactivated). Please update the mappings highlighted in yellow.",
+      "saved": "Account mapping saved successfully.",
+      "saveFailed": "Failed to save account mapping.",
+      "notFound": "Account not found/inactive",
+      "resetToDefault": "Reset to {code}",
+      "defaultLabel": "Default: {code}",
+      "groups": {
+        "pos": "Point of Sale",
+        "inventory": "Inventory",
+        "purchasing": "Purchasing",
+        "cash": "Cash & Bank",
+        "payroll": "Payroll",
+        "other": "Other"
+      },
+      "purposes": {
+        "posCash": "POS Cash Receipts",
+        "posRevenue": "POS Sales Revenue",
+        "posDonationTrust": "Change Donation Trust",
+        "cogs": "Cost of Goods Sold (COGS)",
+        "inventory": "Inventory (Merchandise)",
+        "adjustmentExpense": "Inventory Shortage Expense",
+        "adjustmentIncome": "Inventory Surplus Income",
+        "purchasingGrni": "Goods Received Not Invoiced (GRNI)",
+        "purchasingAp": "Accounts Payable (AP)",
+        "purchasingVatIn": "Unbilled Input VAT",
+        "pettyCash": "Petty Cash",
+        "cash": "Main Cash",
+        "bank": "Bank Account",
+        "payrollSalaryExpense": "Salaries & Wages Expense",
+        "payrollTaxPayable": "Income Tax Payable",
+        "payrollBpjsPayable": "BPJS Payable",
+        "payrollNetPay": "Net Salary Payable",
+        "refundExpense": "Customer Refund Expense",
+        "fixedAssetGain": "Gain/Loss on Asset Disposal",
+        "periodIncomeSummary": "Income Summary",
+        "periodRetainedEarnings": "Retained Earnings"
+      }
     }
   },
   "workflow": {

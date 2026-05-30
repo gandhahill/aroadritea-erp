@@ -19,6 +19,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { createJournal } from '../accounting/create-journal';
+import { getPostingAccountCodes } from '../accounting/posting-accounts';
 import { reverseJournal } from '../accounting/reverse-journal';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
@@ -130,8 +131,16 @@ export async function approvePayroll(
 
     const totalEmployerBpjs = totalBpjsKesEmployer + totalBpjsJkkEmployer + totalBpjsJkmEmployer + totalBpjsJhtEmployer + totalBpjsJpEmployer;
 
-    // Look up account IDs by code (SD §21.8)
-    const accountCodes = ['BS-6201', 'LS-2201', 'LS-2202', 'LS-2203', 'AS-1101'];
+    // Posting accounts come from the configurable account map
+    // (Settings → Accounting → Account Mapping); see accounting/posting-accounts.ts.
+    // Defaults: salary→6-2000, PPh21→2-1300, BPJS→2-1200, net pay→1-1300.
+    const acctCodes = await getPostingAccountCodes(ctx.tenantId);
+    const salaryExpenseCode = acctCodes['payroll.salaryExpense'];
+    const taxPayableCode = acctCodes['payroll.taxPayable'];
+    const bpjsPayableCode = acctCodes['payroll.bpjsPayable'];
+    const netPayCode = acctCodes['payroll.netPay'];
+
+    const accountCodes = [salaryExpenseCode, taxPayableCode, bpjsPayableCode, netPayCode];
     const acctRows = await db
       .select({ id: accounts.id, code: accounts.code })
       .from(accounts)
@@ -160,7 +169,7 @@ export async function approvePayroll(
         lines: [
           // DR: Salary Expense (employee earnings)
           {
-            accountId: getAccountId('BS-6201'),
+            accountId: getAccountId(salaryExpenseCode),
             locationId: payroll.locationId,
             debit: String(payroll.totalEarnings),
             credit: '0',
@@ -170,7 +179,7 @@ export async function approvePayroll(
           ...(totalEmployerBpjs > 0n
             ? [
                 {
-                  accountId: getAccountId('BS-6201'),
+                  accountId: getAccountId(salaryExpenseCode),
                   locationId: payroll.locationId,
                   debit: String(totalEmployerBpjs),
                   credit: '0',
@@ -181,7 +190,7 @@ export async function approvePayroll(
           ...(totalPPh21 > 0n
             ? [
                 {
-                  accountId: getAccountId('LS-2201'),
+                  accountId: getAccountId(taxPayableCode),
                   locationId: payroll.locationId,
                   debit: '0',
                   credit: String(totalPPh21),
@@ -193,7 +202,7 @@ export async function approvePayroll(
           ...(totalBpjsKes + totalBpjsKesEmployer > 0n
             ? [
                 {
-                  accountId: getAccountId('LS-2202'),
+                  accountId: getAccountId(bpjsPayableCode),
                   locationId: payroll.locationId,
                   debit: '0',
                   credit: String(totalBpjsKes + totalBpjsKesEmployer),
@@ -205,7 +214,7 @@ export async function approvePayroll(
           ...(totalBpjsTk + totalBpjsJkkEmployer + totalBpjsJkmEmployer + totalBpjsJhtEmployer + totalBpjsJpEmployer > 0n
             ? [
                 {
-                  accountId: getAccountId('LS-2203'),
+                  accountId: getAccountId(bpjsPayableCode),
                   locationId: payroll.locationId,
                   debit: '0',
                   credit: String(totalBpjsTk + totalBpjsJkkEmployer + totalBpjsJkmEmployer + totalBpjsJhtEmployer + totalBpjsJpEmployer),
@@ -215,7 +224,7 @@ export async function approvePayroll(
             : []),
           // CR: Cash/Bank (net salary disbursement)
           {
-            accountId: getAccountId('AS-1101'),
+            accountId: getAccountId(netPayCode),
             locationId: payroll.locationId,
             debit: '0',
             credit: String(payroll.totalNet),

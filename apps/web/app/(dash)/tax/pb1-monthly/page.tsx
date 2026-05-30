@@ -10,7 +10,7 @@ import { getTranslations } from 'next-intl/server';
 export async function generateMetadata() {
   const t = await getTranslations('tax.pb1Monthly');
   return {
-    title: `${t('title')} - Aroadri Tea ERP`,
+    title: `${t('title')}`,
   };
 }
 

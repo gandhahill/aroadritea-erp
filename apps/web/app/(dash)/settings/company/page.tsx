@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { CompanySettingsForm } from './client';
 import { fetchCompanySettings } from './actions';
 
-export const metadata: Metadata = { title: 'Company Settings | Aroadri ERP' };
+export const metadata: Metadata = { title: 'Company Settings' };
 
 export default async function CompanySettingsPage() {
   const session = await getSession();

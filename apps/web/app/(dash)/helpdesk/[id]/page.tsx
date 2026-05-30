@@ -11,7 +11,7 @@ import { notFound, redirect } from 'next/navigation';
 import { getTicketAction } from '../actions';
 import { TicketDetailClient } from './ticket-detail-client';
 
-export const metadata: Metadata = { title: 'Ticket Detail | Aroadri ERP' };
+export const metadata: Metadata = { title: 'Ticket Detail' };
 
 export default async function TicketDetailPage({
   params,

@@ -18,7 +18,7 @@ import { approvePayrollAction, markPayrollPaidAction } from '../actions';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('hr.payroll');
-  return { title: `${t('detail.title')} | Aroadri ERP` };
+  return { title: `${t('detail.title')}` };
 }
 
 function fmtMoney(v: bigint | string): string {

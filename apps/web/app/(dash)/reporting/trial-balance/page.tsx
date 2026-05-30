@@ -14,7 +14,7 @@ import { ExportXlsxButton } from '../export-button';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('reporting.trialBalance');
-  return { title: `${t('title')} | Aroadri ERP` };
+  return { title: `${t('title')}` };
 }
 
 export default async function TrialBalancePage({

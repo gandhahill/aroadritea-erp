@@ -545,7 +545,7 @@ export function Sidebar({
     '/purchasing/shipments': 'purchasing.view',
 
     // Logistics
-    '/logistics/outgoing-shipments': 'inventory.transfer',
+    '/logistics/outgoing-shipments': 'logistics.shipments.view',
 
     // Tax
     '/tax/rates': 'tax.manage_rates',

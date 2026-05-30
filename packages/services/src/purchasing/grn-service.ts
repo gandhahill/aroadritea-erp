@@ -21,14 +21,14 @@ import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
+import { getPostingAccountCodes } from '../accounting/posting-accounts';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { ConfirmGRNInputSchema, CreateGRNInputSchema, type GRNLineInput } from './grn-schemas';
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const GRNI_ACCOUNT_CODE = '2-1110'; // Goods Received Not Invoiced
-const DEFAULT_INVENTORY_ACCOUNT_CODE = '1-1210'; // Persediaan Barang Dagangan
+// GRNI & inventory posting accounts come from the configurable account map
+// (Settings → Accounting → Account Mapping); see accounting/posting-accounts.ts.
+// A product may override its own inventory account via products.inventoryAccountId.
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -42,7 +42,8 @@ async function resolveAccountId(tenantId: string, code: string): Promise<string 
 }
 
 async function resolveGrniAccountId(tenantId: string): Promise<string | null> {
-  return resolveAccountId(tenantId, GRNI_ACCOUNT_CODE);
+  const codes = await getPostingAccountCodes(tenantId);
+  return resolveAccountId(tenantId, codes['purchasing.grni']);
 }
 
 function addDays(date: string, days: number): string {
@@ -64,8 +65,9 @@ async function resolveInventoryAccountForProduct(
 
   if (row?.inventoryAccountId) return row.inventoryAccountId;
 
-  const fallback = await resolveAccountId(tenantId, DEFAULT_INVENTORY_ACCOUNT_CODE);
-  return fallback ?? DEFAULT_INVENTORY_ACCOUNT_CODE;
+  const codes = await getPostingAccountCodes(tenantId);
+  const fallback = await resolveAccountId(tenantId, codes.inventory);
+  return fallback ?? codes.inventory;
 }
 
 async function generateGRNNumber(

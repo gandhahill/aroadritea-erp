@@ -21,7 +21,7 @@ import {
 } from './actions';
 
 export const metadata: Metadata = {
-  title: 'Leave Management | Aroadri ERP',
+  title: 'Leave Management',
 };
 
 export default async function LeavePage() {

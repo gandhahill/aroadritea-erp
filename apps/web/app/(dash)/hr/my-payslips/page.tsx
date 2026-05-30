@@ -15,7 +15,7 @@ import { redirect } from 'next/navigation';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('hr.payslip');
-  return { title: `${t('title')} | Aroadri ERP` };
+  return { title: `${t('title')}` };
 }
 
 const IDR = new Intl.NumberFormat('id-ID', {

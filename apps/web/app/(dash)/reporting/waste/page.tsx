@@ -11,7 +11,7 @@ import { redirect } from 'next/navigation';
 import { fetchWaste } from './actions';
 import { WasteClient } from './waste-client';
 
-export const metadata: Metadata = { title: 'Waste / Spoilage | Aroadri ERP' };
+export const metadata: Metadata = { title: 'Waste / Spoilage' };
 
 function todayWib(): string {
   return new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);

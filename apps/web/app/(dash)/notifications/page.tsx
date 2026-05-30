@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchMyNotifications, markAllReadAction, markReadAction } from './actions';
 
-export const metadata: Metadata = { title: 'Notifications | Aroadri ERP' };
+export const metadata: Metadata = { title: 'Notifications' };
 
 export default async function NotificationsPage() {
   const session = await getSession();

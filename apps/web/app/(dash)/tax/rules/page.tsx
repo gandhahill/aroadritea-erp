@@ -10,7 +10,7 @@ import {
 } from './actions';
 
 export const metadata: Metadata = {
-  title: 'Tax Rules - Aroadri ERP',
+  title: 'Tax Rules',
 };
 
 export default async function TaxRulesPage() {

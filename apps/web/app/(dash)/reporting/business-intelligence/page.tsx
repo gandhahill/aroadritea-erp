@@ -12,7 +12,7 @@ import type { ReactNode } from 'react';
 import { DonutChart, HorizontalBarChart, TrendLineChart, VerticalBarChart } from './charts';
 
 export const metadata: Metadata = {
-  title: 'Business Intelligence | Aroadri ERP',
+  title: 'Business Intelligence',
 };
 
 function ymd(date: Date): string {

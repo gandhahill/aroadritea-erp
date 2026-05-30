@@ -8,7 +8,7 @@ import { fetchPermissionMatrix } from './actions';
 import { PermissionsMatrix } from './permissions-matrix';
 
 export const metadata: Metadata = {
-  title: 'Permissions | Aroadri ERP',
+  title: 'Permissions',
 };
 
 export default async function PermissionsPage() {

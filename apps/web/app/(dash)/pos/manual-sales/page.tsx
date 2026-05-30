@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { fetchManualSalesPageData } from './actions';
 import { ManualSalesClient } from './manual-sales-client';
 
-export const metadata: Metadata = { title: 'Manual Sales Closing | Aroadri ERP' };
+export const metadata: Metadata = { title: 'Manual Sales Closing' };
 
 export default async function ManualSalesPage({
   searchParams,

@@ -12,7 +12,7 @@ import {
 import { PettyCashView } from './petty-cash-view';
 
 export const metadata: Metadata = {
-  title: 'Petty Cash | Aroadri ERP',
+  title: 'Petty Cash',
 };
 
 export default async function PettyCashPage() {

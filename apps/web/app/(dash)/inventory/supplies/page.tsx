@@ -18,7 +18,7 @@ import { fetchProductMasterData } from '../products/actions';
 import { ProductRowActions } from '../products/row-actions';
 
 export const metadata: Metadata = {
-  title: 'Bahan Baku & Perlengkapan - Aroadri ERP',
+  title: 'Bahan Baku & Perlengkapan',
 };
 
 type ProductKind = 'finished_good' | 'raw_material' | 'merchandise' | 'consumable' | 'service';

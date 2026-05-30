@@ -12,7 +12,7 @@ import { redirect } from 'next/navigation';
 import { fetchHourlySales } from './actions';
 import { HourlySalesClient } from './hourly-sales-client';
 
-export const metadata: Metadata = { title: 'Hourly Sales | Aroadri ERP' };
+export const metadata: Metadata = { title: 'Hourly Sales' };
 
 export default async function HourlySalesPage({
   searchParams,

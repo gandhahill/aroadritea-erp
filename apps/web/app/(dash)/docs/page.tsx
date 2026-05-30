@@ -14,7 +14,7 @@ import {
 } from './editable-docs';
 
 export const metadata: Metadata = {
-  title: 'Docs - Aroadri ERP',
+  title: 'Docs',
 };
 
 type Audience = 'staff' | 'management' | 'developer';

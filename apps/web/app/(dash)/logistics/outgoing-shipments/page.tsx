@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Outgoing Shipments | Aroadri ERP',
+  title: 'Outgoing Shipments',
 };
 
 export default async function OutgoingShipmentsPage() {

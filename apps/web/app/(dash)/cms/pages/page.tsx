@@ -12,7 +12,7 @@ import { fetchCmsPages } from '../actions';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('cms.pages');
-  return { title: `${t('title')} | Aroadri ERP` };
+  return { title: `${t('title')}` };
 }
 
 const STATUS_COLORS: Record<string, string> = {

@@ -3459,7 +3459,15 @@
         "title": "Cara kerja hak akses",
         "perPage": "Setiap hak akses membuka halaman/aksi tertentu — baca keterangan di bawah tiap kode untuk tahu halaman yang dicakup.",
         "moduleWildcard": "Wildcard modul (mis. accounting.*) memberi semua hak akses di dalam modul itu.",
-        "systemWildcard": "*.* memberi akses penuh ke seluruh sistem (khusus Direktur)."
+        "systemWildcard": "*.* memberi akses penuh ke seluruh sistem (khusus Direktur).",
+        "pageReference": "Bingung halaman tertentu butuh permission apa? Buka “Cari permission untuk sebuah halaman” di bawah untuk mencarinya per halaman."
+      },
+      "unlocks": "Membuka",
+      "entireSystem": "Membuka seluruh halaman di sistem",
+      "pageReference": {
+        "title": "Cari permission untuk sebuah halaman",
+        "hint": "Kiri: nama halaman. Kanan: beri role salah satu permission ini untuk membuka halaman tersebut (akses penuh Direktur *.* juga selalu bisa).",
+        "systemOnly": "Hanya akses penuh (*.*)"
       }
     },
     "bankAccounts": {
@@ -3786,16 +3794,46 @@
       "saving": "Menyimpan..."
     },
     "accounting": {
-      "title": "Pengaturan Akuntansi",
-      "subtitle": "Atur akun default untuk modul akuntansi",
-      "purchasing": "Pembelian",
-      "purchasingDesc": "Akun default yang dipetakan untuk invoice pembelian",
-      "apAccount": "Akun Utang (AP)",
-      "selectAccount": "Pilih Akun Utang...",
-      "apAccountHelp": "Akun ini akan dikreditkan saat mem-posting invoice pembelian.",
-      "saveAction": "Simpan Pengaturan",
-      "errorSelectAccount": "Harap pilih akun.",
-      "saving": "Menyimpan..."
+      "title": "Pemetaan Akun Jurnal",
+      "subtitle": "Atur pemetaan akun COA untuk setiap modul yang melakukan posting jurnal otomatis.",
+      "hint": "Setiap modul memiliki akun default yang bisa Anda timpa. Jika akun diubah, transaksi baru akan menggunakan akun yang baru, sementara transaksi lama tidak terpengaruh.",
+      "missingWarning": "Beberapa akun yang saat ini terkonfigurasi tidak ditemukan di COA (mungkin telah dihapus atau dinonaktifkan). Harap perbarui pemetaan yang ditandai warna kuning.",
+      "saved": "Pemetaan akun berhasil disimpan.",
+      "saveFailed": "Gagal menyimpan pemetaan akun.",
+      "notFound": "Akun tidak ditemukan/nonaktif",
+      "resetToDefault": "Kembalikan ke {code}",
+      "defaultLabel": "Default: {code}",
+      "groups": {
+        "pos": "Point of Sale (Kasir)",
+        "inventory": "Persediaan",
+        "purchasing": "Pembelian",
+        "cash": "Kas & Bank",
+        "payroll": "Penggajian",
+        "other": "Lainnya"
+      },
+      "purposes": {
+        "posCash": "Penerimaan Kas Kasir",
+        "posRevenue": "Pendapatan Penjualan POS",
+        "posDonationTrust": "Titipan Donasi Kembalian",
+        "cogs": "Harga Pokok Penjualan (HPP)",
+        "inventory": "Persediaan Barang Dagang",
+        "adjustmentExpense": "Beban Selisih Kurang Persediaan",
+        "adjustmentIncome": "Pendapatan Selisih Lebih Persediaan",
+        "purchasingGrni": "Penerimaan Barang Belum Ditagih (GRNI)",
+        "purchasingAp": "Utang Usaha (AP)",
+        "purchasingVatIn": "Pajak Masukan Belum Difakturkan",
+        "pettyCash": "Kas Kecil (Petty Cash)",
+        "cash": "Kas Utama",
+        "bank": "Rekening Bank",
+        "payrollSalaryExpense": "Beban Gaji & Upah",
+        "payrollTaxPayable": "Utang PPh 21",
+        "payrollBpjsPayable": "Utang Iuran BPJS",
+        "payrollNetPay": "Utang Gaji Bersih",
+        "refundExpense": "Beban Refund Pelanggan",
+        "fixedAssetGain": "Keuntungan/Kerugian Pelepasan Aset",
+        "periodIncomeSummary": "Ikhtisar Laba Rugi",
+        "periodRetainedEarnings": "Laba Ditahan"
+      }
     }
   },
   "shell": {

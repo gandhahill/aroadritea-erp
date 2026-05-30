@@ -15,7 +15,7 @@ import { fetchEmployeeLocationOptions } from './actions';
 import { EmployeeListClient } from './employee-list-client';
 import { ExportEmployeesButton } from './export-employees-button';
 
-export const metadata: Metadata = { title: 'Employees | Aroadri ERP' };
+export const metadata: Metadata = { title: 'Employees' };
 
 const STATUS_COLOR: Record<string, { bg: string; text: string }> = {
   probation: { bg: 'bg-brand-gold/10', text: 'text-brand-gold' },

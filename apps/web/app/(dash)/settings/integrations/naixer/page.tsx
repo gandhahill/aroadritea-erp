@@ -19,7 +19,7 @@ import { ModifierCodesTable } from './modifier-codes-table';
 import { ProductCodesTable } from './product-codes-table';
 
 export const metadata: Metadata = {
-  title: 'Naixer KDS Integration | Aroadri ERP',
+  title: 'Naixer KDS Integration',
 };
 
 import { PageHeader } from '@/components/page-header';

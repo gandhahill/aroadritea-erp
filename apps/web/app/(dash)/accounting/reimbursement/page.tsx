@@ -7,7 +7,7 @@ import { fetchLocations, fetchReimbursements } from './actions';
 import { ReimbursementClient } from './reimbursement-view';
 
 export const metadata: Metadata = {
-  title: 'Reimbursement | Aroadri ERP',
+  title: 'Reimbursement',
 };
 
 export default async function ReimbursementPage() {

@@ -2994,7 +2994,15 @@
         "title": "权限如何运作",
         "perPage": "每个权限解锁特定页面/操作——请阅读每个代码下方的说明以了解其涵盖的页面。",
         "moduleWildcard": "模块通配符（如 accounting.*）授予该模块内的所有权限。",
-        "systemWildcard": "*.* 授予对整个系统的完全访问权限（仅限总监）。"
+        "systemWildcard": "*.* 授予对整个系统的完全访问权限（仅限总监）。",
+        "pageReference": "不确定某个页面需要哪个权限？打开下方的“按页面查找权限”进行查询。"
+      },
+      "unlocks": "可访问",
+      "entireSystem": "可访问系统中的所有页面",
+      "pageReference": {
+        "title": "按页面查找权限",
+        "hint": "左侧：页面。右侧：为角色授予其中任意一个权限即可解锁该页面（总监的完整访问权限 *.* 同样适用）。",
+        "systemOnly": "仅完整访问 (*.*)"
       }
     },
     "notifications": {
@@ -3258,16 +3266,46 @@
       "saving": "保存中..."
     },
     "accounting": {
-      "title": "会计设置",
-      "subtitle": "配置会计模块的默认账户",
-      "purchasing": "采购",
-      "purchasingDesc": "采购发票映射的默认账户",
-      "apAccount": "应付账款 (AP)",
-      "selectAccount": "选择应付账款...",
-      "apAccountHelp": "过账采购发票时将贷记此账户。",
-      "saveAction": "保存设置",
-      "errorSelectAccount": "请选择账户。",
-      "saving": "保存中..."
+      "title": "科目映射设置",
+      "subtitle": "为执行自动日记账过账的模块配置 COA 科目映射。",
+      "hint": "每个模块都有一个您可以覆盖的默认科目。更改科目仅适用于新交易；历史交易不受影响。",
+      "missingWarning": "目前配置的一些科目在 COA 中未找到（它们可能已被删除或停用）。请更新黄色高亮显示的映射。",
+      "saved": "科目映射已成功保存。",
+      "saveFailed": "保存科目映射失败。",
+      "notFound": "科目未找到/停用",
+      "resetToDefault": "重置为 {code}",
+      "defaultLabel": "默认: {code}",
+      "groups": {
+        "pos": "收银台 (POS)",
+        "inventory": "库存",
+        "purchasing": "采购",
+        "cash": "现金与银行",
+        "payroll": "工资",
+        "other": "其他"
+      },
+      "purposes": {
+        "posCash": "POS 现金收款",
+        "posRevenue": "POS 销售收入",
+        "posDonationTrust": "找零捐赠",
+        "cogs": "销售成本 (COGS)",
+        "inventory": "库存 (商品)",
+        "adjustmentExpense": "库存盘亏费用",
+        "adjustmentIncome": "库存盘盈收入",
+        "purchasingGrni": "已收货未开票 (GRNI)",
+        "purchasingAp": "应付账款 (AP)",
+        "purchasingVatIn": "未开票进项税",
+        "pettyCash": "备用金",
+        "cash": "主现金",
+        "bank": "银行账户",
+        "payrollSalaryExpense": "工资与薪金费用",
+        "payrollTaxPayable": "应付所得税",
+        "payrollBpjsPayable": "应付 BPJS",
+        "payrollNetPay": "应付净工资",
+        "refundExpense": "客户退款费用",
+        "fixedAssetGain": "资产处置损益",
+        "periodIncomeSummary": "本年利润汇总",
+        "periodRetainedEarnings": "留存收益"
+      }
     }
   },
   "workflow": {

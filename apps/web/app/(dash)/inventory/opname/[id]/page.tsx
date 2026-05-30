@@ -25,7 +25,7 @@ import {
 import { OpnameLineTable } from './opname-lines-table';
 import { OpnameWorkflowBar } from './opname-workflow-bar';
 
-export const metadata: Metadata = { title: 'Stock Opname Detail | Aroadri ERP' };
+export const metadata: Metadata = { title: 'Stock Opname Detail' };
 
 // STATUS_CONFIG is handled dynamically now
 

@@ -6,7 +6,7 @@ import { fetchLocationOptions, fetchTransferList } from './actions';
 import { TransferListClient } from './transfer-list-client';
 
 export const metadata: Metadata = {
-  title: 'Stock Transfer | Aroadri ERP',
+  title: 'Stock Transfer',
 };
 
 export default async function TransferListPage(props: {

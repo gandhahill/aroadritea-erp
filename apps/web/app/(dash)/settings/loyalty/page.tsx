@@ -13,7 +13,7 @@ import { fetchLoyaltyConfig } from './actions';
 import { LoyaltySettingsForm } from './loyalty-settings-form';
 
 export const metadata: Metadata = {
-  title: 'Loyalty Settings | Aroadri ERP',
+  title: 'Loyalty Settings',
 };
 
 export default async function LoyaltySettingsPage() {

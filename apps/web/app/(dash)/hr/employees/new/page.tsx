@@ -6,7 +6,7 @@ import { fetchAssignableRoles, fetchEmployeeLocationOptions } from '../actions';
 import { EmployeeForm } from './employee-form';
 
 export const metadata: Metadata = {
-  title: 'New Employee | Aroadri ERP',
+  title: 'New Employee',
 };
 
 export default async function NewEmployeePage() {
