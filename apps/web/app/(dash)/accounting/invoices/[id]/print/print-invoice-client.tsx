@@ -30,7 +30,7 @@ interface PrintInvoiceClientProps {
 }
 
 export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
-  const { invoice, lines, companyInfo } = data;
+  const { invoice, lines, companyInfo, bankAccounts = [] } = data;
 
   // Trigger print immediately on mount
   useEffect(() => {
@@ -216,15 +216,19 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
         {/* Footer Section */}
         <div className="mt-16 border-t border-brand-cream-2 pt-8 flex justify-between">
           <div className="w-1/2">
-            {invoice.type === 'sales' && companyInfo.bankName && companyInfo.bankAccount && (
+            {invoice.type === 'sales' && bankAccounts.length > 0 && (
               <div className="mb-6">
                 <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   {labels.paymentTo}
                 </h3>
-                <div className="text-sm text-brand-ink-2">
-                  <p className="font-semibold text-brand-ink">{companyInfo.bankName}</p>
-                  <p className="font-mono text-base font-medium text-brand-ink my-0.5">{companyInfo.bankAccount}</p>
-                  {companyInfo.bankAccountName && <p>a/n {companyInfo.bankAccountName}</p>}
+                <div className="text-sm text-brand-ink-2 space-y-4">
+                  {bankAccounts.map((bank: any) => (
+                    <div key={bank.id}>
+                      <p className="font-semibold text-brand-ink">{bank.bankName}</p>
+                      <p className="font-mono text-base font-medium text-brand-ink my-0.5">{bank.accountNumber}</p>
+                      <p>a/n {bank.accountHolder}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

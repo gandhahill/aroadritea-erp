@@ -3,12 +3,17 @@ import type { PermissionCode } from '@erp/shared/types';
 
 import { getSession } from '@/lib/auth';
 import { db, desc, eq, inArray, and } from '@erp/db';
-import { invoices } from '@erp/db';
-import { createInvoice, postInvoice } from '@erp/services/accounting';
-import type { AuditContext } from '@erp/shared/types';
-import { invoiceLines } from '@erp/db/schema/accounting';
+import {
+  accounts,
+  invoiceLines,
+  invoices,
+  partners,
+  bankAccounts,
+} from '@erp/db/schema/accounting';
 import { cmsSettings } from '@erp/db/schema/cms';
 import { locations } from '@erp/db/schema/auth';
+import { createInvoice, postInvoice } from '@erp/services/accounting';
+import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
 import { authorizedLocationIdsForTenant } from '@/lib/authz';
 
@@ -157,11 +162,13 @@ export async function fetchPrintInvoiceData(invoiceId: string) {
     address: '',
     npwp: '',
     phone: '',
-    bankName: 'BCA',
-    bankAccount: '1234567890',
-    bankAccountName: 'PT. Gandha Hill Catering Management Indonesia',
   };
 
-  return { invoice, lines, companyInfo };
+  const bankAccountsList = await db
+    .select()
+    .from(bankAccounts)
+    .where(and(eq(bankAccounts.tenantId, tenantId), eq(bankAccounts.isActive, true)));
+
+  return { invoice, lines, companyInfo, bankAccounts: bankAccountsList };
 }
 
