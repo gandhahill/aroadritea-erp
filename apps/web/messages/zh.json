@@ -1750,6 +1750,7 @@
     "attendance": "考勤",
     "checkIn": "签到",
     "schedule": "排班表",
+    "masterShifts": "班次主数据",
     "recruitment": "招聘",
     "leave": "请假",
     "payroll": "工资单",
@@ -2805,6 +2806,45 @@
         "swapFailed": "交换班次失败。",
         "deleteFailed": "删除日程失败。",
         "saveFailed": "保存日程失败。"
+      },
+      "shifts": {
+        "title": "班次主数据",
+        "subtitle": "管理每个位置的工作班次参考。",
+        "manage": "管理班次主数据",
+        "add": "添加班次",
+        "edit": "编辑",
+        "save": "保存",
+        "delete": "删除",
+        "confirmDelete": "您确定要删除此班次吗？",
+        "successSaved": "班次保存成功。",
+        "successDeleted": "班次删除成功。",
+        "table": {
+          "name": "名称",
+          "code": "代码",
+          "startTime": "开始",
+          "endTime": "结束",
+          "breakStart": "休息开始",
+          "breakEnd": "休息结束",
+          "status": "状态"
+        },
+        "form": {
+          "name": "班次名称 (例如，早班)",
+          "code": "班次代码 (唯一，例如，MORN)",
+          "startTime": "开始时间 (HH:MM)",
+          "endTime": "结束时间 (HH:MM)",
+          "breakStart": "休息开始 (可选)",
+          "breakEnd": "休息结束 (可选)"
+        },
+        "dialog": {
+          "addTitle": "添加新班次",
+          "editTitle": "编辑班次"
+        },
+        "errors": {
+          "loadFailed": "加载班次失败。",
+          "saveFailed": "保存班次失败。",
+          "deleteFailed": "删除班次失败。"
+        },
+        "empty": "此位置暂无班次主数据。"
       }
     },
     "employee": {

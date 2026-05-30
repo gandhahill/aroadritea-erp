@@ -1,0 +1,2 @@
+DROP INDEX IF EXISTS "shift_definitions_tenant_code_idx";--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "shift_definitions_tenant_loc_code_idx" ON "shift_definitions" USING btree ("tenant_id","location_id","code");

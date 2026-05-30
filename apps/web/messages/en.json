@@ -1756,6 +1756,7 @@
     "attendance": "Attendance",
     "checkIn": "Check In",
     "schedule": "Shift Schedule",
+    "masterShifts": "Master Shifts",
     "recruitment": "Recruitment",
     "leave": "Leave",
     "payroll": "Payroll",
@@ -2805,6 +2806,45 @@
         "swapFailed": "Failed to swap shift.",
         "deleteFailed": "Failed to delete schedule.",
         "saveFailed": "Failed to save schedule."
+      },
+      "shifts": {
+        "title": "Shift Master Data",
+        "subtitle": "Manage work shifts reference per location.",
+        "manage": "Manage Master Shifts",
+        "add": "Add Shift",
+        "edit": "Edit",
+        "save": "Save",
+        "delete": "Delete",
+        "confirmDelete": "Are you sure you want to delete this shift?",
+        "successSaved": "Shift saved successfully.",
+        "successDeleted": "Shift deleted successfully.",
+        "table": {
+          "name": "Name",
+          "code": "Code",
+          "startTime": "Start",
+          "endTime": "End",
+          "breakStart": "Break Start",
+          "breakEnd": "Break End",
+          "status": "Status"
+        },
+        "form": {
+          "name": "Shift Name (e.g., Morning Shift)",
+          "code": "Shift Code (unique, e.g., MORN)",
+          "startTime": "Start Time (HH:MM)",
+          "endTime": "End Time (HH:MM)",
+          "breakStart": "Break Start (optional)",
+          "breakEnd": "Break End (optional)"
+        },
+        "dialog": {
+          "addTitle": "Add New Shift",
+          "editTitle": "Edit Shift"
+        },
+        "errors": {
+          "loadFailed": "Failed to load shifts.",
+          "saveFailed": "Failed to save shift.",
+          "deleteFailed": "Failed to delete shift."
+        },
+        "empty": "No shift master data for this location yet."
       }
     },
     "employee": {

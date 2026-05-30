@@ -13,6 +13,7 @@ import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { fetchRoster } from './actions';
 import { ScheduleGrid } from './schedule-grid';
+import Link from 'next/link';
 
 export const metadata: Metadata = { title: 'Shift Schedule' };
 
@@ -60,7 +61,20 @@ export default async function SchedulePage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle')}</>} />
+      <PageHeader
+        title={<>{t('title')}</>}
+        description={<>{t('subtitle')}</>}
+        actions={
+          canManage ? (
+            <Link
+              href="/hr/schedule/shifts"
+              className="rounded-lg border border-brand-cream-3 bg-white px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
+            >
+              {t('shifts.manage')}
+            </Link>
+          ) : undefined
+        }
+      />
 
       <ScheduleGrid
         weekStart={weekStart}

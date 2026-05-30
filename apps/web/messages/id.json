@@ -1756,6 +1756,7 @@
     "attendance": "Kehadiran",
     "checkIn": "Presensi",
     "schedule": "Jadwal Shift",
+    "masterShifts": "Data Master Shift",
     "recruitment": "Rekrutmen",
     "leave": "Cuti",
     "payroll": "Penggajian",
@@ -2884,6 +2885,45 @@
         "swapFailed": "Gagal menukar shift.",
         "deleteFailed": "Gagal menghapus jadwal.",
         "saveFailed": "Gagal menyimpan jadwal."
+      },
+      "shifts": {
+        "title": "Master Data Shift",
+        "subtitle": "Kelola referensi jam kerja per lokasi.",
+        "manage": "Kelola Master Shift",
+        "add": "Tambah Shift",
+        "edit": "Edit",
+        "save": "Simpan",
+        "delete": "Hapus",
+        "confirmDelete": "Yakin ingin menghapus shift ini?",
+        "successSaved": "Shift berhasil disimpan.",
+        "successDeleted": "Shift berhasil dihapus.",
+        "table": {
+          "name": "Nama",
+          "code": "Kode",
+          "startTime": "Mulai",
+          "endTime": "Selesai",
+          "breakStart": "Mulai Istirahat",
+          "breakEnd": "Selesai Istirahat",
+          "status": "Status"
+        },
+        "form": {
+          "name": "Nama Shift (contoh: Shift Pagi)",
+          "code": "Kode Shift (unik, contoh: PAGI)",
+          "startTime": "Jam Mulai (HH:MM)",
+          "endTime": "Jam Selesai (HH:MM)",
+          "breakStart": "Mulai Istirahat (opsional)",
+          "breakEnd": "Selesai Istirahat (opsional)"
+        },
+        "dialog": {
+          "addTitle": "Tambah Shift Baru",
+          "editTitle": "Edit Shift"
+        },
+        "errors": {
+          "loadFailed": "Gagal memuat shift.",
+          "saveFailed": "Gagal menyimpan shift.",
+          "deleteFailed": "Gagal menghapus shift."
+        },
+        "empty": "Belum ada master data shift untuk lokasi ini."
       }
     },
     "employee": {

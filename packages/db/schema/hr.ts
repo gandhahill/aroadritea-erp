@@ -169,7 +169,7 @@ export const shiftDefinitions = pgTable(
     ...auditCols,
   },
   (table) => [
-    uniqueIndex('shift_definitions_tenant_code_idx').on(table.tenantId, table.code),
+    uniqueIndex('shift_definitions_tenant_loc_code_idx').on(table.tenantId, table.locationId, table.code),
     index('shift_definitions_tenant_active_idx').on(table.isActive),
   ],
 );
