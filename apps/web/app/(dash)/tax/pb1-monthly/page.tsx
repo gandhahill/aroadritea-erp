@@ -3,7 +3,7 @@ import { requirePermission } from '@erp/services/iam';
 import { redirect } from 'next/navigation';
 import { db } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
-import { eq } from '@erp/db';
+import { eq, and } from '@erp/db';
 import Pb1MonthlyClient from './client';
 import { getTranslations } from 'next-intl/server';
 
@@ -27,14 +27,17 @@ export default async function Pb1MonthlyPage() {
 
   const t = await getTranslations('tax.pb1Monthly');
 
-  // Get a default location for the client
-  const [locRow] = await db
-    .select({ id: locations.id })
+  // Fetch all active locations so the client can show a name dropdown (not a raw UUID).
+  const locRows = await db
+    .select({ id: locations.id, name: locations.name })
     .from(locations)
-    .where(eq(locations.tenantId, tenantId))
-    .limit(1);
-    
-  const defaultLocationId = locRow?.id ?? '';
+    .where(and(eq(locations.tenantId, tenantId), eq(locations.status, 'active')));
+
+  const locationOptions = locRows.map((l) => ({
+    id: l.id,
+    name: l.name as Record<string, string>,
+  }));
+  const defaultLocationId = locationOptions[0]?.id ?? '';
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
@@ -44,7 +47,7 @@ export default async function Pb1MonthlyPage() {
       <div className="hidden items-center space-x-2 md:flex">
         <p className="text-muted-foreground">{t('subtitle')}</p>
       </div>
-      <Pb1MonthlyClient initialLocationId={defaultLocationId} />
+      <Pb1MonthlyClient initialLocationId={defaultLocationId} locations={locationOptions} />
     </div>
   );
 }

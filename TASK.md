@@ -28,6 +28,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0264 | Live-testing remediation: schema-drift `drizzle-kit push`, IAM #2 wildcard grant + #3b logistics perms, shipments #3a creator-scope, remove /settings/users #5, pb1 location dropdown #4, stock-ledger filters #1, MCP token CRUD (apiTokens + SHA-256) | Claude Opus 4.8 | 2026-05-30 | 2026-05-30 | 🟨 IN_PROGRESS | DB fixes (schema sync + logistics perms) are LIVE; code changes pending commit/deploy. Full detail + remaining work (Coretax XML #9, settings consolidation, old mcp-token-service cleanup) in `docs/checkpoints/remediation-2026-05-30.checkpoint.md`. |
 | T-0211 | Payroll: field gaji pokok + pembuatan `employmentContracts` | Antigravity | 2026-05-29 09:54 WIB | 2026-05-29 09:58 WIB | ðŸŸ© DONE | Added baseSalary field, insert to employmentContracts, added payroll guard. |
 | T-0213 | Wire `postJournal`/`reverseJournal` ke server action + tombol UI | Antigravity | 2026-05-29 10:02 WIB | 2026-05-29 10:11 WIB | ðŸŸ© DONE | Added server actions, deleted service, and JournalActionsUI to the UI. |
 | T-0212 | Inventory: valuasi weighted-average + jurnal HPP saat penjualan | Antigravity | 2026-05-29 09:58 WIB | 2026-05-29 10:01 WIB | ðŸŸ© DONE | Calculated avgUnitCost during GRN/transfer, and posted COGS journal on sale using the product and ingredient accounts. |

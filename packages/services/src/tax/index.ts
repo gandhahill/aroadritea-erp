@@ -15,3 +15,4 @@ export {
 export * from './efaktur';
 export * from './spt-masa';
 export * from './withholding';
+export * from './bupot21';

@@ -24,9 +24,12 @@ export async function fetchOutgoingShipments() {
   }
 
   const conditions = [eq(outgoingShipments.tenantId, String(user.tenantId ?? 'default'))];
-  
+
   if (!scope.global) {
     conditions.push(inArray(outgoingShipments.locationId, scope.locationIds));
+    // Creator-scoped visibility (User Req 2026-05-30): staff without a global
+    // logistics role see only shipments they created; managers/director (global scope) see all.
+    conditions.push(eq(outgoingShipments.createdBy, String(user.id ?? '')));
   }
 
   const query = db

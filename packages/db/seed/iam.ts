@@ -431,6 +431,25 @@ export const PERMISSIONS_SEED = [
       '过账采购退货分录',
     ),
   },
+  // Logistics — outgoing shipments (parcels/documents to partners)
+  {
+    code: 'logistics.shipments.view',
+    module: 'logistics',
+    description: n(
+      'Lihat pengiriman keluar (Logistik › Pengiriman Keluar)',
+      'View outgoing shipments (Logistics › Outgoing Shipments)',
+      '查看发货单（物流›发货）',
+    ),
+  },
+  {
+    code: 'logistics.shipments.create',
+    module: 'logistics',
+    description: n(
+      'Buat & kelola pengiriman keluar (Logistik › Pengiriman Keluar › Baru)',
+      'Create & manage outgoing shipments (Logistics › Outgoing Shipments › New)',
+      '创建和管理发货单（物流›发货›新建）',
+    ),
+  },
   {
     code: 'crm.member.view',
     module: 'crm',
@@ -762,6 +781,8 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'purchasing.return.create',
     'purchasing.return.approve',
     'purchasing.return.post',
+    'logistics.shipments.view',
+    'logistics.shipments.create',
     'crm.member.view',
     'crm.member.adjustPoints',
     'helpdesk.create',
@@ -880,6 +901,8 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'correspondence.view',
     'correspondence.create',
     'correspondence.update',
+    'logistics.shipments.view',
+    'logistics.shipments.create',
     'kitchen.view',
     'reporting.view',
     'docs.view',

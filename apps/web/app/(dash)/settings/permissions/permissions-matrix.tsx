@@ -128,9 +128,18 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
         <p className="text-xs font-medium text-brand-ink-3">{tc('actions.saving')}</p>
       ) : null}
 
+      <div className="rounded-xl border border-brand-jade/20 bg-brand-jade-light/40 px-4 py-3 text-sm text-brand-ink">
+        <p className="font-semibold">{t('hint.title')}</p>
+        <ul className="mt-1 list-disc space-y-0.5 pl-5 text-brand-ink-2">
+          <li>{t('hint.perPage')}</li>
+          <li>{t('hint.moduleWildcard')}</li>
+          <li>{t('hint.systemWildcard')}</li>
+        </ul>
+      </div>
+
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
         <div className="mb-4">
-          <h2 className="text-base font-semibold text-brand-ink">Role</h2>
+          <h2 className="text-base font-semibold text-brand-ink">{t('roleSectionTitle')}</h2>
           <p className="mt-1 text-sm text-brand-ink-3">{t('subtitle')}</p>
         </div>
         <div className="grid gap-3 md:grid-cols-[1fr_1.3fr_1.3fr_1.3fr_auto]">

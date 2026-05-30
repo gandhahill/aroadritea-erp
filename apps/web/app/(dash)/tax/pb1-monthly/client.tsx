@@ -4,10 +4,22 @@ import { useState, useEffect, useTransition } from 'react';
 import { Button, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from '@erp/ui';
 import { fetchOmzetBulananAction, exportOmzetBulananXlsxAction } from './actions';
 import type { OmzetBulananResult } from '@erp/services/reporting';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
-export default function Pb1MonthlyClient({ initialLocationId }: { initialLocationId: string }) {
+interface LocationOption {
+  id: string;
+  name: Record<string, string>;
+}
+
+export default function Pb1MonthlyClient({
+  initialLocationId,
+  locations,
+}: {
+  initialLocationId: string;
+  locations: LocationOption[];
+}) {
   const t = useTranslations('tax.pb1Monthly');
+  const locale = useLocale();
   const [period, setPeriod] = useState<string>(
     `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
   );
@@ -59,7 +71,18 @@ export default function Pb1MonthlyClient({ initialLocationId }: { initialLocatio
           </div>
           <div className="w-full sm:w-64 grid gap-2">
             <label className="text-sm font-medium leading-none">{t('location')}</label>
-            <Input type="text" placeholder={t('locationIdPlaceholder')} value={locationId} onChange={(e: any) => setLocationId(e.target.value)} />
+            <select
+              value={locationId}
+              onChange={(e) => setLocationId(e.target.value)}
+              className="h-9 w-full rounded-md border border-brand-cream-3 bg-card px-2.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
+            >
+              {locations.length === 0 && <option value="">-</option>}
+              {locations.map((loc) => (
+                <option key={loc.id} value={loc.id}>
+                  {loc.name?.[locale] ?? loc.name?.id ?? loc.id}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
         <Button onClick={handleExport} disabled={isPending || !data} variant="secondary">

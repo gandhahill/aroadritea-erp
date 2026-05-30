@@ -16,6 +16,7 @@ import {
 } from '@erp/db';
 import { canGlobally, invalidatePermissionCache, requirePermission } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
+import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 
 export interface PermissionMatrixRole {
@@ -114,11 +115,12 @@ export async function setRolePermission(input: {
   permissionId: string;
   granted: boolean;
 }): Promise<{ ok: boolean; error?: string }> {
+  const t = await getTranslations('settings.permissions.errors');
   const ctx = await getContext();
-  if (!ctx) return { ok: false, error: 'Unauthenticated' };
+  if (!ctx) return { ok: false, error: t('unauthenticated') };
 
   const permission = await requirePermission(ctx.userId, 'iam.manage_permissions');
-  if (!permission.ok) return { ok: false, error: 'Forbidden' };
+  if (!permission.ok) return { ok: false, error: t('forbidden') };
 
   const [role] = await db
     .select({ id: roles.id, code: roles.code })
@@ -131,12 +133,16 @@ export async function setRolePermission(input: {
     .where(eq(permissions.id, input.permissionId))
     .limit(1);
 
-  if (!role || !permissionRow) return { ok: false, error: 'Role or permission not found' };
-  if (input.granted && permissionRow.code === '*.*') {
-    return { ok: false, error: 'Wildcard access cannot be granted from this UI' };
-  }
+  if (!role || !permissionRow) return { ok: false, error: t('notFound') };
 
   const isSystemWildcard = await canGlobally(ctx.userId, '*.*');
+
+  // Only a super-admin (holder of *.*) may grant the system-wide wildcard to a role.
+  // This lets a Director build a full-access role; everyone else must grant per-module.
+  if (input.granted && permissionRow.code === '*.*' && !isSystemWildcard) {
+    return { ok: false, error: t('wildcardSuperAdminOnly') };
+  }
+
   if (!isSystemWildcard) {
     const [selfAssignedRole] = await db
       .select({ roleId: userRoles.roleId })
@@ -144,7 +150,7 @@ export async function setRolePermission(input: {
       .where(and(eq(userRoles.userId, ctx.userId), eq(userRoles.roleId, input.roleId)))
       .limit(1);
     if (selfAssignedRole) {
-      return { ok: false, error: 'Cannot modify permissions on your own active role' };
+      return { ok: false, error: t('selfRole') };
     }
   }
 
@@ -161,7 +167,7 @@ export async function setRolePermission(input: {
       )
       .limit(1);
     if (wildcardGrant) {
-      return { ok: false, error: 'Wildcard access cannot be removed from this UI' };
+      return { ok: false, error: t('wildcardRemove') };
     }
   }
 

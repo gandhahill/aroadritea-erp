@@ -1654,7 +1654,12 @@
       "reference": "Referensi",
       "qtyDelta": "Perubahan Qty",
       "uom": "Satuan",
-      "noMovements": "Tidak ada pergerakan untuk produk dan lokasi ini."
+      "noMovements": "Tidak ada pergerakan untuk produk dan lokasi ini.",
+      "product": "Produk",
+      "location": "Lokasi",
+      "selectProduct": "Pilih produk…",
+      "selectLocation": "Pilih lokasi…",
+      "view": "Tampilkan"
     }
   },
   "nav": {
@@ -3377,7 +3382,38 @@
       "name": "Nama Token",
       "createdAt": "Dibuat",
       "lastUsedAt": "Terakhir Dipakai",
-      "empty": "Tidak ada token MCP."
+      "empty": "Tidak ada token MCP.",
+      "never": "Belum pernah",
+      "actions": "Aksi",
+      "create": {
+        "title": "Buat token",
+        "namePlaceholder": "mis. Claude Code, Gemini CLI",
+        "button": "Buat token",
+        "creating": "Membuat…"
+      },
+      "created": {
+        "title": "Token dibuat — salin sekarang",
+        "hint": "Token ini hanya ditampilkan sekali. Simpan di tempat aman; Anda tidak bisa melihatnya lagi.",
+        "copy": "Salin",
+        "copied": "Tersalin!",
+        "done": "Selesai"
+      },
+      "status": {
+        "label": "Status",
+        "active": "Aktif",
+        "revoked": "Dicabut",
+        "expired": "Kedaluwarsa"
+      },
+      "revoke": {
+        "button": "Cabut",
+        "confirm": "Cabut token ini? Aplikasi yang memakainya langsung kehilangan akses.",
+        "success": "Token dicabut."
+      },
+      "errors": {
+        "unauthorized": "Anda belum masuk.",
+        "mintFailed": "Gagal membuat token.",
+        "revokeFailed": "Gagal mencabut token."
+      }
     },
     "permissions": {
       "title": "Izin & Hak Akses",
@@ -3392,7 +3428,21 @@
         "savePermission": "Gagal menyimpan permission",
         "createRole": "Gagal membuat role",
         "saveRole": "Gagal menyimpan role",
-        "deleteRole": "Gagal menghapus role"
+        "deleteRole": "Gagal menghapus role",
+        "unauthenticated": "Anda belum masuk.",
+        "forbidden": "Anda tidak punya hak untuk mengelola hak akses.",
+        "notFound": "Peran atau hak akses tidak ditemukan.",
+        "wildcardSuperAdminOnly": "Hanya Direktur dengan akses penuh (*.*) yang bisa memberi akses penuh ke sebuah peran.",
+        "selfRole": "Anda tidak bisa mengubah hak akses pada peran aktif Anda sendiri.",
+        "wildcardRemove": "Akses penuh (*.*) tidak bisa dihapus dari layar ini."
+      },
+      "roleSectionTitle": "Peran",
+      "permissionColumn": "Hak Akses",
+      "hint": {
+        "title": "Cara kerja hak akses",
+        "perPage": "Setiap hak akses membuka halaman/aksi tertentu — baca keterangan di bawah tiap kode untuk tahu halaman yang dicakup.",
+        "moduleWildcard": "Wildcard modul (mis. accounting.*) memberi semua hak akses di dalam modul itu.",
+        "systemWildcard": "*.* memberi akses penuh ke seluruh sistem (khusus Direktur)."
       }
     },
     "bankAccounts": {
@@ -4252,7 +4302,9 @@
       "dpp": "DPP",
       "taxAmount": "Jumlah Pajak",
       "loading": "Memuat...",
-      "noData": "Belum ada pemotongan pajak untuk masa ini."
+      "noData": "Belum ada pemotongan pajak untuk masa ini.",
+      "exportBp21Xml": "Ekspor e-Bupot 21 (XML)",
+      "bp21Hint": "e-Bupot 21 (XML) mengambil PPh 21 dari payroll yang sudah disetujui/dibayar pada bulan terpilih dan menghasilkan file impor massal Coretax. Isi NPWP perusahaan di Pengaturan › Perusahaan terlebih dahulu."
     },
     "pb1Monthly": {
       "title": "Rekap PB1 Bulanan (SPTPD)",
@@ -4271,6 +4323,13 @@
       "loading": "Memuat...",
       "noData": "Tidak ada data.",
       "total": "TOTAL"
+    },
+    "bupot21": {
+      "unauthorized": "Anda belum masuk.",
+      "noPayroll": "Tidak ada payroll disetujui/dibayar untuk periode ini.",
+      "noWithholding": "Tidak ada potongan PPh 21 pada payroll periode ini.",
+      "invalidPeriod": "Periode tidak valid. Gunakan format YYYY-MM.",
+      "exportFailed": "Gagal mengekspor e-Bupot 21."
     }
   },
   "fields": {

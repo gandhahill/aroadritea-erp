@@ -3,7 +3,7 @@
 import { useState, useEffect, useTransition } from 'react';
 import { Button, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from '@erp/ui';
 import { useTranslations } from 'next-intl';
-import { fetchBuktiPotongAction, exportBuktiPotongCsvAction } from './actions';
+import { fetchBuktiPotongAction, exportBuktiPotongCsvAction, exportBupot21XmlAction } from './actions';
 import type { BupotSummaryRow } from '@erp/services/tax';
 
 export default function BupotClient() {
@@ -42,6 +42,22 @@ export default function BupotClient() {
     }
   };
 
+  const handleExportBp21 = async () => {
+    if (!period) return;
+    const res = await exportBupot21XmlAction(period);
+    if (res.error) {
+      toast.error(res.error);
+    } else if (res.xml && res.filename) {
+      const blob = new Blob([res.xml], { type: 'application/xml;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = res.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -49,10 +65,16 @@ export default function BupotClient() {
           <label className="text-sm font-medium leading-none">{t('taxPeriodYm')}</label>
           <Input type="month" value={period} onChange={(e: any) => setPeriod(e.target.value)} />
         </div>
-        <Button onClick={handleExport} disabled={isPending || rows.length === 0} variant="secondary">
-          {t('exportCsv')}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button onClick={handleExport} disabled={isPending || rows.length === 0} variant="secondary">
+            {t('exportCsv')}
+          </Button>
+          <Button onClick={handleExportBp21} disabled={isPending} variant="primary">
+            {t('exportBp21Xml')}
+          </Button>
+        </div>
       </div>
+      <p className="-mt-2 text-xs text-brand-ink-3">{t('bp21Hint')}</p>
 
       <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
         <div className="flex flex-col space-y-1.5 p-6 border-b">

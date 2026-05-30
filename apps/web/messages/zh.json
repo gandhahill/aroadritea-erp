@@ -1654,7 +1654,12 @@
       "reference": "参考",
       "qtyDelta": "数量变动",
       "uom": "单位",
-      "noMovements": "未找到该商品和地点的变动。"
+      "noMovements": "未找到该商品和地点的变动。",
+      "product": "产品",
+      "location": "地点",
+      "selectProduct": "选择产品…",
+      "selectLocation": "选择地点…",
+      "view": "查看"
     }
   },
   "nav": {
@@ -2849,7 +2854,38 @@
       "name": "令牌名称",
       "createdAt": "创建时间",
       "lastUsedAt": "最后使用",
-      "empty": "未找到 MCP 令牌。"
+      "empty": "未找到 MCP 令牌。",
+      "never": "从未",
+      "actions": "操作",
+      "create": {
+        "title": "创建令牌",
+        "namePlaceholder": "例如 Claude Code、Gemini CLI",
+        "button": "创建令牌",
+        "creating": "创建中…"
+      },
+      "created": {
+        "title": "令牌已创建——立即复制",
+        "hint": "此令牌仅显示一次。请妥善保存；之后将无法再次查看。",
+        "copy": "复制",
+        "copied": "已复制！",
+        "done": "完成"
+      },
+      "status": {
+        "label": "状态",
+        "active": "有效",
+        "revoked": "已撤销",
+        "expired": "已过期"
+      },
+      "revoke": {
+        "button": "撤销",
+        "confirm": "撤销此令牌？使用它的应用将立即失去访问权限。",
+        "success": "令牌已撤销。"
+      },
+      "errors": {
+        "unauthorized": "您尚未登录。",
+        "mintFailed": "创建令牌失败。",
+        "revokeFailed": "撤销令牌失败。"
+      }
     },
     "bankAccounts": {
       "title": "银行账户",
@@ -2927,7 +2963,21 @@
         "savePermission": "保存权限失败",
         "createRole": "创建角色失败",
         "saveRole": "保存角色失败",
-        "deleteRole": "删除角色失败"
+        "deleteRole": "删除角色失败",
+        "unauthenticated": "您尚未登录。",
+        "forbidden": "您无权管理权限。",
+        "notFound": "未找到角色或权限。",
+        "wildcardSuperAdminOnly": "只有拥有完全系统访问权限 (*.*) 的总监才能授予角色完全访问权限。",
+        "selfRole": "您不能修改自己当前角色的权限。",
+        "wildcardRemove": "无法从此屏幕移除完全访问权限 (*.*)。"
+      },
+      "roleSectionTitle": "角色",
+      "permissionColumn": "权限",
+      "hint": {
+        "title": "权限如何运作",
+        "perPage": "每个权限解锁特定页面/操作——请阅读每个代码下方的说明以了解其涵盖的页面。",
+        "moduleWildcard": "模块通配符（如 accounting.*）授予该模块内的所有权限。",
+        "systemWildcard": "*.* 授予对整个系统的完全访问权限（仅限总监）。"
       }
     },
     "notifications": {
@@ -4277,7 +4327,9 @@
       "dpp": "计税基础",
       "taxAmount": "税额",
       "loading": "加载中...",
-      "noData": "此期间未生成扣税。"
+      "noData": "此期间未生成扣税。",
+      "exportBp21Xml": "导出 e-Bupot 21 (XML)",
+      "bp21Hint": "e-Bupot 21 (XML) 从所选月份已批准/已支付的工资单中提取 PPh 21，生成 Coretax 批量导入文件。请先在\"设置›公司\"中填写公司 NPWP。"
     },
     "pb1Monthly": {
       "title": "每月 PB1 汇总 (SPTPD)",
@@ -4296,6 +4348,13 @@
       "loading": "加载中...",
       "noData": "暂无数据。",
       "total": "合计"
+    },
+    "bupot21": {
+      "unauthorized": "您尚未登录。",
+      "noPayroll": "本期间没有已批准/已支付的工资单。",
+      "noWithholding": "本期间工资单中没有 PPh 21 扣缴。",
+      "invalidPeriod": "期间无效。请使用 YYYY-MM 格式。",
+      "exportFailed": "导出 e-Bupot 21 失败。"
     }
   },
   "fields": {

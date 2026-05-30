@@ -1654,7 +1654,12 @@
       "reference": "Reference",
       "qtyDelta": "Qty Delta",
       "uom": "UOM",
-      "noMovements": "No movements found for this product and location."
+      "noMovements": "No movements found for this product and location.",
+      "product": "Product",
+      "location": "Location",
+      "selectProduct": "Select product…",
+      "selectLocation": "Select location…",
+      "view": "View"
     }
   },
   "nav": {
@@ -2849,7 +2854,38 @@
       "name": "Token Name",
       "createdAt": "Created At",
       "lastUsedAt": "Last Used At",
-      "empty": "No MCP tokens found."
+      "empty": "No MCP tokens found.",
+      "never": "Never",
+      "actions": "Actions",
+      "create": {
+        "title": "Create token",
+        "namePlaceholder": "e.g. Claude Code, Gemini CLI",
+        "button": "Create token",
+        "creating": "Creating…"
+      },
+      "created": {
+        "title": "Token created — copy it now",
+        "hint": "This token is shown only once. Store it somewhere safe; you won't be able to see it again.",
+        "copy": "Copy",
+        "copied": "Copied!",
+        "done": "Done"
+      },
+      "status": {
+        "label": "Status",
+        "active": "Active",
+        "revoked": "Revoked",
+        "expired": "Expired"
+      },
+      "revoke": {
+        "button": "Revoke",
+        "confirm": "Revoke this token? Apps using it will immediately lose access.",
+        "success": "Token revoked."
+      },
+      "errors": {
+        "unauthorized": "You are not signed in.",
+        "mintFailed": "Failed to create token.",
+        "revokeFailed": "Failed to revoke token."
+      }
     },
     "permissions": {
       "title": "Permissions & Access Rights",
@@ -2864,7 +2900,21 @@
         "savePermission": "Failed to save permission",
         "createRole": "Failed to create role",
         "saveRole": "Failed to save role",
-        "deleteRole": "Failed to delete role"
+        "deleteRole": "Failed to delete role",
+        "unauthenticated": "You are not signed in.",
+        "forbidden": "You do not have permission to manage permissions.",
+        "notFound": "Role or permission not found.",
+        "wildcardSuperAdminOnly": "Only a Director with full system access (*.*) can grant full access to a role.",
+        "selfRole": "You cannot modify permissions on your own active role.",
+        "wildcardRemove": "Full access (*.*) cannot be removed from this screen."
+      },
+      "roleSectionTitle": "Roles",
+      "permissionColumn": "Permission",
+      "hint": {
+        "title": "How permissions work",
+        "perPage": "Each permission unlocks specific pages/actions — read the description under each code to see which page it covers.",
+        "moduleWildcard": "A module wildcard (e.g. accounting.*) grants every permission inside that module.",
+        "systemWildcard": "*.* grants full access to the entire system (Director only)."
       }
     },
     "bankAccounts": {
@@ -4252,7 +4302,9 @@
       "dpp": "DPP",
       "taxAmount": "Tax Amount",
       "loading": "Loading...",
-      "noData": "No withholding taxes generated for this period."
+      "noData": "No withholding taxes generated for this period.",
+      "exportBp21Xml": "Export e-Bupot 21 (XML)",
+      "bp21Hint": "e-Bupot 21 (XML) pulls PPh 21 from approved/paid payroll for the selected month and produces a Coretax bulk-import file. Set the company NPWP in Settings › Company first."
     },
     "pb1Monthly": {
       "title": "Monthly PB1 Recap (SPTPD)",
@@ -4271,6 +4323,13 @@
       "loading": "Loading...",
       "noData": "No data available.",
       "total": "TOTAL"
+    },
+    "bupot21": {
+      "unauthorized": "You are not signed in.",
+      "noPayroll": "No approved/paid payroll found for this period.",
+      "noWithholding": "No PPh 21 withholding found in this period's payroll.",
+      "invalidPeriod": "Invalid period. Use YYYY-MM.",
+      "exportFailed": "Failed to export e-Bupot 21."
     }
   },
   "fields": {
