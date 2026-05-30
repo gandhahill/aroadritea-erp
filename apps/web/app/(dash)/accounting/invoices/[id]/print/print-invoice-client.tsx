@@ -214,8 +214,20 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
         )}
 
         {/* Footer Section */}
-        <div className="mt-16 border-t border-brand-cream-2 pt-8">
-          <div>
+        <div className="mt-16 border-t border-brand-cream-2 pt-8 flex justify-between">
+          <div className="w-1/2">
+            {invoice.type === 'sales' && companyInfo.bankName && companyInfo.bankAccount && (
+              <div className="mb-6">
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+                  {labels.paymentTo}
+                </h3>
+                <div className="text-sm text-brand-ink-2">
+                  <p className="font-semibold text-brand-ink">{companyInfo.bankName}</p>
+                  <p className="font-mono text-base font-medium text-brand-ink my-0.5">{companyInfo.bankAccount}</p>
+                  {companyInfo.bankAccountName && <p>a/n {companyInfo.bankAccountName}</p>}
+                </div>
+              </div>
+            )}
             {invoice.notes && (
               <div className="mt-2">
                 <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">

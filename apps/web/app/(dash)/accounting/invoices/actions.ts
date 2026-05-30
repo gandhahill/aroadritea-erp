@@ -157,6 +157,9 @@ export async function fetchPrintInvoiceData(invoiceId: string) {
     address: '',
     npwp: '',
     phone: '',
+    bankName: 'BCA',
+    bankAccount: '1234567890',
+    bankAccountName: 'PT. Gandha Hill Catering Management Indonesia',
   };
 
   return { invoice, lines, companyInfo };
