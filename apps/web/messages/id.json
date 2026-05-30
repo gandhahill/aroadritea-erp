@@ -4326,7 +4326,16 @@
       "noData": "Belum ada pemotongan pajak untuk masa ini.",
       "exportBp21Xml": "Ekspor e-Bupot 21 (XML)",
       "bp21Hint": "e-Bupot 21 (XML) mengambil PPh 21 dari payroll yang sudah disetujui/dibayar pada bulan terpilih dan menghasilkan file impor massal Coretax. Isi NPWP perusahaan di Pengaturan › Perusahaan terlebih dahulu.",
-      "exportBpuXml": "Ekspor Bupot Unifikasi (XML)"
+      "exportBpuXml": "Ekspor Bupot Unifikasi (XML)",
+      "overrides": {
+        "title": "Opsi ekspor Coretax (opsional)",
+        "hint": "Timpa nilai yang diminta DJP. Kosongkan untuk pakai default (BP21: 21-100-01 / N/A; BPU: kode per-baris / Invoice). Desimal Rate mengatur tingkat pembulatan.",
+        "taxObjectCode": "TaxObjectCode",
+        "taxObjectCodePlaceholder": "mis. 24-104-06",
+        "document": "Document",
+        "documentPlaceholder": "mis. Invoice, Contract",
+        "rateDecimals": "Desimal Rate (pembulatan)"
+      }
     },
     "pb1Monthly": {
       "title": "Rekap PB1 Bulanan (SPTPD)",

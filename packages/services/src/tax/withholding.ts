@@ -9,6 +9,7 @@ import { and, desc, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+import type { BupotExportOptions } from './bupot21';
 
 export const GenerateBupotInputSchema = z.object({
   vendorId: z.string().uuid(),
@@ -190,11 +191,19 @@ function digitsOnlyOr(value: string | null | undefined, fallback: string): strin
 export async function exportBupotUnifikasiXml(
   period: string,
   ctx: AuditContext,
+  opts: BupotExportOptions = {},
 ): Promise<Result<string>> {
   return tryCatch(
     async () => {
       const perm = await requirePermission(ctx.userId, 'tax.export');
       if (!perm.ok) throw perm.error;
+
+      const overrideObjectCode = opts.taxObjectCode?.trim();
+      const documentType = opts.document?.trim() || 'Invoice';
+      const rateDecimals =
+        opts.rateDecimals === undefined || !Number.isFinite(opts.rateDecimals)
+          ? 4
+          : Math.max(0, Math.min(8, Math.trunc(opts.rateDecimals)));
 
       if (!/^\d{4}-\d{2}$/.test(period)) {
         throw AppError.validation('tax.bupotUnifikasi.invalidPeriod', { period });
@@ -229,10 +238,14 @@ export async function exportBupotUnifikasiXml(
       const bpuRows = rows
         .map((r) => {
           const counterpartTin = digitsOnlyOr(r.vendorNpwp ?? '', '0000000000000000');
-          const objectCode = /^\d{2}-\d{3}-\d{2}$/.test(r.incomeType) ? r.incomeType : '24-104-06';
+          const objectCode =
+            overrideObjectCode ||
+            (/^\d{2}-\d{3}-\d{2}$/.test(r.incomeType) ? r.incomeType : '24-104-06');
           const taxBase = (r.dpp ?? 0n).toString();
           const rate =
-            r.dpp && r.dpp > 0n ? (Number((r.taxAmount * 10000n) / r.dpp) / 100).toString() : '0';
+            r.dpp && r.dpp > 0n
+              ? (Number((r.taxAmount * 10000n) / r.dpp) / 100).toFixed(rateDecimals)
+              : '0';
           const docDate = String(r.issueDate);
           const docNumber = (r.bupotNumber ?? '')
             .replace(/&/g, '&amp;')
@@ -248,7 +261,7 @@ export async function exportBupotUnifikasiXml(
             `      <TaxObjectCode>${objectCode}</TaxObjectCode>`,
             `      <TaxBase>${taxBase}</TaxBase>`,
             `      <Rate>${rate}</Rate>`,
-            '      <Document>Invoice</Document>',
+            `      <Document>${documentType}</Document>`,
             `      <DocumentNumber>${docNumber}</DocumentNumber>`,
             `      <DocumentDate>${docDate}</DocumentDate>`,
             '      <IDPlaceOfBusinessActivity>000000</IDPlaceOfBusinessActivity>',

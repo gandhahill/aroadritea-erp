@@ -39,11 +39,31 @@ function xmlEscape(value: string): string {
     .replace(/'/g, '&apos;');
 }
 
+/** Manual overrides for Coretax bukti-potong exports (blank = use default/derived). */
+export interface BupotExportOptions {
+  /** Override TaxObjectCode for every row (e.g. '21-100-01'). */
+  taxObjectCode?: string;
+  /** Override the Document element (e.g. 'Contract', 'Invoice', 'N/A'). */
+  document?: string;
+  /** Decimal places to round the Rate to (0-8, default 4). */
+  rateDecimals?: number;
+}
+
+function clampDecimals(value: number | undefined, fallback = 4): number {
+  if (value === undefined || value === null || !Number.isFinite(value)) return fallback;
+  return Math.max(0, Math.min(8, Math.trunc(value)));
+}
+
 /**
  * Export PPh 21 withholdings for a tax period as a Coretax BP21 bulk XML string.
  * @param period 'YYYY-MM'
+ * @param opts optional manual overrides (TaxObjectCode / Document / Rate rounding)
  */
-export async function exportBupot21Xml(period: string, ctx: AuditContext): Promise<Result<string>> {
+export async function exportBupot21Xml(
+  period: string,
+  ctx: AuditContext,
+  opts: BupotExportOptions = {},
+): Promise<Result<string>> {
   return tryCatch(
     async () => {
       const perm = await requirePermission(ctx.userId, 'tax.export');
@@ -114,6 +134,10 @@ export async function exportBupot21Xml(period: string, ctx: AuditContext): Promi
         .where(inArray(employees.id, empIds));
       const empMap = new Map(emps.map((e) => [e.id, e]));
 
+      const objectCode = opts.taxObjectCode?.trim() || TAX_OBJECT_CODE_PERMANENT;
+      const documentType = opts.document?.trim() || 'N/A';
+      const rateDecimals = clampDecimals(opts.rateDecimals);
+
       const bp21Rows = lines
         .map((l) => {
           const emp = empMap.get(l.employeeId);
@@ -123,7 +147,9 @@ export async function exportBupot21Xml(period: string, ctx: AuditContext): Promi
           const status = `${marital}/${deps}`;
           const gross = (l.baseAmount ?? 0n).toString();
           const rate =
-            l.percentageApplied != null ? (Number(l.percentageApplied) * 100).toFixed(4) : '0';
+            l.percentageApplied != null
+              ? (Number(l.percentageApplied) * 100).toFixed(rateDecimals)
+              : '0';
           return [
             '\t\t<Bp21>',
             `\t\t\t<TaxPeriodMonth>${taxMonth}</TaxPeriodMonth>`,
@@ -132,11 +158,11 @@ export async function exportBupot21Xml(period: string, ctx: AuditContext): Promi
             '\t\t\t<IDPlaceOfBusinessActivityOfIncomeRecipient>000000</IDPlaceOfBusinessActivityOfIncomeRecipient>',
             `\t\t\t<StatusTaxExemption>${status}</StatusTaxExemption>`,
             '\t\t\t<TaxCertificate>N/A</TaxCertificate>',
-            `\t\t\t<TaxObjectCode>${TAX_OBJECT_CODE_PERMANENT}</TaxObjectCode>`,
+            `\t\t\t<TaxObjectCode>${objectCode}</TaxObjectCode>`,
             `\t\t\t<Gross>${gross}</Gross>`,
             '\t\t\t<Deemed>100</Deemed>',
             `\t\t\t<Rate>${rate}</Rate>`,
-            '\t\t\t<Document>N/A</Document>',
+            `\t\t\t<Document>${documentType}</Document>`,
             `\t\t\t<DocumentNumber>${xmlEscape(period)}</DocumentNumber>`,
             `\t\t\t<DocumentDate>${withholdingDate}</DocumentDate>`,
             '\t\t\t<IDPlaceOfBusinessActivity>000000</IDPlaceOfBusinessActivity>',

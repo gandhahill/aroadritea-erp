@@ -19,6 +19,17 @@ export default function BupotClient() {
   const [rows, setRows] = useState<BupotSummaryRow[]>([]);
   const [isPending, startTransition] = useTransition();
 
+  // Manual overrides for Coretax export (blank = default/derived per row).
+  const [taxObjectCode, setTaxObjectCode] = useState('');
+  const [documentType, setDocumentType] = useState('');
+  const [rateDecimals, setRateDecimals] = useState('4');
+
+  const exportOpts = () => ({
+    taxObjectCode: taxObjectCode.trim() || undefined,
+    document: documentType.trim() || undefined,
+    rateDecimals: rateDecimals.trim() === '' ? undefined : Number(rateDecimals),
+  });
+
   useEffect(() => {
     if (!period) return;
     startTransition(async () => {
@@ -59,7 +70,7 @@ export default function BupotClient() {
 
   const handleExportBp21 = async () => {
     if (!period) return;
-    const res = await exportBupot21XmlAction(period);
+    const res = await exportBupot21XmlAction(period, exportOpts());
     if (res.error) {
       toast.error(res.error);
     } else if (res.xml && res.filename) {
@@ -69,7 +80,7 @@ export default function BupotClient() {
 
   const handleExportBpu = async () => {
     if (!period) return;
-    const res = await exportBupotUnifikasiXmlAction(period);
+    const res = await exportBupotUnifikasiXmlAction(period, exportOpts());
     if (res.error) {
       toast.error(res.error);
     } else if (res.xml && res.filename) {
@@ -97,6 +108,41 @@ export default function BupotClient() {
         </div>
       </div>
       <p className="-mt-2 text-xs text-brand-ink-3">{t('bp21Hint')}</p>
+
+      <div className="rounded-lg border border-brand-cream-3 bg-card p-4">
+        <h3 className="text-sm font-semibold text-brand-ink">{t('overrides.title')}</h3>
+        <p className="mt-0.5 text-xs text-brand-ink-3">{t('overrides.hint')}</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-1">
+            <label className="text-xs font-semibold text-brand-ink-2">{t('overrides.taxObjectCode')}</label>
+            <Input
+              type="text"
+              value={taxObjectCode}
+              placeholder={t('overrides.taxObjectCodePlaceholder')}
+              onChange={(e: any) => setTaxObjectCode(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-1">
+            <label className="text-xs font-semibold text-brand-ink-2">{t('overrides.document')}</label>
+            <Input
+              type="text"
+              value={documentType}
+              placeholder={t('overrides.documentPlaceholder')}
+              onChange={(e: any) => setDocumentType(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-1">
+            <label className="text-xs font-semibold text-brand-ink-2">{t('overrides.rateDecimals')}</label>
+            <Input
+              type="number"
+              min={0}
+              max={8}
+              value={rateDecimals}
+              onChange={(e: any) => setRateDecimals(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
 
       <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
         <div className="flex flex-col space-y-1.5 p-6 border-b">

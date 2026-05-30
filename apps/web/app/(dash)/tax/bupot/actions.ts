@@ -1,7 +1,12 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { listBuktiPotong, exportBupot21Xml, exportBupotUnifikasiXml } from '@erp/services/tax';
+import {
+  listBuktiPotong,
+  exportBupot21Xml,
+  exportBupotUnifikasiXml,
+  type BupotExportOptions,
+} from '@erp/services/tax';
 import { getTranslations } from 'next-intl/server';
 import type { AuditContext } from '@erp/shared/types';
 import { db } from '@erp/db';
@@ -50,12 +55,12 @@ export async function exportBuktiPotongCsvAction(period: string) {
  * Export PPh 21 (employee payroll) withholdings for a period as Coretax BP21 bulk XML.
  * Period format: 'YYYY-MM'.
  */
-export async function exportBupot21XmlAction(period: string) {
+export async function exportBupot21XmlAction(period: string, opts?: BupotExportOptions) {
   const t = await getTranslations('tax.bupot21');
   const ctx = await getAuditContext();
   if (!ctx) return { error: t('unauthorized') };
 
-  const res = await exportBupot21Xml(period, ctx);
+  const res = await exportBupot21Xml(period, ctx, opts ?? {});
   if (!res.ok) {
     const known = ['noPayroll', 'noWithholding', 'invalidPeriod', 'exportFailed'];
     const suffix = res.error.message.startsWith('tax.bupot21.')
@@ -70,12 +75,12 @@ export async function exportBupot21XmlAction(period: string) {
  * Export PPh 23 (vendor) withholdings for a period as Coretax Bukti Potong
  * Unifikasi bulk XML (BPU). Period format: 'YYYY-MM'.
  */
-export async function exportBupotUnifikasiXmlAction(period: string) {
+export async function exportBupotUnifikasiXmlAction(period: string, opts?: BupotExportOptions) {
   const t = await getTranslations('tax.bupotUnifikasi');
   const ctx = await getAuditContext();
   if (!ctx) return { error: t('unauthorized') };
 
-  const res = await exportBupotUnifikasiXml(period, ctx);
+  const res = await exportBupotUnifikasiXml(period, ctx, opts ?? {});
   if (!res.ok) {
     const known = ['noData', 'invalidPeriod', 'exportFailed'];
     const suffix = res.error.message.startsWith('tax.bupotUnifikasi.')

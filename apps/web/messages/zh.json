@@ -4351,7 +4351,16 @@
       "noData": "此期间未生成扣税。",
       "exportBp21Xml": "导出 e-Bupot 21 (XML)",
       "bp21Hint": "e-Bupot 21 (XML) 从所选月份已批准/已支付的工资单中提取 PPh 21，生成 Coretax 批量导入文件。请先在\"设置›公司\"中填写公司 NPWP。",
-      "exportBpuXml": "导出统一扣缴凭证 (XML)"
+      "exportBpuXml": "导出统一扣缴凭证 (XML)",
+      "overrides": {
+        "title": "Coretax 导出选项（可选）",
+        "hint": "覆盖 DJP 要求的值。留空则使用默认值（BP21：21-100-01 / N/A；BPU：逐行代码 / Invoice）。Rate 小数位控制舍入精度。",
+        "taxObjectCode": "TaxObjectCode",
+        "taxObjectCodePlaceholder": "例如 24-104-06",
+        "document": "Document",
+        "documentPlaceholder": "例如 Invoice、Contract",
+        "rateDecimals": "Rate 小数位（舍入）"
+      }
     },
     "pb1Monthly": {
       "title": "每月 PB1 汇总 (SPTPD)",

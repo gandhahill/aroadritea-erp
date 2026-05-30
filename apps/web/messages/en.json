@@ -4326,7 +4326,16 @@
       "noData": "No withholding taxes generated for this period.",
       "exportBp21Xml": "Export e-Bupot 21 (XML)",
       "bp21Hint": "e-Bupot 21 (XML) pulls PPh 21 from approved/paid payroll for the selected month and produces a Coretax bulk-import file. Set the company NPWP in Settings › Company first.",
-      "exportBpuXml": "Export Bupot Unifikasi (XML)"
+      "exportBpuXml": "Export Bupot Unifikasi (XML)",
+      "overrides": {
+        "title": "Coretax export options (optional)",
+        "hint": "Override the values DJP expects. Leave blank to use defaults (BP21: 21-100-01 / N/A; BPU: per-row code / Invoice). Rate decimals controls rounding precision.",
+        "taxObjectCode": "TaxObjectCode",
+        "taxObjectCodePlaceholder": "e.g. 24-104-06",
+        "document": "Document",
+        "documentPlaceholder": "e.g. Invoice, Contract",
+        "rateDecimals": "Rate decimals (rounding)"
+      }
     },
     "pb1Monthly": {
       "title": "Monthly PB1 Recap (SPTPD)",
