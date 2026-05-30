@@ -189,7 +189,7 @@ export async function fetchRoster(
   if (!ctx) return { options: { shifts: [], employees: [] }, assignments: [] };
   const locationScope = await authorizedLocationIdsForTenant(
     ctx.userId,
-    'hr.attendance.read',
+    'hr.manage_attendance',
     ctx.tenantId,
   );
   if (locationScope.locationIds.length === 0) {

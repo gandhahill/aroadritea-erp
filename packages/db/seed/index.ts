@@ -527,16 +527,15 @@ async function seed() {
   console.info(`${leaveTypeCount} leave types seeded`);
 
   // 11c. HR shift definitions (UI-managed after bootstrap)
-  const defaultShiftLocationId = locationRows[0]?.id;
   let shiftDefinitionCount = 0;
-  if (defaultShiftLocationId) {
+  for (const loc of locationRows) {
     for (const shift of SHIFT_DEFINITIONS_SEED) {
       await db
         .insert(shiftDefinitions)
         .values({
-          id: shift.id,
+          id: generateId(),
           tenantId,
-          locationId: defaultShiftLocationId,
+          locationId: loc.id,
           code: shift.code,
           name: shift.name,
           startTime: shift.startTime,
@@ -548,7 +547,6 @@ async function seed() {
         .onConflictDoUpdate({
           target: [shiftDefinitions.tenantId, shiftDefinitions.code],
           set: {
-            locationId: defaultShiftLocationId,
             name: shift.name,
             startTime: shift.startTime,
             endTime: shift.endTime,
