@@ -2,14 +2,12 @@
 
 import { Input } from '@erp/ui';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 import { changePasswordAction } from './actions';
 
 export default function ChangePasswordPage() {
   const t = useTranslations('auth.changePassword');
   const app = useTranslations('app');
-  const router = useRouter();
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -48,8 +46,9 @@ export default function ChangePasswordPage() {
           | undefined;
         setError(key ? t(key) : t('errorServer'));
       } else {
-        router.push('/dashboard');
-        router.refresh();
+        // Full page navigation (not client-side) to ensure the session
+        // cache is re-read from the server with requirePasswordChange=false.
+        window.location.href = '/dashboard';
       }
     } catch {
       setError(t('errorServer'));

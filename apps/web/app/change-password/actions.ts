@@ -49,11 +49,20 @@ export async function changePasswordAction(input: {
     .set({ password: passwordHash, updatedAt: now })
     .where(and(eq(authAccounts.userId, userId), eq(authAccounts.providerId, 'credential')));
 
-  // Clear better-auth session cache cookie so the next getSession() reads the updated DB row
+  // Clear better-auth session cache cookies so the next getSession() reads
+  // the updated DB row. better-auth may chunk large cookies (e.g.
+  // aroadri.session_data.0, .1, …) so we match by prefix.
   const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
-  cookieStore.delete('aroadri.session_data');
-  cookieStore.delete('__Secure-aroadri.session_data');
+  const allCookies = cookieStore.getAll();
+  for (const c of allCookies) {
+    if (
+      c.name.includes('session_data') ||
+      c.name.includes('account_data')
+    ) {
+      cookieStore.delete(c.name);
+    }
+  }
 
   revalidatePath('/', 'layout');
   return { ok: true };
