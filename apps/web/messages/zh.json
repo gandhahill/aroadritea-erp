@@ -29,7 +29,10 @@
       "successSaved": "保存成功",
       "success": "成功",
       "uploading": "上传中...",
-      "deleting": "删除中..."
+      "deleting": "删除中...",
+      "unpublish": "取消发布",
+      "publish": "发布",
+      "optional": "可选"
     },
     "status": {
       "active": "活跃",
@@ -91,7 +94,8 @@
       "edit": "编辑",
       "attachmentsOptional": "附件（可选）",
       "chooseEmployee": "选择员工",
-      "selectEmployee": "选择员工"
+      "selectEmployee": "选择员工",
+      "confirmDelete": "确定要删除吗？"
     },
     "errors": {
       "required": "必填",
@@ -156,6 +160,12 @@
       "allStatus": "所有状态",
       "allTypes": "所有类型",
       "allCategories": "所有类别"
+    },
+    "emptyData": "暂无数据",
+    "forbidden": {
+      "title": "访问被拒绝",
+      "message": "您无权访问此页面。",
+      "back": "返回仪表板"
     }
   },
   "auth": {
@@ -243,17 +253,7 @@
         "subtitle": "创建手工日记账草稿，复核后可在详情页过账。",
         "missingMasterData": "可过账科目或启用的地点尚未准备好，或当前账号没有会计访问权限。"
       },
-      "attachments": {
-        "title": "附件",
-        "subtitle": "支持文件和交易凭证。",
-        "upload": "上传附件",
-        "uploadInfo": "上传采购、报销、银行流水或其他凭证文件，作为日记账审计证据。",
-        "download": "下载",
-        "delete": "删除",
-        "deleting": "删除中...",
-        "empty": "暂无附件。",
-        "confirmDelete": "删除此附件？"
-      },
+      "attachments": "附件",
       "attachmentHint": "请使用 PDF、JPG 或 PNG 格式（最大 5MB）。",
       "importCsv": "导入 CSV",
       "downloadTemplate": "下载模板",
@@ -784,7 +784,8 @@
       "selectAccount": "选择账户...",
       "cancel": "取消",
       "processing": "处理中...",
-      "payInvoice": "支付发票"
+      "payInvoice": "支付发票",
+      "invalidAmount": "金额无效。"
     },
     "periods": {
       "title": "会计期间",
@@ -1921,7 +1922,9 @@
       "addPayment": "添加付款",
       "postedBy": "提交者",
       "date": "日期",
-      "backToSales": "返回销售"
+      "backToSales": "返回销售",
+      "search": "搜索…",
+      "noResultsFound": "未找到结果"
     },
     "openShift": "开班",
     "drawerExpense": "钱箱支出",
@@ -2136,6 +2139,10 @@
       "channel": "渠道",
       "date": "日期",
       "orderNumber": "订单号"
+    },
+    "common": {
+      "cancel": "取消",
+      "delete": "删除"
     }
   },
   "app": {
@@ -2415,7 +2422,16 @@
       "addTitle": "添加员工",
       "addSubtitle": "输入新员工详细信息",
       "editTitle": "编辑 {name}",
-      "editSubtitle": "更新已保存的员工资料。"
+      "editSubtitle": "更新已保存的员工资料。",
+      "editLogin": "编辑登录",
+      "editLoginTitle": "编辑员工登录",
+      "role": "角色",
+      "selectRole": "选择角色",
+      "loginScope": "登录范围",
+      "scopeSameLocation": "仅限同一地点",
+      "scopeGlobal": "所有地点（全局）",
+      "newPassword": "新密码",
+      "requirePasswordChange": "下次登录时需更改密码"
     },
     "contracts": {
       "title": "劳动合同",
@@ -4204,6 +4220,11 @@
       "uploadImage": "上传图片",
       "hint": "上传内容将保存为公开的 CMS 图片",
       "uploadFailed": "上传失败"
+    },
+    "errors": {
+      "saveFailed": "保存失败。",
+      "publishFailed": "发布失败。",
+      "deleteFailed": "删除失败。"
     }
   },
   "tax": {

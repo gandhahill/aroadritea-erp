@@ -29,7 +29,10 @@
       "successSaved": "Berhasil disimpan",
       "success": "Berhasil",
       "uploading": "Mengunggah...",
-      "deleting": "Menghapus..."
+      "deleting": "Menghapus...",
+      "unpublish": "Batalkan terbit",
+      "publish": "Terbitkan",
+      "optional": "Opsional"
     },
     "status": {
       "active": "Aktif",
@@ -91,7 +94,8 @@
       "edit": "Edit",
       "attachmentsOptional": "Lampiran (opsional)",
       "chooseEmployee": "Pilih Karyawan",
-      "selectEmployee": "Pilih Karyawan"
+      "selectEmployee": "Pilih Karyawan",
+      "confirmDelete": "Yakin ingin menghapus ini?"
     },
     "errors": {
       "required": "Wajib diisi",
@@ -156,6 +160,12 @@
       "allStatus": "Semua status",
       "allTypes": "Semua jenis",
       "allCategories": "Semua kategori"
+    },
+    "emptyData": "Tidak ada data",
+    "forbidden": {
+      "title": "Akses ditolak",
+      "message": "Anda tidak memiliki izin untuk mengakses halaman ini.",
+      "back": "Kembali ke dasbor"
     }
   },
   "auth": {
@@ -243,17 +253,7 @@
         "subtitle": "Buat draft jurnal manual. Posting dilakukan dari halaman detail setelah data direview.",
         "missingMasterData": "Akun postable atau lokasi aktif belum siap, atau akun Anda belum memiliki akses accounting."
       },
-      "attachments": {
-        "title": "Lampiran",
-        "subtitle": "Bukti transaksi atau dokumen pendukung.",
-        "upload": "Unggah Lampiran",
-        "uploadInfo": "Unggah bukti transaksi, foto, atau dokumen pendukung langsung dari perangkat.",
-        "download": "Unduh",
-        "delete": "Hapus",
-        "deleting": "Menghapus...",
-        "empty": "Belum ada lampiran.",
-        "confirmDelete": "Hapus lampiran ini?"
-      },
+      "attachments": "Lampiran",
       "attachmentHint": "Gunakan format PDF, JPG, atau PNG (maks 5MB).",
       "importCsv": "Impor CSV",
       "downloadTemplate": "Unduh templat",
@@ -784,7 +784,8 @@
       "selectAccount": "Pilih Akun...",
       "cancel": "Batal",
       "processing": "Memproses...",
-      "payInvoice": "Bayar Invoice"
+      "payInvoice": "Bayar Invoice",
+      "invalidAmount": "Jumlah tidak valid."
     },
     "periods": {
       "title": "Periode Akuntansi",
@@ -1921,7 +1922,9 @@
       "addPayment": "Tambah Pembayaran",
       "postedBy": "Dibuat Oleh",
       "date": "Tanggal",
-      "backToSales": "Kembali ke Penjualan"
+      "backToSales": "Kembali ke Penjualan",
+      "search": "Cari…",
+      "noResultsFound": "Tidak ada hasil"
     },
     "openShift": "Buka Shift",
     "drawerExpense": "Pengeluaran Laci",
@@ -2136,6 +2139,10 @@
       "channel": "Channel",
       "date": "Tgl",
       "orderNumber": "No."
+    },
+    "common": {
+      "cancel": "Batal",
+      "delete": "Hapus"
     }
   },
   "app": {
@@ -2190,7 +2197,7 @@
       "in_progress": "Sedang Berlangsung",
       "submitted": "Diajukan",
       "cancelled": "Dibatalkan",
-      "paid": "Dibayar"
+      "approved": "Disetujui"
     },
     "lines": {
       "systemQty": "Stok Sistem",
@@ -2494,7 +2501,16 @@
       "addTitle": "Tambah Karyawan",
       "addSubtitle": "Masukkan data karyawan baru",
       "editTitle": "Edit {name}",
-      "editSubtitle": "Perbarui data karyawan yang sudah tersimpan."
+      "editSubtitle": "Perbarui data karyawan yang sudah tersimpan.",
+      "editLogin": "Ubah login",
+      "editLoginTitle": "Ubah login karyawan",
+      "role": "Peran",
+      "selectRole": "Pilih peran",
+      "loginScope": "Cakupan akses",
+      "scopeSameLocation": "Hanya lokasi yang sama",
+      "scopeGlobal": "Semua lokasi (global)",
+      "newPassword": "Kata sandi baru",
+      "requirePasswordChange": "Wajib ganti kata sandi saat login berikutnya"
     },
     "contracts": {
       "title": "Kontrak Kerja",
@@ -4179,6 +4195,11 @@
       "uploadImage": "Unggah Gambar",
       "hint": "Unggahan disimpan sebagai gambar CMS publik",
       "uploadFailed": "Gagal mengunggah"
+    },
+    "errors": {
+      "saveFailed": "Gagal menyimpan.",
+      "publishFailed": "Gagal menerbitkan.",
+      "deleteFailed": "Gagal menghapus."
     }
   },
   "tax": {

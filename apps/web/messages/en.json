@@ -29,7 +29,10 @@
       "successSaved": "Successfully saved",
       "success": "Success",
       "uploading": "Uploading...",
-      "deleting": "Deleting..."
+      "deleting": "Deleting...",
+      "unpublish": "Unpublish",
+      "publish": "Publish",
+      "optional": "Optional"
     },
     "status": {
       "active": "Active",
@@ -91,7 +94,8 @@
       "edit": "Edit",
       "attachmentsOptional": "Attachments (optional)",
       "chooseEmployee": "Select Employee",
-      "selectEmployee": "Select Employee"
+      "selectEmployee": "Select Employee",
+      "confirmDelete": "Are you sure you want to delete this?"
     },
     "errors": {
       "required": "Required",
@@ -156,6 +160,12 @@
       "allStatus": "All status",
       "allTypes": "All types",
       "allCategories": "All categories"
+    },
+    "emptyData": "No data",
+    "forbidden": {
+      "title": "Access denied",
+      "message": "You don't have permission to access this page.",
+      "back": "Back to dashboard"
     }
   },
   "auth": {
@@ -243,17 +253,7 @@
         "subtitle": "Create a manual journal draft. Posting is performed from the detail page after review.",
         "missingMasterData": "Postable accounts or active locations are not ready, or your account does not have accounting access."
       },
-      "attachments": {
-        "title": "Attachments",
-        "subtitle": "Supporting documents and transaction evidence.",
-        "upload": "Upload Attachment",
-        "uploadInfo": "Upload transaction evidence, photos, or supporting documents directly from this device.",
-        "download": "Download",
-        "delete": "Delete",
-        "deleting": "Deleting...",
-        "empty": "No attachments yet.",
-        "confirmDelete": "Delete this attachment?"
-      },
+      "attachments": "Attachments",
       "attachmentHint": "Use PDF, JPG, or PNG format (max 5MB).",
       "importCsv": "Import CSV",
       "downloadTemplate": "Download template",
@@ -784,7 +784,8 @@
       "selectAccount": "Select Account...",
       "cancel": "Cancel",
       "processing": "Processing...",
-      "payInvoice": "Pay Invoice"
+      "payInvoice": "Pay Invoice",
+      "invalidAmount": "Invalid amount."
     },
     "periods": {
       "title": "Accounting Periods",
@@ -1921,7 +1922,9 @@
       "addPayment": "Add Payment",
       "postedBy": "Posted By",
       "date": "Date",
-      "backToSales": "Back to Sales"
+      "backToSales": "Back to Sales",
+      "search": "Search…",
+      "noResultsFound": "No results found"
     },
     "openShift": "Open Shift",
     "drawerExpense": "Drawer Expense",
@@ -2136,6 +2139,10 @@
       "channel": "Channel",
       "date": "Date",
       "orderNumber": "No."
+    },
+    "common": {
+      "cancel": "Cancel",
+      "delete": "Delete"
     }
   },
   "app": {
@@ -2415,7 +2422,16 @@
       "addTitle": "Add Employee",
       "addSubtitle": "Enter new employee details",
       "editTitle": "Edit {name}",
-      "editSubtitle": "Update an existing employee record."
+      "editSubtitle": "Update an existing employee record.",
+      "editLogin": "Edit login",
+      "editLoginTitle": "Edit employee login",
+      "role": "Role",
+      "selectRole": "Select role",
+      "loginScope": "Login scope",
+      "scopeSameLocation": "Same location only",
+      "scopeGlobal": "All locations (global)",
+      "newPassword": "New password",
+      "requirePasswordChange": "Require password change at next login"
     },
     "contracts": {
       "title": "Employment Contracts",
@@ -4179,6 +4195,11 @@
       "uploadImage": "Upload Image",
       "hint": "Uploads are saved as public CMS images",
       "uploadFailed": "Upload failed"
+    },
+    "errors": {
+      "saveFailed": "Failed to save.",
+      "publishFailed": "Failed to publish.",
+      "deleteFailed": "Failed to delete."
     }
   },
   "tax": {
