@@ -156,12 +156,16 @@ export async function fetchPrintInvoiceData(invoiceId: string) {
     .orderBy(invoiceLines.lineNo);
 
   const settings = await db.select().from(cmsSettings).where(eq(cmsSettings.tenantId, tenantId));
-  const companyInfoSetting = settings.find((s) => s.key === 'companyInfo')?.value as any;
-  const companyInfo = companyInfoSetting ?? {
-    name: 'PT. Gandha Hill Catering Management Indonesia',
-    address: '',
-    npwp: '',
-    phone: '',
+  const map = new Map<string, unknown>();
+  for (const s of settings) {
+    map.set(s.key, s.value);
+  }
+
+  const companyInfo = {
+    name: (map.get('company.name') as string) || 'PT. Gandha Hill Catering Management Indonesia',
+    address: (map.get('company.address') as string) || '',
+    npwp: (map.get('company.npwp') as string) || '',
+    phone: (map.get('company.phone') as string) || '',
   };
 
   const bankAccountsList = await db
