@@ -258,7 +258,7 @@ export default async function BusinessIntelligencePage() {
     `,
   );
   const hourlyMap = new Map<number, { gross: bigint; orders: number }>();
-  for (const row of hourlyRows.rows as unknown as Array<{
+  for (const row of hourlyRows as unknown as Array<{
     hour: number;
     gross: string;
     orders: number;
@@ -290,7 +290,7 @@ export default async function BusinessIntelligencePage() {
     `,
   );
   const trendMap = new Map<string, { gross: bigint; orders: number }>();
-  for (const row of trendRows.rows as unknown as Array<{
+  for (const row of trendRows as unknown as Array<{
     d: string;
     gross: string;
     orders: number;

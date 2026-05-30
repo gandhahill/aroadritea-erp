@@ -121,7 +121,7 @@ export async function getOmzetHarian(
     // Coerce SUM(...) carefully — node-postgres returns NUMERIC as string
     // and BIGINT as string by default. Skip BigInt() when the value is
     // null/empty/non-digit so we never throw "Cannot convert ... to BigInt".
-    const grossRaw = saleAgg.rows[0]?.total;
+    const grossRaw = saleAgg[0]?.total;
     const manualAgg = await db
       .select({
         total: sql<bigint>`COALESCE(SUM((${manualSalesClosings.grossSales} - ${manualSalesClosings.discountTotal}) * 100), 0::bigint)`,
@@ -174,7 +174,7 @@ export async function getOmzetHarian(
           AND opened_at < ${dayEnd.toISOString()}
       `,
     );
-    const shiftCnt = Number(shiftAgg.rows[0]?.cnt ?? 0);
+    const shiftCnt = Number(shiftAgg[0]?.cnt ?? 0);
 
     // 5. Resolve human-readable location label so reports + the XLSX
     //    export don't show raw UUIDs. The `name` column is a

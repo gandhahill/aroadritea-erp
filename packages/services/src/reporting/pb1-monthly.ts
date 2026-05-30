@@ -113,10 +113,10 @@ export async function getOmzetBulanan(
       );
 
     const grossByDate = new Map<string, bigint>();
-    for (const row of saleAgg.rows) {
+    for (const row of saleAgg as unknown as Array<any>) {
       if (row.date_val) grossByDate.set(String(row.date_val), toBigIntSafe(row.total));
     }
-    for (const row of manualAgg.rows) {
+    for (const row of manualAgg as unknown as Array<any>) {
       if (row.date_val) {
         const dateStr = String(row.date_val);
         const existing = grossByDate.get(dateStr) ?? 0n;
@@ -247,7 +247,7 @@ export async function exportOmzetBulananXlsx(
 
     const idrFmt = '#,##0';
 
-    for (const row of data.rows) {
+    for (const row of data as unknown as Array<any>) {
       const r = sheet.addRow([
         row.date,
         data.locationName,

@@ -139,7 +139,7 @@ export async function fetchManualSalesPageData(
       ORDER BY p.sku ASC
       `,
       )
-      .then((res) => res.rows),
+      .then((res) => res),
     db
       .execute<{
         id: string;
@@ -156,7 +156,7 @@ export async function fetchManualSalesPageData(
       ORDER BY p.sku ASC
       `,
       )
-      .then((res) => res.rows),
+      .then((res) => res),
   ]);
 
   if (!closings.ok) {

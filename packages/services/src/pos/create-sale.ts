@@ -452,7 +452,7 @@ async function generateSaleNumber(tenantId: string, locationId: string): Promise
   const result = await db.execute(
     sql`SELECT COUNT(*) FROM sales_orders WHERE tenant_id = ${tenantId} AND number LIKE ${`${prefix}%`}`,
   );
-  const count = Number(result.rows[0]?.count ?? 0);
+  const count = Number(result[0]?.count ?? 0);
   return `${prefix}${(count + 1).toString().padStart(4, '0')}`;
 }
 

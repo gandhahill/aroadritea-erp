@@ -52,7 +52,7 @@ export async function fetchConsumedIngredientsData() {
       ORDER BY p.sku ASC
       `,
       )
-      .then((res) => res.rows),
+      .then((res) => res),
   ]);
 
   return {

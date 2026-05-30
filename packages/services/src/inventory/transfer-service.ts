@@ -325,31 +325,6 @@ export async function shipTransfer(
       updatedBy: ctx.userId,
     }));
 
-    const deductions = lines.map((line) => {
-      const variantCondition = line.variantId
-        ? eq(stockLevels.variantId, line.variantId)
-        : eq(stockLevels.variantId, '' as unknown as string);
-
-      return db
-        .update(stockLevels)
-        .set({
-          qtyOnHand: sql`${stockLevels.qtyOnHand} - ${line.qtySent}::numeric`,
-          qtyAvailable: sql`${stockLevels.qtyAvailable} - ${line.qtySent}::numeric`,
-          updatedBy: ctx.userId,
-          lastMovementAt: now,
-        })
-        .where(
-          and(
-            eq(stockLevels.tenantId, ctx.tenantId),
-            eq(stockLevels.locationId, trf.fromLocationId),
-            eq(stockLevels.productId, line.productId),
-            variantCondition,
-          ),
-        );
-    });
-
-    // CLAIM the transfer first to prevent race conditions that would cause
-    // double-deductions if executed directly inside db.batch.
     const claimedShip = await db
       .update(stockTransfers)
       .set({
@@ -373,12 +348,36 @@ export async function shipTransfer(
     }
 
     try {
-      // Execute dependent updates atomically via db.batch
-      // Any CHECK constraint violation (e.g. negative stock) will throw.
-      await db.batch([
-        ...deductions,
-        db.insert(stockMovements).values([...outMovements, ...inMovements]),
-        db.insert(auditLog).values({
+      await db.transaction(async (tx) => {
+        // Execute deductions
+        for (const line of lines) {
+          const variantCondition = line.variantId
+            ? eq(stockLevels.variantId, line.variantId)
+            : eq(stockLevels.variantId, '' as unknown as string);
+
+          await tx
+            .update(stockLevels)
+            .set({
+              qtyOnHand: sql`${stockLevels.qtyOnHand} - ${line.qtySent}::numeric`,
+              qtyAvailable: sql`${stockLevels.qtyAvailable} - ${line.qtySent}::numeric`,
+              updatedBy: ctx.userId,
+              lastMovementAt: now,
+            })
+            .where(
+              and(
+                eq(stockLevels.tenantId, ctx.tenantId),
+                eq(stockLevels.locationId, trf.fromLocationId),
+                eq(stockLevels.productId, line.productId),
+                variantCondition,
+              ),
+            );
+        }
+
+        // Insert movements
+        await tx.insert(stockMovements).values([...outMovements, ...inMovements]);
+        
+        // Insert audit log
+        await tx.insert(auditLog).values({
           id: generateId(),
           tenantId: ctx.tenantId,
           userId: ctx.userId,
@@ -388,8 +387,8 @@ export async function shipTransfer(
           before: { status: 'draft' },
           after: { status: 'in_transit', movementCount: lines.length * 2 },
           metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        }),
-      ] as any);
+        });
+      });
     } catch (batchError) {
       // Rollback the claim if the batch fails (e.g. insufficient stock constraint)
       await db
