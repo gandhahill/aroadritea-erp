@@ -2460,8 +2460,11 @@
       "scopeGlobal": "所有地点（全局）",
       "newPassword": "新密码",
       "requirePasswordChange": "下次登录时需更改密码",
-      "deleteAccount": "删除员工",
-      "deleteAccountConfirm": "您确定要删除此员工吗？\n\n如果该员工拥有登录账户，其访问权限也将立即被撤销。",
+      "deleteAccount": "解雇员工",
+      "deleteAccountConfirm": "您确定要解雇此员工吗？\n\n数据不会被删除，仅标记为已解雇。",
+      "hardDeleteAccount": "永久删除",
+      "hardDeleteHint": "从数据库中永久删除该员工的所有数据（仅当该员工没有交易/发薪记录时可用）。",
+      "hardDeleteAccountConfirm": "严重警告！\n\n您确定要永久删除此员工吗？此操作无法撤销。",
       "deleteSuccess": "员工删除成功"
     },
     "contracts": {
@@ -2804,7 +2807,8 @@
       }
     },
     "employee": {
-      "notFound": "未找到员工。"
+      "notFound": "未找到员工。",
+      "deleteFailed": "删除员工失败。"
     },
     "payslip": {
       "title": "我的工资单",

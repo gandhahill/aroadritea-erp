@@ -68,7 +68,7 @@ export default async function EmployeeDetailPage({
   }
   const emp = result.value;
   
-  const canEditLogin = await can(ctx.userId, 'iam.user.update', { locationId: emp.locationId ?? undefined });
+  const canEditLogin = await can(ctx.userId, 'iam.manage_users', { locationId: emp.locationId ?? undefined });
   const canEditEmployee = await can(ctx.userId, 'hr.employee.write', { locationId: emp.locationId ?? undefined });
   const roles = canEditLogin ? await fetchAssignableRoles() : [];
   const year = new Date().getFullYear();

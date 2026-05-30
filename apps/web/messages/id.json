@@ -2540,7 +2540,10 @@
       "newPassword": "Kata sandi baru",
       "requirePasswordChange": "Wajib ganti kata sandi saat login berikutnya",
       "deleteAccount": "Hapus Karyawan",
-      "deleteAccountConfirm": "Apakah Anda yakin ingin menghapus karyawan ini?\n\nJika karyawan ini memiliki akun login, akses masuknya juga akan langsung dihapus.",
+      "deleteAccountConfirm": "Apakah Anda yakin ingin memberhentikan karyawan ini?\n\nData tidak dihapus dari sistem, hanya ditandai Diberhentikan.",
+      "hardDeleteAccount": "Hapus Permanen",
+      "hardDeleteHint": "Hapus seluruh data karyawan ini secara permanen dari database (hanya bisa jika belum ada riwayat transaksi/gaji).",
+      "hardDeleteAccountConfirm": "PERINGATAN KERAS!\n\nApakah Anda yakin ingin MENGHAPUS PERMANEN karyawan ini? Tindakan ini tidak bisa dibatalkan.",
       "deleteSuccess": "Karyawan berhasil dihapus"
     },
     "contracts": {
@@ -2883,7 +2886,8 @@
       }
     },
     "employee": {
-      "notFound": "Karyawan tidak ditemukan."
+      "notFound": "Karyawan tidak ditemukan.",
+      "deleteFailed": "Gagal menghapus karyawan."
     },
     "payslip": {
       "title": "Slip Gaji Saya",
