@@ -1376,7 +1376,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
         referenceId: saleId,
         lines: jeLines,
       },
-      ctx,
+      ctx, { skipPermissionCheck: true }
     );
 
     let journalEntryId: string | null = null;

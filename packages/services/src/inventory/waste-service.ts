@@ -114,7 +114,7 @@ export async function recordWaste(input: RecordWasteInput, ctx: AuditContext): P
         },
       ],
     },
-    ctx
+    ctx, { skipPermissionCheck: true }
   );
 
   return ok({ id: adjId });

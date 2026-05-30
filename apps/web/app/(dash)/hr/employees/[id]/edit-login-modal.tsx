@@ -21,7 +21,7 @@ export function EditLoginModal({ employeeId, roles }: EditLoginModalProps) {
     roleCode: string | null;
     loginScope: string | null;
     requirePasswordChange: boolean | null;
-  } | null>(null);
+  } | null | undefined>(undefined);
 
   useEffect(() => {
     if (open) {
@@ -56,7 +56,7 @@ export function EditLoginModal({ employeeId, roles }: EditLoginModalProps) {
           <div className="w-full max-w-md rounded-xl border border-brand-jade/15 bg-brand-paper p-6 shadow-xl">
             <h2 className="text-lg font-semibold text-brand-ink">{t('editLoginTitle')}</h2>
             
-            {loginInfo === null ? (
+            {loginInfo === undefined ? (
               <div className="flex h-32 items-center justify-center text-sm text-brand-ink-3">Loading...</div>
             ) : (
               <form action={formAction} className="space-y-4 pt-4">
@@ -75,7 +75,7 @@ export function EditLoginModal({ employeeId, roles }: EditLoginModalProps) {
                   <select
                     id="roleCode"
                     name="roleCode"
-                    defaultValue={loginInfo.roleCode ?? ''}
+                    defaultValue={loginInfo?.roleCode ?? ''}
                     className="w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-sm text-brand-ink outline-none transition-colors focus:border-brand-ember-5"
                   >
                     <option value="">-- {t('selectRole')} --</option>
@@ -94,7 +94,7 @@ export function EditLoginModal({ employeeId, roles }: EditLoginModalProps) {
                   <select
                     id="loginScope"
                     name="loginScope"
-                    defaultValue={loginInfo.loginScope ?? 'same_location'}
+                    defaultValue={loginInfo?.loginScope ?? 'same_location'}
                     className="w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-sm text-brand-ink outline-none transition-colors focus:border-brand-ember-5"
                   >
                     <option value="same_location">{t('scopeSameLocation')}</option>
@@ -120,7 +120,7 @@ export function EditLoginModal({ employeeId, roles }: EditLoginModalProps) {
                     type="checkbox"
                     id="requirePasswordChange"
                     name="requirePasswordChange"
-                    defaultChecked={loginInfo.requirePasswordChange ?? false}
+                    defaultChecked={loginInfo?.requirePasswordChange ?? false}
                     className="h-4 w-4 rounded border-brand-cream-3 text-brand-ember-5 focus:ring-brand-ember-5"
                   />
                   <label htmlFor="requirePasswordChange" className="text-sm font-medium text-brand-ink">

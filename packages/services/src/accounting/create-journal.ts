@@ -75,12 +75,15 @@ export interface JournalLineResult {
 export async function createJournal(
   input: CreateJournalInput,
   ctx: AuditContext,
+  opts: { skipPermissionCheck?: boolean } = {},
 ): Promise<Result<JournalEntryResult>> {
   // 1. Permission check
-  const permCheck = await requirePermission(ctx.userId, 'accounting.journal.create', {
-    locationId: input.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
+  if (!opts.skipPermissionCheck) {
+    const permCheck = await requirePermission(ctx.userId, 'accounting.journal.create', {
+      locationId: input.locationId,
+    });
+    if (!permCheck.ok) return permCheck;
+  }
 
   // 2. Validate input with Zod (SD §10.4)
   const parsed = CreateJournalInputSchema.safeParse(input);

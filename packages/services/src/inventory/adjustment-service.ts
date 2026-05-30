@@ -559,7 +559,7 @@ export async function approveAdjustment(
           referenceId: adj.id,
           lines: journalLines,
         },
-        ctx,
+        ctx, { skipPermissionCheck: true }
       );
       if (!jeResult.ok) {
         // Roll the status claim back so the adjustment can be retried.

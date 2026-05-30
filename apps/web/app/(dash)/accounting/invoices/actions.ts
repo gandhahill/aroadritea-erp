@@ -2,7 +2,7 @@ import type { PermissionCode } from '@erp/shared/types';
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { db, desc, eq, inArray, and } from '@erp/db';
+import { db, desc, eq, inArray, and, isNull } from '@erp/db';
 import {
   accounts,
   invoiceLines,
@@ -161,6 +161,16 @@ export async function fetchPrintInvoiceData(invoiceId: string) {
     map.set(s.key, s.value);
   }
 
+  const bankRows = await db
+    .select({
+      id: bankAccounts.id,
+      bankName: bankAccounts.bankName,
+      accountNumber: bankAccounts.accountNumber,
+      accountHolder: bankAccounts.accountHolder,
+    })
+    .from(bankAccounts)
+    .where(and(eq(bankAccounts.tenantId, tenantId), eq(bankAccounts.isActive, true), isNull(bankAccounts.deletedAt)));
+
   const companyInfo = {
     name: (map.get('company.name') as string) || 'PT. Gandha Hill Catering Management Indonesia',
     address: (map.get('company.address') as string) || '',
@@ -168,11 +178,5 @@ export async function fetchPrintInvoiceData(invoiceId: string) {
     phone: (map.get('company.phone') as string) || '',
   };
 
-  const bankAccountsList = await db
-    .select()
-    .from(bankAccounts)
-    .where(and(eq(bankAccounts.tenantId, tenantId), eq(bankAccounts.isActive, true)));
-
-  return { invoice, lines, companyInfo, bankAccounts: bankAccountsList };
+  return { invoice, lines, companyInfo, bankAccounts: bankRows };
 }
-

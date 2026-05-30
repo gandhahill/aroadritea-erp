@@ -232,7 +232,7 @@ export async function approvePayroll(
           },
         ],
       },
-      ctx,
+      ctx, { skipPermissionCheck: true }
     );
 
     if (!journalResult.ok) {

@@ -2459,7 +2459,10 @@
       "scopeSameLocation": "Same location only",
       "scopeGlobal": "All locations (global)",
       "newPassword": "New password",
-      "requirePasswordChange": "Require password change at next login"
+      "requirePasswordChange": "Require password change at next login",
+      "deleteAccount": "Delete Employee",
+      "deleteAccountConfirm": "Are you sure you want to delete this employee?\n\nIf this employee has a login account, their access will also be revoked immediately.",
+      "deleteSuccess": "Employee deleted successfully"
     },
     "contracts": {
       "title": "Employment Contracts",

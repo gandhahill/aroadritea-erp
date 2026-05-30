@@ -208,7 +208,7 @@ export async function approvePayroll(payrollId: string, expenseAccountId: string
         }] : []),
       ],
     },
-    ctx
+    ctx, { skipPermissionCheck: true }
   );
 
   if (!jeResult.ok) return jeResult;

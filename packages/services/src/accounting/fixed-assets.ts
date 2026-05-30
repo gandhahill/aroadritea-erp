@@ -530,7 +530,7 @@ export async function runFixedAssetDepreciation(
           referenceId: runId,
           lines: journalLines,
         },
-        ctx,
+        ctx, { skipPermissionCheck: true }
       );
       if (!journalResult.ok) throw journalResult.error;
 
@@ -1093,7 +1093,7 @@ export async function disposeFixedAsset(
           referenceType: 'manual',
           lines,
         },
-        ctx,
+        ctx, { skipPermissionCheck: true }
       );
 
       if (!journalResult.ok) throw journalResult.error;

@@ -219,7 +219,7 @@ export async function approveShiftExpense(
             },
           ],
         },
-        ctx,
+        ctx, { skipPermissionCheck: true }
       );
 
       if (!journalRes.ok) throw journalRes.error;

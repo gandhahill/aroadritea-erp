@@ -20,3 +20,4 @@ export * from './leave-service';
 export * from './kasbon-service';
 export * from './payroll-service';
 export * from './resolve-employee';
+export * from './delete-employee';

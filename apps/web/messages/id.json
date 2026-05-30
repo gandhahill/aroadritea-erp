@@ -2538,7 +2538,10 @@
       "scopeSameLocation": "Hanya lokasi yang sama",
       "scopeGlobal": "Semua lokasi (global)",
       "newPassword": "Kata sandi baru",
-      "requirePasswordChange": "Wajib ganti kata sandi saat login berikutnya"
+      "requirePasswordChange": "Wajib ganti kata sandi saat login berikutnya",
+      "deleteAccount": "Hapus Karyawan",
+      "deleteAccountConfirm": "Apakah Anda yakin ingin menghapus karyawan ini?\n\nJika karyawan ini memiliki akun login, akses masuknya juga akan langsung dihapus.",
+      "deleteSuccess": "Karyawan berhasil dihapus"
     },
     "contracts": {
       "title": "Kontrak Kerja",

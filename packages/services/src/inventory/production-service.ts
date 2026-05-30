@@ -152,7 +152,7 @@ export async function createProductionBatch(
         },
       ],
     },
-    ctx
+    ctx, { skipPermissionCheck: true }
   );
 
   let journalEntryId = null;

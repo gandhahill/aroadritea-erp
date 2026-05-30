@@ -274,6 +274,9 @@ importers:
       '@erp/shared':
         specifier: workspace:*
         version: link:../shared
+      '@neondatabase/serverless':
+        specifier: ^0.10.0
+        version: 0.10.4
       argon2:
         specifier: ^0.44.0
         version: 0.44.0
@@ -283,6 +286,9 @@ importers:
       postgres:
         specifier: ^3.4.9
         version: 3.4.9
+      ws:
+        specifier: ^8.21.0
+        version: 8.21.0
     devDependencies:
       drizzle-kit:
         specifier: ^0.28.0
@@ -3569,6 +3575,18 @@ packages:
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
+  ws@8.21.0:
+    resolution: {integrity: sha512-Vsp28b7DRcimFQvrqu2Wek3z1iYxDCWqHYB8Qsnk/S4RfaCQzPGPyBNuVjJV3cd6UiKtUtp6sNM77gWvzcCH+g==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xmlchars@2.2.0:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
 
@@ -6679,6 +6697,8 @@ snapshots:
       strip-ansi: 6.0.1
 
   wrappy@1.0.2: {}
+
+  ws@8.21.0: {}
 
   xmlchars@2.2.0: {}
 

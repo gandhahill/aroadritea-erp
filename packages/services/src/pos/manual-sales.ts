@@ -261,7 +261,7 @@ export async function createManualSalesClosing(
         },
       ],
     },
-    ctx,
+    ctx, { skipPermissionCheck: true }
   );
 
   if (!journal.ok) {

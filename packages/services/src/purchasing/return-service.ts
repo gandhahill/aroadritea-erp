@@ -637,7 +637,7 @@ export async function postPurchaseReturn(
         referenceId: row.id,
         lines: jeLines,
       },
-      ctx,
+      ctx, { skipPermissionCheck: true }
     );
     if (!jeResult.ok) {
       await db

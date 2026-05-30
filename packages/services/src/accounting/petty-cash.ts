@@ -578,7 +578,7 @@ async function postBankDepositJournal(
         },
       ],
     },
-    ctx,
+    ctx, { skipPermissionCheck: true }
   );
   if (!journalRes.ok) return journalRes;
   return ok({ id: journalRes.value.id });
@@ -773,7 +773,7 @@ async function postOpeningCashTransfer(
         },
       ],
     },
-    ctx,
+    ctx, { skipPermissionCheck: true }
   );
   if (!journalRes.ok) return journalRes;
   return ok({ id: journalRes.value.id });

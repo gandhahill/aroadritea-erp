@@ -11,7 +11,7 @@ import { getSession } from '@/lib/auth';
 import { type LocationOption, getActiveLocationOptions } from '@/lib/location-options';
 import { and, db, eq, isNull } from '@erp/db';
 import { roles } from '@erp/db/schema/auth';
-import { createEmployee, deactivateEmployee, updateEmployee, updateEmployeeLogin } from '@erp/services/hr';
+import { createEmployee, deactivateEmployee, updateEmployee, updateEmployeeLogin, deleteEmployee } from '@erp/services/hr';
 import { getEmployee, listEmployees } from '@erp/services/hr';
 import type {
   CreateEmployeeInput,
@@ -194,6 +194,17 @@ export async function deactivateEmployeeAction(formData: FormData): Promise<Crea
 
   const employeeId = text(formData, 'employeeId');
   const result = await deactivateEmployee(employeeId, ctx);
+  if (!result.ok) return { error: errorMessage(result.error) };
+
+  revalidatePath('/hr/employees');
+  return { ok: true, employeeId: result.value.id };
+}
+
+export async function deleteEmployeeAction(employeeId: string): Promise<CreateEmployeeState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+
+  const result = await deleteEmployee(employeeId, ctx);
   if (!result.ok) return { error: errorMessage(result.error) };
 
   revalidatePath('/hr/employees');

@@ -347,7 +347,7 @@ export async function verifyPurchaseInvoice(
         referenceId: invoice.id,
         lines: linesToPost as any,
       },
-      ctx,
+      ctx, { skipPermissionCheck: true }
     );
 
     if (!jeResult.ok) {

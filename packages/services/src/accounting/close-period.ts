@@ -337,7 +337,7 @@ export async function closePeriod(
                 credit: l.credit.toString(),
               })),
             },
-            ctx
+            ctx, { skipPermissionCheck: true }
           );
 
           if (je1.ok) {
@@ -367,7 +367,7 @@ export async function closePeriod(
                   },
                 ],
               },
-              ctx
+              ctx, { skipPermissionCheck: true }
             );
 
             if (je2.ok) {

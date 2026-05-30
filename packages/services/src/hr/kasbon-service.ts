@@ -87,7 +87,7 @@ export async function approveKasbon(kasbonId: string, accountIdCash: string, acc
         },
       ],
     },
-    ctx
+    ctx, { skipPermissionCheck: true }
   );
 
   if (!jeResult.ok) return jeResult;

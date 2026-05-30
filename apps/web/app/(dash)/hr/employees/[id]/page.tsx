@@ -8,6 +8,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { forbidden, notFound, redirect } from 'next/navigation';
 import { fetchAssignableRoles } from '../actions';
 import { EditLoginModal } from './edit-login-modal';
+import { DeleteEmployeeButton } from './delete-employee-button';
 
 export const metadata: Metadata = { title: 'Employee Detail' };
 

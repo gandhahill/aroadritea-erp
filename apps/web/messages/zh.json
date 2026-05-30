@@ -2459,7 +2459,10 @@
       "scopeSameLocation": "仅限同一地点",
       "scopeGlobal": "所有地点（全局）",
       "newPassword": "新密码",
-      "requirePasswordChange": "下次登录时需更改密码"
+      "requirePasswordChange": "下次登录时需更改密码",
+      "deleteAccount": "删除员工",
+      "deleteAccountConfirm": "您确定要删除此员工吗？\n\n如果该员工拥有登录账户，其访问权限也将立即被撤销。",
+      "deleteSuccess": "员工删除成功"
     },
     "contracts": {
       "title": "劳动合同",

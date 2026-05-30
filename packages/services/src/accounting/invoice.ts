@@ -193,7 +193,7 @@ export async function postInvoice(
     lines: journalLinesData,
   };
 
-  const createRes = await createJournal(journalInput, ctx);
+  const createRes = await createJournal(journalInput, ctx, { skipPermissionCheck: true });
   if (!createRes.ok) return createRes;
   const journalId = createRes.value.id;
 
@@ -281,7 +281,7 @@ export async function payInvoice(
     credit: invoice.type === 'sales' ? amountToPay.toString() : '0',
   });
 
-  const createRes = await createJournal(journalInput, ctx);
+  const createRes = await createJournal(journalInput, ctx, { skipPermissionCheck: true });
   if (!createRes.ok) return createRes;
   const paymentJournalId = createRes.value.id;
 

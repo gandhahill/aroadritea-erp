@@ -733,7 +733,7 @@ export async function approveOpname(
             },
           ],
         },
-        ctx,
+        ctx, { skipPermissionCheck: true }
       );
       if (!jeResult.ok) return jeResult;
       resultJournalId = jeResult.value.id;
@@ -762,7 +762,7 @@ export async function approveOpname(
             },
           ],
         },
-        ctx,
+        ctx, { skipPermissionCheck: true }
       );
       if (!jeResult.ok) return jeResult;
       resultJournalId = jeResult.value.id;
