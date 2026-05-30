@@ -165,7 +165,7 @@ export async function fetchPurchasingDashboard(): Promise<PurchasingDashboardDat
         isActive: partners.isActive,
       })
       .from(partners)
-      .where(and(eq(partners.tenantId, ctx.tenantId), eq(partners.kind, 'supplier')))
+      .where(and(eq(partners.tenantId, ctx.tenantId), eq(partners.kind, 'supplier'), eq(partners.isActive, true)))
       .orderBy(asc(partners.name)),
   ]);
 
