@@ -49,11 +49,14 @@ export interface QRPayloadResult {
 export async function generateQrPayload(
   input: GenerateQRInput,
   ctx: AuditContext,
+  options?: { skipPermissionCheck?: boolean },
 ): Promise<Result<QRPayloadResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'kitchen.view', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
+  if (!options?.skipPermissionCheck) {
+    const permCheck = await requirePermission(ctx.userId, 'kitchen.view', {
+      locationId: ctx.locationId,
+    });
+    if (!permCheck.ok) return permCheck;
+  }
 
   // 1. Fetch QR format config for location
   const [config] = await db

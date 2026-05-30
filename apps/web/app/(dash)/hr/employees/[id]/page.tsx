@@ -69,6 +69,7 @@ export default async function EmployeeDetailPage({
   const emp = result.value;
   
   const canEditLogin = await can(ctx.userId, 'iam.user.update', { locationId: emp.locationId ?? undefined });
+  const canEditEmployee = await can(ctx.userId, 'hr.employee.write', { locationId: emp.locationId ?? undefined });
   const roles = canEditLogin ? await fetchAssignableRoles() : [];
   const year = new Date().getFullYear();
   const statusCfg = STATUS_COLOR[emp.status] ?? {
@@ -103,13 +104,16 @@ export default async function EmployeeDetailPage({
           {t('title')}
         </a>
         <div className="flex items-center gap-2">
-          <a
-            href={`/hr/employees/${emp.id}/edit`}
-            className="inline-flex h-8 items-center rounded-md border border-brand-cream-3 px-3 text-xs font-semibold text-brand-ink-2 transition-colors hover:bg-brand-cream-2"
-          >
-            {commonT('edit')}
-          </a>
+          {canEditEmployee && (
+            <a
+              href={`/hr/employees/${emp.id}/edit`}
+              className="inline-flex h-8 items-center rounded-md border border-brand-cream-3 px-3 text-xs font-semibold text-brand-ink-2 transition-colors hover:bg-brand-cream-2"
+            >
+              {commonT('edit')}
+            </a>
+          )}
           {canEditLogin && <EditLoginModal employeeId={emp.id} roles={roles} />}
+          {canEditEmployee && <DeleteEmployeeButton employeeId={emp.id} />}
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${statusCfg.bg} ${statusCfg.text}`}
           >

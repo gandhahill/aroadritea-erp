@@ -368,7 +368,7 @@ export async function cancelPayroll(
       const reverseRes = await reverseJournal({
         journalId: payroll.journalEntryId,
         postingDate: new Date().toISOString().split('T')[0]!,
-      }, ctx);
+      }, ctx, { skipPermissionCheck: true });
 
       if (!reverseRes.ok) {
         return err(AppError.internal('hr.payroll.cancelFailed', { error: reverseRes.error }));

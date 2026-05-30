@@ -49,6 +49,7 @@ import { type ReverseJournalInput, ReverseJournalInputSchema } from './schemas';
 export async function reverseJournal(
   input: ReverseJournalInput,
   ctx: AuditContext,
+  options?: { skipPermissionCheck?: boolean },
 ): Promise<Result<JournalEntryResult>> {
   // 1. Validate input with Zod
   const parsed = ReverseJournalInputSchema.safeParse(input);
@@ -73,10 +74,12 @@ export async function reverseJournal(
   }
 
   // 3. Permission check (use original JE's locationId)
-  const permCheck = await requirePermission(ctx.userId, 'accounting.journal.reverse', {
-    locationId: originalJe.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
+  if (!options?.skipPermissionCheck) {
+    const permCheck = await requirePermission(ctx.userId, 'accounting.journal.reverse', {
+      locationId: originalJe.locationId,
+    });
+    if (!permCheck.ok) return permCheck;
+  }
 
   // 4. Status check: must be 'posted'
   if (originalJe.status !== 'posted') {

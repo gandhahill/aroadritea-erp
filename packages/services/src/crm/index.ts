@@ -403,7 +403,7 @@ export async function awardCompensation(
             },
           ],
         },
-        scopedCtx,
+        scopedCtx, { skipPermissionCheck: true }
       );
       if (jeResult.ok) jeId = jeResult.value.id;
     }

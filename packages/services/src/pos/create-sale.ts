@@ -1186,7 +1186,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
         variantId: lr.variantId,
         orderNumber: saleNumber,
         modifiers: (lr.modifierJson as any) || [],
-      }, ctx);
+      }, ctx, { skipPermissionCheck: true });
 
       if (qrRes.ok) {
         kdsQrToken = qrRes.value.payload;
@@ -1475,7 +1475,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     }
 
     // Auto-queue to KDS (T-0258)
-    queueOrderItems({ salesOrderId: saleId }, ctx).catch(() => {
+    queueOrderItems({ salesOrderId: saleId }, ctx, { skipPermissionCheck: true }).catch(() => {
       // Non-fatal: do not fail the sale if KDS queueing fails synchronously
     });
 

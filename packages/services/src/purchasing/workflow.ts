@@ -447,7 +447,7 @@ export async function cancelPO(
           const revRes = await reverseJournal({
              journalId: je.id,
              postingDate: new Date().toISOString().slice(0, 10),
-          }, ctx);
+          }, ctx, { skipPermissionCheck: true });
           if (!revRes.ok) return err(AppError.businessRule('purchasing.errors.grn_reverse_failed'));
         }
 

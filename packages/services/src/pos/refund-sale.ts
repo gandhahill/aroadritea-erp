@@ -147,7 +147,7 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
             journalId: sale.journalEntryId,
             postingDate: new Date().toISOString().slice(0, 10),
           },
-          ctx,
+          ctx, { skipPermissionCheck: true }
         );
         if (!reversalResult.ok) {
           // Roll the claim back so the order can be refunded again

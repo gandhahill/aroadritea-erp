@@ -78,11 +78,14 @@ export function isValidTransition(from: KdsStatus, to: KdsStatus): boolean {
 export async function queueOrderItems(
   input: QueueOrderItemsInput,
   ctx: AuditContext,
+  options?: { skipPermissionCheck?: boolean },
 ): Promise<Result<KdsItemResult[]>> {
-  const permCheck = await requirePermission(ctx.userId, 'kitchen.view', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
+  if (!options?.skipPermissionCheck) {
+    const permCheck = await requirePermission(ctx.userId, 'kitchen.view', {
+      locationId: ctx.locationId,
+    });
+    if (!permCheck.ok) return permCheck;
+  }
 
   // Tenant-scope the order lookup. Without it a caller from tenant A
   // could queue lines from tenant B's order into A's kitchen display.
