@@ -3,7 +3,12 @@
 import { useState, useEffect, useTransition } from 'react';
 import { Button, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from '@erp/ui';
 import { useTranslations } from 'next-intl';
-import { fetchBuktiPotongAction, exportBuktiPotongCsvAction, exportBupot21XmlAction } from './actions';
+import {
+  fetchBuktiPotongAction,
+  exportBuktiPotongCsvAction,
+  exportBupot21XmlAction,
+  exportBupotUnifikasiXmlAction,
+} from './actions';
 import type { BupotSummaryRow } from '@erp/services/tax';
 
 export default function BupotClient() {
@@ -42,19 +47,33 @@ export default function BupotClient() {
     }
   };
 
+  const downloadXml = (xml: string, filename: string) => {
+    const blob = new Blob([xml], { type: 'application/xml;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleExportBp21 = async () => {
     if (!period) return;
     const res = await exportBupot21XmlAction(period);
     if (res.error) {
       toast.error(res.error);
     } else if (res.xml && res.filename) {
-      const blob = new Blob([res.xml], { type: 'application/xml;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = res.filename;
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadXml(res.xml, res.filename);
+    }
+  };
+
+  const handleExportBpu = async () => {
+    if (!period) return;
+    const res = await exportBupotUnifikasiXmlAction(period);
+    if (res.error) {
+      toast.error(res.error);
+    } else if (res.xml && res.filename) {
+      downloadXml(res.xml, res.filename);
     }
   };
 
@@ -68,6 +87,9 @@ export default function BupotClient() {
         <div className="flex flex-wrap items-center gap-2">
           <Button onClick={handleExport} disabled={isPending || rows.length === 0} variant="secondary">
             {t('exportCsv')}
+          </Button>
+          <Button onClick={handleExportBpu} disabled={isPending || rows.length === 0} variant="secondary">
+            {t('exportBpuXml')}
           </Button>
           <Button onClick={handleExportBp21} disabled={isPending} variant="primary">
             {t('exportBp21Xml')}

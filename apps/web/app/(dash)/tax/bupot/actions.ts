@@ -1,7 +1,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { listBuktiPotong, exportBupot21Xml } from '@erp/services/tax';
+import { listBuktiPotong, exportBupot21Xml, exportBupotUnifikasiXml } from '@erp/services/tax';
 import { getTranslations } from 'next-intl/server';
 import type { AuditContext } from '@erp/shared/types';
 import { db } from '@erp/db';
@@ -64,4 +64,24 @@ export async function exportBupot21XmlAction(period: string) {
     return { error: known.includes(suffix) ? t(suffix) : t('exportFailed') };
   }
   return { xml: res.value, filename: `BP21_${period}.xml` };
+}
+
+/**
+ * Export PPh 23 (vendor) withholdings for a period as Coretax Bukti Potong
+ * Unifikasi bulk XML (BPU). Period format: 'YYYY-MM'.
+ */
+export async function exportBupotUnifikasiXmlAction(period: string) {
+  const t = await getTranslations('tax.bupotUnifikasi');
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: t('unauthorized') };
+
+  const res = await exportBupotUnifikasiXml(period, ctx);
+  if (!res.ok) {
+    const known = ['noData', 'invalidPeriod', 'exportFailed'];
+    const suffix = res.error.message.startsWith('tax.bupotUnifikasi.')
+      ? res.error.message.slice('tax.bupotUnifikasi.'.length)
+      : '';
+    return { error: known.includes(suffix) ? t(suffix) : t('exportFailed') };
+  }
+  return { xml: res.value, filename: `BPU_${period}.xml` };
 }

@@ -4304,7 +4304,8 @@
       "loading": "Loading...",
       "noData": "No withholding taxes generated for this period.",
       "exportBp21Xml": "Export e-Bupot 21 (XML)",
-      "bp21Hint": "e-Bupot 21 (XML) pulls PPh 21 from approved/paid payroll for the selected month and produces a Coretax bulk-import file. Set the company NPWP in Settings › Company first."
+      "bp21Hint": "e-Bupot 21 (XML) pulls PPh 21 from approved/paid payroll for the selected month and produces a Coretax bulk-import file. Set the company NPWP in Settings › Company first.",
+      "exportBpuXml": "Export Bupot Unifikasi (XML)"
     },
     "pb1Monthly": {
       "title": "Monthly PB1 Recap (SPTPD)",
@@ -4330,6 +4331,12 @@
       "noWithholding": "No PPh 21 withholding found in this period's payroll.",
       "invalidPeriod": "Invalid period. Use YYYY-MM.",
       "exportFailed": "Failed to export e-Bupot 21."
+    },
+    "bupotUnifikasi": {
+      "unauthorized": "You are not signed in.",
+      "noData": "No withholding (PPh 23) found for this period.",
+      "invalidPeriod": "Invalid period. Use YYYY-MM.",
+      "exportFailed": "Failed to export Bukti Potong Unifikasi."
     }
   },
   "fields": {

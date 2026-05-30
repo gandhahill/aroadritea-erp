@@ -4304,7 +4304,8 @@
       "loading": "Memuat...",
       "noData": "Belum ada pemotongan pajak untuk masa ini.",
       "exportBp21Xml": "Ekspor e-Bupot 21 (XML)",
-      "bp21Hint": "e-Bupot 21 (XML) mengambil PPh 21 dari payroll yang sudah disetujui/dibayar pada bulan terpilih dan menghasilkan file impor massal Coretax. Isi NPWP perusahaan di Pengaturan › Perusahaan terlebih dahulu."
+      "bp21Hint": "e-Bupot 21 (XML) mengambil PPh 21 dari payroll yang sudah disetujui/dibayar pada bulan terpilih dan menghasilkan file impor massal Coretax. Isi NPWP perusahaan di Pengaturan › Perusahaan terlebih dahulu.",
+      "exportBpuXml": "Ekspor Bupot Unifikasi (XML)"
     },
     "pb1Monthly": {
       "title": "Rekap PB1 Bulanan (SPTPD)",
@@ -4330,6 +4331,12 @@
       "noWithholding": "Tidak ada potongan PPh 21 pada payroll periode ini.",
       "invalidPeriod": "Periode tidak valid. Gunakan format YYYY-MM.",
       "exportFailed": "Gagal mengekspor e-Bupot 21."
+    },
+    "bupotUnifikasi": {
+      "unauthorized": "Anda belum masuk.",
+      "noData": "Tidak ada potongan (PPh 23) untuk periode ini.",
+      "invalidPeriod": "Periode tidak valid. Gunakan format YYYY-MM.",
+      "exportFailed": "Gagal mengekspor Bukti Potong Unifikasi."
     }
   },
   "fields": {

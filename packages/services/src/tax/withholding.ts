@@ -1,5 +1,6 @@
 import { db } from '@erp/db';
 import { taxRates, withholdingTaxes, partners } from '@erp/db/schema/accounting';
+import { cmsSettings } from '@erp/db/schema/cms';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
@@ -167,5 +168,108 @@ export async function listBuktiPotong(
       }));
     },
     (e) => AppError.internal('tax.withholding.listFailed', e)
+  );
+}
+
+// ─── Export Bukti Potong Unifikasi (Coretax BPU bulk XML) ────────────────────
+
+function digitsOnlyOr(value: string | null | undefined, fallback: string): string {
+  const d = (value ?? '').replace(/\D/g, '');
+  return d.length > 0 ? d : fallback;
+}
+
+/**
+ * Export period withholdings (PPh 23 etc.) as a Coretax Bukti Potong Unifikasi
+ * bulk-import XML (`<BpuBulk>`), per the DJP BPU template.
+ *
+ * Coretax recomputes tax = TaxBase × Rate%, so Rate is derived from the stored
+ * taxAmount/dpp. TaxObjectCode passes through when already a full DJP code
+ * (NN-NNN-NN); otherwise falls back to 24-104-06 (PPh 23 jasa lain) for review.
+ * Withholder TIN comes from company settings (`company.npwp`).
+ */
+export async function exportBupotUnifikasiXml(
+  period: string,
+  ctx: AuditContext,
+): Promise<Result<string>> {
+  return tryCatch(
+    async () => {
+      const perm = await requirePermission(ctx.userId, 'tax.export');
+      if (!perm.ok) throw perm.error;
+
+      if (!/^\d{4}-\d{2}$/.test(period)) {
+        throw AppError.validation('tax.bupotUnifikasi.invalidPeriod', { period });
+      }
+      const taxYear = Number(period.slice(0, 4));
+      const taxMonth = Number(period.slice(5, 7));
+
+      const [npwpRow] = await db
+        .select({ value: cmsSettings.value })
+        .from(cmsSettings)
+        .where(and(eq(cmsSettings.tenantId, ctx.tenantId), eq(cmsSettings.key, 'company.npwp')))
+        .limit(1);
+      const tin = digitsOnlyOr(npwpRow?.value ? String(npwpRow.value) : '', '0000000000000000');
+
+      const rows = await db
+        .select({
+          bupotNumber: withholdingTaxes.bupotNumber,
+          incomeType: withholdingTaxes.incomeType,
+          dpp: withholdingTaxes.dpp,
+          taxAmount: withholdingTaxes.taxAmount,
+          issueDate: withholdingTaxes.issueDate,
+          vendorNpwp: partners.npwp,
+        })
+        .from(withholdingTaxes)
+        .leftJoin(partners, eq(partners.id, withholdingTaxes.vendorId))
+        .where(and(eq(withholdingTaxes.tenantId, ctx.tenantId), eq(withholdingTaxes.period, period)));
+
+      if (rows.length === 0) {
+        throw AppError.businessRule('tax.bupotUnifikasi.noData', { period });
+      }
+
+      const bpuRows = rows
+        .map((r) => {
+          const counterpartTin = digitsOnlyOr(r.vendorNpwp ?? '', '0000000000000000');
+          const objectCode = /^\d{2}-\d{3}-\d{2}$/.test(r.incomeType) ? r.incomeType : '24-104-06';
+          const taxBase = (r.dpp ?? 0n).toString();
+          const rate =
+            r.dpp && r.dpp > 0n ? (Number((r.taxAmount * 10000n) / r.dpp) / 100).toString() : '0';
+          const docDate = String(r.issueDate);
+          const docNumber = (r.bupotNumber ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+          return [
+            '    <Bpu>',
+            `      <TaxPeriodMonth>${taxMonth}</TaxPeriodMonth>`,
+            `      <TaxPeriodYear>${taxYear}</TaxPeriodYear>`,
+            `      <CounterpartTin>${counterpartTin}</CounterpartTin>`,
+            '      <IDPlaceOfBusinessActivityOfIncomeRecipient>000000</IDPlaceOfBusinessActivityOfIncomeRecipient>',
+            '      <TaxCertificate>N/A</TaxCertificate>',
+            `      <TaxObjectCode>${objectCode}</TaxObjectCode>`,
+            `      <TaxBase>${taxBase}</TaxBase>`,
+            `      <Rate>${rate}</Rate>`,
+            '      <Document>Invoice</Document>',
+            `      <DocumentNumber>${docNumber}</DocumentNumber>`,
+            `      <DocumentDate>${docDate}</DocumentDate>`,
+            '      <IDPlaceOfBusinessActivity>000000</IDPlaceOfBusinessActivity>',
+            '      <GovTreasurerOpt>N/A</GovTreasurerOpt>',
+            '      <SP2DNumber />',
+            `      <WithholdingDate>${docDate}</WithholdingDate>`,
+            '    </Bpu>',
+          ].join('\n');
+        })
+        .join('\n');
+
+      return [
+        '<?xml version="1.0" encoding="utf-8"?>',
+        '<BpuBulk xsi:noNamespaceSchemaLocation="schema.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">',
+        `  <TIN>${tin}</TIN>`,
+        '  <ListOfBpu>',
+        bpuRows,
+        '  </ListOfBpu>',
+        '</BpuBulk>',
+      ].join('\n');
+    },
+    (e) => (e instanceof AppError ? e : AppError.internal('tax.bupotUnifikasi.exportFailed', e)),
   );
 }

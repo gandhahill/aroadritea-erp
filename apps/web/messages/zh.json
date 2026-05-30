@@ -4329,7 +4329,8 @@
       "loading": "加载中...",
       "noData": "此期间未生成扣税。",
       "exportBp21Xml": "导出 e-Bupot 21 (XML)",
-      "bp21Hint": "e-Bupot 21 (XML) 从所选月份已批准/已支付的工资单中提取 PPh 21，生成 Coretax 批量导入文件。请先在\"设置›公司\"中填写公司 NPWP。"
+      "bp21Hint": "e-Bupot 21 (XML) 从所选月份已批准/已支付的工资单中提取 PPh 21，生成 Coretax 批量导入文件。请先在\"设置›公司\"中填写公司 NPWP。",
+      "exportBpuXml": "导出统一扣缴凭证 (XML)"
     },
     "pb1Monthly": {
       "title": "每月 PB1 汇总 (SPTPD)",
@@ -4355,6 +4356,12 @@
       "noWithholding": "本期间工资单中没有 PPh 21 扣缴。",
       "invalidPeriod": "期间无效。请使用 YYYY-MM 格式。",
       "exportFailed": "导出 e-Bupot 21 失败。"
+    },
+    "bupotUnifikasi": {
+      "unauthorized": "您尚未登录。",
+      "noData": "本期间没有扣缴 (PPh 23)。",
+      "invalidPeriod": "期间无效。请使用 YYYY-MM 格式。",
+      "exportFailed": "导出统一扣缴凭证失败。"
     }
   },
   "fields": {
