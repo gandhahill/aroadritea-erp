@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-const webRoot = path.resolve('apps/web');
+const webRoot = path.resolve('../apps/web');
 const msgDir = path.join(webRoot, 'messages');
 
 function flatten(obj, prefix = '', out = {}) {
