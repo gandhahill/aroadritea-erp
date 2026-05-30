@@ -895,6 +895,7 @@
     "editSupplierHelp": "修改此供应商的详细信息。",
     "saveChanges": "保存更改",
     "delete": "删除",
+    "confirmDelete": "您确定要删除此供应商吗？",
     "cancel": "取消",
     "noContact": "联系人不可用",
     "noSupplier": "暂无供应商。",

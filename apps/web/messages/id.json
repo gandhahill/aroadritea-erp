@@ -871,6 +871,7 @@
     "editSupplierHelp": "Ubah data supplier ini.",
     "saveChanges": "Simpan Perubahan",
     "delete": "Hapus",
+    "confirmDelete": "Yakin ingin menghapus supplier ini?",
     "cancel": "Batal",
     "noContact": "Kontak tidak tersedia",
     "noSupplier": "Tidak ada supplier.",

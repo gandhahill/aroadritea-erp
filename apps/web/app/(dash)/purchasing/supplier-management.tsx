@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useActionState, useEffect } from 'react';
+import { useState, useTransition, useActionState, useEffect } from 'react';
 import { Button, Input } from '@erp/ui';
 import { createSupplierAction, updateSupplierAction, deleteSupplierAction } from './actions';
 import { useTranslations } from 'next-intl';
@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 export function SupplierManagement({ suppliers }: { suppliers: any[] }) {
   const t = useTranslations('purchasing');
   const [editingSupplier, setEditingSupplier] = useState<any>(null);
+  const [isPending, startTransition] = useTransition();
 
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
@@ -43,11 +44,20 @@ export function SupplierManagement({ suppliers }: { suppliers: any[] }) {
                   >
                     {t('editSupplier').split(' ')[0] || 'Edit'}
                   </button>
-                  <form action={async (formData) => { await deleteSupplierAction(supplier.id, formData); }}>
-                    <button type="submit" className="text-brand-red hover:underline text-sm font-medium">
-                      {t('delete')}
-                    </button>
-                  </form>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => {
+                      if (confirm(t('confirmDelete'))) {
+                        startTransition(async () => {
+                          await deleteSupplierAction(supplier.id);
+                        });
+                      }
+                    }}
+                    className="text-brand-red hover:underline text-sm font-medium"
+                  >
+                    {t('delete')}
+                  </button>
                 </div>
               </div>
             ))
