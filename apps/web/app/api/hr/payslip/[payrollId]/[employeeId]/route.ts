@@ -119,6 +119,7 @@ export async function GET(
 <body>
 <div class="actions"><button onclick="window.print()">Simpan / Cetak PDF</button></div>
 <article class="sheet">
+  <div style="text-align: right; font-size: 10px; color: #bb2a2a; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: -15px;">Private & Confidential</div>
   <h1>Slip Gaji</h1>
   <h2>Periode ${htmlEscape(data.periodCode)} (${periodLabel})</h2>
 
