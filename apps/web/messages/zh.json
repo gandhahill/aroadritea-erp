@@ -2136,20 +2136,20 @@
       "noLocation": "您尚未在此会话中设置POS位置。"
     },
     "parkCart": {
-      "btn": "Hold",
-      "title": "???? (Park)",
-      "description": "?????????????",
-      "nameLabel": "??/?? (??)",
-      "namePlaceholder": "??:4??",
-      "confirm": "?? (Park)"
+      "btn": "挂单 (Hold)",
+      "title": "挂起购物车 (Park)",
+      "description": "保存当前购物车以暂时处理另一个订单。",
+      "nameLabel": "顾客 / 桌号 (选填)",
+      "namePlaceholder": "例如: 4号桌",
+      "confirm": "挂单"
     },
     "recallCart": {
-      "btn": "???",
-      "title": "?????",
-      "description": "?????????",
-      "empty": "????????",
-      "items": "???",
-      "recall": "??"
+      "btn": "取单",
+      "title": "取回挂单",
+      "description": "选择一个已挂起的购物车以恢复交易。",
+      "empty": "目前没有挂起的订单。",
+      "items": "件商品",
+      "recall": "取回"
     },
     "receipt": {
       "change": "找零",
