@@ -1959,7 +1959,9 @@
       "cancel": "Cancel",
       "actions": "Actions",
       "edit": "Edit",
-      "voided": "Voided"
+      "voided": "Voided",
+      "confirmDeleteTitle": "Delete Transaction?",
+      "deleting": "Deleting..."
     },
     "openShift": "Open Shift",
     "drawerExpense": "Drawer Expense",

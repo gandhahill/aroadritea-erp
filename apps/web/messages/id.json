@@ -1959,7 +1959,9 @@
       "cancel": "Batal",
       "actions": "Aksi",
       "edit": "Edit",
-      "voided": "Dibatalkan"
+      "voided": "Dibatalkan",
+      "confirmDeleteTitle": "Hapus Transaksi?",
+      "deleting": "Menghapus..."
     },
     "openShift": "Buka Shift",
     "drawerExpense": "Pengeluaran Laci",

@@ -1959,7 +1959,9 @@
       "cancel": "取消",
       "actions": "操作",
       "edit": "编辑",
-      "voided": "已取消"
+      "voided": "已取消",
+      "confirmDeleteTitle": "删除交易？",
+      "deleting": "删除中..."
     },
     "openShift": "开班",
     "drawerExpense": "钱箱支出",

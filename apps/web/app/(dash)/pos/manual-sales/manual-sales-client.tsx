@@ -18,6 +18,8 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
   const t = useTranslations('pos.manualSales');
   const pagination = useTranslations('common.pagination');
   const [editId, setEditId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [state, submitAction, isPending] = useActionState(async (prev: any, formData: FormData) => {
     const id = formData.get('id') as string;
     return id 
@@ -112,10 +114,16 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
     }
   };
 
-  const confirmDelete = async (id: string) => {
-    if (window.confirm(t('confirmDelete', { defaultValue: 'Yakin hapus transaksi ini? (Jurnal dan stok akan dibalikkan)' }))) {
-      await deleteManualSalesAction(id);
-    }
+  const confirmDelete = (id: string) => {
+    setDeleteConfirmId(id);
+  };
+
+  const executeDelete = async () => {
+    if (!deleteConfirmId) return;
+    setIsDeleting(true);
+    await deleteManualSalesAction(deleteConfirmId);
+    setIsDeleting(false);
+    setDeleteConfirmId(null);
   };
 
   const today = new Date().toISOString().slice(0, 10);
@@ -601,6 +609,31 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             <div className="border-t border-brand-cream-3 p-4 bg-brand-cream flex justify-end">
               <Button type="button" variant="secondary" onClick={() => setDetailModalOpen(false)}>
                 {t('close')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
+          <button type="button" aria-label="close" className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !isDeleting && setDeleteConfirmId(null)} />
+          <div className="relative z-10 flex w-full max-w-sm flex-col rounded-2xl bg-card shadow-2xl overflow-hidden">
+            <div className="border-b border-brand-cream-3 px-6 py-4 flex justify-between items-center bg-brand-cream">
+              <h3 className="text-lg font-semibold text-brand-ink">{t('confirmDeleteTitle', { defaultValue: 'Hapus Transaksi?' })}</h3>
+              <button type="button" disabled={isDeleting} onClick={() => setDeleteConfirmId(null)} className="text-brand-ink-3 hover:text-brand-ink disabled:opacity-50">&times;</button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-brand-ink-2">
+                {t('confirmDelete', { defaultValue: 'Yakin hapus transaksi ini? (Jurnal dan stok akan dibalikkan)' })}
+              </p>
+            </div>
+            <div className="border-t border-brand-cream-3 p-4 bg-brand-cream flex justify-end gap-3">
+              <Button type="button" variant="ghost" disabled={isDeleting} onClick={() => setDeleteConfirmId(null)}>
+                {t('cancel', { defaultValue: 'Batal' })}
+              </Button>
+              <Button type="button" variant="primary" disabled={isDeleting} className="bg-brand-red hover:bg-brand-red-dark text-white" onClick={executeDelete}>
+                {isDeleting ? t('deleting', { defaultValue: 'Menghapus...' }) : t('delete', { defaultValue: 'Hapus' })}
               </Button>
             </div>
           </div>
