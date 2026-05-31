@@ -1967,7 +1967,8 @@
       "errorInvalidPayments": "Data pembayaran tidak valid",
       "errorMinPayment": "Minimal harus ada 1 metode pembayaran",
       "errorPaymentFailed": "Gagal pada pembayaran {method}: {error}",
-      "errorDiscountExceedsGross": "Diskon melebihi total seluruh penjualan kotor."
+      "errorDiscountExceedsGross": "Diskon melebihi total seluruh penjualan kotor.",
+      "editedBy": "(Edit: {name})"
     },
     "openShift": "Buka Shift",
     "drawerExpense": "Pengeluaran Laci",

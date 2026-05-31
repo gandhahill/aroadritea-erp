@@ -63,6 +63,8 @@ function toResult(row: typeof manualSalesClosings.$inferSelect): ManualSalesClos
     status: row.status,
     journalEntryId: row.journalEntryId,
     createdAt: row.createdAt.toISOString(),
+    createdBy: row.createdBy,
+    updatedBy: row.updatedBy,
   };
 }
 
@@ -219,7 +221,7 @@ export async function createManualSalesClosing(
         status: 'draft',
         shiftId,
         lineItemsJson: data.lineItems.length > 0 ? data.lineItems : null,
-        createdBy: ctx.userId,
+        createdBy: data.originalCreatedBy || ctx.userId,
         updatedBy: ctx.userId,
       });
       return true;
@@ -342,14 +344,19 @@ export async function listManualSalesClosings(
         .where(whereClause);
         
       const { users } = await import('@erp/db/schema/auth');
+      const { aliasedTable } = await import('drizzle-orm');
+      const creators = aliasedTable(users, 'creators');
+      const updaters = aliasedTable(users, 'updaters');
       
       const rows = await db
         .select({
           closing: manualSalesClosings,
-          createdByName: users.displayName,
+          createdByName: creators.displayName,
+          updatedByName: updaters.displayName,
         })
         .from(manualSalesClosings)
-        .leftJoin(users, eq(manualSalesClosings.createdBy, users.id))
+        .leftJoin(creators, eq(manualSalesClosings.createdBy, creators.id))
+        .leftJoin(updaters, eq(manualSalesClosings.updatedBy, updaters.id))
         .where(whereClause)
         .orderBy(desc(manualSalesClosings.salesDate), desc(manualSalesClosings.createdAt))
         .limit(params.limit ?? 25)
@@ -359,6 +366,7 @@ export async function listManualSalesClosings(
         items: rows.map(r => ({
           ...toResult(r.closing),
           createdByName: r.createdByName,
+          updatedByName: r.updatedByName,
         })), 
         total: count 
       };

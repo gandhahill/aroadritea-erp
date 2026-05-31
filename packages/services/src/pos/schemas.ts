@@ -122,6 +122,7 @@ export const CreateManualSalesClosingInputSchema = z.object({
     .optional()
     .default([]),
   deductBom: z.boolean().default(true),
+  originalCreatedBy: z.string().optional(),
 });
 
 export type CreateManualSalesClosingInput = z.infer<typeof CreateManualSalesClosingInputSchema>;
@@ -254,4 +255,6 @@ export interface ManualSalesClosingResult {
   status: string;
   journalEntryId: string | null;
   createdAt: string;
+  createdBy: string | null;
+  updatedBy: string | null;
 }

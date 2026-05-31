@@ -513,7 +513,14 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     <Td align="right">{formatRupiah(item.taxTotal)}</Td>
                     <Td align="right">{formatRupiah(item.netRevenue)}</Td>
                     <Td>{item.journalEntryId ? t('synced') : t('notSynced')}</Td>
-                    <Td>{item.createdByName || '-'}</Td>
+                    <Td>
+                      {item.createdByName || '-'}
+                      {item.updatedByName && item.updatedByName !== item.createdByName && (
+                        <span className="block text-[11px] text-brand-ink-3 mt-0.5">
+                          {t('editedBy', { name: item.updatedByName, defaultValue: `(Edit: ${item.updatedByName})` })}
+                        </span>
+                      )}
+                    </Td>
                     <Td align="right">
                       {item.status !== 'voided' ? (
                         <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>

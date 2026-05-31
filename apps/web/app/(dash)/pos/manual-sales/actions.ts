@@ -40,6 +40,7 @@ export interface ManualSalesPageData {
     journalEntryId: string | null;
     status: string;
     createdByName?: string | null;
+    updatedByName?: string | null;
   }>;
   total: number;
   page: number;
@@ -258,6 +259,7 @@ export async function createManualSalesAction(
         // Attach line items and deduct BOM only on the first payment row
         lineItems: isFirst ? lineItems : [],
         deductBom: isFirst ? baseDeductBom : false,
+        originalCreatedBy: text(formData, 'originalCreatedBy') || undefined,
       },
       ctx,
     );
@@ -324,6 +326,15 @@ export async function updateManualSalesAction(
   const totalGross = payments.reduce((acc: bigint, p: any) => acc + BigInt(p.grossSales || '0'), 0n);
   if (remainingDiscount > totalGross) {
     return { error: t('errorDiscountExceedsGross', { defaultValue: 'Diskon melebihi total seluruh penjualan kotor.' }) };
+  }
+
+  // Get original creator to preserve it on the new record
+  const original = await getManualSalesClosingDetail(id, ctx);
+  if (!original.ok) {
+    return { error: errorMessage(original.error) };
+  }
+  if (original.value.closing.createdBy) {
+    formData.append('originalCreatedBy', original.value.closing.createdBy);
   }
 
   // For update, we simply delete and then create new ones.
