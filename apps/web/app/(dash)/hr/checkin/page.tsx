@@ -7,7 +7,7 @@
 
 import { getSession } from '@/lib/auth';
 import { and, asc, db, eq, isNull } from '@erp/db';
-import { employees, shiftDefinitions } from '@erp/db/schema/hr';
+import { employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { CheckInClient } from './check-in-client';
@@ -35,6 +35,33 @@ export default async function CheckInPage() {
     locationId = locationId || employee?.locationId || '';
   }
 
+  let activeLocationId = locationId;
+  if (employeeId) {
+    const todayStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Jakarta',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+
+    const [assignment] = await db
+      .select({ locationId: shiftAssignments.locationId })
+      .from(shiftAssignments)
+      .where(
+        and(
+          eq(shiftAssignments.tenantId, tenantId),
+          eq(shiftAssignments.employeeId, employeeId),
+          eq(shiftAssignments.workDate, todayStr),
+          eq(shiftAssignments.kind, 'shift'),
+        ),
+      )
+      .limit(1);
+
+    if (assignment?.locationId) {
+      activeLocationId = assignment.locationId;
+    }
+  }
+
   const shiftRows = await db
     .select({
       id: shiftDefinitions.id,
@@ -47,6 +74,7 @@ export default async function CheckInPage() {
     .where(
       and(
         eq(shiftDefinitions.tenantId, tenantId),
+        eq(shiftDefinitions.locationId, activeLocationId),
         eq(shiftDefinitions.isActive, true),
         isNull(shiftDefinitions.deletedAt),
       ),
