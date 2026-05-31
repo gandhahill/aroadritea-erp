@@ -146,12 +146,19 @@ export async function fetchLocations(tenantIdRaw?: string): Promise<LocationItem
     'accounting.reimbursement.create',
     tenantId,
   );
-  if (locationScope.locationIds.length === 0) return [];
+  if (!locationScope.global && locationScope.locationIds.length === 0) return [];
 
   const rows = await db
     .select({ id: locations.id, name: locations.name, code: locations.code })
     .from(locations)
-    .where(and(eq(locations.tenantId, tenantId), inArray(locations.id, locationScope.locationIds)));
+    .where(
+      and(
+        eq(locations.tenantId, tenantId),
+        ...(locationScope.global
+          ? []
+          : [inArray(locations.id, locationScope.locationIds)]),
+      ),
+    );
   const locale = (await getLocale().catch(() => 'id')) as 'id' | 'en' | 'zh';
   return rows.map((r) => {
     const name = r.name as LocaleString;

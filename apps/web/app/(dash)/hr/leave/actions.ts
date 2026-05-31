@@ -83,7 +83,7 @@ export async function fetchLeaveDashboard(): Promise<LeaveDashboardData | null> 
   const ctx = await getContext();
   if (!ctx) return null;
   const locationScope = await authorizedLocationIdsForTenant(ctx.userId, 'hr.view', ctx.tenantId);
-  if (locationScope.locationIds.length === 0) return null;
+  if (!locationScope.global && locationScope.locationIds.length === 0) return null;
 
   const [typeRows, requestRows, balanceRows] = await Promise.all([
     db

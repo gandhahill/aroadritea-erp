@@ -62,7 +62,7 @@ async function getOptions(ctx: AuditContext): Promise<CorrespondenceOptions> {
     'correspondence.view',
     ctx.tenantId,
   );
-  if (locationScope.locationIds.length === 0) return { locations: [], users: [] };
+  if (!locationScope.global && locationScope.locationIds.length === 0) return { locations: [], users: [] };
   const rawLocale = await getLocale().catch(() => 'id');
   const locale = rawLocale === 'en' || rawLocale === 'zh' ? rawLocale : 'id';
   const [locationRows, userRows] = await Promise.all([

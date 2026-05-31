@@ -192,15 +192,19 @@ export async function fetchRoster(
     'hr.manage_attendance',
     ctx.tenantId,
   );
-  if (locationScope.locationIds.length === 0) {
+  if (!locationScope.global && locationScope.locationIds.length === 0) {
     return { options: { shifts: [], employees: [] }, assignments: [] };
   }
+  // For global scope without specific location, we need all locations
+  const isGlobal = locationScope.global;
   const allowedLocationIds = locationId
-    ? locationScope.locationIds.includes(locationId)
+    ? isGlobal || locationScope.locationIds.includes(locationId)
       ? [locationId]
       : []
-    : locationScope.locationIds;
-  if (allowedLocationIds.length === 0) {
+    : isGlobal
+      ? null // null = no location filter (global access)
+      : locationScope.locationIds;
+  if (allowedLocationIds !== null && allowedLocationIds.length === 0) {
     return { options: { shifts: [], employees: [] }, assignments: [] };
   }
 
@@ -226,7 +230,9 @@ export async function fetchRoster(
         and(
           eq(shiftDefinitions.tenantId, ctx.tenantId),
           eq(shiftDefinitions.isActive, true),
-          inArray(shiftDefinitions.locationId, allowedLocationIds),
+          ...(allowedLocationIds
+            ? [inArray(shiftDefinitions.locationId, allowedLocationIds)]
+            : []),
         ),
       )
       .orderBy(shiftDefinitions.startTime),
@@ -243,7 +249,9 @@ export async function fetchRoster(
         and(
           eq(employees.tenantId, ctx.tenantId),
           sql`${employees.status} in ('active','probation')`,
-          inArray(employees.locationId, allowedLocationIds),
+          ...(allowedLocationIds
+            ? [inArray(employees.locationId, allowedLocationIds)]
+            : []),
         ),
       )
       .orderBy(employees.name),
@@ -259,7 +267,9 @@ export async function fetchRoster(
       .where(
         and(
           eq(shiftAssignments.tenantId, ctx.tenantId),
-          inArray(shiftAssignments.locationId, allowedLocationIds),
+          ...(allowedLocationIds
+            ? [inArray(shiftAssignments.locationId, allowedLocationIds)]
+            : []),
           gte(shiftAssignments.workDate, startStr),
           lte(shiftAssignments.workDate, endStr),
         ),
