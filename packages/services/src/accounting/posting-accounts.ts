@@ -58,6 +58,8 @@ export const POSTING_ACCOUNT_DEFAULTS = {
   // Period close
   'period.incomeSummary': '3-1300', // Ikhtisar Laba Rugi
   'period.retainedEarnings': '3-1400', // Laba Ditahan
+  // Initial balances
+  'equity.opening': '3-1100', // Modal Saham (Opening Balance Equity)
 } as const;
 
 export type PostingAccountPurpose = keyof typeof POSTING_ACCOUNT_DEFAULTS;
