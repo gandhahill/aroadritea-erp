@@ -361,6 +361,51 @@ export async function importMasterFromExcel(
       if (rawKind) setClause.kind = kind;
 
       await db.update(products).set(setClause).where(eq(products.id, existingProduct.id));
+
+      // Upsert stock level for the specified location
+      if (stokAwal > 0) {
+        const existingStock = await db
+          .select({ id: stockLevels.id })
+          .from(stockLevels)
+          .where(
+            and(
+              eq(stockLevels.tenantId, tenantId),
+              eq(stockLevels.productId, existingProduct.id),
+              eq(stockLevels.locationId, locationId),
+            ),
+          )
+          .limit(1)
+          .then((r) => r[0]);
+
+        if (existingStock) {
+          await db
+            .update(stockLevels)
+            .set({
+              qtyOnHand: String(stokAwal),
+              qtyAvailable: String(stokAwal),
+              uom,
+              avgUnitCost: hargaModal,
+              lastMovementAt: new Date(),
+            })
+            .where(eq(stockLevels.id, existingStock.id));
+        } else {
+          await db.insert(stockLevels).values({
+            id: generateId(),
+            tenantId,
+            locationId,
+            productId: existingProduct.id,
+            variantId: null,
+            qtyOnHand: String(stokAwal),
+            qtyReserved: '0',
+            qtyAvailable: String(stokAwal),
+            uom,
+            avgUnitCost: hargaModal,
+            lastMovementAt: new Date(),
+            createdBy: userId,
+          });
+        }
+      }
+
       updatedProducts++;
     } else {
       // ── CREATE ──

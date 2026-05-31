@@ -1,6 +1,7 @@
 import { getStockLedger } from '@erp/services/inventory';
 import { db, eq, and, isNull } from '@erp/db';
-import { products, stockLocations } from '@erp/db/schema/inventory';
+import { products } from '@erp/db/schema/inventory';
+import { locations } from '@erp/db/schema/auth';
 import { getSession } from '@/lib/auth';
 import { requirePermission } from '@erp/services/iam';
 import { redirect } from 'next/navigation';
@@ -26,36 +27,54 @@ export default async function StockLedgerPage({
   const sp = await searchParams;
   const { productId, locationId } = sp;
 
-  // Options for the selector UI.
+  // Options for the selector UI — use locations (branches), not stockLocations (sub-areas).
   const [productRows, locationRows] = await Promise.all([
     db
       .select({ id: products.id, name: products.name })
       .from(products)
-      .where(and(eq(products.tenantId, tenantId), isNull(products.deletedAt))),
+      .where(and(eq(products.tenantId, tenantId), eq(products.isActive, true)))
+      .orderBy(products.sku),
     db
-      .select({ id: stockLocations.id, name: stockLocations.name })
-      .from(stockLocations)
-      .where(eq(stockLocations.tenantId, tenantId)),
+      .select({ id: locations.id, code: locations.code, name: locations.name })
+      .from(locations)
+      .where(
+        and(
+          eq(locations.tenantId, tenantId),
+          eq(locations.status, 'active'),
+          isNull(locations.deletedAt),
+        ),
+      )
+      .orderBy(locations.code),
   ]);
-  const productOptions = productRows.map((p) => ({ id: p.id, name: p.name as Record<string, string> }));
-  const locationOptions = locationRows.map((l) => ({ id: l.id, name: l.name as Record<string, string> }));
+
+  const productOptions = productRows.map((p) => ({
+    id: p.id,
+    name: p.name as Record<string, string>,
+  }));
+  const locationOptions = locationRows.map((l) => ({
+    id: l.id,
+    name: { id: `${l.code} - ${(l.name as Record<string, string>)?.id ?? ''}`, en: `${l.code} - ${(l.name as Record<string, string>)?.en ?? ''}`, zh: `${l.code} - ${(l.name as Record<string, string>)?.zh ?? ''}` },
+  }));
 
   let detail = null;
   if (productId && locationId) {
     const [product] = await db.select().from(products).where(eq(products.id, productId));
-    const [location] = await db.select().from(stockLocations).where(eq(stockLocations.id, locationId));
+    const [location] = await db
+      .select({ id: locations.id, code: locations.code, name: locations.name })
+      .from(locations)
+      .where(eq(locations.id, locationId));
     const result = await getStockLedger({ tenantId, productId, locationId });
     const movements = result.ok ? result.value : [];
+
+    const productLabel = (product?.name as Record<string, string>)?.id ?? productId;
+    const locationLabel = location ? `${location.code} - ${(location.name as Record<string, string>)?.id ?? ''}` : locationId;
 
     detail = (
       <div className="surface-card overflow-hidden">
         <div className="border-b border-brand-cream-2 px-6 py-4">
           <h2 className="text-base font-semibold text-brand-ink">{t('movementHistory')}</h2>
           <p className="text-sm text-brand-muted">
-            {t('productAt', {
-              product: (product?.name as Record<string, string>)?.id ?? productId,
-              location: (location?.name as Record<string, string>)?.id ?? locationId,
-            })}
+            {t('productAt', { product: productLabel, location: locationLabel })}
           </p>
         </div>
         <div className="p-6">
