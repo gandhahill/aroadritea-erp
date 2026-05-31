@@ -2,7 +2,7 @@
 
 import { PageHeader } from '@/components/page-header';
 import { Pagination } from '@/components/pagination';
-import { Button, Input, Select, SearchableSelect, Table, TableBody, TableCell, TableHead } from '@erp/ui';
+import { Button, Input, Select, SearchableSelect, Table, TableBody, TableCell, TableHead, toast } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useActionState, useEffect, useState } from 'react';
@@ -125,7 +125,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
     setIsDeleting(false);
     
     if (res && !res.ok) {
-      alert(res.error || t('deleteFailed', { defaultValue: 'Gagal menghapus riwayat closing' }));
+      toast.error(res.error || t('deleteFailed', { defaultValue: 'Gagal menghapus riwayat closing' }));
     } else {
       setDeleteConfirmId(null);
     }
