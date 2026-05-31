@@ -2848,7 +2848,20 @@
           "startTime": "Start Time (HH:MM)",
           "endTime": "End Time (HH:MM)",
           "breakStart": "Break Start (optional)",
-          "breakEnd": "Break End (optional)"
+          "breakEnd": "Break End (optional)",
+          "overridesByDay": "Overrides by Day of Week",
+          "addDayOverride": "+ Add Day Override",
+          "overridesByDate": "Overrides by Specific Date",
+          "addDateOverride": "+ Add Date Override",
+          "days": {
+            "0": "Sunday",
+            "1": "Monday",
+            "2": "Tuesday",
+            "3": "Wednesday",
+            "4": "Thursday",
+            "5": "Friday",
+            "6": "Saturday"
+          }
         },
         "dialog": {
           "addTitle": "Add New Shift",

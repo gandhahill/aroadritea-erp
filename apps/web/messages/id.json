@@ -2927,7 +2927,20 @@
           "startTime": "Jam Mulai (HH:MM)",
           "endTime": "Jam Selesai (HH:MM)",
           "breakStart": "Mulai Istirahat (opsional)",
-          "breakEnd": "Selesai Istirahat (opsional)"
+          "breakEnd": "Selesai Istirahat (opsional)",
+          "overridesByDay": "Pengecualian Berdasarkan Hari (Day of Week)",
+          "addDayOverride": "+ Tambah Override Hari",
+          "overridesByDate": "Pengecualian Berdasarkan Tanggal (Specific Date)",
+          "addDateOverride": "+ Tambah Override Tanggal",
+          "days": {
+            "0": "Minggu",
+            "1": "Senin",
+            "2": "Selasa",
+            "3": "Rabu",
+            "4": "Kamis",
+            "5": "Jumat",
+            "6": "Sabtu"
+          }
         },
         "dialog": {
           "addTitle": "Tambah Shift Baru",

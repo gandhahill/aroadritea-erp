@@ -183,7 +183,7 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
           </div>
 
           <div className="mt-6 border-t border-brand-cream-3 pt-4">
-            <h3 className="mb-2 text-xs font-semibold text-brand-ink">Pengecualian Berdasarkan Hari (Day of Week)</h3>
+            <h3 className="mb-2 text-xs font-semibold text-brand-ink">{t('form.overridesByDay')}</h3>
             {dayOverrides.map((ov, i) => (
               <div key={i} className="mb-2 flex items-center gap-2">
                 <select
@@ -193,13 +193,13 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
                   }}
                   className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
                 >
-                  <option value={0}>Minggu</option>
-                  <option value={1}>Senin</option>
-                  <option value={2}>Selasa</option>
-                  <option value={3}>Rabu</option>
-                  <option value={4}>Kamis</option>
-                  <option value={5}>Jumat</option>
-                  <option value={6}>Sabtu</option>
+                  <option value={0}>{t('form.days.0')}</option>
+                  <option value={1}>{t('form.days.1')}</option>
+                  <option value={2}>{t('form.days.2')}</option>
+                  <option value={3}>{t('form.days.3')}</option>
+                  <option value={4}>{t('form.days.4')}</option>
+                  <option value={5}>{t('form.days.5')}</option>
+                  <option value={6}>{t('form.days.6')}</option>
                 </select>
                 <input
                   type="time"
@@ -234,12 +234,12 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
               onClick={() => setDayOverrides([...dayOverrides, { day: 1, startTime: '09:00', endTime: '17:00' }])}
               className="mt-1 text-xs font-semibold text-brand-red hover:underline"
             >
-              + Tambah Override Hari
+              {t('form.addDayOverride')}
             </button>
           </div>
 
           <div className="mt-4 border-t border-brand-cream-3 pt-4">
-            <h3 className="mb-2 text-xs font-semibold text-brand-ink">Pengecualian Berdasarkan Tanggal (Specific Date)</h3>
+            <h3 className="mb-2 text-xs font-semibold text-brand-ink">{t('form.overridesByDate')}</h3>
             {dateOverrides.map((ov, i) => (
               <div key={i} className="mb-2 flex items-center gap-2">
                 <input
@@ -284,7 +284,7 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
               onClick={() => setDateOverrides([...dateOverrides, { date: new Date().toISOString().slice(0,10), startTime: '09:00', endTime: '17:00' }])}
               className="mt-1 text-xs font-semibold text-brand-red hover:underline"
             >
-              + Tambah Override Tanggal
+              {t('form.addDateOverride')}
             </button>
           </div>
 

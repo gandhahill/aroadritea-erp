@@ -2848,7 +2848,20 @@
           "startTime": "开始时间 (HH:MM)",
           "endTime": "结束时间 (HH:MM)",
           "breakStart": "休息开始 (可选)",
-          "breakEnd": "休息结束 (可选)"
+          "breakEnd": "休息结束 (可选)",
+          "overridesByDay": "按星期覆盖 (Day of Week)",
+          "addDayOverride": "+ 添加星期覆盖",
+          "overridesByDate": "按特定日期覆盖 (Specific Date)",
+          "addDateOverride": "+ 添加日期覆盖",
+          "days": {
+            "0": "星期日",
+            "1": "星期一",
+            "2": "星期二",
+            "3": "星期三",
+            "4": "星期四",
+            "5": "星期五",
+            "6": "星期六"
+          }
         },
         "dialog": {
           "addTitle": "添加新班次",

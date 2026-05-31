@@ -6,7 +6,7 @@
  */
 
 import { getSession } from '@/lib/auth';
-import { and, asc, db, eq, isNull } from '@erp/db';
+import { and, asc, db, eq, inArray, isNull } from '@erp/db';
 import { employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
 import { resolveShiftTime } from '@erp/services/hr';
 import type { Metadata } from 'next';
@@ -37,6 +37,8 @@ export default async function CheckInPage() {
   }
 
   let activeLocationId = locationId;
+  let assignedShiftIds: string[] = [];
+
   if (employeeId) {
     const todayStr = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Asia/Jakarta',
@@ -45,8 +47,11 @@ export default async function CheckInPage() {
       day: '2-digit',
     }).format(new Date());
 
-    const [assignment] = await db
-      .select({ locationId: shiftAssignments.locationId })
+    const assignments = await db
+      .select({ 
+        locationId: shiftAssignments.locationId,
+        shiftDefinitionId: shiftAssignments.shiftDefinitionId
+      })
       .from(shiftAssignments)
       .where(
         and(
@@ -56,11 +61,17 @@ export default async function CheckInPage() {
           eq(shiftAssignments.kind, 'shift'),
           isNull(shiftAssignments.deletedAt),
         ),
-      )
-      .limit(1);
+      );
 
-    if (assignment?.locationId) {
-      activeLocationId = assignment.locationId;
+    if (assignments.length > 0) {
+      // If there are assignments, we use the location of the first one
+      // (assuming assignments on the same day are at the same location)
+      if (assignments[0]?.locationId) {
+        activeLocationId = assignments[0].locationId;
+      }
+      assignedShiftIds = assignments
+        .map(a => a.shiftDefinitionId)
+        .filter(Boolean) as string[];
     }
   }
 
@@ -77,7 +88,9 @@ export default async function CheckInPage() {
     .where(
       and(
         eq(shiftDefinitions.tenantId, tenantId),
-        eq(shiftDefinitions.locationId, activeLocationId),
+        assignedShiftIds.length > 0 
+          ? inArray(shiftDefinitions.id, assignedShiftIds)
+          : eq(shiftDefinitions.locationId, activeLocationId),
         eq(shiftDefinitions.isActive, true),
         isNull(shiftDefinitions.deletedAt),
       ),
