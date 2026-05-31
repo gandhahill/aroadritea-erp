@@ -61,7 +61,8 @@ export function CareersClient() {
       });
       const data: { ok?: boolean; error?: string } = await res.json();
       if (!data.ok) {
-        setError(data.error ?? t('errors.submitFailed'));
+        const errKey = data.error?.startsWith('careers.error.') ? data.error.replace('careers.', '') : null;
+        setError(errKey ? t(errKey, { defaultValue: t('errors.submitFailed') }) : t('errors.submitFailed'));
         return;
       }
       setSubmitted(activeOpening.title);

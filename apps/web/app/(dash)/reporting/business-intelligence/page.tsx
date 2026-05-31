@@ -2,7 +2,7 @@ import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
 import { and, db, eq, gte, lte, sql } from '@erp/db';
-import { salesOrders } from '@erp/db/schema/pos';
+import { manualSalesClosings, salesOrders } from '@erp/db/schema/pos';
 import { getDailySummary, previousPeriod } from '@erp/services/reporting';
 import type { AuditContext } from '@erp/shared/types';
 import type { Metadata } from 'next';
@@ -218,41 +218,47 @@ export default async function BusinessIntelligencePage() {
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const trendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
 
-  // Channel mix this month
-  const channelRows = await db
-    .select({
-      channel: salesOrders.channel,
-      gross: sql<bigint>`coalesce(sum(${salesOrders.grandTotal}), 0)`,
-      orders: sql<number>`cast(count(*) as int)`,
-    })
-    .from(salesOrders)
-    .where(
-      and(
-        eq(salesOrders.tenantId, tenantId),
-        eq(salesOrders.status, 'paid'),
-        gte(salesOrders.placedAt, startOfMonth),
-      ),
-    )
-    .groupBy(salesOrders.channel);
-  const channelMix = channelRows
+  // Channel mix this month (POS + manual sales)
+  const channelRows = await db.execute(
+    sql<{ channel: string; gross: string; orders: number }>`
+      SELECT channel, COALESCE(SUM(gross), 0)::bigint AS gross, SUM(orders)::int AS orders FROM (
+        SELECT channel, grand_total AS gross, 1 AS orders
+        FROM sales_orders
+        WHERE tenant_id = ${tenantId} AND status = 'paid' AND placed_at >= ${startOfMonth.toISOString()}
+        UNION ALL
+        SELECT channel, gross_sales - discount_total AS gross, transaction_count AS orders
+        FROM manual_sales_closings
+        WHERE tenant_id = ${tenantId} AND status = 'posted' AND sales_date >= ${ymd(startOfMonth)}
+      ) combined
+      GROUP BY channel
+    `,
+  );
+  const channelMix = (channelRows as unknown as Array<{ channel: string; gross: string; orders: number }>)
     .map((r) => ({
       label: humanChannel(r.channel, t),
-      gross: BigInt(r.gross ?? 0) * 100n,
+      gross: BigInt(r.gross ?? 0),
       orders: Number(r.orders),
     }))
     .sort((a, b) => Number(b.gross - a.gross));
 
-  // Hourly distribution today
+  // Hourly distribution today (POS + manual sales)
   const hourlyRows = await db.execute(
     sql<{ hour: number; gross: string; orders: number }>`
-      SELECT
-        EXTRACT(HOUR FROM placed_at AT TIME ZONE 'Asia/Jakarta')::int AS hour,
-        COALESCE(SUM(grand_total), 0)::bigint AS gross,
-        COUNT(*)::int AS orders
-      FROM sales_orders
-      WHERE tenant_id = ${tenantId}
-        AND status = 'paid'
-        AND placed_at >= ${startOfToday.toISOString()}
+      SELECT hour, COALESCE(SUM(gross), 0)::bigint AS gross, SUM(orders)::int AS orders FROM (
+        SELECT
+          EXTRACT(HOUR FROM placed_at AT TIME ZONE 'Asia/Jakarta')::int AS hour,
+          grand_total AS gross,
+          1 AS orders
+        FROM sales_orders
+        WHERE tenant_id = ${tenantId} AND status = 'paid' AND placed_at >= ${startOfToday.toISOString()}
+        UNION ALL
+        SELECT
+          12::int AS hour,
+          gross_sales - discount_total AS gross,
+          transaction_count AS orders
+        FROM manual_sales_closings
+        WHERE tenant_id = ${tenantId} AND status = 'posted' AND sales_date = ${ymd(startOfToday)}
+      ) combined
       GROUP BY 1
       ORDER BY 1
     `,
@@ -264,7 +270,7 @@ export default async function BusinessIntelligencePage() {
     orders: number;
   }>) {
     hourlyMap.set(Number(row.hour), {
-      gross: BigInt(row.gross) * 100n,
+      gross: BigInt(row.gross),
       orders: Number(row.orders),
     });
   }
@@ -274,17 +280,24 @@ export default async function BusinessIntelligencePage() {
     return { hour, gross: v?.gross ?? 0n, orders: v?.orders ?? 0 };
   });
 
-  // 7-day trend
+  // 7-day trend (POS + manual sales)
   const trendRows = await db.execute(
     sql<{ d: string; gross: string; orders: number }>`
-      SELECT
-        TO_CHAR(DATE(placed_at AT TIME ZONE 'Asia/Jakarta'), 'YYYY-MM-DD') AS d,
-        COALESCE(SUM(grand_total), 0)::bigint AS gross,
-        COUNT(*)::int AS orders
-      FROM sales_orders
-      WHERE tenant_id = ${tenantId}
-        AND status = 'paid'
-        AND placed_at >= ${trendStart.toISOString()}
+      SELECT d, COALESCE(SUM(gross), 0)::bigint AS gross, SUM(orders)::int AS orders FROM (
+        SELECT
+          TO_CHAR(DATE(placed_at AT TIME ZONE 'Asia/Jakarta'), 'YYYY-MM-DD') AS d,
+          grand_total AS gross,
+          1 AS orders
+        FROM sales_orders
+        WHERE tenant_id = ${tenantId} AND status = 'paid' AND placed_at >= ${trendStart.toISOString()}
+        UNION ALL
+        SELECT
+          sales_date::text AS d,
+          gross_sales - discount_total AS gross,
+          transaction_count AS orders
+        FROM manual_sales_closings
+        WHERE tenant_id = ${tenantId} AND status = 'posted' AND sales_date >= ${ymd(trendStart)}
+      ) combined
       GROUP BY 1
       ORDER BY 1
     `,
@@ -296,7 +309,7 @@ export default async function BusinessIntelligencePage() {
     orders: number;
   }>) {
     trendMap.set(String(row.d), {
-      gross: BigInt(row.gross) * 100n,
+      gross: BigInt(row.gross),
       orders: Number(row.orders),
     });
   }
@@ -308,7 +321,7 @@ export default async function BusinessIntelligencePage() {
     return { date: ds, gross: v?.gross ?? 0n, orders: v?.orders ?? 0 };
   });
 
-  // Member vs guest (member when customerId not null)
+  // Member vs guest (POS: member when customerId not null; manual sales = all guest)
   const [memberRow] = await db
     .select({
       gross: sql<bigint>`coalesce(sum(${salesOrders.grandTotal}), 0)`,
@@ -323,7 +336,7 @@ export default async function BusinessIntelligencePage() {
         sql`${salesOrders.customerId} is not null`,
       ),
     );
-  const [guestRow] = await db
+  const [guestPosRow] = await db
     .select({
       gross: sql<bigint>`coalesce(sum(${salesOrders.grandTotal}), 0)`,
       orders: sql<number>`cast(count(*) as int)`,
@@ -337,11 +350,24 @@ export default async function BusinessIntelligencePage() {
         sql`${salesOrders.customerId} is null`,
       ),
     );
+  const [guestManualRow] = await db
+    .select({
+      gross: sql<bigint>`coalesce(sum(${manualSalesClosings.grossSales} - ${manualSalesClosings.discountTotal}), 0)`,
+      orders: sql<number>`coalesce(sum(${manualSalesClosings.transactionCount}), 0)::int`,
+    })
+    .from(manualSalesClosings)
+    .where(
+      and(
+        eq(manualSalesClosings.tenantId, tenantId),
+        eq(manualSalesClosings.status, 'posted'),
+        gte(manualSalesClosings.salesDate, ymd(startOfMonth)),
+      ),
+    );
   const memberSplit = {
-    memberGross: BigInt(memberRow?.gross ?? 0) * 100n,
+    memberGross: BigInt(memberRow?.gross ?? 0),
     memberOrders: Number(memberRow?.orders ?? 0),
-    guestGross: BigInt(guestRow?.gross ?? 0) * 100n,
-    guestOrders: Number(guestRow?.orders ?? 0),
+    guestGross: BigInt(guestPosRow?.gross ?? 0) + BigInt(guestManualRow?.gross ?? 0),
+    guestOrders: Number(guestPosRow?.orders ?? 0) + Number(guestManualRow?.orders ?? 0),
   };
 
   const avgTicket = totals.orderCount > 0 ? totals.gross / BigInt(totals.orderCount) : 0n;

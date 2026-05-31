@@ -84,6 +84,7 @@ export interface JournalFormAccount {
   code: string;
   name: Record<string, string>;
   normalBalance: string;
+  subtype: string;
 }
 
 export interface JournalFormLocation {
@@ -392,6 +393,7 @@ export async function fetchJournalFormData(): Promise<JournalFormData> {
         code: accounts.code,
         name: accounts.name,
         normalBalance: accounts.normalBalance,
+        subtype: accounts.subtype,
       })
       .from(accounts)
       .where(

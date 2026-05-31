@@ -1386,7 +1386,17 @@
         "activateFailed": "激活产品失败。",
         "deleteFailed": "删除产品失败。"
       },
-      "confirmDelete": "永久删除此产品？只有从未售出、使用、购买、入库或记录在交易中的产品才能被删除。"
+      "confirmDelete": "永久删除此产品？只有从未售出、使用、购买、入库或记录在交易中的产品才能被删除。",
+      "margin": "利润率",
+      "importCsv": "导入CSV",
+      "downloadTemplate": "下载模板",
+      "importCsvTitle": "从CSV导入产品",
+      "importCsvDesc": "上传与模板格式匹配的CSV文件。已有产品（按KODE）将被更新。",
+      "csvFile": "CSV文件",
+      "importing": "导入中...",
+      "importBtn": "导入",
+      "importSuccess": "{created}个已创建，{updated}个已更新，{skipped}个已跳过。",
+      "importWarnings": "{count}个警告"
     },
     "opname": {
       "title": "库存盘点",

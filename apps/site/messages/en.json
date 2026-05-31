@@ -372,7 +372,12 @@
       "fetchFailed": "Failed to load job openings.",
       "nameRequired": "Please fill in your name first.",
       "submitFailed": "Failed to submit application.",
-      "network": "Network error. Please try again in a moment."
+      "network": "Network error. Please try again in a moment.",
+      "invalidJson": "Invalid data format.",
+      "fieldTooLong": "Input is too long.",
+      "openingNotFound": "Job opening not found.",
+      "openingClosed": "This opening is no longer accepting applications.",
+      "rateLimited": "Too many requests. Please try again later."
     }
   }
 }

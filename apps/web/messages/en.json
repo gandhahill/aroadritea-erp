@@ -1386,7 +1386,17 @@
         "activateFailed": "Failed to activate product.",
         "deleteFailed": "Failed to delete product."
       },
-      "confirmDelete": "Permanently delete this product? Only products that have never been sold, used, purchased, stocked, or recorded in transactions can be deleted."
+      "confirmDelete": "Permanently delete this product? Only products that have never been sold, used, purchased, stocked, or recorded in transactions can be deleted.",
+      "margin": "Margin",
+      "importCsv": "Import CSV",
+      "downloadTemplate": "Download Template",
+      "importCsvTitle": "Import Products from CSV",
+      "importCsvDesc": "Upload a CSV file matching the template. Existing products (by KODE) will be updated.",
+      "csvFile": "CSV File",
+      "importing": "Importing...",
+      "importBtn": "Import",
+      "importSuccess": "{created} created, {updated} updated, {skipped} skipped.",
+      "importWarnings": "{count} warning(s)"
     },
     "categories": {
       "title": "Product Categories",

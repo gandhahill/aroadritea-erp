@@ -63,7 +63,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
         return newPayments;
       });
     }
-  }, [lineItems]);
+  }, [lineItems, payments.length]);
 
   useEffect(() => {
     if (state?.ok) {
@@ -501,7 +501,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             <TableBody className="divide-y divide-brand-cream-3">
               {data.items.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-brand-ink-3">
+                  <td colSpan={10} className="px-4 py-8 text-center text-brand-ink-3">
                     {t('empty')}
                   </td>
                 </tr>

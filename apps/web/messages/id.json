@@ -1386,7 +1386,17 @@
         "activateFailed": "Gagal mengaktifkan produk.",
         "deleteFailed": "Gagal menghapus produk."
       },
-      "confirmDelete": "Hapus permanen produk ini? Hanya produk yang belum pernah dijual, dipakai, dibeli, masuk stok, atau tercatat di transaksi yang dapat dihapus."
+      "confirmDelete": "Hapus permanen produk ini? Hanya produk yang belum pernah dijual, dipakai, dibeli, masuk stok, atau tercatat di transaksi yang dapat dihapus.",
+      "margin": "Margin",
+      "importCsv": "Impor CSV",
+      "downloadTemplate": "Unduh Template",
+      "importCsvTitle": "Impor Produk dari CSV",
+      "importCsvDesc": "Upload file CSV sesuai template. Produk yang sudah ada (berdasarkan KODE) akan diupdate.",
+      "csvFile": "File CSV",
+      "importing": "Mengimpor...",
+      "importBtn": "Impor",
+      "importSuccess": "{created} dibuat, {updated} diupdate, {skipped} dilewati.",
+      "importWarnings": "{count} peringatan"
     },
     "categories": {
       "title": "Kategori Produk",

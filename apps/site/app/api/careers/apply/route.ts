@@ -4,7 +4,7 @@
  * front this with Turnstile / hCaptcha).
  */
 
-import { and, db, eq } from '@erp/db';
+import { and, db, eq, isNull } from '@erp/db';
 import { jobApplicants, jobOpenings } from '@erp/db/schema/hr';
 import { encryptPii } from '@erp/services/security/pii';
 import { clientIpFromHeaders } from '@erp/shared/client-ip';
@@ -22,6 +22,11 @@ function rateLimited(ip: string): boolean {
   const bucket = RATE_LIMIT.get(ip);
   if (!bucket || bucket.resetAt < now) {
     RATE_LIMIT.set(ip, { count: 1, resetAt: now + WINDOW_MS });
+    if (RATE_LIMIT.size > 10_000) {
+      for (const [key, val] of RATE_LIMIT) {
+        if (val.resetAt < now) RATE_LIMIT.delete(key);
+      }
+    }
     return false;
   }
   if (bucket.count >= MAX_PER_WINDOW) return true;
@@ -29,10 +34,22 @@ function rateLimited(ip: string): boolean {
   return false;
 }
 
+const ERROR_CODES = {
+  INVALID_JSON: 'careers.error.invalidJson',
+  NAME_REQUIRED: 'careers.error.nameRequired',
+  FIELD_TOO_LONG: 'careers.error.fieldTooLong',
+  OPENING_NOT_FOUND: 'careers.error.openingNotFound',
+  OPENING_CLOSED: 'careers.error.openingClosed',
+  RATE_LIMITED: 'careers.error.rateLimited',
+} as const;
+
 export async function POST(request: NextRequest) {
   const ip = clientIpFromHeaders(request.headers);
   if (rateLimited(ip)) {
-    return NextResponse.json({ ok: false, error: 'Too many requests' }, { status: 429 });
+    return NextResponse.json(
+      { ok: false, error: ERROR_CODES.RATE_LIMITED },
+      { status: 429 },
+    );
   }
 
   let body: {
@@ -45,7 +62,10 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ ok: false, error: 'Invalid JSON' }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: ERROR_CODES.INVALID_JSON },
+      { status: 400 },
+    );
   }
 
   const openingId = String(body.openingId ?? '').trim();
@@ -56,26 +76,37 @@ export async function POST(request: NextRequest) {
 
   if (!openingId || !name) {
     return NextResponse.json(
-      { ok: false, error: 'Nama dan lowongan wajib diisi.' },
+      { ok: false, error: ERROR_CODES.NAME_REQUIRED },
       { status: 400 },
     );
   }
   if (name.length > 128 || notes.length > 2000) {
-    return NextResponse.json({ ok: false, error: 'Field terlalu panjang.' }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: ERROR_CODES.FIELD_TOO_LONG },
+      { status: 400 },
+    );
   }
 
-  // Ensure opening exists + is open
   const [opening] = await db
     .select({ id: jobOpenings.id, status: jobOpenings.status })
     .from(jobOpenings)
-    .where(and(eq(jobOpenings.id, openingId), eq(jobOpenings.tenantId, 'default')))
+    .where(
+      and(
+        eq(jobOpenings.id, openingId),
+        eq(jobOpenings.tenantId, 'default'),
+        isNull(jobOpenings.deletedAt),
+      ),
+    )
     .limit(1);
   if (!opening) {
-    return NextResponse.json({ ok: false, error: 'Lowongan tidak ditemukan.' }, { status: 404 });
+    return NextResponse.json(
+      { ok: false, error: ERROR_CODES.OPENING_NOT_FOUND },
+      { status: 404 },
+    );
   }
   if (opening.status !== 'open') {
     return NextResponse.json(
-      { ok: false, error: 'Lowongan sudah tidak menerima aplikasi.' },
+      { ok: false, error: ERROR_CODES.OPENING_CLOSED },
       { status: 409 },
     );
   }
@@ -87,7 +118,7 @@ export async function POST(request: NextRequest) {
     openingId,
     name,
     email: email || null,
-    phone: encryptPii(phone || undefined, 'job_applicants.phone'),
+    phone: phone ? encryptPii(phone, 'job_applicants.phone') : null,
     stage: 'applied',
     notes: notes || null,
     createdBy: 'public_career_form',

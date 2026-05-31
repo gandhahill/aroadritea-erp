@@ -372,7 +372,12 @@
       "fetchFailed": "Gagal memuat daftar lowongan.",
       "nameRequired": "Isi nama dulu, ya.",
       "submitFailed": "Gagal mengirim aplikasi.",
-      "network": "Gangguan jaringan. Coba lagi sebentar."
+      "network": "Gangguan jaringan. Coba lagi sebentar.",
+      "invalidJson": "Format data tidak valid.",
+      "fieldTooLong": "Isian terlalu panjang.",
+      "openingNotFound": "Lowongan tidak ditemukan.",
+      "openingClosed": "Lowongan sudah tidak menerima aplikasi.",
+      "rateLimited": "Terlalu banyak permintaan. Coba lagi nanti."
     }
   }
 }

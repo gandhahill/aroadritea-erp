@@ -3,7 +3,7 @@
  * Read-only, no auth required.
  */
 
-import { and, db, eq } from '@erp/db';
+import { and, db, eq, isNull, sql } from '@erp/db';
 import { jobOpenings } from '@erp/db/schema/hr';
 import { NextResponse } from 'next/server';
 
@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const today = new Date().toISOString().slice(0, 10);
     const rows = await db
       .select({
         id: jobOpenings.id,
@@ -23,7 +24,14 @@ export async function GET() {
         closeDate: jobOpenings.closeDate,
       })
       .from(jobOpenings)
-      .where(and(eq(jobOpenings.tenantId, 'default'), eq(jobOpenings.status, 'open')))
+      .where(
+        and(
+          eq(jobOpenings.tenantId, 'default'),
+          eq(jobOpenings.status, 'open'),
+          isNull(jobOpenings.deletedAt),
+          sql`(${jobOpenings.closeDate} IS NULL OR ${jobOpenings.closeDate} >= ${today})`,
+        ),
+      )
       .limit(50);
     return NextResponse.json({ openings: rows });
   } catch {

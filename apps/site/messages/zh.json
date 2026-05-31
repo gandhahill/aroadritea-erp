@@ -372,7 +372,12 @@
       "fetchFailed": "无法加载职位空缺。",
       "nameRequired": "请先填写您的姓名。",
       "submitFailed": "无法提交申请。",
-      "network": "网络错误。请稍后再试。"
+      "network": "网络错误。请稍后再试。",
+      "invalidJson": "数据格式无效。",
+      "fieldTooLong": "输入内容过长。",
+      "openingNotFound": "未找到该职位。",
+      "openingClosed": "该职位已不再接受申请。",
+      "rateLimited": "请求过多，请稍后再试。"
     }
   }
 }

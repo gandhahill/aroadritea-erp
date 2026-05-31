@@ -27,7 +27,6 @@ export async function deleteManualSaleAction(id: string) {
   if (!ctx) return { ok: false, error: 'Unauthenticated' };
   const res = await deleteManualSalesClosing(id, ctx);
   if (!res.ok) {
-    console.error('Failed to delete manual sale:', res.error);
     const errObj = res.error as any;
     const msg = errObj?.details ? `${errorMessage(res.error)}: ${errObj.details}` : errorMessage(res.error);
     return { ok: false, error: msg };

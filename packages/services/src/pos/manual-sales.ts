@@ -14,6 +14,7 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, inArray, isNull, sql, ne } from 'drizzle-orm';
+import { sequences } from '@erp/db/schema/common';
 import { createJournal } from '../accounting/create-journal';
 import { reverseJournal } from '../accounting/reverse-journal';
 import { auditRecord } from '../audit';
@@ -38,11 +39,17 @@ import {
 
 async function generateManualSalesNumber(tenantId: string, salesDate: string): Promise<string> {
   const prefix = `MSC-${salesDate.slice(0, 7)}-`;
-  const result = await db.execute(
-    sql`SELECT COUNT(*) FROM manual_sales_closings WHERE tenant_id = ${tenantId} AND number LIKE ${`${prefix}%`}`,
-  );
-  const count = Number(result[0]?.count ?? 0);
-  return `${prefix}${(count + 1).toString().padStart(4, '0')}`;
+  const seqName = `${tenantId}:${prefix}`;
+  const rows = await db
+    .insert(sequences)
+    .values({ name: seqName, currentVal: 1 })
+    .onConflictDoUpdate({
+      target: sequences.name,
+      set: { currentVal: sql`${sequences.currentVal} + 1` },
+    })
+    .returning({ currentVal: sequences.currentVal });
+  const next = (rows[0]?.currentVal ?? 1).toString().padStart(4, '0');
+  return `${prefix}${next}`;
 }
 
 function toResult(row: typeof manualSalesClosings.$inferSelect): ManualSalesClosingResult {
@@ -243,6 +250,72 @@ export async function createManualSalesClosing(
     return err(createResult.error);
   }
 
+  const cogsGroups = new Map<string, { cogsAcc: string; invAcc: string; amount: bigint }>();
+  for (const d of appliedStockDeductions) {
+    const qtyNum = Number.parseFloat(d.qty);
+    const cogsAmount = (d.avgUnitCost * BigInt(Math.round(qtyNum * 1000))) / 1000n;
+    if (cogsAmount > 0n) {
+      const cAcc = d.cogsAccountId ?? postingConfig.value.defaultCogsAccountId;
+      const iAcc = d.inventoryAccountId ?? postingConfig.value.defaultInventoryAccountId;
+      const key = `${cAcc}-${iAcc}`;
+      const existing = cogsGroups.get(key) ?? { cogsAcc: cAcc, invAcc: iAcc, amount: 0n };
+      existing.amount += cogsAmount;
+      cogsGroups.set(key, existing);
+    }
+  }
+
+  const isPureCash = data.paymentMethod.toLowerCase() === 'cash' || data.paymentMethod.toLowerCase() === 'tunai';
+  const debitAccountId = isPureCash ? postingConfig.value.pureCashAccountId : postingConfig.value.cashAccountId;
+
+  const jeLines: Array<{
+    accountId: string;
+    locationId: string;
+    description: string;
+    debit: string;
+    credit: string;
+    taxCode?: string;
+  }> = [
+    {
+      accountId: debitAccountId,
+      locationId: data.locationId,
+      description: `${data.paymentMethod} settlement ${reference}`,
+      debit: taxableBase.toString(),
+      credit: '0',
+    },
+    {
+      accountId: postingConfig.value.revenueAccountId,
+      locationId: data.locationId,
+      description: `Manual sales revenue ${reference}`,
+      debit: '0',
+      credit: net.toString(),
+    },
+    {
+      accountId: postingConfig.value.taxAccountId,
+      locationId: data.locationId,
+      description: `PB1 manual sales ${reference}`,
+      debit: '0',
+      credit: tax.toString(),
+      taxCode: postingConfig.value.taxCode,
+    },
+  ];
+
+  for (const group of cogsGroups.values()) {
+    jeLines.push({
+      accountId: group.cogsAcc,
+      locationId: data.locationId,
+      description: `HPP manual sales ${reference}`,
+      debit: group.amount.toString(),
+      credit: '0',
+    });
+    jeLines.push({
+      accountId: group.invAcc,
+      locationId: data.locationId,
+      description: `HPP manual sales ${reference}`,
+      debit: '0',
+      credit: group.amount.toString(),
+    });
+  }
+
   const journal = await createJournal(
     {
       postingDate: data.salesDate,
@@ -250,30 +323,7 @@ export async function createManualSalesClosing(
       description: `Manual POS closing ${number} - ${channelLabel}`,
       referenceType: 'manual_sales_closing',
       referenceId: id,
-      lines: [
-        {
-          accountId: postingConfig.value.cashAccountId,
-          locationId: data.locationId,
-          description: `${data.paymentMethod} settlement ${reference}`,
-          debit: taxableBase.toString(),
-          credit: '0',
-        },
-        {
-          accountId: postingConfig.value.revenueAccountId,
-          locationId: data.locationId,
-          description: `Manual sales revenue ${reference}`,
-          debit: '0',
-          credit: net.toString(),
-        },
-        {
-          accountId: postingConfig.value.taxAccountId,
-          locationId: data.locationId,
-          description: `PB1 manual sales ${reference}`,
-          debit: '0',
-          credit: tax.toString(),
-          taxCode: postingConfig.value.taxCode,
-        },
-      ],
+      lines: jeLines,
     },
     ctx, { skipPermissionCheck: true }
   );

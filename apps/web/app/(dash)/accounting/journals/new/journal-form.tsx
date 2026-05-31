@@ -26,7 +26,6 @@ import { uploadAttachmentAction } from '../attachments/actions';
 interface LineDraft {
   key: number;
   accountId: string;
-  locationId: string;
   description: string;
   debit: string;
   credit: string;
@@ -49,11 +48,29 @@ export function JournalForm({ accounts, locations, partners }: Props) {
   const [state, submitAction, isPending] = useActionState(createJournalAction, null);
   const defaultLocationId = locations[0]?.id ?? '';
   const today = new Date().toISOString().slice(0, 10);
+  const accountSubtypeMap = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const a of accounts) m.set(a.id, a.subtype);
+    return m;
+  }, [accounts]);
+
+  const partnerTermsMap = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const p of partners) {
+      if (p.paymentTermsDays != null) m.set(p.id, p.paymentTermsDays);
+    }
+    return m;
+  }, [partners]);
+
+  const needsPartner = (accountId: string) => {
+    const sub = accountSubtypeMap.get(accountId);
+    return sub === 'receivable' || sub === 'payable' || sub === 'employee_payable';
+  };
+
   const [lines, setLines] = useState<LineDraft[]>([
     {
       key: 0,
       accountId: '',
-      locationId: defaultLocationId,
       description: '',
       debit: '',
       credit: '',
@@ -64,7 +81,6 @@ export function JournalForm({ accounts, locations, partners }: Props) {
     {
       key: 1,
       accountId: '',
-      locationId: defaultLocationId,
       description: '',
       debit: '',
       credit: '',
@@ -139,7 +155,6 @@ export function JournalForm({ accounts, locations, partners }: Props) {
       {
         key: Math.max(...current.map((line) => line.key)) + 1,
         accountId: '',
-        locationId: defaultLocationId,
         description: '',
         debit: '',
         credit: '',
@@ -215,24 +230,31 @@ export function JournalForm({ accounts, locations, partners }: Props) {
               <tr>
                 <TableHead className="px-4 py-3">{tc('labels.account')}</TableHead>
                 <TableHead className="px-4 py-3">{tc('labels.description')}</TableHead>
-                <TableHead className="px-4 py-3">{t('partner')}</TableHead>
-                <TableHead className="px-4 py-3">{t('dueDate')}</TableHead>
-                <TableHead className="px-4 py-3">{t('reminderDaysBefore')}</TableHead>
-                <TableHead className="px-4 py-3">{tc('labels.location')}</TableHead>
                 <TableHead className="px-4 py-3 text-right">{t('debit')}</TableHead>
                 <TableHead className="px-4 py-3 text-right">{t('credit')}</TableHead>
                 <TableHead className="px-4 py-3" />
               </tr>
             </TableHeader>
             <TableBody>
-              {lines.map((line, index) => (
-                <tr key={line.key}>
-                  <TableCell className="min-w-72 px-4 py-3">
+              {lines.map((line, index) => {
+                const showPartner = needsPartner(line.accountId);
+                return (
+                <tr key={line.key} className="group">
+                  <TableCell className="min-w-72 px-4 py-3 align-top">
                     <Select
                       name={`accountId-${index}`}
                       required
                       value={line.accountId}
-                      onChange={(event) => updateLine(line.key, { accountId: event.target.value })}
+                      onChange={(event) => {
+                        const newAccountId = event.target.value;
+                        const patch: Partial<LineDraft> = { accountId: newAccountId };
+                        if (!needsPartner(newAccountId)) {
+                          patch.partnerId = '';
+                          patch.dueDate = '';
+                          patch.reminderDaysBefore = '';
+                        }
+                        updateLine(line.key, patch);
+                      }}
                     >
                       <option value="">{t('selectAccount')}</option>
                       {accounts.map((account) => (
@@ -241,8 +263,62 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                         </option>
                       ))}
                     </Select>
+                    {showPartner && (
+                      <div className="mt-2 space-y-2 rounded-md border border-brand-cream-3 bg-brand-cream-2/30 p-2">
+                        <div>
+                          <span className="text-[11px] font-medium text-brand-ink-3">{t('partner')}</span>
+                          <Select
+                            name={`partnerId-${index}`}
+                            value={line.partnerId}
+                            onChange={(event) => {
+                              const pid = event.target.value;
+                              const patch: Partial<LineDraft> = { partnerId: pid };
+                              const terms = partnerTermsMap.get(pid);
+                              if (terms != null && !line.dueDate) {
+                                const pd = (document.querySelector<HTMLInputElement>('input[name="postingDate"]'))?.value || today;
+                                const due = new Date(pd);
+                                due.setDate(due.getDate() + terms);
+                                patch.dueDate = due.toISOString().slice(0, 10);
+                              }
+                              updateLine(line.key, patch);
+                            }}
+                          >
+                            <option value="">{t('noPartner')}</option>
+                            {partners.map((partner) => (
+                              <option key={partner.id} value={partner.id}>
+                                {partner.name} ({partner.kind})
+                              </option>
+                            ))}
+                          </Select>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <span className="text-[11px] font-medium text-brand-ink-3">{t('dueDate')}</span>
+                            <Input
+                              name={`dueDate-${index}`}
+                              type="date"
+                              value={line.dueDate}
+                              onChange={(event) => updateLine(line.key, { dueDate: event.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <span className="text-[11px] font-medium text-brand-ink-3">{t('reminderDaysBefore')}</span>
+                            <Input
+                              name={`reminderDaysBefore-${index}`}
+                              type="number"
+                              min={0}
+                              max={365}
+                              value={line.reminderDaysBefore}
+                              onChange={(event) =>
+                                updateLine(line.key, { reminderDaysBefore: event.target.value })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </TableCell>
-                  <TableCell className="min-w-56 px-4 py-3">
+                  <TableCell className="min-w-56 px-4 py-3 align-top">
                     <Input
                       name={`lineDescription-${index}`}
                       value={line.description}
@@ -251,54 +327,7 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                       }
                     />
                   </TableCell>
-                  <TableCell className="min-w-52 px-4 py-3">
-                    <Select
-                      name={`partnerId-${index}`}
-                      value={line.partnerId}
-                      onChange={(event) => updateLine(line.key, { partnerId: event.target.value })}
-                    >
-                      <option value="">{t('noPartner')}</option>
-                      {partners.map((partner) => (
-                        <option key={partner.id} value={partner.id}>
-                          {partner.name} ({partner.kind})
-                        </option>
-                      ))}
-                    </Select>
-                  </TableCell>
-                  <TableCell className="min-w-40 px-4 py-3">
-                    <Input
-                      name={`dueDate-${index}`}
-                      type="date"
-                      value={line.dueDate}
-                      onChange={(event) => updateLine(line.key, { dueDate: event.target.value })}
-                    />
-                  </TableCell>
-                  <TableCell className="min-w-28 px-4 py-3">
-                    <Input
-                      name={`reminderDaysBefore-${index}`}
-                      type="number"
-                      min={0}
-                      max={365}
-                      value={line.reminderDaysBefore}
-                      onChange={(event) =>
-                        updateLine(line.key, { reminderDaysBefore: event.target.value })
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="min-w-52 px-4 py-3">
-                    <Select
-                      name={`lineLocationId-${index}`}
-                      value={line.locationId || defaultLocationId}
-                      onChange={(event) => updateLine(line.key, { locationId: event.target.value })}
-                    >
-                      {locations.map((location) => (
-                        <option key={location.id} value={location.id}>
-                          {location.code}
-                        </option>
-                      ))}
-                    </Select>
-                  </TableCell>
-                  <TableCell className="min-w-36 px-4 py-3">
+                  <TableCell className="min-w-36 px-4 py-3 align-top">
                     <Input
                       name={`debit-${index}`}
                       inputMode="numeric"
@@ -309,7 +338,7 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                       className="text-right"
                     />
                   </TableCell>
-                  <TableCell className="min-w-36 px-4 py-3">
+                  <TableCell className="min-w-36 px-4 py-3 align-top">
                     <Input
                       name={`credit-${index}`}
                       inputMode="numeric"
@@ -320,7 +349,7 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                       className="text-right"
                     />
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-right">
+                  <TableCell className="px-4 py-3 text-right align-top">
                     <Button
                       type="button"
                       onClick={() => removeLine(line.key)}
@@ -333,11 +362,12 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                     </Button>
                   </TableCell>
                 </tr>
-              ))}
+                );
+              })}
             </TableBody>
             <tfoot className="bg-brand-cream-1 text-sm font-semibold text-brand-ink">
               <tr>
-                <TableCell className="px-4 py-3" colSpan={6}>
+                <TableCell className="px-4 py-3" colSpan={2}>
                   Total
                 </TableCell>
                 <TableCell className="px-4 py-3 text-right">{formatRupiah(totals.debit)}</TableCell>

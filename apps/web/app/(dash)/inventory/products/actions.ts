@@ -8,13 +8,14 @@ import {
   deactivateProduct,
   deleteProductPermanently,
   getProduct,
+  importMasterFromExcel,
   listCategories,
   listProducts,
   reactivateProduct,
   updateProduct,
   updateVariant,
 } from '@erp/services/inventory';
-import type { CategoryResult, ProductDetailResult, ProductListItem } from '@erp/services/inventory';
+import type { CategoryResult, ProductDetailResult, ProductListItem, Sheet1MasterRow } from '@erp/services/inventory';
 import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
 
@@ -350,6 +351,34 @@ export async function toggleVariantStatusAction(formData: FormData): Promise<voi
   revalidatePath(`/inventory/products/${productId}`);
 }
 
+export async function updateVariantAction(
+  _prev: ActionState | null,
+  formData: FormData,
+): Promise<ActionState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+
+  const productId = text(formData, 'productId');
+  const variantId = text(formData, 'variantId');
+  const version = Number.parseInt(text(formData, 'version'), 10);
+
+  const result = await updateVariant(
+    {
+      variantId,
+      version,
+      sellPrice: money(formData, 'editSellPrice'),
+      costPrice: money(formData, 'editCostPrice'),
+    },
+    ctx,
+  );
+
+  if (!result.ok) {
+    return { error: errorMessage(result.error), fieldErrors: validationFieldErrors(result.error) };
+  }
+  revalidatePath(`/inventory/products/${productId}`);
+  return { ok: true, productId };
+}
+
 export async function deactivateProductAction(formData: FormData): Promise<ActionState> {
   const ctx = await getAuditContext();
   if (!ctx) return { error: 'Unauthenticated' };
@@ -387,4 +416,113 @@ export async function deleteProductAction(formData: FormData): Promise<ActionSta
   revalidatePath('/inventory/products');
   revalidatePath('/inventory/supplies');
   return { ok: true, productId };
+}
+
+// ─── CSV Import ──────────────────────────────────────────────────────────────
+
+export interface ImportCsvState {
+  ok?: boolean;
+  error?: string;
+  created?: number;
+  updated?: number;
+  skipped?: number;
+  errors?: Array<{ row: number; field: string; message: string }>;
+}
+
+function parseCsvRows(csvText: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < csvText.length; i++) {
+    const ch = csvText[i];
+    const next = csvText[i + 1];
+    if (ch === '"' && inQuotes && next === '"') { cell += '"'; i++; continue; }
+    if (ch === '"') { inQuotes = !inQuotes; continue; }
+    if (ch === ',' && !inQuotes) { row.push(cell); cell = ''; continue; }
+    if ((ch === '\n' || ch === '\r') && !inQuotes) {
+      if (ch === '\r' && next === '\n') i++;
+      row.push(cell);
+      if (row.some((v) => v.trim().length > 0)) rows.push(row);
+      row = []; cell = '';
+      continue;
+    }
+    cell += ch;
+  }
+  row.push(cell);
+  if (row.some((v) => v.trim().length > 0)) rows.push(row);
+  return rows;
+}
+
+export async function importCsvAction(
+  _prev: ImportCsvState | null,
+  formData: FormData,
+): Promise<ImportCsvState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+
+  const locationId = text(formData, 'locationId');
+  if (!locationId) return { error: 'Location is required' };
+
+  const file = formData.get('file');
+  if (!(file instanceof File) || file.size === 0) return { error: 'CSV file is required' };
+  if (file.size > 2 * 1024 * 1024) return { error: 'File too large (max 2 MB)' };
+
+  const csvText = await file.text();
+  const rawRows = parseCsvRows(csvText);
+  if (rawRows.length < 2) return { error: 'CSV has no data rows' };
+
+  const headerRow = rawRows[0]!;
+  const headers = headerRow.map((h) => h.trim().toUpperCase().replace(/\s+/g, '_'));
+
+  const colIdx = (name: string) => headers.indexOf(name);
+  const kodeIdx = colIdx('KODE');
+  const kategoriIdx = colIdx('KATEGORI');
+  const namaIdx = colIdx('NAMA_BARANG');
+  const satuanIdx = colIdx('SATUAN');
+  const stokIdx = colIdx('STOK_AWAL');
+  const hargaJualIdx = colIdx('HARGA_JUAL');
+  const hargaModalIdx = colIdx('HARGA_MODAL');
+  const jenisIdx = colIdx('JENIS');
+  const gambarIdx = colIdx('GAMBAR_URL');
+
+  if (kodeIdx === -1) return { error: 'Column KODE not found in CSV header' };
+  if (namaIdx === -1) return { error: 'Column NAMA_BARANG not found in CSV header' };
+
+  const masterRows: Sheet1MasterRow[] = [];
+  for (let i = 1; i < rawRows.length; i++) {
+    const cols = rawRows[i]!;
+    const kode = cols[kodeIdx]?.trim() ?? '';
+    const nama = cols[namaIdx]?.trim() ?? '';
+    if (!kode && !nama) continue;
+
+    masterRows.push({
+      KODE: kode,
+      KATEGORI: cols[kategoriIdx]?.trim() ?? '',
+      NAMA_BARANG: nama,
+      SATUAN: cols[satuanIdx]?.trim() ?? 'pcs',
+      STOK_AWAL: Number(cols[stokIdx]?.replace(/[^\d.-]/g, '') || '0'),
+      HARGA_JUAL: Number(cols[hargaJualIdx]?.replace(/[^\d.-]/g, '') || '0'),
+      HARGA_MODAL: Number(cols[hargaModalIdx]?.replace(/[^\d.-]/g, '') || '0'),
+      JENIS: cols[jenisIdx]?.trim() ?? undefined,
+      GAMBAR_URL: cols[gambarIdx]?.trim() ?? undefined,
+    });
+  }
+
+  if (masterRows.length === 0) return { error: 'No valid data rows found' };
+
+  const result = await importMasterFromExcel(masterRows, locationId, ctx);
+  if (!result.ok) return { error: errorMessage(result.error) };
+
+  revalidatePath('/inventory/products');
+  revalidatePath('/inventory/supplies');
+
+  return {
+    ok: true,
+    created: result.value.createdProducts,
+    updated: result.value.updatedProducts,
+    skipped: result.value.skippedProducts,
+    errors: result.value.errors,
+  };
 }

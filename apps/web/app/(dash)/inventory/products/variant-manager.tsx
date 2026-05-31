@@ -14,37 +14,47 @@ import {
 import { useTranslations } from 'next-intl';
 import { useActionState, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { createVariantAction, toggleVariantStatusAction } from './actions';
+import { createVariantAction, toggleVariantStatusAction, updateVariantAction } from './actions';
 
 export function VariantManager({
   productId,
   variants,
-}: { productId: string; variants: VariantResult[] }) {
+  defaultCostPrice,
+}: { productId: string; variants: VariantResult[]; defaultCostPrice?: string }) {
   const tc = useTranslations('common');
   const tp = useTranslations('inventory.products');
-  const [state, submitAction, isPending] = useActionState(createVariantAction, null);
+  const [createState, submitCreate, isCreating] = useActionState(createVariantAction, null);
+  const [editState, submitEdit, isEditing] = useActionState(updateVariantAction, null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editSellPrice, setEditSellPrice] = useState('');
+  const [editCostPrice, setEditCostPrice] = useState('');
   const [values, setValues] = useState({
     variantSku: '',
     variantNameId: '',
     size: '',
     temp: '',
     variantSellPrice: '',
-    variantCostPrice: '0',
+    variantCostPrice: defaultCostPrice || '0',
     variantSortOrder: '0',
   });
 
   useEffect(() => {
-    if (!state?.ok) return;
+    if (!createState?.ok) return;
     setValues({
       variantSku: '',
       variantNameId: '',
       size: '',
       temp: '',
       variantSellPrice: '',
-      variantCostPrice: '0',
+      variantCostPrice: defaultCostPrice || '0',
       variantSortOrder: '0',
     });
-  }, [state?.ok]);
+  }, [createState?.ok, defaultCostPrice]);
+
+  useEffect(() => {
+    if (!editState?.ok) return;
+    setEditingId(null);
+  }, [editState?.ok]);
 
   function updateValue(key: keyof typeof values, value: string) {
     setValues((current) => ({ ...current, [key]: value }));
@@ -52,10 +62,20 @@ export function VariantManager({
 
   function fieldError(...keys: string[]): string | null {
     for (const key of keys) {
-      const message = state?.fieldErrors?.[key];
+      const message = createState?.fieldErrors?.[key];
       if (message) return message;
     }
     return null;
+  }
+
+  function startEdit(variant: VariantResult) {
+    setEditingId(variant.id);
+    setEditSellPrice(variant.sellPrice);
+    setEditCostPrice(variant.costPrice);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
   }
 
   return (
@@ -72,7 +92,9 @@ export function VariantManager({
               <TableHead className="px-4 py-3">{tc('fields.sku')}</TableHead>
               <TableHead className="px-4 py-3">{tc('fields.name')}</TableHead>
               <TableHead className="px-4 py-3">{tc('fields.attributes')}</TableHead>
-              <TableHead className="px-4 py-3 text-right">{tc('fields.price')}</TableHead>
+              <TableHead className="px-4 py-3 text-right">{tp('sellingPrice')}</TableHead>
+              <TableHead className="px-4 py-3 text-right">{tp('costPrice')}</TableHead>
+              <TableHead className="px-4 py-3 text-right">{tp('margin', { defaultValue: 'Margin' })}</TableHead>
               <TableHead className="px-4 py-3">{tc('fields.status')}</TableHead>
               <TableHead className="px-4 py-3 text-right">{tc('fields.actions')}</TableHead>
             </tr>
@@ -80,58 +102,141 @@ export function VariantManager({
           <TableBody>
             {variants.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-brand-ink-3">
+                <td colSpan={8} className="px-4 py-6 text-center text-brand-ink-3">
                   {tp('emptyVariants')}
                 </td>
               </tr>
             ) : (
-              variants.map((variant) => (
-                <tr key={variant.id}>
-                  <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink">
-                    {variant.sku}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 font-medium text-brand-ink">
-                    {variant.name.id}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-brand-ink-3">
-                    {Object.entries(variant.attributes)
-                      .map(([key, value]) => `${key}: ${value}`)
-                      .join(', ') || '-'}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-right font-semibold text-brand-ink">
-                    {formatRupiah(variant.sellPrice)}
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
-                    <span className="rounded-full bg-brand-jade-light px-2 py-1 text-xs font-semibold text-brand-jade">
-                      {variant.isActive ? tc('status.active') : tc('status.inactive')}
-                    </span>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-right">
-                    <form action={toggleVariantStatusAction}>
-                      <input type="hidden" name="productId" value={productId} />
-                      <input type="hidden" name="variantId" value={variant.id} />
-                      <input type="hidden" name="version" value={variant.version} />
-                      <input
-                        type="hidden"
-                        name="isActive"
-                        value={variant.isActive ? 'false' : 'true'}
-                      />
-                      <button
-                        type="submit"
-                        className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink hover:bg-brand-cream-2"
-                      >
-                        {variant.isActive ? tc('labels.deactivate') : tc('labels.activate')}
-                      </button>
-                    </form>
-                  </TableCell>
-                </tr>
-              ))
+              variants.map((variant) => {
+                const isEditingThis = editingId === variant.id;
+                const sell = Number(isEditingThis ? editSellPrice : variant.sellPrice);
+                const cost = Number(isEditingThis ? editCostPrice : variant.costPrice);
+                const margin = sell > 0 ? ((sell - cost) / sell) * 100 : 0;
+                const marginColor = margin < 15 ? 'text-rose-600' : margin < 30 ? 'text-amber-600' : 'text-brand-jade';
+
+                return (
+                  <tr key={variant.id}>
+                    <TableCell className="px-4 py-3 font-mono text-xs text-brand-ink">
+                      {variant.sku}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 font-medium text-brand-ink">
+                      {variant.name.id}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-brand-ink-3">
+                      {Object.entries(variant.attributes)
+                        .map(([key, value]) => `${key}: ${value}`)
+                        .join(', ') || '-'}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-right">
+                      {isEditingThis ? (
+                        <Input
+                          name="editSellPrice"
+                          type="number"
+                          min={0}
+                          value={editSellPrice}
+                          onChange={(e) => setEditSellPrice(e.target.value)}
+                          className="w-28 text-right"
+                        />
+                      ) : (
+                        <span className="font-semibold text-brand-ink">{formatRupiah(variant.sellPrice)}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-right">
+                      {isEditingThis ? (
+                        <Input
+                          name="editCostPrice"
+                          type="number"
+                          min={0}
+                          value={editCostPrice}
+                          onChange={(e) => setEditCostPrice(e.target.value)}
+                          className="w-28 text-right"
+                        />
+                      ) : (
+                        <span className="text-brand-ink-2">{formatRupiah(variant.costPrice)}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className={`px-4 py-3 text-right text-sm font-medium ${marginColor}`}>
+                      {margin.toFixed(1)}%
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
+                      <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                        variant.isActive
+                          ? 'bg-brand-jade-light text-brand-jade'
+                          : 'bg-rose-50 text-rose-600'
+                      }`}>
+                        {variant.isActive ? tc('status.active') : tc('status.inactive')}
+                      </span>
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {isEditingThis ? (
+                          <>
+                            <form action={submitEdit}>
+                              <input type="hidden" name="productId" value={productId} />
+                              <input type="hidden" name="variantId" value={variant.id} />
+                              <input type="hidden" name="version" value={variant.version} />
+                              <input type="hidden" name="editSellPrice" value={editSellPrice} />
+                              <input type="hidden" name="editCostPrice" value={editCostPrice} />
+                              <button
+                                type="submit"
+                                disabled={isEditing}
+                                className="rounded-lg border border-brand-jade bg-brand-jade-light px-3 py-1.5 text-xs font-semibold text-brand-jade hover:bg-brand-jade/10 disabled:opacity-50"
+                              >
+                                {isEditing ? tc('actions.saving') : tc('actions.save')}
+                              </button>
+                            </form>
+                            <button
+                              type="button"
+                              onClick={cancelEdit}
+                              className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink-3 hover:bg-brand-cream-2"
+                            >
+                              {tc('actions.cancel')}
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => startEdit(variant)}
+                              className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-xs font-semibold text-brand-ink hover:bg-brand-cream-2"
+                            >
+                              {tc('actions.edit', { defaultValue: 'Edit' })}
+                            </button>
+                            <form action={toggleVariantStatusAction}>
+                              <input type="hidden" name="productId" value={productId} />
+                              <input type="hidden" name="variantId" value={variant.id} />
+                              <input type="hidden" name="version" value={variant.version} />
+                              <input
+                                type="hidden"
+                                name="isActive"
+                                value={variant.isActive ? 'false' : 'true'}
+                              />
+                              <button
+                                type="submit"
+                                className={`rounded-lg border px-3 py-1.5 text-xs font-semibold ${
+                                  variant.isActive
+                                    ? 'border-rose-200 text-rose-600 hover:bg-rose-50'
+                                    : 'border-brand-jade text-brand-jade hover:bg-brand-jade-light'
+                                }`}
+                              >
+                                {variant.isActive ? tc('labels.deactivate') : tc('labels.activate')}
+                              </button>
+                            </form>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  </tr>
+                );
+              })
             )}
           </TableBody>
         </Table>
       </div>
 
-      <form action={submitAction} className="mt-5 grid gap-4 lg:grid-cols-6">
+      {editState?.error ? <p className="mt-3 text-sm text-rose-700">{editState.error}</p> : null}
+
+      <form action={submitCreate} className="mt-5 grid gap-4 lg:grid-cols-6">
         <input type="hidden" name="productId" value={productId} />
         <label htmlFor="variantSku" className="space-y-1.5 lg:col-span-1">
           <span className="text-sm font-medium text-brand-ink">{tp('skuVariant')}</span>
@@ -231,16 +336,16 @@ export function VariantManager({
         <div className="flex items-end lg:col-span-2">
           <Button
             type="submit"
-            disabled={isPending}
+            disabled={isCreating}
             className="w-full rounded-lg bg-brand-red px-4 py-2 font-semibold text-white shadow-sm hover:bg-brand-red-dark disabled:opacity-70"
             variant="primary"
             size="md"
           >
-            {isPending ? tc('actions.saving') : tp('addVariant')}
+            {isCreating ? tc('actions.saving') : tp('addVariant')}
           </Button>
         </div>
       </form>
-      {state?.error ? <p className="mt-3 text-sm text-rose-700">{state.error}</p> : null}
+      {createState?.error ? <p className="mt-3 text-sm text-rose-700">{createState.error}</p> : null}
     </section>
   );
 }
