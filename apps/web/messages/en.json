@@ -1953,7 +1953,13 @@
       "date": "Date",
       "backToSales": "Back to Sales",
       "search": "Search…",
-      "noResultsFound": "No results found"
+      "noResultsFound": "No results found",
+      "confirmDelete": "Are you sure you want to delete this transaction? (Journals and stock will be reverted)",
+      "update": "Update",
+      "cancel": "Cancel",
+      "actions": "Actions",
+      "edit": "Edit",
+      "voided": "Voided"
     },
     "openShift": "Open Shift",
     "drawerExpense": "Drawer Expense",
@@ -3955,7 +3961,11 @@
       "enable": "Enable 2FA",
       "scanTitle": "Setup Instructions",
       "scanSubtitle": "Add this URI to app.",
-      "done": "Done"
+      "done": "Done",
+      "totpCode": "TOTP Code",
+      "verifying": "Verifying...",
+      "verifyAndEnable": "Verify & Enable",
+      "cancel": "Cancel"
     },
     "sessions": {
       "title": "Active Sessions",
@@ -3998,7 +4008,9 @@
     "entityId": "Entity ID",
     "change": "Change",
     "viewDiff": "View change",
-    "empty": "No audit records match this filter."
+    "empty": "No audit records match this filter.",
+    "technicalDetail": "Technical Detail",
+    "noFieldChanges": "No field changes recorded"
   },
   "files": {
     "choose": "Choose file",

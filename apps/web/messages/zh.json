@@ -1953,7 +1953,13 @@
       "date": "日期",
       "backToSales": "返回销售",
       "search": "搜索…",
-      "noResultsFound": "未找到结果"
+      "noResultsFound": "未找到结果",
+      "confirmDelete": "您确定要删除此交易吗？（日记账和库存将被还原）",
+      "update": "更新",
+      "cancel": "取消",
+      "actions": "操作",
+      "edit": "编辑",
+      "voided": "已取消"
     },
     "openShift": "开班",
     "drawerExpense": "钱箱支出",
@@ -3955,7 +3961,11 @@
       "enable": "启用2FA",
       "scanTitle": "设置说明",
       "scanSubtitle": "将此URI添加到应用程序。",
-      "done": "完成"
+      "done": "完成",
+      "totpCode": "TOTP 代码",
+      "verifying": "正在验证...",
+      "verifyAndEnable": "验证并启用",
+      "cancel": "取消"
     },
     "sessions": {
       "title": "活动会话",
@@ -3998,7 +4008,9 @@
     "entityId": "数据 ID",
     "change": "变更",
     "viewDiff": "查看变更",
-    "empty": "当前筛选条件下没有审计记录。"
+    "empty": "当前筛选条件下没有审计记录。",
+    "technicalDetail": "技术细节",
+    "noFieldChanges": "没有记录字段更改"
   },
   "files": {
     "choose": "选择文件",

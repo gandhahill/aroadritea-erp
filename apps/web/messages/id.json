@@ -1953,7 +1953,13 @@
       "date": "Tanggal",
       "backToSales": "Kembali ke Penjualan",
       "search": "Cari…",
-      "noResultsFound": "Tidak ada hasil"
+      "noResultsFound": "Tidak ada hasil",
+      "confirmDelete": "Yakin hapus transaksi ini? (Jurnal dan stok akan dibalikkan)",
+      "update": "Perbarui",
+      "cancel": "Batal",
+      "actions": "Aksi",
+      "edit": "Edit",
+      "voided": "Dibatalkan"
     },
     "openShift": "Buka Shift",
     "drawerExpense": "Pengeluaran Laci",
@@ -3955,7 +3961,11 @@
       "enable": "Aktifkan 2FA",
       "scanTitle": "Instruksi Setup",
       "scanSubtitle": "Tambahkan URI ini ke aplikasi.",
-      "done": "Selesai"
+      "done": "Selesai",
+      "totpCode": "Kode TOTP",
+      "verifying": "Memverifikasi...",
+      "verifyAndEnable": "Verifikasi & Aktifkan",
+      "cancel": "Batal"
     },
     "sessions": {
       "title": "Sesi Aktif",
@@ -3998,7 +4008,9 @@
     "entityId": "ID data",
     "change": "Perubahan",
     "viewDiff": "Lihat perubahan",
-    "empty": "Belum ada catatan audit untuk filter ini."
+    "empty": "Belum ada catatan audit untuk filter ini.",
+    "technicalDetail": "Detail Teknis",
+    "noFieldChanges": "Tidak ada perubahan field yang tercatat"
   },
   "files": {
     "choose": "Pilih file",
