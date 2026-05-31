@@ -77,7 +77,6 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
   }, [state]);
 
   const startEdit = async (id: string) => {
-    setEditId(id);
     const res = await fetchManualSaleDetailAction(id);
     if (res.ok && res.value) {
       const data = res.value;
@@ -101,6 +100,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
         transactionCount: data.closing.transactionCount,
       }]);
       setEditData(data.closing);
+      setEditId(id);
       
       // Delay scrolling slightly to allow form remount
       setTimeout(() => {
