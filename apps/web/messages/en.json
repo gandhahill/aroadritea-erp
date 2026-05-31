@@ -1897,6 +1897,7 @@
       }
     },
     "manualSales": {
+      "deleteFailed": "Failed to delete manual closing record.",
       "eyebrow": "Legacy POS",
       "title": "Manual Sales Entry",
       "subtitle": "Use this while an outlet still runs the old POS. Cashiers enter the daily closing total; the system posts the journal from POS Settings accounts.",

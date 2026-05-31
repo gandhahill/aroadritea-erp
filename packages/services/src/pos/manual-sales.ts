@@ -554,7 +554,7 @@ export async function deleteManualSalesClosing(id: string, ctx: AuditContext) {
 
       return true;
     },
-    (e) => e instanceof AppError ? e : new AppError('INTERNAL', 'pos.manualSales.deleteFailed', e instanceof Error ? e.message : String(e))
+    (e) => (e instanceof AppError || (e && typeof e === 'object' && 'code' in e && 'messageKey' in e)) ? (e as AppError) : new AppError('INTERNAL', 'pos.manualSales.deleteFailed', e instanceof Error ? e.message : String(e))
   );
 }
 

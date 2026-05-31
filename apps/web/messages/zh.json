@@ -1897,6 +1897,7 @@
       }
     },
     "manualSales": {
+      "deleteFailed": "删除手动交班记录失败。",
       "eyebrow": "旧POS",
       "title": "手动销售录入",
       "subtitle": "门店仍使用旧POS时使用。收银员录入每日收班销售总额，系统会按POS设置账户自动生成并过账日记账。",

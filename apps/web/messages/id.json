@@ -1897,6 +1897,7 @@
       }
     },
     "manualSales": {
+      "deleteFailed": "Gagal menghapus riwayat closing.",
       "eyebrow": "POS Lama",
       "title": "Input Penjualan Manual",
       "subtitle": "Dipakai saat outlet masih memakai POS lama. Kasir mengisi total penjualan harian saat closing; sistem otomatis membuat jurnal dari akun POS Settings.",
