@@ -238,7 +238,7 @@ export async function deactivateEmployee(
           version: employees.version,
         })
         .from(employees)
-        .where(and(eq(employees.id, employeeId), eq(employees.tenantId, ctx.tenantId)))
+        .where(and(eq(employees.id, employeeId), eq(employees.tenantId, ctx.tenantId), isNull(employees.deletedAt)))
         .limit(1);
 
       if (!existing) throw AppError.notFound('hr.employee.notFound');

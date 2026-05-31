@@ -51,7 +51,8 @@ export type AuditAction =
   | 'master_import'
   | 'movement_import'
   | 'receive'
-  | 'generate_bank_transfer';
+  | 'generate_bank_transfer'
+  | 'reply';
 
 /** Input for a single audit log entry. */
 export interface AuditRecordInput {

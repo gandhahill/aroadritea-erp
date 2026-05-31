@@ -12,7 +12,7 @@ import { employees } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { decryptPii, encryptPiiForLookup } from '../security/pii';
@@ -29,7 +29,7 @@ export async function deleteEmployee(
       const [emp] = await db
         .select()
         .from(employees)
-        .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.id, employeeId)))
+        .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.id, employeeId), isNull(employees.deletedAt)))
         .limit(1);
 
       if (!emp) throw AppError.notFound('hr.employee.notFound');

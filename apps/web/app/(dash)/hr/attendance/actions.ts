@@ -11,13 +11,13 @@ import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
 
 export async function serverListAttendance(input: ListAttendanceInput) {
-  // Resolve ctx server-side. Previously this signature accepted ctx from
-  // the caller (client), letting a malicious browser query attendance
-  // for another tenant.
   const session = await getSession();
-  const user = (session?.user ?? {}) as Record<string, unknown>;
+  if (!session?.user?.id) {
+    return { ok: false as const, error: { code: 'UNAUTHENTICATED', message: 'Session expired' } };
+  }
+  const user = session.user as Record<string, unknown>;
   const ctx: AuditContext = {
-    userId: String(user.id ?? ''),
+    userId: String(user.id),
     tenantId: String(user.tenantId ?? 'default'),
     locationId: String(user.locationId ?? ''),
   };

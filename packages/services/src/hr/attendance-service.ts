@@ -216,9 +216,7 @@ async function getLocationGpsConfig(
 
 // ─── Face Verification Mock (T-0254) ─────────────────────────────────────────
 
-export async function verifyFaceMatching(photoUrl: string, employeeId: string): Promise<{ isVerified: boolean; score: number }> {
-  // Simulate API call to an AI face matching service
-  console.log(`[FaceMatch] Verifying photo ${photoUrl} for employee ${employeeId}`);
+export async function verifyFaceMatching(_photoUrl: string, _employeeId: string): Promise<{ isVerified: boolean; score: number }> {
   await new Promise((resolve) => setTimeout(resolve, 300));
   return { isVerified: true, score: 98 };
 }
@@ -298,16 +296,14 @@ export async function checkIn(
       // But we require permission to write attendance at that location.
       // If it's self-service, does the user have hr.attendance.write?
       // For self-service, they usually only have 'hr.attendance.self_service' or we just allow it if they are checking themselves in.
-      if (resolvedEmployeeId !== data.employeeId) {
-        // If data.employeeId is provided and different from resolved (i.e. manager checking in for someone else)
-        // Or if resolving themselves, they just need to match. Actually if data.employeeId is missing, it's self-check-in.
-      }
-      
-      if (data.employeeId && data.employeeId !== (await resolveEmployeeForUser(ctx.tenantId, ctx.userId))?.id) {
-         const permCheck = await requirePermission(ctx.userId, 'hr.attendance.write', {
-           locationId: targetLocationId,
-         });
-         if (!permCheck.ok) throw permCheck.error;
+      if (data.employeeId) {
+        const selfEmp = await resolveEmployeeForUser(ctx.tenantId, ctx.userId);
+        if (!selfEmp || data.employeeId !== selfEmp.id) {
+          const permCheck = await requirePermission(ctx.userId, 'hr.attendance.write', {
+            locationId: targetLocationId,
+          });
+          if (!permCheck.ok) throw permCheck.error;
+        }
       }
 
       // 1. Derive shift definition
@@ -492,7 +488,7 @@ export async function checkOut(
       const [existing] = await db
         .select()
         .from(attendance)
-        .where(and(eq(attendance.id, data.attendanceId), eq(attendance.tenantId, ctx.tenantId)))
+        .where(and(eq(attendance.id, data.attendanceId), eq(attendance.tenantId, ctx.tenantId), isNull(attendance.deletedAt)))
         .limit(1);
 
       if (!existing) {
@@ -528,19 +524,21 @@ export async function checkOut(
           .limit(1);
 
         if (shiftDef) {
-          // Expected end = start + shift duration
           const resolvedTimes = resolveShiftTime(shiftDef, existing.checkInAt);
           const shiftStart = shiftTimeToDate(resolvedTimes.startTime, existing.checkInAt);
-          const shiftEnd = shiftTimeToDate(resolvedTimes.endTime, existing.checkInAt);
+          let shiftEnd = shiftTimeToDate(resolvedTimes.endTime, existing.checkInAt);
+          // Cross-midnight shift (e.g., 22:00–06:00): end is next day
+          if (shiftEnd.getTime() <= shiftStart.getTime()) {
+            shiftEnd = new Date(shiftEnd.getTime() + 24 * 60 * 60 * 1000);
+          }
           const expectedDurationMin = Math.round(
             (shiftEnd.getTime() - shiftStart.getTime()) / 60000,
           );
 
-          // Actual worked = check-out time − check-in time
           const actualWorkedMin = Math.round(
             (performedAt.getTime() - existing.checkInAt!.getTime()) / 60000,
           );
-          workedMinutes = Math.min(actualWorkedMin, expectedDurationMin); // cap at expected
+          workedMinutes = Math.min(actualWorkedMin, expectedDurationMin);
         }
       }
 
@@ -725,7 +723,7 @@ export async function forgiveLate(
           employeeId: attendance.employeeId,
         })
         .from(attendance)
-        .where(and(eq(attendance.id, input.attendanceId), eq(attendance.tenantId, ctx.tenantId)))
+        .where(and(eq(attendance.id, input.attendanceId), eq(attendance.tenantId, ctx.tenantId), isNull(attendance.deletedAt)))
         .limit(1);
       if (!row) {
         throw AppError.notFound('hr.attendance.notFound');

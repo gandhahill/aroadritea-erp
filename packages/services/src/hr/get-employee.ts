@@ -17,7 +17,7 @@ import {
 import { AppError } from '@erp/shared/errors';
 import { type Result, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import { can, requirePermission } from '../iam';
 import { decryptPiiForDisplay } from '../security/pii';
 
@@ -100,7 +100,7 @@ export async function getEmployee(
       const [row] = await db
         .select()
         .from(employees)
-        .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.id, employeeId)))
+        .where(and(eq(employees.tenantId, ctx.tenantId), eq(employees.id, employeeId), isNull(employees.deletedAt)))
         .limit(1);
 
       if (!row) {

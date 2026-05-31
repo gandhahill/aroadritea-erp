@@ -8,6 +8,8 @@ export {
   listManualSalesClosings,
   listManualSalesLocations,
   getManualSalesClosingDetail,
+  deleteManualSalesClosing,
+  updateManualSalesClosing,
 } from './manual-sales';
 export { refundSale } from './refund-sale';
 export { openShift, closeShift, getOpenShift } from './shift-service';

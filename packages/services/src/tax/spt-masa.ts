@@ -102,7 +102,10 @@ export async function getVatLedger(
           )
         )
         .limit(1);
-      const ratePercent = rateRows[0] ? BigInt(rateRows[0].rateBps) / 100n : 11n;
+      if (!rateRows[0]) {
+        throw AppError.businessRule('tax.sptMasa.rateNotFound', { taxCode: targetTaxCode });
+      }
+      const ratePercent = BigInt(rateRows[0].rateBps) / 100n;
 
       const rows = await db
         .select({

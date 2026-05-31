@@ -20,7 +20,7 @@ import {
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
@@ -124,6 +124,7 @@ export async function generateBankTransferFile(
         and(
           eq(employees.tenantId, ctx.tenantId),
           eq(employees.locationId, payroll.locationId),
+          isNull(employees.deletedAt),
         ),
       );
 

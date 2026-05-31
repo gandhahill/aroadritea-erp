@@ -56,21 +56,99 @@ export async function createOutgoingShipment(
   return tryCatch(
     async () => {
       const id = generateId();
-      await db.insert(outgoingShipments).values({
-        id,
-        tenantId: ctx.tenantId,
-        locationId: data.locationId,
-        number: data.number,
-        subject: data.subject,
-        notes: data.notes || null,
-        recipientName: data.recipientName,
-        recipientAddress: data.recipientAddress,
-        recipientPhone: data.recipientPhone || null,
-        shippingCourierCode: data.shippingCourierCode || null,
-        shippingAwb: data.shippingAwb || null,
-        shippingPhoneLast5: data.shippingPhoneLast5 || null,
-        createdBy: ctx.userId,
-        updatedBy: ctx.userId,
+
+      await db.transaction(async (tx) => {
+        await tx.insert(outgoingShipments).values({
+          id,
+          tenantId: ctx.tenantId,
+          locationId: data.locationId,
+          number: data.number,
+          subject: data.subject,
+          notes: data.notes || null,
+          recipientName: data.recipientName,
+          recipientAddress: data.recipientAddress,
+          recipientPhone: data.recipientPhone || null,
+          shippingCourierCode: data.shippingCourierCode || null,
+          shippingAwb: data.shippingAwb || null,
+          shippingPhoneLast5: data.shippingPhoneLast5 || null,
+          createdBy: ctx.userId,
+          updatedBy: ctx.userId,
+        });
+
+        if (data.lines.length > 0) {
+          for (const [index, line] of data.lines.entries()) {
+            const lineId = generateId();
+            await tx.insert(outgoingShipmentLines).values({
+              id: lineId,
+              tenantId: ctx.tenantId,
+              shipmentId: id,
+              lineNo: index + 1,
+              productId: line.productId,
+              variantId: line.variantId || null,
+              qty: line.qty.toString(),
+              uom: line.uom,
+              notes: line.notes || null,
+              createdBy: ctx.userId,
+              updatedBy: ctx.userId,
+            });
+
+            const variantFilter = line.variantId ? eq(stockLevels.variantId, line.variantId) : sql`variant_id IS NULL`;
+
+            const [currentLevel] = await tx.select({
+              id: stockLevels.id,
+              qtyOnHand: stockLevels.qtyOnHand,
+              stockLocationId: stockLevels.stockLocationId,
+            }).from(stockLevels)
+              .where(
+                and(
+                  eq(stockLevels.tenantId, ctx.tenantId),
+                  eq(stockLevels.locationId, data.locationId),
+                  eq(stockLevels.productId, line.productId),
+                  variantFilter
+                )
+              ).limit(1);
+
+            if (!currentLevel) {
+              throw AppError.businessRule('logistics.outgoingShipment.insufficientStock', {
+                productId: line.productId,
+              });
+            }
+
+            if (Number(currentLevel.qtyOnHand) < line.qty) {
+              throw AppError.businessRule('logistics.outgoingShipment.insufficientStock', {
+                productId: line.productId,
+                available: currentLevel.qtyOnHand,
+                requested: line.qty,
+              });
+            }
+
+            await tx.update(stockLevels).set({
+              qtyOnHand: sql`${stockLevels.qtyOnHand} - ${line.qty.toString()}::numeric`,
+              qtyAvailable: sql`${stockLevels.qtyAvailable} - ${line.qty.toString()}::numeric`,
+              updatedBy: ctx.userId,
+              lastMovementAt: new Date(),
+            }).where(eq(stockLevels.id, currentLevel.id));
+
+            await tx.insert(stockMovements).values({
+              id: generateId(),
+              tenantId: ctx.tenantId,
+              locationId: data.locationId,
+              occurredAt: new Date(),
+              stockLocationId: currentLevel.stockLocationId,
+              productId: line.productId,
+              variantId: line.variantId || null,
+              batchNo: null,
+              qtyDelta: (-line.qty).toString(),
+              uom: line.uom,
+              reason: 'outgoing_shipment',
+              referenceType: 'outgoing_shipment',
+              referenceId: id,
+              unitCost: null,
+              createdBy: ctx.userId,
+              updatedBy: ctx.userId,
+            });
+          }
+        }
       });
 
       await auditRecord({
@@ -82,71 +160,10 @@ export async function createOutgoingShipment(
         ctx,
       });
 
-      if (data.lines.length > 0) {
-        for (const [index, line] of data.lines.entries()) {
-          const lineId = generateId();
-          await db.insert(outgoingShipmentLines).values({
-            id: lineId,
-            tenantId: ctx.tenantId,
-            shipmentId: id,
-            lineNo: index + 1,
-            productId: line.productId,
-            variantId: line.variantId || null,
-            qty: line.qty.toString(),
-            uom: line.uom,
-            notes: line.notes || null,
-            createdBy: ctx.userId,
-            updatedBy: ctx.userId,
-          });
-
-          // Deduct stock
-          const variantFilter = line.variantId ? eq(stockLevels.variantId, line.variantId) : sql`variant_id IS NULL`;
-          
-          const [currentLevel] = await db.select({ id: stockLevels.id, stockLocationId: stockLevels.stockLocationId }).from(stockLevels)
-            .where(
-              and(
-                eq(stockLevels.tenantId, ctx.tenantId),
-                eq(stockLevels.locationId, data.locationId),
-                eq(stockLevels.productId, line.productId),
-                variantFilter
-              )
-            ).limit(1);
-          
-          if (!currentLevel) {
-            throw AppError.businessRule('logistics.outgoingShipment.insufficientStock');
-          }
-          
-          await db.update(stockLevels).set({
-            qtyOnHand: sql`${stockLevels.qtyOnHand} - ${line.qty.toString()}::numeric`,
-            qtyAvailable: sql`${stockLevels.qtyAvailable} - ${line.qty.toString()}::numeric`,
-            updatedBy: ctx.userId,
-            lastMovementAt: new Date(),
-          }).where(eq(stockLevels.id, currentLevel.id));
-          
-          await db.insert(stockMovements).values({
-            id: generateId(),
-            tenantId: ctx.tenantId,
-            locationId: data.locationId,
-            occurredAt: new Date(),
-            stockLocationId: currentLevel.stockLocationId,
-            productId: line.productId,
-            variantId: line.variantId || null,
-            batchNo: null,
-            qtyDelta: (-line.qty).toString(),
-            uom: line.uom,
-            reason: 'outgoing_shipment',
-            referenceType: 'outgoing_shipment',
-            referenceId: id,
-            unitCost: null,
-            createdBy: ctx.userId,
-            updatedBy: ctx.userId,
-          });
-        }
-      }
-
       return id;
     },
     (e) => {
+      if (e instanceof AppError) return e;
       return AppError.internal('logistics.outgoingShipment.createFailed', e);
     },
   );

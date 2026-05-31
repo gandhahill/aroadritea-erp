@@ -515,6 +515,7 @@ type IngredientDeduction = {
   qty: string;
   uom: string;
   referenceId: string;
+  referenceType?: string;
   avgUnitCost: bigint;
   cogsAccountId: string | null;
   inventoryAccountId: string | null;
@@ -588,7 +589,7 @@ export async function compensateIngredientDeductions(
         qtyDelta: deduction.qty as unknown as ReturnType<typeof String>,
         uom: deduction.uom,
         reason: 'sale_rollback',
-        referenceType: 'sales_order',
+        referenceType: (deduction.referenceType as any) ?? 'sales_order',
         referenceId: deduction.referenceId,
         unitCost: null,
         createdBy: ctx.userId,
@@ -619,6 +620,7 @@ export async function deductIngredients(
   }>,
   referenceId: string,
   ctx: AuditContext,
+  referenceType: string = 'sales_order',
 ): Promise<Result<IngredientDeduction[]>> {
   const appliedDeductions: IngredientDeduction[] = [];
   try {
@@ -654,6 +656,7 @@ export async function deductIngredients(
         qty: ing.qty,
         uom: ing.uom,
         referenceId,
+        referenceType,
         avgUnitCost: existing.avgUnitCost ?? 0n,
         cogsAccountId: existing.cogsAccountId,
         inventoryAccountId: existing.inventoryAccountId,
@@ -704,7 +707,7 @@ export async function deductIngredients(
           qtyDelta: `-${deduction.qty}` as unknown as ReturnType<typeof String>,
           uom: deduction.uom,
           reason: 'sale',
-          referenceType: 'sales_order',
+          referenceType: referenceType as any,
           referenceId: deduction.referenceId,
           unitCost: null,
           createdBy: ctx.userId,
@@ -1427,7 +1430,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       await rollbackAppliedStockDeductions();
       return err(AppError.internal('pos.createSale.idempotencyClaimMissing'));
     }
-    await releaseIdempotencyClaim(claimedIdempotencyId, 200, { id: saleId });
+    await saveIdempotency(db, data.locationId, data.idempotencyKey, 200, { id: saleId });
     claimedIdempotencyId = null;
 
     // 15. Audit log

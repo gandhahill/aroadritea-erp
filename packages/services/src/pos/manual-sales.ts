@@ -15,6 +15,7 @@ import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
+import { reverseJournal } from '../accounting/reverse-journal';
 import { auditRecord } from '../audit';
 import { getAuthorizedLocations, requirePermission } from '../iam';
 import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
@@ -162,6 +163,7 @@ export async function createManualSalesClosing(
       data.consumedIngredients,
       id,
       ctx,
+      'manual_sales_closing'
     );
     if (!deductResult.ok) {
       await rollbackAppliedStockDeductions();
@@ -186,6 +188,7 @@ export async function createManualSalesClosing(
         ingredients,
         id,
         ctx,
+        'manual_sales_closing'
       );
       if (!deductResult.ok) {
         await rollbackAppliedStockDeductions();
@@ -432,3 +435,124 @@ export async function getManualSalesClosingDetail(id: string, ctx: AuditContext)
     (e) => AppError.internal('pos.manualSales.detailFailed', e)
   );
 }
+
+export async function deleteManualSalesClosing(id: string, ctx: AuditContext) {
+  const closing = await db
+    .select()
+    .from(manualSalesClosings)
+    .where(and(eq(manualSalesClosings.id, id), eq(manualSalesClosings.tenantId, ctx.tenantId)))
+    .then((r) => r[0]);
+
+  if (!closing) {
+    return err(AppError.notFound('pos.manualSales.notFound', { id }));
+  }
+
+  const permCheck = await requirePermission(ctx.userId, 'pos.transact', {
+    locationId: closing.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  if (closing.status === 'voided') {
+    return err(AppError.businessRule('pos.manualSales.alreadyVoided', { id }));
+  }
+
+  return tryCatch(
+    async () => {
+      // 1. Reverse stock movements
+      const { stockMovements, stockLevels } = await import('@erp/db/schema/inventory');
+      
+      const movements = await db
+        .select({
+          id: stockMovements.id,
+          productId: stockMovements.productId,
+          qtyDelta: stockMovements.qtyDelta,
+          uom: stockMovements.uom,
+          stockLevelId: stockLevels.id,
+          locationId: stockMovements.locationId,
+        })
+        .from(stockMovements)
+        .leftJoin(
+          stockLevels, 
+          and(
+            eq(stockLevels.productId, stockMovements.productId),
+            eq(stockLevels.locationId, stockMovements.locationId),
+            eq(stockLevels.tenantId, ctx.tenantId)
+          )
+        )
+        .where(
+          and(
+            eq(stockMovements.tenantId, ctx.tenantId),
+            eq(stockMovements.referenceType, 'manual_sales_closing'),
+            eq(stockMovements.referenceId, id)
+          )
+        );
+
+      const deductions = movements
+        .filter(m => m.stockLevelId && m.qtyDelta.startsWith('-'))
+        .map(m => ({
+          stockLevelId: m.stockLevelId!,
+          tenantId: ctx.tenantId,
+          locationId: m.locationId,
+          ingredientId: m.productId,
+          qty: m.qtyDelta.substring(1), // remove negative sign
+          uom: m.uom,
+          referenceId: id,
+          referenceType: 'manual_sales_closing',
+          avgUnitCost: 0n,
+          cogsAccountId: null,
+          inventoryAccountId: null,
+        }));
+
+      if (deductions.length > 0) {
+        await compensateIngredientDeductions(deductions, ctx, true);
+      }
+
+      // 2. Reverse journal if posted
+      if (closing.journalEntryId) {
+        const reverseRes = await reverseJournal(
+          { journalId: closing.journalEntryId, postingDate: closing.salesDate },
+          ctx,
+          { skipPermissionCheck: true }
+        );
+        if (!reverseRes.ok) throw reverseRes.error;
+      }
+
+      // 3. Mark as voided
+      await db
+        .update(manualSalesClosings)
+        .set({
+          status: 'voided',
+          updatedBy: ctx.userId,
+          updatedAt: new Date(),
+          version: sql`${manualSalesClosings.version} + 1`,
+        })
+        .where(eq(manualSalesClosings.id, id));
+
+      await auditRecord({
+        action: 'delete',
+        entityType: 'manual_sales_closing',
+        entityId: id,
+        before: { status: closing.status, version: closing.version },
+        after: { status: 'voided', version: closing.version + 1 },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+      });
+
+      return true;
+    },
+    (e) => AppError.internal('pos.manualSales.deleteFailed', e)
+  );
+}
+
+export async function updateManualSalesClosing(
+  id: string,
+  input: CreateManualSalesClosingInput,
+  ctx: AuditContext
+) {
+  // We use Delete and Recreate for safe edit
+  const deleteRes = await deleteManualSalesClosing(id, ctx);
+  if (!deleteRes.ok) return deleteRes;
+
+  return createManualSalesClosing(input, ctx);
+}
+

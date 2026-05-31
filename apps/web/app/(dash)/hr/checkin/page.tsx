@@ -54,6 +54,7 @@ export default async function CheckInPage() {
           eq(shiftAssignments.employeeId, employeeId),
           eq(shiftAssignments.workDate, todayStr),
           eq(shiftAssignments.kind, 'shift'),
+          isNull(shiftAssignments.deletedAt),
         ),
       )
       .limit(1);

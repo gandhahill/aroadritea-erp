@@ -26,7 +26,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
@@ -173,6 +173,7 @@ export async function runPayroll(
             eq(employees.tenantId, ctx.tenantId),
             eq(employees.locationId, data.locationId),
             eq(employees.status, 'active'),
+            isNull(employees.deletedAt),
           ),
         );
 

@@ -2,7 +2,7 @@
 
 import { getSession } from '@/lib/auth';
 import { and, count, db, eq } from '@erp/db';
-import { products } from '@erp/db/schema/inventory';
+import { productCategories, products } from '@erp/db/schema/inventory';
 import { createCategory, listCategories, updateCategory } from '@erp/services/inventory';
 import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
@@ -103,9 +103,11 @@ export async function deleteCategoryAction(id: string): Promise<{ ok: boolean; e
     };
   }
 
-  // product_categories has no `version` column — schema requires `min(1)`
-  // but no real optimistic-lock check is performed by the service.
-  const result = await updateCategory({ categoryId: id, isActive: false, version: 1 }, ctx);
+  const [cat] = await db.select({ version: productCategories.version }).from(productCategories)
+    .where(and(eq(productCategories.id, id), eq(productCategories.tenantId, ctx.tenantId))).limit(1);
+  if (!cat) return { ok: false, error: 'Category not found.' };
+
+  const result = await updateCategory({ categoryId: id, isActive: false, version: cat.version }, ctx);
   if (!result.ok) return { ok: false, error: result.error.message };
 
   revalidatePath('/inventory/categories');
@@ -120,11 +122,15 @@ export async function updateCategoryNameAction(
   if (!normalized) return { ok: false, error: 'Category name is required.' };
 
   const ctx = await getAuditContext();
+  const [cat] = await db.select({ version: productCategories.version }).from(productCategories)
+    .where(and(eq(productCategories.id, id), eq(productCategories.tenantId, ctx.tenantId))).limit(1);
+  if (!cat) return { ok: false, error: 'Category not found.' };
+
   const result = await updateCategory(
     {
       categoryId: id,
       name: { id: normalized, en: normalized, zh: normalized },
-      version: 1,
+      version: cat.version,
     },
     ctx,
   );

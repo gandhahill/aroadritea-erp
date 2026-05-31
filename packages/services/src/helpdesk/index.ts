@@ -18,6 +18,7 @@ import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, inArray, or, sql } from 'drizzle-orm';
+import { sequences } from '@erp/db/schema/common';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { can, requirePermission } from '../iam';
@@ -88,17 +89,16 @@ async function generateTicketNumber(tenantId: string): Promise<string> {
   const now = new Date();
   const ym = now.toISOString().slice(0, 7).replace('-', '');
   const prefix = `TKT-${ym}-`;
-  const [row] = await db
-    .select({ maxStr: sql<string>`MAX(${helpdeskTickets.number})` })
-    .from(helpdeskTickets)
-    .where(
-      and(
-        eq(helpdeskTickets.tenantId, tenantId),
-        sql`${helpdeskTickets.number} LIKE ${`${prefix}%`}`,
-      ),
-    );
-  const lastNumber = row?.maxStr ? Number(row.maxStr.slice(prefix.length)) : 0;
-  const next = (lastNumber + 1).toString().padStart(4, '0');
+  const seqName = `${tenantId}:${prefix}`;
+  const rows = await db
+    .insert(sequences)
+    .values({ name: seqName, currentVal: 1 })
+    .onConflictDoUpdate({
+      target: sequences.name,
+      set: { currentVal: sql`${sequences.currentVal} + 1` },
+    })
+    .returning({ currentVal: sequences.currentVal });
+  const next = (rows[0]?.currentVal ?? 1).toString().padStart(4, '0');
   return `${prefix}${next}`;
 }
 
@@ -405,6 +405,16 @@ export async function replyTicket(
       status: row.status === 'open' && handleAllowed ? 'in_progress' : row.status,
     })
     .where(eq(helpdeskTickets.id, row.id));
+
+  await auditRecord({
+    action: 'reply',
+    entityType: 'helpdesk_ticket',
+    entityId: row.id,
+    before: null,
+    after: { replyId, isInternal: internal },
+    metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+    ctx,
+  });
 
   // Notify the other side.
   if (handleAllowed && !isReporter && !internal) {

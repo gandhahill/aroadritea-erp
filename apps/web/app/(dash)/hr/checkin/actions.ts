@@ -13,11 +13,12 @@ import { checkIn } from '@erp/services/hr';
 import type { CheckInInput } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
 
-async function resolveCtx(): Promise<AuditContext> {
+async function resolveCtx(): Promise<AuditContext | null> {
   const session = await getSession();
-  const user = (session?.user ?? {}) as Record<string, unknown>;
+  if (!session?.user?.id) return null;
+  const user = session.user as Record<string, unknown>;
   return {
-    userId: String(user.id ?? ''),
+    userId: String(user.id),
     tenantId: String(user.tenantId ?? 'default'),
     locationId: String(user.locationId ?? ''),
   };
@@ -25,5 +26,8 @@ async function resolveCtx(): Promise<AuditContext> {
 
 export async function serverCheckIn(input: CheckInInput) {
   const ctx = await resolveCtx();
+  if (!ctx) {
+    return { ok: false as const, error: { code: 'UNAUTHENTICATED', message: 'Session expired' } };
+  }
   return checkIn(input, ctx);
 }

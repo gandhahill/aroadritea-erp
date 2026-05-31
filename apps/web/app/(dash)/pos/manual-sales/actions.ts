@@ -8,6 +8,7 @@ import {
   listManualSalesClosings,
   listManualSalesLocations,
   getManualSalesClosingDetail,
+  deleteManualSalesClosing,
 } from '@erp/services/pos';
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale } from 'next-intl/server';
@@ -37,6 +38,7 @@ export interface ManualSalesPageData {
     taxTotal: string;
     netRevenue: string;
     journalEntryId: string | null;
+    status: string;
     createdByName?: string | null;
   }>;
   total: number;
@@ -272,6 +274,34 @@ export async function createManualSalesAction(
   revalidatePath('/reporting/daily-summary');
   revalidatePath('/reporting/omzet-harian');
   return { ok: true };
+}
+
+export async function deleteManualSalesAction(id: string) {
+  const ctx = await getAuditContext();
+  if (!ctx) return { ok: false, error: 'Unauthenticated' };
+  const res = await deleteManualSalesClosing(id, ctx);
+  if (!res.ok) return { ok: false, error: errorMessage(res.error) };
+  revalidatePath('/pos/manual-sales');
+  revalidatePath('/reporting/daily-summary');
+  revalidatePath('/reporting/omzet-harian');
+  return { ok: true };
+}
+
+export async function updateManualSalesAction(
+  id: string,
+  prev: ManualSalesActionState | null,
+  formData: FormData,
+): Promise<ManualSalesActionState> {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+
+  // For update, we simply delete and then create new ones.
+  const delRes = await deleteManualSalesClosing(id, ctx);
+  if (!delRes.ok) {
+    return { error: errorMessage(delRes.error) };
+  }
+
+  return createManualSalesAction(null, formData);
 }
 
 export async function serverExportManualSales(locationId?: string) {

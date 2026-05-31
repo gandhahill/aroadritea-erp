@@ -6,7 +6,7 @@ import { Button, Input, Select, SearchableSelect, Table, TableBody, TableCell, T
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useActionState, useEffect, useState } from 'react';
-import { type ManualSalesPageData, createManualSalesAction, fetchManualSaleDetailAction } from './actions';
+import { type ManualSalesPageData, createManualSalesAction, fetchManualSaleDetailAction, deleteManualSalesAction, updateManualSalesAction } from './actions';
 import { ExportManualSalesButton } from './export-manual-sales-button';
 
 interface Props {
@@ -17,7 +17,13 @@ interface Props {
 export function ManualSalesClient({ data, defaultLocationId }: Props) {
   const t = useTranslations('pos.manualSales');
   const pagination = useTranslations('common.pagination');
-  const [state, submitAction, isPending] = useActionState(createManualSalesAction, null);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [state, submitAction, isPending] = useActionState(async (prev: any, formData: FormData) => {
+    const id = formData.get('id') as string;
+    return id 
+      ? await updateManualSalesAction(id, prev, formData)
+      : await createManualSalesAction(prev, formData);
+  }, null);
   const [lineItems, setLineItems] = useState<
     Array<{
       productId: string;
@@ -62,8 +68,55 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
       form?.reset();
       setPayments([{ id: Date.now().toString(), channel: 'walk_in', method: 'cash', grossSales: '', transactionCount: 0 }]);
       setLineItems([]);
+      setEditId(null);
     }
   }, [state]);
+
+  const startEdit = async (id: string) => {
+    setEditId(id);
+    const res = await fetchManualSaleDetailAction(id);
+    if (res.ok && res.value) {
+      const data = res.value;
+      if (data.lineItems && Array.isArray(data.lineItems)) {
+        setLineItems(data.lineItems.map((l: any) => ({
+          productId: l.productId,
+          variantId: l.variantId || undefined,
+          name: l.name,
+          qty: l.qty,
+          price: l.price,
+          total: l.total,
+        })));
+      } else {
+        setLineItems([]);
+      }
+      setPayments([{
+        id: Date.now().toString(),
+        channel: data.closing.channel,
+        method: data.closing.paymentMethod,
+        grossSales: data.closing.grossSales,
+        transactionCount: data.closing.transactionCount,
+      }]);
+      // find inputs and set them manually because defaultValue doesn't react
+      const form = document.getElementById('manual-sales-form') as HTMLFormElement | null;
+      if (form) {
+        const dInput = form.elements.namedItem('discountTotal') as HTMLInputElement;
+        if (dInput) dInput.value = data.closing.discountTotal || '0';
+        const sInput = form.elements.namedItem('salesDate') as HTMLInputElement;
+        if (sInput) sInput.value = data.closing.salesDate;
+        const refInput = form.elements.namedItem('sourceReference') as HTMLInputElement;
+        if (refInput) refInput.value = data.closing.sourceReference || '';
+        const noteInput = form.elements.namedItem('notes') as HTMLInputElement;
+        if (noteInput) noteInput.value = data.closing.notes || '';
+      }
+      document.getElementById('manual-sales-form')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const confirmDelete = async (id: string) => {
+    if (window.confirm(t('confirmDelete', { defaultValue: 'Yakin hapus transaksi ini? (Jurnal dan stok akan dibalikkan)' }))) {
+      await deleteManualSalesAction(id);
+    }
+  };
 
   const today = new Date().toISOString().slice(0, 10);
   const totalPages = Math.max(1, Math.ceil(data.total / data.pageSize));
@@ -94,6 +147,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
         <form id="manual-sales-form" action={submitAction} className="grid gap-4 lg:grid-cols-4">
+          <input type="hidden" name="id" value={editId || ''} />
           <Field label={t('location')}>
             <Select name="locationId" defaultValue={defaultLocationId} required>
               {data.locations.map((location) => (
@@ -372,8 +426,23 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
               variant="primary"
               size="lg"
             >
-              {isPending ? t('posting') : t('post')}
+              {isPending ? t('posting') : (editId ? t('update', { defaultValue: 'Update' }) : t('post'))}
             </Button>
+            {editId && (
+              <Button
+                type="button"
+                variant="ghost"
+                className="ml-3"
+                onClick={() => {
+                  setEditId(null);
+                  (document.getElementById('manual-sales-form') as HTMLFormElement)?.reset();
+                  setPayments([{ id: Date.now().toString(), channel: 'walk_in', method: 'cash', grossSales: '', transactionCount: 0 }]);
+                  setLineItems([]);
+                }}
+              >
+                {t('cancel', { defaultValue: 'Batal' })}
+              </Button>
+            )}
           </div>
           {state?.error ? (
             <div className="lg:col-span-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -406,6 +475,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                 <Th align="right">{t('netRevenue')}</Th>
                 <Th>{t('journal')}</Th>
                 <Th>{t('postedBy', { defaultValue: 'Dibuat Oleh' })}</Th>
+                <Th align="right">{t('actions', { defaultValue: 'Aksi' })}</Th>
               </tr>
             </thead>
             <TableBody className="divide-y divide-brand-cream-3">
@@ -436,6 +506,20 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     <Td align="right">{formatRupiah(item.netRevenue)}</Td>
                     <Td>{item.journalEntryId ? t('synced') : t('notSynced')}</Td>
                     <Td>{item.createdByName || '-'}</Td>
+                    <Td align="right">
+                      {item.status !== 'voided' ? (
+                        <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => startEdit(item.id)}>
+                            {t('edit', { defaultValue: 'Edit' })}
+                          </Button>
+                          <Button type="button" variant="ghost" size="sm" className="text-brand-red" onClick={() => confirmDelete(item.id)}>
+                            {t('delete', { defaultValue: 'Hapus' })}
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-brand-ink-3 italic">{t('voided', { defaultValue: 'Dibatalkan' })}</span>
+                      )}
+                    </Td>
                   </tr>
                 ))
               )}
