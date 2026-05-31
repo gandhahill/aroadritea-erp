@@ -19,7 +19,7 @@
  */
 
 import { db } from '@erp/db';
-import { accountingPeriods } from '@erp/db/schema/accounting';
+import { accountingPeriods, journalEntries, journalLines } from '@erp/db/schema/accounting';
 import { products, stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import { stockOpnameLines, stockOpnameSessions } from '@erp/db/schema/stock-opname';
 import { AppError } from '@erp/shared/errors';
@@ -674,82 +674,115 @@ export async function approveOpname(
     }),
   );
 
-  // 2. Calculate total variance value for JE
-  const totalVarianceValue = lines.reduce(
-    (sum, l) => sum + ((l.varianceValue as bigint | null) ?? BigInt(0)),
-    BigInt(0),
-  );
+  // 2. Calculate Total Physical Value for all items in this location
+  // We query all stock_levels for this location (after the above updates)
+  const allStocks = await db
+    .select({ qty: stockLevels.qtyOnHand, cost: stockLevels.avgUnitCost })
+    .from(stockLevels)
+    .where(
+      and(eq(stockLevels.tenantId, ctx.tenantId), eq(stockLevels.locationId, session.locationId)),
+    );
+
+  let totalPhysicalValue = BigInt(0);
+  for (const st of allStocks) {
+    const qtyNum = Number.parseFloat(st.qty);
+    const scaledQty = BigInt(Math.round(qtyNum * 1000));
+    const unitCost = (st.cost as bigint | null) ?? BigInt(0);
+    totalPhysicalValue += (scaledQty * unitCost) / BigInt(1000);
+  }
 
   let resultJournalId: string | null = null;
 
-  if (totalVarianceValue !== BigInt(0)) {
-    // Resolve codes to UUIDs once (both shortage and surplus need the
-    // inventory account + one of expense/income).
-    const acctCodes = await getPostingAccountCodes(ctx.tenantId);
-    const inventoryCode = acctCodes.inventory;
-    const expenseCode = acctCodes['adjustment.expense'];
-    const incomeCode = acctCodes['adjustment.income'];
-    const codeMap = await resolveAccountIdsByCodes(ctx.tenantId, [
-      inventoryCode,
-      expenseCode,
-      incomeCode,
-    ]);
-    const inventoryAccountId = codeMap.get(inventoryCode);
-    const expenseAccountId = codeMap.get(expenseCode);
-    const incomeAccountId = codeMap.get(incomeCode);
-    if (!inventoryAccountId || !expenseAccountId || !incomeAccountId) {
-      return err(
-        AppError.businessRule('inventory.opname.varianceAccountsMissing', {
-          missing: [
-            !inventoryAccountId ? inventoryCode : null,
-            !expenseAccountId ? expenseCode : null,
-            !incomeAccountId ? incomeCode : null,
-          ].filter(Boolean),
-        }),
-      );
-    }
+  // Resolve inventory and COGS accounts
+  const acctCodes = await getPostingAccountCodes(ctx.tenantId);
+  const inventoryCode = acctCodes.inventory;
+  const cogsCode = acctCodes.cogs;
 
-    if (totalVarianceValue > BigInt(0)) {
-      // Surplus (positive = more stock than system showed)
+  const codeMap = await resolveAccountIdsByCodes(ctx.tenantId, [inventoryCode, cogsCode]);
+  const inventoryAccountId = codeMap.get(inventoryCode);
+  const cogsAccountId = codeMap.get(cogsCode);
+
+  if (!inventoryAccountId || !cogsAccountId) {
+    return err(
+      AppError.businessRule('inventory.opname.varianceAccountsMissing', {
+        missing: [
+          !inventoryAccountId ? inventoryCode : null,
+          !cogsAccountId ? cogsCode : null,
+        ].filter(Boolean),
+      }),
+    );
+  }
+
+  // 3. Calculate current GL Balance for Inventory Account at this location
+  const glRows = await db
+    .select({
+      totalDebit: sql<bigint>`sum(${journalLines.debit})`,
+      totalCredit: sql<bigint>`sum(${journalLines.credit})`,
+    })
+    .from(journalLines)
+    .innerJoin(journalEntries, eq(journalLines.journalEntryId, journalEntries.id))
+    .where(
+      and(
+        eq(journalLines.accountId, inventoryAccountId),
+        eq(journalLines.locationId, session.locationId),
+        eq(journalEntries.status, 'posted'),
+        eq(journalEntries.tenantId, ctx.tenantId),
+      ),
+    );
+
+  const glDebit = (glRows[0]?.totalDebit as bigint | null) ?? BigInt(0);
+  const glCredit = (glRows[0]?.totalCredit as bigint | null) ?? BigInt(0);
+  const glBalance = glDebit - glCredit;
+
+  // 4. Calculate Periodic True-Up Adjustment
+  // adjustment = totalPhysicalValue - glBalance
+  // If adjustment > 0, we need to INCREASE GL balance (Debit Inventory, Credit COGS)
+  // If adjustment < 0, we need to DECREASE GL balance (Credit Inventory, Debit COGS)
+  const adjustmentValue = totalPhysicalValue - glBalance;
+
+  if (adjustmentValue !== BigInt(0)) {
+    if (adjustmentValue > BigInt(0)) {
+      // Physical > GL (Gain, need to increase GL)
       const jeResult = await createJournal(
         {
           postingDate: session.sessionDate.toString().substring(0, 10),
           locationId: session.locationId,
-          description: `Stock Opname ${session.number} — surplus`,
+          description: `Stock Opname ${session.number} — periodic true-up gain`,
           referenceType: 'manual',
           referenceId: sessionId,
           lines: [
             {
               accountId: inventoryAccountId,
-              debit: totalVarianceValue.toString(),
+              debit: adjustmentValue.toString(),
               credit: '0',
               locationId: session.locationId,
             },
             {
-              accountId: incomeAccountId,
+              accountId: cogsAccountId,
               debit: '0',
-              credit: totalVarianceValue.toString(),
+              credit: adjustmentValue.toString(),
               locationId: session.locationId,
             },
           ],
         },
-        ctx, { skipPermissionCheck: true }
+        ctx,
+        { skipPermissionCheck: true },
       );
       if (!jeResult.ok) return jeResult;
       resultJournalId = jeResult.value.id;
     } else {
-      // Shortage (negative = less stock than system showed)
-      const absValue = (totalVarianceValue * BigInt(-1)).toString();
+      // Physical < GL (Loss, need to decrease GL)
+      const absValue = (adjustmentValue * BigInt(-1)).toString();
       const jeResult = await createJournal(
         {
           postingDate: session.sessionDate.toString().substring(0, 10),
           locationId: session.locationId,
-          description: `Stock Opname ${session.number} — shortage`,
+          description: `Stock Opname ${session.number} — periodic true-up loss`,
           referenceType: 'manual',
           referenceId: sessionId,
           lines: [
             {
-              accountId: expenseAccountId,
+              accountId: cogsAccountId,
               debit: absValue,
               credit: '0',
               locationId: session.locationId,
@@ -762,7 +795,8 @@ export async function approveOpname(
             },
           ],
         },
-        ctx, { skipPermissionCheck: true }
+        ctx,
+        { skipPermissionCheck: true },
       );
       if (!jeResult.ok) return jeResult;
       resultJournalId = jeResult.value.id;
