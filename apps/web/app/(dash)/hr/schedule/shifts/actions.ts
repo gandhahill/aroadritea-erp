@@ -20,7 +20,7 @@ export interface ShiftDefinitionData {
   overrides?: {
     dayOfWeek?: Record<number, { startTime: string; endTime: string; breakStart?: string | null; breakEnd?: string | null }>;
     date?: Record<string, { startTime: string; endTime: string; breakStart?: string | null; breakEnd?: string | null }>;
-  };
+  } | null;
 }
 
 export async function fetchShiftDefinitions(locationId: string) {

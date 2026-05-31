@@ -189,9 +189,7 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
                 <select
                   value={ov.day}
                   onChange={(e) => {
-                    const newOvs = [...dayOverrides];
-                    newOvs[i].day = Number(e.target.value);
-                    setDayOverrides(newOvs);
+                    setDayOverrides(dayOverrides.map((o, idx) => idx === i ? { ...o, day: Number(e.target.value) } : o));
                   }}
                   className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
                 >
@@ -208,9 +206,7 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
                   required
                   value={ov.startTime}
                   onChange={(e) => {
-                    const newOvs = [...dayOverrides];
-                    newOvs[i].startTime = e.target.value;
-                    setDayOverrides(newOvs);
+                    setDayOverrides(dayOverrides.map((o, idx) => idx === i ? { ...o, startTime: e.target.value } : o));
                   }}
                   className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
                 />
@@ -220,9 +216,7 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
                   required
                   value={ov.endTime}
                   onChange={(e) => {
-                    const newOvs = [...dayOverrides];
-                    newOvs[i].endTime = e.target.value;
-                    setDayOverrides(newOvs);
+                    setDayOverrides(dayOverrides.map((o, idx) => idx === i ? { ...o, endTime: e.target.value } : o));
                   }}
                   className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
                 />
@@ -253,9 +247,7 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
                   required
                   value={ov.date}
                   onChange={(e) => {
-                    const newOvs = [...dateOverrides];
-                    newOvs[i].date = e.target.value;
-                    setDateOverrides(newOvs);
+                    setDateOverrides(dateOverrides.map((o, idx) => idx === i ? { ...o, date: e.target.value } : o));
                   }}
                   className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
                 />
@@ -264,9 +256,7 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
                   required
                   value={ov.startTime}
                   onChange={(e) => {
-                    const newOvs = [...dateOverrides];
-                    newOvs[i].startTime = e.target.value;
-                    setDateOverrides(newOvs);
+                    setDateOverrides(dateOverrides.map((o, idx) => idx === i ? { ...o, startTime: e.target.value } : o));
                   }}
                   className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
                 />
@@ -276,9 +266,7 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
                   required
                   value={ov.endTime}
                   onChange={(e) => {
-                    const newOvs = [...dateOverrides];
-                    newOvs[i].endTime = e.target.value;
-                    setDateOverrides(newOvs);
+                    setDateOverrides(dateOverrides.map((o, idx) => idx === i ? { ...o, endTime: e.target.value } : o));
                   }}
                   className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
                 />
