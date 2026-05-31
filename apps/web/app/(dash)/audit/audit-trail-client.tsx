@@ -125,11 +125,11 @@ export function AuditTrailClient({
                       {maskIdentifier(row.entityId)}
                     </TableCell>
                     <TableCell className="px-4 py-3">
-                      <FieldDiff before={row.before} after={row.after} />
+                      <FieldDiff before={row.before} after={row.after} t={t} />
                       {row.metadata ? (
                         <details className="mt-2">
                           <summary className="cursor-pointer text-[11px] font-semibold text-brand-ink-3 hover:text-brand-red">
-                            Detail teknis
+                            {t('technicalDetail')}
                           </summary>
                           <pre className="mt-1 max-h-48 overflow-auto rounded-md bg-brand-cream p-2 text-[10px] text-brand-ink-3">
                             {JSON.stringify(
@@ -170,7 +170,7 @@ export function AuditTrailClient({
  * and show only the fields that actually changed. Long values are
  * truncated. Nested objects are stringified compactly.
  */
-function FieldDiff({ before, after }: { before: unknown; after: unknown }) {
+function FieldDiff({ before, after, t }: { before: unknown; after: unknown; t: any }) {
   const beforeObj = isObject(before) ? before : {};
   const afterObj = isObject(after) ? after : {};
   const NOISE = new Set([
@@ -198,7 +198,7 @@ function FieldDiff({ before, after }: { before: unknown; after: unknown }) {
     if (Object.keys(beforeObj).length === 0 && Object.keys(afterObj).length === 0) {
       return <span className="text-xs text-brand-ink-3">—</span>;
     }
-    return <span className="text-xs text-brand-ink-3">Tidak ada perubahan field</span>;
+    return <span className="text-xs text-brand-ink-3">{t('noFieldChanges')}</span>;
   }
 
   return (

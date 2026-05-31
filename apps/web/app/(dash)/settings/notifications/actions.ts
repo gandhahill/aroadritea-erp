@@ -17,10 +17,14 @@ async function getContext() {
   const session = await getSession();
   if (!session?.user) return null;
   const user = session.user as Record<string, unknown>;
+  const { headers } = await import('next/headers');
+  const headersList = await headers();
   return {
     tenantId: (user.tenantId as string | undefined) ?? 'default',
     userId: user.id as string,
     locationId: (user.locationId as string | undefined) ?? 'global',
+    ipAddress: headersList.get('x-forwarded-for') ?? undefined,
+    userAgent: headersList.get('user-agent') ?? undefined,
   };
 }
 

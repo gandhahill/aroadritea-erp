@@ -10,8 +10,8 @@ interface Statement {
   bankName: string;
   accountNumber: string;
   status: 'draft' | 'in_progress' | 'reconciled';
-  openingBalance: number;
-  closingBalance: number;
+  openingBalance: string;
+  closingBalance: string;
   createdAt: string;
 }
 
@@ -65,7 +65,7 @@ export function BankReconListClient({ statements, labels }: Props) {
                 </Link>
               </TableCell>
               <TableCell className="px-4 py-3">
-                {s.bankName} - {s.accountNumber}
+                {s.bankName} - {s.accountNumber.toString()}
               </TableCell>
               <TableCell className="px-4 py-3 text-right tabular-nums">
                 {formatRupiah(BigInt(s.openingBalance))}

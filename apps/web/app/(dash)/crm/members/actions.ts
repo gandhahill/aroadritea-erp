@@ -13,6 +13,7 @@ import {
   getMemberDetail,
   listMembers,
 } from '@erp/services/crm';
+import { requirePermission } from '@erp/services/iam';
 import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -34,6 +35,8 @@ export async function listMembersAction(filter: ListMembersFilter): Promise<{
   error?: string;
 }> {
   const ctx = await buildCtx();
+  const perm = await requirePermission(ctx.userId, 'crm.view');
+  if (!perm.ok) return { error: 'Unauthorized' };
   const result = await listMembers(filter, ctx);
   if (!result.ok) return { error: result.error.message };
   return { items: result.value.items, total: result.value.total };
@@ -43,6 +46,8 @@ export async function fetchMemberDetailAction(
   memberId: string,
 ): Promise<{ data?: MemberDetail; error?: string }> {
   const ctx = await buildCtx();
+  const perm = await requirePermission(ctx.userId, 'crm.view');
+  if (!perm.ok) return { error: 'Unauthorized' };
   const result = await getMemberDetail(memberId, ctx);
   if (!result.ok) return { error: result.error.message };
   return { data: result.value };
@@ -54,6 +59,13 @@ export async function adjustMemberPointsAction(input: {
   reason: string;
 }): Promise<{ ok: boolean; balanceAfter?: number; error?: string }> {
   const ctx = await buildCtx();
+  const perm = await requirePermission(ctx.userId, 'crm.manage');
+  if (!perm.ok) return { ok: false, error: 'Unauthorized' };
+
+  if (!Number.isSafeInteger(input.delta) || input.delta < -1000000 || input.delta > 1000000) {
+    return { ok: false, error: 'crm.points.invalidDelta' };
+  }
+
   const result = await adjustMemberPoints(input, ctx);
   if (!result.ok) return { ok: false, error: result.error.message };
   revalidatePath(`/crm/members/${input.memberId}`);

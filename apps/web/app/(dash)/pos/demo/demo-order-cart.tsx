@@ -70,6 +70,24 @@ function DemoLineItem({
   const lineDiscount = BigInt(line.lineDiscount ?? '0');
   const lineTotal = lineSubtotal - lineDiscount;
 
+  const handleQtyChange = (newQty: number) => {
+    if (newQty === line.qty) return;
+    const oldTotal = BigInt(line.unitPrice) * BigInt(line.qty);
+    const oldDiscount = BigInt(line.lineDiscount ?? '0');
+    
+    onQtyChange(newQty);
+    
+    if (oldDiscount > BigInt(0)) {
+      const pct = Number((oldDiscount * BigInt(100)) / oldTotal);
+      if ([5, 10, 15, 20].includes(pct) && (oldTotal * BigInt(pct)) / BigInt(100) === oldDiscount) {
+        const newTotal = BigInt(line.unitPrice) * BigInt(newQty);
+        const newDiscount = ((newTotal * BigInt(pct)) / BigInt(100)).toString();
+        setDiscountInput(newDiscount);
+        onDiscountChange(newDiscount, reasonInput);
+      }
+    }
+  };
+
   return (
     <div className="rounded-lg border border-brand-cream-3 bg-card px-3 py-2">
       <div className="flex items-center gap-2">
@@ -99,7 +117,7 @@ function DemoLineItem({
         <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={() => onQtyChange(line.qty - 1)}
+            onClick={() => handleQtyChange(line.qty - 1)}
             className="flex h-6 w-6 items-center justify-center rounded border border-brand-cream-3 text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red"
             aria-label="decrease"
           >
@@ -108,7 +126,7 @@ function DemoLineItem({
           <span className="w-6 text-center text-xs font-semibold text-brand-ink">{line.qty}</span>
           <button
             type="button"
-            onClick={() => onQtyChange(line.qty + 1)}
+            onClick={() => handleQtyChange(line.qty + 1)}
             className="flex h-6 w-6 items-center justify-center rounded border border-brand-cream-3 text-brand-ink-3 hover:border-brand-red/40 hover:text-brand-red"
             aria-label="increase"
           >

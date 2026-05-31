@@ -3,7 +3,9 @@
 import { getSession } from '@/lib/auth';
 import { and, db, eq } from '@erp/db';
 import { authAccounts, sessions, users } from '@erp/db/schema/auth';
+import { auditRecord } from '@erp/services/audit';
 import { hashPassword, verifyPassword } from '@erp/services/auth/password';
+import { headers } from 'next/headers';
 
 function passwordMeetsPolicy(password: string): boolean {
   return password.length >= 8 && password.length <= 128;
@@ -26,7 +28,7 @@ export async function changePasswordAction(input: {
 
   const userId = String(session.user.id ?? '');
   const [user] = await db
-    .select({ id: users.id, passwordHash: users.passwordHash })
+    .select({ id: users.id, passwordHash: users.passwordHash, tenantId: users.tenantId })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
@@ -56,6 +58,23 @@ export async function changePasswordAction(input: {
   //    getSession flow falls through to findSession(), finds nothing,
   //    and returns null (which triggers the login redirect).
   await db.delete(sessions).where(eq(sessions.userId, userId));
+
+  const headersList = await headers();
+  await auditRecord({
+    action: 'update',
+    entityType: 'user',
+    entityId: userId,
+    before: null,
+    after: null,
+    metadata: { event: 'forced_password_change' },
+    ctx: {
+      userId,
+      tenantId: user.tenantId,
+      locationId: '',
+      ipAddress: headersList.get('x-forwarded-for') ?? undefined,
+      userAgent: headersList.get('user-agent') ?? undefined,
+    }
+  });
 
   // 4. Delete every auth-related cookie from the browser so the next
   //    request doesn't even try to present a stale session token.

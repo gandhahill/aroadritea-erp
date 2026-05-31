@@ -17,9 +17,9 @@ interface Line {
   id: string;
   date: string;
   description: string;
-  debit: number;
-  credit: number;
-  balance: number;
+  debit: string;
+  credit: string;
+  balance: string;
   isMatched: boolean;
   matchedJournalId: string | null;
 }
@@ -30,8 +30,8 @@ interface Statement {
   bankName: string;
   accountNumber: string;
   status: string;
-  openingBalance: number;
-  closingBalance: number;
+  openingBalance: string;
+  closingBalance: string;
 }
 
 interface Labels {
@@ -93,7 +93,7 @@ export function DetailClient({ statement, lines, labels }: Props) {
   const [isPending, startTransition] = useTransition();
   const [activeLineId, setActiveLineId] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<
-    { id: string; date: string; description: string; amount: number }[]
+    { id: string; date: string; description: string; amount: string }[]
   >([]);
   const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -136,8 +136,8 @@ export function DetailClient({ statement, lines, labels }: Props) {
     setSuggestions([]);
     try {
       const data = await fetchJournalSuggestions(lineId);
-      // We need to cast amount to number because BigInt is returned from db as bigint/string depending on driver
-      setSuggestions(data.map((d) => ({ ...d, amount: Number(d.amount) })));
+      // Convert to string for precision
+      setSuggestions(data.map((d) => ({ ...d, amount: d.amount.toString() })));
     } catch (e) {
       console.error(e);
     } finally {

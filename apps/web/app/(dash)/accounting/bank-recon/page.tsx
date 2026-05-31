@@ -48,8 +48,8 @@ export default async function BankReconPage() {
       <BankReconListClient
         statements={statements.map((s) => ({
           ...s,
-          openingBalance: Number(s.openingBalance),
-          closingBalance: Number(s.closingBalance),
+          openingBalance: s.openingBalance.toString(),
+          closingBalance: s.closingBalance.toString(),
           createdAt: s.createdAt.toISOString(),
           status: s.status as 'draft' | 'in_progress' | 'reconciled',
         }))}

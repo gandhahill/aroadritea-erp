@@ -16,7 +16,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
@@ -26,7 +26,7 @@ import { requirePermission } from '../iam';
 export const CreateDisciplinaryInputSchema = z.object({
   employeeId: z.string().min(1),
   level: z.enum(['SP1', 'SP2', 'SP3']),
-  reason: z.string().min(10, 'Alasan minimal 10 karakter'),
+  reason: z.string().min(10, 'hr.disciplinary.reasonTooShort'),
   incidentDate: z.string().datetime(),
   attachmentUrl: z.string().url().optional().or(z.literal('')),
 });
@@ -44,7 +44,7 @@ export const ListDisciplinaryInputSchema = z.object({
 
 export const AttachDocumentInputSchema = z.object({
   disciplinaryId: z.string().min(1),
-  attachmentUrl: z.string().url('URL lampiran tidak valid'),
+  attachmentUrl: z.string().url('hr.disciplinary.invalidUrl'),
 });
 
 export type CreateDisciplinaryInput = z.infer<typeof CreateDisciplinaryInputSchema>;
@@ -142,6 +142,7 @@ export async function acknowledgeDisciplinaryAction(
         and(
           eq(disciplinaryActions.tenantId, ctx.tenantId),
           eq(disciplinaryActions.id, data.disciplinaryId),
+          isNull(disciplinaryActions.deletedAt),
         ),
       )
       .limit(1);
@@ -166,6 +167,7 @@ export async function acknowledgeDisciplinaryAction(
           eq(disciplinaryActions.tenantId, ctx.tenantId),
           eq(disciplinaryActions.id, data.disciplinaryId),
           eq(disciplinaryActions.status, 'issued'),
+          isNull(disciplinaryActions.deletedAt),
         ),
       )
       .returning({ id: disciplinaryActions.id });
@@ -219,7 +221,10 @@ export async function listDisciplinaryActions(
   if (!permCheck.ok) return permCheck;
 
   try {
-    const conditions = [eq(disciplinaryActions.tenantId, ctx.tenantId)];
+    const conditions = [
+      eq(disciplinaryActions.tenantId, ctx.tenantId),
+      isNull(disciplinaryActions.deletedAt),
+    ];
     if (input.employeeId) conditions.push(eq(disciplinaryActions.employeeId, input.employeeId));
     if (input.level) conditions.push(eq(disciplinaryActions.level, input.level));
     if (input.status) conditions.push(eq(disciplinaryActions.status, input.status));
@@ -268,6 +273,7 @@ export async function attachDocument(
         and(
           eq(disciplinaryActions.tenantId, ctx.tenantId),
           eq(disciplinaryActions.id, input.disciplinaryId),
+          isNull(disciplinaryActions.deletedAt),
         ),
       )
       .limit(1);
@@ -286,6 +292,7 @@ export async function attachDocument(
         and(
           eq(disciplinaryActions.tenantId, ctx.tenantId),
           eq(disciplinaryActions.id, input.disciplinaryId),
+          isNull(disciplinaryActions.deletedAt),
         ),
       );
 

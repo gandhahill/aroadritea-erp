@@ -511,6 +511,15 @@ export const PERMISSIONS_SEED = [
     ),
   },
   {
+    code: 'hr.whistleblower.write',
+    module: 'hr',
+    description: n(
+      'Tindak lanjuti laporan Whistleblowing System',
+      'Manage Whistleblowing System reports',
+      '处理 Whistleblowing System 记录',
+    ),
+  },
+  {
     code: 'hr.manage_attendance',
     module: 'hr',
     description: n('Kelola presensi', 'Manage attendance', '管理考勤'),
@@ -719,9 +728,25 @@ export const PERMISSIONS_SEED = [
   },
   // CMS
   {
+    code: 'cms.view',
+    module: 'cms',
+    description: n('Lihat konten website', 'View website content', '查看网站内容'),
+  },
+  {
     code: 'cms.manage',
     module: 'cms',
     description: n('Kelola konten website', 'Manage website content', '管理网站内容'),
+  },
+  // CRM
+  {
+    code: 'crm.view',
+    module: 'crm',
+    description: n('Lihat CRM', 'View CRM', '查看CRM'),
+  },
+  {
+    code: 'crm.manage',
+    module: 'crm',
+    description: n('Kelola CRM', 'Manage CRM', '管理CRM'),
   },
   // Docs (in-app operations manual)
   {

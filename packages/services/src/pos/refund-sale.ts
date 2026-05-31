@@ -279,6 +279,39 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
       }
     }
 
+    // ── Revert loyalty points if customer is a member ────────────────────
+    if (sale.customerId) {
+      const { memberPointsTransactions } = await import('@erp/db/schema/member');
+      const earnTx = await db
+        .select()
+        .from(memberPointsTransactions)
+        .where(
+          and(
+            eq(memberPointsTransactions.referenceType, 'sales_order'),
+            eq(memberPointsTransactions.referenceId, sale.id),
+            eq(memberPointsTransactions.type, 'earn'),
+          ),
+        )
+        .limit(1);
+
+      if (earnTx[0] && Number(earnTx[0].points) > 0) {
+        const pointsEarned = Number(earnTx[0].points);
+        const originalGrandTotal = BigInt(sale.grandTotal.toString());
+        const pointsToRevert = originalGrandTotal > 0n 
+          ? Math.floor(pointsEarned * Number(refundTotal) / Number(originalGrandTotal))
+          : pointsEarned;
+        
+        if (pointsToRevert > 0) {
+          const { adjustMemberPoints } = await import('../crm/member-service');
+          await adjustMemberPoints({
+            memberId: sale.customerId,
+            delta: -pointsToRevert,
+            reason: `Refund for order ${sale.number}`,
+          }, ctx);
+        }
+      }
+    }
+
     // ── Audit log ───────────────────────────────────────────────────────
     await auditRecord({
       action: 'refund',

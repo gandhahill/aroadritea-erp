@@ -14,6 +14,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq, isNull, like, or, sql } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+import safeRegex from 'safe-regex';
 
 // ─── Data type enum ──────────────────────────────────────────────────────────
 
@@ -83,6 +84,9 @@ export async function createDefinition(
   }
   if (!/^[a-z][a-z0-9_]*$/.test(input.key)) {
     return err(AppError.validation('customfield.invalidKey', { key: input.key }));
+  }
+  if (input.validationRegex && !safeRegex(input.validationRegex)) {
+    return err(AppError.validation('customfield.unsafeRegex', { pattern: input.validationRegex }));
   }
 
   try {
@@ -178,6 +182,10 @@ export async function updateDefinition(
     locationId: ctx.locationId,
   });
   if (!permCheck.ok) return permCheck;
+
+  if (input.validationRegex && !safeRegex(input.validationRegex)) {
+    return err(AppError.validation('customfield.unsafeRegex', { pattern: input.validationRegex }));
+  }
 
   try {
     const existing = await db

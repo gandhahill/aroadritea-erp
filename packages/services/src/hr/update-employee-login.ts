@@ -12,7 +12,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { hashPassword } from '../auth/password';
 import { requirePermission } from '../iam';
@@ -43,7 +43,13 @@ export async function updateEmployeeLogin(
           email: employees.email,
         })
         .from(employees)
-        .where(and(eq(employees.id, data.employeeId), eq(employees.tenantId, ctx.tenantId)))
+        .where(
+          and(
+            eq(employees.id, data.employeeId),
+            eq(employees.tenantId, ctx.tenantId),
+            isNull(employees.deletedAt),
+          )
+        )
         .limit(1);
 
       if (!emp) throw AppError.notFound('hr.employee.notFound');

@@ -335,7 +335,12 @@ async function replaceDraftAndConfigurationReferences(
   await db
     .update(taxRates)
     .set({ postingAccountId: replacementAccountId, updatedAt: new Date() })
-    .where(eq(taxRates.postingAccountId, accountId));
+    .where(
+      and(
+        eq(taxRates.tenantId, tenantId),
+        eq(taxRates.postingAccountId, accountId),
+      ),
+    );
 
   await db
     .update(fixedAssetCategories)

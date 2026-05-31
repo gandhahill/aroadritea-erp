@@ -319,10 +319,10 @@ export async function getVarianceReport(
   }
 
   // Sort products by |varianceValue| descending
-  productRows2.sort(
-    (a, b) =>
-      Number.parseInt(b.totalVarianceValueAbs, 10) - Number.parseInt(a.totalVarianceValueAbs, 10),
-  );
+  productRows2.sort((a, b) => {
+    const diff = BigInt(b.totalVarianceValueAbs) - BigInt(a.totalVarianceValueAbs);
+    return diff > 0n ? 1 : diff < 0n ? -1 : 0;
+  });
 
   const avgVarianceRate =
     totalSystemQtySum !== 0

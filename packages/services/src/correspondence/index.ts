@@ -45,6 +45,16 @@ export const CorrespondenceStatusSchema = z.enum([
   'archived',
 ]);
 
+export const DispositionSchema = z.object({
+  id: z.string().optional(),
+  action: z.string().min(1).max(500),
+  assignedTo: z.string().nullable().optional(),
+  notes: z.string().max(2000).nullable().optional(),
+  status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']).nullable().optional(),
+  dueDate: z.string().nullable().optional(),
+  completedAt: z.string().nullable().optional(),
+});
+
 export const CreateCorrespondenceInputSchema = z.object({
   locationId: z.string().min(1),
   direction: CorrespondenceDirectionSchema,
@@ -61,7 +71,7 @@ export const CreateCorrespondenceInputSchema = z.object({
   storageUrl: z.string().trim().max(500).optional().nullable(),
   tags: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
   attachments: z.array(z.string().trim()).default([]),
-  dispositions: z.array(z.any()).default([]),
+  dispositions: z.array(DispositionSchema).default([]),
 });
 
 export const UpdateCorrespondenceInputSchema = CreateCorrespondenceInputSchema.partial().extend({

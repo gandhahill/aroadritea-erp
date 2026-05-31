@@ -102,7 +102,6 @@ export async function deleteEmployee(
       return { id: emp.id };
     },
     (e) => {
-      console.error('deleteEmployee Error:', e);
       if (e instanceof AppError) return e;
       return AppError.internal('hr.employee.deleteFailed', e);
     },

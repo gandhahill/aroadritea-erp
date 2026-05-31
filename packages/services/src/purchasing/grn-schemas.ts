@@ -8,7 +8,7 @@ export const GRNLineInputSchema = z.object({
   poLineId: z.string().min(1, 'PO line ID is required'),
   productId: z.string().min(1, 'product is required'),
   variantId: z.string().optional(),
-  qtyReceived: z.string().regex(/^\d+(\.\d{1,3})?$/, 'qty must be positive decimal'),
+  qtyReceived: z.string().regex(/^\d+(\.\d{1,3})?$/, 'qty must be positive decimal').refine((v) => Number.parseFloat(v) > 0, { message: 'qty must be > 0' }),
   uom: z.string().min(1, 'uom is required'),
   batchNo: z.string().optional(),
   expiryDate: z

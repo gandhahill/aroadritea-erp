@@ -76,6 +76,7 @@ export type PermissionCode =
   | 'hr.employee.write'
   | 'hr.manage_employees'
   | 'hr.whistleblower.read'
+  | 'hr.whistleblower.write'
   | 'hr.manage_attendance'
   | 'hr.attendance.read'
   | 'hr.attendance.write'
@@ -115,5 +116,7 @@ export type PermissionCode =
   | 'reporting.consolidated'
   | 'audit.view'
   | 'cms.manage'
+  | 'cms.view'
+  | 'crm.view'
   | 'docs.view'
   | 'docs.edit' | 'logistics.shipments.view' | 'logistics.shipments.create' | 'iam.user.update' | 'accounting.journal.view';

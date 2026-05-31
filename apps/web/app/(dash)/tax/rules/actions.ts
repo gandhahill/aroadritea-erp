@@ -82,9 +82,9 @@ export async function fetchTaxRuleOptions(): Promise<TaxRuleOption[]> {
 
 export async function saveTaxRuleAction(formData: FormData) {
   const ctx = await getContext();
-  if (!ctx) return;
+  if (!ctx) throw new Error('Unauthorized');
   const perm = await requirePermission(ctx.userId, 'tax.manage_rates');
-  if (!perm.ok) return;
+  if (!perm.ok) throw new Error('Forbidden');
 
   const id = String(formData.get('id') ?? '').trim();
   const scopeKind = String(formData.get('scopeKind') ?? '').trim() || 'global_default';
@@ -94,7 +94,7 @@ export async function saveTaxRuleAction(formData: FormData) {
   const effectiveFrom =
     String(formData.get('effectiveFrom') ?? '').trim() || new Date().toISOString().slice(0, 10);
   const effectiveUntilRaw = String(formData.get('effectiveUntil') ?? '').trim();
-  if (!taxCode) return;
+  if (!taxCode) throw new Error('Tax code is required');
 
   const values = {
     scopeKind,
@@ -114,7 +114,7 @@ export async function saveTaxRuleAction(formData: FormData) {
       .from(taxRules)
       .where(and(eq(taxRules.tenantId, ctx.tenantId), eq(taxRules.id, id)))
       .limit(1);
-    if (!before) return;
+    if (!before) throw new Error('Tax rule not found');
     await db
       .update(taxRules)
       .set(values)
@@ -153,9 +153,9 @@ export async function saveTaxRuleAction(formData: FormData) {
 
 export async function deleteTaxRuleAction(formData: FormData) {
   const ctx = await getContext();
-  if (!ctx) return;
+  if (!ctx) throw new Error('Unauthorized');
   const perm = await requirePermission(ctx.userId, 'tax.manage_rates');
-  if (!perm.ok) return;
+  if (!perm.ok) throw new Error('Forbidden');
 
   const id = String(formData.get('id') ?? '').trim();
   const [before] = await db
@@ -163,7 +163,7 @@ export async function deleteTaxRuleAction(formData: FormData) {
     .from(taxRules)
     .where(and(eq(taxRules.tenantId, ctx.tenantId), eq(taxRules.id, id)))
     .limit(1);
-  if (!before) return;
+  if (!before) throw new Error('Tax rule not found');
   const deletedAt = new Date();
   await db
     .update(taxRules)

@@ -116,9 +116,9 @@ export async function saveLocation(input: LocationDraft): Promise<LocationAction
 
   const code = input.code.trim().toUpperCase();
   if (!/^[A-Z0-9_-]{2,16}$/.test(code)) {
-    return { success: false, error: 'Kode lokasi harus 2-16 karakter A-Z, angka, _ atau -.' };
+    return { success: false, error: 'settings.locations.errors.invalidCode' };
   }
-  if (!input.name.id.trim()) return { success: false, error: 'Nama Indonesia wajib diisi.' };
+  if (!input.name.id.trim()) return { success: false, error: 'settings.locations.errors.missingIdName' };
 
   // GPS validation — if any one of the three is set, all three should be set
   const gpsLatTrim = (input.gpsLat ?? '').trim();
@@ -129,13 +129,13 @@ export async function saveLocation(input: LocationDraft): Promise<LocationAction
     const latNum = Number(gpsLatTrim);
     const lngNum = Number(gpsLngTrim);
     if (!Number.isFinite(latNum) || latNum < -90 || latNum > 90) {
-      return { success: false, error: 'Latitude harus angka antara -90 dan 90.' };
+      return { success: false, error: 'settings.locations.errors.invalidLat' };
     }
     if (!Number.isFinite(lngNum) || lngNum < -180 || lngNum > 180) {
-      return { success: false, error: 'Longitude harus angka antara -180 dan 180.' };
+      return { success: false, error: 'settings.locations.errors.invalidLng' };
     }
     if (!gpsRadius || gpsRadius < 10 || gpsRadius > 5000) {
-      return { success: false, error: 'Radius geofence harus 10–5000 meter.' };
+      return { success: false, error: 'settings.locations.errors.invalidRadius' };
     }
   }
 
@@ -165,7 +165,7 @@ export async function saveLocation(input: LocationDraft): Promise<LocationAction
         .from(locations)
         .where(and(eq(locations.tenantId, ctx.tenantId), eq(locations.id, input.id)))
         .limit(1);
-      if (!before) return { success: false, error: 'Lokasi tidak ditemukan.' };
+      if (!before) return { success: false, error: 'settings.locations.errors.notFound' };
 
       await db
         .update(locations)
@@ -211,7 +211,7 @@ export async function saveLocation(input: LocationDraft): Promise<LocationAction
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Gagal menyimpan lokasi.',
+      error: error instanceof Error ? error.message : 'settings.locations.errors.saveFailed',
     };
   }
 }
@@ -221,7 +221,7 @@ export async function deleteLocation(input: { id: string }): Promise<LocationAct
   if (!ctx) return { success: false, error: 'Forbidden' };
 
   const id = input.id.trim();
-  if (!id) return { success: false, error: 'Lokasi tidak valid.' };
+  if (!id) return { success: false, error: 'settings.locations.errors.invalidId' };
 
   const [before] = await db
     .select()
@@ -230,7 +230,7 @@ export async function deleteLocation(input: { id: string }): Promise<LocationAct
       and(eq(locations.tenantId, ctx.tenantId), eq(locations.id, id), isNull(locations.deletedAt)),
     )
     .limit(1);
-  if (!before) return { success: false, error: 'Lokasi tidak ditemukan.' };
+  if (!before) return { success: false, error: 'settings.locations.errors.notFound' };
 
   const deletedAt = new Date();
   await db

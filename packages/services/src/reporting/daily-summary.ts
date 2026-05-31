@@ -23,7 +23,7 @@ import {
 } from '@erp/db/schema/pos';
 import { type Result, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, lt, lte, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -256,19 +256,19 @@ export async function getDailySummary(
     }
   }
 
-  // ── Shift summary ─────────────────────────────────────────────────────────────
+  // ─── Shift summary ─────────────────────────────────────────────────────────────
   const shiftRows = await db
     .select()
     .from(shifts)
     .where(and(
       eq(shifts.locationId, params.locationId),
-      eq(shifts.tenantId, ctx.tenantId)
+      eq(shifts.tenantId, ctx.tenantId),
+      gte(shifts.openedAt, startDateTime),
+      lt(shifts.openedAt, endDateTime)
     ))
     .orderBy(shifts.openedAt);
 
-  const shiftsInRange = shiftRows.filter(
-    (s) => s.openedAt >= startDateTime && s.openedAt <= endDateTime,
-  );
+  const shiftsInRange = shiftRows;
 
   const shiftSummary: ShiftSummaryRow[] = shiftsInRange.map((shift) => {
     const shiftSales = paidSaleRows.filter((s) => s.shiftId === shift.id);

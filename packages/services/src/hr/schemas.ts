@@ -43,7 +43,7 @@ export const CreateEmployeeInputSchema = z.object({
       return trimmed.length === 0 ? undefined : trimmed;
     }),
   name: z.string().min(1).max(128),
-  email: z.string().email(),
+  email: z.string().email().transform((val) => val.toLowerCase()),
   phone: z.string().optional(),
   address: z.string().optional(),
   position: z.string().min(1).max(64),
@@ -77,7 +77,7 @@ export const UpdateEmployeeInputSchema = z.object({
   employeeId: z.string().min(1),
   locationId: z.string().min(1).optional(),
   name: z.string().min(1).max(128).optional(),
-  email: z.string().email().optional(),
+  email: z.string().email().transform((val) => val.toLowerCase()).optional(),
   phone: z.string().optional(),
   address: z.string().optional(),
   position: z.string().min(1).max(64).optional(),

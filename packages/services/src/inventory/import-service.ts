@@ -261,10 +261,11 @@ async function createCategoryFromImport(
 
 export async function importMasterFromExcel(
   rows: Sheet1MasterRow[],
+  locationId: string,
   ctx: AuditContext,
 ): Promise<Result<ImportResult>> {
   const permCheck = await requirePermission(ctx.userId, 'inventory.product.upsert', {
-    locationId: undefined,
+    locationId,
   });
   if (!permCheck.ok) return permCheck;
 
@@ -354,6 +355,7 @@ export async function importMasterFromExcel(
         isActive: true,
         updatedBy: userId,
         updatedAt: new Date(),
+        version: sql`${products.version} + 1`,
       };
       if (row.GAMBAR_URL) setClause.imageUrl = row.GAMBAR_URL;
       if (rawKind) setClause.kind = kind;
@@ -380,30 +382,22 @@ export async function importMasterFromExcel(
         createdBy: userId,
       });
 
-      // If STOK_AWAL > 0, create stock levels at all active locations
+      // If STOK_AWAL > 0, create stock level at the specified location
       if (stokAwal > 0) {
-        const activeLocations = await db
-          .select({ id: stockLocations.id })
-          .from(stockLocations)
-          .where(and(eq(stockLocations.tenantId, tenantId), eq(stockLocations.isActive, true)))
-          .limit(100);
-
-        for (const loc of activeLocations) {
-          await db.insert(stockLevels).values({
-            id: generateId(),
-            tenantId,
-            locationId: loc.id,
-            productId: newProductId,
-            variantId: null,
-            qtyOnHand: String(stokAwal),
-            qtyReserved: '0',
-            qtyAvailable: String(stokAwal),
-            uom,
-            avgUnitCost: hargaModal,
-            lastMovementAt: new Date(),
-            createdBy: userId,
-          });
-        }
+        await db.insert(stockLevels).values({
+          id: generateId(),
+          tenantId,
+          locationId,
+          productId: newProductId,
+          variantId: null,
+          qtyOnHand: String(stokAwal),
+          qtyReserved: '0',
+          qtyAvailable: String(stokAwal),
+          uom,
+          avgUnitCost: hargaModal,
+          lastMovementAt: new Date(),
+          createdBy: userId,
+        });
       }
 
       createdProducts++;

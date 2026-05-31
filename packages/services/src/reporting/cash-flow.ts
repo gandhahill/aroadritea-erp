@@ -152,6 +152,13 @@ export async function cashFlow(
       const movementConditions = buildJournalLineConditions(ctx, input.locationId, [
         gte(journalEntries.postingDate, input.from),
         lte(journalEntries.postingDate, input.to),
+        inArray(
+          journalEntries.id,
+          db
+            .select({ id: journalLines.journalEntryId })
+            .from(journalLines)
+            .where(inArray(journalLines.accountId, cashAccountIds))
+        ),
       ]);
 
       const movementRows: MovementRow[] = await db

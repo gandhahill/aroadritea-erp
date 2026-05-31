@@ -108,10 +108,10 @@ export async function saveBankAccount(input: BankAccountDraft): Promise<BankAcco
   if (!ctx) return { success: false, error: 'Forbidden' };
 
   if (!input.bankName.trim() || !input.accountNumber.trim() || !input.accountHolder.trim()) {
-    return { success: false, error: 'Semua field (Nama Bank, Nomor, Pemilik) wajib diisi.' };
+    return { success: false, error: 'settings.bankAccounts.errors.missingFields' };
   }
   if (!input.accountId.trim()) {
-    return { success: false, error: 'Pilih akun COA yang terhubung.' };
+    return { success: false, error: 'settings.bankAccounts.errors.missingCoa' };
   }
 
   // Ensure the selected COA account belongs to this tenant
@@ -122,7 +122,7 @@ export async function saveBankAccount(input: BankAccountDraft): Promise<BankAcco
     .limit(1);
 
   if (!coa) {
-    return { success: false, error: 'Akun COA tidak valid.' };
+    return { success: false, error: 'settings.bankAccounts.errors.invalidCoa' };
   }
 
   const values = {
@@ -142,7 +142,7 @@ export async function saveBankAccount(input: BankAccountDraft): Promise<BankAcco
         .from(bankAccounts)
         .where(and(eq(bankAccounts.tenantId, ctx.tenantId), eq(bankAccounts.id, input.id)))
         .limit(1);
-      if (!before) return { success: false, error: 'Akun bank tidak ditemukan.' };
+      if (!before) return { success: false, error: 'settings.bankAccounts.errors.notFound' };
 
       await db
         .update(bankAccounts)
@@ -188,7 +188,7 @@ export async function saveBankAccount(input: BankAccountDraft): Promise<BankAcco
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Gagal menyimpan akun bank.',
+      error: error instanceof Error ? error.message : 'settings.bankAccounts.errors.saveFailed',
     };
   }
 }
@@ -198,7 +198,7 @@ export async function deleteBankAccount(input: { id: string }): Promise<BankAcco
   if (!ctx) return { success: false, error: 'Forbidden' };
 
   const id = input.id.trim();
-  if (!id) return { success: false, error: 'Akun bank tidak valid.' };
+  if (!id) return { success: false, error: 'settings.bankAccounts.errors.invalidId' };
 
   const [before] = await db
     .select()
@@ -211,7 +211,7 @@ export async function deleteBankAccount(input: { id: string }): Promise<BankAcco
       ),
     )
     .limit(1);
-  if (!before) return { success: false, error: 'Akun bank tidak ditemukan.' };
+  if (!before) return { success: false, error: 'settings.bankAccounts.errors.notFound' };
 
   const deletedAt = new Date();
   await db

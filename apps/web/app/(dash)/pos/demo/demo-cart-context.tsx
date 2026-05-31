@@ -132,8 +132,29 @@ export function DemoCartProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const [pb1RateBps, setPb1RateBps] = useState<number>(1000);
+
+  useEffect(() => {
+    async function loadTaxRates() {
+      try {
+        const { getTaxRates } = await import('@erp/offline/indexeddb');
+        const rates = await getTaxRates();
+        const pb1 = rates.find((r) => r.code === 'PB1' || r.code === 'PBJT');
+        if (pb1) {
+          const rateValue = parseFloat(pb1.rate);
+          if (!isNaN(rateValue) && rateValue >= 0 && rateValue <= 1) {
+            setPb1RateBps(Math.round(rateValue * 10000));
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    loadTaxRates();
+  }, []);
+
   const { subtotal, taxTotal, totalPaid, remainingBalance, grandTotal, excess } =
-    calcDemoTotals(state);
+    calcDemoTotals(state, pb1RateBps);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {

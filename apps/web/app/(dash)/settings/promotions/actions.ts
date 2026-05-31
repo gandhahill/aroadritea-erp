@@ -11,6 +11,7 @@ import {
   listPromotions,
   upsertPromotion,
 } from '@erp/services/promotion';
+import { requirePermission } from '@erp/services/iam';
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
@@ -38,6 +39,10 @@ async function getContext(): Promise<AuditContext | null> {
 export async function fetchPromotionPageData() {
   const ctx = await getContext();
   if (!ctx)
+    return { promotions: [], locations: [], products: [], variants: [], expenseAccounts: [] };
+
+  const perm = await requirePermission(ctx.userId, 'settings.manage');
+  if (!perm.ok)
     return { promotions: [], locations: [], products: [], variants: [], expenseAccounts: [] };
 
   const [promotionResult, locale, locationRows, productRows, variantRows, expenseAccountRows] =

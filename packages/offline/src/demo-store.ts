@@ -82,7 +82,7 @@ export interface DemoOrder {
 
 // ─── Derived totals ───────────────────────────────────────────────────────────
 
-export function calcDemoTotals(state: DemoCartState): {
+export function calcDemoTotals(state: DemoCartState, pb1RateBps: number = 1000): {
   subtotal: bigint;
   taxTotal: bigint;
   totalDiscount: bigint;
@@ -100,8 +100,10 @@ export function calcDemoTotals(state: DemoCartState): {
     BigInt(0),
   );
   const subtotalAfterDiscount = subtotal - totalDiscount;
-  // PB1 is inclusive — back-out tax: tax = subtotal * 10 / 110
-  const taxTotal = (subtotalAfterDiscount * BigInt(10)) / BigInt(110);
+  // PB1 is inclusive — back-out tax using pb1RateBps
+  // e.g. 1000 bps = 10%. tax = subtotal * 1000 / (10000 + 1000)
+  const pb1BigInt = BigInt(pb1RateBps);
+  const taxTotal = (subtotalAfterDiscount * pb1BigInt) / (BigInt(10000) + pb1BigInt);
   const grandTotal = subtotalAfterDiscount;
   const totalPaid = state.payments.reduce((sum, p) => sum + BigInt(p.amount), BigInt(0));
   const remainingBalance = grandTotal - totalPaid > BigInt(0) ? grandTotal - totalPaid : BigInt(0);

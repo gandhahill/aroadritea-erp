@@ -485,67 +485,70 @@ export async function earnLoyaltyPoints(
     const divisorCents = config.rupiahPerPoint * 100;
     const pointsEarned = divisorCents > 0 ? Math.floor(Number(amountCents) / divisorCents) : 0;
 
-    // Fetch loyalty record
-    let loyaltyRows = await db
-      .select()
-      .from(memberLoyalty)
-      .where(eq(memberLoyalty.memberId, memberId))
-      .limit(1);
-
-    if (!loyaltyRows[0]) {
-      // Auto-create loyalty account on first purchase
-      await db.insert(memberLoyalty).values({
-        id: crypto.randomUUID(),
-        tenantId: ctx.tenantId,
-        memberId,
-        points: 0,
-        lifetimePoints: 0,
-        createdBy: ctx.userId,
-        updatedBy: ctx.userId,
-      });
-      loyaltyRows = await db
+    return await db.transaction(async (tx) => {
+      let loyaltyRows = await tx
         .select()
         .from(memberLoyalty)
         .where(eq(memberLoyalty.memberId, memberId))
-        .limit(1);
-    }
+        .limit(1)
+        .for('update');
 
-    const record = loyaltyRows[0];
-    if (!record) return err(AppError.internal('crm.loyalty.recordNotFound'));
+      if (!loyaltyRows[0]) {
+        // Auto-create loyalty account on first purchase
+        await tx.insert(memberLoyalty).values({
+          id: crypto.randomUUID(),
+          tenantId: ctx.tenantId,
+          memberId,
+          points: 0,
+          lifetimePoints: 0,
+          createdBy: ctx.userId,
+          updatedBy: ctx.userId,
+        });
+        loyaltyRows = await tx
+          .select()
+          .from(memberLoyalty)
+          .where(eq(memberLoyalty.memberId, memberId))
+          .limit(1)
+          .for('update');
+      }
 
-    const newPoints = record.points + pointsEarned;
-    const newLifetime = record.lifetimePoints + pointsEarned;
-    const newTier = computeTierFromConfig(newLifetime, config);
+      const record = loyaltyRows[0];
+      if (!record) return err(AppError.internal('crm.loyalty.recordNotFound'));
 
-    await db
-      .update(memberLoyalty)
-      .set({
-        points: newPoints,
-        lifetimePoints: newLifetime,
-        tier: newTier,
-        lastEarnedAt: new Date(),
-        tierUpgradedAt: newTier !== record.tier ? new Date() : record.tierUpgradedAt,
+      const newPoints = record.points + pointsEarned;
+      const newLifetime = record.lifetimePoints + pointsEarned;
+      const newTier = computeTierFromConfig(newLifetime, config);
+
+      await tx
+        .update(memberLoyalty)
+        .set({
+          points: newPoints,
+          lifetimePoints: newLifetime,
+          tier: newTier,
+          lastEarnedAt: new Date(),
+          tierUpgradedAt: newTier !== record.tier ? new Date() : record.tierUpgradedAt,
+          updatedBy: ctx.userId,
+        })
+        .where(eq(memberLoyalty.id, record.id));
+
+      // Transaction log
+      await tx.insert(memberPointsTransactions).values({
+        id: crypto.randomUUID(),
+        tenantId: ctx.tenantId,
+        memberId,
+        loyaltyId: record.id,
+        type: 'earn',
+        points: pointsEarned,
+        balanceAfter: newPoints,
+        referenceType: 'sales_order',
+        referenceId: saleId,
+        description: { id: 'Pembelian', en: 'Purchase', zh: '购买' },
+        createdBy: ctx.userId,
         updatedBy: ctx.userId,
-      })
-      .where(eq(memberLoyalty.id, record.id));
+      });
 
-    // Transaction log
-    await db.insert(memberPointsTransactions).values({
-      id: crypto.randomUUID(),
-      tenantId: ctx.tenantId,
-      memberId,
-      loyaltyId: record.id,
-      type: 'earn',
-      points: pointsEarned,
-      balanceAfter: newPoints,
-      referenceType: 'sales_order',
-      referenceId: saleId,
-      description: { id: 'Pembelian', en: 'Purchase', zh: '购买' },
-      createdBy: ctx.userId,
-      updatedBy: ctx.userId,
+      return ok({ pointsEarned, newBalance: newPoints, tier: newTier });
     });
-
-    return ok({ pointsEarned, newBalance: newPoints, tier: newTier });
   } catch (e) {
     return err(AppError.internal('crm.earnLoyaltyPoints.failed', e));
   }
@@ -593,69 +596,72 @@ export async function redeemLoyaltyPoints(
       );
     }
 
-    const loyaltyRows = await db
-      .select()
-      .from(memberLoyalty)
-      .where(eq(memberLoyalty.memberId, input.memberId))
-      .limit(1);
+    return await db.transaction(async (tx) => {
+      const loyaltyRows = await tx
+        .select()
+        .from(memberLoyalty)
+        .where(eq(memberLoyalty.memberId, input.memberId))
+        .limit(1)
+        .for('update');
 
-    const record = loyaltyRows[0];
-    if (!record)
-      return err(AppError.notFound('crm.memberLoyaltyNotFound', { memberId: input.memberId }));
+      const record = loyaltyRows[0];
+      if (!record)
+        return err(AppError.notFound('crm.memberLoyaltyNotFound', { memberId: input.memberId }));
 
-    if (record.points < input.pointsToRedeem) {
-      return err(
-        AppError.businessRule('crm.insufficientPoints', {
-          available: record.points,
-          required: input.pointsToRedeem,
-        }),
-      );
-    }
+      if (record.points < input.pointsToRedeem) {
+        return err(
+          AppError.businessRule('crm.insufficientPoints', {
+            available: record.points,
+            required: input.pointsToRedeem,
+          }),
+        );
+      }
 
-    // Deduct points
-    const newBalance = record.points - input.pointsToRedeem;
-    await db
-      .update(memberLoyalty)
-      .set({ points: newBalance, updatedBy: ctx.userId })
-      .where(eq(memberLoyalty.id, record.id));
+      // Deduct points
+      const newBalance = record.points - input.pointsToRedeem;
+      await tx
+        .update(memberLoyalty)
+        .set({ points: newBalance, updatedBy: ctx.userId })
+        .where(eq(memberLoyalty.id, record.id));
 
-    // Generate voucher code
-    const voucherCode = `PTS-${Date.now().toString(36).toUpperCase()}`;
-    const validFrom = new Date();
-    const validUntil = new Date(validFrom);
-    validUntil.setDate(validUntil.getDate() + 30);
+      // Generate voucher code
+      const voucherCode = `PTS-${Date.now().toString(36).toUpperCase()}`;
+      const validFrom = new Date();
+      const validUntil = new Date(validFrom);
+      validUntil.setDate(validUntil.getDate() + 30);
 
-    await db.insert(memberVouchers).values({
-      id: crypto.randomUUID(),
-      tenantId: ctx.tenantId,
-      memberId: input.memberId,
-      code: voucherCode,
-      kind: input.voucherKind,
-      value: input.voucherValue,
-      minOrderValue: 0,
-      validFrom,
-      validUntil,
-      createdBy: ctx.userId,
-      updatedBy: ctx.userId,
+      await tx.insert(memberVouchers).values({
+        id: crypto.randomUUID(),
+        tenantId: ctx.tenantId,
+        memberId: input.memberId,
+        code: voucherCode,
+        kind: input.voucherKind,
+        value: input.voucherValue,
+        minOrderValue: 0,
+        validFrom,
+        validUntil,
+        createdBy: ctx.userId,
+        updatedBy: ctx.userId,
+      });
+
+      // Log transaction
+      await tx.insert(memberPointsTransactions).values({
+        id: crypto.randomUUID(),
+        tenantId: ctx.tenantId,
+        memberId: input.memberId,
+        loyaltyId: record.id,
+        type: 'redeem',
+        points: -input.pointsToRedeem,
+        balanceAfter: newBalance,
+        referenceType: 'voucher_redeem',
+        referenceId: voucherCode,
+        description: input.description ?? { id: 'Tukar poin', en: 'Redeem points', zh: '兑换积分' },
+        createdBy: ctx.userId,
+        updatedBy: ctx.userId,
+      });
+
+      return ok({ voucherCode, pointsRemaining: newBalance });
     });
-
-    // Log transaction
-    await db.insert(memberPointsTransactions).values({
-      id: crypto.randomUUID(),
-      tenantId: ctx.tenantId,
-      memberId: input.memberId,
-      loyaltyId: record.id,
-      type: 'redeem',
-      points: -input.pointsToRedeem,
-      balanceAfter: newBalance,
-      referenceType: 'voucher_redeem',
-      referenceId: voucherCode,
-      description: input.description ?? { id: 'Tukar poin', en: 'Redeem points', zh: '兑换积分' },
-      createdBy: ctx.userId,
-      updatedBy: ctx.userId,
-    });
-
-    return ok({ voucherCode, pointsRemaining: newBalance });
   } catch (e) {
     return err(AppError.internal('crm.redeemLoyaltyPoints.failed', e));
   }

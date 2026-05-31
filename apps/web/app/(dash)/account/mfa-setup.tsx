@@ -13,6 +13,8 @@ export function MfaSetup() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [enabled, setEnabled] = useState(false);
+  const [totpCode, setTotpCode] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   // In a real implementation we would also fetch whether MFA is currently enabled.
   // We can assume we don't have `useSession` data here perfectly, so we just offer "Enable" for now.
@@ -36,6 +38,27 @@ export function MfaSetup() {
       setError('Unknown error');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleVerify(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setVerifying(true);
+    try {
+      const result = await authClient.twoFactor.verifyTotp({ code: totpCode });
+      if (result.error) {
+        setError(result.error.message || 'Invalid code');
+      } else {
+        setTotpUri(null);
+        setPassword('');
+        setTotpCode('');
+        setEnabled(true);
+      }
+    } catch (err) {
+      setError('Unknown error');
+    } finally {
+      setVerifying(false);
     }
   }
 
@@ -77,7 +100,7 @@ export function MfaSetup() {
       )}
 
       {totpUri && (
-        <div className="space-y-4">
+        <form onSubmit={handleVerify} className="space-y-4">
           <div className="p-4 bg-brand-cream-1 rounded-lg border border-brand-cream-3">
             <p className="text-sm font-medium text-brand-ink mb-2">
               {t('scanTitle') || 'Setup Instructions'}
@@ -90,18 +113,48 @@ export function MfaSetup() {
             </div>
             {secret && <p className="text-xs text-brand-ink-3 mt-4">Secret: {secret}</p>}
           </div>
+          
+          <label className="block space-y-1">
+            <span className="text-xs font-semibold text-brand-ink-3">
+              {t('totpCode') || 'Authentication Code'}
+            </span>
+            <Input
+              type="text"
+              required
+              value={totpCode}
+              onChange={(e) => setTotpCode(e.target.value)}
+              placeholder="123456"
+              maxLength={6}
+              className="w-full rounded-lg border border-brand-cream-3 bg-brand-cream px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-red focus:ring-1 focus:ring-brand-red"
+            />
+          </label>
+
           <Button
-            onClick={() => {
-              setTotpUri(null);
-              setPassword('');
-            }}
-            className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition hover:bg-brand-cream-1"
-            variant="secondary"
+            type="submit"
+            disabled={verifying}
+            className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:opacity-60"
+            variant="primary"
             size="md"
           >
-            {t('done') || 'Done'}
+            {verifying ? t('verifying') || 'Verifying...' : t('verifyAndEnable') || 'Verify & Enable'}
           </Button>
-        </div>
+
+          <div className="pt-2">
+            <Button
+              type="button"
+              onClick={() => {
+                setTotpUri(null);
+                setPassword('');
+                setTotpCode('');
+              }}
+              className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition hover:bg-brand-cream-1"
+              variant="secondary"
+              size="md"
+            >
+              {t('cancel') || 'Cancel'}
+            </Button>
+          </div>
+        </form>
       )}
     </div>
   );

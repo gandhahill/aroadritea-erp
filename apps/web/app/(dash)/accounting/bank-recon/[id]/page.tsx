@@ -49,14 +49,14 @@ export default async function BankReconDetailPage({ params }: { params: Promise<
       <DetailClient
         statement={{
           ...data.statement,
-          openingBalance: Number(data.statement.openingBalance),
-          closingBalance: Number(data.statement.closingBalance),
+          openingBalance: data.statement.openingBalance.toString(),
+          closingBalance: data.statement.closingBalance.toString(),
         }}
         lines={data.lines.map((l: any) => ({
           ...l,
-          debit: Number(l.debit),
-          credit: Number(l.credit),
-          balance: Number(l.balance),
+          debit: l.debit.toString(),
+          credit: l.credit.toString(),
+          balance: l.balance.toString(),
           isMatched: l.matchStatus === 'matched',
           matchedJournalId: l.matchedJournalEntryId,
         }))}

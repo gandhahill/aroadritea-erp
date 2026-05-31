@@ -12,7 +12,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { hashPassword } from '../auth/password';
 import { requirePermission } from '../iam';
@@ -49,6 +49,23 @@ export async function createEmployee(
 
   return tryCatch(
     async () => {
+      const encryptedEmail = encryptPiiForLookup(data.email, 'employees.email') ?? '';
+      const existingEmployee = await db
+        .select({ id: employees.id })
+        .from(employees)
+        .where(
+          and(
+            eq(employees.tenantId, ctx.tenantId),
+            eq(employees.email, encryptedEmail),
+            isNull(employees.deletedAt),
+          )
+        )
+        .limit(1);
+
+      if (existingEmployee[0]) {
+        throw AppError.validation('hr.employee.emailInUse', { email: data.email });
+      }
+
       const empId = generateId();
       const contractId = generateId();
 
@@ -66,7 +83,7 @@ export async function createEmployee(
           // index) — see migration 0029_employee_nik_optional.
           nik: data.nik ? (encryptPii(data.nik, 'employees.nik') ?? null) : null,
           name: data.name,
-          email: encryptPiiForLookup(data.email, 'employees.email') ?? '',
+          email: encryptedEmail,
           phone: encryptPii(data.phone, 'employees.phone'),
           address: encryptPii(data.address, 'employees.address'),
           status: 'probation',

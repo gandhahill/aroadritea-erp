@@ -102,7 +102,7 @@ export async function createOutgoingShipment(
           // Deduct stock
           const variantFilter = line.variantId ? eq(stockLevels.variantId, line.variantId) : sql`variant_id IS NULL`;
           
-          const [currentLevel] = await db.select({ id: stockLevels.id }).from(stockLevels)
+          const [currentLevel] = await db.select({ id: stockLevels.id, stockLocationId: stockLevels.stockLocationId }).from(stockLevels)
             .where(
               and(
                 eq(stockLevels.tenantId, ctx.tenantId),
@@ -128,7 +128,7 @@ export async function createOutgoingShipment(
             tenantId: ctx.tenantId,
             locationId: data.locationId,
             occurredAt: new Date(),
-            stockLocationId: null as unknown as string,
+            stockLocationId: currentLevel.stockLocationId,
             productId: line.productId,
             variantId: line.variantId || null,
             batchNo: null,

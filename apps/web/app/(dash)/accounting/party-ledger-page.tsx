@@ -288,5 +288,5 @@ function formatRupiah(value: string, locale = 'id-ID') {
     style: 'currency',
     currency: 'IDR',
     maximumFractionDigits: 0,
-  }).format(Number(BigInt(value)));
+  }).format(BigInt(value));
 }

@@ -1,5 +1,5 @@
 import { db } from '@erp/db';
-import { journalEntries, journalLines } from '@erp/db/schema/accounting';
+import { journalEntries, journalLines, journalAttachments } from '@erp/db/schema/accounting';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -45,6 +45,10 @@ export async function deleteJournal(
           .update(journalEntries)
           .set({ deletedAt, updatedBy: ctx.userId, updatedAt: deletedAt })
           .where(eq(journalEntries.id, journalId));
+          
+        await tx
+          .delete(journalAttachments)
+          .where(eq(journalAttachments.journalEntryId, journalId));
       });
 
       await auditRecord({

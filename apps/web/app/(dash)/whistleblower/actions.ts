@@ -23,6 +23,16 @@ export async function submitWhistleblowerAction(_prevState: unknown, formData: F
   const content = String(formData.get('content') ?? '').trim();
   const rawAttachment = formData.get('attachmentUrl');
   const attachmentUrl = typeof rawAttachment === 'string' ? rawAttachment.trim() : '';
+  if (attachmentUrl) {
+    try {
+      const url = new URL(attachmentUrl);
+      if (url.protocol !== 'https:') {
+        return { ok: false as const, error: 'Attachment URL must use HTTPS' };
+      }
+    } catch {
+      return { ok: false as const, error: 'Invalid attachment URL format' };
+    }
+  }
 
   if (!title || !category || !content) {
     return { ok: false as const, error: 'Missing required fields' };

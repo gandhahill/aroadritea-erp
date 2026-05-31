@@ -34,7 +34,6 @@ export async function fetchBinderByteTracking(
   }
 
   const url = new URL(BINDERBYTE_ENDPOINT);
-  url.searchParams.set('api_key', apiKey);
   url.searchParams.set('courier', courierCode);
   url.searchParams.set('awb', awb);
   if (phoneLast5) {
@@ -48,6 +47,9 @@ export async function fetchBinderByteTracking(
   try {
     const response = await fetch(url, {
       method: 'GET',
+      headers: {
+        'api_key': apiKey,
+      },
       signal: AbortSignal.timeout(10_000),
     });
     httpStatus = response.status;

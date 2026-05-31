@@ -122,7 +122,6 @@ export async function hardDeleteEmployee(
     },
     (e) => {
       if (e instanceof AppError) return e;
-      console.error('[hardDeleteEmployee] Unexpected error:', e);
       return AppError.internal('hr.employee.deleteFailed', e);
     },
   );

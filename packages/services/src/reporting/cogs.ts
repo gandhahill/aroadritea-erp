@@ -176,10 +176,14 @@ export async function cogsReport(input: CogsInput, ctx: AuditContext): Promise<R
           const ingredient = ingredientById.get(line.ingredientId);
           if (!ingredient) continue;
           const unitCost = ingredient.defaultCostPrice;
-          // qty is numeric(14,4) string — multiply by unit cost via float
-          // since we are rolling up rupiah (integer) at the end.
-          const qtyNumber = Number.parseFloat(line.qty);
-          const lineCost = BigInt(Math.round(Number(unitCost) * qtyNumber));
+          // Parse qty (numeric(14,4)) into scaled bigint (10000 multiplier)
+          const parts = line.qty.split('.');
+          const intPart = parts[0] || '0';
+          const fracPart = (parts[1] || '').padEnd(4, '0').slice(0, 4);
+          const qtyScaled = BigInt(intPart + fracPart);
+          
+          // lineCost = (unitCost * qtyScaled + 5000) / 10000 for proper rounding
+          const lineCost = (unitCost * qtyScaled + 5000n) / 10000n;
           totalCost += lineCost;
           lines.push({
             ingredientId: ingredient.id,

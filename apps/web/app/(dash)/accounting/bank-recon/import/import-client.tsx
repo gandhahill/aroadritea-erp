@@ -3,6 +3,7 @@
 import { Input, Select, TableBody } from '@erp/ui';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
+import Papa from 'papaparse';
 import { importBankStatement } from '../actions';
 
 interface MasterData {
@@ -93,29 +94,28 @@ export function ImportClient({ bankAccounts, locations, labels, commonLabels }: 
   };
 
   const parseCsv = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      const rows = text.split('\n').map((row) => row.split(','));
-      // skip header
-      const parsedLines: LineDraft[] = [];
-      for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        if (row && row.length >= 5) {
-          const date = row[0]?.trim();
-          if (!date) continue;
-          parsedLines.push({
-            transactionDate: date,
-            description: row[1]?.trim() || '',
-            debitAmount: row[2]?.trim() || '0',
-            creditAmount: row[3]?.trim() || '0',
-            runningBalance: row[4]?.trim() || '0',
-          });
+    Papa.parse<string[]>(file, {
+      skipEmptyLines: true,
+      complete: (results) => {
+        const rows = results.data;
+        const parsedLines: LineDraft[] = [];
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (row && row.length >= 5) {
+            const date = row[0]?.trim();
+            if (!date) continue;
+            parsedLines.push({
+              transactionDate: date,
+              description: row[1]?.trim() || '',
+              debitAmount: row[2]?.trim() || '0',
+              creditAmount: row[3]?.trim() || '0',
+              runningBalance: row[4]?.trim() || '0',
+            });
+          }
         }
-      }
-      setLines(parsedLines);
-    };
-    reader.readAsText(file);
+        setLines(parsedLines);
+      },
+    });
   };
 
   const handleCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

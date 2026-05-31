@@ -95,6 +95,7 @@ async function syncOrder(order: DbPendingOrder): Promise<boolean> {
         `[${response.status}] ${errorBody}`,
         new Date(Date.now() + BACKOFF_CAP_MS).toISOString(),
       );
+      await markOrderSynced(order.clientOrderUuid, `FAILED_${response.status}`);
       return false;
     }
 

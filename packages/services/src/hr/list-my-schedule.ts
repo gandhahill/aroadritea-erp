@@ -1,4 +1,4 @@
-import { and, db, eq, gte, lte } from '@erp/db';
+import { and, db, eq, gte, lte, isNull } from '@erp/db';
 import { shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -49,6 +49,7 @@ export async function listMySchedule(
           eq(shiftAssignments.employeeId, employee.id),
           gte(shiftAssignments.workDate, params.dateFrom),
           lte(shiftAssignments.workDate, params.dateTo),
+          isNull(shiftAssignments.deletedAt),
         ),
       )
       .orderBy(shiftAssignments.workDate);

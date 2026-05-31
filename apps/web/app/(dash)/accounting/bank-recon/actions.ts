@@ -170,6 +170,19 @@ export async function fetchStatementDetails(id: string) {
   return { statement, lines };
 }
 
+function safeBigInt(val: string | number | undefined | null): bigint {
+  if (val === undefined || val === null || val === '') return BigInt(0);
+  if (typeof val === 'number') {
+    if (isNaN(val)) throw new Error('Invalid number');
+    return BigInt(Math.floor(val));
+  }
+  const str = String(val).trim();
+  if (/^-?\d+$/.test(str)) return BigInt(str);
+  const num = Number(str);
+  if (isNaN(num)) throw new Error('Invalid number format');
+  return BigInt(Math.floor(num));
+}
+
 export async function importBankStatement(input: {
   bankAccountId: string;
   locationId: string;
@@ -226,6 +239,15 @@ export async function importBankStatement(input: {
   ]);
   if (!location || !bankAccount) return { success: false, error: 'Forbidden' };
 
+  let parsedOpeningBalance: bigint;
+  let parsedClosingBalance: bigint;
+  try {
+    parsedOpeningBalance = safeBigInt(input.openingBalance);
+    parsedClosingBalance = safeBigInt(input.closingBalance);
+  } catch (err) {
+    return { success: false, error: 'Format saldo awal/akhir tidak valid.' };
+  }
+
   const id = generateId();
   const statementValues = {
     id,
@@ -233,24 +255,29 @@ export async function importBankStatement(input: {
     locationId: input.locationId,
     bankAccountId: input.bankAccountId,
     statementDate: input.statementDate,
-    openingBalance: BigInt(input.openingBalance || 0),
-    closingBalance: BigInt(input.closingBalance || 0),
+    openingBalance: parsedOpeningBalance,
+    closingBalance: parsedClosingBalance,
     status: 'draft' as const,
     notes: input.notes || null,
     createdBy: ctx.userId,
   };
 
-  const lineValues = input.lines.map((line, idx) => ({
-    id: `bsl_${generateId()}`,
-    statementId: id,
-    lineNo: idx + 1,
-    transactionDate: line.transactionDate,
-    description: line.description,
-    debit: BigInt(line.debitAmount || 0),
-    credit: BigInt(line.creditAmount || 0),
-    runningBalance: BigInt(line.runningBalance || 0),
-    matchStatus: 'unmatched',
-  }));
+  let lineValues;
+  try {
+    lineValues = input.lines.map((line, idx) => ({
+      id: `bsl_${generateId()}`,
+      statementId: id,
+      lineNo: idx + 1,
+      transactionDate: line.transactionDate,
+      description: line.description,
+      debit: safeBigInt(line.debitAmount),
+      credit: safeBigInt(line.creditAmount),
+      runningBalance: safeBigInt(line.runningBalance),
+      matchStatus: 'unmatched',
+    }));
+  } catch (err) {
+    return { success: false, error: 'Format angka pada baris transaksi tidak valid.' };
+  }
 
   try {
     await db.transaction(async (tx) => {

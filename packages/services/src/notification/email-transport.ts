@@ -61,7 +61,7 @@ export async function sendTransactionalEmail(input: SendEmailInput): Promise<Sen
       secure,
       requireTLS: smtpPort === 587,
       auth: { user: smtpUser, pass: smtpPass },
-      tls: { rejectUnauthorized: false },
+      tls: { rejectUnauthorized: true },
       connectionTimeout: 10_000,
       greetingTimeout: 10_000,
       socketTimeout: 15_000,

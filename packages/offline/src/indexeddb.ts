@@ -247,8 +247,13 @@ export async function upsertPromotions(promos: DbPromotion[]): Promise<void> {
 export async function getActivePromotions(): Promise<DbPromotion[]> {
   const db = await getOfflineDb();
   const all = await db.getAll(STORE.PROMOTIONS);
-  const now = new Date().toISOString();
-  return all.filter((p) => p.isActive && p.startDate <= now && p.endDate >= now);
+  const nowTime = new Date().getTime();
+  return all.filter((p) => {
+    if (!p.isActive) return false;
+    const start = new Date(p.startDate).getTime();
+    const end = new Date(p.endDate).getTime();
+    return start <= nowTime && nowTime <= end;
+  });
 }
 
 // ─── Tax rates ────────────────────────────────────────────────────────────────

@@ -66,26 +66,9 @@ export async function openShift(input: unknown, ctx: AuditContext): Promise<Resu
   if (!permCheck.ok) return permCheck;
 
   try {
-    // Check no open shift exists for this location
-    const existing = await db
-      .select({ id: shifts.id })
-      .from(shifts)
-      .where(
-        and(
-          eq(shifts.tenantId, ctx.tenantId),
-          eq(shifts.locationId, data.locationId),
-          eq(shifts.status, 'open'),
-        ),
-      )
-      .then((r) => r[0]);
-
-    if (existing) {
-      return err(AppError.businessRule('pos.shift.alreadyOpen', { locationId: data.locationId }));
-    }
-
     const shiftId = generateId();
 
-    await db.insert(shifts).values({
+    const insertedRows = await db.insert(shifts).values({
       id: shiftId,
       tenantId: ctx.tenantId,
       locationId: data.locationId,
@@ -95,7 +78,13 @@ export async function openShift(input: unknown, ctx: AuditContext): Promise<Resu
       status: 'open',
       createdBy: ctx.userId,
       updatedBy: ctx.userId,
-    });
+    })
+    .onConflictDoNothing()
+    .returning({ id: shifts.id });
+
+    if (insertedRows.length === 0) {
+      return err(AppError.businessRule('pos.shift.alreadyOpen', { locationId: data.locationId }));
+    }
 
     await auditRecord({
       action: 'create',
@@ -122,14 +111,6 @@ export async function openShift(input: unknown, ctx: AuditContext): Promise<Resu
       version: 1,
     });
   } catch (e) {
-    // Two cashiers racing to open the same location both passed the
-    // app-level check but the partial unique index in 0015_shift_unique_open
-    // rejects the second insert. Map that race to the same business
-    // error users see for normal duplicate opens.
-    const msg = e instanceof Error ? e.message : String(e);
-    if (/duplicate key|unique constraint|shifts_open_per_location_unique/i.test(msg)) {
-      return err(AppError.businessRule('pos.shift.alreadyOpen', { locationId: data.locationId }));
-    }
     return err(AppError.internal('pos.shift.openFailed', e));
   }
 }

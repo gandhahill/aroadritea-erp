@@ -88,7 +88,7 @@ export async function updateWhistleblowerReportStatus(
   },
   ctx: AuditContext,
 ): Promise<Result<{ id: string }>> {
-  const permCheck = await requirePermission(ctx.userId, 'hr.manage_employees', {
+  const permCheck = await requirePermission(ctx.userId, 'hr.whistleblower.write', {
     locationId: ctx.locationId,
   });
   if (!permCheck.ok) return permCheck;

@@ -80,6 +80,24 @@ function CartLineItem({
   const lineAfterDiscount = lineTotal - lineDiscount;
   const lineGrand = lineAfterDiscount;
 
+  const handleQtyChange = (newQty: number) => {
+    if (newQty === line.qty) return;
+    const oldTotal = BigInt(line.unitPrice) * BigInt(line.qty);
+    const oldDiscount = BigInt(line.lineDiscount ?? '0');
+    
+    onQtyChange(newQty);
+    
+    if (oldDiscount > BigInt(0)) {
+      const pct = Number((oldDiscount * BigInt(100)) / oldTotal);
+      if ([5, 10, 15, 20].includes(pct) && (oldTotal * BigInt(pct)) / BigInt(100) === oldDiscount) {
+        const newTotal = BigInt(line.unitPrice) * BigInt(newQty);
+        const newDiscount = ((newTotal * BigInt(pct)) / BigInt(100)).toString();
+        setDiscountInput(newDiscount);
+        onDiscountChange(newDiscount, reasonInput);
+      }
+    }
+  };
+
   return (
     <li className="flex flex-col gap-2 p-3">
       <div className="flex items-start gap-2">
@@ -108,7 +126,7 @@ function CartLineItem({
           <div className="flex h-8 items-center overflow-hidden rounded-md border border-brand-cream-3">
             <button
               type="button"
-              onClick={() => onQtyChange(Math.max(1, line.qty - 1))}
+              onClick={() => handleQtyChange(Math.max(1, line.qty - 1))}
               className="flex h-full w-8 items-center justify-center text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
             >
               −
@@ -116,7 +134,7 @@ function CartLineItem({
             <span className="w-8 text-center text-sm font-medium text-brand-ink">{line.qty}</span>
             <button
               type="button"
-              onClick={() => onQtyChange(line.qty + 1)}
+              onClick={() => handleQtyChange(line.qty + 1)}
               className="flex h-full w-8 items-center justify-center text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
             >
               +

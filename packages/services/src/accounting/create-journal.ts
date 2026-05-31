@@ -221,95 +221,103 @@ export async function createJournal(
 
   const dbTx = opts.tx ?? db;
 
-  // 10. Insert journal entry + lines in a transaction-like flow
+  // 10. Insert journal entry + lines in a strict db.transaction()
   const result = await tryCatch(
     async () => {
-      // Insert journal entry
-      await dbTx.insert(journalEntries).values({
-        id: jeId,
-        tenantId: ctx.tenantId,
-        locationId: data.locationId,
-        periodId: period.id,
-        postingDate: data.postingDate,
-        number: jeNumber,
-        description: data.description,
-        referenceType: data.referenceType ?? 'manual',
-        referenceId: data.referenceId ?? null,
-        status: 'draft',
-        totalDebit: totalDebit,
-        totalCredit: totalCredit,
-        createdBy: ctx.userId,
-        updatedBy: ctx.userId,
-      });
+      const executeInTx = async (tx: any) => {
+        // Insert journal entry
+        await tx.insert(journalEntries).values({
+          id: jeId,
+          tenantId: ctx.tenantId,
+          locationId: data.locationId,
+          periodId: period.id,
+          postingDate: data.postingDate,
+          number: jeNumber,
+          description: data.description,
+          referenceType: data.referenceType ?? 'manual',
+          referenceId: data.referenceId ?? null,
+          status: 'draft',
+          totalDebit: totalDebit,
+          totalCredit: totalCredit,
+          createdBy: ctx.userId,
+          updatedBy: ctx.userId,
+        });
 
-      // Insert journal lines
-      const lineValues = parsedLines.map((line) => ({
-        id: generateId(),
-        journalEntryId: jeId,
-        lineNo: line.lineNo,
-        accountId: line.accountId,
-        locationId: line.locationId,
-        description: line.description ?? null,
-        debit: line.debit,
-        credit: line.credit,
-        taxCode: line.taxCode ?? null,
-        partnerId: line.partnerId ?? null,
-        dueDate: line.dueDate ?? null,
-        reminderDaysBefore: line.reminderDaysBefore ?? null,
-        expectedLossRateBps: line.expectedLossRateBps ?? null,
-      }));
+        // Insert journal lines
+        const lineValues = parsedLines.map((line) => ({
+          id: generateId(),
+          journalEntryId: jeId,
+          lineNo: line.lineNo,
+          accountId: line.accountId,
+          locationId: line.locationId,
+          description: line.description ?? null,
+          debit: line.debit,
+          credit: line.credit,
+          taxCode: line.taxCode ?? null,
+          partnerId: line.partnerId ?? null,
+          dueDate: line.dueDate ?? null,
+          reminderDaysBefore: line.reminderDaysBefore ?? null,
+          expectedLossRateBps: line.expectedLossRateBps ?? null,
+        }));
 
-      await dbTx.insert(journalLines).values(lineValues);
+        await tx.insert(journalLines).values(lineValues);
 
-      // 11. Write audit log (SD §15)
-      await auditRecord({
-        action: 'create',
-        entityType: 'journal_entry',
-        entityId: jeId,
-        before: null,
-        after: {
+        // 11. Write audit log (SD §15)
+        await auditRecord({
+          action: 'create',
+          entityType: 'journal_entry',
+          entityId: jeId,
+          before: null,
+          after: {
+            id: jeId,
+            number: jeNumber,
+            postingDate: data.postingDate,
+            status: 'draft',
+            totalDebit: totalDebit.toString(),
+            totalCredit: totalCredit.toString(),
+            lineCount: lineValues.length,
+          },
+          metadata: {
+            ip: ctx.ipAddress ?? null,
+            userAgent: ctx.userAgent ?? null,
+          },
+          ctx,
+        });
+
+        const resultObj: JournalEntryResult = {
           id: jeId,
           number: jeNumber,
           postingDate: data.postingDate,
+          locationId: data.locationId,
+          periodId: period.id,
+          description: data.description,
           status: 'draft',
-          totalDebit: totalDebit.toString(),
-          totalCredit: totalCredit.toString(),
-          lineCount: lineValues.length,
-        },
-        metadata: {
-          ip: ctx.ipAddress ?? null,
-          userAgent: ctx.userAgent ?? null,
-        },
-        ctx,
-      });
+          totalDebit,
+          totalCredit,
+          lines: lineValues.map((lv) => ({
+            id: lv.id,
+            lineNo: lv.lineNo,
+            accountId: lv.accountId,
+            locationId: lv.locationId,
+            description: lv.description,
+            debit: lv.debit,
+            credit: lv.credit,
+            taxCode: lv.taxCode,
+            partnerId: lv.partnerId,
+            dueDate: lv.dueDate,
+            reminderDaysBefore: lv.reminderDaysBefore,
+            expectedLossRateBps: lv.expectedLossRateBps,
+          })),
+        };
 
-      const resultObj: JournalEntryResult = {
-        id: jeId,
-        number: jeNumber,
-        postingDate: data.postingDate,
-        locationId: data.locationId,
-        periodId: period.id,
-        description: data.description,
-        status: 'draft',
-        totalDebit,
-        totalCredit,
-        lines: lineValues.map((lv) => ({
-          id: lv.id,
-          lineNo: lv.lineNo,
-          accountId: lv.accountId,
-          locationId: lv.locationId,
-          description: lv.description,
-          debit: lv.debit,
-          credit: lv.credit,
-          taxCode: lv.taxCode,
-          partnerId: lv.partnerId,
-          dueDate: lv.dueDate,
-          reminderDaysBefore: lv.reminderDaysBefore,
-          expectedLossRateBps: lv.expectedLossRateBps,
-        })),
+        return resultObj;
       };
 
-      return resultObj;
+      if (opts.tx) {
+        return await executeInTx(opts.tx);
+      } else {
+        return await db.transaction(executeInTx);
+      }
     },
     (e) => AppError.internal('accounting.journal.createFailed', e),
   );

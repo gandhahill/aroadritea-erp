@@ -214,63 +214,68 @@ export async function adjustMemberPoints(
     return err(AppError.validation('crm.member.reasonRequired'));
   }
 
-  const [loyalty] = await db
-    .select()
-    .from(memberLoyalty)
-    .where(eq(memberLoyalty.memberId, input.memberId))
-    .limit(1);
-  if (!loyalty) return err(AppError.notFound('crm.member.loyaltyNotFound'));
+  return await db.transaction(async (tx) => {
+    const loyaltyRows = await tx
+      .select()
+      .from(memberLoyalty)
+      .where(eq(memberLoyalty.memberId, input.memberId))
+      .limit(1)
+      .for('update');
+      
+    const loyalty = loyaltyRows[0];
+    if (!loyalty) return err(AppError.notFound('crm.member.loyaltyNotFound'));
 
-  const newBalance = loyalty.points + input.delta;
-  if (newBalance < 0) {
-    return err(
-      AppError.businessRule('crm.member.wouldGoNegative', {
-        current: loyalty.points,
-        delta: input.delta,
-      }),
-    );
-  }
+    const newBalance = loyalty.points + input.delta;
+    if (newBalance < 0) {
+      return err(
+        AppError.businessRule('crm.member.wouldGoNegative', {
+          current: loyalty.points,
+          delta: input.delta,
+        }),
+      );
+    }
 
-  await db
-    .update(memberLoyalty)
-    .set({
-      points: newBalance,
-      // Lifetime never decreases — only earning grows it.
-      lifetimePoints:
-        input.delta > 0 ? loyalty.lifetimePoints + input.delta : loyalty.lifetimePoints,
+    await tx
+      .update(memberLoyalty)
+      .set({
+        points: newBalance,
+        // Lifetime never decreases — only earning grows it.
+        lifetimePoints:
+          input.delta > 0 ? loyalty.lifetimePoints + input.delta : loyalty.lifetimePoints,
+        updatedBy: ctx.userId,
+      })
+      .where(eq(memberLoyalty.id, loyalty.id));
+
+    await tx.insert(memberPointsTransactions).values({
+      id: generateId(),
+      tenantId: ctx.tenantId,
+      memberId: input.memberId,
+      loyaltyId: loyalty.id,
+      type: 'adjust',
+      points: input.delta,
+      balanceAfter: newBalance,
+      referenceType: 'manual_adjust',
+      referenceId: null,
+      description: {
+        id: input.reason.trim(),
+        en: input.reason.trim(),
+        zh: input.reason.trim(),
+      },
+      createdBy: ctx.userId,
       updatedBy: ctx.userId,
-    })
-    .where(eq(memberLoyalty.id, loyalty.id));
+    });
 
-  await db.insert(memberPointsTransactions).values({
-    id: generateId(),
-    tenantId: ctx.tenantId,
-    memberId: input.memberId,
-    loyaltyId: loyalty.id,
-    type: 'adjust',
-    points: input.delta,
-    balanceAfter: newBalance,
-    referenceType: 'manual_adjust',
-    referenceId: null,
-    description: {
-      id: input.reason.trim(),
-      en: input.reason.trim(),
-      zh: input.reason.trim(),
-    },
-    createdBy: ctx.userId,
-    updatedBy: ctx.userId,
+    await auditRecord({
+      action: 'update',
+      entityType: 'member',
+      entityId: input.memberId,
+      before: { points: loyalty.points },
+      after: { points: newBalance, delta: input.delta, reason: input.reason.trim() },
+      ctx,
+    });
+
+    return ok({ balanceAfter: newBalance });
   });
-
-  await auditRecord({
-    action: 'update',
-    entityType: 'member',
-    entityId: input.memberId,
-    before: { points: loyalty.points },
-    after: { points: newBalance, delta: input.delta, reason: input.reason.trim() },
-    ctx,
-  });
-
-  return ok({ balanceAfter: newBalance });
 }
 
 // ─── purchase history ─────────────────────────────────────────────────────

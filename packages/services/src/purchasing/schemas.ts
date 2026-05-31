@@ -9,9 +9,9 @@ import { z } from 'zod';
 export const POLineInputSchema = z.object({
   productId: z.string().min(1, 'product is required'),
   variantId: z.string().optional(),
-  qtyOrdered: z.string().regex(/^\d+(\.\d{1,3})?$/, 'qty must be positive decimal'),
+  qtyOrdered: z.string().regex(/^\d+(\.\d{1,3})?$/, 'qty must be positive decimal').refine((v) => Number.parseFloat(v) > 0, { message: 'qty must be > 0' }),
   uom: z.string().min(1, 'uom is required'),
-  unitPrice: z.string().regex(/^\d+$/, 'unit price must be non-negative integer'),
+  unitPrice: z.string().regex(/^\d+$/, 'unit price must be positive integer').refine((v) => Number.parseInt(v, 10) > 0, { message: 'unit price must be > 0' }),
   taxCode: z.string().optional(),
 });
 

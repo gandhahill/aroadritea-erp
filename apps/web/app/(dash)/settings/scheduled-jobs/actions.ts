@@ -7,9 +7,10 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, db, desc, eq } from '@erp/db';
+import { and, auditLog, db, desc, eq } from '@erp/db';
 import { scheduledJobs } from '@erp/db/schema/scheduled-jobs';
 import { requirePermission } from '@erp/services/iam';
+import { generateId } from '@erp/shared/id';
 import { revalidatePath } from 'next/cache';
 
 export interface ScheduledJobItem {
@@ -80,19 +81,37 @@ export async function toggleScheduledJob(
   enabled: boolean,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!(await requireContext(tenantId))) return { success: false, error: 'Forbidden' };
-    const result = await db
+    const ctx = await requireContext(tenantId);
+    if (!ctx) return { success: false, error: 'Forbidden' };
+    
+    const [before] = await db
+      .select({ enabled: scheduledJobs.enabled })
+      .from(scheduledJobs)
+      .where(and(eq(scheduledJobs.id, jobId), eq(scheduledJobs.tenantId, tenantId)))
+      .limit(1);
+
+    if (!before) {
+      return { success: false, error: 'Job not found' };
+    }
+
+    await db
       .update(scheduledJobs)
       .set({
         enabled,
         updatedAt: new Date(),
       })
-      .where(and(eq(scheduledJobs.id, jobId), eq(scheduledJobs.tenantId, tenantId)))
-      .returning({ id: scheduledJobs.id });
+      .where(and(eq(scheduledJobs.id, jobId), eq(scheduledJobs.tenantId, tenantId)));
 
-    if (result.length === 0) {
-      return { success: false, error: 'Job not found' };
-    }
+    await db.insert(auditLog).values({
+      id: generateId(),
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: 'update',
+      entityType: 'scheduled_job',
+      entityId: jobId,
+      before: { enabled: before.enabled } as never,
+      after: { enabled } as never,
+    });
 
     revalidatePath('/settings/scheduled-jobs');
     return { success: true };
@@ -112,7 +131,8 @@ export async function updateJobSchedule(
   jobId: string,
   cronExpression: string,
 ): Promise<{ success: boolean; error?: string }> {
-  if (!(await requireContext(tenantId))) return { success: false, error: 'Forbidden' };
+  const ctx = await requireContext(tenantId);
+  if (!ctx) return { success: false, error: 'Forbidden' };
 
   // Basic cron expression validation (5 or 6 fields)
   const fields = cronExpression.trim().split(/\s+/);
@@ -121,18 +141,34 @@ export async function updateJobSchedule(
   }
 
   try {
-    const result = await db
+    const [before] = await db
+      .select({ cronExpression: scheduledJobs.cronExpression })
+      .from(scheduledJobs)
+      .where(and(eq(scheduledJobs.id, jobId), eq(scheduledJobs.tenantId, tenantId)))
+      .limit(1);
+
+    if (!before) {
+      return { success: false, error: 'Job not found' };
+    }
+
+    await db
       .update(scheduledJobs)
       .set({
         cronExpression: cronExpression.trim(),
         updatedAt: new Date(),
       })
-      .where(and(eq(scheduledJobs.id, jobId), eq(scheduledJobs.tenantId, tenantId)))
-      .returning({ id: scheduledJobs.id });
+      .where(and(eq(scheduledJobs.id, jobId), eq(scheduledJobs.tenantId, tenantId)));
 
-    if (result.length === 0) {
-      return { success: false, error: 'Job not found' };
-    }
+    await db.insert(auditLog).values({
+      id: generateId(),
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: 'update',
+      entityType: 'scheduled_job',
+      entityId: jobId,
+      before: { cronExpression: before.cronExpression } as never,
+      after: { cronExpression: cronExpression.trim() } as never,
+    });
 
     revalidatePath('/settings/scheduled-jobs');
     return { success: true };

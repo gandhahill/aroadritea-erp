@@ -11,7 +11,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { encryptPii, encryptPiiForLookup } from '../security/pii';
@@ -39,7 +39,13 @@ export async function updateEmployee(
           currentContractId: employees.currentContractId,
         })
         .from(employees)
-        .where(and(eq(employees.id, employeeId), eq(employees.tenantId, ctx.tenantId)))
+        .where(
+          and(
+            eq(employees.id, employeeId),
+            eq(employees.tenantId, ctx.tenantId),
+            isNull(employees.deletedAt),
+          )
+        )
         .limit(1);
 
       if (!existing) {
@@ -72,8 +78,26 @@ export async function updateEmployee(
       };
 
       if (data.name !== undefined) setCols.name = data.name;
-      if (data.email !== undefined)
-        setCols.email = encryptPiiForLookup(data.email, 'employees.email');
+      if (data.email !== undefined) {
+        const encryptedEmail = encryptPiiForLookup(data.email, 'employees.email');
+        if (encryptedEmail) {
+          const existingEmail = await db
+            .select({ id: employees.id })
+            .from(employees)
+            .where(
+              and(
+                eq(employees.tenantId, ctx.tenantId),
+                eq(employees.email, encryptedEmail),
+                isNull(employees.deletedAt),
+              )
+            )
+            .limit(1);
+          if (existingEmail[0] && existingEmail[0].id !== employeeId) {
+            throw AppError.validation('hr.employee.emailInUse', { email: data.email });
+          }
+        }
+        setCols.email = encryptedEmail;
+      }
       if (data.phone !== undefined) setCols.phone = encryptPii(data.phone, 'employees.phone');
       if (data.address !== undefined)
         setCols.address = encryptPii(data.address, 'employees.address');

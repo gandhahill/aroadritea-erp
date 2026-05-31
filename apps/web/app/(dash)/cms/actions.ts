@@ -21,6 +21,7 @@ import {
   updatePage,
   updatePost,
 } from '@erp/services/cms';
+import { requirePermission } from '@erp/services/iam';
 import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
 
@@ -41,6 +42,8 @@ export async function fetchCmsPages(status?: string) {
   const session = await getSession();
   if (!session) return [];
   const ctx = buildCtx(session);
+  const perm = await requirePermission(ctx.userId, 'cms.view');
+  if (!perm.ok) return [];
   const result = await listPages(ctx.tenantId, status ? { status } : undefined);
   if (!result.ok) return [];
   return result.value;
@@ -50,6 +53,8 @@ export async function fetchCmsPage(id: string) {
   const session = await getSession();
   if (!session) return null;
   const ctx = buildCtx(session);
+  const perm = await requirePermission(ctx.userId, 'cms.view');
+  if (!perm.ok) return null;
   const result = await getPage(id, ctx.tenantId);
   if (!result.ok) return null;
   return result.value;
@@ -108,6 +113,8 @@ export async function fetchCmsPosts(options?: { kind?: string; status?: string }
   const session = await getSession();
   if (!session) return [];
   const ctx = buildCtx(session);
+  const perm = await requirePermission(ctx.userId, 'cms.view');
+  if (!perm.ok) return [];
   const result = await listPosts(ctx.tenantId, options);
   if (!result.ok) return [];
   return result.value;
@@ -117,6 +124,8 @@ export async function fetchCmsPost(id: string) {
   const session = await getSession();
   if (!session) return null;
   const ctx = buildCtx(session);
+  const perm = await requirePermission(ctx.userId, 'cms.view');
+  if (!perm.ok) return null;
   const result = await getPost(id, ctx.tenantId);
   if (!result.ok) return null;
   return result.value;
@@ -175,6 +184,8 @@ export async function fetchCmsBanners(activeOnly = false) {
   const session = await getSession();
   if (!session) return [];
   const ctx = buildCtx(session);
+  const perm = await requirePermission(ctx.userId, 'cms.view');
+  if (!perm.ok) return [];
   const result = await listBanners(ctx.tenantId, { activeOnly });
   if (!result.ok) return [];
   return result.value;
@@ -186,6 +197,8 @@ export async function fetchCmsFaqs(options?: { activeOnly?: boolean; category?: 
   const session = await getSession();
   if (!session) return [];
   const ctx = buildCtx(session);
+  const perm = await requirePermission(ctx.userId, 'cms.view');
+  if (!perm.ok) return [];
   const result = await listFaqs(ctx.tenantId, options);
   if (!result.ok) return [];
   return result.value;

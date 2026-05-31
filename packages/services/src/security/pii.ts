@@ -5,7 +5,7 @@
  * production require PII_ENCRYPTION_KEY and are stored with the `enc:v1` prefix.
  */
 
-import { createCipheriv, createDecipheriv, createHash, createHmac } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes } from 'node:crypto';
 
 const PREFIX = 'enc:v1';
 
@@ -44,7 +44,7 @@ export function encryptPii(value: string | null | undefined, field: string): str
   if (isEncrypted(trimmed)) return trimmed;
 
   const key = requireKey();
-  const iv = deterministicIv(key, field, trimmed);
+  const iv = randomBytes(12);
   const cipher = createCipheriv('aes-256-gcm', key, iv);
   cipher.setAAD(Buffer.from(field));
   const ciphertext = Buffer.concat([cipher.update(trimmed, 'utf8'), cipher.final()]);
