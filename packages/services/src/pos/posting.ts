@@ -29,8 +29,11 @@ export interface PosPostingConfig {
   taxRateBps: number;
   taxAccountId: string;
   cashAccountId: string;
+  pureCashAccountId: string;
   revenueAccountId: string;
   donationTrustAccountId: string;
+  defaultCogsAccountId: string;
+  defaultInventoryAccountId: string;
   deliveryChannels: Map<string, DeliveryChannelConfig>;
 }
 
@@ -137,6 +140,12 @@ export async function resolvePosPostingConfig(
   );
   if (!cashAccount.ok) return cashAccount;
 
+  const pureCashAccount = await resolveAccountIdByCode(
+    tenantId,
+    acctCodes['cash'], // 1-1200 by default
+  );
+  if (!pureCashAccount.ok) return pureCashAccount;
+
   const revenueAccount = await resolveAccountIdByCode(
     tenantId,
     setting?.revenueAccountCode ?? acctCodes['pos.revenue'],
@@ -149,13 +158,22 @@ export async function resolvePosPostingConfig(
   );
   if (!donationTrustAccount.ok) return donationTrustAccount;
 
+  const defaultCogsAccountId = await resolveAccountIdByCode(tenantId, acctCodes.cogs);
+  if (!defaultCogsAccountId.ok) return defaultCogsAccountId;
+
+  const defaultInventoryAccountId = await resolveAccountIdByCode(tenantId, acctCodes.inventory);
+  if (!defaultInventoryAccountId.ok) return defaultInventoryAccountId;
+
   return ok({
     taxCode: taxRate.code,
     taxRateBps: taxRate.rateBps,
     taxAccountId: taxRate.postingAccountId,
     cashAccountId: cashAccount.value,
+    pureCashAccountId: pureCashAccount.value,
     revenueAccountId: revenueAccount.value,
     donationTrustAccountId: donationTrustAccount.value,
+    defaultCogsAccountId: defaultCogsAccountId.value,
+    defaultInventoryAccountId: defaultInventoryAccountId.value,
     deliveryChannels: new Map(
       normalizeDeliveryChannelConfig(setting?.deliveryChannelsJson)
         .filter((channel) => channel.enabled)

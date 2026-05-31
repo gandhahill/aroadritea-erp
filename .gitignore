@@ -42,3 +42,4 @@ coverage/
 # fallback when PowerShell mangles multi-line `git commit -m`).
 .commit-msg-*.txt
 
+.mcp.json
