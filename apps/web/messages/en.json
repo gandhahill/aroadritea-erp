@@ -1961,7 +1961,13 @@
       "edit": "Edit",
       "voided": "Voided",
       "confirmDeleteTitle": "Delete Transaction?",
-      "deleting": "Deleting..."
+      "deleting": "Deleting...",
+      "errorUnauthenticated": "Unauthenticated",
+      "errorInvalidLineItems": "Invalid line items data",
+      "errorInvalidPayments": "Invalid payments data",
+      "errorMinPayment": "At least 1 payment method is required",
+      "errorPaymentFailed": "Payment failed for {method}: {error}",
+      "errorDiscountExceedsGross": "Discount exceeds total gross sales"
     },
     "openShift": "Open Shift",
     "drawerExpense": "Drawer Expense",

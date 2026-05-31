@@ -11,7 +11,7 @@ import {
   deleteManualSalesClosing,
 } from '@erp/services/pos';
 import type { AuditContext } from '@erp/shared/types';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 
 export async function fetchManualSaleDetailAction(id: string) {
@@ -203,7 +203,8 @@ export async function createManualSalesAction(
   formData: FormData,
 ): Promise<ManualSalesActionState> {
   const ctx = await getAuditContext();
-  if (!ctx) return { error: 'Unauthenticated' };
+  const t = await getTranslations('pos.manualSales');
+  if (!ctx) return { error: t('errorUnauthenticated', { defaultValue: 'Unauthenticated' }) };
 
   let lineItems = [];
   try {
@@ -212,7 +213,7 @@ export async function createManualSalesAction(
       lineItems = JSON.parse(rawItems);
     }
   } catch (e) {
-    return { error: 'Invalid line items data' };
+    return { error: t('errorInvalidLineItems', { defaultValue: 'Invalid line items data' }) };
   }
 
   let payments = [];
@@ -222,11 +223,11 @@ export async function createManualSalesAction(
       payments = JSON.parse(rawPayments);
     }
   } catch (e) {
-    return { error: 'Invalid payments data' };
+    return { error: t('errorInvalidPayments', { defaultValue: 'Invalid payments data' }) };
   }
 
   if (payments.length === 0) {
-    return { error: 'Minimal harus ada 1 metode pembayaran' };
+    return { error: t('errorMinPayment', { defaultValue: 'Minimal harus ada 1 metode pembayaran' }) };
   }
 
   const baseDeductBom = formData.get('deductBom') === 'true';
@@ -262,12 +263,12 @@ export async function createManualSalesAction(
     );
 
     if (!result.ok) {
-      return { error: `Gagal pada pembayaran ${payment.method}: ` + errorMessage(result.error) };
+      return { error: t('errorPaymentFailed', { method: payment.method, error: errorMessage(result.error), defaultValue: `Gagal pada pembayaran ${payment.method}: ` + errorMessage(result.error) }) };
     }
   }
 
   if (remainingDiscount > 0n) {
-    return { error: 'Diskon melebihi total seluruh penjualan kotor.' };
+    return { error: t('errorDiscountExceedsGross', { defaultValue: 'Diskon melebihi total seluruh penjualan kotor.' }) };
   }
 
   revalidatePath('/pos/manual-sales');
@@ -278,7 +279,8 @@ export async function createManualSalesAction(
 
 export async function deleteManualSalesAction(id: string) {
   const ctx = await getAuditContext();
-  if (!ctx) return { ok: false, error: 'Unauthenticated' };
+  const t = await getTranslations('pos.manualSales');
+  if (!ctx) return { ok: false, error: t('errorUnauthenticated', { defaultValue: 'Unauthenticated' }) };
   const res = await deleteManualSalesClosing(id, ctx);
   if (!res.ok) return { ok: false, error: errorMessage(res.error) };
   revalidatePath('/pos/manual-sales');
@@ -293,7 +295,36 @@ export async function updateManualSalesAction(
   formData: FormData,
 ): Promise<ManualSalesActionState> {
   const ctx = await getAuditContext();
-  if (!ctx) return { error: 'Unauthenticated' };
+  const t = await getTranslations('pos.manualSales');
+  if (!ctx) return { error: t('errorUnauthenticated', { defaultValue: 'Unauthenticated' }) };
+
+  // Validate early before deleting to avoid data loss on trivial errors
+  try {
+    const rawItems = text(formData, 'lineItemsJson');
+    if (rawItems) JSON.parse(rawItems);
+  } catch (e) {
+    return { error: t('errorInvalidLineItems', { defaultValue: 'Invalid line items data' }) };
+  }
+
+  let payments = [];
+  try {
+    const rawPayments = text(formData, 'paymentsJson');
+    if (rawPayments) {
+      payments = JSON.parse(rawPayments);
+    }
+  } catch (e) {
+    return { error: t('errorInvalidPayments', { defaultValue: 'Invalid payments data' }) };
+  }
+
+  if (payments.length === 0) {
+    return { error: t('errorMinPayment', { defaultValue: 'Minimal harus ada 1 metode pembayaran' }) };
+  }
+
+  const remainingDiscount = BigInt(money(formData, 'discountTotal'));
+  const totalGross = payments.reduce((acc: bigint, p: any) => acc + BigInt(p.grossSales || '0'), 0n);
+  if (remainingDiscount > totalGross) {
+    return { error: t('errorDiscountExceedsGross', { defaultValue: 'Diskon melebihi total seluruh penjualan kotor.' }) };
+  }
 
   // For update, we simply delete and then create new ones.
   const delRes = await deleteManualSalesClosing(id, ctx);

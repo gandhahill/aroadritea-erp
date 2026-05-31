@@ -1961,7 +1961,13 @@
       "edit": "编辑",
       "voided": "已取消",
       "confirmDeleteTitle": "删除交易？",
-      "deleting": "删除中..."
+      "deleting": "删除中...",
+      "errorUnauthenticated": "未认证，请重新登录",
+      "errorInvalidLineItems": "商品数据无效",
+      "errorInvalidPayments": "付款数据无效",
+      "errorMinPayment": "至少需要1种付款方式",
+      "errorPaymentFailed": "{method} 付款失败：{error}",
+      "errorDiscountExceedsGross": "折扣超过总销售额"
     },
     "openShift": "开班",
     "drawerExpense": "钱箱支出",
