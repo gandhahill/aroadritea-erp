@@ -115,8 +115,8 @@ export async function fetchPurchasingDashboard(): Promise<PurchasingDashboardDat
     'purchasing.po.create',
     ctx.tenantId,
   );
-  if (viewScope.locationIds.length === 0) {
-    return { purchaseOrders: [], suppliers: [], canCreate: createScope.locationIds.length > 0 };
+  if (!viewScope.global && viewScope.locationIds.length === 0) {
+    return { purchaseOrders: [], suppliers: [], canCreate: createScope.global || createScope.locationIds.length > 0 };
   }
 
   const [poRows, supplierRows] = await Promise.all([
@@ -149,7 +149,9 @@ export async function fetchPurchasingDashboard(): Promise<PurchasingDashboardDat
       .where(
         and(
           eq(purchaseOrders.tenantId, ctx.tenantId),
-          inArray(purchaseOrders.locationId, viewScope.locationIds),
+          ...(viewScope.global
+            ? []
+            : [inArray(purchaseOrders.locationId, viewScope.locationIds)]),
         ),
       )
       .orderBy(desc(purchaseOrders.orderDate), desc(purchaseOrders.createdAt)),
@@ -210,7 +212,7 @@ export async function fetchPurchaseOrderFormData(): Promise<PurchaseOrderFormDat
     'purchasing.po.create',
     ctx.tenantId,
   );
-  if (createScope.locationIds.length === 0) {
+  if (!createScope.global && createScope.locationIds.length === 0) {
     return { suppliers: [], locations: [], products: [], taxRates: [] };
   }
 
@@ -234,7 +236,9 @@ export async function fetchPurchaseOrderFormData(): Promise<PurchaseOrderFormDat
           eq(locations.tenantId, ctx.tenantId),
           eq(locations.status, 'active'),
           eq(locations.type, 'store'),
-          inArray(locations.id, createScope.locationIds),
+          ...(createScope.global
+            ? []
+            : [inArray(locations.id, createScope.locationIds)]),
         ),
       )
       .orderBy(asc(locations.code)),
@@ -543,7 +547,7 @@ export async function fetchShipmentDashboard(): Promise<{
     'purchasing.view',
     ctx.tenantId,
   );
-  if (viewScope.locationIds.length === 0) {
+  if (!viewScope.global && viewScope.locationIds.length === 0) {
     return { rows: [], total: 0, withShipping: 0, delivered: 0, inTransit: 0, errored: 0 };
   }
 
@@ -575,7 +579,9 @@ export async function fetchShipmentDashboard(): Promise<{
     .where(
       and(
         eq(purchaseOrders.tenantId, ctx.tenantId),
-        inArray(purchaseOrders.locationId, viewScope.locationIds),
+        ...(viewScope.global
+          ? []
+          : [inArray(purchaseOrders.locationId, viewScope.locationIds)]),
       ),
     )
     .orderBy(desc(purchaseOrders.orderDate));
@@ -770,16 +776,16 @@ export async function fetchGRNReport(
     'purchasing.view',
     ctx.tenantId,
   );
-  if (viewScope.locationIds.length === 0) return { data: [], total: 0, locations: [] };
+  if (!viewScope.global && viewScope.locationIds.length === 0) return { data: [], total: 0, locations: [] };
 
   const conditions = [eq(goodsReceiptNotes.tenantId, ctx.tenantId)];
   if (status) {
     conditions.push(eq(goodsReceiptNotes.status, status));
   }
   if (locationId) {
-    if (!viewScope.locationIds.includes(locationId)) return { data: [], total: 0, locations: [] };
+    if (!viewScope.global && !viewScope.locationIds.includes(locationId)) return { data: [], total: 0, locations: [] };
     conditions.push(eq(goodsReceiptNotes.locationId, locationId));
-  } else {
+  } else if (!viewScope.global) {
     conditions.push(inArray(goodsReceiptNotes.locationId, viewScope.locationIds));
   }
   if (startDate) {

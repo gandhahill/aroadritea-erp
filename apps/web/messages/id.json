@@ -417,6 +417,38 @@
       "noPartner": "Tanpa partner",
       "allowanceRateLabel": "{bucket} bps"
     },
+    "partners": {
+      "title": "Mitra Usaha",
+      "subtitle": "Kelola data pelanggan, supplier, dan mitra lainnya. Atur jatuh tempo dan informasi pajak.",
+      "count": "{count} mitra",
+      "addPartner": "Tambah Mitra",
+      "editPartner": "Edit Mitra",
+      "created": "Mitra berhasil ditambahkan",
+      "updated": "Mitra berhasil diperbarui",
+      "toggled": "Status mitra diperbarui",
+      "empty": "Belum ada data mitra.",
+      "edit": "Edit",
+      "active": "Aktif",
+      "inactive": "Nonaktif",
+      "days": "hari",
+      "kind": {
+        "all": "Semua",
+        "customer": "Pelanggan",
+        "supplier": "Supplier",
+        "employee": "Karyawan",
+        "other": "Lainnya"
+      },
+      "col": {
+        "name": "Nama",
+        "kind": "Jenis",
+        "contact": "Kontak",
+        "termsDays": "Jatuh Tempo",
+        "status": "Status",
+        "address": "Alamat",
+        "phone": "Telepon",
+        "leadTime": "Lead Time (hari)"
+      }
+    },
     "period": {
       "title": "Periode Akuntansi",
       "open": "Buka Periode",
@@ -1717,6 +1749,7 @@
     "coa": "Bagan Akun",
     "journals": "Jurnal Umum",
     "invoices": "Invoices",
+    "partners": "Mitra Usaha",
     "accountingEvidence": "Bukti Transaksi",
     "fixedAssets": "Aset Tetap",
     "payables": "Utang",

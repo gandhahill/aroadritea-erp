@@ -151,6 +151,7 @@ export function Sidebar({
         { label: t('coa'), href: '/accounting/coa', icon: <></>, permission: 'accounting.coa.manage' },
         { label: t('journals'), href: '/accounting/journals', icon: <></>, permission: 'accounting.journal.create' },
         { label: t('invoices'), href: '/accounting/invoices', icon: <></>, permission: 'accounting.view' },
+        { label: t('partners'), href: '/accounting/partners', icon: <></>, permission: 'accounting.view' },
         {
           label: t('accountingEvidence'),
           href: '/correspondence?classification=finance&direction=internal',
@@ -519,6 +520,9 @@ export function Sidebar({
     '/reporting/hourly-sales': 'reporting.view',
     '/reporting/donations': 'reporting.view',
     '/reporting/omzet-harian': 'reporting.view',
+
+    // Partners
+    '/accounting/partners': 'accounting.view',
 
     // POS
     '/pos': 'pos.view',

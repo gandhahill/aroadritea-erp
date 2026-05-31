@@ -32,69 +32,74 @@ export default async function PayrollPage() {
   const locationScope = await authorizedLocationIdsForTenant(userId, 'hr.payroll.read', tenantId);
   if (!locationScope.global && locationScope.locationIds.length === 0) redirect('/dashboard');
 
-  // Fetch locations for the tenant
-  const locRows =
-    locationScope.locationIds.length > 0
-      ? await db
-          .select({
-            id: locations.id,
-            code: locations.code,
-            name: locations.name,
-          })
-          .from(locations)
-          .where(
-            and(
-              eq(locations.tenantId, tenantId),
-              isNull(locations.deletedAt),
-              inArray(locations.id, locationScope.locationIds),
-            ),
-          )
-      : [];
+  const hasAccess = locationScope.global || locationScope.locationIds.length > 0;
+
+  // Fetch locations for the tenant (global = all locations, scoped = only allowed)
+  const locRows = hasAccess
+    ? await db
+        .select({
+          id: locations.id,
+          code: locations.code,
+          name: locations.name,
+        })
+        .from(locations)
+        .where(
+          and(
+            eq(locations.tenantId, tenantId),
+            isNull(locations.deletedAt),
+            ...(locationScope.global
+              ? []
+              : [inArray(locations.id, locationScope.locationIds)]),
+          ),
+        )
+    : [];
 
   // Fetch existing payrolls
-  const payrollRows =
-    locationScope.locationIds.length > 0
-      ? await db
-          .select({
-            id: payrolls.id,
-            periodCode: payrolls.periodCode,
-            periodStart: payrolls.periodStart,
-            periodEnd: payrolls.periodEnd,
-            status: payrolls.status,
-            totalEmployees: payrolls.totalEmployees,
-            totalNet: payrolls.totalNet,
-            approvedAt: payrolls.approvedAt,
-            journalEntryId: payrolls.journalEntryId,
-          })
-          .from(payrolls)
-          .where(
-            and(
-              eq(payrolls.tenantId, tenantId),
-              inArray(payrolls.locationId, locationScope.locationIds),
-            ),
-          )
-          .orderBy(payrolls.periodStart)
-      : [];
+  const payrollRows = hasAccess
+    ? await db
+        .select({
+          id: payrolls.id,
+          periodCode: payrolls.periodCode,
+          periodStart: payrolls.periodStart,
+          periodEnd: payrolls.periodEnd,
+          status: payrolls.status,
+          totalEmployees: payrolls.totalEmployees,
+          totalNet: payrolls.totalNet,
+          approvedAt: payrolls.approvedAt,
+          journalEntryId: payrolls.journalEntryId,
+        })
+        .from(payrolls)
+        .where(
+          and(
+            eq(payrolls.tenantId, tenantId),
+            ...(locationScope.global
+              ? []
+              : [inArray(payrolls.locationId, locationScope.locationIds)]),
+          ),
+        )
+        .orderBy(payrolls.periodStart)
+    : [];
 
-  const employeeRows =
-    locationScope.locationIds.length > 0
-      ? await db
-          .select({
-            id: employees.id,
-            name: employees.name,
-            locationId: employees.locationId,
-          })
-          .from(employees)
-          .where(
-            and(
-              eq(employees.tenantId, tenantId),
-              eq(employees.status, 'active'),
-              isNull(employees.deletedAt),
-              inArray(employees.locationId, locationScope.locationIds),
-            ),
-          )
-          .orderBy(employees.name)
-      : [];
+  const employeeRows = hasAccess
+    ? await db
+        .select({
+          id: employees.id,
+          name: employees.name,
+          locationId: employees.locationId,
+        })
+        .from(employees)
+        .where(
+          and(
+            eq(employees.tenantId, tenantId),
+            eq(employees.status, 'active'),
+            isNull(employees.deletedAt),
+            ...(locationScope.global
+              ? []
+              : [inArray(employees.locationId, locationScope.locationIds)]),
+          ),
+        )
+        .orderBy(employees.name)
+    : [];
 
   const locations_ = locRows.map((l) => {
     const name = l.name as { id?: string; en?: string; zh?: string } | null;

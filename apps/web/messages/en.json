@@ -417,6 +417,38 @@
       "noPartner": "No partner",
       "allowanceRateLabel": "{bucket} bps"
     },
+    "partners": {
+      "title": "Business Partners",
+      "subtitle": "Manage customers, suppliers, and other partners. Set payment terms and tax information.",
+      "count": "{count} partners",
+      "addPartner": "Add Partner",
+      "editPartner": "Edit Partner",
+      "created": "Partner created successfully",
+      "updated": "Partner updated successfully",
+      "toggled": "Partner status updated",
+      "empty": "No partners found.",
+      "edit": "Edit",
+      "active": "Active",
+      "inactive": "Inactive",
+      "days": "days",
+      "kind": {
+        "all": "All",
+        "customer": "Customer",
+        "supplier": "Supplier",
+        "employee": "Employee",
+        "other": "Other"
+      },
+      "col": {
+        "name": "Name",
+        "kind": "Type",
+        "contact": "Contact",
+        "termsDays": "Payment Terms",
+        "status": "Status",
+        "address": "Address",
+        "phone": "Phone",
+        "leadTime": "Lead Time (days)"
+      }
+    },
     "period": {
       "title": "Accounting Periods",
       "open": "Open Period",
@@ -1801,6 +1833,7 @@
     "collapseSidebar": "Collapse Sidebar",
     "stockTransfer": "Stock Transfer",
     "invoices": "Invoices",
+    "partners": "Business Partners",
     "logistics": "Logistics",
     "outgoingShipments": "Outgoing Shipments",
     "companySettings": "Company Info",

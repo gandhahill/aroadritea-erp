@@ -4,6 +4,8 @@
 
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
+import { and, db, eq, inArray, isNull } from '@erp/db';
+import { partners } from '@erp/db/schema/accounting';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
@@ -28,6 +30,21 @@ export default async function PurchaseReturnsPage({
   const params = await searchParams;
   const t = await getTranslations('purchasing.returns');
   const result = await fetchPurchaseReturnsAction({ status: params.status });
+
+  // Resolve supplier names from partner IDs
+  const supplierIds = [
+    ...new Set((result.data ?? []).map((r) => r.supplierId).filter(Boolean)),
+  ];
+  const supplierNameMap = new Map<string, string>();
+  if (supplierIds.length > 0) {
+    const rows = await db
+      .select({ id: partners.id, name: partners.name })
+      .from(partners)
+      .where(inArray(partners.id, supplierIds));
+    for (const row of rows) {
+      supplierNameMap.set(row.id, row.name);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -97,7 +114,7 @@ export default async function PurchaseReturnsPage({
                     </Link>
                   </td>
                   <td className="px-3 py-2 text-brand-ink-2">{row.returnDate}</td>
-                  <td className="px-3 py-2 text-brand-ink-2">{row.supplierId}</td>
+                  <td className="px-3 py-2 text-brand-ink-2">{supplierNameMap.get(row.supplierId) ?? row.supplierId}</td>
                   <td className="px-3 py-2">
                     <StatusBadge
                       status={row.status}

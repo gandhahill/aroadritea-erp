@@ -417,6 +417,38 @@
       "noPartner": "无合作伙伴",
       "allowanceRateLabel": "{bucket} 基点"
     },
+    "partners": {
+      "title": "业务伙伴",
+      "subtitle": "管理客户、供应商和其他合作伙伴。设置付款条件和税务信息。",
+      "count": "{count} 个伙伴",
+      "addPartner": "添加伙伴",
+      "editPartner": "编辑伙伴",
+      "created": "伙伴创建成功",
+      "updated": "伙伴更新成功",
+      "toggled": "伙伴状态已更新",
+      "empty": "暂无伙伴数据。",
+      "edit": "编辑",
+      "active": "活跃",
+      "inactive": "停用",
+      "days": "天",
+      "kind": {
+        "all": "全部",
+        "customer": "客户",
+        "supplier": "供应商",
+        "employee": "员工",
+        "other": "其他"
+      },
+      "col": {
+        "name": "名称",
+        "kind": "类型",
+        "contact": "联系方式",
+        "termsDays": "付款条件",
+        "status": "状态",
+        "address": "地址",
+        "phone": "电话",
+        "leadTime": "交货周期（天）"
+      }
+    },
     "period": {
       "title": "会计期间",
       "open": "打开期间",
@@ -1801,6 +1833,7 @@
     "collapseSidebar": "折叠侧边栏",
     "stockTransfer": "库存转移",
     "invoices": "发票 (Invoices)",
+    "partners": "业务伙伴",
     "logistics": "物流 (Logistics)",
     "outgoingShipments": "发出货物",
     "companySettings": "公司信息",

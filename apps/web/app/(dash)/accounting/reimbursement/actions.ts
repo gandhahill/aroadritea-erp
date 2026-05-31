@@ -53,11 +53,13 @@ export async function fetchReimbursements(
     'accounting.reimbursement.view',
     tenantId,
   );
-  if (locationScope.locationIds.length > 0) {
+  if (!locationScope.global && locationScope.locationIds.length > 0) {
     conditions.push(inArray(reimbursementRequests.locationId, locationScope.locationIds));
-  } else {
+  } else if (!locationScope.global) {
+    // No location access and not global — only show own requests
     conditions.push(eq(reimbursementRequests.requesterId, userId));
   }
+  // If global, no location filter needed — show all
 
   const rows = await db
     .select({
