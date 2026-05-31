@@ -77,6 +77,7 @@ export default async function SchedulePage({
       />
 
       <ScheduleGrid
+        key={`${weekStart}-${params.locationId ?? 'all'}`}
         weekStart={weekStart}
         locationId={params.locationId}
         locations={parsedLocations}
