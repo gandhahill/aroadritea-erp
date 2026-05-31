@@ -10,11 +10,14 @@
 
 import { PageHeader } from '@/components/page-header';
 import { displayAssetUrl } from '@/lib/display-asset-url';
+import { getActiveLocationOptions } from '@/lib/location-options';
+import { getSession } from '@/lib/auth';
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader } from '@erp/ui';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { fetchProductMasterData } from '../products/actions';
+import { ImportCsvPanel } from '../products/import-csv';
 import { ProductRowActions } from '../products/row-actions';
 
 export const metadata: Metadata = {
@@ -81,6 +84,16 @@ export default async function SuppliesPage({ searchParams }: Props) {
     error = rawMat.error ?? consumable.error;
   }
 
+  const session = await getSession();
+  const user = session?.user as Record<string, unknown> | undefined;
+  const tenantId = String(user?.tenantId ?? 'default');
+  const userLocationId = String(user?.locationId ?? '');
+  const locationOptions = await getActiveLocationOptions({
+    tenantId,
+    locale: locale as 'id' | 'en' | 'zh',
+    type: 'store',
+  });
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -108,6 +121,11 @@ export default async function SuppliesPage({ searchParams }: Props) {
             </Link>
           </>
         }
+      />
+
+      <ImportCsvPanel
+        locations={locationOptions}
+        defaultLocationId={userLocationId || locationOptions[0]?.id || ''}
       />
 
       {/* Kind filter tabs */}
