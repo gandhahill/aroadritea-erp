@@ -93,8 +93,8 @@ export default async function InvoicesPage() {
                       {t('payAction')}
                     </Link>
                   )}
-                  {inv.status === 'paid' && inv.paymentJournalId && (
-                    <Link href={`/accounting/journals/${inv.paymentJournalId}/print?type=kuitansi`} target="_blank" className="text-brand-red hover:underline font-semibold">
+                  {inv.status === 'paid' && (
+                    <Link href={`/accounting/invoices/${inv.id}/print?type=receipt`} target="_blank" className="text-brand-red hover:underline font-semibold">
                       {t('printKuitansi')}
                     </Link>
                   )}

@@ -10,13 +10,17 @@ export const metadata = {
 
 export default async function PrintInvoicePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ type?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect('/login');
 
   const { id } = await params;
+  const sp = await searchParams;
+  const printType = sp.type === 'receipt' ? 'receipt' : 'invoice';
   const data = await fetchPrintInvoiceData(id);
 
   if (!data) notFound();
@@ -26,10 +30,12 @@ export default async function PrintInvoicePage({
   return (
     <PrintInvoiceClient
       data={data}
+      printType={printType}
       labels={{
         invoice: t('invoice'),
         receipt: t('receipt'),
         billTo: t('billTo'),
+        receivedFrom: t('receivedFrom'),
         date: t('date'),
         dueDate: t('dueDate'),
         paymentTo: t('paymentTo'),
@@ -46,6 +52,8 @@ export default async function PrintInvoicePage({
         subtotal: t('subtotal'),
         tax: t('tax'),
         purchaseInvoice: t('purchaseInvoice'),
+        preparedBy: t('preparedBy'),
+        receivedBy: t('receivedBy'),
       }}
     />
   );

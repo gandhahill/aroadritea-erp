@@ -752,7 +752,15 @@
       "qty": "Qty",
       "unitPrice": "Unit Price",
       "amount": "Amount",
-      "purchaseInvoice": "Purchase Invoice"
+      "purchaseInvoice": "Purchase Invoice",
+      "journalEntry": "JOURNAL ENTRY",
+      "account": "Account",
+      "location": "Location",
+      "number": "Number",
+      "status": "Status",
+      "partner": "Partner",
+      "receivedFrom": "Received From",
+      "receivedBy": "Received By"
     },
     "invoice": {
       "title": "Invoices",

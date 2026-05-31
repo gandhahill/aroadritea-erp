@@ -6,10 +6,12 @@ import { amountToWords } from '@erp/shared/amount-to-words';
 
 interface PrintInvoiceClientProps {
   data: any;
+  printType: 'invoice' | 'receipt';
   labels: {
     invoice: string;
     receipt: string;
     billTo: string;
+    receivedFrom: string;
     date: string;
     dueDate: string;
     paymentTo: string;
@@ -26,13 +28,15 @@ interface PrintInvoiceClientProps {
     subtotal: string;
     tax: string;
     purchaseInvoice: string;
+    preparedBy: string;
+    receivedBy: string;
   };
 }
 
-export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
+export function PrintInvoiceClient({ data, printType, labels }: PrintInvoiceClientProps) {
   const { invoice, lines, companyInfo, bankAccounts = [] } = data;
+  const isReceipt = printType === 'receipt';
 
-  // Trigger print immediately on mount
   useEffect(() => {
     const timer = setTimeout(() => {
       window.print();
@@ -40,9 +44,14 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
     return () => clearTimeout(timer);
   }, []);
 
-  const documentTitle = invoice.type === 'sales' ? labels.invoice : labels.purchaseInvoice;
+  const documentTitle = isReceipt
+    ? labels.receipt
+    : invoice.type === 'sales'
+      ? labels.invoice
+      : labels.purchaseInvoice;
 
-  // Calculate total amount for terbilang
+  const partnerLabel = isReceipt ? labels.receivedFrom : labels.billTo;
+
   const totalNum = Number.parseInt(invoice.total, 10);
   const terbilang = amountToWords(totalNum);
 
@@ -89,7 +98,7 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
         <div className="mt-8 flex justify-between">
           <div className="w-1/2">
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-              {labels.billTo}
+              {partnerLabel}
             </h3>
             <p className="text-base font-medium text-brand-ink">
               {invoice.partnerName ?? '-'}
@@ -112,7 +121,7 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
               </h3>
               <p className="font-mono text-sm text-brand-ink">{invoice.date}</p>
             </div>
-            {invoice.dueDate && (
+            {!isReceipt && invoice.dueDate && (
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   {labels.dueDate}
@@ -120,7 +129,7 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
                 <p className="font-mono text-sm text-brand-ink">{invoice.dueDate}</p>
               </div>
             )}
-            {invoice.paymentTerms && (
+            {!isReceipt && invoice.paymentTerms && (
               <div className="mt-4">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   {labels.paymentTerms}
@@ -151,30 +160,32 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
-              {lines.map((line: any) => {
-                return (
-                  <tr key={line.id} className="group">
-                    <td className="py-4">
-                      <div className="font-medium text-brand-ink">
-                        {line.description}
-                      </div>
-                    </td>
-                    <td className="py-4 text-right font-mono text-brand-ink">
-                      {line.quantity} {line.unit && <span className="text-brand-ink-2 text-xs ml-0.5">{line.unit}</span>}
-                    </td>
-                    <td className="py-4 text-right font-mono text-brand-ink">
-                      {formatRp(line.unitPrice)}
-                    </td>
-                    <td className="py-4 text-right font-mono text-brand-ink">
-                      {formatRp(line.subtotal)}
-                    </td>
-                  </tr>
-                );
-              })}
+              {lines.map((line: any) => (
+                <tr key={line.id} className="group">
+                  <td className="py-4">
+                    <div className="font-medium text-brand-ink">{line.description}</div>
+                  </td>
+                  <td className="py-4 text-right font-mono text-brand-ink">
+                    {line.quantity}{' '}
+                    {line.unit && (
+                      <span className="text-brand-ink-2 text-xs ml-0.5">{line.unit}</span>
+                    )}
+                  </td>
+                  <td className="py-4 text-right font-mono text-brand-ink">
+                    {formatRp(line.unitPrice)}
+                  </td>
+                  <td className="py-4 text-right font-mono text-brand-ink">
+                    {formatRp(line.subtotal)}
+                  </td>
+                </tr>
+              ))}
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-brand-cream-2">
-                <td colSpan={3} className="pt-4 pb-2 text-right font-semibold text-brand-ink uppercase text-xs tracking-wider">
+                <td
+                  colSpan={3}
+                  className="pt-4 pb-2 text-right font-semibold text-brand-ink uppercase text-xs tracking-wider"
+                >
                   {labels.subtotal}
                 </td>
                 <td className="pt-4 pb-2 text-right font-mono font-semibold text-brand-ink">
@@ -182,8 +193,11 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
                 </td>
               </tr>
               {BigInt(invoice.taxAmount) > 0n && (
-                <tr className="">
-                  <td colSpan={3} className="py-2 text-right font-semibold text-brand-ink uppercase text-xs tracking-wider">
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="py-2 text-right font-semibold text-brand-ink uppercase text-xs tracking-wider"
+                  >
                     {labels.tax}
                   </td>
                   <td className="py-2 text-right font-mono font-semibold text-brand-ink">
@@ -192,7 +206,10 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
                 </tr>
               )}
               <tr className="border-t-2 border-brand-ink">
-                <td colSpan={3} className="pt-4 text-right font-semibold text-brand-ink uppercase text-xs tracking-wider">
+                <td
+                  colSpan={3}
+                  className="pt-4 text-right font-semibold text-brand-ink uppercase text-xs tracking-wider"
+                >
                   {labels.total}
                 </td>
                 <td className="pt-4 text-right font-mono font-bold text-brand-ink text-base">
@@ -203,20 +220,20 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
           </table>
         </div>
 
-        {/* Terbilang (Amount in Words) */}
+        {/* Terbilang */}
         {terbilang && (
           <div className="mt-8 rounded-lg border border-brand-cream-3 bg-brand-cream-1 p-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-brand-ink-3 mb-1">
               {labels.amountInWords}
             </p>
-            <p className="text-sm font-medium text-brand-ink italic">{terbilang}</p>
+            <p className="text-sm font-medium text-brand-ink italic"># {terbilang} #</p>
           </div>
         )}
 
         {/* Footer Section */}
         <div className="mt-16 border-t border-brand-cream-2 pt-8 flex justify-between">
           <div className="w-1/2">
-            {invoice.type === 'sales' && bankAccounts.length > 0 && (
+            {invoice.type === 'sales' && bankAccounts.length > 0 && !isReceipt && (
               <div className="mb-6">
                 <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   {labels.paymentTo}
@@ -225,27 +242,45 @@ export function PrintInvoiceClient({ data, labels }: PrintInvoiceClientProps) {
                   {bankAccounts.map((bank: any) => (
                     <div key={bank.id}>
                       <p className="font-semibold text-brand-ink">{bank.bankName}</p>
-                      <p className="font-mono text-base font-medium text-brand-ink my-0.5">{bank.accountNumber}</p>
+                      <p className="font-mono text-base font-medium text-brand-ink my-0.5">
+                        {bank.accountNumber}
+                      </p>
                       <p>a/n {bank.accountHolder}</p>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-            {invoice.notes && (
+            {invoice.notes && !isReceipt && (
               <div className="mt-2">
                 <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   {labels.notes}
                 </h3>
-                <p className="text-sm text-brand-ink-2 whitespace-pre-wrap">
-                  {invoice.notes}
-                </p>
+                <p className="text-sm text-brand-ink-2 whitespace-pre-wrap">{invoice.notes}</p>
               </div>
             )}
           </div>
+
+          {/* Signature columns — always on receipt, hidden on invoice */}
+          {isReceipt && (
+            <div className="flex gap-16 text-center">
+              <div>
+                <p className="mb-20 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+                  {labels.preparedBy}
+                </p>
+                <div className="mx-auto w-36 border-b border-brand-ink-3" />
+              </div>
+              <div>
+                <p className="mb-20 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
+                  {labels.receivedBy}
+                </p>
+                <div className="mx-auto w-36 border-b border-brand-ink-3" />
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Print instruction banner (hidden on print) */}
+        {/* Print instruction (hidden on print) */}
         <div className="mt-12 text-center print:hidden">
           <p className="text-sm text-brand-ink-3">{labels.printHint}</p>
           <button

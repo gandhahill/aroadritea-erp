@@ -752,7 +752,15 @@
       "qty": "Qty",
       "unitPrice": "Harga Satuan",
       "amount": "Jumlah",
-      "purchaseInvoice": "Faktur Pembelian"
+      "purchaseInvoice": "Faktur Pembelian",
+      "journalEntry": "JURNAL UMUM",
+      "account": "Akun",
+      "location": "Lokasi",
+      "number": "Nomor",
+      "status": "Status",
+      "partner": "Mitra",
+      "receivedFrom": "Diterima Dari",
+      "receivedBy": "Penerima"
     },
     "invoice": {
       "title": "Invoice",

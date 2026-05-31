@@ -27,25 +27,23 @@ export default async function PrintJournalPage({
     <PrintInvoiceClient
       data={data}
       labels={{
-        invoice: t('invoice'),
-        receipt: t('receipt'),
-        billTo: t('billTo'),
+        journalEntry: t('journalEntry'),
         date: t('date'),
-        dueDate: t('dueDate'),
-        paymentTo: t('paymentTo'),
+        location: t('location'),
+        description: t('description'),
+        account: t('account'),
+        debit: t('debit'),
+        credit: t('credit'),
         total: t('total'),
         notes: t('notes'),
         preparedBy: t('preparedBy'),
         authorizedBy: t('authorizedBy'),
         printOrSavePdf: t('printOrSavePdf'),
-        description: t('description'),
-        debit: t('debit'),
-        credit: t('credit'),
-        amountInWords: t('amountInWords'),
         printHint: t('printHint'),
-        paymentTerms: t('paymentTerms'),
-        subtotal: t('subtotal'),
-        tax: t('tax'),
+        number: t('number'),
+        status: t('status'),
+        partner: t('partner'),
+        dueDate: t('dueDate'),
       }}
     />
   );

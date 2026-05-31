@@ -752,7 +752,15 @@
       "qty": "数量",
       "unitPrice": "单价",
       "amount": "金额",
-      "purchaseInvoice": "采购发票"
+      "purchaseInvoice": "采购发票",
+      "journalEntry": "记账凭证",
+      "account": "科目",
+      "location": "地点",
+      "number": "编号",
+      "status": "状态",
+      "partner": "合作伙伴",
+      "receivedFrom": "收款方",
+      "receivedBy": "收款人"
     },
     "invoice": {
       "title": "发票 (Invoices)",
