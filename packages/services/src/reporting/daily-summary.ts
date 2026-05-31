@@ -272,7 +272,12 @@ export async function getDailySummary(
 
   const shiftSummary: ShiftSummaryRow[] = shiftsInRange.map((shift) => {
     const shiftSales = paidSaleRows.filter((s) => s.shiftId === shift.id);
-    const txTotal = shiftSales.reduce((s, r) => s + r.grandTotal, 0n);
+    const manualSales = manualSaleRows.filter((s) => s.shiftId === shift.id);
+    
+    const txTotal = 
+      shiftSales.reduce((s, r) => s + r.grandTotal, 0n) +
+      manualSales.reduce((s, r) => s + (r.grossSales - r.discountTotal + r.taxTotal), 0n);
+      
     return {
       shiftId: shift.id,
       openedAt: shift.openedAt.toISOString(),
@@ -282,13 +287,40 @@ export async function getDailySummary(
       actualCash: shift.actualCash?.toString() ?? null,
       variance: shift.variance?.toString() ?? null,
       cashierName: shift.openedBy,
-      txCount: shiftSales.length,
+      txCount: shiftSales.length + manualSales.reduce((acc, m) => acc + (m.transactionCount ?? 1), 0),
       txTotal: txTotal.toString(),
     };
   });
 
   // ── Top 10 products by nominal ─────────────────────────────────────────────────
   let topProducts: ProductSaleRow[] = [];
+  const combinedProducts = new Map<string, ProductSaleRow>();
+
+  // Process manual sale products
+  for (const manual of manualSaleRows) {
+    if (!manual.lineItemsJson || !Array.isArray(manual.lineItemsJson)) continue;
+    const items = manual.lineItemsJson as Array<{ productId?: string, name?: string, qty?: number, total?: string }>;
+    for (const item of items) {
+      if (!item.productId) continue;
+      const key = `${item.productId}_${manual.channel}`;
+      if (!combinedProducts.has(key)) {
+        combinedProducts.set(key, {
+          rank: 0,
+          productId: item.productId,
+          productName: item.name || item.productId,
+          categoryId: '',
+          qty: Number(item.qty || 0),
+          nominal: (item.total ? BigInt(item.total) : 0n).toString(),
+          channel: manual.channel,
+        });
+      } else {
+        const existing = combinedProducts.get(key)!;
+        existing.qty += Number(item.qty || 0);
+        existing.nominal = (BigInt(existing.nominal) + (item.total ? BigInt(item.total) : 0n)).toString();
+      }
+    }
+  }
+
   if (paidSaleIds.length > 0) {
     const topRows = await db
       .select({
@@ -306,24 +338,37 @@ export async function getDailySummary(
         and(eq(salesOrderLines.productId, products.id), eq(products.tenantId, ctx.tenantId)),
       )
       .where(inArray(salesOrderLines.salesOrderId, paidSaleIds))
-      .groupBy(salesOrderLines.productId, salesOrders.channel, products.name, products.categoryId)
-      .orderBy(sql`sum(${salesOrderLines.lineSubtotal}) DESC`)
-      .limit(10);
+      .groupBy(salesOrderLines.productId, salesOrders.channel, products.name, products.categoryId);
 
-    topProducts = topRows.map((row, idx) => {
+    for (const row of topRows) {
       const nameField = row.productName as Record<string, string> | null;
       const resolvedName = nameField?.id ?? nameField?.en ?? nameField?.zh ?? row.productId;
-      return {
-        rank: idx + 1,
-        productId: row.productId,
-        productName: resolvedName,
-        categoryId: row.categoryId ?? '',
-        qty: Number(row.qty),
-        nominal: row.nominal.toString(),
-        channel: row.channel,
-      };
-    });
+      const key = `${row.productId}_${row.channel}`;
+      
+      if (combinedProducts.has(key)) {
+        const existing = combinedProducts.get(key)!;
+        existing.qty += Number(row.qty);
+        existing.nominal = (BigInt(existing.nominal) + row.nominal).toString();
+        if (!existing.categoryId) existing.categoryId = row.categoryId ?? '';
+        if (existing.productName === row.productId) existing.productName = resolvedName;
+      } else {
+        combinedProducts.set(key, {
+          rank: 0,
+          productId: row.productId,
+          productName: resolvedName,
+          categoryId: row.categoryId ?? '',
+          qty: Number(row.qty),
+          nominal: row.nominal.toString(),
+          channel: row.channel,
+        });
+      }
+    }
   }
+  
+  topProducts = Array.from(combinedProducts.values())
+    .sort((a, b) => (BigInt(b.nominal) < BigInt(a.nominal) ? -1 : 1))
+    .slice(0, 10)
+    .map((p, idx) => ({ ...p, rank: idx + 1 }));
 
   return ok({
     period: { start: params.startDate, end: params.endDate },
