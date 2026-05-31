@@ -15,7 +15,7 @@ interface Props {
   product?: ProductFormInitial | null;
   /** When creating a new product, pre-select this kind (used by /inventory/supplies). */
   defaultKind?: ProductKind;
-  locations?: { id: string; name: string }[];
+  locations?: { id: string; label: string }[];
 }
 
 export function ProductForm({ mode, categories, product, defaultKind, locations }: Props) {
@@ -249,7 +249,7 @@ export function ProductForm({ mode, categories, product, defaultKind, locations 
           </p>
           <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {locations.map((loc) => (
-              <Field key={loc.id} label={loc.name}>
+              <Field key={loc.id} label={loc.label}>
                 <Input
                   name={`initialStock_${loc.id}`}
                   inputMode="numeric"
