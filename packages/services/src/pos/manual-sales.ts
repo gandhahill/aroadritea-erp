@@ -518,7 +518,7 @@ export async function deleteManualSalesClosing(id: string, ctx: AuditContext) {
       if (closing.journalEntryId) {
         let pDate = closing.salesDate as string | Date;
         if (pDate instanceof Date) {
-          pDate = pDate.toISOString().split('T')[0];
+          pDate = pDate.toISOString().slice(0, 10);
         } else if (typeof pDate === 'string' && pDate.length > 10) {
           pDate = pDate.substring(0, 10);
         }
