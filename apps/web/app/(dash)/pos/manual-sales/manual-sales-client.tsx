@@ -137,6 +137,18 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
     return `/pos/manual-sales?${params.toString()}`;
   };
 
+  const getEditDate = () => {
+    if (!editData?.salesDate) return today;
+    if (typeof editData.salesDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(editData.salesDate)) {
+      return editData.salesDate.substring(0, 10);
+    }
+    try {
+      const d = new Date(editData.salesDate);
+      if (!isNaN(d.getTime())) return d.toISOString().substring(0, 10);
+    } catch {}
+    return today;
+  };
+
   return (
     <div className="h-full w-full overflow-y-auto space-y-6 pb-24 px-4 pt-4">
       <div className="flex items-start justify-between">
@@ -166,7 +178,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             </Select>
           </Field>
           <Field label={t('salesDate')}>
-            <Input name="salesDate" type="date" defaultValue={editData?.salesDate || today} required />
+            <Input name="salesDate" type="date" defaultValue={getEditDate()} required />
           </Field>
           <Field label={t('sourceReference')}>
             <Input name="sourceReference" defaultValue={editData?.sourceReference || ''} />
