@@ -261,16 +261,10 @@ export function PrintInvoiceClient({ data, printType, labels }: PrintInvoiceClie
             )}
           </div>
 
-          {/* Signature columns — always on receipt, hidden on invoice */}
+          {/* Signature column — receipt only, single signature */}
           {isReceipt && (
-            <div className="flex gap-16 text-center">
-              <div>
-                <p className="mb-20 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
-                  {labels.preparedBy}
-                </p>
-                <div className="mx-auto w-36 border-b border-brand-ink-3" />
-              </div>
-              <div>
+            <div className="flex justify-end">
+              <div className="text-center">
                 <p className="mb-20 text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                   {labels.receivedBy}
                 </p>

@@ -16,6 +16,23 @@ interface Partner {
   paymentTermsDays: number | null;
 }
 
+const TERMS_OPTIONS = [
+  { value: '', days: null },
+  { value: 'COD', days: 0 },
+  { value: 'Net 7', days: 7 },
+  { value: 'Net 14', days: 14 },
+  { value: 'Net 30', days: 30 },
+  { value: 'Net 45', days: 45 },
+  { value: 'Net 60', days: 60 },
+  { value: '__custom__', days: null },
+] as const;
+
+function addDays(dateStr: string, days: number): string {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 export function InvoiceForm({
   accounts,
   locations,
@@ -30,10 +47,11 @@ export function InvoiceForm({
   const tCommon = useTranslations('common.actions');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [termsMode, setTermsMode] = useState<'dropdown' | 'custom'>('dropdown');
 
   const [formData, setFormData] = useState({
     type: 'sales' as 'sales' | 'purchase',
-    date: new Date().toISOString().split('T')[0],
+    date: new Date().toISOString().slice(0, 10),
     dueDate: '',
     partnerId: '',
     partnerName: '',
@@ -48,22 +66,35 @@ export function InvoiceForm({
     { accountId: '', description: '', unit: '', quantity: 1, unitPrice: '0', taxRate: 0 },
   ]);
 
-  // When a partner is selected from the dropdown, autofill address/NPWP/terms
   const handlePartnerChange = (partnerId: string) => {
     const partner = partners.find((p) => p.id === partnerId);
     if (partner) {
-      setFormData((prev) => ({
-        ...prev,
-        partnerId: partner.id,
-        partnerName: partner.name,
-        partnerAddress: partner.address ?? '',
-        partnerNpwp: partner.npwp ?? '',
-        paymentTerms: partner.paymentTermsDays
-          ? `Net ${partner.paymentTermsDays}`
-          : prev.paymentTerms,
-      }));
+      const terms = partner.paymentTermsDays;
+      // Find matching dropdown option
+      const matchedOption = TERMS_OPTIONS.find((o) => o.days === terms);
+      const termsLabel = matchedOption ? matchedOption.value : terms ? `Net ${terms}` : '';
+
+      setFormData((prev) => {
+        const baseDate = prev.date || new Date().toISOString().slice(0, 10);
+        const newDueDate =
+          terms != null && terms > 0 ? addDays(baseDate, terms) : terms === 0 ? baseDate : '';
+        return {
+          ...prev,
+          partnerId: partner.id,
+          partnerName: partner.name,
+          partnerAddress: partner.address ?? '',
+          partnerNpwp: partner.npwp ?? '',
+          paymentTerms: termsLabel,
+          dueDate: newDueDate,
+        };
+      });
+
+      if (matchedOption && matchedOption.value !== '__custom__') {
+        setTermsMode('dropdown');
+      } else if (terms) {
+        setTermsMode('custom');
+      }
     } else {
-      // "other" or cleared — let user type freely
       setFormData((prev) => ({
         ...prev,
         partnerId: '',
@@ -72,6 +103,31 @@ export function InvoiceForm({
         partnerNpwp: '',
       }));
     }
+  };
+
+  const handleTermsChange = (value: string) => {
+    if (value === '__custom__') {
+      setTermsMode('custom');
+      setFormData((prev) => ({ ...prev, paymentTerms: '' }));
+      return;
+    }
+    setTermsMode('dropdown');
+    const option = TERMS_OPTIONS.find((o) => o.value === value);
+    const baseDate = formData.date || new Date().toISOString().slice(0, 10);
+    const newDueDate =
+      option?.days != null ? addDays(baseDate, option.days) : '';
+    setFormData((prev) => ({
+      ...prev,
+      paymentTerms: value,
+      dueDate: newDueDate,
+    }));
+  };
+
+  const handleDateChange = (newDate: string) => {
+    const option = TERMS_OPTIONS.find((o) => o.value === formData.paymentTerms);
+    const newDueDate =
+      option?.days != null ? addDays(newDate, option.days) : formData.dueDate;
+    setFormData((prev) => ({ ...prev, date: newDate, dueDate: newDueDate }));
   };
 
   const addLine = () => {
@@ -91,7 +147,6 @@ export function InvoiceForm({
     setLines(lines.filter((_, i) => i !== index));
   };
 
-  // Calculate totals for display
   const subtotal = lines.reduce(
     (sum, line) => sum + line.quantity * Number(line.unitPrice),
     0,
@@ -109,7 +164,6 @@ export function InvoiceForm({
       maximumFractionDigits: 0,
     }).format(amount);
 
-  // Filter partners by invoice type
   const filteredPartners = partners.filter((p) =>
     formData.type === 'sales'
       ? p.kind === 'customer' || p.kind === 'other'
@@ -161,27 +215,41 @@ export function InvoiceForm({
 
       {/* Type selector */}
       <div className="flex gap-4">
-        <label className="flex items-center gap-2">
+        <label className="flex items-center gap-2 rounded-lg border border-brand-cream-3 px-4 py-3 cursor-pointer has-[:checked]:border-brand-red has-[:checked]:bg-brand-red/5">
           <input
             type="radio"
             name="type"
             value="sales"
             checked={formData.type === 'sales'}
             onChange={() => {
-              setFormData((prev) => ({ ...prev, type: 'sales', partnerId: '', partnerName: '', partnerAddress: '', partnerNpwp: '' }));
+              setFormData((prev) => ({
+                ...prev,
+                type: 'sales',
+                partnerId: '',
+                partnerName: '',
+                partnerAddress: '',
+                partnerNpwp: '',
+              }));
             }}
             className="accent-brand-red"
           />
           <span className="text-sm font-medium text-brand-ink">{t('new.typeSales')}</span>
         </label>
-        <label className="flex items-center gap-2">
+        <label className="flex items-center gap-2 rounded-lg border border-brand-cream-3 px-4 py-3 cursor-pointer has-[:checked]:border-brand-red has-[:checked]:bg-brand-red/5">
           <input
             type="radio"
             name="type"
             value="purchase"
             checked={formData.type === 'purchase'}
             onChange={() => {
-              setFormData((prev) => ({ ...prev, type: 'purchase', partnerId: '', partnerName: '', partnerAddress: '', partnerNpwp: '' }));
+              setFormData((prev) => ({
+                ...prev,
+                type: 'purchase',
+                partnerId: '',
+                partnerName: '',
+                partnerAddress: '',
+                partnerNpwp: '',
+              }));
             }}
             className="accent-brand-red"
           />
@@ -195,7 +263,6 @@ export function InvoiceForm({
         <div className="space-y-2">
           <label className="text-sm font-semibold text-brand-ink-3">{t('new.partnerName')}</label>
           <select
-            required={!formData.partnerName && !formData.partnerId}
             className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
             value={formData.partnerId}
             onChange={(e) => handlePartnerChange(e.target.value)}
@@ -219,7 +286,7 @@ export function InvoiceForm({
           )}
         </div>
 
-        {/* Partner Address — autofilled, editable */}
+        {/* Partner Address */}
         <div className="space-y-2">
           <label className="text-sm font-semibold text-brand-ink-3">{t('new.partnerAddress')}</label>
           <input
@@ -230,7 +297,7 @@ export function InvoiceForm({
           />
         </div>
 
-        {/* Partner NPWP — autofilled, editable */}
+        {/* NPWP */}
         <div className="space-y-2">
           <label className="text-sm font-semibold text-brand-ink-3">{t('new.partnerNpwp')}</label>
           <input
@@ -265,11 +332,52 @@ export function InvoiceForm({
             required
             className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
             value={formData.date}
-            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            onChange={(e) => handleDateChange(e.target.value)}
           />
         </div>
 
-        {/* Due Date */}
+        {/* Payment Terms — dropdown */}
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-brand-ink-3">{t('new.paymentTerms')}</label>
+          {termsMode === 'dropdown' ? (
+            <select
+              className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
+              value={formData.paymentTerms}
+              onChange={(e) => handleTermsChange(e.target.value)}
+            >
+              <option value="">{t('new.selectTerms')}</option>
+              <option value="COD">{t('new.termsCod')}</option>
+              <option value="Net 7">{t('new.termsNet7')}</option>
+              <option value="Net 14">{t('new.termsNet14')}</option>
+              <option value="Net 30">{t('new.termsNet30')}</option>
+              <option value="Net 45">{t('new.termsNet45')}</option>
+              <option value="Net 60">{t('new.termsNet60')}</option>
+              <option value="__custom__">{t('new.termsCustom')}</option>
+            </select>
+          ) : (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                className="flex-1 rounded-lg border border-brand-cream-3 px-4 py-2"
+                placeholder={t('new.paymentTermsPlaceholder')}
+                value={formData.paymentTerms}
+                onChange={(e) => setFormData({ ...formData, paymentTerms: e.target.value })}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setTermsMode('dropdown');
+                  setFormData((prev) => ({ ...prev, paymentTerms: '' }));
+                }}
+                className="rounded-lg border border-brand-cream-3 px-3 py-2 text-xs text-brand-ink-3 hover:bg-brand-cream-1"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Due Date — auto-filled from terms, still editable */}
         <div className="space-y-2">
           <label className="text-sm font-semibold text-brand-ink-3">{t('dueDate')}</label>
           <input
@@ -277,18 +385,6 @@ export function InvoiceForm({
             className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
             value={formData.dueDate}
             onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-          />
-        </div>
-
-        {/* Payment Terms — autofilled, editable */}
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-brand-ink-3">{t('new.paymentTerms')}</label>
-          <input
-            type="text"
-            className="w-full rounded-lg border border-brand-cream-3 px-4 py-2"
-            placeholder={t('new.paymentTermsPlaceholder')}
-            value={formData.paymentTerms}
-            onChange={(e) => setFormData({ ...formData, paymentTerms: e.target.value })}
           />
         </div>
 
