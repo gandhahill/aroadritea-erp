@@ -8,6 +8,7 @@
 import { getSession } from '@/lib/auth';
 import { and, asc, db, eq, isNull } from '@erp/db';
 import { employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
+import { resolveShiftTime } from '@erp/services/hr';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { CheckInClient } from './check-in-client';
@@ -69,6 +70,7 @@ export default async function CheckInPage() {
       code: shiftDefinitions.code,
       startTime: shiftDefinitions.startTime,
       endTime: shiftDefinitions.endTime,
+      overrides: shiftDefinitions.overrides,
     })
     .from(shiftDefinitions)
     .where(
@@ -81,11 +83,15 @@ export default async function CheckInPage() {
     )
     .orderBy(asc(shiftDefinitions.startTime));
 
-  const shifts = shiftRows.map((shift) => ({
-    id: shift.id,
-    label: shift.name || shift.code,
-    time: `${shift.startTime} - ${shift.endTime}`,
-  }));
+  const now = new Date();
+  const shifts = shiftRows.map((shift) => {
+    const resolved = resolveShiftTime(shift, now);
+    return {
+      id: shift.id,
+      label: shift.name || shift.code,
+      time: `${resolved.startTime} - ${resolved.endTime}`,
+    };
+  });
 
   return (
     <CheckInClient

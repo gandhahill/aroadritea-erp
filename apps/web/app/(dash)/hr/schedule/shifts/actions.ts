@@ -17,6 +17,10 @@ export interface ShiftDefinitionData {
   breakEnd: string | null;
   isActive: boolean;
   locationId: string;
+  overrides?: {
+    dayOfWeek?: Record<number, { startTime: string; endTime: string; breakStart?: string | null; breakEnd?: string | null }>;
+    date?: Record<string, { startTime: string; endTime: string; breakStart?: string | null; breakEnd?: string | null }>;
+  };
 }
 
 export async function fetchShiftDefinitions(locationId: string) {
@@ -39,6 +43,7 @@ export async function fetchShiftDefinitions(locationId: string) {
       breakEnd: shiftDefinitions.breakEnd,
       isActive: shiftDefinitions.isActive,
       locationId: shiftDefinitions.locationId,
+      overrides: shiftDefinitions.overrides,
     })
     .from(shiftDefinitions)
     .where(
@@ -76,6 +81,7 @@ export async function upsertShiftDefinition(data: Omit<ShiftDefinitionData, 'id'
           endTime: data.endTime,
           breakStart: data.breakStart || null,
           breakEnd: data.breakEnd || null,
+          overrides: data.overrides || {},
           updatedAt: new Date(),
           updatedBy: userId,
         })
@@ -96,6 +102,7 @@ export async function upsertShiftDefinition(data: Omit<ShiftDefinitionData, 'id'
         endTime: data.endTime,
         breakStart: data.breakStart || null,
         breakEnd: data.breakEnd || null,
+        overrides: data.overrides || {},
         isActive: true,
         createdBy: userId,
         updatedBy: userId,

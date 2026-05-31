@@ -166,6 +166,12 @@ export const shiftDefinitions = pgTable(
 
     isActive: boolean('is_active').notNull().default(true),
 
+    // T-xxxx: Shift timing overrides for specific days or dates
+    overrides: jsonb('overrides').$type<{
+      dayOfWeek?: Record<number, { startTime: string; endTime: string; breakStart?: string | null; breakEnd?: string | null }>;
+      date?: Record<string, { startTime: string; endTime: string; breakStart?: string | null; breakEnd?: string | null }>;
+    }>().default({}),
+
     ...auditCols,
   },
   (table) => [

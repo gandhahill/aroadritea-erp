@@ -126,6 +126,31 @@ function wibDayBounds(referenceDate: Date): { start: Date; end: Date } {
   return { start, end };
 }
 
+export function resolveShiftTime(shiftDef: any, referenceDate: Date): { startTime: string; endTime: string } {
+  const overrides = shiftDef.overrides as {
+    date?: Record<string, { startTime: string; endTime: string }>;
+    dayOfWeek?: Record<number, { startTime: string; endTime: string }>;
+  } | null | undefined;
+  
+  if (!overrides) {
+    return { startTime: shiftDef.startTime, endTime: shiftDef.endTime };
+  }
+
+  const wibDate = new Date(referenceDate.getTime() + 7 * 60 * 60 * 1000);
+  const dateStr = `${wibDate.getUTCFullYear()}-${String(wibDate.getUTCMonth() + 1).padStart(2, '0')}-${String(wibDate.getUTCDate()).padStart(2, '0')}`;
+  const dayOfWeek = wibDate.getUTCDay();
+
+  if (overrides.date && overrides.date[dateStr]) {
+    return overrides.date[dateStr];
+  }
+
+  if (overrides.dayOfWeek && overrides.dayOfWeek[dayOfWeek]) {
+    return overrides.dayOfWeek[dayOfWeek];
+  }
+
+  return { startTime: shiftDef.startTime, endTime: shiftDef.endTime };
+}
+
 /**
  * Calculate late minutes: diff in minutes between actual check-in and expected shift start.
  * Grace period: 15 minutes (SD §21.8 SOP).
@@ -370,7 +395,8 @@ export async function checkIn(
       let shiftCode: string | null = null;
 
       if (shiftDef) {
-        const shiftStart = shiftTimeToDate(shiftDef.startTime, performedAt);
+        const resolvedTimes = resolveShiftTime(shiftDef, performedAt);
+        const shiftStart = shiftTimeToDate(resolvedTimes.startTime, performedAt);
         lateMinutes = calcLateMinutes(performedAt, shiftStart);
         isLate = lateMinutes > 0;
         shiftCode = shiftDef.code;
@@ -503,8 +529,9 @@ export async function checkOut(
 
         if (shiftDef) {
           // Expected end = start + shift duration
-          const shiftStart = shiftTimeToDate(shiftDef.startTime, existing.checkInAt);
-          const shiftEnd = shiftTimeToDate(shiftDef.endTime, existing.checkInAt);
+          const resolvedTimes = resolveShiftTime(shiftDef, existing.checkInAt);
+          const shiftStart = shiftTimeToDate(resolvedTimes.startTime, existing.checkInAt);
+          const shiftEnd = shiftTimeToDate(resolvedTimes.endTime, existing.checkInAt);
           const expectedDurationMin = Math.round(
             (shiftEnd.getTime() - shiftStart.getTime()) / 60000,
           );

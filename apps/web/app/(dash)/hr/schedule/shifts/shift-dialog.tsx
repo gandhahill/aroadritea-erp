@@ -26,6 +26,22 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
     breakEnd: initialData?.breakEnd ?? '',
   });
 
+  const [dayOverrides, setDayOverrides] = useState<{ day: number; startTime: string; endTime: string }[]>(
+    Object.entries(initialData?.overrides?.dayOfWeek ?? {}).map(([day, val]) => ({
+      day: Number(day),
+      startTime: val.startTime,
+      endTime: val.endTime,
+    }))
+  );
+
+  const [dateOverrides, setDateOverrides] = useState<{ date: string; startTime: string; endTime: string }[]>(
+    Object.entries(initialData?.overrides?.date ?? {}).map(([date, val]) => ({
+      date,
+      startTime: val.startTime,
+      endTime: val.endTime,
+    }))
+  );
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
@@ -40,6 +56,16 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
       breakStart: form.breakStart || null,
       breakEnd: form.breakEnd || null,
       isActive: initialData?.isActive ?? true,
+      overrides: {
+        dayOfWeek: dayOverrides.reduce((acc, curr) => {
+          acc[curr.day] = { startTime: curr.startTime, endTime: curr.endTime };
+          return acc;
+        }, {} as Record<number, { startTime: string; endTime: string }>),
+        date: dateOverrides.reduce((acc, curr) => {
+          acc[curr.date] = { startTime: curr.startTime, endTime: curr.endTime };
+          return acc;
+        }, {} as Record<string, { startTime: string; endTime: string }>),
+      },
     };
 
     if (!data.name || !data.code || !data.startTime || !data.endTime) {
@@ -154,6 +180,124 @@ export function ShiftDialog({ initialData, locationId, onClose, onSaved }: Props
                 className="w-full rounded-md border border-brand-cream-3 bg-transparent px-3 py-2 text-sm text-brand-ink outline-none focus:border-brand-red"
               />
             </div>
+          </div>
+
+          <div className="mt-6 border-t border-brand-cream-3 pt-4">
+            <h3 className="mb-2 text-xs font-semibold text-brand-ink">Pengecualian Berdasarkan Hari (Day of Week)</h3>
+            {dayOverrides.map((ov, i) => (
+              <div key={i} className="mb-2 flex items-center gap-2">
+                <select
+                  value={ov.day}
+                  onChange={(e) => {
+                    const newOvs = [...dayOverrides];
+                    newOvs[i].day = Number(e.target.value);
+                    setDayOverrides(newOvs);
+                  }}
+                  className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
+                >
+                  <option value={0}>Minggu</option>
+                  <option value={1}>Senin</option>
+                  <option value={2}>Selasa</option>
+                  <option value={3}>Rabu</option>
+                  <option value={4}>Kamis</option>
+                  <option value={5}>Jumat</option>
+                  <option value={6}>Sabtu</option>
+                </select>
+                <input
+                  type="time"
+                  required
+                  value={ov.startTime}
+                  onChange={(e) => {
+                    const newOvs = [...dayOverrides];
+                    newOvs[i].startTime = e.target.value;
+                    setDayOverrides(newOvs);
+                  }}
+                  className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
+                />
+                <span className="text-xs text-brand-ink-3">-</span>
+                <input
+                  type="time"
+                  required
+                  value={ov.endTime}
+                  onChange={(e) => {
+                    const newOvs = [...dayOverrides];
+                    newOvs[i].endTime = e.target.value;
+                    setDayOverrides(newOvs);
+                  }}
+                  className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
+                />
+                <button
+                  type="button"
+                  onClick={() => setDayOverrides(dayOverrides.filter((_, idx) => idx !== i))}
+                  className="text-brand-red hover:text-brand-red-dark"
+                >
+                  &times;
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setDayOverrides([...dayOverrides, { day: 1, startTime: '09:00', endTime: '17:00' }])}
+              className="mt-1 text-xs font-semibold text-brand-red hover:underline"
+            >
+              + Tambah Override Hari
+            </button>
+          </div>
+
+          <div className="mt-4 border-t border-brand-cream-3 pt-4">
+            <h3 className="mb-2 text-xs font-semibold text-brand-ink">Pengecualian Berdasarkan Tanggal (Specific Date)</h3>
+            {dateOverrides.map((ov, i) => (
+              <div key={i} className="mb-2 flex items-center gap-2">
+                <input
+                  type="date"
+                  required
+                  value={ov.date}
+                  onChange={(e) => {
+                    const newOvs = [...dateOverrides];
+                    newOvs[i].date = e.target.value;
+                    setDateOverrides(newOvs);
+                  }}
+                  className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
+                />
+                <input
+                  type="time"
+                  required
+                  value={ov.startTime}
+                  onChange={(e) => {
+                    const newOvs = [...dateOverrides];
+                    newOvs[i].startTime = e.target.value;
+                    setDateOverrides(newOvs);
+                  }}
+                  className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
+                />
+                <span className="text-xs text-brand-ink-3">-</span>
+                <input
+                  type="time"
+                  required
+                  value={ov.endTime}
+                  onChange={(e) => {
+                    const newOvs = [...dateOverrides];
+                    newOvs[i].endTime = e.target.value;
+                    setDateOverrides(newOvs);
+                  }}
+                  className="rounded-md border border-brand-cream-3 bg-transparent px-2 py-1 text-xs text-brand-ink outline-none focus:border-brand-red"
+                />
+                <button
+                  type="button"
+                  onClick={() => setDateOverrides(dateOverrides.filter((_, idx) => idx !== i))}
+                  className="text-brand-red hover:text-brand-red-dark"
+                >
+                  &times;
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setDateOverrides([...dateOverrides, { date: new Date().toISOString().slice(0,10), startTime: '09:00', endTime: '17:00' }])}
+              className="mt-1 text-xs font-semibold text-brand-red hover:underline"
+            >
+              + Tambah Override Tanggal
+            </button>
           </div>
 
           <div className="mt-5 flex justify-end gap-2 pt-2 border-t border-brand-cream-3">
