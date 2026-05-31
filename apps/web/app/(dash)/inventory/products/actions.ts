@@ -235,6 +235,13 @@ export async function createProductAction(
       defaultCostPrice: money(formData, 'defaultCostPrice'),
       imageUrl: optionalText(formData, 'imageUrl'),
       taxCode: optionalText(formData, 'taxCode'),
+      initialStocks: Array.from(formData.entries())
+        .filter(([key]) => key.startsWith('initialStock_'))
+        .map(([key, value]) => ({
+          locationId: key.replace('initialStock_', ''),
+          qty: String(value).trim() || '0',
+        }))
+        .filter((s) => Number.parseFloat(s.qty) > 0),
     },
     ctx,
   );

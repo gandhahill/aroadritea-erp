@@ -21,6 +21,10 @@ import { and, eq } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { type CreateProductInput, CreateProductInputSchema } from './schemas';
+import { stockLevels, stockMovements } from '@erp/db/schema/inventory';
+import { createJournal } from '../accounting/create-journal';
+import { getPostingAccountCodes } from '../accounting/posting-accounts';
+import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
 
 // --- Return type ---
 
@@ -142,6 +146,133 @@ export async function createProduct(
         metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
         ctx,
       });
+
+      // Initial stock processing
+      if (data.initialStocks && data.initialStocks.length > 0) {
+        const validStocks = data.initialStocks.filter((s) => Number.parseFloat(s.qty) > 0);
+        
+        if (validStocks.length > 0) {
+          const acctCodes = await getPostingAccountCodes(ctx.tenantId);
+          
+          let invAccount = data.inventoryAccountId;
+          if (!invAccount) {
+            const map = await resolveAccountIdsByCodes(ctx.tenantId, [acctCodes.inventory]);
+            invAccount = map.get(acctCodes.inventory);
+          }
+
+          const equityCode = acctCodes['equity.opening'];
+          const codeMap = await resolveAccountIdsByCodes(ctx.tenantId, [equityCode]);
+          const equityAccount = codeMap.get(equityCode);
+
+          if (invAccount && equityAccount) {
+            const defaultCost = BigInt(data.defaultCostPrice);
+            let totalValue = 0n;
+            
+            const batchQueries: any[] = [];
+            const journalLines: any[] = [];
+            
+            for (const stock of validStocks) {
+              const qtyDec = Number.parseFloat(stock.qty);
+              const scaled = BigInt(Math.round(qtyDec * 1000));
+              const lineValue = (scaled * defaultCost) / 1000n;
+              totalValue += lineValue;
+              
+              batchQueries.push(
+                db.insert(stockLevels).values({
+                  id: generateId(),
+                  tenantId: ctx.tenantId,
+                  locationId: stock.locationId,
+                  stockLocationId: null as unknown as string,
+                  productId: productId,
+                  variantId: null,
+                  qtyOnHand: stock.qty,
+                  qtyReserved: '0',
+                  qtyAvailable: stock.qty,
+                  uom: data.uom,
+                  avgUnitCost: defaultCost,
+                  createdBy: ctx.userId,
+                  updatedBy: ctx.userId,
+                })
+              );
+              
+              batchQueries.push(
+                db.insert(stockMovements).values({
+                  id: generateId(),
+                  tenantId: ctx.tenantId,
+                  locationId: stock.locationId,
+                  occurredAt: new Date(),
+                  stockLocationId: null as unknown as string,
+                  productId: productId,
+                  variantId: null,
+                  qtyDelta: stock.qty,
+                  uom: data.uom,
+                  reason: 'opening_balance' as const,
+                  unitCost: defaultCost,
+                  createdBy: ctx.userId,
+                  updatedBy: ctx.userId,
+                })
+              );
+
+              if (lineValue > 0n) {
+                // One debit per location
+                journalLines.push({
+                  accountId: invAccount,
+                  locationId: stock.locationId,
+                  description: `Opening Balance: ${data.sku}`,
+                  debit: lineValue.toString(),
+                  credit: '0',
+                });
+              }
+            }
+            
+            if (totalValue > 0n) {
+              // One credit for the total across all locations to opening balance equity
+              // Wait, Journal must balance per location if we use strict branch accounting.
+              // To make it simple, we just credit equity in the user's current location or first stock location.
+              // We'll credit equity per location to ensure strict balance.
+              for (const stock of validStocks) {
+                const qtyDec = Number.parseFloat(stock.qty);
+                const scaled = BigInt(Math.round(qtyDec * 1000));
+                const lineValue = (scaled * defaultCost) / 1000n;
+                if (lineValue > 0n) {
+                  journalLines.push({
+                    accountId: equityAccount,
+                    locationId: stock.locationId,
+                    description: `Opening Balance: ${data.sku}`,
+                    debit: '0',
+                    credit: lineValue.toString(),
+                  });
+                }
+              }
+
+              // Create Journal
+              const jeResult = await createJournal(
+                {
+                  postingDate: new Date().toISOString().substring(0, 10),
+                  locationId: ctx.locationId || validStocks[0]!.locationId,
+                  description: `Opening Stock: ${data.sku}`,
+                  referenceType: 'manual',
+                  referenceId: productId,
+                  lines: journalLines,
+                },
+                ctx, { skipPermissionCheck: true }
+              );
+              
+              if (jeResult.ok) {
+                // Only insert stock records if journal is successful
+                for (const query of batchQueries) {
+                  await query;
+                }
+              }
+            } else {
+              // Cost is zero, just insert stock records without journal
+              for (const query of batchQueries) {
+                await query;
+              }
+            }
+          }
+        }
+      }
 
       const result: ProductResult = {
         id: productId,

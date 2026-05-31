@@ -15,9 +15,10 @@ interface Props {
   product?: ProductFormInitial | null;
   /** When creating a new product, pre-select this kind (used by /inventory/supplies). */
   defaultKind?: ProductKind;
+  locations?: { id: string; name: string }[];
 }
 
-export function ProductForm({ mode, categories, product, defaultKind }: Props) {
+export function ProductForm({ mode, categories, product, defaultKind, locations }: Props) {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations('inventory.products');
@@ -239,6 +240,27 @@ export function ProductForm({ mode, categories, product, defaultKind }: Props) {
           ) : null}
         </div>
       </section>
+
+      {mode === 'create' && locations && locations.length > 0 && (
+        <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-brand-ink">Stok Awal per Outlet (Opsional)</h2>
+          <p className="mt-1 text-sm text-brand-ink-3">
+            Isi stok awal (dalam satuan default). Sistem otomatis akan membuatkan Jurnal Opening Balance (Debet: Persediaan, Kredit: Modal/Equity).
+          </p>
+          <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {locations.map((loc) => (
+              <Field key={loc.id} label={loc.name}>
+                <Input
+                  name={`initialStock_${loc.id}`}
+                  inputMode="numeric"
+                  defaultValue=""
+                  placeholder="0"
+                />
+              </Field>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="flex items-center justify-end gap-3">
         <button

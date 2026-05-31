@@ -4,6 +4,9 @@ import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { fetchProductMasterData } from '../actions';
 import { ProductForm } from '../product-form';
+import { getActiveLocationOptions } from '@/lib/location-options';
+import { getSession } from '@/lib/auth';
+import { getLocale } from 'next-intl/server';
 
 export const metadata: Metadata = {
   title: 'New Product',
@@ -23,6 +26,16 @@ export default async function NewProductPage({
   const isSupply = kindParam ? SUPPLY_KINDS.includes(kindParam) : false;
 
   const data = await fetchProductMasterData();
+  
+  const locale = await getLocale();
+  const session = await getSession();
+  const user = session?.user as Record<string, unknown> | undefined;
+  const tenantId = String(user?.tenantId ?? 'default');
+  const locationOptions = await getActiveLocationOptions({
+    tenantId,
+    locale: locale as 'id' | 'en' | 'zh',
+    type: 'store',
+  });
 
   const backHref = isSupply ? '/inventory/supplies' : '/inventory/products';
   const t = await getTranslations('inventory.products');
@@ -43,6 +56,7 @@ export default async function NewProductPage({
         mode="create"
         categories={data.categories}
         defaultKind={kindParam && SUPPLY_KINDS.includes(kindParam) ? kindParam : undefined}
+        locations={locationOptions}
       />
     </div>
   );

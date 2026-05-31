@@ -77,6 +77,10 @@ export const CreateProductInputSchema = z.object({
   inventoryAccountId: z.string().optional(),
   taxCode: z.string().optional(),
   imageUrl: ImageReferenceSchema.optional(),
+  initialStocks: z.array(z.object({
+    locationId: z.string().min(1),
+    qty: z.string().regex(/^\d+(\.\d+)?$/),
+  })).optional(),
 });
 
 export type CreateProductInput = z.infer<typeof CreateProductInputSchema>;

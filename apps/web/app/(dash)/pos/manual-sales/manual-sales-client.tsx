@@ -48,6 +48,8 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
     }>
   >([{ id: Date.now().toString(), channel: 'walk_in', method: 'cash', grossSales: '', transactionCount: 0 }]);
 
+  const [editLocationId, setEditLocationId] = useState<string>(defaultLocationId);
+  const [editSalesDate, setEditSalesDate] = useState<string>(new Date().toISOString().substring(0, 10));
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailData, setDetailData] = useState<any>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -73,6 +75,8 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
       setLineItems([]);
       setEditId(null);
       setEditData(null);
+      setEditLocationId(defaultLocationId);
+      setEditSalesDate(new Date().toISOString().substring(0, 10));
     }
   }, [state]);
 
@@ -100,6 +104,21 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
         transactionCount: data.closing.transactionCount,
       }]);
       setEditData(data.closing);
+      setEditLocationId(data.closing.locationId || defaultLocationId);
+      
+      let parsedDate = new Date().toISOString().substring(0, 10);
+      if (data.closing.salesDate) {
+        if (typeof data.closing.salesDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(data.closing.salesDate)) {
+          parsedDate = data.closing.salesDate.substring(0, 10);
+        } else {
+          try {
+            const d = new Date(data.closing.salesDate);
+            if (!isNaN(d.getTime())) parsedDate = d.toISOString().substring(0, 10);
+          } catch {}
+        }
+      }
+      setEditSalesDate(parsedDate);
+      
       setEditId(id);
       
       // Delay scrolling slightly to allow form remount
@@ -137,18 +156,6 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
     return `/pos/manual-sales?${params.toString()}`;
   };
 
-  const getEditDate = () => {
-    if (!editData?.salesDate) return today;
-    if (typeof editData.salesDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(editData.salesDate)) {
-      return editData.salesDate.substring(0, 10);
-    }
-    try {
-      const d = new Date(editData.salesDate);
-      if (!isNaN(d.getTime())) return d.toISOString().substring(0, 10);
-    } catch {}
-    return today;
-  };
-
   return (
     <div className="h-full w-full overflow-y-auto space-y-6 pb-24 px-4 pt-4">
       <div className="flex items-start justify-between">
@@ -169,7 +176,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
         <form key={editId || 'new'} id="manual-sales-form" action={submitAction} className="grid gap-4 lg:grid-cols-4">
           <input type="hidden" name="id" value={editId || ''} />
           <Field label={t('location')}>
-            <Select name="locationId" defaultValue={editData?.locationId || defaultLocationId} required>
+            <Select name="locationId" value={editLocationId} onChange={(e) => setEditLocationId(e.target.value)} required>
               {data.locations.map((location) => (
                 <option key={location.id} value={location.id}>
                   {location.label}
@@ -178,7 +185,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             </Select>
           </Field>
           <Field label={t('salesDate')}>
-            <Input name="salesDate" type="date" defaultValue={getEditDate()} required />
+            <Input name="salesDate" type="date" value={editSalesDate} onChange={(e) => setEditSalesDate(e.target.value)} required />
           </Field>
           <Field label={t('sourceReference')}>
             <Input name="sourceReference" defaultValue={editData?.sourceReference || ''} />
