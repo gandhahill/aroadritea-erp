@@ -18,6 +18,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
   const t = useTranslations('pos.manualSales');
   const pagination = useTranslations('common.pagination');
   const [editId, setEditId] = useState<string | null>(null);
+  const [editData, setEditData] = useState<any | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [state, submitAction, isPending] = useActionState(async (prev: any, formData: FormData) => {
@@ -71,6 +72,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
       setPayments([{ id: Date.now().toString(), channel: 'walk_in', method: 'cash', grossSales: '', transactionCount: 0 }]);
       setLineItems([]);
       setEditId(null);
+      setEditData(null);
     }
   }, [state]);
 
@@ -98,19 +100,12 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
         grossSales: data.closing.grossSales,
         transactionCount: data.closing.transactionCount,
       }]);
-      // find inputs and set them manually because defaultValue doesn't react
-      const form = document.getElementById('manual-sales-form') as HTMLFormElement | null;
-      if (form) {
-        const dInput = form.elements.namedItem('discountTotal') as HTMLInputElement;
-        if (dInput) dInput.value = data.closing.discountTotal || '0';
-        const sInput = form.elements.namedItem('salesDate') as HTMLInputElement;
-        if (sInput) sInput.value = data.closing.salesDate;
-        const refInput = form.elements.namedItem('sourceReference') as HTMLInputElement;
-        if (refInput) refInput.value = data.closing.sourceReference || '';
-        const noteInput = form.elements.namedItem('notes') as HTMLInputElement;
-        if (noteInput) noteInput.value = data.closing.notes || '';
-      }
-      document.getElementById('manual-sales-form')?.scrollIntoView({ behavior: 'smooth' });
+      setEditData(data.closing);
+      
+      // Delay scrolling slightly to allow form remount
+      setTimeout(() => {
+        document.getElementById('manual-sales-form')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     }
   };
 
@@ -159,10 +154,10 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
       </div>
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-        <form id="manual-sales-form" action={submitAction} className="grid gap-4 lg:grid-cols-4">
+        <form key={editId || 'new'} id="manual-sales-form" action={submitAction} className="grid gap-4 lg:grid-cols-4">
           <input type="hidden" name="id" value={editId || ''} />
           <Field label={t('location')}>
-            <Select name="locationId" defaultValue={defaultLocationId} required>
+            <Select name="locationId" defaultValue={editData?.locationId || defaultLocationId} required>
               {data.locations.map((location) => (
                 <option key={location.id} value={location.id}>
                   {location.label}
@@ -171,13 +166,13 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             </Select>
           </Field>
           <Field label={t('salesDate')}>
-            <Input name="salesDate" type="date" defaultValue={today} required />
+            <Input name="salesDate" type="date" defaultValue={editData?.salesDate || today} required />
           </Field>
           <Field label={t('sourceReference')}>
-            <Input name="sourceReference" />
+            <Input name="sourceReference" defaultValue={editData?.sourceReference || ''} />
           </Field>
           <Field label={t('notes')}>
-            <Input name="notes" />
+            <Input name="notes" defaultValue={editData?.notes || ''} />
           </Field>
 
           {/* Payments Section */}
@@ -428,7 +423,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
           </div>
 
           <Field label={t('discountTotal')}>
-            <Input name="discountTotal" inputMode="numeric" defaultValue="0" />
+            <Input name="discountTotal" inputMode="numeric" defaultValue={editData?.discountTotal || "0"} />
           </Field>
           
           <div className="lg:col-span-3 flex items-end">
@@ -448,7 +443,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                 className="ml-3"
                 onClick={() => {
                   setEditId(null);
-                  (document.getElementById('manual-sales-form') as HTMLFormElement)?.reset();
+                  setEditData(null);
                   setPayments([{ id: Date.now().toString(), channel: 'walk_in', method: 'cash', grossSales: '', transactionCount: 0 }]);
                   setLineItems([]);
                 }}

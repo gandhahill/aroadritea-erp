@@ -13,7 +13,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, sql, ne } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import { reverseJournal } from '../accounting/reverse-journal';
 import { auditRecord } from '../audit';
@@ -46,10 +46,19 @@ async function generateManualSalesNumber(tenantId: string, salesDate: string): P
 }
 
 function toResult(row: typeof manualSalesClosings.$inferSelect): ManualSalesClosingResult {
+  let dateStr = String(row.salesDate);
+  const rawDate = row.salesDate as any;
+  if (typeof rawDate === 'object' && rawDate instanceof Date) {
+    const d = rawDate;
+    dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  } else if (typeof rawDate === 'string') {
+    dateStr = rawDate.split('T')[0] ?? rawDate;
+  }
+
   return {
     id: row.id,
     number: row.number,
-    salesDate: row.salesDate,
+    salesDate: dateStr,
     locationId: row.locationId,
     channel: row.channel,
     paymentMethod: row.paymentMethod,
@@ -335,7 +344,10 @@ export async function listManualSalesClosings(
 
   return tryCatch(
     async () => {
-      const conditions = [eq(manualSalesClosings.tenantId, ctx.tenantId)];
+      const conditions = [
+        eq(manualSalesClosings.tenantId, ctx.tenantId),
+        ne(manualSalesClosings.status, 'voided')
+      ];
       if (params.locationId) conditions.push(eq(manualSalesClosings.locationId, params.locationId));
       const whereClause = and(...conditions);
       const [{ count = 0 } = { count: 0 }] = await db
