@@ -58,9 +58,9 @@ export async function fetchAuditTrail(filters: AuditTrailFilters): Promise<Audit
 
   const conditions = [eq(auditLog.tenantId, tenantId)];
 
-  if (filters.entityType) conditions.push(ilike(auditLog.entityType, `%${filters.entityType}%`));
+  if (filters.entityType) conditions.push(eq(auditLog.entityType, filters.entityType));
   if (filters.action) conditions.push(eq(auditLog.action, filters.action));
-  if (filters.actor) conditions.push(ilike(auditLog.userId, `%${filters.actor}%`));
+  if (filters.actor) conditions.push(eq(auditLog.userId, filters.actor));
   if (filters.from)
     conditions.push(gte(auditLog.createdAt, new Date(`${filters.from}T00:00:00+07:00`)));
   if (filters.to) {

@@ -188,6 +188,7 @@ export const taxRates = pgTable(
   'tax_rates',
   {
     ...pk,
+    ...tenantCol,
     code: text('code').notNull(), // 'PB1', 'PPN_OUT', 'PPN_IN', 'PPH21', 'PPH23'
     name: jsonb('name').notNull(), // LocaleString
     rateBps: integer('rate_bps').notNull(), // basis points: 10% = 1000
@@ -198,7 +199,7 @@ export const taxRates = pgTable(
     effectiveUntil: date('effective_until'), // NULL = forever
     ...auditCols,
   },
-  (t) => [uniqueIndex('tax_rates_code_idx').on(t.code)],
+  (t) => [uniqueIndex('tax_rates_tenant_code_idx').on(t.tenantId, t.code)],
 );
 
 // ================================================================

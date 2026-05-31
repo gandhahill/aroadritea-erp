@@ -30,6 +30,7 @@ export interface CategoryResult {
   parentId: string | null;
   sortOrder: number;
   isActive: boolean;
+  version: number;
 }
 
 export interface CategoryTreeItem extends CategoryResult {
@@ -116,6 +117,7 @@ export async function createCategory(
         parentId: data.parentId ?? null,
         sortOrder: data.sortOrder,
         isActive: true,
+        version: 1,
       } satisfies CategoryResult;
     },
     (e) => AppError.internal('inventory.category.createFailed', e),
@@ -154,9 +156,14 @@ export async function updateCategory(
     return err(AppError.notFound('inventory.category.notFound', { categoryId: data.categoryId }));
   }
 
+  if (existing.version !== data.version) {
+    return err(AppError.conflict('inventory.category.versionConflict', { message: 'Category was modified by someone else' }));
+  }
+
   const updates: Record<string, unknown> = {
     updatedAt: new Date(),
     updatedBy: ctx.userId,
+    version: existing.version + 1,
   };
 
   if (data.name !== undefined) updates.name = data.name;
@@ -204,6 +211,7 @@ export async function updateCategory(
         parentId: updated.parentId,
         sortOrder: updated.sortOrder,
         isActive: updated.isActive,
+        version: updated.version,
       } satisfies CategoryResult;
     },
     (e) => {
@@ -231,6 +239,7 @@ export async function listCategories(ctx: AuditContext): Promise<Result<Category
           parentId: productCategories.parentId,
           sortOrder: productCategories.sortOrder,
           isActive: productCategories.isActive,
+          version: productCategories.version,
         })
         .from(productCategories)
         .where(eq(productCategories.tenantId, ctx.tenantId))

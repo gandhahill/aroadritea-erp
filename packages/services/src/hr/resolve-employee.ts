@@ -1,7 +1,7 @@
 import { db } from '@erp/db';
 import { users } from '@erp/db/schema/auth';
 import { employees } from '@erp/db/schema/hr';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull, or } from 'drizzle-orm';
 
 /**
  * Resolves the given userId to an employee record in the tenant.
@@ -16,23 +16,26 @@ export async function resolveEmployeeForUser(tenantId: string, userId: string) {
 
   if (!requester?.email) return null;
 
-  const tenantEmployees = await db
-    .select()
-    .from(employees)
-    .where(eq(employees.tenantId, tenantId));
-
   const { encryptPiiForLookup } = await import('../security/pii');
   const encryptedRequester = encryptPiiForLookup(
     requester.email.toLowerCase(),
     'employees.email',
   );
 
-  const emp = tenantEmployees.find(
-    (e) =>
-      e.email &&
-      (e.email === encryptedRequester ||
-        e.email.toLowerCase() === requester.email.toLowerCase()),
-  );
+  const [emp] = await db
+    .select()
+    .from(employees)
+    .where(
+      and(
+        eq(employees.tenantId, tenantId),
+        isNull(employees.deletedAt),
+        or(
+          encryptedRequester ? eq(employees.email, encryptedRequester) : undefined,
+          eq(employees.email, requester.email.toLowerCase()),
+        )!,
+      ),
+    )
+    .limit(1);
 
   return emp ?? null;
 }

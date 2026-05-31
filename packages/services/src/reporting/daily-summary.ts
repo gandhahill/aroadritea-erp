@@ -260,7 +260,10 @@ export async function getDailySummary(
   const shiftRows = await db
     .select()
     .from(shifts)
-    .where(and(eq(shifts.locationId, params.locationId)))
+    .where(and(
+      eq(shifts.locationId, params.locationId),
+      eq(shifts.tenantId, ctx.tenantId)
+    ))
     .orderBy(shifts.openedAt);
 
   const shiftsInRange = shiftRows.filter(

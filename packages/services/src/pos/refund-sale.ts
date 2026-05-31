@@ -197,18 +197,29 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
         )
         .then((r) => r[0]);
 
-      if (!bom) continue;
+      let ingredientsToRestore: { ingredientId: string; qty: string; uom?: string }[] = [];
 
-      const bomLineRows = await db
-        .select({
-          ingredientId: bomLines.ingredientId,
-          qty: bomLines.qty,
-          uom: bomLines.uom,
-        })
-        .from(bomLines)
-        .where(and(eq(bomLines.bomId, bom.id), eq(bomLines.autoDeduct, true)));
+      if (bom) {
+        ingredientsToRestore = await db
+          .select({
+            ingredientId: bomLines.ingredientId,
+            qty: bomLines.qty,
+            uom: bomLines.uom,
+          })
+          .from(bomLines)
+          .where(and(eq(bomLines.bomId, bom.id), eq(bomLines.autoDeduct, true)));
+      }
 
-      for (const ingredient of bomLineRows) {
+      if (ingredientsToRestore.length === 0) {
+        ingredientsToRestore = [
+          {
+            ingredientId: line.productId,
+            qty: '1',
+          },
+        ];
+      }
+
+      for (const ingredient of ingredientsToRestore) {
         const restoreQty = (Number.parseFloat(ingredient.qty) * rl.qty).toFixed(3);
 
         const [currentLevel] = await db
@@ -223,7 +234,7 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
           )
           .limit(1);
 
-        if (!currentLevel || currentLevel.uom !== ingredient.uom) continue;
+        if (!currentLevel || (ingredient.uom && currentLevel.uom !== ingredient.uom)) continue;
 
         // BOM lines reference ingredient products directly — raw
         // materials are tracked without variants in this schema, so
@@ -257,7 +268,7 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
           variantId: null,
           batchNo: null,
           qtyDelta: restoreQty,
-          uom: ingredient.uom,
+          uom: ingredient.uom ?? currentLevel.uom,
           reason: 'refund',
           referenceType: 'sales_order',
           referenceId: data.salesOrderId,
@@ -367,15 +378,14 @@ async function createPartialReversalJe(
     return err(AppError.internal('pos.refund.noJournalLines'));
   }
 
-  const grandTotal = Number(sale.grandTotal.toString());
-  const ratio = Number(refundTotal) / grandTotal;
+  const grandTotal = BigInt(sale.grandTotal.toString());
 
   const scaledLines = originalJeLines.map((line) => ({
     accountId: line.accountId,
     locationId: line.locationId,
     description: line.description,
-    debit: BigInt(Math.round(Number(line.credit) * ratio)),
-    credit: BigInt(Math.round(Number(line.debit) * ratio)),
+    debit: (BigInt(line.credit.toString()) * refundTotal) / grandTotal,
+    credit: (BigInt(line.debit.toString()) * refundTotal) / grandTotal,
     taxCode: line.taxCode,
     partnerId: line.partnerId,
   }));

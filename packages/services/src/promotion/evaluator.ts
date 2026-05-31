@@ -8,6 +8,8 @@ export interface PromotionItem {
   benefits: PromotionBenefitConfig;
   stackable: boolean;
   priority: number;
+  usageLimit: number | null;
+  usageCount: number;
 }
 
 export interface CartLine {
@@ -22,6 +24,7 @@ export interface CartLine {
 export interface Cart {
   lines: CartLine[];
   subtotal: Money;
+  isMember?: boolean;
 }
 
 export interface AppliedPromotion {
@@ -47,11 +50,28 @@ export function evaluatePromotions(cart: Cart, activePromotions: PromotionItem[]
 
   let remainingCartSubtotal = cart.subtotal;
   let hasNonStackable = false;
+  const now = new Date();
+  const wibDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+  const wibDay = wibDate.getDay();
+  const wibTimeStr = wibDate.getHours().toString().padStart(2, '0') + ':' + wibDate.getMinutes().toString().padStart(2, '0');
 
   for (const promo of sorted) {
     if (hasNonStackable) break;
 
+    // Check usage limits
+    if (promo.usageLimit !== null && promo.usageLimit !== undefined && promo.usageCount >= promo.usageLimit) {
+      continue;
+    }
+
     // Check conditions
+    if (promo.conditions.memberOnly && !cart.isMember) continue;
+
+    if (promo.conditions.daysOfWeek && promo.conditions.daysOfWeek.length > 0) {
+      if (!promo.conditions.daysOfWeek.includes(wibDay)) continue;
+    }
+
+    if (promo.conditions.startTime && wibTimeStr < promo.conditions.startTime) continue;
+    if (promo.conditions.endTime && wibTimeStr > promo.conditions.endTime) continue;
     if (promo.conditions.minSubtotal && remainingCartSubtotal < rupiah(promo.conditions.minSubtotal)) {
       continue;
     }

@@ -17,7 +17,7 @@ import {
 } from '@erp/db/schema/purchasing';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
-import { type Result, err, ok } from '@erp/shared/result';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
@@ -383,279 +383,284 @@ export async function confirmGRN(
     );
   }
 
-  // CLAIM the GRN first. Two concurrent confirmGRN calls would
-  // otherwise both run the stock + PO line updates, doubling on-hand
-  // qty and posting two GRNI journals.
-  const claimedGrn = await db
-    .update(goodsReceiptNotes)
-    .set({
-      status: 'confirmed',
-      updatedBy: ctx.userId,
-      version: grn.version + 1,
-    })
-    .where(
-      and(
-        eq(goodsReceiptNotes.id, grn.id),
-        eq(goodsReceiptNotes.version, grn.version),
-        eq(goodsReceiptNotes.status, 'draft'),
-      ),
-    )
-    .returning({ id: goodsReceiptNotes.id });
-  if (!claimedGrn || claimedGrn.length === 0) {
-    return err(AppError.conflict('purchasing.errors.version_mismatch'));
-  }
+    return tryCatch(async () => {
+    return await db.transaction(async (tx) => {
+      // CLAIM the GRN first. Two concurrent confirmGRN calls would
+        // otherwise both run the stock + PO line updates, doubling on-hand
+        // qty and posting two GRNI journals.
+        const claimedGrn = await db
+          .update(goodsReceiptNotes)
+          .set({
+            status: 'confirmed',
+            updatedBy: ctx.userId,
+            version: grn.version + 1,
+          })
+          .where(
+            and(
+              eq(goodsReceiptNotes.id, grn.id),
+              eq(goodsReceiptNotes.version, grn.version),
+              eq(goodsReceiptNotes.status, 'draft'),
+            ),
+          )
+          .returning({ id: goodsReceiptNotes.id });
+        if (!claimedGrn || claimedGrn.length === 0) {
+          throw AppError.conflict('purchasing.errors.version_mismatch');
+        }
 
-  const grniAccountId = await resolveGrniAccountId(ctx.tenantId);
-  if (!grniAccountId) {
-    return err(AppError.businessRule('purchasing.errors.grni_account_not_found'));
-  }
+        const grniAccountId = await resolveGrniAccountId(ctx.tenantId);
+        if (!grniAccountId) {
+          throw AppError.businessRule('purchasing.errors.grni_account_not_found');
+        }
 
-  const [supplier] = await db
-    .select({ paymentTermsDays: partners.paymentTermsDays })
-    .from(partners)
-    .where(and(eq(partners.tenantId, ctx.tenantId), eq(partners.id, po.supplierId)))
-    .limit(1);
-  const apDueDate = addDays(grn.receivedDate, supplier?.paymentTermsDays ?? 0);
+        const [supplier] = await db
+          .select({ paymentTermsDays: partners.paymentTermsDays })
+          .from(partners)
+          .where(and(eq(partners.tenantId, ctx.tenantId), eq(partners.id, po.supplierId)))
+          .limit(1);
+        const apDueDate = addDays(grn.receivedDate, supplier?.paymentTermsDays ?? 0);
 
-  // Load PO lines once so we can compute totals and remaining qty.
-  const poLines = await db
-    .select()
-    .from(purchaseOrderLines)
-    .where(eq(purchaseOrderLines.purchaseOrderId, po.id));
-  const poLineMap = new Map(poLines.map((l) => [l.id, l]));
+        // Load PO lines once so we can compute totals and remaining qty.
+        const poLines = await db
+          .select()
+          .from(purchaseOrderLines)
+          .where(eq(purchaseOrderLines.purchaseOrderId, po.id));
+        const poLineMap = new Map(poLines.map((l) => [l.id, l]));
 
-  // Compute total value with bigint math (3-decimal scaling) before
-  // mutating anything. This drives the JE amount.
-  let totalValue = 0n;
-  const inventoryValueByAccount = new Map<string, bigint>();
+        // Compute total value with bigint math (3-decimal scaling) before
+        // mutating anything. This drives the JE amount.
+        let totalValue = 0n;
+        const inventoryValueByAccount = new Map<string, bigint>();
 
-  for (const line of lines) {
-    const poLine = poLineMap.get(line.poLineId);
-    if (poLine) {
-      const qty = BigInt(Math.round(Number.parseFloat(line.qtyReceived) * 1000));
-      const lineValue = (qty * poLine.unitPrice) / 1000n;
-      totalValue += lineValue;
+        for (const line of lines) {
+          const poLine = poLineMap.get(line.poLineId);
+          if (poLine) {
+            const qty = BigInt(Math.round(Number.parseFloat(line.qtyReceived) * 1000));
+            const lineValue = (qty * poLine.unitPrice) / 1000n;
+            totalValue += lineValue;
 
-      const invAccountId = await resolveInventoryAccountForProduct(
-        ctx.tenantId,
-        line.productId,
-      );
-      if (!invAccountId) {
-        return err(
-          AppError.businessRule('purchasing.errors.inventory_account_not_found')
-        );
-      }
+            const invAccountId = await resolveInventoryAccountForProduct(
+              ctx.tenantId,
+              line.productId,
+            );
+            if (!invAccountId) {
+              throw AppError.businessRule('purchasing.errors.inventory_account_not_found');
+            }
 
-      inventoryValueByAccount.set(
-        invAccountId,
-        (inventoryValueByAccount.get(invAccountId) ?? 0n) + lineValue,
-      );
-    }
-  }
+            inventoryValueByAccount.set(
+              invAccountId,
+              (inventoryValueByAccount.get(invAccountId) ?? 0n) + lineValue,
+            );
+          }
+        }
 
-  // Post the JE FIRST. If it fails (period closed mid-flight, account
-  // inactive), roll the GRN status back so nothing else runs.
-  let journalEntryId: string | null = null;
-  if (totalValue > 0n) {
-    const jeLines = [];
+        // Post the JE FIRST. If it fails (period closed mid-flight, account
+        // inactive), roll the GRN status back so nothing else runs.
+        let journalEntryId: string | null = null;
+        if (totalValue > 0n) {
+          const jeLines = [];
 
-    // Debit each inventory account
-    for (const [accountId, amount] of inventoryValueByAccount.entries()) {
-      if (amount > 0n) {
-        jeLines.push({
-          accountId,
-          locationId: grn.locationId,
-          description: `GRN ${grn.number} inventory`,
-          debit: amount.toString(),
-          credit: '0',
-          partnerId: po.supplierId,
+          // Debit each inventory account
+          for (const [accountId, amount] of inventoryValueByAccount.entries()) {
+            if (amount > 0n) {
+              jeLines.push({
+                accountId,
+                locationId: grn.locationId,
+                description: `GRN ${grn.number} inventory`,
+                debit: amount.toString(),
+                credit: '0',
+                partnerId: po.supplierId,
+              });
+            }
+          }
+
+          // Credit GRNI
+          jeLines.push({
+            accountId: grniAccountId,
+            locationId: grn.locationId,
+            description: `GRN ${grn.number} GRNI`,
+            debit: '0',
+            credit: totalValue.toString(),
+            partnerId: po.supplierId,
+          });
+
+          const jeResult = await createJournal(
+            {
+              postingDate: grn.receivedDate,
+              locationId: grn.locationId,
+              description: `GRN ${grn.number} — goods received (PO ${po.number})`,
+              referenceType: 'purchase',
+              referenceId: grn.id,
+              lines: jeLines,
+            },
+            ctx, { skipPermissionCheck: true, tx }
+          );
+          if (!jeResult.ok) {
+            await db
+              .update(goodsReceiptNotes)
+              .set({ status: 'draft', version: grn.version })
+              .where(eq(goodsReceiptNotes.id, grn.id));
+            throw jeResult.error;
+          }
+          journalEntryId = jeResult.value.id;
+        }
+
+        // 1. Update PO line qtyReceived using atomic SQL so concurrent GRNs
+        //    on the SAME PO don't race the value.
+        for (const line of lines) {
+          const poLine = poLineMap.get(line.poLineId);
+          if (!poLine) continue;
+
+          await db
+            .update(purchaseOrderLines)
+            .set({
+              qtyReceived: sql`(${purchaseOrderLines.qtyReceived}::numeric + ${line.qtyReceived}::numeric)`,
+              updatedBy: ctx.userId,
+            })
+            .where(eq(purchaseOrderLines.id, poLine.id));
+
+          poLineMap.set(poLine.id, {
+            ...poLine,
+            qtyReceived: (
+              Number.parseFloat(poLine.qtyReceived) + Number.parseFloat(line.qtyReceived)
+            ).toFixed(3),
+          });
+        }
+
+        // 2. Create stock movements (reason='purchase')
+        const movementValues = lines.map((line) => {
+          const poLine = poLineMap.get(line.poLineId);
+          return {
+            id: generateId(),
+            tenantId: ctx.tenantId,
+            locationId: grn.locationId,
+            occurredAt: new Date(),
+            stockLocationId: null,
+            productId: line.productId,
+            variantId: line.variantId ?? null,
+            batchNo: line.batchNo ?? null,
+            expiryDate: line.expiryDate ?? null,
+            qtyDelta: line.qtyReceived,
+            uom: line.uom,
+            reason: 'purchase' as const,
+            referenceType: 'grn' as const,
+            referenceId: grn.id,
+            unitCost: poLine?.unitPrice ?? null,
+            createdBy: ctx.userId,
+            updatedBy: ctx.userId,
+          };
         });
-      }
-    }
 
-    // Credit GRNI
-    jeLines.push({
-      accountId: grniAccountId,
-      locationId: grn.locationId,
-      description: `GRN ${grn.number} GRNI`,
-      debit: '0',
-      credit: totalValue.toString(),
-      partnerId: po.supplierId,
+        await tx.insert(stockMovements).values(movementValues);
+
+        // 3. Update stock_levels — variant-aware lookup; bug fix from opname.
+        for (const line of lines) {
+          const variantCondition = line.variantId
+            ? eq(stockLevels.variantId, line.variantId)
+            : eq(stockLevels.variantId, '' as unknown as string);
+
+          const existingStock = await db
+            .select({ id: stockLevels.id, qtyOnHand: stockLevels.qtyOnHand, avgUnitCost: stockLevels.avgUnitCost })
+            .from(stockLevels)
+            .where(
+              and(
+                eq(stockLevels.tenantId, ctx.tenantId),
+                eq(stockLevels.locationId, grn.locationId),
+                eq(stockLevels.productId, line.productId),
+                variantCondition,
+              ),
+            )
+            .limit(1)
+            .then((r) => r[0]);
+
+          if (existingStock) {
+            const oldQty = Number.parseFloat(existingStock.qtyOnHand || '0');
+            const recQty = Number.parseFloat(line.qtyReceived);
+            const newQty = oldQty + recQty;
+            const oldAvgCost = existingStock.avgUnitCost ?? 0n;
+            const poLine = poLineMap.get(line.poLineId);
+            const unitCost = poLine?.unitPrice ?? 0n;
+
+            let newAvgCost = unitCost;
+            if (newQty > 0.001) {
+              newAvgCost = (BigInt(Math.round(oldQty * 1000)) * oldAvgCost + BigInt(Math.round(recQty * 1000)) * unitCost) / BigInt(Math.round(newQty * 1000));
+            }
+
+            await db
+              .update(stockLevels)
+              .set({
+                qtyOnHand: sql`${stockLevels.qtyOnHand} + ${line.qtyReceived}::numeric`,
+                qtyAvailable: sql`${stockLevels.qtyAvailable} + ${line.qtyReceived}::numeric`,
+                avgUnitCost: newAvgCost,
+                updatedBy: ctx.userId,
+                lastMovementAt: new Date(),
+              })
+              .where(eq(stockLevels.id, existingStock.id));
+          } else {
+            const poLine = poLineMap.get(line.poLineId);
+            const unitCost = poLine?.unitPrice ?? 0n;
+
+            await tx.insert(stockLevels).values({
+              id: generateId(),
+              tenantId: ctx.tenantId,
+              locationId: grn.locationId,
+              stockLocationId: null,
+              productId: line.productId,
+              variantId: line.variantId ?? null,
+              batchNo: line.batchNo ?? null,
+              qtyOnHand: line.qtyReceived,
+              qtyReserved: '0',
+              qtyAvailable: line.qtyReceived,
+              uom: line.uom,
+              avgUnitCost: unitCost,
+              createdBy: ctx.userId,
+              updatedBy: ctx.userId,
+            });
+          }
+        }
+
+        // 4. Determine new PO status and update.
+        const updatedPoLines = [...poLineMap.values()];
+        const allFullyReceived = updatedPoLines.every(
+          (l) => Number.parseFloat(l.qtyReceived) >= Number.parseFloat(l.qtyOrdered) - 0.001,
+        );
+        const newPoStatus = allFullyReceived ? 'received' : 'partial';
+
+        await db
+          .update(purchaseOrders)
+          .set({
+            status: newPoStatus,
+            updatedBy: ctx.userId,
+            version: po.version + 1,
+          })
+          .where(and(eq(purchaseOrders.id, po.id), eq(purchaseOrders.version, po.version)));
+
+        // 7. Audit
+        await auditRecord({
+          action: 'approve',
+          entityType: 'grn',
+          entityId: grn.id,
+          before: { status: 'draft' },
+          after: {
+            status: 'confirmed',
+            poStatus: newPoStatus,
+            journalEntryId,
+            movementCount: movementValues.length,
+            totalValue: totalValue.toString(),
+          },
+          ctx,
+        });
+
+        return {
+          id: grn.id,
+          number: grn.number,
+          status: 'confirmed',
+          poStatus: newPoStatus,
+          journalEntryId,
+          movementCount: movementValues.length,
+        };
     });
-
-    const jeResult = await createJournal(
-      {
-        postingDate: grn.receivedDate,
-        locationId: grn.locationId,
-        description: `GRN ${grn.number} — goods received (PO ${po.number})`,
-        referenceType: 'purchase',
-        referenceId: grn.id,
-        lines: jeLines,
-      },
-      ctx, { skipPermissionCheck: true }
-    );
-    if (!jeResult.ok) {
-      await db
-        .update(goodsReceiptNotes)
-        .set({ status: 'draft', version: grn.version })
-        .where(eq(goodsReceiptNotes.id, grn.id));
-      return jeResult;
-    }
-    journalEntryId = jeResult.value.id;
-  }
-
-  // 1. Update PO line qtyReceived using atomic SQL so concurrent GRNs
-  //    on the SAME PO don't race the value.
-  for (const line of lines) {
-    const poLine = poLineMap.get(line.poLineId);
-    if (!poLine) continue;
-
-    await db
-      .update(purchaseOrderLines)
-      .set({
-        qtyReceived: sql`(${purchaseOrderLines.qtyReceived}::numeric + ${line.qtyReceived}::numeric)`,
-        updatedBy: ctx.userId,
-      })
-      .where(eq(purchaseOrderLines.id, poLine.id));
-
-    poLineMap.set(poLine.id, {
-      ...poLine,
-      qtyReceived: (
-        Number.parseFloat(poLine.qtyReceived) + Number.parseFloat(line.qtyReceived)
-      ).toFixed(3),
-    });
-  }
-
-  // 2. Create stock movements (reason='purchase')
-  const movementValues = lines.map((line) => {
-    const poLine = poLineMap.get(line.poLineId);
-    return {
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      locationId: grn.locationId,
-      occurredAt: new Date(),
-      stockLocationId: null,
-      productId: line.productId,
-      variantId: line.variantId ?? null,
-      batchNo: line.batchNo ?? null,
-      expiryDate: line.expiryDate ?? null,
-      qtyDelta: line.qtyReceived,
-      uom: line.uom,
-      reason: 'purchase' as const,
-      referenceType: 'grn' as const,
-      referenceId: grn.id,
-      unitCost: poLine?.unitPrice ?? null,
-      createdBy: ctx.userId,
-      updatedBy: ctx.userId,
-    };
-  });
-
-  await db.insert(stockMovements).values(movementValues);
-
-  // 3. Update stock_levels — variant-aware lookup; bug fix from opname.
-  for (const line of lines) {
-    const variantCondition = line.variantId
-      ? eq(stockLevels.variantId, line.variantId)
-      : eq(stockLevels.variantId, '' as unknown as string);
-
-    const existingStock = await db
-      .select({ id: stockLevels.id, qtyOnHand: stockLevels.qtyOnHand, avgUnitCost: stockLevels.avgUnitCost })
-      .from(stockLevels)
-      .where(
-        and(
-          eq(stockLevels.tenantId, ctx.tenantId),
-          eq(stockLevels.locationId, grn.locationId),
-          eq(stockLevels.productId, line.productId),
-          variantCondition,
-        ),
-      )
-      .limit(1)
-      .then((r) => r[0]);
-
-    if (existingStock) {
-      const oldQty = Number.parseFloat(existingStock.qtyOnHand || '0');
-      const recQty = Number.parseFloat(line.qtyReceived);
-      const newQty = oldQty + recQty;
-      const oldAvgCost = existingStock.avgUnitCost ?? 0n;
-      const poLine = poLineMap.get(line.poLineId);
-      const unitCost = poLine?.unitPrice ?? 0n;
-      
-      let newAvgCost = unitCost;
-      if (newQty > 0.001) {
-        newAvgCost = (BigInt(Math.round(oldQty * 1000)) * oldAvgCost + BigInt(Math.round(recQty * 1000)) * unitCost) / BigInt(Math.round(newQty * 1000));
-      }
-
-      await db
-        .update(stockLevels)
-        .set({
-          qtyOnHand: sql`${stockLevels.qtyOnHand} + ${line.qtyReceived}::numeric`,
-          qtyAvailable: sql`${stockLevels.qtyAvailable} + ${line.qtyReceived}::numeric`,
-          avgUnitCost: newAvgCost,
-          updatedBy: ctx.userId,
-          lastMovementAt: new Date(),
-        })
-        .where(eq(stockLevels.id, existingStock.id));
-    } else {
-      const poLine = poLineMap.get(line.poLineId);
-      const unitCost = poLine?.unitPrice ?? 0n;
-
-      await db.insert(stockLevels).values({
-        id: generateId(),
-        tenantId: ctx.tenantId,
-        locationId: grn.locationId,
-        stockLocationId: null,
-        productId: line.productId,
-        variantId: line.variantId ?? null,
-        batchNo: line.batchNo ?? null,
-        qtyOnHand: line.qtyReceived,
-        qtyReserved: '0',
-        qtyAvailable: line.qtyReceived,
-        uom: line.uom,
-        avgUnitCost: unitCost,
-        createdBy: ctx.userId,
-        updatedBy: ctx.userId,
-      });
-    }
-  }
-
-  // 4. Determine new PO status and update.
-  const updatedPoLines = [...poLineMap.values()];
-  const allFullyReceived = updatedPoLines.every(
-    (l) => Number.parseFloat(l.qtyReceived) >= Number.parseFloat(l.qtyOrdered) - 0.001,
-  );
-  const newPoStatus = allFullyReceived ? 'received' : 'partial';
-
-  await db
-    .update(purchaseOrders)
-    .set({
-      status: newPoStatus,
-      updatedBy: ctx.userId,
-      version: po.version + 1,
-    })
-    .where(and(eq(purchaseOrders.id, po.id), eq(purchaseOrders.version, po.version)));
-
-  // 7. Audit
-  await auditRecord({
-    action: 'approve',
-    entityType: 'grn',
-    entityId: grn.id,
-    before: { status: 'draft' },
-    after: {
-      status: 'confirmed',
-      poStatus: newPoStatus,
-      journalEntryId,
-      movementCount: movementValues.length,
-      totalValue: totalValue.toString(),
-    },
-    ctx,
-  });
-
-  return ok({
-    id: grn.id,
-    number: grn.number,
-    status: 'confirmed',
-    poStatus: newPoStatus,
-    journalEntryId,
-    movementCount: movementValues.length,
+  }, (e: any) => {
+    if (e && typeof e === 'object' && 'messageKey' in e) return e as AppError;
+    return AppError.internal('purchasing.errors.grn_confirm_failed', e);
   });
 }

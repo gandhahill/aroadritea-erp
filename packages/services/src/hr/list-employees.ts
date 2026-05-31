@@ -10,7 +10,7 @@ import { employees, employmentContracts } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, ilike, inArray, or, sql } from 'drizzle-orm';
+import { and, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import { can, requirePermission } from '../iam';
 import { decryptPiiForDisplay, encryptPiiForLookup } from '../security/pii';
 import { type ListEmployeesInput, ListEmployeesInputSchema } from './schemas';
@@ -64,7 +64,7 @@ export async function listEmployees(
 
   return tryCatch(
     async () => {
-      const conditions = [eq(employees.tenantId, ctx.tenantId)];
+      const conditions = [eq(employees.tenantId, ctx.tenantId), isNull(employees.deletedAt)];
 
       if (data.status) {
         conditions.push(eq(employees.status, data.status));

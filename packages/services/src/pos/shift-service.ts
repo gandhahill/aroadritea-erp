@@ -193,6 +193,21 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
 
     const cashTotal = allPayments.reduce((sum, p) => sum + p.amount, BigInt(0));
 
+    // Refunded cash: sales orders that were paid with cash but are now refunded
+    const refundedPayments = await db
+      .select({ amount: payments.amount })
+      .from(payments)
+      .innerJoin(salesOrders, eq(payments.salesOrderId, salesOrders.id))
+      .where(
+        and(
+          eq(salesOrders.tenantId, ctx.tenantId),
+          eq(salesOrders.shiftId, data.shiftId),
+          eq(salesOrders.status, 'refunded'),
+          eq(payments.method, 'cash'),
+        ),
+      );
+    const cashRefundTotal = refundedPayments.reduce((sum, p) => sum + p.amount, BigInt(0));
+
     const manualSales = await db
       .select({ netRevenue: manualSalesClosings.netRevenue })
       .from(manualSalesClosings)
@@ -213,8 +228,8 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
       );
     const expenseTotal = expenses.reduce((sum, e) => sum + e.amount, BigInt(0));
 
-    // Expected cash = opening + sales - expenses
-    const expectedCash = shift.openingCash + cashTotal + manualSalesCashTotal - expenseTotal;
+    // Expected cash = opening + sales - refunds - expenses
+    const expectedCash = shift.openingCash + cashTotal + manualSalesCashTotal - cashRefundTotal - expenseTotal;
     const actualCash = BigInt(data.actualCash);
     const variance = actualCash - expectedCash;
 
@@ -310,6 +325,20 @@ export async function getOpenShift(
         ),
       );
     const cashTotal = cashPayments.reduce((sum, payment) => sum + payment.amount, BigInt(0));
+
+    const refundedPayments = await db
+      .select({ amount: payments.amount })
+      .from(payments)
+      .innerJoin(salesOrders, eq(payments.salesOrderId, salesOrders.id))
+      .where(
+        and(
+          eq(salesOrders.tenantId, ctx.tenantId),
+          eq(salesOrders.shiftId, shift.id),
+          eq(salesOrders.status, 'refunded'),
+          eq(payments.method, 'cash'),
+        ),
+      );
+    const cashRefundTotal = refundedPayments.reduce((sum, p) => sum + p.amount, BigInt(0));
     const manualSales = await db
       .select({ netRevenue: manualSalesClosings.netRevenue })
       .from(manualSalesClosings)
@@ -328,7 +357,7 @@ export async function getOpenShift(
       .where(and(eq(shiftExpenses.tenantId, ctx.tenantId), eq(shiftExpenses.shiftId, shift.id)));
     const expenseTotal = expenses.reduce((sum, e) => sum + e.amount, BigInt(0));
 
-    const expectedCash = shift.openingCash + cashTotal + manualSalesCashTotal - expenseTotal;
+    const expectedCash = shift.openingCash + cashTotal + manualSalesCashTotal - cashRefundTotal - expenseTotal;
 
     return ok({
       id: shift.id,

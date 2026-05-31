@@ -158,52 +158,84 @@ export async function aging(input: AgingInput, ctx: AuditContext): Promise<Resul
       const details: AgingLineDetail[] = [];
       const totals = emptyBuckets();
 
+      // Group lines by partner
+      const linesByPartner = new Map<string, typeof rows>();
       for (const row of rows) {
-        // AR: outstanding = debit - credit. AP: outstanding = credit - debit.
-        const amount =
-          input.kind === 'AR'
-            ? BigInt(row.debit) - BigInt(row.credit)
-            : BigInt(row.credit) - BigInt(row.debit);
-
-        // Skip lines where the partner has been fully settled (or never
-        // had a balance to begin with).
-        if (amount === 0n) continue;
-        // Negative balance means the partner owes us nothing (or even
-        // has credit). Skip — the aging report focuses on what is open.
-        if (amount < 0n) continue;
-
-        const anchor = row.dueDate ?? row.postingDate;
-        const anchorMs = new Date(`${anchor}T00:00:00+07:00`).getTime();
-        const daysOverdue = Math.max(0, Math.floor((asOfMs - anchorMs) / (1000 * 60 * 60 * 24)));
-        const bucket = bucketFromDays(daysOverdue);
-
         const key = row.partnerId ?? '__none__';
-        const existing = perPartner.get(key) ?? {
-          partnerId: row.partnerId,
-          partnerName: row.partnerId
-            ? (partnerMap.get(row.partnerId) ?? row.partnerId)
-            : '(tanpa partner)',
-          buckets: emptyBuckets(),
-          lineCount: 0,
-        };
-        add(existing.buckets, bucket, amount);
-        add(existing.buckets, 'total', amount);
-        existing.lineCount += 1;
-        perPartner.set(key, existing);
+        if (!linesByPartner.has(key)) linesByPartner.set(key, []);
+        linesByPartner.get(key)!.push(row);
+      }
 
-        add(totals, bucket, amount);
-        add(totals, 'total', amount);
+      for (const [key, partnerRows] of linesByPartner.entries()) {
+        let totalPayments = 0n;
+        const invoices = [];
 
-        details.push({
-          journalLineId: row.journalLineId,
-          journalNumber: row.journalNumber,
-          postingDate: row.postingDate,
-          dueDate: row.dueDate,
-          daysOverdue,
-          amount: amount.toString(),
-          bucket,
-          description: row.description,
+        for (const row of partnerRows) {
+          const amount =
+            input.kind === 'AR'
+              ? BigInt(row.debit) - BigInt(row.credit)
+              : BigInt(row.credit) - BigInt(row.debit);
+          
+          if (amount < 0n) {
+            totalPayments += -amount;
+          } else if (amount > 0n) {
+            invoices.push({ row, amount });
+          }
+        }
+
+        // Sort invoices oldest first
+        invoices.sort((a, b) => {
+          const aAnchor = a.row.dueDate ?? a.row.postingDate;
+          const bAnchor = b.row.dueDate ?? b.row.postingDate;
+          return aAnchor.localeCompare(bAnchor);
         });
+
+        const partnerId = key === '__none__' ? null : key;
+        const partnerName = partnerId ? (partnerMap.get(partnerId) ?? partnerId) : '(tanpa partner)';
+        const buckets = emptyBuckets();
+        let lineCount = 0;
+
+        for (const inv of invoices) {
+          if (totalPayments >= inv.amount) {
+            totalPayments -= inv.amount;
+            continue; // fully paid
+          }
+
+          const outstanding = inv.amount - totalPayments;
+          totalPayments = 0n; // all payments used
+
+          const anchor = inv.row.dueDate ?? inv.row.postingDate;
+          const anchorMs = new Date(`${anchor}T00:00:00+07:00`).getTime();
+          const daysOverdue = Math.max(0, Math.floor((asOfMs - anchorMs) / (1000 * 60 * 60 * 24)));
+          const bucket = bucketFromDays(daysOverdue);
+
+          add(buckets, bucket, outstanding);
+          add(buckets, 'total', outstanding);
+          lineCount += 1;
+
+          add(totals, bucket, outstanding);
+          add(totals, 'total', outstanding);
+
+          details.push({
+            journalLineId: inv.row.journalLineId,
+            journalNumber: inv.row.journalNumber,
+            postingDate: inv.row.postingDate,
+            dueDate: inv.row.dueDate,
+            daysOverdue,
+            amount: outstanding.toString(),
+            bucket,
+            description: inv.row.description,
+          });
+        }
+
+        if (BigInt(buckets.total) > 0n) {
+          perPartner.set(key, {
+            partnerId,
+            partnerName,
+            buckets,
+            lineCount,
+          });
+        }
       }
 
       // Sort partners by total descending so the largest debtors / creditors

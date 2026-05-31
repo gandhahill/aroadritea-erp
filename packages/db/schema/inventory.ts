@@ -47,6 +47,7 @@ export const productCategories = pgTable(
     sortOrder: integer('sort_order').notNull().default(0),
 
     ...isActiveFlag,
+    ...versionCol,
     ...auditCols,
   },
   (t) => [

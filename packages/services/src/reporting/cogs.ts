@@ -22,7 +22,7 @@ import { bomLines, boms, productVariants, products } from '@erp/db/schema/invent
 import { AppError } from '@erp/shared/errors';
 import { type Result, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull, inArray } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 export interface CogsInput {
@@ -119,6 +119,7 @@ export async function cogsReport(input: CogsInput, ctx: AuditContext): Promise<R
               isOptional: bomLines.isOptional,
             })
             .from(bomLines)
+            .where(inArray(bomLines.bomId, bomIds))
         : [];
 
       const ingredientIds = Array.from(
@@ -133,7 +134,10 @@ export async function cogsReport(input: CogsInput, ctx: AuditContext): Promise<R
               defaultCostPrice: products.defaultCostPrice,
             })
             .from(products)
-            .where(and(eq(products.tenantId, ctx.tenantId)))
+            .where(and(
+              eq(products.tenantId, ctx.tenantId),
+              inArray(products.id, ingredientIds)
+            ))
         : [];
       const ingredientById = new Map(ingredientRows.map((r) => [r.id, r]));
 

@@ -52,7 +52,7 @@ export async function listRates(
   return tryCatch(
     async () => {
       // Build conditions
-      const conditions = [];
+      const conditions = [eq(taxRates.tenantId, ctx.tenantId)];
 
       if (options.activeOnly !== false) {
         conditions.push(eq(taxRates.isActive, true));
@@ -64,7 +64,7 @@ export async function listRates(
           or(
             isNull(taxRates.effectiveUntil),
             sql`${taxRates.effectiveUntil} >= ${options.effectiveDate}`,
-          ),
+          )!,
         );
       }
 
@@ -105,7 +105,7 @@ export async function getRateByCode(
   const row = await db
     .select()
     .from(taxRates)
-    .where(eq(taxRates.code, code))
+    .where(and(eq(taxRates.tenantId, ctx.tenantId), eq(taxRates.code, code)))
     .then((rows) => rows[0]);
 
   if (!row) {

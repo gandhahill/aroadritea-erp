@@ -4,7 +4,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, gte, lte } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { type OpenPeriodInput, OpenPeriodInputSchema } from './schemas';
@@ -54,7 +54,7 @@ export async function openPeriod(
 
   return tryCatch(
     async () => {
-      // 4. Check for existing period
+      // 4. Check for existing period or overlapping dates
       const existing = await db
         .select({ id: accountingPeriods.id })
         .from(accountingPeriods)
@@ -65,6 +65,22 @@ export async function openPeriod(
 
       if (existing.length > 0) {
         throw AppError.conflict('accounting.period.alreadyExists', { periodCode });
+      }
+
+      const overlap = await db
+        .select({ id: accountingPeriods.id })
+        .from(accountingPeriods)
+        .where(
+          and(
+            eq(accountingPeriods.tenantId, ctx.tenantId),
+            lte(accountingPeriods.startDate, endDate),
+            gte(accountingPeriods.endDate, startDate),
+          )
+        )
+        .limit(1);
+        
+      if (overlap.length > 0) {
+        throw AppError.conflict('accounting.period.invalidDates', { message: 'Period dates overlap with an existing period' });
       }
 
       // 5. Create period

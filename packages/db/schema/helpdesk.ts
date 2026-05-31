@@ -79,7 +79,7 @@ export const helpdeskTicketReplies = pgTable(
     body: text('body').notNull(),
 
     // Internal notes are visible to handlers only.
-    isInternal: text('is_internal').notNull().default('false'),
+    isInternal: boolean('is_internal').notNull().default(false),
 
     ...auditCols,
   },

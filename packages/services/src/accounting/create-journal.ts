@@ -75,7 +75,7 @@ export interface JournalLineResult {
 export async function createJournal(
   input: CreateJournalInput,
   ctx: AuditContext,
-  opts: { skipPermissionCheck?: boolean } = {},
+  opts: { skipPermissionCheck?: boolean; tx?: any } = {},
 ): Promise<Result<JournalEntryResult>> {
   // 1. Permission check
   if (!opts.skipPermissionCheck) {
@@ -219,14 +219,13 @@ export async function createJournal(
   const jeId = generateId();
   const jeNumber = await generateJournalNumber(ctx.tenantId, data.postingDate);
 
+  const dbTx = opts.tx ?? db;
+
   // 10. Insert journal entry + lines in a transaction-like flow
-  //     (Neon HTTP driver doesn't support true transactions, but inserts are
-  //      atomic per statement. We insert JE first, then lines. If lines fail,
-  //      the JE is orphaned in draft status — acceptable for draft.)
   const result = await tryCatch(
     async () => {
       // Insert journal entry
-      await db.insert(journalEntries).values({
+      await dbTx.insert(journalEntries).values({
         id: jeId,
         tenantId: ctx.tenantId,
         locationId: data.locationId,
@@ -260,7 +259,7 @@ export async function createJournal(
         expectedLossRateBps: line.expectedLossRateBps ?? null,
       }));
 
-      await db.insert(journalLines).values(lineValues);
+      await dbTx.insert(journalLines).values(lineValues);
 
       // 11. Write audit log (SD §15)
       await auditRecord({

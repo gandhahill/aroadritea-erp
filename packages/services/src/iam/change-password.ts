@@ -1,10 +1,10 @@
 import { db } from '@erp/db';
-import { users, authAccounts } from '@erp/db/schema/auth';
+import { users, authAccounts, userRoles } from '@erp/db/schema/auth';
 import { hashPassword, verifyPassword } from '@erp/services/auth/password';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { requirePermission } from './require-permission';
@@ -103,9 +103,15 @@ export async function adminResetPassword(
 
   return tryCatch(
     async () => {
-      // Hanya Admin atau user dengan permission hr.employee.write secara global yang boleh reset password
-      // Karena password adalah otentikasi global, tidak boleh dibatasi per lokasi.
-      const permCheck = await requirePermission(ctx.userId, 'hr.employee.write', { locationId: undefined });
+      // Lookup target user's locationId
+      const roleRows = await db
+        .select({ locationId: userRoles.locationId })
+        .from(userRoles)
+        .where(eq(userRoles.userId, userId))
+        .limit(1);
+      const targetLocationId = roleRows[0]?.locationId ?? undefined;
+
+      const permCheck = await requirePermission(ctx.userId, 'hr.employee.write', { locationId: targetLocationId });
       if (!permCheck.ok) {
         throw permCheck.error;
       }

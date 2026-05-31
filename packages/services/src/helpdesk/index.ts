@@ -89,7 +89,7 @@ async function generateTicketNumber(tenantId: string): Promise<string> {
   const ym = now.toISOString().slice(0, 7).replace('-', '');
   const prefix = `TKT-${ym}-`;
   const [row] = await db
-    .select({ count: sql<number>`count(*)` })
+    .select({ maxStr: sql<string>`MAX(${helpdeskTickets.number})` })
     .from(helpdeskTickets)
     .where(
       and(
@@ -97,7 +97,8 @@ async function generateTicketNumber(tenantId: string): Promise<string> {
         sql`${helpdeskTickets.number} LIKE ${`${prefix}%`}`,
       ),
     );
-  const next = (Number(row?.count ?? 0) + 1).toString().padStart(4, '0');
+  const lastNumber = row?.maxStr ? Number(row.maxStr.slice(prefix.length)) : 0;
+  const next = (lastNumber + 1).toString().padStart(4, '0');
   return `${prefix}${next}`;
 }
 
@@ -306,7 +307,7 @@ export async function getTicket(
   // Filter internal notes for non-handlers.
   const visibleReplies = handleAllowed
     ? replyRows
-    : replyRows.filter((r) => r.isInternal !== 'true');
+    : replyRows.filter((r) => !r.isInternal);
 
   const userIds = [
     ...new Set([
@@ -348,7 +349,7 @@ export async function getTicket(
       authorUserId: r.authorUserId,
       authorName: nameMap.get(r.authorUserId) ?? null,
       body: r.body,
-      isInternal: r.isInternal === 'true',
+      isInternal: r.isInternal,
       createdAt: r.createdAt.toISOString(),
     })),
   });
@@ -388,7 +389,7 @@ export async function replyTicket(
     ticketId: row.id,
     authorUserId: ctx.userId,
     body: parsed.data.body,
-    isInternal: internal ? 'true' : 'false',
+    isInternal: internal,
     createdBy: ctx.userId,
     updatedBy: ctx.userId,
   });

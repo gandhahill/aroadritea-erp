@@ -36,7 +36,8 @@ export async function hardDeleteEmployee(
   return tryCatch(
     async () => {
       // 1. Initial permission check
-      await requirePermission(ctx.userId, 'hr.employee.write');
+      const permCheck = await requirePermission(ctx.userId, 'hr.employee.write');
+      if (!permCheck.ok) throw permCheck.error;
 
       const [emp] = await db
         .select()
@@ -48,7 +49,8 @@ export async function hardDeleteEmployee(
 
       // 2. Scoped location check
       if (emp.locationId) {
-        await requirePermission(ctx.userId, 'hr.employee.write', { locationId: emp.locationId });
+        const locPermCheck = await requirePermission(ctx.userId, 'hr.employee.write', { locationId: emp.locationId });
+        if (!locPermCheck.ok) throw locPermCheck.error;
       }
 
       // 3. Validation: Prevent hard delete if ANY transactional records exist

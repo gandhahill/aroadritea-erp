@@ -23,7 +23,8 @@ export async function deleteEmployee(
 ): Promise<Result<{ id: string }>> {
   return tryCatch(
     async () => {
-      await requirePermission(ctx.userId, 'hr.employee.write');
+      const permCheck = await requirePermission(ctx.userId, 'hr.employee.write');
+      if (!permCheck.ok) throw permCheck.error;
 
       const [emp] = await db
         .select()
@@ -35,7 +36,8 @@ export async function deleteEmployee(
 
       // Pengecekan scope location
       if (emp.locationId) {
-        await requirePermission(ctx.userId, 'hr.employee.write', { locationId: emp.locationId });
+        const locPermCheck = await requirePermission(ctx.userId, 'hr.employee.write', { locationId: emp.locationId });
+        if (!locPermCheck.ok) throw locPermCheck.error;
       }
 
       const email = decryptPii(emp.email, 'employees.email');

@@ -183,6 +183,7 @@ export async function reverseJournal(
         .update(journalEntries)
         .set({
           reversedByJeId: reversalJeId,
+          status: 'reversed',
           updatedBy: ctx.userId,
           updatedAt: now,
           version: originalJe.version + 1,

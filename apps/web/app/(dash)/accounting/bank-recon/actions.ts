@@ -419,6 +419,24 @@ export async function finalizeStatement(id: string) {
   );
   if (!allowed) return { success: false, error: 'Forbidden' };
 
+  const unmatched = await db
+    .select({ id: bankStatementLines.id })
+    .from(bankStatementLines)
+    .where(
+      and(
+        eq(bankStatementLines.statementId, id),
+        eq(bankStatementLines.matchStatus, 'unmatched'),
+      ),
+    )
+    .limit(1);
+
+  if (unmatched.length > 0) {
+    return {
+      success: false,
+      error: 'Tidak dapat menyelesaikan rekonsiliasi. Masih ada transaksi yang belum di-match.',
+    };
+  }
+
   try {
     const reconciledAt = new Date();
     await db.transaction(async (tx) => {

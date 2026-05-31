@@ -116,6 +116,7 @@ export {
   pk,
   tenantCol,
   versionCol,
+  sequences,
 } from './schema/common';
 
 // Schema — Stock Opname (SD §25.9)
@@ -153,10 +154,6 @@ export {
 
 
 // Schema — Notifications
-export {
-  notifications,
-  userNotificationPreferences,
-} from './schema/notifications';
 
 // Schema — CMS (SD §31.2)
 export {

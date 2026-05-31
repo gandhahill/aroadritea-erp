@@ -5,7 +5,7 @@
  */
 
 import { sql } from 'drizzle-orm';
-import { boolean, integer, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, integer, text, timestamp, pgTable } from 'drizzle-orm/pg-core';
 
 // --- Primary Key ---
 
@@ -58,3 +58,10 @@ export const statusCol = (defaultValue = 'active') => ({
 export const isActiveFlag = {
   isActive: boolean('is_active').notNull().default(true),
 };
+
+// --- Global Sequences (SD §21.10 / H-16) ---
+
+export const sequences = pgTable('sequences', {
+  name: text('name').primaryKey(),
+  currentVal: integer('current_val').notNull().default(0),
+});

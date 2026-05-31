@@ -1,5 +1,5 @@
 import { db } from '@erp/db';
-import { notifications, userNotificationPreferences } from '@erp/db/schema/notifications';
+import { userNotifications, userNotificationPreferences } from '@erp/db/schema/notification';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -39,15 +39,14 @@ export async function createNotification(input: CreateNotificationInput, ctx: Au
   }
 
   const id = generateId();
-  await db.insert(notifications).values({
+  await db.insert(userNotifications).values({
     id,
     tenantId: ctx.tenantId,
     userId: input.userId,
     title: input.title,
-    message: input.message,
-    type: input.type,
-    eventCode: input.eventCode,
-    referenceId: input.referenceId,
+    body: input.message,
+    kind: input.eventCode || input.type,
+    link: input.referenceId || null,
     createdBy: ctx.userId,
     updatedBy: ctx.userId,
   });
@@ -57,13 +56,12 @@ export async function createNotification(input: CreateNotificationInput, ctx: Au
 
 export async function markNotificationRead(notificationId: string, ctx: AuditContext): Promise<Result<{ id: string }>> {
   await db
-    .update(notifications)
+    .update(userNotifications)
     .set({
-      isRead: true,
       readAt: new Date(),
       updatedBy: ctx.userId,
     })
-    .where(and(eq(notifications.id, notificationId), eq(notifications.tenantId, ctx.tenantId), eq(notifications.userId, ctx.userId)));
+    .where(and(eq(userNotifications.id, notificationId), eq(userNotifications.tenantId, ctx.tenantId), eq(userNotifications.userId, ctx.userId)));
 
   return ok({ id: notificationId });
 }

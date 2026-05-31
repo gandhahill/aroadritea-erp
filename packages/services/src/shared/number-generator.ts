@@ -7,11 +7,22 @@
  */
 
 import { db } from '@erp/db';
-import { invoices, journalEntries } from '@erp/db/schema/accounting';
-import { stockAdjustments, stockTransfers } from '@erp/db/schema/inventory';
-import { purchaseOrders } from '@erp/db/schema/purchasing';
-import { stockOpnameSessions } from '@erp/db/schema/stock-opname';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { sequences } from '@erp/db/schema/common';
+import { sql } from 'drizzle-orm';
+
+async function calculateNextSequence(prefix: string, sequenceName: string): Promise<string> {
+  const rows = await db
+    .insert(sequences)
+    .values({ name: sequenceName, currentVal: 1 })
+    .onConflictDoUpdate({
+      target: sequences.name,
+      set: { currentVal: sql`${sequences.currentVal} + 1` },
+    })
+    .returning({ currentVal: sequences.currentVal });
+
+  const nextSeq = rows[0]?.currentVal.toString().padStart(4, '0') ?? '0001';
+  return `${prefix}${nextSeq}`;
+}
 
 /**
  * Generate the next invoice number.
@@ -23,19 +34,7 @@ export async function generateInvoiceNumber(
 ): Promise<string> {
   const yymm = invoiceDate.substring(0, 7).replace('-', '/');
   const prefix = `INV/${yymm}/`;
-  const result = await db
-    .select({ number: invoices.number })
-    .from(invoices)
-    .where(
-      and(
-        eq(invoices.tenantId, tenantId),
-        sql`${invoices.number} LIKE ${prefix + '%'}`,
-      ),
-    )
-    .orderBy(desc(invoices.number))
-    .limit(1);
-
-  return calculateNextNumber(result[0]?.number, prefix);
+  return calculateNextSequence(prefix, `${tenantId}:${prefix}`);
 }
 
 /**
@@ -47,19 +46,7 @@ export async function generateJournalNumber(
   postingDate: string,
 ): Promise<string> {
   const prefix = `JE-${postingDate.substring(0, 7)}-`;
-  const result = await db
-    .select({ number: journalEntries.number })
-    .from(journalEntries)
-    .where(
-      and(
-        eq(journalEntries.tenantId, tenantId),
-        sql`${journalEntries.number} LIKE ${prefix + '%'}`,
-      ),
-    )
-    .orderBy(desc(journalEntries.number))
-    .limit(1);
-
-  return calculateNextNumber(result[0]?.number, prefix);
+  return calculateNextSequence(prefix, `${tenantId}:${prefix}`);
 }
 
 /**
@@ -68,19 +55,7 @@ export async function generateJournalNumber(
  */
 export async function generateAdjustmentNumber(tenantId: string, date: string): Promise<string> {
   const prefix = `ADJ-${date.substring(0, 7)}-`;
-  const result = await db
-    .select({ number: stockAdjustments.number })
-    .from(stockAdjustments)
-    .where(
-      and(
-        eq(stockAdjustments.tenantId, tenantId),
-        sql`${stockAdjustments.number} LIKE ${prefix + '%'}`,
-      ),
-    )
-    .orderBy(desc(stockAdjustments.number))
-    .limit(1);
-
-  return calculateNextNumber(result[0]?.number, prefix);
+  return calculateNextSequence(prefix, `${tenantId}:${prefix}`);
 }
 
 /**
@@ -89,19 +64,7 @@ export async function generateAdjustmentNumber(tenantId: string, date: string): 
  */
 export async function generateOpnameNumber(tenantId: string, sessionDate: string): Promise<string> {
   const prefix = `SO-${sessionDate.substring(0, 7)}-`;
-  const result = await db
-    .select({ number: stockOpnameSessions.number })
-    .from(stockOpnameSessions)
-    .where(
-      and(
-        eq(stockOpnameSessions.tenantId, tenantId),
-        sql`${stockOpnameSessions.number} LIKE ${prefix + '%'}`,
-      ),
-    )
-    .orderBy(desc(stockOpnameSessions.number))
-    .limit(1);
-
-  return calculateNextNumber(result[0]?.number, prefix);
+  return calculateNextSequence(prefix, `${tenantId}:${prefix}`);
 }
 
 /**
@@ -110,19 +73,7 @@ export async function generateOpnameNumber(tenantId: string, sessionDate: string
  */
 export async function generateTransferNumber(tenantId: string, date: string): Promise<string> {
   const prefix = `TRF-${date.substring(0, 7)}-`;
-  const result = await db
-    .select({ number: stockTransfers.number })
-    .from(stockTransfers)
-    .where(
-      and(
-        eq(stockTransfers.tenantId, tenantId),
-        sql`${stockTransfers.number} LIKE ${prefix + '%'}`,
-      ),
-    )
-    .orderBy(desc(stockTransfers.number))
-    .limit(1);
-
-  return calculateNextNumber(result[0]?.number, prefix);
+  return calculateNextSequence(prefix, `${tenantId}:${prefix}`);
 }
 
 /**
@@ -135,36 +86,5 @@ export async function generatePONumber(
   orderDate: string,
 ): Promise<string> {
   const prefix = `PO-${orderDate.substring(0, 7)}-`;
-  const result = await db
-    .select({ number: purchaseOrders.number })
-    .from(purchaseOrders)
-    .where(
-      and(
-        eq(purchaseOrders.tenantId, tenantId),
-        eq(purchaseOrders.locationId, locationId),
-        sql`${purchaseOrders.number} LIKE ${prefix + '%'}`,
-      ),
-    )
-    .orderBy(desc(purchaseOrders.number))
-    .limit(1);
-
-  return calculateNextNumber(result[0]?.number, prefix);
-}
-
-/**
- * Helper to calculate the next sequence number from the last known number.
- */
-function calculateNextNumber(lastNumber: string | undefined, prefix: string): string {
-  let nextSeqNum = 1;
-
-  if (lastNumber) {
-    const seqStr = lastNumber.substring(prefix.length);
-    const parsed = Number.parseInt(seqStr, 10);
-    if (!Number.isNaN(parsed)) {
-      nextSeqNum = parsed + 1;
-    }
-  }
-
-  const nextSeq = nextSeqNum.toString().padStart(4, '0');
-  return `${prefix}${nextSeq}`;
+  return calculateNextSequence(prefix, `${tenantId}:${locationId}:${prefix}`);
 }

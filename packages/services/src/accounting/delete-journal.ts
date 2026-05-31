@@ -39,8 +39,13 @@ export async function deleteJournal(
 
   return tryCatch(
     async () => {
-      await db.delete(journalLines).where(eq(journalLines.journalEntryId, journalId));
-      await db.delete(journalEntries).where(eq(journalEntries.id, journalId));
+      const deletedAt = new Date();
+      await db.transaction(async (tx) => {
+        await tx
+          .update(journalEntries)
+          .set({ deletedAt, updatedBy: ctx.userId, updatedAt: deletedAt })
+          .where(eq(journalEntries.id, journalId));
+      });
 
       await auditRecord({
         action: 'delete',

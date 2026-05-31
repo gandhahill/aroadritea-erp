@@ -57,6 +57,7 @@ import {
 } from '@erp/db/schema/pos';
 import { promotionApplications } from '@erp/db/schema/promotion';
 import { memberVouchers } from '@erp/db/schema/member';
+import { sequences } from '@erp/db/schema/common';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
@@ -320,9 +321,8 @@ function extractInclusiveTax(
   inclusivePrice: bigint,
   rateBps: number,
 ): { net: bigint; tax: bigint } {
-  const price10k = BigInt(inclusivePrice) * BigInt(10000);
-  const net = price10k / BigInt(10000 + rateBps);
-  const tax = inclusivePrice - net;
+  const tax = (inclusivePrice * BigInt(rateBps)) / (10000n + BigInt(rateBps));
+  const net = inclusivePrice - tax;
   return { net, tax };
 }
 
@@ -447,13 +447,19 @@ function normalizeSalePayments(
 async function generateSaleNumber(tenantId: string, locationId: string): Promise<string> {
   const now = new Date();
   const prefix = `T01-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-`;
+  const sequenceName = `${tenantId}:${locationId}:${prefix}`;
 
-  // Count existing sales orders with this prefix
-  const result = await db.execute(
-    sql`SELECT COUNT(*) FROM sales_orders WHERE tenant_id = ${tenantId} AND number LIKE ${`${prefix}%`}`,
-  );
-  const count = Number(result[0]?.count ?? 0);
-  return `${prefix}${(count + 1).toString().padStart(4, '0')}`;
+  const rows = await db
+    .insert(sequences)
+    .values({ name: sequenceName, currentVal: 1 })
+    .onConflictDoUpdate({
+      target: sequences.name,
+      set: { currentVal: sql`${sequences.currentVal} + 1` },
+    })
+    .returning({ currentVal: sequences.currentVal });
+
+  const nextSeq = rows[0]?.currentVal.toString().padStart(4, '0') ?? '0001';
+  return `${prefix}${nextSeq}`;
 }
 
 /** Look up active BOM for a product, scale by qtySold. */

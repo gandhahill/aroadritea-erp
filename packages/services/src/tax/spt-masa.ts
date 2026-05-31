@@ -91,6 +91,19 @@ export async function getVatLedger(
 
       const targetTaxCode = type === 'out' ? 'PPN_OUT' : 'PPN_IN';
 
+      const rateRows = await db
+        .select({ rateBps: taxRates.rateBps })
+        .from(taxRates)
+        .where(
+          and(
+            eq(taxRates.tenantId, ctx.tenantId),
+            eq(taxRates.code, targetTaxCode),
+            eq(taxRates.isActive, true)
+          )
+        )
+        .limit(1);
+      const ratePercent = rateRows[0] ? BigInt(rateRows[0].rateBps) / 100n : 11n;
+
       const rows = await db
         .select({
           lineId: journalLines.id,
@@ -129,11 +142,10 @@ export async function getVatLedger(
           ? r.credit - r.debit 
           : r.debit - r.credit;
 
-        // If we have invoiceSubtotal, use it as DPP. Otherwise, estimate DPP = PPN * 10 (assuming 10% rate)
-        // Wait, standard rate in Indonesia is 11% or 12%, better use invoice if available.
+        // If we have invoiceSubtotal, use it as DPP. Otherwise, estimate based on current rate.
         const dpp = r.invoiceSubtotal 
           ? r.invoiceSubtotal 
-          : (ppn * 100n / 11n); // Estimate 11%
+          : (ppn * 100n / ratePercent);
 
         return {
           journalLineId: r.lineId,
