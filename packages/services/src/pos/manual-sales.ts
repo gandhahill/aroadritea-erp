@@ -515,10 +515,16 @@ export async function deleteManualSalesClosing(id: string, ctx: AuditContext) {
         await compensateIngredientDeductions(deductions, ctx, true);
       }
 
-      // 2. Reverse journal if posted
       if (closing.journalEntryId) {
+        let pDate = closing.salesDate as string | Date;
+        if (pDate instanceof Date) {
+          pDate = pDate.toISOString().split('T')[0];
+        } else if (typeof pDate === 'string' && pDate.length > 10) {
+          pDate = pDate.substring(0, 10);
+        }
+        
         const reverseRes = await reverseJournal(
-          { journalId: closing.journalEntryId, postingDate: closing.salesDate },
+          { journalId: closing.journalEntryId, postingDate: pDate as string },
           ctx,
           { skipPermissionCheck: true }
         );

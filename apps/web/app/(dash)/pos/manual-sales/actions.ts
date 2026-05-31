@@ -22,6 +22,18 @@ export async function fetchManualSaleDetailAction(id: string) {
   return { ok: true, value: res.value };
 }
 
+export async function deleteManualSaleAction(id: string) {
+  const ctx = await getAuditContext();
+  if (!ctx) return { ok: false, error: 'Unauthenticated' };
+  const res = await deleteManualSalesClosing(id, ctx);
+  if (!res.ok) {
+    console.error('Failed to delete manual sale:', res.error);
+    return { ok: false, error: errorMessage(res.error) };
+  }
+  revalidatePath('/pos/manual-sales');
+  return { ok: true };
+}
+
 export interface ManualSalesPageData {
   locations: Array<{ id: string; label: string; code: string }>;
   products: Array<{ id: string; name: string; sellPrice: string; variantId: string | null }>;

@@ -121,9 +121,14 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
   const executeDelete = async () => {
     if (!deleteConfirmId) return;
     setIsDeleting(true);
-    await deleteManualSalesAction(deleteConfirmId);
+    const res = await deleteManualSalesAction(deleteConfirmId);
     setIsDeleting(false);
-    setDeleteConfirmId(null);
+    
+    if (res && !res.ok) {
+      alert(res.error || t('deleteFailed', { defaultValue: 'Gagal menghapus riwayat closing' }));
+    } else {
+      setDeleteConfirmId(null);
+    }
   };
 
   const today = new Date().toISOString().slice(0, 10);
