@@ -33,6 +33,7 @@ const PURPOSE_META: Record<PostingAccountPurpose, { group: GroupKey; labelKey: s
   'fixedAsset.gainOnDisposal': { group: 'other', labelKey: 'fixedAssetGain' },
   'period.incomeSummary': { group: 'other', labelKey: 'periodIncomeSummary' },
   'period.retainedEarnings': { group: 'other', labelKey: 'periodRetainedEarnings' },
+  'equity.opening': { group: 'other', labelKey: 'equityOpening' },
 };
 
 interface AccountOption {
