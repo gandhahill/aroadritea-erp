@@ -528,7 +528,13 @@ export async function deleteManualSalesClosing(id: string, ctx: AuditContext) {
           ctx,
           { skipPermissionCheck: true }
         );
-        if (!reverseRes.ok) throw reverseRes.error;
+        if (!reverseRes.ok) {
+          // If already reversed, we can proceed safely to void the closing
+          const isAlreadyReversed = reverseRes.error.code === 'BUSINESS_RULE' && reverseRes.error.messageKey === 'accounting.journal.cannotReverse';
+          if (!isAlreadyReversed) {
+            throw reverseRes.error;
+          }
+        }
       }
 
       // 3. Mark as voided
