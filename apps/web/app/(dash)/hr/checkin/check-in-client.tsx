@@ -16,6 +16,13 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { serverCheckIn } from './actions';
 
+interface LocationGps {
+  lat: number;
+  lng: number;
+  radiusM: number;
+  name: string;
+}
+
 interface Props {
   // userId / tenantId no longer flow through the client — serverCheckIn
   // resolves session-side. Kept on the prop type so the parent server
@@ -25,6 +32,19 @@ interface Props {
   locationId: string;
   employeeId: string;
   shifts: Array<{ id: string; label: string; time: string }>;
+  locationGps?: LocationGps | null;
+}
+
+function haversineM(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371000;
+  const φ1 = (lat1 * Math.PI) / 180;
+  const φ2 = (lat2 * Math.PI) / 180;
+  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+  const Δλ = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 type GpsStatus = 'idle' | 'requesting' | 'granted' | 'denied' | 'error' | 'low_accuracy';
@@ -36,7 +56,7 @@ interface GpsState {
   watchId: number | null;
 }
 
-export function CheckInClient({ locationId, employeeId, shifts }: Props) {
+export function CheckInClient({ locationId, employeeId, shifts, locationGps }: Props) {
   const t = useTranslations('hr.attendance.checkInPage');
   const attendanceT = useTranslations('hr.attendance');
   const locale = useLocale();
@@ -55,6 +75,18 @@ export function CheckInClient({ locationId, employeeId, shifts }: Props) {
     if (locale === 'zh') return 'zh-CN';
     return 'id-ID';
   }, [locale]);
+
+  // Distance from user GPS to configured outlet location
+  const locationCheck = useMemo(() => {
+    if (!locationGps || !gps.data) return null;
+    const distanceM = haversineM(gps.data.lat, gps.data.lng, locationGps.lat, locationGps.lng);
+    return {
+      distanceM: Math.round(distanceM),
+      radiusM: locationGps.radiusM,
+      withinRadius: distanceM <= locationGps.radiusM,
+      locationName: locationGps.name,
+    };
+  }, [locationGps, gps.data]);
 
   // Live clock
   useEffect(() => {
@@ -221,6 +253,44 @@ export function CheckInClient({ locationId, employeeId, shifts }: Props) {
             </button>
           )}
         </div>
+
+        {/* Location detection status */}
+        {locationCheck && (
+          <div
+            className={`flex items-center gap-3 rounded-xl border p-4 ${
+              locationCheck.withinRadius
+                ? 'border-brand-jade/30 bg-brand-jade/5'
+                : 'border-rose-200 bg-rose-50'
+            }`}
+          >
+            <span className="text-2xl">{locationCheck.withinRadius ? '📍' : '⚠️'}</span>
+            <div className="flex-1">
+              <p
+                className={`text-sm font-semibold ${
+                  locationCheck.withinRadius ? 'text-brand-jade' : 'text-rose-600'
+                }`}
+              >
+                {locationCheck.withinRadius
+                  ? t('status.withinRadius')
+                  : t('status.outsideRadius')}
+              </p>
+              <p className="text-xs text-brand-ink-3">
+                {t('status.distanceInfo', {
+                  distance: locationCheck.distanceM,
+                  radius: locationCheck.radiusM,
+                  location: locationCheck.locationName,
+                })}
+              </p>
+            </div>
+          </div>
+        )}
+        {!locationGps && gps.data && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <p className="text-xs text-amber-700">
+              {t('status.gpsNotConfigured')}
+            </p>
+          </div>
+        )}
 
         {/* Shift selection */}
         <div className="space-y-2">

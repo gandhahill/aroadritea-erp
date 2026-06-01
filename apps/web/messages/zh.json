@@ -2606,7 +2606,11 @@
           "gettingLocation": "获取位置中...",
           "denied": "已拒绝",
           "error": "错误",
-          "notStarted": "未开始"
+          "notStarted": "未开始",
+          "withinRadius": "已检测到在门店位置",
+          "outsideRadius": "超出门店范围",
+          "distanceInfo": "距离{location} {distance}米（半径{radius}米）",
+          "gpsNotConfigured": "门店GPS坐标未配置，请联系管理员。"
         },
         "actions": {
           "requestPermissionAgain": "重新请求位置权限",

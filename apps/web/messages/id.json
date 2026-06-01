@@ -2685,7 +2685,11 @@
           "gettingLocation": "Mengambil lokasi...",
           "denied": "Ditolak",
           "error": "Error",
-          "notStarted": "Belum mulai"
+          "notStarted": "Belum mulai",
+          "withinRadius": "Terdeteksi di lokasi outlet",
+          "outsideRadius": "Di luar jangkauan outlet",
+          "distanceInfo": "Jarak {distance}m dari {location} (radius {radius}m)",
+          "gpsNotConfigured": "Koordinat GPS outlet belum dikonfigurasi. Hubungi administrator."
         },
         "actions": {
           "requestPermissionAgain": "Minta izin lokasi lagi",

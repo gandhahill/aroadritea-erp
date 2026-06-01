@@ -8,6 +8,7 @@
 import { getSession } from '@/lib/auth';
 import { and, asc, db, eq, inArray, isNull } from '@erp/db';
 import { employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
+import { locations } from '@erp/db/schema/iam';
 import { resolveShiftTime } from '@erp/services/hr';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
@@ -107,6 +108,33 @@ export default async function CheckInPage() {
     };
   });
 
+  // Fetch location GPS config so the client can show distance feedback
+  let locationGps: { lat: number; lng: number; radiusM: number; name: string } | null = null;
+  if (activeLocationId) {
+    const [loc] = await db
+      .select({
+        gpsLat: locations.gpsLat,
+        gpsLng: locations.gpsLng,
+        gpsRadiusM: locations.gpsRadiusM,
+        name: locations.name,
+        code: locations.code,
+      })
+      .from(locations)
+      .where(eq(locations.id, activeLocationId))
+      .limit(1);
+
+    if (loc?.gpsLat && loc?.gpsLng) {
+      const lat = Number(loc.gpsLat);
+      const lng = Number(loc.gpsLng);
+      const radiusM = Number(loc.gpsRadiusM ?? 150);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        const nameObj = loc.name as Record<string, string> | null;
+        const locName = nameObj?.id ?? nameObj?.en ?? loc.code ?? '';
+        locationGps = { lat, lng, radiusM, name: locName };
+      }
+    }
+  }
+
   return (
     <CheckInClient
       userId={userId}
@@ -114,6 +142,7 @@ export default async function CheckInPage() {
       locationId={locationId}
       employeeId={employeeId}
       shifts={shifts}
+      locationGps={locationGps}
     />
   );
 }

@@ -2606,7 +2606,11 @@
           "gettingLocation": "Getting location...",
           "denied": "Denied",
           "error": "Error",
-          "notStarted": "Not started"
+          "notStarted": "Not started",
+          "withinRadius": "Detected at outlet location",
+          "outsideRadius": "Outside outlet range",
+          "distanceInfo": "{distance}m from {location} (radius {radius}m)",
+          "gpsNotConfigured": "Outlet GPS coordinates not configured. Contact administrator."
         },
         "actions": {
           "requestPermissionAgain": "Request location permission again",
