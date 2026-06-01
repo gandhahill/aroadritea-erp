@@ -64,8 +64,11 @@ async function assertLoginAllowed(
   const hasRealIp = ipAddress !== 'direct';
 
   if (hasRealIp) {
+    // Use max(attemptedAt) — the NEWEST failed attempt determines when
+    // the sliding window finally clears. min() would undercount because
+    // older attempts expire first while newer ones keep the lock alive.
     const recentIpFailures = await db
-      .select({ oldest: sql<Date>`min(${loginAttempts.attemptedAt})` })
+      .select({ newest: sql<Date>`max(${loginAttempts.attemptedAt})` })
       .from(loginAttempts)
       .where(
         and(
@@ -77,13 +80,13 @@ async function assertLoginAllowed(
       .having(sql`count(*) >= ${LOGIN_FAILURE_LIMIT}`);
 
     if (recentIpFailures.length > 0) {
-      const oldest = recentIpFailures[0]!.oldest;
-      const elapsed = Math.floor((Date.now() - new Date(oldest).getTime()) / 1000);
+      const newest = recentIpFailures[0]!.newest;
+      const elapsed = Math.floor((Date.now() - new Date(newest).getTime()) / 1000);
       return rateLimitResponse(Math.max(1, RATE_LIMIT_WINDOW_SECS - elapsed));
     }
 
     const hourlyIpFailures = await db
-      .select({ oldest: sql<Date>`min(${loginAttempts.attemptedAt})` })
+      .select({ newest: sql<Date>`max(${loginAttempts.attemptedAt})` })
       .from(loginAttempts)
       .where(
         and(
@@ -95,8 +98,8 @@ async function assertLoginAllowed(
       .having(sql`count(*) >= ${ATTACK_FAILURE_LIMIT}`);
 
     if (hourlyIpFailures.length > 0) {
-      const oldest = hourlyIpFailures[0]!.oldest;
-      const elapsed = Math.floor((Date.now() - new Date(oldest).getTime()) / 1000);
+      const newest = hourlyIpFailures[0]!.newest;
+      const elapsed = Math.floor((Date.now() - new Date(newest).getTime()) / 1000);
       return rateLimitResponse(Math.max(1, ATTACK_LIMIT_WINDOW_SECS - elapsed));
     }
   }
@@ -104,7 +107,7 @@ async function assertLoginAllowed(
   if (!emailHash) return null;
 
   const recentAccountFailures = await db
-    .select({ oldest: sql<Date>`min(${loginAttempts.attemptedAt})` })
+    .select({ newest: sql<Date>`max(${loginAttempts.attemptedAt})` })
     .from(loginAttempts)
     .where(
       and(
@@ -116,8 +119,8 @@ async function assertLoginAllowed(
     .having(sql`count(*) >= ${LOGIN_FAILURE_LIMIT}`);
 
   if (recentAccountFailures.length > 0) {
-    const oldest = recentAccountFailures[0]!.oldest;
-    const elapsed = Math.floor((Date.now() - new Date(oldest).getTime()) / 1000);
+    const newest = recentAccountFailures[0]!.newest;
+    const elapsed = Math.floor((Date.now() - new Date(newest).getTime()) / 1000);
     return rateLimitResponse(Math.max(1, RATE_LIMIT_WINDOW_SECS - elapsed));
   }
 
@@ -149,7 +152,9 @@ export async function POST(request: Request) {
 
   const blockedResponse = await assertLoginAllowed(ipAddress, emailHash);
   if (blockedResponse) {
-    await recordLoginAttempt(ipAddress, emailHash, userAgent, false);
+    // Do NOT record another failed attempt here — the user never actually
+    // tried a credential. Recording it would extend the lockout window
+    // beyond what retryAfter promised, causing the countdown to lie.
     return blockedResponse;
   }
 
