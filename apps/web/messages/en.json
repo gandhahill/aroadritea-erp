@@ -1336,6 +1336,8 @@
         "identitySection": "Product identity",
         "descriptionSection": "Description",
         "pricingSection": "Pricing and stock",
+        "initialStockSection": "Initial Stock per Outlet (Optional)",
+        "initialStockHint": "Enter the starting stock (in default unit).",
         "sku": "SKU",
         "category": "Category",
         "name": "Product name",

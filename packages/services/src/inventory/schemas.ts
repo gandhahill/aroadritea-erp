@@ -175,6 +175,7 @@ export const AdjustmentLineInputSchema = z.object({
   productId: z.string().min(1),
   variantId: z.string().optional(),
   batchNo: z.string().optional(),
+  expiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   qtyBefore: z.string().regex(/^\d+(\.\d+)?$/),
   qtyAfter: z.string().regex(/^\d+(\.\d+)?$/),
   qtyDelta: z.string().regex(/^-?\d+(\.\d+)?$/),
@@ -216,6 +217,7 @@ export const TransferLineInputSchema = z.object({
   productId: z.string().min(1),
   variantId: z.string().optional(),
   batchNo: z.string().optional(),
+  expiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   qty: z
     .string()
     .regex(/^\d+(\.\d+)?$/)

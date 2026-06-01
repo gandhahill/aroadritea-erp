@@ -522,6 +522,7 @@ export const stockTransferLines = pgTable(
     productId: text('product_id').notNull(), // FK products
     variantId: text('variant_id'), // FK product_variants
     batchNo: text('batch_no'),
+    expiryDate: date('expiry_date'),
 
     qtySent: numeric('qty_sent', { precision: 14, scale: 3 }).notNull(),
     qtyReceived: numeric('qty_received', { precision: 14, scale: 3 }),
@@ -548,6 +549,7 @@ export const stockAdjustmentLines = pgTable(
     productId: text('product_id').notNull(), // FK products
     variantId: text('variant_id'), // FK product_variants
     batchNo: text('batch_no'),
+    expiryDate: date('expiry_date'),
 
     qtyBefore: numeric('qty_before', { precision: 14, scale: 3 }).notNull(),
     qtyAfter: numeric('qty_after', { precision: 14, scale: 3 }).notNull(),

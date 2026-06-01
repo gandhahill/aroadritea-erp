@@ -243,9 +243,9 @@ export function ProductForm({ mode, categories, product, defaultKind, locations 
 
       {mode === 'create' && locations && locations.length > 0 && (
         <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-brand-ink">Stok Awal per Outlet (Opsional)</h2>
+          <h2 className="text-base font-semibold text-brand-ink">{f('initialStockSection')}</h2>
           <p className="mt-1 text-sm text-brand-ink-3">
-            Isi stok awal (dalam satuan default). Sistem otomatis akan membuatkan Jurnal Opening Balance (Debet: Persediaan, Kredit: Modal/Equity).
+            {f('initialStockHint')}
           </p>
           <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {locations.map((loc) => (

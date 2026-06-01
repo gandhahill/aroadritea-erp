@@ -1335,7 +1335,9 @@
       "form": {
         "identitySection": "产品信息",
         "descriptionSection": "描述",
-        "pricingSection": "价格和库存",
+        "pricingSection": "定价和库存",
+        "initialStockSection": "每个分店的初始库存 (可选)",
+        "initialStockHint": "输入初始库存 (按默认单位)。",
         "sku": "SKU",
         "category": "分类",
         "name": "产品名称",

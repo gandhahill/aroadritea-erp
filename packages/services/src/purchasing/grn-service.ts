@@ -165,10 +165,19 @@ export async function createGRN(rawInput: unknown, ctx: AuditContext): Promise<R
     );
   }
 
-  // Load all PO lines
+  // Load all PO lines and products
   const poLines = await db
-    .select()
+    .select({
+      id: purchaseOrderLines.id,
+      productId: purchaseOrderLines.productId,
+      qtyOrdered: purchaseOrderLines.qtyOrdered,
+      qtyReceived: purchaseOrderLines.qtyReceived,
+      unitPrice: purchaseOrderLines.unitPrice,
+      trackBatch: products.trackBatch,
+      trackExpiry: products.trackExpiry
+    })
     .from(purchaseOrderLines)
+    .innerJoin(products, eq(products.id, purchaseOrderLines.productId))
     .where(eq(purchaseOrderLines.purchaseOrderId, po.id))
     .orderBy(purchaseOrderLines.lineNo);
 
@@ -191,6 +200,24 @@ export async function createGRN(rawInput: unknown, ctx: AuditContext): Promise<R
           poLineId: grnLine.poLineId,
           expected: poLine.productId,
           got: grnLine.productId,
+        }),
+      );
+    }
+
+    if (poLine.trackBatch && !grnLine.batchNo) {
+      return err(
+        AppError.validation('purchasing.errors.missing_batch_no', {
+          poLineId: grnLine.poLineId,
+          productId: grnLine.productId,
+        }),
+      );
+    }
+    
+    if (poLine.trackExpiry && !grnLine.expiryDate) {
+      return err(
+        AppError.validation('purchasing.errors.missing_expiry_date', {
+          poLineId: grnLine.poLineId,
+          productId: grnLine.productId,
         }),
       );
     }

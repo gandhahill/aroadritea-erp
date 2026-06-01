@@ -60,6 +60,7 @@ export interface TransferLineResult {
   productId: string;
   variantId: string | null;
   batchNo: string | null;
+  expiryDate: string | null;
   qtySent: string;
   qtyReceived: string | null;
   uom: string;
@@ -83,6 +84,7 @@ function buildTransferResult(
     productId: string;
     variantId: string | null;
     batchNo: string | null;
+    expiryDate: string | null;
     qtySent: string;
     qtyReceived: string | null;
     uom: string;
@@ -101,6 +103,7 @@ function buildTransferResult(
       productId: l.productId,
       variantId: l.variantId ?? null,
       batchNo: l.batchNo ?? null,
+      expiryDate: l.expiryDate ?? null,
       qtySent: l.qtySent,
       qtyReceived: l.qtyReceived ?? null,
       uom: l.uom,
@@ -139,7 +142,12 @@ export async function createTransferDraft(
   // Validate product IDs
   const productIds = [...new Set(data.lines.map((l) => l.productId))];
   const foundProducts = await db
-    .select({ id: products.id, isActive: products.isActive })
+    .select({ 
+      id: products.id, 
+      isActive: products.isActive,
+      trackBatch: products.trackBatch,
+      trackExpiry: products.trackExpiry
+    })
     .from(products)
     .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, productIds)));
   const productMap = new Map(foundProducts.map((p) => [p.id, p]));
@@ -154,6 +162,20 @@ export async function createTransferDraft(
     if (!p.isActive) {
       return err(
         AppError.businessRule('inventory.transfer.productInactive', { productId: line.productId }),
+      );
+    }
+    if (p.trackBatch && !line.batchNo) {
+      return err(
+        AppError.validation('inventory.transfer.missingBatchNo', {
+          productId: line.productId,
+        }),
+      );
+    }
+    if (p.trackExpiry && !line.expiryDate) {
+      return err(
+        AppError.validation('inventory.transfer.missingExpiryDate', {
+          productId: line.productId,
+        }),
       );
     }
   }
@@ -183,6 +205,7 @@ export async function createTransferDraft(
       productId: line.productId,
       variantId: line.variantId ?? null,
       batchNo: line.batchNo ?? null,
+      expiryDate: line.expiryDate ?? null,
       qtySent: line.qty,
       qtyReceived: null,
       uom: line.uom,
@@ -296,6 +319,7 @@ export async function shipTransfer(
       productId: line.productId,
       variantId: line.variantId ?? null,
       batchNo: line.batchNo ?? null,
+      expiryDate: line.expiryDate ?? null,
       qtyDelta: `-${line.qtySent}` as unknown as ReturnType<typeof String>,
       uom: line.uom,
       reason: 'transfer_out' as const,
@@ -315,6 +339,7 @@ export async function shipTransfer(
       productId: line.productId,
       variantId: line.variantId ?? null,
       batchNo: line.batchNo ?? null,
+      expiryDate: line.expiryDate ?? null,
       qtyDelta: line.qtySent,
       uom: line.uom,
       reason: 'transfer_in' as const,
@@ -575,6 +600,7 @@ export async function receiveTransfer(
           productId: line.productId,
           variantId: line.variantId ?? null,
           batchNo: line.batchNo ?? null,
+          expiryDate: line.expiryDate ?? null,
           qtyOnHand: qtyReceived,
           qtyReserved: '0',
           qtyAvailable: qtyReceived,

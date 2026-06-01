@@ -1336,6 +1336,8 @@
         "identitySection": "Identitas produk",
         "descriptionSection": "Deskripsi",
         "pricingSection": "Harga dan stok",
+        "initialStockSection": "Stok Awal per Outlet (Opsional)",
+        "initialStockHint": "Isi stok awal (dalam satuan default).",
         "sku": "SKU",
         "category": "Kategori",
         "name": "Nama produk",

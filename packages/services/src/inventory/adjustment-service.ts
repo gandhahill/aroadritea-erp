@@ -70,6 +70,7 @@ export interface AdjustmentLineResult {
   productId: string;
   variantId: string | null;
   batchNo: string | null;
+  expiryDate: string | null;
   qtyBefore: string;
   qtyAfter: string;
   qtyDelta: string;
@@ -114,6 +115,7 @@ function buildLineResult(
     | 'productId'
     | 'variantId'
     | 'batchNo'
+    | 'expiryDate'
     | 'qtyBefore'
     | 'qtyAfter'
     | 'qtyDelta'
@@ -127,6 +129,7 @@ function buildLineResult(
     productId: l.productId,
     variantId: l.variantId ?? null,
     batchNo: l.batchNo ?? null,
+    expiryDate: l.expiryDate ?? null,
     qtyBefore: l.qtyBefore,
     qtyAfter: l.qtyAfter,
     qtyDelta: l.qtyDelta,
@@ -166,7 +169,12 @@ export async function createAdjustmentDraft(
   // 3. Validate product IDs exist and are active
   const productIds = [...new Set(data.lines.map((l) => l.productId))];
   const foundProducts = await db
-    .select({ id: products.id, isActive: products.isActive })
+    .select({ 
+      id: products.id, 
+      isActive: products.isActive,
+      trackBatch: products.trackBatch,
+      trackExpiry: products.trackExpiry
+    })
     .from(products)
     .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, productIds)));
   const productMap = new Map(foundProducts.map((p) => [p.id, p]));
@@ -183,6 +191,20 @@ export async function createAdjustmentDraft(
     if (!p.isActive) {
       return err(
         AppError.businessRule('inventory.adjust.productInactive', {
+          productId: line.productId,
+        }),
+      );
+    }
+    if (p.trackBatch && !line.batchNo) {
+      return err(
+        AppError.validation('inventory.adjust.missingBatchNo', {
+          productId: line.productId,
+        }),
+      );
+    }
+    if (p.trackExpiry && !line.expiryDate) {
+      return err(
+        AppError.validation('inventory.adjust.missingExpiryDate', {
           productId: line.productId,
         }),
       );
@@ -214,6 +236,7 @@ export async function createAdjustmentDraft(
       productId: line.productId,
       variantId: line.variantId ?? null,
       batchNo: line.batchNo ?? null,
+      expiryDate: line.expiryDate ?? null,
       qtyBefore: line.qtyBefore,
       qtyAfter: line.qtyAfter,
       qtyDelta: line.qtyDelta,
@@ -582,6 +605,7 @@ export async function approveAdjustment(
       productId: line.productId,
       variantId: line.variantId ?? null,
       batchNo: line.batchNo ?? null,
+      expiryDate: line.expiryDate ?? null,
       qtyDelta: line.qtyDelta,
       uom: line.uom,
       reason: 'adjustment' as const,
@@ -637,6 +661,7 @@ export async function approveAdjustment(
             productId: line.productId,
             variantId: line.variantId ?? null,
             batchNo: line.batchNo ?? null,
+            expiryDate: line.expiryDate ?? null,
             qtyOnHand: line.qtyAfter,
             qtyReserved: '0',
             qtyAvailable: line.qtyAfter,
