@@ -8,7 +8,7 @@
 import { getSession } from '@/lib/auth';
 import { and, asc, db, eq, inArray, isNull } from '@erp/db';
 import { employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
-import { locations } from '@erp/db/schema/iam';
+import { locations } from '@erp/db/schema/auth';
 import { resolveShiftTime } from '@erp/services/hr';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
