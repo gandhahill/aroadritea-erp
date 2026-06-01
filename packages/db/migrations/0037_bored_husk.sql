@@ -353,7 +353,7 @@ CREATE TABLE IF NOT EXISTS "reservations" (
 );
 --> statement-breakpoint
 ALTER TABLE "invoices" DROP CONSTRAINT "invoices_status_check";--> statement-breakpoint
-ALTER TABLE "invoice_lines" ADD COLUMN "unit" text;--> statement-breakpoint
+-- ALTER TABLE "invoice_lines" ADD COLUMN "unit" text;--> statement-breakpoint
 --> statement-breakpoint
 ALTER TABLE "partners" ADD COLUMN "lifetime_spend" bigint DEFAULT 0 NOT NULL;--> statement-breakpoint
 ALTER TABLE "partners" ADD COLUMN "loyalty_points" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
