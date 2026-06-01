@@ -2,7 +2,7 @@
 
 import { getSession } from '@/lib/auth';
 import { authorizedLocationIdsForTenant } from '@/lib/authz';
-import { and, db, eq, gte, inArray, lte, sql } from '@erp/db';
+import { and, db, eq, gte, inArray, lte, sql, isNull } from '@erp/db';
 import { auditLog } from '@erp/db/schema/audit';
 import { locations } from '@erp/db/schema/auth';
 import {
@@ -230,6 +230,7 @@ export async function fetchRoster(
         and(
           eq(shiftDefinitions.tenantId, ctx.tenantId),
           eq(shiftDefinitions.isActive, true),
+          isNull(shiftDefinitions.deletedAt),
           ...(allowedLocationIds
             ? [inArray(shiftDefinitions.locationId, allowedLocationIds)]
             : []),
