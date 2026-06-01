@@ -188,6 +188,7 @@
       "suspended": "Your account has been suspended",
       "totpCode": "OTP Code",
       "errorInvalidTotp": "Invalid OTP code",
+      "errorRateLimit": "Too many login attempts. Try again in:",
       "passwordChanged": "Password changed successfully. Please sign in again."
     },
     "changePassword": {

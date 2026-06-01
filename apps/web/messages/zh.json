@@ -188,6 +188,7 @@
       "suspended": "您的账户已被暂停",
       "totpCode": "OTP 代码",
       "errorInvalidTotp": "OTP代码无效",
+      "errorRateLimit": "登录尝试次数过多。请在以下时间后重试：",
       "passwordChanged": "密码已成功更改。请重新登录。"
     },
     "changePassword": {

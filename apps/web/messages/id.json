@@ -188,6 +188,7 @@
       "suspended": "Akun Anda ditangguhkan",
       "totpCode": "Kode OTP",
       "errorInvalidTotp": "Kode OTP salah",
+      "errorRateLimit": "Terlalu banyak percobaan login. Coba lagi dalam:",
       "passwordChanged": "Kata sandi berhasil diubah. Silakan masuk kembali."
     },
     "changePassword": {

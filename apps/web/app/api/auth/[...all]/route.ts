@@ -14,6 +14,18 @@ import { toNextJsHandler } from 'better-auth/next-js';
 const handlers = toNextJsHandler(auth);
 const LOGIN_FAILURE_LIMIT = 5;
 const ATTACK_FAILURE_LIMIT = 20;
+const RATE_LIMIT_WINDOW_SECS = 15 * 60; // 15 minutes
+const ATTACK_LIMIT_WINDOW_SECS = 60 * 60; // 1 hour
+
+function rateLimitResponse(retryAfter: number) {
+  return Response.json(
+    { error: { message: 'RATE_LIMITED', retryAfter } },
+    {
+      status: 429,
+      headers: { 'Retry-After': String(retryAfter) },
+    },
+  );
+}
 
 export const GET = handlers.GET;
 
@@ -53,7 +65,7 @@ async function assertLoginAllowed(
 
   if (hasRealIp) {
     const recentIpFailures = await db
-      .select({ id: loginAttempts.id })
+      .select({ oldest: sql<Date>`min(${loginAttempts.attemptedAt})` })
       .from(loginAttempts)
       .where(
         and(
@@ -62,14 +74,16 @@ async function assertLoginAllowed(
           sql`${loginAttempts.attemptedAt} >= now() - interval '15 minutes'`,
         ),
       )
-      .limit(LOGIN_FAILURE_LIMIT);
+      .having(sql`count(*) >= ${LOGIN_FAILURE_LIMIT}`);
 
-    if (recentIpFailures.length >= LOGIN_FAILURE_LIMIT) {
-      return Response.json({ error: { message: 'Too many login attempts' } }, { status: 429 });
+    if (recentIpFailures.length > 0) {
+      const oldest = recentIpFailures[0]!.oldest;
+      const elapsed = Math.floor((Date.now() - new Date(oldest).getTime()) / 1000);
+      return rateLimitResponse(Math.max(1, RATE_LIMIT_WINDOW_SECS - elapsed));
     }
 
     const hourlyIpFailures = await db
-      .select({ id: loginAttempts.id })
+      .select({ oldest: sql<Date>`min(${loginAttempts.attemptedAt})` })
       .from(loginAttempts)
       .where(
         and(
@@ -78,17 +92,19 @@ async function assertLoginAllowed(
           sql`${loginAttempts.attemptedAt} >= now() - interval '1 hour'`,
         ),
       )
-      .limit(ATTACK_FAILURE_LIMIT);
+      .having(sql`count(*) >= ${ATTACK_FAILURE_LIMIT}`);
 
-    if (hourlyIpFailures.length >= ATTACK_FAILURE_LIMIT) {
-      return Response.json({ error: { message: 'Login temporarily blocked' } }, { status: 429 });
+    if (hourlyIpFailures.length > 0) {
+      const oldest = hourlyIpFailures[0]!.oldest;
+      const elapsed = Math.floor((Date.now() - new Date(oldest).getTime()) / 1000);
+      return rateLimitResponse(Math.max(1, ATTACK_LIMIT_WINDOW_SECS - elapsed));
     }
   }
 
   if (!emailHash) return null;
 
   const recentAccountFailures = await db
-    .select({ id: loginAttempts.id })
+    .select({ oldest: sql<Date>`min(${loginAttempts.attemptedAt})` })
     .from(loginAttempts)
     .where(
       and(
@@ -97,10 +113,12 @@ async function assertLoginAllowed(
         sql`${loginAttempts.attemptedAt} >= now() - interval '15 minutes'`,
       ),
     )
-    .limit(LOGIN_FAILURE_LIMIT);
+    .having(sql`count(*) >= ${LOGIN_FAILURE_LIMIT}`);
 
-  if (recentAccountFailures.length >= LOGIN_FAILURE_LIMIT) {
-    return Response.json({ error: { message: 'Too many login attempts' } }, { status: 429 });
+  if (recentAccountFailures.length > 0) {
+    const oldest = recentAccountFailures[0]!.oldest;
+    const elapsed = Math.floor((Date.now() - new Date(oldest).getTime()) / 1000);
+    return rateLimitResponse(Math.max(1, RATE_LIMIT_WINDOW_SECS - elapsed));
   }
 
   return null;

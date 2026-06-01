@@ -11,7 +11,7 @@ import { authClient } from '@/lib/auth-client';
 import { Input, Select } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { type FormEvent, Suspense, useState } from 'react';
+import { type FormEvent, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 
 export default function LoginPage() {
   return (
@@ -36,6 +36,39 @@ function LoginContent() {
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
+  const rateLimitTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Countdown timer for rate limit
+  useEffect(() => {
+    if (rateLimitSeconds <= 0) {
+      if (rateLimitTimer.current) {
+        clearInterval(rateLimitTimer.current);
+        rateLimitTimer.current = null;
+      }
+      return;
+    }
+    rateLimitTimer.current = setInterval(() => {
+      setRateLimitSeconds((prev) => {
+        if (prev <= 1) {
+          setError(null);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => {
+      if (rateLimitTimer.current) clearInterval(rateLimitTimer.current);
+    };
+  }, [rateLimitSeconds > 0]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const formatCountdown = useCallback((secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}`;
+  }, []);
+
+  const isRateLimited = rateLimitSeconds > 0;
 
   const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard';
   const suspendedError = searchParams.get('error') === 'suspended';
@@ -70,21 +103,35 @@ function LoginContent() {
         return;
       }
 
-      const result = await authClient.signIn.email({
-        email,
-        password,
+      // Direct fetch so we can read retryAfter from 429 responses.
+      // authClient.signIn.email() swallows the custom fields.
+      const res = await fetch('/api/auth/sign-in/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include',
       });
 
-      if (result.error) {
+      if (res.status === 429) {
+        const body = await res.json().catch(() => ({}));
+        const retryAfter = body?.error?.retryAfter;
+        const secs = typeof retryAfter === 'number' && retryAfter > 0 ? retryAfter : 900;
+        setRateLimitSeconds(secs);
+        setError(t('errorRateLimit'));
+        void recordAuthEvent({ action: 'login_failed', email, reason: 'rate_limited' });
+      } else if (!res.ok) {
         setError(t('errorInvalid'));
         void recordAuthEvent({ action: 'login_failed', email, reason: 'invalid_credentials' });
-      } else if ((result.data as any)?.twoFactorRedirect) {
-        setShowTwoFactor(true);
       } else {
-        document.cookie = `aroadri.locale=${selectedLocale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
-        void recordAuthEvent({ action: 'login', email });
-        router.push(callbackUrl);
-        router.refresh();
+        const data = await res.json().catch(() => ({}));
+        if (data?.twoFactorRedirect) {
+          setShowTwoFactor(true);
+        } else {
+          document.cookie = `aroadri.locale=${selectedLocale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
+          void recordAuthEvent({ action: 'login', email });
+          router.push(callbackUrl);
+          router.refresh();
+        }
       }
     } catch {
       setError(t('errorServer'));
@@ -149,11 +196,16 @@ function LoginContent() {
           {/* Error message */}
           {error && (
             <div
-              className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700"
+              className={`mb-4 rounded-md p-3 text-sm ${isRateLimited ? 'bg-amber-50 text-amber-800' : 'bg-red-50 text-red-700'}`}
               role="alert"
               id="login-error"
             >
-              {error}
+              <p>{error}</p>
+              {isRateLimited && (
+                <p className="mt-1.5 font-mono text-lg font-bold tabular-nums">
+                  {formatCountdown(rateLimitSeconds)}
+                </p>
+              )}
             </div>
           )}
 
@@ -278,7 +330,7 @@ function LoginContent() {
             <button
               type="submit"
               id="login-submit"
-              disabled={loading}
+              disabled={loading || isRateLimited}
               className="interactive h-10 w-full rounded-md bg-brand-red font-medium text-white hover:bg-brand-red-dark active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ transition: 'all 220ms cubic-bezier(0.16, 1, 0.3, 1)' }}
             >
