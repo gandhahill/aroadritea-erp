@@ -29,5 +29,19 @@ export async function serverCheckIn(input: CheckInInput) {
   if (!ctx) {
     return { ok: false as const, error: { code: 'UNAUTHENTICATED', message: 'Session expired' } };
   }
-  return checkIn(input, ctx);
+  const result = await checkIn(input, ctx);
+  if (!result.ok) {
+    // AppError extends Error — Error instances lose their properties when
+    // serialized through Next.js server actions. Convert to a plain object.
+    const e = result.error as any;
+    return {
+      ok: false as const,
+      error: {
+        code: e?.code ?? 'UNKNOWN',
+        message: e?.messageKey ?? e?.message ?? 'Check-in failed',
+        details: e?.details,
+      },
+    };
+  }
+  return result;
 }

@@ -5,7 +5,7 @@ import { can } from '@erp/services/iam';
 import type { AuditContext } from '@erp/shared/types';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { forbidden, notFound, redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { fetchAssignableRoles } from '../actions';
 import { EditLoginModal } from './edit-login-modal';
 import { DeleteEmployeeButton } from './delete-employee-button';
@@ -63,7 +63,7 @@ export default async function EmployeeDetailPage({
   const result = await getEmployee(id, ctx);
   if (!result.ok) {
     if (result.error.code === 'NOT_FOUND') notFound();
-    if (result.error.code === 'FORBIDDEN') forbidden();
+    if (result.error.code === 'FORBIDDEN') redirect('/dashboard?error=forbidden');
     throw new Error(result.error.message ?? result.error.messageKey ?? 'Failed to load employee');
   }
   const emp = result.value;

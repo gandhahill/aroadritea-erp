@@ -10,7 +10,7 @@ import { listEmployees } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { forbidden, redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { fetchEmployeeLocationOptions } from './actions';
 import { EmployeeListClient } from './employee-list-client';
 import { ExportEmployeesButton } from './export-employees-button';
@@ -67,7 +67,7 @@ export default async function EmployeesPage({
     fetchEmployeeLocationOptions(),
   ]);
   if (!result.ok) {
-    if (result.error.code === 'FORBIDDEN') forbidden();
+    if (result.error.code === 'FORBIDDEN') redirect('/dashboard?error=forbidden');
     throw new Error(result.error.message ?? result.error.messageKey ?? 'Failed to load employees');
   }
 

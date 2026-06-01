@@ -148,7 +148,12 @@ export function CheckInClient({ locationId, employeeId, shifts }: Props) {
         setResult({ ok: true, message: t('messages.checkedInOnTime') });
       }
     } else {
-      const msg = res.error?.message ?? t('messages.checkInFailed');
+      // messageKey is e.g. 'hr.attendance.outsideLocationRadius' — extract
+      // the last segment to look up the translated string under hr.attendance.*
+      const key = res.error?.message ?? '';
+      const shortKey = key.includes('.') ? key.split('.').pop()! : '';
+      const translated = shortKey ? attendanceT(shortKey, { defaultValue: '' }) : '';
+      const msg = translated || key || t('messages.checkInFailed');
       setResult({ ok: false, message: msg });
     }
   };
