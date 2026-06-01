@@ -50,6 +50,8 @@ export interface ManualSalesPageData {
     grossSales: string;
     taxTotal: string;
     netRevenue: string;
+    sourceReference: string | null;
+    notes: string | null;
     journalEntryId: string | null;
     status: string;
     createdByName?: string | null;
@@ -375,6 +377,8 @@ export async function serverExportManualSales(locationId?: string) {
     'Gross Sales',
     'Tax Total',
     'Net Revenue',
+    'Source Reference',
+    'Notes',
     'Journal Entry ID',
   ];
   const rows = result.items.map((i) => [
@@ -387,6 +391,8 @@ export async function serverExportManualSales(locationId?: string) {
     i.grossSales,
     i.taxTotal,
     i.netRevenue,
+    i.sourceReference || '-',
+    i.notes || '-',
     i.journalEntryId || '-',
   ]);
 

@@ -497,9 +497,12 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                 <Th>{t('salesDate')}</Th>
                 <Th>{t('channel')}</Th>
                 <Th>{t('paymentMethod')}</Th>
+                <Th align="right">{t('transactionCount')}</Th>
                 <Th align="right">{t('grossSales')}</Th>
                 <Th align="right">{t('taxTotal')}</Th>
                 <Th align="right">{t('netRevenue')}</Th>
+                <Th>{t('sourceReference')}</Th>
+                <Th>{t('notes')}</Th>
                 <Th>{t('journal')}</Th>
                 <Th>{t('postedBy', { defaultValue: 'Dibuat Oleh' })}</Th>
                 <Th align="right">{t('actions', { defaultValue: 'Aksi' })}</Th>
@@ -508,7 +511,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             <TableBody className="divide-y divide-brand-cream-3">
               {data.items.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-8 text-center text-brand-ink-3">
+                  <td colSpan={13} className="px-4 py-8 text-center text-brand-ink-3">
                     {t('empty')}
                   </td>
                 </tr>
@@ -528,9 +531,12 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     <Td>{item.salesDate}</Td>
                     <Td>{item.channel}</Td>
                     <Td>{item.paymentMethod}</Td>
+                    <Td align="right">{item.transactionCount}</Td>
                     <Td align="right">{formatRupiah(item.grossSales)}</Td>
                     <Td align="right">{formatRupiah(item.taxTotal)}</Td>
                     <Td align="right">{formatRupiah(item.netRevenue)}</Td>
+                    <Td>{item.sourceReference || '-'}</Td>
+                    <Td><span className="max-w-[200px] truncate block">{item.notes || '-'}</span></Td>
                     <Td>{item.journalEntryId ? t('synced') : t('notSynced')}</Td>
                     <Td>
                       {item.createdByName || '-'}
