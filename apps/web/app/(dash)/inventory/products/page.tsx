@@ -8,7 +8,6 @@ import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { fetchProductMasterData } from './actions';
-import { CategoryForm } from './category-form';
 import { ImportCsvPanel } from './import-csv';
 import { ProductRowActions } from './row-actions';
 
@@ -101,8 +100,6 @@ export default async function ProductsPage({ searchParams }: Props) {
         locations={locationOptions}
         defaultLocationId={userLocationId || locationOptions[0]?.id || ''}
       />
-
-      <CategoryForm />
 
       {/* Kind filter tabs */}
       <div className="flex flex-wrap gap-2">

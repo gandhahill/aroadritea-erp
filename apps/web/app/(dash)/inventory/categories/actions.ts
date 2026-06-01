@@ -63,22 +63,33 @@ export async function fetchCategories(): Promise<CategoryWithCount[]> {
   }));
 }
 
-export async function createCategoryAction(name: string) {
-  const normalized = name.trim();
-  if (!normalized) throw new Error('Category name is required');
-
+export async function createCategoryAction(formData: FormData) {
   const ctx = await getAuditContext();
+  
+  const code = String(formData.get('categoryCode') ?? '').trim();
+  const nameId = String(formData.get('categoryNameId') ?? '').trim();
+  const nameEn = String(formData.get('categoryNameEn') ?? '').trim();
+  const nameZh = String(formData.get('categoryNameZh') ?? '').trim();
+  
+  if (!code || !nameId) {
+    return { ok: false, error: 'Code and Name ID are required' };
+  }
+
   const result = await createCategory(
     {
-      code: slugCode(normalized),
-      name: { id: normalized, en: normalized, zh: normalized },
+      code,
+      name: { id: nameId, en: nameEn || nameId, zh: nameZh || nameId },
       sortOrder: 0,
     },
     ctx,
   );
-  if (!result.ok) throw new Error(result.error.message);
+
+  if (!result.ok) {
+    return { ok: false, error: result.error.message };
+  }
 
   revalidatePath('/inventory/categories');
+  return { ok: true };
 }
 
 export async function deleteCategoryAction(id: string): Promise<{ ok: boolean; error?: string }> {

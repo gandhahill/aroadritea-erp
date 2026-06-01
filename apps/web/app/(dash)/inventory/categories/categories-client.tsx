@@ -4,9 +4,9 @@ import { Button, Input, TableCell, TableHead } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { CategoryForm } from './category-form';
 import {
   type CategoryWithCount,
-  createCategoryAction,
   deleteCategoryAction,
   updateCategoryNameAction,
 } from './actions';
@@ -16,29 +16,11 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
   const locale = useLocale() as 'id' | 'en' | 'zh';
   const t = useTranslations('inventory.categories');
   const tCommon = useTranslations('common');
-  const [isCreating, setIsCreating] = useState(false);
-  const [newName, setNewName] = useState('');
   const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [isSavingEdit, setIsSavingEdit] = useState(false);
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newName.trim()) return;
-    setMessage(null);
-    try {
-      setIsCreating(true);
-      await createCategoryAction(newName);
-      setNewName('');
-      router.refresh();
-    } catch {
-      setMessage({ type: 'error', text: t('createFailed') });
-    } finally {
-      setIsCreating(false);
-    }
-  };
 
   const handleDelete = async (id: string) => {
     setMessage(null);
@@ -99,24 +81,7 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
         </div>
       )}
 
-      <form onSubmit={handleCreate} className="flex items-center gap-3">
-        <input
-          type="text"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          placeholder={t('newNamePlaceholder')}
-          className="rounded-lg border border-brand-cream-3 px-3 py-2 text-sm focus:border-brand-red focus:outline-none"
-        />
-        <Button
-          type="submit"
-          disabled={isCreating || !newName.trim()}
-          className="rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
-          variant="primary"
-          size="md"
-        >
-          {isCreating ? t('saving') : t('add')}
-        </Button>
-      </form>
+      <CategoryForm />
 
       <div className="surface-card overflow-hidden">
         <table className="w-full text-sm">
