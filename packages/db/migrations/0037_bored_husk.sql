@@ -353,42 +353,42 @@ CREATE TABLE IF NOT EXISTS "reservations" (
 );
 --> statement-breakpoint
 ALTER TABLE "invoices" DROP CONSTRAINT "invoices_status_check";--> statement-breakpoint
--- ALTER TABLE "invoice_lines" ADD COLUMN "unit" text;--> statement-breakpoint
+-- ALTER TABLE "invoice_lines" ADD COLUMN IF NOT EXISTS "unit" text;--> statement-breakpoint
 --> statement-breakpoint
-ALTER TABLE "partners" ADD COLUMN "lifetime_spend" bigint DEFAULT 0 NOT NULL;--> statement-breakpoint
-ALTER TABLE "partners" ADD COLUMN "loyalty_points" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
-ALTER TABLE "partners" ADD COLUMN "rating" integer DEFAULT 0;--> statement-breakpoint
-ALTER TABLE "partners" ADD COLUMN "lead_time_days" integer DEFAULT 0;--> statement-breakpoint
-ALTER TABLE "locations" ADD COLUMN "opening_hours" jsonb;--> statement-breakpoint
-ALTER TABLE "locations" ADD COLUMN "delivery_link" text;--> statement-breakpoint
-ALTER TABLE "locations" ADD COLUMN "map_embed_url" text;--> statement-breakpoint
-ALTER TABLE "correspondence_records" ADD COLUMN "agenda_no" text;--> statement-breakpoint
-ALTER TABLE "correspondence_records" ADD COLUMN "attachments" jsonb DEFAULT '[]'::jsonb NOT NULL;--> statement-breakpoint
-ALTER TABLE "correspondence_records" ADD COLUMN "dispositions" jsonb DEFAULT '[]'::jsonb NOT NULL;--> statement-breakpoint
-ALTER TABLE "helpdesk_tickets" ADD COLUMN "sla_due_date" timestamp with time zone;--> statement-breakpoint
-ALTER TABLE "helpdesk_tickets" ADD COLUMN "is_sla_breached" boolean DEFAULT false NOT NULL;--> statement-breakpoint
-ALTER TABLE "helpdesk_tickets" ADD COLUMN "escalation_level" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
-ALTER TABLE "attendance" ADD COLUMN "is_face_verified" boolean DEFAULT false NOT NULL;--> statement-breakpoint
-ALTER TABLE "attendance" ADD COLUMN "face_match_score" integer;--> statement-breakpoint
-ALTER TABLE "employees" ADD COLUMN "marital_status" text DEFAULT 'TK' NOT NULL;--> statement-breakpoint
-ALTER TABLE "employees" ADD COLUMN "dependents_count" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
-ALTER TABLE "employees" ADD COLUMN "is_bpjs_base" boolean DEFAULT true NOT NULL;--> statement-breakpoint
-ALTER TABLE "employees" ADD COLUMN "is_taxable" boolean DEFAULT true NOT NULL;--> statement-breakpoint
-ALTER TABLE "employees" ADD COLUMN "bank_name" text;--> statement-breakpoint
-ALTER TABLE "employees" ADD COLUMN "bank_account_number" text;--> statement-breakpoint
-ALTER TABLE "employees" ADD COLUMN "bank_account_holder" text;--> statement-breakpoint
-ALTER TABLE "boms" ADD COLUMN "yield_qty" numeric(14, 3) DEFAULT '1' NOT NULL;--> statement-breakpoint
-ALTER TABLE "boms" ADD COLUMN "yield_uom" text DEFAULT 'portion' NOT NULL;--> statement-breakpoint
-ALTER TABLE "boms" ADD COLUMN "effective_from" date;--> statement-breakpoint
-ALTER TABLE "boms" ADD COLUMN "effective_until" date;--> statement-breakpoint
-ALTER TABLE "stock_levels" ADD COLUMN "allocated_qty" numeric(14, 3) DEFAULT '0' NOT NULL;--> statement-breakpoint
-ALTER TABLE "sales_orders" ADD COLUMN "parked_at" timestamp with time zone;--> statement-breakpoint
-ALTER TABLE "sales_orders" ADD COLUMN "park_note" text;--> statement-breakpoint
-ALTER TABLE "sales_orders" ADD COLUMN "naixer_payload" text;--> statement-breakpoint
-ALTER TABLE "sales_orders" ADD COLUMN "voucher_discount" bigint DEFAULT 0 NOT NULL;--> statement-breakpoint
-ALTER TABLE "whistleblower_reports" ADD COLUMN "location_id" text;--> statement-breakpoint
-ALTER TABLE "whistleblower_reports" ADD COLUMN "category" text DEFAULT 'general' NOT NULL;--> statement-breakpoint
-ALTER TABLE "whistleblower_reports" ADD COLUMN "severity" text DEFAULT 'medium' NOT NULL;--> statement-breakpoint
+ALTER TABLE "partners" ADD COLUMN IF NOT EXISTS "lifetime_spend" bigint DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "partners" ADD COLUMN IF NOT EXISTS "loyalty_points" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "partners" ADD COLUMN IF NOT EXISTS "rating" integer DEFAULT 0;--> statement-breakpoint
+ALTER TABLE "partners" ADD COLUMN IF NOT EXISTS "lead_time_days" integer DEFAULT 0;--> statement-breakpoint
+ALTER TABLE "locations" ADD COLUMN IF NOT EXISTS "opening_hours" jsonb;--> statement-breakpoint
+ALTER TABLE "locations" ADD COLUMN IF NOT EXISTS "delivery_link" text;--> statement-breakpoint
+ALTER TABLE "locations" ADD COLUMN IF NOT EXISTS "map_embed_url" text;--> statement-breakpoint
+ALTER TABLE "correspondence_records" ADD COLUMN IF NOT EXISTS "agenda_no" text;--> statement-breakpoint
+ALTER TABLE "correspondence_records" ADD COLUMN IF NOT EXISTS "attachments" jsonb DEFAULT '[]'::jsonb NOT NULL;--> statement-breakpoint
+ALTER TABLE "correspondence_records" ADD COLUMN IF NOT EXISTS "dispositions" jsonb DEFAULT '[]'::jsonb NOT NULL;--> statement-breakpoint
+ALTER TABLE "helpdesk_tickets" ADD COLUMN IF NOT EXISTS "sla_due_date" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "helpdesk_tickets" ADD COLUMN IF NOT EXISTS "is_sla_breached" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "helpdesk_tickets" ADD COLUMN IF NOT EXISTS "escalation_level" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "attendance" ADD COLUMN IF NOT EXISTS "is_face_verified" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "attendance" ADD COLUMN IF NOT EXISTS "face_match_score" integer;--> statement-breakpoint
+ALTER TABLE "employees" ADD COLUMN IF NOT EXISTS "marital_status" text DEFAULT 'TK' NOT NULL;--> statement-breakpoint
+ALTER TABLE "employees" ADD COLUMN IF NOT EXISTS "dependents_count" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "employees" ADD COLUMN IF NOT EXISTS "is_bpjs_base" boolean DEFAULT true NOT NULL;--> statement-breakpoint
+ALTER TABLE "employees" ADD COLUMN IF NOT EXISTS "is_taxable" boolean DEFAULT true NOT NULL;--> statement-breakpoint
+ALTER TABLE "employees" ADD COLUMN IF NOT EXISTS "bank_name" text;--> statement-breakpoint
+ALTER TABLE "employees" ADD COLUMN IF NOT EXISTS "bank_account_number" text;--> statement-breakpoint
+ALTER TABLE "employees" ADD COLUMN IF NOT EXISTS "bank_account_holder" text;--> statement-breakpoint
+ALTER TABLE "boms" ADD COLUMN IF NOT EXISTS "yield_qty" numeric(14, 3) DEFAULT '1' NOT NULL;--> statement-breakpoint
+ALTER TABLE "boms" ADD COLUMN IF NOT EXISTS "yield_uom" text DEFAULT 'portion' NOT NULL;--> statement-breakpoint
+ALTER TABLE "boms" ADD COLUMN IF NOT EXISTS "effective_from" date;--> statement-breakpoint
+ALTER TABLE "boms" ADD COLUMN IF NOT EXISTS "effective_until" date;--> statement-breakpoint
+ALTER TABLE "stock_levels" ADD COLUMN IF NOT EXISTS "allocated_qty" numeric(14, 3) DEFAULT '0' NOT NULL;--> statement-breakpoint
+ALTER TABLE "sales_orders" ADD COLUMN IF NOT EXISTS "parked_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "sales_orders" ADD COLUMN IF NOT EXISTS "park_note" text;--> statement-breakpoint
+ALTER TABLE "sales_orders" ADD COLUMN IF NOT EXISTS "naixer_payload" text;--> statement-breakpoint
+ALTER TABLE "sales_orders" ADD COLUMN IF NOT EXISTS "voucher_discount" bigint DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "whistleblower_reports" ADD COLUMN IF NOT EXISTS "location_id" text;--> statement-breakpoint
+ALTER TABLE "whistleblower_reports" ADD COLUMN IF NOT EXISTS "category" text DEFAULT 'general' NOT NULL;--> statement-breakpoint
+ALTER TABLE "whistleblower_reports" ADD COLUMN IF NOT EXISTS "severity" text DEFAULT 'medium' NOT NULL;--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "nsfp_blocks_tenant_active_idx" ON "nsfp_blocks" USING btree ("tenant_id","is_active");--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "tax_invoices_nsfp_idx" ON "tax_invoices" USING btree ("nsfp");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "tax_invoices_invoice_idx" ON "tax_invoices" USING btree ("invoice_id");--> statement-breakpoint
