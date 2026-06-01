@@ -65,7 +65,7 @@ export function TrendLineChart({
   locale = 'id-ID',
   noDataLabel = '-',
 }: ChartProps<TrendDatum>) {
-  if (data.length === 0) {
+  if (data.length === 0 || data.every((d) => d.value === 0)) {
     return <p className="text-xs text-brand-ink-3">{noDataLabel}</p>;
   }
   return (

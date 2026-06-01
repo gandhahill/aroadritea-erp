@@ -26,7 +26,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
 import { createJournal } from '../accounting/create-journal';
 import { getPostingAccountCodes } from '../accounting/posting-accounts';
@@ -133,7 +133,7 @@ async function upsertStockLevel(params: {
 }): Promise<void> {
   const variantMatch = params.variantId
     ? eq(stockLevels.variantId, params.variantId)
-    : eq(stockLevels.variantId, '' as unknown as string);
+    : isNull(stockLevels.variantId);
 
   const existing = await db
     .select({ id: stockLevels.id })
@@ -693,21 +693,26 @@ export async function approveOpname(
 
   let resultJournalId: string | null = null;
 
-  // Resolve inventory and COGS accounts
+  // Resolve inventory and adjustment accounts (not COGS — opname variance
+  // should hit the same adjustment expense/income accounts as stock adjustments
+  // per SD §9.3: 6-1110 beban penyesuaian / 4-2020 pendapatan lainnya).
   const acctCodes = await getPostingAccountCodes(ctx.tenantId);
   const inventoryCode = acctCodes.inventory;
-  const cogsCode = acctCodes.cogs;
+  const adjustExpenseCode = acctCodes['adjustment.expense'];
+  const adjustIncomeCode = acctCodes['adjustment.income'];
 
-  const codeMap = await resolveAccountIdsByCodes(ctx.tenantId, [inventoryCode, cogsCode]);
+  const codeMap = await resolveAccountIdsByCodes(ctx.tenantId, [inventoryCode, adjustExpenseCode, adjustIncomeCode]);
   const inventoryAccountId = codeMap.get(inventoryCode);
-  const cogsAccountId = codeMap.get(cogsCode);
+  const adjustExpenseAccountId = codeMap.get(adjustExpenseCode);
+  const adjustIncomeAccountId = codeMap.get(adjustIncomeCode);
 
-  if (!inventoryAccountId || !cogsAccountId) {
+  if (!inventoryAccountId || !adjustExpenseAccountId || !adjustIncomeAccountId) {
     return err(
       AppError.businessRule('inventory.opname.varianceAccountsMissing', {
         missing: [
           !inventoryAccountId ? inventoryCode : null,
-          !cogsAccountId ? cogsCode : null,
+          !adjustExpenseAccountId ? adjustExpenseCode : null,
+          !adjustIncomeAccountId ? adjustIncomeCode : null,
         ].filter(Boolean),
       }),
     );
@@ -736,8 +741,8 @@ export async function approveOpname(
 
   // 4. Calculate Periodic True-Up Adjustment
   // adjustment = totalPhysicalValue - glBalance
-  // If adjustment > 0, we need to INCREASE GL balance (Debit Inventory, Credit COGS)
-  // If adjustment < 0, we need to DECREASE GL balance (Credit Inventory, Debit COGS)
+  // If adjustment > 0, we need to INCREASE GL balance (Debit Inventory, Credit Adjustment Income)
+  // If adjustment < 0, we need to DECREASE GL balance (Debit Adjustment Expense, Credit Inventory)
   const adjustmentValue = totalPhysicalValue - glBalance;
 
   if (adjustmentValue !== BigInt(0)) {
@@ -748,7 +753,7 @@ export async function approveOpname(
           postingDate: session.sessionDate.toString().substring(0, 10),
           locationId: session.locationId,
           description: `Stock Opname ${session.number} — periodic true-up gain`,
-          referenceType: 'manual',
+          referenceType: 'stock_adjustment',
           referenceId: sessionId,
           lines: [
             {
@@ -758,7 +763,7 @@ export async function approveOpname(
               locationId: session.locationId,
             },
             {
-              accountId: cogsAccountId,
+              accountId: adjustIncomeAccountId,
               debit: '0',
               credit: adjustmentValue.toString(),
               locationId: session.locationId,
@@ -778,11 +783,11 @@ export async function approveOpname(
           postingDate: session.sessionDate.toString().substring(0, 10),
           locationId: session.locationId,
           description: `Stock Opname ${session.number} — periodic true-up loss`,
-          referenceType: 'manual',
+          referenceType: 'stock_adjustment',
           referenceId: sessionId,
           lines: [
             {
-              accountId: cogsAccountId,
+              accountId: adjustExpenseAccountId,
               debit: absValue,
               credit: '0',
               locationId: session.locationId,

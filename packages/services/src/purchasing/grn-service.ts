@@ -583,7 +583,7 @@ export async function confirmGRN(
         for (const line of lines) {
           const variantCondition = line.variantId
             ? eq(stockLevels.variantId, line.variantId)
-            : eq(stockLevels.variantId, '' as unknown as string);
+            : isNull(stockLevels.variantId);
 
           const existingStock = await db
             .select({ id: stockLevels.id, qtyOnHand: stockLevels.qtyOnHand, avgUnitCost: stockLevels.avgUnitCost })

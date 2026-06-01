@@ -10,7 +10,7 @@ import { productCategories, productVariants, products } from '@erp/db/schema/inv
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 import type { ProductResult } from './create-product';
 import { type ListProductsInput, ListProductsInputSchema } from './schemas';
@@ -76,7 +76,7 @@ export async function listProducts(
   return tryCatch(
     async () => {
       // Build conditions
-      const conditions = [eq(products.tenantId, ctx.tenantId)];
+      const conditions = [eq(products.tenantId, ctx.tenantId), isNull(products.deletedAt)];
 
       if (data.isActive !== undefined) {
         conditions.push(eq(products.isActive, data.isActive));
@@ -166,7 +166,7 @@ export async function listProducts(
           })
           .from(productVariants)
           .where(
-            and(inArray(productVariants.productId, productIds), eq(productVariants.isActive, true)),
+            and(inArray(productVariants.productId, productIds), eq(productVariants.tenantId, ctx.tenantId), eq(productVariants.isActive, true)),
           )
           .groupBy(productVariants.productId);
 
@@ -263,20 +263,20 @@ export async function getProduct(
             eq(productCategories.tenantId, ctx.tenantId),
           ),
         )
-        .where(and(eq(products.tenantId, ctx.tenantId), eq(products.id, productId)))
+        .where(and(eq(products.tenantId, ctx.tenantId), eq(products.id, productId), isNull(products.deletedAt)))
         .limit(1);
 
       if (!row) {
         throw AppError.notFound('inventory.product.notFound', { productId });
       }
 
-      // Fetch variants — tenant-scoped (variants live under a product but
-      // a stray join could still leak a cross-tenant row).
+      // Fetch variants — tenant-scoped, active only (variants live under a
+      // product but a stray join could still leak a cross-tenant row).
       const variants = await db
         .select()
         .from(productVariants)
         .where(
-          and(eq(productVariants.productId, productId), eq(productVariants.tenantId, ctx.tenantId)),
+          and(eq(productVariants.productId, productId), eq(productVariants.tenantId, ctx.tenantId), eq(productVariants.isActive, true)),
         )
         .orderBy(productVariants.sortOrder);
 

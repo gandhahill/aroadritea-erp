@@ -1,13 +1,15 @@
 import { db } from '@erp/db';
-import { stockAdjustments, stockAdjustmentLines, products } from '@erp/db/schema/inventory';
+import { stockAdjustments, stockAdjustmentLines, stockLevels, products } from '@erp/db/schema/inventory';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { generateId } from '@erp/shared/id';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { requirePermission } from '../iam';
 import { createJournal } from '../accounting/create-journal';
+import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
+import { getPostingAccountCodes } from '../accounting/posting-accounts';
 import { depleteStock } from './stock-depletion-service';
 
 export const RecordWasteInputSchema = z.object({
@@ -51,7 +53,19 @@ export async function recordWaste(input: RecordWasteInput, ctx: AuditContext): P
   );
 
   if (!depletionResult.ok) return depletionResult;
-  const totalCost = BigInt(0);
+
+  // Compute waste cost from stock level's avgUnitCost (or product defaultCostPrice)
+  const variantCond = input.variantId
+    ? eq(stockLevels.variantId, input.variantId)
+    : isNull(stockLevels.variantId);
+  const [slRow] = await db
+    .select({ avgUnitCost: stockLevels.avgUnitCost })
+    .from(stockLevels)
+    .where(and(eq(stockLevels.tenantId, ctx.tenantId), eq(stockLevels.locationId, input.locationId), eq(stockLevels.productId, input.productId), variantCond))
+    .limit(1);
+  const unitCost = (slRow?.avgUnitCost as bigint | null) ?? product.defaultCostPrice ?? 0n;
+  const scaledQty = BigInt(Math.round(input.quantity * 1000));
+  const totalCost = (scaledQty * unitCost) / 1000n;
 
   // 3. Save Adjustment Header & Lines
   await db.insert(stockAdjustments).values({
@@ -85,37 +99,44 @@ export async function recordWaste(input: RecordWasteInput, ctx: AuditContext): P
     updatedBy: ctx.userId,
   });
 
-  // 4. Auto-Journal (Debit Waste Expense, Credit Inventory)
-  const inventoryAccount = product.inventoryAccountId ?? 'inv-default-id';
-  // Use a generic waste expense account ID for now
-  const wasteExpenseAccount = 'waste-expense-account-id';
+  // 4. Auto-Journal (Debit Waste/Adjustment Expense, Credit Inventory)
+  if (totalCost > 0n) {
+    const acctCodes = await getPostingAccountCodes(ctx.tenantId);
+    const invCode = acctCodes.inventory;
+    const expCode = acctCodes['adjustment.expense'];
+    const invAccountId = product.inventoryAccountId
+      ?? (await resolveAccountIdsByCodes(ctx.tenantId, [invCode])).get(invCode);
+    const expAccountId = (await resolveAccountIdsByCodes(ctx.tenantId, [expCode])).get(expCode);
 
-  await createJournal(
-    {
-      postingDate: new Date().toISOString().split('T')[0] as string,
-      locationId: input.locationId,
-      description: `Waste Adjustment ${adjId}`,
-      referenceType: 'stock_adjustment',
-      referenceId: adjId,
-      lines: [
+    if (invAccountId && expAccountId) {
+      await createJournal(
         {
-          accountId: wasteExpenseAccount,
+          postingDate: new Date().toISOString().slice(0, 10),
           locationId: input.locationId,
-          description: `Waste Expense - ${input.reason}`,
-          debit: totalCost.toString(),
-          credit: '0',
+          description: `Waste Adjustment ${adjId} — ${input.reason}`,
+          referenceType: 'stock_adjustment',
+          referenceId: adjId,
+          lines: [
+            {
+              accountId: expAccountId,
+              locationId: input.locationId,
+              description: `Waste: ${input.reason}`,
+              debit: totalCost.toString(),
+              credit: '0',
+            },
+            {
+              accountId: invAccountId,
+              locationId: input.locationId,
+              description: `Inventory decrease (waste)`,
+              debit: '0',
+              credit: totalCost.toString(),
+            },
+          ],
         },
-        {
-          accountId: inventoryAccount,
-          locationId: input.locationId,
-          description: `Inventory Decrease (Waste)`,
-          debit: '0',
-          credit: totalCost.toString(),
-        },
-      ],
-    },
-    ctx, { skipPermissionCheck: true }
-  );
+        ctx, { skipPermissionCheck: true }
+      );
+    }
+  }
 
   return ok({ id: adjId });
 }

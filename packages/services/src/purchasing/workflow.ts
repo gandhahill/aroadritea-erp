@@ -442,7 +442,7 @@ export async function cancelPO(
     const grns = await db.select().from(goodsReceiptNotes).where(eq(goodsReceiptNotes.purchaseOrderId, po.id));
     for (const grn of grns) {
       if (grn.status === 'confirmed') {
-        const [je] = await db.select().from(journalEntries).where(and(eq(journalEntries.referenceType, 'goods_receipt'), eq(journalEntries.referenceId, grn.id))).limit(1);
+        const [je] = await db.select().from(journalEntries).where(and(eq(journalEntries.referenceType, 'purchase'), eq(journalEntries.referenceId, grn.id))).limit(1);
         if (je) {
           const revRes = await reverseJournal({
              journalId: je.id,
@@ -485,7 +485,7 @@ export async function cancelPO(
           for (const line of lines) {
             const variantCondition = line.variantId
               ? eq(stockLevels.variantId, line.variantId)
-              : eq(stockLevels.variantId, '' as unknown as string);
+              : isNull(stockLevels.variantId);
             await db
               .update(stockLevels)
               .set({

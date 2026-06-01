@@ -75,6 +75,7 @@ export interface DailySummaryResult {
   netRevenue: string; // netSales − commissionDelivery
   refundTotal: string;
   refundCount: number;
+  totalOrderCount: number;
   paymentBreakdown: PaymentMethodRow[];
   shiftSummary: ShiftSummaryRow[];
   topProducts: ProductSaleRow[];
@@ -370,6 +371,10 @@ export async function getDailySummary(
     .slice(0, 10)
     .map((p, idx) => ({ ...p, rank: idx + 1 }));
 
+  const totalOrderCount =
+    paidSaleRows.length +
+    manualSaleRows.reduce((sum, m) => sum + (m.transactionCount ?? 1), 0);
+
   return ok({
     period: { start: params.startDate, end: params.endDate },
     locationId: params.locationId,
@@ -381,6 +386,7 @@ export async function getDailySummary(
     netRevenue: netRevenue.toString(),
     refundTotal: refundTotal.toString(),
     refundCount,
+    totalOrderCount,
     paymentBreakdown,
     shiftSummary,
     topProducts,

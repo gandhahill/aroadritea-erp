@@ -200,7 +200,7 @@ export async function fetchPurchasingDashboard(): Promise<PurchasingDashboardDat
   return {
     purchaseOrders: [...grouped.values()],
     suppliers: supplierRows,
-    canCreate: createScope.locationIds.length > 0,
+    canCreate: createScope.global || createScope.locationIds.length > 0,
   };
 }
 
@@ -690,7 +690,7 @@ export async function receiveGoodsAction(
   );
   if (!allowed) return { success: false, error: t('unauthorized') };
   const notes = String(formData.get('notes') ?? '');
-  const receivedDate = new Date().toISOString(); // or from formData if needed, but today is fine for GRN
+  const receivedDate = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format required by schema
 
   // Parse lines from formData
   const lines: any[] = [];

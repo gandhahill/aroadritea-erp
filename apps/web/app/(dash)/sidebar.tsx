@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { PermissionCode } from '@erp/shared/types';
 import { useEffect, useRef, useState } from 'react';
+import { useMobileMenu } from './mobile-menu-context';
 
 interface NavItem {
   label: string;
@@ -22,9 +23,12 @@ interface NavItem {
 
 export function Sidebar({
   permissions,
+  mobile = false,
 }: {
   permissions: { global: string[]; byLocation: Record<string, string[]> };
+  mobile?: boolean;
 }) {
+  const { isOpen, close } = useMobileMenu();
   const pathname = usePathname();
   const t = useTranslations('nav');
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
@@ -662,13 +666,17 @@ export function Sidebar({
     return false;
   }
 
-  return (
+  const showExpanded = mobile ? true : !isCollapsed;
+
+  const sidebarContent = (
     <aside
-      className={`flex h-full flex-col border-r border-brand-cream-3 bg-card transition-[width] duration-300 ${isCollapsed ? 'w-[72px]' : 'w-64'}`}
+      className={`flex h-full flex-col border-r border-brand-cream-3 bg-card transition-[width] duration-300 ${
+        mobile ? 'w-72' : isCollapsed ? 'w-[72px]' : 'w-64'
+      }`}
     >
       {/* Brand */}
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-brand-cream-3 px-4">
-        <div className={`flex items-center gap-3 overflow-hidden ${isCollapsed ? 'hidden' : ''}`}>
+        <div className={`flex items-center gap-3 overflow-hidden ${!showExpanded ? 'hidden' : ''}`}>
           <img
             src="/logo-primary.png"
             alt="Aroadri Logo"
@@ -677,53 +685,44 @@ export function Sidebar({
               e.currentTarget.style.display = 'none';
             }}
           />
-          {!isCollapsed && (
+          {showExpanded && (
             <span className="font-display text-base font-semibold text-brand-ink shrink-0">
               ERP
             </span>
           )}
         </div>
-        <button
-          type="button"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`shrink-0 p-1 text-brand-ink-3 hover:text-brand-ink hover:bg-brand-cream-2 rounded-md transition-colors ${isCollapsed ? 'hidden' : 'block'}`}
-          title={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
-        >
-          <svg
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        {mobile ? (
+          <button
+            type="button"
+            onClick={close}
+            className="shrink-0 p-1 text-brand-ink-3 hover:text-brand-ink hover:bg-brand-cream-2 rounded-md transition-colors"
+            aria-label="Close menu"
           >
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
+            <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className={`shrink-0 p-1 text-brand-ink-3 hover:text-brand-ink hover:bg-brand-cream-2 rounded-md transition-colors ${isCollapsed ? 'hidden' : 'block'}`}
+            title={isCollapsed ? t('expandSidebar') : t('collapseSidebar')}
+          >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
+        )}
       </div>
-      {isCollapsed && (
+      {!mobile && isCollapsed && (
         <button
           type="button"
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="mx-auto mt-2 p-1.5 text-brand-ink-3 hover:text-brand-ink hover:bg-brand-cream-2 rounded-md transition-colors"
           title={t('expandSidebar')}
         >
-          <svg
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="m9 18 6-6-6-6" />
           </svg>
         </button>
@@ -739,7 +738,7 @@ export function Sidebar({
 
             return (
               <li key={item.href}>
-                {hasChildren && !isCollapsed ? (
+                {hasChildren && showExpanded ? (
                   <>
                     <button
                       type="button"
@@ -756,7 +755,7 @@ export function Sidebar({
                       }`}
                     >
                       <div className="shrink-0">{item.icon}</div>
-                      <span className="flex-1 text-left whitespace-nowrap">{item.label}</span>
+                      <span className="flex-1 text-left">{item.label}</span>
                       <svg
                         aria-hidden="true"
                         className={`h-3.5 w-3.5 shrink-0 text-brand-ink-3 transition-transform duration-150 ${
@@ -767,11 +766,7 @@ export function Sidebar({
                         stroke="currentColor"
                         strokeWidth={2}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                        />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                       </svg>
                     </button>
 
@@ -784,7 +779,7 @@ export function Sidebar({
                               <Link
                                 href={child.href}
                                 data-active={childActive ? 'true' : undefined}
-                                className={`block rounded-md px-3 py-1.5 text-sm transition-colors whitespace-nowrap ${
+                                className={`block rounded-md px-3 py-1.5 text-sm transition-colors ${
                                   childActive
                                     ? 'bg-brand-red/10 font-medium text-brand-red'
                                     : 'text-brand-ink-3 hover:bg-brand-cream-2 hover:text-brand-ink'
@@ -802,15 +797,15 @@ export function Sidebar({
                   <Link
                     href={item.href}
                     data-active={isActive ? 'true' : undefined}
-                    title={isCollapsed ? item.label : undefined}
+                    title={!showExpanded ? item.label : undefined}
                     className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                       isActive
                         ? 'bg-brand-red/10 text-brand-red'
                         : 'text-brand-ink-2 hover:bg-brand-cream-2 hover:text-brand-ink'
-                    } ${isCollapsed ? 'justify-center px-0' : ''}`}
+                    } ${!showExpanded ? 'justify-center px-0' : ''}`}
                   >
                     <div className="shrink-0">{item.icon}</div>
-                    {!isCollapsed && <span className="whitespace-nowrap">{item.label}</span>}
+                    {showExpanded && <span>{item.label}</span>}
                   </Link>
                 )}
               </li>
@@ -821,7 +816,7 @@ export function Sidebar({
 
       {/* Footer */}
       <div
-        className={`border-t border-brand-cream-3 px-4 py-3 whitespace-nowrap overflow-hidden transition-opacity ${isCollapsed ? 'opacity-0' : 'opacity-100'}`}
+        className={`border-t border-brand-cream-3 px-4 py-3 overflow-hidden transition-opacity ${!showExpanded ? 'opacity-0' : 'opacity-100'}`}
       >
         <p className="brand-wordmark text-[10px] uppercase tracking-widest text-brand-ink-3">
           Aroadri Tea ERP
@@ -829,4 +824,23 @@ export function Sidebar({
       </div>
     </aside>
   );
+
+  if (mobile) {
+    if (!isOpen) return null;
+    return (
+      <div className="fixed inset-0 z-50 lg:hidden">
+        <button
+          type="button"
+          aria-label="close"
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          onClick={close}
+        />
+        <div className="relative h-full w-fit animate-slide-in-left">
+          {sidebarContent}
+        </div>
+      </div>
+    );
+  }
+
+  return sidebarContent;
 }

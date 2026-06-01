@@ -147,17 +147,16 @@ export async function createProduct(
         ctx,
       });
 
-      // Initial stock processing
+      // Initial stock processing — all inserts inside a single transaction
       if (data.initialStocks && data.initialStocks.length > 0) {
         const validStocks = data.initialStocks.filter((s) => Number.parseFloat(s.qty) > 0);
-        
+
         if (validStocks.length > 0) {
           const defaultCost = BigInt(data.defaultCostPrice);
-          const batchQueries: any[] = [];
-          
-          for (const stock of validStocks) {
-            batchQueries.push(
-              db.insert(stockLevels).values({
+
+          await db.transaction(async (tx) => {
+            for (const stock of validStocks) {
+              await tx.insert(stockLevels).values({
                 id: generateId(),
                 tenantId: ctx.tenantId,
                 locationId: stock.locationId,
@@ -171,11 +170,9 @@ export async function createProduct(
                 avgUnitCost: defaultCost,
                 createdBy: ctx.userId,
                 updatedBy: ctx.userId,
-              })
-            );
-            
-            batchQueries.push(
-              db.insert(stockMovements).values({
+              });
+
+              await tx.insert(stockMovements).values({
                 id: generateId(),
                 tenantId: ctx.tenantId,
                 locationId: stock.locationId,
@@ -189,14 +186,7 @@ export async function createProduct(
                 unitCost: defaultCost,
                 createdBy: ctx.userId,
                 updatedBy: ctx.userId,
-              })
-            );
-          }
-
-          // Execute all stock insertions in a single transaction
-          await db.transaction(async (tx) => {
-            for (const query of batchQueries) {
-              await query;
+              });
             }
           });
         }

@@ -33,7 +33,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { resolveAccountIdsByCodes } from '../accounting/account-resolver';
 import { createJournal } from '../accounting/create-journal';
 import { getPostingAccountCodes } from '../accounting/posting-accounts';
@@ -616,15 +616,15 @@ export async function approveAdjustment(
       updatedBy: ctx.userId,
     }));
 
-    const batchQueries: any[] = [];
-    batchQueries.push(db.insert(stockMovements).values(movementValues));
+    // 9b. Execute stock movements insert.
+    await db.insert(stockMovements).values(movementValues);
 
     // 10. Update / insert stock_levels. Pass the qtyAfter string directly
     //     to preserve the original decimal precision.
     for (const line of lines) {
       const variantCondition = line.variantId
         ? eq(stockLevels.variantId, line.variantId)
-        : eq(stockLevels.variantId, '' as unknown as string);
+        : isNull(stockLevels.variantId);
 
       const existing = await db
         .select()
@@ -640,37 +640,33 @@ export async function approveAdjustment(
         .then((r) => r[0]);
 
       if (existing) {
-        batchQueries.push(
-          db
-            .update(stockLevels)
-            .set({
-              qtyOnHand: line.qtyAfter,
-              qtyAvailable: line.qtyAfter,
-              updatedBy: ctx.userId,
-              lastMovementAt: new Date(),
-            })
-            .where(eq(stockLevels.id, existing.id)),
-        );
-      } else {
-        batchQueries.push(
-          db.insert(stockLevels).values({
-            id: generateId(),
-            tenantId: ctx.tenantId,
-            locationId: adj.locationId,
-            stockLocationId: null as unknown as string,
-            productId: line.productId,
-            variantId: line.variantId ?? null,
-            batchNo: line.batchNo ?? null,
-            expiryDate: line.expiryDate ?? null,
+        await db
+          .update(stockLevels)
+          .set({
             qtyOnHand: line.qtyAfter,
-            qtyReserved: '0',
             qtyAvailable: line.qtyAfter,
-            uom: line.uom,
-            avgUnitCost: line.unitCost,
-            createdBy: ctx.userId,
             updatedBy: ctx.userId,
-          }),
-        );
+            lastMovementAt: new Date(),
+          })
+          .where(eq(stockLevels.id, existing.id));
+      } else {
+        await db.insert(stockLevels).values({
+          id: generateId(),
+          tenantId: ctx.tenantId,
+          locationId: adj.locationId,
+          stockLocationId: null as unknown as string,
+          productId: line.productId,
+          variantId: line.variantId ?? null,
+          batchNo: line.batchNo ?? null,
+          expiryDate: line.expiryDate ?? null,
+          qtyOnHand: line.qtyAfter,
+          qtyReserved: '0',
+          qtyAvailable: line.qtyAfter,
+          uom: line.uom,
+          avgUnitCost: line.unitCost,
+          createdBy: ctx.userId,
+          updatedBy: ctx.userId,
+        });
       }
     }
 

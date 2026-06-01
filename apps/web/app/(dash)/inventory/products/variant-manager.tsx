@@ -279,11 +279,11 @@ export function VariantManager({
             <option value="Small">Small</option>
           </Select>
         </label>
-        <label htmlFor="temp" className="space-y-1.5 lg:col-span-1">
+        <label htmlFor="temperature" className="space-y-1.5 lg:col-span-1">
           <span className="text-sm font-medium text-brand-ink">{tp('temp')}</span>
           <Select
-            id="temp"
-            name="temp"
+            id="temperature"
+            name="temperature"
             value={values.temp}
             onChange={(event) => updateValue('temp', event.target.value)}
           >

@@ -30,6 +30,7 @@
       "success": "Success",
       "uploading": "Uploading...",
       "deleting": "Deleting...",
+      "processing": "Processing...",
       "unpublish": "Unpublish",
       "publish": "Publish",
       "optional": "Optional"
@@ -1646,7 +1647,30 @@
       },
       "batchNo": "Batch No.",
       "batchNoPlaceholder": "Optional",
-      "expiryDate": "Expiry Date"
+      "expiryDate": "Expiry Date",
+      "listTitle": "Adjustment History",
+      "pendingCount": "{count} pending approval",
+      "colNumber": "Number",
+      "colDate": "Date",
+      "colLocation": "Location",
+      "colReason": "Reason",
+      "colLines": "Lines",
+      "colCreatedBy": "Submitted by",
+      "colStatus": "Status",
+      "approve": "Approve",
+      "reject": "Reject",
+      "approveTitle": "Approve Adjustment",
+      "approveBody": "Approve adjustment {number}? Stock levels and journal entries will be updated immediately.",
+      "rejectTitle": "Reject Adjustment",
+      "rejectBody": "Reject adjustment {number}? Stock will not be changed.",
+      "rejectReasonPlaceholder": "Rejection reason...",
+      "actionFailed": "Failed to process adjustment.",
+      "status": {
+        "draft": "Draft",
+        "submitted": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      }
     },
     "transfer": {
       "title": "Stock Transfer",

@@ -1,7 +1,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, desc, eq, sql, db } from '@erp/db';
+import { and, desc, eq, inArray, sql, db } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import {
   products,
@@ -89,7 +89,7 @@ export async function fetchTransferList(
     const locs = await db
       .select({ id: locations.id, name: locations.name, code: locations.code })
       .from(locations)
-      .where(eq(locations.tenantId, ctx.tenantId));
+      .where(and(eq(locations.tenantId, ctx.tenantId), inArray(locations.id, locIds)));
     const locale = await getLocale();
     locMap = new Map(
       locs.map((l) => [l.id, pickName(l.name, locale, l.code)]),
@@ -130,7 +130,7 @@ export async function fetchTransferDetail(transferId: string) {
     const prods = await db
       .select({ id: products.id, name: products.name, sku: products.sku })
       .from(products)
-      .where(eq(products.tenantId, ctx.tenantId));
+      .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, productIds)));
     const locale = await getLocale();
     productMap = new Map(
       prods.map((p) => [p.id, pickName(p.name, locale, p.sku)]),

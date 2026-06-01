@@ -92,6 +92,7 @@
 
   /* --- Animations --- */
   --animate-pulse-dot: pulse-dot 1.4s ease-in-out infinite;
+  --animate-slide-in-left: slide-in-left 0.2s ease-out;
 }
 
 /* ================================================================
@@ -206,6 +207,15 @@
    SPINNER — 3 dot pulsing (SD §36.5, BRAND.md)
    "Mengingatkan butir teh / bubble"
    ================================================================ */
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
 
 @keyframes pulse-dot {
   0%,

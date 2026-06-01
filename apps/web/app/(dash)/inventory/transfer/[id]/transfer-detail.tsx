@@ -191,7 +191,7 @@ export function TransferDetail({ data, currentUserId }: Props) {
             </div>
             <div>
               <span className="block text-sm font-medium text-brand-ink-3">{t('date')}</span>
-              <p className="mt-1 font-medium text-brand-ink">{data.date}</p>
+              <p className="mt-1 font-medium text-brand-ink">{data.transferDate}</p>
             </div>
             <div>
               <span className="block text-sm font-medium text-brand-ink-3">{t('fromLocation')}</span>

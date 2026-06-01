@@ -5,7 +5,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, db, eq } from '@erp/db';
+import { and, db, eq, inArray } from '@erp/db';
 import { goodsReceiptNotes, grnLines, purchaseOrderLines } from '@erp/db/schema/purchasing';
 import {
   type CreatePurchaseReturnInput,
@@ -162,6 +162,7 @@ export async function fetchGrnForReturnAction(grnId: string): Promise<{
     ? await db
         .select({ id: purchaseOrderLines.id, unitPrice: purchaseOrderLines.unitPrice })
         .from(purchaseOrderLines)
+        .where(inArray(purchaseOrderLines.id, poLineIds))
     : [];
   const costMap = new Map(poLineRows.map((r) => [r.id, r.unitPrice]));
 

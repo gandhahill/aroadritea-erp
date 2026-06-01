@@ -35,7 +35,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
 import { getPostingAccountCodes } from '../accounting/posting-accounts';
 import { auditRecord } from '../audit';
@@ -675,7 +675,7 @@ export async function postPurchaseReturn(
   for (const line of lines) {
     const variantCondition = line.variantId
       ? eq(stockLevels.variantId, line.variantId)
-      : eq(stockLevels.variantId, '' as unknown as string);
+      : isNull(stockLevels.variantId);
     await db
       .update(stockLevels)
       .set({

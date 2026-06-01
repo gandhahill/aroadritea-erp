@@ -30,6 +30,7 @@
       "success": "Berhasil",
       "uploading": "Mengunggah...",
       "deleting": "Menghapus...",
+      "processing": "Memproses...",
       "unpublish": "Batalkan terbit",
       "publish": "Terbitkan",
       "optional": "Opsional"
@@ -1646,7 +1647,30 @@
       },
       "batchNo": "No. Batch",
       "batchNoPlaceholder": "Opsional",
-      "expiryDate": "Tgl Kadaluarsa"
+      "expiryDate": "Tgl Kadaluarsa",
+      "listTitle": "Riwayat Penyesuaian",
+      "pendingCount": "{count} menunggu persetujuan",
+      "colNumber": "Nomor",
+      "colDate": "Tanggal",
+      "colLocation": "Lokasi",
+      "colReason": "Alasan",
+      "colLines": "Baris",
+      "colCreatedBy": "Diajukan oleh",
+      "colStatus": "Status",
+      "approve": "Setujui",
+      "reject": "Tolak",
+      "approveTitle": "Setujui Penyesuaian",
+      "approveBody": "Setujui penyesuaian {number}? Stok dan jurnal akan langsung diperbarui.",
+      "rejectTitle": "Tolak Penyesuaian",
+      "rejectBody": "Tolak penyesuaian {number}? Stok tidak akan berubah.",
+      "rejectReasonPlaceholder": "Alasan penolakan...",
+      "actionFailed": "Gagal memproses penyesuaian.",
+      "status": {
+        "draft": "Draf",
+        "submitted": "Menunggu",
+        "approved": "Disetujui",
+        "rejected": "Ditolak"
+      }
     },
     "transfer": {
       "title": "Transfer Stok",

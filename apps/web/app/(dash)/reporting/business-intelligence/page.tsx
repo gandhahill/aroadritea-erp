@@ -115,7 +115,7 @@ export default async function BusinessIntelligencePage() {
       acc.deliveryCommission += toBigInt(data.commissionDelivery);
       acc.refunds += toBigInt(data.refundTotal);
       acc.refundCount += data.refundCount;
-      acc.orderCount += data.shiftSummary.reduce((sum, shift) => sum + shift.txCount, 0);
+      acc.orderCount += data.totalOrderCount;
       acc.openShifts += data.shiftSummary.filter((shift) => !shift.closedAt).length;
       acc.cashVariance += data.shiftSummary.reduce(
         (sum, shift) => sum + toBigInt(shift.variance),
@@ -147,7 +147,7 @@ export default async function BusinessIntelligencePage() {
       acc.deliveryCommission += toBigInt(data.commissionDelivery);
       acc.refunds += toBigInt(data.refundTotal);
       acc.refundCount += data.refundCount;
-      acc.orderCount += data.shiftSummary.reduce((sum, shift) => sum + shift.txCount, 0);
+      acc.orderCount += data.totalOrderCount;
       acc.cashVariance += data.shiftSummary.reduce(
         (sum, shift) => sum + toBigInt(shift.variance),
         0n,
