@@ -2,7 +2,7 @@
 
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
-import { and, asc, db, desc, eq, sql } from '@erp/db';
+import { and, asc, db, desc, eq, inArray, sql } from '@erp/db';
 import {
   products,
   stockAdjustmentLines,
@@ -237,13 +237,13 @@ export async function fetchAdjustments(): Promise<AdjustmentRow[]> {
     .orderBy(desc(stockAdjustments.createdAt))
     .limit(100);
 
-  const userIds = [...new Set(rows.map((r) => r.createdBy).filter(Boolean))];
+  const userIds = [...new Set(rows.map((r) => r.createdBy).filter((id): id is string => Boolean(id)))];
   const userRows =
     userIds.length > 0
       ? await db
           .select({ id: users.id, displayName: users.displayName })
           .from(users)
-          .where(sql`${users.id} = ANY(${userIds})`)
+          .where(inArray(users.id, userIds))
       : [];
   const userMap = new Map(userRows.map((u) => [u.id, u.displayName ?? '']));
 
@@ -256,7 +256,7 @@ export async function fetchAdjustments(): Promise<AdjustmentRow[]> {
             count: sql<number>`cast(count(*) as int)`,
           })
           .from(stockAdjustmentLines)
-          .where(sql`${stockAdjustmentLines.adjustmentId} = ANY(${adjIds})`)
+          .where(inArray(stockAdjustmentLines.adjustmentId, adjIds))
           .groupBy(stockAdjustmentLines.adjustmentId)
       : [];
   const countMap = new Map(lineCounts.map((c) => [c.adjustmentId, c.count]));

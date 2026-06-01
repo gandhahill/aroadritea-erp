@@ -6,7 +6,7 @@
 
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
-import { db, desc, eq, sql } from '@erp/db';
+import { db, desc, eq, inArray, sql } from '@erp/db';
 import { attendance, employees, shiftDefinitions } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
@@ -74,7 +74,7 @@ export default async function AttendancePage({
     const empRows = await db
       .select({ id: employees.id, name: employees.name })
       .from(employees)
-      .where(sql`${employees.id} = ANY(${empIds})`);
+      .where(inArray(employees.id, empIds));
     empNames = new Map(empRows.map((r) => [r.id, r.name]));
   }
 

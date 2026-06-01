@@ -26,7 +26,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
@@ -195,7 +195,7 @@ export async function runPayroll(
             and(
               eq(employmentContracts.tenantId, ctx.tenantId),
               eq(employmentContracts.isActive, true),
-              sql`${employmentContracts.id} = ANY(${contractIds})`,
+              inArray(employmentContracts.id, contractIds),
             ),
           );
         contractMap = new Map(contracts.map((c) => [c.id, c.baseSalary]));

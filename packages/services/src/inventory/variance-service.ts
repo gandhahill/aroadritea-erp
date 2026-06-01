@@ -14,7 +14,7 @@ import { stockOpnameLines, stockOpnameSessions } from '@erp/db/schema/stock-opna
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -154,7 +154,7 @@ export async function getVarianceReport(
   const lines = await db
     .select()
     .from(stockOpnameLines)
-    .where(sql`${stockOpnameLines.sessionId} = ANY(${sessionIds})`);
+    .where(inArray(stockOpnameLines.sessionId, sessionIds));
 
   // ── Fetch product details ───────────────────────────────────────────────────
   const productIds = [...new Set(lines.map((l) => l.productId))];
@@ -166,7 +166,7 @@ export async function getVarianceReport(
       sku: products.sku,
     })
     .from(products)
-    .where(sql`${products.id} = ANY(${productIds})`);
+    .where(inArray(products.id, productIds));
 
   const productMap = new Map(productRows.map((p) => [p.id, p]));
 
@@ -178,7 +178,7 @@ export async function getVarianceReport(
       name: locations.name,
     })
     .from(locations)
-    .where(sql`${locations.id} = ANY(${locationIds})`);
+    .where(inArray(locations.id, locationIds));
 
   const locationMap = new Map(locationRows.map((l) => [l.id, localizeName(l.name, l.id)]));
 
