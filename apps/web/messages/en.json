@@ -2937,6 +2937,10 @@
           "saveFailed": "Failed to save shift.",
           "deleteFailed": "Failed to delete shift."
         },
+        "deleteConfirmTitle": "Delete Shift?",
+        "deleteConfirmBody": "Are you sure you want to delete shift \"{name}\" ({code})? This cannot be undone.",
+        "deleteHasAssignments": "This shift is still used in {count} upcoming schedule(s). Remove or reassign them first.",
+        "deleteFailed": "Failed to delete shift.",
         "empty": "No shift master data for this location yet."
       }
     },

@@ -2937,6 +2937,10 @@
           "saveFailed": "保存班次失败。",
           "deleteFailed": "删除班次失败。"
         },
+        "deleteConfirmTitle": "删除班次？",
+        "deleteConfirmBody": "确定要删除班次 \"{name}\"（{code}）吗？此操作不可撤销。",
+        "deleteHasAssignments": "此班次仍在 {count} 个即将到来的排班中使用。请先删除或重新分配。",
+        "deleteFailed": "删除班次失败。",
         "empty": "此位置暂无班次主数据。"
       }
     },

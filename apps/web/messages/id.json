@@ -3011,6 +3011,10 @@
           "addTitle": "Tambah Shift Baru",
           "editTitle": "Edit Shift"
         },
+        "deleteConfirmTitle": "Hapus Shift?",
+        "deleteConfirmBody": "Yakin ingin menghapus shift \"{name}\" ({code})? Data ini tidak bisa dikembalikan.",
+        "deleteHasAssignments": "Shift ini masih digunakan di {count} jadwal mendatang. Hapus atau pindahkan jadwal tersebut terlebih dahulu.",
+        "deleteFailed": "Gagal menghapus shift.",
         "errors": {
           "loadFailed": "Gagal memuat shift.",
           "saveFailed": "Gagal menyimpan shift.",
