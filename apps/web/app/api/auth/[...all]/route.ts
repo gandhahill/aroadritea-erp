@@ -46,36 +46,43 @@ async function assertLoginAllowed(
   ipAddress: string,
   emailHash: string | null,
 ): Promise<Response | null> {
-  const recentIpFailures = await db
-    .select({ id: loginAttempts.id })
-    .from(loginAttempts)
-    .where(
-      and(
-        eq(loginAttempts.ipAddress, ipAddress),
-        eq(loginAttempts.succeeded, false),
-        sql`${loginAttempts.attemptedAt} >= now() - interval '15 minutes'`,
-      ),
-    )
-    .limit(LOGIN_FAILURE_LIMIT);
+  // When IP is 'direct' (proxy headers not trusted), all requests share the
+  // same fake IP, making per-IP throttling useless and causing false lockouts.
+  // Skip IP-based checks in that case — per-email check still protects.
+  const hasRealIp = ipAddress !== 'direct';
 
-  if (recentIpFailures.length >= LOGIN_FAILURE_LIMIT) {
-    return Response.json({ error: { message: 'Too many login attempts' } }, { status: 429 });
-  }
+  if (hasRealIp) {
+    const recentIpFailures = await db
+      .select({ id: loginAttempts.id })
+      .from(loginAttempts)
+      .where(
+        and(
+          eq(loginAttempts.ipAddress, ipAddress),
+          eq(loginAttempts.succeeded, false),
+          sql`${loginAttempts.attemptedAt} >= now() - interval '15 minutes'`,
+        ),
+      )
+      .limit(LOGIN_FAILURE_LIMIT);
 
-  const hourlyIpFailures = await db
-    .select({ id: loginAttempts.id })
-    .from(loginAttempts)
-    .where(
-      and(
-        eq(loginAttempts.ipAddress, ipAddress),
-        eq(loginAttempts.succeeded, false),
-        sql`${loginAttempts.attemptedAt} >= now() - interval '1 hour'`,
-      ),
-    )
-    .limit(ATTACK_FAILURE_LIMIT);
+    if (recentIpFailures.length >= LOGIN_FAILURE_LIMIT) {
+      return Response.json({ error: { message: 'Too many login attempts' } }, { status: 429 });
+    }
 
-  if (hourlyIpFailures.length >= ATTACK_FAILURE_LIMIT) {
-    return Response.json({ error: { message: 'Login temporarily blocked' } }, { status: 429 });
+    const hourlyIpFailures = await db
+      .select({ id: loginAttempts.id })
+      .from(loginAttempts)
+      .where(
+        and(
+          eq(loginAttempts.ipAddress, ipAddress),
+          eq(loginAttempts.succeeded, false),
+          sql`${loginAttempts.attemptedAt} >= now() - interval '1 hour'`,
+        ),
+      )
+      .limit(ATTACK_FAILURE_LIMIT);
+
+    if (hourlyIpFailures.length >= ATTACK_FAILURE_LIMIT) {
+      return Response.json({ error: { message: 'Login temporarily blocked' } }, { status: 429 });
+    }
   }
 
   if (!emailHash) return null;
