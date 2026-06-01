@@ -8,7 +8,7 @@ import { CategoryForm } from './category-form';
 import {
   type CategoryWithCount,
   deleteCategoryAction,
-  updateCategoryNameAction,
+  updateCategoryAction,
 } from './actions';
 
 export function CategoriesClient({ categories }: { categories: CategoryWithCount[] }) {
@@ -19,7 +19,10 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
   const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState('');
+  const [editingCode, setEditingCode] = useState('');
+  const [editingNameId, setEditingNameId] = useState('');
+  const [editingNameEn, setEditingNameEn] = useState('');
+  const [editingNameZh, setEditingNameZh] = useState('');
   const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   const handleDelete = async (id: string) => {
@@ -38,27 +41,34 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
   };
 
   const startEdit = (cat: CategoryWithCount) => {
-    const display = cat.name[locale] ?? cat.name.id ?? cat.name.en ?? cat.name.zh ?? '';
     setEditingId(cat.id);
-    setEditingName(display);
+    setEditingCode(cat.code || '');
+    setEditingNameId(cat.name.id || '');
+    setEditingNameEn(cat.name.en || '');
+    setEditingNameZh(cat.name.zh || '');
     setMessage(null);
   };
 
   const cancelEdit = () => {
     setEditingId(null);
-    setEditingName('');
   };
 
-  const saveEdit = async (id: string) => {
-    if (!editingName.trim()) return;
+  const saveEdit = async (e: React.FormEvent, id: string) => {
+    e.preventDefault();
+    if (!editingCode.trim() || !editingNameId.trim()) return;
     setIsSavingEdit(true);
     try {
-      const result = await updateCategoryNameAction(id, editingName);
+      const formData = new FormData();
+      formData.set('categoryCode', editingCode);
+      formData.set('categoryNameId', editingNameId);
+      formData.set('categoryNameEn', editingNameEn);
+      formData.set('categoryNameZh', editingNameZh);
+
+      const result = await updateCategoryAction(id, formData);
       if (!result.ok) {
         setMessage({ type: 'error', text: result.error ?? t('updateFailed') });
       } else {
         setEditingId(null);
-        setEditingName('');
         router.refresh();
       }
     } finally {
@@ -88,6 +98,9 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
           <thead>
             <tr className="border-b border-brand-cream-2 bg-brand-cream/50">
               <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
+                {t('code')}
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
                 {t('name')}
               </TableHead>
               <TableHead className="px-4 py-3 text-center font-medium text-brand-ink-2">
@@ -101,7 +114,7 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
           <tbody className="divide-y divide-brand-cream-2">
             {categories.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-4 py-8 text-center text-brand-ink-3">
+                <td colSpan={4} className="px-4 py-8 text-center text-brand-ink-3">
                   {t('empty')}
                 </td>
               </tr>
@@ -111,24 +124,56 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
                 const display =
                   nameObj?.[locale] ?? nameObj?.id ?? nameObj?.en ?? nameObj?.zh ?? t('unnamed');
                 const isEditing = editingId === cat.id;
+                if (isEditing) {
+                  return (
+                    <tr key={cat.id} className="hover:bg-brand-cream/50">
+                      <TableCell colSpan={4} className="px-4 py-3">
+                        <form onSubmit={(e) => saveEdit(e, cat.id)} className="flex flex-col gap-4 lg:flex-row lg:items-end">
+                          <label className="flex-1 space-y-1.5">
+                            <span className="text-sm font-medium text-brand-ink">{t('code')}</span>
+                            <Input value={editingCode} onChange={e => setEditingCode(e.target.value)} required placeholder={t('codePlaceholder')} />
+                          </label>
+                          <label className="flex-[1.5] space-y-1.5">
+                            <span className="text-sm font-medium text-brand-ink">{t('nameId')}</span>
+                            <Input value={editingNameId} onChange={e => setEditingNameId(e.target.value)} required placeholder={t('namePlaceholderId')} />
+                          </label>
+                          <label className="flex-[1.5] space-y-1.5">
+                            <span className="text-sm font-medium text-brand-ink">{t('nameEn')}</span>
+                            <Input value={editingNameEn} onChange={e => setEditingNameEn(e.target.value)} placeholder={t('namePlaceholderEn')} />
+                          </label>
+                          <label className="flex-[1.5] space-y-1.5">
+                            <span className="text-sm font-medium text-brand-ink">{t('nameZh')}</span>
+                            <Input value={editingNameZh} onChange={e => setEditingNameZh(e.target.value)} placeholder={t('namePlaceholderZh')} />
+                          </label>
+                          <div className="flex gap-2">
+                            <button
+                              type="submit"
+                              disabled={isSavingEdit || !editingCode.trim() || !editingNameId.trim()}
+                              className="rounded-lg bg-brand-ember-5 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-ember-6 disabled:opacity-50"
+                            >
+                              {isSavingEdit ? t('saving') : tCommon('actions.save')}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelEdit}
+                              className="rounded-lg border border-brand-cream-3 px-4 py-2 text-sm font-semibold text-brand-ink-3 hover:bg-brand-cream-2"
+                            >
+                              {tCommon('actions.cancel')}
+                            </button>
+                          </div>
+                        </form>
+                      </TableCell>
+                    </tr>
+                  );
+                }
+
                 return (
                   <tr key={cat.id} className="hover:bg-brand-cream/50">
                     <TableCell className="px-4 py-3 font-medium text-brand-ink">
-                      {isEditing ? (
-                        <Input
-                          autoFocus
-                          type="text"
-                          value={editingName}
-                          onChange={(e) => setEditingName(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') saveEdit(cat.id);
-                            if (e.key === 'Escape') cancelEdit();
-                          }}
-                          className="w-full rounded border border-brand-cream-3 bg-brand-cream px-2 py-1 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
-                        />
-                      ) : (
-                        display
-                      )}
+                      {cat.code}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 font-medium text-brand-ink">
+                      {display}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-center">
                       <span
@@ -142,25 +187,7 @@ export function CategoriesClient({ categories }: { categories: CategoryWithCount
                       </span>
                     </TableCell>
                     <TableCell className="px-4 py-3 text-right">
-                      {isEditing ? (
-                        <span className="inline-flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => saveEdit(cat.id)}
-                            disabled={isSavingEdit || !editingName.trim()}
-                            className="rounded bg-brand-red px-2 py-1 text-xs font-semibold text-white hover:bg-brand-red-dark disabled:opacity-50"
-                          >
-                            {isSavingEdit ? t('saving') : tCommon('actions.save')}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={cancelEdit}
-                            className="rounded border border-brand-cream-3 px-2 py-1 text-xs font-semibold text-brand-ink-3 hover:bg-brand-cream-2"
-                          >
-                            {tCommon('actions.cancel')}
-                          </button>
-                        </span>
-                      ) : confirmDeleteId === cat.id ? (
+                      {confirmDeleteId === cat.id ? (
                         <span className="inline-flex items-center gap-2">
                           <span className="text-xs text-brand-ink-3">{t('confirmDelete')}</span>
                           <button

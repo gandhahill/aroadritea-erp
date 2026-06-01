@@ -40,6 +40,7 @@ export type CreateCategoryInput = z.infer<typeof CreateCategoryInputSchema>;
 
 export const UpdateCategoryInputSchema = z.object({
   categoryId: z.string().min(1),
+  code: z.string().min(1).max(32).optional(),
   name: LocaleStringSchema.optional(),
   parentId: z.string().nullable().optional(),
   sortOrder: z.number().int().min(0).optional(),

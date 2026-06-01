@@ -156,6 +156,19 @@ export async function updateCategory(
     return err(AppError.notFound('inventory.category.notFound', { categoryId: data.categoryId }));
   }
 
+  // Check code uniqueness if code is updated
+  if (data.code !== undefined && data.code !== existing.code) {
+    const [existingCode] = await db
+      .select({ id: productCategories.id })
+      .from(productCategories)
+      .where(and(eq(productCategories.tenantId, ctx.tenantId), eq(productCategories.code, data.code)))
+      .limit(1);
+
+    if (existingCode) {
+      return err(AppError.conflict('inventory.category.codeDuplicate', { code: data.code }));
+    }
+  }
+
   if (existing.version !== data.version) {
     return err(AppError.conflict('inventory.category.versionConflict', { message: 'Category was modified by someone else' }));
   }
@@ -166,6 +179,7 @@ export async function updateCategory(
     version: existing.version + 1,
   };
 
+  if (data.code !== undefined) updates.code = data.code;
   if (data.name !== undefined) updates.name = data.name;
   if (data.parentId !== undefined) updates.parentId = data.parentId;
   if (data.sortOrder !== undefined) updates.sortOrder = data.sortOrder;

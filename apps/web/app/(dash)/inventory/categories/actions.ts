@@ -125,12 +125,18 @@ export async function deleteCategoryAction(id: string): Promise<{ ok: boolean; e
   return { ok: true };
 }
 
-export async function updateCategoryNameAction(
+export async function updateCategoryAction(
   id: string,
-  name: string,
+  formData: FormData,
 ): Promise<{ ok: boolean; error?: string }> {
-  const normalized = name.trim();
-  if (!normalized) return { ok: false, error: 'Category name is required.' };
+  const code = String(formData.get('categoryCode') ?? '').trim();
+  const nameId = String(formData.get('categoryNameId') ?? '').trim();
+  const nameEn = String(formData.get('categoryNameEn') ?? '').trim();
+  const nameZh = String(formData.get('categoryNameZh') ?? '').trim();
+
+  if (!code || !nameId) {
+    return { ok: false, error: 'Code and Name ID are required.' };
+  }
 
   const ctx = await getAuditContext();
   const [cat] = await db.select({ version: productCategories.version }).from(productCategories)
@@ -140,7 +146,8 @@ export async function updateCategoryNameAction(
   const result = await updateCategory(
     {
       categoryId: id,
-      name: { id: normalized, en: normalized, zh: normalized },
+      code,
+      name: { id: nameId, en: nameEn || nameId, zh: nameZh || nameId },
       version: cat.version,
     },
     ctx,
