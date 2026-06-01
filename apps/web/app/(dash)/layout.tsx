@@ -9,6 +9,7 @@ import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { LocaleSwitcher } from './locale-switcher';
+import { LogoImage } from './logo-image';
 import { LogoutButton } from './logout-button';
 import { MobileMenuButton } from './mobile-menu-button';
 import { MobileMenuProvider } from './mobile-menu-context';
@@ -57,14 +58,7 @@ export default async function DashboardLayout({
           <header className="print:hidden flex h-14 items-center justify-between border-b border-brand-cream-3 bg-card px-3 sm:px-6 shrink-0">
             <div className="flex items-center gap-2">
               <MobileMenuButton />
-              <img
-                src="/logo-primary.png"
-                alt="Aroadri"
-                className="h-7 w-7 object-contain lg:hidden"
-                onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
+              <LogoImage />
             </div>
             <div className="flex items-center gap-1.5 sm:gap-3">
               <NotificationBell />
