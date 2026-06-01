@@ -1643,7 +1643,10 @@
         "count_correction": "Koreksi hitung",
         "opening_balance": "Saldo awal",
         "other": "Lainnya"
-      }
+      },
+      "batchNo": "No. Batch",
+      "batchNoPlaceholder": "Opsional",
+      "expiryDate": "Tgl Kadaluarsa"
     },
     "transfer": {
       "title": "Transfer Stok",
@@ -1671,7 +1674,10 @@
       "statusInTransit": "Dalam Perjalanan",
       "statusReceived": "Diterima",
       "statusCancelled": "Dibatalkan",
-      "empty": "Tidak ada transfer stok ditemukan."
+      "empty": "Tidak ada transfer stok ditemukan.",
+      "batchNo": "No. Batch",
+      "batchNoPlaceholder": "Opsional",
+      "expiryDate": "Tgl Kadaluarsa"
     },
     "opnameDetail": {
       "status": {

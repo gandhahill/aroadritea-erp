@@ -1643,7 +1643,10 @@
         "count_correction": "Count correction",
         "opening_balance": "Opening balance",
         "other": "Other"
-      }
+      },
+      "batchNo": "Batch No.",
+      "batchNoPlaceholder": "Optional",
+      "expiryDate": "Expiry Date"
     },
     "transfer": {
       "title": "Stock Transfer",
@@ -1671,7 +1674,10 @@
       "statusInTransit": "In Transit",
       "statusReceived": "Received",
       "statusCancelled": "Cancelled",
-      "empty": "No stock transfers found."
+      "empty": "No stock transfers found.",
+      "batchNo": "Batch No.",
+      "batchNoPlaceholder": "Optional",
+      "expiryDate": "Expiry Date"
     },
     "opnameDetail": {
       "status": {

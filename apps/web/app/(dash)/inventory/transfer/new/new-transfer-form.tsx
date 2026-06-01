@@ -23,7 +23,7 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
   const [fromLocationId, setFromLocationId] = useState(defaultLocationId || '');
   const [toLocationId, setToLocationId] = useState('');
   const [lines, setLines] = useState<
-    Array<{ productId: string; name: string; qty: number; uom: string }>
+    Array<{ productId: string; name: string; qty: number; uom: string; batchNo?: string; expiryDate?: string }>
   >([]);
 
   useEffect(() => {
@@ -160,6 +160,35 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                       UoM
                     </span>
                     <Input type="text" readOnly value={line.uom} className="bg-brand-cream/50" />
+                  </div>
+                  <div className="w-32">
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                      {t('batchNo')}
+                    </span>
+                    <Input
+                      type="text"
+                      placeholder={t('batchNoPlaceholder')}
+                      value={line.batchNo || ''}
+                      onChange={(e) => {
+                        const newLines = [...lines];
+                        newLines[index] = { ...line, batchNo: e.target.value };
+                        setLines(newLines);
+                      }}
+                    />
+                  </div>
+                  <div className="w-36">
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                      {t('expiryDate')}
+                    </span>
+                    <Input
+                      type="date"
+                      value={line.expiryDate || ''}
+                      onChange={(e) => {
+                        const newLines = [...lines];
+                        newLines[index] = { ...line, expiryDate: e.target.value };
+                        setLines(newLines);
+                      }}
+                    />
                   </div>
                   <Button
                     type="button"

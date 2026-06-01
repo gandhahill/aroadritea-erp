@@ -153,6 +153,8 @@ export async function createQuickAdjustmentAction(
           qtyAfter,
           qtyDelta: delta,
           uom: product.uom,
+          batchNo: text(formData, 'batchNo') || undefined,
+          expiryDate: text(formData, 'expiryDate') || undefined,
         },
       ],
     },

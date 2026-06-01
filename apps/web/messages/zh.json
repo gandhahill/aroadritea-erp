@@ -1643,7 +1643,10 @@
         "count_correction": "盘点更正",
         "opening_balance": "期初余额",
         "other": "其他"
-      }
+      },
+      "batchNo": "批号",
+      "batchNoPlaceholder": "可选",
+      "expiryDate": "到期日"
     },
     "suppliesLink": "管理耗材",
     "sellableDescriptionPrefix": "管理销售给顾客的成品（菜单项）。每件商品必须有一个",
@@ -1688,7 +1691,10 @@
       "statusInTransit": "运输中",
       "statusReceived": "已接收",
       "statusCancelled": "已取消",
-      "empty": "未找到库存转移记录。"
+      "empty": "未找到库存转移记录。",
+      "batchNo": "批号",
+      "batchNoPlaceholder": "可选",
+      "expiryDate": "到期日"
     },
     "opnameDetail": {
       "status": {

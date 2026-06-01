@@ -76,6 +76,16 @@ export function QuickAdjustForm({ data }: { data: QuickAdjustData }) {
         </label>
 
         <label className="space-y-1.5">
+          <span className="text-sm font-medium text-brand-ink">{t('batchNo')}</span>
+          <Input name="batchNo" placeholder={t('batchNoPlaceholder')} />
+        </label>
+
+        <label className="space-y-1.5">
+          <span className="text-sm font-medium text-brand-ink">{t('expiryDate')}</span>
+          <Input name="expiryDate" type="date" />
+        </label>
+
+        <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('notes')}</span>
           <Input name="notes" placeholder={t('notesPlaceholder')} />
         </label>
