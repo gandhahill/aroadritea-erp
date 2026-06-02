@@ -69,6 +69,10 @@ export function middleware(request: NextRequest) {
     '/login',
     '/api/auth',
     '/api/healthz',
+    // Error reporting must be reachable by the server instrumentation hook,
+    // which posts without a session cookie. The route gates itself by
+    // session-or-internal-secret, so middleware does not need to.
+    '/api/error-report',
     '/favicon.ico',
     '/favicon.svg',
     '/manifest.json',

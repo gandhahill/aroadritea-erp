@@ -45,9 +45,16 @@ async function loadKpis(tenantId: string) {
   const wibYear = wibNow.getUTCFullYear();
   const wibMonth = wibNow.getUTCMonth();
   const wibDay = wibNow.getUTCDate();
-  // Midnight WIB = that date at 00:00+07:00 = previous day 17:00 UTC
+  // Midnight WIB = that date at 00:00+07:00 = previous day 17:00 UTC.
+  // Use these instants for timestamptz columns (placedAt, checkInAt).
   const startOfToday = new Date(Date.UTC(wibYear, wibMonth, wibDay, -7));
   const startOfMonth = new Date(Date.UTC(wibYear, wibMonth, 1, -7));
+  // Manual sales store `salesDate` as a WIB calendar date string ('YYYY-MM-DD').
+  // Derive these from the WIB parts directly — NOT from startOfToday.toISOString(),
+  // whose UTC date part is the *previous* day (WIB midnight is 17:00 UTC the day
+  // before) and would pull yesterday's closings into "today".
+  const wibTodayStr = `${wibYear}-${String(wibMonth + 1).padStart(2, '0')}-${String(wibDay).padStart(2, '0')}`;
+  const wibMonthStartStr = `${wibYear}-${String(wibMonth + 1).padStart(2, '0')}-01`;
 
   const [todaySales] = await db
     .select({
@@ -72,7 +79,7 @@ async function loadKpis(tenantId: string) {
       and(
         eq(manualSalesClosings.tenantId, tenantId),
         eq(manualSalesClosings.status, 'posted'),
-        gte(manualSalesClosings.salesDate, startOfToday.toISOString().slice(0, 10)),
+        gte(manualSalesClosings.salesDate, wibTodayStr),
       ),
     );
 
@@ -95,7 +102,7 @@ async function loadKpis(tenantId: string) {
       and(
         eq(manualSalesClosings.tenantId, tenantId),
         eq(manualSalesClosings.status, 'posted'),
-        gte(manualSalesClosings.salesDate, startOfMonth.toISOString().slice(0, 10)),
+        gte(manualSalesClosings.salesDate, wibMonthStartStr),
       ),
     );
 

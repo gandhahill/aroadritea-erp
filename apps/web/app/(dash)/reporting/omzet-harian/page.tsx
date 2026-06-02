@@ -24,7 +24,9 @@ export default async function OmzetHarianPage({
   if (!session) redirect('/login');
 
   const params = await searchParams;
-  const today = new Date().toISOString().slice(0, 10);
+  // WIB (UTC+7) calendar date — using plain new Date() would resolve to the
+  // previous day between 00:00–07:00 WIB (server runs UTC).
+  const today = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const user = session.user as Record<string, unknown>;
   const tenantId = (user.tenantId as string) ?? 'default';
   const sessionLocationId = user.locationId as string | undefined;
