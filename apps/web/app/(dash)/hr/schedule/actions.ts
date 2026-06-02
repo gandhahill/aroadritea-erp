@@ -166,6 +166,7 @@ export interface RosterAssignment {
   id: string;
   employeeId: string;
   employeeName: string;
+  locationId: string;
   workDate: string;
   kind: 'shift' | 'off';
   shiftDefinitionId: string | null;
@@ -174,8 +175,8 @@ export interface RosterAssignment {
 }
 
 export interface RosterOptions {
-  shifts: Array<{ id: string; code: string; label: string; time: string }>;
-  employees: Array<{ id: string; name: string; locationName?: string }>;
+  shifts: Array<{ id: string; code: string; label: string; time: string; locationId: string }>;
+  employees: Array<{ id: string; name: string; locationId: string; locationName?: string }>;
 }
 
 export async function fetchRoster(
@@ -242,6 +243,7 @@ export async function fetchRoster(
         id: employees.id,
         name: employees.name,
         status: employees.status,
+        locationId: employees.locationId,
         locationName: locations.name,
       })
       .from(employees)
@@ -263,11 +265,13 @@ export async function fetchRoster(
         workDate: shiftAssignments.workDate,
         kind: shiftAssignments.kind,
         shiftDefinitionId: shiftAssignments.shiftDefinitionId,
+        locationId: shiftAssignments.locationId,
       })
       .from(shiftAssignments)
       .where(
         and(
           eq(shiftAssignments.tenantId, ctx.tenantId),
+          isNull(shiftAssignments.deletedAt),
           ...(allowedLocationIds
             ? [inArray(shiftAssignments.locationId, allowedLocationIds)]
             : []),
@@ -286,6 +290,7 @@ export async function fetchRoster(
       id: r.id,
       employeeId: r.employeeId,
       employeeName: empMap.get(r.employeeId) ?? r.employeeId,
+      locationId: r.locationId,
       workDate: String(r.workDate).slice(0, 10),
       kind: r.kind as 'shift' | 'off',
       shiftDefinitionId: r.shiftDefinitionId,
@@ -305,6 +310,7 @@ export async function fetchRoster(
           code: s.code,
           label: `${s.name} ${s.startTime}-${s.endTime}${suffix}`,
           time: `${s.startTime}-${s.endTime}`,
+          locationId: s.locationId,
         };
       }),
       employees: empRows.map((e) => {
@@ -313,6 +319,7 @@ export async function fetchRoster(
         return {
           id: e.id,
           name: e.name,
+          locationId: e.locationId,
           locationName: locStr,
         };
       }),
@@ -354,9 +361,14 @@ export async function upsertAssignmentAction(input: {
         and(
           eq(shiftDefinitions.tenantId, ctx.tenantId),
           eq(shiftDefinitions.id, input.shiftDefinitionId),
+          eq(shiftDefinitions.isActive, true),
+          isNull(shiftDefinitions.deletedAt),
         ),
       );
     if (!sd) return { ok: false, error: 'Shift not found' };
+    if (sd.locationId !== employee.locationId) {
+      return { ok: false, error: 'hr.schedule.errors.shiftLocationMismatch' };
+    }
     targetLocationId = sd.locationId;
   }
   const perm = await requirePermission(ctx.userId, 'hr.manage_attendance', {
@@ -369,6 +381,7 @@ export async function upsertAssignmentAction(input: {
     eq(shiftAssignments.tenantId, ctx.tenantId),
     eq(shiftAssignments.employeeId, input.employeeId),
     eq(shiftAssignments.workDate, input.workDate),
+    isNull(shiftAssignments.deletedAt),
   ];
   if (input.shiftDefinitionId) {
     conditions.push(eq(shiftAssignments.shiftDefinitionId, input.shiftDefinitionId));
@@ -386,6 +399,7 @@ export async function upsertAssignmentAction(input: {
       .update(shiftAssignments)
       .set({
         kind: input.kind,
+        locationId: targetLocationId,
         shiftDefinitionId: input.shiftDefinitionId ?? null,
         notes: input.notes ?? null,
         updatedBy: ctx.userId,
@@ -404,6 +418,7 @@ export async function upsertAssignmentAction(input: {
       entityId: existing[0].id,
       after: {
         kind: input.kind,
+        locationId: targetLocationId,
         shiftDefinitionId: input.shiftDefinitionId ?? null,
       },
     });
@@ -564,7 +579,11 @@ export async function swapShiftAssignmentAction(input: {
     .select()
     .from(shiftAssignments)
     .where(
-      and(eq(shiftAssignments.tenantId, ctx.tenantId), eq(shiftAssignments.id, input.assignmentId)),
+      and(
+        eq(shiftAssignments.tenantId, ctx.tenantId),
+        eq(shiftAssignments.id, input.assignmentId),
+        isNull(shiftAssignments.deletedAt),
+      ),
     )
     .limit(1);
   if (!original) {
@@ -587,6 +606,9 @@ export async function swapShiftAssignmentAction(input: {
     locationId: substitute.locationId,
   });
   if (!substitutePerm.ok) return { ok: false, error: 'Forbidden' };
+  if (substitute.locationId !== original.locationId) {
+    return { ok: false, error: 'hr.schedule.errors.swapLocationMismatch' };
+  }
 
   // Disallow swap if the substitute already has a row for the same
   // date+shift — they can't work the same slot twice.
@@ -594,6 +616,7 @@ export async function swapShiftAssignmentAction(input: {
     eq(shiftAssignments.tenantId, ctx.tenantId),
     eq(shiftAssignments.employeeId, input.substituteEmployeeId),
     eq(shiftAssignments.workDate, original.workDate),
+    isNull(shiftAssignments.deletedAt),
   ];
   if (original.shiftDefinitionId) {
     conflictConds.push(eq(shiftAssignments.shiftDefinitionId, original.shiftDefinitionId));

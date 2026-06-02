@@ -1358,7 +1358,7 @@ export async function voidSale(input: unknown, ctx: AuditContext): Promise<Resul
         and(
           eq(salesOrders.id, data.salesOrderId),
           eq(salesOrders.version, sale.version),
-          eq(salesOrders.status, 'open'),
+          inArray(salesOrders.status, ['open', 'parked']),
         ),
       )
       .returning({ id: salesOrders.id });

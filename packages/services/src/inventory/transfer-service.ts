@@ -32,7 +32,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNull, sql } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { generateTransferNumber } from '../shared/number-generator';
@@ -378,9 +378,9 @@ export async function shipTransfer(
         for (const line of lines) {
           const variantCondition = line.variantId
             ? eq(stockLevels.variantId, line.variantId)
-            : eq(stockLevels.variantId, '' as unknown as string);
+            : isNull(stockLevels.variantId);
 
-          await tx
+          const updatedStock = await tx
             .update(stockLevels)
             .set({
               qtyOnHand: sql`${stockLevels.qtyOnHand} - ${line.qtySent}::numeric`,
@@ -395,7 +395,11 @@ export async function shipTransfer(
                 eq(stockLevels.productId, line.productId),
                 variantCondition,
               ),
-            );
+            )
+            .returning({ id: stockLevels.id });
+          if (updatedStock.length === 0) {
+            throw AppError.businessRule('inventory.transfer.insufficientStock');
+          }
         }
 
         // Insert movements
@@ -442,6 +446,7 @@ export async function shipTransfer(
       ),
     );
   } catch (e: any) {
+    if (e instanceof AppError) return err(e);
     if (e.code === '23514' || e.message?.includes('stock_levels_qty_check')) {
       return err(AppError.businessRule('inventory.transfer.insufficientStock'));
     }
@@ -538,7 +543,7 @@ export async function receiveTransfer(
 
       const variantCondition = line.variantId
         ? eq(stockLevels.variantId, line.variantId)
-        : eq(stockLevels.variantId, '' as unknown as string);
+        : isNull(stockLevels.variantId);
 
       const sourceStock = await db
         .select({ avgUnitCost: stockLevels.avgUnitCost })

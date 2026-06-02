@@ -49,11 +49,14 @@ export interface CheckOutResult {
   workedMinutes: number | null;
 }
 
-interface LocationGpsConfig {
+export interface LocationGpsConfig {
   lat: number;
   lng: number;
   radiusM: number;
 }
+
+const GPS_HARD_ACCURACY_LIMIT_M = 500;
+const GPS_RADIUS_BUFFER_M = 25;
 
 // ─── Input schemas ───────────────────────────────────────────────────────────
 
@@ -102,6 +105,12 @@ function haversineM(lat1: number, lng1: number, lat2: number, lng2: number): num
     Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
+}
+
+export function effectiveAttendanceRadiusM(radiusM: number, accuracyM: number): number {
+  const safeRadius = Number.isFinite(radiusM) && radiusM > 0 ? radiusM : 150;
+  const safeAccuracy = Number.isFinite(accuracyM) && accuracyM > 0 ? accuracyM : 0;
+  return safeRadius + Math.min(safeAccuracy, GPS_HARD_ACCURACY_LIMIT_M) + GPS_RADIUS_BUFFER_M;
 }
 
 /**
@@ -164,7 +173,7 @@ function calcLateMinutes(actualCheckIn: Date, expectedShiftStart: Date): number 
   return diffMin;
 }
 
-async function getLocationGpsConfig(
+export async function getLocationGpsConfig(
   tenantId: string,
   locationId: string,
 ): Promise<LocationGpsConfig | null> {
@@ -281,15 +290,20 @@ export async function checkIn(
         .from(shiftAssignments)
         .where(
           and(
+            eq(shiftAssignments.tenantId, ctx.tenantId),
             eq(shiftAssignments.employeeId, employee.id),
             eq(shiftAssignments.workDate, workDateStr),
             eq(shiftAssignments.kind, 'shift'),
+            ...(data.shiftDefinitionId
+              ? [eq(shiftAssignments.shiftDefinitionId, data.shiftDefinitionId)]
+              : []),
             isNull(shiftAssignments.deletedAt),
           ),
         )
+        .orderBy(desc(shiftAssignments.updatedAt))
         .limit(1);
 
-      const targetLocationId = assignment?.locationId ?? employee.locationId;
+      const targetLocationId = employee.locationId;
       const targetShiftDefinitionId = assignment?.shiftDefinitionId ?? data.shiftDefinitionId;
 
       // Target location might be different from assignment if checking in via GPS.
@@ -316,7 +330,6 @@ export async function checkIn(
             and(
               eq(shiftDefinitions.id, targetShiftDefinitionId),
               eq(shiftDefinitions.tenantId, ctx.tenantId),
-              eq(shiftDefinitions.locationId, targetLocationId),
               eq(shiftDefinitions.isActive, true),
               isNull(shiftDefinitions.deletedAt),
             ),
@@ -360,9 +373,10 @@ export async function checkIn(
           });
         }
         const gps = data.gpsData;
-        if (gps.accuracy_m > 200) {
+        if (gps.accuracy_m > GPS_HARD_ACCURACY_LIMIT_M) {
           throw AppError.validation('hr.attendance.gpsInaccurate', {
             accuracy: gps.accuracy_m,
+            maxAccuracy: GPS_HARD_ACCURACY_LIMIT_M,
             message: 'Location accuracy too low. Please try again in an open area.',
           });
         }
@@ -376,10 +390,13 @@ export async function checkIn(
         }
 
         const distanceM = haversineM(gps.lat, gps.lng, locationGps.lat, locationGps.lng);
-        if (distanceM > locationGps.radiusM) {
+        const effectiveRadiusM = effectiveAttendanceRadiusM(locationGps.radiusM, gps.accuracy_m);
+        if (distanceM > effectiveRadiusM) {
           throw AppError.validation('hr.attendance.outsideLocationRadius', {
             distanceM: Math.round(distanceM),
             radiusM: locationGps.radiusM,
+            accuracyM: Math.round(gps.accuracy_m),
+            effectiveRadiusM: Math.round(effectiveRadiusM),
             message: 'You are outside the configured attendance radius for this location.',
           });
         }
@@ -419,6 +436,7 @@ export async function checkIn(
           employeeId: resolvedEmployeeId,
           shiftDefinitionId: targetShiftDefinitionId ?? null,
           checkInAt: performedAt,
+          checkInLocationId: targetLocationId,
           checkInMethod: data.method,
           checkInGps: data.gpsData ?? null,
           shiftDefinitionCode: shiftCode,
@@ -462,7 +480,6 @@ export async function checkIn(
       };
     },
     (e) => {
-      console.error('CRITICAL INTERNAL CHECK-IN ERROR:', e);
       if (e instanceof AppError) return e;
       return AppError.internal('hr.attendance.checkInFailed', e);
     },

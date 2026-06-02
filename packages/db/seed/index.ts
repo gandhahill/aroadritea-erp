@@ -544,8 +544,9 @@ async function seed() {
           isActive: shift.isActive,
         })
         .onConflictDoUpdate({
-          target: [shiftDefinitions.tenantId, shiftDefinitions.code],
+          target: [shiftDefinitions.tenantId, shiftDefinitions.locationId, shiftDefinitions.code],
           set: {
+            locationId: loc.id,
             name: shift.name,
             startTime: shift.startTime,
             endTime: shift.endTime,

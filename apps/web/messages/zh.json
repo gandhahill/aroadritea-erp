@@ -2646,7 +2646,8 @@
           "withinRadius": "已检测到在门店位置",
           "outsideRadius": "超出门店范围",
           "distanceInfo": "距离{location} {distance}米（半径{radius}米）",
-          "gpsNotConfigured": "门店GPS坐标未配置，请联系管理员。"
+          "gpsNotConfigured": "门店GPS坐标未配置，请联系管理员。",
+          "distanceInfoWithAccuracy": "距离{location} {distance}米。门店半径{radius}米，有效容差{effectiveRadius}米（GPS精度+/-{accuracy}米）。"
         },
         "actions": {
           "requestPermissionAgain": "重新请求位置权限",
@@ -2655,12 +2656,16 @@
         "messages": {
           "geolocationUnsupported": "此浏览器不支持地理定位。",
           "locationPermissionDenied": "位置权限被拒绝。请在浏览器中启用位置访问。",
+          "locationUnavailable": "设备暂时无法提供位置。请开启GPS后重试。",
+          "locationTimeout": "获取位置耗时过长。请等待几秒后重试。",
           "employeeMissing": "未找到员工数据。请使用员工账号登录。",
           "checkedInLate": "已签到。迟到 {minutes} 分钟。",
           "checkedInOnTime": "签到成功。准时。",
           "checkInFailed": "签到失败。请重试。",
           "noShift": "没有可用班次。请联系管理员激活班次主数据。",
-          "noEmployeeLinked": "此账号未绑定员工数据。请联系管理员。"
+          "noEmployeeLinked": "此账号未绑定员工数据。请联系管理员。",
+          "gpsDistanceDetail": "GPS详细信息：距离{distance}米，门店半径{radius}米，有效容差{effectiveRadius}米，精度+/-{accuracy}米。",
+          "gpsAccuracyDetail": "当前GPS精度为+/-{accuracy}米，最大允许{maxAccuracy}米。请等待位置更稳定后重试。"
         },
         "kind": "考勤类型",
         "dailyTitle": "每日考勤",
@@ -2685,6 +2690,7 @@
       "gpsInaccurate": "GPS精度太低。请在开阔区域重试。",
       "gpsLocationNotConfigured": "门店坐标位置未配置。",
       "outsideLocationRadius": "您在允许的门店位置半径之外。",
+      "unauthenticated": "会话已过期，请重新登录。",
       "checkInFailed": "签到失败。",
       "notFound": "未找到考勤数据。",
       "alreadyCheckedOut": "您已经签退了。",
@@ -2921,7 +2927,9 @@
       "errors": {
         "swapFailed": "交换班次失败。",
         "deleteFailed": "删除日程失败。",
-        "saveFailed": "保存日程失败。"
+        "saveFailed": "保存日程失败。",
+        "shiftLocationMismatch": "所选班次与员工门店不一致。",
+        "swapLocationMismatch": "替班员工必须属于同一门店。"
       },
       "shifts": {
         "title": "班次主数据",

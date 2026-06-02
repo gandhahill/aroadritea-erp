@@ -27,7 +27,10 @@ async function resolveCtx(): Promise<AuditContext | null> {
 export async function serverCheckIn(input: CheckInInput) {
   const ctx = await resolveCtx();
   if (!ctx) {
-    return { ok: false as const, error: { code: 'UNAUTHENTICATED', message: 'Session expired' } };
+    return {
+      ok: false as const,
+      error: { code: 'UNAUTHENTICATED', message: 'hr.attendance.unauthenticated' },
+    };
   }
   const result = await checkIn(input, ctx);
   if (!result.ok) {
@@ -38,7 +41,7 @@ export async function serverCheckIn(input: CheckInInput) {
       ok: false as const,
       error: {
         code: e?.code ?? 'UNKNOWN',
-        message: e?.messageKey ?? e?.message ?? 'Check-in failed',
+        message: e?.messageKey ?? e?.message ?? 'hr.attendance.checkInFailed',
         details: e?.details,
       },
     };

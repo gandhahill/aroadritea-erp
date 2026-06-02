@@ -9,7 +9,7 @@ import { getSession } from '@/lib/auth';
 import { and, asc, db, eq, inArray, isNull } from '@erp/db';
 import { employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
 import { locations } from '@erp/db/schema/auth';
-import { resolveShiftTime } from '@erp/services/hr';
+import { getLocationGpsConfig, resolveShiftTime } from '@erp/services/hr';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { CheckInClient } from './check-in-client';
@@ -37,7 +37,7 @@ export default async function CheckInPage() {
     locationId = locationId || employee?.locationId || '';
   }
 
-  let activeLocationId = locationId;
+  const activeLocationId = locationId;
   let assignedShiftIds: string[] = [];
 
   if (employeeId) {
@@ -49,9 +49,8 @@ export default async function CheckInPage() {
     }).format(new Date());
 
     const assignments = await db
-      .select({ 
-        locationId: shiftAssignments.locationId,
-        shiftDefinitionId: shiftAssignments.shiftDefinitionId
+      .select({
+        shiftDefinitionId: shiftAssignments.shiftDefinitionId,
       })
       .from(shiftAssignments)
       .where(
@@ -65,13 +64,8 @@ export default async function CheckInPage() {
       );
 
     if (assignments.length > 0) {
-      // If there are assignments, we use the location of the first one
-      // (assuming assignments on the same day are at the same location)
-      if (assignments[0]?.locationId) {
-        activeLocationId = assignments[0].locationId;
-      }
       assignedShiftIds = assignments
-        .map(a => a.shiftDefinitionId)
+        .map((assignment) => assignment.shiftDefinitionId)
         .filter(Boolean) as string[];
     }
   }
@@ -89,7 +83,7 @@ export default async function CheckInPage() {
     .where(
       and(
         eq(shiftDefinitions.tenantId, tenantId),
-        assignedShiftIds.length > 0 
+        assignedShiftIds.length > 0
           ? inArray(shiftDefinitions.id, assignedShiftIds)
           : eq(shiftDefinitions.locationId, activeLocationId),
         eq(shiftDefinitions.isActive, true),
@@ -111,27 +105,23 @@ export default async function CheckInPage() {
   // Fetch location GPS config so the client can show distance feedback
   let locationGps: { lat: number; lng: number; radiusM: number; name: string } | null = null;
   if (activeLocationId) {
-    const [loc] = await db
-      .select({
-        gpsLat: locations.gpsLat,
-        gpsLng: locations.gpsLng,
-        gpsRadiusM: locations.gpsRadiusM,
-        name: locations.name,
-        code: locations.code,
-      })
-      .from(locations)
-      .where(eq(locations.id, activeLocationId))
-      .limit(1);
+    const [gpsConfig, loc] = await Promise.all([
+      getLocationGpsConfig(tenantId, activeLocationId),
+      db
+        .select({
+          name: locations.name,
+          code: locations.code,
+        })
+        .from(locations)
+        .where(eq(locations.id, activeLocationId))
+        .limit(1)
+        .then((rows) => rows[0] ?? null),
+    ]);
 
-    if (loc?.gpsLat && loc?.gpsLng) {
-      const lat = Number(loc.gpsLat);
-      const lng = Number(loc.gpsLng);
-      const radiusM = Number(loc.gpsRadiusM ?? 150);
-      if (Number.isFinite(lat) && Number.isFinite(lng)) {
-        const nameObj = loc.name as Record<string, string> | null;
-        const locName = nameObj?.id ?? nameObj?.en ?? loc.code ?? '';
-        locationGps = { lat, lng, radiusM, name: locName };
-      }
+    if (gpsConfig && loc) {
+      const nameObj = loc.name as Record<string, string> | null;
+      const locName = nameObj?.id ?? nameObj?.en ?? loc.code ?? '';
+      locationGps = { ...gpsConfig, name: locName };
     }
   }
 
