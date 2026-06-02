@@ -2,8 +2,8 @@
 
 - **Owner**: Codex
 - **Started**: 2026-06-02 11:21 WIB
-- **Last updated**: 2026-06-02 22:26 WIB
-- **Status**: IN_PROGRESS
+- **Last updated**: 2026-06-03 03:26 WIB
+- **Status**: DONE
 
 ## Goal
 1. Fix current `pnpm --filter @erp/web typecheck` failures and push to GitHub.
@@ -16,8 +16,8 @@ Spec references: AGENTS.md, SOURCE-OF-TRUTH.md, SYSTEM-DESIGN.md.
 1. [x] Fix typecheck errors in fixed assets and POS sale flow.
 2. [x] Run `pnpm --filter @erp/web typecheck`.
 3. [x] Collect subagent findings from Accounting/Tax/Reporting, POS/Inventory/Kitchen, HR/Payroll/IAM, CMS/Site/MCP/Worker.
-4. [~] Patch validated functional bugs with scoped changes.
-5. [~] Implement inline attendance face verification enrollment.
+4. [x] Patch validated functional bugs with scoped changes.
+5. [x] Implement inline attendance face verification enrollment.
 6. [x] Run focused tests/build/typecheck for hotfixes.
 7. [x] Commit and push latest hotfix to GitHub.
 
@@ -88,6 +88,14 @@ Spec references: AGENTS.md, SOURCE-OF-TRUTH.md, SYSTEM-DESIGN.md.
   - `transfer-service.ts` now handles create/ship/receive/cancel in transactions, uses null-safe variant matching plus batch/expiry identity, enforces source qty guards on ship, rejects receive qty greater than sent, and audits via `auditRecord`.
   - `grn-service.ts` now uses the transaction client inside `confirmGRN`, guards PO line received qty against remaining ordered qty, updates stock levels by variant/batch/expiry, and fails on PO version conflicts.
   - Added `production` to accounting journal reference types and added audit support for `ship`, `stock_transfer`, and `production_batch`.
+- Completed scoped POS/offline/KDS patch:
+  - Cup labels now render QR from `sales_order_lines.kds_qr_token`/`kds_qr_payload` per line instead of a single order-number QR.
+  - `createSale` now fails and releases idempotency when KDS QR generation or modifier-code mapping fails; it stores the actual Naixer payload in both QR columns.
+  - Ingredient deduction no longer silently skips missing stock levels or UOM mismatches; sale/refund stock movements carry `stockLocationId` from the stock level.
+  - Offline sync no longer marks 400/422 server responses as synced; the outbox row remains pending for retry after stale master data/config is fixed.
+  - `/api/sync/pos` no longer rejects offline sales only because `createdAtClient` is older than 24 hours; future-clock skew guard remains.
+  - `refundSale` now writes `refunds` and `refund_lines`, validates against already-refunded quantities, keeps partial refunds as `paid`, and marks `refunded` only once fully refunded.
+  - Shift expected cash now counts cash payments from both `paid` and `refunded` sales and subtracts completed cash refund ledger rows, avoiding double subtraction on full refund.
 
 ## Decisions
 - Latest user priority overrides the broad sweep: production `/hr/attendance` crash was fixed first.
@@ -95,11 +103,12 @@ Spec references: AGENTS.md, SOURCE-OF-TRUTH.md, SYSTEM-DESIGN.md.
 - Face verification decision: use inline enrollment on `/hr/checkin`; store encrypted template/verifier only, not raw face photos; audit enrollment and store per-attendance verification result in existing attendance face columns.
 
 ## Open issues
-- Broad bug-hunt remediation remains incomplete; subagent findings are recorded above and should be triaged into separate scoped fixes.
+- Full repo lint remains blocked by existing baseline Biome issues outside this scope; targeted Biome checks for edited stock/messages files pass.
+- Full services Vitest still has pre-existing/non-scope failures in PII, payroll-engine, purchasing-create-PO, reporting aging/cash-flow, and accounting journal mocks. Targeted accounting/payroll/POS/inventory/purchasing tests pass.
 - Prod still has pre-existing dirty/untracked operational files unrelated to this hotfix (migration scratch scripts/backups). Left untouched.
 
 ## Next step
-Continue integrating parallel worker patches. For this inventory/purchasing slice, remaining verification blocker is unrelated POS typecheck debt in `packages/services/src/pos/create-sale.ts` and `packages/services/src/pos/manual-sales.ts`.
+No implementation step remains for T-0266. After deploy, apply migration `0039_employee_face_templates.sql`, then smoke test `/hr/checkin`, `/inventory/stock`, `/pos/manual-sales/consumed`, and `/logistics/outgoing-shipments`.
 
 ## Test status
 - `pnpm --filter @erp/web typecheck` PASS after `/hr/attendance` hotfix.
@@ -107,12 +116,12 @@ Continue integrating parallel worker patches. For this inventory/purchasing slic
 - `pm2 restart aroadri-web --update-env` PASS.
 - Access-control scoped diff check: `git diff --check -- <access-control files>` PASS.
 - Inventory/purchasing targeted tests PASS: `pnpm --filter @erp/services exec vitest run tests/purchasing-grn.test.ts tests/inventory-adjust-transfer.test.ts` = 95/95.
-- `pnpm --filter @erp/services typecheck -- --pretty false` FAILS only on POS files outside this scope after inventory/purchasing fixes:
-  - `packages/services/src/pos/create-sale.ts` possible undefined `p`.
-  - `packages/services/src/pos/manual-sales.ts` missing `stockLocationId` in ingredient deductions.
+- POS targeted tests PASS: `pnpm --filter @erp/services test -- run pos.test.ts` = 81/81.
+- `pnpm --filter @erp/offline typecheck` PASS.
+- `pnpm --filter @erp/services typecheck` PASS after POS `stockLocationId` and product-narrowing fixes.
 - Full `pnpm --filter @erp/services exec vitest run` still FAILS on pre-existing/non-scope accounting/payroll/reporting/PII/create-PO mock expectations; targeted GRN/transfer tests pass.
-- Current full `pnpm --filter @erp/web exec tsc --noEmit --pretty false` FAILS on parallel worker changes outside this scope:
-  - `apps/web/app/(dash)/hr/checkin/check-in-client.tsx` missing new required `enrollFace`.
-  - `apps/web/app/(dash)/hr/checkin/page.tsx` passes `faceVerification` prop not yet declared in client props.
-  - `packages/services/src/pos/create-sale.ts` possible undefined `p`.
-  - `packages/services/src/pos/manual-sales.ts` missing `stockLocationId` in ingredient deductions.
+- Inline face verification, manual ingredient history, outgoing shipment CRUD/courier labels, stock integer display, office stock locations, and inventory valuation were implemented in commit `cf198fe`.
+- `pnpm --filter @erp/web typecheck` PASS after final inventory valuation change.
+- `pnpm typecheck` PASS on 2026-06-03 03:25 WIB, including `lint:permissions`.
+- `pnpm exec biome check "apps/web/app/(dash)/inventory/stock/page.tsx" "apps/web/messages/id.json" "apps/web/messages/en.json" "apps/web/messages/zh.json"` PASS.
+- `git diff --check` PASS.
