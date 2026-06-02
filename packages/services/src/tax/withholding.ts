@@ -26,13 +26,14 @@ export type GenerateBupotInput = z.infer<typeof GenerateBupotInputSchema>;
 export async function calculateWithholding(
   dpp: bigint,
   taxCode: string,
+  tenantId: string,
 ): Promise<Result<{ taxAmount: bigint; rateBps: number }>> {
   return tryCatch(
     async () => {
       const [rate] = await db
         .select({ rateBps: taxRates.rateBps })
         .from(taxRates)
-        .where(eq(taxRates.code, taxCode))
+        .where(and(eq(taxRates.tenantId, tenantId), eq(taxRates.code, taxCode), eq(taxRates.isActive, true)))
         .limit(1);
 
       if (!rate) {
@@ -64,7 +65,7 @@ export async function generateBuktiPotong(
       const perm = await requirePermission(ctx.userId, 'tax.manage_rates');
       if (!perm.ok) throw perm.error;
 
-      const calcRes = await calculateWithholding(data.dpp, data.taxCode);
+      const calcRes = await calculateWithholding(data.dpp, data.taxCode, ctx.tenantId);
       if (!calcRes.ok) throw calcRes.error;
 
       // Generate bupot number: BPT-YYYY-MM-0001

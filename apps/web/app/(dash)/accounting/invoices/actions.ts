@@ -1,4 +1,3 @@
-import type { PermissionCode } from '@erp/shared/types';
 'use server';
 
 import { getSession } from '@/lib/auth';

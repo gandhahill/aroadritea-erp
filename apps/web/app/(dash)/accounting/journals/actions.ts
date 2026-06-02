@@ -703,14 +703,15 @@ export async function fetchJournalDetail(journalId: string): Promise<JournalDeta
     ]),
   );
 
-  // Fetch account details for display
+  // Fetch account details for display — filter by the specific IDs to avoid
+  // returning the entire chart of accounts for the tenant on every detail load.
   const accountIds = [...new Set(lines.map((l) => l.accountId))];
   const acctRows =
     accountIds.length > 0
       ? await db
           .select({ id: accounts.id, code: accounts.code, name: accounts.name })
           .from(accounts)
-          .where(eq(accounts.tenantId, ctx.tenantId))
+          .where(and(eq(accounts.tenantId, ctx.tenantId), inArray(accounts.id, accountIds)))
       : [];
 
   const acctMap = new Map(acctRows.map((a) => [a.id, a]));

@@ -4,6 +4,7 @@ import { pickLocalized } from '@/lib/pick-localized';
 import {
   Button,
   Input,
+  MoneyInput,
   Select,
   Table,
   TableBody,
@@ -328,25 +329,21 @@ export function JournalForm({ accounts, locations, partners }: Props) {
                     />
                   </TableCell>
                   <TableCell className="min-w-36 px-4 py-3 align-top">
-                    <Input
+                    <MoneyInput
                       name={`debit-${index}`}
-                      inputMode="numeric"
                       value={line.debit}
-                      onChange={(event) =>
-                        updateLine(line.key, { debit: event.target.value, credit: '' })
+                      onValueChange={(raw) =>
+                        updateLine(line.key, { debit: raw, credit: '' })
                       }
-                      className="text-right"
                     />
                   </TableCell>
                   <TableCell className="min-w-36 px-4 py-3 align-top">
-                    <Input
+                    <MoneyInput
                       name={`credit-${index}`}
-                      inputMode="numeric"
                       value={line.credit}
-                      onChange={(event) =>
-                        updateLine(line.key, { credit: event.target.value, debit: '' })
+                      onValueChange={(raw) =>
+                        updateLine(line.key, { credit: raw, debit: '' })
                       }
-                      className="text-right"
                     />
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right align-top">

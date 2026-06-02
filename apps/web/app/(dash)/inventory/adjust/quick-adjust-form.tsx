@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Input, Select } from '@erp/ui';
+import { Button, Input, IntegerInput, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useActionState } from 'react';
 import { type QuickAdjustData, createQuickAdjustmentAction } from './actions';
@@ -72,7 +72,7 @@ export function QuickAdjustForm({ data }: { data: QuickAdjustData }) {
 
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-brand-ink">{t('qtyAfter')}</span>
-          <Input name="qtyAfter" type="number" min="0" step="0.001" required />
+          <IntegerInput name="qtyAfter" min="0" required />
         </label>
 
         <label className="space-y-1.5">

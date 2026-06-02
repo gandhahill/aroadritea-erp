@@ -200,18 +200,18 @@ export async function postInvoice(
   const postRes = await postJournal({ journalId }, ctx);
   if (!postRes.ok) return postRes;
 
+  // Mark invoice as posted before attempting e-Faktur generation.
+  // The journal is already posted above — update the invoice status to keep
+  // the books consistent even if NSFP allocation fails later.
+  await db.update(invoices).set({ status: 'posted', journalId, updatedBy: ctx.userId }).where(eq(invoices.id, invoiceId));
+
   if (invoice.type === 'sales' && invoice.taxAmount > 0n) {
     const { generateTaxInvoice } = await import('../tax/efaktur');
-    const taxRes = await generateTaxInvoice(invoiceId, ctx);
-    if (!taxRes.ok) {
-      // If we run out of NSFP, rollback the post or bubble the error. 
-      // For simplicity, we just return the error. In production with real DB transactions, 
-      // the journal post would be rolled back.
-      return err(taxRes.error);
-    }
+    // e-Faktur generation is best-effort: a missing NSFP block does NOT
+    // roll back the accounting entry. The operator must register an NSFP
+    // block and re-trigger generation via the Tax → e-Faktur menu.
+    await generateTaxInvoice(invoiceId, ctx);
   }
-
-  await db.update(invoices).set({ status: 'posted', journalId, updatedBy: ctx.userId }).where(eq(invoices.id, invoiceId));
 
   return ok({ success: true, journalId });
 }
@@ -269,7 +269,14 @@ export async function payInvoice(
   // Wait, better to just query the original journal to find the AR account
   const { journalLines } = await import('@erp/db/schema/accounting');
   const originalLines = await db.select().from(journalLines).where(eq(journalLines.journalEntryId, invoice.journalId!));
-  const partnerLine = originalLines.find(l => (invoice.type === 'sales' ? l.debit > 0n : l.credit > 0n)); // The AR/AP line
+  // Sales invoice: AR line has a debit equal to invoice.total (full amount on the partner line).
+  // Purchase invoice: AP line has a credit equal to invoice.total. We identify the partner
+  // line by amount match rather than by account type to avoid ambiguity.
+  const partnerLine = originalLines.find(l =>
+    invoice.type === 'sales'
+      ? l.debit === invoice.total && l.credit === 0n
+      : l.credit === invoice.total && l.debit === 0n,
+  );
   
   if (!partnerLine) return err(AppError.internal('invoice.partnerLineNotFound'));
 

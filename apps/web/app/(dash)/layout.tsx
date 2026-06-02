@@ -4,6 +4,7 @@
  * Middleware handles the redirect, this layout provides the session context.
  */
 
+import { ErrorBoundary, GlobalErrorListener } from '@/components/error-reporter';
 import { getSession } from '@/lib/auth';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
@@ -88,9 +89,12 @@ export default async function DashboardLayout({
           </header>
 
           {/* Page content */}
-          <main className="min-h-0 flex-1 overflow-y-auto bg-brand-cream p-3 sm:p-6 print:p-0 print:bg-white print:overflow-visible print:h-auto print:block">{children}</main>
+          <main className="min-h-0 flex-1 overflow-y-auto bg-brand-cream p-3 sm:p-6 print:p-0 print:bg-white print:overflow-visible print:h-auto print:block">
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </main>
         </div>
       </div>
+      <GlobalErrorListener />
     </MobileMenuProvider>
   );
 }

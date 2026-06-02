@@ -1,5 +1,7 @@
 export * from './button';
 export * from './input';
+export * from './integer-input';
+export * from './money-input';
 export * from './select';
 export * from './searchable-select';
 export * from './table';

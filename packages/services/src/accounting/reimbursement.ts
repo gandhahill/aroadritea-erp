@@ -15,6 +15,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, lt } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+import type { PermissionCode } from '@erp/shared/types';
 import {
   type CreateReimbursementInput,
   CreateReimbursementSchema,
@@ -424,5 +425,3 @@ async function transitionStatus(
     },
   );
 }
-
-import type { PermissionCode } from '@erp/shared/types';

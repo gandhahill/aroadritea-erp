@@ -1,7 +1,7 @@
 'use client';
 
 import { PageHeader } from '@/components/page-header';
-import { Button, Input, Select } from '@erp/ui';
+import { Button, Input, IntegerInput, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -142,13 +142,11 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                     <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
                       Qty
                     </span>
-                    <Input
-                      type="number"
+                    <IntegerInput
                       min="1"
-                      step="any"
                       value={line.qty}
                       onChange={(e) => {
-                        const qty = Math.max(1, Number.parseFloat(e.target.value) || 1);
+                        const qty = Math.max(1, Number.parseInt(e.target.value, 10) || 1);
                         const newLines = [...lines];
                         newLines[index] = { ...line, qty };
                         setLines(newLines);

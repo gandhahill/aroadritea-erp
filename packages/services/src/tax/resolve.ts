@@ -17,7 +17,7 @@ import { taxRates } from '@erp/db/schema/accounting';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, isNull, lte, or, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // --- Types ---
@@ -127,10 +127,7 @@ export async function resolve(
         .from(taxRates)
         .where(
           and(
-            sql`${taxRates.code} IN (${sql.join(
-              taxCodes.map((c) => sql`${c}`),
-              sql`, `,
-            )})`,
+            inArray(taxRates.code, taxCodes),
             eq(taxRates.isActive, true),
           ),
         );

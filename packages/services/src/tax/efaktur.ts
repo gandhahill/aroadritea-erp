@@ -6,7 +6,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, asc, eq, isNull, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
@@ -284,7 +284,7 @@ export async function exportEFakturCsv(
          const lines = await db
            .select()
            .from(invoiceLines)
-           .where(sql`${invoiceLines.invoiceId} IN ${invoiceIds}`);
+           .where(inArray(invoiceLines.invoiceId, invoiceIds));
            
          for (const line of lines) {
            const arr = linesMap[line.invoiceId] ?? [];

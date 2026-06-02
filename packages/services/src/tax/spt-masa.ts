@@ -105,7 +105,9 @@ export async function getVatLedger(
       if (!rateRows[0]) {
         throw AppError.businessRule('tax.sptMasa.rateNotFound', { taxCode: targetTaxCode });
       }
-      const ratePercent = BigInt(rateRows[0].rateBps) / 100n;
+      // rateBps e.g. 1100 = 11%. Keep full precision in BigInt numerator.
+      // DPP = ppn * 10000 / rateBps (avoids loss of sub-integer rates like 1050 bps).
+      const rateBpsBigInt = BigInt(rateRows[0].rateBps);
 
       const rows = await db
         .select({
@@ -145,10 +147,13 @@ export async function getVatLedger(
           ? r.credit - r.debit 
           : r.debit - r.credit;
 
-        // If we have invoiceSubtotal, use it as DPP. Otherwise, estimate based on current rate.
-        const dpp = r.invoiceSubtotal 
-          ? r.invoiceSubtotal 
-          : (ppn * 100n / ratePercent);
+        // If we have invoiceSubtotal, use it as DPP. Otherwise, back-calculate from PPN.
+        // Formula: DPP = ppn * 10000 / rateBps (guard against zero rate).
+        const dpp = r.invoiceSubtotal
+          ? r.invoiceSubtotal
+          : rateBpsBigInt > 0n
+            ? (ppn * 10000n) / rateBpsBigInt
+            : 0n;
 
         return {
           journalLineId: r.lineId,

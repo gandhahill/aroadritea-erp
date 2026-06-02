@@ -1,7 +1,7 @@
 'use client';
 
 import type { EmployeeDetailResult } from '@erp/services/hr';
-import { Button, Input, Select } from '@erp/ui';
+import { Button, Input, MoneyInput, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useActionState, useEffect } from 'react';
@@ -110,13 +110,12 @@ export function EmployeeForm({
             <option value="pkwtt">PKWTT</option>
           </Select>
         </label>
-        <Field
-          label={f('baseSalary')}
-          name="baseSalary"
-          type="number"
-          required
-          defaultValue={employee?.contracts?.[0]?.baseSalary ?? '0'}
-        />
+        <label htmlFor="baseSalary" className="space-y-1.5">
+          <span className="text-sm font-medium text-brand-ink">
+            {f('baseSalary')} <span className="text-brand-red">*</span>
+          </span>
+          <MoneyInput id="baseSalary" name="baseSalary" required defaultValue={employee?.contracts?.[0]?.baseSalary ?? '0'} />
+        </label>
         {!isEdit ? (
           <label htmlFor="loginScope" className="space-y-1.5">
             <span className="text-sm font-medium text-brand-ink">{f('loginScope')}</span>

@@ -356,6 +356,8 @@ export async function closePeriod(
                 });
 
                 // Create and post JE 1 (Nominal -> Income Summary)
+                // Pass tx so the closing entries participate in the same transaction
+                // as the period status update — if anything fails, all changes roll back.
                 const je1 = await createJournal(
                   {
                     postingDate: period.endDate,
@@ -369,7 +371,7 @@ export async function closePeriod(
                       credit: l.credit.toString(),
                     })),
                   },
-                  ctx, { skipPermissionCheck: true }
+                  ctx, { skipPermissionCheck: true, tx }
                 );
 
                 if (!je1.ok) throw je1.error;
@@ -399,7 +401,7 @@ export async function closePeriod(
                         },
                       ],
                     },
-                    ctx, { skipPermissionCheck: true }
+                    ctx, { skipPermissionCheck: true, tx }
                   );
 
                   if (!je2.ok) throw je2.error;

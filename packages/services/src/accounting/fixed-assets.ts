@@ -1120,7 +1120,7 @@ export async function disposeFixedAsset(
         );
 
       await auditRecord({
-        action: 'update' as any,
+        action: 'dispose',
         entityType: 'fixed_asset',
         entityId: data.id,
         before: {

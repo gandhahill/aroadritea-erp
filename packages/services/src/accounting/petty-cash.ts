@@ -170,14 +170,14 @@ export async function listPettyCashTransactions(
       .limit(limit)
       .offset(offset),
     db
-      .select({ count: pettyCashTransactions.id })
+      .select({ count: sql<number>`cast(count(*) as int)` })
       .from(pettyCashTransactions)
       .where(eq(pettyCashTransactions.accountId, accountId)),
   ]);
 
   return ok({
     items: rows.map(toTransactionResult),
-    total: countResult.length,
+    total: countResult[0]?.count ?? 0,
   });
 }
 

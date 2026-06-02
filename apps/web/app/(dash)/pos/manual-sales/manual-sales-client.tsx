@@ -2,7 +2,7 @@
 
 import { PageHeader } from '@/components/page-header';
 import { Pagination } from '@/components/pagination';
-import { Button, Input, Select, SearchableSelect, Table, TableBody, TableCell, TableHead, toast } from '@erp/ui';
+import { Button, Input, IntegerInput, MoneyInput, Select, SearchableSelect, Table, TableBody, TableCell, TableHead, toast } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useActionState, useEffect, useState } from 'react';
@@ -236,22 +236,19 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                   </div>
                   <div className="flex-1 min-w-[120px]">
                     <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('grossSales')}</span>
-                    <Input
-                      type="text"
-                      inputMode="numeric"
+                    <MoneyInput
                       value={payment.grossSales}
                       required
-                      onChange={(e) => {
+                      onValueChange={(raw) => {
                         const newPayments = [...payments];
-                        newPayments[index] = { ...newPayments[index]!, grossSales: e.target.value.replace(/\D/g, '') };
+                        newPayments[index] = { ...newPayments[index]!, grossSales: raw };
                         setPayments(newPayments);
                       }}
                     />
                   </div>
                   <div className="w-24">
                     <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('transactionCount')}</span>
-                    <Input
-                      type="number"
+                    <IntegerInput
                       min={0}
                       value={payment.transactionCount}
                       onChange={(e) => {
