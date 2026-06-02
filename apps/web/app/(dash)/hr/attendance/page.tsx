@@ -40,8 +40,11 @@ export default async function AttendancePage({
   // undefined or null to object" when the wrapper has no entries map.
   const baseConds = [eq(attendance.tenantId, tenantId), isNull(attendance.deletedAt)];
   if (employeeId) baseConds.push(eq(attendance.employeeId, employeeId));
-  if (dateFrom) baseConds.push(sql`${attendance.checkInAt} >= ${dateFrom}`);
-  if (dateTo) baseConds.push(sql`${attendance.checkInAt} <= ${dateTo}`);
+  // checkInAt is timestamptz (UTC). Bare date strings like '2026-06-02'
+  // cast to midnight UTC, not WIB — a 09:00 WIB check-in (02:00 UTC) would
+  // fall outside the range. Append +07:00 so PostgreSQL compares in WIB.
+  if (dateFrom) baseConds.push(sql`${attendance.checkInAt} >= ${`${dateFrom}T00:00:00+07:00`}`);
+  if (dateTo) baseConds.push(sql`${attendance.checkInAt} < ${`${dateTo}T00:00:00+07:00`}::timestamptz + interval '1 day'`);
 
   const whereClause = and(...baseConds);
 
