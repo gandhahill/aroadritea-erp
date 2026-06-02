@@ -25,6 +25,8 @@ interface AttendanceRow {
   workedMinutes: number | null;
   lateForgiven?: boolean;
   lateForgivenReason?: string | null;
+  lateForgivenBy?: string | null;
+  lateForgivenAt?: string | null;
 }
 
 function formatDateTime(iso: string): string {
@@ -211,7 +213,7 @@ export function AttendanceListClient({
                   {t('columns.late')}
                 </TableHead>
                 <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
-                  {t('columns.workedHours')}
+                  {t('columns.dispensasi', { defaultValue: 'Dispensasi' })}
                 </TableHead>
               </tr>
             </thead>
@@ -252,7 +254,22 @@ export function AttendanceListClient({
                     )}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink-2">
-                    {formatMinutes(row.workedMinutes)}
+                    {row.lateForgiven ? (
+                      <div className="space-y-0.5">
+                        <p className="text-xs text-brand-ink">{row.lateForgivenReason}</p>
+                        {row.lateForgivenBy && (
+                          <p className="text-[11px] text-brand-ink-3">
+                            {t('forgivenByAt', {
+                              by: row.lateForgivenBy,
+                              at: row.lateForgivenAt ? formatDateTime(row.lateForgivenAt) : '—',
+                              defaultValue: `oleh ${row.lateForgivenBy}`,
+                            })}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-brand-ink-3">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="px-4 py-3">
                     {row.isLate && !row.lateForgiven ? (

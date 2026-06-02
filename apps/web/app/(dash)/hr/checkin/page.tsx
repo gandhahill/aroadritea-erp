@@ -6,8 +6,8 @@
  */
 
 import { getSession } from '@/lib/auth';
-import { and, asc, db, eq, inArray, isNull } from '@erp/db';
-import { employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
+import { and, asc, db, eq, gte, inArray, isNull, lte } from '@erp/db';
+import { attendance, employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
 import { locations } from '@erp/db/schema/auth';
 import { getLocationGpsConfig, resolveShiftTime } from '@erp/services/hr';
 import type { Metadata } from 'next';
@@ -125,6 +125,43 @@ export default async function CheckInPage() {
     }
   }
 
+  // Check if this employee already checked in today (WIB) and hasn't checked out yet.
+  let openAttendance: { id: string; checkInAt: string; shiftCode: string | null } | null = null;
+  if (employeeId) {
+    const nowUtc = new Date();
+    const wibMs = nowUtc.getTime() + 7 * 60 * 60 * 1000;
+    const wib = new Date(wibMs);
+    const todayStart = new Date(Date.UTC(wib.getUTCFullYear(), wib.getUTCMonth(), wib.getUTCDate(), -7));
+    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
+
+    const [open] = await db
+      .select({
+        id: attendance.id,
+        checkInAt: attendance.checkInAt,
+        shiftCode: attendance.shiftDefinitionCode,
+      })
+      .from(attendance)
+      .where(
+        and(
+          eq(attendance.tenantId, tenantId),
+          eq(attendance.employeeId, employeeId),
+          isNull(attendance.checkOutAt),
+          isNull(attendance.deletedAt),
+          gte(attendance.checkInAt, todayStart),
+          lte(attendance.checkInAt, todayEnd),
+        ),
+      )
+      .limit(1);
+
+    if (open) {
+      openAttendance = {
+        id: open.id,
+        checkInAt: open.checkInAt?.toISOString() ?? '',
+        shiftCode: open.shiftCode,
+      };
+    }
+  }
+
   return (
     <CheckInClient
       userId={userId}
@@ -133,6 +170,7 @@ export default async function CheckInPage() {
       employeeId={employeeId}
       shifts={shifts}
       locationGps={locationGps}
+      openAttendance={openAttendance}
     />
   );
 }

@@ -18,12 +18,12 @@ import { redirect } from 'next/navigation';
 export const metadata: Metadata = { title: 'My Attendance' };
 
 function firstOfMonth(): string {
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
+  const wib = new Date(Date.now() + 7 * 60 * 60 * 1000);
+  return `${wib.getUTCFullYear()}-${String(wib.getUTCMonth() + 1).padStart(2, '0')}-01`;
 }
 
 function today(): string {
-  return new Date().toISOString().slice(0, 10);
+  return new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 
 function fmtDateTime(d: Date, locale: string): string {
@@ -78,7 +78,8 @@ export default async function MyAttendancePage({
   // Aggregate summary cards.
   const totalDays = items.length;
   const lateDays = items.filter((r) => r.isLate && !r.lateForgiven).length;
-  const totalWorked = items.reduce((s, r) => s + (r.workedMinutes ?? 0), 0);
+  const checkedOutItems = items.filter((r) => r.checkOutAt != null);
+  const totalWorked = checkedOutItems.reduce((s, r) => s + (r.workedMinutes ?? 0), 0);
 
   return (
     <div className="space-y-6">
@@ -116,7 +117,17 @@ export default async function MyAttendancePage({
       <div className="grid gap-3 sm:grid-cols-3">
         <Card label={t('totalDays')} value={String(totalDays)} />
         <Card label={t('lateDays')} value={String(lateDays)} tone={lateDays > 0 ? 'rose' : null} />
-        <Card label={t('totalWorked')} value={fmtMinutes(totalWorked)} />
+        <Card
+          label={t('totalWorked')}
+          value={checkedOutItems.length > 0 ? fmtMinutes(totalWorked) : '—'}
+          subtitle={checkedOutItems.length < totalDays && totalDays > 0
+            ? t('workedNote', {
+                checked: checkedOutItems.length,
+                total: totalDays,
+                defaultValue: `${checkedOutItems.length}/${totalDays} sudah checkout`,
+              })
+            : undefined}
+        />
       </div>
 
       {/* Table */}
@@ -184,16 +195,19 @@ function Card({
   label,
   value,
   tone,
+  subtitle,
 }: {
   label: string;
   value: string;
   tone?: 'rose' | null;
+  subtitle?: string;
 }) {
   const valueClass = tone === 'rose' ? 'text-rose-600' : 'text-brand-ink';
   return (
     <div className="rounded-xl border border-brand-cream-3 bg-card p-3">
       <p className="text-xs uppercase tracking-wide text-brand-ink-3">{label}</p>
       <p className={`mt-1 text-xl font-bold ${valueClass}`}>{value}</p>
+      {subtitle && <p className="mt-0.5 text-[11px] text-brand-ink-3">{subtitle}</p>}
     </div>
   );
 }

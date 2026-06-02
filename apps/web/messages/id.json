@@ -2699,9 +2699,11 @@
         "checkOut": "Pulang",
         "method": "Metode",
         "late": "Telat",
-        "workedHours": "Jam kerja"
+        "workedHours": "Jam kerja",
+        "dispensasi": "Dispensasi"
       },
       "forgiven": "+{minutes}m (dispensasi)",
+      "forgivenByAt": "oleh {by}, {at}",
       "lateMinutesDisplay": "+{minutes}m",
       "forgiveBtn": "Dispensasi",
       "forgiveModalTitle": "Beri dispensasi keterlambatan",
@@ -2730,7 +2732,8 @@
         },
         "actions": {
           "requestPermissionAgain": "Minta izin lokasi lagi",
-          "checkingIn": "Mencatat presensi..."
+          "checkingIn": "Mencatat presensi...",
+          "checkingOut": "Mencatat pulang..."
         },
         "messages": {
           "geolocationUnsupported": "Browser ini belum mendukung geolokasi.",
@@ -2744,7 +2747,10 @@
           "noShift": "Shift belum tersedia. Hubungi administrator untuk mengaktifkan master shift.",
           "noEmployeeLinked": "Akun ini belum terhubung ke data karyawan. Hubungi administrator.",
           "gpsDistanceDetail": "Detail GPS: jarak {distance}m, radius outlet {radius}m, toleransi efektif {effectiveRadius}m, akurasi +/-{accuracy}m.",
-          "gpsAccuracyDetail": "Akurasi GPS saat ini +/-{accuracy}m, batas maksimum {maxAccuracy}m. Tunggu titik lokasi lebih stabil lalu coba lagi."
+          "gpsAccuracyDetail": "Akurasi GPS saat ini +/-{accuracy}m, batas maksimum {maxAccuracy}m. Tunggu titik lokasi lebih stabil lalu coba lagi.",
+          "checkedOut": "Presensi pulang tercatat. Jam kerja: {hours}j {minutes}m.",
+          "checkOutFailed": "Gagal mencatat pulang. Coba lagi.",
+          "alreadyCheckedIn": "Sudah check-in pukul {time}"
         },
         "kind": "Jenis Presensi",
         "dailyTitle": "Presensi Harian",
@@ -2788,6 +2794,7 @@
       "totalDays": "Total Hari",
       "lateDays": "Hari Terlambat",
       "totalWorked": "Total Jam Kerja",
+      "workedNote": "{checked}/{total} sudah checkout",
       "onTime": "Tepat Waktu",
       "lateBy": "Terlambat {minutes}m",
       "forgiven": "Dispensasi",

@@ -15,7 +15,7 @@ import type { GpsData } from '@erp/services/hr';
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { serverCheckIn } from './actions';
+import { serverCheckIn, serverCheckOut } from './actions';
 
 interface LocationGps {
   lat: number;
@@ -24,16 +24,20 @@ interface LocationGps {
   name: string;
 }
 
+interface OpenAttendance {
+  id: string;
+  checkInAt: string;
+  shiftCode: string | null;
+}
+
 interface Props {
-  // userId / tenantId no longer flow through the client — serverCheckIn
-  // resolves session-side. Kept on the prop type so the parent server
-  // component can keep its current shape without churn.
   userId?: string;
   tenantId?: string;
   locationId: string;
   employeeId: string;
   shifts: Array<{ id: string; label: string; time: string }>;
   locationGps?: LocationGps | null;
+  openAttendance?: OpenAttendance | null;
 }
 
 function haversineM(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -67,7 +71,8 @@ function effectiveAttendanceRadiusM(radiusM: number, accuracyM: number): number 
   return safeRadius + Math.min(safeAccuracy, GPS_HARD_ACCURACY_LIMIT_M) + GPS_RADIUS_BUFFER_M;
 }
 
-export function CheckInClient({ locationId, employeeId, shifts, locationGps }: Props) {
+export function CheckInClient({ locationId, employeeId, shifts, locationGps, openAttendance }: Props) {
+  const isCheckOutMode = !!openAttendance;
   const t = useTranslations('hr.attendance.checkInPage');
   const attendanceT = useTranslations('hr.attendance');
   const locale = useLocale();
@@ -246,19 +251,60 @@ export function CheckInClient({ locationId, employeeId, shifts, locationGps }: P
       setResult({ ok: false, message: msg });
     }
   };
-  const canCheckIn =
+  const handleCheckOut = async () => {
+    if (!openAttendance) return;
+    setSubmitting(true);
+    setResult(null);
+
+    const gpsData = gps.data
+      ? { ...gps.data, source: gps.data.source ?? 'geolocation_api' }
+      : undefined;
+
+    const res = await serverCheckOut({
+      attendanceId: openAttendance.id,
+      gpsData,
+    });
+
+    setSubmitting(false);
+
+    if (res.ok) {
+      const data = res.value;
+      const workedH = data.workedMinutes ? Math.floor(data.workedMinutes / 60) : 0;
+      const workedM = data.workedMinutes ? data.workedMinutes % 60 : 0;
+      setResult({
+        ok: true,
+        message: t('messages.checkedOut', {
+          hours: workedH,
+          minutes: workedM,
+          defaultValue: `Check-out recorded. Worked ${workedH}h ${workedM}m.`,
+        }),
+      });
+    } else {
+      const key = res.error?.message ?? '';
+      const shortKey = key.includes('.') ? key.split('.').pop()! : '';
+      const translated = shortKey ? attendanceT(shortKey, { defaultValue: '' }) : '';
+      setResult({
+        ok: false,
+        message: translated || t('messages.checkOutFailed', { defaultValue: 'Check-out failed. Try again.' }),
+      });
+    }
+  };
+
+  const gpsReady =
     (gps.status === 'granted' || gps.status === 'low_accuracy') &&
-    (gps.data?.accuracy_m ?? Number.POSITIVE_INFINITY) <= GPS_HARD_ACCURACY_LIMIT_M &&
-    !submitting &&
-    !!employeeId &&
-    !!selectedShift;
+    (gps.data?.accuracy_m ?? Number.POSITIVE_INFINITY) <= GPS_HARD_ACCURACY_LIMIT_M;
+
+  const canCheckIn =
+    gpsReady && !submitting && !!employeeId && !!selectedShift && !isCheckOutMode;
+
+  const canCheckOut = gpsReady && !submitting && isCheckOutMode;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-brand-cream px-4 py-8">
       <div className="w-full max-w-sm space-y-6">
         {/* Header */}
         <PageHeader
-          title={<>{attendanceT('checkIn')}</>}
+          title={<>{isCheckOutMode ? attendanceT('checkOut') : attendanceT('checkIn')}</>}
           description={
             <>
               {currentTime.toLocaleTimeString(displayLocale, {
@@ -269,6 +315,26 @@ export function CheckInClient({ locationId, employeeId, shifts, locationGps }: P
             </>
           }
         />
+
+        {/* Check-out mode: show check-in info */}
+        {isCheckOutMode && openAttendance && (
+          <div className="rounded-xl border border-brand-jade/30 bg-brand-jade/5 p-4">
+            <p className="text-sm font-medium text-brand-jade">
+              {t('messages.alreadyCheckedIn', {
+                time: new Date(openAttendance.checkInAt).toLocaleTimeString(displayLocale, {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }),
+                defaultValue: `Checked in at ${new Date(openAttendance.checkInAt).toLocaleTimeString(displayLocale, { hour: '2-digit', minute: '2-digit' })}`,
+              })}
+            </p>
+            {openAttendance.shiftCode && (
+              <p className="mt-0.5 text-xs text-brand-ink-3">
+                {attendanceT('shift')}: {openAttendance.shiftCode}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* GPS Status */}
         <div className="rounded-xl border border-brand-cream-3 bg-card p-4">
@@ -395,31 +461,33 @@ export function CheckInClient({ locationId, employeeId, shifts, locationGps }: P
           </div>
         )}
 
-        {/* Shift selection */}
-        <div className="space-y-2">
-          <span className="text-sm font-medium text-brand-ink">{attendanceT('shift')}</span>
-          <div className="grid grid-cols-2 gap-2">
-            {shifts.map((shift) => (
-              <button
-                key={shift.id}
-                onClick={() => setSelectedShift(shift.id)}
-                className={`rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${
-                  selectedShift === shift.id
-                    ? 'border-brand-ember-5 bg-brand-ember-5/10 text-brand-ember-5'
-                    : 'border-brand-cream-3 bg-card text-brand-ink hover:border-brand-ember-5/50'
-                }`}
-              >
-                <div>{shift.label}</div>
-                <div className="mt-0.5 text-xs text-brand-ink-3">{shift.time}</div>
-              </button>
-            ))}
+        {/* Shift selection — only for check-in */}
+        {!isCheckOutMode && (
+          <div className="space-y-2">
+            <span className="text-sm font-medium text-brand-ink">{attendanceT('shift')}</span>
+            <div className="grid grid-cols-2 gap-2">
+              {shifts.map((shift) => (
+                <button
+                  key={shift.id}
+                  onClick={() => setSelectedShift(shift.id)}
+                  className={`rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${
+                    selectedShift === shift.id
+                      ? 'border-brand-ember-5 bg-brand-ember-5/10 text-brand-ember-5'
+                      : 'border-brand-cream-3 bg-card text-brand-ink hover:border-brand-ember-5/50'
+                  }`}
+                >
+                  <div>{shift.label}</div>
+                  <div className="mt-0.5 text-xs text-brand-ink-3">{shift.time}</div>
+                </button>
+              ))}
+            </div>
+            {shifts.length === 0 && (
+              <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                {t('messages.noShift')}
+              </p>
+            )}
           </div>
-          {shifts.length === 0 && (
-            <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
-              {t('messages.noShift')}
-            </p>
-          )}
-        </div>
+        )}
 
         {/* Result message */}
         {result && (
@@ -434,18 +502,34 @@ export function CheckInClient({ locationId, employeeId, shifts, locationGps }: P
           </div>
         )}
 
-        {/* Check In button */}
-        <button
-          onClick={handleCheckIn}
-          disabled={!canCheckIn || submitting}
-          className={`w-full rounded-2xl py-5 text-lg font-bold transition-all ${
-            canCheckIn
-              ? 'bg-brand-ember-5 text-white shadow-lg shadow-brand-ember-5/30 hover:bg-brand-ember-6 active:scale-95'
-              : 'bg-brand-cream-2 text-brand-ink-3 cursor-not-allowed'
-          }`}
-        >
-          {submitting ? t('actions.checkingIn') : attendanceT('checkIn')}
-        </button>
+        {/* Action button */}
+        {isCheckOutMode ? (
+          <button
+            onClick={handleCheckOut}
+            disabled={!canCheckOut || submitting}
+            className={`w-full rounded-2xl py-5 text-lg font-bold transition-all ${
+              canCheckOut
+                ? 'bg-brand-jade text-white shadow-lg shadow-brand-jade/30 hover:brightness-110 active:scale-95'
+                : 'bg-brand-cream-2 text-brand-ink-3 cursor-not-allowed'
+            }`}
+          >
+            {submitting
+              ? t('actions.checkingOut', { defaultValue: 'Processing...' })
+              : attendanceT('checkOut')}
+          </button>
+        ) : (
+          <button
+            onClick={handleCheckIn}
+            disabled={!canCheckIn || submitting}
+            className={`w-full rounded-2xl py-5 text-lg font-bold transition-all ${
+              canCheckIn
+                ? 'bg-brand-ember-5 text-white shadow-lg shadow-brand-ember-5/30 hover:bg-brand-ember-6 active:scale-95'
+                : 'bg-brand-cream-2 text-brand-ink-3 cursor-not-allowed'
+            }`}
+          >
+            {submitting ? t('actions.checkingIn') : attendanceT('checkIn')}
+          </button>
+        )}
 
         {!employeeId && (
           <p className="text-center text-xs text-rose-500">{t('messages.noEmployeeLinked')}</p>

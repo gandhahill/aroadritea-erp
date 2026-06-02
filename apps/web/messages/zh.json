@@ -2620,9 +2620,11 @@
         "checkOut": "签退",
         "method": "方式",
         "late": "迟到",
-        "workedHours": "工作时长"
+        "workedHours": "工作时长",
+        "dispensasi": "豁免详情"
       },
       "forgiven": "+{minutes}分钟 (已豁免)",
+      "forgivenByAt": "由{by}于{at}",
       "lateMinutesDisplay": "+{minutes}分钟",
       "forgiveBtn": "豁免",
       "forgiveModalTitle": "豁免迟到",
@@ -2651,7 +2653,8 @@
         },
         "actions": {
           "requestPermissionAgain": "重新请求位置权限",
-          "checkingIn": "签到中..."
+          "checkingIn": "签到中...",
+          "checkingOut": "签退中..."
         },
         "messages": {
           "geolocationUnsupported": "此浏览器不支持地理定位。",
@@ -2665,7 +2668,10 @@
           "noShift": "没有可用班次。请联系管理员激活班次主数据。",
           "noEmployeeLinked": "此账号未绑定员工数据。请联系管理员。",
           "gpsDistanceDetail": "GPS详细信息：距离{distance}米，门店半径{radius}米，有效容差{effectiveRadius}米，精度+/-{accuracy}米。",
-          "gpsAccuracyDetail": "当前GPS精度为+/-{accuracy}米，最大允许{maxAccuracy}米。请等待位置更稳定后重试。"
+          "gpsAccuracyDetail": "当前GPS精度为+/-{accuracy}米，最大允许{maxAccuracy}米。请等待位置更稳定后重试。",
+          "checkedOut": "签退成功。工作时长：{hours}小时{minutes}分钟。",
+          "checkOutFailed": "签退失败。请重试。",
+          "alreadyCheckedIn": "已于{time}签到"
         },
         "kind": "考勤类型",
         "dailyTitle": "每日考勤",
@@ -2709,6 +2715,7 @@
       "totalDays": "总天数",
       "lateDays": "迟到天数",
       "totalWorked": "工作总时长",
+      "workedNote": "{checked}/{total}已签退",
       "onTime": "准时",
       "lateBy": "迟到 {minutes} 分",
       "forgiven": "免责",
