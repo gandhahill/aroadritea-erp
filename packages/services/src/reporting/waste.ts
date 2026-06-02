@@ -144,8 +144,10 @@ export async function wasteReport(
         const delta = Number.parseFloat(line.qtyDelta);
         const wastedQty = delta < 0 ? -delta : delta;
         const fallbackCost = variant?.costPrice ?? product.defaultCostPrice;
-        const unitCost = line.unitCost ?? fallbackCost;
-        const lineValue = BigInt(Math.round(Number(unitCost) * wastedQty));
+        const unitCostBig = line.unitCost ?? fallbackCost;
+        // Avoid Number(bigint) precision loss: scale qty to integer milli-units.
+        const wastedQtyMilli = BigInt(Math.round(wastedQty * 1000));
+        const lineValue = (unitCostBig * wastedQtyMilli + 500n) / 1000n;
 
         const key: Key = `${product.id}::${variant?.id ?? '-'}`;
         const existing = buckets.get(key);

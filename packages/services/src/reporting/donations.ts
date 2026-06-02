@@ -14,7 +14,7 @@ import { payments, salesOrders } from '@erp/db/schema/pos';
 import { AppError } from '@erp/shared/errors';
 import { type Result, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, gte, isNotNull, lte, inArray } from 'drizzle-orm';
+import { and, eq, gte, isNotNull, lt, lte, inArray } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -53,16 +53,16 @@ export async function getDonationReport(
   if (!permCheck.ok) return permCheck;
 
   const startDateTime = new Date(`${params.startDate}T00:00:00+07:00`);
-  const endOfDay = new Date(params.endDate);
-  endOfDay.setDate(endOfDay.getDate() + 1);
-  const endDateTime = new Date(endOfDay.toISOString().split('T')[0] + 'T00:00:00+07:00');
+  const endDateUtc = new Date(`${params.endDate}T00:00:00Z`);
+  endDateUtc.setUTCDate(endDateUtc.getUTCDate() + 1);
+  const endDateTime = new Date(`${endDateUtc.toISOString().slice(0, 10)}T00:00:00+07:00`);
 
   // Query paid sales in range (optionally filtered by location)
   const conditions = [
     eq(salesOrders.tenantId, ctx.tenantId),
     eq(salesOrders.status, 'paid'),
     gte(salesOrders.placedAt, startDateTime),
-    lte(salesOrders.placedAt, endDateTime),
+    lt(salesOrders.placedAt, endDateTime),
   ];
   if (params.locationId) {
     conditions.push(eq(salesOrders.locationId, params.locationId));

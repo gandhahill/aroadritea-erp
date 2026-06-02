@@ -81,6 +81,11 @@ export async function getOmzetBulanan(
       `,
     );
 
+    // Compute the actual last day of the month to avoid invalid dates
+    // like '2026-02-31' which Postgres rejects for DATE comparisons.
+    const lastDayOfMonth = new Date(Number(year), Number(month), 0).getDate();
+    const periodEnd = `${params.period}-${String(lastDayOfMonth).padStart(2, '0')}`;
+
     // Get gross from manual sales
     const manualAgg = await db.execute(
       sql<{ date_val: string; total: bigint }>`
@@ -91,7 +96,7 @@ export async function getOmzetBulanan(
           AND location_id = ${params.locationId}
           AND status = 'posted'
           AND sales_date >= ${`${params.period}-01`}
-          AND sales_date <= ${`${params.period}-31`}
+          AND sales_date <= ${periodEnd}
         GROUP BY 1
       `,
     );
@@ -108,7 +113,7 @@ export async function getOmzetBulanan(
           eq(dailyRevenueAdjustments.tenantId, ctx.tenantId),
           eq(dailyRevenueAdjustments.locationId, params.locationId),
           sql`${dailyRevenueAdjustments.date} >= ${`${params.period}-01`}`,
-          sql`${dailyRevenueAdjustments.date} <= ${`${params.period}-31`}`
+          sql`${dailyRevenueAdjustments.date} <= ${periodEnd}`
         )
       );
 

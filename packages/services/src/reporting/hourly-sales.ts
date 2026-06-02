@@ -13,7 +13,7 @@ import { db } from '@erp/db';
 import { salesOrders } from '@erp/db/schema/pos';
 import { type Result, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, gte, inArray, lte, sql } from 'drizzle-orm';
+import { and, eq, gte, inArray, lt, lte, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
@@ -103,11 +103,11 @@ export async function getHourlySales(
 
   const groupBy = params.groupBy ?? 'channel';
 
-  // Date range in WIB
+  // Date range in WIB — half-open interval [start, end+1 day).
   const startDateTime = new Date(`${params.startDate}T00:00:00+07:00`);
-  const endOfDay = new Date(params.endDate);
-  endOfDay.setDate(endOfDay.getDate() + 1);
-  const endDateTime = new Date(endOfDay.toISOString().split('T')[0] + 'T00:00:00+07:00');
+  const endDateUtc = new Date(`${params.endDate}T00:00:00Z`);
+  endDateUtc.setUTCDate(endDateUtc.getUTCDate() + 1);
+  const endDateTime = new Date(`${endDateUtc.toISOString().slice(0, 10)}T00:00:00+07:00`);
 
   // Fetch paid sales in range
   const paidSales = await db
@@ -124,7 +124,7 @@ export async function getHourlySales(
         eq(salesOrders.tenantId, ctx.tenantId),
         eq(salesOrders.status, 'paid'),
         gte(salesOrders.placedAt, startDateTime),
-        lte(salesOrders.placedAt, endDateTime),
+        lt(salesOrders.placedAt, endDateTime),
       ),
     );
 

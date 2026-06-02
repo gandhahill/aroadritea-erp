@@ -30,14 +30,6 @@
  */
 
 import { db } from '@erp/db';
-import {
-  accountingPeriods,
-  accounts,
-  journalEntries,
-  journalLines,
-  partners,
-  taxRates,
-} from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
 import {
   bomLines,
@@ -50,7 +42,6 @@ import {
 import {
   idempotencyRecords,
   payments,
-  posSettings,
   salesOrderLines,
   salesOrders,
   shifts,
@@ -64,7 +55,6 @@ import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { createJournal } from '../accounting/create-journal';
-import { getPostingAccountCodes } from '../accounting/posting-accounts';
 import { generateQrPayload } from '../kitchen/generate-qr';
 import { queueOrderItems } from '../kitchen/kds-service';
 import { earnLoyaltyPoints } from '../crm';
@@ -72,6 +62,13 @@ import { requirePermission } from '../iam';
 import { notifyByPermission } from '../notification';
 import { evaluatePromotions, type Cart, listActivePromotionsForSale } from '../promotion';
 import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../shared/idempotency';
+import {
+  autoPostJournalEntry,
+  extractInclusiveTax,
+  humanizeChannel,
+  resolvePosPostingConfig,
+  type PosPostingConfig,
+} from './posting';
 import { type DonationResult, type RoundingOption, calculateDonation } from './donation';
 import {
   CreateSaleInputSchema,
@@ -84,33 +81,10 @@ import {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const DEFAULT_PB1_TAX_CODE = 'PB1';
 const MANUAL_DISCOUNT_PROMOTION_ID = 'manual-pos-discount';
-const DEFAULT_DELIVERY_CHANNELS = [
-  { id: 'gofood', label: 'GoFood', netBps: 8000, enabled: true },
-  { id: 'grabfood', label: 'GrabFood', netBps: 8000, enabled: true },
-  { id: 'shopeefood', label: 'ShopeeFood', netBps: 8000, enabled: true },
-] as const;
 
-interface DeliveryChannelConfig {
-  id: string;
-  label: string;
-  netBps: number;
-  commissionBps: number;
-  enabled: boolean;
-}
-
-interface PosPostingConfig {
-  taxCode: string;
-  taxRateBps: number;
-  taxAccountId: string;
-  cashAccountId: string;
-  revenueAccountId: string;
-  donationTrustAccountId: string;
-  defaultCogsAccountId: string;
-  defaultInventoryAccountId: string;
-  deliveryChannels: Map<string, DeliveryChannelConfig>;
-}
+// DeliveryChannelConfig and PosPostingConfig are re-exported from ./posting.
+// Import them from there to keep a single source of truth.
 
 interface NormalizedPaymentRecord {
   method: PaymentInput['method'];
@@ -125,228 +99,13 @@ interface NormalizedPayments {
   donationResult: DonationResult;
 }
 
-function normalizeDeliveryChannelConfig(raw: unknown): DeliveryChannelConfig[] {
-  const source = Array.isArray(raw) && raw.length > 0 ? raw : [...DEFAULT_DELIVERY_CHANNELS];
-  const channels = new Map<string, DeliveryChannelConfig>();
-
-  for (const item of source) {
-    const record =
-      typeof item === 'string'
-        ? { id: item, label: item, netBps: 8000, enabled: true }
-        : item && typeof item === 'object'
-          ? (item as Record<string, unknown>)
-          : null;
-    if (!record) continue;
-
-    const id = String(record.id ?? '')
-      .trim()
-      .toLowerCase();
-    if (!/^[a-z0-9_-]{2,32}$/.test(id)) continue;
-
-    const rawNetBps = Number(record.netBps ?? 8000);
-    const rawCommissionBps = Number(record.commissionBps ?? 10000 - rawNetBps);
-    const netBps = Number.isFinite(rawNetBps)
-      ? Math.min(10000, Math.max(0, Math.trunc(rawNetBps)))
-      : 8000;
-    const commissionBps = Number.isFinite(rawCommissionBps)
-      ? Math.min(10000, Math.max(0, Math.trunc(rawCommissionBps)))
-      : 10000 - netBps;
-
-    channels.set(id, {
-      id,
-      label: String(record.label ?? id).trim() || id,
-      netBps,
-      commissionBps,
-      enabled: record.enabled !== false,
-    });
-  }
-
-  return [...channels.values()];
-}
-
-async function resolveAccountIdByCode(tenantId: string, code: string): Promise<Result<string>> {
-  const account = await db
-    .select({ id: accounts.id, isActive: accounts.isActive, isPostable: accounts.isPostable })
-    .from(accounts)
-    .where(and(eq(accounts.tenantId, tenantId), eq(accounts.code, code)))
-    .then((rows) => rows[0]);
-
-  if (!account) return err(AppError.notFound('pos.createSale.accountNotFound', { code }));
-  if (!account.isActive || !account.isPostable) {
-    return err(AppError.businessRule('pos.createSale.accountNotPostable', { code }));
-  }
-  return ok(account.id);
-}
-
-async function autoPostJournalEntry(
-  journalEntryId: string,
-  ctx: AuditContext,
-): Promise<Result<void>> {
-  const postedAt = new Date();
-  const updated = await db
-    .update(journalEntries)
-    .set({
-      status: 'posted',
-      postedAt,
-      postedBy: ctx.userId,
-      updatedBy: ctx.userId,
-      updatedAt: postedAt,
-      version: sql`${journalEntries.version} + 1`,
-    })
-    .where(
-      and(
-        eq(journalEntries.id, journalEntryId),
-        eq(journalEntries.tenantId, ctx.tenantId),
-        eq(journalEntries.status, 'draft'),
-      ),
-    )
-    .returning({ id: journalEntries.id });
-
-  if (updated.length === 0) {
-    return err(AppError.conflict('pos.createSale.journalAutoPostFailed', { journalEntryId }));
-  }
-
-  await db.insert(auditLog).values({
-    id: generateId(),
-    tenantId: ctx.tenantId,
-    userId: ctx.userId,
-    action: 'post',
-    entityType: 'journal_entry',
-    entityId: journalEntryId,
-    before: { status: 'draft' },
-    after: {
-      status: 'posted',
-      postedAt: postedAt.toISOString(),
-      postedBy: ctx.userId,
-    },
-    metadata: {
-      ip: ctx.ipAddress ?? null,
-      userAgent: ctx.userAgent ?? null,
-      source: 'pos.createSale',
-    },
-  });
-
-  return ok(undefined);
-}
-
-async function resolvePosPostingConfig(
-  tenantId: string,
-  locationId: string,
-  postingDate: string,
-): Promise<Result<PosPostingConfig>> {
-  const [setting] = await db
-    .select({
-      pb1TaxCode: posSettings.pb1TaxCode,
-      cashAccountCode: posSettings.cashAccountCode,
-      revenueAccountCode: posSettings.revenueAccountCode,
-      donationTrustAccountCode: posSettings.donationTrustAccountCode,
-      deliveryChannelsJson: posSettings.deliveryChannelsJson,
-    })
-    .from(posSettings)
-    .where(and(eq(posSettings.tenantId, tenantId), eq(posSettings.locationId, locationId)))
-    .limit(1);
-
-  const taxCode = setting?.pb1TaxCode ?? DEFAULT_PB1_TAX_CODE;
-  const [taxRate] = await db
-    .select({
-      code: taxRates.code,
-      rateBps: taxRates.rateBps,
-      calculation: taxRates.calculation,
-      postingAccountId: taxRates.postingAccountId,
-    })
-    .from(taxRates)
-    .where(
-      and(
-        eq(taxRates.code, taxCode),
-        eq(taxRates.isActive, true),
-        sql`${taxRates.effectiveFrom} <= ${postingDate}`,
-        sql`(${taxRates.effectiveUntil} IS NULL OR ${taxRates.effectiveUntil} >= ${postingDate})`,
-      ),
-    )
-    .limit(1);
-
-  if (!taxRate) return err(AppError.notFound('pos.createSale.taxRateNotFound', { taxCode }));
-  if (taxRate.calculation !== 'inclusive') {
-    return err(AppError.businessRule('pos.createSale.taxRateMustBeInclusive', { taxCode }));
-  }
-
-  // Per-location posSettings override → configurable global account map → default.
-  const acctCodes = await getPostingAccountCodes(tenantId);
-
-  const cashAccount = await resolveAccountIdByCode(
-    tenantId,
-    setting?.cashAccountCode ?? acctCodes['pos.cash'],
-  );
-  if (!cashAccount.ok) return cashAccount;
-
-  const revenueAccount = await resolveAccountIdByCode(
-    tenantId,
-    setting?.revenueAccountCode ?? acctCodes['pos.revenue'],
-  );
-  if (!revenueAccount.ok) return revenueAccount;
-
-  const donationTrustAccount = await resolveAccountIdByCode(
-    tenantId,
-    setting?.donationTrustAccountCode ?? acctCodes['pos.donationTrust'],
-  );
-  if (!donationTrustAccount.ok) return donationTrustAccount;
-
-  const defaultCogsAccountId = await resolveAccountIdByCode(tenantId, acctCodes.cogs);
-  if (!defaultCogsAccountId.ok) return defaultCogsAccountId;
-
-  const defaultInventoryAccountId = await resolveAccountIdByCode(tenantId, acctCodes.inventory);
-  if (!defaultInventoryAccountId.ok) return defaultInventoryAccountId;
-
-  return ok({
-    taxCode: taxRate.code,
-    taxRateBps: taxRate.rateBps,
-    taxAccountId: taxRate.postingAccountId,
-    cashAccountId: cashAccount.value,
-    revenueAccountId: revenueAccount.value,
-    donationTrustAccountId: donationTrustAccount.value,
-    defaultCogsAccountId: defaultCogsAccountId.value,
-    defaultInventoryAccountId: defaultInventoryAccountId.value,
-    deliveryChannels: new Map(
-      normalizeDeliveryChannelConfig(setting?.deliveryChannelsJson)
-        .filter((channel) => channel.enabled)
-        .map((channel) => [channel.id, channel]),
-    ),
-  });
-}
-
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-/** Extract inclusive tax from a gross price and return net + tax. */
-function extractInclusiveTax(
-  inclusivePrice: bigint,
-  rateBps: number,
-): { net: bigint; tax: bigint } {
-  const tax = (inclusivePrice * BigInt(rateBps)) / (10000n + BigInt(rateBps));
-  const net = inclusivePrice - tax;
-  return { net, tax };
-}
+// extractInclusiveTax, resolvePosPostingConfig, PosPostingConfig, and
+// humanizeChannel are imported from ./posting — single source of truth.
 
 function minBigint(a: bigint, b: bigint): bigint {
   return a < b ? a : b;
-}
-
-/** Map POS channel code to a user-friendly label for journal descriptions. */
-function humanizeChannel(channel: string): string {
-  switch (channel) {
-    case 'walk_in':
-      return 'Walk-in';
-    case 'gofood':
-      return 'GoFood';
-    case 'grabfood':
-      return 'GrabFood';
-    case 'shopeefood':
-      return 'ShopeeFood';
-    default:
-      return channel
-        .split(/[_-]+/)
-        .map((part) => (part ? part.charAt(0).toUpperCase() + part.slice(1) : ''))
-        .join(' ');
-  }
 }
 
 /**
@@ -445,8 +204,9 @@ function normalizeSalePayments(
 
 /** Generate sales order number T01-YYYY-MM-NNNN (SD §9.5). */
 async function generateSaleNumber(tenantId: string, locationId: string): Promise<string> {
-  const now = new Date();
-  const prefix = `T01-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-`;
+  // Use WIB date for the sequence prefix so the number matches the business day.
+  const nowWib = new Date(Date.now() + 7 * 60 * 60 * 1000);
+  const prefix = `T01-${nowWib.getUTCFullYear()}-${String(nowWib.getUTCMonth() + 1).padStart(2, '0')}-`;
   const sequenceName = `${tenantId}:${locationId}:${prefix}`;
 
   const rows = await db
@@ -907,7 +667,10 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       }
     }
 
-    const postingDate = new Date().toISOString().slice(0, 10);
+    // Use WIB (UTC+7) date for posting, not UTC — a sale at 23:30 WIB must
+    // land in today's accounting period, not the next day's UTC date.
+    const nowWib = new Date(Date.now() + 7 * 60 * 60 * 1000);
+    const postingDate = nowWib.toISOString().slice(0, 10);
     const postingConfigResult = await resolvePosPostingConfig(
       ctx.tenantId,
       data.locationId,
@@ -1391,7 +1154,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     let journalEntryId: string | null = null;
     if (jeResult.ok) {
       journalEntryId = jeResult.value.id;
-      const postResult = await autoPostJournalEntry(journalEntryId, ctx);
+      const postResult = await autoPostJournalEntry(journalEntryId, ctx, 'pos.createSale');
       if (!postResult.ok) {
         if (claimedIdempotencyId) {
           await db

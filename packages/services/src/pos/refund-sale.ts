@@ -144,8 +144,9 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
       if (isFullRefund) {
         const reversalResult = await reverseJournal(
           {
+            // WIB date for the reversal posting — same timezone rule as createSale.
             journalId: sale.journalEntryId,
-            postingDate: new Date().toISOString().slice(0, 10),
+            postingDate: new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10),
           },
           ctx, { skipPermissionCheck: true }
         );
@@ -295,11 +296,12 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
         .limit(1);
 
       if (earnTx[0] && Number(earnTx[0].points) > 0) {
-        const pointsEarned = Number(earnTx[0].points);
+        const pointsEarned = BigInt(Math.round(Number(earnTx[0].points)));
         const originalGrandTotal = BigInt(sale.grandTotal.toString());
-        const pointsToRevert = originalGrandTotal > 0n 
-          ? Math.floor(pointsEarned * Number(refundTotal) / Number(originalGrandTotal))
-          : pointsEarned;
+        // Use BigInt arithmetic to avoid Number precision loss on large amounts.
+        const pointsToRevert = originalGrandTotal > 0n
+          ? Number((pointsEarned * refundTotal) / originalGrandTotal)
+          : Number(pointsEarned);
         
         if (pointsToRevert > 0) {
           const { adjustMemberPoints } = await import('../crm/member-service');
@@ -379,7 +381,8 @@ async function createPartialReversalJe(
     return err(AppError.internal('pos.refund.missingJournalEntry'));
   }
   const originalJournalEntryId = sale.journalEntryId;
-  const postingDate = new Date().toISOString().slice(0, 10);
+  // WIB date for the partial reversal posting.
+  const postingDate = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const periodCode = postingDate.substring(0, 7);
 
   const period = await db

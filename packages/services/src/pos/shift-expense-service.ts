@@ -191,7 +191,8 @@ export async function approveShiftExpense(
         throw AppError.businessRule('accounting.pettyCash.accountsMissing', { cashCode });
       }
 
-      const today = new Date().toISOString().slice(0, 10);
+      // WIB date for shift expense journal posting.
+      const today = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
       const amountStr = expense.amount.toString();
 
       // Create the journal

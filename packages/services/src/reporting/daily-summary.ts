@@ -134,11 +134,15 @@ export async function getDailySummary(
   });
   if (!permCheck.ok) return permCheck;
 
-  // Use date range (WIB). Add 1 day to endDate so it covers the full day.
+  // Use half-open WIB day range: [startDate 00:00 WIB, endDate+1 00:00 WIB).
+  // Parse endDate explicitly as UTC midnight to avoid local-tz day shift,
+  // then format the next day as a WIB midnight boundary.
   const startDateTime = new Date(`${params.startDate}T00:00:00+07:00`);
-  const endOfDay = new Date(params.endDate);
-  endOfDay.setDate(endOfDay.getDate() + 1);
-  const endDateTime = new Date(endOfDay.toISOString().split('T')[0] + 'T00:00:00+07:00');
+  const endDateUtc = new Date(`${params.endDate}T00:00:00Z`);
+  endDateUtc.setUTCDate(endDateUtc.getUTCDate() + 1);
+  const endDateTime = new Date(
+    `${endDateUtc.toISOString().slice(0, 10)}T00:00:00+07:00`,
+  );
 
   // ── Paid sales in range ──────────────────────────────────────────────────────
   const paidSaleRows = await db
@@ -150,7 +154,7 @@ export async function getDailySummary(
         eq(salesOrders.tenantId, ctx.tenantId),
         eq(salesOrders.status, 'paid'),
         gte(salesOrders.placedAt, startDateTime),
-        lte(salesOrders.placedAt, endDateTime),
+        lt(salesOrders.placedAt, endDateTime),
       ),
     );
 
@@ -179,7 +183,7 @@ export async function getDailySummary(
         eq(salesOrders.tenantId, ctx.tenantId),
         eq(salesOrders.status, 'refunded'),
         gte(salesOrders.placedAt, startDateTime),
-        lte(salesOrders.placedAt, endDateTime),
+        lt(salesOrders.placedAt, endDateTime),
       ),
     );
 
@@ -208,12 +212,14 @@ export async function getDailySummary(
     paidSaleRows.reduce((sum, sale) => {
       const channel = deliveryChannels.get(sale.channel);
       if (!channel?.enabled) return sum;
-      return sum + (sale.subtotal * BigInt(channel.commissionBps)) / 10000n;
+      // Commission is on grand total (after discounts)
+      return sum + (sale.grandTotal * BigInt(channel.commissionBps)) / 10000n;
     }, 0n) +
     manualSaleRows.reduce((sum, sale) => {
       const channel = deliveryChannels.get(sale.channel);
       if (!channel?.enabled) return sum;
-      return sum + (sale.grossSales * BigInt(channel.commissionBps)) / 10000n;
+      // For manual sales, net = grossSales − discountTotal
+      return sum + ((sale.grossSales - sale.discountTotal) * BigInt(channel.commissionBps)) / 10000n;
     }, 0n);
   const netRevenue = netSales - commissionDelivery;
 
@@ -275,9 +281,11 @@ export async function getDailySummary(
     const shiftSales = paidSaleRows.filter((s) => s.shiftId === shift.id);
     const manualSales = manualSaleRows.filter((s) => s.shiftId === shift.id);
     
-    const txTotal = 
+    // PB1 is inclusive: grossSales − discountTotal already contains the tax.
+    // Adding taxTotal again would double-count it.
+    const txTotal =
       shiftSales.reduce((s, r) => s + r.grandTotal, 0n) +
-      manualSales.reduce((s, r) => s + (r.grossSales - r.discountTotal + r.taxTotal), 0n);
+      manualSales.reduce((s, r) => s + (r.grossSales - r.discountTotal), 0n);
       
     return {
       shiftId: shift.id,

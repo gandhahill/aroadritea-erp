@@ -15,7 +15,7 @@ import { accounts, journalEntries, journalLines, partners } from '@erp/db/schema
 import { AppError } from '@erp/shared/errors';
 import { type Result, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, isNull, lte, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNull, lte, sql } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
 export type AgingKind = 'AR' | 'AP';
@@ -148,7 +148,7 @@ export async function aging(input: AgingInput, ctx: AuditContext): Promise<Resul
         ? await db
             .select({ id: partners.id, name: partners.name })
             .from(partners)
-            .where(and(eq(partners.tenantId, ctx.tenantId)))
+            .where(and(eq(partners.tenantId, ctx.tenantId), inArray(partners.id, partnerIds)))
         : [];
       // partners.name is plain text — no decryption needed.
       const partnerMap = new Map(partnerRows.map((p) => [p.id, p.name] as const));

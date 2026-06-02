@@ -9,7 +9,7 @@
 
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions, resolveDefaultLocationId } from '@/lib/location-options';
-import { and, db, eq, ilike, inArray, isNull, or, sql } from '@erp/db';
+import { and, db, desc, eq, ilike, inArray, isNull, or, sql } from '@erp/db';
 import { taxRates } from '@erp/db/schema/accounting';
 import {
   productCategories,
@@ -464,7 +464,7 @@ export async function fetchRecentSales(params: {
     .select()
     .from(salesOrders)
     .where(and(...conditions))
-    .orderBy(salesOrders.placedAt)
+    .orderBy(desc(salesOrders.placedAt))
     .limit(limit);
 
   return rows.map((r) => ({

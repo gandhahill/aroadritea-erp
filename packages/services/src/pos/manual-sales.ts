@@ -469,9 +469,9 @@ export async function getManualSalesClosingDetail(id: string, ctx: AuditContext)
   return tryCatch(
     async () => {
       const closing = await db.query.manualSalesClosings.findFirst({
-        where: eq(manualSalesClosings.id, id)
+        where: and(eq(manualSalesClosings.id, id), eq(manualSalesClosings.tenantId, ctx.tenantId)),
       });
-      if (!closing || closing.tenantId !== ctx.tenantId) {
+      if (!closing) {
         throw new Error('Not found');
       }
 
