@@ -14,7 +14,17 @@ const baseInputStyles =
  * Use for stock quantities, counts, and other whole-number fields.
  */
 export const IntegerInput = forwardRef<HTMLInputElement, IntegerInputProps>(
-  ({ className, onChange, onKeyDown, ...props }, ref) => {
+  ({ className, onChange, onKeyDown, onFocus, ...props }, ref) => {
+    const handleFocus = useCallback(
+      (e: React.FocusEvent<HTMLInputElement>) => {
+        // Select the existing value on focus so the first keystroke replaces a
+        // pre-filled default (e.g. "0") instead of appending to it.
+        e.target.select();
+        onFocus?.(e);
+      },
+      [onFocus],
+    );
+
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent<HTMLInputElement>) => {
         // Block decimal point, comma, and 'e' (scientific notation)
@@ -48,6 +58,7 @@ export const IntegerInput = forwardRef<HTMLInputElement, IntegerInputProps>(
         className={cn(baseInputStyles, 'tabular-nums', className)}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
         onPaste={(e) => {
           const text = e.clipboardData.getData('text');
           if (/[^\d-]/.test(text.replace(/^-/, ''))) {

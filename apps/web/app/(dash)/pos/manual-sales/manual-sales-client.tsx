@@ -250,7 +250,8 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('transactionCount')}</span>
                     <IntegerInput
                       min={0}
-                      value={payment.transactionCount}
+                      placeholder="0"
+                      value={payment.transactionCount || ''}
                       onChange={(e) => {
                         const newPayments = [...payments];
                         newPayments[index] = { ...newPayments[index]!, transactionCount: Number.parseInt(e.target.value) || 0 };
