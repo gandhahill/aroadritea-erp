@@ -667,10 +667,12 @@ export async function listAttendance(
       if (ctx.locationId) conditions.push(eq(attendance.locationId, ctx.locationId));
       conditions.push(isNull(attendance.deletedAt));
       if (input.employeeId) conditions.push(eq(attendance.employeeId, input.employeeId));
-      if (input.dateFrom) conditions.push(sql`${attendance.checkInAt} >= ${input.dateFrom}`);
-      if (input.dateTo) conditions.push(sql`${attendance.checkInAt} <= ${input.dateTo}`);
+      // checkInAt is timestamptz. Bare date strings cast to midnight UTC, not
+      // WIB — append +07:00 so PostgreSQL compares in WIB.
+      if (input.dateFrom) conditions.push(sql`${attendance.checkInAt} >= ${`${input.dateFrom}T00:00:00+07:00`}`);
+      if (input.dateTo) conditions.push(sql`${attendance.checkInAt} < ${`${input.dateTo}T00:00:00+07:00`}::timestamptz + interval '1 day'`);
 
-      const whereClause = sql.join(conditions, sql` AND `);
+      const whereClause = and(...conditions);
       const limit = Math.min(input.limit ?? 50, 200);
       const offset = input.offset ?? 0;
 
@@ -848,8 +850,10 @@ export async function listMyAttendance(
         inArray(attendance.employeeId, empIds),
         isNull(attendance.deletedAt),
       ];
-      if (input.dateFrom) conditions.push(sql`${attendance.checkInAt} >= ${input.dateFrom}`);
-      if (input.dateTo) conditions.push(sql`${attendance.checkInAt} <= ${input.dateTo}`);
+      // checkInAt is timestamptz. Bare date strings cast to midnight UTC, not
+      // WIB — append +07:00 so PostgreSQL compares in WIB.
+      if (input.dateFrom) conditions.push(sql`${attendance.checkInAt} >= ${`${input.dateFrom}T00:00:00+07:00`}`);
+      if (input.dateTo) conditions.push(sql`${attendance.checkInAt} < ${`${input.dateTo}T00:00:00+07:00`}::timestamptz + interval '1 day'`);
       const limit = Math.min(input.limit ?? 100, 365);
 
       const rows = await db
