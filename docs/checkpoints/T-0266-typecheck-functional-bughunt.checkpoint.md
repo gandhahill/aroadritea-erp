@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-06-02 11:21 WIB
-- **Last updated**: 2026-06-02 22:19 WIB
+- **Last updated**: 2026-06-02 22:26 WIB
 - **Status**: IN_PROGRESS
 
 ## Goal
@@ -82,6 +82,12 @@ Spec references: AGENTS.md, SOURCE-OF-TRUTH.md, SYSTEM-DESIGN.md.
   - `purchasing/po/[id]/page.tsx` now 404s when the user lacks `purchasing.view` for the PO location and only renders the GRN form when `purchasing.grn.create` is granted at that location.
   - `purchasing/actions.ts` `receiveGoodsAction` now derives `locationId` from the PO and rejects forged form `locationId`.
   - `purchasing/returns/actions.ts` `fetchGrnForReturnAction` now requires both `purchasing.view` and `purchasing.return.create` at the GRN location before returning lines/unit cost.
+- Completed scoped inventory/purchasing service correctness patch:
+  - `stock-depletion-service.ts` now plans FEFO depletion first, rejects shortage before mutating, and performs stock-level updates plus movements in one transaction with per-row qty guards.
+  - `production-service.ts` now runs raw-material depletion, finished-good stock update, movement insert, COGM journal creation, batch insert, and audit in one transaction; mock costs and fake account IDs were removed.
+  - `transfer-service.ts` now handles create/ship/receive/cancel in transactions, uses null-safe variant matching plus batch/expiry identity, enforces source qty guards on ship, rejects receive qty greater than sent, and audits via `auditRecord`.
+  - `grn-service.ts` now uses the transaction client inside `confirmGRN`, guards PO line received qty against remaining ordered qty, updates stock levels by variant/batch/expiry, and fails on PO version conflicts.
+  - Added `production` to accounting journal reference types and added audit support for `ship`, `stock_transfer`, and `production_batch`.
 
 ## Decisions
 - Latest user priority overrides the broad sweep: production `/hr/attendance` crash was fixed first.
@@ -93,17 +99,20 @@ Spec references: AGENTS.md, SOURCE-OF-TRUTH.md, SYSTEM-DESIGN.md.
 - Prod still has pre-existing dirty/untracked operational files unrelated to this hotfix (migration scratch scripts/backups). Left untouched.
 
 ## Next step
-Implement `employee_face_templates` schema/migration + face-template service integration in `packages/services/src/hr/attendance-service.ts`, update `/hr/checkin` page/client/actions with inline camera enrollment/verification and i18n keys, then integrate worker patches and run typecheck/tests/build.
+Continue integrating parallel worker patches. For this inventory/purchasing slice, remaining verification blocker is unrelated POS typecheck debt in `packages/services/src/pos/create-sale.ts` and `packages/services/src/pos/manual-sales.ts`.
 
 ## Test status
 - `pnpm --filter @erp/web typecheck` PASS after `/hr/attendance` hotfix.
 - Production `pnpm --filter @erp/web build` PASS.
 - `pm2 restart aroadri-web --update-env` PASS.
 - Access-control scoped diff check: `git diff --check -- <access-control files>` PASS.
+- Inventory/purchasing targeted tests PASS: `pnpm --filter @erp/services exec vitest run tests/purchasing-grn.test.ts tests/inventory-adjust-transfer.test.ts` = 95/95.
+- `pnpm --filter @erp/services typecheck -- --pretty false` FAILS only on POS files outside this scope after inventory/purchasing fixes:
+  - `packages/services/src/pos/create-sale.ts` possible undefined `p`.
+  - `packages/services/src/pos/manual-sales.ts` missing `stockLocationId` in ingredient deductions.
+- Full `pnpm --filter @erp/services exec vitest run` still FAILS on pre-existing/non-scope accounting/payroll/reporting/PII/create-PO mock expectations; targeted GRN/transfer tests pass.
 - Current full `pnpm --filter @erp/web exec tsc --noEmit --pretty false` FAILS on parallel worker changes outside this scope:
   - `apps/web/app/(dash)/hr/checkin/check-in-client.tsx` missing new required `enrollFace`.
   - `apps/web/app/(dash)/hr/checkin/page.tsx` passes `faceVerification` prop not yet declared in client props.
-  - `packages/services/src/inventory/production-service.ts` audit/reference and production insert type errors.
-  - `packages/services/src/inventory/transfer-service.ts` audit action `"ship"` type error.
   - `packages/services/src/pos/create-sale.ts` possible undefined `p`.
   - `packages/services/src/pos/manual-sales.ts` missing `stockLocationId` in ingredient deductions.

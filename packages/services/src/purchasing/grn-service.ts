@@ -32,8 +32,12 @@ import { ConfirmGRNInputSchema, CreateGRNInputSchema, type GRNLineInput } from '
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-async function resolveAccountId(tenantId: string, code: string): Promise<string | null> {
-  const [row] = await db
+async function resolveAccountId(
+  tenantId: string,
+  code: string,
+  client: any = db,
+): Promise<string | null> {
+  const [row] = await client
     .select({ id: accounts.id })
     .from(accounts)
     .where(and(eq(accounts.tenantId, tenantId), eq(accounts.code, code)))
@@ -41,9 +45,9 @@ async function resolveAccountId(tenantId: string, code: string): Promise<string 
   return row?.id ?? null;
 }
 
-async function resolveGrniAccountId(tenantId: string): Promise<string | null> {
+async function resolveGrniAccountId(tenantId: string, client: any = db): Promise<string | null> {
   const codes = await getPostingAccountCodes(tenantId);
-  return resolveAccountId(tenantId, codes['purchasing.grni']);
+  return resolveAccountId(tenantId, codes['purchasing.grni'], client);
 }
 
 function addDays(date: string, days: number): string {
@@ -53,11 +57,30 @@ function addDays(date: string, days: number): string {
 
 }
 
+function stockLevelIdentityWhere(input: {
+  tenantId: string;
+  locationId: string;
+  productId: string;
+  variantId: string | null | undefined;
+  batchNo: string | null | undefined;
+  expiryDate: string | null | undefined;
+}) {
+  return and(
+    eq(stockLevels.tenantId, input.tenantId),
+    eq(stockLevels.locationId, input.locationId),
+    eq(stockLevels.productId, input.productId),
+    input.variantId ? eq(stockLevels.variantId, input.variantId) : isNull(stockLevels.variantId),
+    input.batchNo ? eq(stockLevels.batchNo, input.batchNo) : isNull(stockLevels.batchNo),
+    input.expiryDate ? eq(stockLevels.expiryDate, input.expiryDate) : isNull(stockLevels.expiryDate),
+  );
+}
+
 async function resolveInventoryAccountForProduct(
   tenantId: string,
   productId: string,
+  client: any = db,
 ): Promise<string> {
-  const [row] = await db
+  const [row] = await client
     .select({ inventoryAccountId: products.inventoryAccountId })
     .from(products)
     .where(and(eq(products.tenantId, tenantId), eq(products.id, productId)))
@@ -66,7 +89,7 @@ async function resolveInventoryAccountForProduct(
   if (row?.inventoryAccountId) return row.inventoryAccountId;
 
   const codes = await getPostingAccountCodes(tenantId);
-  const fallback = await resolveAccountId(tenantId, codes.inventory);
+  const fallback = await resolveAccountId(tenantId, codes.inventory, client);
   return fallback ?? codes.inventory;
 }
 
@@ -415,7 +438,7 @@ export async function confirmGRN(
       // CLAIM the GRN first. Two concurrent confirmGRN calls would
         // otherwise both run the stock + PO line updates, doubling on-hand
         // qty and posting two GRNI journals.
-        const claimedGrn = await db
+        const claimedGrn = await tx
           .update(goodsReceiptNotes)
           .set({
             status: 'confirmed',
@@ -434,12 +457,12 @@ export async function confirmGRN(
           throw AppError.conflict('purchasing.errors.version_mismatch');
         }
 
-        const grniAccountId = await resolveGrniAccountId(ctx.tenantId);
+        const grniAccountId = await resolveGrniAccountId(ctx.tenantId, tx);
         if (!grniAccountId) {
           throw AppError.businessRule('purchasing.errors.grni_account_not_found');
         }
 
-        const [supplier] = await db
+        const [supplier] = await tx
           .select({ paymentTermsDays: partners.paymentTermsDays })
           .from(partners)
           .where(and(eq(partners.tenantId, ctx.tenantId), eq(partners.id, po.supplierId)))
@@ -447,7 +470,7 @@ export async function confirmGRN(
         const apDueDate = addDays(grn.receivedDate, supplier?.paymentTermsDays ?? 0);
 
         // Load PO lines once so we can compute totals and remaining qty.
-        const poLines = await db
+        const poLines = await tx
           .select()
           .from(purchaseOrderLines)
           .where(eq(purchaseOrderLines.purchaseOrderId, po.id));
@@ -468,6 +491,7 @@ export async function confirmGRN(
             const invAccountId = await resolveInventoryAccountForProduct(
               ctx.tenantId,
               line.productId,
+              tx,
             );
             if (!invAccountId) {
               throw AppError.businessRule('purchasing.errors.inventory_account_not_found');
@@ -480,11 +504,18 @@ export async function confirmGRN(
           }
         }
 
-        // Post the JE FIRST. If it fails (period closed mid-flight, account
-        // inactive), roll the GRN status back so nothing else runs.
+        // Post the JE before stock updates. Any failure throws inside the
+        // surrounding transaction, so the GRN claim is rolled back too.
         let journalEntryId: string | null = null;
         if (totalValue > 0n) {
-          const jeLines = [];
+          const jeLines: Array<{
+            accountId: string;
+            locationId: string;
+            description: string;
+            debit: string;
+            credit: string;
+            partnerId: string;
+          }> = [];
 
           // Debit each inventory account
           for (const [accountId, amount] of inventoryValueByAccount.entries()) {
@@ -522,10 +553,6 @@ export async function confirmGRN(
             ctx, { skipPermissionCheck: true, tx }
           );
           if (!jeResult.ok) {
-            await db
-              .update(goodsReceiptNotes)
-              .set({ status: 'draft', version: grn.version })
-              .where(eq(goodsReceiptNotes.id, grn.id));
             throw jeResult.error;
           }
           journalEntryId = jeResult.value.id;
@@ -535,15 +562,38 @@ export async function confirmGRN(
         //    on the SAME PO don't race the value.
         for (const line of lines) {
           const poLine = poLineMap.get(line.poLineId);
-          if (!poLine) continue;
+          if (!poLine) {
+            throw AppError.validation('purchasing.errors.invalid_po_line', {
+              poLineId: line.poLineId,
+            });
+          }
 
-          await db
+          const updatedPoLine = await tx
             .update(purchaseOrderLines)
             .set({
               qtyReceived: sql`(${purchaseOrderLines.qtyReceived}::numeric + ${line.qtyReceived}::numeric)`,
               updatedBy: ctx.userId,
             })
-            .where(eq(purchaseOrderLines.id, poLine.id));
+            .where(
+              and(
+                eq(purchaseOrderLines.id, poLine.id),
+                sql`${purchaseOrderLines.qtyReceived}::numeric + ${line.qtyReceived}::numeric <= ${purchaseOrderLines.qtyOrdered}::numeric + 0.001`,
+              ),
+            )
+            .returning({ id: purchaseOrderLines.id });
+
+          if (updatedPoLine.length === 0) {
+            const alreadyReceived = Number.parseFloat(poLine.qtyReceived);
+            const ordered = Number.parseFloat(poLine.qtyOrdered);
+            const receiving = Number.parseFloat(line.qtyReceived);
+            throw AppError.businessRule('purchasing.errors.qty_exceeds_remaining', {
+              poLineId: line.poLineId,
+              ordered: poLine.qtyOrdered,
+              alreadyReceived: poLine.qtyReceived,
+              remaining: (ordered - alreadyReceived).toFixed(3),
+              receiving: receiving.toFixed(3),
+            });
+          }
 
           poLineMap.set(poLine.id, {
             ...poLine,
@@ -581,20 +631,18 @@ export async function confirmGRN(
 
         // 3. Update stock_levels — variant-aware lookup; bug fix from opname.
         for (const line of lines) {
-          const variantCondition = line.variantId
-            ? eq(stockLevels.variantId, line.variantId)
-            : isNull(stockLevels.variantId);
-
-          const existingStock = await db
+          const existingStock = await tx
             .select({ id: stockLevels.id, qtyOnHand: stockLevels.qtyOnHand, avgUnitCost: stockLevels.avgUnitCost })
             .from(stockLevels)
             .where(
-              and(
-                eq(stockLevels.tenantId, ctx.tenantId),
-                eq(stockLevels.locationId, grn.locationId),
-                eq(stockLevels.productId, line.productId),
-                variantCondition,
-              ),
+              stockLevelIdentityWhere({
+                tenantId: ctx.tenantId,
+                locationId: grn.locationId,
+                productId: line.productId,
+                variantId: line.variantId,
+                batchNo: line.batchNo,
+                expiryDate: line.expiryDate,
+              }),
             )
             .limit(1)
             .then((r) => r[0]);
@@ -612,7 +660,7 @@ export async function confirmGRN(
               newAvgCost = (BigInt(Math.round(oldQty * 1000)) * oldAvgCost + BigInt(Math.round(recQty * 1000)) * unitCost) / BigInt(Math.round(newQty * 1000));
             }
 
-            await db
+            await tx
               .update(stockLevels)
               .set({
                 qtyOnHand: sql`${stockLevels.qtyOnHand} + ${line.qtyReceived}::numeric`,
@@ -634,6 +682,7 @@ export async function confirmGRN(
               productId: line.productId,
               variantId: line.variantId ?? null,
               batchNo: line.batchNo ?? null,
+              expiryDate: line.expiryDate ?? null,
               qtyOnHand: line.qtyReceived,
               qtyReserved: '0',
               qtyAvailable: line.qtyReceived,
@@ -652,14 +701,25 @@ export async function confirmGRN(
         );
         const newPoStatus = allFullyReceived ? 'received' : 'partial';
 
-        await db
+        const updatedPo = await tx
           .update(purchaseOrders)
           .set({
             status: newPoStatus,
             updatedBy: ctx.userId,
             version: po.version + 1,
           })
-          .where(and(eq(purchaseOrders.id, po.id), eq(purchaseOrders.version, po.version)));
+          .where(
+            and(
+              eq(purchaseOrders.tenantId, ctx.tenantId),
+              eq(purchaseOrders.id, po.id),
+              eq(purchaseOrders.version, po.version),
+            ),
+          )
+          .returning({ id: purchaseOrders.id });
+
+        if (updatedPo.length === 0) {
+          throw AppError.conflict('purchasing.errors.po_version_mismatch');
+        }
 
         // 7. Audit
         await auditRecord({
@@ -675,6 +735,7 @@ export async function confirmGRN(
             totalValue: totalValue.toString(),
           },
           ctx,
+          tx,
         });
 
         return {

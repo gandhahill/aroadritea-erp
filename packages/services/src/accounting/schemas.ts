@@ -48,6 +48,7 @@ export const CreateJournalInputSchema = z.object({
       'purchase',
       'payroll',
       'manual',
+      'production',
       'stock_adjustment',
       'stock_transfer',
       'grn',
