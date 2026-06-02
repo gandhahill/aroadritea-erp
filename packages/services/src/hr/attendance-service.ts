@@ -16,7 +16,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
@@ -355,8 +355,13 @@ export async function checkIn(
             eq(attendance.tenantId, ctx.tenantId),
             eq(attendance.locationId, targetLocationId),
             isNull(attendance.deletedAt),
-            sql`${attendance.checkInAt} >= ${todayStart}`,
-            sql`${attendance.checkInAt} <= ${todayEnd}`,
+            // Pass Date objects through Drizzle's typed operators, not the raw
+            // `sql` tag: postgres-js cannot bind a JS Date as a parameter in a
+            // raw template (it has no column codec there) and throws
+            // ERR_INVALID_ARG_TYPE, surfacing as an opaque INTERNAL error that
+            // blocked every check-in.
+            gte(attendance.checkInAt, todayStart),
+            lte(attendance.checkInAt, todayEnd),
           ),
         )
         .limit(1);
