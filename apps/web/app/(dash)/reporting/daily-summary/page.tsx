@@ -33,7 +33,8 @@ export default async function DailySummaryPage({
   if (!session) redirect('/login');
 
   const params = await searchParams;
-  const today = new Date().toISOString().slice(0, 10);
+  // Use WIB date for "today" default — server may run in UTC
+  const today = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const user = session.user as Record<string, unknown>;
   const tenantId = (user.tenantId as string) ?? 'default';
   const sessionLocationId = user.locationId as string | undefined;

@@ -3513,7 +3513,8 @@
         "refundExpense": "Customer Refund Expense",
         "fixedAssetGain": "Gain/Loss on Asset Disposal",
         "periodIncomeSummary": "Income Summary",
-        "periodRetainedEarnings": "Retained Earnings"
+        "periodRetainedEarnings": "Retained Earnings",
+        "equityOpening": "Opening Equity (Paid-in Capital)"
       }
     }
   },

@@ -67,9 +67,10 @@ export function getMonthBounds(year: number, month: number): { start: string; en
  * @param locale - 'id', 'en', or 'zh'
  */
 export function formatDisplayDate(date: Date, locale = 'id'): string {
+  // Always use d/m/y order: en-GB (not en-US which is m/d/y)
   const localeMap: Record<string, string> = {
     id: 'id-ID',
-    en: 'en-US',
+    en: 'en-GB',
     zh: 'zh-CN',
   };
   return date.toLocaleDateString(localeMap[locale] ?? 'id-ID', {
@@ -77,6 +78,45 @@ export function formatDisplayDate(date: Date, locale = 'id'): string {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+  });
+}
+
+/**
+ * Format a Date as short d/m/y in WIB timezone.
+ * Always consistent across locales: "2 Jun 2026".
+ */
+export function formatShortDate(date: Date, locale = 'id'): string {
+  const localeMap: Record<string, string> = {
+    id: 'id-ID',
+    en: 'en-GB',
+    zh: 'zh-CN',
+  };
+  return date.toLocaleDateString(localeMap[locale] ?? 'id-ID', {
+    timeZone: WIB_TZ,
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+/**
+ * Format a Date as "d/m/y HH:mm" in WIB timezone.
+ * For displaying datetime values consistently.
+ */
+export function formatDateTimeWIB(date: Date, locale = 'id'): string {
+  const localeMap: Record<string, string> = {
+    id: 'id-ID',
+    en: 'en-GB',
+    zh: 'zh-CN',
+  };
+  return date.toLocaleString(localeMap[locale] ?? 'id-ID', {
+    timeZone: WIB_TZ,
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
   });
 }
 

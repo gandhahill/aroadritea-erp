@@ -84,7 +84,7 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
             {reports.map((report) => (
               <tr key={report.id} className="transition-colors hover:bg-brand-cream-1">
                 <TableCell className="whitespace-nowrap px-4 py-3 text-brand-ink-2">
-                  {report.createdAt?.toLocaleDateString()}
+                  {report.createdAt?.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}
                 </TableCell>
                 <TableCell className="px-4 py-3 font-medium text-brand-ink">
                   <div>{report.title}</div>

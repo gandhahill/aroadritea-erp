@@ -18,7 +18,7 @@ interface McpToken {
 
 function fmt(d: Date | string | null): string {
   if (!d) return '';
-  return new Date(d).toLocaleDateString();
+  return new Date(d).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 export function McpTokensClient({ tokens }: { tokens: McpToken[] }) {

@@ -71,7 +71,7 @@ export function CheckInClient({ locationId, employeeId, shifts, locationGps }: P
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
   const displayLocale = useMemo(() => {
-    if (locale === 'en') return 'en-US';
+    if (locale === 'en') return 'en-GB';
     if (locale === 'zh') return 'zh-CN';
     return 'id-ID';
   }, [locale]);

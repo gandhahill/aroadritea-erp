@@ -77,6 +77,7 @@ export async function updateEmployee(
         version: version + 1,
       };
 
+      if (data.nik !== undefined) setCols.nik = data.nik;
       if (data.name !== undefined) setCols.name = data.name;
       if (data.email !== undefined) {
         const encryptedEmail = encryptPiiForLookup(data.email, 'employees.email');
@@ -177,6 +178,7 @@ export async function updateEmployee(
       // audit trail can be read by managers without holding the PII key.
       const safeAfter: Record<string, unknown> = {};
       for (const key of [
+        'nik',
         'name',
         'email',
         'position',

@@ -435,6 +435,6 @@ function pickName(name: Record<string, string> | null, locale: string) {
 }
 
 function formatDate(value: Date, locale: string) {
-  const intlLocale = locale === 'zh' ? 'zh-CN' : locale === 'en' ? 'en-US' : 'id-ID';
+  const intlLocale = locale === 'zh' ? 'zh-CN' : locale === 'en' ? 'en-GB' : 'id-ID';
   return new Intl.DateTimeFormat(intlLocale, { dateStyle: 'medium' }).format(value);
 }

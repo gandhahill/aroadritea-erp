@@ -163,6 +163,7 @@ export async function updateEmployeeAction(
   const input: UpdateEmployeeInput = {
     employeeId,
     version,
+    nik: optionalText(formData, 'nik'),
     name: optionalText(formData, 'name'),
     email: optionalText(formData, 'email'),
     locationId: optionalText(formData, 'locationId'),

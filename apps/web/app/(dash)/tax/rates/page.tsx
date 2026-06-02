@@ -18,7 +18,7 @@ import { getTranslations } from 'next-intl/server';
 
 function formatDate(value: string | null, locale: string) {
   if (!value) return '-';
-  const intlLocale = locale === 'zh' ? 'zh-CN' : locale === 'en' ? 'en-US' : 'id-ID';
+  const intlLocale = locale === 'zh' ? 'zh-CN' : locale === 'en' ? 'en-GB' : 'id-ID';
   return new Intl.DateTimeFormat(intlLocale, {
     day: '2-digit',
     month: 'short',

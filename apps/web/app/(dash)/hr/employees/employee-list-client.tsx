@@ -205,7 +205,7 @@ export function EmployeeListClient({
                   </TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink-2">{row.contractLabel}</TableCell>
                   <TableCell className="px-4 py-3 text-brand-ink-2">
-                    {row.hireDate ? new Date(row.hireDate).toLocaleDateString(locale) : '—'}
+                    {row.hireDate ? new Date(row.hireDate).toLocaleDateString(locale === 'en' ? 'en-GB' : locale === 'zh' ? 'zh-CN' : 'id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right">
                     <Link

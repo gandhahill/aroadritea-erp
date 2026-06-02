@@ -212,6 +212,6 @@ function pickName(name: Record<string, string> | null, locale: string) {
 
 function formatDate(value: string | null, locale: string, tOnwards: string) {
   if (!value) return tOnwards;
-  const intlLocale = locale === 'zh' ? 'zh-CN' : locale === 'en' ? 'en-US' : 'id-ID';
+  const intlLocale = locale === 'zh' ? 'zh-CN' : locale === 'en' ? 'en-GB' : 'id-ID';
   return new Intl.DateTimeFormat(intlLocale, { dateStyle: 'medium' }).format(new Date(value));
 }

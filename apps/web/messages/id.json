@@ -4041,7 +4041,8 @@
         "refundExpense": "Beban Refund Pelanggan",
         "fixedAssetGain": "Keuntungan/Kerugian Pelepasan Aset",
         "periodIncomeSummary": "Ikhtisar Laba Rugi",
-        "periodRetainedEarnings": "Laba Ditahan"
+        "periodRetainedEarnings": "Laba Ditahan",
+        "equityOpening": "Ekuitas Awal (Modal Disetor)"
       }
     }
   },

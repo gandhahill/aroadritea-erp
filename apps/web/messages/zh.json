@@ -3513,7 +3513,8 @@
         "refundExpense": "客户退款费用",
         "fixedAssetGain": "资产处置损益",
         "periodIncomeSummary": "本年利润汇总",
-        "periodRetainedEarnings": "留存收益"
+        "periodRetainedEarnings": "留存收益",
+        "equityOpening": "期初权益（实收资本）"
       }
     }
   },

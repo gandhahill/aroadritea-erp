@@ -38,9 +38,16 @@ function rupiah(value: bigint | string | number | null | undefined, locale: stri
 }
 
 async function loadKpis(tenantId: string) {
-  const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  // Use WIB (UTC+7) for "today" boundary — server may run in UTC
+  const nowUtc = new Date();
+  const wibMs = nowUtc.getTime() + 7 * 60 * 60 * 1000;
+  const wibNow = new Date(wibMs);
+  const wibYear = wibNow.getUTCFullYear();
+  const wibMonth = wibNow.getUTCMonth();
+  const wibDay = wibNow.getUTCDate();
+  // Midnight WIB = that date at 00:00+07:00 = previous day 17:00 UTC
+  const startOfToday = new Date(Date.UTC(wibYear, wibMonth, wibDay, -7));
+  const startOfMonth = new Date(Date.UTC(wibYear, wibMonth, 1, -7));
 
   const [todaySales] = await db
     .select({
@@ -263,13 +270,15 @@ export default async function DashboardPage() {
     can(userId, 'accounting.view' as PermissionCode),
   ]);
 
-  const now = new Date();
+  // Use WIB hours for greeting
+  const nowForGreeting = new Date();
+  const wibHour = (nowForGreeting.getUTCHours() + 7) % 24;
   const hello =
-    now.getHours() < 11
+    wibHour < 11
       ? t('greetings.morning')
-      : now.getHours() < 15
+      : wibHour < 15
         ? t('greetings.afternoon')
-        : now.getHours() < 19
+        : wibHour < 19
           ? t('greetings.evening')
           : t('greetings.night');
 

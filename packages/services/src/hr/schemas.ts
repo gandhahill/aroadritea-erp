@@ -75,6 +75,7 @@ export type CreateEmployeeInput = z.input<typeof CreateEmployeeInputSchema>;
 
 export const UpdateEmployeeInputSchema = z.object({
   employeeId: z.string().min(1),
+  nik: z.string().optional(),
   locationId: z.string().min(1).optional(),
   name: z.string().min(1).max(128).optional(),
   email: z.string().email().transform((val) => val.toLowerCase()).optional(),

@@ -247,7 +247,7 @@ export async function exportOmzetBulananXlsx(
 
     const idrFmt = '#,##0';
 
-    for (const row of data as unknown as Array<any>) {
+    for (const row of data.rows) {
       const r = sheet.addRow([
         row.date,
         data.locationName,

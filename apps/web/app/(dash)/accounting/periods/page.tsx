@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 function toIntlLocale(locale: string) {
   if (locale === 'zh') return 'zh-CN';
-  if (locale === 'en') return 'en-US';
+  if (locale === 'en') return 'en-GB';
   return 'id-ID';
 }
 

@@ -33,7 +33,8 @@ function formatMoney(v: string | number | bigint | null | undefined): string {
 function formatDate(d: Date | string | null | undefined, locale: string): string {
   if (!d) return '-';
   const date = typeof d === 'string' ? new Date(d) : d;
-  return date.toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' });
+  const localeTag = locale === 'en' ? 'en-GB' : locale === 'zh' ? 'zh-CN' : 'id-ID';
+  return date.toLocaleDateString(localeTag, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 export default async function EmployeeDetailPage({
