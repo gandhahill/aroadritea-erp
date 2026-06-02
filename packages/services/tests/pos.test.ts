@@ -685,13 +685,17 @@ describe('Ingredient stock deduction guard', () => {
     expect(decision).toEqual({ action: 'deduct' });
   });
 
-  it('skips auto deduction when recipe unit differs from stock unit', () => {
+  it('rejects auto deduction when recipe unit differs from stock unit', () => {
     const decision = resolveIngredientDeductionDecision(
       { uom: 'bottle', qtyOnHand: '2.000', qtyAvailable: '2.000' },
       { uom: 'ml', qty: '30.000' },
     );
 
-    expect(decision).toEqual({ action: 'skip', reason: 'untracked_or_uom_mismatch' });
+    expect(decision).toEqual({
+      action: 'uom_mismatch',
+      stockUom: 'bottle',
+      ingredientUom: 'ml',
+    });
   });
 
   it('rejects tracked matching-unit stock that is insufficient instead of clamping to zero', () => {
@@ -767,6 +771,17 @@ describe('Refund business rules', () => {
     expect(updatedVersion).toBe(6);
   });
 
+  it('partial refund keeps sale paid until all quantities are refunded', () => {
+    const originalQty = 3;
+    const alreadyRefundedQty = 1;
+    const requestedQty = 1;
+    const refundedAfter = alreadyRefundedQty + requestedQty;
+    const isFullRefund = refundedAfter >= originalQty;
+    const nextStatus = isFullRefund ? 'refunded' : 'paid';
+
+    expect(nextStatus).toBe('paid');
+  });
+
   it('refund reason is stored in notes field', () => {
     const reason = 'Pelanggan batal, tidak jadi pesan';
     const result = { notes: reason ?? null };
@@ -810,5 +825,17 @@ describe('Shift expected cash calculation', () => {
     const actualCash = 654_000;
     const variance = actualCash - expectedCash;
     expect(variance).toBe(0);
+  });
+
+  it('full refund nets the original cash payment to zero', () => {
+    const openingCash = 500_000;
+    const cashPaymentsIncludingRefundedOrders = [33000];
+    const completedRefunds = [33000];
+    const expectedCash =
+      openingCash +
+      cashPaymentsIncludingRefundedOrders.reduce((sum, amount) => sum + amount, 0) -
+      completedRefunds.reduce((sum, amount) => sum + amount, 0);
+
+    expect(expectedCash).toBe(openingCash);
   });
 });

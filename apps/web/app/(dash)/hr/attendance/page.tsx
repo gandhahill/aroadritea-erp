@@ -6,6 +6,7 @@
 
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import { and, db, desc, eq, inArray, isNull, sql } from '@erp/db';
 import { attendance, employees } from '@erp/db/schema/hr';
 import { users } from '@erp/db/schema/auth';
@@ -22,9 +23,14 @@ export default async function AttendancePage({
   searchParams: Promise<{ employeeId?: string; dateFrom?: string; dateTo?: string; page?: string }>;
 }) {
   const session = await getSession();
-  if (!session) redirect('/login');
+  if (!session?.user) redirect('/login');
 
-  const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
+  const user = session.user as Record<string, unknown>;
+  const userId = String(user.id ?? '');
+  const tenantId = String(user.tenantId ?? 'default');
+  const scope = await authorizedLocationIdsForTenant(userId, 'hr.attendance.read', tenantId);
+  if (!scope.global && scope.locationIds.length === 0) redirect('/dashboard');
+
   const params = await searchParams;
   const employeeId = params.employeeId ?? '';
   const dateFrom = params.dateFrom ?? '';
@@ -39,6 +45,7 @@ export default async function AttendancePage({
   // Object.entries on its internals, crashing with "Cannot convert
   // undefined or null to object" when the wrapper has no entries map.
   const baseConds = [eq(attendance.tenantId, tenantId), isNull(attendance.deletedAt)];
+  if (!scope.global) baseConds.push(inArray(attendance.locationId, scope.locationIds));
   if (employeeId) baseConds.push(eq(attendance.employeeId, employeeId));
   // checkInAt is timestamptz (UTC). Bare date strings like '2026-06-02'
   // cast to midnight UTC, not WIB — a 09:00 WIB check-in (02:00 UTC) would
@@ -85,7 +92,13 @@ export default async function AttendancePage({
     const empRows = await db
       .select({ id: employees.id, name: employees.name })
       .from(employees)
-      .where(inArray(employees.id, empIds));
+      .where(
+        and(
+          eq(employees.tenantId, tenantId),
+          inArray(employees.id, empIds),
+          isNull(employees.deletedAt),
+        ),
+      );
     empNames = new Map(empRows.map((r) => [r.id, r.name]));
   }
 
@@ -118,10 +131,15 @@ export default async function AttendancePage({
   }));
 
   // Load employees for filter dropdown
+  const employeeConds = [
+    eq(employees.tenantId, tenantId),
+    isNull(employees.deletedAt),
+  ];
+  if (!scope.global) employeeConds.push(inArray(employees.locationId, scope.locationIds));
   const allEmployees = await db
     .select({ id: employees.id, name: employees.name })
     .from(employees)
-    .where(eq(employees.tenantId, tenantId))
+    .where(and(...employeeConds))
     .orderBy(employees.name);
 
   const t = await getTranslations('hr.attendance');

@@ -11,7 +11,13 @@
 import { db } from '@erp/db';
 import { locations, users } from '@erp/db/schema/auth';
 import { customFieldDefinitions, customFieldValues } from '@erp/db/schema/customfield';
-import { attendance, employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
+import {
+  attendance,
+  employeeFaceTemplates,
+  employees,
+  shiftAssignments,
+  shiftDefinitions,
+} from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
@@ -20,6 +26,7 @@ import { and, desc, eq, gte, inArray, isNull, lte, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+import { decryptPii, encryptPii } from '../security/pii';
 import { resolveEmployeeForUser } from './resolve-employee';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -55,8 +62,25 @@ export interface LocationGpsConfig {
   radiusM: number;
 }
 
+export interface FaceTemplatePayload {
+  version: 'ahash-16x16-v1';
+  hash: string;
+  quality: number;
+  faceDetected?: boolean;
+  capturedAt?: string;
+}
+
+interface StoredFaceTemplate {
+  version: 'ahash-16x16-v1';
+  hash: string;
+  quality: number;
+  enrolledAt: string;
+}
+
 const GPS_HARD_ACCURACY_LIMIT_M = 500;
 const GPS_RADIUS_BUFFER_M = 25;
+const FACE_TEMPLATE_MIN_QUALITY = 20;
+const FACE_MATCH_SCORE_THRESHOLD = 62;
 
 // ─── Input schemas ───────────────────────────────────────────────────────────
 
@@ -67,12 +91,24 @@ const GpsDataSchema = z.object({
   source: z.string().optional().default('geolocation_api'),
 });
 
+const FaceTemplateSchema = z.object({
+  version: z.literal('ahash-16x16-v1'),
+  hash: z
+    .string()
+    .regex(/^[0-9a-f]{64}$/i, 'face template hash must be a 256-bit hex string'),
+  quality: z.number().int().min(0).max(100),
+  faceDetected: z.boolean().optional(),
+  capturedAt: z.string().datetime().optional(),
+});
+
 export const CheckInInputSchema = z.object({
   employeeId: z.string().min(1).optional(),
   shiftDefinitionId: z.string().optional(), // if null, derive from employee's current schedule
   method: z.enum(['gps']),
   gpsData: GpsDataSchema.optional(),
   photoUrl: z.string().url().optional(),
+  faceTemplate: FaceTemplateSchema.optional(),
+  enrollFace: z.boolean().optional().default(false),
   /** Override current date/time (for testing/import) */
   performedAt: z.string().datetime().optional(),
 });
@@ -225,9 +261,334 @@ export async function getLocationGpsConfig(
 
 // ─── Face Verification Mock (T-0254) ─────────────────────────────────────────
 
-export async function verifyFaceMatching(_photoUrl: string, _employeeId: string): Promise<{ isVerified: boolean; score: number }> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  return { isVerified: true, score: 98 };
+const FACE_TEMPLATE_FIELD = 'employee_face_templates.template_ciphertext';
+const NIBBLE_BIT_COUNTS = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4];
+
+function validateFaceTemplatePayload(template: FaceTemplatePayload): void {
+  if (template.faceDetected === false) {
+    throw AppError.validation('hr.attendance.faceNotDetected');
+  }
+  if (template.quality < FACE_TEMPLATE_MIN_QUALITY) {
+    throw AppError.validation('hr.attendance.faceTemplateQualityLow', {
+      quality: template.quality,
+      minQuality: FACE_TEMPLATE_MIN_QUALITY,
+    });
+  }
+}
+
+function faceTemplateScore(currentHash: string, storedHash: string): number {
+  if (currentHash.length !== storedHash.length) return 0;
+
+  let diffBits = 0;
+  for (let i = 0; i < currentHash.length; i += 1) {
+    const a = Number.parseInt(currentHash[i] ?? '0', 16);
+    const b = Number.parseInt(storedHash[i] ?? '0', 16);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) return 0;
+    diffBits += NIBBLE_BIT_COUNTS[a ^ b] ?? 4;
+  }
+
+  const maxBits = currentHash.length * 4;
+  return Math.max(0, Math.round((1 - diffBits / maxBits) * 100));
+}
+
+function parseStoredFaceTemplate(ciphertext: string): StoredFaceTemplate {
+  const plain = decryptPii(ciphertext, FACE_TEMPLATE_FIELD);
+  if (!plain) {
+    throw AppError.internal(
+      'hr.attendance.faceTemplateDecryptFailed',
+      new Error('Empty face template payload'),
+    );
+  }
+
+  const parsed = JSON.parse(plain) as StoredFaceTemplate;
+  if (parsed.version !== 'ahash-16x16-v1' || !/^[0-9a-f]{64}$/i.test(parsed.hash)) {
+    throw AppError.internal(
+      'hr.attendance.faceTemplateInvalid',
+      new Error('Invalid stored face template payload'),
+    );
+  }
+  return {
+    ...parsed,
+    hash: parsed.hash.toLowerCase(),
+  };
+}
+
+async function loadEmployeeFaceTemplate(tenantId: string, employeeId: string) {
+  const [row] = await db
+    .select({
+      id: employeeFaceTemplates.id,
+      employeeId: employeeFaceTemplates.employeeId,
+      templateVersion: employeeFaceTemplates.templateVersion,
+      templateCiphertext: employeeFaceTemplates.templateCiphertext,
+      templateQuality: employeeFaceTemplates.templateQuality,
+      status: employeeFaceTemplates.status,
+      enrolledAt: employeeFaceTemplates.enrolledAt,
+      lastVerifiedAt: employeeFaceTemplates.lastVerifiedAt,
+      failedAttempts: employeeFaceTemplates.failedAttempts,
+    })
+    .from(employeeFaceTemplates)
+    .where(
+      and(
+        eq(employeeFaceTemplates.tenantId, tenantId),
+        eq(employeeFaceTemplates.employeeId, employeeId),
+        eq(employeeFaceTemplates.status, 'active'),
+        isNull(employeeFaceTemplates.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  return row ?? null;
+}
+
+async function enrollEmployeeFaceTemplate(params: {
+  template: FaceTemplatePayload;
+  employeeId: string;
+  locationId: string;
+  performedAt: Date;
+  ctx: AuditContext;
+}): Promise<{ templateId: string; score: number }> {
+  const normalizedTemplate: StoredFaceTemplate = {
+    version: params.template.version,
+    hash: params.template.hash.toLowerCase(),
+    quality: params.template.quality,
+    enrolledAt: params.performedAt.toISOString(),
+  };
+  const encrypted = encryptPii(JSON.stringify(normalizedTemplate), FACE_TEMPLATE_FIELD);
+  if (!encrypted) {
+    throw AppError.internal(
+      'hr.attendance.faceTemplateEncryptFailed',
+      new Error('Face template encryption returned empty payload'),
+    );
+  }
+
+  const [existing] = await db
+    .select({
+      id: employeeFaceTemplates.id,
+      templateVersion: employeeFaceTemplates.templateVersion,
+      templateQuality: employeeFaceTemplates.templateQuality,
+      status: employeeFaceTemplates.status,
+      enrolledAt: employeeFaceTemplates.enrolledAt,
+    })
+    .from(employeeFaceTemplates)
+    .where(
+      and(
+        eq(employeeFaceTemplates.tenantId, params.ctx.tenantId),
+        eq(employeeFaceTemplates.employeeId, params.employeeId),
+        isNull(employeeFaceTemplates.deletedAt),
+      ),
+    )
+    .limit(1);
+
+  if (existing) {
+    const [updated] = await db
+      .update(employeeFaceTemplates)
+      .set({
+        locationId: params.locationId,
+        templateVersion: normalizedTemplate.version,
+        templateCiphertext: encrypted,
+        templateQuality: normalizedTemplate.quality,
+        status: 'active',
+        enrolledAt: params.performedAt,
+        lastVerifiedAt: params.performedAt,
+        failedAttempts: 0,
+        updatedAt: new Date(),
+        updatedBy: params.ctx.userId,
+      })
+      .where(
+        and(
+          eq(employeeFaceTemplates.id, existing.id),
+          eq(employeeFaceTemplates.tenantId, params.ctx.tenantId),
+        ),
+      )
+      .returning({
+        id: employeeFaceTemplates.id,
+        templateVersion: employeeFaceTemplates.templateVersion,
+        templateQuality: employeeFaceTemplates.templateQuality,
+        status: employeeFaceTemplates.status,
+        enrolledAt: employeeFaceTemplates.enrolledAt,
+      });
+
+    await auditRecord({
+      action: 'update',
+      entityType: 'employee_face_template',
+      entityId: existing.id,
+      before: {
+        templateVersion: existing.templateVersion,
+        templateQuality: existing.templateQuality,
+        status: existing.status,
+        enrolledAt: existing.enrolledAt,
+      },
+      after: updated ?? null,
+      metadata: { employeeId: params.employeeId, reason: 'attendance_inline_enrollment' },
+      ctx: params.ctx,
+    });
+
+    return { templateId: existing.id, score: 100 };
+  }
+
+  const templateId = generateId();
+  const [created] = await db
+    .insert(employeeFaceTemplates)
+    .values({
+      id: templateId,
+      tenantId: params.ctx.tenantId,
+      locationId: params.locationId,
+      employeeId: params.employeeId,
+      templateVersion: normalizedTemplate.version,
+      templateCiphertext: encrypted,
+      templateQuality: normalizedTemplate.quality,
+      status: 'active',
+      enrolledAt: params.performedAt,
+      lastVerifiedAt: params.performedAt,
+      failedAttempts: 0,
+      createdBy: params.ctx.userId,
+      updatedBy: params.ctx.userId,
+    })
+    .returning({
+      id: employeeFaceTemplates.id,
+      employeeId: employeeFaceTemplates.employeeId,
+      templateVersion: employeeFaceTemplates.templateVersion,
+      templateQuality: employeeFaceTemplates.templateQuality,
+      status: employeeFaceTemplates.status,
+      enrolledAt: employeeFaceTemplates.enrolledAt,
+    });
+
+  await auditRecord({
+    action: 'create',
+    entityType: 'employee_face_template',
+    entityId: templateId,
+    before: null,
+    after:
+      created ??
+      ({
+        id: templateId,
+        employeeId: params.employeeId,
+        templateVersion: normalizedTemplate.version,
+        templateQuality: normalizedTemplate.quality,
+        status: 'active',
+        enrolledAt: params.performedAt,
+      } as Record<string, unknown>),
+    metadata: { employeeId: params.employeeId, reason: 'attendance_inline_enrollment' },
+    ctx: params.ctx,
+  });
+
+  return { templateId, score: 100 };
+}
+
+async function verifyOrEnrollFaceTemplate(params: {
+  template: FaceTemplatePayload | undefined;
+  enrollFace: boolean;
+  employeeId: string;
+  locationId: string;
+  performedAt: Date;
+  ctx: AuditContext;
+}): Promise<{ isVerified: boolean; score: number; templateId: string; enrolled: boolean }> {
+  const existing = await loadEmployeeFaceTemplate(params.ctx.tenantId, params.employeeId);
+
+  if (!params.template) {
+    throw AppError.validation(
+      existing
+        ? 'hr.attendance.faceVerificationRequired'
+        : 'hr.attendance.faceEnrollmentRequired',
+    );
+  }
+
+  validateFaceTemplatePayload(params.template);
+
+  if (!existing) {
+    if (!params.enrollFace) {
+      throw AppError.validation('hr.attendance.faceEnrollmentRequired');
+    }
+    const enrolled = await enrollEmployeeFaceTemplate({
+      template: params.template,
+      employeeId: params.employeeId,
+      locationId: params.locationId,
+      performedAt: params.performedAt,
+      ctx: params.ctx,
+    });
+    return {
+      isVerified: true,
+      score: enrolled.score,
+      templateId: enrolled.templateId,
+      enrolled: true,
+    };
+  }
+
+  const storedTemplate = parseStoredFaceTemplate(existing.templateCiphertext);
+  const score = faceTemplateScore(params.template.hash.toLowerCase(), storedTemplate.hash);
+
+  if (score < FACE_MATCH_SCORE_THRESHOLD) {
+    await db
+      .update(employeeFaceTemplates)
+      .set({
+        failedAttempts: sql`${employeeFaceTemplates.failedAttempts} + 1`,
+        updatedAt: new Date(),
+        updatedBy: params.ctx.userId,
+      })
+      .where(
+        and(
+          eq(employeeFaceTemplates.id, existing.id),
+          eq(employeeFaceTemplates.tenantId, params.ctx.tenantId),
+        ),
+      );
+
+    await auditRecord({
+      action: 'update',
+      entityType: 'employee_face_template',
+      entityId: existing.id,
+      before: { failedAttempts: existing.failedAttempts },
+      after: { failedAttempts: Number(existing.failedAttempts ?? 0) + 1 },
+      metadata: {
+        employeeId: params.employeeId,
+        reason: 'attendance_face_mismatch',
+        score,
+        threshold: FACE_MATCH_SCORE_THRESHOLD,
+      },
+      ctx: params.ctx,
+    });
+
+    throw AppError.validation('hr.attendance.faceMismatch', {
+      score,
+      threshold: FACE_MATCH_SCORE_THRESHOLD,
+    });
+  }
+
+  await db
+    .update(employeeFaceTemplates)
+    .set({
+      lastVerifiedAt: params.performedAt,
+      failedAttempts: 0,
+      updatedAt: new Date(),
+      updatedBy: params.ctx.userId,
+    })
+    .where(
+      and(
+        eq(employeeFaceTemplates.id, existing.id),
+        eq(employeeFaceTemplates.tenantId, params.ctx.tenantId),
+      ),
+    );
+
+  await auditRecord({
+    action: 'update',
+    entityType: 'employee_face_template',
+    entityId: existing.id,
+    before: {
+      lastVerifiedAt: existing.lastVerifiedAt,
+      failedAttempts: existing.failedAttempts,
+    },
+    after: {
+      lastVerifiedAt: params.performedAt,
+      failedAttempts: 0,
+    },
+    metadata: {
+      employeeId: params.employeeId,
+      reason: 'attendance_face_verified',
+      score,
+    },
+    ctx: params.ctx,
+  });
+
+  return { isVerified: true, score, templateId: existing.id, enrolled: false };
 }
 
 // ─── checkIn ────────────────────────────────────────────────────────────────
@@ -420,13 +781,14 @@ export async function checkIn(
         shiftCode = shiftDef.code;
       }
 
-        let faceMatchScore: number | null = null;
-        let isFaceVerified = false;
-        if (data.photoUrl) {
-          const faceRes = await verifyFaceMatching(data.photoUrl, resolvedEmployeeId);
-          isFaceVerified = faceRes.isVerified;
-          faceMatchScore = faceRes.score;
-        }
+      const faceVerification = await verifyOrEnrollFaceTemplate({
+        template: data.faceTemplate,
+        enrollFace: data.enrollFace,
+        employeeId: resolvedEmployeeId,
+        locationId: targetLocationId,
+        performedAt,
+        ctx,
+      });
 
       // 5. Create attendance record
       const attId = generateId();
@@ -445,8 +807,8 @@ export async function checkIn(
           checkInMethod: data.method,
           checkInGps: data.gpsData ?? null,
           shiftDefinitionCode: shiftCode,
-          isFaceVerified,
-          faceMatchScore,
+          isFaceVerified: faceVerification.isVerified,
+          faceMatchScore: faceVerification.score,
           isLate,
           lateMinutes,
         })
@@ -457,6 +819,8 @@ export async function checkIn(
           checkInMethod: attendance.checkInMethod,
           isLate: attendance.isLate,
           lateMinutes: attendance.lateMinutes,
+          isFaceVerified: attendance.isFaceVerified,
+          faceMatchScore: attendance.faceMatchScore,
           shiftCode: attendance.shiftDefinitionCode,
         });
 
@@ -470,7 +834,12 @@ export async function checkIn(
         entityId: record.id,
         before: null,
         after: record as never,
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        metadata: {
+          ip: ctx.ipAddress ?? null,
+          userAgent: ctx.userAgent ?? null,
+          faceTemplateId: faceVerification.templateId,
+          faceEnrolled: faceVerification.enrolled,
+        },
         ctx,
       });
 

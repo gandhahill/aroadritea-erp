@@ -77,6 +77,8 @@ export async function createJournal(
   ctx: AuditContext,
   opts: { skipPermissionCheck?: boolean; tx?: any } = {},
 ): Promise<Result<JournalEntryResult>> {
+  const dbOrTx = (opts.tx ?? db) as typeof db;
+
   // 1. Permission check
   if (!opts.skipPermissionCheck) {
     const permCheck = await requirePermission(ctx.userId, 'accounting.journal.create', {
@@ -152,13 +154,13 @@ export async function createJournal(
 
   // 7. Find open period for posting date
   const periodMonth = data.postingDate.substring(0, 7); // 'YYYY-MM'
-  const period = await db
+  const period = await dbOrTx
     .select()
     .from(accountingPeriods)
     .where(
       and(eq(accountingPeriods.tenantId, ctx.tenantId), eq(accountingPeriods.code, periodMonth)),
     )
-    .then((rows) => rows[0]);
+    .then((rows: Array<typeof accountingPeriods.$inferSelect>) => rows[0]);
 
   if (!period) {
     return err(
@@ -179,7 +181,14 @@ export async function createJournal(
 
   // 8. Validate accounts: exist, active, postable
   const accountIds = [...new Set(parsedLines.map((l) => l.accountId))];
-  const foundAccounts = await db
+  type AccountValidationRow = {
+    id: string;
+    isActive: boolean;
+    isPostable: boolean;
+    code: string;
+  };
+
+  const foundAccounts: AccountValidationRow[] = await dbOrTx
     .select({
       id: accounts.id,
       isActive: accounts.isActive,
@@ -189,7 +198,7 @@ export async function createJournal(
     .from(accounts)
     .where(and(eq(accounts.tenantId, ctx.tenantId), inArray(accounts.id, accountIds)));
 
-  const accountMap = new Map(foundAccounts.map((a) => [a.id, a]));
+  const accountMap = new Map<string, AccountValidationRow>(foundAccounts.map((a) => [a.id, a]));
 
   // Check all referenced accounts exist
   for (const accId of accountIds) {
@@ -218,8 +227,6 @@ export async function createJournal(
   // 9. Generate JE number and ID
   const jeId = generateId();
   const jeNumber = await generateJournalNumber(ctx.tenantId, data.postingDate);
-
-  const dbTx = opts.tx ?? db;
 
   // 10. Insert journal entry + lines in a strict db.transaction()
   const result = await tryCatch(
@@ -282,6 +289,7 @@ export async function createJournal(
             userAgent: ctx.userAgent ?? null,
           },
           ctx,
+          tx: opts.tx,
         });
 
         const resultObj: JournalEntryResult = {

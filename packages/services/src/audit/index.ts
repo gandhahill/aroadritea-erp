@@ -35,6 +35,7 @@ export type AuditAction =
   | 'reject'
   | 'cancel'
   | 'submit'
+  | 'ship'
   | 'open'
   | 'close'
   | 'run_payroll'
@@ -53,7 +54,8 @@ export type AuditAction =
   | 'movement_import'
   | 'receive'
   | 'generate_bank_transfer'
-  | 'reply';
+  | 'reply'
+  | 'escalate';
 
 /** Input for a single audit log entry. */
 export interface AuditRecordInput {
@@ -66,8 +68,11 @@ export interface AuditRecordInput {
 }
 
 /** Extended input that carries its own AuditContext. */
+type AuditInsertTarget = Pick<typeof db, 'insert'>;
+
 export interface AuditRecordParams extends AuditRecordInput {
   ctx: AuditContext;
+  tx?: AuditInsertTarget;
 }
 
 // ─── Result type ───────────────────────────────────────────────────────────────
@@ -103,8 +108,10 @@ const KNOWN_ENTITY_TYPES = new Set([
   'product_modifier',
   'stock_movement',
   'stock_level',
+  'stock_transfer',
   'bom',
   'bom_line',
+  'production_batch',
   'purchase_order',
   'grn',
   'purchase_invoice',
@@ -114,6 +121,7 @@ const KNOWN_ENTITY_TYPES = new Set([
   'location',
   'partner',
   'attendance',
+  'employee_face_template',
   'leave',
   'payroll_run',
   'reimbursement_request',
@@ -127,6 +135,7 @@ const KNOWN_ENTITY_TYPES = new Set([
   'cms_banner',
   'cms_faq',
   'cms_settings',
+  'scheduled_job',
   'member',
   'member_session',
   'voucher',
@@ -183,7 +192,7 @@ function sanitizeRecord(
  * @returns The created audit record ID (never fails — errors are swallowed)
  */
 export async function auditRecord(input: AuditRecordParams): Promise<AuditRecordResult> {
-  const { ctx, ...record } = input;
+  const { ctx, tx, ...record } = input;
 
   const id = generateId();
   const now = new Date();
@@ -205,7 +214,9 @@ export async function auditRecord(input: AuditRecordParams): Promise<AuditRecord
     ...(ctx.userAgent !== undefined && { userAgent: ctx.userAgent }),
   };
 
-  await db.insert(auditLog).values({
+  const dbOrTx = tx ?? db;
+
+  await dbOrTx.insert(auditLog).values({
     id,
     tenantId: ctx.tenantId,
     userId: ctx.userId,

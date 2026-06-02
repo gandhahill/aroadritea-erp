@@ -11,6 +11,7 @@ import { db } from '@erp/db';
 import {
   manualSalesClosings,
   payments,
+  refunds,
   salesOrders,
   shiftExpenses,
   shifts,
@@ -19,7 +20,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { CloseShiftInputSchema, OpenShiftInputSchema } from './schemas';
@@ -167,24 +168,23 @@ export async function closeShift(input: unknown, ctx: AuditContext): Promise<Res
         and(
           eq(salesOrders.tenantId, ctx.tenantId),
           eq(salesOrders.shiftId, data.shiftId),
-          eq(salesOrders.status, 'paid'),
+          inArray(salesOrders.status, ['paid', 'refunded']),
           eq(payments.method, 'cash'),
         ),
       );
 
     const cashTotal = allPayments.reduce((sum, p) => sum + p.amount, BigInt(0));
 
-    // Refunded cash: sales orders that were paid with cash but are now refunded
     const refundedPayments = await db
-      .select({ amount: payments.amount })
-      .from(payments)
-      .innerJoin(salesOrders, eq(payments.salesOrderId, salesOrders.id))
+      .select({ amount: refunds.refundAmount })
+      .from(refunds)
+      .innerJoin(salesOrders, eq(refunds.salesOrderId, salesOrders.id))
       .where(
         and(
           eq(salesOrders.tenantId, ctx.tenantId),
           eq(salesOrders.shiftId, data.shiftId),
-          eq(salesOrders.status, 'refunded'),
-          eq(payments.method, 'cash'),
+          eq(refunds.status, 'completed'),
+          eq(refunds.refundMethod, 'cash'),
         ),
       );
     const cashRefundTotal = refundedPayments.reduce((sum, p) => sum + p.amount, BigInt(0));
@@ -301,22 +301,22 @@ export async function getOpenShift(
         and(
           eq(salesOrders.tenantId, ctx.tenantId),
           eq(salesOrders.shiftId, shift.id),
-          eq(salesOrders.status, 'paid'),
+          inArray(salesOrders.status, ['paid', 'refunded']),
           eq(payments.method, 'cash'),
         ),
       );
     const cashTotal = cashPayments.reduce((sum, payment) => sum + payment.amount, BigInt(0));
 
     const refundedPayments = await db
-      .select({ amount: payments.amount })
-      .from(payments)
-      .innerJoin(salesOrders, eq(payments.salesOrderId, salesOrders.id))
+      .select({ amount: refunds.refundAmount })
+      .from(refunds)
+      .innerJoin(salesOrders, eq(refunds.salesOrderId, salesOrders.id))
       .where(
         and(
           eq(salesOrders.tenantId, ctx.tenantId),
           eq(salesOrders.shiftId, shift.id),
-          eq(salesOrders.status, 'refunded'),
-          eq(payments.method, 'cash'),
+          eq(refunds.status, 'completed'),
+          eq(refunds.refundMethod, 'cash'),
         ),
       );
     const cashRefundTotal = refundedPayments.reduce((sum, p) => sum + p.amount, BigInt(0));

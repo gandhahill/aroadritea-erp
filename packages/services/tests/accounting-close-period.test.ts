@@ -47,6 +47,38 @@ vi.mock('@erp/db', () => ({
         return Promise.resolve();
       },
     }),
+    transaction: async (fn: (tx: any) => unknown) =>
+      fn({
+        select: (..._args: unknown[]) => ({
+          from: (..._fArgs: unknown[]) => ({
+            where: (..._wArgs: unknown[]) => {
+              const idx = selectCallIndex++;
+              const rows = selectResults[idx] ?? [];
+              return {
+                then: (selectFn: (r: unknown[]) => unknown) => selectFn(rows),
+              };
+            },
+          }),
+        }),
+        update: (..._args: unknown[]) => ({
+          set: (...sArgs: unknown[]) => {
+            updateCalls.push(sArgs);
+            return {
+              where: () => {
+                const result: any = Promise.resolve([{ id: 'mock-id' }]);
+                result.returning = () => Promise.resolve([{ id: 'mock-id' }]);
+                return result;
+              },
+            };
+          },
+        }),
+        insert: (..._args: unknown[]) => ({
+          values: (...vArgs: unknown[]) => {
+            insertCalls.push(vArgs);
+            return Promise.resolve();
+          },
+        }),
+      }),
   },
 }));
 

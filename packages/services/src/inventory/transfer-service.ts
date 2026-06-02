@@ -1,26 +1,4 @@
-/**
- * inventory.transfer — SD §9.3, §21.5, §12.3
- *
- * Stock transfer workflow:
- *   draft → in_transit → received | cancelled
- *
- * Transfer between locations (e.g., from warehouse to store).
- * Creates 2 stock_movements per line on ship:
- *   - transfer_out at source location
- *   - transfer_in at destination location
- *
- * On receive: marks as received and updates destination stock_levels.
- *
- * Business rules:
- * - fromLocation ≠ toLocation
- * - Only user with `inventory.transfer` permission can create/ship
- * - Products must exist and be active
- *
- * Permission: inventory.transfer (create + ship + receive)
- */
-
 import { db } from '@erp/db';
-import { auditLog } from '@erp/db/schema/audit';
 import {
   products,
   stockLevels,
@@ -32,7 +10,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, gte, inArray, isNull, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { generateTransferNumber } from '../shared/number-generator';
@@ -41,8 +19,6 @@ import {
   ReceiveTransferInputSchema,
   ShipTransferInputSchema,
 } from './schemas';
-
-// ─── Return types ─────────────────────────────────────────────────────────────
 
 export interface TransferResult {
   id: string;
@@ -65,8 +41,6 @@ export interface TransferLineResult {
   qtyReceived: string | null;
   uom: string;
 }
-
-// ─── Build result helper ─────────────────────────────────────────────────────
 
 function buildTransferResult(
   trf: Partial<typeof stockTransfers.$inferSelect> & {
@@ -98,24 +72,41 @@ function buildTransferResult(
     toLocationId: trf.toLocationId,
     notes: trf.notes,
     status: trf.status,
-    lines: lines.map((l) => ({
-      id: l.id,
-      productId: l.productId,
-      variantId: l.variantId ?? null,
-      batchNo: l.batchNo ?? null,
-      expiryDate: l.expiryDate ?? null,
-      qtySent: l.qtySent,
-      qtyReceived: l.qtyReceived ?? null,
-      uom: l.uom,
+    lines: lines.map((line) => ({
+      id: line.id,
+      productId: line.productId,
+      variantId: line.variantId ?? null,
+      batchNo: line.batchNo ?? null,
+      expiryDate: line.expiryDate ?? null,
+      qtySent: line.qtySent,
+      qtyReceived: line.qtyReceived ?? null,
+      uom: line.uom,
     })),
   };
 }
 
-// ─── Create Draft ─────────────────────────────────────────────────────────────
+function stockLevelIdentityWhere(input: {
+  tenantId: string;
+  locationId: string;
+  productId: string;
+  variantId: string | null | undefined;
+  batchNo: string | null | undefined;
+  expiryDate: string | null | undefined;
+}) {
+  return and(
+    eq(stockLevels.tenantId, input.tenantId),
+    eq(stockLevels.locationId, input.locationId),
+    eq(stockLevels.productId, input.productId),
+    input.variantId ? eq(stockLevels.variantId, input.variantId) : isNull(stockLevels.variantId),
+    input.batchNo ? eq(stockLevels.batchNo, input.batchNo) : isNull(stockLevels.batchNo),
+    input.expiryDate ? eq(stockLevels.expiryDate, input.expiryDate) : isNull(stockLevels.expiryDate),
+  );
+}
 
-/**
- * Create a new stock transfer in 'draft' status.
- */
+function qtyToScaledBigInt(qty: string): bigint {
+  return BigInt(Math.round(Number.parseFloat(qty) * 1000));
+}
+
 export async function createTransferDraft(
   input: unknown,
   ctx: AuditContext,
@@ -139,39 +130,38 @@ export async function createTransferDraft(
     return err(AppError.businessRule('inventory.transfer.sameLocation'));
   }
 
-  // Validate product IDs
-  const productIds = [...new Set(data.lines.map((l) => l.productId))];
+  const productIds = [...new Set(data.lines.map((line) => line.productId))];
   const foundProducts = await db
-    .select({ 
-      id: products.id, 
+    .select({
+      id: products.id,
       isActive: products.isActive,
       trackBatch: products.trackBatch,
-      trackExpiry: products.trackExpiry
+      trackExpiry: products.trackExpiry,
     })
     .from(products)
     .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, productIds)));
-  const productMap = new Map(foundProducts.map((p) => [p.id, p]));
+  const productMap = new Map(foundProducts.map((product) => [product.id, product]));
 
   for (const line of data.lines) {
-    const p = productMap.get(line.productId);
-    if (!p) {
+    const product = productMap.get(line.productId);
+    if (!product) {
       return err(
         AppError.notFound('inventory.transfer.productNotFound', { productId: line.productId }),
       );
     }
-    if (!p.isActive) {
+    if (!product.isActive) {
       return err(
         AppError.businessRule('inventory.transfer.productInactive', { productId: line.productId }),
       );
     }
-    if (p.trackBatch && !line.batchNo) {
+    if (product.trackBatch && !line.batchNo) {
       return err(
         AppError.validation('inventory.transfer.missingBatchNo', {
           productId: line.productId,
         }),
       );
     }
-    if (p.trackExpiry && !line.expiryDate) {
+    if (product.trackExpiry && !line.expiryDate) {
       return err(
         AppError.validation('inventory.transfer.missingExpiryDate', {
           productId: line.productId,
@@ -184,49 +174,50 @@ export async function createTransferDraft(
   const trfNumber = await generateTransferNumber(ctx.tenantId, data.transferDate);
 
   try {
-    await db.insert(stockTransfers).values({
-      id: trfId,
-      tenantId: ctx.tenantId,
-      number: trfNumber,
-      transferDate: data.transferDate,
-      fromLocationId: data.fromLocationId,
-      toLocationId: data.toLocationId,
-      notes: data.notes ?? null,
-      status: 'draft',
-      version: 1,
-      createdBy: ctx.userId,
-      updatedBy: ctx.userId,
-    });
+    const result = await db.transaction(async (tx) => {
+      await tx.insert(stockTransfers).values({
+        id: trfId,
+        tenantId: ctx.tenantId,
+        number: trfNumber,
+        transferDate: data.transferDate,
+        fromLocationId: data.fromLocationId,
+        toLocationId: data.toLocationId,
+        notes: data.notes ?? null,
+        status: 'draft',
+        version: 1,
+        createdBy: ctx.userId,
+        updatedBy: ctx.userId,
+      });
 
-    const lineValues = data.lines.map((line, idx) => ({
-      id: generateId(),
-      transferId: trfId,
-      lineNo: idx + 1,
-      productId: line.productId,
-      variantId: line.variantId ?? null,
-      batchNo: line.batchNo ?? null,
-      expiryDate: line.expiryDate ?? null,
-      qtySent: line.qty,
-      qtyReceived: null,
-      uom: line.uom,
-      createdBy: ctx.userId,
-      updatedBy: ctx.userId,
-    }));
+      const lineValues = data.lines.map((line, idx) => ({
+        id: generateId(),
+        transferId: trfId,
+        lineNo: idx + 1,
+        productId: line.productId,
+        variantId: line.variantId ?? null,
+        batchNo: line.batchNo ?? null,
+        expiryDate: line.expiryDate ?? null,
+        qtySent: line.qty,
+        qtyReceived: null,
+        uom: line.uom,
+        createdBy: ctx.userId,
+        updatedBy: ctx.userId,
+      }));
 
-    await db.insert(stockTransferLines).values(lineValues);
+      await tx.insert(stockTransferLines).values(lineValues);
 
-    await auditRecord({
-      action: 'create',
-      entityType: 'stock_transfer',
-      entityId: trfId,
-      before: null,
-      after: { number: trfNumber, lineCount: lineValues.length },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      ctx,
-    });
+      await auditRecord({
+        action: 'create',
+        entityType: 'stock_transfer',
+        entityId: trfId,
+        before: null,
+        after: { number: trfNumber, lineCount: lineValues.length },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+        tx,
+      });
 
-    return ok(
-      buildTransferResult(
+      return buildTransferResult(
         {
           id: trfId,
           number: trfNumber,
@@ -238,25 +229,16 @@ export async function createTransferDraft(
           version: 1,
         },
         lineValues,
-      ),
-    );
+      );
+    });
+
+    return ok(result);
   } catch (e) {
+    if (e instanceof AppError) return err(e);
     return err(AppError.internal('inventory.transfer.createFailed', e));
   }
 }
 
-// ─── Ship (in_transit) ───────────────────────────────────────────────────────
-
-/**
- * Ship a draft transfer — marks it as in_transit and creates stock movements.
- * Transitions: draft → in_transit.
- *
- * Creates 2 movements per line:
- *   - transfer_out at source location
- *   - transfer_in at destination location
- *
- * Also deducts from source stock_levels.
- */
 export async function shipTransfer(
   input: unknown,
   ctx: AuditContext,
@@ -276,14 +258,12 @@ export async function shipTransfer(
       .select()
       .from(stockTransfers)
       .where(and(eq(stockTransfers.tenantId, ctx.tenantId), eq(stockTransfers.id, data.transferId)))
-      .then((r) => r[0]);
+      .then((rows) => rows[0]);
 
     if (!trf) {
       return err(AppError.notFound('inventory.transfer.notFound', { transferId: data.transferId }));
     }
 
-    // Permission scoped to the SOURCE outlet — operator at outlet C
-    // cannot ship outlet A's stock to outlet B by abusing ctx.locationId.
     const permCheck = await requirePermission(ctx.userId, 'inventory.transfer', {
       locationId: trf.fromLocationId,
     });
@@ -308,133 +288,121 @@ export async function shipTransfer(
       return err(AppError.businessRule('inventory.transfer.noLines'));
     }
 
-    const now = new Date();
-
-    const outMovements = lines.map((line) => ({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      locationId: trf.fromLocationId,
-      occurredAt: now,
-      stockLocationId: null as unknown as string,
-      productId: line.productId,
-      variantId: line.variantId ?? null,
-      batchNo: line.batchNo ?? null,
-      expiryDate: line.expiryDate ?? null,
-      qtyDelta: `-${line.qtySent}` as unknown as ReturnType<typeof String>,
-      uom: line.uom,
-      reason: 'transfer_out' as const,
-      referenceType: 'stock_transfer' as const,
-      referenceId: trf.id,
-      unitCost: null,
-      createdBy: ctx.userId,
-      updatedBy: ctx.userId,
-    }));
-
-    const inMovements = lines.map((line) => ({
-      id: generateId(),
-      tenantId: ctx.tenantId,
-      locationId: trf.toLocationId,
-      occurredAt: now,
-      stockLocationId: null as unknown as string,
-      productId: line.productId,
-      variantId: line.variantId ?? null,
-      batchNo: line.batchNo ?? null,
-      expiryDate: line.expiryDate ?? null,
-      qtyDelta: line.qtySent,
-      uom: line.uom,
-      reason: 'transfer_in' as const,
-      referenceType: 'stock_transfer' as const,
-      referenceId: trf.id,
-      unitCost: null,
-      createdBy: ctx.userId,
-      updatedBy: ctx.userId,
-    }));
-
-    const claimedShip = await db
-      .update(stockTransfers)
-      .set({
-        status: 'in_transit',
-        shippedAt: now,
-        shippedBy: ctx.userId,
-        updatedBy: ctx.userId,
-        version: trf.version + 1,
-      })
-      .where(
-        and(
-          eq(stockTransfers.id, data.transferId),
-          eq(stockTransfers.version, trf.version),
-          eq(stockTransfers.status, 'draft'),
-        ),
-      )
-      .returning({ id: stockTransfers.id });
-
-    if (!claimedShip || claimedShip.length === 0) {
-      return err(AppError.conflict('inventory.transfer.versionMismatch'));
-    }
-
-    try {
-      await db.transaction(async (tx) => {
-        // Execute deductions
-        for (const line of lines) {
-          const variantCondition = line.variantId
-            ? eq(stockLevels.variantId, line.variantId)
-            : isNull(stockLevels.variantId);
-
-          const updatedStock = await tx
-            .update(stockLevels)
-            .set({
-              qtyOnHand: sql`${stockLevels.qtyOnHand} - ${line.qtySent}::numeric`,
-              qtyAvailable: sql`${stockLevels.qtyAvailable} - ${line.qtySent}::numeric`,
-              updatedBy: ctx.userId,
-              lastMovementAt: now,
-            })
-            .where(
-              and(
-                eq(stockLevels.tenantId, ctx.tenantId),
-                eq(stockLevels.locationId, trf.fromLocationId),
-                eq(stockLevels.productId, line.productId),
-                variantCondition,
-              ),
-            )
-            .returning({ id: stockLevels.id });
-          if (updatedStock.length === 0) {
-            throw AppError.businessRule('inventory.transfer.insufficientStock');
-          }
-        }
-
-        // Insert movements
-        await tx.insert(stockMovements).values([...outMovements, ...inMovements]);
-        
-        // Insert audit log
-        await tx.insert(auditLog).values({
-          id: generateId(),
-          tenantId: ctx.tenantId,
-          userId: ctx.userId,
-          action: 'ship',
-          entityType: 'stock_transfer',
-          entityId: data.transferId,
-          before: { status: 'draft' },
-          after: { status: 'in_transit', movementCount: lines.length * 2 },
-          metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        });
-      });
-    } catch (batchError) {
-      // Rollback the claim if the batch fails (e.g. insufficient stock constraint)
-      await db
+    const result = await db.transaction(async (tx) => {
+      const now = new Date();
+      const claimedShip = await tx
         .update(stockTransfers)
         .set({
-          status: 'draft',
-          shippedAt: null,
-          shippedBy: null,
+          status: 'in_transit',
+          shippedAt: now,
+          shippedBy: ctx.userId,
           updatedBy: ctx.userId,
-          version: trf.version,
+          version: trf.version + 1,
         })
-        .where(eq(stockTransfers.id, data.transferId));
-      throw batchError;
-    }
+        .where(
+          and(
+            eq(stockTransfers.tenantId, ctx.tenantId),
+            eq(stockTransfers.id, data.transferId),
+            eq(stockTransfers.version, trf.version),
+            eq(stockTransfers.status, 'draft'),
+          ),
+        )
+        .returning({ id: stockTransfers.id });
 
-    return ok(
-      buildTransferResult(
+      if (claimedShip.length === 0) {
+        throw AppError.conflict('inventory.transfer.versionMismatch');
+      }
+
+      const movementValues: Array<typeof stockMovements.$inferInsert> = [];
+      for (const line of lines) {
+        const updatedStock = await tx
+          .update(stockLevels)
+          .set({
+            qtyOnHand: sql`${stockLevels.qtyOnHand} - ${line.qtySent}::numeric`,
+            qtyAvailable: sql`${stockLevels.qtyAvailable} - ${line.qtySent}::numeric`,
+            updatedBy: ctx.userId,
+            lastMovementAt: now,
+          })
+          .where(
+            and(
+              stockLevelIdentityWhere({
+                tenantId: ctx.tenantId,
+                locationId: trf.fromLocationId,
+                productId: line.productId,
+                variantId: line.variantId,
+                batchNo: line.batchNo,
+                expiryDate: line.expiryDate,
+              }),
+              sql`${stockLevels.qtyOnHand} >= ${line.qtySent}::numeric`,
+              sql`${stockLevels.qtyAvailable} >= ${line.qtySent}::numeric`,
+            ),
+          )
+          .returning({ id: stockLevels.id });
+
+        if (updatedStock.length === 0) {
+          throw AppError.businessRule('inventory.transfer.insufficientStock', {
+            productId: line.productId,
+            variantId: line.variantId,
+            batchNo: line.batchNo,
+            required: line.qtySent,
+          });
+        }
+
+        movementValues.push(
+          {
+            id: generateId(),
+            tenantId: ctx.tenantId,
+            locationId: trf.fromLocationId,
+            occurredAt: now,
+            stockLocationId: null,
+            productId: line.productId,
+            variantId: line.variantId ?? null,
+            batchNo: line.batchNo ?? null,
+            expiryDate: line.expiryDate ?? null,
+            qtyDelta: `-${line.qtySent}`,
+            uom: line.uom,
+            reason: 'transfer_out',
+            referenceType: 'stock_transfer',
+            referenceId: trf.id,
+            unitCost: null,
+            createdBy: ctx.userId,
+            updatedBy: ctx.userId,
+          },
+          {
+            id: generateId(),
+            tenantId: ctx.tenantId,
+            locationId: trf.toLocationId,
+            occurredAt: now,
+            stockLocationId: null,
+            productId: line.productId,
+            variantId: line.variantId ?? null,
+            batchNo: line.batchNo ?? null,
+            expiryDate: line.expiryDate ?? null,
+            qtyDelta: line.qtySent,
+            uom: line.uom,
+            reason: 'transfer_in',
+            referenceType: 'stock_transfer',
+            referenceId: trf.id,
+            unitCost: null,
+            createdBy: ctx.userId,
+            updatedBy: ctx.userId,
+          },
+        );
+      }
+
+      await tx.insert(stockMovements).values(movementValues);
+      await auditRecord({
+        action: 'ship',
+        entityType: 'stock_transfer',
+        entityId: data.transferId,
+        before: { status: 'draft' },
+        after: { status: 'in_transit', movementCount: movementValues.length },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+        tx,
+      });
+
+      return buildTransferResult(
         {
           ...trf,
           status: 'in_transit',
@@ -443,26 +411,25 @@ export async function shipTransfer(
           version: trf.version + 1,
         },
         lines,
-      ),
-    );
-  } catch (e: any) {
+      );
+    });
+
+    return ok(result);
+  } catch (e) {
     if (e instanceof AppError) return err(e);
-    if (e.code === '23514' || e.message?.includes('stock_levels_qty_check')) {
+    if (
+      e &&
+      typeof e === 'object' &&
+      ('code' in e || 'message' in e) &&
+      ((e as { code?: string }).code === '23514' ||
+        String((e as { message?: string }).message ?? '').includes('stock_levels_qty_check'))
+    ) {
       return err(AppError.businessRule('inventory.transfer.insufficientStock'));
     }
     return err(AppError.internal('inventory.transfer.shipFailed', e));
   }
 }
 
-// ─── Receive ─────────────────────────────────────────────────────────────────
-
-/**
- * Receive a transfer that is in_transit.
- * Transitions: in_transit → received.
- *
- * Updates stock_levels at destination location based on qty_received.
- * If qty_received < qty_sent, the difference stays as a waste movement.
- */
 export async function receiveTransfer(
   input: unknown,
   ctx: AuditContext,
@@ -482,15 +449,12 @@ export async function receiveTransfer(
       .select()
       .from(stockTransfers)
       .where(and(eq(stockTransfers.tenantId, ctx.tenantId), eq(stockTransfers.id, data.transferId)))
-      .then((r) => r[0]);
+      .then((rows) => rows[0]);
 
     if (!trf) {
       return err(AppError.notFound('inventory.transfer.notFound', { transferId: data.transferId }));
     }
 
-    // Permission scoped to DESTINATION outlet: only an operator at the
-    // receiving location can mark a transfer received and credit its
-    // stock_levels.
     const permCheck = await requirePermission(ctx.userId, 'inventory.transfer', {
       locationId: trf.toLocationId,
     });
@@ -501,140 +465,169 @@ export async function receiveTransfer(
         AppError.businessRule('inventory.transfer.notInTransit', { currentStatus: trf.status }),
       );
     }
+    if (trf.version !== data.version) {
+      return err(AppError.conflict('inventory.transfer.versionMismatch'));
+    }
 
     const lines = await db
       .select()
       .from(stockTransferLines)
       .where(eq(stockTransferLines.transferId, data.transferId))
       .orderBy(stockTransferLines.lineNo);
+    const lineById = new Map(lines.map((line) => [line.id, line]));
+    const lineUpdateMap = new Map((data.lines ?? []).map((line) => [line.lineId, line.qtyReceived]));
 
-    const now = new Date();
-
-    // CLAIM the transfer first. Two concurrent receivers would otherwise
-    // both credit destination stock, doubling on-hand quantity.
-    const claimedReceive = await db
-      .update(stockTransfers)
-      .set({
-        status: 'received',
-        receivedAt: now,
-        receivedBy: ctx.userId,
-        updatedBy: ctx.userId,
-        version: trf.version + 1,
-      })
-      .where(and(eq(stockTransfers.id, data.transferId), eq(stockTransfers.status, 'in_transit'), eq(stockTransfers.version, trf.version)))
-      .returning({ id: stockTransfers.id });
-    if (!claimedReceive || claimedReceive.length === 0) {
-      return err(AppError.conflict('inventory.transfer.versionMismatch'));
-    }
-
-    // Map line updates by lineId
-    const lineUpdateMap = new Map((data.lines ?? []).map((l) => [l.lineId, l.qtyReceived]));
-
-    // Credit destination stock_levels atomically. Using SQL string math
-    // keeps the original numeric precision and avoids float drift on
-    // large qtys.
-    for (const line of lines) {
-      const qtyReceived = lineUpdateMap.get(line.id) ?? line.qtySent;
-
-      await db
-        .update(stockTransferLines)
-        .set({ qtyReceived })
-        .where(eq(stockTransferLines.id, line.id));
-
-      const variantCondition = line.variantId
-        ? eq(stockLevels.variantId, line.variantId)
-        : isNull(stockLevels.variantId);
-
-      const sourceStock = await db
-        .select({ avgUnitCost: stockLevels.avgUnitCost })
-        .from(stockLevels)
-        .where(
-          and(
-            eq(stockLevels.tenantId, ctx.tenantId),
-            eq(stockLevels.locationId, trf.fromLocationId),
-            eq(stockLevels.productId, line.productId),
-            variantCondition,
-          ),
-        )
-        .limit(1)
-        .then((r) => r[0]);
-
-      const sourceAvgCost = sourceStock?.avgUnitCost ?? 0n;
-
-      const existingDest = await db
-        .select({ id: stockLevels.id, qtyOnHand: stockLevels.qtyOnHand, avgUnitCost: stockLevels.avgUnitCost })
-        .from(stockLevels)
-        .where(
-          and(
-            eq(stockLevels.tenantId, ctx.tenantId),
-            eq(stockLevels.locationId, trf.toLocationId),
-            eq(stockLevels.productId, line.productId),
-            variantCondition,
-          ),
-        )
-        .limit(1)
-        .then((r) => r[0]);
-
-      if (existingDest) {
-        const oldQty = Number.parseFloat(existingDest.qtyOnHand || '0');
-        const recQty = Number.parseFloat(qtyReceived);
-        const newQty = oldQty + recQty;
-        const oldAvgCost = existingDest.avgUnitCost ?? 0n;
-        
-        let newAvgCost = sourceAvgCost;
-        if (newQty > 0.001) {
-          newAvgCost = (BigInt(Math.round(oldQty * 1000)) * oldAvgCost + BigInt(Math.round(recQty * 1000)) * sourceAvgCost) / BigInt(Math.round(newQty * 1000));
-        }
-
-        await db
-          .update(stockLevels)
-          .set({
-            qtyOnHand: sql`${stockLevels.qtyOnHand} + ${qtyReceived}::numeric`,
-            qtyAvailable: sql`${stockLevels.qtyAvailable} + ${qtyReceived}::numeric`,
-            avgUnitCost: newAvgCost,
-            updatedBy: ctx.userId,
-            lastMovementAt: now,
-          })
-          .where(eq(stockLevels.id, existingDest.id));
-      } else {
-        await db.insert(stockLevels).values({
-          id: generateId(),
-          tenantId: ctx.tenantId,
-          locationId: trf.toLocationId,
-          stockLocationId: null,
-          productId: line.productId,
-          variantId: line.variantId ?? null,
-          batchNo: line.batchNo ?? null,
-          expiryDate: line.expiryDate ?? null,
-          qtyOnHand: qtyReceived,
-          qtyReserved: '0',
-          qtyAvailable: qtyReceived,
-          uom: line.uom,
-          avgUnitCost: sourceAvgCost,
-          createdBy: ctx.userId,
-          updatedBy: ctx.userId,
-        });
+    for (const [lineId, qtyReceived] of lineUpdateMap.entries()) {
+      const line = lineById.get(lineId);
+      if (!line) {
+        return err(AppError.validation('inventory.transfer.lineNotFound', { lineId }));
+      }
+      if (Number.parseFloat(qtyReceived) > Number.parseFloat(line.qtySent) + 0.001) {
+        return err(
+          AppError.businessRule('inventory.transfer.receivedExceedsSent', {
+            lineId,
+            qtySent: line.qtySent,
+            qtyReceived,
+          }),
+        );
       }
     }
 
-    await auditRecord({
-      action: 'receive',
-      entityType: 'stock_transfer',
-      entityId: data.transferId,
-      before: { status: 'in_transit' },
-      after: { status: 'received' },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      ctx,
-    });
+    const result = await db.transaction(async (tx) => {
+      const now = new Date();
+      const claimedReceive = await tx
+        .update(stockTransfers)
+        .set({
+          status: 'received',
+          receivedAt: now,
+          receivedBy: ctx.userId,
+          updatedBy: ctx.userId,
+          version: trf.version + 1,
+        })
+        .where(
+          and(
+            eq(stockTransfers.tenantId, ctx.tenantId),
+            eq(stockTransfers.id, data.transferId),
+            eq(stockTransfers.status, 'in_transit'),
+            eq(stockTransfers.version, trf.version),
+          ),
+        )
+        .returning({ id: stockTransfers.id });
+      if (claimedReceive.length === 0) {
+        throw AppError.conflict('inventory.transfer.versionMismatch');
+      }
 
-    const updatedLines = await db
-      .select()
-      .from(stockTransferLines)
-      .where(eq(stockTransferLines.transferId, data.transferId))
-      .orderBy(stockTransferLines.lineNo);
+      for (const line of lines) {
+        const qtyReceived = lineUpdateMap.get(line.id) ?? line.qtySent;
+        const qtyReceivedScaled = qtyToScaledBigInt(qtyReceived);
 
-    return ok(
-      buildTransferResult(
+        await tx
+          .update(stockTransferLines)
+          .set({ qtyReceived, updatedBy: ctx.userId })
+          .where(and(eq(stockTransferLines.id, line.id), eq(stockTransferLines.transferId, trf.id)));
+
+        const sourceStock = await tx
+          .select({ avgUnitCost: stockLevels.avgUnitCost })
+          .from(stockLevels)
+          .where(
+            stockLevelIdentityWhere({
+              tenantId: ctx.tenantId,
+              locationId: trf.fromLocationId,
+              productId: line.productId,
+              variantId: line.variantId,
+              batchNo: line.batchNo,
+              expiryDate: line.expiryDate,
+            }),
+          )
+          .limit(1)
+          .then((rows: Array<{ avgUnitCost: bigint | null }>) => rows[0]);
+
+        const sourceAvgCost = sourceStock?.avgUnitCost ?? 0n;
+        const existingDest = await tx
+          .select({
+            id: stockLevels.id,
+            qtyOnHand: stockLevels.qtyOnHand,
+            avgUnitCost: stockLevels.avgUnitCost,
+          })
+          .from(stockLevels)
+          .where(
+            stockLevelIdentityWhere({
+              tenantId: ctx.tenantId,
+              locationId: trf.toLocationId,
+              productId: line.productId,
+              variantId: line.variantId,
+              batchNo: line.batchNo,
+              expiryDate: line.expiryDate,
+            }),
+          )
+          .limit(1)
+          .then(
+            (rows: Array<{ id: string; qtyOnHand: string; avgUnitCost: bigint | null }>) =>
+              rows[0],
+          );
+
+        if (existingDest) {
+          const oldQty = Number.parseFloat(existingDest.qtyOnHand || '0');
+          const recQty = Number.parseFloat(qtyReceived);
+          const newQty = oldQty + recQty;
+          const oldAvgCost = existingDest.avgUnitCost ?? 0n;
+          const newAvgCost =
+            newQty > 0.001
+              ? (BigInt(Math.round(oldQty * 1000)) * oldAvgCost +
+                  qtyReceivedScaled * sourceAvgCost) /
+                BigInt(Math.round(newQty * 1000))
+              : sourceAvgCost;
+
+          await tx
+            .update(stockLevels)
+            .set({
+              qtyOnHand: sql`${stockLevels.qtyOnHand} + ${qtyReceived}::numeric`,
+              qtyAvailable: sql`${stockLevels.qtyAvailable} + ${qtyReceived}::numeric`,
+              avgUnitCost: newAvgCost,
+              updatedBy: ctx.userId,
+              lastMovementAt: now,
+            })
+            .where(eq(stockLevels.id, existingDest.id));
+        } else {
+          await tx.insert(stockLevels).values({
+            id: generateId(),
+            tenantId: ctx.tenantId,
+            locationId: trf.toLocationId,
+            stockLocationId: null,
+            productId: line.productId,
+            variantId: line.variantId ?? null,
+            batchNo: line.batchNo ?? null,
+            expiryDate: line.expiryDate ?? null,
+            qtyOnHand: qtyReceived,
+            qtyReserved: '0',
+            qtyAvailable: qtyReceived,
+            uom: line.uom,
+            avgUnitCost: sourceAvgCost,
+            createdBy: ctx.userId,
+            updatedBy: ctx.userId,
+            lastMovementAt: now,
+          });
+        }
+      }
+
+      await auditRecord({
+        action: 'receive',
+        entityType: 'stock_transfer',
+        entityId: data.transferId,
+        before: { status: 'in_transit' },
+        after: { status: 'received' },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+        tx,
+      });
+
+      const updatedLines = await tx
+        .select()
+        .from(stockTransferLines)
+        .where(eq(stockTransferLines.transferId, data.transferId))
+        .orderBy(stockTransferLines.lineNo);
+
+      return buildTransferResult(
         {
           ...trf,
           status: 'received',
@@ -643,81 +636,94 @@ export async function receiveTransfer(
           version: trf.version + 1,
         },
         updatedLines,
-      ),
-    );
+      );
+    });
+
+    return ok(result);
   } catch (e) {
+    if (e instanceof AppError) return err(e);
     return err(AppError.internal('inventory.transfer.receiveFailed', e));
   }
 }
 
-// ─── Cancel ──────────────────────────────────────────────────────────────────
-
-/**
- * Cancel a draft transfer.
- * Transitions: draft → cancelled.
- * Only draft transfers can be cancelled (no movements created yet).
- */
 export async function cancelTransfer(
   transferId: string,
   ctx: AuditContext,
 ): Promise<Result<TransferResult>> {
-  const permCheck = await requirePermission(ctx.userId, 'inventory.transfer', {
-    locationId: ctx.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
-
   try {
     const trf = await db
       .select()
       .from(stockTransfers)
       .where(and(eq(stockTransfers.tenantId, ctx.tenantId), eq(stockTransfers.id, transferId)))
-      .then((r) => r[0]);
+      .then((rows) => rows[0]);
 
     if (!trf) {
       return err(AppError.notFound('inventory.transfer.notFound', { transferId }));
     }
+
+    const permCheck = await requirePermission(ctx.userId, 'inventory.transfer', {
+      locationId: trf.fromLocationId,
+    });
+    if (!permCheck.ok) return permCheck;
+
     if (trf.status !== 'draft') {
       return err(
         AppError.businessRule('inventory.transfer.notDraft', { currentStatus: trf.status }),
       );
     }
 
-    await db
-      .update(stockTransfers)
-      .set({
-        status: 'cancelled',
-        updatedBy: ctx.userId,
-        version: trf.version + 1,
-      })
-      .where(eq(stockTransfers.id, transferId));
+    const result = await db.transaction(async (tx) => {
+      const cancelled = await tx
+        .update(stockTransfers)
+        .set({
+          status: 'cancelled',
+          updatedBy: ctx.userId,
+          version: trf.version + 1,
+        })
+        .where(
+          and(
+            eq(stockTransfers.tenantId, ctx.tenantId),
+            eq(stockTransfers.id, transferId),
+            eq(stockTransfers.status, 'draft'),
+            eq(stockTransfers.version, trf.version),
+          ),
+        )
+        .returning({ id: stockTransfers.id });
 
-    const lines = await db
-      .select()
-      .from(stockTransferLines)
-      .where(eq(stockTransferLines.transferId, transferId))
-      .orderBy(stockTransferLines.lineNo);
+      if (cancelled.length === 0) {
+        throw AppError.conflict('inventory.transfer.versionMismatch');
+      }
 
-    await auditRecord({
-      action: 'cancel',
-      entityType: 'stock_transfer',
-      entityId: transferId,
-      before: { status: trf.status },
-      after: { status: 'cancelled' },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      ctx,
-    });
+      const lines = await tx
+        .select()
+        .from(stockTransferLines)
+        .where(eq(stockTransferLines.transferId, transferId))
+        .orderBy(stockTransferLines.lineNo);
 
-    return ok(
-      buildTransferResult(
+      await auditRecord({
+        action: 'cancel',
+        entityType: 'stock_transfer',
+        entityId: transferId,
+        before: { status: trf.status },
+        after: { status: 'cancelled' },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+        tx,
+      });
+
+      return buildTransferResult(
         {
           ...trf,
           status: 'cancelled',
           version: trf.version + 1,
         },
         lines,
-      ),
-    );
+      );
+    });
+
+    return ok(result);
   } catch (e) {
+    if (e instanceof AppError) return err(e);
     return err(AppError.internal('inventory.transfer.cancelFailed', e));
   }
 }

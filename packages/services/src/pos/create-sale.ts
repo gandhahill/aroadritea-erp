@@ -263,6 +263,7 @@ export async function getBOMIngredients(
 
 type IngredientStockRow = {
   id: string;
+  stockLocationId: string | null;
   uom: string;
   qtyOnHand: string | null;
   qtyAvailable: string | null;
@@ -272,6 +273,7 @@ type IngredientDeduction = {
   stockLevelId: string;
   tenantId: string;
   locationId: string;
+  stockLocationId: string | null;
   ingredientId: string;
   qty: string;
   uom: string;
@@ -284,8 +286,13 @@ type IngredientDeduction = {
 
 type IngredientDeductionDecision =
   | { action: 'deduct' }
-  | { action: 'skip'; reason: 'untracked_or_uom_mismatch' }
+  | { action: 'uom_mismatch'; stockUom: string; ingredientUom: string }
   | { action: 'insufficient'; qtyOnHand: string | null; qtyAvailable: string | null };
+
+type NaixerModifierInput = {
+  kind: string;
+  optionId: string;
+};
 
 function parseQtyToMilli(value: string | number | null | undefined): bigint | null {
   if (value === null || value === undefined) return null;
@@ -304,7 +311,7 @@ export function resolveIngredientDeductionDecision(
   ingredient: Pick<IngredientDeduction, 'qty' | 'uom'>,
 ): IngredientDeductionDecision {
   if (stock.uom !== ingredient.uom) {
-    return { action: 'skip', reason: 'untracked_or_uom_mismatch' };
+    return { action: 'uom_mismatch', stockUom: stock.uom, ingredientUom: ingredient.uom };
   }
 
   const required = parseQtyToMilli(ingredient.qty);
@@ -343,7 +350,7 @@ export async function compensateIngredientDeductions(
         tenantId: deduction.tenantId,
         locationId: deduction.locationId,
         occurredAt: new Date(),
-        stockLocationId: null as unknown as string,
+        stockLocationId: deduction.stockLocationId,
         productId: deduction.ingredientId,
         variantId: null,
         batchNo: null,
@@ -370,6 +377,37 @@ function insufficientStockError(ingredient: IngredientDeduction, stock?: Ingredi
   });
 }
 
+function missingIngredientStockError(tenantId: string, locationId: string, ingredientId: string) {
+  return AppError.businessRule('pos.createSale.ingredientStockMissing', {
+    tenantId,
+    locationId,
+    ingredientId,
+  });
+}
+
+function ingredientUomMismatchError(
+  ingredient: Pick<IngredientDeduction, 'ingredientId' | 'qty' | 'uom'>,
+  decision: Extract<IngredientDeductionDecision, { action: 'uom_mismatch' }>,
+) {
+  return AppError.businessRule('pos.createSale.ingredientUomMismatch', {
+    ingredientId: ingredient.ingredientId,
+    requiredQty: ingredient.qty,
+    recipeUom: decision.ingredientUom,
+    stockUom: decision.stockUom,
+  });
+}
+
+function normalizeNaixerModifiers(modifierJson: unknown): NaixerModifierInput[] {
+  if (!Array.isArray(modifierJson)) return [];
+  return modifierJson.flatMap((item) => {
+    if (!item || typeof item !== 'object') return [];
+    const record = item as Record<string, unknown>;
+    const kind = typeof record.kind === 'string' ? record.kind : null;
+    const optionId = typeof record.optionId === 'string' ? record.optionId : null;
+    return kind && optionId ? [{ kind, optionId }] : [];
+  });
+}
+
 /** Deduct ingredients from stock_levels. */
 export async function deductIngredients(
   tenantId: string,
@@ -389,6 +427,7 @@ export async function deductIngredients(
       const existing = await db
         .select({
           id: stockLevels.id,
+          stockLocationId: stockLevels.stockLocationId,
           uom: stockLevels.uom,
           qtyOnHand: stockLevels.qtyOnHand,
           qtyAvailable: stockLevels.qtyAvailable,
@@ -407,12 +446,16 @@ export async function deductIngredients(
         )
         .then((r) => r[0]);
 
-      if (!existing) continue;
+      if (!existing) {
+        await compensateIngredientDeductions(appliedDeductions, ctx, false);
+        return err(missingIngredientStockError(tenantId, locationId, ing.ingredientId));
+      }
 
       const deduction: IngredientDeduction = {
         stockLevelId: existing.id,
         tenantId,
         locationId,
+        stockLocationId: existing.stockLocationId,
         ingredientId: ing.ingredientId,
         qty: ing.qty,
         uom: ing.uom,
@@ -423,7 +466,10 @@ export async function deductIngredients(
         inventoryAccountId: existing.inventoryAccountId,
       };
       const decision = resolveIngredientDeductionDecision(existing, deduction);
-      if (decision.action === 'skip') continue;
+      if (decision.action === 'uom_mismatch') {
+        await compensateIngredientDeductions(appliedDeductions, ctx, false);
+        return err(ingredientUomMismatchError(deduction, decision));
+      }
       if (decision.action === 'insufficient') {
         await compensateIngredientDeductions(appliedDeductions, ctx, false);
         return err(insufficientStockError(deduction, existing));
@@ -461,7 +507,7 @@ export async function deductIngredients(
           tenantId: deduction.tenantId,
           locationId: deduction.locationId,
           occurredAt: new Date(),
-          stockLocationId: null as unknown as string,
+          stockLocationId: deduction.stockLocationId,
           productId: deduction.ingredientId,
           variantId: null,
           batchNo: null,
@@ -561,6 +607,7 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
         isSellable: products.isSellable,
         isActive: products.isActive,
         kind: products.kind,
+        uom: products.uom,
         defaultSellPrice: products.defaultSellPrice,
       })
       .from(products)
@@ -870,7 +917,12 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
     // 10. BOM ingredient deduction (for all non-service lines)
     for (const line of data.lines) {
       const p = productMap.get(line.productId);
-      if (p?.kind === 'service') continue; // skip service items
+      if (!p) {
+        return err(
+          AppError.notFound('pos.createSale.productNotFound', { productId: line.productId }),
+        );
+      }
+      if (p.kind === 'service') continue; // skip service items
 
       let ingredients = await getBOMIngredients(
         ctx.tenantId,
@@ -881,11 +933,10 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
 
       // Deduct product directly if no BOM (e.g. merchandise, pre-packaged)
       if (ingredients.length === 0) {
-        const uom = (p as any).uom ?? 'pcs';
         ingredients = [{
           ingredientId: line.productId,
           qty: line.qty.toString(),
-          uom,
+          uom: p.uom,
         }];
       }
 
@@ -898,6 +949,12 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
       );
       if (!deductResult.ok) {
         await rollbackAppliedStockDeductions();
+        if (claimedIdempotencyId) {
+          await releaseIdempotencyClaim(claimedIdempotencyId, 400, {
+            error: deductResult.error.messageKey,
+          });
+          claimedIdempotencyId = null;
+        }
         return err(deductResult.error);
       }
       appliedStockDeductions.push(...deductResult.value);
@@ -958,16 +1015,41 @@ export async function createSale(input: unknown, ctx: AuditContext): Promise<Res
         productId: lr.productId,
         variantId: lr.variantId,
         orderNumber: saleNumber,
-        modifiers: (lr.modifierJson as any) || [],
+        modifiers: normalizeNaixerModifiers(lr.modifierJson),
       }, ctx, { skipPermissionCheck: true });
 
       if (qrRes.ok) {
+        if (qrRes.value.missingCodes.length > 0) {
+          await rollbackAppliedStockDeductions();
+          await rollbackSaleData();
+          if (claimedIdempotencyId) {
+            await releaseIdempotencyClaim(claimedIdempotencyId, 400, {
+              error: 'kds_qr_missing_modifier_codes',
+              missingCodes: qrRes.value.missingCodes,
+            });
+            claimedIdempotencyId = null;
+          }
+          return err(
+            AppError.businessRule('pos.createSale.kdsQrMissingModifierCodes', {
+              productId: lr.productId,
+              variantId: lr.variantId,
+              missingCodes: qrRes.value.missingCodes,
+            }),
+          );
+        }
         kdsQrToken = qrRes.value.payload;
-        kdsQrPayload = JSON.stringify({
-          productCode: qrRes.value.productCode,
-          specCodes: qrRes.value.specCodes,
-          format: qrRes.value.format,
-        });
+        kdsQrPayload = qrRes.value.payload;
+      } else {
+        await rollbackAppliedStockDeductions();
+        await rollbackSaleData();
+        if (claimedIdempotencyId) {
+          await releaseIdempotencyClaim(claimedIdempotencyId, qrRes.error.httpStatus, {
+            error: qrRes.error.messageKey,
+            details: qrRes.error.details,
+          });
+          claimedIdempotencyId = null;
+        }
+        return err(qrRes.error);
       }
 
       orderLines.push({

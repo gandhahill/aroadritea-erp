@@ -375,6 +375,39 @@ export const attendance = pgTable(
  * Master leave type definitions.
  * Quota rules: annual leave minimum 12 days per Indonesian law (UU Ketenagakerjaan).
  */
+/**
+ * Encrypted biometric verifier for attendance face verification.
+ * Stores only a compact face template, never the raw face photo.
+ */
+export const employeeFaceTemplates = pgTable(
+  'employee_face_templates',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    employeeId: text('employee_id').notNull(),
+    templateVersion: text('template_version').notNull().default('ahash-16x16-v1'),
+    templateCiphertext: text('template_ciphertext').notNull(),
+    templateQuality: integer('template_quality').notNull().default(0),
+    status: text('status').notNull().default('active'),
+    enrolledAt: timestamp('enrolled_at', { withTimezone: true }).notNull().defaultNow(),
+    lastVerifiedAt: timestamp('last_verified_at', { withTimezone: true }),
+    failedAttempts: integer('failed_attempts').notNull().default(0),
+
+    ...versionCol,
+    ...auditCols,
+  },
+  (table) => [
+    uniqueIndex('employee_face_templates_tenant_employee_idx').on(
+      table.tenantId,
+      table.employeeId,
+    ),
+    index('employee_face_templates_tenant_status_idx').on(table.tenantId, table.status),
+    index('employee_face_templates_employee_idx').on(table.employeeId),
+  ],
+);
+
 export const leaveTypes = pgTable(
   'leave_types',
   {

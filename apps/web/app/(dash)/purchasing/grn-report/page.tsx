@@ -2,7 +2,7 @@ import { FilterBar, FilterField } from '@/components/filter-bar';
 import { PageHeader } from '@/components/page-header';
 import { Pagination } from '@/components/pagination';
 import { getSession } from '@/lib/auth';
-import { requirePermission } from '@erp/services/iam';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import { Button, Input, Select, TableBody, TableCell, TableHead } from '@erp/ui';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
@@ -24,7 +24,13 @@ export default async function GRNReportPage({ searchParams }: Props) {
   const session = await getSession();
   if (!session?.user) redirect('/login');
 
-  await requirePermission(session.user.id, 'purchasing.view');
+  const user = session.user as Record<string, unknown>;
+  const scope = await authorizedLocationIdsForTenant(
+    String(user.id ?? ''),
+    'purchasing.view',
+    String(user.tenantId ?? 'default'),
+  );
+  if (!scope.global && scope.locationIds.length === 0) redirect('/dashboard');
 
   const params = await searchParams;
   const page = Number.parseInt(params?.page || '1') || 1;

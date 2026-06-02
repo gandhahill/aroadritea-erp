@@ -1,5 +1,6 @@
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
+import { requirePermissionAtLocation } from '@/lib/authz';
 import {
   and,
   db,
@@ -30,6 +31,7 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
   if (!session?.user) return redirect('/login');
 
   const user = session.user as Record<string, unknown>;
+  const userId = String(user.id ?? '');
   const tenantId = (user.tenantId as string | undefined) ?? 'default';
 
   const t = await getTranslations('purchasing.grn');
@@ -37,6 +39,7 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
   const [po] = await db
     .select({
       id: purchaseOrders.id,
+      locationId: purchaseOrders.locationId,
       number: purchaseOrders.number,
       status: purchaseOrders.status,
       orderDate: purchaseOrders.orderDate,
@@ -57,6 +60,9 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
 
   if (!po) return notFound();
 
+  const canView = await requirePermissionAtLocation(userId, 'purchasing.view', po.locationId);
+  if (!canView) return notFound();
+
   const poLines = await db
     .select({
       id: purchaseOrderLines.id,
@@ -75,7 +81,12 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
   const isReceivable = po.status === 'approved' || po.status === 'partial';
   const hasItemsToReceive = poLines.some((l) => Number(l.qtyOrdered) > Number(l.qtyReceived));
 
-  const canReceive = isReceivable && hasItemsToReceive;
+  const canCreateGrn = await requirePermissionAtLocation(
+    userId,
+    'purchasing.grn.create',
+    po.locationId,
+  );
+  const canReceive = canCreateGrn && isReceivable && hasItemsToReceive;
 
   // Format product names depending on language preference, but we'll try to extract id if it's a JSON
   const formatProductName = (nameData: any) => {

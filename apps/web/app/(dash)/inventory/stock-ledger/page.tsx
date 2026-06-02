@@ -103,11 +103,9 @@ export default async function StockLedgerPage({
                     <TableCell>
                       {m.referenceType && m.referenceId ? `${m.referenceType}: ${m.referenceId}` : '-'}
                     </TableCell>
-                    <TableCell
-                      className={`text-right font-medium ${Number.parseFloat(m.qtyDelta) > 0 ? 'text-green-600' : 'text-red-600'}`}
-                    >
-                      {Number.parseFloat(m.qtyDelta) > 0 ? '+' : ''}
-                      {m.qtyDelta}
+                    <TableCell className={`text-right font-medium ${formatWholeQty(m.qtyDelta) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatWholeQty(m.qtyDelta) > 0 ? '+' : ''}
+                      {formatWholeQty(m.qtyDelta)}
                     </TableCell>
                     <TableCell>{m.uom}</TableCell>
                   </TableRow>
@@ -132,4 +130,10 @@ export default async function StockLedgerPage({
       {!productId || !locationId ? <p className="text-brand-muted">{t('selectPrompt')}</p> : detail}
     </div>
   );
+}
+
+function formatWholeQty(value: string): number {
+  const parsed = Number.parseFloat(value);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.round(parsed);
 }

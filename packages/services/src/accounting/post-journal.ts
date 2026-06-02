@@ -39,7 +39,10 @@ import { type PostJournalInput, PostJournalInputSchema } from './schemas';
 export async function postJournal(
   input: PostJournalInput,
   ctx: AuditContext,
+  opts: { skipPermissionCheck?: boolean; tx?: any } = {},
 ): Promise<Result<JournalEntryResult>> {
+  const dbOrTx = (opts.tx ?? db) as typeof db;
+
   // 1. Validate input with Zod (SD §10.4)
   const parsed = PostJournalInputSchema.safeParse(input);
   if (!parsed.success) {
@@ -52,21 +55,23 @@ export async function postJournal(
   const { journalId } = parsed.data;
 
   // 2. Fetch the journal entry
-  const je = await db
+  const je = await dbOrTx
     .select()
     .from(journalEntries)
     .where(and(eq(journalEntries.id, journalId), eq(journalEntries.tenantId, ctx.tenantId)))
-    .then((rows) => rows[0]);
+    .then((rows: Array<typeof journalEntries.$inferSelect>) => rows[0]);
 
   if (!je) {
     return err(AppError.notFound('accounting.journal.notFound', { journalId }));
   }
 
   // 3. Permission check (use JE's locationId for scope)
-  const permCheck = await requirePermission(ctx.userId, 'accounting.journal.post', {
-    locationId: je.locationId,
-  });
-  if (!permCheck.ok) return permCheck;
+  if (!opts.skipPermissionCheck) {
+    const permCheck = await requirePermission(ctx.userId, 'accounting.journal.post', {
+      locationId: je.locationId,
+    });
+    if (!permCheck.ok) return permCheck;
+  }
 
   // 4. Status check: must be 'draft'
   if (je.status !== 'draft') {
@@ -94,11 +99,11 @@ export async function postJournal(
   }
 
   // 7. Verify period is still open (SD §20.4)
-  const period = await db
+  const period = await dbOrTx
     .select()
     .from(accountingPeriods)
     .where(and(eq(accountingPeriods.id, je.periodId), eq(accountingPeriods.tenantId, ctx.tenantId)))
-    .then((rows) => rows[0]);
+    .then((rows: Array<typeof accountingPeriods.$inferSelect>) => rows[0]);
 
   if (!period) {
     return err(
@@ -118,7 +123,7 @@ export async function postJournal(
   }
 
   // 8. Fetch lines for the result
-  const lines = await db
+  const lines: Array<typeof journalLines.$inferSelect> = await dbOrTx
     .select()
     .from(journalLines)
     .where(eq(journalLines.journalEntryId, journalId));
@@ -128,7 +133,7 @@ export async function postJournal(
 
   return tryCatch(
     async () => {
-      const updated = await db
+      const updated = await dbOrTx
         .update(journalEntries)
         .set({
           status: 'posted',
@@ -173,6 +178,7 @@ export async function postJournal(
           userAgent: ctx.userAgent ?? null,
         },
         ctx,
+        tx: opts.tx,
       });
 
       // Build result

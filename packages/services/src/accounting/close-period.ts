@@ -21,25 +21,30 @@
  * Permission: accounting.period.close
  */
 
-import { and, eq, inArray, lte, sql } from 'drizzle-orm';
-import { accounts, journalEntries, journalLines, accountingPeriods } from '@erp/db/schema/accounting';
+import { db } from '@erp/db';
+import {
+  accountingPeriods,
+  accounts,
+  journalEntries,
+  journalLines,
+} from '@erp/db/schema/accounting';
 import { locations } from '@erp/db/schema/auth';
+import { AppError } from '@erp/shared/errors';
+import { generateId } from '@erp/shared/id';
+import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
+import { and, eq, inArray, lte, sql } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+import { createJournal } from './create-journal';
+import { postJournal } from './post-journal';
+import { getPostingAccountCodes } from './posting-accounts';
 import {
   type ClosePeriodInput,
   ClosePeriodInputSchema,
   type GetPeriodStatusInput,
   GetPeriodStatusInputSchema,
 } from './schemas';
-import { createJournal } from './create-journal';
-import { postJournal } from './post-journal';
-import { getPostingAccountCodes } from './posting-accounts';
-import { db } from '@erp/db';
-import { AppError } from '@erp/shared/errors';
-import { generateId } from '@erp/shared/id';
-import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 
 // --- Return types ---
 
@@ -236,31 +241,9 @@ export async function closePeriod(
   return tryCatch(
     async () => {
       return await db.transaction(async (tx) => {
-        // Atomic claim: only one concurrent caller may transition the
-        // period out of `previousStatus`. Returning rows guards against
-        // double-close (and double audit logs).
-        const updated = await tx
-          .update(accountingPeriods)
-          .set({
-            status: newStatus,
-            closedAt,
-            closedBy,
-            updatedAt: now,
-            updatedBy: ctx.userId,
-          })
-          .where(
-            and(eq(accountingPeriods.id, period.id), eq(accountingPeriods.status, previousStatus)),
-          )
-          .returning({ id: accountingPeriods.id });
-
-        if (!updated || updated.length === 0) {
-          throw AppError.conflict('accounting.period.concurrentModification', {
-            periodCode,
-            expectedStatus: previousStatus,
-          });
-        }
-
-        // Generate closing entries if this is the fiscal year end and we are closing it
+        // Generate closing entries while the period is still open. The
+        // atomic status claim below rolls back these JEs if a concurrent
+        // closer wins first.
         if (newStatus === 'closing' && periodCode.endsWith('-12')) {
           // Determine the default location for the closing JEs
           const loc = await tx
@@ -287,8 +270,8 @@ export async function closePeriod(
                   eq(journalEntries.tenantId, ctx.tenantId),
                   eq(journalEntries.status, 'posted'),
                   lte(journalEntries.postingDate, period.endDate),
-                  inArray(accounts.type, ['income', 'expense', 'cogs'])
-                )
+                  inArray(accounts.type, ['income', 'expense', 'cogs']),
+                ),
               )
               .groupBy(journalLines.accountId, accounts.normalBalance);
 
@@ -331,7 +314,10 @@ export async function closePeriod(
                 .select({ id: accounts.id })
                 .from(accounts)
                 .where(
-                  and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.code, acctCodes['period.incomeSummary'])),
+                  and(
+                    eq(accounts.tenantId, ctx.tenantId),
+                    eq(accounts.code, acctCodes['period.incomeSummary']),
+                  ),
                 )
                 .limit(1)
                 .then((r) => r[0]);
@@ -339,14 +325,19 @@ export async function closePeriod(
                 .select({ id: accounts.id })
                 .from(accounts)
                 .where(
-                  and(eq(accounts.tenantId, ctx.tenantId), eq(accounts.code, acctCodes['period.retainedEarnings'])),
+                  and(
+                    eq(accounts.tenantId, ctx.tenantId),
+                    eq(accounts.code, acctCodes['period.retainedEarnings']),
+                  ),
                 )
                 .limit(1)
                 .then((r) => r[0]);
 
               if (isumAcct && reAcct) {
-                const isumDebit = netIncomeDebit > netIncomeCredit ? netIncomeDebit - netIncomeCredit : 0n;
-                const isumCredit = netIncomeCredit > netIncomeDebit ? netIncomeCredit - netIncomeDebit : 0n;
+                const isumDebit =
+                  netIncomeDebit > netIncomeCredit ? netIncomeDebit - netIncomeCredit : 0n;
+                const isumCredit =
+                  netIncomeCredit > netIncomeDebit ? netIncomeCredit - netIncomeDebit : 0n;
 
                 // Add Income Summary line to balance JE 1
                 linesToClose.push({
@@ -371,11 +362,15 @@ export async function closePeriod(
                       credit: l.credit.toString(),
                     })),
                   },
-                  ctx, { skipPermissionCheck: true, tx }
+                  ctx,
+                  { skipPermissionCheck: true, tx },
                 );
 
                 if (!je1.ok) throw je1.error;
-                const p1 = await postJournal({ journalId: je1.value.id }, ctx);
+                const p1 = await postJournal({ journalId: je1.value.id }, ctx, {
+                  skipPermissionCheck: true,
+                  tx,
+                });
                 if (!p1.ok) throw p1.error;
 
                 // Create and post JE 2 (Income Summary -> Retained Earnings)
@@ -401,16 +396,44 @@ export async function closePeriod(
                         },
                       ],
                     },
-                    ctx, { skipPermissionCheck: true, tx }
+                    ctx,
+                    { skipPermissionCheck: true, tx },
                   );
 
                   if (!je2.ok) throw je2.error;
-                  const p2 = await postJournal({ journalId: je2.value.id }, ctx);
+                  const p2 = await postJournal({ journalId: je2.value.id }, ctx, {
+                    skipPermissionCheck: true,
+                    tx,
+                  });
                   if (!p2.ok) throw p2.error;
                 }
               }
             }
           }
+        }
+
+        // Atomic claim: only one concurrent caller may transition the
+        // period out of `previousStatus`. Returning rows guards against
+        // double-close and double audit logs.
+        const updated = await tx
+          .update(accountingPeriods)
+          .set({
+            status: newStatus,
+            closedAt,
+            closedBy,
+            updatedAt: now,
+            updatedBy: ctx.userId,
+          })
+          .where(
+            and(eq(accountingPeriods.id, period.id), eq(accountingPeriods.status, previousStatus)),
+          )
+          .returning({ id: accountingPeriods.id });
+
+        if (!updated || updated.length === 0) {
+          throw AppError.conflict('accounting.period.concurrentModification', {
+            periodCode,
+            expectedStatus: previousStatus,
+          });
         }
 
         // 7. Audit log
@@ -429,6 +452,7 @@ export async function closePeriod(
             userAgent: ctx.userAgent ?? null,
           },
           ctx,
+          tx,
         });
 
         return {

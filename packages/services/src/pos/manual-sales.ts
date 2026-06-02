@@ -538,6 +538,7 @@ export async function deleteManualSalesClosing(id: string, ctx: AuditContext) {
           qtyDelta: stockMovements.qtyDelta,
           uom: stockMovements.uom,
           stockLevelId: stockLevels.id,
+          stockLocationId: stockLevels.stockLocationId,
           locationId: stockMovements.locationId,
         })
         .from(stockMovements)
@@ -563,6 +564,7 @@ export async function deleteManualSalesClosing(id: string, ctx: AuditContext) {
           stockLevelId: m.stockLevelId!,
           tenantId: ctx.tenantId,
           locationId: m.locationId,
+          stockLocationId: m.stockLocationId ?? null,
           ingredientId: m.productId,
           qty: m.qtyDelta.substring(1), // remove negative sign
           uom: m.uom,

@@ -81,11 +81,42 @@ vi.mock('@erp/db', () => ({
     insert: () => ({
       values: () => Promise.resolve({}),
     }),
+    transaction: async (fn: (tx: any) => unknown) =>
+      fn({
+        update: () => ({
+          set: (data: unknown) => ({
+            where: () => {
+              _updates.push(data);
+              const result: any = Promise.resolve([{ id: 'mock-id' }]);
+              result.returning = () => Promise.resolve([{ id: 'mock-id' }]);
+              return result;
+            },
+          }),
+        }),
+        insert: () => ({
+          values: () => Promise.resolve({}),
+        }),
+      }),
   },
 }));
 
 vi.mock('../src/accounting/create-journal', () => ({
   createJournal: vi.fn(() => Promise.resolve({ ok: true, value: { id: 'je-1' } })),
+}));
+
+vi.mock('../src/accounting/post-journal', () => ({
+  postJournal: vi.fn(() => Promise.resolve({ ok: true, value: { id: 'je-1' } })),
+}));
+
+vi.mock('../src/accounting/posting-accounts', () => ({
+  getPostingAccountCodes: vi.fn(() =>
+    Promise.resolve({
+      'payroll.salaryExpense': '6-2000',
+      'payroll.taxPayable': '2-1300',
+      'payroll.bpjsPayable': '2-1200',
+      'payroll.netPay': '1-1300',
+    }),
+  ),
 }));
 
 // Mock permission engine at the source so the entire IAM chain is bypassed
@@ -146,8 +177,9 @@ function payrollRow(overrides: Record<string, unknown> = {}) {
     locationId: 'loc-1',
     periodCode: '2026-05',
     periodEnd: FIXED_TS,
-    totalNet: 13_080_000n, // gross 14M minus PPh 500K minus BPJS Kes 140K minus BPJS TK 280K
+    totalNet: 14_000_000n,
     totalEarnings: 14_000_000n,
+    totalDeductions: 0n,
     status: 'draft',
     ...overrides,
   };
@@ -163,6 +195,7 @@ function lineRow(code: string, kind: string, amount: number) {
       employeeId: 'e1',
       salaryComponentId: 'sc1',
       componentKind: kind,
+      notes: '',
     },
     componentCode: code,
     componentKind: kind,
@@ -183,11 +216,10 @@ function periodRow(overrides: Record<string, unknown> = {}) {
 }
 
 const ACCTS = [
-  { id: 'BS6201', code: 'BS-6201', isActive: true, isPostable: true },
-  { id: 'LS2201', code: 'LS-2201', isActive: true, isPostable: true },
-  { id: 'LS2202', code: 'LS-2202', isActive: true, isPostable: true },
-  { id: 'LS2203', code: 'LS-2203', isActive: true, isPostable: true },
-  { id: 'AS1101', code: 'AS-1101', isActive: true, isPostable: true },
+  { id: 'salary-expense', code: '6-2000', isActive: true, isPostable: true },
+  { id: 'tax-payable', code: '2-1300', isActive: true, isPostable: true },
+  { id: 'bpjs-payable', code: '2-1200', isActive: true, isPostable: true },
+  { id: 'bank', code: '1-1300', isActive: true, isPostable: true },
 ];
 
 beforeEach(() => {
@@ -222,7 +254,7 @@ describe('approvePayroll — guards', () => {
     _selResults = [
       [payrollRow({ status: 'pending_approval' })],
       [lineRow('BASE', 'earning', 14_000_000)],
-      [ACCTS[0], ACCTS[4]],
+      [ACCTS[0], ACCTS[3]],
     ];
     const result = await approvePayroll({ payrollId: 'p1' }, ctxt());
     expect(result.ok).toBe(true);
@@ -234,12 +266,12 @@ describe('approvePayroll — guards', () => {
 describe('approvePayroll — JE creation', () => {
   it('passes referenceType=payroll and referenceId to createJournal', async () => {
     _selResults = [
-      [payrollRow()],
+      [payrollRow({ totalDeductions: 920_000n, totalNet: 13_080_000n })],
       [
         lineRow('BASE', 'earning', 14_000_000),
         lineRow('PPh21', 'deduction', 500_000),
-        lineRow('KES', 'deduction', 140_000),
-        lineRow('TK', 'deduction', 280_000),
+        lineRow('BPJS_KES', 'deduction', 140_000),
+        lineRow('BPJS_TK', 'deduction', 280_000),
       ],
       ACCTS,
     ];
@@ -255,7 +287,7 @@ describe('approvePayroll — JE creation', () => {
 
   it('sums statutory deduction credits across all employee lines', async () => {
     _selResults = [
-      [payrollRow()],
+      [payrollRow({ totalDeductions: 920_000n, totalNet: 13_080_000n })],
       [
         lineRow('SALARY_BASE', 'earning', 7_000_000),
         lineRow('SALARY_BASE', 'earning', 7_000_000),
@@ -271,13 +303,15 @@ describe('approvePayroll — JE creation', () => {
     await approvePayroll({ payrollId: 'p1' }, ctxt());
     const { createJournal } = await import('../src/accounting/create-journal');
     const call = createJournal.mock.calls[0]![0] as { lines: Record<string, unknown>[] };
-    expect(call.lines.find((line) => line.accountId === 'LS2201')?.credit).toBe('500000');
-    expect(call.lines.find((line) => line.accountId === 'LS2202')?.credit).toBe('140000');
-    expect(call.lines.find((line) => line.accountId === 'LS2203')?.credit).toBe('280000');
+    expect(call.lines.find((line) => line.accountId === 'tax-payable')?.credit).toBe('500000');
+    const bpjsCredit = call.lines
+      .filter((line) => line.accountId === 'bpjs-payable')
+      .reduce((sum, line) => sum + BigInt(String(line.credit)), 0n);
+    expect(bpjsCredit).toBe(420000n);
   });
 
   it('omits PPh21 credit line when zero deduction', async () => {
-    _selResults = [[payrollRow()], [lineRow('BASE', 'earning', 14_000_000)], [ACCTS[0], ACCTS[4]]];
+    _selResults = [[payrollRow()], [lineRow('BASE', 'earning', 14_000_000)], [ACCTS[0], ACCTS[3]]];
     await approvePayroll({ payrollId: 'p1' }, ctxt());
     const { createJournal } = await import('../src/accounting/create-journal');
     const call = createJournal.mock.calls[0]![0] as { lines: Record<string, unknown>[] };
@@ -286,14 +320,28 @@ describe('approvePayroll — JE creation', () => {
 
   it('omits BPJS credit lines when zero deduction', async () => {
     _selResults = [
-      [payrollRow()],
+      [payrollRow({ totalDeductions: 500_000n, totalNet: 13_500_000n })],
       [lineRow('BASE', 'earning', 14_000_000), lineRow('PPh21', 'deduction', 500_000)],
-      [ACCTS[0], ACCTS[1], ACCTS[4]],
+      [ACCTS[0], ACCTS[1], ACCTS[3]],
     ];
     await approvePayroll({ payrollId: 'p1' }, ctxt());
     const { createJournal } = await import('../src/accounting/create-journal');
     const call = createJournal.mock.calls[0]![0] as { lines: Record<string, unknown>[] };
     expect(call.lines.length).toBe(3); // DR + PPh21 CR + cash CR
+  });
+
+  it('posts non-statutory deductions as contra salary expense', async () => {
+    _selResults = [
+      [payrollRow({ totalDeductions: 100_000n, totalNet: 13_900_000n })],
+      [lineRow('BASE', 'earning', 14_000_000), lineRow('POTONGAN_TELAT', 'deduction', 100_000)],
+      [ACCTS[0], ACCTS[3]],
+    ];
+    await approvePayroll({ payrollId: 'p1' }, ctxt());
+    const { createJournal } = await import('../src/accounting/create-journal');
+    const call = createJournal.mock.calls[0]![0] as { lines: Record<string, unknown>[] };
+    expect(
+      call.lines.find((line) => line.accountId === 'salary-expense' && line.credit === '100000'),
+    ).toBeTruthy();
   });
 
   it('missing required account → failure', async () => {

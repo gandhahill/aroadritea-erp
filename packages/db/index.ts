@@ -140,6 +140,7 @@ export {
   employmentContracts,
   shiftDefinitions,
   attendance,
+  employeeFaceTemplates,
   leaveTypes,
   leaveBalances,
   leaveRequests,

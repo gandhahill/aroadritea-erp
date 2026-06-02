@@ -149,10 +149,6 @@ export async function runPayroll(
             locationId: data.locationId,
           });
         }
-        
-        // T-0257: Allow recalculating draft
-        await db.delete(payrollLines).where(eq(payrollLines.payrollId, existing.id));
-        await db.delete(payrolls).where(eq(payrolls.id, existing.id));
       }
 
       // 2. Fetch active employees with current contracts + tax/BPJS data (T-0247)
@@ -345,9 +341,7 @@ export async function runPayroll(
         )
         .groupBy(shiftAssignments.employeeId);
 
-      const shiftCountMap = new Map(
-        shiftCountRows.map((s) => [s.employeeId, s.scheduledDays]),
-      );
+      const shiftCountMap = new Map(shiftCountRows.map((s) => [s.employeeId, s.scheduledDays]));
 
       // 6. Calculate payroll for each employee
       let totalEarnings = 0n;
@@ -421,7 +415,12 @@ export async function runPayroll(
             // For employer BPJS lines that might not have a salary component yet,
             // use the base BPJS component and mark with notes
             if (compCode.endsWith('_ER')) {
-              const baseCode = compCode.replace('_ER', '').replace('BPJS_JKK', 'BPJS_TK').replace('BPJS_JKM', 'BPJS_TK').replace('BPJS_JHT', 'BPJS_TK').replace('BPJS_JP', 'BPJS_TK');
+              const baseCode = compCode
+                .replace('_ER', '')
+                .replace('BPJS_JKK', 'BPJS_TK')
+                .replace('BPJS_JKM', 'BPJS_TK')
+                .replace('BPJS_JHT', 'BPJS_TK')
+                .replace('BPJS_JP', 'BPJS_TK');
               comp = componentMap.get(baseCode === 'BPJS_KES' ? 'BPJS_KES' : 'BPJS_TK');
             }
             if (!comp) continue; // skip if no matching component
@@ -448,45 +447,75 @@ export async function runPayroll(
 
       // 7. Insert payroll header
       const payrollId = generateId();
-      await db.insert(payrolls).values({
-        id: payrollId,
-        tenantId: ctx.tenantId,
-        locationId: data.locationId,
-        createdBy: ctx.userId,
-        updatedBy: ctx.userId,
-        periodCode: data.periodCode,
-        periodStart: periodStart,
-        periodEnd: periodEnd,
-        status: 'draft',
-        totalEmployees: empRows.length,
-        totalEarnings,
-        totalDeductions,
-        totalNet,
-      });
-
-      // 8. Insert payroll lines
       for (const line of allLines) {
         line.payrollId = payrollId;
       }
-      await db.insert(payrollLines).values(allLines);
 
-      await auditRecord({
-        action: 'run_payroll',
-        entityType: 'payroll',
-        entityId: payrollId,
-        before: null,
-        after: {
+      await db.transaction(async (tx) => {
+        const [existingAtWrite] = await tx
+          .select({ id: payrolls.id, status: payrolls.status })
+          .from(payrolls)
+          .where(
+            and(
+              eq(payrolls.tenantId, ctx.tenantId),
+              eq(payrolls.periodCode, data.periodCode),
+              eq(payrolls.locationId, data.locationId),
+            ),
+          )
+          .limit(1);
+
+        if (existingAtWrite) {
+          if (existingAtWrite.status !== 'draft') {
+            throw AppError.conflict('hr.payroll.alreadyRun', {
+              periodCode: data.periodCode,
+              locationId: data.locationId,
+            });
+          }
+
+          await tx.delete(payrollLines).where(eq(payrollLines.payrollId, existingAtWrite.id));
+          await tx
+            .delete(payrolls)
+            .where(and(eq(payrolls.id, existingAtWrite.id), eq(payrolls.status, 'draft')));
+        }
+
+        await tx.insert(payrolls).values({
           id: payrollId,
-          periodCode: data.periodCode,
+          tenantId: ctx.tenantId,
           locationId: data.locationId,
+          createdBy: ctx.userId,
+          updatedBy: ctx.userId,
+          periodCode: data.periodCode,
+          periodStart: periodStart,
+          periodEnd: periodEnd,
+          status: 'draft',
           totalEmployees: empRows.length,
           totalEarnings,
           totalDeductions,
           totalNet,
-          totalEmployerBpjs,
-        } as never,
-        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-        ctx,
+        });
+
+        // 8. Insert payroll lines
+        await tx.insert(payrollLines).values(allLines);
+
+        await auditRecord({
+          action: 'run_payroll',
+          entityType: 'payroll',
+          entityId: payrollId,
+          before: existingAtWrite ? { replacedDraftId: existingAtWrite.id } : null,
+          after: {
+            id: payrollId,
+            periodCode: data.periodCode,
+            locationId: data.locationId,
+            totalEmployees: empRows.length,
+            totalEarnings,
+            totalDeductions,
+            totalNet,
+            totalEmployerBpjs,
+          } as never,
+          metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+          ctx,
+          tx,
+        });
       });
 
       return {

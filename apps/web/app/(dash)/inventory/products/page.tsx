@@ -64,7 +64,7 @@ export default async function ProductsPage({ searchParams }: Props) {
   const locationOptions = await getActiveLocationOptions({
     tenantId,
     locale: locale as 'id' | 'en' | 'zh',
-    type: ['store', 'warehouse'],
+    type: ['store', 'warehouse', 'office'],
   });
 
   return (

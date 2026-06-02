@@ -72,6 +72,8 @@ export default async function LabelPrintPage({ params }: Props) {
       qty: salesOrderLines.qty,
       notes: salesOrderLines.notes,
       modifierJson: salesOrderLines.modifierJson,
+      kdsQrToken: salesOrderLines.kdsQrToken,
+      kdsQrPayload: salesOrderLines.kdsQrPayload,
       productName: products.name,
     })
     .from(salesOrderLines)
@@ -103,10 +105,10 @@ export default async function LabelPrintPage({ params }: Props) {
 
   // QR payload — pickup number is the human-readable barcode. Cashiers
   // and runners scan the label to look up the order in 1 second.
-  const qrPayload = order.number;
+  const fallbackQrPayload = order.number;
   // Pre-rasterise the QR to SVG once per print job — the same image is
   // reused for every cup label, so 1 round-trip beats N.
-  const qrSvg = await renderQrSvg(qrPayload, 64);
+  const fallbackQrSvg = await renderQrSvg(fallbackQrPayload, 64);
 
   // Expand: one printable label per cup (qty)
   const labels: Array<{
@@ -116,12 +118,16 @@ export default async function LabelPrintPage({ params }: Props) {
     name: string;
     modifier: string | null;
     lineNotes: string | null;
+    qrPayload: string;
+    qrSvg: string;
   }> = [];
   let runningIndex = 0;
   const totalCups = lines.reduce((sum, l) => sum + Math.ceil(Number(l.qty)), 0);
   for (const line of lines) {
     const name = pickLocalized(line.productName, locale, line.productId);
     const count = Math.ceil(Number(line.qty));
+    const qrPayload = line.kdsQrToken ?? line.kdsQrPayload ?? fallbackQrPayload;
+    const qrSvg = await renderQrSvg(qrPayload, 64);
     const mods = line.modifierJson;
     const modParts: string[] = [];
     if (mods?.sugar) modParts.push(`Gula ${mods.sugar}`);
@@ -139,6 +145,8 @@ export default async function LabelPrintPage({ params }: Props) {
         name,
         modifier,
         lineNotes: line.notes ?? null,
+        qrPayload,
+        qrSvg,
       });
     }
   }
@@ -197,9 +205,9 @@ body { font-family: 'Arial', sans-serif; }
             </div>
             <div
               className="qr"
-              aria-label={`QR ${qrPayload}`}
+              aria-label={`QR ${fallbackQrPayload}`}
               // biome-ignore lint/security/noDangerouslySetInnerHtml: server-rendered SVG from `qrcode` lib
-              dangerouslySetInnerHTML={{ __html: qrSvg }}
+              dangerouslySetInnerHTML={{ __html: fallbackQrSvg }}
             />
           </div>
         ) : null}
@@ -219,9 +227,9 @@ body { font-family: 'Arial', sans-serif; }
             </div>
             <div
               className="qr"
-              aria-label={`QR ${qrPayload}`}
+              aria-label={`QR ${label.qrPayload}`}
               // biome-ignore lint/security/noDangerouslySetInnerHtml: server-rendered SVG from `qrcode` lib
-              dangerouslySetInnerHTML={{ __html: qrSvg }}
+              dangerouslySetInnerHTML={{ __html: label.qrSvg }}
             />
           </div>
         ))}

@@ -3,12 +3,36 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
-import { createOutgoingShipmentAction } from '../actions';
+import { createOutgoingShipmentAction, updateOutgoingShipmentAction } from '../actions';
 import { Button, Select, toast } from '@erp/ui';
 import { pickLocalized } from '@/lib/pick-localized';
 import { COURIERS } from '@erp/shared/binderbyte-couriers';
 
-export function OutgoingShipmentForm({ locations, partners = [] }: { locations: any[]; partners?: any[] }) {
+interface OutgoingShipmentFormProps {
+  locations: any[];
+  partners?: any[];
+  mode?: 'create' | 'edit';
+  initialData?: {
+    id: string;
+    number: string;
+    locationId: string;
+    subject: string;
+    notes: string | null;
+    recipientName: string;
+    recipientAddress: string;
+    recipientPhone: string | null;
+    courierCode: string | null;
+    awb: string | null;
+    phoneLast5: string | null;
+  };
+}
+
+export function OutgoingShipmentForm({
+  locations,
+  partners = [],
+  mode = 'create',
+  initialData,
+}: OutgoingShipmentFormProps) {
   const router = useRouter();
   const t = useTranslations('logistics.outgoingShipment');
   const tCommon = useTranslations('common.actions');
@@ -17,17 +41,17 @@ export function OutgoingShipmentForm({ locations, partners = [] }: { locations: 
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
-    number: `OSH-${Date.now()}`,
-    locationId: locations[0]?.id || '',
-    subject: '',
-    notes: '',
-    recipientName: '',
-    recipientAddress: '',
-    recipientPhone: '',
-    shippingCourierCode: '',
-    shippingAwb: '',
-    shippingPhoneLast5: '',
-    partnerId: '', // For the select dropdown
+    number: initialData?.number ?? `OSH-${Date.now()}`,
+    locationId: initialData?.locationId ?? locations[0]?.id ?? '',
+    subject: initialData?.subject ?? '',
+    notes: initialData?.notes ?? '',
+    recipientName: initialData?.recipientName ?? '',
+    recipientAddress: initialData?.recipientAddress ?? '',
+    recipientPhone: initialData?.recipientPhone ?? '',
+    shippingCourierCode: initialData?.courierCode ?? '',
+    shippingAwb: initialData?.awb ?? '',
+    shippingPhoneLast5: initialData?.phoneLast5 ?? '',
+    partnerId: '',
   });
 
   const handlePartnerChange = (partnerId: string) => {
@@ -55,9 +79,15 @@ export function OutgoingShipmentForm({ locations, partners = [] }: { locations: 
 
     try {
       if (!formData.locationId) throw new Error(t('errorSelectLocation'));
-      await createOutgoingShipmentAction(formData);
-      toast.success(tCommon('successCreated'));
-      router.push('/logistics/outgoing-shipments');
+      if (mode === 'edit' && initialData?.id) {
+        await updateOutgoingShipmentAction(initialData.id, formData);
+        toast.success(t('successSaved'));
+        router.push(`/logistics/outgoing-shipments/${initialData.id}`);
+      } else {
+        await createOutgoingShipmentAction(formData);
+        toast.success(tCommon('successCreated'));
+        router.push('/logistics/outgoing-shipments');
+      }
       router.refresh();
     } catch (err: any) {
       setError(err.message);

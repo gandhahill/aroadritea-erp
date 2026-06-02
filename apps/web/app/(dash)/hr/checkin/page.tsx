@@ -7,7 +7,13 @@
 
 import { getSession } from '@/lib/auth';
 import { and, asc, db, eq, gte, inArray, isNull, lte } from '@erp/db';
-import { attendance, employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
+import {
+  attendance,
+  employeeFaceTemplates,
+  employees,
+  shiftAssignments,
+  shiftDefinitions,
+} from '@erp/db/schema/hr';
 import { locations } from '@erp/db/schema/auth';
 import { getLocationGpsConfig, resolveShiftTime } from '@erp/services/hr';
 import type { Metadata } from 'next';
@@ -127,6 +133,7 @@ export default async function CheckInPage() {
 
   // Check if this employee already checked in today (WIB) and hasn't checked out yet.
   let openAttendance: { id: string; checkInAt: string; shiftCode: string | null } | null = null;
+  let hasFaceTemplate = false;
   if (employeeId) {
     const nowUtc = new Date();
     const wibMs = nowUtc.getTime() + 7 * 60 * 60 * 1000;
@@ -160,6 +167,20 @@ export default async function CheckInPage() {
         shiftCode: open.shiftCode,
       };
     }
+
+    const [faceTemplate] = await db
+      .select({ id: employeeFaceTemplates.id })
+      .from(employeeFaceTemplates)
+      .where(
+        and(
+          eq(employeeFaceTemplates.tenantId, tenantId),
+          eq(employeeFaceTemplates.employeeId, employeeId),
+          eq(employeeFaceTemplates.status, 'active'),
+          isNull(employeeFaceTemplates.deletedAt),
+        ),
+      )
+      .limit(1);
+    hasFaceTemplate = !!faceTemplate;
   }
 
   return (
@@ -171,6 +192,7 @@ export default async function CheckInPage() {
       shifts={shifts}
       locationGps={locationGps}
       openAttendance={openAttendance}
+      faceVerification={{ hasTemplate: hasFaceTemplate }}
     />
   );
 }

@@ -426,7 +426,7 @@ export const posTools = [
 
       const { db } = await import('@erp/db');
       const { salesOrders } = await import('@erp/db/schema/pos');
-      const { and, eq, gte, lte, desc, sql } = await import('drizzle-orm');
+      const { and, eq, gte, lte, desc } = await import('drizzle-orm');
 
       const conditions = [
         eq(salesOrders.tenantId, ctx.tenantId),
@@ -441,6 +441,7 @@ export const posTools = [
         .from(salesOrders)
         .where(and(...conditions))
         .orderBy(desc(salesOrders.createdAt))
+        .offset(offset)
         .limit(limit + 1);
 
       const hasMore = rows.length > limit;
@@ -492,6 +493,7 @@ export const posTools = [
 // --- HR ---
 
 export const HRCreateEmployeeSchema = z.object({
+  location_id: z.string().min(1, 'location_id is required for MCP access'),
   nik: z.string().min(1).max(32),
   name: z.string().min(1).max(128),
   email: z.string().email(),
@@ -527,17 +529,18 @@ export const hrTools = [
       if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
       const data = parsed.data;
 
-      const permitted = await checkPermission(ctx, 'hr.employee.write', ctx.locationId);
+      const permitted = await checkPermission(ctx, 'hr.employee.write', data.location_id);
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.employee.write');
 
       const { createEmployee } = await import('@erp/services/hr');
       const auditCtx = {
         userId: ctx.userId,
         tenantId: ctx.tenantId,
-        locationId: ctx.locationId ?? '',
+        locationId: data.location_id,
       };
       const result = await createEmployee(
         {
+          locationId: data.location_id,
           nik: data.nik,
           name: data.name,
           email: data.email,
@@ -568,14 +571,14 @@ export const hrTools = [
       const parsed = HRListEmployeesSchema.safeParse(input);
       if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
 
-      const permitted = await checkPermission(ctx, 'hr.employee.read', ctx.locationId);
+      const permitted = await checkPermission(ctx, 'hr.employee.read', parsed.data.location_id);
       if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: hr.employee.read');
 
       const { listEmployees } = await import('@erp/services/hr');
       const auditCtx = {
         userId: ctx.userId,
         tenantId: ctx.tenantId,
-        locationId: ctx.locationId ?? '',
+        locationId: parsed.data.location_id,
       };
       const result = await listEmployees(
         {
@@ -1440,7 +1443,7 @@ export const AuditSearchSchema = z.object({
   actor: z.string().optional(),
   from: z.string().optional(),
   to: z.string().optional(),
-  limit: z.number().optional().default(50),
+  limit: z.number().int().min(1).max(200).optional().default(50),
   cursor: z.string().optional(),
 });
 
@@ -1458,7 +1461,7 @@ export const auditTools = [
 
       const { db } = await import('@erp/db');
       const { auditLog } = await import('@erp/db/schema/audit');
-      const { and, eq, gte, lte, desc, sql } = await import('drizzle-orm');
+      const { and, eq, gte, lte, desc, lt, or } = await import('drizzle-orm');
 
       const conditions = [eq(auditLog.tenantId, ctx.tenantId)];
       if (entity_type) conditions.push(eq(auditLog.entityType, entity_type));
@@ -1466,13 +1469,27 @@ export const auditTools = [
       if (actor) conditions.push(eq(auditLog.userId, actor));
       if (from) conditions.push(gte(auditLog.createdAt, new Date(from)));
       if (to) conditions.push(lte(auditLog.createdAt, new Date(to)));
+      if (cursor) {
+        const [cursorRow] = await db
+          .select({ id: auditLog.id, createdAt: auditLog.createdAt })
+          .from(auditLog)
+          .where(and(eq(auditLog.tenantId, ctx.tenantId), eq(auditLog.id, cursor)))
+          .limit(1);
+        if (!cursorRow) return mcpError('INVALID_CURSOR', 'Cursor not found');
+
+        const cursorCondition = or(
+          lt(auditLog.createdAt, cursorRow.createdAt),
+          and(eq(auditLog.createdAt, cursorRow.createdAt), lt(auditLog.id, cursorRow.id)),
+        );
+        if (cursorCondition) conditions.push(cursorCondition);
+      }
 
       const pageLimit = (limit ?? 50) + 1;
       const rows = await db
         .select()
         .from(auditLog)
         .where(and(...conditions))
-        .orderBy(desc(auditLog.createdAt))
+        .orderBy(desc(auditLog.createdAt), desc(auditLog.id))
         .limit(pageLimit);
 
       const hasMore = rows.length > (limit ?? 50);
