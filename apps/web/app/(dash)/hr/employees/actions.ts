@@ -186,8 +186,8 @@ export async function updateEmployeeAction(
   const result = await updateEmployee(input, ctx);
   if (!result.ok) return { error: errorMessage(result.error) };
 
-  revalidatePath('/hr/employees');
-  revalidatePath(`/hr/employees/${employeeId}`);
+  revalidatePath('/hr/employees', 'layout');
+  revalidatePath(`/hr/employees/${employeeId}`, 'page');
   return { ok: true, employeeId: result.value.id };
 }
 

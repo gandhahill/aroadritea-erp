@@ -69,11 +69,6 @@ export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(
           setInternalValue(formatted);
         }
 
-        // Update hidden input for form submission
-        if (hiddenRef.current) {
-          hiddenRef.current.value = raw;
-        }
-
         onValueChange?.(raw);
 
         // Fire native onChange with the raw value in the hidden input
@@ -97,7 +92,7 @@ export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(
           </span>
         ) : null}
         {/* Hidden input carries the raw numeric value for FormData */}
-        <input type="hidden" ref={hiddenRef} name={name} defaultValue={stripDots(String(defaultValue ?? ''))} />
+        <input type="hidden" name={name} value={stripDots(displayValue)} readOnly />
         <input
           ref={ref}
           type="text"
