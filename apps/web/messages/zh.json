@@ -114,7 +114,11 @@
       "updateFailed": "更新失败。",
       "swapFailed": "交换失败。",
       "publishFailed": "发布失败。",
-      "unknown": "发生错误。"
+      "unknown": "发生错误。",
+      "boundaryTitle": "发生错误",
+      "boundaryMessage": "错误已自动报告给技术团队。",
+      "boundaryReload": "重新加载页面",
+      "boundaryRetry": "重试"
     },
     "pagination": {
       "page": "页",

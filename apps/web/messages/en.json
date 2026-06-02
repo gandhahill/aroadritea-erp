@@ -114,7 +114,11 @@
       "updateFailed": "Failed to update.",
       "swapFailed": "Failed to swap.",
       "publishFailed": "Failed to publish.",
-      "unknown": "An error occurred."
+      "unknown": "An error occurred.",
+      "boundaryTitle": "Something Went Wrong",
+      "boundaryMessage": "The error has been automatically reported to the technical team.",
+      "boundaryReload": "Reload page",
+      "boundaryRetry": "Try again"
     },
     "pagination": {
       "page": "Page",

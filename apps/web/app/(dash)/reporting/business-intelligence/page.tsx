@@ -15,8 +15,9 @@ export const metadata: Metadata = {
   title: 'Business Intelligence',
 };
 
+/** Format Date to 'YYYY-MM-DD' in WIB (UTC+7). */
 function ymd(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  return date.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
 }
 
 function formatIdr(value: bigint | string, locale: string): string {
@@ -57,10 +58,17 @@ export default async function BusinessIntelligencePage() {
   const locale = await getLocale();
   const t = await getTranslations('reporting.bi');
 
-  const now = new Date();
-  const today = ymd(now);
-  const monthStart = ymd(new Date(now.getFullYear(), now.getMonth(), 1));
-  const sevenDaysAgo = ymd(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6));
+  // All date boundaries use WIB (UTC+7) — server may run in UTC
+  const nowUtc = new Date();
+  const wibMs = nowUtc.getTime() + 7 * 60 * 60 * 1000;
+  const wibNow = new Date(wibMs);
+  const wibYear = wibNow.getUTCFullYear();
+  const wibMonth = wibNow.getUTCMonth();
+  const wibDay = wibNow.getUTCDate();
+  const today = `${wibYear}-${String(wibMonth + 1).padStart(2, '0')}-${String(wibDay).padStart(2, '0')}`;
+  const monthStart = `${wibYear}-${String(wibMonth + 1).padStart(2, '0')}-01`;
+  const sevenDaysAgoDate = new Date(Date.UTC(wibYear, wibMonth, wibDay - 6));
+  const sevenDaysAgo = sevenDaysAgoDate.toISOString().slice(0, 10);
 
   const locations = await getActiveLocationOptions({
     tenantId,
@@ -214,9 +222,10 @@ export default async function BusinessIntelligencePage() {
 
   // ── Extra BI queries (channel mix, hourly today, member split, 7-day trend) ──
 
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const trendStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+  // Midnight WIB as UTC timestamps for SQL timestamp comparisons
+  const startOfMonth = new Date(Date.UTC(wibYear, wibMonth, 1, -7));
+  const startOfToday = new Date(Date.UTC(wibYear, wibMonth, wibDay, -7));
+  const trendStart = new Date(Date.UTC(wibYear, wibMonth, wibDay - 6, -7));
 
   // Channel mix this month (POS + manual sales)
   const channelRows = await db.execute(
@@ -314,8 +323,7 @@ export default async function BusinessIntelligencePage() {
     });
   }
   const trendData = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(trendStart);
-    d.setDate(trendStart.getDate() + i);
+    const d = new Date(Date.UTC(wibYear, wibMonth, wibDay - 6 + i));
     const ds = d.toISOString().slice(0, 10);
     const v = trendMap.get(ds);
     return { date: ds, gross: v?.gross ?? 0n, orders: v?.orders ?? 0 };

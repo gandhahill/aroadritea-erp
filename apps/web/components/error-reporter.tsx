@@ -77,8 +77,16 @@ export function GlobalErrorListener() {
 
 // ─── React Error Boundary ───────────────────────────────────────────────────
 
+interface ErrorBoundaryLabels {
+  title: string;
+  message: string;
+  reload: string;
+}
+
 interface ErrorBoundaryProps extends PropsWithChildren {
   fallback?: ReactNode;
+  /** i18n labels passed from parent — class components cannot use hooks. */
+  labels?: ErrorBoundaryLabels;
 }
 
 interface ErrorBoundaryState {
@@ -89,6 +97,10 @@ interface ErrorBoundaryState {
 /**
  * Catches React render errors, reports them to the API, and shows a
  * branded fallback instead of a white screen.
+ *
+ * i18n: pass `labels` prop from the parent that has access to
+ * `useTranslations` / `getTranslations`. Class components cannot
+ * call hooks, so labels must be injected.
  */
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
@@ -112,11 +124,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback;
+      const labels = this.props.labels ?? {
+        title: 'Error',
+        message: 'An error has been reported.',
+        reload: 'Reload',
+      };
       return (
         <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-8">
-          <p className="text-sm font-semibold text-rose-700">
-            Terjadi kesalahan. Tim teknis telah diberitahu.
-          </p>
+          <p className="text-sm font-semibold text-rose-700">{labels.title}</p>
+          <p className="text-xs text-rose-600">{labels.message}</p>
           <button
             type="button"
             onClick={() => {
@@ -125,7 +141,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             }}
             className="rounded-lg border border-rose-300 bg-white px-4 py-2 text-sm font-medium text-rose-700 transition-colors hover:bg-rose-50"
           >
-            Muat ulang halaman
+            {labels.reload}
           </button>
         </div>
       );

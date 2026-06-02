@@ -114,7 +114,11 @@
       "updateFailed": "Gagal memperbarui.",
       "swapFailed": "Gagal menukar.",
       "publishFailed": "Gagal mempublikasikan.",
-      "unknown": "Terjadi kesalahan."
+      "unknown": "Terjadi kesalahan.",
+      "boundaryTitle": "Terjadi Kesalahan",
+      "boundaryMessage": "Kesalahan telah dilaporkan secara otomatis ke tim teknis.",
+      "boundaryReload": "Muat ulang halaman",
+      "boundaryRetry": "Coba lagi"
     },
     "pagination": {
       "page": "Halaman",

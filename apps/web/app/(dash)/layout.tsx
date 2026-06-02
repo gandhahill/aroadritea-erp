@@ -27,6 +27,7 @@ export default async function DashboardLayout({
 }) {
   const session = await getSession();
   const t = await getTranslations('shell');
+  const tErr = await getTranslations('common.errors');
 
   if (!session) {
     redirect('/login');
@@ -90,7 +91,11 @@ export default async function DashboardLayout({
 
           {/* Page content */}
           <main className="min-h-0 flex-1 overflow-y-auto bg-brand-cream p-3 sm:p-6 print:p-0 print:bg-white print:overflow-visible print:h-auto print:block">
-            <ErrorBoundary>{children}</ErrorBoundary>
+            <ErrorBoundary labels={{
+              title: tErr('boundaryTitle'),
+              message: tErr('boundaryMessage'),
+              reload: tErr('boundaryReload'),
+            }}>{children}</ErrorBoundary>
           </main>
         </div>
       </div>

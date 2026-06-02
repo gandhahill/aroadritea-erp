@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
 
 /**
@@ -14,8 +15,9 @@ export default function DashError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations('common.errors');
+
   useEffect(() => {
-    // Report to notification API
     try {
       fetch('/api/error-report', {
         method: 'POST',
@@ -37,10 +39,8 @@ export default function DashError({
   return (
     <div className="flex min-h-[400px] flex-col items-center justify-center gap-4 p-8">
       <div className="rounded-xl border border-rose-200 bg-rose-50 p-8 text-center shadow-sm">
-        <h2 className="text-lg font-bold text-rose-700">Terjadi Kesalahan</h2>
-        <p className="mt-2 text-sm text-rose-600">
-          Kesalahan telah dilaporkan secara otomatis ke tim teknis.
-        </p>
+        <h2 className="text-lg font-bold text-rose-700">{t('boundaryTitle')}</h2>
+        <p className="mt-2 text-sm text-rose-600">{t('boundaryMessage')}</p>
         {error.digest ? (
           <p className="mt-1 font-mono text-xs text-rose-400">ID: {error.digest}</p>
         ) : null}
@@ -49,7 +49,7 @@ export default function DashError({
           onClick={reset}
           className="mt-4 rounded-lg border border-rose-300 bg-white px-6 py-2 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-50"
         >
-          Coba lagi
+          {t('boundaryRetry')}
         </button>
       </div>
     </div>
