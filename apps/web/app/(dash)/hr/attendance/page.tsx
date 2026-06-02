@@ -94,10 +94,10 @@ export default async function AttendancePage({
   let forgiverNames: Map<string, string> = new Map();
   if (forgiverIds.length > 0) {
     const forgiverRows = await db
-      .select({ id: users.id, name: users.name, displayName: users.displayName })
+      .select({ id: users.id, displayName: users.displayName })
       .from(users)
       .where(inArray(users.id, forgiverIds));
-    forgiverNames = new Map(forgiverRows.map((r) => [r.id, r.displayName || r.name || r.id]));
+    forgiverNames = new Map(forgiverRows.map((r) => [r.id, r.displayName || r.id]));
   }
 
   const items = rows.map((r) => ({
