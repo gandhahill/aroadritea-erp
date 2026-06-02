@@ -1,4 +1,4 @@
-import { and, asc, db, eq, isNull, locations } from '@erp/db';
+import { and, asc, db, eq, inArray, isNull, locations } from '@erp/db';
 
 type Locale = 'id' | 'en' | 'zh';
 type LocalizedText = Partial<Record<Locale, string>>;
@@ -18,14 +18,20 @@ export async function getActiveLocationOptions({
 }: {
   tenantId: string;
   locale?: Locale;
-  type?: 'store' | 'office' | 'warehouse';
+  type?: 'store' | 'office' | 'warehouse' | Array<'store' | 'office' | 'warehouse'>;
 }): Promise<LocationOption[]> {
   const conditions = [
     eq(locations.tenantId, tenantId),
     eq(locations.status, 'active'),
     isNull(locations.deletedAt),
   ];
-  if (type) conditions.push(eq(locations.type, type));
+  if (type) {
+    if (Array.isArray(type)) {
+      conditions.push(inArray(locations.type, type));
+    } else {
+      conditions.push(eq(locations.type, type));
+    }
+  }
 
   const rows = await db
     .select({

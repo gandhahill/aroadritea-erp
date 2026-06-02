@@ -34,7 +34,7 @@ export default async function NewProductPage({
   const locationOptions = await getActiveLocationOptions({
     tenantId,
     locale: locale as 'id' | 'en' | 'zh',
-    type: 'store',
+    type: ['store', 'warehouse'],
   });
 
   const backHref = isSupply ? '/inventory/supplies' : '/inventory/products';
