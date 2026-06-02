@@ -6,7 +6,7 @@
 
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
-import { db, desc, eq, inArray, isNull, sql } from '@erp/db';
+import { and, db, desc, eq, inArray, isNull, sql } from '@erp/db';
 import { attendance, employees } from '@erp/db/schema/hr';
 import { users } from '@erp/db/schema/auth';
 import type { Metadata } from 'next';
@@ -33,17 +33,22 @@ export default async function AttendancePage({
   const limit = 20;
   const offset = (page - 1) * limit;
 
-  const conditions = [eq(attendance.tenantId, tenantId), isNull(attendance.deletedAt)];
-  if (employeeId) conditions.push(eq(attendance.employeeId, employeeId));
-  if (dateFrom) conditions.push(sql`${attendance.checkInAt} >= ${dateFrom}`);
-  if (dateTo) conditions.push(sql`${attendance.checkInAt} <= ${dateTo}`);
+  // Build WHERE dynamically — use and() (not sql.join) so Drizzle
+  // operators like isNull() are properly serialized. sql.join cannot
+  // handle the SQLWrapper type returned by isNull/eq and calls
+  // Object.entries on its internals, crashing with "Cannot convert
+  // undefined or null to object" when the wrapper has no entries map.
+  const baseConds = [eq(attendance.tenantId, tenantId), isNull(attendance.deletedAt)];
+  if (employeeId) baseConds.push(eq(attendance.employeeId, employeeId));
+  if (dateFrom) baseConds.push(sql`${attendance.checkInAt} >= ${dateFrom}`);
+  if (dateTo) baseConds.push(sql`${attendance.checkInAt} <= ${dateTo}`);
 
-  const whereClause = sql.join(conditions, sql` AND `);
+  const whereClause = and(...baseConds);
 
   const [totalRow] = await db
     .select({ count: sql<number>`cast(count(*) as int)` })
     .from(attendance)
-    .where(whereClause);
+    .where(whereClause!);
 
   const total = totalRow?.count ?? 0;
   const totalPages = Math.ceil((Number(total) || 0) / limit);
@@ -65,7 +70,7 @@ export default async function AttendancePage({
       lateForgivenAt: attendance.lateForgivenAt,
     })
     .from(attendance)
-    .where(whereClause)
+    .where(whereClause!)
     .orderBy(desc(attendance.checkInAt))
     .limit(limit)
     .offset(offset);

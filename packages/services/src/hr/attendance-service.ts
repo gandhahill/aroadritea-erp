@@ -670,7 +670,7 @@ export async function listAttendance(
       if (input.dateFrom) conditions.push(sql`${attendance.checkInAt} >= ${input.dateFrom}`);
       if (input.dateTo) conditions.push(sql`${attendance.checkInAt} <= ${input.dateTo}`);
 
-      const whereClause = sql.join(conditions, sql` AND `);
+      const whereClause = and(...conditions);
       const limit = Math.min(input.limit ?? 50, 200);
       const offset = input.offset ?? 0;
 
