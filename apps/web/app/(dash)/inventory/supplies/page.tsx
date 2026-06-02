@@ -91,7 +91,7 @@ export default async function SuppliesPage({ searchParams }: Props) {
   const locationOptions = await getActiveLocationOptions({
     tenantId,
     locale: locale as 'id' | 'en' | 'zh',
-    type: 'store',
+    type: ['store', 'warehouse'],
   });
 
   return (

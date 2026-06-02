@@ -61,7 +61,7 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
       and(
         eq(locations.tenantId, tenantId),
         eq(locations.status, 'active'),
-        eq(locations.type, 'store'),
+        inArray(locations.type, ['store', 'warehouse']),
       ),
     )
     .orderBy(locations.code);
