@@ -27,6 +27,7 @@ export type AuditAction =
   | 'post'
   | 'reverse'
   | 'void'
+  | 'dispose'
   | 'refund'
   | 'login'
   | 'logout'
