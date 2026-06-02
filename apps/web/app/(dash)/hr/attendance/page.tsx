@@ -6,8 +6,9 @@
 
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
-import { db, desc, eq, inArray, sql } from '@erp/db';
-import { attendance, employees, shiftDefinitions } from '@erp/db/schema/hr';
+import { db, desc, eq, inArray, isNull, sql } from '@erp/db';
+import { attendance, employees } from '@erp/db/schema/hr';
+import { users } from '@erp/db/schema/auth';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
@@ -32,7 +33,7 @@ export default async function AttendancePage({
   const limit = 20;
   const offset = (page - 1) * limit;
 
-  const conditions = [eq(attendance.tenantId, tenantId)];
+  const conditions = [eq(attendance.tenantId, tenantId), isNull(attendance.deletedAt)];
   if (employeeId) conditions.push(eq(attendance.employeeId, employeeId));
   if (dateFrom) conditions.push(sql`${attendance.checkInAt} >= ${dateFrom}`);
   if (dateTo) conditions.push(sql`${attendance.checkInAt} <= ${dateTo}`);
@@ -60,6 +61,8 @@ export default async function AttendancePage({
       shiftCode: attendance.shiftDefinitionCode,
       lateForgiven: attendance.lateForgiven,
       lateForgivenReason: attendance.lateForgivenReason,
+      lateForgivenBy: attendance.lateForgivenBy,
+      lateForgivenAt: attendance.lateForgivenAt,
     })
     .from(attendance)
     .where(whereClause)
@@ -78,6 +81,17 @@ export default async function AttendancePage({
     empNames = new Map(empRows.map((r) => [r.id, r.name]));
   }
 
+  // Batch-fetch forgiver display names
+  const forgiverIds = [...new Set(rows.map((r) => r.lateForgivenBy).filter(Boolean))] as string[];
+  let forgiverNames: Map<string, string> = new Map();
+  if (forgiverIds.length > 0) {
+    const forgiverRows = await db
+      .select({ id: users.id, name: users.name, displayName: users.displayName })
+      .from(users)
+      .where(inArray(users.id, forgiverIds));
+    forgiverNames = new Map(forgiverRows.map((r) => [r.id, r.displayName || r.name || r.id]));
+  }
+
   const items = rows.map((r) => ({
     id: r.id,
     employeeId: r.employeeId,
@@ -91,6 +105,8 @@ export default async function AttendancePage({
     workedMinutes: r.workedMinutes ? Number(r.workedMinutes) : null,
     lateForgiven: r.lateForgiven,
     lateForgivenReason: r.lateForgivenReason,
+    lateForgivenBy: r.lateForgivenBy ? (forgiverNames.get(r.lateForgivenBy) ?? r.lateForgivenBy) : null,
+    lateForgivenAt: r.lateForgivenAt?.toISOString() ?? null,
   }));
 
   // Load employees for filter dropdown

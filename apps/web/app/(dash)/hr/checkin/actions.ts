@@ -9,8 +9,8 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { checkIn } from '@erp/services/hr';
-import type { CheckInInput } from '@erp/services/hr';
+import { checkIn, checkOut } from '@erp/services/hr';
+import type { CheckInInput, CheckOutInput } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
 
 async function resolveCtx(): Promise<AuditContext | null> {
@@ -42,6 +42,29 @@ export async function serverCheckIn(input: CheckInInput) {
       error: {
         code: e?.code ?? 'UNKNOWN',
         message: e?.messageKey ?? e?.message ?? 'hr.attendance.checkInFailed',
+        details: e?.details,
+      },
+    };
+  }
+  return result;
+}
+
+export async function serverCheckOut(input: CheckOutInput) {
+  const ctx = await resolveCtx();
+  if (!ctx) {
+    return {
+      ok: false as const,
+      error: { code: 'UNAUTHENTICATED', message: 'hr.attendance.unauthenticated' },
+    };
+  }
+  const result = await checkOut(input, ctx);
+  if (!result.ok) {
+    const e = result.error as any;
+    return {
+      ok: false as const,
+      error: {
+        code: e?.code ?? 'UNKNOWN',
+        message: e?.messageKey ?? e?.message ?? 'hr.attendance.checkOutFailed',
         details: e?.details,
       },
     };

@@ -523,10 +523,17 @@ export async function checkOut(
         });
       }
 
-      const permCheck = await requirePermission(ctx.userId, 'hr.attendance.write', {
-        locationId: existing.locationId,
-      });
-      if (!permCheck.ok) throw permCheck.error;
+      // Self-service checkout: if the attendance row belongs to the user's own
+      // employee record, allow without hr.attendance.write permission (mirrors
+      // the checkIn self-service pattern).
+      const selfEmp = await resolveEmployeeForUser(ctx.tenantId, ctx.userId);
+      const isSelfService = selfEmp && existing.employeeId === selfEmp.id;
+      if (!isSelfService) {
+        const permCheck = await requirePermission(ctx.userId, 'hr.attendance.write', {
+          locationId: existing.locationId,
+        });
+        if (!permCheck.ok) throw permCheck.error;
+      }
 
       const performedAt = data.performedAt ? new Date(data.performedAt) : new Date();
 
