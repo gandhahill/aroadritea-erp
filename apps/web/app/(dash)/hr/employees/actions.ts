@@ -126,6 +126,7 @@ export async function createEmployeeAction(
     hireDate,
     probationEndDate: isoDate(formData, 'probationEndDate'),
     contractType: text(formData, 'contractType') === 'pkwtt' ? 'pkwtt' : 'pkwt',
+    baseSalary: optionalText(formData, 'baseSalary'),
     workSchedule:
       text(formData, 'workSchedule') === 'parttime'
         ? 'parttime'
@@ -173,6 +174,7 @@ export async function updateEmployeeAction(
     department: optionalText(formData, 'department'),
     status: optionalText(formData, 'status') as UpdateEmployeeInput['status'],
     contractType: optionalText(formData, 'contractType') as UpdateEmployeeInput['contractType'],
+    baseSalary: optionalText(formData, 'baseSalary'),
     workSchedule: optionalText(formData, 'workSchedule') as UpdateEmployeeInput['workSchedule'],
     npwp: optionalText(formData, 'npwp'),
     bpjsKesehatan: optionalText(formData, 'bpjsKesehatan'),
