@@ -33,6 +33,36 @@ export async function POST(request: Request) {
   try {
     const body = (await request.json()) as ErrorReportBody;
 
+    // Authorize before doing any work: logged-in users (client reports carry
+    // the session cookie) OR the server instrumentation hook presenting the
+    // loopback shared secret. This path is public in middleware, so anonymous
+    // callers must be rejected here to prevent helpdesk-notification injection.
+    const internalSecret = process.env.BETTER_AUTH_SECRET ?? '';
+    const hasValidSecret =
+      internalSecret.length > 0 && request.headers.get('x-internal-secret') === internalSecret;
+
+    // Try to get session for tenant context
+    let tenantId = 'default';
+    let userId = 'unknown';
+    let userEmail = '';
+    let hasSession = false;
+    try {
+      const session = await getSession();
+      if (session?.user) {
+        hasSession = true;
+        const user = session.user as Record<string, unknown>;
+        tenantId = String(user.tenantId ?? 'default');
+        userId = String(user.id ?? 'unknown');
+        userEmail = String(user.email ?? '');
+      }
+    } catch {
+      // Session may not be available for unauthenticated errors
+    }
+
+    if (!hasSession && !hasValidSecret) {
+      return NextResponse.json({ ok: false }, { status: 401 });
+    }
+
     // Rate-limit: we don't want a broken loop to DDoS the notification table.
     // Simple in-memory token bucket — 10 reports per minute per server instance.
     const now = Date.now();
@@ -44,22 +74,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, throttled: true }, { status: 200 });
     }
     tokenBucket--;
-
-    // Try to get session for tenant context
-    let tenantId = 'default';
-    let userId = 'unknown';
-    let userEmail = '';
-    try {
-      const session = await getSession();
-      if (session?.user) {
-        const user = session.user as Record<string, unknown>;
-        tenantId = String(user.tenantId ?? 'default');
-        userId = String(user.id ?? 'unknown');
-        userEmail = String(user.email ?? '');
-      }
-    } catch {
-      // Session may not be available for unauthenticated errors
-    }
 
     const sourceLabel =
       body.source === 'client'
