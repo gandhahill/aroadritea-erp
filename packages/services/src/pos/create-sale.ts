@@ -30,6 +30,7 @@
  */
 
 import { db } from '@erp/db';
+import { partners } from '@erp/db/schema/accounting';
 import { auditLog } from '@erp/db/schema/audit';
 import {
   bomLines,

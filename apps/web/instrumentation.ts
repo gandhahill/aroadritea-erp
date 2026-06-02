@@ -3,21 +3,16 @@
  * Installs server-side error reporting that sends notifications
  * to helpdesk.handle permission holders via notifyByPermission.
  *
- * IMPORTANT: We dynamically import only the specific function we need
- * (notifyByPermission) to avoid pulling nodemailer into the webpack
- * bundle. The notification/index.ts re-exports email-transport which
- * depends on nodemailer (Node-only). So we import the file directly.
+ * Keep the notification import bundled by Next.js. Bypassing webpack
+ * here makes production resolve workspace .ts files directly, which
+ * breaks Node ESM resolution for extensionless internal imports.
  *
  * @see https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
  */
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    // Dynamic import at runtime only — avoids webpack bundling nodemailer
-    const mod = await import(
-      /* webpackIgnore: true */
-      '@erp/services/notification'
-    );
+    const mod = await import('@erp/services/notification');
     const notifyByPermission = mod.notifyByPermission;
 
     process.on('unhandledRejection', async (reason: unknown) => {

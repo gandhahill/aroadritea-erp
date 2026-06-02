@@ -45,7 +45,7 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@erp/shared', '@erp/ui', '@erp/db', '@erp/offline'],
+  transpilePackages: ['@erp/shared', '@erp/ui', '@erp/services', '@erp/db', '@erp/offline'],
   output: 'standalone',
   outputFileTracingRoot: repoRoot,
   poweredByHeader: false,
