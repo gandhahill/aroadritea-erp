@@ -259,9 +259,8 @@ export function calculateOvertime(baseSalary: bigint, overtimeHours: number): bi
 // ─── Helper: BPJS employer calc ─────────────────────────────────────────────
 
 function calcBpjsRate(base: bigint, rate: number, ceiling?: bigint): bigint {
-  const raw = (base * BigInt(Math.round(rate * 10000))) / 10000n;
-  if (ceiling && raw > ceiling) return ceiling;
-  return raw;
+  const cappedBase = ceiling && base > ceiling ? ceiling : base;
+  return (cappedBase * BigInt(Math.round(rate * 10000))) / 10000n;
 }
 
 // ─── Core Engine ─────────────────────────────────────────────────────────────
@@ -304,12 +303,13 @@ export function calculatePayroll(ctx: PayrollEmployeeContext): PayrollResult {
 
   const grossMonthly = earnings.reduce((a, b) => a + b, 0n);
   const grossEarnings = grossMonthly; // earnings only, before deductions
+  const taxableMonthly = ctx.baseSalary + taxableEarnings.reduce((a, b) => a + b, 0n);
 
   // 3. T-0247: PPh 21 TER bulanan (PMK 168/2023)
   let pph21Amount = 0n;
   if (ctx.isTaxable) {
     pph21Amount = calcMonthlyPPh21TER(
-      grossMonthly,
+      taxableMonthly,
       ctx.maritalStatus,
       ctx.dependentsCount,
     );
@@ -319,9 +319,9 @@ export function calculatePayroll(ctx: PayrollEmployeeContext): PayrollResult {
         componentCode: 'PPh21',
         componentKind: 'deduction',
         amount: pph21Amount,
-        baseAmount: grossMonthly,
+        baseAmount: taxableMonthly,
         percentageApplied:
-          grossMonthly > 0 ? Number((pph21Amount * 10000n) / grossMonthly) / 10000 : null,
+          taxableMonthly > 0 ? Number((pph21Amount * 10000n) / taxableMonthly) / 10000 : null,
         notes: `PPh 21 TER bulanan (PMK 168/2023) ${ctx.maritalStatus}/${ctx.dependentsCount}`,
       });
     }

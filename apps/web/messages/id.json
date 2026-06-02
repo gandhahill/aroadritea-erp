@@ -2725,7 +2725,8 @@
           "withinRadius": "Terdeteksi di lokasi outlet",
           "outsideRadius": "Di luar jangkauan outlet",
           "distanceInfo": "Jarak {distance}m dari {location} (radius {radius}m)",
-          "gpsNotConfigured": "Koordinat GPS outlet belum dikonfigurasi. Hubungi administrator."
+          "gpsNotConfigured": "Koordinat GPS outlet belum dikonfigurasi. Hubungi administrator.",
+          "distanceInfoWithAccuracy": "Jarak {distance}m dari {location}. Radius outlet {radius}m, toleransi efektif {effectiveRadius}m (akurasi GPS +/-{accuracy}m)."
         },
         "actions": {
           "requestPermissionAgain": "Minta izin lokasi lagi",
@@ -2734,12 +2735,16 @@
         "messages": {
           "geolocationUnsupported": "Browser ini belum mendukung geolokasi.",
           "locationPermissionDenied": "Izin lokasi ditolak. Aktifkan akses lokasi di browser.",
+          "locationUnavailable": "Lokasi belum tersedia dari perangkat. Aktifkan GPS dan coba lagi.",
+          "locationTimeout": "Pengambilan lokasi terlalu lama. Tunggu beberapa detik lalu coba lagi.",
           "employeeMissing": "Data karyawan tidak ditemukan. Masuk memakai akun karyawan.",
           "checkedInLate": "Presensi masuk tercatat. Terlambat {minutes} menit.",
           "checkedInOnTime": "Presensi masuk berhasil. Tepat waktu.",
           "checkInFailed": "Presensi gagal. Coba lagi.",
           "noShift": "Shift belum tersedia. Hubungi administrator untuk mengaktifkan master shift.",
-          "noEmployeeLinked": "Akun ini belum terhubung ke data karyawan. Hubungi administrator."
+          "noEmployeeLinked": "Akun ini belum terhubung ke data karyawan. Hubungi administrator.",
+          "gpsDistanceDetail": "Detail GPS: jarak {distance}m, radius outlet {radius}m, toleransi efektif {effectiveRadius}m, akurasi +/-{accuracy}m.",
+          "gpsAccuracyDetail": "Akurasi GPS saat ini +/-{accuracy}m, batas maksimum {maxAccuracy}m. Tunggu titik lokasi lebih stabil lalu coba lagi."
         },
         "kind": "Jenis Presensi",
         "dailyTitle": "Presensi Harian",
@@ -2764,6 +2769,7 @@
       "gpsInaccurate": "Akurasi GPS terlalu rendah. Coba di area terbuka.",
       "gpsLocationNotConfigured": "Lokasi koordinat outlet belum dikonfigurasi.",
       "outsideLocationRadius": "Anda berada di luar radius lokasi outlet yang diizinkan.",
+      "unauthenticated": "Sesi Anda sudah berakhir. Silakan login ulang.",
       "checkInFailed": "Gagal melakukan check-in.",
       "notFound": "Data presensi tidak ditemukan.",
       "alreadyCheckedOut": "Anda sudah melakukan check-out.",
@@ -3000,7 +3006,9 @@
       "errors": {
         "swapFailed": "Gagal menukar shift.",
         "deleteFailed": "Gagal menghapus jadwal.",
-        "saveFailed": "Gagal menyimpan jadwal."
+        "saveFailed": "Gagal menyimpan jadwal.",
+        "shiftLocationMismatch": "Shift yang dipilih tidak sesuai dengan outlet karyawan.",
+        "swapLocationMismatch": "Karyawan pengganti harus berasal dari outlet yang sama."
       },
       "shifts": {
         "title": "Master Data Shift",

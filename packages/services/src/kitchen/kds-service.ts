@@ -123,6 +123,7 @@ export async function queueOrderItems(
   for (const line of lines) {
     const productSummary = buildProductSummary(line);
     const id = generateId();
+    const qrPayload = line.kdsQrToken ?? line.kdsQrPayload;
 
     await db.insert(kdsOrderItems).values({
       id,
@@ -133,7 +134,7 @@ export async function queueOrderItems(
       status: 'queued',
       pickupNumber: resolvedPickupNumber,
       productSummary,
-      qrPayload: line.kdsQrPayload,
+      qrPayload,
       queuedAt: now,
       createdBy: ctx.userId,
       updatedBy: ctx.userId,
@@ -146,7 +147,7 @@ export async function queueOrderItems(
       status: 'queued',
       pickupNumber: resolvedPickupNumber,
       productSummary,
-      qrPayload: line.kdsQrPayload,
+      qrPayload,
       queuedAt: now,
       makingAt: null,
       readyAt: null,

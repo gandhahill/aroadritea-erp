@@ -57,6 +57,16 @@ interface GpsState {
   watchId: number | null;
 }
 
+const GPS_LOW_ACCURACY_THRESHOLD_M = 200;
+const GPS_HARD_ACCURACY_LIMIT_M = 500;
+const GPS_RADIUS_BUFFER_M = 25;
+
+function effectiveAttendanceRadiusM(radiusM: number, accuracyM: number): number {
+  const safeRadius = Number.isFinite(radiusM) && radiusM > 0 ? radiusM : 150;
+  const safeAccuracy = Number.isFinite(accuracyM) && accuracyM > 0 ? accuracyM : 0;
+  return safeRadius + Math.min(safeAccuracy, GPS_HARD_ACCURACY_LIMIT_M) + GPS_RADIUS_BUFFER_M;
+}
+
 export function CheckInClient({ locationId, employeeId, shifts, locationGps }: Props) {
   const t = useTranslations('hr.attendance.checkInPage');
   const attendanceT = useTranslations('hr.attendance');
@@ -81,10 +91,13 @@ export function CheckInClient({ locationId, employeeId, shifts, locationGps }: P
   const locationCheck = useMemo(() => {
     if (!locationGps || !gps.data) return null;
     const distanceM = haversineM(gps.data.lat, gps.data.lng, locationGps.lat, locationGps.lng);
+    const effectiveRadiusM = effectiveAttendanceRadiusM(locationGps.radiusM, gps.data.accuracy_m);
     return {
       distanceM: Math.round(distanceM),
       radiusM: locationGps.radiusM,
-      withinRadius: distanceM <= locationGps.radiusM,
+      accuracyM: Math.round(gps.data.accuracy_m),
+      effectiveRadiusM: Math.round(effectiveRadiusM),
+      withinRadius: distanceM <= effectiveRadiusM,
       locationName: locationGps.name,
     };
   }, [locationGps, gps.data]);
@@ -116,15 +129,28 @@ export function CheckInClient({ locationId, employeeId, shifts, locationGps }: P
           accuracy_m: pos.coords.accuracy,
           source: 'geolocation_api',
         };
-        const status: GpsStatus = pos.coords.accuracy > 200 ? 'low_accuracy' : 'granted';
-        setGps((s) => ({ ...s, status, data }));
+        setGps((s) => {
+          const bestData =
+            !s.data || data.accuracy_m <= s.data.accuracy_m ? data : s.data;
+          const status: GpsStatus =
+            bestData.accuracy_m > GPS_LOW_ACCURACY_THRESHOLD_M ? 'low_accuracy' : 'granted';
+          return { ...s, status, data: bestData };
+        });
       },
       (err) => {
-        const errorMsg =
-          err.code === err.PERMISSION_DENIED ? t('messages.locationPermissionDenied') : err.message;
-        setGps((s) => ({ ...s, status: 'denied', error: errorMsg }));
+        let errorMsg = t('messages.locationUnavailable');
+        if (err.code === err.PERMISSION_DENIED) {
+          errorMsg = t('messages.locationPermissionDenied');
+        } else if (err.code === err.TIMEOUT) {
+          errorMsg = t('messages.locationTimeout');
+        }
+        setGps((s) => ({
+          ...s,
+          status: err.code === err.PERMISSION_DENIED ? 'denied' : 'error',
+          error: errorMsg,
+        }));
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+      { enableHighAccuracy: true, timeout: 30000, maximumAge: 10000 },
     );
 
     setGps((s) => ({ ...s, watchId }));
@@ -186,12 +212,43 @@ export function CheckInClient({ locationId, employeeId, shifts, locationGps }: P
       const key = res.error?.message ?? '';
       const shortKey = key.includes('.') ? key.split('.').pop()! : '';
       const translated = shortKey ? attendanceT(shortKey, { defaultValue: '' }) : '';
-      const msg = translated || key || t('messages.checkInFailed');
+      const details = res.error?.details as
+        | {
+            distanceM?: number;
+            radiusM?: number;
+            accuracyM?: number;
+            effectiveRadiusM?: number;
+            accuracy?: number;
+            maxAccuracy?: number;
+          }
+        | undefined;
+      let detailMessage = '';
+      if (
+        typeof details?.distanceM === 'number' &&
+        typeof details.radiusM === 'number' &&
+        typeof details.effectiveRadiusM === 'number'
+      ) {
+        detailMessage = t('messages.gpsDistanceDetail', {
+          distance: details.distanceM,
+          radius: details.radiusM,
+          effectiveRadius: details.effectiveRadiusM,
+          accuracy: details.accuracyM ?? 0,
+        });
+      } else if (typeof details?.accuracy === 'number') {
+        detailMessage = t('messages.gpsAccuracyDetail', {
+          accuracy: Math.round(details.accuracy),
+          maxAccuracy: details.maxAccuracy ?? GPS_HARD_ACCURACY_LIMIT_M,
+        });
+      }
+      const msg = [translated || t('messages.checkInFailed'), detailMessage]
+        .filter(Boolean)
+        .join(' ');
       setResult({ ok: false, message: msg });
     }
   };
   const canCheckIn =
     (gps.status === 'granted' || gps.status === 'low_accuracy') &&
+    (gps.data?.accuracy_m ?? Number.POSITIVE_INFINITY) <= GPS_HARD_ACCURACY_LIMIT_M &&
     !submitting &&
     !!employeeId &&
     !!selectedShift;
@@ -245,6 +302,14 @@ export function CheckInClient({ locationId, employeeId, shifts, locationGps }: P
             <p className="font-mono text-xs text-brand-ink-3">
               {gps.data.lat.toFixed(6)}, {gps.data.lng.toFixed(6)} / +/-
               {Math.round(gps.data.accuracy_m)}m
+            </p>
+          )}
+          {gps.data && gps.data.accuracy_m > GPS_HARD_ACCURACY_LIMIT_M && (
+            <p className="mt-1 text-xs text-amber-700">
+              {t('messages.gpsAccuracyDetail', {
+                accuracy: Math.round(gps.data.accuracy_m),
+                maxAccuracy: GPS_HARD_ACCURACY_LIMIT_M,
+              })}
             </p>
           )}
           {gps.error && <p className="text-xs text-rose-500">{gps.error}</p>}
@@ -311,9 +376,11 @@ export function CheckInClient({ locationId, employeeId, shifts, locationGps }: P
                   : t('status.outsideRadius')}
               </p>
               <p className="text-xs text-brand-ink-3">
-                {t('status.distanceInfo', {
+                {t('status.distanceInfoWithAccuracy', {
                   distance: locationCheck.distanceM,
                   radius: locationCheck.radiusM,
+                  effectiveRadius: locationCheck.effectiveRadiusM,
+                  accuracy: locationCheck.accuracyM,
                   location: locationCheck.locationName,
                 })}
               </p>

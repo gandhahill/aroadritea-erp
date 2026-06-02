@@ -2646,7 +2646,8 @@
           "withinRadius": "Detected at outlet location",
           "outsideRadius": "Outside outlet range",
           "distanceInfo": "{distance}m from {location} (radius {radius}m)",
-          "gpsNotConfigured": "Outlet GPS coordinates not configured. Contact administrator."
+          "gpsNotConfigured": "Outlet GPS coordinates not configured. Contact administrator.",
+          "distanceInfoWithAccuracy": "{distance}m from {location}. Outlet radius {radius}m, effective tolerance {effectiveRadius}m (GPS accuracy +/-{accuracy}m)."
         },
         "actions": {
           "requestPermissionAgain": "Request location permission again",
@@ -2655,12 +2656,16 @@
         "messages": {
           "geolocationUnsupported": "This browser does not support geolocation.",
           "locationPermissionDenied": "Location permission was denied. Enable location access in the browser.",
+          "locationUnavailable": "Location is not available from this device yet. Enable GPS and try again.",
+          "locationTimeout": "Getting your location took too long. Wait a few seconds and try again.",
           "employeeMissing": "Employee data was not found. Sign in with an employee account.",
           "checkedInLate": "Check-in recorded. Late by {minutes} minutes.",
           "checkedInOnTime": "Check-in recorded. On time.",
           "checkInFailed": "Check-in failed. Please try again.",
           "noShift": "No shift is available. Contact an administrator to activate shift master data.",
-          "noEmployeeLinked": "This account is not linked to an employee record. Contact an administrator."
+          "noEmployeeLinked": "This account is not linked to an employee record. Contact an administrator.",
+          "gpsDistanceDetail": "GPS detail: distance {distance}m, outlet radius {radius}m, effective tolerance {effectiveRadius}m, accuracy +/-{accuracy}m.",
+          "gpsAccuracyDetail": "Current GPS accuracy is +/-{accuracy}m, maximum allowed is {maxAccuracy}m. Wait for a more stable location fix and try again."
         },
         "kind": "Attendance Type",
         "dailyTitle": "Daily Attendance",
@@ -2685,6 +2690,7 @@
       "gpsInaccurate": "GPS accuracy is too low. Try in an open area.",
       "gpsLocationNotConfigured": "Outlet coordinate location is not configured.",
       "outsideLocationRadius": "You are outside the permitted outlet location radius.",
+      "unauthenticated": "Your session has expired. Please sign in again.",
       "checkInFailed": "Failed to check in.",
       "notFound": "Attendance data not found.",
       "alreadyCheckedOut": "You have already checked out.",
@@ -2921,7 +2927,9 @@
       "errors": {
         "swapFailed": "Failed to swap shift.",
         "deleteFailed": "Failed to delete schedule.",
-        "saveFailed": "Failed to save schedule."
+        "saveFailed": "Failed to save schedule.",
+        "shiftLocationMismatch": "The selected shift does not match the employee's outlet.",
+        "swapLocationMismatch": "The substitute employee must belong to the same outlet."
       },
       "shifts": {
         "title": "Shift Master Data",
