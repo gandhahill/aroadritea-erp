@@ -2,9 +2,9 @@ import { FilterBar, FilterField } from '@/components/filter-bar';
 import { PageHeader } from '@/components/page-header';
 import { Pagination } from '@/components/pagination';
 import { getSession } from '@/lib/auth';
-import { and, db, desc, eq, sql } from '@erp/db';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
+import { and, db, desc, eq, inArray, sql } from '@erp/db';
 import { whistleblowerReports } from '@erp/db/schema/whistleblower';
-import { requirePermission } from '@erp/services/iam';
 import { Button, Select, TableBody, TableCell, TableHead } from '@erp/ui';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
@@ -21,15 +21,21 @@ export default async function AdminWhistleblowerPage({ searchParams }: Props) {
   const session = await getSession();
   if (!session?.user) redirect('/login');
 
-  await requirePermission(session.user.id, 'hr.whistleblower.read');
+  const user = session.user as Record<string, unknown>;
+  const userId = String(user.id ?? '');
+  const tenantId = String(user.tenantId ?? 'default');
+  const scope = await authorizedLocationIdsForTenant(userId, 'hr.whistleblower.read', tenantId);
+  if (!scope.global && scope.locationIds.length === 0) redirect('/dashboard');
 
   const params = await searchParams;
   const page = Number.parseInt(params?.page || '1') || 1;
   const pageSize = Number.parseInt(params?.pageSize || '20') || 20;
   const filterStatus = params?.status || '';
 
-  const tenantId = (session.user as any).tenantId;
   const conditions = [eq(whistleblowerReports.tenantId, tenantId)];
+  if (!scope.global) {
+    conditions.push(inArray(whistleblowerReports.locationId, scope.locationIds));
+  }
   if (filterStatus) {
     conditions.push(eq(whistleblowerReports.status, filterStatus));
   }

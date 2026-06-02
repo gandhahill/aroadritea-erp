@@ -682,7 +682,19 @@ export async function receiveGoodsAction(
   if (!ctx) return { success: false, error: t('invalidSession') };
 
   const poId = String(formData.get('poId') ?? '');
-  const locationId = String(formData.get('locationId') ?? ctx.locationId);
+  const [poRow] = await db
+    .select({ locationId: purchaseOrders.locationId })
+    .from(purchaseOrders)
+    .where(and(eq(purchaseOrders.id, poId), eq(purchaseOrders.tenantId, ctx.tenantId)))
+    .limit(1);
+  if (!poRow) return { success: false, error: t('unauthorized') };
+
+  const submittedLocationId = String(formData.get('locationId') ?? '');
+  if (submittedLocationId && submittedLocationId !== poRow.locationId) {
+    return { success: false, error: t('unauthorized') };
+  }
+
+  const locationId = poRow.locationId;
   const allowed = await requirePermissionAtLocation(
     ctx.userId,
     'purchasing.grn.create',

@@ -2,12 +2,13 @@
 
 - **Owner**: Codex
 - **Started**: 2026-06-02 11:21 WIB
-- **Last updated**: 2026-06-02 21:24 WIB
+- **Last updated**: 2026-06-02 22:19 WIB
 - **Status**: IN_PROGRESS
 
 ## Goal
 1. Fix current `pnpm --filter @erp/web typecheck` failures and push to GitHub.
 2. Run parallel functional bug-hunt across modules, patch validated defects, verify, commit, and push.
+3. Add attendance face verification with inline first-check-in enrollment on `/hr/checkin` (no separate enrollment page).
 
 Spec references: AGENTS.md, SOURCE-OF-TRUTH.md, SYSTEM-DESIGN.md.
 
@@ -16,10 +17,12 @@ Spec references: AGENTS.md, SOURCE-OF-TRUTH.md, SYSTEM-DESIGN.md.
 2. [x] Run `pnpm --filter @erp/web typecheck`.
 3. [x] Collect subagent findings from Accounting/Tax/Reporting, POS/Inventory/Kitchen, HR/Payroll/IAM, CMS/Site/MCP/Worker.
 4. [~] Patch validated functional bugs with scoped changes.
-5. [x] Run focused tests/build/typecheck for hotfixes.
-6. [x] Commit and push latest hotfix to GitHub.
+5. [~] Implement inline attendance face verification enrollment.
+6. [x] Run focused tests/build/typecheck for hotfixes.
+7. [x] Commit and push latest hotfix to GitHub.
 
 ## Done so far
+- Resumed scoped remediation for inventory/purchasing service correctness findings. Current scope excludes HR attendance/face verification files.
 - Spawned 4 explorer subagents with disjoint module scopes.
 - Confirmed current typecheck failures:
   - `fixed-assets.ts` uses unsupported audit action `dispose`.
@@ -42,19 +45,65 @@ Spec references: AGENTS.md, SOURCE-OF-TRUTH.md, SYSTEM-DESIGN.md.
 - Subagent findings collected without 10-item cap:
   - Attendance/GPS/schedule: stale/lintas-lokasi shift assignment, split GPS config source, unstable browser GPS, missing tenant filter, missing check-in location audit, etc.
   - Full-codebase sweep: access-control gaps, MCP/worker bugs, POS/offline/KDS issues, inventory/purchasing transaction bugs, payroll/accounting risks, i18n missing keys.
+- Started scoped access-control/data-scope remediation for:
+  - GRN report permission result handling and location scope.
+  - HR whistleblower, attendance, and disciplinary pages.
+  - Reporting BI tenant/location data scope.
+  - Inventory stock page scope and export surface.
+  - PO detail / GRN receive permission gates.
+  - Purchase return GRN lookup permission leak.
+- Started parallel POS/offline/KDS remediation for:
+  - Cup-label QR payload source (`sales_order_lines.kds_qr_token` instead of order number).
+  - Offline sync retry semantics and RPO 0 acceptance for old outbox rows.
+  - Loud failures for missing ingredient stock / UOM mismatch during sale/refund stock movement.
+  - Refund ledger rows and partial-refund order status.
+- New user request at 2026-06-02 21:48 WIB:
+  - Patch all previously reported subagent bug findings.
+  - Add face verification to attendance.
+  - Face enrollment must happen inside the check-in page when an employee has no face template yet; first check-in after rollout should prompt enrollment and then continue the same presensi flow.
+- Spawned parallel workers for disjoint bug-fix scopes:
+  - Access-control/data-scope web pages and actions.
+  - MCP/worker service bugs.
+  - POS/offline/KDS correctness.
+  - Inventory/purchasing service correctness.
+  - Payroll/accounting correctness.
+- Updated source-of-truth docs for face verification:
+  - `SOURCE-OF-TRUTH.md` §12.4.
+  - `SYSTEM-DESIGN.md` §9.6, §21.8, §25.2.1.
+  - ADR-0013 `docs/adr/0013-attendance-face-verification.md`.
+
+- Completed scoped access-control/data-scope patch:
+  - `purchasing/grn-report/page.tsx` now fails closed using location-aware `purchasing.view` scope before rendering.
+  - `hr/whistleblower/page.tsx` now checks `hr.whistleblower.read` location scope and filters report queries/counts by authorized locations; unscoped legacy reports remain global-only.
+  - `reporting/business-intelligence/page.tsx` now checks `reporting.view`, limits active store list to authorized locations, and filters all POS/manual-sales raw BI queries by `location_id`.
+  - `hr/attendance/page.tsx` now checks `hr.attendance.read` and filters attendance rows plus employee dropdown/name lookups by authorized locations.
+  - `hr/disciplinary/page.tsx` now checks `hr.disciplinary.read`, filters disciplinary rows/employees by authorized locations, and resolves only issuer users referenced by scoped rows.
+  - `inventory/stock/page.tsx` now checks `inventory.view`, limits outlet/warehouse columns to authorized locations, and filters stock totals/export to those locations.
+  - `purchasing/po/[id]/page.tsx` now 404s when the user lacks `purchasing.view` for the PO location and only renders the GRN form when `purchasing.grn.create` is granted at that location.
+  - `purchasing/actions.ts` `receiveGoodsAction` now derives `locationId` from the PO and rejects forged form `locationId`.
+  - `purchasing/returns/actions.ts` `fetchGrnForReturnAction` now requires both `purchasing.view` and `purchasing.return.create` at the GRN location before returning lines/unit cost.
 
 ## Decisions
 - Latest user priority overrides the broad sweep: production `/hr/attendance` crash was fixed first.
 - Root cause for `/hr/attendance`: selecting a non-existent schema property (`users.name`) creates an undefined selected field; Drizzle then crashes during query preparation with `Object.entries(undefined)`.
+- Face verification decision: use inline enrollment on `/hr/checkin`; store encrypted template/verifier only, not raw face photos; audit enrollment and store per-attendance verification result in existing attendance face columns.
 
 ## Open issues
 - Broad bug-hunt remediation remains incomplete; subagent findings are recorded above and should be triaged into separate scoped fixes.
 - Prod still has pre-existing dirty/untracked operational files unrelated to this hotfix (migration scratch scripts/backups). Left untouched.
 
 ## Next step
-Continue broad bug-hunt remediation from subagent findings. Prioritize access-control gaps and transaction/inventory bugs; keep fixes scoped and verify each module.
+Implement `employee_face_templates` schema/migration + face-template service integration in `packages/services/src/hr/attendance-service.ts`, update `/hr/checkin` page/client/actions with inline camera enrollment/verification and i18n keys, then integrate worker patches and run typecheck/tests/build.
 
 ## Test status
 - `pnpm --filter @erp/web typecheck` PASS after `/hr/attendance` hotfix.
 - Production `pnpm --filter @erp/web build` PASS.
 - `pm2 restart aroadri-web --update-env` PASS.
+- Access-control scoped diff check: `git diff --check -- <access-control files>` PASS.
+- Current full `pnpm --filter @erp/web exec tsc --noEmit --pretty false` FAILS on parallel worker changes outside this scope:
+  - `apps/web/app/(dash)/hr/checkin/check-in-client.tsx` missing new required `enrollFace`.
+  - `apps/web/app/(dash)/hr/checkin/page.tsx` passes `faceVerification` prop not yet declared in client props.
+  - `packages/services/src/inventory/production-service.ts` audit/reference and production insert type errors.
+  - `packages/services/src/inventory/transfer-service.ts` audit action `"ship"` type error.
+  - `packages/services/src/pos/create-sale.ts` possible undefined `p`.
+  - `packages/services/src/pos/manual-sales.ts` missing `stockLocationId` in ingredient deductions.

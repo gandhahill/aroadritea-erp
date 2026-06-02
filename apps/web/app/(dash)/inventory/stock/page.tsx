@@ -9,6 +9,7 @@
 
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import { formatQty as formatQuantity } from '@/lib/format-qty';
 import { pickLocalized } from '@/lib/pick-localized';
 import { and, db, eq, inArray, sql } from '@erp/db';
@@ -42,9 +43,12 @@ const KIND_TABS: { value: ProductKind | 'all'; labelKey: string }[] = [
 
 export default async function StockPerOutletPage({ searchParams }: SearchProps) {
   const session = await getSession();
-  if (!session) redirect('/login');
+  if (!session?.user) redirect('/login');
   const user = session.user as Record<string, unknown>;
+  const userId = String(user.id ?? '');
   const tenantId = String(user.tenantId ?? 'default');
+  const scope = await authorizedLocationIdsForTenant(userId, 'inventory.view', tenantId);
+  if (!scope.global && scope.locationIds.length === 0) redirect('/dashboard');
   const locale = await getLocale();
   const t = await getTranslations('inventory.stockPerOutlet');
 
@@ -53,17 +57,20 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
     KIND_TABS.map((k) => k.value).includes(kindParam as ProductKind | 'all') ? kindParam : 'all'
   ) as ProductKind | 'all';
 
-  // Active store outlets
+  const locationConds = [
+    eq(locations.tenantId, tenantId),
+    eq(locations.status, 'active'),
+    inArray(locations.type, ['store', 'warehouse']),
+  ];
+  if (!scope.global) {
+    locationConds.push(inArray(locations.id, scope.locationIds));
+  }
+
+  // Active, authorized outlets/warehouses.
   const outletRows = await db
     .select({ id: locations.id, code: locations.code, name: locations.name })
     .from(locations)
-    .where(
-      and(
-        eq(locations.tenantId, tenantId),
-        eq(locations.status, 'active'),
-        inArray(locations.type, ['store', 'warehouse']),
-      ),
-    )
+    .where(and(...locationConds))
     .orderBy(locations.code);
 
   // Products in the chosen kind
@@ -85,7 +92,8 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
 
   // Stock totals per (productId, locationId), aggregating across batches/variants.
   const productIds = productRows.map((p) => p.id);
-  const stockRows = productIds.length
+  const outletIds = outletRows.map((outlet) => outlet.id);
+  const stockRows = productIds.length && outletIds.length
     ? await db
         .select({
           productId: stockLevels.productId,
@@ -94,7 +102,13 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
           qtyAvailable: sql<string>`sum(${stockLevels.qtyAvailable})::text`,
         })
         .from(stockLevels)
-        .where(and(eq(stockLevels.tenantId, tenantId), inArray(stockLevels.productId, productIds)))
+        .where(
+          and(
+            eq(stockLevels.tenantId, tenantId),
+            inArray(stockLevels.productId, productIds),
+            inArray(stockLevels.locationId, outletIds),
+          ),
+        )
         .groupBy(stockLevels.productId, stockLevels.locationId)
     : [];
 
@@ -134,7 +148,7 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
                     ],
                   },
                 ]}
-                label={t('exportExcel') || 'Export Excel'}
+                label={t('exportExcel')}
               />
               <Link
                 href="/inventory/opname"

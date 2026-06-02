@@ -5,6 +5,7 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
+import { requirePermissionAtLocation } from '@/lib/authz';
 import { and, db, eq, inArray } from '@erp/db';
 import { goodsReceiptNotes, grnLines, purchaseOrderLines } from '@erp/db/schema/purchasing';
 import {
@@ -109,10 +110,9 @@ export async function cancelPurchaseReturnAction(
 
 /**
  * Load the GRN header + lines (joined with PO line cost) so the
- * new-return form can render a pickable list. Tenant-scoped lookup
- * by GRN id; we don't need to gate this behind a separate permission
- * because the user already needs `purchasing.return.create` to
- * submit, and the lookup itself doesn't leak across tenants.
+ * new-return form can render a pickable list. This leaks cost data if
+ * used as a plain lookup, so gate it with both purchasing view and
+ * return-create permissions at the GRN location before loading lines.
  */
 export async function fetchGrnForReturnAction(grnId: string): Promise<{
   grn?: {
@@ -144,6 +144,14 @@ export async function fetchGrnForReturnAction(grnId: string): Promise<{
   if (!g) return { error: 'grn_not_found' };
   if (g.status !== 'confirmed') return { error: 'grn_not_confirmed' };
 
+  const canView = await requirePermissionAtLocation(ctx.userId, 'purchasing.view', g.locationId);
+  const canCreateReturn = await requirePermissionAtLocation(
+    ctx.userId,
+    'purchasing.return.create',
+    g.locationId,
+  );
+  if (!canView || !canCreateReturn) return { error: 'unauthorized' };
+
   const lines = await db
     .select({
       id: grnLines.id,
@@ -171,7 +179,13 @@ export async function fetchGrnForReturnAction(grnId: string): Promise<{
   const [po] = await db
     .select({ supplierId: purchaseOrders.supplierId })
     .from(purchaseOrders)
-    .where(eq(purchaseOrders.id, g.purchaseOrderId))
+    .where(
+      and(
+        eq(purchaseOrders.tenantId, ctx.tenantId),
+        eq(purchaseOrders.id, g.purchaseOrderId),
+        eq(purchaseOrders.locationId, g.locationId),
+      ),
+    )
     .limit(1);
 
   return {

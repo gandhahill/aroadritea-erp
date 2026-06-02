@@ -1,7 +1,8 @@
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
+import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import { getActiveLocationOptions } from '@/lib/location-options';
-import { and, db, eq, gte, lte, sql } from '@erp/db';
+import { and, db, eq, gte, inArray, sql } from '@erp/db';
 import { manualSalesClosings, salesOrders } from '@erp/db/schema/pos';
 import { getDailySummary, previousPeriod } from '@erp/services/reporting';
 import type { AuditContext } from '@erp/shared/types';
@@ -57,6 +58,8 @@ export default async function BusinessIntelligencePage() {
   const userId = String(user.id ?? '');
   const locale = await getLocale();
   const t = await getTranslations('reporting.bi');
+  const scope = await authorizedLocationIdsForTenant(userId, 'reporting.view', tenantId);
+  if (!scope.global && scope.locationIds.length === 0) redirect('/dashboard');
 
   // All date boundaries use WIB (UTC+7) — server may run in UTC
   const nowUtc = new Date();
@@ -70,11 +73,20 @@ export default async function BusinessIntelligencePage() {
   const sevenDaysAgoDate = new Date(Date.UTC(wibYear, wibMonth, wibDay - 6));
   const sevenDaysAgo = sevenDaysAgoDate.toISOString().slice(0, 10);
 
-  const locations = await getActiveLocationOptions({
+  const activeLocations = await getActiveLocationOptions({
     tenantId,
     locale: locale as 'id' | 'en' | 'zh',
     type: 'store',
   });
+  const allowedLocationIds = new Set(scope.locationIds);
+  const locations = scope.global
+    ? activeLocations
+    : activeLocations.filter((location) => allowedLocationIds.has(location.id));
+  const scopedLocationIds = locations.map((location) => location.id);
+  const scopedLocationListSql = sql.join(
+    scopedLocationIds.map((locationId) => sql`${locationId}`),
+    sql`, `,
+  );
   const ctxBase: Omit<AuditContext, 'locationId'> = { tenantId, userId };
 
   const monthlyResults = await Promise.all(
@@ -228,20 +240,26 @@ export default async function BusinessIntelligencePage() {
   const trendStart = new Date(Date.UTC(wibYear, wibMonth, wibDay - 6, -7));
 
   // Channel mix this month (POS + manual sales)
-  const channelRows = await db.execute(
-    sql<{ channel: string; gross: string; orders: number }>`
+  const channelRows = scopedLocationIds.length
+    ? await db.execute(sql<{ channel: string; gross: string; orders: number }>`
       SELECT channel, COALESCE(SUM(gross), 0)::bigint AS gross, SUM(orders)::int AS orders FROM (
         SELECT channel, grand_total AS gross, 1 AS orders
         FROM sales_orders
-        WHERE tenant_id = ${tenantId} AND status = 'paid' AND placed_at >= ${startOfMonth.toISOString()}
+        WHERE tenant_id = ${tenantId}
+          AND location_id IN (${scopedLocationListSql})
+          AND status = 'paid'
+          AND placed_at >= ${startOfMonth.toISOString()}
         UNION ALL
         SELECT channel, gross_sales - discount_total AS gross, transaction_count AS orders
         FROM manual_sales_closings
-        WHERE tenant_id = ${tenantId} AND status = 'posted' AND sales_date >= ${ymd(startOfMonth)}
+        WHERE tenant_id = ${tenantId}
+          AND location_id IN (${scopedLocationListSql})
+          AND status = 'posted'
+          AND sales_date >= ${ymd(startOfMonth)}
       ) combined
       GROUP BY channel
-    `,
-  );
+    `)
+    : [];
   const channelMix = (channelRows as unknown as Array<{ channel: string; gross: string; orders: number }>)
     .map((r) => ({
       label: humanChannel(r.channel, t),
@@ -251,27 +269,33 @@ export default async function BusinessIntelligencePage() {
     .sort((a, b) => Number(b.gross - a.gross));
 
   // Hourly distribution today (POS + manual sales)
-  const hourlyRows = await db.execute(
-    sql<{ hour: number; gross: string; orders: number }>`
+  const hourlyRows = scopedLocationIds.length
+    ? await db.execute(sql<{ hour: number; gross: string; orders: number }>`
       SELECT hour, COALESCE(SUM(gross), 0)::bigint AS gross, SUM(orders)::int AS orders FROM (
         SELECT
           EXTRACT(HOUR FROM placed_at AT TIME ZONE 'Asia/Jakarta')::int AS hour,
           grand_total AS gross,
           1 AS orders
         FROM sales_orders
-        WHERE tenant_id = ${tenantId} AND status = 'paid' AND placed_at >= ${startOfToday.toISOString()}
+        WHERE tenant_id = ${tenantId}
+          AND location_id IN (${scopedLocationListSql})
+          AND status = 'paid'
+          AND placed_at >= ${startOfToday.toISOString()}
         UNION ALL
         SELECT
           12::int AS hour,
           gross_sales - discount_total AS gross,
           transaction_count AS orders
         FROM manual_sales_closings
-        WHERE tenant_id = ${tenantId} AND status = 'posted' AND sales_date = ${ymd(startOfToday)}
+        WHERE tenant_id = ${tenantId}
+          AND location_id IN (${scopedLocationListSql})
+          AND status = 'posted'
+          AND sales_date = ${ymd(startOfToday)}
       ) combined
       GROUP BY 1
       ORDER BY 1
-    `,
-  );
+    `)
+    : [];
   const hourlyMap = new Map<number, { gross: bigint; orders: number }>();
   for (const row of hourlyRows as unknown as Array<{
     hour: number;
@@ -290,27 +314,33 @@ export default async function BusinessIntelligencePage() {
   });
 
   // 7-day trend (POS + manual sales)
-  const trendRows = await db.execute(
-    sql<{ d: string; gross: string; orders: number }>`
+  const trendRows = scopedLocationIds.length
+    ? await db.execute(sql<{ d: string; gross: string; orders: number }>`
       SELECT d, COALESCE(SUM(gross), 0)::bigint AS gross, SUM(orders)::int AS orders FROM (
         SELECT
           TO_CHAR(DATE(placed_at AT TIME ZONE 'Asia/Jakarta'), 'YYYY-MM-DD') AS d,
           grand_total AS gross,
           1 AS orders
         FROM sales_orders
-        WHERE tenant_id = ${tenantId} AND status = 'paid' AND placed_at >= ${trendStart.toISOString()}
+        WHERE tenant_id = ${tenantId}
+          AND location_id IN (${scopedLocationListSql})
+          AND status = 'paid'
+          AND placed_at >= ${trendStart.toISOString()}
         UNION ALL
         SELECT
           sales_date::text AS d,
           gross_sales - discount_total AS gross,
           transaction_count AS orders
         FROM manual_sales_closings
-        WHERE tenant_id = ${tenantId} AND status = 'posted' AND sales_date >= ${ymd(trendStart)}
+        WHERE tenant_id = ${tenantId}
+          AND location_id IN (${scopedLocationListSql})
+          AND status = 'posted'
+          AND sales_date >= ${ymd(trendStart)}
       ) combined
       GROUP BY 1
       ORDER BY 1
-    `,
-  );
+    `)
+    : [];
   const trendMap = new Map<string, { gross: bigint; orders: number }>();
   for (const row of trendRows as unknown as Array<{
     d: string;
@@ -330,47 +360,56 @@ export default async function BusinessIntelligencePage() {
   });
 
   // Member vs guest (POS: member when customerId not null; manual sales = all guest)
-  const [memberRow] = await db
-    .select({
-      gross: sql<bigint>`coalesce(sum(${salesOrders.grandTotal}), 0)`,
-      orders: sql<number>`cast(count(*) as int)`,
-    })
-    .from(salesOrders)
-    .where(
-      and(
-        eq(salesOrders.tenantId, tenantId),
-        eq(salesOrders.status, 'paid'),
-        gte(salesOrders.placedAt, startOfMonth),
-        sql`${salesOrders.customerId} is not null`,
-      ),
-    );
-  const [guestPosRow] = await db
-    .select({
-      gross: sql<bigint>`coalesce(sum(${salesOrders.grandTotal}), 0)`,
-      orders: sql<number>`cast(count(*) as int)`,
-    })
-    .from(salesOrders)
-    .where(
-      and(
-        eq(salesOrders.tenantId, tenantId),
-        eq(salesOrders.status, 'paid'),
-        gte(salesOrders.placedAt, startOfMonth),
-        sql`${salesOrders.customerId} is null`,
-      ),
-    );
-  const [guestManualRow] = await db
-    .select({
-      gross: sql<bigint>`coalesce(sum(${manualSalesClosings.grossSales} - ${manualSalesClosings.discountTotal}), 0)`,
-      orders: sql<number>`coalesce(sum(${manualSalesClosings.transactionCount}), 0)::int`,
-    })
-    .from(manualSalesClosings)
-    .where(
-      and(
-        eq(manualSalesClosings.tenantId, tenantId),
-        eq(manualSalesClosings.status, 'posted'),
-        gte(manualSalesClosings.salesDate, ymd(startOfMonth)),
-      ),
-    );
+  const [memberRow] = scopedLocationIds.length
+    ? await db
+        .select({
+          gross: sql<bigint>`coalesce(sum(${salesOrders.grandTotal}), 0)`,
+          orders: sql<number>`cast(count(*) as int)`,
+        })
+        .from(salesOrders)
+        .where(
+          and(
+            eq(salesOrders.tenantId, tenantId),
+            inArray(salesOrders.locationId, scopedLocationIds),
+            eq(salesOrders.status, 'paid'),
+            gte(salesOrders.placedAt, startOfMonth),
+            sql`${salesOrders.customerId} is not null`,
+          ),
+        )
+    : [];
+  const [guestPosRow] = scopedLocationIds.length
+    ? await db
+        .select({
+          gross: sql<bigint>`coalesce(sum(${salesOrders.grandTotal}), 0)`,
+          orders: sql<number>`cast(count(*) as int)`,
+        })
+        .from(salesOrders)
+        .where(
+          and(
+            eq(salesOrders.tenantId, tenantId),
+            inArray(salesOrders.locationId, scopedLocationIds),
+            eq(salesOrders.status, 'paid'),
+            gte(salesOrders.placedAt, startOfMonth),
+            sql`${salesOrders.customerId} is null`,
+          ),
+        )
+    : [];
+  const [guestManualRow] = scopedLocationIds.length
+    ? await db
+        .select({
+          gross: sql<bigint>`coalesce(sum(${manualSalesClosings.grossSales} - ${manualSalesClosings.discountTotal}), 0)`,
+          orders: sql<number>`coalesce(sum(${manualSalesClosings.transactionCount}), 0)::int`,
+        })
+        .from(manualSalesClosings)
+        .where(
+          and(
+            eq(manualSalesClosings.tenantId, tenantId),
+            inArray(manualSalesClosings.locationId, scopedLocationIds),
+            eq(manualSalesClosings.status, 'posted'),
+            gte(manualSalesClosings.salesDate, ymd(startOfMonth)),
+          ),
+        )
+    : [];
   const memberSplit = {
     memberGross: BigInt(memberRow?.gross ?? 0),
     memberOrders: Number(memberRow?.orders ?? 0),
