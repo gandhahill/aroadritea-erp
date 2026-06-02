@@ -1,18 +1,16 @@
 import { db } from '@erp/db';
 import { helpdeskTickets } from '@erp/db/schema/helpdesk';
-import { and, eq, isNotNull, lt } from 'drizzle-orm';
+import { auditRecord } from '@erp/services/audit';
 import { notifyByPermission } from '@erp/services/notification';
-import { generateId } from '@erp/shared/id';
-import { auditLog } from '@erp/db/schema/audit';
+import { and, eq, isNotNull, lt } from 'drizzle-orm';
 
 export interface HelpdeskSlaCheckJobData {
   tenantId?: string;
 }
 
-export async function helpdeskSlaCheckHandler(
-  data: HelpdeskSlaCheckJobData = {},
-) {
-  console.log('Checking for helpdesk SLA breaches...');
+export async function helpdeskSlaCheckHandler(data: HelpdeskSlaCheckJobData = {}) {
+  const tenantId = data.tenantId?.trim() || 'default';
+  console.info(`[helpdesk-sla-check] Checking SLA breaches for tenant ${tenantId}`);
   const now = new Date();
 
   // Find tickets that are open, have slaDueDate in the past, and are not yet breached
@@ -22,18 +20,21 @@ export async function helpdeskSlaCheckHandler(
     .where(
       and(
         eq(helpdeskTickets.status, 'open'),
+        eq(helpdeskTickets.tenantId, tenantId),
         eq(helpdeskTickets.isSlaBreached, false),
         isNotNull(helpdeskTickets.slaDueDate),
         lt(helpdeskTickets.slaDueDate, now),
-      )
+      ),
     );
 
   if (breachedTickets.length === 0) {
-    console.log('No new breached tickets found.');
+    console.info(`[helpdesk-sla-check] No new breached tickets found for tenant ${tenantId}`);
     return;
   }
 
-  console.log(`Found ${breachedTickets.length} breached tickets. Escalating...`);
+  console.info(
+    `[helpdesk-sla-check] Found ${breachedTickets.length} breached tickets for tenant ${tenantId}`,
+  );
 
   for (const ticket of breachedTickets) {
     await db
@@ -43,18 +44,20 @@ export async function helpdeskSlaCheckHandler(
         escalationLevel: ticket.escalationLevel + 1,
         updatedAt: now,
       })
-      .where(eq(helpdeskTickets.id, ticket.id));
+      .where(and(eq(helpdeskTickets.id, ticket.id), eq(helpdeskTickets.tenantId, tenantId)));
 
-    await db.insert(auditLog).values({
-      id: generateId(),
-      tenantId: ticket.tenantId,
-      userId: 'system',
+    await auditRecord({
       action: 'escalate',
       entityType: 'helpdesk_ticket',
       entityId: ticket.id,
       before: { isSlaBreached: false, escalationLevel: ticket.escalationLevel },
       after: { isSlaBreached: true, escalationLevel: ticket.escalationLevel + 1 },
       metadata: { reason: 'SLA breached' },
+      ctx: {
+        tenantId: ticket.tenantId,
+        userId: 'system',
+        locationId: '',
+      },
     });
 
     void notifyByPermission({
@@ -67,5 +70,5 @@ export async function helpdeskSlaCheckHandler(
     });
   }
 
-  console.log('SLA check complete.');
+  console.info(`[helpdesk-sla-check] SLA check complete for tenant ${tenantId}`);
 }

@@ -990,6 +990,9 @@ Riwayat kontrak (PKWT/PKWTT, periode, gaji pokok).
 #### `attendance`
 Catatan check-in/out (dari modul absensi).
 
+#### `employee_face_templates`
+Template verifikasi wajah terenkripsi per karyawan. Satu template aktif per employee; enrollment dilakukan inline di halaman check-in saat template belum ada. Tidak menyimpan foto wajah mentah untuk presensi rutin.
+
 #### `leaves`, `leave_balances`
 
 #### `payrolls`, `payroll_lines`
@@ -1843,6 +1846,8 @@ Lihat §9.6.
 
 #### Attendance
 - Mobile-friendly check-in: GPS verifikasi lokasi (toleransi 100 m), atau scan QR di lokasi.
+- Face verification wajib untuk check-in. Jika template wajah employee belum ada, halaman check-in meminta enrollment inline pada presensi pertama setelah fitur aktif; enrollment dan check-in berjalan dalam alur yang sama tanpa halaman baru.
+- Face verification memakai template terenkripsi, bukan foto wajah mentah. Attendance menyimpan hasil verifikasi per transaksi (`is_face_verified`, `face_match_score`) dan enrollment template wajib diaudit.
 - Shift-based: kaitkan check-in dengan `shift_definitions`.
 - **SOP aturan keterlambatan** (SOP Aroadri Tea 2026-04-06):
   - Toleransi: maksimal 15 menit dari jam shift.
@@ -2140,6 +2145,7 @@ Lihat tabel definitive di §4.3. Ringkas:
 - `partners.phone`, `partners.npwp`, `partners.ktp`
 - `partners.email` (customer/supplier)
 - `employees.ktp`, `employees.npwp`, `employees.bpjs_kesehatan`, `employees.bpjs_tenagakerja`
+- `employee_face_templates.template_ciphertext` (template biometrik presensi; foto mentah tidak disimpan)
 - `members.phone`, `members.email`, `members.dob`
 - `sessions.token` (hash, bukan plain)
 - `sessions.refresh_token` (hash)

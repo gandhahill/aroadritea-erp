@@ -11,22 +11,22 @@ import { boss } from './boss';
 import {
   aiActionDraftsSweeperHandler,
   backupHandler,
+  helpdeskSlaCheckHandler,
   isrRevalidateHandler,
   outageMonitorHandler,
   partyLedgerReminderHandler,
   payrollBatchHandler,
   stockLowAlertHandler,
-  helpdeskSlaCheckHandler,
 } from './jobs/index';
 import type {
   AiActionDraftsSweeperJobData,
   BackupJobData,
+  HelpdeskSlaCheckJobData,
   IsrRevalidateJobData,
   OutageMonitorJobData,
   PartyLedgerReminderJobData,
   PayrollJobData,
   StockAlertJobData,
-  HelpdeskSlaCheckJobData,
 } from './jobs/index';
 
 // --- Handler map ---
@@ -39,7 +39,8 @@ const handlerMap: Record<string, JobHandler> = {
   backup: (data) => backupHandler(data as BackupJobData),
   'payroll-batch': (data) => payrollBatchHandler(data as unknown as PayrollJobData),
   'stock-low-alert': (data) => stockLowAlertHandler(data as unknown as StockAlertJobData),
-  'helpdesk-sla-check': (data) => helpdeskSlaCheckHandler(data as unknown as HelpdeskSlaCheckJobData),
+  'helpdesk-sla-check': (data) =>
+    helpdeskSlaCheckHandler(data as unknown as HelpdeskSlaCheckJobData),
   'isr-revalidate': (data) => isrRevalidateHandler(data as unknown as IsrRevalidateJobData),
   'outage-monitor': (data) => outageMonitorHandler(data as unknown as OutageMonitorJobData),
   'party-ledger-reminders': (data) =>
@@ -50,8 +51,28 @@ const handlerMap: Record<string, JobHandler> = {
 };
 
 // --- Sync state ---
-// Tracks which jobs are currently scheduled in pg-boss.
-const scheduled = new Map<string, string>(); // name → cron expression
+// Tracks the exact DB schedule that is currently registered in pg-boss.
+const scheduled = new Map<string, string>(); // name → stable schedule signature
+
+function stableJson(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(stableJson);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, item]) => [key, stableJson(item)]),
+    );
+  }
+  return value;
+}
+
+function scheduleSignature(job: typeof scheduledJobs.$inferSelect): string {
+  return JSON.stringify({
+    cronExpression: job.cronExpression,
+    timezone: job.timezone,
+    jobData: stableJson(job.jobData ?? {}),
+  });
+}
 
 async function recordRunStatus(
   name: string,
@@ -85,7 +106,7 @@ export async function syncSchedules(): Promise<void> {
   const dbJobNames = new Set(jobs.map((j) => j.name));
 
   // Unschedule jobs that are no longer in DB or disabled
-  for (const [name, cron] of scheduled) {
+  for (const [name] of scheduled) {
     if (!dbJobNames.has(name)) {
       try {
         await boss.unschedule(name);
@@ -107,9 +128,10 @@ export async function syncSchedules(): Promise<void> {
       continue;
     }
 
-    const currentCron = scheduled.get(job.name);
+    const nextSignature = scheduleSignature(job);
+    const currentSignature = scheduled.get(job.name);
 
-    if (currentCron !== job.cronExpression) {
+    if (currentSignature !== nextSignature) {
       // Unschedule first (ignore error if not scheduled)
       if (scheduled.has(job.name)) {
         try {
@@ -140,10 +162,18 @@ export async function syncSchedules(): Promise<void> {
         }
       });
 
-      // Schedule with cron
-      await boss.schedule(job.name, job.cronExpression);
-      scheduled.set(job.name, job.cronExpression);
-      console.info(`[scheduler] Scheduled job: ${job.name} (cron: ${job.cronExpression})`);
+      const scheduleData = {
+        ...(job.jobData ?? {}),
+        _scheduledJobId: job.id,
+        _tenantId: job.tenantId,
+      };
+
+      // Schedule with cron and tenant timezone from DB-managed config.
+      await boss.schedule(job.name, job.cronExpression, scheduleData, { tz: job.timezone });
+      scheduled.set(job.name, nextSignature);
+      console.info(
+        `[scheduler] Scheduled job: ${job.name} (cron: ${job.cronExpression}, timezone: ${job.timezone})`,
+      );
     }
   }
 

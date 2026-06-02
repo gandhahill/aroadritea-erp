@@ -19,6 +19,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 import { createJournal } from '../accounting/create-journal';
+import { postJournal } from '../accounting/post-journal';
 import { getPostingAccountCodes } from '../accounting/posting-accounts';
 import { reverseJournal } from '../accounting/reverse-journal';
 import { auditRecord } from '../audit';
@@ -41,6 +42,16 @@ export const CancelPayrollInputSchema = z.object({
 export type ApprovePayrollInput = z.infer<typeof ApprovePayrollInputSchema>;
 export type MarkPaidInput = z.infer<typeof MarkPaidInputSchema>;
 export type CancelPayrollInput = z.infer<typeof CancelPayrollInputSchema>;
+
+function isEmployerContribution(line: {
+  componentCode: string;
+  line: { notes?: string | null };
+}): boolean {
+  const notes = line.line.notes?.toLowerCase() ?? '';
+  return (
+    line.componentCode.endsWith('_ER') || notes.includes('employer') || notes.includes('perusahaan')
+  );
+}
 
 // ─── Approve ────────────────────────────────────────────────────────────────
 
@@ -90,8 +101,13 @@ export async function approvePayroll(
       .innerJoin(salaryComponents, eq(payrollLines.salaryComponentId, salaryComponents.id))
       .where(eq(payrollLines.payrollId, data.payrollId));
 
+    if (lines.length === 0) {
+      throw AppError.validation('hr.payroll.noLines', { payrollId: data.payrollId });
+    }
+
     // Aggregate earnings and deductions
     let totalEarnings = 0n;
+    let totalEmployeeDeductions = 0n;
     let totalPPh21 = 0n;
     let totalBpjsKes = 0n;
     let totalBpjsTk = 0n;
@@ -106,22 +122,26 @@ export async function approvePayroll(
       if (row.componentKind === 'earning') {
         totalEarnings += row.line.amount;
       }
+      const employerContribution = isEmployerContribution(row);
+      if (row.componentKind === 'deduction' && !employerContribution) {
+        totalEmployeeDeductions += row.line.amount;
+      }
       if (row.componentCode === 'PPh21') totalPPh21 += row.line.amount;
       if (row.componentCode === 'BPJS_KES') {
-        // Check if it's employer or employee portion by notes
-        if (row.line.notes?.includes('employer') || row.line.notes?.includes('perusahaan')) {
+        if (employerContribution) {
           totalBpjsKesEmployer += row.line.amount;
         } else {
           totalBpjsKes += row.line.amount;
         }
       }
       if (row.componentCode === 'BPJS_TK') {
-        if (row.line.notes?.includes('employer') || row.line.notes?.includes('perusahaan')) {
+        if (employerContribution) {
+          const notes = row.line.notes?.toLowerCase() ?? '';
           // Aggregate all employer TK components
-          if (row.line.notes?.includes('JKK')) totalBpjsJkkEmployer += row.line.amount;
-          else if (row.line.notes?.includes('JKM')) totalBpjsJkmEmployer += row.line.amount;
-          else if (row.line.notes?.includes('JHT')) totalBpjsJhtEmployer += row.line.amount;
-          else if (row.line.notes?.includes('JP')) totalBpjsJpEmployer += row.line.amount;
+          if (notes.includes('jkk')) totalBpjsJkkEmployer += row.line.amount;
+          else if (notes.includes('jkm')) totalBpjsJkmEmployer += row.line.amount;
+          else if (notes.includes('jht')) totalBpjsJhtEmployer += row.line.amount;
+          else if (notes.includes('jp')) totalBpjsJpEmployer += row.line.amount;
           else totalBpjsJhtEmployer += row.line.amount; // fallback
         } else {
           totalBpjsTk += row.line.amount;
@@ -129,7 +149,32 @@ export async function approvePayroll(
       }
     }
 
-    const totalEmployerBpjs = totalBpjsKesEmployer + totalBpjsJkkEmployer + totalBpjsJkmEmployer + totalBpjsJhtEmployer + totalBpjsJpEmployer;
+    const totalEmployerBpjs =
+      totalBpjsKesEmployer +
+      totalBpjsJkkEmployer +
+      totalBpjsJkmEmployer +
+      totalBpjsJhtEmployer +
+      totalBpjsJpEmployer;
+    const statutoryEmployeeDeductions = totalPPh21 + totalBpjsKes + totalBpjsTk;
+    const nonStatutoryDeductions = totalEmployeeDeductions - statutoryEmployeeDeductions;
+    const expectedNet = totalEarnings - totalEmployeeDeductions;
+
+    if (
+      totalEarnings !== payroll.totalEarnings ||
+      totalEmployeeDeductions !== payroll.totalDeductions ||
+      expectedNet !== payroll.totalNet ||
+      nonStatutoryDeductions < 0n
+    ) {
+      throw AppError.businessRule('hr.payroll.headerLinesMismatch', {
+        payrollId: data.payrollId,
+        lineEarnings: totalEarnings.toString(),
+        headerEarnings: payroll.totalEarnings.toString(),
+        lineDeductions: totalEmployeeDeductions.toString(),
+        headerDeductions: payroll.totalDeductions.toString(),
+        expectedNet: expectedNet.toString(),
+        headerNet: payroll.totalNet.toString(),
+      });
+    }
 
     // Posting accounts come from the configurable account map
     // (Settings → Accounting → Account Mapping); see accounting/posting-accounts.ts.
@@ -159,122 +204,165 @@ export async function approvePayroll(
       ? new Date(payroll.periodEnd).toISOString().split('T')[0]!
       : new Date().toISOString().split('T')[0]!;
 
-    const journalResult = await createJournal(
-      {
-        postingDate: periodEndStr,
-        locationId: payroll.locationId,
-        description: data.description ?? `Payroll ${payroll.periodCode}`,
-        referenceType: 'payroll',
-        referenceId: data.payrollId,
-        lines: [
-          // DR: Salary Expense (employee earnings)
-          {
-            accountId: getAccountId(salaryExpenseCode),
-            locationId: payroll.locationId,
-            debit: String(payroll.totalEarnings),
-            credit: '0',
-            description: 'Beban Gaji & Upah',
-          },
-          // T-0243: DR: Employer BPJS Expense
-          ...(totalEmployerBpjs > 0n
-            ? [
-                {
-                  accountId: getAccountId(salaryExpenseCode),
-                  locationId: payroll.locationId,
-                  debit: String(totalEmployerBpjs),
-                  credit: '0',
-                  description: 'Beban BPJS Pemberi Kerja (Kes 4% + JKK + JKM + JHT 3.7% + JP 2%)',
-                },
-              ]
-            : []),
-          ...(totalPPh21 > 0n
-            ? [
-                {
-                  accountId: getAccountId(taxPayableCode),
-                  locationId: payroll.locationId,
-                  debit: '0',
-                  credit: String(totalPPh21),
-                  description: 'PPh 21 Terutang',
-                },
-              ]
-            : []),
-          // CR: BPJS Kes payable (employee + employer)
-          ...(totalBpjsKes + totalBpjsKesEmployer > 0n
-            ? [
-                {
-                  accountId: getAccountId(bpjsPayableCode),
-                  locationId: payroll.locationId,
-                  debit: '0',
-                  credit: String(totalBpjsKes + totalBpjsKesEmployer),
-                  description: `Utang BPJS Kesehatan (EE ${totalBpjsKes} + ER ${totalBpjsKesEmployer})`,
-                },
-              ]
-            : []),
-          // CR: BPJS TK payable (employee JHT + employer JKK/JKM/JHT/JP)
-          ...(totalBpjsTk + totalBpjsJkkEmployer + totalBpjsJkmEmployer + totalBpjsJhtEmployer + totalBpjsJpEmployer > 0n
-            ? [
-                {
-                  accountId: getAccountId(bpjsPayableCode),
-                  locationId: payroll.locationId,
-                  debit: '0',
-                  credit: String(totalBpjsTk + totalBpjsJkkEmployer + totalBpjsJkmEmployer + totalBpjsJhtEmployer + totalBpjsJpEmployer),
-                  description: `Utang BPJS TK (EE JHT ${totalBpjsTk} + ER JKK/JKM/JHT/JP ${totalBpjsJkkEmployer + totalBpjsJkmEmployer + totalBpjsJhtEmployer + totalBpjsJpEmployer})`,
-                },
-              ]
-            : []),
-          // CR: Cash/Bank (net salary disbursement)
-          {
-            accountId: getAccountId(netPayCode),
-            locationId: payroll.locationId,
-            debit: '0',
-            credit: String(payroll.totalNet),
-            description: 'Pembayaran Gaji',
-          },
-        ],
-      },
-      ctx, { skipPermissionCheck: true }
-    );
+    const journalEntryId = await db.transaction(async (tx) => {
+      const journalResult = await createJournal(
+        {
+          postingDate: periodEndStr,
+          locationId: payroll.locationId,
+          description: data.description ?? `Payroll ${payroll.periodCode}`,
+          referenceType: 'payroll',
+          referenceId: data.payrollId,
+          lines: [
+            // DR: Salary Expense (employee earnings)
+            {
+              accountId: getAccountId(salaryExpenseCode),
+              locationId: payroll.locationId,
+              debit: String(payroll.totalEarnings),
+              credit: '0',
+              description: 'Beban Gaji & Upah',
+            },
+            // T-0243: DR: Employer BPJS Expense
+            ...(totalEmployerBpjs > 0n
+              ? [
+                  {
+                    accountId: getAccountId(salaryExpenseCode),
+                    locationId: payroll.locationId,
+                    debit: String(totalEmployerBpjs),
+                    credit: '0',
+                    description: 'Beban BPJS Pemberi Kerja (Kes 4% + JKK + JKM + JHT 3.7% + JP 2%)',
+                  },
+                ]
+              : []),
+            ...(totalPPh21 > 0n
+              ? [
+                  {
+                    accountId: getAccountId(taxPayableCode),
+                    locationId: payroll.locationId,
+                    debit: '0',
+                    credit: String(totalPPh21),
+                    description: 'PPh 21 Terutang',
+                  },
+                ]
+              : []),
+            // CR: BPJS Kes payable (employee + employer)
+            ...(totalBpjsKes + totalBpjsKesEmployer > 0n
+              ? [
+                  {
+                    accountId: getAccountId(bpjsPayableCode),
+                    locationId: payroll.locationId,
+                    debit: '0',
+                    credit: String(totalBpjsKes + totalBpjsKesEmployer),
+                    description: `Utang BPJS Kesehatan (EE ${totalBpjsKes} + ER ${totalBpjsKesEmployer})`,
+                  },
+                ]
+              : []),
+            // CR: BPJS TK payable (employee JHT + employer JKK/JKM/JHT/JP)
+            ...(totalBpjsTk +
+              totalBpjsJkkEmployer +
+              totalBpjsJkmEmployer +
+              totalBpjsJhtEmployer +
+              totalBpjsJpEmployer >
+            0n
+              ? [
+                  {
+                    accountId: getAccountId(bpjsPayableCode),
+                    locationId: payroll.locationId,
+                    debit: '0',
+                    credit: String(
+                      totalBpjsTk +
+                        totalBpjsJkkEmployer +
+                        totalBpjsJkmEmployer +
+                        totalBpjsJhtEmployer +
+                        totalBpjsJpEmployer,
+                    ),
+                    description: `Utang BPJS TK (EE JHT ${totalBpjsTk} + ER JKK/JKM/JHT/JP ${totalBpjsJkkEmployer + totalBpjsJkmEmployer + totalBpjsJhtEmployer + totalBpjsJpEmployer})`,
+                  },
+                ]
+              : []),
+            // CR: Non-statutory deductions reduce salary expense until component-level
+            // posting accounts are introduced.
+            ...(nonStatutoryDeductions > 0n
+              ? [
+                  {
+                    accountId: getAccountId(salaryExpenseCode),
+                    locationId: payroll.locationId,
+                    debit: '0',
+                    credit: String(nonStatutoryDeductions),
+                    description: 'Potongan Payroll Non-Statutory',
+                  },
+                ]
+              : []),
+            // CR: Cash/Bank (net salary disbursement)
+            {
+              accountId: getAccountId(netPayCode),
+              locationId: payroll.locationId,
+              debit: '0',
+              credit: String(payroll.totalNet),
+              description: 'Pembayaran Gaji',
+            },
+          ],
+        },
+        ctx,
+        { skipPermissionCheck: true, tx },
+      );
 
-    if (!journalResult.ok) {
-      throw AppError.internal('hr.payroll.jeFailed', { error: journalResult.error });
-    }
+      if (!journalResult.ok) {
+        throw AppError.internal('hr.payroll.jeFailed', { error: journalResult.error });
+      }
 
-    // Atomic claim — without this, two concurrent approvers each post a
-    // full salary expense journal entry, DOUBLING reported payroll cost.
-    // The claim guard transitions only from draft/pending_approval and
-    // returns rows so we can detect race losers.
-    const claimed = await db
-      .update(payrolls)
-      .set({
-        status: 'approved',
-        approvedBy: ctx.userId,
-        approvedAt: new Date(),
-        journalEntryId: journalResult.value.id,
-        updatedBy: ctx.userId,
-      })
-      .where(and(eq(payrolls.id, data.payrollId), eq(payrolls.status, payroll.status)))
-      .returning({ id: payrolls.id });
-    if (!claimed || claimed.length === 0) {
-      throw AppError.conflict('hr.payroll.cannotApprove', { status: payroll.status });
-    }
+      const postResult = await postJournal({ journalId: journalResult.value.id }, ctx, {
+        skipPermissionCheck: true,
+        tx,
+      });
+      if (!postResult.ok) {
+        throw AppError.internal('hr.payroll.jeFailed', { error: postResult.error });
+      }
 
-    await auditRecord({
-      action: 'approve',
-      entityType: 'payroll',
-      entityId: data.payrollId,
-      before: { status: payroll.status },
-      after: {
-        status: 'approved',
-        approvedBy: ctx.userId,
-        journalEntryId: journalResult.value.id,
-        totalEarnings: payroll.totalEarnings.toString(),
-        totalNet: payroll.totalNet.toString(),
-      },
-      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
-      ctx,
+      // Atomic claim — without this, two concurrent approvers each post a
+      // full salary expense journal entry, DOUBLING reported payroll cost.
+      // The claim guard transitions only from draft/pending_approval and
+      // returns rows so we can detect race losers.
+      const approvedAt = new Date();
+      const claimed = await tx
+        .update(payrolls)
+        .set({
+          status: 'approved',
+          approvedBy: ctx.userId,
+          approvedAt,
+          journalEntryId: journalResult.value.id,
+          updatedBy: ctx.userId,
+          updatedAt: approvedAt,
+        })
+        .where(and(eq(payrolls.id, data.payrollId), eq(payrolls.status, payroll.status)))
+        .returning({ id: payrolls.id });
+      if (!claimed || claimed.length === 0) {
+        throw AppError.conflict('hr.payroll.cannotApprove', { status: payroll.status });
+      }
+
+      await auditRecord({
+        action: 'approve',
+        entityType: 'payroll',
+        entityId: data.payrollId,
+        before: { status: payroll.status },
+        after: {
+          status: 'approved',
+          approvedBy: ctx.userId,
+          approvedAt: approvedAt.toISOString(),
+          journalEntryId: journalResult.value.id,
+          journalEntryStatus: 'posted',
+          totalEarnings: payroll.totalEarnings.toString(),
+          totalDeductions: payroll.totalDeductions.toString(),
+          totalNet: payroll.totalNet.toString(),
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+        tx,
+      });
+
+      return journalResult.value.id;
     });
 
-    return ok({ payrollId: data.payrollId, journalEntryId: journalResult.value.id });
+    return ok({ payrollId: data.payrollId, journalEntryId });
   } catch (e) {
     if (e instanceof AppError) return err(e);
     return err(AppError.internal('hr.payroll.approveFailed', e));
@@ -365,10 +453,14 @@ export async function cancelPayroll(
     }
 
     if (payroll.journalEntryId) {
-      const reverseRes = await reverseJournal({
-        journalId: payroll.journalEntryId,
-        postingDate: new Date().toISOString().split('T')[0]!,
-      }, ctx, { skipPermissionCheck: true });
+      const reverseRes = await reverseJournal(
+        {
+          journalId: payroll.journalEntryId,
+          postingDate: new Date().toISOString().split('T')[0]!,
+        },
+        ctx,
+        { skipPermissionCheck: true },
+      );
 
       if (!reverseRes.ok) {
         return err(AppError.internal('hr.payroll.cancelFailed', { error: reverseRes.error }));
@@ -401,4 +493,3 @@ export async function cancelPayroll(
     return err(AppError.internal('hr.payroll.cancelFailed', e));
   }
 }
-

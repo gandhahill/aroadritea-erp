@@ -447,6 +447,8 @@ Peraturan terbaru:WP final hanya untuk omzet ≤ Rp 500 juta per tahun. Dasar hu
 - **Slip gaji digital**: **wajib** (kirim per email atau download via portal karyawan)
 
 ### 12.4 Kehadiran & Cuti
+- **Verifikasi wajah untuk presensi**: mulai 2026-06-02, presensi karyawan wajib menambahkan verifikasi wajah sebagai lapisan kedua setelah GPS/shift. Pendaftaran data wajah **tidak memakai halaman baru**; jika karyawan belum punya template wajah, halaman check-in otomatis meminta pendaftaran wajah pada check-in pertama setelah fitur aktif, lalu melanjutkan presensi yang sama.
+- **Privasi biometrik**: ERP tidak boleh menyimpan foto wajah mentah untuk presensi rutin. Sistem hanya menyimpan template/verifier wajah terenkripsi, audit enrollment, dan hasil verifikasi per transaksi presensi.
 - **Sistem absensi saat ini**: **belum ada** → ERP **wajib menyediakan modul absensi** (mobile-friendly, GPS check-in, atau scan QR di lokasi)
 - **Shift kerja**:
   - Shift pagi: **09:30 – 17:30 WIB**

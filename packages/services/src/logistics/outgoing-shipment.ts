@@ -5,7 +5,7 @@ import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, count, eq, gte, sql } from 'drizzle-orm';
+import { and, count, eq, gte, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
@@ -33,6 +33,21 @@ export const CreateOutgoingShipmentSchema = z.object({
   ).default([]),
 });
 export type CreateOutgoingShipmentInput = z.infer<typeof CreateOutgoingShipmentSchema>;
+
+export const UpdateOutgoingShipmentSchema = z.object({
+  shipmentId: z.string().min(1),
+  number: z.string().min(1),
+  locationId: z.string().min(1),
+  subject: z.string().min(1),
+  notes: z.string().optional(),
+  recipientName: z.string().min(1),
+  recipientAddress: z.string().min(1),
+  recipientPhone: z.string().optional(),
+  shippingCourierCode: z.string().optional(),
+  shippingAwb: z.string().optional(),
+  shippingPhoneLast5: z.string().optional(),
+});
+export type UpdateOutgoingShipmentInput = z.infer<typeof UpdateOutgoingShipmentSchema>;
 
 export async function createOutgoingShipment(
   input: CreateOutgoingShipmentInput,
@@ -165,6 +180,286 @@ export async function createOutgoingShipment(
     (e) => {
       if (e instanceof AppError) return e;
       return AppError.internal('logistics.outgoingShipment.createFailed', e);
+    },
+  );
+}
+
+export async function updateOutgoingShipment(
+  input: UpdateOutgoingShipmentInput,
+  ctx: AuditContext,
+): Promise<Result<string>> {
+  const parsed = UpdateOutgoingShipmentSchema.safeParse(input);
+  if (!parsed.success) {
+    return err(
+      AppError.validation('logistics.outgoingShipment.validationFailed', {
+        issues: parsed.error.issues,
+      }),
+    );
+  }
+  const data = parsed.data;
+
+  const [shipment] = await db
+    .select()
+    .from(outgoingShipments)
+    .where(
+      and(
+        eq(outgoingShipments.tenantId, ctx.tenantId),
+        eq(outgoingShipments.id, data.shipmentId),
+        isNull(outgoingShipments.deletedAt),
+      ),
+    )
+    .limit(1);
+  if (!shipment) return err(AppError.notFound('logistics.outgoingShipment.notFound'));
+
+  const currentPerm = await requirePermission(ctx.userId, 'logistics.shipments.create', {
+    locationId: shipment.locationId,
+  });
+  if (!currentPerm.ok) return currentPerm;
+
+  if (data.locationId !== shipment.locationId) {
+    const nextPerm = await requirePermission(ctx.userId, 'logistics.shipments.create', {
+      locationId: data.locationId,
+    });
+    if (!nextPerm.ok) return nextPerm;
+
+    const [lineCount] = await db
+      .select({ c: count() })
+      .from(outgoingShipmentLines)
+      .where(
+        and(
+          eq(outgoingShipmentLines.tenantId, ctx.tenantId),
+          eq(outgoingShipmentLines.shipmentId, shipment.id),
+          isNull(outgoingShipmentLines.deletedAt),
+        ),
+      );
+    if (Number(lineCount?.c ?? 0) > 0) {
+      return err(
+        AppError.businessRule('logistics.outgoingShipment.locationChangeWithLines', {
+          shipmentId: shipment.id,
+        }),
+      );
+    }
+  }
+
+  return tryCatch(
+    async () => {
+      const now = new Date();
+      const [updated] = await db
+        .update(outgoingShipments)
+        .set({
+          locationId: data.locationId,
+          number: data.number,
+          subject: data.subject,
+          notes: data.notes || null,
+          recipientName: data.recipientName,
+          recipientAddress: data.recipientAddress,
+          recipientPhone: data.recipientPhone || null,
+          shippingCourierCode: data.shippingCourierCode || null,
+          shippingAwb: data.shippingAwb || null,
+          shippingPhoneLast5: data.shippingPhoneLast5 || null,
+          updatedAt: now,
+          updatedBy: ctx.userId,
+          version: shipment.version + 1,
+        })
+        .where(
+          and(
+            eq(outgoingShipments.tenantId, ctx.tenantId),
+            eq(outgoingShipments.id, shipment.id),
+            isNull(outgoingShipments.deletedAt),
+          ),
+        )
+        .returning({ id: outgoingShipments.id });
+
+      if (!updated) throw AppError.conflict('logistics.outgoingShipment.updateConflict');
+
+      await auditRecord({
+        action: 'update',
+        entityType: 'outgoing_shipment',
+        entityId: shipment.id,
+        before: {
+          number: shipment.number,
+          locationId: shipment.locationId,
+          subject: shipment.subject,
+          recipientName: shipment.recipientName,
+          shippingCourierCode: shipment.shippingCourierCode,
+          shippingAwb: shipment.shippingAwb,
+        },
+        after: {
+          number: data.number,
+          locationId: data.locationId,
+          subject: data.subject,
+          recipientName: data.recipientName,
+          shippingCourierCode: data.shippingCourierCode || null,
+          shippingAwb: data.shippingAwb || null,
+        },
+        ctx,
+      });
+
+      return shipment.id;
+    },
+    (e) => {
+      if (e instanceof AppError) return e;
+      return AppError.internal('logistics.outgoingShipment.updateFailed', e);
+    },
+  );
+}
+
+export async function deleteOutgoingShipment(
+  shipmentId: string,
+  ctx: AuditContext,
+): Promise<Result<string>> {
+  const [shipment] = await db
+    .select()
+    .from(outgoingShipments)
+    .where(
+      and(
+        eq(outgoingShipments.tenantId, ctx.tenantId),
+        eq(outgoingShipments.id, shipmentId),
+        isNull(outgoingShipments.deletedAt),
+      ),
+    )
+    .limit(1);
+  if (!shipment) return err(AppError.notFound('logistics.outgoingShipment.notFound'));
+  if (shipment.status === 'delivered') {
+    return err(AppError.businessRule('logistics.outgoingShipment.deleteDeliveredBlocked'));
+  }
+
+  const permCheck = await requirePermission(ctx.userId, 'logistics.shipments.create', {
+    locationId: shipment.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  return tryCatch(
+    async () => {
+      const now = new Date();
+      await db.transaction(async (tx) => {
+        const movements = await tx
+          .select({
+            id: stockMovements.id,
+            locationId: stockMovements.locationId,
+            stockLocationId: stockMovements.stockLocationId,
+            productId: stockMovements.productId,
+            variantId: stockMovements.variantId,
+            batchNo: stockMovements.batchNo,
+            qtyDelta: stockMovements.qtyDelta,
+            uom: stockMovements.uom,
+          })
+          .from(stockMovements)
+          .where(
+            and(
+              eq(stockMovements.tenantId, ctx.tenantId),
+              eq(stockMovements.referenceType, 'outgoing_shipment'),
+              eq(stockMovements.referenceId, shipment.id),
+              eq(stockMovements.reason, 'outgoing_shipment'),
+              isNull(stockMovements.deletedAt),
+            ),
+          );
+
+        for (const movement of movements) {
+          const qtyToRestore = Math.abs(Number.parseFloat(String(movement.qtyDelta))).toString();
+          const stockWhere = [
+            eq(stockLevels.tenantId, ctx.tenantId),
+            eq(stockLevels.locationId, movement.locationId),
+            eq(stockLevels.productId, movement.productId),
+            movement.variantId
+              ? eq(stockLevels.variantId, movement.variantId)
+              : isNull(stockLevels.variantId),
+            movement.stockLocationId
+              ? eq(stockLevels.stockLocationId, movement.stockLocationId)
+              : isNull(stockLevels.stockLocationId),
+            movement.batchNo ? eq(stockLevels.batchNo, movement.batchNo) : isNull(stockLevels.batchNo),
+          ];
+
+          await tx
+            .update(stockLevels)
+            .set({
+              qtyOnHand: sql`${stockLevels.qtyOnHand} + ${qtyToRestore}::numeric`,
+              qtyAvailable: sql`${stockLevels.qtyAvailable} + ${qtyToRestore}::numeric`,
+              updatedAt: now,
+              updatedBy: ctx.userId,
+              lastMovementAt: now,
+            })
+            .where(and(...stockWhere));
+
+          await tx.insert(stockMovements).values({
+            id: generateId(),
+            tenantId: ctx.tenantId,
+            locationId: movement.locationId,
+            occurredAt: now,
+            stockLocationId: movement.stockLocationId,
+            productId: movement.productId,
+            variantId: movement.variantId,
+            batchNo: movement.batchNo,
+            qtyDelta: qtyToRestore,
+            uom: movement.uom,
+            reason: 'outgoing_shipment_rollback',
+            referenceType: 'outgoing_shipment',
+            referenceId: shipment.id,
+            unitCost: null,
+            createdBy: ctx.userId,
+            updatedBy: ctx.userId,
+          });
+        }
+
+        if (movements.length > 0) {
+          await tx
+            .update(stockMovements)
+            .set({ deletedAt: now, updatedAt: now, updatedBy: ctx.userId })
+            .where(
+              and(
+                eq(stockMovements.tenantId, ctx.tenantId),
+                inArray(stockMovements.id, movements.map((movement) => movement.id)),
+              ),
+            );
+        }
+
+        await tx
+          .update(outgoingShipmentLines)
+          .set({ deletedAt: now, updatedAt: now, updatedBy: ctx.userId })
+          .where(
+            and(
+              eq(outgoingShipmentLines.tenantId, ctx.tenantId),
+              eq(outgoingShipmentLines.shipmentId, shipment.id),
+              isNull(outgoingShipmentLines.deletedAt),
+            ),
+          );
+
+        await tx
+          .update(outgoingShipments)
+          .set({
+            status: 'cancelled',
+            deletedAt: now,
+            updatedAt: now,
+            updatedBy: ctx.userId,
+            version: shipment.version + 1,
+          })
+          .where(
+            and(
+              eq(outgoingShipments.tenantId, ctx.tenantId),
+              eq(outgoingShipments.id, shipment.id),
+              isNull(outgoingShipments.deletedAt),
+            ),
+          );
+      });
+
+      await auditRecord({
+        action: 'delete',
+        entityType: 'outgoing_shipment',
+        entityId: shipment.id,
+        before: {
+          status: shipment.status,
+          number: shipment.number,
+          locationId: shipment.locationId,
+        },
+        after: { status: 'cancelled', deletedAt: now.toISOString() },
+        ctx,
+      });
+
+      return shipment.id;
+    },
+    (e) => {
+      if (e instanceof AppError) return e;
+      return AppError.internal('logistics.outgoingShipment.deleteFailed', e);
     },
   );
 }

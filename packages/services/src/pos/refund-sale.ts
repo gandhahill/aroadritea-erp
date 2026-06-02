@@ -27,7 +27,8 @@
 import { db } from '@erp/db';
 import { accountingPeriods, journalEntries, journalLines } from '@erp/db/schema/accounting';
 import { bomLines, boms, stockLevels, stockMovements } from '@erp/db/schema/inventory';
-import { salesOrderLines, salesOrders } from '@erp/db/schema/pos';
+import { refundLines, refunds, salesOrderLines, salesOrders } from '@erp/db/schema/pos';
+import { sequences } from '@erp/db/schema/common';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
 import { type Result, err, ok } from '@erp/shared/result';
@@ -40,6 +41,24 @@ import { claimIdempotency, releaseIdempotencyClaim, saveIdempotency } from '../s
 import { generateJournalNumber } from '../shared/number-generator';
 import { RefundSaleInputSchema } from './schemas';
 import type { SaleResult } from './schemas';
+
+async function generateRefundNumber(tenantId: string, locationId: string): Promise<string> {
+  const nowWib = new Date(Date.now() + 7 * 60 * 60 * 1000);
+  const prefix = `REF-${nowWib.getUTCFullYear()}-${String(nowWib.getUTCMonth() + 1).padStart(2, '0')}-`;
+  const sequenceName = `${tenantId}:${locationId}:${prefix}`;
+
+  const rows = await db
+    .insert(sequences)
+    .values({ name: sequenceName, currentVal: 1 })
+    .onConflictDoUpdate({
+      target: sequences.name,
+      set: { currentVal: sql`${sequences.currentVal} + 1` },
+    })
+    .returning({ currentVal: sequences.currentVal });
+
+  const nextSeq = rows[0]?.currentVal.toString().padStart(4, '0') ?? '0001';
+  return `${prefix}${nextSeq}`;
+}
 
 export async function refundSale(input: unknown, ctx: AuditContext): Promise<Result<SaleResult>> {
   const parsed = RefundSaleInputSchema.safeParse(input);
@@ -87,30 +106,62 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
       .orderBy(salesOrderLines.lineNo);
 
     const originalLineMap = new Map(originalLines.map((l) => [l.id, l]));
+    const previousRefundRows = await db
+      .select({
+        lineId: refundLines.salesOrderLineId,
+        qty: refundLines.qty,
+        amount: refundLines.amount,
+      })
+      .from(refundLines)
+      .innerJoin(refunds, eq(refunds.id, refundLines.refundId))
+      .where(and(eq(refunds.salesOrderId, data.salesOrderId), eq(refunds.status, 'completed')));
+    const refundedQtyByLine = new Map<string, number>();
+    let previousRefundTotal = 0n;
+    for (const row of previousRefundRows) {
+      refundedQtyByLine.set(
+        row.lineId,
+        (refundedQtyByLine.get(row.lineId) ?? 0) + Number(row.qty),
+      );
+      previousRefundTotal += BigInt(row.amount.toString());
+    }
 
     let refundTotal = 0n;
+    const refundLineAmounts = new Map<string, bigint>();
     for (const rl of data.lines) {
       const ol = originalLineMap.get(rl.lineId);
       if (!ol) {
         return err(AppError.validation('pos.refund.lineNotFound', { lineId: rl.lineId }));
       }
       const originalQty = Math.round(Number(ol.qty));
-      if (rl.qty > originalQty) {
+      const alreadyRefundedQty = refundedQtyByLine.get(rl.lineId) ?? 0;
+      const remainingQty = originalQty - alreadyRefundedQty;
+      if (rl.qty > remainingQty) {
         return err(
           AppError.validation('pos.refund.qtyExceeded', {
             lineId: rl.lineId,
             requestedQty: rl.qty,
             originalQty,
+            alreadyRefundedQty,
+            remainingQty,
           }),
         );
       }
       const lineTotal = BigInt(ol.lineTotal.toString());
-      refundTotal += (lineTotal * BigInt(rl.qty)) / BigInt(originalQty);
+      const lineRefundAmount = (lineTotal * BigInt(rl.qty)) / BigInt(originalQty);
+      refundLineAmounts.set(rl.lineId, lineRefundAmount);
+      refundTotal += lineRefundAmount;
     }
 
+    const refundedQtyAfter = new Map(refundedQtyByLine);
+    for (const rl of data.lines) {
+      refundedQtyAfter.set(rl.lineId, (refundedQtyAfter.get(rl.lineId) ?? 0) + rl.qty);
+    }
     const isFullRefund =
-      refundTotal === BigInt(sale.grandTotal.toString()) &&
-      data.lines.length === originalLines.length;
+      previousRefundTotal + refundTotal >= BigInt(sale.grandTotal.toString()) ||
+      originalLines.every((line) => {
+        const originalQty = Math.round(Number(line.qty));
+        return (refundedQtyAfter.get(line.id) ?? 0) >= originalQty;
+      });
 
     // ── CLAIM the order first ───────────────────────────────────────────
     // Without this, two cashiers refunding the same order could both run
@@ -120,7 +171,7 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
     const claimedSale = await db
       .update(salesOrders)
       .set({
-        status: 'refunded',
+        status: isFullRefund ? 'refunded' : 'paid',
         notes: data.reason,
         updatedBy: ctx.userId,
         version: sale.version + 1,
@@ -224,7 +275,11 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
         const restoreQty = (Number.parseFloat(ingredient.qty) * rl.qty).toFixed(3);
 
         const [currentLevel] = await db
-          .select({ id: stockLevels.id, uom: stockLevels.uom })
+          .select({
+            id: stockLevels.id,
+            stockLocationId: stockLevels.stockLocationId,
+            uom: stockLevels.uom,
+          })
           .from(stockLevels)
           .where(
             and(
@@ -235,7 +290,23 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
           )
           .limit(1);
 
-        if (!currentLevel || (ingredient.uom && currentLevel.uom !== ingredient.uom)) continue;
+        if (!currentLevel) {
+          return err(
+            AppError.businessRule('pos.refund.stockLevelMissing', {
+              productId: ingredient.ingredientId,
+              locationId: sale.locationId,
+            }),
+          );
+        }
+        if (ingredient.uom && currentLevel.uom !== ingredient.uom) {
+          return err(
+            AppError.businessRule('pos.refund.stockUomMismatch', {
+              productId: ingredient.ingredientId,
+              expectedUom: ingredient.uom,
+              stockUom: currentLevel.uom,
+            }),
+          );
+        }
 
         // BOM lines reference ingredient products directly — raw
         // materials are tracked without variants in this schema, so
@@ -257,14 +328,21 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
           )
           .returning({ id: stockLevels.id });
 
-        if (!incremented || incremented.length === 0) continue;
+        if (!incremented || incremented.length === 0) {
+          return err(
+            AppError.conflict('pos.refund.stockRestoreConflict', {
+              productId: ingredient.ingredientId,
+              locationId: sale.locationId,
+            }),
+          );
+        }
 
         await db.insert(stockMovements).values({
           id: generateId(),
           tenantId: ctx.tenantId,
           locationId: sale.locationId,
           occurredAt: new Date(),
-          stockLocationId: null as unknown as string,
+          stockLocationId: currentLevel.stockLocationId,
           productId: ingredient.ingredientId,
           variantId: null,
           batchNo: null,
@@ -279,6 +357,42 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
         });
       }
     }
+
+    const refundId = generateId();
+    const refundNumber = await generateRefundNumber(ctx.tenantId, sale.locationId);
+    await db.insert(refunds).values({
+      id: refundId,
+      tenantId: ctx.tenantId,
+      locationId: sale.locationId,
+      salesOrderId: data.salesOrderId,
+      number: refundNumber,
+      reason: data.reason,
+      refundAmount: refundTotal,
+      refundMethod: 'cash',
+      status: 'completed',
+      approvedBy: ctx.userId,
+      approvedAt: new Date(),
+      journalEntryId: reversalJeId,
+      version: 1,
+      createdBy: ctx.userId,
+      updatedBy: ctx.userId,
+    });
+
+    await db.insert(refundLines).values(
+      data.lines.map((line) => {
+        const originalLine = originalLineMap.get(line.lineId);
+        return {
+          id: generateId(),
+          refundId,
+          salesOrderLineId: line.lineId,
+          lineNo: originalLine?.lineNo ?? 0,
+          qty: line.qty.toFixed(3),
+          amount: refundLineAmounts.get(line.lineId) ?? 0n,
+          createdBy: ctx.userId,
+          updatedBy: ctx.userId,
+        };
+      }),
+    );
 
     // ── Revert loyalty points if customer is a member ────────────────────
     if (sale.customerId) {
@@ -321,7 +435,9 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
       entityId: data.salesOrderId,
       before: { status: sale.status },
       after: {
-        status: 'refunded',
+        status: isFullRefund ? 'refunded' : 'paid',
+        refundId,
+        refundNumber,
         reason: data.reason,
         reversalJeId,
         isFullRefund,
@@ -335,7 +451,7 @@ export async function refundSale(input: unknown, ctx: AuditContext): Promise<Res
     const result: SaleResult = {
       id: sale.id,
       number: sale.number,
-      status: 'refunded',
+      status: isFullRefund ? 'refunded' : 'paid',
       channel: sale.channel as SaleResult['channel'],
       subtotal: sale.subtotal.toString(),
       discountTotal: sale.discountTotal.toString(),

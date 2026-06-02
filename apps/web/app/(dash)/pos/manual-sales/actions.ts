@@ -110,12 +110,12 @@ function errorMessage(error: unknown) {
 export async function fetchManualSalesPageData(
   locationId?: string,
   page = 1,
-  requestedPageSize = 25,
+  requestedPageSize = 10,
 ): Promise<ManualSalesPageData> {
   const ctx = await getAuditContext();
   const pageSize = Math.max(
     1,
-    Math.min(100, Number.isFinite(requestedPageSize) ? requestedPageSize : 25),
+    Math.min(100, Number.isFinite(requestedPageSize) ? requestedPageSize : 10),
   );
   if (!ctx)
     return {

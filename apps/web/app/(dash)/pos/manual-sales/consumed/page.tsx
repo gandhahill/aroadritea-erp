@@ -9,12 +9,19 @@ export async function generateMetadata() {
   return { title: `${t('consumedIngredients')} - POS` };
 }
 
-export default async function ConsumedIngredientsPage() {
+export default async function ConsumedIngredientsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; pageSize?: string }>;
+}) {
   const session = await getSession();
   if (!session?.user) redirect('/login');
   const user = session.user as any;
-  
-  const data = await fetchConsumedIngredientsData();
+
+  const params = await searchParams;
+  const page = Number.parseInt(params.page ?? '1', 10);
+  const pageSize = Number.parseInt(params.pageSize ?? '10', 10);
+  const data = await fetchConsumedIngredientsData(page, pageSize);
   
   return (
     <ConsumedClient data={data} defaultLocationId={user.locationId || ''} />

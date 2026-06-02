@@ -88,14 +88,13 @@ async function syncOrder(order: DbPendingOrder): Promise<boolean> {
     }
 
     if (response.status === 422 || response.status === 400) {
-      // Validation error — do not retry forever; mark as permanent failure
+      // Keep validation failures pending; stale master data or server config can be fixed.
       const errorBody = await response.text().catch(() => 'validation error');
       await markOrderRetry(
         order.clientOrderUuid,
         `[${response.status}] ${errorBody}`,
         new Date(Date.now() + BACKOFF_CAP_MS).toISOString(),
       );
-      await markOrderSynced(order.clientOrderUuid, `FAILED_${response.status}`);
       return false;
     }
 

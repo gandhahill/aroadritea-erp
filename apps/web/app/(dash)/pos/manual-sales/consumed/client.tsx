@@ -1,23 +1,51 @@
 'use client';
 
 import { PageHeader } from '@/components/page-header';
-import { Button, Input, Select, SearchableSelect, Table, TableBody, TableCell, TableHead } from '@erp/ui';
+import { Pagination } from '@/components/pagination';
+import { Button, Input, Select, SearchableSelect, Table, TableBody, TableCell, TableHead, toast } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useActionState, useEffect, useState } from 'react';
-import { createConsumedIngredientsAction } from './actions';
+import {
+  createConsumedIngredientsAction,
+  deleteConsumedIngredientsAction,
+  fetchConsumedIngredientDetailAction,
+} from './actions';
+
+interface ConsumedHistoryItem {
+  id: string;
+  occurredAt: string;
+  locationId: string;
+  locationLabel: string;
+  itemCount: number;
+  createdByName: string | null;
+}
 
 interface Props {
   data: {
     locations: Array<{ id: string; label: string; code: string }>;
     ingredients: Array<{ id: string; name: string; uom: string }>;
+    history: {
+      items: ConsumedHistoryItem[];
+      total: number;
+      page: number;
+      pageSize: number;
+    };
   };
   defaultLocationId: string;
 }
 
 export function ConsumedClient({ data, defaultLocationId }: Props) {
   const t = useTranslations('pos.manualSales');
+  const router = useRouter();
   const [state, submitAction, isPending] = useActionState(createConsumedIngredientsAction, null);
+  const [referenceId, setReferenceId] = useState<string | null>(null);
+  const [editLocationId, setEditLocationId] = useState(defaultLocationId);
+  const [entryDate, setEntryDate] = useState(new Date().toISOString().slice(0, 10));
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [loadingDetailId, setLoadingDetailId] = useState<string | null>(null);
   const [consumedIngredients, setConsumedIngredients] = useState<
     Array<{ ingredientId: string; name: string; qty: number; uom: string }>
   >([]);
@@ -27,31 +55,81 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
       const form = document.getElementById('consumed-ingredients-form') as HTMLFormElement | null;
       form?.reset();
       setConsumedIngredients([]);
+      setReferenceId(null);
+      setEditLocationId(defaultLocationId);
+      setEntryDate(new Date().toISOString().slice(0, 10));
+      router.refresh();
     }
-  }, [state]);
+  }, [state, defaultLocationId, router]);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const startEdit = async (id: string) => {
+    setLoadingDetailId(id);
+    const res = await fetchConsumedIngredientDetailAction(id);
+    setLoadingDetailId(null);
+
+    if (!res.ok || !res.value) {
+      toast.error(res.error || t('failedToLoad'));
+      return;
+    }
+
+    setReferenceId(res.value.referenceId);
+    setEditLocationId(res.value.locationId);
+    setEntryDate(res.value.date);
+    setConsumedIngredients(res.value.consumedIngredients);
+    setTimeout(() => {
+      document.getElementById('consumed-ingredients-form')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const resetEdit = () => {
+    setReferenceId(null);
+    setEditLocationId(defaultLocationId);
+    setEntryDate(new Date().toISOString().slice(0, 10));
+    setConsumedIngredients([]);
+  };
+
+  const executeDelete = async () => {
+    if (!deleteConfirmId) return;
+    setIsDeleting(true);
+    const res = await deleteConsumedIngredientsAction(deleteConfirmId);
+    setIsDeleting(false);
+
+    if (!res.ok) {
+      toast.error(res.error || t('deleteConsumedFailed'));
+      return;
+    }
+
+    if (referenceId === deleteConfirmId) resetEdit();
+    setDeleteConfirmId(null);
+    router.refresh();
+  };
 
   return (
     <div className="h-full w-full overflow-y-auto space-y-6 pb-24 px-4 pt-4">
       <div className="flex items-start justify-between">
         <PageHeader
-          title={<>{t('consumedIngredients', { defaultValue: 'Pemakaian Bahan' })}</>}
-          description={<>{t('consumedIngredientsDesc', { defaultValue: 'Rekap stok bahan baku yang terpakai.' })}</>}
-          eyebrow={<>{t('eyebrow', { defaultValue: 'POS' })}</>}
+          title={<>{t('consumedIngredients')}</>}
+          description={<>{t('consumedIngredientsDesc')}</>}
+          eyebrow={<>{t('eyebrow')}</>}
         />
         <Link 
           href="/pos/manual-sales" 
           className="inline-flex items-center justify-center rounded-lg bg-brand-cream px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-2 border border-brand-cream-3"
         >
-          &larr; {t('backToSales', { defaultValue: 'Kembali ke Penjualan' })}
+          &larr; {t('backToSales')}
         </Link>
       </div>
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
         <form id="consumed-ingredients-form" action={submitAction} className="grid gap-4 lg:grid-cols-4">
+          <input type="hidden" name="referenceId" value={referenceId ?? ''} />
           <Field label={t('location')}>
-            <Select name="locationId" defaultValue={defaultLocationId} required>
+            <Select
+              name="locationId"
+              value={editLocationId}
+              onChange={(event) => setEditLocationId(event.target.value)}
+              required
+            >
               {data.locations.map((location) => (
                 <option key={location.id} value={location.id}>
                   {location.label}
@@ -59,8 +137,14 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
               ))}
             </Select>
           </Field>
-          <Field label={t('date', { defaultValue: 'Tanggal' })}>
-            <Input name="date" type="date" defaultValue={today} required />
+          <Field label={t('date')}>
+            <Input
+              name="date"
+              type="date"
+              value={entryDate}
+              onChange={(event) => setEntryDate(event.target.value)}
+              required
+            />
           </Field>
           
           <div className="lg:col-span-4 rounded-xl border border-brand-cream-3 p-4 mt-4">
@@ -73,19 +157,19 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
                 >
                   <div className="flex-1 min-w-[200px]">
                     <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
-                      {t('ingredient', { defaultValue: 'Bahan Baku' })}
+                      {t('ingredient')}
                     </span>
                     <SearchableSelect
                       options={[
-                        { value: '', label: t('selectIngredient', { defaultValue: 'Pilih Bahan...' }) },
+                        { value: '', label: t('selectIngredient') },
                         ...data.ingredients.map((p) => ({
                           value: p.id,
                           label: `${p.name} (${p.uom})`,
                         })),
                       ]}
                       value={item.ingredientId}
-                      searchPlaceholder={t('search', { defaultValue: 'Cari...' })}
-                      emptyMessage={t('noResultsFound', { defaultValue: 'Tidak ada hasil' })}
+                      searchPlaceholder={t('search')}
+                      emptyMessage={t('noResultsFound')}
                       onChange={(val) => {
                         const ingredient = data.ingredients.find((p) => p.id === val);
                         if (!ingredient) return;
@@ -150,7 +234,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
                   ]);
                 }}
               >
-                + {t('addIngredient', { defaultValue: 'Tambah Bahan Baku' })}
+                + {t('addIngredient')}
               </Button>
             </div>
             <input
@@ -168,8 +252,18 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
               variant="primary"
               size="lg"
             >
-              {isPending ? t('posting') : t('post')}
+              {isPending ? t('posting') : referenceId ? t('updateConsumed') : t('post')}
             </Button>
+            {referenceId ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="ml-3"
+                onClick={resetEdit}
+              >
+                {t('cancel')}
+              </Button>
+            ) : null}
           </div>
           {state?.error ? (
             <div className="lg:col-span-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -183,6 +277,116 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
           ) : null}
         </form>
       </section>
+
+      <section className="rounded-xl border border-brand-cream-3 bg-card shadow-sm">
+        <div className="border-b border-brand-cream-3 px-5 py-4">
+          <h2 className="text-base font-semibold text-brand-ink">{t('consumedHistory')}</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <Table>
+            <thead className="bg-brand-cream">
+              <tr className="text-left text-brand-ink-2">
+                <Th>{t('date')}</Th>
+                <Th>{t('location')}</Th>
+                <Th align="right">{t('itemCount')}</Th>
+                <Th>{t('postedBy')}</Th>
+                <Th align="right">{t('actions')}</Th>
+              </tr>
+            </thead>
+            <TableBody className="divide-y divide-brand-cream-3">
+              {data.history.items.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-brand-ink-3">
+                    {t('emptyConsumedHistory')}
+                  </td>
+                </tr>
+              ) : (
+                data.history.items.map((item) => (
+                  <tr key={item.id} className="text-brand-ink hover:bg-brand-cream/50">
+                    <Td>{item.occurredAt.slice(0, 10)}</Td>
+                    <Td>{item.locationLabel || '-'}</Td>
+                    <Td align="right">{item.itemCount}</Td>
+                    <Td>{item.createdByName || '-'}</Td>
+                    <Td align="right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          disabled={loadingDetailId === item.id}
+                          onClick={() => startEdit(item.id)}
+                        >
+                          {loadingDetailId === item.id ? t('loadingDetail') : t('edit')}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-brand-red"
+                          onClick={() => setDeleteConfirmId(item.id)}
+                        >
+                          {t('delete')}
+                        </Button>
+                      </div>
+                    </Td>
+                  </tr>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        <Pagination
+          currentPage={data.history.page}
+          totalItems={data.history.total}
+          pageSize={data.history.pageSize}
+        />
+      </section>
+
+      {deleteConfirmId ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
+          <button
+            type="button"
+            aria-label={t('close')}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => !isDeleting && setDeleteConfirmId(null)}
+          />
+          <div className="relative z-10 flex w-full max-w-sm flex-col overflow-hidden rounded-2xl bg-card shadow-2xl">
+            <div className="flex items-center justify-between border-b border-brand-cream-3 bg-brand-cream px-6 py-4">
+              <h3 className="text-lg font-semibold text-brand-ink">{t('confirmDeleteConsumedTitle')}</h3>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setDeleteConfirmId(null)}
+                className="text-brand-ink-3 hover:text-brand-ink disabled:opacity-50"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-brand-ink-2">{t('confirmDeleteConsumed')}</p>
+            </div>
+            <div className="flex justify-end gap-3 border-t border-brand-cream-3 bg-brand-cream p-4">
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={isDeleting}
+                onClick={() => setDeleteConfirmId(null)}
+              >
+                {t('cancel')}
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                disabled={isDeleting}
+                className="bg-brand-red text-white hover:bg-brand-red-dark"
+                onClick={executeDelete}
+              >
+                {isDeleting ? t('deleting') : t('delete')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -193,5 +397,37 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="text-sm font-medium text-brand-ink">{label}</span>
       {children}
     </label>
+  );
+}
+
+function Th({
+  children,
+  align = 'left',
+}: {
+  children: React.ReactNode;
+  align?: 'left' | 'right';
+}) {
+  return (
+    <TableHead
+      className={`px-4 py-3 font-medium ${align === 'right' ? 'text-right' : 'text-left'}`}
+    >
+      {children}
+    </TableHead>
+  );
+}
+
+function Td({
+  children,
+  align = 'left',
+}: {
+  children: React.ReactNode;
+  align?: 'left' | 'right';
+}) {
+  return (
+    <TableCell
+      className={`whitespace-nowrap px-4 py-3 ${align === 'right' ? 'text-right' : 'text-left'}`}
+    >
+      {children}
+    </TableCell>
   );
 }

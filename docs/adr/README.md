@@ -66,6 +66,7 @@ Opsi lain yang dievaluasi + alasan ditolak.
 | [0010](0010-ppn-engine-opt-in.md) | PPN Engine — Opt-In | Accepted | 2026-05-05 | PB1 default, PPN keluaran default off untuk retail F&B; engine siap aktivasi B2B kelak via `tax_rules` |
 | [0011](0011-hestiacp-smtp-transactional-email.md) | HestiaCP SMTP Untuk Email Transaksional | Accepted | 2026-05-13 | Email otomatis via mailbox HestiaCP SMTP; bukan Resend/SES sebagai default |
 | [0012](0012-pm2-hestiacp-production-runtime.md) | PM2 + HestiaCP Untuk Runtime Production VPS | Accepted | 2026-05-14 | Runtime production VPS memakai PM2, bukan Docker Compose |
+| [0013](0013-attendance-face-verification.md) | Attendance Face Verification | Accepted | 2026-06-02 | Inline enrollment di halaman check-in, template wajah terenkripsi, tanpa foto mentah rutin |
 
 > Tabel di atas wajib diperbarui setiap kali ADR baru dibuat atau status berubah. Index ini di-render di `CLAUDE.md` sebagai daftar pengingat.
 

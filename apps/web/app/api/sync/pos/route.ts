@@ -109,13 +109,6 @@ export async function POST(req: NextRequest) {
         { status: 422 },
       );
     }
-    if (diffHours > 24) {
-      return NextResponse.json(
-        { error: 'Client timestamp too old (max 24 hours)' },
-        { status: 422 },
-      );
-    }
-
     const result = await createSale(input, ctx);
     if (!result.ok) {
       return NextResponse.json(

@@ -2,9 +2,14 @@
 
 import { getSession } from '@/lib/auth';
 import { authorizedLocationIdsForTenant } from '@/lib/authz';
-import { db, desc, eq, inArray, and } from '@erp/db';
+import { db, desc, eq, inArray, and, isNull } from '@erp/db';
 import { outgoingShipments } from '@erp/db/schema/logistics';
-import { createOutgoingShipment, trackOutgoingShipment } from '@erp/services/logistics';
+import {
+  createOutgoingShipment,
+  deleteOutgoingShipment,
+  trackOutgoingShipment,
+  updateOutgoingShipment,
+} from '@erp/services/logistics';
 import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
 
@@ -23,7 +28,10 @@ export async function fetchOutgoingShipments() {
     return [];
   }
 
-  const conditions = [eq(outgoingShipments.tenantId, String(user.tenantId ?? 'default'))];
+  const conditions = [
+    eq(outgoingShipments.tenantId, String(user.tenantId ?? 'default')),
+    isNull(outgoingShipments.deletedAt),
+  ];
 
   if (!scope.global) {
     conditions.push(inArray(outgoingShipments.locationId, scope.locationIds));
@@ -51,7 +59,13 @@ export async function fetchOutgoingShipmentById(id: string) {
   const [shipment] = await db
     .select()
     .from(outgoingShipments)
-    .where(and(eq(outgoingShipments.tenantId, tenantId), eq(outgoingShipments.id, id)))
+    .where(
+      and(
+        eq(outgoingShipments.tenantId, tenantId),
+        eq(outgoingShipments.id, id),
+        isNull(outgoingShipments.deletedAt),
+      ),
+    )
     .limit(1);
 
   if (!shipment) return null;
@@ -83,7 +97,7 @@ export type OutgoingShipmentDetail = NonNullable<Awaited<ReturnType<typeof fetch
 export async function syncTrackingAction(shipmentId: string, courierCode: string, awb: string) {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
-  
+
   const user = session.user as Record<string, unknown>;
   const ctx: AuditContext = {
     userId: String(user.id),
@@ -111,7 +125,7 @@ export async function syncTrackingAction(shipmentId: string, courierCode: string
 export async function createOutgoingShipmentAction(input: any) {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
-  
+
   const user = session.user as Record<string, unknown>;
   const ctx: AuditContext = {
     userId: String(user.id),
@@ -122,6 +136,47 @@ export async function createOutgoingShipmentAction(input: any) {
   };
 
   const res = await createOutgoingShipment(input, ctx);
+  if (!res.ok) throw new Error(res.error.message);
+
+  revalidatePath('/logistics/outgoing-shipments');
+  return { success: true, id: res.value };
+}
+
+export async function updateOutgoingShipmentAction(shipmentId: string, input: any) {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthorized');
+
+  const user = session.user as Record<string, unknown>;
+  const ctx: AuditContext = {
+    userId: String(user.id),
+    tenantId: String(user.tenantId ?? 'default'),
+    locationId: String(user.locationId ?? ''),
+    userAgent: 'ERP Web',
+    ipAddress: '127.0.0.1',
+  };
+
+  const res = await updateOutgoingShipment({ ...input, shipmentId }, ctx);
+  if (!res.ok) throw new Error(res.error.message);
+
+  revalidatePath('/logistics/outgoing-shipments');
+  revalidatePath(`/logistics/outgoing-shipments/${shipmentId}`);
+  return { success: true, id: res.value };
+}
+
+export async function deleteOutgoingShipmentAction(shipmentId: string) {
+  const session = await getSession();
+  if (!session) throw new Error('Unauthorized');
+
+  const user = session.user as Record<string, unknown>;
+  const ctx: AuditContext = {
+    userId: String(user.id),
+    tenantId: String(user.tenantId ?? 'default'),
+    locationId: String(user.locationId ?? ''),
+    userAgent: 'ERP Web',
+    ipAddress: '127.0.0.1',
+  };
+
+  const res = await deleteOutgoingShipment(shipmentId, ctx);
   if (!res.ok) throw new Error(res.error.message);
 
   revalidatePath('/logistics/outgoing-shipments');

@@ -1,6 +1,12 @@
+import { can } from '@erp/services/iam';
+import type { PermissionCode } from '@erp/shared/types';
 import { z } from 'zod';
 import type { McpContext } from '../context';
 import { mcpError, mcpSuccess, serializeResult } from '../helpers';
+
+async function checkPermission(ctx: McpContext, permission: PermissionCode, locationId?: string) {
+  return can(ctx.userId, permission, locationId ? { locationId } : {});
+}
 
 // ─── Security Checks ──────────────────────────────────────────────────────────
 
@@ -37,6 +43,10 @@ export const cmsTools = [
     handler: async (input: unknown, ctx: McpContext) => {
       const parsed = CMSListPagesSchema.safeParse(input);
       if (!parsed.success) return mcpError('INVALID_INPUT', String(parsed.error.issues));
+
+      const permitted = await checkPermission(ctx, 'cms.view', ctx.locationId);
+      if (!permitted) return mcpError('FORBIDDEN', 'Permission denied: cms.view');
+
       const { listPages } = await import('@erp/services/cms');
       const result = await listPages(ctx.tenantId, { status: parsed.data.status });
       if (!result.ok) return serializeResult(result);

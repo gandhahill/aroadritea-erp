@@ -6,7 +6,7 @@
  * Permission: system.manage_scheduled_jobs (admin only).
  */
 
-import { db, sql } from '@erp/db';
+import { db } from '@erp/db';
 import { scheduledJobs } from '@erp/db/schema/scheduled-jobs';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
@@ -161,6 +161,8 @@ export async function createScheduledJob(
         name: data.name,
         label: data.label,
         cronExpression: data.cronExpression,
+        timezone: data.timezone,
+        jobData: data.jobData ?? {},
         enabled: data.enabled,
       },
       ctx: _ctx,
@@ -216,11 +218,15 @@ export async function updateScheduledJob(
       before: {
         label: String(job.label),
         cronExpression: String(job.cronExpression),
+        timezone: String(job.timezone),
+        jobData: (job.jobData as Record<string, unknown>) ?? {},
         enabled: Boolean(job.enabled),
       },
       after: {
         label: data.label ?? String(job.label),
         cronExpression: data.cronExpression ?? String(job.cronExpression),
+        timezone: data.timezone ?? String(job.timezone),
+        jobData: data.jobData ?? (job.jobData as Record<string, unknown>) ?? {},
         enabled: data.enabled ?? Boolean(job.enabled),
       },
       ctx: _ctx,

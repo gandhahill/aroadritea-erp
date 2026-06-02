@@ -9,9 +9,10 @@ export default async function OutgoingShipmentDetailPage(props: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await props.params;
-  const [detail, t] = await Promise.all([
+  const [detail, t, tRoot] = await Promise.all([
     fetchOutgoingShipmentById(id),
     getTranslations('logistics.outgoingShipment.detail'),
+    getTranslations('logistics'),
   ]);
 
   if (!detail) return notFound();
@@ -32,12 +33,20 @@ export default async function OutgoingShipmentDetailPage(props: {
           }
           eyebrow={<>{t('eyebrow')}</>}
           actions={
-            <Link
-              href="/logistics/outgoing-shipments"
-              className="inline-flex items-center justify-center rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink hover:bg-brand-cream-1"
-            >
-              {t('back')}
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/logistics/outgoing-shipments"
+                className="inline-flex items-center justify-center rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink hover:bg-brand-cream-1"
+              >
+                {t('back')}
+              </Link>
+              <Link
+                href={`/logistics/outgoing-shipments/${detail.id}/edit`}
+                className="inline-flex items-center justify-center rounded-lg bg-brand-red px-4 py-2 text-sm font-semibold text-white hover:bg-brand-red-dark"
+              >
+                {tRoot('edit')}
+              </Link>
+            </div>
           }
         />
 

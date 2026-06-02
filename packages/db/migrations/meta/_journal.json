@@ -274,6 +274,13 @@
       "when": 1780164327767,
       "tag": "0038_flawless_nemesis",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1780408080000,
+      "tag": "0039_employee_face_templates",
+      "breakpoints": true
     }
   ]
 }

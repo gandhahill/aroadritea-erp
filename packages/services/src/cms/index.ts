@@ -831,19 +831,22 @@ export async function setSetting(
 
   try {
     const existing = await db
-      .select({ id: cmsSettings.id })
+      .select({ id: cmsSettings.id, value: cmsSettings.value })
       .from(cmsSettings)
       .where(and(eq(cmsSettings.tenantId, tenantId), eq(cmsSettings.key, key)))
       .limit(1);
 
-    if (existing[0]) {
+    const existingRow = existing[0] ?? null;
+    const settingId = existingRow?.id ?? crypto.randomUUID();
+
+    if (existingRow) {
       await db
         .update(cmsSettings)
-        .set({ value, updatedBy: ctx.userId })
-        .where(eq(cmsSettings.id, existing[0].id));
+        .set({ value, updatedBy: ctx.userId, updatedAt: new Date() })
+        .where(and(eq(cmsSettings.id, existingRow.id), eq(cmsSettings.tenantId, tenantId)));
     } else {
       await db.insert(cmsSettings).values({
-        id: crypto.randomUUID(),
+        id: settingId,
         tenantId,
         key,
         value,
@@ -851,6 +854,17 @@ export async function setSetting(
         updatedBy: ctx.userId,
       });
     }
+
+    await auditRecord({
+      action: existingRow ? 'update' : 'create',
+      entityType: 'cms_settings',
+      entityId: settingId,
+      before: existingRow ? { key, value: existingRow.value } : null,
+      after: { key, value },
+      metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+      ctx,
+    });
+
     return ok(undefined);
   } catch (e) {
     return err(AppError.internal('cms.settings.setFailed', e));
