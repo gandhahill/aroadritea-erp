@@ -462,6 +462,7 @@ export async function checkIn(
       };
     },
     (e) => {
+      console.error('CRITICAL INTERNAL CHECK-IN ERROR:', e);
       if (e instanceof AppError) return e;
       return AppError.internal('hr.attendance.checkInFailed', e);
     },

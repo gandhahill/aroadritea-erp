@@ -1,4 +1,4 @@
-﻿/**
+/**
  * HR Check-In Client â€” mobile-friendly GPS check-in.
  *
  * Workflow:
@@ -12,6 +12,7 @@
 
 import { PageHeader } from '@/components/page-header';
 import type { GpsData } from '@erp/services/hr';
+
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { serverCheckIn } from './actions';
@@ -263,7 +264,42 @@ export function CheckInClient({ locationId, employeeId, shifts, locationGps }: P
                 : 'border-rose-200 bg-rose-50'
             }`}
           >
-            <span className="text-2xl">{locationCheck.withinRadius ? '📍' : '⚠️'}</span>
+            <span className="text-brand-ink">
+              {locationCheck.withinRadius ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-6 w-6 text-brand-jade"
+                >
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-6 w-6 text-rose-500"
+                >
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              )}
+            </span>
             <div className="flex-1">
               <p
                 className={`text-sm font-semibold ${
