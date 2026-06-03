@@ -40,6 +40,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ key:
         'cache-control':
           upload.visibility === 'public' ? 'public, max-age=31536000, immutable' : 'no-store',
         'x-content-type-options': 'nosniff',
+        'x-frame-options': 'SAMEORIGIN',
+        'content-security-policy': "frame-ancestors 'self'",
         'content-disposition': `${disposition}; filename="${safeHeaderFileName(fileName)}"`,
       },
     });
