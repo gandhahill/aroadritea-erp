@@ -879,6 +879,105 @@
         "startDate": "开始日期",
         "endDate": "结束日期"
       }
+    },
+    "closeCenter": {
+      "title": "财务结账控制中心",
+      "subtitle": "按期间、凭证、POS、银行、库存、应收应付、税务和薪资检查月结准备状态。",
+      "breadcrumbs": {
+        "dashboard": "仪表板",
+        "accounting": "会计",
+        "closeCenter": "财务结账"
+      },
+      "filters": {
+        "period": "期间",
+        "location": "地点",
+        "apply": "应用",
+        "noLocation": "没有启用地点"
+      },
+      "cards": {
+        "readiness": "准备度",
+        "blocked": "阻塞",
+        "warnings": "提醒",
+        "ready": "就绪"
+      },
+      "overallStatus": "总体状态",
+      "periodRange": "期间范围",
+      "selectedLocation": "地点",
+      "checklist": "结账检查清单",
+      "openLink": "打开模块",
+      "statuses": {
+        "ready": "就绪",
+        "warning": "需要复核",
+        "blocked": "阻塞"
+      },
+      "periodStatuses": {
+        "open": "期间已开放",
+        "closing": "期间结账中",
+        "closed": "期间已关闭",
+        "unknown": "未知期间状态"
+      },
+      "countLabels": {
+        "periodFound": "已找到期间",
+        "draftJournals": "草稿凭证",
+        "unbalancedJournals": "不平衡凭证",
+        "postedJournals": "已过账凭证",
+        "openShifts": "未关闭 POS 班次",
+        "unpostedManualClosings": "未过账 POS 日结",
+        "totalManualClosings": "POS 日结总数",
+        "unreconciledStatements": "未对账银行单",
+        "unmatchedBankLines": "未匹配银行明细",
+        "totalStatements": "银行单总数",
+        "pendingOpname": "未批准盘点",
+        "approvedMonthlyOpname": "已批准月度盘点",
+        "stockMovementsWithoutCost": "无成本入库流水",
+        "draftSalesInvoices": "草稿销售发票",
+        "openSalesInvoices": "未清应收",
+        "draftPurchaseInvoices": "草稿采购发票",
+        "openPurchaseInvoices": "未清应付",
+        "draftTaxInvoices": "草稿税务发票",
+        "taxInvoices": "税务发票",
+        "withholdingTaxes": "扣缴凭证",
+        "payrollRuns": "薪资批次",
+        "payrollBlockingRuns": "未支付薪资"
+      },
+      "items": {
+        "period": {
+          "title": "会计期间",
+          "description": "在开始结账前确认月度期间已经存在。"
+        },
+        "journals": {
+          "title": "总账凭证",
+          "description": "确认本期间没有草稿凭证或不平衡凭证。"
+        },
+        "pos": {
+          "title": "POS 与每日结账",
+          "description": "确认收银班次已关闭，手工销售日结已生成凭证。"
+        },
+        "bankRecon": {
+          "title": "银行对账",
+          "description": "确认银行单已对账，交易明细已匹配。"
+        },
+        "inventory": {
+          "title": "库存与盘点",
+          "description": "确认月度盘点已批准，入库流水已有成本金额。"
+        },
+        "apAr": {
+          "title": "应付与应收",
+          "description": "复核草稿发票和结账前需要处理的未清余额。"
+        },
+        "tax": {
+          "title": "税务",
+          "description": "确认增值税文件、扣缴凭证和期间税务报告已准备好。"
+        },
+        "payroll": {
+          "title": "薪资",
+          "description": "确认本期间薪资已支付或已取消后再关闭期间。"
+        }
+      },
+      "errors": {
+        "unavailableTitle": "结账中心数据不可用",
+        "unavailableBody": "请尝试其他期间或地点，然后重新加载页面。"
+      }
     }
   },
   "purchasing": {
@@ -1812,6 +1911,7 @@
     "receivables": "应收账款",
     "fixedAssets": "固定资产",
     "periods": "会计期间",
+    "financialClose": "财务结账",
     "pettyCash": "零用金",
     "reimbursement": "报销",
     "reporting": "报表",

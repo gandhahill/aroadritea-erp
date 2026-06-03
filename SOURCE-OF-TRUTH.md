@@ -361,6 +361,24 @@ Mengacu jawaban Q22 + tampilan KDS Naixer:
 - ✅ Jurnal Umum
 - ✅ **Laporan per cabang/lokasi** (dimensi cabang wajib di setiap entry jurnal)
 
+### 10.5b Financial Close Control Center
+
+Akuntan membutuhkan satu halaman kontrol penutupan bulanan sebelum periode ditutup. Halaman ini tidak menggantikan laporan akuntansi, tetapi menjadi daftar kesiapan lintas modul.
+
+Minimum checklist:
+- Status periode akuntansi dan jumlah jurnal draft/unposted.
+- POS closing dan shift yang masih terbuka pada periode tersebut.
+- Rekonsiliasi bank per bulan.
+- Stock opname / inventory variance dan pergerakan stok tanpa biaya modal.
+- AP/AR aging atau dokumen tagihan yang belum selesai.
+- Pajak bulanan: PB1/PBJT, PPN opt-in, PPh/Bupot, Coretax export readiness.
+- Payroll bulanan untuk lokasi/karyawan aktif.
+
+Output halaman:
+- Ringkasan status `ready`, `warning`, atau `blocked`.
+- Tautan langsung ke halaman sumber untuk memperbaiki item yang belum siap.
+- Semua angka tetap dapat difilter per periode dan lokasi.
+
 ### 10.6 Penerima Laporan
 - Manajemen
 - Pemegang saham

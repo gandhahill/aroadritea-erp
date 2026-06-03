@@ -166,6 +166,7 @@ export function Sidebar({
         { label: t('payables'), href: '/accounting/payables', icon: <></>, permission: 'accounting.view' },
         { label: t('receivables'), href: '/accounting/receivables', icon: <></>, permission: 'accounting.view' },
         { label: t('periods'), href: '/accounting/periods', icon: <></>, permission: 'accounting.period.open' },
+        { label: t('financialClose'), href: '/accounting/close-center', icon: <></>, permission: 'accounting.view' },
         { label: t('pettyCash'), href: '/accounting/petty-cash', icon: <></>, permission: 'accounting.petty_cash.view' },
         { label: t('reimbursement'), href: '/accounting/reimbursement', icon: <></>, permission: 'accounting.reimbursement.view' },
         { label: t('bankReconciliation'), href: '/accounting/bank-recon', icon: <></>, permission: 'accounting.bank_recon.view' },

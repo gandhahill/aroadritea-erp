@@ -879,6 +879,105 @@
         "startDate": "Start Date",
         "endDate": "End Date"
       }
+    },
+    "closeCenter": {
+      "title": "Financial Close Control Center",
+      "subtitle": "Review monthly close readiness across periods, journals, POS, bank, inventory, AP/AR, tax, and payroll.",
+      "breadcrumbs": {
+        "dashboard": "Dashboard",
+        "accounting": "Accounting",
+        "closeCenter": "Financial Close"
+      },
+      "filters": {
+        "period": "Period",
+        "location": "Location",
+        "apply": "Apply",
+        "noLocation": "No active location"
+      },
+      "cards": {
+        "readiness": "Readiness",
+        "blocked": "Blocked",
+        "warnings": "Warnings",
+        "ready": "Ready"
+      },
+      "overallStatus": "Overall status",
+      "periodRange": "Period range",
+      "selectedLocation": "Location",
+      "checklist": "Close checklist",
+      "openLink": "Open module",
+      "statuses": {
+        "ready": "Ready",
+        "warning": "Needs review",
+        "blocked": "Blocked"
+      },
+      "periodStatuses": {
+        "open": "Period open",
+        "closing": "Period in closing",
+        "closed": "Period closed",
+        "unknown": "Unknown period status"
+      },
+      "countLabels": {
+        "periodFound": "Period found",
+        "draftJournals": "Draft journals",
+        "unbalancedJournals": "Unbalanced journals",
+        "postedJournals": "Posted journals",
+        "openShifts": "Open POS shifts",
+        "unpostedManualClosings": "Unposted POS closings",
+        "totalManualClosings": "Total POS closings",
+        "unreconciledStatements": "Unreconciled statements",
+        "unmatchedBankLines": "Unmatched bank lines",
+        "totalStatements": "Total statements",
+        "pendingOpname": "Unapproved stock counts",
+        "approvedMonthlyOpname": "Approved monthly counts",
+        "stockMovementsWithoutCost": "Inbound movements without cost",
+        "draftSalesInvoices": "Draft sales invoices",
+        "openSalesInvoices": "Open receivables",
+        "draftPurchaseInvoices": "Draft purchase invoices",
+        "openPurchaseInvoices": "Open payables",
+        "draftTaxInvoices": "Draft tax invoices",
+        "taxInvoices": "Tax invoices",
+        "withholdingTaxes": "Withholding slips",
+        "payrollRuns": "Payroll runs",
+        "payrollBlockingRuns": "Payroll not paid"
+      },
+      "items": {
+        "period": {
+          "title": "Accounting period",
+          "description": "Confirm the monthly period exists before the close process starts."
+        },
+        "journals": {
+          "title": "General journals",
+          "description": "Ensure there are no draft journals or unbalanced journals in this period."
+        },
+        "pos": {
+          "title": "POS and daily closing",
+          "description": "Ensure cashier shifts are closed and manual sales closings have generated journals."
+        },
+        "bankRecon": {
+          "title": "Bank reconciliation",
+          "description": "Ensure bank statements are reconciled and transaction lines are matched."
+        },
+        "inventory": {
+          "title": "Inventory and stock counts",
+          "description": "Ensure monthly counts are approved and inbound stock movements have cost values."
+        },
+        "apAr": {
+          "title": "Payables and receivables",
+          "description": "Review draft invoices and open balances that need attention before close."
+        },
+        "tax": {
+          "title": "Tax",
+          "description": "Ensure VAT documents, withholding slips, and period tax reports are ready."
+        },
+        "payroll": {
+          "title": "Payroll",
+          "description": "Ensure this period's payroll is paid or cancelled before the period is closed."
+        }
+      },
+      "errors": {
+        "unavailableTitle": "Close center data is unavailable",
+        "unavailableBody": "Try another period or location, then reload the page."
+      }
     }
   },
   "purchasing": {
@@ -1812,6 +1911,7 @@
     "payables": "Payables",
     "receivables": "Receivables",
     "periods": "Periods",
+    "financialClose": "Financial Close",
     "pettyCash": "Petty Cash",
     "reimbursement": "Reimbursement",
     "reporting": "Reports",

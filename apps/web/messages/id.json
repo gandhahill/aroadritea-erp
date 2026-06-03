@@ -879,6 +879,105 @@
         "startDate": "Tanggal Mulai",
         "endDate": "Tanggal Selesai"
       }
+    },
+    "closeCenter": {
+      "title": "Pusat Kontrol Tutup Buku",
+      "subtitle": "Pantau kesiapan tutup buku bulanan dari periode, jurnal, POS, bank, persediaan, AP/AR, pajak, dan payroll.",
+      "breadcrumbs": {
+        "dashboard": "Dasbor",
+        "accounting": "Akuntansi",
+        "closeCenter": "Tutup Buku"
+      },
+      "filters": {
+        "period": "Periode",
+        "location": "Lokasi",
+        "apply": "Terapkan",
+        "noLocation": "Tidak ada lokasi aktif"
+      },
+      "cards": {
+        "readiness": "Kesiapan",
+        "blocked": "Tertahan",
+        "warnings": "Peringatan",
+        "ready": "Siap"
+      },
+      "overallStatus": "Status keseluruhan",
+      "periodRange": "Rentang periode",
+      "selectedLocation": "Lokasi",
+      "checklist": "Checklist tutup buku",
+      "openLink": "Buka modul",
+      "statuses": {
+        "ready": "Siap",
+        "warning": "Perlu ditinjau",
+        "blocked": "Tertahan"
+      },
+      "periodStatuses": {
+        "open": "Periode terbuka",
+        "closing": "Periode dalam proses tutup",
+        "closed": "Periode tertutup",
+        "unknown": "Status periode tidak dikenal"
+      },
+      "countLabels": {
+        "periodFound": "Periode ditemukan",
+        "draftJournals": "Jurnal draft",
+        "unbalancedJournals": "Jurnal tidak seimbang",
+        "postedJournals": "Jurnal posted",
+        "openShifts": "Shift POS terbuka",
+        "unpostedManualClosings": "Closing POS belum posted",
+        "totalManualClosings": "Total closing POS",
+        "unreconciledStatements": "Statement belum rekonsiliasi",
+        "unmatchedBankLines": "Baris bank belum match",
+        "totalStatements": "Total statement",
+        "pendingOpname": "Opname belum approved",
+        "approvedMonthlyOpname": "Opname bulanan approved",
+        "stockMovementsWithoutCost": "Mutasi masuk tanpa harga modal",
+        "draftSalesInvoices": "Invoice penjualan draft",
+        "openSalesInvoices": "Piutang belum lunas",
+        "draftPurchaseInvoices": "Invoice pembelian draft",
+        "openPurchaseInvoices": "Utang belum lunas",
+        "draftTaxInvoices": "Faktur pajak draft",
+        "taxInvoices": "Faktur pajak",
+        "withholdingTaxes": "Bukti potong",
+        "payrollRuns": "Run payroll",
+        "payrollBlockingRuns": "Payroll belum paid"
+      },
+      "items": {
+        "period": {
+          "title": "Periode akuntansi",
+          "description": "Pastikan periode bulanan sudah tersedia sebelum proses tutup buku dijalankan."
+        },
+        "journals": {
+          "title": "Jurnal umum",
+          "description": "Pastikan tidak ada jurnal draft atau jurnal tidak seimbang dalam periode ini."
+        },
+        "pos": {
+          "title": "POS dan closing harian",
+          "description": "Pastikan shift kasir sudah ditutup dan closing penjualan manual sudah membentuk jurnal."
+        },
+        "bankRecon": {
+          "title": "Rekonsiliasi bank",
+          "description": "Pastikan statement bank sudah direkonsiliasi dan baris transaksi sudah matched."
+        },
+        "inventory": {
+          "title": "Persediaan dan opname",
+          "description": "Pastikan opname bulanan approved dan mutasi stok masuk memiliki harga modal."
+        },
+        "apAr": {
+          "title": "Utang dan piutang",
+          "description": "Pantau invoice draft dan saldo terbuka yang perlu ditindaklanjuti sebelum tutup buku."
+        },
+        "tax": {
+          "title": "Pajak",
+          "description": "Pastikan dokumen PPN, bukti potong, dan laporan pajak periode ini siap."
+        },
+        "payroll": {
+          "title": "Payroll",
+          "description": "Pastikan payroll periode ini sudah dibayar atau dibatalkan sebelum periode ditutup."
+        }
+      },
+      "errors": {
+        "unavailableTitle": "Data close center belum tersedia",
+        "unavailableBody": "Coba ganti periode atau lokasi, lalu muat ulang halaman."
+      }
     }
   },
   "purchasing": {
@@ -1814,6 +1913,7 @@
     "payables": "Utang",
     "receivables": "Piutang",
     "periods": "Periode",
+    "financialClose": "Tutup Buku",
     "pettyCash": "Kas Kecil",
     "reimbursement": "Reimbursement",
     "reporting": "Laporan",

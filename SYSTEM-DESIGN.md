@@ -1616,6 +1616,7 @@ Saat settlement dari GoFood:
 - Setiap JE wajib `period_id` aktif (`status=open`).
 - Saat period di-`close`: status `closing` (read-only untuk posting baru, tapi reversal masih bisa di period berikutnya), kemudian `closed`.
 - Closing entry (revenue & expense → income summary → retained earnings) di-generate saat period closing fiskal (akhir tahun).
+- Financial close control center bersifat read-only pada versi awal dan menggabungkan readiness check lintas modul untuk satu `period_code`: period status, jurnal draft, POS shift/closing, bank reconciliation, stock opname/variance, AP/AR, pajak, payroll, dan link remediasi. Service berada di accounting layer karena outputnya dipakai sebelum period close.
 
 ### 20.5 Multi-Lokasi
 - `location_id` adalah **dimensi**, bukan akun terpisah. Akun tetap (e.g., "Sales") sama untuk semua lokasi; filter per lokasi di laporan.
@@ -1646,6 +1647,7 @@ Period: open → closing (no new postings) → closed
 - COA browser (tree view, search, multi-bahasa).
 - Journal Entry editor (table-based, validate balance live).
 - Period management.
+- Financial close control center (`/accounting/close-center`) untuk readiness bulanan sebelum period close.
 - Audit per JE.
 
 #### Edge Cases
