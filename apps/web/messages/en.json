@@ -2138,6 +2138,8 @@
       "consumedHistory": "Consumed ingredient history",
       "emptyConsumedHistory": "No consumed ingredient history yet.",
       "itemCount": "Ingredient count",
+      "itemCountSummary": "{count} ingredients",
+      "moreItems": "{count} more",
       "updateConsumed": "Update consumed ingredients",
       "confirmDeleteConsumedTitle": "Delete consumed ingredients?",
       "confirmDeleteConsumed": "Delete this consumed ingredient entry? Previously deducted stock will be restored.",
@@ -2182,8 +2184,7 @@
       "errorMinPayment": "At least 1 payment method is required",
       "errorPaymentFailed": "Payment failed for {method}: {error}",
       "errorDiscountExceedsGross": "Discount exceeds total gross sales",
-      "editedBy": "(Edited by: {name})",
-      "editedByName": "Edited by"
+      "editedBy": "(Edited by: {name})"
     },
     "openShift": "Open Shift",
     "drawerExpense": "Drawer Expense",

@@ -46,7 +46,21 @@ function humanSize(bytes: number) {
 }
 
 function uploadHref(row: SopRow, download = false): string {
-  return `/api/uploads/${row.fileKey}${download ? '?download=1' : ''}`;
+  const raw = row.fileKey.trim().replace(/^https?:\/\/[^/]+/i, '');
+  const path =
+    raw.startsWith('/api/uploads/') || raw.startsWith('api/uploads/')
+      ? `/${raw.replace(/^\/+/, '')}`
+      : `/api/uploads/${normalizeUploadKey(raw)}`;
+  return download ? `${path}${path.includes('?') ? '&' : '?'}download=1` : path;
+}
+
+function normalizeUploadKey(value: string): string {
+  let key = value.replace(/^\/+/, '').replace(/^(?:storage\/)?uploads\//, '');
+  const visibilityMatch = key.match(/(?:^|\/)(private|public)\//);
+  if (visibilityMatch?.index && visibilityMatch.index > 0) {
+    key = key.slice(visibilityMatch.index + 1);
+  }
+  return key;
 }
 
 function isPdf(row: SopRow): boolean {

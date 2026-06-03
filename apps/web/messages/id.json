@@ -2138,6 +2138,8 @@
       "consumedHistory": "Riwayat pemakaian bahan",
       "emptyConsumedHistory": "Belum ada riwayat pemakaian bahan.",
       "itemCount": "Jumlah bahan",
+      "itemCountSummary": "{count} bahan",
+      "moreItems": "{count} bahan lagi",
       "updateConsumed": "Perbarui pemakaian bahan",
       "confirmDeleteConsumedTitle": "Hapus pemakaian bahan?",
       "confirmDeleteConsumed": "Yakin hapus pemakaian bahan ini? Stok yang sudah terpotong akan dikembalikan.",
@@ -2182,8 +2184,7 @@
       "errorMinPayment": "Minimal harus ada 1 metode pembayaran",
       "errorPaymentFailed": "Gagal pada pembayaran {method}: {error}",
       "errorDiscountExceedsGross": "Diskon melebihi total seluruh penjualan kotor.",
-      "editedBy": "(Edit: {name})",
-      "editedByName": "Diedit oleh"
+      "editedBy": "(Edit: {name})"
     },
     "openShift": "Buka Shift",
     "drawerExpense": "Pengeluaran Laci",

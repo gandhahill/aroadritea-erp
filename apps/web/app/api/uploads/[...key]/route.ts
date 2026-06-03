@@ -20,15 +20,16 @@ const PRIVATE_READ_PERMISSION: Record<UploadArea, string[]> = {
 
 export async function GET(request: Request, { params }: { params: Promise<{ key: string[] }> }) {
   const { key } = await params;
+  const normalizedKey = normalizeUploadKeyParts(key);
   try {
-    const upload = await readUpload(key);
+    const upload = await readUpload(normalizedKey);
     if (upload.visibility === 'private') {
       const session = await getSession();
       if (!session) return new NextResponse('Unauthenticated', { status: 401 });
       const allowed = await canReadPrivateUpload(session.user as Record<string, unknown>, upload);
       if (!allowed) return new NextResponse('Forbidden', { status: 403 });
     }
-    const fileName = key.at(-1) ?? 'download';
+    const fileName = normalizedKey.at(-1) ?? 'download';
     const forceDownload = new URL(request.url).searchParams.get('download') === '1';
     const disposition = forceDownload || !isInlinePreviewSafe(fileName) ? 'attachment' : 'inline';
 
@@ -45,6 +46,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ key:
   } catch {
     return new NextResponse('Not found', { status: 404 });
   }
+}
+
+function normalizeUploadKeyParts(key: string[]): string[] {
+  let joined = key.filter(Boolean).join('/');
+  const apiPrefix = 'api/uploads/';
+  const apiPrefixIndex = joined.indexOf(apiPrefix);
+  if (apiPrefixIndex >= 0) {
+    joined = joined.slice(apiPrefixIndex + apiPrefix.length);
+  }
+  joined = joined.replace(/^(?:storage\/)?uploads\//, '');
+  const visibilityMatch = joined.match(/(?:^|\/)(private|public)\//);
+  if (visibilityMatch?.index && visibilityMatch.index > 0) {
+    joined = joined.slice(visibilityMatch.index + 1);
+  }
+  return joined.split('/').filter(Boolean);
 }
 
 async function canReadPrivateUpload(

@@ -21,11 +21,37 @@ interface ConsumedIngredientLine {
   uom: string;
 }
 
+interface ConsumedHistoryItemLine {
+  name: string;
+  qty: string;
+  uom: string;
+}
+
 function pickLocalized(value: unknown, locale: string): string {
   const record = value as Record<string, string> | null | undefined;
   if (!record) return '';
   const key = locale === 'zh' ? 'zh' : locale === 'en' ? 'en' : 'id';
   return record[key] ?? record.id ?? record.en ?? record.zh ?? '';
+}
+
+function parseConsumedHistoryItems(value: unknown, locale: string): ConsumedHistoryItemLine[] {
+  let rawItems: unknown = value;
+  if (typeof value === 'string') {
+    try {
+      rawItems = JSON.parse(value) as unknown;
+    } catch {
+      rawItems = [];
+    }
+  }
+  if (!Array.isArray(rawItems)) return [];
+  return rawItems.map((item) => {
+    const record = item as Record<string, unknown>;
+    return {
+      name: pickLocalized(record.name, locale) || '-',
+      qty: String(record.qty ?? ''),
+      uom: String(record.uom ?? ''),
+    };
+  });
 }
 
 async function getAuditContext(): Promise<AuditContext | null> {
@@ -83,6 +109,7 @@ export async function fetchConsumedIngredientsData(page = 1, requestedPageSize =
       locationCode: string | null;
       locationName: Record<string, string> | null;
       itemCount: number;
+      items: unknown;
       createdByName: string | null;
       updatedByName: string | null;
     }>(sql`
@@ -93,10 +120,19 @@ export async function fetchConsumedIngredientsData(page = 1, requestedPageSize =
         l.code as "locationCode",
         l.name as "locationName",
         cast(count(*) as int) as "itemCount",
+        json_agg(
+          json_build_object(
+            'name', hp.name,
+            'qty', abs(sm.qty_delta)::text,
+            'uom', sm.uom
+          )
+          ORDER BY hp.sku, hp.id
+        ) as "items",
         max(u.display_name) as "createdByName",
         max(updater.display_name) as "updatedByName"
       FROM stock_movements sm
       LEFT JOIN locations l ON l.id = sm.location_id
+      LEFT JOIN products hp ON hp.id = sm.product_id
       LEFT JOIN users u ON u.id = sm.created_by
       LEFT JOIN users updater ON updater.id = sm.updated_by
       WHERE sm.tenant_id = ${ctx.tenantId}
@@ -146,6 +182,7 @@ export async function fetchConsumedIngredientsData(page = 1, requestedPageSize =
         locationLabel:
           `${row.locationCode ?? ''} - ${pickLocalized(row.locationName, locale)}`.trim(),
         itemCount: Number(row.itemCount ?? 0),
+        items: parseConsumedHistoryItems(row.items, locale),
         createdByName: row.createdByName,
         updatedByName: row.updatedByName,
       })),

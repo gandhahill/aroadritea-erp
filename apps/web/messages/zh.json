@@ -2138,6 +2138,8 @@
       "consumedHistory": "原料消耗历史",
       "emptyConsumedHistory": "暂无原料消耗历史。",
       "itemCount": "原料数量",
+      "itemCountSummary": "{count} 种原料",
+      "moreItems": "另有 {count} 项",
       "updateConsumed": "更新原料消耗",
       "confirmDeleteConsumedTitle": "删除原料消耗？",
       "confirmDeleteConsumed": "确认删除这条原料消耗记录？已扣减的库存将会恢复。",
@@ -2182,8 +2184,7 @@
       "errorMinPayment": "至少需要1种付款方式",
       "errorPaymentFailed": "{method} 付款失败：{error}",
       "errorDiscountExceedsGross": "折扣超过总销售额",
-      "editedBy": "（由 {name} 编辑）",
-      "editedByName": "编辑人"
+      "editedBy": "（由 {name} 编辑）"
     },
     "openShift": "开班",
     "drawerExpense": "钱箱支出",

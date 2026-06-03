@@ -29,6 +29,7 @@ interface ConsumedHistoryItem {
   locationId: string;
   locationLabel: string;
   itemCount: number;
+  items: Array<{ name: string; qty: string; uom: string }>;
   createdByName: string | null;
   updatedByName: string | null;
 }
@@ -45,6 +46,12 @@ interface Props {
     };
   };
   defaultLocationId: string;
+}
+
+function formatHistoryQty(value: string): string {
+  const numberValue = Number(value);
+  if (!Number.isFinite(numberValue)) return value;
+  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 3 }).format(numberValue);
 }
 
 export function ConsumedClient({ data, defaultLocationId }: Props) {
@@ -300,16 +307,15 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
               <tr className="text-left text-brand-ink-2">
                 <Th>{t('date')}</Th>
                 <Th>{t('location')}</Th>
-                <Th align="right">{t('itemCount')}</Th>
+                <Th>{t('itemCount')}</Th>
                 <Th>{t('postedBy')}</Th>
-                <Th>{t('editedByName')}</Th>
                 <Th align="right">{t('actions')}</Th>
               </tr>
             </thead>
             <TableBody className="divide-y divide-brand-cream-3">
               {data.history.items.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-brand-ink-3">
+                  <td colSpan={5} className="px-4 py-8 text-center text-brand-ink-3">
                     {t('emptyConsumedHistory')}
                   </td>
                 </tr>
@@ -318,9 +324,29 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
                   <tr key={item.id} className="text-brand-ink hover:bg-brand-cream/50">
                     <Td>{item.occurredAt.slice(0, 10)}</Td>
                     <Td>{item.locationLabel || '-'}</Td>
-                    <Td align="right">{item.itemCount}</Td>
-                    <Td>{item.createdByName || '-'}</Td>
-                    <Td>{item.updatedByName || '-'}</Td>
+                    <Td>
+                      <div className="text-sm font-medium text-brand-ink">
+                        {t('itemCountSummary', { count: item.itemCount })}
+                      </div>
+                      <div className="mt-1 max-w-[300px] space-y-0.5 text-xs text-brand-ink-3">
+                        {item.items.slice(0, 3).map((line, index) => (
+                          <div key={`${line.name}-${line.uom}-${index}`} className="truncate">
+                            {line.name} · {formatHistoryQty(line.qty)} {line.uom}
+                          </div>
+                        ))}
+                        {item.items.length > 3 ? (
+                          <div>{t('moreItems', { count: item.items.length - 3 })}</div>
+                        ) : null}
+                      </div>
+                    </Td>
+                    <Td>
+                      {item.createdByName || '-'}
+                      {item.updatedByName && item.updatedByName !== item.createdByName ? (
+                        <span className="mt-0.5 block text-[11px] text-brand-ink-3">
+                          {t('editedBy', { name: item.updatedByName })}
+                        </span>
+                      ) : null}
+                    </Td>
                     <Td align="right">
                       <div className="flex justify-end gap-2">
                         <Button
