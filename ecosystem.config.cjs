@@ -37,6 +37,7 @@ function loadDotEnv(filePath) {
 const fileEnv = loadDotEnv(path.join(rootDir, '.env'));
 const sharedEnv = {
   ...fileEnv,
+  ERP_REPO_ROOT: rootDir,
   NODE_ENV: 'production',
   NEXT_TELEMETRY_DISABLED: '1',
   TZ: 'Asia/Jakarta',
@@ -47,6 +48,11 @@ function withSharedEnv(extra = {}) {
     ...sharedEnv,
     ...extra,
   };
+}
+
+function resolveUploadStorageDir(value) {
+  const configured = value ?? path.join(rootDir, 'storage', 'uploads');
+  return path.isAbsolute(configured) ? configured : path.resolve(rootDir, configured);
 }
 
 const restartPolicy = {
@@ -103,7 +109,7 @@ module.exports = {
       env: withSharedEnv({
         HOSTNAME: '127.0.0.1',
         PORT: '3001',
-        UPLOAD_STORAGE_DIR: fileEnv.UPLOAD_STORAGE_DIR ?? path.join(rootDir, 'storage', 'uploads'),
+        UPLOAD_STORAGE_DIR: resolveUploadStorageDir(fileEnv.UPLOAD_STORAGE_DIR),
       }),
     },
     {

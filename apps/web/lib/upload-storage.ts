@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -131,7 +132,25 @@ export async function readUpload(keyParts: string[]) {
 }
 
 function uploadRoot(): string {
-  return process.env.UPLOAD_STORAGE_DIR ?? path.join(process.cwd(), 'storage', 'uploads');
+  const configured = process.env.UPLOAD_STORAGE_DIR;
+  if (!configured) return path.join(resolveRepoRoot(), 'storage', 'uploads');
+  if (path.isAbsolute(configured)) return configured;
+  return path.resolve(resolveRepoRoot(), configured);
+}
+
+function resolveRepoRoot(): string {
+  const explicit = process.env.ERP_REPO_ROOT;
+  if (explicit) return explicit;
+
+  let current = process.cwd();
+  for (let depth = 0; depth < 8; depth += 1) {
+    if (existsSync(path.join(current, 'pnpm-workspace.yaml'))) return current;
+    if (existsSync(path.join(current, 'ecosystem.config.cjs'))) return current;
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+  return process.cwd();
 }
 
 function sanitizeFileName(value: string): string {
