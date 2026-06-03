@@ -34,6 +34,12 @@ Investigate missing ERP data after PostgreSQL 16 to 18 upgrade on production VPS
   - `http://127.0.0.1:3001/api/healthz`
   - `http://127.0.0.1:3002/healthz`
 - Worker recovered: `pg-boss started` and scheduler sync active.
+- Permanence check:
+  - `pm2-root.service` is `enabled` and `active`.
+  - Systemd starts PM2 with `pm2 resurrect` using `PM2_HOME=/root/.pm2`.
+  - `/root/.pm2/dump.pm2` contains local `127.0.0.1:5432/aroadritea_erp` and no non-local database URL.
+  - `/root/.pm2/dump.pm2.bak` also contains local `127.0.0.1:5432/aroadritea_erp` and no non-local database URL.
+  - Live `aroadri-web`, `aroadri-worker`, `aroadri-mcp`, and `aroadri-site` process environments all use local `127.0.0.1:5432`.
 
 ## Next step
 User should refresh/login to ERP and verify that manual sales/stock/attendance data from 2026-06-02 night is visible again.

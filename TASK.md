@@ -86,7 +86,7 @@
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
-| T-0268 | Production incident: switch PM2 back to local PostgreSQL after PG18 upgrade | Codex | 2026-06-03 | pending | Found local PG18 data intact, PM2 dump still used old non-local DB env. Backed up local DB, reloaded PM2 from `.env`, saved dump, granted `pgboss` privileges, verified health/worker. |
+| T-0268 | Production incident: switch PM2 back to local PostgreSQL after PG18 upgrade | Codex | 2026-06-03 | `57e11c4` | Found local PG18 data intact, PM2 dump still used old non-local DB env. Backed up local DB, reloaded PM2 from `.env`, saved dump, granted `pgboss` privileges, verified health/worker and PM2 reboot persistence. |
 | T-0267 | Attendance face verification camera permission hotfix | Codex | 2026-06-03 | `HEAD` | Allows camera via `Permissions-Policy: camera=(self)` and auto-requests camera on `/hr/checkin` when face capture is required. Verified web typecheck. |
 | T-0266 | Typecheck remediation + functional bug hunt sweep across ERP modules | Codex | 2026-06-03 | `cf198fe` | Inline attendance face verification/enrollment, functional bug patches from sweep, stock valuation (`stok x harga modal`), outgoing shipment CRUD/courier labels, consumed ingredient history, stock integer display, office stock locations. Verified `pnpm typecheck`, targeted Biome, targeted services tests. |
 | T-0166 | Fix ERP sidebar 404 links, Docs page, and language switcher | Codex | 2026-05-15 | 3eab86b + bdb1b73 | Production smoke passed: protected routes redirect to login instead of 404; standalone PM2 runtime fixed; CSS assets 200 |
