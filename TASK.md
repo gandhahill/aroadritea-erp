@@ -86,6 +86,7 @@
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
+| T-0267 | Attendance face verification camera permission hotfix | Codex | 2026-06-03 | `HEAD` | Allows camera via `Permissions-Policy: camera=(self)` and auto-requests camera on `/hr/checkin` when face capture is required. Verified web typecheck. |
 | T-0266 | Typecheck remediation + functional bug hunt sweep across ERP modules | Codex | 2026-06-03 | `cf198fe` | Inline attendance face verification/enrollment, functional bug patches from sweep, stock valuation (`stok x harga modal`), outgoing shipment CRUD/courier labels, consumed ingredient history, stock integer display, office stock locations. Verified `pnpm typecheck`, targeted Biome, targeted services tests. |
 | T-0166 | Fix ERP sidebar 404 links, Docs page, and language switcher | Codex | 2026-05-15 | 3eab86b + bdb1b73 | Production smoke passed: protected routes redirect to login instead of 404; standalone PM2 runtime fixed; CSS assets 200 |
 | T-0168 | Security audit and overnight operational fixes | Codex | 2026-05-22 | `5970cfc`..`7e19c36` | Baseline, member reset, AP/AR reminders, outlet filtering, Malioboro seed alignment, correspondence/evidence inbox, POS manual discounts, old POS parity, static security findings, deploy verification, and final audit report. Typecheck/test/build pass; lint remains documented baseline debt. |

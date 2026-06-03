@@ -152,6 +152,7 @@ export function CheckInClient({
   const locale = useLocale();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const hasAutoRequestedCameraRef = useRef(false);
   const [gps, setGps] = useState<GpsState>({
     status: 'idle',
     data: null,
@@ -202,6 +203,15 @@ export function CheckInClient({
 
   useEffect(() => stopCamera, [stopCamera]);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    const stream = streamRef.current;
+    if (!video || !stream || video.srcObject === stream) return;
+
+    video.srcObject = stream;
+    void video.play().catch(() => undefined);
+  }, [cameraStatus]);
+
   const startCamera = useCallback(async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraStatus('error');
@@ -225,17 +235,28 @@ export function CheckInClient({
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+        await videoRef.current.play().catch(() => undefined);
       }
       setCameraStatus('ready');
     } catch (error) {
       const name = error instanceof DOMException ? error.name : '';
-      setCameraStatus(name === 'NotAllowedError' ? 'denied' : 'error');
+      const isPermissionError =
+        name === 'NotAllowedError' || name === 'PermissionDeniedError' || name === 'SecurityError';
+      setCameraStatus(isPermissionError ? 'denied' : 'error');
       setCameraError(
-        name === 'NotAllowedError' ? t('face.permissionDenied') : t('face.cameraUnavailable'),
+        isPermissionError ? t('face.permissionDenied') : t('face.cameraUnavailable'),
       );
     }
   }, [t]);
+
+  useEffect(() => {
+    if (isCheckOutMode || faceTemplate || cameraStatus !== 'idle') return;
+    if (!employeeId || !selectedShift) return;
+    if (hasAutoRequestedCameraRef.current) return;
+
+    hasAutoRequestedCameraRef.current = true;
+    void startCamera();
+  }, [cameraStatus, employeeId, faceTemplate, isCheckOutMode, selectedShift, startCamera]);
 
   const captureFace = useCallback(async () => {
     if (!videoRef.current) return;
