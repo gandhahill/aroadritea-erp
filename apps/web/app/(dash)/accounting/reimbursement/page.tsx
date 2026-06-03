@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/page-header';
+import { Pagination } from '@/components/pagination';
 import { getSession } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
@@ -10,15 +11,23 @@ export const metadata: Metadata = {
   title: 'Reimbursement',
 };
 
-export default async function ReimbursementPage() {
+export default async function ReimbursementPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; page?: string; pageSize?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect('/login');
 
   const userId = ((session.user as Record<string, unknown>)?.id as string) ?? '';
   const tenantId = ((session.user as Record<string, unknown>)?.tenantId as string) ?? 'default';
 
-  const [items, locations] = await Promise.all([
-    fetchReimbursements(tenantId),
+  const params = await searchParams;
+  const page = Math.max(1, Number(params.page) || 1);
+  const pageSize = [10, 20, 50, 100].includes(Number(params.pageSize)) ? Number(params.pageSize) : 20;
+
+  const [{ items, total }, locations] = await Promise.all([
+    fetchReimbursements(tenantId, params.status, { limit: pageSize, offset: (page - 1) * pageSize }),
     fetchLocations(tenantId),
   ]);
 
@@ -34,6 +43,8 @@ export default async function ReimbursementPage() {
         tenantId={tenantId}
         userId={userId}
       />
+
+      {total > 0 && <Pagination currentPage={page} totalItems={total} pageSize={pageSize} />}
     </div>
   );
 }

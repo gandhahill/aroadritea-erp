@@ -34,12 +34,18 @@ export interface LocationItem {
   name: string;
 }
 
+export interface ReimbursementPageResult {
+  items: ReimbursementItem[];
+  total: number;
+}
+
 export async function fetchReimbursements(
   tenantIdRaw?: string,
   statusFilter?: string,
-): Promise<ReimbursementItem[]> {
+  pagination?: { limit?: number; offset?: number },
+): Promise<ReimbursementPageResult> {
   const session = await getSession();
-  if (!session?.user) return [];
+  if (!session?.user) return { items: [], total: 0 };
   const user = session.user as Record<string, unknown>;
   const tenantId = String(user.tenantId ?? 'default');
   const userId = String(user.id ?? '');
@@ -56,10 +62,16 @@ export async function fetchReimbursements(
   if (!locationScope.global && locationScope.locationIds.length > 0) {
     conditions.push(inArray(reimbursementRequests.locationId, locationScope.locationIds));
   } else if (!locationScope.global) {
-    // No location access and not global — only show own requests
     conditions.push(eq(reimbursementRequests.requesterId, userId));
   }
-  // If global, no location filter needed — show all
+
+  const { count } = await import('@erp/db');
+  const where = and(...conditions);
+  const [countRow] = await db.select({ c: count() }).from(reimbursementRequests).where(where);
+  const total = Number(countRow?.c ?? 0);
+
+  const limit = pagination?.limit ?? 20;
+  const offset = pagination?.offset ?? 0;
 
   const rows = await db
     .select({
@@ -79,9 +91,10 @@ export async function fetchReimbursements(
       createdAt: reimbursementRequests.createdAt,
     })
     .from(reimbursementRequests)
-    .where(and(...conditions))
+    .where(where)
     .orderBy(desc(reimbursementRequests.createdAt))
-    .limit(100);
+    .limit(limit)
+    .offset(offset);
 
   const userIds = [
     ...new Set(
@@ -115,25 +128,28 @@ export async function fetchReimbursements(
     return loc.name[locale] ?? loc.name.id ?? loc.name.en ?? loc.name.zh ?? loc.code ?? fallback;
   }
 
-  return rows.map((r) => ({
-    id: r.id,
-    requesterId: r.requesterId,
-    requesterName: userMap.get(r.requesterId) ?? r.requesterId,
-    locationId: r.locationId,
-    locationName: pickLocName(locMap.get(r.locationId), r.locationId),
-    amount: r.amount.toString(),
-    category: r.category,
-    description: r.description,
-    attachmentUrl: r.attachmentUrl,
-    attachmentName: r.attachmentName,
-    status: r.status,
-    approvedBy: r.approvedBy,
-    approverName: r.approvedBy ? (userMap.get(r.approvedBy) ?? null) : null,
-    approvedAt: r.approvedAt,
-    disbursedAt: r.disbursedAt,
-    rejectionReason: r.rejectionReason,
-    createdAt: r.createdAt ?? new Date(0),
-  }));
+  return {
+    items: rows.map((r) => ({
+      id: r.id,
+      requesterId: r.requesterId,
+      requesterName: userMap.get(r.requesterId) ?? r.requesterId,
+      locationId: r.locationId,
+      locationName: pickLocName(locMap.get(r.locationId), r.locationId),
+      amount: r.amount.toString(),
+      category: r.category,
+      description: r.description,
+      attachmentUrl: r.attachmentUrl,
+      attachmentName: r.attachmentName,
+      status: r.status,
+      approvedBy: r.approvedBy,
+      approverName: r.approvedBy ? (userMap.get(r.approvedBy) ?? null) : null,
+      approvedAt: r.approvedAt,
+      disbursedAt: r.disbursedAt,
+      rejectionReason: r.rejectionReason,
+      createdAt: r.createdAt ?? new Date(0),
+    })),
+    total,
+  };
 }
 
 export async function fetchLocations(tenantIdRaw?: string): Promise<LocationItem[]> {

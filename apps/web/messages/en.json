@@ -548,6 +548,7 @@
       "description": "Description",
       "amount": "Amount",
       "noTransactions": "No transactions yet.",
+      "showingOf": "Showing {shown} of {total} transactions",
       "noAccounts": "No active outlets. Add an outlet in Settings → Locations first.",
       "depositToBank": "Deposit to Bank",
       "notOpened": "Not opened",

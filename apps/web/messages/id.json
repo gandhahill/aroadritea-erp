@@ -548,6 +548,7 @@
       "description": "Keterangan",
       "amount": "Jumlah",
       "noTransactions": "Belum ada transaksi.",
+      "showingOf": "Menampilkan {shown} dari {total} transaksi",
       "noAccounts": "Tidak ada outlet aktif. Tambahkan outlet di Settings → Locations terlebih dahulu.",
       "depositToBank": "Setor ke Bank",
       "notOpened": "Belum dibuka",

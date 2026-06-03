@@ -20,6 +20,8 @@ export interface GeneralLedgerInput {
   startDate: string;
   endDate: string;
   locationId?: string;
+  limit?: number;
+  offset?: number;
 }
 
 export interface GeneralLedgerLine {
@@ -45,6 +47,7 @@ export interface GeneralLedgerResult {
   beginningBalance: bigint;
   lines: GeneralLedgerLine[];
   endingBalance: bigint;
+  totalLines: number;
 
   // Comparative period (e.g. same dates in previous month/year depending on range)
   comparativeBeginningBalance: bigint;
@@ -103,7 +106,40 @@ export async function getGeneralLedger(
       const beginningBalance = isDebitNormal ? begDebit - begCredit : begCredit - begDebit;
 
       // 2. Fetch Journal Lines for the period
-      const currentRows = await db
+      const periodConditions = and(
+        ...baseJeConditions,
+        gte(journalEntries.postingDate, input.startDate),
+        lte(journalEntries.postingDate, input.endDate),
+        ...lineConditions
+      );
+
+      // Count total lines in the period
+      const [countRow] = await db
+        .select({ c: sql<string>`COUNT(*)` })
+        .from(journalLines)
+        .innerJoin(journalEntries, eq(journalLines.journalEntryId, journalEntries.id))
+        .where(periodConditions);
+      const totalLines = Number(countRow?.c ?? 0);
+
+      // Compute ending balance from full-period aggregate (needed regardless of pagination)
+      const [periodAgg] = await db
+        .select({
+          totalDebit: sql<string>`COALESCE(SUM(${journalLines.debit}), 0)`,
+          totalCredit: sql<string>`COALESCE(SUM(${journalLines.credit}), 0)`,
+        })
+        .from(journalLines)
+        .innerJoin(journalEntries, eq(journalLines.journalEntryId, journalEntries.id))
+        .where(periodConditions);
+      const periodDebit = BigInt(periodAgg?.totalDebit || 0n);
+      const periodCredit = BigInt(periodAgg?.totalCredit || 0n);
+      const periodNetChange = isDebitNormal ? periodDebit - periodCredit : periodCredit - periodDebit;
+      const endingBalance = beginningBalance + periodNetChange;
+
+      const limit = input.limit ?? totalLines;
+      const offset = input.offset ?? 0;
+
+      // Fetch the page of rows
+      let currentRowsQuery = db
         .select({
           journalEntryId: journalEntries.id,
           journalNumber: journalEntries.number,
@@ -114,23 +150,45 @@ export async function getGeneralLedger(
         })
         .from(journalLines)
         .innerJoin(journalEntries, eq(journalLines.journalEntryId, journalEntries.id))
-        .where(
-          and(
-            ...baseJeConditions,
-            gte(journalEntries.postingDate, input.startDate),
-            lte(journalEntries.postingDate, input.endDate),
-            ...lineConditions
-          )
-        )
-        .orderBy(asc(journalEntries.postingDate), asc(journalEntries.createdAt));
+        .where(periodConditions)
+        .orderBy(asc(journalEntries.postingDate), asc(journalEntries.createdAt))
+        .limit(limit)
+        .offset(offset);
 
-      let runningBalance = beginningBalance;
+      const currentRows = await currentRowsQuery;
+
+      // Compute running balance for the page: beginningBalance + net of all rows BEFORE offset
+      let pageStartBalance = beginningBalance;
+      if (offset > 0) {
+        const prePageRows = await db
+          .select({
+            totalDebit: sql<string>`COALESCE(SUM(sub.debit), 0)`,
+            totalCredit: sql<string>`COALESCE(SUM(sub.credit), 0)`,
+          })
+          .from(
+            db.select({
+              debit: journalLines.debit,
+              credit: journalLines.credit,
+            })
+            .from(journalLines)
+            .innerJoin(journalEntries, eq(journalLines.journalEntryId, journalEntries.id))
+            .where(periodConditions)
+            .orderBy(asc(journalEntries.postingDate), asc(journalEntries.createdAt))
+            .limit(offset)
+            .as('sub')
+          );
+        const preDebit = BigInt(prePageRows[0]?.totalDebit || 0n);
+        const preCredit = BigInt(prePageRows[0]?.totalCredit || 0n);
+        pageStartBalance += isDebitNormal ? preDebit - preCredit : preCredit - preDebit;
+      }
+
+      let runningBalance = pageStartBalance;
       const lines: GeneralLedgerLine[] = [];
 
       for (const row of currentRows) {
         const d = BigInt(row.debit);
         const c = BigInt(row.credit);
-        
+
         if (isDebitNormal) {
           runningBalance = runningBalance + d - c;
         } else {
@@ -147,8 +205,6 @@ export async function getGeneralLedger(
           balance: runningBalance,
         });
       }
-
-      const endingBalance = runningBalance;
 
       // 3. Comparative Period (Previous month/year depending on length)
       // For simplicity, let's just do previous year same period (e.g., Year over Year comparative)
@@ -215,6 +271,7 @@ export async function getGeneralLedger(
         beginningBalance,
         lines,
         endingBalance,
+        totalLines,
         comparativeBeginningBalance,
         comparativeEndingBalance,
       };

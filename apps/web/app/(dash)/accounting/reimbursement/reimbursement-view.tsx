@@ -288,7 +288,7 @@ export function ReimbursementClient({
     setIsRefreshing(true);
     try {
       const fresh = await fetchReimbursements(tenantId);
-      setItems(fresh);
+      setItems(fresh.items);
     } finally {
       setIsRefreshing(false);
     }

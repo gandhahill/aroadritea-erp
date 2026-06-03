@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/page-header';
+import { Pagination } from '@/components/pagination';
 import { getSession } from '@/lib/auth';
 import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import type { Metadata } from 'next';
@@ -12,7 +13,11 @@ export const metadata: Metadata = {
   title: 'Bank Reconciliation',
 };
 
-export default async function BankReconPage() {
+export default async function BankReconPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; pageSize?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect('/login');
   const user = session.user as Record<string, unknown>;
@@ -23,8 +28,12 @@ export default async function BankReconPage() {
   );
   if (!scope.global && scope.locationIds.length === 0) redirect('/dashboard');
 
-  const [statements, t] = await Promise.all([
-    fetchStatements(),
+  const params = await searchParams;
+  const page = Math.max(1, Number(params.page) || 1);
+  const pageSize = [10, 20, 50, 100].includes(Number(params.pageSize)) ? Number(params.pageSize) : 20;
+
+  const [{ items: statements, total }, t] = await Promise.all([
+    fetchStatements({ limit: pageSize, offset: (page - 1) * pageSize }),
     getTranslations('accounting.bankRecon'),
   ]);
 
@@ -67,6 +76,8 @@ export default async function BankReconPage() {
           empty: t('empty'),
         }}
       />
+
+      {total > 0 && <Pagination currentPage={page} totalItems={total} pageSize={pageSize} />}
     </div>
   );
 }

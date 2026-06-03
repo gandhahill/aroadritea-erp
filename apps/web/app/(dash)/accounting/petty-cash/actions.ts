@@ -167,32 +167,41 @@ export async function fetchEmptyPettyCashLocations(
   }));
 }
 
+export interface PettyCashTransactionPageResult {
+  items: PettyCashTransactionItem[];
+  total: number;
+}
+
 export async function fetchPettyCashTransactions(
   accountId: string,
-  limit = 50,
-): Promise<PettyCashTransactionItem[]> {
+  pagination?: { limit?: number; offset?: number },
+): Promise<PettyCashTransactionPageResult> {
   const ctx = await getSessionContext();
-  if (!ctx) return [];
+  if (!ctx) return { items: [], total: 0 };
 
-  // Look up the parent account first so we can tenant-scope the
-  // transactions query — otherwise `accountId` from URL params could be
-  // pointed at another tenant's account.
   const [account] = await db
     .select({ id: pettyCashAccounts.id, locationId: pettyCashAccounts.locationId })
     .from(pettyCashAccounts)
     .where(and(eq(pettyCashAccounts.id, accountId), eq(pettyCashAccounts.tenantId, ctx.tenantId)))
     .limit(1);
-  if (!account) return [];
+  if (!account) return { items: [], total: 0 };
   const allowed = await requirePermissionAtLocation(
     ctx.userId,
     'accounting.petty_cash.view',
     account.locationId,
   );
-  if (!allowed) return [];
+  if (!allowed) return { items: [], total: 0 };
 
-  // JOIN against users so the UI shows display names, not UUIDs. The
-  // join is tenant-scoped so a stray cross-tenant `users` row can't
-  // leak a name into the petty-cash history (defense-in-depth).
+  const { count } = await import('@erp/db');
+  const [countRow] = await db
+    .select({ c: count() })
+    .from(pettyCashTransactions)
+    .where(eq(pettyCashTransactions.accountId, accountId));
+  const total = Number(countRow?.c ?? 0);
+
+  const limit = pagination?.limit ?? 20;
+  const offset = pagination?.offset ?? 0;
+
   const rows = await db
     .select({
       id: pettyCashTransactions.id,
@@ -210,17 +219,20 @@ export async function fetchPettyCashTransactions(
     )
     .where(eq(pettyCashTransactions.accountId, accountId))
     .orderBy(desc(pettyCashTransactions.createdAt))
-    .limit(limit);
+    .limit(limit)
+    .offset(offset);
 
-  return rows.map((r) => ({
-    id: r.id,
-    kind: r.kind,
-    amount: r.amount.toString(),
-    description: r.description,
-    // Resolved name only — never expose the raw UUID to operators.
-    createdByName: r.createdByName ?? null,
-    createdAt: r.createdAt ?? new Date(0),
-  }));
+  return {
+    items: rows.map((r) => ({
+      id: r.id,
+      kind: r.kind,
+      amount: r.amount.toString(),
+      description: r.description,
+      createdByName: r.createdByName ?? null,
+      createdAt: r.createdAt ?? new Date(0),
+    })),
+    total,
+  };
 }
 
 export async function createAccountAction(

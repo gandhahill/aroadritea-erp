@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/page-header';
+import { Pagination } from '@/components/pagination';
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
 import type { Metadata } from 'next';
@@ -23,7 +24,7 @@ function firstOfMonthWib(): string {
 export default async function GeneralLedgerPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string; locationId?: string; accountId?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; locationId?: string; accountId?: string; page?: string; pageSize?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect('/login');
@@ -32,6 +33,8 @@ export default async function GeneralLedgerPage({
   const to = params.to ?? todayWib();
   const locationId = params.locationId || undefined;
   const accountId = params.accountId || undefined;
+  const page = Math.max(1, Number(params.page) || 1);
+  const pageSize = [20, 50, 100].includes(Number(params.pageSize)) ? Number(params.pageSize) : 50;
 
   const tenantId = String((session.user as Record<string, unknown>).tenantId ?? 'default');
   const rawLocale = await getLocale().catch(() => 'id');
@@ -59,7 +62,7 @@ export default async function GeneralLedgerPage({
 
   if (accountId) {
     try {
-      resultData = await fetchGeneralLedgerAction(accountId, from, to, locationId ?? 'all');
+      resultData = await fetchGeneralLedgerAction(accountId, from, to, locationId ?? 'all', { limit: pageSize, offset: (page - 1) * pageSize });
     } catch (err: any) {
       errorMsg = err.message;
     }
@@ -80,6 +83,9 @@ export default async function GeneralLedgerPage({
         data={resultData}
         error={errorMsg}
       />
+      {resultData && resultData.totalLines > 0 && (
+        <Pagination currentPage={page} totalItems={resultData.totalLines} pageSize={pageSize} pageSizeOptions={[20, 50, 100]} />
+      )}
     </div>
   );
 }

@@ -9,6 +9,7 @@ export async function fetchGeneralLedgerAction(
   startDate: string,
   endDate: string,
   locationId?: string,
+  pagination?: { limit?: number; offset?: number },
 ): Promise<GeneralLedgerResult> {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
@@ -28,6 +29,8 @@ export async function fetchGeneralLedgerAction(
       startDate,
       endDate,
       locationId: locationId === 'all' ? undefined : locationId,
+      limit: pagination?.limit,
+      offset: pagination?.offset,
     },
     ctx,
   );

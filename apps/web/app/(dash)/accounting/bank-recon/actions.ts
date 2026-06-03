@@ -80,17 +80,30 @@ async function getLineForAccess(ctx: { tenantId: string; userId: string }, lineI
   return line ?? null;
 }
 
-export async function fetchStatements() {
+export async function fetchStatements(pagination?: { limit?: number; offset?: number }) {
   const ctx = await getContext();
-  if (!ctx) return [];
+  if (!ctx) return { items: [], total: 0 };
   const scope = await authorizedLocationIdsForTenant(
     ctx.userId,
     'accounting.bank_recon.view',
     ctx.tenantId,
   );
-  if (!scope.global && scope.locationIds.length === 0) return [];
+  if (!scope.global && scope.locationIds.length === 0) return { items: [], total: 0 };
 
-  const rows = await db
+  const { count } = await import('@erp/db');
+  const where = and(
+    eq(bankStatements.tenantId, ctx.tenantId),
+    isNull(bankStatements.deletedAt),
+    scope.global ? undefined : inArray(bankStatements.locationId, scope.locationIds),
+  );
+
+  const [countRow] = await db.select({ c: count() }).from(bankStatements).where(where);
+  const total = Number(countRow?.c ?? 0);
+
+  const limit = pagination?.limit ?? 20;
+  const offset = pagination?.offset ?? 0;
+
+  const items = await db
     .select({
       id: bankStatements.id,
       date: bankStatements.statementDate,
@@ -103,16 +116,12 @@ export async function fetchStatements() {
     })
     .from(bankStatements)
     .innerJoin(bankAccounts, eq(bankStatements.bankAccountId, bankAccounts.id))
-    .where(
-      and(
-        eq(bankStatements.tenantId, ctx.tenantId),
-        isNull(bankStatements.deletedAt),
-        scope.global ? undefined : inArray(bankStatements.locationId, scope.locationIds),
-      ),
-    )
-    .orderBy(desc(bankStatements.statementDate));
+    .where(where)
+    .orderBy(desc(bankStatements.statementDate))
+    .limit(limit)
+    .offset(offset);
 
-  return rows;
+  return { items, total };
 }
 
 export async function fetchStatementDetails(id: string) {

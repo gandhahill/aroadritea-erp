@@ -4,6 +4,7 @@ import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
+import type { PettyCashTransactionItem } from './actions';
 import {
   fetchEmptyPettyCashLocations,
   fetchPettyCashAccounts,
@@ -32,9 +33,12 @@ export default async function PettyCashPage() {
     fetchEmptyPettyCashLocations(tenantId),
   ]);
 
-  const transactions: Record<string, Awaited<ReturnType<typeof fetchPettyCashTransactions>>> = {};
+  const transactions: Record<string, PettyCashTransactionItem[]> = {};
+  const transactionTotals: Record<string, number> = {};
   for (const acct of accounts) {
-    transactions[acct.id] = await fetchPettyCashTransactions(acct.id);
+    const result = await fetchPettyCashTransactions(acct.id);
+    transactions[acct.id] = result.items;
+    transactionTotals[acct.id] = result.total;
   }
 
   const t = await getTranslations('accounting.pettyCash');
@@ -46,6 +50,7 @@ export default async function PettyCashPage() {
       <PettyCashView
         accounts={accounts}
         transactions={transactions}
+        transactionTotals={transactionTotals}
         emptyLocations={emptyLocations}
       />
     </div>
