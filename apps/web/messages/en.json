@@ -2182,7 +2182,8 @@
       "errorMinPayment": "At least 1 payment method is required",
       "errorPaymentFailed": "Payment failed for {method}: {error}",
       "errorDiscountExceedsGross": "Discount exceeds total gross sales",
-      "editedBy": "(Edited by: {name})"
+      "editedBy": "(Edited by: {name})",
+      "editedByName": "Edited by"
     },
     "openShift": "Open Shift",
     "drawerExpense": "Drawer Expense",
@@ -3177,9 +3178,17 @@
       },
       "action": {
         "download": "Download",
+        "view": "View PDF",
+        "openInNewTab": "Open in new tab",
+        "dismissNotice": "Dismiss message",
         "draft": "Make draft",
         "publish": "Publish",
         "delete": "Delete"
+      },
+      "viewer": {
+        "close": "Close",
+        "fallback": "This PDF cannot be displayed in this browser.",
+        "ariaLabel": "SOP PDF preview for {title}"
       },
       "delete": {
         "title": "Delete SOP?",
@@ -3187,10 +3196,22 @@
         "cancel": "Cancel",
         "confirm": "Delete"
       },
+      "upload": {
+        "title": "Upload SOP document",
+        "close": "Close dialog",
+        "titleLabel": "Title *",
+        "descriptionLabel": "Description (optional)",
+        "fileLabel": "SOP file *",
+        "fileHint": "Max 10 MB. PDF is recommended for final documents.",
+        "publishLabel": "Publish to employees immediately",
+        "errorFileRequired": "Select an SOP file first (PDF / DOC / image).",
+        "errorTitleRequired": "Title is required."
+      },
       "uploading": "Uploading…",
       "saveAction": "Save SOP",
       "errors": {
-        "saveFailed": "Failed to save SOP."
+        "saveFailed": "Failed to save SOP.",
+        "uploadFailed": "Failed to upload file."
       }
     },
     "mySchedule": {

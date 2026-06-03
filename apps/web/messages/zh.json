@@ -2182,7 +2182,8 @@
       "errorMinPayment": "至少需要1种付款方式",
       "errorPaymentFailed": "{method} 付款失败：{error}",
       "errorDiscountExceedsGross": "折扣超过总销售额",
-      "editedBy": "（由 {name} 编辑）"
+      "editedBy": "（由 {name} 编辑）",
+      "editedByName": "编辑人"
     },
     "openShift": "开班",
     "drawerExpense": "钱箱支出",
@@ -3177,9 +3178,17 @@
       },
       "action": {
         "download": "下载",
+        "view": "查看 PDF",
+        "openInNewTab": "在新标签页打开",
+        "dismissNotice": "关闭消息",
         "draft": "设为草稿",
         "publish": "发布",
         "delete": "删除"
+      },
+      "viewer": {
+        "close": "关闭",
+        "fallback": "此浏览器无法显示 PDF。",
+        "ariaLabel": "{title} 的 SOP PDF 预览"
       },
       "delete": {
         "title": "删除 SOP？",
@@ -3187,10 +3196,22 @@
         "cancel": "取消",
         "confirm": "删除"
       },
+      "upload": {
+        "title": "上传 SOP 文档",
+        "close": "关闭对话框",
+        "titleLabel": "标题 *",
+        "descriptionLabel": "描述（可选）",
+        "fileLabel": "SOP 文件 *",
+        "fileHint": "最大 10 MB。最终文档建议使用 PDF。",
+        "publishLabel": "立即发布给员工",
+        "errorFileRequired": "请先选择 SOP 文件（PDF / DOC / 图片）。",
+        "errorTitleRequired": "必须填写标题。"
+      },
       "uploading": "上传中…",
       "saveAction": "保存SOP",
       "errors": {
-        "saveFailed": "保存SOP失败。"
+        "saveFailed": "保存SOP失败。",
+        "uploadFailed": "文件上传失败。"
       }
     },
     "mySchedule": {

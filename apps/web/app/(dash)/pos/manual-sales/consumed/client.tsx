@@ -2,7 +2,17 @@
 
 import { PageHeader } from '@/components/page-header';
 import { Pagination } from '@/components/pagination';
-import { Button, Input, Select, SearchableSelect, Table, TableBody, TableCell, TableHead, toast } from '@erp/ui';
+import {
+  Button,
+  Input,
+  SearchableSelect,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  toast,
+} from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -20,6 +30,7 @@ interface ConsumedHistoryItem {
   locationLabel: string;
   itemCount: number;
   createdByName: string | null;
+  updatedByName: string | null;
 }
 
 interface Props {
@@ -112,8 +123,8 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
           description={<>{t('consumedIngredientsDesc')}</>}
           eyebrow={<>{t('eyebrow')}</>}
         />
-        <Link 
-          href="/pos/manual-sales" 
+        <Link
+          href="/pos/manual-sales"
           className="inline-flex items-center justify-center rounded-lg bg-brand-cream px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-2 border border-brand-cream-3"
         >
           &larr; {t('backToSales')}
@@ -121,7 +132,11 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
       </div>
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-        <form id="consumed-ingredients-form" action={submitAction} className="grid gap-4 lg:grid-cols-4">
+        <form
+          id="consumed-ingredients-form"
+          action={submitAction}
+          className="grid gap-4 lg:grid-cols-4"
+        >
           <input type="hidden" name="referenceId" value={referenceId ?? ''} />
           <Field label={t('location')}>
             <Select
@@ -146,9 +161,11 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
               required
             />
           </Field>
-          
+
           <div className="lg:col-span-4 rounded-xl border border-brand-cream-3 p-4 mt-4">
-            <h3 className="mb-3 text-sm font-semibold text-brand-ink">{t('consumedIngredients')}</h3>
+            <h3 className="mb-3 text-sm font-semibold text-brand-ink">
+              {t('consumedIngredients')}
+            </h3>
             <div className="space-y-3">
               {consumedIngredients.map((item, index) => (
                 <div
@@ -247,7 +264,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
           <div className="lg:col-span-4 flex items-end">
             <Button
               type="submit"
-              disabled={isPending || consumedIngredients.filter(i => i.ingredientId).length === 0}
+              disabled={isPending || consumedIngredients.filter((i) => i.ingredientId).length === 0}
               className="w-full rounded-lg bg-brand-red px-5 py-2.5 text-sm font-semibold text-white shadow-soft transition-colors hover:bg-brand-red-dark disabled:opacity-50"
               variant="primary"
               size="lg"
@@ -255,12 +272,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
               {isPending ? t('posting') : referenceId ? t('updateConsumed') : t('post')}
             </Button>
             {referenceId ? (
-              <Button
-                type="button"
-                variant="ghost"
-                className="ml-3"
-                onClick={resetEdit}
-              >
+              <Button type="button" variant="ghost" className="ml-3" onClick={resetEdit}>
                 {t('cancel')}
               </Button>
             ) : null}
@@ -290,13 +302,14 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
                 <Th>{t('location')}</Th>
                 <Th align="right">{t('itemCount')}</Th>
                 <Th>{t('postedBy')}</Th>
+                <Th>{t('editedByName')}</Th>
                 <Th align="right">{t('actions')}</Th>
               </tr>
             </thead>
             <TableBody className="divide-y divide-brand-cream-3">
               {data.history.items.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-brand-ink-3">
+                  <td colSpan={6} className="px-4 py-8 text-center text-brand-ink-3">
                     {t('emptyConsumedHistory')}
                   </td>
                 </tr>
@@ -307,6 +320,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
                     <Td>{item.locationLabel || '-'}</Td>
                     <Td align="right">{item.itemCount}</Td>
                     <Td>{item.createdByName || '-'}</Td>
+                    <Td>{item.updatedByName || '-'}</Td>
                     <Td align="right">
                       <div className="flex justify-end gap-2">
                         <Button
@@ -352,7 +366,9 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
           />
           <div className="relative z-10 flex w-full max-w-sm flex-col overflow-hidden rounded-2xl bg-card shadow-2xl">
             <div className="flex items-center justify-between border-b border-brand-cream-3 bg-brand-cream px-6 py-4">
-              <h3 className="text-lg font-semibold text-brand-ink">{t('confirmDeleteConsumedTitle')}</h3>
+              <h3 className="text-lg font-semibold text-brand-ink">
+                {t('confirmDeleteConsumedTitle')}
+              </h3>
               <button
                 type="button"
                 disabled={isDeleting}

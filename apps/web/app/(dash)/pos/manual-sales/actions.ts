@@ -5,10 +5,10 @@ import { and, db, eq, sql } from '@erp/db';
 import { productVariants, products } from '@erp/db/schema/inventory';
 import {
   createManualSalesClosing,
+  deleteManualSalesClosing,
+  getManualSalesClosingDetail,
   listManualSalesClosings,
   listManualSalesLocations,
-  getManualSalesClosingDetail,
-  deleteManualSalesClosing,
 } from '@erp/services/pos';
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -28,7 +28,9 @@ export async function deleteManualSaleAction(id: string) {
   const res = await deleteManualSalesClosing(id, ctx);
   if (!res.ok) {
     const errObj = res.error as any;
-    const msg = errObj?.details ? `${errorMessage(res.error)}: ${errObj.details}` : errorMessage(res.error);
+    const msg = errObj?.details
+      ? `${errorMessage(res.error)}: ${errObj.details}`
+      : errorMessage(res.error);
     return { ok: false, error: msg };
   }
   revalidatePath('/pos/manual-sales');
@@ -44,6 +46,7 @@ export interface ManualSalesPageData {
     number: string;
     salesDate: string;
     locationId: string;
+    locationLabel: string;
     channel: string;
     paymentMethod: string;
     transactionCount: number;
@@ -190,12 +193,15 @@ export async function fetchManualSalesPageData(
     };
   }
 
+  const locations = locationRows.map((row) => ({
+    id: row.id,
+    code: row.code,
+    label: `${row.code} - ${pickLocalized(row.name, locale)}`,
+  }));
+  const locationLabelById = new Map(locations.map((location) => [location.id, location.label]));
+
   return {
-    locations: locationRows.map((row) => ({
-      id: row.id,
-      code: row.code,
-      label: `${row.code} - ${pickLocalized(row.name, locale)}`,
-    })),
+    locations,
     products: productList.map((p) => ({
       id: p.id,
       name: p.name,
@@ -207,7 +213,10 @@ export async function fetchManualSalesPageData(
       name: i.name,
       uom: i.uom,
     })),
-    items: closings.value.items,
+    items: closings.value.items.map((item) => ({
+      ...item,
+      locationLabel: locationLabelById.get(item.locationId) ?? item.locationId,
+    })),
     total: closings.value.total,
     page: currentPage,
     pageSize,
@@ -243,7 +252,9 @@ export async function createManualSalesAction(
   }
 
   if (payments.length === 0) {
-    return { error: t('errorMinPayment', { defaultValue: 'Minimal harus ada 1 metode pembayaran' }) };
+    return {
+      error: t('errorMinPayment', { defaultValue: 'Minimal harus ada 1 metode pembayaran' }),
+    };
   }
 
   const baseDeductBom = formData.get('deductBom') === 'true';
@@ -252,9 +263,9 @@ export async function createManualSalesAction(
   for (let i = 0; i < payments.length; i++) {
     const payment = payments[i];
     const isFirst = i === 0;
-    
+
     const grossSales = BigInt(payment.grossSales || '0');
-    
+
     // Distribute discount: take up to grossSales amount from remainingDiscount
     const appliedDiscount = remainingDiscount > grossSales ? grossSales : remainingDiscount;
     remainingDiscount -= appliedDiscount;
@@ -280,12 +291,22 @@ export async function createManualSalesAction(
     );
 
     if (!result.ok) {
-      return { error: t('errorPaymentFailed', { method: payment.method, error: errorMessage(result.error), defaultValue: `Gagal pada pembayaran ${payment.method}: ` + errorMessage(result.error) }) };
+      return {
+        error: t('errorPaymentFailed', {
+          method: payment.method,
+          error: errorMessage(result.error),
+          defaultValue: `Gagal pada pembayaran ${payment.method}: ` + errorMessage(result.error),
+        }),
+      };
     }
   }
 
   if (remainingDiscount > 0n) {
-    return { error: t('errorDiscountExceedsGross', { defaultValue: 'Diskon melebihi total seluruh penjualan kotor.' }) };
+    return {
+      error: t('errorDiscountExceedsGross', {
+        defaultValue: 'Diskon melebihi total seluruh penjualan kotor.',
+      }),
+    };
   }
 
   revalidatePath('/pos/manual-sales');
@@ -297,7 +318,8 @@ export async function createManualSalesAction(
 export async function deleteManualSalesAction(id: string) {
   const ctx = await getAuditContext();
   const t = await getTranslations('pos.manualSales');
-  if (!ctx) return { ok: false, error: t('errorUnauthenticated', { defaultValue: 'Unauthenticated' }) };
+  if (!ctx)
+    return { ok: false, error: t('errorUnauthenticated', { defaultValue: 'Unauthenticated' }) };
   const res = await deleteManualSalesClosing(id, ctx);
   if (!res.ok) return { ok: false, error: errorMessage(res.error) };
   revalidatePath('/pos/manual-sales');
@@ -334,13 +356,22 @@ export async function updateManualSalesAction(
   }
 
   if (payments.length === 0) {
-    return { error: t('errorMinPayment', { defaultValue: 'Minimal harus ada 1 metode pembayaran' }) };
+    return {
+      error: t('errorMinPayment', { defaultValue: 'Minimal harus ada 1 metode pembayaran' }),
+    };
   }
 
   const remainingDiscount = BigInt(money(formData, 'discountTotal'));
-  const totalGross = payments.reduce((acc: bigint, p: any) => acc + BigInt(p.grossSales || '0'), 0n);
+  const totalGross = payments.reduce(
+    (acc: bigint, p: any) => acc + BigInt(p.grossSales || '0'),
+    0n,
+  );
   if (remainingDiscount > totalGross) {
-    return { error: t('errorDiscountExceedsGross', { defaultValue: 'Diskon melebihi total seluruh penjualan kotor.' }) };
+    return {
+      error: t('errorDiscountExceedsGross', {
+        defaultValue: 'Diskon melebihi total seluruh penjualan kotor.',
+      }),
+    };
   }
 
   // Get original creator to preserve it on the new record
@@ -370,7 +401,7 @@ export async function serverExportManualSales(locationId?: string) {
   const headers = [
     'Number',
     'Date',
-    'Location ID',
+    'Location',
     'Channel',
     'Payment Method',
     'Tx Count',
@@ -384,7 +415,7 @@ export async function serverExportManualSales(locationId?: string) {
   const rows = result.items.map((i) => [
     i.number,
     i.salesDate,
-    i.locationId,
+    i.locationLabel,
     i.channel,
     i.paymentMethod,
     i.transactionCount.toString(),

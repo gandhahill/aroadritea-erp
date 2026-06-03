@@ -6,7 +6,7 @@ import type { SopRow } from '@erp/services/hr';
 import { Button, Input, Select, Table, TableBody, TableCell, TableHead } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { deleteSopAction, updateSopAction } from './actions';
 import { SopUploadForm } from './sop-upload-form';
 
@@ -39,10 +39,18 @@ function statusBadge(status: string): string {
 }
 
 function humanSize(bytes: number) {
-  if (!bytes) return '—';
+  if (!bytes) return '-';
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function uploadHref(row: SopRow, download = false): string {
+  return `/api/uploads/${row.fileKey}${download ? '?download=1' : ''}`;
+}
+
+function isPdf(row: SopRow): boolean {
+  return row.mimeType === 'application/pdf' || row.fileName.toLowerCase().endsWith('.pdf');
 }
 
 export function SopListClient(props: Props) {
@@ -52,13 +60,9 @@ export function SopListClient(props: Props) {
   const [_isPending, startTransition] = useTransition();
   const [showUpload, setShowUpload] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [previewRow, setPreviewRow] = useState<SopRow | null>(null);
   const [statusBusy, setStatusBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(props.error ?? null);
-
-  const totalPages = useMemo(
-    () => Math.max(1, Math.ceil(props.total / props.pageSize)),
-    [props.total, props.pageSize],
-  );
 
   function updateParam(key: string, value: string) {
     const next = new URLSearchParams(search.toString());
@@ -109,9 +113,9 @@ export function SopListClient(props: Props) {
             type="button"
             onClick={() => setNotice(null)}
             className="text-rose-500 hover:text-rose-700"
-            aria-label="dismiss"
+            aria-label={t('action.dismissNotice')}
           >
-            ×
+            x
           </button>
         </div>
       ) : null}
@@ -211,8 +215,17 @@ export function SopListClient(props: Props) {
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
+                      {isPdf(row) ? (
+                        <button
+                          type="button"
+                          onClick={() => setPreviewRow(row)}
+                          className="rounded-lg border border-brand-cream-3 px-3 py-1 text-xs text-brand-ink hover:bg-brand-cream-2"
+                        >
+                          {t('action.view')}
+                        </button>
+                      ) : null}
                       <a
-                        href={`/api/uploads/${row.fileKey}`}
+                        href={uploadHref(row, true)}
                         target="_blank"
                         rel="noreferrer"
                         className="rounded-lg border border-brand-cream-3 px-3 py-1 text-xs text-brand-ink hover:bg-brand-cream-2"
@@ -258,6 +271,52 @@ export function SopListClient(props: Props) {
             router.refresh();
           }}
         />
+      ) : null}
+
+      {previewRow ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="flex h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-2xl">
+            <header className="flex items-center justify-between gap-4 border-b border-brand-cream-3 px-5 py-4">
+              <div className="min-w-0">
+                <h2 className="truncate text-base font-semibold text-brand-ink">
+                  {previewRow.title}
+                </h2>
+                <p className="truncate text-xs text-brand-ink-3">{previewRow.fileName}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <a
+                  href={uploadHref(previewRow, true)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-lg border border-brand-cream-3 px-3 py-1.5 text-xs font-medium text-brand-ink hover:bg-brand-cream-2"
+                >
+                  {t('action.download')}
+                </a>
+                <Button variant="secondary" size="sm" onClick={() => setPreviewRow(null)}>
+                  {t('viewer.close')}
+                </Button>
+              </div>
+            </header>
+            <object
+              data={uploadHref(previewRow)}
+              type="application/pdf"
+              aria-label={t('viewer.ariaLabel', { title: previewRow.title })}
+              className="min-h-0 flex-1 bg-brand-cream"
+            >
+              <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-sm text-brand-ink-2">
+                <p>{t('viewer.fallback')}</p>
+                <a
+                  href={uploadHref(previewRow)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-lg border border-brand-cream-3 px-3 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream-2"
+                >
+                  {t('action.openInNewTab')}
+                </a>
+              </div>
+            </object>
+          </div>
+        </div>
       ) : null}
 
       {confirmDeleteId ? (

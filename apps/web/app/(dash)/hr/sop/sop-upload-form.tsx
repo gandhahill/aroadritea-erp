@@ -1,7 +1,8 @@
 'use client';
 
 import { Button, Input, Select } from '@erp/ui';
-import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { type FormEvent, useState } from 'react';
 import { createSopAction } from './actions';
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 const CATEGORIES = ['general', 'operations', 'hr', 'finance', 'safety', 'service'] as const;
 
 export function SopUploadForm({ onClose, onSaved }: Props) {
+  const t = useTranslations('hr.sop');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]>('general');
@@ -20,15 +22,15 @@ export function SopUploadForm({ onClose, onSaved }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     if (!file) {
-      setError('Pilih file SOP terlebih dahulu (PDF / DOC / gambar).');
+      setError(t('upload.errorFileRequired'));
       return;
     }
     if (!title.trim()) {
-      setError('Judul wajib diisi.');
+      setError(t('upload.errorTitleRequired'));
       return;
     }
 
@@ -44,7 +46,7 @@ export function SopUploadForm({ onClose, onSaved }: Props) {
       const uploadRes = await fetch('/api/uploads', { method: 'POST', body: formData });
       if (!uploadRes.ok) {
         const payload = await uploadRes.json().catch(() => ({ error: 'upload-failed' }));
-        setError(payload.error ?? 'upload-failed');
+        setError(payload.error ?? t('errors.uploadFailed'));
         return;
       }
       const stored = (await uploadRes.json()) as {
@@ -67,7 +69,7 @@ export function SopUploadForm({ onClose, onSaved }: Props) {
         publish,
       });
       if (!result.ok) {
-        setError(result.error ?? 'sop.createFailed');
+        setError(result.error ?? t('errors.saveFailed'));
         return;
       }
       onSaved();
@@ -83,14 +85,14 @@ export function SopUploadForm({ onClose, onSaved }: Props) {
         className="w-full max-w-lg space-y-4 rounded-xl border border-brand-cream-3 bg-card p-6 shadow-2xl"
       >
         <header className="flex items-start justify-between">
-          <h2 className="text-base font-semibold text-brand-ink">Upload dokumen SOP</h2>
+          <h2 className="text-base font-semibold text-brand-ink">{t('upload.title')}</h2>
           <button
             type="button"
             onClick={onClose}
             className="text-brand-ink-3 hover:text-brand-ink"
-            aria-label="close"
+            aria-label={t('upload.close')}
           >
-            ×
+            x
           </button>
         </header>
 
@@ -100,9 +102,10 @@ export function SopUploadForm({ onClose, onSaved }: Props) {
           </div>
         ) : null}
 
-        <label className="block space-y-1 text-sm">
-          <span className="font-medium text-brand-ink">Judul *</span>
+        <label className="block space-y-1 text-sm" htmlFor="sop-title">
+          <span className="font-medium text-brand-ink">{t('upload.titleLabel')}</span>
           <Input
+            id="sop-title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
@@ -110,9 +113,10 @@ export function SopUploadForm({ onClose, onSaved }: Props) {
           />
         </label>
 
-        <label className="block space-y-1 text-sm">
-          <span className="font-medium text-brand-ink">Kategori</span>
+        <label className="block space-y-1 text-sm" htmlFor="sop-category">
+          <span className="font-medium text-brand-ink">{t('table.category')}</span>
           <Select
+            id="sop-category"
             value={category}
             onChange={(e) => setCategory(e.target.value as (typeof CATEGORIES)[number])}
           >
@@ -124,9 +128,10 @@ export function SopUploadForm({ onClose, onSaved }: Props) {
           </Select>
         </label>
 
-        <label className="block space-y-1 text-sm">
-          <span className="font-medium text-brand-ink">Deskripsi (opsional)</span>
+        <label className="block space-y-1 text-sm" htmlFor="sop-description">
+          <span className="font-medium text-brand-ink">{t('upload.descriptionLabel')}</span>
           <textarea
+            id="sop-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             maxLength={2000}
@@ -135,36 +140,36 @@ export function SopUploadForm({ onClose, onSaved }: Props) {
           />
         </label>
 
-        <label className="block space-y-1 text-sm">
-          <span className="font-medium text-brand-ink">Berkas SOP *</span>
+        <label className="block space-y-1 text-sm" htmlFor="sop-file">
+          <span className="font-medium text-brand-ink">{t('upload.fileLabel')}</span>
           <input
+            id="sop-file"
             type="file"
             accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.webp"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             className="block w-full text-sm text-brand-ink"
             required
           />
-          <p className="text-xs text-brand-ink-3">
-            Maks 10 MB. PDF disarankan untuk dokumen final.
-          </p>
+          <p className="text-xs text-brand-ink-3">{t('upload.fileHint')}</p>
         </label>
 
-        <label className="flex items-center gap-2 text-sm text-brand-ink">
+        <label className="flex items-center gap-2 text-sm text-brand-ink" htmlFor="sop-publish">
           <input
+            id="sop-publish"
             type="checkbox"
             checked={publish}
             onChange={(e) => setPublish(e.target.checked)}
             className="h-4 w-4 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
           />
-          Langsung publikasikan ke karyawan
+          {t('upload.publishLabel')}
         </label>
 
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" size="sm" type="button" onClick={onClose}>
-            Batal
+            {t('delete.cancel')}
           </Button>
           <Button variant="primary" size="sm" type="submit" disabled={busy}>
-            {busy ? 'Mengunggah…' : 'Simpan SOP'}
+            {busy ? t('uploading') : t('saveAction')}
           </Button>
         </div>
       </form>

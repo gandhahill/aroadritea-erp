@@ -1,7 +1,7 @@
-import type { PermissionCode } from '@erp/shared/types';
 import { getSession } from '@/lib/auth';
 import { type UploadArea, readUpload } from '@/lib/upload-storage';
 import { requirePermission } from '@erp/services/iam';
+import type { PermissionCode } from '@erp/shared/types';
 import { NextResponse } from 'next/server';
 
 const PRIVATE_READ_PERMISSION: Record<UploadArea, string[]> = {
@@ -18,7 +18,7 @@ const PRIVATE_READ_PERMISSION: Record<UploadArea, string[]> = {
   'ai-attachments': ['ai.assistant.admin'],
 };
 
-export async function GET(_request: Request, { params }: { params: Promise<{ key: string[] }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ key: string[] }> }) {
   const { key } = await params;
   try {
     const upload = await readUpload(key);
@@ -28,14 +28,18 @@ export async function GET(_request: Request, { params }: { params: Promise<{ key
       const allowed = await canReadPrivateUpload(session.user as Record<string, unknown>, upload);
       if (!allowed) return new NextResponse('Forbidden', { status: 403 });
     }
+    const fileName = key.at(-1) ?? 'download';
+    const forceDownload = new URL(request.url).searchParams.get('download') === '1';
+    const disposition = forceDownload || !isInlinePreviewSafe(fileName) ? 'attachment' : 'inline';
+
     return new NextResponse(upload.bytes, {
       headers: {
-        'content-type': contentTypeFromName(key.at(-1) ?? ''),
+        'content-type': contentTypeFromName(fileName),
         'content-length': String(upload.info.size),
         'cache-control':
           upload.visibility === 'public' ? 'public, max-age=31536000, immutable' : 'no-store',
         'x-content-type-options': 'nosniff',
-        'content-disposition': `${isInlineSafeImage(key.at(-1) ?? '') ? 'inline' : 'attachment'}; filename="${safeHeaderFileName(key.at(-1) ?? 'download')}"`,
+        'content-disposition': `${disposition}; filename="${safeHeaderFileName(fileName)}"`,
       },
     });
   } catch {
@@ -73,14 +77,15 @@ function contentTypeFromName(fileName: string): string {
   return 'application/octet-stream';
 }
 
-function isInlineSafeImage(fileName: string): boolean {
+function isInlinePreviewSafe(fileName: string): boolean {
   const lower = fileName.toLowerCase();
   return (
     lower.endsWith('.png') ||
     lower.endsWith('.jpg') ||
     lower.endsWith('.jpeg') ||
     lower.endsWith('.webp') ||
-    lower.endsWith('.gif')
+    lower.endsWith('.gif') ||
+    lower.endsWith('.pdf')
   );
 }
 

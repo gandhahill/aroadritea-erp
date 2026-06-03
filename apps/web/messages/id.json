@@ -2182,7 +2182,8 @@
       "errorMinPayment": "Minimal harus ada 1 metode pembayaran",
       "errorPaymentFailed": "Gagal pada pembayaran {method}: {error}",
       "errorDiscountExceedsGross": "Diskon melebihi total seluruh penjualan kotor.",
-      "editedBy": "(Edit: {name})"
+      "editedBy": "(Edit: {name})",
+      "editedByName": "Diedit oleh"
     },
     "openShift": "Buka Shift",
     "drawerExpense": "Pengeluaran Laci",
@@ -3256,9 +3257,17 @@
       },
       "action": {
         "download": "Unduh",
+        "view": "Lihat PDF",
+        "openInNewTab": "Buka tab baru",
+        "dismissNotice": "Tutup pesan",
         "draft": "Jadikan draft",
         "publish": "Publikasikan",
         "delete": "Hapus"
+      },
+      "viewer": {
+        "close": "Tutup",
+        "fallback": "PDF tidak bisa ditampilkan di browser ini.",
+        "ariaLabel": "Pratinjau PDF SOP {title}"
       },
       "delete": {
         "title": "Hapus SOP?",
@@ -3266,10 +3275,22 @@
         "cancel": "Batal",
         "confirm": "Hapus"
       },
+      "upload": {
+        "title": "Upload dokumen SOP",
+        "close": "Tutup dialog",
+        "titleLabel": "Judul *",
+        "descriptionLabel": "Deskripsi (opsional)",
+        "fileLabel": "Berkas SOP *",
+        "fileHint": "Maks 10 MB. PDF disarankan untuk dokumen final.",
+        "publishLabel": "Langsung publikasikan ke karyawan",
+        "errorFileRequired": "Pilih file SOP terlebih dahulu (PDF / DOC / gambar).",
+        "errorTitleRequired": "Judul wajib diisi."
+      },
       "uploading": "Mengunggah…",
       "saveAction": "Simpan SOP",
       "errors": {
-        "saveFailed": "Gagal menyimpan SOP."
+        "saveFailed": "Gagal menyimpan SOP.",
+        "uploadFailed": "Gagal mengunggah file."
       }
     },
     "mySchedule": {

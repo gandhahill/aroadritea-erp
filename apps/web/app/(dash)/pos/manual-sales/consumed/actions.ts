@@ -5,12 +5,12 @@ import { and, db, eq, inArray, isNull, sql } from '@erp/db';
 import { products, stockLevels, stockMovements } from '@erp/db/schema/inventory';
 import { auditRecord } from '@erp/services/audit';
 import { requirePermission } from '@erp/services/iam';
-import { getLocale, getTranslations } from 'next-intl/server';
-import { revalidatePath } from 'next/cache';
+import { listManualSalesLocations } from '@erp/services/pos';
 import { deductIngredients } from '@erp/services/pos/create-sale';
 import { generateId } from '@erp/shared/id';
 import type { AuditContext } from '@erp/shared/types';
-import { listManualSalesLocations } from '@erp/services/pos';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { revalidatePath } from 'next/cache';
 
 const MANUAL_INGREDIENT_CONSUMPTION = 'manual_ingredient_consumption';
 
@@ -54,9 +54,9 @@ export async function fetchConsumedIngredientsData(page = 1, requestedPageSize =
       error: 'Unauthenticated',
     };
   }
-  
+
   const locale = await getLocale();
-  
+
   const [locationRows, ingredientsList, historyRows, totalRows] = await Promise.all([
     listManualSalesLocations(ctx),
     db
@@ -84,6 +84,7 @@ export async function fetchConsumedIngredientsData(page = 1, requestedPageSize =
       locationName: Record<string, string> | null;
       itemCount: number;
       createdByName: string | null;
+      updatedByName: string | null;
     }>(sql`
       SELECT
         sm.reference_id as "id",
@@ -92,16 +93,18 @@ export async function fetchConsumedIngredientsData(page = 1, requestedPageSize =
         l.code as "locationCode",
         l.name as "locationName",
         cast(count(*) as int) as "itemCount",
-        u.display_name as "createdByName"
+        max(u.display_name) as "createdByName",
+        max(updater.display_name) as "updatedByName"
       FROM stock_movements sm
       LEFT JOIN locations l ON l.id = sm.location_id
       LEFT JOIN users u ON u.id = sm.created_by
+      LEFT JOIN users updater ON updater.id = sm.updated_by
       WHERE sm.tenant_id = ${ctx.tenantId}
         AND sm.reference_type = ${MANUAL_INGREDIENT_CONSUMPTION}
         AND sm.reason = 'sale'
         AND sm.reference_id IS NOT NULL
         AND sm.deleted_at IS NULL
-      GROUP BY sm.reference_id, sm.location_id, l.code, l.name, u.display_name
+      GROUP BY sm.reference_id, sm.location_id, l.code, l.name
       ORDER BY min(sm.occurred_at) DESC
       LIMIT ${pageSize}
       OFFSET ${(currentPage - 1) * pageSize}
@@ -135,13 +138,16 @@ export async function fetchConsumedIngredientsData(page = 1, requestedPageSize =
     history: {
       items: historyRows.map((row) => ({
         id: row.id,
-        occurredAt: row.occurredAt instanceof Date
-          ? row.occurredAt.toISOString()
-          : new Date(row.occurredAt).toISOString(),
+        occurredAt:
+          row.occurredAt instanceof Date
+            ? row.occurredAt.toISOString()
+            : new Date(row.occurredAt).toISOString(),
         locationId: row.locationId,
-        locationLabel: `${row.locationCode ?? ''} - ${pickLocalized(row.locationName, locale)}`.trim(),
+        locationLabel:
+          `${row.locationCode ?? ''} - ${pickLocalized(row.locationName, locale)}`.trim(),
         itemCount: Number(row.itemCount ?? 0),
         createdByName: row.createdByName,
+        updatedByName: row.updatedByName,
       })),
       total: Number(totalRows[0]?.count ?? 0),
       page: currentPage,
@@ -237,7 +243,10 @@ async function reverseConsumedIngredients(
     .where(
       and(
         eq(stockMovements.tenantId, ctx.tenantId),
-        inArray(stockMovements.id, movements.map((movement) => movement.id)),
+        inArray(
+          stockMovements.id,
+          movements.map((movement) => movement.id),
+        ),
       ),
     );
 
@@ -303,10 +312,7 @@ export async function fetchConsumedIngredientDetailAction(referenceId: string) {
   };
 }
 
-export async function createConsumedIngredientsAction(
-  _prev: any,
-  formData: FormData,
-) {
+export async function createConsumedIngredientsAction(_prev: any, formData: FormData) {
   const ctx = await getAuditContext();
   const t = await getTranslations('pos.manualSales');
   if (!ctx) return { error: t('errorUnauthenticated') };
@@ -324,7 +330,7 @@ export async function createConsumedIngredientsAction(
   if (consumedIngredients.length === 0) {
     return { error: t('errorMinConsumedIngredients') };
   }
-  
+
   const locationId = (formData.get('locationId') as string) || ctx.locationId;
   const existingReferenceId = String(formData.get('referenceId') ?? '').trim();
   const referenceId = existingReferenceId || generateId();

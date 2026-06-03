@@ -2,11 +2,29 @@
 
 import { PageHeader } from '@/components/page-header';
 import { Pagination } from '@/components/pagination';
-import { Button, Input, IntegerInput, MoneyInput, Select, SearchableSelect, Table, TableBody, TableCell, TableHead, toast } from '@erp/ui';
+import {
+  Button,
+  Input,
+  IntegerInput,
+  MoneyInput,
+  SearchableSelect,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  toast,
+} from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useActionState, useEffect, useState } from 'react';
-import { type ManualSalesPageData, createManualSalesAction, fetchManualSaleDetailAction, deleteManualSalesAction, updateManualSalesAction } from './actions';
+import {
+  type ManualSalesPageData,
+  createManualSalesAction,
+  deleteManualSalesAction,
+  fetchManualSaleDetailAction,
+  updateManualSalesAction,
+} from './actions';
 import { ExportManualSalesButton } from './export-manual-sales-button';
 
 interface Props {
@@ -23,7 +41,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [state, submitAction, isPending] = useActionState(async (prev: any, formData: FormData) => {
     const id = formData.get('id') as string;
-    return id 
+    return id
       ? await updateManualSalesAction(id, prev, formData)
       : await createManualSalesAction(prev, formData);
   }, null);
@@ -37,7 +55,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
       total: string;
     }>
   >([]);
-  
+
   const [payments, setPayments] = useState<
     Array<{
       id: string;
@@ -46,10 +64,20 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
       grossSales: string;
       transactionCount: number;
     }>
-  >([{ id: Date.now().toString(), channel: 'walk_in', method: 'cash', grossSales: '', transactionCount: 0 }]);
+  >([
+    {
+      id: Date.now().toString(),
+      channel: 'walk_in',
+      method: 'cash',
+      grossSales: '',
+      transactionCount: 0,
+    },
+  ]);
 
   const [editLocationId, setEditLocationId] = useState<string>(defaultLocationId);
-  const [editSalesDate, setEditSalesDate] = useState<string>(new Date().toISOString().substring(0, 10));
+  const [editSalesDate, setEditSalesDate] = useState<string>(
+    new Date().toISOString().substring(0, 10),
+  );
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailData, setDetailData] = useState<any>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -71,7 +99,15 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
     if (state?.ok) {
       const form = document.getElementById('manual-sales-form') as HTMLFormElement | null;
       form?.reset();
-      setPayments([{ id: Date.now().toString(), channel: 'walk_in', method: 'cash', grossSales: '', transactionCount: 0 }]);
+      setPayments([
+        {
+          id: Date.now().toString(),
+          channel: 'walk_in',
+          method: 'cash',
+          grossSales: '',
+          transactionCount: 0,
+        },
+      ]);
       setLineItems([]);
       setEditId(null);
       setEditData(null);
@@ -85,30 +121,37 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
     if (res.ok && res.value) {
       const data = res.value;
       if (data.lineItems && Array.isArray(data.lineItems)) {
-        setLineItems(data.lineItems.map((l: any) => ({
-          productId: l.productId,
-          variantId: l.variantId || undefined,
-          name: l.name,
-          qty: l.qty,
-          price: l.price,
-          total: l.total,
-        })));
+        setLineItems(
+          data.lineItems.map((l: any) => ({
+            productId: l.productId,
+            variantId: l.variantId || undefined,
+            name: l.name,
+            qty: l.qty,
+            price: l.price,
+            total: l.total,
+          })),
+        );
       } else {
         setLineItems([]);
       }
-      setPayments([{
-        id: Date.now().toString(),
-        channel: data.closing.channel,
-        method: data.closing.paymentMethod,
-        grossSales: data.closing.grossSales,
-        transactionCount: data.closing.transactionCount,
-      }]);
+      setPayments([
+        {
+          id: Date.now().toString(),
+          channel: data.closing.channel,
+          method: data.closing.paymentMethod,
+          grossSales: data.closing.grossSales,
+          transactionCount: data.closing.transactionCount,
+        },
+      ]);
       setEditData(data.closing);
       setEditLocationId(data.closing.locationId || defaultLocationId);
-      
+
       let parsedDate = new Date().toISOString().substring(0, 10);
       if (data.closing.salesDate) {
-        if (typeof data.closing.salesDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(data.closing.salesDate)) {
+        if (
+          typeof data.closing.salesDate === 'string' &&
+          /^\d{4}-\d{2}-\d{2}/.test(data.closing.salesDate)
+        ) {
           parsedDate = data.closing.salesDate.substring(0, 10);
         } else {
           try {
@@ -118,9 +161,9 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
         }
       }
       setEditSalesDate(parsedDate);
-      
+
       setEditId(id);
-      
+
       // Delay scrolling slightly to allow form remount
       setTimeout(() => {
         document.getElementById('manual-sales-form')?.scrollIntoView({ behavior: 'smooth' });
@@ -137,9 +180,11 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
     setIsDeleting(true);
     const res = await deleteManualSalesAction(deleteConfirmId);
     setIsDeleting(false);
-    
+
     if (res && !res.ok) {
-      toast.error(res.error || t('deleteFailed', { defaultValue: 'Gagal menghapus riwayat closing' }));
+      toast.error(
+        res.error || t('deleteFailed', { defaultValue: 'Gagal menghapus riwayat closing' }),
+      );
     } else {
       setDeleteConfirmId(null);
     }
@@ -164,8 +209,8 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
           description={<>{t('subtitle')}</>}
           eyebrow={<>{t('eyebrow')}</>}
         />
-        <Link 
-          href="/pos/manual-sales/consumed" 
+        <Link
+          href="/pos/manual-sales/consumed"
           className="inline-flex items-center justify-center rounded-lg bg-brand-cream px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-2 border border-brand-cream-3"
         >
           {t('consumedIngredients', { defaultValue: 'Pemakaian Bahan' })} &rarr;
@@ -173,10 +218,20 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
       </div>
 
       <section className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
-        <form key={editId || 'new'} id="manual-sales-form" action={submitAction} className="grid gap-4 lg:grid-cols-4">
+        <form
+          key={editId || 'new'}
+          id="manual-sales-form"
+          action={submitAction}
+          className="grid gap-4 lg:grid-cols-4"
+        >
           <input type="hidden" name="id" value={editId || ''} />
           <Field label={t('location')}>
-            <Select name="locationId" value={editLocationId} onChange={(e) => setEditLocationId(e.target.value)} required>
+            <Select
+              name="locationId"
+              value={editLocationId}
+              onChange={(e) => setEditLocationId(e.target.value)}
+              required
+            >
               {data.locations.map((location) => (
                 <option key={location.id} value={location.id}>
                   {location.label}
@@ -185,7 +240,13 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             </Select>
           </Field>
           <Field label={t('salesDate')}>
-            <Input name="salesDate" type="date" value={editSalesDate} onChange={(e) => setEditSalesDate(e.target.value)} required />
+            <Input
+              name="salesDate"
+              type="date"
+              value={editSalesDate}
+              onChange={(e) => setEditSalesDate(e.target.value)}
+              required
+            />
           </Field>
           <Field label={t('sourceReference')}>
             <Input name="sourceReference" defaultValue={editData?.sourceReference || ''} />
@@ -196,12 +257,19 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
 
           {/* Payments Section */}
           <div className="lg:col-span-4 rounded-xl border border-brand-cream-3 p-4 bg-brand-cream-2/30">
-            <h3 className="mb-3 text-sm font-semibold text-brand-ink">{t('payments', { defaultValue: 'Metode Pembayaran' })}</h3>
+            <h3 className="mb-3 text-sm font-semibold text-brand-ink">
+              {t('payments', { defaultValue: 'Metode Pembayaran' })}
+            </h3>
             <div className="space-y-3">
               {payments.map((payment, index) => (
-                <div key={payment.id} className="flex flex-wrap items-end gap-3 rounded-lg border border-brand-cream-3 bg-card p-3 shadow-sm">
+                <div
+                  key={payment.id}
+                  className="flex flex-wrap items-end gap-3 rounded-lg border border-brand-cream-3 bg-card p-3 shadow-sm"
+                >
                   <div className="w-32">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('channel')}</span>
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                      {t('channel')}
+                    </span>
                     <Select
                       value={payment.channel}
                       onChange={(e) => {
@@ -217,7 +285,9 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     </Select>
                   </div>
                   <div className="w-32">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('paymentMethod')}</span>
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                      {t('paymentMethod')}
+                    </span>
                     <Select
                       value={payment.method}
                       onChange={(e) => {
@@ -235,7 +305,9 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     </Select>
                   </div>
                   <div className="flex-1 min-w-[120px]">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('grossSales')}</span>
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                      {t('grossSales')}
+                    </span>
                     <MoneyInput
                       value={payment.grossSales}
                       required
@@ -247,14 +319,19 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     />
                   </div>
                   <div className="w-24">
-                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">{t('transactionCount')}</span>
+                    <span className="mb-1.5 block text-xs font-medium text-brand-ink-3">
+                      {t('transactionCount')}
+                    </span>
                     <IntegerInput
                       min={0}
                       placeholder="0"
                       value={payment.transactionCount || ''}
                       onChange={(e) => {
                         const newPayments = [...payments];
-                        newPayments[index] = { ...newPayments[index]!, transactionCount: Number.parseInt(e.target.value) || 0 };
+                        newPayments[index] = {
+                          ...newPayments[index]!,
+                          transactionCount: Number.parseInt(e.target.value) || 0,
+                        };
                         setPayments(newPayments);
                       }}
                     />
@@ -274,7 +351,18 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => setPayments([...payments, { id: Date.now().toString(), channel: 'walk_in', method: 'cash', grossSales: '', transactionCount: 0 }])}
+                onClick={() =>
+                  setPayments([
+                    ...payments,
+                    {
+                      id: Date.now().toString(),
+                      channel: 'walk_in',
+                      method: 'cash',
+                      grossSales: '',
+                      transactionCount: 0,
+                    },
+                  ])
+                }
               >
                 + {t('addPayment', { defaultValue: 'Tambah Pembayaran' })}
               </Button>
@@ -296,11 +384,14 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     </span>
                     <SearchableSelect
                       options={[
-                        { value: '', label: t('selectProduct', { defaultValue: 'Select Product...' }) },
-                        ...data.products.map(p => ({
+                        {
+                          value: '',
+                          label: t('selectProduct', { defaultValue: 'Select Product...' }),
+                        },
+                        ...data.products.map((p) => ({
                           value: `${p.id}::${p.variantId || ''}`,
-                          label: p.name
-                        }))
+                          label: p.name,
+                        })),
                       ]}
                       value={`${item.productId}::${item.variantId || ''}`}
                       searchPlaceholder={t('search', { defaultValue: 'Cari...' })}
@@ -440,9 +531,13 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
           </div>
 
           <Field label={t('discountTotal')}>
-            <Input name="discountTotal" inputMode="numeric" defaultValue={editData?.discountTotal || "0"} />
+            <Input
+              name="discountTotal"
+              inputMode="numeric"
+              defaultValue={editData?.discountTotal || '0'}
+            />
           </Field>
-          
+
           <div className="lg:col-span-3 flex items-end">
             <Button
               type="submit"
@@ -451,7 +546,11 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
               variant="primary"
               size="lg"
             >
-              {isPending ? t('posting') : (editId ? t('update', { defaultValue: 'Update' }) : t('post'))}
+              {isPending
+                ? t('posting')
+                : editId
+                  ? t('update', { defaultValue: 'Update' })
+                  : t('post')}
             </Button>
             {editId && (
               <Button
@@ -461,7 +560,15 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                 onClick={() => {
                   setEditId(null);
                   setEditData(null);
-                  setPayments([{ id: Date.now().toString(), channel: 'walk_in', method: 'cash', grossSales: '', transactionCount: 0 }]);
+                  setPayments([
+                    {
+                      id: Date.now().toString(),
+                      channel: 'walk_in',
+                      method: 'cash',
+                      grossSales: '',
+                      transactionCount: 0,
+                    },
+                  ]);
                   setLineItems([]);
                 }}
               >
@@ -493,6 +600,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
               <tr className="text-left text-brand-ink-2">
                 <Th>{t('number')}</Th>
                 <Th>{t('salesDate')}</Th>
+                <Th>{t('location')}</Th>
                 <Th>{t('channel')}</Th>
                 <Th>{t('paymentMethod')}</Th>
                 <Th align="right">{t('transactionCount')}</Th>
@@ -509,24 +617,29 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             <TableBody className="divide-y divide-brand-cream-3">
               {data.items.length === 0 ? (
                 <tr>
-                  <td colSpan={13} className="px-4 py-8 text-center text-brand-ink-3">
+                  <td colSpan={14} className="px-4 py-8 text-center text-brand-ink-3">
                     {t('empty')}
                   </td>
                 </tr>
               ) : (
                 data.items.map((item) => (
-                  <tr key={item.id} className="text-brand-ink cursor-pointer hover:bg-brand-cream/50" onClick={async () => {
-    setDetailModalOpen(true);
-    setDetailData(null);
-    setLoadingDetail(true);
-    const res = await fetchManualSaleDetailAction(item.id);
-    if (res.ok) {
-      setDetailData(res.value);
-    }
-    setLoadingDetail(false);
-  }}>
+                  <tr
+                    key={item.id}
+                    className="text-brand-ink cursor-pointer hover:bg-brand-cream/50"
+                    onClick={async () => {
+                      setDetailModalOpen(true);
+                      setDetailData(null);
+                      setLoadingDetail(true);
+                      const res = await fetchManualSaleDetailAction(item.id);
+                      if (res.ok) {
+                        setDetailData(res.value);
+                      }
+                      setLoadingDetail(false);
+                    }}
+                  >
                     <Td>{item.number}</Td>
                     <Td>{item.salesDate}</Td>
+                    <Td>{item.locationLabel || '-'}</Td>
                     <Td>{item.channel}</Td>
                     <Td>{item.paymentMethod}</Td>
                     <Td align="right">{item.transactionCount}</Td>
@@ -534,28 +647,49 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     <Td align="right">{formatRupiah(item.taxTotal)}</Td>
                     <Td align="right">{formatRupiah(item.netRevenue)}</Td>
                     <Td>{item.sourceReference || '-'}</Td>
-                    <Td><span className="max-w-[200px] truncate block">{item.notes || '-'}</span></Td>
+                    <Td>
+                      <span className="max-w-[200px] truncate block">{item.notes || '-'}</span>
+                    </Td>
                     <Td>{item.journalEntryId ? t('synced') : t('notSynced')}</Td>
                     <Td>
                       {item.createdByName || '-'}
                       {item.updatedByName && item.updatedByName !== item.createdByName && (
                         <span className="block text-[11px] text-brand-ink-3 mt-0.5">
-                          {t('editedBy', { name: item.updatedByName, defaultValue: `(Edit: ${item.updatedByName})` })}
+                          {t('editedBy', {
+                            name: item.updatedByName,
+                            defaultValue: `(Edit: ${item.updatedByName})`,
+                          })}
                         </span>
                       )}
                     </Td>
                     <Td align="right">
                       {item.status !== 'voided' ? (
-                        <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                          <Button type="button" variant="ghost" size="sm" onClick={() => startEdit(item.id)}>
+                        <div
+                          className="flex justify-end gap-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => startEdit(item.id)}
+                          >
                             {t('edit', { defaultValue: 'Edit' })}
                           </Button>
-                          <Button type="button" variant="ghost" size="sm" className="text-brand-red" onClick={() => confirmDelete(item.id)}>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="text-brand-red"
+                            onClick={() => confirmDelete(item.id)}
+                          >
                             {t('delete', { defaultValue: 'Hapus' })}
                           </Button>
                         </div>
                       ) : (
-                        <span className="text-xs text-brand-ink-3 italic">{t('voided', { defaultValue: 'Dibatalkan' })}</span>
+                        <span className="text-xs text-brand-ink-3 italic">
+                          {t('voided', { defaultValue: 'Dibatalkan' })}
+                        </span>
                       )}
                     </Td>
                   </tr>
@@ -569,11 +703,22 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
 
       {detailModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
-          <button type="button" aria-label="close" className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDetailModalOpen(false)} />
+          <button
+            type="button"
+            aria-label="close"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setDetailModalOpen(false)}
+          />
           <div className="relative z-10 flex w-full max-w-2xl flex-col rounded-2xl bg-card shadow-2xl overflow-hidden max-h-[90vh]">
             <div className="border-b border-brand-cream-3 px-6 py-4 flex justify-between items-center bg-brand-cream">
               <h3 className="text-lg font-semibold text-brand-ink">{t('history')} - Detail</h3>
-              <button type="button" onClick={() => setDetailModalOpen(false)} className="text-brand-ink-3 hover:text-brand-ink">&times;</button>
+              <button
+                type="button"
+                onClick={() => setDetailModalOpen(false)}
+                className="text-brand-ink-3 hover:text-brand-ink"
+              >
+                &times;
+              </button>
             </div>
             <div className="overflow-y-auto p-6 space-y-6">
               {loadingDetail ? (
@@ -586,10 +731,18 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                       <table className="w-full text-sm border border-brand-cream-3 rounded-lg overflow-hidden">
                         <thead className="bg-brand-cream-2 text-left">
                           <tr>
-                            <th className="px-3 py-2 font-medium text-brand-ink-2">{t('product')}</th>
-                            <th className="px-3 py-2 font-medium text-brand-ink-2 text-right">{t('qty')}</th>
-                            <th className="px-3 py-2 font-medium text-brand-ink-2 text-right">{t('price')}</th>
-                            <th className="px-3 py-2 font-medium text-brand-ink-2 text-right">{t('total')}</th>
+                            <th className="px-3 py-2 font-medium text-brand-ink-2">
+                              {t('product')}
+                            </th>
+                            <th className="px-3 py-2 font-medium text-brand-ink-2 text-right">
+                              {t('qty')}
+                            </th>
+                            <th className="px-3 py-2 font-medium text-brand-ink-2 text-right">
+                              {t('price')}
+                            </th>
+                            <th className="px-3 py-2 font-medium text-brand-ink-2 text-right">
+                              {t('total')}
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-brand-cream-3">
@@ -597,8 +750,12 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                             <tr key={i}>
                               <td className="px-3 py-2 text-brand-ink">{l.name}</td>
                               <td className="px-3 py-2 text-right text-brand-ink-2">{l.qty}</td>
-                              <td className="px-3 py-2 text-right text-brand-ink-2">{formatRupiah(l.price)}</td>
-                              <td className="px-3 py-2 text-right text-brand-ink-2">{formatRupiah(l.total)}</td>
+                              <td className="px-3 py-2 text-right text-brand-ink-2">
+                                {formatRupiah(l.price)}
+                              </td>
+                              <td className="px-3 py-2 text-right text-brand-ink-2">
+                                {formatRupiah(l.total)}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -607,22 +764,30 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                       <p className="text-sm text-brand-ink-3 italic">{t('noProducts')}</p>
                     )}
                   </div>
-                  
+
                   <div>
-                    <h4 className="font-semibold text-sm mb-2 text-brand-ink">{t('stockAdjustment')}</h4>
+                    <h4 className="font-semibold text-sm mb-2 text-brand-ink">
+                      {t('stockAdjustment')}
+                    </h4>
                     {detailData.stockMovements && detailData.stockMovements.length > 0 ? (
                       <table className="w-full text-sm border border-brand-cream-3 rounded-lg overflow-hidden">
                         <thead className="bg-brand-cream-2 text-left">
                           <tr>
-                            <th className="px-3 py-2 font-medium text-brand-ink-2">{t('productOrIngredient')}</th>
-                            <th className="px-3 py-2 font-medium text-brand-ink-2 text-right">{t('change')}</th>
+                            <th className="px-3 py-2 font-medium text-brand-ink-2">
+                              {t('productOrIngredient')}
+                            </th>
+                            <th className="px-3 py-2 font-medium text-brand-ink-2 text-right">
+                              {t('change')}
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-brand-cream-3">
                           {detailData.stockMovements.map((m: any, i: number) => (
                             <tr key={i}>
                               <td className="px-3 py-2 text-brand-ink">{m.productName}</td>
-                              <td className="px-3 py-2 text-right text-brand-red">{m.qtyDelta} {m.uom}</td>
+                              <td className="px-3 py-2 text-right text-brand-red">
+                                {m.qtyDelta} {m.uom}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -647,29 +812,57 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
 
       {deleteConfirmId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
-          <button type="button" aria-label="close" className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !isDeleting && setDeleteConfirmId(null)} />
+          <button
+            type="button"
+            aria-label="close"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => !isDeleting && setDeleteConfirmId(null)}
+          />
           <div className="relative z-10 flex w-full max-w-sm flex-col rounded-2xl bg-card shadow-2xl overflow-hidden">
             <div className="border-b border-brand-cream-3 px-6 py-4 flex justify-between items-center bg-brand-cream">
-              <h3 className="text-lg font-semibold text-brand-ink">{t('confirmDeleteTitle', { defaultValue: 'Hapus Transaksi?' })}</h3>
-              <button type="button" disabled={isDeleting} onClick={() => setDeleteConfirmId(null)} className="text-brand-ink-3 hover:text-brand-ink disabled:opacity-50">&times;</button>
+              <h3 className="text-lg font-semibold text-brand-ink">
+                {t('confirmDeleteTitle', { defaultValue: 'Hapus Transaksi?' })}
+              </h3>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setDeleteConfirmId(null)}
+                className="text-brand-ink-3 hover:text-brand-ink disabled:opacity-50"
+              >
+                &times;
+              </button>
             </div>
             <div className="p-6">
               <p className="text-sm text-brand-ink-2">
-                {t('confirmDelete', { defaultValue: 'Yakin hapus transaksi ini? (Jurnal dan stok akan dibalikkan)' })}
+                {t('confirmDelete', {
+                  defaultValue: 'Yakin hapus transaksi ini? (Jurnal dan stok akan dibalikkan)',
+                })}
               </p>
             </div>
             <div className="border-t border-brand-cream-3 p-4 bg-brand-cream flex justify-end gap-3">
-              <Button type="button" variant="ghost" disabled={isDeleting} onClick={() => setDeleteConfirmId(null)}>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={isDeleting}
+                onClick={() => setDeleteConfirmId(null)}
+              >
                 {t('cancel', { defaultValue: 'Batal' })}
               </Button>
-              <Button type="button" variant="primary" disabled={isDeleting} className="bg-brand-red hover:bg-brand-red-dark text-white" onClick={executeDelete}>
-                {isDeleting ? t('deleting', { defaultValue: 'Menghapus...' }) : t('delete', { defaultValue: 'Hapus' })}
+              <Button
+                type="button"
+                variant="primary"
+                disabled={isDeleting}
+                className="bg-brand-red hover:bg-brand-red-dark text-white"
+                onClick={executeDelete}
+              >
+                {isDeleting
+                  ? t('deleting', { defaultValue: 'Menghapus...' })
+                  : t('delete', { defaultValue: 'Hapus' })}
               </Button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }
