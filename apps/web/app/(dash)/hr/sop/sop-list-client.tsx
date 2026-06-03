@@ -54,6 +54,10 @@ function uploadHref(row: SopRow, download = false): string {
   return download ? `${path}${path.includes('?') ? '&' : '?'}download=1` : path;
 }
 
+function pdfPreviewHref(row: SopRow): string {
+  return `${uploadHref(row)}#toolbar=1&navpanes=0&view=FitH`;
+}
+
 function normalizeUploadKey(value: string): string {
   let key = value.replace(/^\/+/, '').replace(/^(?:storage\/)?uploads\//, '');
   const visibilityMatch = key.match(/(?:^|\/)(private|public)\//);
@@ -311,11 +315,10 @@ export function SopListClient(props: Props) {
                 </Button>
               </div>
             </header>
-            <object
-              data={uploadHref(previewRow)}
-              type="application/pdf"
-              aria-label={t('viewer.ariaLabel', { title: previewRow.title })}
-              className="min-h-0 flex-1 bg-brand-cream"
+            <iframe
+              src={pdfPreviewHref(previewRow)}
+              title={t('viewer.ariaLabel', { title: previewRow.title })}
+              className="min-h-0 flex-1 border-0 bg-brand-cream"
             >
               <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-sm text-brand-ink-2">
                 <p>{t('viewer.fallback')}</p>
@@ -328,7 +331,7 @@ export function SopListClient(props: Props) {
                   {t('action.openInNewTab')}
                 </a>
               </div>
-            </object>
+            </iframe>
           </div>
         </div>
       ) : null}
