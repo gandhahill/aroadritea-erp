@@ -3222,7 +3222,7 @@ Production VPS HestiaCP menjalankan proses Node lewat `ecosystem.config.cjs`:
 - `aroadri-mcp` → `apps/mcp/src/server.ts` via `tsx`, health bind `127.0.0.1:3002`, `MCP_ENABLE_STDIO=false` untuk mode daemon PM2.
 - `aroadri-worker` → `apps/worker/src/index.ts` via `tsx`.
 
-DB di managed (Neon/Supabase) → tidak ada DB lokal di VPS.
+DB produksi berjalan di PostgreSQL lokal pada VPS (`127.0.0.1:5432`) sesuai ADR-0014. Semua PM2 app wajib memakai `DATABASE_URL` lokal dari `.env`, lalu `pm2 save` setelah perubahan environment agar `pm2 resurrect` tetap memakai DB lokal.
 
 Semua port aplikasi PM2 wajib bind loopback (`127.0.0.1`), bukan `0.0.0.0`; akses publik hanya lewat reverse proxy HestiaCP HTTPS.
 
@@ -3238,8 +3238,14 @@ MCP transport utama tetap `stdio` untuk klien AI lokal. Proses PM2 hanya menjaga
 ## 27. Backup, Restore, DR
 
 ### 27.1 Database
-- Neon/Supabase: gunakan **point-in-time recovery** built-in jika tersedia di plan.
-- Tambahan: `pg_dump` harian via worker → upload terenkripsi (gpg) ke S3/R2 → retensi 7 hari.
+- Produksi memakai PostgreSQL lokal di VPS sesuai ADR-0014; jangan mengarahkan runtime produksi kembali ke Neon.
+- `pg_dump` harian dijalankan via root cron pukul 02:00 WIB:
+  - Script: `/home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp/scripts/db-backup.sh`
+  - Log: `/home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp/logs/backup.log`
+  - Local dump: `/home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp/backups/db_backup_*.sql.gz`
+  - Off-site copy: rclone `remote:/backup/aroadritea-erp`
+- Cron harus berjalan sebagai `root`, bukan user `aroadritea`, karena konfigurasi rclone produksi berada di `/root/.config/rclone/rclone.conf` dan direktori backup/log dimiliki `root`.
+- Retensi saat ini: local dump lebih dari 1 hari dihapus; remote dump lebih dari 7 hari dihapus.
 
 ### 27.2 Files (Uploads)
 - Sediakan storage object eksternal (R2/S3) sejak hari pertama (jangan simpan di disk VPS — terbatas).

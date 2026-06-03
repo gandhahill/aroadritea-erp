@@ -1,26 +1,58 @@
-# Runbook — Restore Postgres + assets from backup
+# Runbook - Restore PostgreSQL + assets from backup
 
-> RPO target: **24 h for catalog / 0 for POS via offline queue**. ADR-0009.
+> RPO target: 24 h for catalog / 0 for POS via offline queue. ADR-0009.
 
 ## When to use this
 
-- Catastrophic data loss (accidental DROP TABLE, ransomware).
+- Catastrophic data loss, such as accidental `DROP TABLE` or corrupted data.
 - Restoring staging from production for a freeze test.
 - Drill exercise to verify the backup chain works.
 
-## Inventory
+## Current production topology
 
-| What                  | Where                                        | Frequency  |
-| --------------------- | -------------------------------------------- | ---------- |
-| Postgres logical dump | `/var/backups/aroadri/db/aroadri_YYYY-MM-DD.sql.gz` | Daily 02:00 WIB |
-| Postgres WAL          | Neon point-in-time (managed)                 | Continuous |
-| Uploaded assets       | `/var/backups/aroadri/uploads/`              | Daily 02:30 WIB |
-| Backup retention      | 7 daily, 4 weekly, 6 monthly                  | Rolling    |
-| Off-site copy         | rclone to S3-compatible bucket (env: `BACKUP_S3_*`) | Daily |
+Production uses local PostgreSQL 18 on the VPS, not Neon. ADR-0014 supersedes older Neon references for production runtime and restore.
 
-The cron job lives in `scripts/cron-backup.sh` (T-0157).
+All production PM2 apps must use the local `.env` `DATABASE_URL` pointing at `127.0.0.1:5432/aroadritea_erp`. After changing PM2 environment, always run `pm2 save` so `pm2 resurrect` keeps the local DB setting.
 
-## Step 1 — Stop writes
+## Backup inventory
+
+| What | Where | Frequency |
+| --- | --- | --- |
+| Postgres logical dump | `/home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp/backups/db_backup_*.sql.gz` | Daily 02:00 WIB |
+| Backup log | `/home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp/logs/backup.log` | Per run |
+| Off-site copy | rclone `remote:/backup/aroadritea-erp` | Daily 02:00 WIB |
+| Local retention | Files older than 1 day | Rolling |
+| Remote retention | Files older than 7 days | Rolling |
+
+The backup cron must run as `root`, not `aroadritea`, because the production rclone config lives at `/root/.config/rclone/rclone.conf` and the backup/log directories are root-owned.
+
+Expected root crontab:
+
+```cron
+MAILTO=""
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+0 2 * * * /home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp/scripts/db-backup.sh >> /home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp/logs/backup.log 2>&1
+```
+
+The `aroadritea` user crontab must not contain `db-backup.sh`.
+
+## Backup health check
+
+```bash
+crontab -u root -l
+crontab -u aroadritea -l
+tail -n 80 /home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp/logs/backup.log
+rclone lsf remote:/backup/aroadritea-erp | tail -n 20
+ls -lah /home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp/backups
+```
+
+A healthy run ends with:
+
+```text
+Backup process completed successfully.
+```
+
+## Step 1 - Stop writes
 
 ```bash
 pm2 stop aroadri-web aroadri-mcp aroadri-worker
@@ -28,77 +60,82 @@ pm2 stop aroadri-web aroadri-mcp aroadri-worker
 
 Leave `aroadri-site` running so customers see the marketing site.
 
-## Step 2 — Pick the snapshot
+## Step 2 - Pick the snapshot
+
+Prefer the latest dump before the corruption time.
 
 ```bash
-ls -lh /var/backups/aroadri/db/
+rclone lsf remote:/backup/aroadritea-erp | tail -n 20
+ls -lah /home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp/backups
 ```
 
-Use the most recent dump that pre-dates the corruption. If unsure, use
-yesterday's 02:00 dump.
-
-## Step 3 — Restore the database
+If the snapshot only exists off-site, download it first:
 
 ```bash
-# Drop and recreate the target DB (PRODUCTION: this destroys current state)
-psql "$ADMIN_DATABASE_URL" -c "DROP DATABASE aroadri WITH (FORCE);"
-psql "$ADMIN_DATABASE_URL" -c "CREATE DATABASE aroadri OWNER aroadri_app;"
-
-# Restore the dump
-gunzip -c /var/backups/aroadri/db/aroadri_2026-05-18.sql.gz \
-  | psql "$DATABASE_URL"
+mkdir -p /root/aroadri-db-backups
+rclone copy remote:/backup/aroadritea-erp/db_backup_YYYY-MM-DD_HH-MM-SS.sql.gz /root/aroadri-db-backups/
 ```
 
-For point-in-time restore (Neon), use the Neon console: pick a target
-branch + timestamp; new branch becomes the new primary after promote.
+## Step 3 - Safety backup current DB
 
-## Step 4 — Restore uploaded assets
+Before destructive restore, create a final dump of the current local DB.
 
 ```bash
-sudo rsync -a --delete \
-  /var/backups/aroadri/uploads/ \
-  /var/www/aroadritea/uploads/
+cd /home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp
+set -a
+. ./.env
+set +a
+mkdir -p /root/aroadri-db-backups
+pg_dump -Fc "$DATABASE_URL" > "/root/aroadri-db-backups/before_restore_$(date +%Y%m%d_%H%M%S).dump"
 ```
 
-## Step 5 — Re-run migrations (idempotent)
+## Step 4 - Restore the database
+
+This destroys current production database contents.
 
 ```bash
-cd /var/www/aroadritea/repo
+sudo -u postgres dropdb --if-exists aroadritea_erp --force
+sudo -u postgres createdb -O aroadritea aroadritea_erp
+gunzip -c /root/aroadri-db-backups/db_backup_YYYY-MM-DD_HH-MM-SS.sql.gz | psql "$DATABASE_URL"
+```
+
+The daily backup excludes the `pgboss` schema. The worker should recreate it because the restored database is owned by the app database user.
+
+## Step 5 - Re-run migrations
+
+```bash
+cd /home/aroadritea/web/aroadritea.com/public_html/aroadritea-erp
 pnpm --filter @erp/db migrate
 ```
 
-Catches the case where the backup pre-dates a schema migration.
+This catches the case where the backup pre-dates a schema migration.
 
-## Step 6 — Restart services
+## Step 6 - Restart services
 
 ```bash
-pm2 start aroadri-web aroadri-mcp aroadri-worker
+pm2 restart aroadri-web aroadri-mcp aroadri-worker --update-env
+pm2 save
 pm2 status
 ```
 
 Watch logs for the first POS sale to confirm journal posting works.
 
-## Step 7 — Replay queued POS orders
+## Step 7 - Replay queued POS orders
 
-Each cashier PWA has an offline queue (IndexedDB). After restart:
+Each cashier PWA has an offline queue in IndexedDB. After service is restored:
 
 1. Cashier clicks "Sync now" on the offline banner.
-2. Server creates the matching sales orders via the `idempotencyKey`
-   uniqueness on `sales_orders.idempotencyKey` (per location).
+2. Server creates the matching sales orders via the `idempotencyKey` uniqueness on `sales_orders.idempotencyKey` per location.
 
-Duplicates are silently rejected by the unique index — no data loss
-beyond the snapshot window.
+Duplicates are rejected by the unique index, so POS orders that were stored offline can be replayed safely.
 
-## Step 8 — Reconcile period
+## Step 8 - Reconcile period
 
 If the restore crosses a period closing boundary:
 
 1. Compare `general_ledger` totals to the last closed period.
-2. If they disagree, open `accountingPeriods` for the affected month
-   (`status = 'open'`) and re-run reporting jobs.
+2. If they disagree, open `accountingPeriods` for the affected month (`status = 'open'`) and re-run reporting jobs.
 
 ## Drill schedule
 
-Quarterly, on the first Saturday of Jan/Apr/Jul/Oct. Drill restores into
-a staging DB (`aroadri_drill_<date>`); does NOT touch production. Log
-the drill in `TASK.md` under "Backup drills".
+Quarterly, on the first Saturday of Jan/Apr/Jul/Oct. Drill restores into a staging DB (`aroadri_drill_<date>`); do not touch production. Log the drill in `TASK.md` under "Backup drills".

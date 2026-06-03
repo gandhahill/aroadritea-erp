@@ -29,3 +29,4 @@ Drizzle ORM diubah menggunakan konektor PostgreSQL standar (`postgres` atau `pg`
 - [x] Instalasi PostgreSQL lokal dengan konfigurasi memori khusus di VPS.
 - [x] Migrasi dan ekspor struktur dan data dari Neon via `pg_dump`.
 - [x] Update aplikasi untuk menggunakan paket `postgres` alih-alih Neon HTTP driver.
+- [x] Permanenkan backup lokal PostgreSQL via root cron + rclone off-site (`remote:/backup/aroadritea-erp`).
