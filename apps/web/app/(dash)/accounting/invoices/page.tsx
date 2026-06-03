@@ -1,5 +1,6 @@
 import { getSession } from '@/lib/auth';
 import { authorizedLocationIdsForTenant } from '@/lib/authz';
+import { Pagination } from '@/components/pagination';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
@@ -11,7 +12,11 @@ export const metadata: Metadata = {
   title: 'Invoices',
 };
 
-export default async function InvoicesPage() {
+export default async function InvoicesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; pageSize?: string }>;
+}) {
   const session = await getSession();
   if (!session) redirect('/login');
   const user = session.user as Record<string, unknown>;
@@ -22,8 +27,12 @@ export default async function InvoicesPage() {
   );
   if (!scope.global && scope.locationIds.length === 0) redirect('/dashboard');
 
-  const [invoicesList, t, tc] = await Promise.all([
-    fetchInvoicesAction(),
+  const params = await searchParams;
+  const page = Math.max(1, Number(params.page) || 1);
+  const pageSize = [10, 20, 50, 100].includes(Number(params.pageSize)) ? Number(params.pageSize) : 20;
+
+  const [{ items: invoicesList, total }, t, tc] = await Promise.all([
+    fetchInvoicesAction({ limit: pageSize, offset: (page - 1) * pageSize }),
     getTranslations('accounting.invoice'),
     getTranslations('common')
   ]);
@@ -37,7 +46,7 @@ export default async function InvoicesPage() {
           <>
             <div className="flex items-center gap-3">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-jade-light px-3 py-1 text-xs font-medium text-brand-jade">
-                {t('count', { count: invoicesList.length })}
+                {t('count', { count: total })}
               </span>
               <Link
                 href="/accounting/invoices/new"
@@ -51,7 +60,7 @@ export default async function InvoicesPage() {
       />
 
       <div className="overflow-x-auto rounded-lg border border-brand-cream-3 bg-card shadow-soft">
-        <table className="w-full text-left text-sm">
+        <table className="w-full min-w-[900px] text-left text-sm">
           <thead className="bg-brand-cream-1">
             <tr>
               <th className="px-6 py-4 font-semibold text-brand-ink-3">{t('number')}</th>
@@ -121,6 +130,8 @@ export default async function InvoicesPage() {
           </tbody>
         </table>
       </div>
+
+      {total > 0 && <Pagination currentPage={page} totalItems={total} pageSize={pageSize} />}
     </div>
   );
 }

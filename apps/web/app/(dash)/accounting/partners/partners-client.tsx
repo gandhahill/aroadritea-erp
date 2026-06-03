@@ -71,8 +71,8 @@ export function PartnersClient({ initialData, initialKind }: Props) {
       )}
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-card shadow-sm">
+        <table className="w-full min-w-[880px] text-sm">
           <thead className="border-b border-brand-cream-3 bg-brand-cream-1">
             <tr>
               <th className="px-4 py-3 text-left font-semibold text-brand-ink-2">

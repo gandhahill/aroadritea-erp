@@ -16,31 +16,40 @@ import type { AuditContext } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
 import { authorizedLocationIdsForTenant } from '@/lib/authz';
 
-export async function fetchInvoicesAction() {
+export async function fetchInvoicesAction(input?: { limit?: number; offset?: number }) {
   const session = await getSession();
   if (!session) throw new Error('Unauthorized');
   const user = session.user as any;
+  const tenantId = String(user.tenantId ?? 'default');
   const scope = await authorizedLocationIdsForTenant(
     String(user.id),
     'accounting.journal.view',
-    String(user.tenantId ?? 'default'),
+    tenantId,
   );
 
-  if (!scope.global && scope.locationIds.length === 0) return [];
+  if (!scope.global && scope.locationIds.length === 0) return { items: [], total: 0 };
 
+  const { count, sql: sqlFn } = await import('@erp/db');
+  const conditions = [eq(invoices.tenantId, tenantId)];
   if (!scope.global && scope.locationIds.length > 0) {
-    return db
-      .select()
-      .from(invoices)
-      .where(and(eq(invoices.tenantId, String(user.tenantId ?? 'default')), inArray(invoices.locationId, scope.locationIds)))
-      .orderBy(desc(invoices.createdAt));
+    conditions.push(inArray(invoices.locationId, scope.locationIds));
   }
+  const where = and(...conditions);
 
-  return db
+  const [countRow] = await db.select({ c: count() }).from(invoices).where(where);
+  const total = Number(countRow?.c ?? 0);
+
+  const limit = input?.limit ?? 20;
+  const offset = input?.offset ?? 0;
+  const items = await db
     .select()
     .from(invoices)
-    .where(eq(invoices.tenantId, String(user.tenantId ?? 'default')))
-    .orderBy(desc(invoices.createdAt));
+    .where(where)
+    .orderBy(desc(invoices.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  return { items, total };
 }
 
 export async function createInvoiceAction(input: any) {

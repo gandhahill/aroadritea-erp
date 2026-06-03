@@ -113,7 +113,7 @@ export function OpnameListClient({ rows }: { rows: Row[] }) {
         </div>
       </FilterBar>
 
-      <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
+      <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-card shadow-sm">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-cream-3 bg-brand-cream-1">

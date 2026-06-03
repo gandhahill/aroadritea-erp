@@ -117,7 +117,7 @@ export default async function JournalDetailPage({
       </div>
 
       {/* Lines table */}
-      <div className="surface-card overflow-hidden">
+      <div className="surface-card overflow-x-auto">
         <div className="border-b border-brand-cream-2 px-6 py-4">
           <h2 className="text-base font-semibold text-brand-ink">{t('detail.linesTitle')}</h2>
         </div>

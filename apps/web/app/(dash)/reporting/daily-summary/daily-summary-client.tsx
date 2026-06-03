@@ -501,7 +501,7 @@ export function DailySummaryClient({
           {/* Payment breakdown + charts */}
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Payment table */}
-            <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
+            <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-card shadow-sm">
               <div className="border-b border-brand-cream-3 bg-brand-cream-1 px-4 py-3">
                 <h3 className="text-sm font-semibold text-brand-ink">{t('paymentDetails')}</h3>
               </div>
@@ -580,7 +580,7 @@ export function DailySummaryClient({
 
           {/* Top products */}
           <div className="grid gap-6 lg:grid-cols-2">
-            <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
+            <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-card shadow-sm">
               <div className="border-b border-brand-cream-3 bg-brand-cream-1 px-4 py-3">
                 <h3 className="text-sm font-semibold text-brand-ink">{t('top10Products')}</h3>
               </div>
@@ -648,7 +648,7 @@ export function DailySummaryClient({
 
           {/* Shift summary */}
           {report.shiftSummary.length > 0 && (
-            <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
+            <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-card shadow-sm">
               <div className="border-b border-brand-cream-3 bg-brand-cream-1 px-4 py-3">
                 <h3 className="text-sm font-semibold text-brand-ink">
                   {t('shiftSummary', { defaultMessage: 'Ringkasan Shift' })}

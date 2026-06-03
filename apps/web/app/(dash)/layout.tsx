@@ -90,7 +90,10 @@ export default async function DashboardLayout({
           </header>
 
           {/* Page content */}
-          <main className="min-h-0 flex-1 overflow-y-auto bg-brand-cream p-3 sm:p-6 print:p-0 print:bg-white print:overflow-visible print:h-auto print:block">
+          <main
+            data-dashboard-content
+            className="min-h-0 flex-1 overflow-y-auto bg-brand-cream p-3 sm:p-6 print:p-0 print:bg-white print:overflow-visible print:h-auto print:block"
+          >
             <ErrorBoundary labels={{
               title: tErr('boundaryTitle'),
               message: tErr('boundaryMessage'),

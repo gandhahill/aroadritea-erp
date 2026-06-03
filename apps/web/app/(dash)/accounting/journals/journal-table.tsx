@@ -151,7 +151,7 @@ export function JournalTable({ journals }: JournalTableProps) {
       </div>
 
       {/* Table */}
-      <div className="surface-card overflow-hidden">
+      <div className="surface-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-brand-cream-2 bg-brand-cream/50">

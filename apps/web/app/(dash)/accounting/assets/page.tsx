@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default async function FixedAssetsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ locationId?: string; status?: string }>;
+  searchParams: Promise<{ locationId?: string; status?: string; page?: string; pageSize?: string }>;
 }) {
   const session = await getSession();
   if (!session) redirect('/login');
@@ -22,8 +22,10 @@ export default async function FixedAssetsPage({
   const status = ['active', 'fully_depreciated', 'disposed'].includes(params.status ?? '')
     ? (params.status as 'active' | 'fully_depreciated' | 'disposed')
     : undefined;
+  const page = Math.max(1, Number(params.page) || 1);
+  const pageSize = [10, 20, 50, 100].includes(Number(params.pageSize)) ? Number(params.pageSize) : 20;
   const [data, t] = await Promise.all([
-    fetchAssetPageData({ locationId: params.locationId, status }),
+    fetchAssetPageData({ locationId: params.locationId, status, limit: pageSize, offset: (page - 1) * pageSize }),
     getTranslations('accounting.assets'),
   ]);
   const today = new Date().toISOString().slice(0, 10);
@@ -36,6 +38,8 @@ export default async function FixedAssetsPage({
         initialLocationId={params.locationId ?? ''}
         initialStatus={params.status ?? ''}
         today={today}
+        page={page}
+        pageSize={pageSize}
       />
     </div>
   );

@@ -44,7 +44,7 @@ export default async function PurchaseReturnDetailPage({
 
       <ReturnActions returnId={r.id} status={r.status} />
 
-      <div className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card">
+      <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-card">
         <table className="w-full text-sm">
           <thead className="bg-brand-cream-2/60 text-left text-xs uppercase text-brand-ink-2">
             <tr>

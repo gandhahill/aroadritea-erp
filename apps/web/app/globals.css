@@ -201,6 +201,22 @@
   .interactive:active {
     transform: scale(0.98);
   }
+
+  @media (max-width: 767px) {
+    [data-dashboard-content] table:not([data-ui-table]) {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    [data-dashboard-content] table:not([data-ui-table]) > :where(thead, tbody, tfoot) {
+      display: table;
+      width: 100%;
+      min-width: max-content;
+    }
+  }
 }
 
 /* ================================================================

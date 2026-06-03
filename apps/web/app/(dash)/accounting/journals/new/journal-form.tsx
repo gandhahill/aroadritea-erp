@@ -210,7 +210,7 @@ export function JournalForm({ accounts, locations, partners }: Props) {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-brand-cream-3 bg-card shadow-sm">
+      <section className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-card shadow-sm">
         <div className="flex items-center justify-between border-b border-brand-cream-3 px-5 py-4">
           <div>
             <h2 className="text-base font-semibold text-brand-ink">{t('linesSection')}</h2>

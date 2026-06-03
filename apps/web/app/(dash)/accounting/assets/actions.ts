@@ -83,12 +83,19 @@ function errorMessage(error: unknown) {
 export async function fetchAssetPageData(input?: {
   locationId?: string;
   status?: 'active' | 'fully_depreciated' | 'disposed';
+  limit?: number;
+  offset?: number;
 }): Promise<AssetPageData> {
   const ctx = await getAuditContext();
   if (!ctx) return { assets: [], total: 0, categories: [], locations: [], accountOptions: [] };
   const locale = (await getLocale().catch(() => 'id')) as 'id' | 'en' | 'zh';
   const [assetResult, categoryResult, locations] = await Promise.all([
-    listFixedAssets({ locationId: input?.locationId, status: input?.status }, ctx),
+    listFixedAssets({
+      locationId: input?.locationId,
+      status: input?.status,
+      limit: input?.limit,
+      offset: input?.offset,
+    }, ctx),
     listFixedAssetCategories(ctx),
     getActiveLocationOptions({ tenantId: ctx.tenantId, locale }),
   ]);

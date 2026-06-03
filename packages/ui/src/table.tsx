@@ -3,10 +3,11 @@ import { cn } from './utils';
 
 export const Table = forwardRef<HTMLTableElement, React.TableHTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
-    <div className="overflow-x-auto w-full">
+    <div className="w-full overflow-x-auto [-webkit-overflow-scrolling:touch]">
       <table
         ref={ref}
-        className={cn('min-w-full divide-y divide-brand-cream-3 text-sm', className)}
+        data-ui-table
+        className={cn('w-full min-w-max divide-y divide-brand-cream-3 text-sm', className)}
         {...props}
       />
     </div>

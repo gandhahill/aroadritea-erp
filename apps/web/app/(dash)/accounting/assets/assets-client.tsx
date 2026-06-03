@@ -1,6 +1,7 @@
 'use client';
 
 import { FilterBar, FilterField } from '@/components/filter-bar';
+import { Pagination } from '@/components/pagination';
 import { Button, Input, Select, TableHeader } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -21,6 +22,8 @@ interface Props extends AssetPageData {
   initialLocationId: string;
   initialStatus: string;
   today: string;
+  page: number;
+  pageSize: number;
 }
 
 export function AssetsClient({
@@ -32,6 +35,8 @@ export function AssetsClient({
   initialLocationId,
   initialStatus,
   today,
+  page,
+  pageSize,
 }: Props) {
   const t = useTranslations('accounting.assets');
   const locale = useLocale();
@@ -143,8 +148,8 @@ export function AssetsClient({
             </Select>
           </FilterBar>
 
-          <div className="mt-5 overflow-hidden rounded-lg border border-brand-cream-3">
-            <table className="w-full text-sm">
+          <div className="mt-5 overflow-x-auto rounded-lg border border-brand-cream-3">
+            <table className="w-full min-w-[900px] text-sm">
               <TableHeader className="bg-brand-cream-1 text-left text-brand-ink-2">
                 <tr>
                   <th className="px-3 py-2 font-medium">{t('asset')}</th>
@@ -204,6 +209,7 @@ export function AssetsClient({
               </tbody>
             </table>
           </div>
+          {total > 0 && <div className="mt-4"><Pagination currentPage={page} totalItems={total} pageSize={pageSize} /></div>}
         </section>
 
         <aside className="space-y-4">

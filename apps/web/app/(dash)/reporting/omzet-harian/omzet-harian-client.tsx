@@ -286,7 +286,7 @@ export function OmzetHarianClient({
             </div>
           )}
 
-          <div className="overflow-hidden rounded-lg border border-brand-cream-3">
+          <div className="overflow-x-auto rounded-lg border border-brand-cream-3">
             <table className="min-w-full">
               <thead className="bg-brand-cream-2">
                 <tr>

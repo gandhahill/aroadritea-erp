@@ -304,7 +304,7 @@ export function ScheduledJobsTable({ jobs: initialJobs, tenantId }: Props) {
         </span>
       </FilterBar>
 
-      <div className="overflow-hidden rounded-lg border border-brand-cream-3 bg-card">
+      <div className="overflow-x-auto rounded-lg border border-brand-cream-3 bg-card">
         <table className="w-full">
           <thead>
             <tr className="border-b border-brand-cream-3 bg-brand-cream-2/50">
