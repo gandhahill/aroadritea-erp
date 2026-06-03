@@ -28,6 +28,7 @@ Resolve all current Dependabot security warnings reported for the repository dep
 - `pnpm --filter @erp/shared test` PASS: 85/85.
 - `pnpm --filter @erp/services exec vitest run tests/accounting-close-period.test.ts tests/payroll-approve.test.ts tests/pos.test.ts tests/inventory-adjust-transfer.test.ts tests/purchasing-grn.test.ts` PASS: 210/210.
 - `git diff --check` PASS.
+- GitHub Dependabot API after push: `open_dependabot_alerts=0`.
 
 ## Next step
-After push, GitHub Dependabot should re-evaluate the default branch and close the alerts.
+No further dependency security action remains for the current Dependabot alert set.
