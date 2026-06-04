@@ -72,9 +72,11 @@ export async function balanceSheet(
       const tb = tbResult.value;
 
       // Classify accounts into sections
-      const assets = filterSection(tb.lines, ['asset'], 'Assets');
-      const liabilities = filterSection(tb.lines, ['liability'], 'Liabilities');
-      const equity = filterSection(tb.lines, ['equity'], 'Equity');
+      // Assets are debit-normal; contra-assets (e.g. accumulated depreciation)
+      // are credit-normal and must be negated to reduce the asset total.
+      const assets = filterSection(tb.lines, ['asset'], 'Assets', 'debit');
+      const liabilities = filterSection(tb.lines, ['liability'], 'Liabilities', 'credit');
+      const equity = filterSection(tb.lines, ['equity'], 'Equity', 'credit');
 
       // Calculate retained earnings = income - cogs - expense
       const incomeTotal = sumBalances(tb.lines, ['income']);
@@ -104,18 +106,35 @@ export async function balanceSheet(
 
 // --- Helpers ---
 
+/**
+ * Filter trial balance lines into a balance sheet section.
+ *
+ * The sectionNormal parameter indicates the expected normal balance for the
+ * section: 'debit' for assets, 'credit' for liabilities and equity.
+ *
+ * Contra accounts (e.g. Akumulasi Penyusutan is an asset with credit-normal)
+ * have their balance negated so they correctly REDUCE the section total.
+ * Without this, contra-assets would be added to the asset total instead of
+ * subtracted, causing an imbalance equal to 2× the contra balance.
+ */
 function filterSection(
   lines: TrialBalanceLine[],
   types: string[],
   label: string,
+  sectionNormal: 'debit' | 'credit' = 'debit',
 ): BalanceSheetSection {
   const filtered = lines.filter((l) => types.includes(l.accountType));
-  const accounts = filtered.map((l) => ({
-    accountCode: l.accountCode,
-    accountName: l.accountName,
-    balance: l.balance,
-  }));
-  const total = filtered.reduce((sum, l) => sum + l.balance, 0n);
+  const accounts = filtered.map((l) => {
+    // If the account's normal balance direction differs from the section's,
+    // negate it (e.g. contra-asset in the asset section).
+    const adjustedBalance = l.normalBalance === sectionNormal ? l.balance : -l.balance;
+    return {
+      accountCode: l.accountCode,
+      accountName: l.accountName,
+      balance: adjustedBalance,
+    };
+  });
+  const total = accounts.reduce((sum, a) => sum + a.balance, 0n);
   return { label, accounts, total };
 }
 

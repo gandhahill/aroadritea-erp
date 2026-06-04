@@ -12,7 +12,7 @@ import { accounts, journalEntries, journalLines } from '@erp/db/schema/accountin
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, eq, gte, inArray, lt, lte } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNotNull, lt, lte, notInArray, sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { requirePermission } from '../iam';
 
@@ -241,9 +241,25 @@ function buildJournalLineConditions(
   locationId: string | undefined,
   extra: SQL[],
 ): SQL[] {
+  // Exclude reversal JEs: when a journal is reversed, the original gets
+  // status='reversed' (already filtered by the status check below), and a
+  // new posted reversal JE is created. The original's `reversedByJeId`
+  // points to that reversal. We exclude the reversal JE so that both
+  // the original and its reversal net to zero in the cash flow report.
+  const reversalJeIds = db
+    .select({ id: journalEntries.reversedByJeId })
+    .from(journalEntries)
+    .where(
+      and(
+        eq(journalEntries.tenantId, ctx.tenantId),
+        isNotNull(journalEntries.reversedByJeId),
+      ),
+    );
+
   const conditions: SQL[] = [
     eq(journalEntries.tenantId, ctx.tenantId),
     eq(journalEntries.status, 'posted'),
+    sql`${journalEntries.id} NOT IN (${reversalJeIds})`,
     ...extra,
   ];
 
