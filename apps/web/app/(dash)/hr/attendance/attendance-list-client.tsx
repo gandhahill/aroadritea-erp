@@ -113,6 +113,20 @@ export function AttendanceListClient({
 
   return (
     <div className="space-y-4">
+      {/* Tab switcher */}
+      <div className="flex gap-1 rounded-lg bg-brand-cream-2 p-1 w-fit">
+        <span className="rounded-md bg-card px-4 py-1.5 text-sm font-semibold text-brand-ink shadow-sm">
+          {t('tabList')}
+        </span>
+        <button
+          type="button"
+          onClick={() => router.push('/hr/attendance?tab=ringkasan')}
+          className="rounded-md px-4 py-1.5 text-sm font-medium text-brand-ink-3 hover:text-brand-ink"
+        >
+          {t('tabSummary')}
+        </button>
+      </div>
+
       {/* Filter bar */}
       <FilterBar>
         <FilterField label={t('allEmployees')}>

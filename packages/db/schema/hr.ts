@@ -657,6 +657,7 @@ export const cashAdvances = pgTable(
     approvedAt: timestamp('approved_at', { withTimezone: true }),
 
     journalEntryId: text('journal_entry_id'), // reference to accounting when approved
+    rejectReason: text('reject_reason'),
 
     ...auditCols,
   },

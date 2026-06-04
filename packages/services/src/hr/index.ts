@@ -12,6 +12,7 @@ export { createEmployee } from './create-employee';
 export { updateEmployeeLogin } from './update-employee-login';
 export * from './update-employee';
 export * from './attendance-service';
+export * from './attendance-summary-service';
 export * from './disciplinary-service';
 export * from './whistleblower';
 export * from './sop';
