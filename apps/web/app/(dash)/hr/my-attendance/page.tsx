@@ -10,7 +10,10 @@
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { listMyAttendance } from '@erp/services/hr';
+import { resolveEmployeeForUser } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
+import { db, and, eq, sql } from '@erp/db';
+import { shiftAssignments } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
@@ -81,6 +84,26 @@ export default async function MyAttendancePage({
   const checkedOutItems = items.filter((r) => r.checkOutAt != null);
   const totalWorked = checkedOutItems.reduce((s, r) => s + (r.workedMinutes ?? 0), 0);
 
+  // Count scheduled shift days for this employee in the date range
+  let absentDays = 0;
+  const emp = await resolveEmployeeForUser(ctx.tenantId, ctx.userId);
+  if (emp) {
+    const [schedRow] = await db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(shiftAssignments)
+      .where(
+        and(
+          eq(shiftAssignments.tenantId, ctx.tenantId),
+          eq(shiftAssignments.employeeId, emp.id),
+          eq(shiftAssignments.kind, 'shift'),
+          sql`${shiftAssignments.workDate} >= ${from}`,
+          sql`${shiftAssignments.workDate} <= ${to}`,
+        ),
+      );
+    const scheduledDays = schedRow?.count ?? 0;
+    absentDays = Math.max(0, scheduledDays - totalDays);
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader title={t('title')} description={t('description')} />
@@ -114,8 +137,9 @@ export default async function MyAttendancePage({
       </form>
 
       {/* Summary cards */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-4">
         <Card label={t('totalDays')} value={String(totalDays)} />
+        <Card label={t('absentDays')} value={String(absentDays)} tone={absentDays > 0 ? 'rose' : null} />
         <Card label={t('lateDays')} value={String(lateDays)} tone={lateDays > 0 ? 'rose' : null} />
         <Card
           label={t('totalWorked')}

@@ -21,6 +21,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ExportXlsxButton } from '../../reporting/export-button';
+import { StockLocationFilter } from './stock-location-filter';
 
 export const metadata: Metadata = {
   title: 'Stock Levels',
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 interface SearchProps {
-  searchParams: Promise<{ kind?: string }>;
+  searchParams: Promise<{ kind?: string; locationId?: string }>;
 }
 
 type ProductKind = 'finished_good' | 'raw_material' | 'merchandise' | 'consumable' | 'service';
@@ -52,10 +53,11 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
   const locale = await getLocale();
   const t = await getTranslations('inventory.stockPerOutlet');
 
-  const { kind: kindParam } = await searchParams;
+  const { kind: kindParam, locationId: locationIdParam } = await searchParams;
   const kind = (
     KIND_TABS.map((k) => k.value).includes(kindParam as ProductKind | 'all') ? kindParam : 'all'
   ) as ProductKind | 'all';
+  const selectedLocationId = locationIdParam || '';
 
   const locationConds = [
     eq(locations.tenantId, tenantId),
@@ -222,24 +224,36 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
         <p className="mt-1 text-xs text-brand-ink-3">{t('stockValueHint')}</p>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {KIND_TABS.map((tab) => {
-          const href = `/inventory/stock${tab.value === 'all' ? '' : `?kind=${tab.value}`}`;
-          const isActive = (kind === 'all' && tab.value === 'all') || kind === tab.value;
-          return (
-            <Link
-              key={tab.value}
-              href={href}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-                isActive
-                  ? 'bg-brand-red text-white'
-                  : 'bg-brand-cream-2 text-brand-ink-2 hover:bg-brand-cream-3'
-              }`}
-            >
-              {t(`kinds.${tab.labelKey}`)}
-            </Link>
-          );
-        })}
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap gap-2">
+          {KIND_TABS.map((tab) => {
+            const params = new URLSearchParams();
+            if (tab.value !== 'all') params.set('kind', tab.value);
+            if (selectedLocationId) params.set('locationId', selectedLocationId);
+            const href = `/inventory/stock${params.size > 0 ? `?${params.toString()}` : ''}`;
+            const isActive = (kind === 'all' && tab.value === 'all') || kind === tab.value;
+            return (
+              <Link
+                key={tab.value}
+                href={href}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  isActive
+                    ? 'bg-brand-red text-white'
+                    : 'bg-brand-cream-2 text-brand-ink-2 hover:bg-brand-cream-3'
+                }`}
+              >
+                {t(`kinds.${tab.labelKey}`)}
+              </Link>
+            );
+          })}
+        </div>
+        <StockLocationFilter
+          outlets={outletRows.map((o) => ({ id: o.id, label: `${o.code} — ${pickLocalized(o.name, locale, o.code)}` }))}
+          selectedId={selectedLocationId}
+          kind={kind}
+          allLocationsLabel={t('allLocations')}
+          locationFilterLabel={t('filterLocation')}
+        />
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-card shadow-sm">
@@ -249,7 +263,7 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
               <TableHead className="px-4 py-3">{t('columns.sku')}</TableHead>
               <TableHead className="px-4 py-3">{t('columns.name')}</TableHead>
               <TableHead className="px-4 py-3">{t('columns.uom')}</TableHead>
-              {outletRows.map((outlet) => (
+              {(selectedLocationId ? outletRows.filter((o) => o.id === selectedLocationId) : outletRows).map((outlet) => (
                 <TableHead key={outlet.id} className="px-4 py-3 text-right">
                   {outlet.code}
                 </TableHead>
@@ -260,17 +274,27 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
             </tr>
           </TableHeader>
           <TableBody>
-            {productRows.length === 0 ? (
+            {(() => {
+              const filteredProducts = selectedLocationId
+                ? productRows.filter((product) => {
+                    const stock = stockMap.get(`${product.id}::${selectedLocationId}`);
+                    return stock && Number(stock.available) > 0;
+                  })
+                : productRows;
+              const displayOutlets = selectedLocationId
+                ? outletRows.filter((o) => o.id === selectedLocationId)
+                : outletRows;
+              return filteredProducts.length === 0 ? (
               <tr>
                 <td
-                  colSpan={6 + outletRows.length}
+                  colSpan={6 + displayOutlets.length}
                   className="px-4 py-8 text-center text-brand-ink-3"
                 >
                   {t('empty')}
                 </td>
               </tr>
             ) : (
-              productRows.map((product) => {
+              filteredProducts.map((product) => {
                 const displayName = pickLocalized(product.name, locale, product.sku);
                 const summary = productSummaries.get(product.id);
                 return (
@@ -284,7 +308,7 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
                     <TableCell className="px-4 py-3 text-xs text-brand-ink-3">
                       {product.uom}
                     </TableCell>
-                    {outletRows.map((outlet) => {
+                    {(selectedLocationId ? outletRows.filter((o) => o.id === selectedLocationId) : outletRows).map((outlet) => {
                       const stock = stockMap.get(`${product.id}::${outlet.id}`);
                       const available = stock ? Number(stock.available) : null;
                       const isUntracked = available === null;
@@ -319,7 +343,8 @@ export default async function StockPerOutletPage({ searchParams }: SearchProps) 
                   </tr>
                 );
               })
-            )}
+            );
+            })()}
           </TableBody>
         </Table>
       </div>

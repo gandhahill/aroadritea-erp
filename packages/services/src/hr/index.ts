@@ -13,6 +13,7 @@ export { updateEmployeeLogin } from './update-employee-login';
 export * from './update-employee';
 export * from './attendance-service';
 export * from './attendance-summary-service';
+export * from './absence-dispensation-service';
 export * from './overtime-service';
 export * from './contract-service';
 export * from './disciplinary-service';

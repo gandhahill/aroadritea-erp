@@ -12,6 +12,7 @@ export interface AttendanceSummaryRow {
   scheduledDays: number;
   presentDays: number;
   absentDays: number;
+  dispensedDays: number;
   lateCount: number;
   totalLateMinutes: number;
 }
@@ -114,17 +115,29 @@ export async function listAttendanceSummary(
     );
   const empNameMap = new Map(empRows.map((e) => [e.id, e.name]));
 
+  // Fetch dispensed absence dates per employee
+  const { getDispensedCountsForPeriod } = await import('./absence-dispensation-service');
+  const dispensedMap = await getDispensedCountsForPeriod(
+    ctx.tenantId,
+    allEmployeeIds,
+    periodStart,
+    periodEnd,
+  );
+
   const result: AttendanceSummaryRow[] = allEmployeeIds
     .filter((id) => empNameMap.has(id))
     .map((id) => {
       const scheduled = scheduledMap.get(id) ?? 0;
       const att = attMap.get(id) ?? { presentDays: 0, lateCount: 0, totalLateMinutes: 0 };
+      const dispensed = dispensedMap.get(id) ?? 0;
+      const rawAbsent = Math.max(0, scheduled - att.presentDays);
       return {
         employeeId: id,
         employeeName: empNameMap.get(id) ?? 'Unknown',
         scheduledDays: scheduled,
         presentDays: att.presentDays,
-        absentDays: Math.max(0, scheduled - att.presentDays),
+        absentDays: Math.max(0, rawAbsent - dispensed),
+        dispensedDays: Math.min(dispensed, rawAbsent),
         lateCount: att.lateCount,
         totalLateMinutes: att.totalLateMinutes,
       };

@@ -23,6 +23,41 @@ import {
   fetchConsumedIngredientDetailAction,
 } from './actions';
 
+function ExpandableItemList({
+  items,
+  formatQty,
+  moreLabel,
+  collapseLabel,
+}: {
+  items: Array<{ name: string; qty: string; uom: string }>;
+  formatQty: (qty: string) => string;
+  moreLabel: (count: number) => string;
+  collapseLabel: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const display = expanded ? items : items.slice(0, 3);
+  const hasMore = items.length > 3;
+
+  return (
+    <div className="mt-1 max-w-[300px] space-y-0.5 text-xs text-brand-ink-3">
+      {display.map((line, index) => (
+        <div key={`${line.name}-${line.uom}-${index}`}>
+          {line.name} · {formatQty(line.qty)} {line.uom}
+        </div>
+      ))}
+      {hasMore && (
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="mt-0.5 text-xs font-medium text-brand-red hover:underline"
+        >
+          {expanded ? collapseLabel : moreLabel(items.length - 3)}
+        </button>
+      )}
+    </div>
+  );
+}
+
 interface ConsumedHistoryItem {
   id: string;
   occurredAt: string;
@@ -328,16 +363,12 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
                       <div className="text-sm font-medium text-brand-ink">
                         {t('itemCountSummary', { count: item.itemCount })}
                       </div>
-                      <div className="mt-1 max-w-[300px] space-y-0.5 text-xs text-brand-ink-3">
-                        {item.items.slice(0, 3).map((line, index) => (
-                          <div key={`${line.name}-${line.uom}-${index}`} className="truncate">
-                            {line.name} · {formatHistoryQty(line.qty)} {line.uom}
-                          </div>
-                        ))}
-                        {item.items.length > 3 ? (
-                          <div>{t('moreItems', { count: item.items.length - 3 })}</div>
-                        ) : null}
-                      </div>
+                      <ExpandableItemList
+                        items={item.items}
+                        formatQty={formatHistoryQty}
+                        moreLabel={(count: number) => t('moreItems', { count })}
+                        collapseLabel={t('showLess', { defaultValue: 'Lebih sedikit' })}
+                      />
                     </Td>
                     <Td>
                       {item.createdByName || '-'}

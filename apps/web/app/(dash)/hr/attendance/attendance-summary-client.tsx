@@ -1,9 +1,12 @@
 'use client';
 
 import { FilterBar, FilterField } from '@/components/filter-bar';
-import { Input, Select, TableCell, TableHead } from '@erp/ui';
+import { Button, Input, Select, TableCell, TableHead } from '@erp/ui';
+import { InlineAlert } from '@/components/confirm-dialog';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
+import { dispensasiAbsenAction } from './actions';
 
 interface SummaryRow {
   employeeId: string;
@@ -11,6 +14,7 @@ interface SummaryRow {
   scheduledDays: number;
   presentDays: number;
   absentDays: number;
+  dispensedDays: number;
   lateCount: number;
   totalLateMinutes: number;
 }
@@ -29,7 +33,17 @@ export function AttendanceSummaryClient({
   initialLocationId,
 }: Props) {
   const t = useTranslations('hr.attendance');
+  const tCommon = useTranslations('common');
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Dispensation modal state
+  const [dispEmployee, setDispEmployee] = useState<{ id: string; name: string } | null>(null);
+  const [dispDates, setDispDates] = useState<string[]>([]);
+  const [dispDateInput, setDispDateInput] = useState('');
+  const [dispReason, setDispReason] = useState('');
 
   const applyFilter = (opts: { period?: string; locationId?: string }) => {
     const params = new URLSearchParams();
@@ -44,14 +58,44 @@ export function AttendanceSummaryClient({
       scheduled: acc.scheduled + row.scheduledDays,
       present: acc.present + row.presentDays,
       absent: acc.absent + row.absentDays,
+      dispensed: acc.dispensed + row.dispensedDays,
       late: acc.late + row.lateCount,
       lateMinutes: acc.lateMinutes + row.totalLateMinutes,
     }),
-    { scheduled: 0, present: 0, absent: 0, late: 0, lateMinutes: 0 },
+    { scheduled: 0, present: 0, absent: 0, dispensed: 0, late: 0, lateMinutes: 0 },
   );
+
+  const openDispensation = (emp: { id: string; name: string }) => {
+    setDispEmployee(emp);
+    setDispDates([]);
+    setDispDateInput('');
+    setDispReason('');
+  };
+
+  const addDate = () => {
+    if (dispDateInput && !dispDates.includes(dispDateInput)) {
+      setDispDates([...dispDates, dispDateInput].sort());
+      setDispDateInput('');
+    }
+  };
+
+  const submitDispensation = () => {
+    if (!dispEmployee || dispDates.length === 0 || dispReason.trim().length < 3) return;
+    setErrorMsg(null);
+    startTransition(async () => {
+      const res = await dispensasiAbsenAction(dispEmployee.id, dispDates, dispReason.trim());
+      if (!res.ok) { setErrorMsg(res.error ?? 'Error'); return; }
+      setSuccessMsg(t('dispensationSuccess'));
+      setDispEmployee(null);
+      router.refresh();
+    });
+  };
 
   return (
     <div className="space-y-4">
+      {errorMsg && <InlineAlert message={errorMsg} tone="error" onDismiss={() => setErrorMsg(null)} />}
+      {successMsg && <InlineAlert message={successMsg} tone="success" onDismiss={() => setSuccessMsg(null)} />}
+
       {/* Tab switcher */}
       <div className="flex gap-1 rounded-lg bg-brand-cream-2 p-1 w-fit">
         <button
@@ -72,25 +116,19 @@ export function AttendanceSummaryClient({
           <Input
             type="month"
             value={initialPeriod}
-            onChange={(e) =>
-              applyFilter({ period: e.target.value, locationId: initialLocationId })
-            }
+            onChange={(e) => applyFilter({ period: e.target.value, locationId: initialLocationId })}
             className="w-full sm:w-44"
           />
         </FilterField>
         <FilterField label={t('summaryLocation')}>
           <Select
             value={initialLocationId}
-            onChange={(e) =>
-              applyFilter({ period: initialPeriod, locationId: e.target.value })
-            }
+            onChange={(e) => applyFilter({ period: initialPeriod, locationId: e.target.value })}
             className="w-full sm:w-56"
           >
             <option value="">{t('summaryAllLocations')}</option>
             {locations.map((loc) => (
-              <option key={loc.id} value={loc.id}>
-                {loc.name}
-              </option>
+              <option key={loc.id} value={loc.id}>{loc.name}</option>
             ))}
           </Select>
         </FilterField>
@@ -99,102 +137,118 @@ export function AttendanceSummaryClient({
       {/* Summary table */}
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-brand-cream-3 bg-card py-16 text-center">
-          <svg
-            className="h-12 w-12 text-brand-cream-3"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"
-            />
-          </svg>
           <h3 className="mt-3 text-base font-semibold text-brand-ink">{t('summaryEmpty')}</h3>
           <p className="mt-1 text-sm text-brand-ink-3">{t('summaryEmptyDesc')}</p>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-card shadow-sm">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-full text-sm">
             <thead>
               <tr className="border-b border-brand-cream-3 bg-brand-cream-1">
-                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
-                  {t('columns.employee')}
-                </TableHead>
-                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
-                  {t('summaryScheduled')}
-                </TableHead>
-                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
-                  {t('summaryPresent')}
-                </TableHead>
-                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
-                  {t('summaryAbsent')}
-                </TableHead>
-                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
-                  {t('summaryLateCount')}
-                </TableHead>
-                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
-                  {t('summaryLateMinutes')}
-                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">{t('columns.employee')}</TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('summaryScheduled')}</TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('summaryPresent')}</TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('summaryAbsent')}</TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('summaryDispensed')}</TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('summaryLateCount')}</TableHead>
+                <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">{t('summaryLateMinutes')}</TableHead>
+                <TableHead className="px-4 py-3 font-medium text-brand-ink-2">{t('summaryActions')}</TableHead>
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-cream-2">
               {items.map((row) => (
                 <tr key={row.employeeId} className="hover:bg-brand-cream-1/50">
-                  <TableCell className="px-4 py-3 font-medium text-brand-ink">
-                    {row.employeeName}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-right text-brand-ink-2">
-                    {row.scheduledDays}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-right text-brand-jade font-medium">
-                    {row.presentDays}
+                  <TableCell className="px-4 py-3 font-medium text-brand-ink">{row.employeeName}</TableCell>
+                  <TableCell className="px-4 py-3 text-right text-brand-ink-2">{row.scheduledDays}</TableCell>
+                  <TableCell className="px-4 py-3 text-right text-brand-jade font-medium">{row.presentDays}</TableCell>
+                  <TableCell className="px-4 py-3 text-right">
+                    {row.absentDays > 0 ? <span className="font-semibold text-rose-600">{row.absentDays}</span> : <span className="text-brand-ink-3">0</span>}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right">
-                    {row.absentDays > 0 ? (
-                      <span className="font-semibold text-rose-600">{row.absentDays}</span>
-                    ) : (
-                      <span className="text-brand-ink-3">0</span>
-                    )}
+                    {row.dispensedDays > 0 ? <span className="font-medium text-brand-jade">{row.dispensedDays}</span> : <span className="text-brand-ink-3">0</span>}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right">
-                    {row.lateCount > 0 ? (
-                      <span className="text-amber-600">{row.lateCount}</span>
-                    ) : (
-                      <span className="text-brand-ink-3">0</span>
-                    )}
+                    {row.lateCount > 0 ? <span className="text-amber-600">{row.lateCount}</span> : <span className="text-brand-ink-3">0</span>}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right text-brand-ink-2">
                     {row.totalLateMinutes > 0 ? `${row.totalLateMinutes}m` : '—'}
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    {(row.absentDays > 0 || row.scheduledDays > row.presentDays) && (
+                      <button
+                        type="button"
+                        onClick={() => openDispensation({ id: row.employeeId, name: row.employeeName })}
+                        disabled={isPending}
+                        className="rounded-md border border-brand-jade/30 px-2.5 py-1 text-xs font-semibold text-brand-jade hover:bg-brand-jade/10"
+                      >
+                        {t('dispensationBtn')}
+                      </button>
+                    )}
                   </TableCell>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-brand-cream-3 bg-brand-cream-1 font-semibold">
-                <TableCell className="px-4 py-3 text-brand-ink">
-                  {t('summaryTotal')}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-right text-brand-ink">
-                  {totals.scheduled}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-right text-brand-jade">
-                  {totals.present}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-right text-rose-600">
-                  {totals.absent}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-right text-amber-600">
-                  {totals.late}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-right text-brand-ink">
-                  {totals.lateMinutes > 0 ? `${totals.lateMinutes}m` : '—'}
-                </TableCell>
+                <TableCell className="px-4 py-3 text-brand-ink">{t('summaryTotal')}</TableCell>
+                <TableCell className="px-4 py-3 text-right text-brand-ink">{totals.scheduled}</TableCell>
+                <TableCell className="px-4 py-3 text-right text-brand-jade">{totals.present}</TableCell>
+                <TableCell className="px-4 py-3 text-right text-rose-600">{totals.absent}</TableCell>
+                <TableCell className="px-4 py-3 text-right text-brand-jade">{totals.dispensed}</TableCell>
+                <TableCell className="px-4 py-3 text-right text-amber-600">{totals.late}</TableCell>
+                <TableCell className="px-4 py-3 text-right text-brand-ink">{totals.lateMinutes > 0 ? `${totals.lateMinutes}m` : '—'}</TableCell>
+                <TableCell className="px-4 py-3" />
               </tr>
             </tfoot>
           </table>
+        </div>
+      )}
+
+      {/* Dispensation modal */}
+      {dispEmployee && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-xl bg-card p-5 shadow-xl">
+            <h3 className="text-base font-semibold text-brand-ink">
+              {t('dispensationTitle')} — {dispEmployee.name}
+            </h3>
+            <p className="mt-1 text-sm text-brand-ink-3">{t('dispensationDesc')}</p>
+
+            <div className="mt-3 space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">{t('dispensationDates')}</label>
+                <div className="flex gap-2">
+                  <Input type="date" value={dispDateInput} onChange={(e) => setDispDateInput(e.target.value)} className="flex-1" />
+                  <Button type="button" variant="secondary" onClick={addDate} disabled={!dispDateInput}>+</Button>
+                </div>
+                {dispDates.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {dispDates.map((d) => (
+                      <span key={d} className="inline-flex items-center gap-1 rounded-full bg-brand-cream-2 px-2.5 py-0.5 text-xs font-medium text-brand-ink">
+                        {d}
+                        <button type="button" onClick={() => setDispDates(dispDates.filter((x) => x !== d))} className="text-brand-ink-3 hover:text-rose-600">×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-brand-ink-3">{t('dispensationReason')}</label>
+                <textarea
+                  value={dispReason}
+                  onChange={(e) => setDispReason(e.target.value)}
+                  placeholder={t('dispensationPlaceholder')}
+                  className="h-20 w-full rounded-md border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setDispEmployee(null)}>{tCommon('actions.cancel')}</Button>
+              <Button onClick={submitDispensation} disabled={isPending || dispDates.length === 0 || dispReason.trim().length < 3}>
+                {isPending ? tCommon('actions.saving') : t('dispensationSubmit')}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -5,9 +5,10 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { forgiveLate, listAttendance } from '@erp/services/hr';
+import { forgiveLate, listAttendance, createAbsenceDispensation } from '@erp/services/hr';
 import type { ListAttendanceInput } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
+import { getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 
 export async function serverListAttendance(input: ListAttendanceInput) {
@@ -42,6 +43,27 @@ export async function forgiveLateAction(
       ok: false,
       error: result.error?.message ?? 'Gagal memberi dispensasi keterlambatan.',
     };
+  }
+  revalidatePath('/hr/attendance');
+  return { ok: true };
+}
+
+export async function dispensasiAbsenAction(
+  employeeId: string,
+  dates: string[],
+  reason: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await getSession();
+  if (!session?.user) return { ok: false, error: 'Unauthenticated' };
+  const user = session.user as Record<string, unknown>;
+  const ctx: AuditContext = {
+    userId: String(user.id ?? ''),
+    tenantId: String(user.tenantId ?? 'default'),
+    locationId: String(user.locationId ?? ''),
+  };
+  const result = await createAbsenceDispensation({ employeeId, dates, reason }, ctx);
+  if (!result.ok) {
+    return { ok: false, error: result.error?.message ?? 'Failed' };
   }
   revalidatePath('/hr/attendance');
   return { ok: true };

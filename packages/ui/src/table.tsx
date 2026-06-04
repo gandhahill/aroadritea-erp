@@ -7,7 +7,7 @@ export const Table = forwardRef<HTMLTableElement, React.TableHTMLAttributes<HTML
       <table
         ref={ref}
         data-ui-table
-        className={cn('w-full min-w-max divide-y divide-brand-cream-3 text-sm', className)}
+        className={cn('w-full min-w-full divide-y divide-brand-cream-3 text-sm', className)}
         {...props}
       />
     </div>

@@ -667,6 +667,29 @@ export const cashAdvances = pgTable(
   ]
 );
 
+// ─── Absence Dispensations ────────────────────────────────────────────────────
+// Records when a manager excuses an employee's absence for a specific date.
+// The attendance summary and payroll engine should subtract dispensed dates
+// from the absent day count.
+
+export const absenceDispensations = pgTable(
+  'absence_dispensations',
+  {
+    ...pk,
+    ...tenantCol,
+
+    employeeId: text('employee_id').notNull(),
+    workDate: date('work_date').notNull(),
+    reason: text('reason').notNull(),
+
+    ...auditCols,
+  },
+  (t) => [
+    uniqueIndex('absence_dispensations_emp_date_idx').on(t.employeeId, t.workDate),
+    index('absence_dispensations_tenant_idx').on(t.tenantId),
+  ],
+);
+
 // ─── Overtime Records ─────────────────────────────────────────────────────────
 
 export const overtimes = pgTable(
