@@ -242,12 +242,21 @@ export async function createTransferAction(formDataOrPrev: any, formData?: FormD
   const notes = fd.get('notes') as string;
   const linesJson = fd.get('linesJson') as string;
 
-  let lines: any[] = [];
+  let rawLines: any[] = [];
   try {
-    lines = JSON.parse(linesJson);
+    rawLines = JSON.parse(linesJson);
   } catch (e) {
     return { error: 'Invalid lines format' };
   }
+
+  const lines = rawLines.map((l: any) => ({
+    productId: l.productId,
+    variantId: l.variantId || undefined,
+    batchNo: l.batchNo || undefined,
+    expiryDate: l.expiryDate || undefined,
+    qty: String(l.qty),
+    uom: l.uom,
+  }));
 
   const result = await createTransferDraft(
     { fromLocationId, toLocationId, transferDate, notes, lines },
@@ -276,6 +285,15 @@ export async function updateTransferAction(
   if (!ctx) return { error: 'Unauthenticated' };
   const t = await getTranslations('inventory.transfer');
 
+  const lines = payload.lines.map((l: any) => ({
+    productId: l.productId,
+    variantId: l.variantId || undefined,
+    batchNo: l.batchNo || undefined,
+    expiryDate: l.expiryDate || undefined,
+    qty: String(l.qty),
+    uom: l.uom,
+  }));
+
   const result = await updateTransferDraft(
     {
       transferId,
@@ -284,7 +302,7 @@ export async function updateTransferAction(
       toLocationId: payload.toLocationId,
       transferDate: payload.transferDate,
       notes: payload.notes,
-      lines: payload.lines,
+      lines,
     },
     ctx,
   );
