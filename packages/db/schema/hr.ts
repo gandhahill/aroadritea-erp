@@ -667,6 +667,36 @@ export const cashAdvances = pgTable(
   ]
 );
 
+// ─── Overtime Records ─────────────────────────────────────────────────────────
+
+export const overtimes = pgTable(
+  'overtimes',
+  {
+    ...pk,
+    ...tenantCol,
+    ...locationCol,
+
+    employeeId: text('employee_id').notNull(),
+    workDate: date('work_date').notNull(),
+    hours: numeric('hours', { precision: 4, scale: 1 }).notNull(),
+    reason: text('reason').notNull(),
+
+    status: text('status').notNull().default('pending'),
+    // 'pending' | 'approved' | 'rejected'
+
+    approvedBy: text('approved_by'),
+    approvedAt: timestamp('approved_at', { withTimezone: true }),
+    rejectReason: text('reject_reason'),
+
+    ...auditCols,
+  },
+  (t) => [
+    index('overtimes_employee_date_idx').on(t.employeeId, t.workDate),
+    index('overtimes_tenant_loc_date_idx').on(t.tenantId, t.locationId, t.workDate),
+    index('overtimes_status_idx').on(t.status),
+  ],
+);
+
 // ─── Whistleblower (T-0249) ───────────────────────────────────────────────────
 
 export const whistleblowers = pgTable(

@@ -343,6 +343,12 @@ export async function runPayroll(
 
       const shiftCountMap = new Map(shiftCountRows.map((s) => [s.employeeId, s.scheduledDays]));
 
+      // 5b. Auto-fetch approved overtime hours for the period
+      const { getApprovedOvertimeForPeriod } = await import('../hr/overtime-service');
+      const overtimeMap = await getApprovedOvertimeForPeriod(
+        ctx.tenantId, data.locationId, periodStartDate, periodEndDate,
+      );
+
       // 6. Calculate payroll for each employee
       let totalEarnings = 0n;
       let totalDeductions = 0n;
@@ -378,6 +384,21 @@ export async function runPayroll(
         const maritalStatus = (emp.maritalStatus === 'K' ? 'K' : 'TK') as 'TK' | 'K';
         const dependentsCount = Math.min(3, Math.max(0, emp.dependentsCount ?? 0)) as 0 | 1 | 2 | 3;
 
+        // Auto-inject approved overtime as LEMBUR earning
+        const overtimeHours = overtimeMap.get(emp.id) ?? 0;
+        const empEarnings = additionalEarningsByEmployeeId.get(emp.id) ?? [];
+        if (overtimeHours > 0) {
+          const { calculateOvertime } = await import('./payroll-engine');
+          const overtimePay = calculateOvertime(baseSalary, overtimeHours);
+          empEarnings.push({
+            code: 'LEMBUR',
+            amount: overtimePay,
+            isTaxable: true,
+            isBpjsBase: false,
+            notes: `Overtime ${overtimeHours}h`,
+          });
+        }
+
         const payrollCtx: PayrollEmployeeContext = {
           employeeId: emp.id,
           baseSalary,
@@ -385,7 +406,7 @@ export async function runPayroll(
           isTaxable: emp.isTaxable,
           maritalStatus,
           dependentsCount,
-          additionalEarnings: additionalEarningsByEmployeeId.get(emp.id) ?? [],
+          additionalEarnings: empEarnings,
           additionalDeductions: additionalDeductionsByEmployeeId.get(emp.id) ?? [],
           lateMinutes: att.lateMinutes,
           lateCount: att.lateCount,
