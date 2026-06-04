@@ -7,48 +7,66 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { createTransferAction } from '../actions';
+import { updateTransferAction } from '../../actions';
 
 interface Props {
+  data: any;
   locations: Array<{ id: string; name: string; code: string }>;
   products: Array<{ id: string; name: string; uom: string }>;
-  defaultLocationId: string | null;
 }
 
-export function NewTransferForm({ locations, products, defaultLocationId }: Props) {
+export function EditTransferForm({ data, locations, products }: Props) {
   const t = useTranslations('inventory.transfer');
   const tCommon = useTranslations('common');
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const [fromLocationId, setFromLocationId] = useState(defaultLocationId || '');
-  const [toLocationId, setToLocationId] = useState('');
-  const [transferDate, setTransferDate] = useState(new Date().toISOString().slice(0, 10));
-  const [notes, setNotes] = useState('');
+  const [fromLocationId, setFromLocationId] = useState(data.fromLocationId);
+  const [toLocationId, setToLocationId] = useState(data.toLocationId);
+  const [transferDate, setTransferDate] = useState(data.transferDate);
+  const [notes, setNotes] = useState(data.notes || '');
   const [lines, setLines] = useState<
     Array<{ productId: string; name: string; qty: number; uom: string; batchNo?: string; expiryDate?: string }>
-  >([]);
+  >(
+    data.lines.map((l: any) => ({
+      productId: l.productId,
+      name: l.productName,
+      qty: Number(l.qtySent),
+      uom: l.uom,
+      batchNo: l.batchNo || undefined,
+      expiryDate: l.expiryDate || undefined,
+    })),
+  );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
-    const formData = new FormData();
-    formData.set('fromLocationId', fromLocationId);
-    formData.set('toLocationId', toLocationId);
-    formData.set('transferDate', transferDate);
-    formData.set('notes', notes);
-    formData.set('linesJson', JSON.stringify(lines.filter((l) => l.productId)));
+    const payload = {
+      fromLocationId,
+      toLocationId,
+      transferDate,
+      notes,
+      lines: lines
+        .filter((l) => l.productId)
+        .map((l) => ({
+          productId: l.productId,
+          qty: String(l.qty),
+          uom: l.uom,
+          batchNo: l.batchNo || undefined,
+          expiryDate: l.expiryDate || undefined,
+        })),
+    };
 
     startTransition(async () => {
-      const res = await createTransferAction(formData);
+      const res = await updateTransferAction(data.id, data.version, payload);
       if (res?.error) {
         setErrorMsg(res.error);
         return;
       }
-      if (res?.ok && res?.transferId) {
-        router.push(`/inventory/transfer/${res.transferId}`);
+      if (res?.ok) {
+        router.push(`/inventory/transfer/${data.id}`);
       }
     });
   };
@@ -56,7 +74,7 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
   return (
     <div className="h-full w-full overflow-y-auto space-y-6 pb-24 px-4 pt-4">
       <PageHeader
-        title={<>{t('new')}</>}
+        title={<>{t('editTitle')} — {data.number}</>}
         description={<>{t('subtitle')}</>}
       />
 
@@ -74,7 +92,6 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                 {t('fromLocation')}
               </label>
               <Select
-                name="fromLocationId"
                 value={fromLocationId}
                 onChange={(e) => setFromLocationId(e.target.value)}
                 required
@@ -92,7 +109,6 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                 {t('toLocation')}
               </label>
               <Select
-                name="toLocationId"
                 value={toLocationId}
                 onChange={(e) => setToLocationId(e.target.value)}
                 required
@@ -113,7 +129,6 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                 {t('date')}
               </label>
               <Input
-                name="transferDate"
                 type="date"
                 value={transferDate}
                 onChange={(e) => setTransferDate(e.target.value)}
@@ -125,7 +140,6 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
                 {t('notes')}
               </label>
               <Input
-                name="notes"
                 placeholder={`${t('notes')}...`}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -243,11 +257,11 @@ export function NewTransferForm({ locations, products, defaultLocationId }: Prop
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-brand-cream-3">
-            <Link href="/inventory/transfer" className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-red disabled:pointer-events-none disabled:opacity-50 border border-brand-cream-3 bg-card hover:bg-brand-cream-2 text-brand-ink h-9 px-4 py-2">
+            <Link href={`/inventory/transfer/${data.id}`} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-red disabled:pointer-events-none disabled:opacity-50 border border-brand-cream-3 bg-card hover:bg-brand-cream-2 text-brand-ink h-9 px-4 py-2">
               {tCommon('actions.cancel')}
             </Link>
             <Button type="submit" disabled={isPending || lines.filter(l => l.productId).length === 0}>
-              {isPending ? tCommon('actions.saving') : tCommon('actions.create')}
+              {isPending ? tCommon('actions.saving') : tCommon('actions.save')}
             </Button>
           </div>
         </form>

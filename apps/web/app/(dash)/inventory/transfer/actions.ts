@@ -1,8 +1,8 @@
 'use server';
 
 import { getSession } from '@/lib/auth';
-import { and, desc, eq, inArray, sql, db } from '@erp/db';
-import { locations } from '@erp/db/schema/auth';
+import { and, desc, eq, inArray, isNull, sql, db } from '@erp/db';
+import { locations, users } from '@erp/db/schema/auth';
 import {
   products,
   stockTransferLines,
@@ -11,8 +11,10 @@ import {
 import {
   cancelTransfer,
   createTransferDraft,
+  deleteTransfer,
   receiveTransfer,
   shipTransfer,
+  updateTransferDraft,
 } from '@erp/services/inventory';
 import type { AuditContext } from '@erp/shared/types';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -48,7 +50,10 @@ export async function fetchTransferList(
 
   const offset = (Math.max(1, page) - 1) * pageSize;
 
-  const conditions = [eq(stockTransfers.tenantId, ctx.tenantId)];
+  const conditions = [
+    eq(stockTransfers.tenantId, ctx.tenantId),
+    isNull(stockTransfers.deletedAt),
+  ];
   if (locationId) {
     conditions.push(
       sql`${stockTransfers.fromLocationId} = ${locationId} OR ${stockTransfers.toLocationId} = ${locationId}`,
@@ -73,6 +78,8 @@ export async function fetchTransferList(
       status: stockTransfers.status,
       fromLocationId: stockTransfers.fromLocationId,
       toLocationId: stockTransfers.toLocationId,
+      createdBy: stockTransfers.createdBy,
+      updatedBy: stockTransfers.updatedBy,
     })
     .from(stockTransfers)
     .where(queryConditions)
@@ -96,12 +103,37 @@ export async function fetchTransferList(
     );
   }
 
+  // Fetch user display names for createdBy / updatedBy
+  const userIds = [
+    ...new Set(
+      rows
+        .flatMap((r) => [r.createdBy, r.updatedBy])
+        .filter((id): id is string => !!id),
+    ),
+  ];
+  let userMap = new Map<string, string>();
+  if (userIds.length > 0) {
+    const uRows = await db
+      .select({ id: users.id, displayName: users.displayName })
+      .from(users)
+      .where(inArray(users.id, userIds));
+    userMap = new Map(uRows.map((u) => [u.id, u.displayName]));
+  }
+
   return {
     total: Number(totalCount?.count || 0),
     items: rows.map((r) => ({
-      ...r,
+      id: r.id,
+      number: r.number,
+      transferDate: r.transferDate,
+      status: r.status,
       fromLocationName: locMap.get(r.fromLocationId) || 'Unknown',
       toLocationName: locMap.get(r.toLocationId) || 'Unknown',
+      createdByName: r.createdBy ? (userMap.get(r.createdBy) || null) : null,
+      updatedByName:
+        r.updatedBy && r.updatedBy !== r.createdBy
+          ? (userMap.get(r.updatedBy) || null)
+          : null,
     })),
   };
 }
@@ -113,7 +145,13 @@ export async function fetchTransferDetail(transferId: string) {
   const trf = await db
     .select()
     .from(stockTransfers)
-    .where(and(eq(stockTransfers.tenantId, ctx.tenantId), eq(stockTransfers.id, transferId)))
+    .where(
+      and(
+        eq(stockTransfers.tenantId, ctx.tenantId),
+        eq(stockTransfers.id, transferId),
+        isNull(stockTransfers.deletedAt),
+      ),
+    )
     .then((r) => r[0]);
 
   if (!trf) return null;
@@ -192,16 +230,17 @@ export async function fetchProductOptions() {
 
 // --- Mutations ---
 
-export async function createTransferAction(_prevState: any, formData: FormData) {
+export async function createTransferAction(formDataOrPrev: any, formData?: FormData) {
   const ctx = await getAuditContext();
   if (!ctx) return { error: 'Unauthenticated' };
   const t = await getTranslations('inventory.transfer');
 
-  const fromLocationId = formData.get('fromLocationId') as string;
-  const toLocationId = formData.get('toLocationId') as string;
-  const transferDate = formData.get('transferDate') as string;
-  const notes = formData.get('notes') as string;
-  const linesJson = formData.get('linesJson') as string;
+  const fd = formData instanceof FormData ? formData : formDataOrPrev;
+  const fromLocationId = fd.get('fromLocationId') as string;
+  const toLocationId = fd.get('toLocationId') as string;
+  const transferDate = fd.get('transferDate') as string;
+  const notes = fd.get('notes') as string;
+  const linesJson = fd.get('linesJson') as string;
 
   let lines: any[] = [];
   try {
@@ -220,6 +259,52 @@ export async function createTransferAction(_prevState: any, formData: FormData) 
 
   revalidatePath('/inventory/transfer');
   return { ok: true, message: t('createSuccess'), transferId: result.value.id };
+}
+
+export async function updateTransferAction(
+  transferId: string,
+  version: number,
+  payload: {
+    fromLocationId: string;
+    toLocationId: string;
+    transferDate: string;
+    notes: string;
+    lines: any[];
+  },
+) {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+  const t = await getTranslations('inventory.transfer');
+
+  const result = await updateTransferDraft(
+    {
+      transferId,
+      version,
+      fromLocationId: payload.fromLocationId,
+      toLocationId: payload.toLocationId,
+      transferDate: payload.transferDate,
+      notes: payload.notes,
+      lines: payload.lines,
+    },
+    ctx,
+  );
+  if (!result.ok) return { error: result.error.message };
+
+  revalidatePath('/inventory/transfer');
+  revalidatePath(`/inventory/transfer/${transferId}`);
+  return { ok: true, message: t('updateSuccess'), transferId: result.value.id };
+}
+
+export async function deleteTransferAction(transferId: string) {
+  const ctx = await getAuditContext();
+  if (!ctx) return { error: 'Unauthenticated' };
+  const t = await getTranslations('inventory.transfer');
+
+  const result = await deleteTransfer(transferId, ctx);
+  if (!result.ok) return { error: result.error.message };
+
+  revalidatePath('/inventory/transfer');
+  return { ok: true, message: t('deleteSuccess') };
 }
 
 export async function shipTransferAction(transferId: string, version: number) {

@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useTransition, useState } from 'react';
 import {
   cancelTransferAction,
+  deleteTransferAction,
   receiveTransferAction,
   shipTransferAction,
 } from '../actions';
@@ -27,7 +28,7 @@ export function TransferDetail({ data, currentUserId }: Props) {
     Object.fromEntries(data.lines.map((l: any) => [l.id, Number(l.qtySent)]))
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [confirmAction, setConfirmAction] = useState<'ship' | 'receive' | 'cancel' | null>(null);
+  const [confirmAction, setConfirmAction] = useState<'ship' | 'receive' | 'cancel' | 'delete' | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -59,7 +60,20 @@ export function TransferDetail({ data, currentUserId }: Props) {
     }
   };
 
-
+  const getConfirmMessage = () => {
+    switch (confirmAction) {
+      case 'cancel':
+        return t('confirmCancel');
+      case 'ship':
+        return t('confirmShip');
+      case 'receive':
+        return t('confirmReceive');
+      case 'delete':
+        return t('confirmDelete');
+      default:
+        return '';
+    }
+  };
 
   const executeAction = () => {
     if (!confirmAction) return;
@@ -77,6 +91,13 @@ export function TransferDetail({ data, currentUserId }: Props) {
           qtyReceived: String(qtyReceived),
         }));
         res = await receiveTransferAction(data.id, data.version, receiveLines);
+      } else if (confirmAction === 'delete') {
+        res = await deleteTransferAction(data.id);
+        if (res?.ok) {
+          setConfirmAction(null);
+          router.push('/inventory/transfer');
+          return;
+        }
       }
 
       if (res?.error) {
@@ -95,9 +116,18 @@ export function TransferDetail({ data, currentUserId }: Props) {
           <div className="flex items-center gap-3">
             {data.status === 'draft' && (
               <>
+                <Button variant="danger" onClick={() => setConfirmAction('delete')} disabled={isPending}>
+                  {tCommon('actions.delete')}
+                </Button>
                 <Button variant="danger" onClick={() => setConfirmAction('cancel')} disabled={isPending}>
                   {t('actionCancel')}
                 </Button>
+                <Link
+                  href={`/inventory/transfer/${data.id}/edit`}
+                  className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-red disabled:pointer-events-none disabled:opacity-50 border border-brand-cream-3 bg-card hover:bg-brand-cream-2 text-brand-ink h-9 px-4 py-2"
+                >
+                  {tCommon('actions.edit')}
+                </Link>
                 <Button onClick={() => setConfirmAction('ship')} disabled={isPending}>
                   {t('actionShip')}
                 </Button>
@@ -119,14 +149,8 @@ export function TransferDetail({ data, currentUserId }: Props) {
       {confirmAction && (
         <ConfirmDialog
           title={tCommon('actions.confirm')}
-          message={
-            confirmAction === 'cancel'
-              ? 'Are you sure you want to cancel this transfer?'
-              : confirmAction === 'ship'
-                ? 'Are you sure you want to ship this transfer? This will deduct stock from the source location.'
-                : 'Are you sure you want to receive this transfer? This will add stock to the destination location.'
-          }
-          tone={confirmAction === 'cancel' ? 'danger' : 'default'}
+          message={getConfirmMessage()}
+          tone={confirmAction === 'cancel' || confirmAction === 'delete' ? 'danger' : 'default'}
           onConfirm={executeAction}
           onCancel={() => setConfirmAction(null)}
         />

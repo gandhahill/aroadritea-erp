@@ -1811,7 +1811,16 @@
       "empty": "Tidak ada transfer stok ditemukan.",
       "batchNo": "No. Batch",
       "batchNoPlaceholder": "Opsional",
-      "expiryDate": "Tgl Kadaluarsa"
+      "expiryDate": "Tgl Kadaluarsa",
+      "editTitle": "Edit Transfer",
+      "updateSuccess": "Transfer berhasil diperbarui",
+      "deleteSuccess": "Transfer berhasil dihapus",
+      "createdBy": "Dibuat Oleh",
+      "editedBy": "diedit oleh {name}",
+      "confirmCancel": "Yakin ingin membatalkan transfer ini?",
+      "confirmShip": "Yakin ingin mengirim transfer ini? Stok akan dikurangi dari lokasi asal.",
+      "confirmReceive": "Yakin ingin menerima transfer ini? Stok akan ditambahkan ke lokasi tujuan.",
+      "confirmDelete": "Yakin ingin menghapus transfer ini? Tindakan ini tidak dapat dibatalkan."
     },
     "opnameDetail": {
       "status": {

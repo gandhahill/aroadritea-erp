@@ -270,3 +270,20 @@ export const ReceiveTransferInputSchema = z.object({
 });
 
 export type ReceiveTransferInput = z.infer<typeof ReceiveTransferInputSchema>;
+
+export const UpdateTransferInputSchema = z
+  .object({
+    transferId: z.string().min(1),
+    version: z.number().int().min(1),
+    fromLocationId: z.string().min(1),
+    toLocationId: z.string().min(1),
+    transferDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    notes: z.string().optional(),
+    lines: z.array(TransferLineInputSchema).min(1),
+  })
+  .refine((data) => data.fromLocationId !== data.toLocationId, {
+    message: 'fromLocationId and toLocationId must be different',
+    path: ['toLocationId'],
+  });
+
+export type UpdateTransferInput = z.infer<typeof UpdateTransferInputSchema>;

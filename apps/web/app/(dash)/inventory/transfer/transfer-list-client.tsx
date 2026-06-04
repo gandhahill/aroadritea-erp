@@ -17,6 +17,8 @@ interface Props {
       status: string;
       fromLocationName: string;
       toLocationName: string;
+      createdByName: string | null;
+      updatedByName: string | null;
     }>;
   };
   locations: Array<{ id: string; name: string }>;
@@ -114,7 +116,7 @@ export function TransferListClient({ data, locations, searchParams }: Props) {
         </Select>
       </section>
 
-      <section className="rounded-xl border border-brand-cream-3 bg-card shadow-sm">
+      <section className="rounded-xl border border-brand-cream-3 bg-card shadow-sm overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -122,13 +124,14 @@ export function TransferListClient({ data, locations, searchParams }: Props) {
               <TableHead>{t('date')}</TableHead>
               <TableHead>{t('fromLocation')}</TableHead>
               <TableHead>{t('toLocation')}</TableHead>
+              <TableHead>{t('createdBy')}</TableHead>
               <TableHead>{t('status')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center text-brand-ink-3">
+                <TableCell colSpan={6} className="py-8 text-center text-brand-ink-3">
                   {t('empty')}
                 </TableCell>
               </TableRow>
@@ -146,6 +149,18 @@ export function TransferListClient({ data, locations, searchParams }: Props) {
                   <TableCell>{trf.transferDate}</TableCell>
                   <TableCell>{trf.fromLocationName}</TableCell>
                   <TableCell>{trf.toLocationName}</TableCell>
+                  <TableCell>
+                    <div>
+                      <span className="text-sm text-brand-ink">
+                        {trf.createdByName || '—'}
+                      </span>
+                      {trf.updatedByName && (
+                        <span className="block text-xs text-brand-ink-3">
+                          {t('editedBy', { name: trf.updatedByName })}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${getStatusColor(trf.status)}`}>
                       {getStatusLabel(trf.status)}

@@ -18,6 +18,7 @@ import {
   CreateTransferInputSchema,
   ReceiveTransferInputSchema,
   ShipTransferInputSchema,
+  UpdateTransferInputSchema,
 } from './schemas';
 
 export interface TransferResult {
@@ -725,5 +726,220 @@ export async function cancelTransfer(
   } catch (e) {
     if (e instanceof AppError) return err(e);
     return err(AppError.internal('inventory.transfer.cancelFailed', e));
+  }
+}
+
+export async function updateTransferDraft(
+  input: unknown,
+  ctx: AuditContext,
+): Promise<Result<TransferResult>> {
+  const parsed = UpdateTransferInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return err(
+      AppError.validation('inventory.transfer.validationFailed', {
+        issues: parsed.error.issues,
+      }),
+    );
+  }
+  const data = parsed.data;
+
+  const permCheck = await requirePermission(ctx.userId, 'inventory.transfer', {
+    locationId: data.fromLocationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  if (data.fromLocationId === data.toLocationId) {
+    return err(AppError.businessRule('inventory.transfer.sameLocation'));
+  }
+
+  try {
+    const trf = await db
+      .select()
+      .from(stockTransfers)
+      .where(and(eq(stockTransfers.tenantId, ctx.tenantId), eq(stockTransfers.id, data.transferId)))
+      .then((rows) => rows[0]);
+
+    if (!trf) {
+      return err(AppError.notFound('inventory.transfer.notFound', { transferId: data.transferId }));
+    }
+    if (trf.status !== 'draft') {
+      return err(AppError.businessRule('inventory.transfer.notDraft', { currentStatus: trf.status }));
+    }
+    if (trf.version !== data.version) {
+      return err(AppError.conflict('inventory.transfer.versionMismatch'));
+    }
+
+    const productIds = [...new Set(data.lines.map((line) => line.productId))];
+    const foundProducts = await db
+      .select({
+        id: products.id,
+        isActive: products.isActive,
+        trackBatch: products.trackBatch,
+        trackExpiry: products.trackExpiry,
+      })
+      .from(products)
+      .where(and(eq(products.tenantId, ctx.tenantId), inArray(products.id, productIds)));
+    const productMap = new Map(foundProducts.map((product) => [product.id, product]));
+
+    for (const line of data.lines) {
+      const product = productMap.get(line.productId);
+      if (!product) {
+        return err(AppError.notFound('inventory.transfer.productNotFound', { productId: line.productId }));
+      }
+      if (!product.isActive) {
+        return err(AppError.businessRule('inventory.transfer.productInactive', { productId: line.productId }));
+      }
+      if (product.trackBatch && !line.batchNo) {
+        return err(AppError.validation('inventory.transfer.missingBatchNo', { productId: line.productId }));
+      }
+      if (product.trackExpiry && !line.expiryDate) {
+        return err(AppError.validation('inventory.transfer.missingExpiryDate', { productId: line.productId }));
+      }
+    }
+
+    const beforeSnapshot = {
+      fromLocationId: trf.fromLocationId,
+      toLocationId: trf.toLocationId,
+      transferDate: trf.transferDate,
+      notes: trf.notes,
+    };
+
+    const result = await db.transaction(async (tx) => {
+      const claimed = await tx
+        .update(stockTransfers)
+        .set({
+          fromLocationId: data.fromLocationId,
+          toLocationId: data.toLocationId,
+          transferDate: data.transferDate,
+          notes: data.notes ?? null,
+          updatedBy: ctx.userId,
+          version: trf.version + 1,
+        })
+        .where(
+          and(
+            eq(stockTransfers.tenantId, ctx.tenantId),
+            eq(stockTransfers.id, data.transferId),
+            eq(stockTransfers.status, 'draft'),
+            eq(stockTransfers.version, trf.version),
+          ),
+        )
+        .returning({ id: stockTransfers.id });
+
+      if (claimed.length === 0) {
+        throw AppError.conflict('inventory.transfer.versionMismatch');
+      }
+
+      await tx
+        .delete(stockTransferLines)
+        .where(eq(stockTransferLines.transferId, data.transferId));
+
+      const lineValues = data.lines.map((line, idx) => ({
+        id: generateId(),
+        transferId: data.transferId,
+        lineNo: idx + 1,
+        productId: line.productId,
+        variantId: line.variantId ?? null,
+        batchNo: line.batchNo ?? null,
+        expiryDate: line.expiryDate ?? null,
+        qtySent: line.qty,
+        qtyReceived: null,
+        uom: line.uom,
+        createdBy: ctx.userId,
+        updatedBy: ctx.userId,
+      }));
+
+      await tx.insert(stockTransferLines).values(lineValues);
+
+      await auditRecord({
+        action: 'update',
+        entityType: 'stock_transfer',
+        entityId: data.transferId,
+        before: beforeSnapshot,
+        after: {
+          fromLocationId: data.fromLocationId,
+          toLocationId: data.toLocationId,
+          transferDate: data.transferDate,
+          notes: data.notes ?? null,
+          lineCount: lineValues.length,
+        },
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+        tx,
+      });
+
+      return buildTransferResult(
+        {
+          ...trf,
+          fromLocationId: data.fromLocationId,
+          toLocationId: data.toLocationId,
+          transferDate: data.transferDate,
+          notes: data.notes ?? null,
+          version: trf.version + 1,
+        },
+        lineValues,
+      );
+    });
+
+    return ok(result);
+  } catch (e) {
+    if (e instanceof AppError) return err(e);
+    return err(AppError.internal('inventory.transfer.updateFailed', e));
+  }
+}
+
+export async function deleteTransfer(
+  transferId: string,
+  ctx: AuditContext,
+): Promise<Result<{ id: string }>> {
+  try {
+    const trf = await db
+      .select()
+      .from(stockTransfers)
+      .where(and(eq(stockTransfers.tenantId, ctx.tenantId), eq(stockTransfers.id, transferId)))
+      .then((rows) => rows[0]);
+
+    if (!trf) {
+      return err(AppError.notFound('inventory.transfer.notFound', { transferId }));
+    }
+
+    const permCheck = await requirePermission(ctx.userId, 'inventory.transfer', {
+      locationId: trf.fromLocationId,
+    });
+    if (!permCheck.ok) return permCheck;
+
+    if (trf.status !== 'draft') {
+      return err(AppError.businessRule('inventory.transfer.notDraft', { currentStatus: trf.status }));
+    }
+
+    await db.transaction(async (tx) => {
+      const now = new Date();
+
+      await tx
+        .update(stockTransfers)
+        .set({ deletedAt: now, updatedBy: ctx.userId })
+        .where(
+          and(
+            eq(stockTransfers.tenantId, ctx.tenantId),
+            eq(stockTransfers.id, transferId),
+            eq(stockTransfers.status, 'draft'),
+          ),
+        );
+
+      await auditRecord({
+        action: 'delete',
+        entityType: 'stock_transfer',
+        entityId: transferId,
+        before: { number: trf.number, status: trf.status },
+        after: null,
+        metadata: { ip: ctx.ipAddress ?? null, userAgent: ctx.userAgent ?? null },
+        ctx,
+        tx,
+      });
+    });
+
+    return ok({ id: transferId });
+  } catch (e) {
+    if (e instanceof AppError) return err(e);
+    return err(AppError.internal('inventory.transfer.deleteFailed', e));
   }
 }

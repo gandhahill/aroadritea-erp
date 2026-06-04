@@ -1828,7 +1828,16 @@
       "empty": "未找到库存转移记录。",
       "batchNo": "批号",
       "batchNoPlaceholder": "可选",
-      "expiryDate": "到期日"
+      "expiryDate": "到期日",
+      "editTitle": "编辑转移单",
+      "updateSuccess": "转移单更新成功",
+      "deleteSuccess": "转移单已删除",
+      "createdBy": "创建人",
+      "editedBy": "由 {name} 编辑",
+      "confirmCancel": "确定要取消此转移吗？",
+      "confirmShip": "确定要发货此转移吗？将从调出位置扣减库存。",
+      "confirmReceive": "确定要收货此转移吗？将在调入位置增加库存。",
+      "confirmDelete": "确定要删除此转移吗？此操作不可撤销。"
     },
     "opnameDetail": {
       "status": {

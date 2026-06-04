@@ -73,6 +73,8 @@ export {
 // Transfer service
 export {
   createTransferDraft,
+  updateTransferDraft,
+  deleteTransfer,
   shipTransfer,
   receiveTransfer,
   cancelTransfer,
