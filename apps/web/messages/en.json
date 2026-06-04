@@ -2198,7 +2198,8 @@
       "errorMinPayment": "At least 1 payment method is required",
       "errorPaymentFailed": "Payment failed for {method}: {error}",
       "errorDiscountExceedsGross": "Discount exceeds total gross sales",
-      "editedBy": "(Edited by: {name})"
+      "editedBy": "(Edited by: {name})",
+      "showLess": "Show less"
     },
     "openShift": "Open Shift",
     "drawerExpense": "Drawer Expense",
