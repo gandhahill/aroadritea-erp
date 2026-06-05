@@ -224,7 +224,7 @@ export {
 // Schema — Notifications
 export {
   notificationChannels,
-  outageNotifications,
+  outageNotifications, notifications,
 } from './schema/notification';
 
 // Schema — Custom Fields (SD §9.9, §17)

@@ -80,7 +80,7 @@ interface StoredFaceTemplate {
 const GPS_HARD_ACCURACY_LIMIT_M = 500;
 const GPS_RADIUS_BUFFER_M = 25;
 const FACE_TEMPLATE_MIN_QUALITY = 20;
-const FACE_MATCH_SCORE_THRESHOLD = 62;
+const FACE_MATCH_SCORE_THRESHOLD = 45;
 
 // ─── Input schemas ───────────────────────────────────────────────────────────
 
