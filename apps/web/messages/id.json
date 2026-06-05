@@ -2126,6 +2126,7 @@
       "transactionCount": "Jumlah transaksi",
       "sourceReference": "Referensi POS lama",
       "notes": "Catatan",
+      "notesPlaceholder": "Catatan opsional",
       "walkIn": "Walk-in",
       "cash": "Tunai",
       "credit": "Kredit",

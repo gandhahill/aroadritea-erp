@@ -2126,6 +2126,7 @@
       "transactionCount": "Transaction count",
       "sourceReference": "Legacy POS reference",
       "notes": "Notes",
+      "notesPlaceholder": "Optional notes",
       "walkIn": "Walk-in",
       "cash": "Cash",
       "credit": "Credit",

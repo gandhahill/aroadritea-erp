@@ -65,6 +65,7 @@ interface ConsumedHistoryItem {
   locationLabel: string;
   itemCount: number;
   items: Array<{ name: string; qty: string; uom: string }>;
+  notes: string | null;
   createdByName: string | null;
   updatedByName: string | null;
 }
@@ -96,6 +97,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
   const [referenceId, setReferenceId] = useState<string | null>(null);
   const [editLocationId, setEditLocationId] = useState(defaultLocationId);
   const [entryDate, setEntryDate] = useState(new Date().toISOString().slice(0, 10));
+  const [entryNotes, setEntryNotes] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [loadingDetailId, setLoadingDetailId] = useState<string | null>(null);
@@ -111,6 +113,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
       setReferenceId(null);
       setEditLocationId(defaultLocationId);
       setEntryDate(new Date().toISOString().slice(0, 10));
+      setEntryNotes('');
       router.refresh();
     }
   }, [state, defaultLocationId, router]);
@@ -128,6 +131,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
     setReferenceId(res.value.referenceId);
     setEditLocationId(res.value.locationId);
     setEntryDate(res.value.date);
+    setEntryNotes(res.value.notes ?? '');
     setConsumedIngredients(res.value.consumedIngredients);
     setTimeout(() => {
       document.getElementById('consumed-ingredients-form')?.scrollIntoView({ behavior: 'smooth' });
@@ -138,6 +142,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
     setReferenceId(null);
     setEditLocationId(defaultLocationId);
     setEntryDate(new Date().toISOString().slice(0, 10));
+    setEntryNotes('');
     setConsumedIngredients([]);
   };
 
@@ -201,6 +206,15 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
               value={entryDate}
               onChange={(event) => setEntryDate(event.target.value)}
               required
+            />
+          </Field>
+          <Field label={t('notes')}>
+            <Input
+              name="notes"
+              type="text"
+              value={entryNotes}
+              onChange={(event) => setEntryNotes(event.target.value)}
+              placeholder={t('notesPlaceholder')}
             />
           </Field>
 
@@ -343,6 +357,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
                 <Th>{t('date')}</Th>
                 <Th>{t('location')}</Th>
                 <Th>{t('itemCount')}</Th>
+                <Th>{t('notes')}</Th>
                 <Th>{t('postedBy')}</Th>
                 <Th align="right">{t('actions')}</Th>
               </tr>
@@ -350,7 +365,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
             <TableBody className="divide-y divide-brand-cream-3">
               {data.history.items.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-brand-ink-3">
+                  <td colSpan={6} className="px-4 py-8 text-center text-brand-ink-3">
                     {t('emptyConsumedHistory')}
                   </td>
                 </tr>
@@ -369,6 +384,13 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
                         moreLabel={(count: number) => t('moreItems', { count })}
                         collapseLabel={t('showLess', { defaultValue: 'Lebih sedikit' })}
                       />
+                    </Td>
+                    <Td>
+                      {item.notes ? (
+                        <span className="text-sm text-brand-ink-2">{item.notes}</span>
+                      ) : (
+                        <span className="text-brand-ink-3">—</span>
+                      )}
                     </Td>
                     <Td>
                       {item.createdByName || '-'}

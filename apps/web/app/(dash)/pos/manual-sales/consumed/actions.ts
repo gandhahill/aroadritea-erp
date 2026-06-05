@@ -110,6 +110,7 @@ export async function fetchConsumedIngredientsData(page = 1, requestedPageSize =
       locationName: Record<string, string> | null;
       itemCount: number;
       items: unknown;
+      notes: string | null;
       createdByName: string | null;
       updatedByName: string | null;
     }>(sql`
@@ -128,6 +129,7 @@ export async function fetchConsumedIngredientsData(page = 1, requestedPageSize =
           )
           ORDER BY hp.sku, hp.id
         ) as "items",
+        max(sm.notes) as "notes",
         max(u.display_name) as "createdByName",
         max(updater.display_name) as "updatedByName"
       FROM stock_movements sm
@@ -183,6 +185,7 @@ export async function fetchConsumedIngredientsData(page = 1, requestedPageSize =
           `${row.locationCode ?? ''} - ${pickLocalized(row.locationName, locale)}`.trim(),
         itemCount: Number(row.itemCount ?? 0),
         items: parseConsumedHistoryItems(row.items, locale),
+        notes: row.notes ?? null,
         createdByName: row.createdByName,
         updatedByName: row.updatedByName,
       })),
@@ -315,6 +318,7 @@ export async function fetchConsumedIngredientDetailAction(referenceId: string) {
       productName: products.name,
       qtyDelta: stockMovements.qtyDelta,
       uom: stockMovements.uom,
+      notes: stockMovements.notes,
     })
     .from(stockMovements)
     .innerJoin(products, eq(products.id, stockMovements.productId))
@@ -339,6 +343,7 @@ export async function fetchConsumedIngredientDetailAction(referenceId: string) {
       referenceId,
       locationId,
       date: rows[0]?.occurredAt.toISOString().slice(0, 10) ?? new Date().toISOString().slice(0, 10),
+      notes: rows[0]?.notes ?? '',
       consumedIngredients: rows.map((row) => ({
         ingredientId: row.ingredientId,
         name: pickLocalized(row.productName, locale),
@@ -372,6 +377,7 @@ export async function createConsumedIngredientsAction(_prev: any, formData: Form
   const existingReferenceId = String(formData.get('referenceId') ?? '').trim();
   const referenceId = existingReferenceId || generateId();
   const consumptionDate = String(formData.get('date') ?? '').trim();
+  const notes = String(formData.get('notes') ?? '').trim() || null;
 
   if (existingReferenceId) {
     const reversed = await reverseConsumedIngredients(existingReferenceId, ctx, {
@@ -397,22 +403,32 @@ export async function createConsumedIngredientsAction(_prev: any, formData: Form
     };
   }
 
-  if (/^\d{4}-\d{2}-\d{2}$/.test(consumptionDate)) {
-    const occurredAt = new Date(`${consumptionDate}T00:00:00+07:00`);
-    if (Number.isFinite(occurredAt.getTime())) {
-      await db
-        .update(stockMovements)
-        .set({ occurredAt, updatedAt: new Date(), updatedBy: ctx.userId })
-        .where(
-          and(
-            eq(stockMovements.tenantId, ctx.tenantId),
-            eq(stockMovements.referenceType, MANUAL_INGREDIENT_CONSUMPTION),
-            eq(stockMovements.referenceId, referenceId),
-            eq(stockMovements.reason, 'sale'),
-            isNull(stockMovements.deletedAt),
-          ),
-        );
+  {
+    const updateSet: Record<string, unknown> = {
+      notes,
+      updatedAt: new Date(),
+      updatedBy: ctx.userId,
+    };
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(consumptionDate)) {
+      const occurredAt = new Date(`${consumptionDate}T00:00:00+07:00`);
+      if (Number.isFinite(occurredAt.getTime())) {
+        updateSet.occurredAt = occurredAt;
+      }
     }
+
+    await db
+      .update(stockMovements)
+      .set(updateSet)
+      .where(
+        and(
+          eq(stockMovements.tenantId, ctx.tenantId),
+          eq(stockMovements.referenceType, MANUAL_INGREDIENT_CONSUMPTION),
+          eq(stockMovements.referenceId, referenceId),
+          eq(stockMovements.reason, 'sale'),
+          isNull(stockMovements.deletedAt),
+        ),
+      );
   }
 
   revalidatePath('/pos/manual-sales');

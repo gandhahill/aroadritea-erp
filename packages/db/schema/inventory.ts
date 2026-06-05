@@ -374,6 +374,7 @@ export const stockMovements = pgTable(
 
     referenceType: text('reference_type'), // 'sales_order' | 'purchase_order' | 'stock_adjustment' | 'stock_transfer'
     referenceId: text('reference_id'),
+    notes: text('notes'),
 
     // Cost tracking for FIFO/weighted average
     unitCost: bigint('unit_cost', { mode: 'bigint' }), // rupiah per UOM

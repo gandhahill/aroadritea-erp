@@ -2126,6 +2126,7 @@
       "transactionCount": "交易笔数",
       "sourceReference": "旧POS参考号",
       "notes": "备注",
+      "notesPlaceholder": "可选备注",
       "walkIn": "到店",
       "cash": "现金",
       "credit": "信用卡",
