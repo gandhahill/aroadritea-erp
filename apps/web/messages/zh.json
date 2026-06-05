@@ -2770,6 +2770,8 @@
       "dispensationPlaceholder": "例如：病假有医生证明、出差。",
       "dispensationSubmit": "保存",
       "dispensationSuccess": "缺勤豁免已保存",
+      "dispensationNoAbsentDates": "该员工本期没有未豁免的缺勤日期。",
+      "dispensationSelectAll": "全选（{count}个日期）",
       "columns": {
         "employee": "员工",
         "shift": "班次",

@@ -1,5 +1,5 @@
 import { db } from '@erp/db';
-import { attendance, employees, shiftAssignments } from '@erp/db/schema/hr';
+import { absenceDispensations, attendance, employees, shiftAssignments } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -143,6 +143,135 @@ export async function listAttendanceSummary(
       };
     })
     .sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+
+  return ok(result);
+}
+
+/**
+ * Returns, for each employee in the period, the list of dates they were
+ * absent (scheduled but not present) and not yet dispensed.
+ *
+ * Used by the dispensation modal to populate a dropdown of selectable dates.
+ */
+export async function getAbsentDatesForPeriod(
+  input: { periodMonth: string; locationId?: string; locationIds?: string[] },
+  ctx: AuditContext,
+): Promise<Result<Map<string, string[]>>> {
+  const [yearStr, monthStr] = input.periodMonth.split('-');
+  if (!yearStr || !monthStr) {
+    return err(AppError.validation('hr.attendance.invalidPeriod'));
+  }
+  const year = Number.parseInt(yearStr, 10);
+  const month = Number.parseInt(monthStr, 10);
+  const periodStart = `${yearStr}-${monthStr.padStart(2, '0')}-01`;
+  const lastDay = new Date(year, month, 0).getDate();
+  const periodEnd = `${yearStr}-${monthStr.padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+  const periodStartTz = `${periodStart}T00:00:00+07:00`;
+  const periodEndTz = `${periodEnd}T23:59:59+07:00`;
+
+  const locationFilter = input.locationId
+    ? eq(shiftAssignments.locationId, input.locationId)
+    : input.locationIds && input.locationIds.length > 0
+      ? inArray(shiftAssignments.locationId, input.locationIds)
+      : undefined;
+
+  // 1. All scheduled shift dates per employee
+  const shiftConds = [
+    eq(shiftAssignments.tenantId, ctx.tenantId),
+    eq(shiftAssignments.kind, 'shift'),
+    sql`${shiftAssignments.workDate} >= ${periodStart}`,
+    sql`${shiftAssignments.workDate} <= ${periodEnd}`,
+  ];
+  if (locationFilter) shiftConds.push(locationFilter);
+
+  const shiftRows = await db
+    .select({
+      employeeId: shiftAssignments.employeeId,
+      workDate: shiftAssignments.workDate,
+    })
+    .from(shiftAssignments)
+    .where(and(...shiftConds));
+
+  // Group shift dates per employee
+  const scheduledByEmp = new Map<string, Set<string>>();
+  for (const row of shiftRows) {
+    const set = scheduledByEmp.get(row.employeeId) ?? new Set();
+    set.add(row.workDate);
+    scheduledByEmp.set(row.employeeId, set);
+  }
+
+  const allEmployeeIds = [...scheduledByEmp.keys()];
+  if (allEmployeeIds.length === 0) return ok(new Map());
+
+  // 2. Attendance dates per employee (distinct dates they checked in)
+  const attLocationFilter = input.locationId
+    ? eq(attendance.locationId, input.locationId)
+    : input.locationIds && input.locationIds.length > 0
+      ? inArray(attendance.locationId, input.locationIds)
+      : undefined;
+
+  const attConds = [
+    eq(attendance.tenantId, ctx.tenantId),
+    isNull(attendance.deletedAt),
+    sql`${attendance.checkInAt} >= ${periodStartTz}`,
+    sql`${attendance.checkInAt} <= ${periodEndTz}`,
+    inArray(attendance.employeeId, allEmployeeIds),
+  ];
+  if (attLocationFilter) attConds.push(attLocationFilter);
+
+  const attRows = await db
+    .select({
+      employeeId: attendance.employeeId,
+      workDate: sql<string>`date(${attendance.checkInAt} at time zone 'Asia/Jakarta')`,
+    })
+    .from(attendance)
+    .where(and(...attConds));
+
+  const presentByEmp = new Map<string, Set<string>>();
+  for (const row of attRows) {
+    const set = presentByEmp.get(row.employeeId) ?? new Set();
+    set.add(row.workDate);
+    presentByEmp.set(row.employeeId, set);
+  }
+
+  // 3. Already-dispensed dates per employee
+  const dispRows = await db
+    .select({
+      employeeId: absenceDispensations.employeeId,
+      workDate: absenceDispensations.workDate,
+    })
+    .from(absenceDispensations)
+    .where(
+      and(
+        eq(absenceDispensations.tenantId, ctx.tenantId),
+        inArray(absenceDispensations.employeeId, allEmployeeIds),
+        sql`${absenceDispensations.workDate} >= ${periodStart}`,
+        sql`${absenceDispensations.workDate} <= ${periodEnd}`,
+      ),
+    );
+
+  const dispensedByEmp = new Map<string, Set<string>>();
+  for (const row of dispRows) {
+    const set = dispensedByEmp.get(row.employeeId) ?? new Set();
+    set.add(row.workDate);
+    dispensedByEmp.set(row.employeeId, set);
+  }
+
+  // 4. Compute absent = scheduled - present - dispensed
+  const result = new Map<string, string[]>();
+  for (const [empId, scheduledDates] of scheduledByEmp) {
+    const present = presentByEmp.get(empId) ?? new Set();
+    const dispensed = dispensedByEmp.get(empId) ?? new Set();
+    const absentDates: string[] = [];
+    for (const d of scheduledDates) {
+      if (!present.has(d) && !dispensed.has(d)) {
+        absentDates.push(d);
+      }
+    }
+    if (absentDates.length > 0) {
+      result.set(empId, absentDates.sort());
+    }
+  }
 
   return ok(result);
 }

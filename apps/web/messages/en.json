@@ -2770,6 +2770,8 @@
       "dispensationPlaceholder": "e.g. sick with doctor's note, business trip.",
       "dispensationSubmit": "Save",
       "dispensationSuccess": "Absence dispensation saved",
+      "dispensationNoAbsentDates": "No unexcused absent dates found for this employee in this period.",
+      "dispensationSelectAll": "Select all ({count} dates)",
       "columns": {
         "employee": "Employee",
         "shift": "Shift",

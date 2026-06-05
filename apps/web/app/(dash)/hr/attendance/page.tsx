@@ -13,7 +13,7 @@ import { and, db, desc, eq, inArray, isNull, sql } from '@erp/db';
 import { attendance, employees } from '@erp/db/schema/hr';
 import { locations } from '@erp/db/schema/auth';
 import { users } from '@erp/db/schema/auth';
-import { listAttendanceSummary } from '@erp/services/hr';
+import { listAttendanceSummary, getAbsentDatesForPeriod } from '@erp/services/hr';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
@@ -92,6 +92,23 @@ export default async function AttendancePage({
 
     const summaryItems = summaryResult.ok ? summaryResult.value : [];
 
+    // Fetch absent dates (scheduled - present - dispensed) per employee for the dispensation dropdown
+    const absentDatesResult = await getAbsentDatesForPeriod(
+      {
+        periodMonth: period,
+        locationId: locationId || undefined,
+        locationIds: !locationId && !scope.global ? scope.locationIds : undefined,
+      },
+      ctx,
+    );
+    // Convert Map to plain object for serialization to client
+    const absentDatesMap: Record<string, string[]> = {};
+    if (absentDatesResult.ok) {
+      for (const [empId, dates] of absentDatesResult.value) {
+        absentDatesMap[empId] = dates;
+      }
+    }
+
     return (
       <div className="space-y-6">
         <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle', { total: summaryItems.length })}</>} />
@@ -101,6 +118,7 @@ export default async function AttendancePage({
           locations={locationOptions}
           initialPeriod={period}
           initialLocationId={locationId}
+          absentDates={absentDatesMap}
         />
       </div>
     );
