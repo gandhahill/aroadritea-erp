@@ -56,7 +56,7 @@
         "name": "Dessert",
         "description": "Pendamping teh untuk dine-in maupun take away.",
         "price": "Harga mengikuti outlet",
-        "items": "Egg Tart, Fancy Egg Tart, Pudding, Mousse Cake"
+        "items": "Egg Tart, Fancy Egg Tart"
       }
     ],
     "customTitle": "Pesan sesuai selera",

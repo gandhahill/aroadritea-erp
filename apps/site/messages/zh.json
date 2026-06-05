@@ -56,7 +56,7 @@
         "name": "Dessert",
         "description": "适合堂食或外带的茶饮甜品搭配。",
         "price": "以门店价格为准",
-        "items": "Egg Tart, Fancy Egg Tart, Pudding, Mousse Cake"
+        "items": "Egg Tart, Fancy Egg Tart"
       }
     ],
     "customTitle": "按喜好点单",
