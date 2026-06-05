@@ -22,6 +22,7 @@ interface SummaryRow {
 interface DispensationDetail {
   workDate: string;
   reason: string;
+  givenBy?: string | null;
 }
 
 interface Props {
@@ -186,15 +187,18 @@ export function AttendanceSummaryClient({
                           <div className="mt-0.5 space-y-0.5">
                             {(() => {
                               const details = dispensationDetails[row.employeeId] ?? [];
-                              const reasons = [...new Set(details.map((d) => d.reason))];
-                              return reasons.map((reason) => {
-                                const dates = details.filter((d) => d.reason === reason).map((d) => d.workDate);
-                                return (
-                                  <p key={reason} className="text-[11px] text-brand-ink-3">
-                                    {dates.join(', ')} — {reason}
-                                  </p>
-                                );
-                              });
+                              const groups = details.reduce((acc, d) => {
+                                const key = `${d.reason}|${d.givenBy ?? ''}`;
+                                if (!acc[key]) acc[key] = { reason: d.reason, givenBy: d.givenBy, dates: [] };
+                                acc[key].dates.push(d.workDate);
+                                return acc;
+                              }, {} as Record<string, { reason: string; givenBy?: string | null; dates: string[] }>);
+
+                              return Object.values(groups).map((g) => (
+                                <p key={`${g.reason}-${g.givenBy}`} className="text-[11px] text-brand-ink-3">
+                                  {g.dates.join(', ')} — {g.reason} {g.givenBy ? `(oleh: ${g.givenBy})` : ''}
+                                </p>
+                              ));
                             })()}
                           </div>
                         )}

@@ -101,7 +101,7 @@ export default async function AttendancePage({
     const dispensedDetailsMap = empIds.length > 0
       ? await getDispensedDetailsForPeriod(tenantId, empIds, periodStart, periodEnd)
       : new Map();
-    const dispensationDetails: Record<string, Array<{ workDate: string; reason: string }>> = {};
+    const dispensationDetails: Record<string, Array<{ workDate: string; reason: string; givenBy?: string | null }>> = {};
     for (const [empId, details] of dispensedDetailsMap) {
       dispensationDetails[empId] = details;
     }

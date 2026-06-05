@@ -1,5 +1,6 @@
 import { db } from '@erp/db';
 import { absenceDispensations } from '@erp/db/schema/hr';
+import { users } from '@erp/db/schema/auth';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -99,6 +100,7 @@ export async function getDispensedCountsForPeriod(
 export interface DispensationDetail {
   workDate: string;
   reason: string;
+  givenBy?: string | null;
 }
 
 export async function getDispensedDetailsForPeriod(
@@ -114,8 +116,10 @@ export async function getDispensedDetailsForPeriod(
       employeeId: absenceDispensations.employeeId,
       workDate: absenceDispensations.workDate,
       reason: absenceDispensations.reason,
+      givenBy: users.displayName,
     })
     .from(absenceDispensations)
+    .leftJoin(users, eq(absenceDispensations.createdBy, users.id))
     .where(
       and(
         eq(absenceDispensations.tenantId, tenantId),
@@ -129,7 +133,7 @@ export async function getDispensedDetailsForPeriod(
   const map = new Map<string, DispensationDetail[]>();
   for (const r of rows) {
     const list = map.get(r.employeeId) ?? [];
-    list.push({ workDate: r.workDate, reason: r.reason });
+    list.push({ workDate: r.workDate, reason: r.reason, givenBy: r.givenBy });
     map.set(r.employeeId, list);
   }
   return map;
