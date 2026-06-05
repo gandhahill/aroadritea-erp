@@ -95,3 +95,42 @@ export async function getDispensedCountsForPeriod(
 
   return new Map(rows.map((r) => [r.employeeId, r.count]));
 }
+
+export interface DispensationDetail {
+  workDate: string;
+  reason: string;
+}
+
+export async function getDispensedDetailsForPeriod(
+  tenantId: string,
+  employeeIds: string[],
+  periodStart: string,
+  periodEnd: string,
+): Promise<Map<string, DispensationDetail[]>> {
+  if (employeeIds.length === 0) return new Map();
+
+  const rows = await db
+    .select({
+      employeeId: absenceDispensations.employeeId,
+      workDate: absenceDispensations.workDate,
+      reason: absenceDispensations.reason,
+    })
+    .from(absenceDispensations)
+    .where(
+      and(
+        eq(absenceDispensations.tenantId, tenantId),
+        inArray(absenceDispensations.employeeId, employeeIds),
+        sql`${absenceDispensations.workDate} >= ${periodStart}`,
+        sql`${absenceDispensations.workDate} <= ${periodEnd}`,
+      ),
+    )
+    .orderBy(absenceDispensations.workDate);
+
+  const map = new Map<string, DispensationDetail[]>();
+  for (const r of rows) {
+    const list = map.get(r.employeeId) ?? [];
+    list.push({ workDate: r.workDate, reason: r.reason });
+    map.set(r.employeeId, list);
+  }
+  return map;
+}

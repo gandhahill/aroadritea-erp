@@ -19,6 +19,11 @@ interface SummaryRow {
   totalLateMinutes: number;
 }
 
+interface DispensationDetail {
+  workDate: string;
+  reason: string;
+}
+
 interface Props {
   items: SummaryRow[];
   locations: Array<{ id: string; name: string }>;
@@ -26,6 +31,8 @@ interface Props {
   initialLocationId: string;
   /** Map of employeeId → sorted list of absent dates (YYYY-MM-DD) that haven't been dispensed yet */
   absentDates: Record<string, string[]>;
+  /** Map of employeeId → dispensation details (date + reason) already saved */
+  dispensationDetails: Record<string, DispensationDetail[]>;
 }
 
 export function AttendanceSummaryClient({
@@ -34,6 +41,7 @@ export function AttendanceSummaryClient({
   initialPeriod,
   initialLocationId,
   absentDates,
+  dispensationDetails,
 }: Props) {
   const t = useTranslations('hr.attendance');
   const tCommon = useTranslations('common');
@@ -170,8 +178,30 @@ export function AttendanceSummaryClient({
                   <TableCell className="px-4 py-3 text-right">
                     {row.absentDays > 0 ? <span className="font-semibold text-rose-600">{row.absentDays}</span> : <span className="text-brand-ink-3">0</span>}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-right">
-                    {row.dispensedDays > 0 ? <span className="font-medium text-brand-jade">{row.dispensedDays}</span> : <span className="text-brand-ink-3">0</span>}
+                  <TableCell className="px-4 py-3">
+                    {row.dispensedDays > 0 ? (
+                      <div>
+                        <span className="font-medium text-brand-jade">{row.dispensedDays}</span>
+                        {(dispensationDetails[row.employeeId] ?? []).length > 0 && (
+                          <div className="mt-0.5 space-y-0.5">
+                            {(() => {
+                              const details = dispensationDetails[row.employeeId] ?? [];
+                              const reasons = [...new Set(details.map((d) => d.reason))];
+                              return reasons.map((reason) => {
+                                const dates = details.filter((d) => d.reason === reason).map((d) => d.workDate);
+                                return (
+                                  <p key={reason} className="text-[11px] text-brand-ink-3">
+                                    {dates.join(', ')} — {reason}
+                                  </p>
+                                );
+                              });
+                            })()}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-right text-brand-ink-3">0</span>
+                    )}
                   </TableCell>
                   <TableCell className="px-4 py-3 text-right">
                     {row.lateCount > 0 ? <span className="text-amber-600">{row.lateCount}</span> : <span className="text-brand-ink-3">0</span>}

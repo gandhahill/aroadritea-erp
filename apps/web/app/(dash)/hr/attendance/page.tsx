@@ -13,7 +13,7 @@ import { and, db, desc, eq, inArray, isNull, sql } from '@erp/db';
 import { attendance, employees } from '@erp/db/schema/hr';
 import { locations } from '@erp/db/schema/auth';
 import { users } from '@erp/db/schema/auth';
-import { listAttendanceSummary, getAbsentDatesForPeriod } from '@erp/services/hr';
+import { listAttendanceSummary, getAbsentDatesForPeriod, getDispensedDetailsForPeriod } from '@erp/services/hr';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
@@ -92,6 +92,20 @@ export default async function AttendancePage({
 
     const summaryItems = summaryResult.ok ? summaryResult.value : [];
 
+    // Fetch dispensation details (date + reason) per employee for display in the table
+    const [yearStr, monthStr] = period.split('-');
+    const periodStart = `${yearStr}-${monthStr?.padStart(2, '0')}-01`;
+    const lastDay = new Date(Number(yearStr), Number(monthStr), 0).getDate();
+    const periodEnd = `${yearStr}-${monthStr?.padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    const empIds = summaryItems.map((r) => r.employeeId);
+    const dispensedDetailsMap = empIds.length > 0
+      ? await getDispensedDetailsForPeriod(tenantId, empIds, periodStart, periodEnd)
+      : new Map();
+    const dispensationDetails: Record<string, Array<{ workDate: string; reason: string }>> = {};
+    for (const [empId, details] of dispensedDetailsMap) {
+      dispensationDetails[empId] = details;
+    }
+
     // Fetch absent dates (scheduled - present - dispensed) per employee for the dispensation dropdown
     const absentDatesResult = await getAbsentDatesForPeriod(
       {
@@ -119,6 +133,7 @@ export default async function AttendancePage({
           initialPeriod={period}
           initialLocationId={locationId}
           absentDates={absentDatesMap}
+          dispensationDetails={dispensationDetails}
         />
       </div>
     );
@@ -129,7 +144,7 @@ export default async function AttendancePage({
   const dateFrom = params.dateFrom ?? '';
   const dateTo = params.dateTo ?? '';
   const page = Math.max(1, Number.parseInt(params.page ?? '1', 10));
-  const limit = 20;
+  const limit = 15;
   const offset = (page - 1) * limit;
 
   const baseConds = [eq(attendance.tenantId, tenantId), isNull(attendance.deletedAt)];
