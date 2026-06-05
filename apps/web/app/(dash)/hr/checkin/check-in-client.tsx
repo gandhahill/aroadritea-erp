@@ -7,6 +7,15 @@
  * 3. Select shift (defaults to today's expected)
  * 4. Tap "Check In" â†’ server action â†’ success/error
  */
+/**
+ * HR Check-In Client — mobile-friendly GPS check-in.
+ *
+ * Workflow:
+ * 1. Request geolocation permission
+ * 2. Show current GPS (lat/lng/accuracy)
+ * 3. Select shift (defaults to today's expected)
+ * 4. Tap "Check In" → server action → success/error
+ */
 
 'use client';
 
@@ -15,6 +24,7 @@ import type { FaceTemplatePayload, GpsData } from '@erp/services/hr';
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import * as faceapi from '@vladmandic/face-api';
 import { serverCheckIn, serverCheckOut } from './actions';
 
 interface LocationGps {
@@ -66,7 +76,6 @@ interface GpsState {
 const GPS_LOW_ACCURACY_THRESHOLD_M = 200;
 const GPS_HARD_ACCURACY_LIMIT_M = 500;
 const GPS_RADIUS_BUFFER_M = 25;
-const FACE_TEMPLATE_SIZE = 16;
 
 function effectiveAttendanceRadiusM(radiusM: number, accuracyM: number): number {
   const safeRadius = Number.isFinite(radiusM) && radiusM > 0 ? radiusM : 150;
@@ -74,65 +83,42 @@ function effectiveAttendanceRadiusM(radiusM: number, accuracyM: number): number 
   return safeRadius + Math.min(safeAccuracy, GPS_HARD_ACCURACY_LIMIT_M) + GPS_RADIUS_BUFFER_M;
 }
 
-function toHex(bits: number[]): string {
-  let out = '';
-  for (let i = 0; i < bits.length; i += 4) {
-    const nibble =
-      ((bits[i] ?? 0) << 3) |
-      ((bits[i + 1] ?? 0) << 2) |
-      ((bits[i + 2] ?? 0) << 1) |
-      (bits[i + 3] ?? 0);
-    out += nibble.toString(16);
-  }
-  return out;
-}
+const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+let faceModelsLoaded = false;
 
-async function detectFaceIfSupported(video: HTMLVideoElement): Promise<boolean | undefined> {
-  const browserWindow = window as unknown as {
-    FaceDetector?: new (options?: { fastMode?: boolean; maxDetectedFaces?: number }) => {
-      detect: (source: HTMLVideoElement) => Promise<Array<unknown>>;
-    };
-  };
-  if (!browserWindow.FaceDetector) return undefined;
-  try {
-    const detector = new browserWindow.FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
-    const faces = await detector.detect(video);
-    return faces.length > 0;
-  } catch {
-    return undefined;
-  }
+async function loadFaceModels() {
+  if (faceModelsLoaded) return;
+  await Promise.all([
+    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+    faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
+    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+  ]);
+  faceModelsLoaded = true;
 }
 
 async function buildFaceTemplate(video: HTMLVideoElement): Promise<FaceTemplatePayload> {
-  const canvas = document.createElement('canvas');
-  canvas.width = FACE_TEMPLATE_SIZE;
-  canvas.height = FACE_TEMPLATE_SIZE;
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  if (!ctx) throw new Error('canvas_unavailable');
+  await loadFaceModels();
 
-  ctx.drawImage(video, 0, 0, FACE_TEMPLATE_SIZE, FACE_TEMPLATE_SIZE);
-  const image = ctx.getImageData(0, 0, FACE_TEMPLATE_SIZE, FACE_TEMPLATE_SIZE);
-  const values: number[] = [];
-  for (let i = 0; i < image.data.length; i += 4) {
-    const r = image.data[i] ?? 0;
-    const g = image.data[i + 1] ?? 0;
-    const b = image.data[i + 2] ?? 0;
-    values.push(Math.round(0.299 * r + 0.587 * g + 0.114 * b));
+  const detection = await faceapi
+    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
+    .withFaceLandmarks(true)
+    .withFaceDescriptor();
+
+  if (!detection) {
+    return {
+      version: 'faceapi-128-v1',
+      descriptor: [],
+      quality: 0,
+      faceDetected: false,
+      capturedAt: new Date().toISOString(),
+    };
   }
 
-  const avg = values.reduce((sum, value) => sum + value, 0) / Math.max(1, values.length);
-  const variance =
-    values.reduce((sum, value) => sum + (value - avg) ** 2, 0) / Math.max(1, values.length);
-  const contrast = Math.sqrt(variance);
-  const brightnessScore = Math.max(0, 100 - Math.abs(avg - 128));
-  const quality = Math.max(0, Math.min(100, Math.round(contrast * 2 + brightnessScore * 0.35)));
-  const faceDetected = await detectFaceIfSupported(video);
-
   return {
-    version: 'ahash-16x16-v1',
-    hash: toHex(values.map((value) => (value >= avg ? 1 : 0))),
-    quality,
-    faceDetected,
+    version: 'faceapi-128-v1',
+    descriptor: Array.from(detection.descriptor),
+    quality: Math.round(detection.detection.score * 100),
+    faceDetected: true,
     capturedAt: new Date().toISOString(),
   };
 }
@@ -222,6 +208,9 @@ export function CheckInClient({
     setCameraStatus('requesting');
     setCameraError(null);
     setFaceTemplate(null);
+
+    // Preload face AI models in the background
+    loadFaceModels().catch(() => undefined);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({

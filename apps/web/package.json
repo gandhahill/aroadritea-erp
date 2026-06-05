@@ -17,6 +17,7 @@
     "@erp/ui": "workspace:*",
     "@serwist/next": "^9.5.11",
     "@tailwindcss/postcss": "^4.2.4",
+    "@vladmandic/face-api": "^1.7.15",
     "better-auth": "^1.6.9",
     "drizzle-orm": "^0.45.2",
     "exceljs": "^4.4.0",

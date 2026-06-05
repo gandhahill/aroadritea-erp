@@ -63,16 +63,16 @@ export interface LocationGpsConfig {
 }
 
 export interface FaceTemplatePayload {
-  version: 'ahash-16x16-v1';
-  hash: string;
+  version: 'faceapi-128-v1';
+  descriptor: number[];
   quality: number;
   faceDetected?: boolean;
   capturedAt?: string;
 }
 
 interface StoredFaceTemplate {
-  version: 'ahash-16x16-v1';
-  hash: string;
+  version: 'faceapi-128-v1';
+  descriptor: number[];
   quality: number;
   enrolledAt: string;
 }
@@ -92,10 +92,8 @@ const GpsDataSchema = z.object({
 });
 
 const FaceTemplateSchema = z.object({
-  version: z.literal('ahash-16x16-v1'),
-  hash: z
-    .string()
-    .regex(/^[0-9a-f]{64}$/i, 'face template hash must be a 256-bit hex string'),
+  version: z.literal('faceapi-128-v1'),
+  descriptor: z.array(z.number()).length(128),
   quality: z.number().int().min(0).max(100),
   faceDetected: z.boolean().optional(),
   capturedAt: z.string().datetime().optional(),
@@ -262,7 +260,6 @@ export async function getLocationGpsConfig(
 // ─── Face Verification Mock (T-0254) ─────────────────────────────────────────
 
 const FACE_TEMPLATE_FIELD = 'employee_face_templates.template_ciphertext';
-const NIBBLE_BIT_COUNTS = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4];
 
 function validateFaceTemplatePayload(template: FaceTemplatePayload): void {
   if (template.faceDetected === false) {
@@ -276,19 +273,21 @@ function validateFaceTemplatePayload(template: FaceTemplatePayload): void {
   }
 }
 
-function faceTemplateScore(currentHash: string, storedHash: string): number {
-  if (currentHash.length !== storedHash.length) return 0;
+function faceTemplateScore(currentDescriptor: number[], storedDescriptor: number[]): number {
+  if (currentDescriptor.length !== 128 || storedDescriptor.length !== 128) return 0;
 
-  let diffBits = 0;
-  for (let i = 0; i < currentHash.length; i += 1) {
-    const a = Number.parseInt(currentHash[i] ?? '0', 16);
-    const b = Number.parseInt(storedHash[i] ?? '0', 16);
-    if (!Number.isFinite(a) || !Number.isFinite(b)) return 0;
-    diffBits += NIBBLE_BIT_COUNTS[a ^ b] ?? 4;
+  let sum = 0;
+  for (let i = 0; i < 128; i += 1) {
+    const diff = (currentDescriptor[i] ?? 0) - (storedDescriptor[i] ?? 0);
+    sum += diff * diff;
   }
+  const distance = Math.sqrt(sum);
 
-  const maxBits = currentHash.length * 4;
-  return Math.max(0, Math.round((1 - diffBits / maxBits) * 100));
+  // Euclidean distance mapping:
+  // distance 0.0 -> score 100
+  // distance 0.6 -> score 62
+  const score = Math.max(0, 100 - (distance / 0.6) * 38);
+  return Math.min(100, Math.round(score));
 }
 
 function parseStoredFaceTemplate(ciphertext: string): StoredFaceTemplate {
@@ -300,17 +299,24 @@ function parseStoredFaceTemplate(ciphertext: string): StoredFaceTemplate {
     );
   }
 
-  const parsed = JSON.parse(plain) as StoredFaceTemplate;
-  if (parsed.version !== 'ahash-16x16-v1' || !/^[0-9a-f]{64}$/i.test(parsed.hash)) {
+  const parsed = JSON.parse(plain) as Record<string, unknown>;
+  if (parsed.version === 'ahash-16x16-v1') {
+    throw AppError.validation('hr.attendance.faceEnrollmentRequired', {
+      message: 'Sistem absensi menggunakan AI wajah versi terbaru. Silakan enroll wajah ulang.',
+    });
+  }
+
+  if (
+    parsed.version !== 'faceapi-128-v1' ||
+    !Array.isArray(parsed.descriptor) ||
+    parsed.descriptor.length !== 128
+  ) {
     throw AppError.internal(
       'hr.attendance.faceTemplateInvalid',
       new Error('Invalid stored face template payload'),
     );
   }
-  return {
-    ...parsed,
-    hash: parsed.hash.toLowerCase(),
-  };
+  return parsed as unknown as StoredFaceTemplate;
 }
 
 async function loadEmployeeFaceTemplate(tenantId: string, employeeId: string) {
@@ -349,7 +355,7 @@ async function enrollEmployeeFaceTemplate(params: {
 }): Promise<{ templateId: string; score: number }> {
   const normalizedTemplate: StoredFaceTemplate = {
     version: params.template.version,
-    hash: params.template.hash.toLowerCase(),
+    descriptor: params.template.descriptor,
     quality: params.template.quality,
     enrolledAt: params.performedAt.toISOString(),
   };
@@ -515,7 +521,7 @@ async function verifyOrEnrollFaceTemplate(params: {
   }
 
   const storedTemplate = parseStoredFaceTemplate(existing.templateCiphertext);
-  const score = faceTemplateScore(params.template.hash.toLowerCase(), storedTemplate.hash);
+  const score = faceTemplateScore(params.template.descriptor, storedTemplate.descriptor);
 
   if (score < FACE_MATCH_SCORE_THRESHOLD) {
     await db
