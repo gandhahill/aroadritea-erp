@@ -410,7 +410,7 @@ export function AttendanceSummaryClient({
       {revokeTarget && (
         <ConfirmDialog
           title={t('revokeFaceTitle')}
-          description={t('revokeFaceConfirm', { name: revokeTarget.name })}
+          message={t('revokeFaceConfirm', { name: revokeTarget.name })}
           confirmLabel={t('revokeFaceBtn')}
           cancelLabel={tCommon('cancel')}
           onConfirm={() => {
@@ -418,7 +418,7 @@ export function AttendanceSummaryClient({
             setRevokeTarget(null);
           }}
           onCancel={() => setRevokeTarget(null)}
-          isDestructive
+          tone="danger"
         />
       )}
 
@@ -429,7 +429,7 @@ export function AttendanceSummaryClient({
             <h3 className="text-base font-semibold text-brand-ink">
               {t('revokeDispTitle')} — {revokeDispTarget.name}
             </h3>
-            <p className="mt-1 text-sm text-brand-ink-3">Pilih tanggal dispensasi yang ingin dicabut:</p>
+            <p className="mt-1 text-sm text-brand-ink-3">{t('revokeDispDesc')}</p>
 
             <div className="mt-3 space-y-3">
               <div className="max-h-48 overflow-y-auto rounded-md border border-brand-cream-3 bg-card">
@@ -441,7 +441,7 @@ export function AttendanceSummaryClient({
                     className="h-4 w-4 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
                   />
                   <span className="text-xs font-semibold text-brand-ink">
-                    Pilih Semua ({revokeDispTarget.dates.length})
+                    {t('revokeDispSelectAll', { count: revokeDispTarget.dates.length })}
                   </span>
                 </label>
                 {revokeDispTarget.dates.map((date) => {
