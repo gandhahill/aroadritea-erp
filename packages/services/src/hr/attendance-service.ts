@@ -491,9 +491,14 @@ async function verifyOrEnrollFaceTemplate(params: {
 }): Promise<{ isVerified: boolean; score: number; templateId: string; enrolled: boolean }> {
   const existing = await loadEmployeeFaceTemplate(params.ctx.tenantId, params.employeeId);
 
+  // Check if the existing template is outdated (e.g. ahash-16x16-v1).
+  // If so, treat it as if no valid template exists — force re-enrollment.
+  const isOutdated = existing && existing.templateVersion !== 'faceapi-128-v1';
+  const hasValidExisting = existing && !isOutdated;
+
   if (!params.template) {
     throw AppError.validation(
-      existing
+      hasValidExisting
         ? 'hr.attendance.faceVerificationRequired'
         : 'hr.attendance.faceEnrollmentRequired',
     );
@@ -501,7 +506,7 @@ async function verifyOrEnrollFaceTemplate(params: {
 
   validateFaceTemplatePayload(params.template);
 
-  if (!existing) {
+  if (!hasValidExisting) {
     if (!params.enrollFace) {
       throw AppError.validation('hr.attendance.faceEnrollmentRequired');
     }
