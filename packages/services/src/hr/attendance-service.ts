@@ -1306,19 +1306,14 @@ export async function revokeFaceTemplate(employeeId: string, ctx: AuditContext):
   });
   if (!permCheck.ok) return permCheck;
 
+  // Hard-delete all face template rows for this employee.
+  // PII data is removed from DB; the audit_log entry below preserves the action record.
   await db
-    .update(employeeFaceTemplates)
-    .set({
-      status: 'revoked',
-      deletedAt: new Date(),
-      updatedAt: new Date(),
-      updatedBy: ctx.userId,
-    })
+    .delete(employeeFaceTemplates)
     .where(
       and(
         eq(employeeFaceTemplates.tenantId, ctx.tenantId),
         eq(employeeFaceTemplates.employeeId, employeeId),
-        isNull(employeeFaceTemplates.deletedAt)
       )
     );
 
@@ -1326,8 +1321,8 @@ export async function revokeFaceTemplate(employeeId: string, ctx: AuditContext):
     action: 'delete',
     entityType: 'employee_face_template',
     entityId: employeeId,
-    before: null,
-    after: { status: 'revoked', deletedAt: new Date().toISOString() } as never,
+    before: { employeeId },
+    after: null,
     ctx,
   });
 
