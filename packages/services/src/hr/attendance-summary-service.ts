@@ -1,5 +1,5 @@
 import { db } from '@erp/db';
-import { absenceDispensations, attendance, employees, shiftAssignments } from '@erp/db/schema/hr';
+import { absenceDispensations, attendance, employees, shiftAssignments, shiftDefinitions } from '@erp/db/schema/hr';
 import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
@@ -70,6 +70,30 @@ export async function listAttendanceSummary(
 
   const scheduledMap = new Map(scheduledRows.map((r) => [r.employeeId, r.scheduledDays]));
 
+  // Query elapsed scheduled days: only shifts whose end time has already passed (WIB).
+  // JOIN with shift_definitions to get end_time, then compare (work_date + end_time) <= now().
+  const elapsedShiftConds = [
+    eq(shiftAssignments.tenantId, ctx.tenantId),
+    eq(shiftAssignments.kind, 'shift'),
+    sql`${shiftAssignments.workDate} >= ${periodStart}`,
+    sql`${shiftAssignments.workDate} <= ${periodEnd}`,
+    // Only shifts whose end time has already passed in WIB
+    sql`(${shiftAssignments.workDate} || ' ' || coalesce(${shiftDefinitions.endTime}, '23:59'))::timestamp at time zone 'Asia/Jakarta' <= now()`,
+  ];
+  if (locationFilter) elapsedShiftConds.push(locationFilter);
+
+  const elapsedRows = await db
+    .select({
+      employeeId: shiftAssignments.employeeId,
+      elapsedDays: sql<number>`cast(count(*) as int)`,
+    })
+    .from(shiftAssignments)
+    .leftJoin(shiftDefinitions, eq(shiftAssignments.shiftDefinitionId, shiftDefinitions.id))
+    .where(and(...elapsedShiftConds))
+    .groupBy(shiftAssignments.employeeId);
+
+  const elapsedMap = new Map(elapsedRows.map((r) => [r.employeeId, r.elapsedDays]));
+
   const attConds = [
     eq(attendance.tenantId, ctx.tenantId),
     isNull(attendance.deletedAt),
@@ -128,9 +152,11 @@ export async function listAttendanceSummary(
     .filter((id) => empNameMap.has(id))
     .map((id) => {
       const scheduled = scheduledMap.get(id) ?? 0;
+      const elapsed = elapsedMap.get(id) ?? 0;
       const att = attMap.get(id) ?? { presentDays: 0, lateCount: 0, totalLateMinutes: 0 };
       const dispensed = dispensedMap.get(id) ?? 0;
-      const rawAbsent = Math.max(0, scheduled - att.presentDays);
+      // absentDays based only on elapsed shifts (shifts whose end time has passed)
+      const rawAbsent = Math.max(0, elapsed - att.presentDays);
       return {
         employeeId: id,
         employeeName: empNameMap.get(id) ?? 'Unknown',
@@ -175,12 +201,15 @@ export async function getAbsentDatesForPeriod(
       ? inArray(shiftAssignments.locationId, input.locationIds)
       : undefined;
 
-  // 1. All scheduled shift dates per employee
+  // 1. All scheduled shift dates per employee — only shifts whose end time has passed.
+  // JOIN with shift_definitions to get end_time so we can check if the shift has ended.
   const shiftConds = [
     eq(shiftAssignments.tenantId, ctx.tenantId),
     eq(shiftAssignments.kind, 'shift'),
     sql`${shiftAssignments.workDate} >= ${periodStart}`,
     sql`${shiftAssignments.workDate} <= ${periodEnd}`,
+    // Only shifts whose end time has already passed in WIB
+    sql`(${shiftAssignments.workDate} || ' ' || coalesce(${shiftDefinitions.endTime}, '23:59'))::timestamp at time zone 'Asia/Jakarta' <= now()`,
   ];
   if (locationFilter) shiftConds.push(locationFilter);
 
@@ -190,6 +219,7 @@ export async function getAbsentDatesForPeriod(
       workDate: shiftAssignments.workDate,
     })
     .from(shiftAssignments)
+    .leftJoin(shiftDefinitions, eq(shiftAssignments.shiftDefinitionId, shiftDefinitions.id))
     .where(and(...shiftConds));
 
   // Group shift dates per employee
@@ -257,17 +287,14 @@ export async function getAbsentDatesForPeriod(
     dispensedByEmp.set(row.employeeId, set);
   }
 
-  // 4. Compute absent = scheduled - present - dispensed
-  // Only consider dates that have already occurred or are today (in Asia/Jakarta).
-  const todayIso = new Date().toLocaleString('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' });
-
+  // 4. Compute absent = elapsed scheduled - present - dispensed
   const result = new Map<string, string[]>();
   for (const [empId, scheduledDates] of scheduledByEmp) {
     const present = presentByEmp.get(empId) ?? new Set();
     const dispensed = dispensedByEmp.get(empId) ?? new Set();
     const absentDates: string[] = [];
     for (const d of scheduledDates) {
-      if (d <= todayIso && !present.has(d) && !dispensed.has(d)) {
+      if (!present.has(d) && !dispensed.has(d)) {
         absentDates.push(d);
       }
     }

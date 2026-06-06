@@ -412,7 +412,7 @@ export function AttendanceSummaryClient({
           title={t('revokeFaceTitle')}
           message={t('revokeFaceConfirm', { name: revokeTarget.name })}
           confirmLabel={t('revokeFaceBtn')}
-          cancelLabel={tCommon('cancel')}
+          cancelLabel={tCommon('actions.cancel')}
           onConfirm={() => {
             handleRevokeFace(revokeTarget.id, revokeTarget.name);
             setRevokeTarget(null);
@@ -469,7 +469,7 @@ export function AttendanceSummaryClient({
 
             <div className="mt-5 flex justify-end gap-2">
               <Button type="button" variant="ghost" onClick={() => setRevokeDispTarget(null)} disabled={isPending}>
-                {tCommon('cancel')}
+                {tCommon('actions.cancel')}
               </Button>
               <Button
                 type="button"
