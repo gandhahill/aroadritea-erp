@@ -24,7 +24,7 @@ import type { FaceTemplatePayload, GpsData } from '@erp/services/hr';
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import * as faceapi from '@vladmandic/face-api';
+
 import { serverCheckIn, serverCheckOut } from './actions';
 
 interface LocationGps {
@@ -88,6 +88,7 @@ let faceModelsLoaded = false;
 
 async function loadFaceModels() {
   if (faceModelsLoaded) return;
+  const faceapi = await import('@vladmandic/face-api');
   await Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
     faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
@@ -98,6 +99,7 @@ async function loadFaceModels() {
 
 async function buildFaceTemplate(video: HTMLVideoElement): Promise<FaceTemplatePayload> {
   await loadFaceModels();
+  const faceapi = await import('@vladmandic/face-api');
 
   const detection = await faceapi
     .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
