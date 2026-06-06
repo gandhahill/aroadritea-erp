@@ -1328,3 +1328,29 @@ export async function revokeFaceTemplate(employeeId: string, ctx: AuditContext):
 
   return ok({ ok: true });
 }
+
+/**
+ * Returns a Set of employee IDs that have at least one active (non-deleted) face template.
+ * Used by the attendance summary page to conditionally render the "delete face" button.
+ */
+export async function getEmployeesWithFaceTemplates(
+  tenantId: string,
+  employeeIds: string[],
+): Promise<Set<string>> {
+  if (employeeIds.length === 0) return new Set();
+
+  const rows = await db
+    .select({ employeeId: employeeFaceTemplates.employeeId })
+    .from(employeeFaceTemplates)
+    .where(
+      and(
+        eq(employeeFaceTemplates.tenantId, tenantId),
+        inArray(employeeFaceTemplates.employeeId, employeeIds),
+        eq(employeeFaceTemplates.status, 'active'),
+        isNull(employeeFaceTemplates.deletedAt),
+      ),
+    )
+    .groupBy(employeeFaceTemplates.employeeId);
+
+  return new Set(rows.map((r) => r.employeeId));
+}

@@ -2,7 +2,7 @@
 
 import { FilterBar, FilterField } from '@/components/filter-bar';
 import { Button, Input, Select, TableCell, TableHead } from '@erp/ui';
-import { InlineAlert } from '@/components/confirm-dialog';
+import { ConfirmDialog, InlineAlert } from '@/components/confirm-dialog';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
@@ -34,6 +34,8 @@ interface Props {
   absentDates: Record<string, string[]>;
   /** Map of employeeId → dispensation details (date + reason) already saved */
   dispensationDetails: Record<string, DispensationDetail[]>;
+  /** List of employeeIds that have active face templates */
+  employeesWithFace: string[];
 }
 
 export function AttendanceSummaryClient({
@@ -43,6 +45,7 @@ export function AttendanceSummaryClient({
   initialLocationId,
   absentDates,
   dispensationDetails,
+  employeesWithFace,
 }: Props) {
   const t = useTranslations('hr.attendance');
   const tCommon = useTranslations('common');
@@ -57,6 +60,12 @@ export function AttendanceSummaryClient({
   const [dispDates, setDispDates] = useState<string[]>([]);
   const [dispReason, setDispReason] = useState('');
 
+  // Revoke face confirmation dialog state
+  const [revokeTarget, setRevokeTarget] = useState<{ id: string; name: string } | null>(null);
+
+  // Track locally revoked employees so the button hides immediately after revoke
+  const [locallyRevoked, setLocallyRevoked] = useState<Set<string>>(new Set());
+
   const applyFilter = (opts: { period?: string; locationId?: string }) => {
     const params = new URLSearchParams();
     params.set('tab', 'ringkasan');
@@ -66,14 +75,13 @@ export function AttendanceSummaryClient({
   };
 
   const handleRevokeFace = (employeeId: string, name: string) => {
-    if (!window.confirm(t('revokeFaceConfirm', { name }))) return;
-
     setErrorMsg(null);
     setSuccessMsg(null);
     startTransition(async () => {
       const res = await revokeFaceDataAction(employeeId);
       if (res.ok) {
         setSuccessMsg(t('revokeFaceSuccess', { name }));
+        setLocallyRevoked((prev) => new Set(prev).add(employeeId));
       } else {
         setErrorMsg(res.error || t('revokeFaceFailed'));
       }
@@ -211,7 +219,7 @@ export function AttendanceSummaryClient({
 
                               return Object.values(groups).map((g) => (
                                 <p key={`${g.reason}-${g.givenBy}`} className="text-[11px] text-brand-ink-3">
-                                  {g.dates.join(', ')} — {g.reason} {g.givenBy ? `(oleh: ${g.givenBy})` : ''}
+                                  {g.dates.join(', ')} — {g.reason} {g.givenBy ? t('dispensationGivenBy', { name: g.givenBy }) : ''}
                                 </p>
                               ));
                             })()}
@@ -230,7 +238,7 @@ export function AttendanceSummaryClient({
                   </TableCell>
                   <TableCell className="px-4 py-3">
                     <div className="flex justify-end gap-2">
-                      {(row.absentDays > 0 || row.scheduledDays > row.presentDays) && (
+                      {(absentDates[row.employeeId] ?? []).length > 0 && (
                         <button
                           type="button"
                           onClick={() => openDispensation({ id: row.employeeId, name: row.employeeName })}
@@ -240,15 +248,16 @@ export function AttendanceSummaryClient({
                           {t('dispensationBtn')}
                         </button>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => handleRevokeFace(row.employeeId, row.employeeName)}
-                        disabled={isPending}
-                        className="rounded-md border border-rose-200 px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50"
-                        title={t('revokeFaceBtn')}
-                      >
-                        {t('revokeFaceBtn')}
-                      </button>
+                      {employeesWithFace.includes(row.employeeId) && !locallyRevoked.has(row.employeeId) && (
+                        <button
+                          type="button"
+                          onClick={() => setRevokeTarget({ id: row.employeeId, name: row.employeeName })}
+                          disabled={isPending}
+                          className="rounded-md border border-rose-200 px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                        >
+                          {t('revokeFaceBtn')}
+                        </button>
+                      )}
                     </div>
                   </TableCell>
                 </tr>
@@ -350,6 +359,19 @@ export function AttendanceSummaryClient({
             </div>
           </div>
         </div>
+      )}
+      {/* Revoke face confirm dialog */}
+      {revokeTarget && (
+        <ConfirmDialog
+          title={t('revokeFaceBtn')}
+          message={t('revokeFaceConfirm', { name: revokeTarget.name })}
+          tone="danger"
+          onConfirm={() => {
+            handleRevokeFace(revokeTarget.id, revokeTarget.name);
+            setRevokeTarget(null);
+          }}
+          onCancel={() => setRevokeTarget(null)}
+        />
       )}
     </div>
   );

@@ -13,7 +13,7 @@ import { and, db, desc, eq, inArray, isNull, sql } from '@erp/db';
 import { attendance, employees } from '@erp/db/schema/hr';
 import { locations } from '@erp/db/schema/auth';
 import { users } from '@erp/db/schema/auth';
-import { listAttendanceSummary, getAbsentDatesForPeriod, getDispensedDetailsForPeriod } from '@erp/services/hr';
+import { listAttendanceSummary, getAbsentDatesForPeriod, getDispensedDetailsForPeriod, getEmployeesWithFaceTemplates } from '@erp/services/hr';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
@@ -123,6 +123,12 @@ export default async function AttendancePage({
       }
     }
 
+    // Fetch which employees have active face templates
+    const faceTemplateSet = empIds.length > 0
+      ? await getEmployeesWithFaceTemplates(tenantId, empIds)
+      : new Set<string>();
+    const employeesWithFace: string[] = [...faceTemplateSet];
+
     return (
       <div className="space-y-6">
         <PageHeader title={<>{t('title')}</>} description={<>{t('subtitle', { total: summaryItems.length })}</>} />
@@ -134,6 +140,7 @@ export default async function AttendancePage({
           initialLocationId={locationId}
           absentDates={absentDatesMap}
           dispensationDetails={dispensationDetails}
+          employeesWithFace={employeesWithFace}
         />
       </div>
     );

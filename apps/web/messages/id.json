@@ -2854,6 +2854,7 @@
       "dispensationPlaceholder": "Mis. sakit dengan surat dokter, tugas luar kota.",
       "dispensationSubmit": "Simpan Dispensasi",
       "dispensationSuccess": "Dispensasi berhasil disimpan",
+      "dispensationGivenBy": "(oleh: {name})",
       "dispensationNoAbsentDates": "Tidak ada tanggal absen yang belum didispensasi pada periode ini.",
       "dispensationSelectAll": "Pilih semua ({count} tanggal)",
       "columns": {
