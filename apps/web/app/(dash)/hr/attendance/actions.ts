@@ -61,9 +61,32 @@ export async function dispensasiAbsenAction(
     tenantId: String(user.tenantId ?? 'default'),
     locationId: String(user.locationId ?? ''),
   };
+  const { createAbsenceDispensation } = await import('@erp/services/hr');
   const result = await createAbsenceDispensation({ employeeId, dates, reason }, ctx);
   if (!result.ok) {
     return { ok: false, error: result.error?.message ?? 'Failed' };
+  }
+  revalidatePath('/hr/attendance');
+  return { ok: true };
+}
+
+export async function revokeDispensationAction(
+  employeeId: string,
+  dates: string[],
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await getSession();
+  if (!session?.user) return { ok: false, error: 'Unauthenticated' };
+  const user = session.user as Record<string, unknown>;
+  const ctx: AuditContext = {
+    userId: String(user.id ?? ''),
+    tenantId: String(user.tenantId ?? 'default'),
+    locationId: String(user.locationId ?? ''),
+  };
+  
+  const { revokeAbsenceDispensation } = await import('@erp/services/hr');
+  const result = await revokeAbsenceDispensation({ employeeId, dates }, ctx);
+  if (!result.ok) {
+    return { ok: false, error: result.error?.message ?? 'Failed to revoke dispensation' };
   }
   revalidatePath('/hr/attendance');
   return { ok: true };

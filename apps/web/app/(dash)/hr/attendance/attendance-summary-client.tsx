@@ -6,7 +6,7 @@ import { ConfirmDialog, InlineAlert } from '@/components/confirm-dialog';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { dispensasiAbsenAction, revokeFaceDataAction } from './actions';
+import { dispensasiAbsenAction, revokeFaceDataAction, revokeDispensationAction } from './actions';
 
 interface SummaryRow {
   employeeId: string;
@@ -63,6 +63,10 @@ export function AttendanceSummaryClient({
   // Revoke face confirmation dialog state
   const [revokeTarget, setRevokeTarget] = useState<{ id: string; name: string } | null>(null);
 
+  // Revoke dispensation modal state
+  const [revokeDispTarget, setRevokeDispTarget] = useState<{ id: string; name: string; dates: string[]; reason: string } | null>(null);
+  const [selectedRevokeDates, setSelectedRevokeDates] = useState<string[]>([]);
+
   // Track locally revoked employees so the button hides immediately after revoke
   const [locallyRevoked, setLocallyRevoked] = useState<Set<string>>(new Set());
 
@@ -84,6 +88,19 @@ export function AttendanceSummaryClient({
         setLocallyRevoked((prev) => new Set(prev).add(employeeId));
       } else {
         setErrorMsg(res.error || t('revokeFaceFailed'));
+      }
+    });
+  };
+
+  const handleRevokeDispensation = (employeeId: string, dates: string[]) => {
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    startTransition(async () => {
+      const res = await revokeDispensationAction(employeeId, dates);
+      if (res.ok) {
+        setSuccessMsg(t('revokeDispSuccess'));
+      } else {
+        setErrorMsg(res.error || t('revokeDispFailed'));
       }
     });
   };
@@ -127,6 +144,22 @@ export function AttendanceSummaryClient({
       setDispEmployee(null);
       router.refresh();
     });
+  };
+
+  const openRevokeDispensation = (target: { id: string; name: string; dates: string[]; reason: string }) => {
+    setRevokeDispTarget(target);
+    setSelectedRevokeDates(target.dates); // default select all
+  };
+
+  const toggleRevokeDate = (date: string) => {
+    setSelectedRevokeDates((prev) =>
+      prev.includes(date) ? prev.filter((d) => d !== date) : [...prev, date].sort(),
+    );
+  };
+
+  const toggleAllRevokeDates = (dates: string[]) => {
+    const allSelected = dates.every((d) => selectedRevokeDates.includes(d));
+    setSelectedRevokeDates(allSelected ? [] : [...dates].sort());
   };
 
   return (
@@ -218,9 +251,22 @@ export function AttendanceSummaryClient({
                               }, {} as Record<string, { reason: string; givenBy?: string | null; dates: string[] }>);
 
                               return Object.values(groups).map((g) => (
-                                <p key={`${g.reason}-${g.givenBy}`} className="text-[11px] text-brand-ink-3">
-                                  {g.dates.join(', ')} — {g.reason} {g.givenBy ? t('dispensationGivenBy', { name: g.givenBy }) : ''}
-                                </p>
+                                <div key={`${g.reason}-${g.givenBy}`} className="flex items-center gap-1 group">
+                                  <p className="text-[11px] text-brand-ink-3">
+                                    {g.dates.join(', ')} — {g.reason} {g.givenBy ? t('dispensationGivenBy', { name: g.givenBy }) : ''}
+                                  </p>
+                                  <button
+                                    type="button"
+                                    title={t('revokeDispBtn')}
+                                    onClick={() => openRevokeDispensation({ id: row.employeeId, name: row.employeeName, dates: g.dates, reason: g.reason })}
+                                    disabled={isPending}
+                                    className="text-rose-400 hover:text-rose-600 p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                </div>
                               ));
                             })()}
                           </div>
@@ -360,18 +406,86 @@ export function AttendanceSummaryClient({
           </div>
         </div>
       )}
-      {/* Revoke face confirm dialog */}
+      {/* Revoke Face Dialog */}
       {revokeTarget && (
         <ConfirmDialog
-          title={t('revokeFaceBtn')}
-          message={t('revokeFaceConfirm', { name: revokeTarget.name })}
-          tone="danger"
+          title={t('revokeFaceTitle')}
+          description={t('revokeFaceConfirm', { name: revokeTarget.name })}
+          confirmLabel={t('revokeFaceBtn')}
+          cancelLabel={tCommon('cancel')}
           onConfirm={() => {
             handleRevokeFace(revokeTarget.id, revokeTarget.name);
             setRevokeTarget(null);
           }}
           onCancel={() => setRevokeTarget(null)}
+          isDestructive
         />
+      )}
+
+      {/* Revoke Dispensation Modal */}
+      {revokeDispTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-xl bg-card p-5 shadow-xl">
+            <h3 className="text-base font-semibold text-brand-ink">
+              {t('revokeDispTitle')} — {revokeDispTarget.name}
+            </h3>
+            <p className="mt-1 text-sm text-brand-ink-3">Pilih tanggal dispensasi yang ingin dicabut:</p>
+
+            <div className="mt-3 space-y-3">
+              <div className="max-h-48 overflow-y-auto rounded-md border border-brand-cream-3 bg-card">
+                <label className="flex cursor-pointer items-center gap-2 border-b border-brand-cream-3 bg-brand-cream-1 px-3 py-2">
+                  <input
+                    type="checkbox"
+                    checked={revokeDispTarget.dates.every((d) => selectedRevokeDates.includes(d))}
+                    onChange={() => toggleAllRevokeDates(revokeDispTarget.dates)}
+                    className="h-4 w-4 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
+                  />
+                  <span className="text-xs font-semibold text-brand-ink">
+                    Pilih Semua ({revokeDispTarget.dates.length})
+                  </span>
+                </label>
+                {revokeDispTarget.dates.map((date) => {
+                  const dayName = new Date(`${date}T00:00:00+07:00`).toLocaleDateString(
+                    locale === 'zh' ? 'zh-CN' : locale === 'en' ? 'en-US' : 'id-ID',
+                    { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' },
+                  );
+                  return (
+                    <label
+                      key={date}
+                      className="flex cursor-pointer items-center gap-2 px-3 py-1.5 hover:bg-brand-cream-1/50"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedRevokeDates.includes(date)}
+                        onChange={() => toggleRevokeDate(date)}
+                        className="h-4 w-4 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
+                      />
+                      <span className="text-sm font-medium text-brand-ink-2">{dayName}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setRevokeDispTarget(null)} disabled={isPending}>
+                {tCommon('cancel')}
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                className="bg-rose-600 hover:bg-rose-700 text-white"
+                onClick={() => {
+                  handleRevokeDispensation(revokeDispTarget.id, selectedRevokeDates);
+                  setRevokeDispTarget(null);
+                }}
+                disabled={isPending || selectedRevokeDates.length === 0}
+              >
+                {t('revokeDispBtn')}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

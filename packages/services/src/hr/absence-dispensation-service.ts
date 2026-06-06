@@ -138,3 +138,37 @@ export async function getDispensedDetailsForPeriod(
   }
   return map;
 }
+
+export async function revokeAbsenceDispensation(
+  input: { employeeId: string; dates: string[] },
+  ctx: AuditContext,
+): Promise<Result<{ count: number }>> {
+  if (!input.dates.length) return ok({ count: 0 });
+
+  const permCheck = await requirePermission(ctx.userId, 'hr.manage_attendance', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  await db
+    .delete(absenceDispensations)
+    .where(
+      and(
+        eq(absenceDispensations.tenantId, ctx.tenantId),
+        eq(absenceDispensations.employeeId, input.employeeId),
+        inArray(absenceDispensations.workDate, input.dates)
+      )
+    );
+
+  await auditRecord({
+    action: 'delete',
+    entityType: 'absence_dispensation',
+    entityId: input.employeeId,
+    before: { dates: input.dates },
+    after: null,
+    metadata: {},
+    ctx,
+  });
+
+  return ok({ count: input.dates.length });
+}

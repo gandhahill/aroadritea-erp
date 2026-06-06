@@ -258,13 +258,16 @@ export async function getAbsentDatesForPeriod(
   }
 
   // 4. Compute absent = scheduled - present - dispensed
+  // Only consider dates that have already occurred or are today (in Asia/Jakarta).
+  const todayIso = new Date().toLocaleString('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' });
+
   const result = new Map<string, string[]>();
   for (const [empId, scheduledDates] of scheduledByEmp) {
     const present = presentByEmp.get(empId) ?? new Set();
     const dispensed = dispensedByEmp.get(empId) ?? new Set();
     const absentDates: string[] = [];
     for (const d of scheduledDates) {
-      if (!present.has(d) && !dispensed.has(d)) {
+      if (d <= todayIso && !present.has(d) && !dispensed.has(d)) {
         absentDates.push(d);
       }
     }
