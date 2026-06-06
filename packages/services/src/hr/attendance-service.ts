@@ -1330,8 +1330,8 @@ export async function revokeFaceTemplate(employeeId: string, ctx: AuditContext):
 }
 
 /**
- * Returns a Set of employee IDs that have at least one active (non-deleted) face template.
- * Used by the attendance summary page to conditionally render the "delete face" button.
+ * Returns a Set of employee IDs that have at least one face template row in the DB.
+ * Includes both active and soft-deleted (revoked) rows so the admin can hard-delete them.
  */
 export async function getEmployeesWithFaceTemplates(
   tenantId: string,
@@ -1346,8 +1346,6 @@ export async function getEmployeesWithFaceTemplates(
       and(
         eq(employeeFaceTemplates.tenantId, tenantId),
         inArray(employeeFaceTemplates.employeeId, employeeIds),
-        eq(employeeFaceTemplates.status, 'active'),
-        isNull(employeeFaceTemplates.deletedAt),
       ),
     )
     .groupBy(employeeFaceTemplates.employeeId);
