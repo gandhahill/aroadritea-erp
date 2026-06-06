@@ -1294,3 +1294,37 @@ export async function hasValidFaceTemplate(tenantId: string, employeeId: string)
   }
   return false;
 }
+
+export async function revokeFaceTemplate(employeeId: string, ctx: AuditContext): Promise<Result<{ ok: true }>> {
+  const permCheck = await requirePermission(ctx.userId, 'hr.manage_attendance', {
+    locationId: ctx.locationId,
+  });
+  if (!permCheck.ok) return permCheck;
+
+  await db
+    .update(employeeFaceTemplates)
+    .set({
+      status: 'revoked',
+      deletedAt: new Date(),
+      updatedAt: new Date(),
+      updatedBy: ctx.userId,
+    })
+    .where(
+      and(
+        eq(employeeFaceTemplates.tenantId, ctx.tenantId),
+        eq(employeeFaceTemplates.employeeId, employeeId),
+        isNull(employeeFaceTemplates.deletedAt)
+      )
+    );
+
+  await auditRecord({
+    action: 'delete',
+    entityType: 'employee_face_template',
+    entityId: employeeId,
+    before: null,
+    after: { status: 'revoked', deletedAt: new Date().toISOString() } as never,
+    ...ctx,
+  });
+
+  return ok({ ok: true });
+}

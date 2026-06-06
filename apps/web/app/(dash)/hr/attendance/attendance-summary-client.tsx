@@ -6,7 +6,7 @@ import { InlineAlert } from '@/components/confirm-dialog';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { dispensasiAbsenAction } from './actions';
+import { dispensasiAbsenAction, revokeFaceDataAction } from './actions';
 
 interface SummaryRow {
   employeeId: string;
@@ -63,6 +63,21 @@ export function AttendanceSummaryClient({
     if (opts.period) params.set('period', opts.period);
     if (opts.locationId) params.set('locationId', opts.locationId);
     router.push(`/hr/attendance?${params.toString()}`);
+  };
+
+  const handleRevokeFace = (employeeId: string, name: string) => {
+    if (!window.confirm(t('revokeFaceConfirm', { name }))) return;
+
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    startTransition(async () => {
+      const res = await revokeFaceDataAction(employeeId);
+      if (res.ok) {
+        setSuccessMsg(t('revokeFaceSuccess', { name }));
+      } else {
+        setErrorMsg(res.error || t('revokeFaceFailed'));
+      }
+    });
   };
 
   const totals = items.reduce(
@@ -214,16 +229,27 @@ export function AttendanceSummaryClient({
                     {row.totalLateMinutes > 0 ? `${row.totalLateMinutes}m` : '—'}
                   </TableCell>
                   <TableCell className="px-4 py-3">
-                    {(row.absentDays > 0 || row.scheduledDays > row.presentDays) && (
+                    <div className="flex justify-end gap-2">
+                      {(row.absentDays > 0 || row.scheduledDays > row.presentDays) && (
+                        <button
+                          type="button"
+                          onClick={() => openDispensation({ id: row.employeeId, name: row.employeeName })}
+                          disabled={isPending}
+                          className="rounded-md border border-brand-jade/30 px-2.5 py-1 text-xs font-semibold text-brand-jade hover:bg-brand-jade/10"
+                        >
+                          {t('dispensationBtn')}
+                        </button>
+                      )}
                       <button
                         type="button"
-                        onClick={() => openDispensation({ id: row.employeeId, name: row.employeeName })}
+                        onClick={() => handleRevokeFace(row.employeeId, row.employeeName)}
                         disabled={isPending}
-                        className="rounded-md border border-brand-jade/30 px-2.5 py-1 text-xs font-semibold text-brand-jade hover:bg-brand-jade/10"
+                        className="rounded-md border border-rose-200 px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50"
+                        title={t('revokeFaceBtn')}
                       >
-                        {t('dispensationBtn')}
+                        {t('revokeFaceBtn')}
                       </button>
-                    )}
+                    </div>
                   </TableCell>
                 </tr>
               ))}

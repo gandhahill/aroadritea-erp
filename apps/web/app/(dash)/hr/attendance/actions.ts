@@ -68,3 +68,23 @@ export async function dispensasiAbsenAction(
   revalidatePath('/hr/attendance');
   return { ok: true };
 }
+
+export async function revokeFaceDataAction(employeeId: string): Promise<{ ok: boolean; error?: string }> {
+  const session = await getSession();
+  if (!session?.user) return { ok: false, error: 'Unauthenticated' };
+  const user = session.user as Record<string, unknown>;
+  const ctx: AuditContext = {
+    userId: String(user.id ?? ''),
+    tenantId: String(user.tenantId ?? 'default'),
+    locationId: String(user.locationId ?? ''),
+  };
+
+  const { revokeFaceTemplate } = await import('@erp/services/hr');
+  const result = await revokeFaceTemplate(employeeId, ctx);
+  
+  if (!result.ok) {
+    return { ok: false, error: result.error?.message ?? 'Failed to revoke face template' };
+  }
+  revalidatePath('/hr/attendance');
+  return { ok: true };
+}
