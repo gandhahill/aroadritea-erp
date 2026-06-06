@@ -15,7 +15,7 @@ import {
   shiftDefinitions,
 } from '@erp/db/schema/hr';
 import { locations } from '@erp/db/schema/auth';
-import { getLocationGpsConfig, resolveShiftTime } from '@erp/services/hr';
+import { getLocationGpsConfig, resolveShiftTime, hasValidFaceTemplate } from '@erp/services/hr';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { CheckInClient } from './check-in-client';
@@ -168,19 +168,7 @@ export default async function CheckInPage() {
       };
     }
 
-    const [faceTemplate] = await db
-      .select({ id: employeeFaceTemplates.id })
-      .from(employeeFaceTemplates)
-      .where(
-        and(
-          eq(employeeFaceTemplates.tenantId, tenantId),
-          eq(employeeFaceTemplates.employeeId, employeeId),
-          eq(employeeFaceTemplates.status, 'active'),
-          isNull(employeeFaceTemplates.deletedAt),
-        ),
-      )
-      .limit(1);
-    hasFaceTemplate = !!faceTemplate;
+    hasFaceTemplate = await hasValidFaceTemplate(tenantId, employeeId);
   }
 
   return (

@@ -1266,3 +1266,31 @@ export async function listMyAttendance(
     },
   );
 }
+
+export async function hasValidFaceTemplate(tenantId: string, employeeId: string): Promise<boolean> {
+  const rows = await db
+    .select({ templatePayload: employeeFaceTemplates.templatePayload })
+    .from(employeeFaceTemplates)
+    .where(
+      and(
+        eq(employeeFaceTemplates.tenantId, tenantId),
+        eq(employeeFaceTemplates.employeeId, employeeId),
+        eq(employeeFaceTemplates.status, 'active'),
+        isNull(employeeFaceTemplates.deletedAt)
+      )
+    );
+
+  for (const row of rows) {
+    try {
+      const plain = decryptPii(row.templatePayload, FACE_TEMPLATE_FIELD);
+      if (!plain) continue;
+      const parsed = JSON.parse(plain) as Record<string, unknown>;
+      if (parsed.version === 'faceapi-128-v1') {
+        return true;
+      }
+    } catch (e) {
+      // Ignore decrypt errors
+    }
+  }
+  return false;
+}
