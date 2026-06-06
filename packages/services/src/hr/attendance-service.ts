@@ -1269,7 +1269,7 @@ export async function listMyAttendance(
 
 export async function hasValidFaceTemplate(tenantId: string, employeeId: string): Promise<boolean> {
   const rows = await db
-    .select({ templatePayload: employeeFaceTemplates.templatePayload })
+    .select({ templateCiphertext: employeeFaceTemplates.templateCiphertext })
     .from(employeeFaceTemplates)
     .where(
       and(
@@ -1282,7 +1282,7 @@ export async function hasValidFaceTemplate(tenantId: string, employeeId: string)
 
   for (const row of rows) {
     try {
-      const plain = decryptPii(row.templatePayload, FACE_TEMPLATE_FIELD);
+      const plain = decryptPii(row.templateCiphertext, FACE_TEMPLATE_FIELD);
       if (!plain) continue;
       const parsed = JSON.parse(plain) as Record<string, unknown>;
       if (parsed.version === 'faceapi-128-v1') {
@@ -1323,7 +1323,7 @@ export async function revokeFaceTemplate(employeeId: string, ctx: AuditContext):
     entityId: employeeId,
     before: null,
     after: { status: 'revoked', deletedAt: new Date().toISOString() } as never,
-    ...ctx,
+    ctx,
   });
 
   return ok({ ok: true });
