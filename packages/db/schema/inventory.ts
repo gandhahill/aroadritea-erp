@@ -95,6 +95,12 @@ export const products = pgTable(
     defaultSellPrice: bigint('default_sell_price', { mode: 'bigint' }).notNull().default(sql`0`),
     defaultCostPrice: bigint('default_cost_price', { mode: 'bigint' }).notNull().default(sql`0`),
 
+    // HPP categorization — determines journal account for month-end periodic adjustment
+    // 'hpp' = raw material cost → DR HPP / CR Inventory
+    // 'supply_expense' = supplies → DR Supply Expense / CR Supplies
+    // null = not categorized (no periodic adjustment)
+    hppCategory: text('hpp_category'), // 'hpp' | 'supply_expense' | null
+
     // Accounting integration
     cogsAccountId: text('cogs_account_id'), // FK accounts
     revenueAccountId: text('revenue_account_id'), // FK accounts

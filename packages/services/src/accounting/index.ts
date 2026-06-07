@@ -54,6 +54,7 @@ export {
   type PettyCashTransactionListResult,
 } from './petty-cash';
 export * from './invoice';
+export * from './hpp-posting';
 export {
   RecordPettyCashExpenseSchema,
   ReplenishPettyCashSchema,
