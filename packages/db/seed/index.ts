@@ -437,7 +437,7 @@ async function seed() {
         effectiveFrom: rate.effectiveFrom,
       })
       .onConflictDoUpdate({
-        target: taxRates.code,
+        target: [taxRates.tenantId, taxRates.code],
         set: {
           name: rate.name,
           rateBps: rate.rateBps,
