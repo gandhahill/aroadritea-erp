@@ -17,6 +17,12 @@ const intlMiddleware = createMiddleware({
   locales: LOCALES,
   defaultLocale: DEFAULT_LOCALE,
   localePrefix: 'always',
+  // Harden the NEXT_LOCALE cookie: mark Secure in production so it is only
+  // sent over HTTPS (pentest finding — cookie previously lacked the flag).
+  localeCookie: {
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+  },
 });
 
 function isLoopbackHost(host: string | null) {
@@ -112,7 +118,11 @@ export default function middleware(request: NextRequest) {
     redirectUrl.search = search;
 
     const response = NextResponse.redirect(redirectUrl);
-    response.cookies.set('NEXT_LOCALE', locale, { path: '/', sameSite: 'lax' });
+    response.cookies.set('NEXT_LOCALE', locale, {
+      path: '/',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
     response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
     return response;
   }
