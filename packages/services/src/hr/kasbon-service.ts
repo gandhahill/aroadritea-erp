@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { requirePermission } from '../iam';
 import { createJournal } from '../accounting/create-journal';
 import { auditRecord } from '../audit';
+import { notifyByPermission } from '../notification';
 
 export const RequestKasbonInputSchema = z.object({
   employeeId: z.string().min(1),
@@ -69,6 +70,16 @@ export async function requestKasbon(input: RequestKasbonInput, ctx: AuditContext
     metadata: {},
     ctx,
   });
+
+  // Notify approvers (hr.payroll.write holders) so they see the pending kasbon.
+  notifyByPermission({
+    tenantId: ctx.tenantId,
+    kind: 'kasbon',
+    title: 'Pengajuan kasbon menunggu persetujuan',
+    body: `Jumlah: ${input.amount.toLocaleString('id-ID')} · ${input.reason}`,
+    link: '/hr/kasbon',
+    permission: 'hr.payroll.write',
+  }).catch(() => {});
 
   return ok({ id });
 }

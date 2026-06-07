@@ -62,6 +62,17 @@ export async function recordOvertime(
     ctx,
   });
 
+  // Notify approvers (hr.payroll.write holders).
+  const { notifyByPermission } = await import('../notification');
+  notifyByPermission({
+    tenantId: ctx.tenantId,
+    kind: 'overtime',
+    title: 'Lembur menunggu persetujuan',
+    body: `${parsed.data.workDate} · ${parsed.data.hours} jam`,
+    link: '/hr/overtime',
+    permission: 'hr.payroll.write',
+  }).catch(() => {});
+
   return ok({ id });
 }
 

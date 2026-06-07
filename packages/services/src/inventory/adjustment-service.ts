@@ -341,6 +341,17 @@ export async function submitAdjustment(
       ctx,
     });
 
+    // Notify approvers (inventory.adjust.approve holders).
+    const { notifyByPermission } = await import('../notification');
+    notifyByPermission({
+      tenantId: ctx.tenantId,
+      kind: 'stock_adjustment',
+      title: 'Penyesuaian stok menunggu persetujuan',
+      body: `No. ${adj.number}`,
+      link: '/inventory/stock-adjustments',
+      permission: 'inventory.adjust.approve',
+    }).catch(() => {});
+
     return ok({
       id: adj.id,
       number: adj.number,

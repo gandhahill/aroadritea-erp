@@ -559,6 +559,17 @@ export async function submitOpname(
     ctx,
   });
 
+  // Notify approvers (inventory.opname.approve holders).
+  const { notifyByPermission } = await import('../notification');
+  notifyByPermission({
+    tenantId: ctx.tenantId,
+    kind: 'opname',
+    title: 'Stock opname menunggu persetujuan',
+    body: `No. ${session.number}`,
+    link: '/inventory/opname',
+    permission: 'inventory.opname.approve',
+  }).catch(() => {});
+
   return ok({
     id: session.id,
     number: session.number,

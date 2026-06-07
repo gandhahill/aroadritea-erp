@@ -155,7 +155,19 @@ export async function submitReimbursement(
   id: string,
   ctx: AuditContext,
 ): Promise<Result<ReimbursementResult>> {
-  return transitionStatus(id, 'submitted', ctx, 'accounting.reimbursement.create');
+  const result = await transitionStatus(id, 'submitted', ctx, 'accounting.reimbursement.create');
+  if (result.ok) {
+    const { notifyByPermission } = await import('../notification');
+    notifyByPermission({
+      tenantId: ctx.tenantId,
+      kind: 'reimbursement',
+      title: 'Reimbursement menunggu persetujuan',
+      body: result.value.description ?? undefined,
+      link: '/accounting/reimbursement',
+      permission: 'accounting.reimbursement.approve',
+    }).catch(() => {});
+  }
+  return result;
 }
 
 /**

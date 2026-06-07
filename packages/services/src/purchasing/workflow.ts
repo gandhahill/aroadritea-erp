@@ -182,6 +182,17 @@ export async function submitPO(
     ctx,
   });
 
+  // Notify approvers (purchasing.po.approve holders).
+  const { notifyByPermission } = await import('../notification');
+  notifyByPermission({
+    tenantId: ctx.tenantId,
+    kind: 'purchase_order',
+    title: 'Purchase Order menunggu persetujuan',
+    body: `No. ${po.number}`,
+    link: '/purchasing',
+    permission: 'purchasing.po.approve',
+  }).catch(() => {});
+
   return ok({
     id: po.id,
     number: po.number,

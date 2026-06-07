@@ -3,7 +3,7 @@ import type { PermissionCode } from '@erp/shared/types';
 
 import { getSession } from '@/lib/auth';
 import { authorizedLocationIdsForTenant, requirePermissionAtLocation } from '@/lib/authz';
-import { and, asc, db, desc, eq, inArray, isNull } from '@erp/db';
+import { and, asc, db, desc, eq, inArray, isNull, ne } from '@erp/db';
 import {
   auditLog,
   bankAccounts,
@@ -343,6 +343,33 @@ export async function matchLine(lineId: string, journalId: string) {
     )
     .limit(1);
   if (!journal) return { success: false, error: 'Forbidden' };
+
+  // Duplicate guard: a single journal entry must not be reconciled against
+  // more than one bank statement line. Without this, an accountant could
+  // accidentally match two different bank movements to the same journal —
+  // hiding a genuine duplicate (or a missing) entry. We scope the lookup to
+  // the tenant via the parent statement join.
+  const [conflicting] = await db
+    .select({ id: bankStatementLines.id })
+    .from(bankStatementLines)
+    .innerJoin(bankStatements, eq(bankStatementLines.statementId, bankStatements.id))
+    .where(
+      and(
+        eq(bankStatements.tenantId, ctx.tenantId),
+        eq(bankStatementLines.matchedJournalEntryId, journalId),
+        eq(bankStatementLines.matchStatus, 'matched'),
+        ne(bankStatementLines.id, lineId),
+        isNull(bankStatements.deletedAt),
+      ),
+    )
+    .limit(1);
+  if (conflicting) {
+    return {
+      success: false,
+      error:
+        'Jurnal ini sudah dicocokkan dengan baris mutasi lain. Satu jurnal hanya boleh dicocokkan ke satu transaksi bank untuk mencegah duplikasi.',
+    };
+  }
 
   try {
     const matchedAt = new Date();
