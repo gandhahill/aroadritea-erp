@@ -550,7 +550,7 @@ function Th({
 }) {
   return (
     <TableHead
-      className={`px-4 py-3 font-medium ${align === 'right' ? 'text-right' : 'text-left'}`}
+      className={`whitespace-nowrap px-4 py-3 font-medium ${align === 'right' ? 'text-right' : 'text-left'}`}
     >
       {children}
     </TableHead>

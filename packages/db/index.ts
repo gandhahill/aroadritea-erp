@@ -244,6 +244,7 @@ export {
 // Drizzle-ORM operators (re-exported for downstream consumers)
 export {
   eq,
+  ne,
   and,
   or,
   not,

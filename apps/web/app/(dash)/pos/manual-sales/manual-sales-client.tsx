@@ -76,7 +76,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
 
   const [editLocationId, setEditLocationId] = useState<string>(defaultLocationId);
   const [editSalesDate, setEditSalesDate] = useState<string>(
-    new Date().toISOString().substring(0, 10),
+    new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }),
   );
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailData, setDetailData] = useState<any>(null);
@@ -116,7 +116,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
       setEditId(null);
       setEditData(null);
       setEditLocationId(defaultLocationId);
-      setEditSalesDate(new Date().toISOString().substring(0, 10));
+      setEditSalesDate(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }));
     }
   }, [state]);
 
@@ -150,7 +150,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
       setEditData(data.closing);
       setEditLocationId(data.closing.locationId || defaultLocationId);
 
-      let parsedDate = new Date().toISOString().substring(0, 10);
+      let parsedDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
       if (data.closing.salesDate) {
         if (
           typeof data.closing.salesDate === 'string' &&
@@ -194,7 +194,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
     }
   };
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
   const totalPages = Math.max(1, Math.ceil(data.total / data.pageSize));
   const hasPrevious = data.page > 1;
   const hasNext = data.page < totalPages;
@@ -938,7 +938,7 @@ function Th({
 }) {
   return (
     <TableHead
-      className={`px-4 py-3 font-medium ${align === 'right' ? 'text-right' : 'text-left'}`}
+      className={`whitespace-nowrap px-4 py-3 font-medium ${align === 'right' ? 'text-right' : 'text-left'}`}
     >
       {children}
     </TableHead>

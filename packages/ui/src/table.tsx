@@ -53,7 +53,7 @@ export const TableHead = forwardRef<
   HTMLTableCellElement,
   React.ThHTMLAttributes<HTMLTableCellElement>
 >(({ className, ...props }, ref) => (
-  <th ref={ref} className={cn('px-4 py-3', className)} {...props} />
+  <th ref={ref} className={cn('whitespace-nowrap px-4 py-3', className)} {...props} />
 ));
 TableHead.displayName = 'TableHead';
 
