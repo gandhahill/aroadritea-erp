@@ -88,6 +88,18 @@ export async function updateEmployeeLogin(
       if (user) {
         // User exists: Update role and optionally password
         if (data.roleCode && role) {
+          // Changing role of an existing user requires full system access (*.*).
+          // Password changes and new-employee role assignment do not.
+          const [currentUserRole] = await db
+            .select({ roleId: userRoles.roleId })
+            .from(userRoles)
+            .where(eq(userRoles.userId, user.id))
+            .limit(1);
+          if (currentUserRole?.roleId !== role.id) {
+            const superCheck = await requirePermission(ctx.userId, '*.*');
+            if (!superCheck.ok)
+              throw AppError.forbidden('hr.employee.roleChangeRequiresFullAccess');
+          }
           await db
             .update(userRoles)
             .set({

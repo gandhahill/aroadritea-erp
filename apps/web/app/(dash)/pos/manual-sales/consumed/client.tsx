@@ -101,8 +101,11 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [loadingDetailId, setLoadingDetailId] = useState<string | null>(null);
+  const [historyDateFrom, setHistoryDateFrom] = useState('');
+  const [historyDateTo, setHistoryDateTo] = useState('');
+  const [historyLocationFilter, setHistoryLocationFilter] = useState('');
   const [consumedIngredients, setConsumedIngredients] = useState<
-    Array<{ ingredientId: string; name: string; qty: number; uom: string }>
+    Array<{ ingredientId: string; name: string; qty: number | ''; uom: string }>
   >([]);
 
   useEffect(() => {
@@ -250,7 +253,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
                         newItems[index] = {
                           ingredientId: ingredient.id,
                           name: ingredient.name,
-                          qty: newItems[index]?.qty || 1,
+                          qty: newItems[index]?.qty || '',
                           uom: ingredient.uom,
                         };
                         setConsumedIngredients(newItems);
@@ -272,7 +275,8 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
                         }
                       }}
                       onChange={(e) => {
-                        const qty = Math.max(1, Number.parseInt(e.target.value, 10) || 1);
+                        const raw = e.target.value;
+                        const qty = raw === '' ? '' : Math.max(1, Number.parseInt(raw, 10) || 0);
                         const newItems = [...consumedIngredients];
                         newItems[index] = { ...newItems[index]!, qty };
                         setConsumedIngredients(newItems);
@@ -313,7 +317,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
             <input
               type="hidden"
               name="consumedIngredientsJson"
-              value={JSON.stringify(consumedIngredients.filter((i) => i.ingredientId))}
+              value={JSON.stringify(consumedIngredients.filter((i) => i.ingredientId && i.qty).map(i => ({ ...i, qty: i.qty || 1 })))}
             />
           </div>
 
@@ -349,6 +353,32 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
       <section className="rounded-xl border border-brand-cream-3 bg-card shadow-sm">
         <div className="border-b border-brand-cream-3 px-5 py-4">
           <h2 className="text-base font-semibold text-brand-ink">{t('consumedHistory')}</h2>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Input
+              type="date"
+              value={historyDateFrom}
+              onChange={(e) => setHistoryDateFrom(e.target.value)}
+              placeholder={t('dateFrom')}
+              className="w-36 text-sm"
+            />
+            <Input
+              type="date"
+              value={historyDateTo}
+              onChange={(e) => setHistoryDateTo(e.target.value)}
+              placeholder={t('dateTo')}
+              className="w-36 text-sm"
+            />
+            <Select
+              value={historyLocationFilter}
+              onChange={(e) => setHistoryLocationFilter(e.target.value)}
+              className="w-40 text-sm"
+            >
+              <option value="">{t('allLocations')}</option>
+              {data.locations.map((loc) => (
+                <option key={loc.id} value={loc.id}>{loc.label}</option>
+              ))}
+            </Select>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <Table>
@@ -363,14 +393,22 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
               </tr>
             </thead>
             <TableBody className="divide-y divide-brand-cream-3">
-              {data.history.items.length === 0 ? (
+              {(() => {
+                const filtered = data.history.items.filter((item) => {
+                  const dateStr = item.occurredAt.slice(0, 10);
+                  if (historyDateFrom && dateStr < historyDateFrom) return false;
+                  if (historyDateTo && dateStr > historyDateTo) return false;
+                  if (historyLocationFilter && item.locationId !== historyLocationFilter) return false;
+                  return true;
+                });
+                return filtered.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-4 py-8 text-center text-brand-ink-3">
                     {t('emptyConsumedHistory')}
                   </td>
                 </tr>
               ) : (
-                data.history.items.map((item) => (
+                filtered.map((item) => (
                   <tr key={item.id} className="text-brand-ink hover:bg-brand-cream/50">
                     <Td>{item.occurredAt.slice(0, 10)}</Td>
                     <Td>{item.locationLabel || '-'}</Td>
@@ -424,7 +462,8 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
                     </Td>
                   </tr>
                 ))
-              )}
+              );
+              })()}
             </TableBody>
           </Table>
         </div>

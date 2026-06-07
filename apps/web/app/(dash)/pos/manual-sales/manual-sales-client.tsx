@@ -50,7 +50,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
       productId: string;
       variantId?: string;
       name: string;
-      qty: number;
+      qty: number | '';
       price: string;
       total: string;
     }>
@@ -82,6 +82,9 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
   const [detailData, setDetailData] = useState<any>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [deductBom, setDeductBom] = useState(true);
+  const [historyDateFrom, setHistoryDateFrom] = useState('');
+  const [historyDateTo, setHistoryDateTo] = useState('');
+  const [historyLocationFilter, setHistoryLocationFilter] = useState('');
 
   // Automatically calculate grossSales from lineItems if only 1 payment exists
   useEffect(() => {
@@ -432,7 +435,8 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                         }
                       }}
                       onChange={(e) => {
-                        const qty = Math.max(1, Number.parseInt(e.target.value, 10) || 1);
+                        const raw = e.target.value;
+                        const qty = raw === '' ? '' : Math.max(1, Number.parseInt(raw, 10) || 0);
                         const newItems = [...lineItems];
                         const current = newItems[index];
                         if (!current) return;
@@ -442,7 +446,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                           name: current.name,
                           qty,
                           price: current.price,
-                          total: (BigInt(qty) * BigInt(current.price)).toString(),
+                          total: qty === '' ? '0' : (BigInt(qty) * BigInt(current.price)).toString(),
                         };
                         setLineItems(newItems);
                       }}
@@ -512,7 +516,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
             <input
               type="hidden"
               name="lineItemsJson"
-              value={JSON.stringify(lineItems.filter((i) => i.productId))}
+              value={JSON.stringify(lineItems.filter((i) => i.productId && i.qty).map(i => ({ ...i, qty: i.qty || 1 })))}
             />
             <div className="mt-4 flex items-center gap-2">
               <input
@@ -590,9 +594,35 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
       </section>
 
       <section className="rounded-xl border border-brand-cream-3 bg-card shadow-sm">
-        <div className="border-b border-brand-cream-3 px-5 py-4 flex justify-between items-center">
-          <h2 className="text-base font-semibold text-brand-ink">{t('history')}</h2>
-          <ExportManualSalesButton locationId={defaultLocationId} />
+        <div className="border-b border-brand-cream-3 px-5 py-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-base font-semibold text-brand-ink">{t('history')}</h2>
+            <ExportManualSalesButton locationId={defaultLocationId} />
+          </div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Input
+              type="date"
+              value={historyDateFrom}
+              onChange={(e) => setHistoryDateFrom(e.target.value)}
+              className="w-36 text-sm"
+            />
+            <Input
+              type="date"
+              value={historyDateTo}
+              onChange={(e) => setHistoryDateTo(e.target.value)}
+              className="w-36 text-sm"
+            />
+            <Select
+              value={historyLocationFilter}
+              onChange={(e) => setHistoryLocationFilter(e.target.value)}
+              className="w-40 text-sm"
+            >
+              <option value="">{t('allLocations')}</option>
+              {data.locations.map((loc) => (
+                <option key={loc.id} value={loc.id}>{loc.label}</option>
+              ))}
+            </Select>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <Table>
@@ -615,14 +645,21 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
               </tr>
             </thead>
             <TableBody className="divide-y divide-brand-cream-3">
-              {data.items.length === 0 ? (
+              {(() => {
+                const filtered = data.items.filter((item) => {
+                  if (historyDateFrom && item.salesDate < historyDateFrom) return false;
+                  if (historyDateTo && item.salesDate > historyDateTo) return false;
+                  if (historyLocationFilter && item.locationId !== historyLocationFilter) return false;
+                  return true;
+                });
+                return filtered.length === 0 ? (
                 <tr>
                   <td colSpan={14} className="px-4 py-8 text-center text-brand-ink-3">
                     {t('empty')}
                   </td>
                 </tr>
               ) : (
-                data.items.map((item) => (
+                filtered.map((item) => (
                   <tr
                     key={item.id}
                     className="text-brand-ink cursor-pointer hover:bg-brand-cream/50"
@@ -694,7 +731,8 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                     </Td>
                   </tr>
                 ))
-              )}
+              );
+              })()}
             </TableBody>
           </Table>
         </div>

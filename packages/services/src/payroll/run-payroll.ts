@@ -343,6 +343,15 @@ export async function runPayroll(
 
       const shiftCountMap = new Map(shiftCountRows.map((s) => [s.employeeId, s.scheduledDays]));
 
+      // 5a2. Fetch dispensed absence counts to exclude from absent penalties
+      const { getDispensedCountsForPeriod } = await import('../hr/absence-dispensation-service');
+      const dispensedCounts = await getDispensedCountsForPeriod(
+        ctx.tenantId,
+        empRows.map((e) => e.id),
+        periodStartDate,
+        periodEndDate,
+      );
+
       // 5b. Auto-fetch approved overtime hours for the period
       const { getApprovedOvertimeForPeriod } = await import('../hr/overtime-service');
       const overtimeMap = await getApprovedOvertimeForPeriod(
@@ -376,9 +385,10 @@ export async function runPayroll(
         }
         const att = attMap.get(emp.id) ?? { lateMinutes: 0, lateCount: 0, attendanceDays: 0 };
 
-        // T-0245: Detect absences = scheduled shifts - actual attendance days
+        // T-0245: Detect absences = scheduled shifts - actual attendance days - dispensed absences
         const scheduledDays = shiftCountMap.get(emp.id) ?? 0;
-        const absentDays = Math.max(0, scheduledDays - att.attendanceDays);
+        const dispensedDays = dispensedCounts.get(emp.id) ?? 0;
+        const absentDays = Math.max(0, scheduledDays - att.attendanceDays - dispensedDays);
 
         // T-0247: Read maritalStatus + dependentsCount from employee data
         const maritalStatus = (emp.maritalStatus === 'K' ? 'K' : 'TK') as 'TK' | 'K';

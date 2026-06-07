@@ -387,8 +387,16 @@ export async function listManualSalesClosings(
   params: { locationId?: string; limit?: number; offset?: number },
   ctx: AuditContext,
 ): Promise<Result<{ items: ManualSalesClosingResult[]; total: number }>> {
+  // Resolve effective locationId: use param, then ctx, then first authorized location
+  let effectiveLocationId = params.locationId || ctx.locationId || undefined;
+  if (!effectiveLocationId) {
+    const authLocs = await getAuthorizedLocations(ctx.userId, 'pos.transact');
+    if (authLocs.scope === 'location' && authLocs.locationIds.length > 0) {
+      effectiveLocationId = authLocs.locationIds[0]!;
+    }
+  }
   const permCheck = await requirePermission(ctx.userId, 'pos.transact', {
-    locationId: params.locationId ?? ctx.locationId,
+    locationId: effectiveLocationId ?? '',
   });
   if (!permCheck.ok) return permCheck;
 

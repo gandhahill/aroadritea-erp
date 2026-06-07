@@ -18,12 +18,14 @@ export default async function ManualSalesPage({
   const params = await searchParams;
   const page = Number.parseInt(params?.page ?? '1', 10);
   const pageSize = Number.parseInt(params?.pageSize ?? '10', 10);
-  const defaultLocationId = params?.locationId ?? String(user.locationId ?? '');
+  const requestedLocationId = params?.locationId ?? String(user.locationId ?? '');
   const data = await fetchManualSalesPageData(
-    defaultLocationId,
+    requestedLocationId || undefined,
     Number.isFinite(page) ? page : 1,
     Number.isFinite(pageSize) ? pageSize : 10,
   );
+  // Use the first available location if the session doesn't have one
+  const defaultLocationId = requestedLocationId || data.locations[0]?.id || '';
 
   return <ManualSalesClient data={data} defaultLocationId={defaultLocationId} />;
 }

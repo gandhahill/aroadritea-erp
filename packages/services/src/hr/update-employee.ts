@@ -113,6 +113,12 @@ export async function updateEmployee(
         setCols.bpjsKesehatan = encryptPii(data.bpjsKesehatan, 'employees.bpjsKesehatan');
       if (data.bpjsTenagakerja !== undefined)
         setCols.bpjsTenagakerja = encryptPii(data.bpjsTenagakerja, 'employees.bpjsTenagakerja');
+      if (data.bankName !== undefined) setCols.bankName = data.bankName;
+      if (data.bankAccountNumber !== undefined)
+        setCols.bankAccountNumber = encryptPii(data.bankAccountNumber, 'employees.bankAccountNumber');
+      if (data.bankAccountHolder !== undefined)
+        setCols.bankAccountHolder = encryptPii(data.bankAccountHolder, 'employees.bankAccountHolder');
+      if (data.vehiclePlateNumber !== undefined) setCols.vehiclePlateNumber = data.vehiclePlateNumber;
       if (data.emergencyContactName !== undefined)
         setCols.emergencyContactName = data.emergencyContactName;
       if (data.emergencyContactPhone !== undefined)

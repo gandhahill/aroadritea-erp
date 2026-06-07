@@ -11,6 +11,7 @@ import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { listMyAttendance } from '@erp/services/hr';
 import { resolveEmployeeForUser } from '@erp/services/hr';
+import { getDispensedDetailsForPeriod } from '@erp/services/hr';
 import type { AuditContext } from '@erp/shared/types';
 import { db, and, eq, sql } from '@erp/db';
 import { shiftAssignments } from '@erp/db/schema/hr';
@@ -84,8 +85,9 @@ export default async function MyAttendancePage({
   const checkedOutItems = items.filter((r) => r.checkOutAt != null);
   const totalWorked = checkedOutItems.reduce((s, r) => s + (r.workedMinutes ?? 0), 0);
 
-  // Count scheduled shift days for this employee in the date range
+  // Count scheduled shift days and dispensations for this employee in the date range
   let absentDays = 0;
+  let dispensations: Array<{ workDate: string; reason: string; givenBy?: string | null }> = [];
   const emp = await resolveEmployeeForUser(ctx.tenantId, ctx.userId);
   if (emp) {
     const [schedRow] = await db
@@ -101,7 +103,12 @@ export default async function MyAttendancePage({
         ),
       );
     const scheduledDays = schedRow?.count ?? 0;
-    absentDays = Math.max(0, scheduledDays - totalDays);
+
+    const dispensedMap = await getDispensedDetailsForPeriod(ctx.tenantId, [emp.id], from, to);
+    dispensations = dispensedMap.get(emp.id) ?? [];
+    const dispensedCount = dispensations.length;
+
+    absentDays = Math.max(0, scheduledDays - totalDays - dispensedCount);
   }
 
   return (
@@ -204,6 +211,16 @@ export default async function MyAttendancePage({
                         {t('onTime')}
                       </span>
                     )}
+                    {(() => {
+                      const dateStr = new Date(r.checkInAt).toISOString().slice(0, 10);
+                      const disp = dispensations.find((d) => d.workDate === dateStr);
+                      if (!disp) return null;
+                      return (
+                        <span className="mt-0.5 block text-[10px] text-amber-600">
+                          {t('dispensationReason')}: {disp.reason}
+                        </span>
+                      );
+                    })()}
                   </td>
                 </tr>
               ))
@@ -211,6 +228,32 @@ export default async function MyAttendancePage({
           </tbody>
         </table>
       </div>
+
+      {dispensations.length > 0 && (
+        <div className="overflow-x-auto rounded-xl border border-brand-cream-3 bg-card">
+          <div className="border-b border-brand-cream-3 px-3 py-2">
+            <h3 className="text-sm font-semibold text-brand-ink">{t('dispensations')}</h3>
+          </div>
+          <table className="w-full text-sm">
+            <thead className="bg-brand-cream-2/60 text-left text-xs uppercase text-brand-ink-2">
+              <tr>
+                <th className="px-3 py-2">{t('table.date')}</th>
+                <th className="px-3 py-2">{t('dispensationReason')}</th>
+                <th className="px-3 py-2">{t('dispensationBy')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dispensations.map((d) => (
+                <tr key={d.workDate} className="border-t border-brand-cream-3">
+                  <td className="px-3 py-2 text-brand-ink-2">{d.workDate}</td>
+                  <td className="px-3 py-2 text-brand-ink">{d.reason}</td>
+                  <td className="px-3 py-2 text-brand-ink-3">{d.givenBy ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

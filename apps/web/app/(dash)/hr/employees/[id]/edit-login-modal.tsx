@@ -9,9 +9,10 @@ import { fetchEmployeeLoginInfo, updateEmployeeLoginAction } from '../actions';
 interface EditLoginModalProps {
   employeeId: string;
   roles: RoleOption[];
+  canChangeRole?: boolean;
 }
 
-export function EditLoginModal({ employeeId, roles }: EditLoginModalProps) {
+export function EditLoginModal({ employeeId, roles, canChangeRole = false }: EditLoginModalProps) {
   const t = useTranslations('hr.employees');
   const commonT = useTranslations('common.actions');
   const [open, setOpen] = useState(false);
@@ -76,7 +77,8 @@ export function EditLoginModal({ employeeId, roles }: EditLoginModalProps) {
                     id="roleCode"
                     name="roleCode"
                     defaultValue={loginInfo?.roleCode ?? ''}
-                    className="w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-sm text-brand-ink outline-none transition-colors focus:border-brand-ember-5"
+                    disabled={!canChangeRole}
+                    className="w-full rounded-md border border-brand-cream-3 bg-brand-cream-1 px-3 py-2 text-sm text-brand-ink outline-none transition-colors focus:border-brand-ember-5 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="">-- {t('selectRole')} --</option>
                     {roles.map((role) => (
@@ -85,6 +87,9 @@ export function EditLoginModal({ employeeId, roles }: EditLoginModalProps) {
                       </option>
                     ))}
                   </select>
+                  {!canChangeRole && (
+                    <p className="mt-1 text-xs text-brand-ink-3">{t('roleChangeRestricted')}</p>
+                  )}
                 </div>
 
                 <div>

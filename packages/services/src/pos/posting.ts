@@ -232,14 +232,20 @@ export async function autoPostJournalEntry(
   return ok(undefined);
 }
 
-/** Extract inclusive tax from a gross price and return net + tax. */
+/** Extract inclusive tax from a gross price and return net + tax (banker's rounding). */
 export function extractInclusiveTax(
   inclusivePrice: bigint,
   rateBps: number,
 ): { net: bigint; tax: bigint } {
-  const price10k = BigInt(inclusivePrice) * BigInt(10000);
-  const net = price10k / BigInt(10000 + rateBps);
-  const tax = inclusivePrice - net;
+  const numerator = inclusivePrice * BigInt(rateBps);
+  const denominator = BigInt(10000 + rateBps);
+  const remainder = numerator % denominator;
+  const half = denominator / 2n;
+  let tax = numerator / denominator;
+  if (remainder > half || (remainder === half && tax % 2n !== 0n)) {
+    tax += 1n;
+  }
+  const net = inclusivePrice - tax;
   return { net, tax };
 }
 

@@ -71,6 +71,7 @@ export default async function EmployeeDetailPage({
   
   const canEditLogin = await can(ctx.userId, 'iam.manage_users', { locationId: emp.locationId ?? undefined });
   const canEditEmployee = await can(ctx.userId, 'hr.employee.write', { locationId: emp.locationId ?? undefined });
+  const canChangeRole = await can(ctx.userId, '*.*');
   const roles = canEditLogin ? await fetchAssignableRoles() : [];
   const year = new Date().getFullYear();
   const statusCfg = STATUS_COLOR[emp.status] ?? {
@@ -113,7 +114,7 @@ export default async function EmployeeDetailPage({
               {commonT('edit')}
             </a>
           )}
-          {canEditLogin && <EditLoginModal employeeId={emp.id} roles={roles} />}
+          {canEditLogin && <EditLoginModal employeeId={emp.id} roles={roles} canChangeRole={canChangeRole} />}
           {canEditEmployee && <DeleteEmployeeButton employeeId={emp.id} />}
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${statusCfg.bg} ${statusCfg.text}`}
@@ -155,6 +156,10 @@ export default async function EmployeeDetailPage({
           <Field label={t('bpjsKesehatan')} value={emp.bpjsKesehatan} />
           <Field label={t('bpjsTenagakerja')} value={emp.bpjsTenagakerja} />
           <Field label={t('address')} value={emp.address} wide />
+          <Field label={t('bankName')} value={emp.bankName} />
+          <Field label={t('bankAccountNumber')} value={emp.bankAccountNumber} />
+          <Field label={t('bankAccountHolder')} value={emp.bankAccountHolder} />
+          <Field label={t('vehiclePlateNumber')} value={emp.vehiclePlateNumber} />
           <Field
             label={t('emergencyContact')}
             value={[

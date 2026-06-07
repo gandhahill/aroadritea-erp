@@ -78,6 +78,10 @@ export interface EmployeeDetailResult {
   npwp: string | null;
   bpjsKesehatan: string | null;
   bpjsTenagakerja: string | null;
+  bankName: string | null;
+  bankAccountNumber: string | null;
+  bankAccountHolder: string | null;
+  vehiclePlateNumber: string | null;
   emergencyContactName: string | null;
   emergencyContactPhone: string | null;
   currentContractId: string | null;
@@ -257,6 +261,10 @@ export async function getEmployee(
         npwp: decryptPiiForDisplay(row.npwp, 'employees.npwp'),
         bpjsKesehatan: decryptPiiForDisplay(row.bpjsKesehatan, 'employees.bpjsKesehatan'),
         bpjsTenagakerja: decryptPiiForDisplay(row.bpjsTenagakerja, 'employees.bpjsTenagakerja'),
+        bankName: row.bankName,
+        bankAccountNumber: decryptPiiForDisplay(row.bankAccountNumber, 'employees.bankAccountNumber'),
+        bankAccountHolder: decryptPiiForDisplay(row.bankAccountHolder, 'employees.bankAccountHolder'),
+        vehiclePlateNumber: row.vehiclePlateNumber,
         emergencyContactName: row.emergencyContactName,
         emergencyContactPhone: decryptPiiForDisplay(
           row.emergencyContactPhone,

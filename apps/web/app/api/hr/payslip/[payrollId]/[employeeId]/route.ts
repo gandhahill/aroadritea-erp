@@ -67,13 +67,13 @@ export async function GET(
   const earningsRows = data.earnings
     .map(
       (line) =>
-        `<tr><td>${htmlEscape(line.componentName)}</td><td class="num">${fmt(line.amount)}</td></tr>`,
+        `<tr><td>${htmlEscape(line.componentName)}${line.notes ? `<br/><span style="font-size:10px;color:#73685c">${htmlEscape(line.notes)}</span>` : ''}</td><td class="num">${fmt(line.amount)}</td></tr>`,
     )
     .join('');
   const deductionsRows = data.deductions
     .map(
       (line) =>
-        `<tr><td>${htmlEscape(line.componentName)}</td><td class="num">${fmt(line.amount)}</td></tr>`,
+        `<tr><td>${htmlEscape(line.componentName)}${line.notes ? `<br/><span style="font-size:10px;color:#73685c">${htmlEscape(line.notes)}</span>` : ''}</td><td class="num">${fmt(line.amount)}</td></tr>`,
     )
     .join('');
 
@@ -92,6 +92,8 @@ export async function GET(
   * { box-sizing: border-box; }
   body { font-family: 'Inter','Helvetica Neue',Arial,sans-serif; color:#1f1b16; background:#f7f2ea; margin:0; }
   .sheet { max-width: 720px; margin: 24px auto; background:#fff; padding:32px; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,.06); }
+  .logo-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .logo-row img { height:48px; width:auto; }
   h1 { font-size: 18px; margin:0 0 4px; color:#bb2a2a; letter-spacing:.4px; text-transform:uppercase; }
   h2 { font-size: 13px; margin:0 0 18px; color:#4a423b; font-weight:500; }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 20px; }
@@ -119,8 +121,13 @@ export async function GET(
 <body>
 <div class="actions"><button onclick="window.print()">Simpan / Cetak PDF</button></div>
 <article class="sheet">
-  <h1>Slip Gaji</h1>
-  <h2>Periode ${htmlEscape(data.periodCode)} (${periodLabel})</h2>
+  <div class="logo-row">
+    <img src="/logo-primary.png" alt="Aroadri Tea" />
+    <div>
+      <h1>Slip Gaji</h1>
+      <h2>Periode ${htmlEscape(data.periodCode)} (${periodLabel})</h2>
+    </div>
+  </div>
 
   <div class="grid">
     <section>

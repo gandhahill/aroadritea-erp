@@ -168,6 +168,28 @@ export function EmployeeForm({
           name="bpjsTenagakerja"
           defaultValue={employee?.bpjsTenagakerja ?? ''}
         />
+      </Section>
+
+      <Section title={f('bankSection')}>
+        <Field label={f('bankName')} name="bankName" defaultValue={employee?.bankName ?? ''} />
+        <Field
+          label={f('bankAccountNumber')}
+          name="bankAccountNumber"
+          defaultValue={employee?.bankAccountNumber ?? ''}
+        />
+        <Field
+          label={f('bankAccountHolder')}
+          name="bankAccountHolder"
+          defaultValue={employee?.bankAccountHolder ?? ''}
+        />
+        <Field
+          label={f('vehiclePlateNumber')}
+          name="vehiclePlateNumber"
+          defaultValue={employee?.vehiclePlateNumber ?? ''}
+        />
+      </Section>
+
+      <Section title={f('emergencySection')}>
         <Field
           label={f('emergencyName')}
           name="emergencyContactName"

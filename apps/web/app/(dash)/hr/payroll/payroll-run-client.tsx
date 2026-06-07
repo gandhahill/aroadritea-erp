@@ -72,8 +72,12 @@ export function PayrollRunClient({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [bonusByEmployeeId, setBonusByEmployeeId] = useState<Record<string, string>>({});
-  const [deductionByEmployeeId, setDeductionByEmployeeId] = useState<Record<string, string>>({});
+  const [bonusRowsByEmployeeId, setBonusRowsByEmployeeId] = useState<
+    Record<string, Array<{ amount: string; notes: string }>>
+  >({});
+  const [deductionRowsByEmployeeId, setDeductionRowsByEmployeeId] = useState<
+    Record<string, Array<{ amount: string; notes: string }>>
+  >({});
 
   const periodStart = `${periodCode}-01`;
   const periodEnd = (() => {
@@ -82,43 +86,35 @@ export function PayrollRunClient({
     return `${periodCode}-${String(last).padStart(2, '0')}`;
   })();
   const selectedEmployees = employees.filter((employee) => employee.locationId === locationId);
-  const additionalEarnings = selectedEmployees
-    .map((employee) => {
-      const amount = (bonusByEmployeeId[employee.id] ?? '').replace(/\D/g, '');
-      return amount && Number.parseInt(amount, 10) > 0
-        ? {
-            employeeId: employee.id,
-            componentCode: 'BONUS',
-            amount,
-            notes: `Bonus payroll ${periodCode}`,
-          }
-        : null;
-    })
-    .filter(
-      (
-        earning,
-      ): earning is { employeeId: string; componentCode: string; amount: string; notes: string } =>
-        earning !== null,
-    );
+  const additionalEarnings = selectedEmployees.flatMap((employee) => {
+    const rows = bonusRowsByEmployeeId[employee.id] ?? [];
+    return rows
+      .filter((r) => {
+        const cleaned = r.amount.replace(/\D/g, '');
+        return cleaned && Number.parseInt(cleaned, 10) > 0;
+      })
+      .map((r) => ({
+        employeeId: employee.id,
+        componentCode: 'BONUS',
+        amount: r.amount.replace(/\D/g, ''),
+        notes: r.notes || `Bonus payroll ${periodCode}`,
+      }));
+  });
 
-  const additionalDeductions = selectedEmployees
-    .map((employee) => {
-      const amount = (deductionByEmployeeId[employee.id] ?? '').replace(/\D/g, '');
-      return amount && Number.parseInt(amount, 10) > 0
-        ? {
-            employeeId: employee.id,
-            componentCode: 'PINJAMAN',
-            amount,
-            notes: `Potongan manual payroll ${periodCode}`,
-          }
-        : null;
-    })
-    .filter(
-      (
-        deduction,
-      ): deduction is { employeeId: string; componentCode: string; amount: string; notes: string } =>
-        deduction !== null,
-    );
+  const additionalDeductions = selectedEmployees.flatMap((employee) => {
+    const rows = deductionRowsByEmployeeId[employee.id] ?? [];
+    return rows
+      .filter((r) => {
+        const cleaned = r.amount.replace(/\D/g, '');
+        return cleaned && Number.parseInt(cleaned, 10) > 0;
+      })
+      .map((r) => ({
+        employeeId: employee.id,
+        componentCode: 'PINJAMAN',
+        amount: r.amount.replace(/\D/g, ''),
+        notes: r.notes || `Potongan manual payroll ${periodCode}`,
+      }));
+  });
 
   const handleRun = async () => {
     if (!locationId) {
@@ -219,27 +215,72 @@ export function PayrollRunClient({
           ) : null}
 
           {selectedEmployees.length > 0 ? (
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              {selectedEmployees.map((employee) => (
-                <label key={employee.id} className="block">
-                  <span className="mb-1 block text-xs font-medium text-brand-ink-2">
-                    {employee.name}
-                  </span>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={bonusByEmployeeId[employee.id] ?? ''}
-                    onChange={(event) =>
-                      setBonusByEmployeeId((current) => ({
-                        ...current,
-                        [employee.id]: event.target.value.replace(/\D/g, ''),
-                      }))
-                    }
-                    placeholder="0"
-                    className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
-                  />
-                </label>
-              ))}
+            <div className="mt-4 space-y-3">
+              {selectedEmployees.map((employee) => {
+                const rows = bonusRowsByEmployeeId[employee.id] ?? [];
+                return (
+                  <div key={employee.id} className="rounded-lg border border-brand-cream-3 bg-card p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-medium text-brand-ink-2">{employee.name}</span>
+                      <button
+                        type="button"
+                        className="text-xs text-brand-jade hover:underline"
+                        onClick={() =>
+                          setBonusRowsByEmployeeId((c) => ({
+                            ...c,
+                            [employee.id]: [...(c[employee.id] ?? []), { amount: '', notes: '' }],
+                          }))
+                        }
+                      >
+                        + {t('form.addRow')}
+                      </button>
+                    </div>
+                    {rows.map((row, idx) => (
+                      <div key={idx} className="flex items-center gap-2 mb-1">
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          value={row.amount}
+                          onChange={(e) =>
+                            setBonusRowsByEmployeeId((c) => {
+                              const list = [...(c[employee.id] ?? [])];
+                              list[idx] = { ...list[idx]!, amount: e.target.value.replace(/\D/g, '') };
+                              return { ...c, [employee.id]: list };
+                            })
+                          }
+                          placeholder="0"
+                          className="w-28 text-sm"
+                        />
+                        <Input
+                          type="text"
+                          value={row.notes}
+                          onChange={(e) =>
+                            setBonusRowsByEmployeeId((c) => {
+                              const list = [...(c[employee.id] ?? [])];
+                              list[idx] = { ...list[idx]!, notes: e.target.value };
+                              return { ...c, [employee.id]: list };
+                            })
+                          }
+                          placeholder={t('form.notesPlaceholder')}
+                          className="flex-1 text-sm"
+                        />
+                        <button
+                          type="button"
+                          className="text-xs text-rose-500 hover:underline"
+                          onClick={() =>
+                            setBonusRowsByEmployeeId((c) => {
+                              const list = (c[employee.id] ?? []).filter((_, i) => i !== idx);
+                              return { ...c, [employee.id]: list };
+                            })
+                          }
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
             </div>
           ) : null}
         </div>
@@ -262,27 +303,72 @@ export function PayrollRunClient({
           ) : null}
 
           {selectedEmployees.length > 0 ? (
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              {selectedEmployees.map((employee) => (
-                <label key={employee.id} className="block">
-                  <span className="mb-1 block text-xs font-medium text-brand-ink-2">
-                    {employee.name}
-                  </span>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={deductionByEmployeeId[employee.id] ?? ''}
-                    onChange={(event) =>
-                      setDeductionByEmployeeId((current) => ({
-                        ...current,
-                        [employee.id]: event.target.value.replace(/\D/g, ''),
-                      }))
-                    }
-                    placeholder="0"
-                    className="w-full rounded-lg border border-brand-cream-3 bg-card px-3 py-2 text-sm text-brand-ink focus:border-brand-ember-5 focus:outline-none focus:ring-2 focus:ring-brand-ember-5/20"
-                  />
-                </label>
-              ))}
+            <div className="mt-4 space-y-3">
+              {selectedEmployees.map((employee) => {
+                const rows = deductionRowsByEmployeeId[employee.id] ?? [];
+                return (
+                  <div key={employee.id} className="rounded-lg border border-brand-cream-3 bg-card p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-medium text-brand-ink-2">{employee.name}</span>
+                      <button
+                        type="button"
+                        className="text-xs text-rose-500 hover:underline"
+                        onClick={() =>
+                          setDeductionRowsByEmployeeId((c) => ({
+                            ...c,
+                            [employee.id]: [...(c[employee.id] ?? []), { amount: '', notes: '' }],
+                          }))
+                        }
+                      >
+                        + {t('form.addRow')}
+                      </button>
+                    </div>
+                    {rows.map((row, idx) => (
+                      <div key={idx} className="flex items-center gap-2 mb-1">
+                        <Input
+                          type="text"
+                          inputMode="numeric"
+                          value={row.amount}
+                          onChange={(e) =>
+                            setDeductionRowsByEmployeeId((c) => {
+                              const list = [...(c[employee.id] ?? [])];
+                              list[idx] = { ...list[idx]!, amount: e.target.value.replace(/\D/g, '') };
+                              return { ...c, [employee.id]: list };
+                            })
+                          }
+                          placeholder="0"
+                          className="w-28 text-sm"
+                        />
+                        <Input
+                          type="text"
+                          value={row.notes}
+                          onChange={(e) =>
+                            setDeductionRowsByEmployeeId((c) => {
+                              const list = [...(c[employee.id] ?? [])];
+                              list[idx] = { ...list[idx]!, notes: e.target.value };
+                              return { ...c, [employee.id]: list };
+                            })
+                          }
+                          placeholder={t('form.notesPlaceholder')}
+                          className="flex-1 text-sm"
+                        />
+                        <button
+                          type="button"
+                          className="text-xs text-rose-500 hover:underline"
+                          onClick={() =>
+                            setDeductionRowsByEmployeeId((c) => {
+                              const list = (c[employee.id] ?? []).filter((_, i) => i !== idx);
+                              return { ...c, [employee.id]: list };
+                            })
+                          }
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
             </div>
           ) : null}
         </div>

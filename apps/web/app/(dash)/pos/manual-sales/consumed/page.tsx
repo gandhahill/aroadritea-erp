@@ -22,8 +22,9 @@ export default async function ConsumedIngredientsPage({
   const page = Number.parseInt(params.page ?? '1', 10);
   const pageSize = Number.parseInt(params.pageSize ?? '10', 10);
   const data = await fetchConsumedIngredientsData(page, pageSize);
-  
+  const defaultLocationId = user.locationId || data.locations[0]?.id || '';
+
   return (
-    <ConsumedClient data={data} defaultLocationId={user.locationId || ''} />
+    <ConsumedClient data={data} defaultLocationId={defaultLocationId} />
   );
 }

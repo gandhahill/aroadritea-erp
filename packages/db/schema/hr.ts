@@ -93,6 +93,9 @@ export const employees = pgTable(
     bankAccountNumber: text('bank_account_number'), // encrypted
     bankAccountHolder: text('bank_account_holder'), // encrypted
 
+    // Vehicle
+    vehiclePlateNumber: text('vehicle_plate_number'), // e.g. 'AB 1234 CD'
+
     // Emergency contact
     emergencyContactName: text('emergency_contact_name'),
     emergencyContactPhone: text('emergency_contact_phone'), // encrypted
