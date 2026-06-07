@@ -25,10 +25,11 @@ import { createJournal } from './create-journal';
 import { postJournal } from './post-journal';
 import { resolveAccountIdsByCodes } from './account-resolver';
 
-const HPP_ACCOUNT_CODE = '6-1110';
-const RAW_MATERIAL_INVENTORY_CODE = '1-1210';
-const SUPPLY_EXPENSE_CODE = '6-2100';
-const SUPPLIES_INVENTORY_CODE = '1-1220';
+// COA codes per the seeded chart of accounts (Appendix A).
+const HPP_ACCOUNT_CODE = '5-0000'; // Harga Pokok Penjualan (COGS)
+const RAW_MATERIAL_INVENTORY_CODE = '1-1600'; // Persediaan Barang Dagangan
+const SUPPLY_EXPENSE_CODE = '6-2500'; // Beban Perlengkapan Toko
+const SUPPLIES_INVENTORY_CODE = '1-1800'; // Perlengkapan Toko
 
 export interface HppSummaryLine {
   productId: string;
