@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS "overtimes" (
 );
 --> statement-breakpoint
 DROP INDEX IF EXISTS "tax_rates_code_idx";--> statement-breakpoint
+ALTER TABLE "helpdesk_ticket_replies" ALTER COLUMN "is_internal" DROP DEFAULT;--> statement-breakpoint
 ALTER TABLE "helpdesk_ticket_replies" ALTER COLUMN "is_internal" SET DATA TYPE boolean USING is_internal::boolean;--> statement-breakpoint
 ALTER TABLE "helpdesk_ticket_replies" ALTER COLUMN "is_internal" SET DEFAULT false;--> statement-breakpoint
 ALTER TABLE "tax_rates" ADD COLUMN "tenant_id" text DEFAULT 'default' NOT NULL;--> statement-breakpoint
