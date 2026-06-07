@@ -77,6 +77,8 @@ export const CreateProductInputSchema = z.object({
   revenueAccountId: z.string().optional(),
   inventoryAccountId: z.string().optional(),
   taxCode: z.string().optional(),
+  /** Cost classification for month-end periodic adjustment: HPP (COGS) vs supply expense. Null = not classified. */
+  hppCategory: z.enum(['hpp', 'supply_expense']).nullable().optional(),
   imageUrl: ImageReferenceSchema.optional(),
   initialStocks: z.array(z.object({
     locationId: z.string().min(1),
@@ -108,6 +110,7 @@ export const UpdateProductInputSchema = z.object({
   revenueAccountId: z.string().nullable().optional(),
   inventoryAccountId: z.string().nullable().optional(),
   taxCode: z.string().nullable().optional(),
+  hppCategory: z.enum(['hpp', 'supply_expense']).nullable().optional(),
   imageUrl: ImageReferenceSchema.nullable().optional(),
   isActive: z.boolean().optional(),
   version: z.number().int().min(1),

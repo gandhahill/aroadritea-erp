@@ -220,6 +220,24 @@ export const PERMISSIONS_SEED = [
     module: 'accounting',
     description: n('Kelola rekonsiliasi bank', 'Manage bank reconciliation', '管理银行对账'),
   },
+  {
+    code: 'accounting.hpp.view',
+    module: 'accounting',
+    description: n(
+      'Lihat ringkasan HPP & perlengkapan',
+      'View HPP & supplies summary',
+      '查看销货成本与耗材汇总',
+    ),
+  },
+  {
+    code: 'accounting.hpp.adjust',
+    module: 'accounting',
+    description: n(
+      'Posting penyesuaian HPP akhir periode',
+      'Post period-end HPP adjustment',
+      '过账期末销货成本调整',
+    ),
+  },
   // Tax
   {
     code: 'tax.view',
@@ -776,6 +794,7 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'accounting.fixed_asset.view',
     'accounting.bank_recon.view',
     'accounting.bank_recon.manage',
+    'accounting.hpp.view',
     'settings.bank_accounts.manage',
     'pos.view',
     'pos.transact',
@@ -867,6 +886,8 @@ export const ROLE_PERMISSION_MAP: Record<string, string[]> = {
     'accounting.fixed_asset.depreciate',
     'accounting.bank_recon.view',
     'accounting.bank_recon.manage',
+    'accounting.hpp.view',
+    'accounting.hpp.adjust',
     'settings.bank_accounts.manage',
     'tax.view',
     'tax.manage_rates',

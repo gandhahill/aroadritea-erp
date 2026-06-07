@@ -167,7 +167,7 @@ export function Sidebar({
         { label: t('receivables'), href: '/accounting/receivables', icon: <></>, permission: 'accounting.view' },
         { label: t('periods'), href: '/accounting/periods', icon: <></>, permission: 'accounting.period.open' },
         { label: t('financialClose'), href: '/accounting/close-center', icon: <></>, permission: 'accounting.view' },
-        { label: t('hppAdjustment'), href: '/accounting/hpp', icon: <></>, permission: 'accounting.journal.create' },
+        { label: t('hppAdjustment'), href: '/accounting/hpp', icon: <></>, permission: 'accounting.hpp.view' },
         { label: t('pettyCash'), href: '/accounting/petty-cash', icon: <></>, permission: 'accounting.petty_cash.view' },
         { label: t('reimbursement'), href: '/accounting/reimbursement', icon: <></>, permission: 'accounting.reimbursement.view' },
         { label: t('bankReconciliation'), href: '/accounting/bank-recon', icon: <></>, permission: 'accounting.bank_recon.view' },
@@ -375,6 +375,7 @@ export function Sidebar({
         { label: t('attendance'), href: '/hr/attendance', icon: <></> },
         { label: t('myAttendance'), href: '/hr/my-attendance', icon: <></> },
         { label: t('leave'), href: '/hr/leave', icon: <></> },
+        { label: t('myLeave'), href: '/hr/my-leave', icon: <></> },
         { label: t('kasbon'), href: '/hr/kasbon', icon: <></> },
         { label: t('overtime'), href: '/hr/overtime', icon: <></> },
         { label: t('payroll'), href: '/hr/payroll', icon: <></> },
@@ -616,6 +617,7 @@ export function Sidebar({
     '/hr/checkin',
     '/hr/my-attendance',
     '/hr/my-payslips',
+    '/hr/my-leave',
     '/whistleblower'
   ];
 

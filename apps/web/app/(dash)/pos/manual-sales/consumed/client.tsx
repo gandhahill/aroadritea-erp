@@ -90,13 +90,20 @@ function formatHistoryQty(value: string): string {
   return new Intl.NumberFormat(undefined, { maximumFractionDigits: 3 }).format(numberValue);
 }
 
+/** Render a UTC ISO timestamp as a WIB (Asia/Jakarta) calendar date YYYY-MM-DD. */
+function toWibDate(iso: string): string {
+  const d = new Date(iso);
+  if (!Number.isFinite(d.getTime())) return iso.slice(0, 10);
+  return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+}
+
 export function ConsumedClient({ data, defaultLocationId }: Props) {
   const t = useTranslations('pos.manualSales');
   const router = useRouter();
   const [state, submitAction, isPending] = useActionState(createConsumedIngredientsAction, null);
   const [referenceId, setReferenceId] = useState<string | null>(null);
   const [editLocationId, setEditLocationId] = useState(defaultLocationId);
-  const [entryDate, setEntryDate] = useState(new Date().toISOString().slice(0, 10));
+  const [entryDate, setEntryDate] = useState(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }));
   const [entryNotes, setEntryNotes] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -115,7 +122,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
       setConsumedIngredients([]);
       setReferenceId(null);
       setEditLocationId(defaultLocationId);
-      setEntryDate(new Date().toISOString().slice(0, 10));
+      setEntryDate(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }));
       setEntryNotes('');
       router.refresh();
     }
@@ -144,7 +151,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
   const resetEdit = () => {
     setReferenceId(null);
     setEditLocationId(defaultLocationId);
-    setEntryDate(new Date().toISOString().slice(0, 10));
+    setEntryDate(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }));
     setEntryNotes('');
     setConsumedIngredients([]);
   };
@@ -395,7 +402,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
             <TableBody className="divide-y divide-brand-cream-3">
               {(() => {
                 const filtered = data.history.items.filter((item) => {
-                  const dateStr = item.occurredAt.slice(0, 10);
+                  const dateStr = toWibDate(item.occurredAt);
                   if (historyDateFrom && dateStr < historyDateFrom) return false;
                   if (historyDateTo && dateStr > historyDateTo) return false;
                   if (historyLocationFilter && item.locationId !== historyLocationFilter) return false;
@@ -410,7 +417,7 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
               ) : (
                 filtered.map((item) => (
                   <tr key={item.id} className="text-brand-ink hover:bg-brand-cream/50">
-                    <Td>{item.occurredAt.slice(0, 10)}</Td>
+                    <Td>{toWibDate(item.occurredAt)}</Td>
                     <Td>{item.locationLabel || '-'}</Td>
                     <Td>
                       <div className="text-sm font-medium text-brand-ink">

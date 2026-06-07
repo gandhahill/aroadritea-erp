@@ -25,6 +25,7 @@ export interface ProductFormInitial {
   defaultSellPrice: string;
   defaultCostPrice: string;
   taxCode: string | null;
+  hppCategory: 'hpp' | 'supply_expense' | null;
   imageUrl: string | null;
   isActive: boolean;
   version: number;

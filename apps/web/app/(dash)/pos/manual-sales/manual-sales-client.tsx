@@ -85,6 +85,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
   const [historyDateFrom, setHistoryDateFrom] = useState('');
   const [historyDateTo, setHistoryDateTo] = useState('');
   const [historyLocationFilter, setHistoryLocationFilter] = useState('');
+  const [historyPaymentFilter, setHistoryPaymentFilter] = useState('');
 
   // Automatically calculate grossSales from lineItems if only 1 payment exists
   useEffect(() => {
@@ -622,6 +623,19 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                 <option key={loc.id} value={loc.id}>{loc.label}</option>
               ))}
             </Select>
+            <Select
+              value={historyPaymentFilter}
+              onChange={(e) => setHistoryPaymentFilter(e.target.value)}
+              className="w-40 text-sm"
+            >
+              <option value="">{t('allPaymentMethods')}</option>
+              <option value="cash">{t('cash')}</option>
+              <option value="qris">QRIS</option>
+              <option value="card">{t('card', { defaultValue: 'Kartu' })}</option>
+              <option value="gofood">GoFood</option>
+              <option value="grabfood">GrabFood</option>
+              <option value="shopeefood">ShopeeFood</option>
+            </Select>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -650,6 +664,7 @@ export function ManualSalesClient({ data, defaultLocationId }: Props) {
                   if (historyDateFrom && item.salesDate < historyDateFrom) return false;
                   if (historyDateTo && item.salesDate > historyDateTo) return false;
                   if (historyLocationFilter && item.locationId !== historyLocationFilter) return false;
+                  if (historyPaymentFilter && item.paymentMethod !== historyPaymentFilter) return false;
                   return true;
                 });
                 return filtered.length === 0 ? (

@@ -25,6 +25,8 @@ export type PermissionCode =
   | 'accounting.fixed_asset.depreciate'
   | 'accounting.bank_recon.view'
   | 'accounting.bank_recon.manage'
+  | 'accounting.hpp.view'
+  | 'accounting.hpp.adjust'
   | 'tax.view'
   | 'tax.manage_rates'
   | 'tax.manage_global_rates'

@@ -1,6 +1,7 @@
 import { PageHeader } from '@/components/page-header';
 import { getSession } from '@/lib/auth';
 import { getActiveLocationOptions } from '@/lib/location-options';
+import { can } from '@erp/services/iam';
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
@@ -13,6 +14,9 @@ export default async function HppPage() {
   if (!session?.user) redirect('/login');
   const user = session.user as Record<string, unknown>;
   const tenantId = String(user.tenantId ?? 'default');
+  const userId = String(user.id ?? '');
+  const allowed = await can(userId, 'accounting.hpp.view');
+  if (!allowed) redirect('/dashboard');
   const locale = (await getLocale()) as 'id' | 'en' | 'zh';
   const t = await getTranslations('accounting.hpp');
 

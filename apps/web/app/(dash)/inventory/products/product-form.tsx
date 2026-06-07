@@ -152,6 +152,14 @@ export function ProductForm({ mode, categories, product, defaultKind, locations 
               <option value="PPN_IN">PPN_IN</option>
             </Select>
           </Field>
+          <Field label={f('hppCategory')}>
+            <Select name="hppCategory" defaultValue={product?.hppCategory ?? ''}>
+              <option value="">{f('hppCategoryNone')}</option>
+              <option value="hpp">{f('hppCategoryHpp')}</option>
+              <option value="supply_expense">{f('hppCategorySupply')}</option>
+            </Select>
+            <p className="mt-1 text-[11px] text-brand-ink-3">{f('hppCategoryHint')}</p>
+          </Field>
         </div>
         <div className="mt-4">
           <FileUploadField

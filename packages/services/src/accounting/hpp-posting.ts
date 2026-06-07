@@ -22,6 +22,7 @@ import type { AuditContext } from '@erp/shared/types';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
 import { createJournal } from './create-journal';
+import { postJournal } from './post-journal';
 import { resolveAccountIdsByCodes } from './account-resolver';
 
 const HPP_ACCOUNT_CODE = '6-1110';
@@ -52,7 +53,7 @@ export async function getHppSummary(
   input: { locationId: string; periodEnd: string },
   ctx: AuditContext,
 ): Promise<Result<HppSummary>> {
-  const permCheck = await requirePermission(ctx.userId, 'accounting.journal.create', {
+  const permCheck = await requirePermission(ctx.userId, 'accounting.hpp.view', {
     locationId: input.locationId,
   });
   if (!permCheck.ok) return permCheck;
@@ -129,7 +130,7 @@ export async function postHppAdjustment(
   },
   ctx: AuditContext,
 ): Promise<Result<{ journalEntryId: string }>> {
-  const permCheck = await requirePermission(ctx.userId, 'accounting.journal.create', {
+  const permCheck = await requirePermission(ctx.userId, 'accounting.hpp.adjust', {
     locationId: input.locationId,
   });
   if (!permCheck.ok) return permCheck;
@@ -206,9 +207,9 @@ export async function postHppAdjustment(
           locationId: input.locationId,
           description: `Penyesuaian HPP & Perlengkapan akhir periode ${input.periodEnd}`,
           postingDate: input.periodEnd,
-          reference: `HPP-ADJ-${input.periodEnd}`,
-          lines,
-          status: 'posted',
+          referenceType: 'manual',
+          referenceId: `HPP-ADJ-${input.periodEnd}`,
+          lines: lines.map((l) => ({ ...l, locationId: input.locationId })),
           idempotencyKey: `hpp-adj-${input.locationId}-${input.periodEnd}`,
         },
         ctx,
@@ -216,6 +217,12 @@ export async function postHppAdjustment(
       );
 
       if (!result.ok) throw result.error;
+
+      // createJournal produces a draft; post it to the ledger immediately.
+      const posted = await postJournal({ journalId: result.value.id }, ctx, {
+        skipPermissionCheck: true,
+      });
+      if (!posted.ok) throw posted.error;
 
       await auditRecord({
         action: 'create',

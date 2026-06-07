@@ -36,6 +36,7 @@ export interface ProductDetailResult extends ProductResult {
   revenueAccountId: string | null;
   inventoryAccountId: string | null;
   taxCode: string | null;
+  hppCategory: 'hpp' | 'supply_expense' | null;
   imageUrl: string | null;
   variants: VariantResult[];
   createdAt: Date;
@@ -247,6 +248,7 @@ export async function getProduct(
           revenueAccountId: products.revenueAccountId,
           inventoryAccountId: products.inventoryAccountId,
           taxCode: products.taxCode,
+          hppCategory: products.hppCategory,
           imageUrl: products.imageUrl,
           isActive: products.isActive,
           version: products.version,
@@ -301,6 +303,7 @@ export async function getProduct(
         revenueAccountId: row.revenueAccountId,
         inventoryAccountId: row.inventoryAccountId,
         taxCode: row.taxCode,
+        hppCategory: row.hppCategory as 'hpp' | 'supply_expense' | null,
         imageUrl: row.imageUrl,
         isActive: row.isActive,
         version: row.version,

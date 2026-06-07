@@ -342,7 +342,9 @@ export async function fetchConsumedIngredientDetailAction(referenceId: string) {
     value: {
       referenceId,
       locationId,
-      date: rows[0]?.occurredAt.toISOString().slice(0, 10) ?? new Date().toISOString().slice(0, 10),
+      date:
+        rows[0]?.occurredAt.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }) ??
+        new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' }),
       notes: rows[0]?.notes ?? '',
       consumedIngredients: rows.map((row) => ({
         ingredientId: row.ingredientId,

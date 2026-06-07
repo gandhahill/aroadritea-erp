@@ -1503,7 +1503,12 @@
         "kindMerchandise": "Merchandise",
         "kindConsumable": "Consumable",
         "kindService": "Service",
-        "taxCodeNone": "No tax"
+        "taxCodeNone": "No tax",
+        "hppCategory": "COGS Category",
+        "hppCategoryNone": "Not a COGS component",
+        "hppCategoryHpp": "Counts as COGS",
+        "hppCategorySupply": "Supplies Expense",
+        "hppCategoryHint": "Decide whether this item's cost goes into COGS or supplies expense at month-end adjustment. Auxiliary supplies that become part of the product can be set as COGS."
       },
       "variants": {
         "add": "Add variant",
@@ -2000,6 +2005,7 @@
     "masterShifts": "Master Shifts",
     "recruitment": "Recruitment",
     "leave": "Leave",
+    "myLeave": "My Leave Requests",
     "kasbon": "Cash Advance",
     "overtime": "Overtime",
     "payroll": "Payroll",
@@ -2156,6 +2162,7 @@
       "notes": "Notes",
       "notesPlaceholder": "Optional notes",
       "allLocations": "All locations",
+      "allPaymentMethods": "All payment methods",
       "dateFrom": "From date",
       "dateTo": "To date",
       "walkIn": "Walk-in",
@@ -2948,6 +2955,32 @@
         "forgiveFailed": "Failed to forgive tardiness."
       },
       "reasonMinLength": "Reason must be at least 3 characters."
+    },
+    "myLeave": {
+      "title": "My Leave Requests",
+      "subtitle": "Submit leave and track the status of your own requests.",
+      "notLinked": "Your account is not linked to an employee record. Contact HR to link it.",
+      "newRequest": "Submit New Leave",
+      "leaveType": "Leave Type",
+      "selectLeaveType": "Select leave type",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "reason": "Reason",
+      "reasonPlaceholder": "Reason for leave (optional)",
+      "submit": "Submit",
+      "myRequests": "My Requests",
+      "period": "Period",
+      "days": "Days",
+      "status": "Status",
+      "actions": "Actions",
+      "empty": "No leave requests yet.",
+      "cancel": "Cancel",
+      "statusLabel": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled"
+      }
     },
     "myAttendance": {
       "title": "My Attendance History",

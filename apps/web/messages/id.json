@@ -1503,7 +1503,12 @@
         "kindMerchandise": "Merchandise",
         "kindConsumable": "Perlengkapan habis pakai",
         "kindService": "Jasa",
-        "taxCodeNone": "Tanpa pajak"
+        "taxCodeNone": "Tanpa pajak",
+        "hppCategory": "Kategori HPP",
+        "hppCategoryNone": "Bukan unsur HPP",
+        "hppCategoryHpp": "Masuk HPP (Harga Pokok)",
+        "hppCategorySupply": "Beban Perlengkapan",
+        "hppCategoryHint": "Tentukan apakah biaya barang ini masuk HPP atau beban perlengkapan saat penyesuaian akhir bulan. Perlengkapan/bahan penolong yang menjadi bagian produk dapat dipilih sebagai HPP."
       },
       "variants": {
         "add": "Tambah varian",
@@ -2001,6 +2006,7 @@
     "masterShifts": "Data Master Shift",
     "recruitment": "Rekrutmen",
     "leave": "Cuti",
+    "myLeave": "Pengajuan Cuti Saya",
     "kasbon": "Kasbon",
     "overtime": "Lembur",
     "payroll": "Penggajian",
@@ -2156,6 +2162,7 @@
       "notes": "Catatan",
       "notesPlaceholder": "Catatan opsional",
       "allLocations": "Semua lokasi",
+      "allPaymentMethods": "Semua metode bayar",
       "dateFrom": "Dari tanggal",
       "dateTo": "Sampai tanggal",
       "walkIn": "Walk-in",
@@ -3027,6 +3034,32 @@
         "forgiveFailed": "Gagal memberi dispensasi keterlambatan."
       },
       "reasonMinLength": "Alasan minimal 3 karakter."
+    },
+    "myLeave": {
+      "title": "Pengajuan Cuti Saya",
+      "subtitle": "Ajukan cuti dan pantau status pengajuan Anda sendiri.",
+      "notLinked": "Akun Anda belum terhubung ke data karyawan. Hubungi HR untuk mengaitkan akun.",
+      "newRequest": "Ajukan Cuti Baru",
+      "leaveType": "Jenis Cuti",
+      "selectLeaveType": "Pilih jenis cuti",
+      "startDate": "Tanggal Mulai",
+      "endDate": "Tanggal Selesai",
+      "reason": "Alasan",
+      "reasonPlaceholder": "Alasan cuti (opsional)",
+      "submit": "Ajukan",
+      "myRequests": "Pengajuan Saya",
+      "period": "Periode",
+      "days": "Hari",
+      "status": "Status",
+      "actions": "Aksi",
+      "empty": "Belum ada pengajuan cuti.",
+      "cancel": "Batalkan",
+      "statusLabel": {
+        "pending": "Menunggu",
+        "approved": "Disetujui",
+        "rejected": "Ditolak",
+        "cancelled": "Dibatalkan"
+      }
     },
     "myAttendance": {
       "title": "Riwayat Presensi Saya",

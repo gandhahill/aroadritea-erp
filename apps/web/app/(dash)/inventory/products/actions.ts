@@ -94,6 +94,12 @@ function positiveNumber(formData: FormData, key: string) {
   return Number.isFinite(value) && value > 0 ? value : undefined;
 }
 
+function hppCategory(formData: FormData): 'hpp' | 'supply_expense' | null {
+  const value = text(formData, 'hppCategory');
+  if (value === 'hpp' || value === 'supply_expense') return value;
+  return null;
+}
+
 function localeName(formData: FormData, prefix: string) {
   // Some forms post one primary language only (product uses `nameEn`,
   // variant uses `variantNameId`). Mirror the first non-empty value so
@@ -235,6 +241,7 @@ export async function createProductAction(
       defaultCostPrice: money(formData, 'defaultCostPrice'),
       imageUrl: optionalText(formData, 'imageUrl'),
       taxCode: optionalText(formData, 'taxCode'),
+      hppCategory: hppCategory(formData),
       initialStocks: Array.from(formData.entries())
         .filter(([key]) => key.startsWith('initialStock_'))
         .map(([key, value]) => ({
@@ -280,6 +287,7 @@ export async function updateProductAction(
       defaultCostPrice: money(formData, 'defaultCostPrice'),
       imageUrl: optionalText(formData, 'imageUrl') ?? null,
       taxCode: optionalText(formData, 'taxCode') ?? null,
+      hppCategory: hppCategory(formData),
       isActive: formData.get('isActive') === 'on',
     },
     ctx,

@@ -129,6 +129,7 @@ export async function createProduct(
         revenueAccountId: data.revenueAccountId ?? null,
         inventoryAccountId: data.inventoryAccountId ?? null,
         taxCode: data.taxCode ?? null,
+        hppCategory: data.hppCategory ?? null,
         imageUrl: data.imageUrl ?? null,
         isActive: true,
         version: 1,

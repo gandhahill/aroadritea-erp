@@ -1503,7 +1503,12 @@
         "kindMerchandise": "商品",
         "kindConsumable": "消耗品",
         "kindService": "服务",
-        "taxCodeNone": "无税"
+        "taxCodeNone": "无税",
+        "hppCategory": "销货成本分类",
+        "hppCategoryNone": "非销货成本项目",
+        "hppCategoryHpp": "计入销货成本",
+        "hppCategorySupply": "耗材费用",
+        "hppCategoryHint": "决定该项目成本在月末调整时计入销货成本还是耗材费用。成为产品组成部分的辅料可设为销货成本。"
       },
       "variants": {
         "add": "添加规格",
@@ -1994,6 +1999,7 @@
     "masterShifts": "班次主数据",
     "recruitment": "招聘",
     "leave": "请假",
+    "myLeave": "我的请假申请",
     "kasbon": "预支工资",
     "overtime": "加班",
     "payroll": "工资单",
@@ -2156,6 +2162,7 @@
       "notes": "备注",
       "notesPlaceholder": "可选备注",
       "allLocations": "所有位置",
+      "allPaymentMethods": "所有支付方式",
       "dateFrom": "开始日期",
       "dateTo": "结束日期",
       "walkIn": "到店",
@@ -2948,6 +2955,32 @@
         "forgiveFailed": "宽恕迟到失败。"
       },
       "reasonMinLength": "原因至少需要3个字符。"
+    },
+    "myLeave": {
+      "title": "我的请假申请",
+      "subtitle": "提交请假并跟踪您自己申请的状态。",
+      "notLinked": "您的账户尚未关联到员工记录。请联系人力资源部进行关联。",
+      "newRequest": "提交新请假",
+      "leaveType": "请假类型",
+      "selectLeaveType": "选择请假类型",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "reason": "原因",
+      "reasonPlaceholder": "请假原因（可选）",
+      "submit": "提交",
+      "myRequests": "我的申请",
+      "period": "期间",
+      "days": "天数",
+      "status": "状态",
+      "actions": "操作",
+      "empty": "暂无请假申请。",
+      "cancel": "取消",
+      "statusLabel": {
+        "pending": "待审批",
+        "approved": "已批准",
+        "rejected": "已拒绝",
+        "cancelled": "已取消"
+      }
     },
     "myAttendance": {
       "title": "我的考勤记录",

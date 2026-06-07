@@ -116,6 +116,7 @@ export async function updateProduct(
   if (data.revenueAccountId !== undefined) updates.revenueAccountId = data.revenueAccountId;
   if (data.inventoryAccountId !== undefined) updates.inventoryAccountId = data.inventoryAccountId;
   if (data.taxCode !== undefined) updates.taxCode = data.taxCode;
+  if (data.hppCategory !== undefined) updates.hppCategory = data.hppCategory;
   if (data.imageUrl !== undefined) updates.imageUrl = data.imageUrl;
   if (data.isActive !== undefined) updates.isActive = data.isActive;
 

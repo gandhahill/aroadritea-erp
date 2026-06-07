@@ -226,7 +226,7 @@ export function PrintInvoiceClient({ data, printType, labels }: PrintInvoiceClie
             <p className="text-xs font-semibold uppercase tracking-wider text-brand-ink-3 mb-1">
               {labels.amountInWords}
             </p>
-            <p className="text-sm font-medium text-brand-ink italic"># {terbilang} #</p>
+            <p className="text-sm font-medium text-brand-ink italic">{terbilang}</p>
           </div>
         )}
 

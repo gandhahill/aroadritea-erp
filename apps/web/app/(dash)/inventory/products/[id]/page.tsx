@@ -47,6 +47,7 @@ export default async function ProductDetailPage({ params }: Props) {
         defaultSellPrice: data.product.defaultSellPrice,
         defaultCostPrice: data.product.defaultCostPrice,
         taxCode: data.product.taxCode,
+        hppCategory: data.product.hppCategory,
         imageUrl: data.product.imageUrl,
         isActive: data.product.isActive,
         version: data.product.version,
