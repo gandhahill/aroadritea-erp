@@ -61,7 +61,7 @@ export function ShipmentDetailClient({ detail }: { detail: ShipmentDetail }) {
           action={async (formData) => {
             await syncPurchaseShipmentAction(formData);
           }}
-          className="mt-4 grid gap-3 md:grid-cols-[10rem_1fr_8rem_auto]"
+          className="mt-4 grid gap-3 md:grid-cols-[10rem_1fr_auto]"
         >
           <input type="hidden" name="poId" value={detail.poId} />
           <div>
@@ -81,15 +81,6 @@ export function ShipmentDetailClient({ detail }: { detail: ShipmentDetail }) {
           <div>
             <label className="text-xs font-semibold text-brand-ink-3">{tBase('awb')}</label>
             <Input name="awb" defaultValue={detail.awb ?? ''} placeholder="0123456789" />
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-brand-ink-3">{tBase('phoneLast5')}</label>
-            <Input
-              name="phoneLast5"
-              defaultValue={detail.phoneLast5 ?? ''}
-              placeholder="12345"
-              maxLength={5}
-            />
           </div>
           <button
             type="submit"

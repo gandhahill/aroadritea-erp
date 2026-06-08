@@ -28,6 +28,8 @@ import {
   confirmGRN,
   createGRN,
   createPO,
+  submitPO,
+  approvePO,
   trackPurchaseOrderShipment,
   createPurchaseInvoice,
   verifyPurchaseInvoice,
@@ -457,6 +459,37 @@ export async function createPurchaseOrderAction(
   if (!result.ok) return { success: false, error: result.error.message };
 
   revalidatePath('/purchasing');
+  return { success: true };
+}
+
+/**
+ * Advance a PO through its approval workflow (draft → submitted → approved).
+ * This is independent of shipment tracking / resi — a PO never needs a
+ * tracking number to change status.
+ */
+export async function submitPurchaseOrderAction(formData: FormData): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const t = await getTranslations('purchasing.errors');
+  if (!ctx) return { success: false, error: t('invalidSession') };
+  const poId = String(formData.get('poId') ?? '');
+  if (!poId) return { success: false, error: t('invalidSession') };
+  const result = await submitPO({ poId }, ctx as any);
+  if (!result.ok) return { success: false, error: result.error.message };
+  revalidatePath('/purchasing');
+  revalidatePath(`/purchasing/po/${poId}`);
+  return { success: true };
+}
+
+export async function approvePurchaseOrderAction(formData: FormData): Promise<ActionState> {
+  const ctx = await getSessionContext();
+  const t = await getTranslations('purchasing.errors');
+  if (!ctx) return { success: false, error: t('invalidSession') };
+  const poId = String(formData.get('poId') ?? '');
+  if (!poId) return { success: false, error: t('invalidSession') };
+  const result = await approvePO({ poId }, ctx as any);
+  if (!result.ok) return { success: false, error: result.error.message };
+  revalidatePath('/purchasing');
+  revalidatePath(`/purchasing/po/${poId}`);
   return { success: true };
 }
 

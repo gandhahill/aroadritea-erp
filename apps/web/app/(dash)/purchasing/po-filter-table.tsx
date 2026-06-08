@@ -5,7 +5,11 @@ import { Input, Select, Table, TableBody, TableCell, TableHead, TableHeader } fr
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { syncPurchaseShipmentAction } from './actions';
+import {
+  approvePurchaseOrderAction,
+  submitPurchaseOrderAction,
+  syncPurchaseShipmentAction,
+} from './actions';
 import { COURIERS } from '@erp/shared/binderbyte-couriers';
 
 interface PoRow {
@@ -152,13 +156,45 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
                     >
                       {po.status}
                     </span>
+                    {po.status === 'draft' ? (
+                      <form
+                        action={async (formData) => {
+                          await submitPurchaseOrderAction(formData);
+                        }}
+                        className="mt-2"
+                      >
+                        <input type="hidden" name="poId" value={po.id} />
+                        <button
+                          type="submit"
+                          className="rounded border border-brand-gold/40 bg-brand-gold/15 px-2 py-1 text-xs font-semibold text-brand-wood hover:bg-brand-gold/25"
+                        >
+                          {t('submitPo')}
+                        </button>
+                      </form>
+                    ) : po.status === 'submitted' ? (
+                      <form
+                        action={async (formData) => {
+                          await approvePurchaseOrderAction(formData);
+                        }}
+                        className="mt-2"
+                      >
+                        <input type="hidden" name="poId" value={po.id} />
+                        <button
+                          type="submit"
+                          className="rounded border border-brand-jade/40 bg-brand-jade/10 px-2 py-1 text-xs font-semibold text-brand-jade hover:bg-brand-jade/20"
+                        >
+                          {t('approvePo')}
+                        </button>
+                      </form>
+                    ) : null}
                   </TableCell>
                   <TableCell className="min-w-96 px-4 py-3">
+                    <p className="mb-1 text-xs text-brand-ink-3">{t('trackingOptionalHint')}</p>
                     <form
                       action={async (formData) => {
                         await syncPurchaseShipmentAction(formData);
                       }}
-                      className="grid gap-2 md:grid-cols-[88px_1fr_84px_auto]"
+                      className="grid gap-2 md:grid-cols-[88px_1fr_auto]"
                     >
                       <input type="hidden" name="poId" value={po.id} />
                       <Select
@@ -176,12 +212,6 @@ export function PoFilterTable({ purchaseOrders }: { purchaseOrders: PoRow[] }) {
                         name="awb"
                         defaultValue={po.shippingAwb ?? ''}
                         placeholder={t('awb')}
-                        className="h-8 rounded border border-brand-cream-3 bg-card px-2 text-xs"
-                      />
-                      <input
-                        name="phoneLast5"
-                        placeholder={t('phoneLast5')}
-                        maxLength={5}
                         className="h-8 rounded border border-brand-cream-3 bg-card px-2 text-xs"
                       />
                       <button

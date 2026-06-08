@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader } from '@erp/ui';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
+import { approvePurchaseOrderAction, submitPurchaseOrderAction } from '../../actions';
 import { GrnForm } from './grn-form';
 
 function shipmentBadgeClass(status: string | null, hasError: boolean): string {
@@ -143,6 +144,48 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
             </span>
           </div>
         </div>
+
+        {/* PO approval workflow (independent of shipment tracking / resi). */}
+        {po.status === 'draft' || po.status === 'submitted' ? (
+          <div className="rounded-xl border border-brand-gold/30 bg-brand-gold/5 p-5 shadow-sm">
+            <p className="text-sm font-medium text-brand-ink">{t('workflowTitle')}</p>
+            <p className="mt-1 text-xs text-brand-ink-3">{t('workflowHint')}</p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              {po.status === 'draft' ? (
+                <form
+                  action={async (formData: FormData) => {
+                    'use server';
+                    await submitPurchaseOrderAction(formData);
+                  }}
+                >
+                  <input type="hidden" name="poId" value={po.id} />
+                  <button
+                    type="submit"
+                    className="rounded-lg bg-brand-gold px-5 py-2 text-sm font-semibold text-brand-wood transition-colors hover:bg-brand-gold/90"
+                  >
+                    {t('submitPo')}
+                  </button>
+                </form>
+              ) : null}
+              {po.status === 'submitted' ? (
+                <form
+                  action={async (formData: FormData) => {
+                    'use server';
+                    await approvePurchaseOrderAction(formData);
+                  }}
+                >
+                  <input type="hidden" name="poId" value={po.id} />
+                  <button
+                    type="submit"
+                    className="rounded-lg bg-brand-jade px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-jade/90"
+                  >
+                    {t('approvePo')}
+                  </button>
+                </form>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
 
         {/* T-0185: shipment quick-status with link to detail page. */}
         <div className="rounded-xl border border-brand-cream-3 bg-card p-5 shadow-sm">
