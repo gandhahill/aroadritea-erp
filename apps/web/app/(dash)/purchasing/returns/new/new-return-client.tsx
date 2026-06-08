@@ -1,14 +1,15 @@
 'use client';
 
-import { Button, Input } from '@erp/ui';
+import { Button, Input, Select } from '@erp/ui';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { createPurchaseReturnAction, fetchGrnForReturnAction } from '../actions';
 
 interface Props {
   defaultGrnId: string;
   defaultLocationId: string;
+  grns: Array<{ id: string; number: string; poNumber: string; receivedDate: string }>;
 }
 
 interface GrnLineForm {
@@ -22,7 +23,7 @@ interface GrnLineForm {
   selected: boolean;
 }
 
-export function NewReturnClient({ defaultGrnId, defaultLocationId }: Props) {
+export function NewReturnClient({ defaultGrnId, defaultLocationId, grns }: Props) {
   const t = useTranslations('purchasing.returns');
   const router = useRouter();
   const [grnInput, setGrnInput] = useState(defaultGrnId);
@@ -40,10 +41,12 @@ export function NewReturnClient({ defaultGrnId, defaultLocationId }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  async function handleLoadGrn() {
+  async function handleLoadGrn(idArg?: string) {
+    const id = (idArg ?? grnInput).trim();
+    if (!id) return;
     setError(null);
     startTransition(async () => {
-      const res = await fetchGrnForReturnAction(grnInput.trim());
+      const res = await fetchGrnForReturnAction(id);
       if (res.error) {
         setError(res.error);
         setGrn(null);
@@ -66,6 +69,12 @@ export function NewReturnClient({ defaultGrnId, defaultLocationId }: Props) {
       );
     });
   }
+
+  // Auto-load when arriving via deep link (?grnId=...).
+  useEffect(() => {
+    if (defaultGrnId) handleLoadGrn(defaultGrnId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultGrnId]);
 
   function updateLine(idx: number, patch: Partial<GrnLineForm>) {
     setLines((ls) => ls.map((l, i) => (i === idx ? { ...l, ...patch } : l)));
@@ -119,22 +128,27 @@ export function NewReturnClient({ defaultGrnId, defaultLocationId }: Props) {
         <h2 className="text-sm font-semibold text-brand-ink">{t('step1')}</h2>
         <div className="mt-2 flex flex-wrap items-end gap-3">
           <label className="space-y-1 text-sm">
-            <span className="text-brand-ink-2">{t('grnId')}</span>
-            <Input
+            <span className="text-brand-ink-2">{t('selectGrn')}</span>
+            <Select
               value={grnInput}
-              onChange={(e) => setGrnInput(e.target.value)}
-              placeholder="grn_..."
-              className="w-72 font-mono"
-            />
+              onChange={(e) => {
+                setGrnInput(e.target.value);
+                if (e.target.value) handleLoadGrn(e.target.value);
+              }}
+              className="w-80"
+              disabled={pending}
+            >
+              <option value="">{t('selectGrnPlaceholder')}</option>
+              {grns.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.number} · {g.poNumber} · {g.receivedDate}
+                </option>
+              ))}
+            </Select>
           </label>
-          <Button
-            variant="secondary"
-            size="md"
-            onClick={handleLoadGrn}
-            disabled={pending || !grnInput.trim()}
-          >
-            {t('loadGrn')}
-          </Button>
+          {grns.length === 0 ? (
+            <p className="text-xs text-brand-ink-3">{t('noConfirmedGrn')}</p>
+          ) : null}
           {grn ? (
             <div className="text-xs text-brand-ink-3">
               <span className="font-mono text-brand-ink">{grn.number}</span> · {grn.receivedDate}

@@ -13,6 +13,7 @@ interface LineItem {
   uom: string;
   qtyOrdered: string;
   qtyReceived: string;
+  unitPrice: string;
 }
 
 export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
@@ -24,17 +25,30 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
   const [success, setSuccess] = useState(false);
 
   // local state for form inputs
-  const [receiveData, setReceiveData] = useState<
-    Record<string, { qty: string; batch: string; expiry: string }>
-  >({});
+  type RowData = {
+    qty: string;
+    price: string;
+    rejected: string;
+    rejectReason: string;
+    batch: string;
+    expiry: string;
+  };
+  const [receiveData, setReceiveData] = useState<Record<string, RowData>>({});
 
   useEffect(() => {
     // initialize state
-    const initial: Record<string, { qty: string; batch: string; expiry: string }> = {};
+    const initial: Record<string, RowData> = {};
     for (const line of lines) {
       const remaining = Number(line.qtyOrdered) - Number(line.qtyReceived);
       if (remaining > 0) {
-        initial[line.id] = { qty: remaining.toString(), batch: '', expiry: '' };
+        initial[line.id] = {
+          qty: remaining.toString(),
+          price: line.unitPrice ?? '0',
+          rejected: '0',
+          rejectReason: '',
+          batch: '',
+          expiry: '',
+        };
       }
     }
     setReceiveData(initial);
@@ -72,6 +86,9 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
           variantId: line.variantId,
           uom: line.uom,
           qtyReceived: data?.qty || '0',
+          unitPrice: (data?.price ?? '').replace(/\D/g, ''),
+          qtyRejected: data?.rejected || '0',
+          rejectReason: data?.rejectReason || '',
           batchNo: data?.batch || '',
           expiryDate: data?.expiry || '',
         };
@@ -85,11 +102,18 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
     action(formData);
   };
 
-  const updateLineData = (id: string, field: 'qty' | 'batch' | 'expiry', value: string) => {
+  const updateLineData = (id: string, field: keyof RowData, value: string) => {
     setReceiveData((prev) => ({
       ...prev,
       [id]: {
-        ...(prev[id] || { qty: '0', batch: '', expiry: '' }),
+        ...(prev[id] || {
+          qty: '0',
+          price: '0',
+          rejected: '0',
+          rejectReason: '',
+          batch: '',
+          expiry: '',
+        }),
         [field]: value,
       },
     }));
@@ -114,14 +138,24 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
                 <th className="py-2 pr-4">{t('product')}</th>
                 <th className="py-2 px-4 text-right">{t('ordered')}</th>
                 <th className="py-2 px-4 text-right">{t('alreadyReceived')}</th>
-                <th className="py-2 px-4 w-32">{t('receivingNow')}</th>
+                <th className="py-2 px-4 w-28">{t('receivingNow')}</th>
+                <th className="py-2 px-4 w-28">{t('unitPrice')}</th>
+                <th className="py-2 px-4 w-24">{t('qtyRejected')}</th>
+                <th className="py-2 px-4">{t('rejectReason')}</th>
                 <th className="py-2 px-4">{t('batchNo')}</th>
                 <th className="py-2 pl-4">{t('expiryDate')}</th>
               </tr>
             </thead>
             <TableBody className="divide-y divide-brand-cream-3">
               {receivableLines.map((line) => {
-                const data = receiveData[line.id] || { qty: '0', batch: '', expiry: '' };
+                const data = receiveData[line.id] || {
+                  qty: '0',
+                  price: line.unitPrice ?? '0',
+                  rejected: '0',
+                  rejectReason: '',
+                  batch: '',
+                  expiry: '',
+                };
                 const remaining = Number(line.qtyOrdered) - Number(line.qtyReceived);
 
                 return (
@@ -149,6 +183,37 @@ export function GrnForm({ poId, lines }: { poId: string; lines: LineItem[] }) {
                         />
                         <span className="text-xs text-brand-ink-3">{line.uom}</span>
                       </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        value={data.price}
+                        onChange={(e) =>
+                          updateLineData(line.id, 'price', e.target.value.replace(/\D/g, ''))
+                        }
+                        placeholder="0"
+                        className="w-full rounded-md border border-brand-cream-3 bg-brand-cream px-2 py-1.5 text-right font-mono text-sm focus:border-brand-red focus:outline-none"
+                      />
+                    </td>
+                    <td className="py-3 px-4">
+                      <Input
+                        type="number"
+                        step="0.001"
+                        min="0"
+                        value={data.rejected}
+                        onChange={(e) => updateLineData(line.id, 'rejected', e.target.value)}
+                        className="w-full rounded-md border border-brand-cream-3 bg-brand-cream px-2 py-1.5 text-right font-mono text-sm focus:border-brand-red focus:outline-none"
+                      />
+                    </td>
+                    <td className="py-3 px-4">
+                      <Input
+                        type="text"
+                        value={data.rejectReason}
+                        onChange={(e) => updateLineData(line.id, 'rejectReason', e.target.value)}
+                        placeholder={t('rejectReasonPlaceholder')}
+                        className="w-full rounded-md border border-brand-cream-3 bg-brand-cream px-2 py-1.5 text-sm focus:border-brand-red focus:outline-none"
+                      />
                     </td>
                     <td className="py-3 px-4">
                       <Input

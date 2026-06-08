@@ -137,7 +137,12 @@ export default async function GRNReportPage({ searchParams }: Props) {
                     {report.receivedDate}
                   </TableCell>
                   <TableCell className="px-4 py-3 font-medium text-brand-ink">
-                    {report.number}
+                    <Link
+                      href={`/purchasing/grn/${report.id}`}
+                      className="text-brand-red hover:underline"
+                    >
+                      {report.number}
+                    </Link>
                   </TableCell>
                   <TableCell className="px-4 py-3 font-medium text-brand-ink">
                     <Link

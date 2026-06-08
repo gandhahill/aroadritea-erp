@@ -73,6 +73,7 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
       uom: purchaseOrderLines.uom,
       qtyOrdered: purchaseOrderLines.qtyOrdered,
       qtyReceived: purchaseOrderLines.qtyReceived,
+      unitPrice: purchaseOrderLines.unitPrice,
     })
     .from(purchaseOrderLines)
     .leftJoin(products, eq(purchaseOrderLines.productId, products.id))
@@ -105,6 +106,8 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
   const formattedLines = poLines.map((l) => ({
     ...l,
     productName: formatProductName(l.productName),
+    // bigint is not serialisable to client components — stringify the price.
+    unitPrice: String(l.unitPrice ?? 0),
   }));
 
   const localizedLocation = (nameData: any) => {

@@ -293,6 +293,9 @@ export async function createGRN(rawInput: unknown, ctx: AuditContext): Promise<R
     productId: line.productId,
     variantId: line.variantId ?? null,
     qtyReceived: line.qtyReceived,
+    qtyRejected: line.qtyRejected ?? '0',
+    rejectReason: line.rejectReason ?? null,
+    unitPrice: line.unitPrice != null && line.unitPrice !== '' ? BigInt(line.unitPrice) : null,
     uom: line.uom,
     batchNo: line.batchNo ?? null,
     expiryDate: line.expiryDate ?? null,
@@ -481,11 +484,16 @@ export async function confirmGRN(
         let totalValue = 0n;
         const inventoryValueByAccount = new Map<string, bigint>();
 
+        // Effective unit price for a GRN line: the price captured at receiving
+        // (grn_lines.unitPrice) when present, otherwise the PO line price.
+        const effectivePrice = (line: (typeof lines)[number], poLine: { unitPrice: bigint }) =>
+          line.unitPrice != null ? line.unitPrice : poLine.unitPrice;
+
         for (const line of lines) {
           const poLine = poLineMap.get(line.poLineId);
           if (poLine) {
             const qty = BigInt(Math.round(Number.parseFloat(line.qtyReceived) * 1000));
-            const lineValue = (qty * poLine.unitPrice) / 1000n;
+            const lineValue = (qty * effectivePrice(line, poLine)) / 1000n;
             totalValue += lineValue;
 
             const invAccountId = await resolveInventoryAccountForProduct(
@@ -595,6 +603,16 @@ export async function confirmGRN(
             });
           }
 
+          // Back-fill the PO line price when it was unknown (0) at order time
+          // and the actual price was entered at receiving.
+          if ((poLine.unitPrice === 0n || poLine.unitPrice === null) && line.unitPrice != null) {
+            await tx
+              .update(purchaseOrderLines)
+              .set({ unitPrice: line.unitPrice, updatedBy: ctx.userId })
+              .where(eq(purchaseOrderLines.id, poLine.id));
+            poLine.unitPrice = line.unitPrice;
+          }
+
           poLineMap.set(poLine.id, {
             ...poLine,
             qtyReceived: (
@@ -621,7 +639,7 @@ export async function confirmGRN(
             reason: 'purchase' as const,
             referenceType: 'grn' as const,
             referenceId: grn.id,
-            unitCost: poLine?.unitPrice ?? null,
+            unitCost: line.unitPrice ?? poLine?.unitPrice ?? null,
             createdBy: ctx.userId,
             updatedBy: ctx.userId,
           };
@@ -653,7 +671,7 @@ export async function confirmGRN(
             const newQty = oldQty + recQty;
             const oldAvgCost = existingStock.avgUnitCost ?? 0n;
             const poLine = poLineMap.get(line.poLineId);
-            const unitCost = poLine?.unitPrice ?? 0n;
+            const unitCost = line.unitPrice ?? poLine?.unitPrice ?? 0n;
 
             let newAvgCost = unitCost;
             if (newQty > 0.001) {
@@ -672,7 +690,7 @@ export async function confirmGRN(
               .where(eq(stockLevels.id, existingStock.id));
           } else {
             const poLine = poLineMap.get(line.poLineId);
-            const unitCost = poLine?.unitPrice ?? 0n;
+            const unitCost = line.unitPrice ?? poLine?.unitPrice ?? 0n;
 
             await tx.insert(stockLevels).values({
               id: generateId(),

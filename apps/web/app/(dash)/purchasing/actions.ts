@@ -612,6 +612,9 @@ export async function fetchShipmentDashboard(): Promise<{
     .where(
       and(
         eq(purchaseOrders.tenantId, ctx.tenantId),
+        // Once goods are fully received (or PO closed/cancelled) there is
+        // nothing left to track — keep the shipments board to in-progress POs.
+        sql`${purchaseOrders.status} NOT IN ('received', 'closed', 'cancelled')`,
         ...(viewScope.global
           ? []
           : [inArray(purchaseOrders.locationId, viewScope.locationIds)]),
@@ -748,11 +751,16 @@ export async function receiveGoodsAction(
     const parsedLines = JSON.parse(linesJson);
     for (const line of parsedLines) {
       if (Number(line.qtyReceived) > 0) {
+        const rejected = String(line.qtyRejected ?? '').trim();
+        const price = String(line.unitPrice ?? '').replace(/\D/g, '');
         lines.push({
           poLineId: line.poLineId,
           productId: line.productId,
           variantId: line.variantId || undefined,
           qtyReceived: String(line.qtyReceived),
+          qtyRejected: rejected && Number(rejected) > 0 ? rejected : undefined,
+          rejectReason: line.rejectReason ? String(line.rejectReason) : undefined,
+          unitPrice: price ? price : undefined,
           uom: line.uom,
           batchNo: line.batchNo || undefined,
           expiryDate: line.expiryDate || undefined,
@@ -965,4 +973,136 @@ export async function createRFQAction(input: unknown) {
     revalidatePath('/purchasing');
   }
   return res;
+}
+
+export interface GrnDetail {
+  id: string;
+  number: string;
+  status: string;
+  receivedDate: string;
+  notes: string | null;
+  poId: string;
+  poNumber: string;
+  supplierName: string;
+  locationName: string;
+  lines: Array<{
+    id: string;
+    productName: string;
+    uom: string;
+    qtyReceived: string;
+    qtyRejected: string;
+    rejectReason: string | null;
+    unitPrice: string | null;
+    batchNo: string | null;
+    expiryDate: string | null;
+  }>;
+}
+
+/** Load a single GRN with its lines for the GRN detail view. */
+export async function fetchGrnDetail(grnId: string): Promise<GrnDetail | null> {
+  const ctx = await getSessionContext();
+  if (!ctx) return null;
+  const [g] = await db
+    .select({
+      id: goodsReceiptNotes.id,
+      number: goodsReceiptNotes.number,
+      status: goodsReceiptNotes.status,
+      receivedDate: goodsReceiptNotes.receivedDate,
+      notes: goodsReceiptNotes.notes,
+      locationId: goodsReceiptNotes.locationId,
+      poId: goodsReceiptNotes.purchaseOrderId,
+      poNumber: purchaseOrders.number,
+      supplierName: partners.name,
+      locationName: locations.name,
+    })
+    .from(goodsReceiptNotes)
+    .leftJoin(purchaseOrders, eq(goodsReceiptNotes.purchaseOrderId, purchaseOrders.id))
+    .leftJoin(partners, eq(purchaseOrders.supplierId, partners.id))
+    .leftJoin(locations, eq(goodsReceiptNotes.locationId, locations.id))
+    .where(and(eq(goodsReceiptNotes.tenantId, ctx.tenantId), eq(goodsReceiptNotes.id, grnId)))
+    .limit(1);
+  if (!g) return null;
+
+  const allowed = await requirePermissionAtLocation(ctx.userId, 'purchasing.view', g.locationId);
+  if (!allowed) return null;
+
+  const lineRows = await db
+    .select({
+      id: grnLines.id,
+      productName: products.name,
+      uom: grnLines.uom,
+      qtyReceived: grnLines.qtyReceived,
+      qtyRejected: grnLines.qtyRejected,
+      rejectReason: grnLines.rejectReason,
+      unitPrice: grnLines.unitPrice,
+      batchNo: grnLines.batchNo,
+      expiryDate: grnLines.expiryDate,
+    })
+    .from(grnLines)
+    .leftJoin(products, eq(grnLines.productId, products.id))
+    .where(eq(grnLines.grnId, g.id))
+    .orderBy(grnLines.lineNo);
+
+  return {
+    id: g.id,
+    number: g.number,
+    status: g.status,
+    receivedDate: g.receivedDate,
+    notes: g.notes,
+    poId: g.poId,
+    poNumber: g.poNumber ?? '—',
+    supplierName: localizedName(g.supplierName),
+    locationName: localizedName(g.locationName),
+    lines: lineRows.map((l) => ({
+      id: l.id,
+      productName: localizedName(l.productName),
+      uom: l.uom,
+      qtyReceived: String(Number(l.qtyReceived)),
+      qtyRejected: String(Number(l.qtyRejected ?? '0')),
+      rejectReason: l.rejectReason,
+      unitPrice: l.unitPrice != null ? String(l.unitPrice) : null,
+      batchNo: l.batchNo,
+      expiryDate: l.expiryDate,
+    })),
+  };
+}
+
+/** Confirmed GRNs in the user's authorized locations — for the return picker. */
+export async function listConfirmedGrnsForReturn(): Promise<
+  Array<{ id: string; number: string; poNumber: string; receivedDate: string }>
+> {
+  const ctx = await getSessionContext();
+  if (!ctx) return [];
+  const scope = await authorizedLocationIdsForTenant(
+    ctx.userId,
+    'purchasing.return.create',
+    ctx.tenantId,
+  );
+  if (!scope.global && scope.locationIds.length === 0) return [];
+
+  const rows = await db
+    .select({
+      id: goodsReceiptNotes.id,
+      number: goodsReceiptNotes.number,
+      poNumber: purchaseOrders.number,
+      receivedDate: goodsReceiptNotes.receivedDate,
+    })
+    .from(goodsReceiptNotes)
+    .leftJoin(purchaseOrders, eq(goodsReceiptNotes.purchaseOrderId, purchaseOrders.id))
+    .where(
+      and(
+        eq(goodsReceiptNotes.tenantId, ctx.tenantId),
+        eq(goodsReceiptNotes.status, 'confirmed'),
+        ...(scope.global ? [] : [inArray(goodsReceiptNotes.locationId, scope.locationIds)]),
+      ),
+    )
+    .orderBy(desc(goodsReceiptNotes.receivedDate))
+    .limit(200);
+
+  return rows.map((r) => ({
+    id: r.id,
+    number: r.number,
+    poNumber: r.poNumber ?? '—',
+    receivedDate: r.receivedDate,
+  }));
 }

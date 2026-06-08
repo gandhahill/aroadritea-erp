@@ -266,6 +266,14 @@ export const grnLines = pgTable(
     variantId: text('variant_id'), // FK product_variants
 
     qtyReceived: numeric('qty_received', { precision: 14, scale: 3 }).notNull(),
+    // Quality check: qty rejected (damaged / not matching) — recorded for the
+    // record (and to drive a claim/return); only qtyReceived enters stock.
+    qtyRejected: numeric('qty_rejected', { precision: 14, scale: 3 }).notNull().default('0'),
+    rejectReason: text('reject_reason'),
+    // Actual unit price captured at receiving (money, integer rupiah). When the
+    // PO price was unknown (0) at order time, the price entered here is used for
+    // valuation and back-fills the PO line price.
+    unitPrice: bigint('unit_price', { mode: 'bigint' }),
     uom: text('uom').notNull(),
 
     batchNo: text('batch_no'),

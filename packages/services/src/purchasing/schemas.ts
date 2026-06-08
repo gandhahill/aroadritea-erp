@@ -11,7 +11,9 @@ export const POLineInputSchema = z.object({
   variantId: z.string().optional(),
   qtyOrdered: z.string().regex(/^\d+(\.\d{1,3})?$/, 'qty must be positive decimal').refine((v) => Number.parseFloat(v) > 0, { message: 'qty must be > 0' }),
   uom: z.string().min(1, 'uom is required'),
-  unitPrice: z.string().regex(/^\d+$/, 'unit price must be positive integer').refine((v) => Number.parseInt(v, 10) > 0, { message: 'unit price must be > 0' }),
+  // Price may be 0 at order time when it is not yet known; the actual price is
+  // captured at receiving (GRN).
+  unitPrice: z.string().regex(/^\d+$/, 'unit price must be a non-negative integer'),
   taxCode: z.string().optional(),
 });
 
