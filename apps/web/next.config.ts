@@ -61,7 +61,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: '/(.*)', headers: securityHeaders },
+      // Same-origin embeddable responses (previewed in an in-app iframe):
+      // uploaded files (SOP viewer) and the HTML payslip. These later rules
+      // override the catch-all X-Frame-Options: DENY / frame-ancestors 'none'.
       { source: '/api/uploads/:path*', headers: sameOriginPreviewHeaders },
+      { source: '/api/hr/payslip/:path*', headers: sameOriginPreviewHeaders },
     ];
   },
 };
