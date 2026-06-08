@@ -91,7 +91,9 @@ export default async function PayrollPage() {
         .where(
           and(
             eq(employees.tenantId, tenantId),
-            eq(employees.status, 'active'),
+            // Match runPayroll: include everyone currently employed
+            // (probation & on_leave), exclude only terminated.
+            inArray(employees.status, ['active', 'probation', 'on_leave']),
             isNull(employees.deletedAt),
             ...(locationScope.global
               ? []

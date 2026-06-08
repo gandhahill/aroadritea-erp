@@ -237,33 +237,37 @@ export function PayrollRunClient({
                     </div>
                     {rows.map((row, idx) => (
                       <div key={idx} className="flex items-center gap-2 mb-1">
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          value={row.amount}
-                          onChange={(e) =>
-                            setBonusRowsByEmployeeId((c) => {
-                              const list = [...(c[employee.id] ?? [])];
-                              list[idx] = { ...list[idx]!, amount: e.target.value.replace(/\D/g, '') };
-                              return { ...c, [employee.id]: list };
-                            })
-                          }
-                          placeholder="0"
-                          className="w-28 text-sm"
-                        />
-                        <Input
-                          type="text"
-                          value={row.notes}
-                          onChange={(e) =>
-                            setBonusRowsByEmployeeId((c) => {
-                              const list = [...(c[employee.id] ?? [])];
-                              list[idx] = { ...list[idx]!, notes: e.target.value };
-                              return { ...c, [employee.id]: list };
-                            })
-                          }
-                          placeholder={t('form.notesPlaceholder')}
-                          className="flex-1 text-sm"
-                        />
+                        <div className="w-28 shrink-0">
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={row.amount}
+                            onChange={(e) =>
+                              setBonusRowsByEmployeeId((c) => {
+                                const list = [...(c[employee.id] ?? [])];
+                                list[idx] = { ...list[idx]!, amount: e.target.value.replace(/\D/g, '') };
+                                return { ...c, [employee.id]: list };
+                              })
+                            }
+                            placeholder="0"
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <Input
+                            type="text"
+                            value={row.notes}
+                            onChange={(e) =>
+                              setBonusRowsByEmployeeId((c) => {
+                                const list = [...(c[employee.id] ?? [])];
+                                list[idx] = { ...list[idx]!, notes: e.target.value };
+                                return { ...c, [employee.id]: list };
+                              })
+                            }
+                            placeholder={t('form.notesPlaceholder')}
+                            className="text-sm"
+                          />
+                        </div>
                         <button
                           type="button"
                           className="text-xs text-rose-500 hover:underline"
@@ -325,33 +329,37 @@ export function PayrollRunClient({
                     </div>
                     {rows.map((row, idx) => (
                       <div key={idx} className="flex items-center gap-2 mb-1">
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          value={row.amount}
-                          onChange={(e) =>
-                            setDeductionRowsByEmployeeId((c) => {
-                              const list = [...(c[employee.id] ?? [])];
-                              list[idx] = { ...list[idx]!, amount: e.target.value.replace(/\D/g, '') };
-                              return { ...c, [employee.id]: list };
-                            })
-                          }
-                          placeholder="0"
-                          className="w-28 text-sm"
-                        />
-                        <Input
-                          type="text"
-                          value={row.notes}
-                          onChange={(e) =>
-                            setDeductionRowsByEmployeeId((c) => {
-                              const list = [...(c[employee.id] ?? [])];
-                              list[idx] = { ...list[idx]!, notes: e.target.value };
-                              return { ...c, [employee.id]: list };
-                            })
-                          }
-                          placeholder={t('form.notesPlaceholder')}
-                          className="flex-1 text-sm"
-                        />
+                        <div className="w-28 shrink-0">
+                          <Input
+                            type="text"
+                            inputMode="numeric"
+                            value={row.amount}
+                            onChange={(e) =>
+                              setDeductionRowsByEmployeeId((c) => {
+                                const list = [...(c[employee.id] ?? [])];
+                                list[idx] = { ...list[idx]!, amount: e.target.value.replace(/\D/g, '') };
+                                return { ...c, [employee.id]: list };
+                              })
+                            }
+                            placeholder="0"
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <Input
+                            type="text"
+                            value={row.notes}
+                            onChange={(e) =>
+                              setDeductionRowsByEmployeeId((c) => {
+                                const list = [...(c[employee.id] ?? [])];
+                                list[idx] = { ...list[idx]!, notes: e.target.value };
+                                return { ...c, [employee.id]: list };
+                              })
+                            }
+                            placeholder={t('form.notesPlaceholder')}
+                            className="text-sm"
+                          />
+                        </div>
                         <button
                           type="button"
                           className="text-xs text-rose-500 hover:underline"

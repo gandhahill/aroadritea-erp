@@ -33,7 +33,8 @@ import {
   users,
 } from '../schema/auth';
 import { customFieldDefinitions, customFieldValues } from '../schema/customfield';
-import { leaveTypes, shiftDefinitions } from '../schema/hr';
+import { leaveTypes, salaryComponents, shiftDefinitions } from '../schema/hr';
+import { SALARY_COMPONENTS_SEED } from './salary-components-seed';
 import { naixerQrFormatConfig } from '../schema/kitchen';
 import { posSettings } from '../schema/pos';
 import { scheduledJobs } from '../schema/scheduled-jobs';
@@ -494,6 +495,42 @@ async function seed() {
   console.info(
     `Malioboro May inventory seed: ${malioboroInventoryResult.products} products, ${malioboroInventoryResult.movements} staged movements`,
   );
+
+  // 11a-ter. Salary components — required by the payroll engine. Without
+  // these (SALARY_BASE, PPh21, BPJS_KES, BPJS_TK, …) runPayroll throws
+  // missingSalaryComponent and no payroll can be produced.
+  let salaryComponentCount = 0;
+  for (const comp of SALARY_COMPONENTS_SEED) {
+    await db
+      .insert(salaryComponents)
+      .values({
+        id: comp.id,
+        tenantId,
+        code: comp.code,
+        name: comp.name,
+        kind: comp.kind,
+        fixedAmount: comp.fixedAmount != null ? BigInt(comp.fixedAmount) : null,
+        percentage: comp.percentage ?? null,
+        isTaxable: comp.isTaxable,
+        isBpjsBase: comp.isBpjsBase,
+        isActive: comp.isActive,
+      })
+      .onConflictDoUpdate({
+        target: [salaryComponents.tenantId, salaryComponents.code],
+        set: {
+          name: comp.name,
+          kind: comp.kind,
+          fixedAmount: comp.fixedAmount != null ? BigInt(comp.fixedAmount) : null,
+          percentage: comp.percentage ?? null,
+          isTaxable: comp.isTaxable,
+          isBpjsBase: comp.isBpjsBase,
+          isActive: comp.isActive,
+          updatedAt: new Date(),
+        },
+      });
+    salaryComponentCount++;
+  }
+  console.info(`${salaryComponentCount} salary components seeded`);
 
   // 11b. HR leave types
   let leaveTypeCount = 0;
