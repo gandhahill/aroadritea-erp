@@ -95,6 +95,12 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
     return nameData.id || nameData.en || nameData.zh || 'Unknown Product';
   };
 
+  // Quantities are stored as numerics (e.g. "5.000"); display whole numbers
+  // as integers while keeping any genuine fractional value intact.
+  const formatQty = (value: unknown): string => {
+    const n = Number(value);
+    return Number.isFinite(n) ? String(n) : String(value ?? '');
+  };
   const formattedLines = poLines.map((l) => ({
     ...l,
     productName: formatProductName(l.productName),
@@ -206,10 +212,10 @@ export default async function PoDetailPage(props: { params: Promise<{ id: string
                     <tr key={line.id}>
                       <TableCell className="px-4 py-3 text-brand-ink">{line.productName}</TableCell>
                       <TableCell className="px-4 py-3 text-right font-mono text-brand-ink">
-                        {line.qtyOrdered} {line.uom}
+                        {formatQty(line.qtyOrdered)} {line.uom}
                       </TableCell>
                       <TableCell className="px-4 py-3 text-right font-mono text-brand-ink">
-                        {line.qtyReceived} {line.uom}
+                        {formatQty(line.qtyReceived)} {line.uom}
                       </TableCell>
                     </tr>
                   ))}
