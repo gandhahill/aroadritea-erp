@@ -360,31 +360,38 @@ export function ConsumedClient({ data, defaultLocationId }: Props) {
       <section className="rounded-xl border border-brand-cream-3 bg-card shadow-sm">
         <div className="border-b border-brand-cream-3 px-5 py-4">
           <h2 className="text-base font-semibold text-brand-ink">{t('consumedHistory')}</h2>
-          <div className="mt-2 flex flex-wrap gap-2">
-            <Input
-              type="date"
-              value={historyDateFrom}
-              onChange={(e) => setHistoryDateFrom(e.target.value)}
-              placeholder={t('dateFrom')}
-              className="w-36 text-sm"
-            />
-            <Input
-              type="date"
-              value={historyDateTo}
-              onChange={(e) => setHistoryDateTo(e.target.value)}
-              placeholder={t('dateTo')}
-              className="w-36 text-sm"
-            />
-            <Select
-              value={historyLocationFilter}
-              onChange={(e) => setHistoryLocationFilter(e.target.value)}
-              className="w-40 text-sm"
-            >
-              <option value="">{t('allLocations')}</option>
-              {data.locations.map((loc) => (
-                <option key={loc.id} value={loc.id}>{loc.label}</option>
-              ))}
-            </Select>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <label className="space-y-1">
+              <span className="text-xs font-medium text-brand-ink-3">{t('dateFrom')}</span>
+              <Input
+                type="date"
+                value={historyDateFrom}
+                onChange={(e) => setHistoryDateFrom(e.target.value)}
+                className="text-sm"
+              />
+            </label>
+            <label className="space-y-1">
+              <span className="text-xs font-medium text-brand-ink-3">{t('dateTo')}</span>
+              <Input
+                type="date"
+                value={historyDateTo}
+                onChange={(e) => setHistoryDateTo(e.target.value)}
+                className="text-sm"
+              />
+            </label>
+            <label className="space-y-1">
+              <span className="text-xs font-medium text-brand-ink-3">{t('location')}</span>
+              <Select
+                value={historyLocationFilter}
+                onChange={(e) => setHistoryLocationFilter(e.target.value)}
+                className="text-sm"
+              >
+                <option value="">{t('allLocations')}</option>
+                {data.locations.map((loc) => (
+                  <option key={loc.id} value={loc.id}>{loc.label}</option>
+                ))}
+              </Select>
+            </label>
           </div>
         </div>
         <div className="overflow-x-auto">
