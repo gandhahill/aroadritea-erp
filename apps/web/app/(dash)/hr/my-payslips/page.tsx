@@ -12,6 +12,7 @@ import type { AuditContext } from '@erp/shared/types';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
+import { PayslipActions } from './payslip-actions';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('hr.payslip');
@@ -71,14 +72,10 @@ export default async function MyPayslipsPage() {
                     {IDR.format(Number(BigInt(row.net)))}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <a
+                    <PayslipActions
                       href={`/api/hr/payslip/${row.payrollId}/${row.employeeId}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-lg border border-brand-cream-3 px-3 py-1 text-xs text-brand-ink hover:bg-brand-cream-2"
-                    >
-                      {t('download')}
-                    </a>
+                      periodCode={row.periodCode}
+                    />
                   </td>
                 </tr>
               ))}

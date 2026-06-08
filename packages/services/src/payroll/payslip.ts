@@ -111,10 +111,17 @@ export async function getEmployeePayslip(
     .where(eq(users.id, ctx.userId))
     .limit(1);
 
+  // employee.email is encrypted-for-lookup, so a plaintext comparison never
+  // matches. Apply the same transform (as listMyPayslips does) before comparing.
+  const { encryptPiiForLookup } = await import('../security/pii');
+  const encryptedRequester = requester?.email
+    ? encryptPiiForLookup(requester.email.toLowerCase(), 'employees.email')
+    : null;
   const isOwnPayslip =
     !!requester?.email &&
-    employee.email &&
-    requester.email.toLowerCase() === employee.email.toLowerCase();
+    !!employee.email &&
+    (employee.email === encryptedRequester ||
+      employee.email.toLowerCase() === requester.email.toLowerCase());
 
   let allowed = isOwnPayslip;
   if (!allowed) {

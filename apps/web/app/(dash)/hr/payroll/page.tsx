@@ -13,7 +13,7 @@ import { getSession } from '@/lib/auth';
 import { authorizedLocationIdsForTenant } from '@/lib/authz';
 import { and, db, eq, inArray, isNull } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
-import { employees, payrolls } from '@erp/db/schema/hr';
+import { employees, employmentContracts, payrolls } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
@@ -86,13 +86,23 @@ export default async function PayrollPage() {
           id: employees.id,
           name: employees.name,
           locationId: employees.locationId,
+          baseSalary: employmentContracts.baseSalary,
+          isBpjsBase: employees.isBpjsBase,
+          isTaxable: employees.isTaxable,
         })
         .from(employees)
+        .leftJoin(
+          employmentContracts,
+          and(
+            eq(employmentContracts.id, employees.currentContractId),
+            eq(employmentContracts.tenantId, tenantId),
+          ),
+        )
         .where(
           and(
             eq(employees.tenantId, tenantId),
-            // Match runPayroll: include everyone currently employed
-            // (probation & on_leave), exclude only terminated.
+            // Match runPayroll: include everyone currently employed,
+            // exclude only terminated.
             inArray(employees.status, ['active', 'probation', 'on_leave']),
             isNull(employees.deletedAt),
             ...(locationScope.global
@@ -133,6 +143,9 @@ export default async function PayrollPage() {
           id: employee.id,
           name: employee.name,
           locationId: employee.locationId,
+          baseSalary: employee.baseSalary != null ? String(employee.baseSalary) : null,
+          isBpjsBase: employee.isBpjsBase,
+          isTaxable: employee.isTaxable,
         }))}
       />
     </div>

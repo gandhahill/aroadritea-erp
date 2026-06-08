@@ -39,6 +39,8 @@ export async function runPayrollAction(input: {
     amount: string;
     notes?: string;
   }>;
+  applyBpjs?: boolean;
+  applyPph21?: boolean;
 }) {
   const ctx = await resolveCtx(input.locationId);
   return runPayroll(input, ctx);

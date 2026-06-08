@@ -3244,6 +3244,17 @@
         "bonusCount": "{count} bonus",
         "addRow": "Tambah baris",
         "notesPlaceholder": "Keterangan (opsional)",
+        "statutoryTitle": "Potongan Wajib (Statutori)",
+        "statutoryDesc": "Pilih potongan wajib yang berlaku untuk run ini. Jika belum terdaftar BPJS, biarkan tidak dicentang.",
+        "applyBpjs": "Terapkan potongan BPJS (Kesehatan & Ketenagakerjaan)",
+        "applyPph21": "Terapkan potongan PPh 21",
+        "previewTitle": "Komponen bawaan per karyawan",
+        "previewDesc": "Pratinjau gaji pokok dan potongan wajib yang akan dihitung sebelum menjalankan payroll.",
+        "previewEmployee": "Karyawan",
+        "previewBaseSalary": "Gaji Pokok",
+        "previewDeductions": "Potongan wajib",
+        "previewNoneStatutory": "Tidak ada",
+        "previewMissingSalary": "Beberapa karyawan belum memiliki kontrak/gaji pokok aktif — payroll akan gagal untuk mereka.",
         "noEmployees": "Belum ada karyawan aktif pada outlet ini.",
         "runBtn": "Run Payroll",
         "runningBtn": "Running...",
@@ -3437,7 +3448,10 @@
         "netSalary": "Gaji Bersih",
         "actions": "Aksi"
       },
-      "download": "Unduh / Cetak"
+      "download": "Unduh / Cetak",
+      "preview": "Pratinjau",
+      "openInNewTab": "Buka di tab baru",
+      "close": "Tutup"
     },
     "sop": {
       "title": "SOP / Standar Operasional",

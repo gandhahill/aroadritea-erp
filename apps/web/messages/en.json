@@ -3165,6 +3165,17 @@
         "bonusCount": "{count} bonuses",
         "addRow": "Add row",
         "notesPlaceholder": "Description (optional)",
+        "statutoryTitle": "Statutory Deductions",
+        "statutoryDesc": "Choose which statutory deductions apply for this run. If BPJS is not yet enrolled, leave it unchecked.",
+        "applyBpjs": "Apply BPJS deductions (Health & Employment)",
+        "applyPph21": "Apply PPh 21 deduction",
+        "previewTitle": "Built-in components per employee",
+        "previewDesc": "Preview base salary and statutory deductions that will be calculated before running payroll.",
+        "previewEmployee": "Employee",
+        "previewBaseSalary": "Base Salary",
+        "previewDeductions": "Statutory deductions",
+        "previewNoneStatutory": "None",
+        "previewMissingSalary": "Some employees have no active contract/base salary — payroll will fail for them.",
         "noEmployees": "No active employees at this location.",
         "runBtn": "Run Payroll",
         "runningBtn": "Running...",
@@ -3358,7 +3369,10 @@
         "netSalary": "Net Salary",
         "actions": "Actions"
       },
-      "download": "Download / Print"
+      "download": "Download / Print",
+      "preview": "Preview",
+      "openInNewTab": "Open in new tab",
+      "close": "Close"
     },
     "sop": {
       "title": "SOP / Standard Operating Procedures",

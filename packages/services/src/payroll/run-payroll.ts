@@ -95,6 +95,11 @@ export const RunPayrollInputSchema = z.object({
     )
     .optional()
     .default([]),
+  /** Statutory deduction toggles for this run. When false, the deduction is
+   *  skipped for all employees regardless of their individual eligibility
+   *  flag — e.g. BPJS not yet enrolled. Default true (backwards compatible). */
+  applyBpjs: z.boolean().optional().default(true),
+  applyPph21: z.boolean().optional().default(true),
 });
 
 export type RunPayrollInput = z.input<typeof RunPayrollInputSchema>;
@@ -414,8 +419,10 @@ export async function runPayroll(
         const payrollCtx: PayrollEmployeeContext = {
           employeeId: emp.id,
           baseSalary,
-          isBpjsBase: emp.isBpjsBase,
-          isTaxable: emp.isTaxable,
+          // Run-level toggles override per-employee eligibility: a deduction
+          // applies only if both the employee is eligible AND the run enables it.
+          isBpjsBase: emp.isBpjsBase && data.applyBpjs,
+          isTaxable: emp.isTaxable && data.applyPph21,
           maritalStatus,
           dependentsCount,
           additionalEarnings: empEarnings,

@@ -12,9 +12,17 @@ import { and, db, eq } from '@erp/db';
 import { locations } from '@erp/db/schema/auth';
 import { employees, payrollLines, payrolls, salaryComponents } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { approvePayrollAction, markPayrollPaidAction } from '../actions';
+
+function pickLocalized(value: unknown, locale: string): string {
+  if (value == null) return '—';
+  if (typeof value === 'string') return value;
+  const record = value as Record<string, string>;
+  const key = locale === 'zh' ? 'zh' : locale === 'en' ? 'en' : 'id';
+  return record[key] ?? record.id ?? record.en ?? record.zh ?? '—';
+}
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('hr.payroll');
@@ -58,6 +66,7 @@ export default async function PayrollDetailPage({ params }: Props) {
   const userId = String(user.id ?? 'system');
 
   const t = await getTranslations('hr.payroll');
+  const locale = await getLocale();
 
   // Load payroll
   const [payroll] = await db
@@ -131,7 +140,7 @@ export default async function PayrollDetailPage({ params }: Props) {
     const emp = byEmployee.get(empId)!;
     emp.lines.push({
       code: row.componentCode,
-      name: String(row.componentName),
+      name: pickLocalized(row.componentName, locale),
       kind: row.componentKind,
       amount: row.line.amount,
     });
@@ -252,8 +261,8 @@ export default async function PayrollDetailPage({ params }: Props) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-cream-2">
-                {emp.lines.map((line) => (
-                  <tr key={line.code}>
+                {emp.lines.map((line, idx) => (
+                  <tr key={`${line.code}-${idx}`}>
                     <td className="px-5 py-2.5 text-brand-ink">{line.name}</td>
                     <td className="px-5 py-2.5">
                       <span

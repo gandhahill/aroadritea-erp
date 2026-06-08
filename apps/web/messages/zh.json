@@ -3165,6 +3165,17 @@
         "bonusCount": "{count} 个奖金",
         "addRow": "添加行",
         "notesPlaceholder": "说明（可选）",
+        "statutoryTitle": "法定扣款",
+        "statutoryDesc": "选择本次运行适用的法定扣款。如果尚未参加 BPJS，请勿勾选。",
+        "applyBpjs": "应用 BPJS 扣款（健康与就业）",
+        "applyPph21": "应用 PPh 21 扣款",
+        "previewTitle": "每位员工的默认组成",
+        "previewDesc": "在运行薪资前预览将计算的基本工资和法定扣款。",
+        "previewEmployee": "员工",
+        "previewBaseSalary": "基本工资",
+        "previewDeductions": "法定扣款",
+        "previewNoneStatutory": "无",
+        "previewMissingSalary": "部分员工没有有效合同/基本工资 — 他们的薪资计算将失败。",
         "noEmployees": "该位置没有在职员工。",
         "runBtn": "运行计算",
         "runningBtn": "运行中...",
@@ -3358,7 +3369,10 @@
         "netSalary": "净薪资",
         "actions": "操作"
       },
-      "download": "下载 / 打印"
+      "download": "下载 / 打印",
+      "preview": "预览",
+      "openInNewTab": "在新标签页打开",
+      "close": "关闭"
     },
     "sop": {
       "title": "SOP / 标准操作程序",

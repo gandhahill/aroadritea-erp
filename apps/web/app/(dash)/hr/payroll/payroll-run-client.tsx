@@ -26,7 +26,14 @@ interface Props {
   locations: { value: string; label: string }[];
   existingPayrolls: PayrollRunRow[];
   defaultLocationId: string;
-  employees: { id: string; name: string; locationId: string }[];
+  employees: {
+    id: string;
+    name: string;
+    locationId: string;
+    baseSalary: string | null;
+    isBpjsBase: boolean;
+    isTaxable: boolean;
+  }[];
 }
 
 function formatMoney(v: string): string {
@@ -78,6 +85,8 @@ export function PayrollRunClient({
   const [deductionRowsByEmployeeId, setDeductionRowsByEmployeeId] = useState<
     Record<string, Array<{ amount: string; notes: string }>>
   >({});
+  const [applyBpjs, setApplyBpjs] = useState(false);
+  const [applyPph21, setApplyPph21] = useState(true);
 
   const periodStart = `${periodCode}-01`;
   const periodEnd = (() => {
@@ -132,6 +141,8 @@ export function PayrollRunClient({
       locationId,
       additionalEarnings,
       additionalDeductions,
+      applyBpjs,
+      applyPph21,
     });
 
     setSubmitting(false);
@@ -196,6 +207,72 @@ export function PayrollRunClient({
             </Select>
           </div>
         </div>
+
+        {/* Statutory deduction toggles for this run */}
+        <div className="mt-5 rounded-lg border border-brand-cream-3 bg-brand-cream-1/40 p-4">
+          <h3 className="text-sm font-semibold text-brand-ink">{t('form.statutoryTitle')}</h3>
+          <p className="mt-1 text-xs text-brand-ink-3">{t('form.statutoryDesc')}</p>
+          <div className="mt-3 flex flex-wrap gap-4">
+            <label className="flex items-center gap-2 text-sm text-brand-ink">
+              <input
+                type="checkbox"
+                checked={applyBpjs}
+                onChange={(e) => setApplyBpjs(e.target.checked)}
+                className="h-4 w-4 rounded border-brand-cream-3 text-brand-ember-5 focus:ring-brand-ember-5"
+              />
+              {t('form.applyBpjs')}
+            </label>
+            <label className="flex items-center gap-2 text-sm text-brand-ink">
+              <input
+                type="checkbox"
+                checked={applyPph21}
+                onChange={(e) => setApplyPph21(e.target.checked)}
+                className="h-4 w-4 rounded border-brand-cream-3 text-brand-ember-5 focus:ring-brand-ember-5"
+              />
+              {t('form.applyPph21')}
+            </label>
+          </div>
+        </div>
+
+        {/* Built-in components preview per employee */}
+        {selectedEmployees.length > 0 ? (
+          <div className="mt-5 rounded-lg border border-brand-cream-3 bg-card p-4">
+            <h3 className="text-sm font-semibold text-brand-ink">{t('form.previewTitle')}</h3>
+            <p className="mt-1 text-xs text-brand-ink-3">{t('form.previewDesc')}</p>
+            <div className="mt-3 overflow-x-auto">
+              <table className="w-full min-w-[520px] text-sm">
+                <thead className="text-left text-xs uppercase text-brand-ink-3">
+                  <tr className="border-b border-brand-cream-2">
+                    <th className="px-3 py-2">{t('form.previewEmployee')}</th>
+                    <th className="px-3 py-2 text-right">{t('form.previewBaseSalary')}</th>
+                    <th className="px-3 py-2">{t('form.previewDeductions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-brand-cream-2">
+                  {selectedEmployees.map((employee) => {
+                    const deductions: string[] = [];
+                    if (applyBpjs && employee.isBpjsBase) deductions.push('BPJS');
+                    if (applyPph21 && employee.isTaxable) deductions.push('PPh21');
+                    return (
+                      <tr key={employee.id}>
+                        <td className="px-3 py-2 text-brand-ink">{employee.name}</td>
+                        <td className="px-3 py-2 text-right font-mono text-brand-ink">
+                          {employee.baseSalary ? formatMoney(employee.baseSalary) : '—'}
+                        </td>
+                        <td className="px-3 py-2 text-brand-ink-2">
+                          {deductions.length > 0 ? deductions.join(', ') : t('form.previewNoneStatutory')}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {selectedEmployees.some((e) => !e.baseSalary) ? (
+              <p className="mt-2 text-xs text-rose-600">{t('form.previewMissingSalary')}</p>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="mt-5 rounded-lg border border-brand-cream-3 bg-brand-cream-1/40 p-4">
           <div className="flex items-center justify-between gap-3">
