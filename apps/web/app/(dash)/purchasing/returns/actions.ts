@@ -127,6 +127,7 @@ export async function fetchGrnForReturnAction(grnId: string): Promise<{
   lines?: Array<{
     id: string;
     productId: string;
+    productName: string;
     variantId: string | null;
     qtyReceived: string;
     uom: string;
@@ -152,17 +153,30 @@ export async function fetchGrnForReturnAction(grnId: string): Promise<{
   );
   if (!canView || !canCreateReturn) return { error: 'unauthorized' };
 
+  const { products } = await import('@erp/db/schema/inventory');
   const lines = await db
     .select({
       id: grnLines.id,
       productId: grnLines.productId,
+      productName: products.name,
+      productSku: products.sku,
       variantId: grnLines.variantId,
       qtyReceived: grnLines.qtyReceived,
       uom: grnLines.uom,
       poLineId: grnLines.poLineId,
     })
     .from(grnLines)
+    .leftJoin(products, eq(products.id, grnLines.productId))
     .where(eq(grnLines.grnId, g.id));
+
+  const pickName = (name: unknown, sku: string | null): string => {
+    if (name && typeof name === 'object') {
+      const n = name as Record<string, string>;
+      return n.id ?? n.en ?? n.zh ?? sku ?? '';
+    }
+    if (typeof name === 'string') return name;
+    return sku ?? '';
+  };
 
   // Need the PO line cost so we can preset unit_cost on the return.
   const poLineIds = lines.map((l) => l.poLineId);
@@ -201,6 +215,7 @@ export async function fetchGrnForReturnAction(grnId: string): Promise<{
     lines: lines.map((l) => ({
       id: l.id,
       productId: l.productId,
+      productName: pickName(l.productName, l.productSku),
       variantId: l.variantId,
       qtyReceived: l.qtyReceived,
       uom: l.uom,

@@ -15,12 +15,19 @@ interface Props {
 interface GrnLineForm {
   grnLineId: string;
   productId: string;
+  productName: string;
   variantId: string | null;
   uom: string;
   qtyReceived: string;
   qtyReturned: string;
   unitCost: string;
   selected: boolean;
+}
+
+/** Display a numeric qty as a whole number when it has no real fraction. */
+function fmtQty(value: string | number): string {
+  const n = Number(value);
+  return Number.isFinite(n) ? String(n) : String(value ?? '');
 }
 
 export function NewReturnClient({ defaultGrnId, defaultLocationId, grns }: Props) {
@@ -59,6 +66,7 @@ export function NewReturnClient({ defaultGrnId, defaultLocationId, grns }: Props
         (res.lines ?? []).map((l) => ({
           grnLineId: l.id,
           productId: l.productId,
+          productName: l.productName ?? l.productId,
           variantId: l.variantId,
           uom: l.uom,
           qtyReceived: l.qtyReceived,
@@ -189,9 +197,9 @@ export function NewReturnClient({ defaultGrnId, defaultLocationId, grns }: Props
                         onChange={(e) => updateLine(i, { selected: e.target.checked })}
                       />
                     </td>
-                    <td className="px-2 py-1 font-mono text-xs">{l.productId}</td>
+                    <td className="px-2 py-1 text-brand-ink">{l.productName}</td>
                     <td className="px-2 py-1 text-right font-mono text-brand-ink-2">
-                      {l.qtyReceived}
+                      {fmtQty(l.qtyReceived)}
                     </td>
                     <td className="px-2 py-1 text-right">
                       <Input
