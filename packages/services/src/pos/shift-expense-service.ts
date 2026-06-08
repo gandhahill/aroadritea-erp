@@ -101,7 +101,7 @@ export async function recordShiftExpense(
             kind: 'shift_expense',
             title: `Pengeluaran Laci: ${description}`,
             body: `Kasir mencatat pengeluaran sebesar ${amountStr} dan membutuhkan penentuan akun jurnal.`,
-            link: '/accounting/shift-expenses',
+            link: '/accounting/journals',
             createdBy: ctx.userId,
             updatedBy: ctx.userId,
           }));

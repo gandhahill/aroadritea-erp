@@ -75,7 +75,16 @@ export async function deleteProductPermanently(
           db
             .select({ id: stockMovements.id })
             .from(stockMovements)
-            .where(eq(stockMovements.productId, productId))
+            .where(
+              and(
+                eq(stockMovements.productId, productId),
+                // Only real, externally-meaningful movements block deletion.
+                // Internal corrections (manual adjustment / opening balance /
+                // import / consumption rollback) are cascade-deleted below so a
+                // product that was only ever stock-adjusted can still be removed.
+                sql`${stockMovements.reason} NOT IN ('adjustment','opening_balance','manual_import','sale_rollback')`,
+              ),
+            )
             .limit(1),
         ),
         exists(
@@ -116,14 +125,9 @@ export async function deleteProductPermanently(
             .where(eq(purchaseInvoiceLines.productId, productId))
             .limit(1),
         ),
-        exists(
-          'stock_adjustment_lines',
-          db
-            .select({ id: stockAdjustmentLines.id })
-            .from(stockAdjustmentLines)
-            .where(eq(stockAdjustmentLines.productId, productId))
-            .limit(1),
-        ),
+        // NOTE: stock_adjustment_lines intentionally do NOT block — a manual
+        // stock adjustment (e.g. zeroing the balance) is an internal correction.
+        // The product's adjustment lines are cascade-deleted below.
         exists(
           'stock_transfer_lines',
           db
@@ -212,6 +216,13 @@ export async function deleteProductPermanently(
         }
         await db.delete(boms).where(inArray(boms.id, ownedBomIds));
       }
+
+      // Cascade-delete internal stock history (adjustments + their movements).
+      // External usage was already excluded by the blocking checks above, so
+      // these rows are safe to remove. The stock_adjustments header is kept as
+      // an audit record; only this product's lines are removed.
+      await db.delete(stockAdjustmentLines).where(eq(stockAdjustmentLines.productId, productId));
+      await db.delete(stockMovements).where(eq(stockMovements.productId, productId));
 
       await db
         .delete(stockLevels)

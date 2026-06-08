@@ -348,7 +348,7 @@ export async function submitAdjustment(
       kind: 'stock_adjustment',
       title: 'Penyesuaian stok menunggu persetujuan',
       body: `No. ${adj.number}`,
-      link: '/inventory/stock-adjustments',
+      link: '/inventory/adjust',
       permission: 'inventory.adjust.approve',
     }).catch(() => {});
 
