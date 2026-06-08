@@ -26,6 +26,7 @@ import { AppError } from '@erp/shared/errors';
 import { type Result, err, ok } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
 import { can } from '../iam';
+import { decryptPiiForDisplay } from '../security/pii';
 
 export interface PayslipLine {
   componentCode: string;
@@ -227,10 +228,11 @@ export async function getEmployeePayslip(
     employee: {
       id: employee.id,
       name: employee.name,
-      email: employee.email,
+      // PII columns are stored encrypted-for-lookup — decrypt for display.
+      email: decryptPiiForDisplay(employee.email, 'employees.email') ?? '',
       position: employee.position,
       department: employee.department,
-      nik: employee.nik,
+      nik: decryptPiiForDisplay(employee.nik, 'employees.nik'),
     },
     earnings,
     deductions,

@@ -91,7 +91,8 @@ export function PayrollRunClient({
   const periodStart = `${periodCode}-01`;
   const periodEnd = (() => {
     const [y, m] = periodCode.split('-').map((s) => Number.parseInt(s, 10));
-    const last = new Date(y ?? 2000, (m ?? 1) - 1, 0).getDate();
+    // Day 0 of month `m` (1-based) = the last day of month `m`.
+    const last = new Date(y ?? 2000, m ?? 1, 0).getDate();
     return `${periodCode}-${String(last).padStart(2, '0')}`;
   })();
   const selectedEmployees = employees.filter((employee) => employee.locationId === locationId);
@@ -119,7 +120,7 @@ export function PayrollRunClient({
       })
       .map((r) => ({
         employeeId: employee.id,
-        componentCode: 'PINJAMAN',
+        componentCode: 'POTONGAN_LAIN',
         amount: r.amount.replace(/\D/g, ''),
         notes: r.notes || `Potongan manual payroll ${periodCode}`,
       }));

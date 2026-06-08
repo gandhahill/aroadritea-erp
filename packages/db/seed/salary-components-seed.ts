@@ -137,6 +137,17 @@ export const SALARY_COMPONENTS_SEED = [
     isBpjsBase: false,
     isActive: true,
   },
+  {
+    id: 'comp-potongan-lain',
+    code: 'POTONGAN_LAIN',
+    name: { id: 'Potongan Lain-lain', en: 'Other Deduction', zh: '其他扣款' },
+    kind: 'deduction',
+    fixedAmount: null,
+    percentage: null,
+    isTaxable: false,
+    isBpjsBase: false,
+    isActive: true,
+  },
   // T-0243: Employer BPJS components (beban perusahaan)
   {
     id: 'comp-bpjs-kes-er',

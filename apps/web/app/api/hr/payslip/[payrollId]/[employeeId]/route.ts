@@ -133,7 +133,7 @@ export async function GET(
     <section>
       <strong>Pemberi Kerja</strong>
       ${htmlEscape(data.employer.legalName)}<br/>
-      Outlet ${htmlEscape(data.employer.locationCode)} — ${htmlEscape(data.employer.locationName)}<br/>
+      ${htmlEscape(data.employer.locationName)}<br/>
       ${htmlEscape(data.employer.address ?? '')}
     </section>
     <section>
@@ -178,6 +178,10 @@ export async function GET(
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'private, no-store',
+      // Allow same-origin embedding so the in-app preview modal (iframe) works,
+      // matching the SOP/uploads viewer. The global policy is frame DENY.
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Content-Security-Policy': "frame-ancestors 'self'",
     },
   });
 }
