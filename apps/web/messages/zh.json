@@ -1958,6 +1958,12 @@
     "hr": "人力资源",
     "reports": "报表",
     "settings": "设置",
+    "settingsOverview": "总览",
+    "settingsOrganization": "组织",
+    "settingsSalesPos": "销售与 POS",
+    "settingsAutomation": "自动化",
+    "settingsAccessSecurity": "访问与安全",
+    "settingsIntegrationsAi": "集成与 AI",
     "cms": "CMS",
     "pages": "页面",
     "posts": "文章",
@@ -3476,6 +3482,114 @@
   },
   "settings": {
     "title": "设置",
+    "hub": {
+      "title": "设置",
+      "subtitle": "更精简的系统配置中心。先打开一个分组，再选择需要的工具。",
+      "allGroups": "返回全部设置",
+      "openGroup": "打开分组",
+      "emptyTitle": "暂无可用设置",
+      "emptyDescription": "当前权限尚未开放任何设置工具。",
+      "groups": {
+        "organization": {
+          "title": "组织",
+          "description": "公司身份、门店资料、银行账户和会计映射。"
+        },
+        "salesPos": {
+          "title": "销售与 POS",
+          "description": "收银行为、促销和会员积分配置。"
+        },
+        "automation": {
+          "title": "运营自动化",
+          "description": "考勤政策、自动任务、通知渠道、自定义字段和审批流程。"
+        },
+        "accessSecurity": {
+          "title": "访问与安全",
+          "description": "个人账户、审计轨迹、角色权限和 MCP 访问令牌。"
+        },
+        "integrationsAi": {
+          "title": "集成与 AI",
+          "description": "Naixer KDS 映射和 AI 助手管理。"
+        }
+      },
+      "items": {
+        "company": {
+          "title": "公司信息",
+          "description": "法定身份、税号、业务资料和正式公司档案。"
+        },
+        "locations": {
+          "title": "地点",
+          "description": "门店、办公室、仓库、时区和 GPS 考勤半径记录。"
+        },
+        "bankAccounts": {
+          "title": "银行账户",
+          "description": "运营银行账户及其会计科目映射。"
+        },
+        "accounting": {
+          "title": "会计",
+          "description": "POS、采购、库存和捐赠的默认过账科目。"
+        },
+        "pos": {
+          "title": "POS 设置",
+          "description": "小票宽度、支付渠道、现金账户、结算和税务过账默认值。"
+        },
+        "promotions": {
+          "title": "促销",
+          "description": "折扣活动、审批标记、适用地点、渠道和优惠规则。"
+        },
+        "loyalty": {
+          "title": "会员积分",
+          "description": "会员积分获取规则和等级门槛。"
+        },
+        "attendance": {
+          "title": "考勤政策",
+          "description": "HR 和工资计算使用的迟到、缺勤和豁免规则。"
+        },
+        "scheduledJobs": {
+          "title": "自动任务",
+          "description": "用于报表、提醒和维护的数据库驱动 cron 计划。"
+        },
+        "notifications": {
+          "title": "通知",
+          "description": "用于告警和后台任务的运营通知渠道。"
+        },
+        "customFields": {
+          "title": "自定义字段",
+          "description": "无需修改源码即可为实体添加的字段。"
+        },
+        "workflowEditor": {
+          "title": "工作流编辑器",
+          "description": "运营流程的审批定义和生命周期规则。"
+        },
+        "account": {
+          "title": "我的账户",
+          "description": "个人资料、语言、密码和活跃登录会话。"
+        },
+        "audit": {
+          "title": "审计轨迹",
+          "description": "搜索创建、更新、删除和审批历史。"
+        },
+        "permissions": {
+          "title": "权限",
+          "description": "按模块、页面和地点范围授予角色访问权限。"
+        },
+        "mcpTokens": {
+          "title": "MCP 令牌",
+          "description": "为本地 AI 工具创建和撤销有范围的令牌。"
+        },
+        "naixer": {
+          "title": "Naixer KDS",
+          "description": "Naixer 设备的 QR 格式以及产品或配料代码映射。"
+        },
+        "aiAssistant": {
+          "title": "AI 助手设置",
+          "description": "运行限制、模型选择和非机密 AI 提供商配置。"
+        },
+        "aiLog": {
+          "title": "AI 助手日志",
+          "description": "审计 AI 会话、工具调用和草拟操作。"
+        }
+      }
+    },
     "users": {
       "title": "用户管理",
       "subtitle": "管理系统用户和访问权限。",

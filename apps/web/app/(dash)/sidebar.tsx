@@ -18,7 +18,8 @@ interface NavItem {
   href: string;
   icon: React.ReactNode;
   children?: NavItem[];
-  permission?: PermissionCode;
+  permission?: PermissionCode | string;
+  permissionsAny?: string[];
 }
 
 export function Sidebar({
@@ -472,25 +473,32 @@ export function Sidebar({
         </svg>
       ),
       children: [
-        { label: t('account'), href: '/account', icon: <></> },
-        { label: t('auditTrail'), href: '/audit', icon: <></> },
-        { label: t('locations'), href: '/settings/locations', icon: <></> },
-        { label: t('posSettings'), href: '/settings/pos', icon: <></> },
-        { label: t('promotions'), href: '/settings/promotions', icon: <></> },
-        { label: t('loyalty'), href: '/settings/loyalty', icon: <></> },
-        { label: t('attendancePolicy'), href: '/settings/attendance', icon: <></> },
-        { label: t('scheduledJobs'), href: '/settings/scheduled-jobs', icon: <></> },
-        { label: t('notifications'), href: '/settings/notifications', icon: <></> },
-        { label: t('naixerKds'), href: '/settings/integrations/naixer', icon: <></> },
-        { label: t('permissions'), href: '/settings/permissions', icon: <></> },
-        { label: t('mcpTokens'), href: '/settings/mcp-tokens', icon: <></> },
-        { label: t('customFields'), href: '/settings/custom-fields', icon: <></> },
-        { label: t('companySettings'), href: '/settings/company', icon: <></> },
-        { label: t('accountingSettings'), href: '/settings/accounting', icon: <></> },
-        { label: t('bankAccounts'), href: '/settings/bank-accounts', icon: <></> },
-        { label: t('workflowEditor'), href: '/settings/workflow-editor', icon: <></> },
-        { label: t('aiAssistantSettings'), href: '/settings/ai-assistant', icon: <></> },
-        { label: t('aiAssistantLog'), href: '/settings/ai-assistant/log', icon: <></> },
+        { label: t('settingsOverview'), href: '/settings', icon: <></> },
+        {
+          label: t('settingsOrganization'),
+          href: '/settings/organization',
+          icon: <></>,
+          permissionsAny: ['settings.manage', 'iam.manage_locations', 'settings.bank_accounts'],
+        },
+        {
+          label: t('settingsSalesPos'),
+          href: '/settings/sales-pos',
+          icon: <></>,
+          permissionsAny: ['settings.manage', 'promotion.manage'],
+        },
+        {
+          label: t('settingsAutomation'),
+          href: '/settings/automation',
+          icon: <></>,
+          permissionsAny: ['settings.manage', 'workflow.view'],
+        },
+        { label: t('settingsAccessSecurity'), href: '/settings/access-security', icon: <></> },
+        {
+          label: t('settingsIntegrationsAi'),
+          href: '/settings/integrations',
+          icon: <></>,
+          permissionsAny: ['settings.manage', 'ai.assistant.admin'],
+        },
       ],
     },
   ];
@@ -601,6 +609,11 @@ export function Sidebar({
     '/settings/integrations/naixer': 'settings.manage',
     '/settings/permissions': 'iam.manage_permissions',
     '/settings/mcp-tokens': 'settings.manage',
+    '/settings/organization': 'settings.manage',
+    '/settings/sales-pos': 'settings.manage',
+    '/settings/automation': 'settings.manage',
+    '/settings/access-security': 'settings.manage',
+    '/settings/integrations': 'settings.manage',
     '/settings/custom-fields': 'settings.manage',
     '/settings/company': 'settings.manage',
     '/settings/accounting': 'settings.manage',
@@ -618,6 +631,8 @@ export function Sidebar({
     '/hr/my-attendance',
     '/hr/my-payslips',
     '/hr/my-leave',
+    '/settings',
+    '/settings/access-security',
     '/whistleblower'
   ];
 
@@ -628,8 +643,10 @@ export function Sidebar({
       children = children.filter((child) => {
         if (ALWAYS_VISIBLE.includes(child.href)) return true;
         
-        let childMod = child.permission || PATH_TO_MODULE[child.href] || child.href.substring(1).split('/')[0] || '';
-        return hasModuleAccess(childMod);
+        const childMods = child.permissionsAny ?? [
+          child.permission || PATH_TO_MODULE[child.href] || child.href.substring(1).split('/')[0] || '',
+        ];
+        return childMods.some((childMod) => hasModuleAccess(childMod));
       });
     }
     return { ...item, children };
@@ -641,8 +658,10 @@ export function Sidebar({
       return item.children.length > 0;
     }
 
-    const mod = item.permission || PATH_TO_MODULE[item.href] || item.href.substring(1).split('/')[0] || '';
-    return hasModuleAccess(mod);
+    const mods = item.permissionsAny ?? [
+      item.permission || PATH_TO_MODULE[item.href] || item.href.substring(1).split('/')[0] || '',
+    ];
+    return mods.some((mod) => hasModuleAccess(mod));
   });
 
   function hasModuleAccess(moduleName: string) {

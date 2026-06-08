@@ -1,9 +1,39 @@
 # Checkpoint — Remediation Batch 2026-05-30 (user live-testing feedback)
 
-**Owner:** Claude Opus 4.8
+**Owner:** Codex
 **Status:** 🟨 IN_PROGRESS
 **Started:** 2026-05-30
+**Last updated:** 2026-06-08 21:45 WIB
 **Context:** User tested the deployed ERP and reported a series of runtime errors, UX gaps, and design questions across multiple messages. This checkpoint tracks the remediation.
+
+---
+
+## CURRENT SESSION — Settings consolidation (2026-06-08)
+
+Goal: reduce Settings navigation overload by turning `/settings` into a grouped hub and trimming the Settings sidebar children to a few consolidated entry points. Keep existing individual routes reachable from the hub so mutation actions and audit trails continue through the existing server actions.
+
+Plan:
+1. [x] Replace `/settings` redirect with grouped Settings hub cards.
+2. [x] Reduce Settings sidebar children to consolidated hub entries plus account/audit.
+3. [x] Add i18n keys for all hub/sidebar labels in `en/id/zh`.
+4. [x] Fix touched hardcoded settings forbidden copy where encountered.
+5. [x] Run web typecheck/build.
+
+Done:
+- `apps/web/app/(dash)/settings/settings-hub.tsx` added permission-aware grouped Settings hub.
+- New group routes added: `/settings/organization`, `/settings/sales-pos`, `/settings/automation`, `/settings/access-security`, `/settings/integrations`.
+- `apps/web/app/(dash)/settings/page.tsx` now renders the hub instead of redirecting to locations.
+- `apps/web/app/(dash)/sidebar.tsx` now shows six Settings children instead of the old flat list of individual settings pages.
+- `apps/web/messages/{en,id,zh}.json` gained parity keys for hub cards and grouped sidebar labels.
+- `apps/web/app/(dash)/settings/loyalty/page.tsx` no longer hardcodes the forbidden Bahasa Indonesia copy.
+
+Verification:
+- i18n parity script: PASS (`en/id/zh` all 4604 leaf keys; missing/extra 0).
+- `pnpm --filter @erp/web typecheck`: PASS.
+- `pnpm --filter @erp/web build`: PASS. Existing warning remains from `@vladmandic/face-api` import in HR check-in.
+
+Open note:
+- In-app Browser tool was not exposed by tool discovery in this turn, and no safe default admin credential exists. Visual inspection was therefore limited to build route output and static class/i18n checks.
 
 ---
 
@@ -49,16 +79,11 @@
 - **Problem in code:** `packages/services/src/tax/efaktur.ts` `exportEFakturCsv` produces the OBSOLETE FK/OF CSV. `spt-masa.ts` / `withholding.ts` likely similar.
 - **Recommended fix:** change exports to emit the **official DJP Excel template column layout** (more stable than chasing XML schema versions — user runs DJP's Excel→XML converter), for: Faktur Keluaran, Bupot PPh 23/26, SPT Masa PPN. DO NOT guess columns — download the official v1.6 Excel templates first and map exactly. Update `SYSTEM-DESIGN.md §19–20` + an ADR.
 
-### B. Settings consolidation (user: "halaman settings terlalu banyak, gabungkan")
-- 18 settings pages remain after removing Users. Sidebar is a flat list in `sidebar.tsx`.
-- **Plan:** group into labelled sub-sections (no route changes = low risk), e.g.:
-  - **Organisasi:** company, locations, bank-accounts, accounting
-  - **Akses & Keamanan:** permissions, mcp-tokens
-  - **Operasional:** pos, attendance, scheduled-jobs, notifications, custom-fields, workflow-editor
-  - **Integrasi & AI:** integrations/naixer, ai-assistant (+log nested), mcp-tokens
-  - **Penjualan:** promotions, loyalty
-  - Consider merging `loyalty`↔`promotions`, and nesting `ai-assistant/log` under the ai-assistant page (drop its top-level sidebar item).
-- Requires inspecting the sidebar render to support section headers. Defer route merges (risky).
+### B. Settings consolidation (user: "halaman settings terlalu banyak, gabungkan") — DONE locally 2026-06-08
+- `/settings` now renders a grouped, permission-aware Settings hub instead of redirecting to `/settings/locations`.
+- Sidebar Settings children reduced from the old flat individual-page list to: overview, organization, sales/POS, automation, access/security, integrations/AI.
+- Existing detail routes remain reachable from hub cards to avoid disrupting server actions, permission gates, or audit-aware mutation paths.
+- i18n parity + web typecheck + web build passed.
 
 ### C. Cleanup — old `mcp-token-service.ts`
 - `packages/services/src/iam/mcp-token-service.ts` (mintMcpToken/revokeMcpToken) is now UNUSED by the settings page, stores tokens in PLAINTEXT, and uses invalid `iam.token.write as any`. Confirm no other caller (grep) then delete it + drop the `mcp_tokens` table from schema (or repurpose). Keep `apiTokens` as the single token system.
@@ -69,11 +94,10 @@
 ---
 
 ## NEXT STEP (explicit)
-1. Read `$TEMP/tc2.log` result — confirm `apps/web` + `apps/mcp` typecheck PASS (services/site/db/etc already PASS). Fix any errors.
-2. The CODE changes need **commit + push + deploy** to reach the live instance (DB changes are already live). Ask user before committing (git-safety).
-3. Then pick up REMAINING A–D above.
+1. Deploy the web app so the new Settings hub/sidebar reaches the live instance.
+2. Continue remaining T-0264 work: Coretax XML/template export, old plaintext `mcp-token-service.ts` cleanup, and permission description enrichment.
 
 ## Verification done
 - `packages/services` typecheck PASS (new api-token-service clean).
 - Live DB: schema-sync verified (8 checks), logistics perms verified (4 roles granted).
-- i18n parity en=id=zh=3908.
+- Settings consolidation: i18n parity en=id=zh=4604; `pnpm --filter @erp/web typecheck` PASS; `pnpm --filter @erp/web build` PASS (existing HR face-api warning).

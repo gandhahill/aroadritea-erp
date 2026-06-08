@@ -1958,6 +1958,12 @@
     "hr": "HR & Payroll",
     "reports": "Reports",
     "settings": "Settings",
+    "settingsOverview": "Overview",
+    "settingsOrganization": "Organization",
+    "settingsSalesPos": "Sales & POS",
+    "settingsAutomation": "Automation",
+    "settingsAccessSecurity": "Access & Security",
+    "settingsIntegrationsAi": "Integrations & AI",
     "cms": "CMS",
     "pages": "Pages",
     "posts": "Posts",
@@ -3476,6 +3482,114 @@
   },
   "settings": {
     "title": "Settings",
+    "hub": {
+      "title": "Settings",
+      "subtitle": "A smaller control center for system configuration. Open a group, then choose the specific tool you need.",
+      "allGroups": "Back to all settings",
+      "openGroup": "Open group",
+      "emptyTitle": "No settings are available",
+      "emptyDescription": "Your current permissions do not unlock any settings tools yet.",
+      "groups": {
+        "organization": {
+          "title": "Organization",
+          "description": "Company identity, outlet records, bank accounts, and accounting mappings."
+        },
+        "salesPos": {
+          "title": "Sales & POS",
+          "description": "Cashier behavior, promotions, and member loyalty configuration."
+        },
+        "automation": {
+          "title": "Automation",
+          "description": "Attendance policy, scheduled jobs, notification channels, custom fields, and approval workflows."
+        },
+        "accessSecurity": {
+          "title": "Access & Security",
+          "description": "Your account, audit trail, role permissions, and MCP access tokens."
+        },
+        "integrationsAi": {
+          "title": "Integrations & AI",
+          "description": "Naixer KDS mappings and AI Assistant administration."
+        }
+      },
+      "items": {
+        "company": {
+          "title": "Company Info",
+          "description": "Legal identity, NPWP, business details, and official company profile."
+        },
+        "locations": {
+          "title": "Locations",
+          "description": "Outlet, office, warehouse, timezone, and GPS attendance radius records."
+        },
+        "bankAccounts": {
+          "title": "Bank Accounts",
+          "description": "Operational bank accounts and linked chart-of-account mappings."
+        },
+        "accounting": {
+          "title": "Accounting",
+          "description": "Posting account defaults for POS, purchasing, inventory, and donations."
+        },
+        "pos": {
+          "title": "POS Settings",
+          "description": "Receipt width, payment channel, cash account, settlement, and tax posting defaults."
+        },
+        "promotions": {
+          "title": "Promotions",
+          "description": "Discount campaigns, approval flags, eligible locations, channels, and benefits."
+        },
+        "loyalty": {
+          "title": "Loyalty / Points",
+          "description": "Member point earning rules and tier thresholds."
+        },
+        "attendance": {
+          "title": "Attendance Policy",
+          "description": "Late, absent, and forgiveness rules used by HR and payroll."
+        },
+        "scheduledJobs": {
+          "title": "Scheduled Jobs",
+          "description": "Database-driven cron schedules for reporting, reminders, and maintenance."
+        },
+        "notifications": {
+          "title": "Notifications",
+          "description": "Operational notification channels for alerts and background jobs."
+        },
+        "customFields": {
+          "title": "Custom Fields",
+          "description": "Entity-specific fields that can be added without changing source code."
+        },
+        "workflowEditor": {
+          "title": "Workflow Editor",
+          "description": "Approval definitions and lifecycle rules for operational workflows."
+        },
+        "account": {
+          "title": "My Account",
+          "description": "Profile, language, password, and active login sessions."
+        },
+        "audit": {
+          "title": "Audit Trail",
+          "description": "Search historical create, update, delete, and approval events."
+        },
+        "permissions": {
+          "title": "Permissions",
+          "description": "Grant role access by module, page, and location scope."
+        },
+        "mcpTokens": {
+          "title": "MCP Tokens",
+          "description": "Create and revoke scoped tokens for local AI tools."
+        },
+        "naixer": {
+          "title": "Naixer KDS",
+          "description": "QR format and product or modifier code mappings for Naixer devices."
+        },
+        "aiAssistant": {
+          "title": "AI Assistant Settings",
+          "description": "Runtime limits, model choice, and non-secret AI provider configuration."
+        },
+        "aiLog": {
+          "title": "AI Assistant Log",
+          "description": "Audit AI sessions, tool calls, and drafted actions."
+        }
+      }
+    },
     "users": {
       "title": "User Management",
       "subtitle": "Manage system users and access rights.",

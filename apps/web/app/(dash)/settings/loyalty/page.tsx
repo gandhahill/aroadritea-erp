@@ -21,17 +21,19 @@ export default async function LoyaltySettingsPage() {
   if (!session) redirect('/login');
   const userId = String((session.user as Record<string, unknown>)?.id ?? '');
 
-  const allowed = await can(userId, 'settings.manage');
+  const [allowed, t] = await Promise.all([
+    can(userId, 'settings.manage'),
+    getTranslations('settings.loyalty'),
+  ]);
   if (!allowed) {
     return (
       <div className="rounded-lg border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
-        Akun ini tidak memiliki akses untuk mengatur pengaturan sistem.
+        {t('forbidden')}
       </div>
     );
   }
 
   const config = await fetchLoyaltyConfig();
-  const t = await getTranslations('settings.loyalty');
 
   return (
     <div className="space-y-6">

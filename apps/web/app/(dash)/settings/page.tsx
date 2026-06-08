@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
+import { SettingsHub } from './settings-hub';
 
-export default function SettingsIndexPage() {
-  redirect('/settings/locations');
+export default async function SettingsIndexPage() {
+  return <SettingsHub />;
 }

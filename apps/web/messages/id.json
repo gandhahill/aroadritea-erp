@@ -1958,6 +1958,12 @@
     "hr": "SDM",
     "reports": "Laporan",
     "settings": "Pengaturan",
+    "settingsOverview": "Ikhtisar",
+    "settingsOrganization": "Organisasi",
+    "settingsSalesPos": "Penjualan & POS",
+    "settingsAutomation": "Otomasi",
+    "settingsAccessSecurity": "Akses & Keamanan",
+    "settingsIntegrationsAi": "Integrasi & AI",
     "cms": "CMS",
     "pages": "Halaman",
     "posts": "Post",
@@ -4004,6 +4010,114 @@
   },
   "settings": {
     "title": "Pengaturan",
+    "hub": {
+      "title": "Pengaturan",
+      "subtitle": "Pusat kendali pengaturan yang lebih ringkas. Buka satu grup, lalu pilih alat yang dibutuhkan.",
+      "allGroups": "Kembali ke semua pengaturan",
+      "openGroup": "Buka grup",
+      "emptyTitle": "Belum ada pengaturan yang tersedia",
+      "emptyDescription": "Izin akun Anda belum membuka alat pengaturan apa pun.",
+      "groups": {
+        "organization": {
+          "title": "Organisasi",
+          "description": "Identitas perusahaan, data outlet, akun bank, dan mapping akuntansi."
+        },
+        "salesPos": {
+          "title": "Penjualan & POS",
+          "description": "Perilaku kasir, promosi, dan konfigurasi loyalty member."
+        },
+        "automation": {
+          "title": "Otomasi Operasional",
+          "description": "Kebijakan presensi, jadwal otomatis, kanal notifikasi, bidang kustom, dan workflow approval."
+        },
+        "accessSecurity": {
+          "title": "Akses & Keamanan",
+          "description": "Akun Anda, jejak audit, hak akses role, dan token MCP."
+        },
+        "integrationsAi": {
+          "title": "Integrasi & AI",
+          "description": "Mapping Naixer KDS dan administrasi Asisten AI."
+        }
+      },
+      "items": {
+        "company": {
+          "title": "Info Perusahaan",
+          "description": "Identitas legal, NPWP, detail usaha, dan profil resmi perusahaan."
+        },
+        "locations": {
+          "title": "Lokasi",
+          "description": "Data outlet, kantor, gudang, zona waktu, dan radius GPS presensi."
+        },
+        "bankAccounts": {
+          "title": "Akun Bank",
+          "description": "Rekening bank operasional dan mapping ke chart of accounts."
+        },
+        "accounting": {
+          "title": "Akuntansi",
+          "description": "Default akun posting untuk POS, pembelian, inventory, dan donasi."
+        },
+        "pos": {
+          "title": "Pengaturan POS",
+          "description": "Lebar struk, channel pembayaran, akun kas, settlement, dan default posting pajak."
+        },
+        "promotions": {
+          "title": "Promosi",
+          "description": "Campaign diskon, flag approval, lokasi, channel, dan benefit yang berlaku."
+        },
+        "loyalty": {
+          "title": "Loyalty / Poin",
+          "description": "Aturan perolehan poin member dan ambang batas tier."
+        },
+        "attendance": {
+          "title": "Kebijakan Presensi",
+          "description": "Aturan terlambat, absen, dan pengampunan yang dipakai HR dan payroll."
+        },
+        "scheduledJobs": {
+          "title": "Jadwal Otomatis",
+          "description": "Cron berbasis database untuk laporan, pengingat, dan maintenance."
+        },
+        "notifications": {
+          "title": "Notifikasi",
+          "description": "Kanal notifikasi operasional untuk alert dan job latar belakang."
+        },
+        "customFields": {
+          "title": "Bidang Kustom",
+          "description": "Field per entity yang bisa ditambah tanpa mengubah source code."
+        },
+        "workflowEditor": {
+          "title": "Editor Alur Kerja",
+          "description": "Definisi approval dan lifecycle rule untuk workflow operasional."
+        },
+        "account": {
+          "title": "Akun Saya",
+          "description": "Profil, bahasa, kata sandi, dan sesi login aktif."
+        },
+        "audit": {
+          "title": "Jejak Audit",
+          "description": "Cari histori pembuatan, perubahan, penghapusan, dan approval."
+        },
+        "permissions": {
+          "title": "Hak Akses",
+          "description": "Berikan akses role berdasarkan modul, halaman, dan scope lokasi."
+        },
+        "mcpTokens": {
+          "title": "Token MCP",
+          "description": "Buat dan cabut token berscope untuk alat AI lokal."
+        },
+        "naixer": {
+          "title": "Naixer KDS",
+          "description": "Format QR dan mapping kode produk atau modifier untuk perangkat Naixer."
+        },
+        "aiAssistant": {
+          "title": "Pengaturan Asisten AI",
+          "description": "Limit runtime, pilihan model, dan konfigurasi provider AI non-rahasia."
+        },
+        "aiLog": {
+          "title": "Log Asisten AI",
+          "description": "Audit sesi AI, pemanggilan tool, dan draft tindakan."
+        }
+      }
+    },
     "users": {
       "title": "Manajemen Pengguna",
       "subtitle": "Kelola daftar pengguna sistem dan hak akses.",
