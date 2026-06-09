@@ -27,7 +27,14 @@ function rateLimitResponse(retryAfter: number) {
   );
 }
 
-export const GET = handlers.GET;
+function noStore(response: Response) {
+  response.headers.set('Cache-Control', 'private, no-store, max-age=0, must-revalidate');
+  return response;
+}
+
+export async function GET(request: Request) {
+  return noStore(await handlers.GET(request));
+}
 
 async function getEmailFromRequest(request: Request): Promise<string | null> {
   const contentType = request.headers.get('content-type') ?? '';
@@ -80,9 +87,11 @@ async function assertLoginAllowed(
       .having(sql`count(*) >= ${LOGIN_FAILURE_LIMIT}`);
 
     if (recentIpFailures.length > 0) {
-      const newest = recentIpFailures[0]!.newest;
-      const elapsed = Math.floor((Date.now() - new Date(newest).getTime()) / 1000);
-      return rateLimitResponse(Math.max(1, RATE_LIMIT_WINDOW_SECS - elapsed));
+      const newest = recentIpFailures[0]?.newest;
+      if (newest) {
+        const elapsed = Math.floor((Date.now() - new Date(newest).getTime()) / 1000);
+        return rateLimitResponse(Math.max(1, RATE_LIMIT_WINDOW_SECS - elapsed));
+      }
     }
 
     const hourlyIpFailures = await db
@@ -98,9 +107,11 @@ async function assertLoginAllowed(
       .having(sql`count(*) >= ${ATTACK_FAILURE_LIMIT}`);
 
     if (hourlyIpFailures.length > 0) {
-      const newest = hourlyIpFailures[0]!.newest;
-      const elapsed = Math.floor((Date.now() - new Date(newest).getTime()) / 1000);
-      return rateLimitResponse(Math.max(1, ATTACK_LIMIT_WINDOW_SECS - elapsed));
+      const newest = hourlyIpFailures[0]?.newest;
+      if (newest) {
+        const elapsed = Math.floor((Date.now() - new Date(newest).getTime()) / 1000);
+        return rateLimitResponse(Math.max(1, ATTACK_LIMIT_WINDOW_SECS - elapsed));
+      }
     }
   }
 
@@ -119,9 +130,11 @@ async function assertLoginAllowed(
     .having(sql`count(*) >= ${LOGIN_FAILURE_LIMIT}`);
 
   if (recentAccountFailures.length > 0) {
-    const newest = recentAccountFailures[0]!.newest;
-    const elapsed = Math.floor((Date.now() - new Date(newest).getTime()) / 1000);
-    return rateLimitResponse(Math.max(1, RATE_LIMIT_WINDOW_SECS - elapsed));
+    const newest = recentAccountFailures[0]?.newest;
+    if (newest) {
+      const elapsed = Math.floor((Date.now() - new Date(newest).getTime()) / 1000);
+      return rateLimitResponse(Math.max(1, RATE_LIMIT_WINDOW_SECS - elapsed));
+    }
   }
 
   return null;
@@ -144,7 +157,7 @@ async function recordLoginAttempt(
 
 export async function POST(request: Request) {
   const isEmailLogin = new URL(request.url).pathname.endsWith('/sign-in/email');
-  if (!isEmailLogin) return handlers.POST(request);
+  if (!isEmailLogin) return noStore(await handlers.POST(request));
 
   const ipAddress = clientIpFromHeaders(request.headers);
   const emailHash = hashEmail(await getEmailFromRequest(request));
@@ -155,13 +168,13 @@ export async function POST(request: Request) {
     // Do NOT record another failed attempt here — the user never actually
     // tried a credential. Recording it would extend the lockout window
     // beyond what retryAfter promised, causing the countdown to lie.
-    return blockedResponse;
+    return noStore(blockedResponse);
   }
 
   try {
     const response = await handlers.POST(request);
     await recordLoginAttempt(ipAddress, emailHash, userAgent, response.status < 400);
-    return response;
+    return noStore(response);
   } catch (err) {
     await recordLoginAttempt(ipAddress, emailHash, userAgent, false);
     throw err;

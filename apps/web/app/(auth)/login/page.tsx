@@ -8,10 +8,11 @@
 
 import { recordAuthEvent } from '@/lib/audit-auth';
 import { authClient } from '@/lib/auth-client';
+import { safeInternalRedirectPath } from '@erp/shared/safe-redirect';
 import { Input, Select } from '@erp/ui';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { type FormEvent, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { type FormEvent, Suspense, useCallback, useEffect, useState } from 'react';
 
 export default function LoginPage() {
   return (
@@ -37,18 +38,14 @@ function LoginContent() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
-  const rateLimitTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Countdown timer for rate limit
   useEffect(() => {
     if (rateLimitSeconds <= 0) {
-      if (rateLimitTimer.current) {
-        clearInterval(rateLimitTimer.current);
-        rateLimitTimer.current = null;
-      }
       return;
     }
-    rateLimitTimer.current = setInterval(() => {
+
+    const timer = setTimeout(() => {
       setRateLimitSeconds((prev) => {
         if (prev <= 1) {
           setError(null);
@@ -57,10 +54,11 @@ function LoginContent() {
         return prev - 1;
       });
     }, 1000);
+
     return () => {
-      if (rateLimitTimer.current) clearInterval(rateLimitTimer.current);
+      clearTimeout(timer);
     };
-  }, [rateLimitSeconds > 0]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [rateLimitSeconds]);
 
   const formatCountdown = useCallback((secs: number) => {
     const m = Math.floor(secs / 60);
@@ -70,13 +68,13 @@ function LoginContent() {
 
   const isRateLimited = rateLimitSeconds > 0;
 
-  const callbackUrl = searchParams.get('callbackUrl') ?? '/dashboard';
+  const callbackUrl = safeInternalRedirectPath(searchParams.get('callbackUrl'), '/dashboard');
   const suspendedError = searchParams.get('error') === 'suspended';
   const passwordChanged = searchParams.get('success') === 'password_changed';
 
   function handleLocaleChange(nextLocale: string) {
     setSelectedLocale(nextLocale);
-    document.cookie = `aroadri.locale=${nextLocale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
+    document.cookie = localeCookie(nextLocale);
     router.refresh();
   }
 
@@ -92,10 +90,10 @@ function LoginContent() {
         });
 
         if (result.error) {
-          setError(t('errorInvalidTotp') || 'Invalid 2FA code');
+          setError(t('errorInvalidTotp'));
           void recordAuthEvent({ action: 'login_failed', email, reason: 'invalid_totp' });
         } else {
-          document.cookie = `aroadri.locale=${selectedLocale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
+          document.cookie = localeCookie(selectedLocale);
           void recordAuthEvent({ action: 'login', email });
           router.push(callbackUrl);
           router.refresh();
@@ -127,7 +125,7 @@ function LoginContent() {
         if (data?.twoFactorRedirect) {
           setShowTwoFactor(true);
         } else {
-          document.cookie = `aroadri.locale=${selectedLocale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
+          document.cookie = localeCookie(selectedLocale);
           void recordAuthEvent({ action: 'login', email });
           router.push(callbackUrl);
           router.refresh();
@@ -173,13 +171,12 @@ function LoginContent() {
         <div className="surface-card p-6">
           {/* Password changed success */}
           {passwordChanged && (
-            <div
-              className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-700"
-              role="status"
+            <output
+              className="mb-4 block rounded-md bg-green-50 p-3 text-sm text-green-700"
               id="password-changed-success"
             >
               {t('passwordChanged')}
-            </div>
+            </output>
           )}
 
           {/* Suspended account warning */}
@@ -311,7 +308,7 @@ function LoginContent() {
             ) : (
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="login-totp" className="text-sm font-medium text-brand-ink-2">
-                  {t('totpCode') || 'OTP Code'}
+                  {t('totpCode')}
                 </label>
                 <Input
                   id="login-totp"
@@ -369,6 +366,12 @@ function LoginContent() {
       </div>
     </main>
   );
+}
+
+function localeCookie(locale: string) {
+  const secure =
+    typeof window !== 'undefined' && window.location.protocol === 'https:' ? ';secure' : '';
+  return `aroadri.locale=${locale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax${secure}`;
 }
 
 function LoginShell() {

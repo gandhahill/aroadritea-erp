@@ -64,8 +64,11 @@ const ALLOWED_HOSTS = new Set(
 const app = new Hono();
 
 app.use('*', async (c, next) => {
+  c.header('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
+  c.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   c.header('X-Content-Type-Options', 'nosniff');
   c.header('X-Frame-Options', 'DENY');
+  c.header('X-XSS-Protection', '0');
   c.header('Referrer-Policy', 'no-referrer');
   c.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   c.header('Cross-Origin-Resource-Policy', 'same-origin');

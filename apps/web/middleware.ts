@@ -62,6 +62,11 @@ function isAllowedProductionOrigin(origin: string, fallback: string) {
   ]).has(origin);
 }
 
+function noStore(response: NextResponse) {
+  response.headers.set('Cache-Control', 'private, no-store, max-age=0, must-revalidate');
+  return response;
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -93,10 +98,10 @@ export function middleware(request: NextRequest) {
   if (!hasSession) {
     const loginUrl = new URL('/login', getPublicOrigin(request));
     loginUrl.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(loginUrl);
+    return noStore(NextResponse.redirect(loginUrl));
   }
 
-  return NextResponse.next();
+  return noStore(NextResponse.next());
 }
 
 export const config = {

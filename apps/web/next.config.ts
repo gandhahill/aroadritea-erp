@@ -27,9 +27,14 @@ const securityHeaders = [
   },
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'X-XSS-Protection', value: '0' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   { key: 'Permissions-Policy', value: 'camera=(self), microphone=(), geolocation=(self)' },
   { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' },
+];
+
+const noStoreHeaders = [
+  { key: 'Cache-Control', value: 'private, no-store, max-age=0, must-revalidate' },
 ];
 
 const sameOriginPreviewHeaders = [
@@ -61,6 +66,8 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: '/(.*)', headers: securityHeaders },
+      { source: '/login', headers: noStoreHeaders },
+      { source: '/api/auth/:path*', headers: noStoreHeaders },
       // Same-origin embeddable responses (previewed in an in-app iframe):
       // uploaded files (SOP viewer) and the HTML payslip. These later rules
       // override the catch-all X-Frame-Options: DENY / frame-ancestors 'none'.

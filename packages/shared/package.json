@@ -13,6 +13,7 @@
     "./sanitize-html": "./src/security/sanitize-cms-html.ts",
     "./image-magic-bytes": "./src/security/image-magic-bytes.ts",
     "./client-ip": "./src/security/client-ip.ts",
+    "./safe-redirect": "./src/security/safe-redirect.ts",
     "./log-scrub": "./src/security/log-scrub.ts",
     "./hmac": "./src/security/hmac.ts",
     "./i18n-keys": "./src/i18n-keys/index.ts",
