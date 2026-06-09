@@ -19,6 +19,7 @@ let selectCallIndex = 0;
 let selectResults: unknown[][] = [];
 const insertCalls: unknown[][] = [];
 let updateReturning: unknown[] = [];
+const runApprovalGateMock = vi.hoisted(() => vi.fn());
 
 vi.mock('@erp/db', () => ({
   db: {
@@ -56,6 +57,10 @@ vi.mock('../src/iam', () => ({
     if (mockPermissionResult) return { ok: true, value: undefined };
     return { ok: false, error: { code: 'FORBIDDEN', messageKey: 'common.errors.forbidden' } };
   }),
+}));
+
+vi.mock('../src/workflow', () => ({
+  runApprovalGate: runApprovalGateMock,
 }));
 
 import type { AuditContext } from '@erp/shared/types';
@@ -209,6 +214,15 @@ describe('postJournal service', () => {
     insertCalls.length = 0;
     selectResults = [];
     updateReturning = [];
+    runApprovalGateMock.mockResolvedValue({
+      ok: true,
+      value: {
+        status: 'approved',
+        approvalRequired: false,
+        workflowEntityType: 'journal_entry_manual',
+        transition: 'post',
+      },
+    });
   });
 
   it('should reject when JE not found', async () => {
@@ -325,6 +339,84 @@ describe('postJournal service', () => {
       expect(result.value.totalCredit).toBe(100000n);
       expect(result.value.lines).toHaveLength(2);
     }
+  });
+
+  it('should stop manual JE posting when approval workflow is pending', async () => {
+    setupDbMocks({});
+    runApprovalGateMock.mockResolvedValue({
+      ok: true,
+      value: {
+        status: 'pending_approval',
+        approvalRequired: true,
+        workflowEntityType: 'journal_entry_manual',
+        transition: 'post',
+        workflowInstanceId: 'wfi-001',
+        definitionId: 'wfd-001',
+        reusedExisting: false,
+      },
+    });
+
+    const result = await postJournal({ journalId: 'je-001' }, makeCtx());
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe('BUSINESS_RULE');
+      expect(result.error.messageKey).toBe('workflow.approvalGate.pending');
+      expect(result.error.details).toMatchObject({
+        entityType: 'journal_entry',
+        entityId: 'je-001',
+        workflowEntityType: 'journal_entry_manual',
+        workflowInstanceId: 'wfi-001',
+        definitionId: 'wfd-001',
+        transition: 'post',
+      });
+    }
+    expect(selectCallIndex).toBe(2);
+    expect(insertCalls).toHaveLength(0);
+  });
+
+  it('should post manual JE when a matching approval workflow is already approved', async () => {
+    setupDbMocks({});
+    runApprovalGateMock.mockResolvedValue({
+      ok: true,
+      value: {
+        status: 'approved',
+        approvalRequired: false,
+        workflowEntityType: 'journal_entry_manual',
+        transition: 'post',
+        workflowInstanceId: 'wfi-approved',
+        definitionId: 'wfd-001',
+      },
+    });
+
+    const result = await postJournal({ journalId: 'je-001' }, makeCtx());
+
+    expect(result.ok).toBe(true);
+    expect(runApprovalGateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        entityType: 'journal_entry',
+        workflowEntityType: 'journal_entry_manual',
+        entityId: 'je-001',
+        transition: 'post',
+        entityData: expect.objectContaining({
+          referenceType: 'manual',
+          locationId: 'loc-mli',
+          periodId: 'period-2026-05',
+          totalDebit: '100000',
+          totalCredit: '100000',
+        }),
+      }),
+      makeCtx(),
+    );
+  });
+
+  it('should not run approval gate for automatic journal postings', async () => {
+    setupDbMocks({ je: makeDraftJE({ referenceType: 'sales' }) });
+
+    const result = await postJournal({ journalId: 'je-001' }, makeCtx());
+
+    expect(result.ok).toBe(true);
+    expect(runApprovalGateMock).not.toHaveBeenCalled();
   });
 
   it('should write audit log with action=post', async () => {

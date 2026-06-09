@@ -27,6 +27,7 @@ const ENTITY_TYPES = [
   'stock_adjustment',
   'reimbursement_request',
   'journal_entry',
+  'journal_entry_manual',
 ] as const;
 
 const OPERATORS = [
@@ -74,6 +75,14 @@ const FIELD_BY_ENTITY: Record<string, Array<{ value: string; labelKey: string }>
     { value: 'totalDebit', labelKey: 'conditionFields.totalDebit' },
     { value: 'postingDate', labelKey: 'conditionFields.postingDate' },
     { value: 'locationId', labelKey: 'conditionFields.locationId' },
+  ],
+  journal_entry_manual: [
+    { value: 'totalDebit', labelKey: 'conditionFields.totalDebit' },
+    { value: 'totalCredit', labelKey: 'conditionFields.totalCredit' },
+    { value: 'postingDate', labelKey: 'conditionFields.postingDate' },
+    { value: 'locationId', labelKey: 'conditionFields.locationId' },
+    { value: 'periodId', labelKey: 'conditionFields.periodId' },
+    { value: 'transition', labelKey: 'conditionFields.transition' },
   ],
 };
 

@@ -37,6 +37,8 @@ export type ApprovalGateDecision =
       approvalRequired: false;
       workflowEntityType: string;
       transition: string;
+      workflowInstanceId?: string;
+      definitionId?: string;
     }
   | {
       status: 'pending_approval';
@@ -55,6 +57,11 @@ export interface PendingWorkflowInstance {
   currentStepIndex: number;
 }
 
+export interface ApprovedWorkflowInstance {
+  id: string;
+  definitionId: string;
+}
+
 export interface ApprovalGateDependencies {
   evaluateWorkflow?: typeof evaluate;
   createWorkflowInstance?: typeof createInstance;
@@ -62,6 +69,10 @@ export interface ApprovalGateDependencies {
     input: { entityType: string; entityId: string },
     ctx: AuditContext,
   ) => Promise<Result<PendingWorkflowInstance | null>>;
+  findApprovedWorkflowInstance?: (
+    input: { entityType: string; entityId: string; definitionId: string },
+    ctx: AuditContext,
+  ) => Promise<Result<ApprovedWorkflowInstance | null>>;
 }
 
 function evaluateConditions(
@@ -180,6 +191,36 @@ async function findPendingWorkflowInstance(
   }
 }
 
+async function findApprovedWorkflowInstance(
+  input: { entityType: string; entityId: string; definitionId: string },
+  ctx: AuditContext,
+): Promise<Result<ApprovedWorkflowInstance | null>> {
+  try {
+    const approved = await db
+      .select({
+        id: workflowInstances.id,
+        definitionId: workflowInstances.definitionId,
+      })
+      .from(workflowInstances)
+      .where(
+        and(
+          eq(workflowInstances.tenantId, ctx.tenantId),
+          eq(workflowInstances.entityType, input.entityType),
+          eq(workflowInstances.entityId, input.entityId),
+          eq(workflowInstances.definitionId, input.definitionId),
+          eq(workflowInstances.status, 'approved'),
+        ),
+      )
+      .orderBy(desc(workflowInstances.resolvedAt), desc(workflowInstances.triggeredAt))
+      .limit(1)
+      .then((rows) => rows[0] ?? null);
+
+    return ok(approved);
+  } catch (e) {
+    return err(AppError.internal('workflow.findApproved.failed', e));
+  }
+}
+
 export async function runApprovalGate(
   input: ApprovalGateInput,
   ctx: AuditContext,
@@ -222,6 +263,28 @@ export async function runApprovalGate(
       approvalRequired: false,
       workflowEntityType,
       transition: input.transition,
+    });
+  }
+
+  const findApproved = deps.findApprovedWorkflowInstance ?? findApprovedWorkflowInstance;
+  const approved = await findApproved(
+    {
+      entityType: workflowEntityType,
+      entityId: input.entityId,
+      definitionId: workflow.value.definitionId,
+    },
+    ctx,
+  );
+  if (!approved.ok) return approved;
+
+  if (approved.value) {
+    return ok({
+      status: 'approved',
+      approvalRequired: false,
+      workflowEntityType,
+      transition: input.transition,
+      workflowInstanceId: approved.value.id,
+      definitionId: approved.value.definitionId,
     });
   }
 

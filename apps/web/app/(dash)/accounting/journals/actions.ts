@@ -23,7 +23,7 @@ import { locations } from '@erp/db/schema/auth';
 import { createJournal, postJournal, reverseJournal, deleteJournal } from '@erp/services/accounting';
 import { requirePermission } from '@erp/services/iam';
 import type { AuditContext } from '@erp/shared/types';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { revalidatePath } from 'next/cache';
 
 export interface JournalListItem {
@@ -179,6 +179,18 @@ function errorMessage(error: unknown) {
     return String((error as { message: unknown }).message);
   }
   return String(error);
+}
+
+async function postJournalErrorMessage(error: unknown) {
+  if (error && typeof error === 'object' && 'messageKey' in error) {
+    const messageKey = String((error as { messageKey: unknown }).messageKey);
+    if (messageKey === 'workflow.approvalGate.pending') {
+      const t = await getTranslations('accounting.journals.errors');
+      return t('approvalPending');
+    }
+  }
+
+  return errorMessage(error);
 }
 
 function parseCsv(textValue: string): CsvRow[] {
@@ -503,7 +515,7 @@ export async function postJournalAction(
   if (!journalId) return { error: 'Journal ID required' };
   
   const result = await postJournal({ journalId }, ctx);
-  if (!result.ok) return { error: errorMessage(result.error) };
+  if (!result.ok) return { error: await postJournalErrorMessage(result.error) };
   
   revalidatePath('/accounting/journals');
   revalidatePath(`/accounting/journals/${journalId}`);

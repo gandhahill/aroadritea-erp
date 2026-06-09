@@ -60,6 +60,7 @@ describe('runApprovalGate', () => {
       }),
     );
     const createWorkflowInstance = vi.fn().mockResolvedValue(ok({ instanceId: 'wfi-1' }));
+    const findApprovedWorkflowInstance = vi.fn().mockResolvedValue(ok(null));
 
     const result = await runApprovalGate(
       {
@@ -75,6 +76,7 @@ describe('runApprovalGate', () => {
         evaluateWorkflow,
         createWorkflowInstance,
         findPendingWorkflowInstance: vi.fn().mockResolvedValue(ok(null)),
+        findApprovedWorkflowInstance,
       },
     );
 
@@ -98,6 +100,57 @@ describe('runApprovalGate', () => {
       },
       ctx,
     );
+    expect(findApprovedWorkflowInstance).toHaveBeenCalledWith(
+      {
+        entityType: 'stock_adjustment.high_variance',
+        entityId: 'adj-1',
+        definitionId: 'wfd-1',
+      },
+      ctx,
+    );
+  });
+
+  it('allows the transition when a matching workflow instance is already approved', async () => {
+    const evaluateWorkflow = vi.fn().mockResolvedValue(
+      ok({
+        definitionId: 'wfd-approved',
+        steps: [{ stepOrder: 1, approverRole: 'director' }],
+      }),
+    );
+    const createWorkflowInstance = vi.fn();
+
+    const result = await runApprovalGate(
+      {
+        entityType: 'journal_entry',
+        workflowEntityType: 'journal_entry_manual',
+        entityId: 'je-1',
+        transition: 'post',
+      },
+      ctx,
+      {
+        evaluateWorkflow,
+        createWorkflowInstance,
+        findPendingWorkflowInstance: vi.fn().mockResolvedValue(ok(null)),
+        findApprovedWorkflowInstance: vi.fn().mockResolvedValue(
+          ok({
+            id: 'wfi-approved',
+            definitionId: 'wfd-approved',
+          }),
+        ),
+      },
+    );
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toMatchObject({
+        status: 'approved',
+        approvalRequired: false,
+        workflowEntityType: 'journal_entry_manual',
+        workflowInstanceId: 'wfi-approved',
+        definitionId: 'wfd-approved',
+      });
+    }
+    expect(createWorkflowInstance).not.toHaveBeenCalled();
   });
 
   it('reuses an existing pending workflow instance to avoid duplicate approvals', async () => {

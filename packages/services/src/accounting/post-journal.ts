@@ -24,10 +24,13 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, eq } from 'drizzle-orm';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+import { runApprovalGate } from '../workflow';
 import type { JournalEntryResult, JournalLineResult } from './create-journal';
 import { type PostJournalInput, PostJournalInputSchema } from './schemas';
 
 // --- Service function ---
+
+type PostJournalTx = Pick<typeof db, 'insert' | 'select' | 'update'>;
 
 /**
  * Post a draft journal entry, making it final.
@@ -39,7 +42,7 @@ import { type PostJournalInput, PostJournalInputSchema } from './schemas';
 export async function postJournal(
   input: PostJournalInput,
   ctx: AuditContext,
-  opts: { skipPermissionCheck?: boolean; tx?: any } = {},
+  opts: { skipPermissionCheck?: boolean; skipApprovalGate?: boolean; tx?: PostJournalTx } = {},
 ): Promise<Result<JournalEntryResult>> {
   const dbOrTx = (opts.tx ?? db) as typeof db;
 
@@ -120,6 +123,42 @@ export async function postJournal(
         periodStatus: period.status,
       }),
     );
+  }
+
+  if (!opts.skipApprovalGate && !opts.skipPermissionCheck && je.referenceType === 'manual') {
+    const gate = await runApprovalGate(
+      {
+        entityType: 'journal_entry',
+        workflowEntityType: 'journal_entry_manual',
+        entityId: journalId,
+        transition: 'post',
+        entitySummary: `${je.number} - ${je.description}`,
+        entityData: {
+          referenceType: je.referenceType,
+          locationId: je.locationId,
+          periodId: je.periodId,
+          postingDate: je.postingDate,
+          totalDebit: je.totalDebit.toString(),
+          totalCredit: je.totalCredit.toString(),
+        },
+      },
+      ctx,
+    );
+    if (!gate.ok) return gate;
+
+    if (gate.value.approvalRequired) {
+      return err(
+        AppError.businessRule('workflow.approvalGate.pending', {
+          entityType: 'journal_entry',
+          entityId: journalId,
+          workflowEntityType: gate.value.workflowEntityType,
+          workflowInstanceId: gate.value.workflowInstanceId,
+          definitionId: gate.value.definitionId,
+          transition: gate.value.transition,
+          reusedExisting: gate.value.reusedExisting,
+        }),
+      );
+    }
   }
 
   // 8. Fetch lines for the result

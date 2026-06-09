@@ -743,6 +743,9 @@
       "reversing": "冲销中...",
       "cancel": "取消",
       "confirmDelete": "确定要删除此草稿吗？",
+      "errors": {
+        "approvalPending": "\u8be5\u65e5\u8bb0\u8d26\u8fc7\u8d26\u6b63\u5728\u7b49\u5f85\u5ba1\u6279\u3002\u5ba1\u6279\u901a\u8fc7\u524d\uff0c\u51ed\u8bc1\u5c06\u4fdd\u6301\u8349\u7a3f\u72b6\u6001\u3002"
+      },
       "detail": {
         "journalEntries": "日记账",
         "printPdf": "打印 / PDF",
@@ -4150,7 +4153,8 @@
       "leave_request": "\u8bf7\u5047\u7533\u8bf7",
       "stock_adjustment": "\u5e93\u5b58\u8c03\u6574",
       "reimbursement_request": "\u62a5\u9500\u7533\u8bf7",
-      "journal_entry": "\u65e5\u8bb0\u8d26"
+      "journal_entry": "\u65e5\u8bb0\u8d26",
+      "journal_entry_manual": "\u624b\u52a8\u65e5\u8bb0\u8d26\u8fc7\u8d26"
     },
     "operators": {
       "in": "\u5305\u542b\u4e8e",
@@ -4169,7 +4173,10 @@
       "amount": "\u91d1\u989d (Rp)",
       "categoryCode": "\u7c7b\u522b\u4ee3\u7801",
       "totalDebit": "\u501f\u65b9\u603b\u989d (Rp)",
-      "postingDate": "\u8fc7\u8d26\u65e5\u671f"
+      "totalCredit": "\u8d37\u65b9\u603b\u989d (Rp)",
+      "postingDate": "\u8fc7\u8d26\u65e5\u671f",
+      "periodId": "\u671f\u95f4 ID",
+      "transition": "\u6d41\u8f6c"
     },
     "approverRoles": {
       "store_manager": "\u95e8\u5e97\u7ecf\u7406",

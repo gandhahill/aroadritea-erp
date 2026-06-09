@@ -722,6 +722,9 @@
       "reversing": "Membalik...",
       "cancel": "Batal",
       "confirmDelete": "Yakin ingin menghapus draf ini?",
+      "errors": {
+        "approvalPending": "Posting jurnal menunggu persetujuan. Jurnal tetap berstatus draf sampai pemberi persetujuan menyetujuinya."
+      },
       "detail": {
         "journalEntries": "Entri Jurnal",
         "printPdf": "Cetak / PDF",
@@ -3599,7 +3602,8 @@
       "leave_request": "Pengajuan Cuti",
       "stock_adjustment": "Penyesuaian Stok",
       "reimbursement_request": "Reimbursement",
-      "journal_entry": "Jurnal"
+      "journal_entry": "Jurnal",
+      "journal_entry_manual": "Posting Jurnal Manual"
     },
     "operators": {
       "in": "di dalam",
@@ -3618,7 +3622,10 @@
       "amount": "Nominal (Rp)",
       "categoryCode": "Kode kategori",
       "totalDebit": "Total debit (Rp)",
-      "postingDate": "Tanggal posting"
+      "totalCredit": "Total kredit (Rp)",
+      "postingDate": "Tanggal posting",
+      "periodId": "ID periode",
+      "transition": "Transisi"
     },
     "approverRoles": {
       "store_manager": "Kepala toko",
