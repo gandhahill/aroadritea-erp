@@ -2,8 +2,8 @@
 
 - **Owner:** Codex
 - **Started:** 2026-06-09 16:13 WIB
-- **Last updated:** 2026-06-09 16:25 WIB
-- **Status:** IN_PROGRESS
+- **Last updated:** 2026-06-09 16:27 WIB
+- **Status:** DONE
 
 ## Goal
 
@@ -64,6 +64,10 @@ Ensure the ERP feature set is complete, flexible, and aligned with ERP best prac
 - `pnpm --filter @erp/shared test`: PASS, 91 tests
 - `node .\node_modules\@biomejs\biome\bin\biome lint --max-diagnostics=100 packages/shared/src/erp/entity-extension-registry.ts packages/shared/tests/entity-extension-registry.test.ts packages/shared/package.json docs/audit/erp-feature-completeness-2026-06-09.md`: PASS
 
+## Commit
+
+- `015cc60 docs: define Odoo-like FnB ERP roadmap`
+
 ## Next step
 
-Commit and push the audit plus entity extension registry. Next implementation task should start with P0 from the audit: universal custom-field embedding, approval-gate integration, workflow inbox/outbox, and direct-DB import allowlist/lint rule.
+No remaining audit step. Next implementation task should start with P0 from the audit: universal custom-field embedding, approval-gate integration, workflow inbox/outbox, and direct-DB import allowlist/lint rule.
