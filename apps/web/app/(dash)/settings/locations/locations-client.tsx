@@ -36,6 +36,10 @@ interface Labels {
   gpsLng: string;
   gpsRadius: string;
   pickFromBrowser: string;
+  actions: string;
+  gpsLatPlaceholder: string;
+  gpsLngPlaceholder: string;
+  gpsRadiusPlaceholder: string;
 }
 
 interface Props {
@@ -181,7 +185,9 @@ export function LocationsClient({ locations, labels }: Props) {
               <th className="px-3 py-3">{labels.gpsLat}</th>
               <th className="px-3 py-3">{labels.gpsLng}</th>
               <th className="px-3 py-3">{labels.gpsRadius}</th>
-              <th className="px-3 py-3"></th>
+              <th className="px-3 py-3">
+                <span className="sr-only">{labels.actions}</span>
+              </th>
             </tr>
           </thead>
           <TableBody className="divide-y divide-brand-cream-3">
@@ -266,7 +272,7 @@ export function LocationsClient({ locations, labels }: Props) {
                     <input
                       value={row.gpsLat}
                       onChange={(event) => updateRow(index, { gpsLat: event.target.value })}
-                      placeholder="-7.797068"
+                      placeholder={labels.gpsLatPlaceholder}
                       className="h-9 w-28 rounded-md border border-brand-cream-3 bg-brand-cream-1 px-2 text-brand-ink"
                     />
                     <button
@@ -285,7 +291,7 @@ export function LocationsClient({ locations, labels }: Props) {
                   <input
                     value={row.gpsLng}
                     onChange={(event) => updateRow(index, { gpsLng: event.target.value })}
-                    placeholder="110.370529"
+                    placeholder={labels.gpsLngPlaceholder}
                     className="h-9 w-28 rounded-md border border-brand-cream-3 bg-brand-cream-1 px-2 text-brand-ink"
                   />
                 </td>
@@ -301,7 +307,7 @@ export function LocationsClient({ locations, labels }: Props) {
                         gpsRadiusM: event.target.value === '' ? null : Number(event.target.value),
                       })
                     }
-                    placeholder="100"
+                    placeholder={labels.gpsRadiusPlaceholder}
                     className="h-9 w-20 rounded-md border border-brand-cream-3 bg-brand-cream-1 px-2 text-brand-ink"
                   />
                 </td>

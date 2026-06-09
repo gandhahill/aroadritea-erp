@@ -44,7 +44,7 @@ export function NotificationChannelForm() {
       </label>
       <label className="space-y-1.5">
         <span className="text-sm font-medium text-brand-ink">{t('fields.target')}</span>
-        <Input name="target" required placeholder="ops@aroadritea.com" />
+        <Input name="target" required placeholder={t('placeholders.target')} />
       </label>
       <label className="space-y-1.5">
         <span className="text-sm font-medium text-brand-ink">{t('fields.purpose')}</span>

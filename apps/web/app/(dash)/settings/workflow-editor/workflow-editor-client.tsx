@@ -22,11 +22,11 @@ import {
 } from './actions';
 
 const ENTITY_TYPES = [
-  { value: 'purchase_order', label: 'Purchase Order' },
-  { value: 'leave_request', label: 'Leave Request' },
-  { value: 'stock_adjustment', label: 'Stock Adjustment' },
-  { value: 'reimbursement_request', label: 'Reimbursement' },
-  { value: 'journal_entry', label: 'Journal Entry' },
+  'purchase_order',
+  'leave_request',
+  'stock_adjustment',
+  'reimbursement_request',
+  'journal_entry',
 ] as const;
 
 const OPERATORS = [
@@ -36,8 +36,8 @@ const OPERATORS = [
   { value: 'gte', label: '≥' },
   { value: 'lt', label: '<' },
   { value: 'lte', label: '≤' },
-  { value: 'in', label: 'in' },
-  { value: 'contains', label: 'contains' },
+  { value: 'in', labelKey: 'operators.in' },
+  { value: 'contains', labelKey: 'operators.contains' },
 ] as const;
 
 const APPROVER_ROLES = ['store_manager', 'director', 'owner', 'hr_manager', 'finance'] as const;
@@ -48,32 +48,32 @@ const APPROVER_ROLES = ['store_manager', 'director', 'owner', 'hr_manager', 'fin
  * when the service expects camelCase `grandTotal`. Add new fields here
  * once the corresponding service exposes them in the workflow evaluator.
  */
-const FIELD_BY_ENTITY: Record<string, Array<{ value: string; label: string }>> = {
+const FIELD_BY_ENTITY: Record<string, Array<{ value: string; labelKey: string }>> = {
   purchase_order: [
-    { value: 'grandTotal', label: 'Grand total (Rp)' },
-    { value: 'subtotal', label: 'Subtotal (Rp)' },
-    { value: 'supplierId', label: 'Supplier ID' },
-    { value: 'locationId', label: 'Location ID' },
+    { value: 'grandTotal', labelKey: 'conditionFields.grandTotal' },
+    { value: 'subtotal', labelKey: 'conditionFields.subtotal' },
+    { value: 'supplierId', labelKey: 'conditionFields.supplierId' },
+    { value: 'locationId', labelKey: 'conditionFields.locationId' },
   ],
   leave_request: [
-    { value: 'dayCount', label: 'Jumlah hari' },
-    { value: 'leaveTypeCode', label: 'Tipe cuti (kode)' },
-    { value: 'employeeId', label: 'Employee ID' },
+    { value: 'dayCount', labelKey: 'conditionFields.dayCount' },
+    { value: 'leaveTypeCode', labelKey: 'conditionFields.leaveTypeCode' },
+    { value: 'employeeId', labelKey: 'conditionFields.employeeId' },
   ],
   stock_adjustment: [
-    { value: 'reason', label: 'Alasan (waste/damage/...)' },
-    { value: 'locationId', label: 'Location ID' },
-    { value: 'lineCount', label: 'Jumlah baris' },
+    { value: 'reason', labelKey: 'conditionFields.reason' },
+    { value: 'locationId', labelKey: 'conditionFields.locationId' },
+    { value: 'lineCount', labelKey: 'conditionFields.lineCount' },
   ],
   reimbursement_request: [
-    { value: 'amount', label: 'Nominal (Rp)' },
-    { value: 'categoryCode', label: 'Kategori (kode)' },
-    { value: 'employeeId', label: 'Employee ID' },
+    { value: 'amount', labelKey: 'conditionFields.amount' },
+    { value: 'categoryCode', labelKey: 'conditionFields.categoryCode' },
+    { value: 'employeeId', labelKey: 'conditionFields.employeeId' },
   ],
   journal_entry: [
-    { value: 'totalDebit', label: 'Total debit (Rp)' },
-    { value: 'postingDate', label: 'Tanggal posting' },
-    { value: 'locationId', label: 'Location ID' },
+    { value: 'totalDebit', labelKey: 'conditionFields.totalDebit' },
+    { value: 'postingDate', labelKey: 'conditionFields.postingDate' },
+    { value: 'locationId', labelKey: 'conditionFields.locationId' },
   ],
 };
 
@@ -300,7 +300,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
           ctx,
         );
         if (!result.success) {
-          setFormError(result.error ?? 'Update failed');
+          setFormError(result.error ?? t('errors.updateFailed'));
           return;
         }
         setDefinitions((prev) =>
@@ -330,7 +330,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
           ctx,
         );
         if (!result.success) {
-          setFormError(result.error ?? 'Create failed');
+          setFormError(result.error ?? t('errors.createFailed'));
           return;
         }
         const newDef: WorkflowDefinitionItem = {
@@ -456,7 +456,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                       </h3>
                       {!def.isActive && (
                         <span className="rounded-full bg-brand-cream-2 px-2 py-0.5 text-xs text-brand-ink-3">
-                          Inactive
+                          {t('status.inactive')}
                         </span>
                       )}
                     </div>
@@ -465,13 +465,17 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-brand-ink-2">
                       <span className="rounded bg-brand-cream-2 px-2 py-0.5 font-mono">
-                        {def.entityType}
+                        {t(`entityTypes.${def.entityType}` as never)}
                       </span>
-                      <span className="text-brand-ink-3">Priority: {def.priority}</span>
-                      <span className="text-brand-ink-3">Steps: {stepCount}</span>
+                      <span className="text-brand-ink-3">
+                        {t('summary.priority', { value: def.priority })}
+                      </span>
+                      <span className="text-brand-ink-3">
+                        {t('summary.steps', { count: stepCount })}
+                      </span>
                       {(def.conditionJson ?? []).length > 0 && (
                         <span className="text-brand-ink-3">
-                          Conditions: {def.conditionJson!.length}
+                          {t('summary.conditions', { count: def.conditionJson!.length })}
                         </span>
                       )}
                     </div>
@@ -480,7 +484,8 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                     <button
                       onClick={() => openEdit(def)}
                       className="rounded p-2 text-brand-ink-2 hover:bg-brand-cream-2 hover:text-brand-red"
-                      title="Edit"
+                      aria-label={t('actions.edit')}
+                      title={t('actions.edit')}
                     >
                       <svg
                         className="h-4 w-4"
@@ -499,7 +504,8 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                     <button
                       onClick={() => setConfirmDeleteId(def.id)}
                       className="rounded p-2 text-brand-ink-3 hover:bg-red-50 hover:text-red-500"
-                      title="Delete"
+                      aria-label={t('actions.delete')}
+                      title={t('actions.delete')}
                     >
                       <svg
                         className="h-4 w-4"
@@ -532,7 +538,12 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
               <h2 className="text-lg font-semibold text-brand-ink">
                 {editingId ? t('editDefinition') : t('createDefinition')}
               </h2>
-              <button onClick={closeModal} className="text-brand-ink-3 hover:text-brand-ink">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="text-brand-ink-3 hover:text-brand-ink"
+                aria-label={t('actions.close')}
+              >
                 <svg
                   className="h-5 w-5"
                   fill="none"
@@ -576,7 +587,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div>
                       <label className="mb-1 block text-sm font-medium text-brand-ink">
-                        Nama (ID) <span className="text-brand-red">*</span>
+                        {t('nameId')} <span className="text-brand-red">*</span>
                       </label>
                       <Input
                         type="text"
@@ -588,7 +599,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                     </div>
                     <div>
                       <label className="mb-1 block text-sm font-medium text-brand-ink">
-                        Name (EN)
+                        {t('nameEn')}
                       </label>
                       <Input
                         type="text"
@@ -599,7 +610,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                     </div>
                     <div>
                       <label className="mb-1 block text-sm font-medium text-brand-ink">
-                        名称 (ZH)
+                        {t('nameZh')}
                       </label>
                       <Input
                         type="text"
@@ -625,8 +636,8 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                         className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {ENTITY_TYPES.map((et) => (
-                          <option key={et.value} value={et.value}>
-                            {et.label}
+                          <option key={et} value={et}>
+                            {t(`entityTypes.${et}` as never)}
                           </option>
                         ))}
                       </Select>
@@ -678,7 +689,9 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                     </div>
                     {form.conditions.length === 0 ? (
                       <p className="rounded-lg border border-dashed border-brand-cream-3 py-3 text-center text-xs text-brand-ink-3">
-                        {t('noConditions')} — workflow applies to all {form.entityType}
+                        {t('noConditionsForEntity', {
+                          entity: t(`entityTypes.${form.entityType}` as never),
+                        })}
                       </p>
                     ) : (
                       <div className="space-y-2">
@@ -701,10 +714,10 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                                   onChange={(e) => updateCondition(idx, { field: e.target.value })}
                                   className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                                 >
-                                  <option value="">— pilih field —</option>
+                                  <option value="">{t('selectField')}</option>
                                   {entityFields.map((f) => (
                                     <option key={f.value} value={f.value}>
-                                      {f.label} ({f.value})
+                                      {t(f.labelKey as never)} ({f.value})
                                     </option>
                                   ))}
                                 </Select>
@@ -712,7 +725,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                                 <input
                                   type="text"
                                   value={cond.field}
-                                  placeholder="field (e.g. grandTotal)"
+                                  placeholder={t('fieldPlaceholder')}
                                   onChange={(e) => updateCondition(idx, { field: e.target.value })}
                                   className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                                 />
@@ -724,14 +737,14 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                               >
                                 {OPERATORS.map((op) => (
                                   <option key={op.value} value={op.value}>
-                                    {op.label}
+                                    {'labelKey' in op ? t(op.labelKey as never) : op.label}
                                   </option>
                                 ))}
                               </Select>
                               <input
                                 type="text"
                                 value={cond.value}
-                                placeholder="value"
+                                placeholder={t('valuePlaceholder')}
                                 onChange={(e) => updateCondition(idx, { value: e.target.value })}
                                 className="flex-1 rounded-lg border border-brand-cream-3 px-3 py-1.5 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                               />
@@ -739,6 +752,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                                 type="button"
                                 onClick={() => removeCondition(idx)}
                                 className="rounded p-1 text-brand-ink-3 hover:bg-red-50 hover:text-red-500"
+                                aria-label={t('actions.removeCondition')}
                               >
                                 <svg
                                   className="h-4 w-4"
@@ -779,7 +793,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-red/10 text-xs font-bold text-brand-red">
                             {idx + 1}
                           </span>
-                          <span className="text-sm text-brand-ink-2">Approver role:</span>
+                          <span className="text-sm text-brand-ink-2">{t('approverRole')}</span>
                           <Select
                             value={step.approverRole}
                             onChange={(e) => updateStep(idx, e.target.value)}
@@ -787,7 +801,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                           >
                             {APPROVER_ROLES.map((r) => (
                               <option key={r} value={r}>
-                                {r}
+                                {t(`approverRoles.${r}` as never)}
                               </option>
                             ))}
                           </Select>
@@ -796,6 +810,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                               type="button"
                               onClick={() => removeStep(idx)}
                               className="rounded p-1 text-brand-ink-3 hover:bg-red-50 hover:text-red-500"
+                              aria-label={t('actions.removeStep')}
                             >
                               <svg
                                 className="h-4 w-4"
@@ -839,7 +854,7 @@ export function WorkflowEditorClient({ initialDefinitions, ctx }: Props) {
                       variant="primary"
                       size="md"
                     >
-                      {isPending ? '...' : tc('labels.save')}
+                      {isPending ? tc('actions.saving') : tc('labels.save')}
                     </Button>
                   </div>
                 </div>

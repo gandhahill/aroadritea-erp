@@ -3673,7 +3673,14 @@
         "title": "Find the permission for a page",
         "hint": "Left: the page. Right: grant a role any one of these permissions to unlock that page (the Director’s full access *.* always works too).",
         "systemOnly": "Full access only (*.*)"
-      }
+      },
+      "placeholders": {
+        "roleCode": "store_supervisor",
+        "nameId": "Supervisor Outlet",
+        "nameEn": "Store Supervisor",
+        "nameZh": "\u95e8\u5e97\u4e3b\u7ba1"
+      },
+      "togglePermissionLabel": "Toggle {permission} for {role}"
     },
     "bankAccounts": {
       "title": "Bank Accounts",
@@ -3737,6 +3744,9 @@
           "outage": "System outage",
           "stockAlert": "Low stock alert",
           "partyLedger": "Payable/Receivable reminders"
+        },
+        "placeholders": {
+          "target": "ops@aroadritea.com"
         }
       }
     },
@@ -3782,7 +3792,8 @@
       "invalidRate": "Rupiah-per-point must be greater than 0.",
       "invalidTiers": "At least one valid tier required.",
       "firstTierMustBeZero": "The first (entry) tier must start at 0 points.",
-      "pointEqual": "= 1 point"
+      "pointEqual": "= 1 point",
+      "tierCodePlaceholder": "bronze"
     },
     "locations": {
       "title": "Locations",
@@ -3809,7 +3820,13 @@
       "gpsLat": "GPS Latitude",
       "gpsLng": "GPS Longitude",
       "gpsRadius": "Radius (m)",
-      "pickFromBrowser": "Pick from browser"
+      "pickFromBrowser": "Pick from browser",
+      "actions": "Actions",
+      "placeholders": {
+        "gpsLat": "-7.797068",
+        "gpsLng": "110.370529",
+        "gpsRadius": "100"
+      }
     },
     "customFields": {
       "title": "Custom Fields",
@@ -3849,7 +3866,18 @@
       "keyHint": "Lowercase, letters/numbers/underscores only. Cannot be changed later.",
       "enumHint": "Comma-separated values.",
       "actions": {
-        "delete": "Delete"
+        "delete": "Delete",
+        "label": "Actions",
+        "edit": "Edit"
+      },
+      "placeholders": {
+        "key": "e.g. color_code",
+        "enumOptions": "option1, option2, option3",
+        "validationRegex": "e.g. ^[A-Z0-9]{5}$"
+      },
+      "errors": {
+        "createFailed": "Failed to create field.",
+        "updateFailed": "Failed to update field."
       }
     },
     "pos": {
@@ -3982,7 +4010,25 @@
       "noModifierMappings": "No modifier code mappings yet. Add one below.",
       "selectModifierOption": "— Select modifier option —",
       "addProductMapping": "Add Product Mapping",
-      "addModifierMapping": "Add Modifier Mapping"
+      "addModifierMapping": "Add Modifier Mapping",
+      "errors": {
+        "createFailed": "Failed to create mapping.",
+        "updateFailed": "Failed to update mapping.",
+        "deleteFailed": "Failed to delete mapping."
+      },
+      "aria": {
+        "labelWidthMm": "Label width in millimeters",
+        "labelHeightMm": "Label height in millimeters"
+      },
+      "placeholders": {
+        "parameterOrder": "e.g. product, modifiers",
+        "productCode": "e.g. T003",
+        "modifierCode": "e.g. C01"
+      },
+      "qrPreviewAlt": "QR preview",
+      "previewPickup": "Pickup #{number}",
+      "previewTime": "10:42",
+      "previewItemText": "Glutinous Fragrant Tea (500ml), Less sugar, Normal ice"
     },
     "company": {
       "title": "Company Settings",
@@ -3996,7 +4042,11 @@
       "companyPhone": "Phone Number",
       "saved": "Company info saved successfully.",
       "saveAction": "Save Changes",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "placeholders": {
+        "npwp": "00.000.000.0-000.000",
+        "phone": "(0274) 000-0000"
+      }
     },
     "accounting": {
       "title": "Posting Account Mapping",
@@ -4066,7 +4116,67 @@
     "empty": "No workflows yet.",
     "howItWorks": "How It Works",
     "howItWorksDesc": "Active workflows trigger automatically when new data is created. Conditions are evaluated against the data; the highest-priority matching workflow runs.",
-    "confirmDelete": "Delete this workflow? Running instances will remain."
+    "confirmDelete": "Delete this workflow? Running instances will remain.",
+    "nameId": "Name (ID)",
+    "nameEn": "Name (EN)",
+    "nameZh": "Name (ZH)",
+    "selectField": "Select field",
+    "fieldPlaceholder": "field (e.g. grandTotal)",
+    "valuePlaceholder": "value",
+    "approverRole": "Approver role:",
+    "noConditionsForEntity": "No conditions - applies to all {entity} records.",
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "close": "Close dialog",
+      "removeCondition": "Remove condition",
+      "removeStep": "Remove step"
+    },
+    "errors": {
+      "createFailed": "Failed to create workflow.",
+      "updateFailed": "Failed to update workflow."
+    },
+    "status": {
+      "inactive": "Inactive"
+    },
+    "summary": {
+      "priority": "Priority: {value}",
+      "steps": "Steps: {count}",
+      "conditions": "Conditions: {count}"
+    },
+    "entityTypes": {
+      "purchase_order": "Purchase Order",
+      "leave_request": "Leave Request",
+      "stock_adjustment": "Stock Adjustment",
+      "reimbursement_request": "Reimbursement",
+      "journal_entry": "Journal Entry"
+    },
+    "operators": {
+      "in": "in",
+      "contains": "contains"
+    },
+    "conditionFields": {
+      "grandTotal": "Grand total (Rp)",
+      "subtotal": "Subtotal (Rp)",
+      "supplierId": "Supplier ID",
+      "locationId": "Location ID",
+      "dayCount": "Day count",
+      "leaveTypeCode": "Leave type code",
+      "employeeId": "Employee ID",
+      "reason": "Reason",
+      "lineCount": "Line count",
+      "amount": "Amount (Rp)",
+      "categoryCode": "Category code",
+      "totalDebit": "Total debit (Rp)",
+      "postingDate": "Posting date"
+    },
+    "approverRoles": {
+      "store_manager": "Store manager",
+      "director": "Director",
+      "owner": "Owner",
+      "hr_manager": "HR manager",
+      "finance": "Finance"
+    }
   },
   "reporting": {
     "trialBalance": {
@@ -5242,7 +5352,9 @@
       },
       "filter": {
         "all": "All",
-        "show": "Show"
+        "show": "Show",
+        "userId": "User ID",
+        "userIdPlaceholder": "ulid..."
       },
       "entities": {
         "ai_chat_session": "AI Chat Session",

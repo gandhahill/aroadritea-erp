@@ -64,7 +64,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
       displayOrder: Number.parseInt(newOrder, 10) || 0,
     });
     if (!result.success) {
-      setError(result.error ?? 'Failed to create');
+      setError(result.error ?? t('errors.createFailed'));
       return;
     }
     setNewOptionId('');
@@ -77,14 +77,14 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
   async function handleToggle(id: string, isActive: boolean) {
     setError(null);
     const result = await updateModifierCode(id, { isActive: !isActive });
-    if (!result.success) setError(result.error ?? 'Failed to update');
+    if (!result.success) setError(result.error ?? t('errors.updateFailed'));
     startTransition(() => router.refresh());
   }
 
   async function handleDelete(id: string) {
     setError(null);
     const result = await deleteModifierCode(id);
-    if (!result.success) setError(result.error ?? 'Failed to delete');
+    if (!result.success) setError(result.error ?? t('errors.deleteFailed'));
     startTransition(() => router.refresh());
   }
 
@@ -100,22 +100,22 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
         <thead>
           <tr className="border-b border-brand-cream-3 bg-brand-cream">
             <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
-              {t('modifierKind', { fallback: 'Jenis' })}
+              {t('modifierKind')}
             </TableHead>
             <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
-              {t('modifierOptionId', { fallback: 'ID Opsi Modifier' })}
+              {t('modifierOptionId')}
             </TableHead>
             <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
               {t('naixerCode')}
             </TableHead>
             <TableHead className="px-4 py-3 text-center font-medium text-brand-ink-2">
-              {t('displayOrder', { fallback: 'Urutan' })}
+              {t('displayOrder')}
             </TableHead>
             <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
-              {tc('fields.status', { fallback: 'Status' })}
+              {tc('fields.status')}
             </TableHead>
             <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
-              {tc('fields.actions', { fallback: 'Aksi' })}
+              {tc('fields.actions')}
             </TableHead>
           </tr>
         </thead>
@@ -146,11 +146,11 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
                   {code.isActive ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-brand-jade-light px-2 py-0.5 text-[11px] font-medium text-brand-jade">
                       <span className="h-1.5 w-1.5 rounded-full bg-brand-jade" />
-                      {tc('status.active', { fallback: 'Aktif' })}
+                      {tc('status.active')}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 rounded-full bg-brand-cream-2 px-2 py-0.5 text-[11px] font-medium text-brand-ink-3">
-                      {tc('status.inactive', { fallback: 'Nonaktif' })}
+                      {tc('status.inactive')}
                     </span>
                   )}
                 </button>
@@ -162,7 +162,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
                   disabled={isPending}
                   className="text-xs text-brand-red hover:underline disabled:opacity-50"
                 >
-                  {tc('actions.delete', { fallback: 'Hapus' })}
+                  {tc('actions.delete')}
                 </button>
               </TableCell>
             </tr>
@@ -170,9 +170,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
           {codes.length === 0 && !showAddForm && (
             <tr>
               <td colSpan={6} className="px-4 py-8 text-center text-sm text-brand-ink-3">
-                {t('noModifierMappings', {
-                  fallback: 'Belum ada pemetaan kode modifier. Tambahkan di bawah.',
-                })}
+                {t('noModifierMappings')}
               </td>
             </tr>
           )}
@@ -184,7 +182,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
           <div className="flex items-end gap-3">
             <div className="w-28">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                {t('modifierKind', { fallback: 'Kind' })}
+                {t('modifierKind')}
               </label>
               <Select
                 value={newKind}
@@ -200,7 +198,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
             </div>
             <div className="flex-1">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                {t('modifierOptionId', { fallback: 'Modifier Option' })}
+                {t('modifierOptionId')}
               </label>
               <Select
                 value={newOptionId}
@@ -208,7 +206,7 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
                 className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
               >
                 <option value="">
-                  {t('selectModifierOption', { fallback: '— Pilih modifier option —' })}
+                  {t('selectModifierOption')}
                 </option>
                 {modifierOptions.map((o) => (
                   <option key={o.id} value={o.id}>
@@ -225,13 +223,13 @@ export function ModifierCodesTable({ codes, tenantId, modifierOptions }: Props) 
                 type="text"
                 value={newNaixerCode}
                 onChange={(e) => setNewNaixerCode(e.target.value)}
-                placeholder="e.g. C01"
+                placeholder={t('placeholders.modifierCode')}
                 className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm font-mono text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none"
               />
             </div>
             <div className="w-20">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                {t('displayOrder', { fallback: 'Order' })}
+                {t('displayOrder')}
               </label>
               <Input
                 type="number"

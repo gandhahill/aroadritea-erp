@@ -49,6 +49,10 @@ export default async function LocationsPage() {
           gpsLng: t('gpsLng'),
           gpsRadius: t('gpsRadius'),
           pickFromBrowser: t('pickFromBrowser'),
+          actions: t('actions'),
+          gpsLatPlaceholder: t('placeholders.gpsLat'),
+          gpsLngPlaceholder: t('placeholders.gpsLng'),
+          gpsRadiusPlaceholder: t('placeholders.gpsRadius'),
         }}
       />
     </div>

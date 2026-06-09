@@ -206,7 +206,7 @@ export default async function AiAssistantLogPage({
             <select
               name="entity"
               defaultValue={entity ?? ''}
-              className="h-9 w-44 rounded-md border border-brand-cream-3 bg-white px-3 text-sm focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20"
+              className="h-9 w-44 rounded-md border border-brand-cream-3 bg-card px-3 text-sm focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20"
             >
               <option value="">{t('filter.all')}</option>
               {ENTITY_FILTERS.map((e) => (
@@ -216,12 +216,12 @@ export default async function AiAssistantLogPage({
               ))}
             </select>
           </FilterField>
-          <FilterField label="User ID">
+          <FilterField label={t('filter.userId')}>
             <input
               name="user"
               defaultValue={userFilter ?? ''}
-              placeholder="ulid…"
-              className="h-9 w-72 rounded-md border border-brand-cream-3 bg-white px-3 font-mono text-xs focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20"
+              placeholder={t('filter.userIdPlaceholder')}
+              className="h-9 w-72 rounded-md border border-brand-cream-3 bg-card px-3 font-mono text-xs focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20"
             />
           </FilterField>
           <button

@@ -142,7 +142,7 @@ export function CustomFieldsClient({ initialFields }: Props) {
           displayOrder: form.displayOrder,
         });
         if (!result.success) {
-          setFormError(result.error ?? 'Update failed');
+          setFormError(result.error ?? t('errors.updateFailed'));
           return;
         }
         // Optimistic update
@@ -173,7 +173,7 @@ export function CustomFieldsClient({ initialFields }: Props) {
           displayOrder: form.displayOrder,
         });
         if (!result.success) {
-          setFormError(result.error ?? 'Create failed');
+          setFormError(result.error ?? t('errors.createFailed'));
           return;
         }
         // Add to list optimistically (will refresh on page reload)
@@ -300,7 +300,7 @@ export function CustomFieldsClient({ initialFields }: Props) {
                   {t('displayOrder')}
                 </TableHead>
                 <TableHead className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-brand-ink-2">
-                  Actions
+                  {t('actions.label')}
                 </TableHead>
               </tr>
             </thead>
@@ -324,7 +324,7 @@ export function CustomFieldsClient({ initialFields }: Props) {
                     </TableCell>
                     <TableCell className="px-4 py-3">
                       <span className="inline-flex items-center rounded-full bg-brand-cream-2 px-2.5 py-0.5 text-xs font-medium text-brand-ink-2">
-                        {tDT(`dataTypes.${field.dataType}` as 'dataTypes.string')}
+                        {tDT(field.dataType as never)}
                       </span>
                     </TableCell>
                     <TableCell className="px-4 py-3 text-center">
@@ -358,7 +358,8 @@ export function CustomFieldsClient({ initialFields }: Props) {
                         <button
                           onClick={() => openEdit(field)}
                           className="rounded p-1.5 text-brand-ink-2 hover:bg-brand-cream-2 hover:text-brand-red"
-                          title="Edit"
+                          aria-label={t('actions.edit')}
+                          title={t('actions.edit')}
                         >
                           <svg
                             className="h-4 w-4"
@@ -377,7 +378,8 @@ export function CustomFieldsClient({ initialFields }: Props) {
                         <button
                           onClick={() => setConfirmDeleteId(field.id)}
                           className="rounded p-1.5 text-brand-ink-3 hover:bg-red-50 hover:text-red-500"
-                          title="Delete"
+                          aria-label={t('actions.delete')}
+                          title={t('actions.delete')}
                         >
                           <svg
                             className="h-4 w-4"
@@ -435,7 +437,7 @@ export function CustomFieldsClient({ initialFields }: Props) {
                     type="text"
                     value={form.key}
                     onChange={(e) => handleFormChange('key', e.target.value)}
-                    placeholder="e.g. color_code"
+                    placeholder={t('placeholders.key')}
                     pattern="[a-z][a-z0-9_]*"
                     maxLength={32}
                     required
@@ -512,7 +514,7 @@ export function CustomFieldsClient({ initialFields }: Props) {
                     type="text"
                     value={form.enumOptions}
                     onChange={(e) => handleFormChange('enumOptions', e.target.value)}
-                    placeholder="option1, option2, option3"
+                    placeholder={t('placeholders.enumOptions')}
                     className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                   />
                   <p className="mt-1 text-xs text-brand-ink-3">{t('enumHint')}</p>
@@ -528,7 +530,7 @@ export function CustomFieldsClient({ initialFields }: Props) {
                   type="text"
                   value={form.validationRegex}
                   onChange={(e) => handleFormChange('validationRegex', e.target.value)}
-                  placeholder="e.g. ^[A-Z0-9]{5}$"
+                  placeholder={t('placeholders.validationRegex')}
                   className="w-full rounded-lg border border-brand-cream-3 px-3 py-2 text-sm text-brand-ink placeholder-brand-cream-3 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
                 />
               </div>

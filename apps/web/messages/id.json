@@ -3565,7 +3565,67 @@
     "empty": "Belum ada workflow.",
     "howItWorks": "Cara Kerja",
     "howItWorksDesc": "Workflow aktif secara otomatis saat data baru dibuat. Kondisi dievaluasi terhadap data; workflow dengan prioritas tertinggi yang cocok akan dijalankan.",
-    "confirmDelete": "Yakin hapus workflow ini? Instance yang berjalan akan tetap ada."
+    "confirmDelete": "Yakin hapus workflow ini? Instance yang berjalan akan tetap ada.",
+    "nameId": "Nama (ID)",
+    "nameEn": "Nama (EN)",
+    "nameZh": "Nama (ZH)",
+    "selectField": "Pilih field",
+    "fieldPlaceholder": "field (contoh: grandTotal)",
+    "valuePlaceholder": "nilai",
+    "approverRole": "Role approver:",
+    "noConditionsForEntity": "Tanpa kondisi - berlaku untuk semua data {entity}.",
+    "actions": {
+      "edit": "Ubah",
+      "delete": "Hapus",
+      "close": "Tutup dialog",
+      "removeCondition": "Hapus kondisi",
+      "removeStep": "Hapus langkah"
+    },
+    "errors": {
+      "createFailed": "Gagal membuat workflow.",
+      "updateFailed": "Gagal memperbarui workflow."
+    },
+    "status": {
+      "inactive": "Nonaktif"
+    },
+    "summary": {
+      "priority": "Prioritas: {value}",
+      "steps": "Langkah: {count}",
+      "conditions": "Kondisi: {count}"
+    },
+    "entityTypes": {
+      "purchase_order": "Purchase Order",
+      "leave_request": "Pengajuan Cuti",
+      "stock_adjustment": "Penyesuaian Stok",
+      "reimbursement_request": "Reimbursement",
+      "journal_entry": "Jurnal"
+    },
+    "operators": {
+      "in": "di dalam",
+      "contains": "berisi"
+    },
+    "conditionFields": {
+      "grandTotal": "Grand total (Rp)",
+      "subtotal": "Subtotal (Rp)",
+      "supplierId": "ID supplier",
+      "locationId": "ID lokasi",
+      "dayCount": "Jumlah hari",
+      "leaveTypeCode": "Kode tipe cuti",
+      "employeeId": "ID karyawan",
+      "reason": "Alasan",
+      "lineCount": "Jumlah baris",
+      "amount": "Nominal (Rp)",
+      "categoryCode": "Kode kategori",
+      "totalDebit": "Total debit (Rp)",
+      "postingDate": "Tanggal posting"
+    },
+    "approverRoles": {
+      "store_manager": "Kepala toko",
+      "director": "Direktur",
+      "owner": "Owner",
+      "hr_manager": "HR manager",
+      "finance": "Finance"
+    }
   },
   "reporting": {
     "trialBalance": {
@@ -4201,7 +4261,14 @@
         "title": "Cari permission untuk sebuah halaman",
         "hint": "Kiri: nama halaman. Kanan: beri role salah satu permission ini untuk membuka halaman tersebut (akses penuh Direktur *.* juga selalu bisa).",
         "systemOnly": "Hanya akses penuh (*.*)"
-      }
+      },
+      "placeholders": {
+        "roleCode": "store_supervisor",
+        "nameId": "Supervisor Outlet",
+        "nameEn": "Store Supervisor",
+        "nameZh": "\u95e8\u5e97\u4e3b\u7ba1"
+      },
+      "togglePermissionLabel": "Ubah {permission} untuk {role}"
     },
     "bankAccounts": {
       "title": "Akun Bank",
@@ -4265,6 +4332,9 @@
           "outage": "Gangguan sistem",
           "stockAlert": "Peringatan stok",
           "partyLedger": "Reminder utang/piutang"
+        },
+        "placeholders": {
+          "target": "ops@aroadritea.com"
         }
       }
     },
@@ -4310,7 +4380,8 @@
       "invalidRate": "Tarif rupiah-per-poin harus lebih dari 0.",
       "invalidTiers": "Minimal satu tier yang valid.",
       "firstTierMustBeZero": "Tier pertama (entry) harus dimulai dari 0 poin.",
-      "pointEqual": "= 1 poin"
+      "pointEqual": "= 1 poin",
+      "tierCodePlaceholder": "bronze"
     },
     "locations": {
       "title": "Lokasi",
@@ -4337,7 +4408,13 @@
       "gpsLat": "GPS Latitude",
       "gpsLng": "GPS Longitude",
       "gpsRadius": "Radius (m)",
-      "pickFromBrowser": "Ambil dari browser"
+      "pickFromBrowser": "Ambil dari browser",
+      "actions": "Aksi",
+      "placeholders": {
+        "gpsLat": "-7.797068",
+        "gpsLng": "110.370529",
+        "gpsRadius": "100"
+      }
     },
     "customFields": {
       "title": "Bidang Kustom",
@@ -4377,7 +4454,18 @@
       "keyHint": "Huruf kecil, angka/huruf/garis bawah saja. Tidak dapat diubah nanti.",
       "enumHint": "Nilai dipisahkan koma.",
       "actions": {
-        "delete": "Hapus"
+        "delete": "Hapus",
+        "label": "Aksi",
+        "edit": "Ubah"
+      },
+      "placeholders": {
+        "key": "contoh: kode_warna",
+        "enumOptions": "opsi1, opsi2, opsi3",
+        "validationRegex": "contoh: ^[A-Z0-9]{5}$"
+      },
+      "errors": {
+        "createFailed": "Gagal membuat bidang.",
+        "updateFailed": "Gagal memperbarui bidang."
       }
     },
     "pos": {
@@ -4510,7 +4598,25 @@
       "noModifierMappings": "Belum ada pemetaan kode modifier. Tambahkan di bawah.",
       "selectModifierOption": "— Pilih opsi modifier —",
       "addProductMapping": "Tambah Pemetaan Produk",
-      "addModifierMapping": "Tambah Pemetaan Modifier"
+      "addModifierMapping": "Tambah Pemetaan Modifier",
+      "errors": {
+        "createFailed": "Gagal membuat pemetaan.",
+        "updateFailed": "Gagal memperbarui pemetaan.",
+        "deleteFailed": "Gagal menghapus pemetaan."
+      },
+      "aria": {
+        "labelWidthMm": "Lebar label dalam milimeter",
+        "labelHeightMm": "Tinggi label dalam milimeter"
+      },
+      "placeholders": {
+        "parameterOrder": "contoh: product, modifiers",
+        "productCode": "contoh: T003",
+        "modifierCode": "contoh: C01"
+      },
+      "qrPreviewAlt": "Pratinjau QR",
+      "previewPickup": "Pickup #{number}",
+      "previewTime": "10:42",
+      "previewItemText": "Glutinous Fragrant Tea (500ml), Less sugar, Normal ice"
     },
     "company": {
       "title": "Pengaturan Perusahaan",
@@ -4524,7 +4630,11 @@
       "companyPhone": "Nomor Telepon",
       "saved": "Info perusahaan berhasil disimpan.",
       "saveAction": "Simpan Perubahan",
-      "saving": "Menyimpan..."
+      "saving": "Menyimpan...",
+      "placeholders": {
+        "npwp": "00.000.000.0-000.000",
+        "phone": "(0274) 000-0000"
+      }
     },
     "accounting": {
       "title": "Pemetaan Akun Jurnal",
@@ -5242,7 +5352,9 @@
       },
       "filter": {
         "all": "Semua",
-        "show": "Tampilkan"
+        "show": "Tampilkan",
+        "userId": "ID User",
+        "userIdPlaceholder": "ulid..."
       },
       "entities": {
         "ai_chat_session": "Sesi Percakapan AI",

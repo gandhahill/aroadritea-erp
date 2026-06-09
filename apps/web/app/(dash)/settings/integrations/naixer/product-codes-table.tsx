@@ -45,7 +45,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
       naixerCode: newNaixerCode.trim(),
     });
     if (!result.success) {
-      setError(result.error ?? 'Failed to create');
+      setError(result.error ?? t('errors.createFailed'));
       return;
     }
     setNewProductId('');
@@ -58,14 +58,14 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
   async function handleToggle(id: string, isActive: boolean) {
     setError(null);
     const result = await updateProductCode(id, { isActive: !isActive });
-    if (!result.success) setError(result.error ?? 'Failed to update');
+    if (!result.success) setError(result.error ?? t('errors.updateFailed'));
     startTransition(() => router.refresh());
   }
 
   async function handleDelete(id: string) {
     setError(null);
     const result = await deleteProductCode(id);
-    if (!result.success) setError(result.error ?? 'Failed to delete');
+    if (!result.success) setError(result.error ?? t('errors.deleteFailed'));
     startTransition(() => router.refresh());
   }
 
@@ -81,7 +81,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
         <thead>
           <tr className="border-b border-brand-cream-3 bg-brand-cream">
             <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
-              {t('product', { fallback: 'Produk' })}
+              {t('product')}
             </TableHead>
             <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
               {t('variant')}
@@ -90,10 +90,10 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
               {t('naixerCode')}
             </TableHead>
             <TableHead className="px-4 py-3 text-left font-medium text-brand-ink-2">
-              {tc('fields.status', { fallback: 'Status' })}
+              {tc('fields.status')}
             </TableHead>
             <TableHead className="px-4 py-3 text-right font-medium text-brand-ink-2">
-              {tc('fields.actions', { fallback: 'Aksi' })}
+              {tc('fields.actions')}
             </TableHead>
           </tr>
         </thead>
@@ -121,11 +121,11 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
                   {code.isActive ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-brand-jade-light px-2 py-0.5 text-[11px] font-medium text-brand-jade">
                       <span className="h-1.5 w-1.5 rounded-full bg-brand-jade" />
-                      {tc('status.active', { fallback: 'Aktif' })}
+                      {tc('status.active')}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 rounded-full bg-brand-cream-2 px-2 py-0.5 text-[11px] font-medium text-brand-ink-3">
-                      {tc('status.inactive', { fallback: 'Nonaktif' })}
+                      {tc('status.inactive')}
                     </span>
                   )}
                 </button>
@@ -137,7 +137,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
                   disabled={isPending}
                   className="text-xs text-brand-red hover:underline disabled:opacity-50"
                 >
-                  {tc('actions.delete', { fallback: 'Hapus' })}
+                  {tc('actions.delete')}
                 </button>
               </TableCell>
             </tr>
@@ -145,9 +145,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
           {codes.length === 0 && !showAddForm && (
             <tr>
               <td colSpan={5} className="px-4 py-8 text-center text-sm text-brand-ink-3">
-                {t('noProductMappings', {
-                  fallback: 'Belum ada pemetaan kode produk. Tambahkan di bawah.',
-                })}
+                {t('noProductMappings')}
               </td>
             </tr>
           )}
@@ -160,7 +158,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
           <div className="flex items-end gap-3">
             <div className="flex-1">
               <label className="mb-1 block text-xs font-medium text-brand-ink-2">
-                {t('product', { fallback: 'Produk' })}
+                {t('product')}
               </label>
               <Select
                 value={newProductId}
@@ -176,7 +174,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
                 }}
                 className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm text-brand-ink focus:border-brand-red focus:outline-none"
               >
-                <option value="">{t('selectProduct', { fallback: '— Pilih produk —' })}</option>
+                <option value="">{t('selectProduct')}</option>
                 {products.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.label}
@@ -212,7 +210,7 @@ export function ProductCodesTable({ codes, tenantId, products, variants }: Props
                 type="text"
                 value={newNaixerCode}
                 onChange={(e) => setNewNaixerCode(e.target.value)}
-                placeholder="e.g. T003"
+                placeholder={t('placeholders.productCode')}
                 className="w-full rounded border border-brand-cream-3 bg-card px-2.5 py-1.5 text-sm font-mono text-brand-ink placeholder:text-brand-ink-3 focus:border-brand-red focus:outline-none"
               />
             </div>

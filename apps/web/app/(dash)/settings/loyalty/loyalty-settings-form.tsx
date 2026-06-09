@@ -119,7 +119,7 @@ export function LoyaltySettingsForm({ initial }: Props) {
                     name="tierCode"
                     value={tier.code}
                     onChange={(event) => updateTier(tier.key, { code: event.target.value })}
-                    placeholder="bronze"
+                    placeholder={t('tierCodePlaceholder')}
                     required
                   />
                 </label>

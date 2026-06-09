@@ -55,7 +55,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
     return [...map.entries()];
   }, [matrix.permissions]);
 
-  // All available permission codes (used by the Page → permission reference).
+  // All available permission codes (used by the page-to-permission reference).
   const allCodes = useMemo(() => matrix.permissions.map((p) => p.code), [matrix.permissions]);
 
   // Navigable pages grouped by their top-level menu section, for the reverse
@@ -216,25 +216,25 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
             label={tc('fields.code')}
             value={newRole.code}
             onChange={(value) => setNewRole((current) => ({ ...current, code: value }))}
-            placeholder="store_supervisor"
+            placeholder={t('placeholders.roleCode')}
           />
           <FilterInput
             label={tc('fields.nameId')}
             value={newRole.id}
             onChange={(value) => setNewRole((current) => ({ ...current, id: value }))}
-            placeholder="Supervisor Outlet"
+            placeholder={t('placeholders.nameId')}
           />
           <FilterInput
             label={tc('fields.nameEn')}
             value={newRole.en}
             onChange={(value) => setNewRole((current) => ({ ...current, en: value }))}
-            placeholder="Store Supervisor"
+            placeholder={t('placeholders.nameEn')}
           />
           <FilterInput
             label={tc('fields.nameZh')}
             value={newRole.zh}
             onChange={(value) => setNewRole((current) => ({ ...current, zh: value }))}
-            placeholder="门店主管"
+            placeholder={t('placeholders.nameZh')}
           />
           <button
             type="button"
@@ -330,7 +330,9 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
             <table className="min-w-full divide-y divide-brand-cream-3 text-sm">
               <thead className="bg-card text-left text-xs font-semibold uppercase tracking-wider text-brand-ink-3">
                 <tr>
-                  <th className="sticky left-0 z-10 min-w-64 bg-card px-4 py-3">Permission</th>
+                  <th className="sticky left-0 z-10 min-w-64 bg-card px-4 py-3">
+                    {t('permissionColumn')}
+                  </th>
                   {matrix.roles.map((role) => (
                     <th key={role.id} className="px-4 py-3 text-center">
                       {role.name.id ?? role.code}
@@ -360,7 +362,7 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                         ) : unlocked.length > 0 ? (
                           <p className="mt-1 text-[11px] text-brand-ink-3">
                             <span className="font-semibold text-brand-ink-2">{t('unlocks')}: </span>
-                            {unlocked.map((page) => tn(page.labelKey as never)).join(' · ')}
+                            {unlocked.map((page) => tn(page.labelKey as never)).join(' / ')}
                           </p>
                         ) : null}
                       </td>
@@ -373,7 +375,10 @@ export function PermissionsMatrix({ matrix }: { matrix: PermissionMatrix }) {
                               toggle(role.id, permission.id, event.target.checked)
                             }
                             className="h-4 w-4 rounded border-brand-cream-3 text-brand-red focus:ring-brand-red"
-                            aria-label={`${role.code} ${permission.code}`}
+                            aria-label={t('togglePermissionLabel', {
+                              role: role.code,
+                              permission: permission.code,
+                            })}
                           />
                         </td>
                       ))}

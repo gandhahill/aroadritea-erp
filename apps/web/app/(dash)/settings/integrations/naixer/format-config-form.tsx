@@ -60,7 +60,7 @@ export function FormatConfigForm({ configs }: Props) {
     setError(null);
     const result = await updateFormatConfig(id, data);
     if (!result.success) {
-      setError(result.error ?? 'Failed to update');
+      setError(result.error ?? t('errors.updateFailed'));
       return;
     }
     startTransition(() => router.refresh());
@@ -167,7 +167,7 @@ export function FormatConfigForm({ configs }: Props) {
                   </button>
                   <div className="flex items-center gap-1">
                     <input
-                      aria-label="Label width in millimeters"
+                      aria-label={t('aria.labelWidthMm')}
                       type="number"
                       min={30}
                       max={100}
@@ -180,7 +180,7 @@ export function FormatConfigForm({ configs }: Props) {
                     />
                     <span className="text-xs text-brand-ink-3">x</span>
                     <input
-                      aria-label="Label height in millimeters"
+                      aria-label={t('aria.labelHeightMm')}
                       type="number"
                       min={20}
                       max={80}
@@ -246,7 +246,7 @@ export function FormatConfigForm({ configs }: Props) {
                     }}
                     disabled={isPending}
                     className="w-full rounded border border-brand-cream-3 bg-card px-2 py-1 text-xs text-brand-ink focus:border-brand-red focus:outline-none disabled:opacity-50"
-                    placeholder="e.g. product, modifiers"
+                    placeholder={t('placeholders.parameterOrder')}
                   />
                   <div className="flex flex-wrap gap-1 mt-1">
                     {config.parameterOrderJson.map((param, idx) => (
@@ -286,7 +286,7 @@ export function FormatConfigForm({ configs }: Props) {
                   >
                     <img
                       src={preview.qrDataUrl}
-                      alt="QR preview"
+                      alt={t('qrPreviewAlt')}
                       style={{ width: `${labelPreview.qrPx}px`, height: `${labelPreview.qrPx}px` }}
                     />
                     <div
@@ -297,9 +297,9 @@ export function FormatConfigForm({ configs }: Props) {
                         className="font-bold leading-none"
                         style={{ fontSize: `${labelPreview.pickupFontPx}px` }}
                       >
-                        Pickup #3
+                        {t('previewPickup', { number: 3 })}
                       </p>
-                      <p className="mt-0.5 font-medium">10:42</p>
+                      <p className="mt-0.5 font-medium">{t('previewTime')}</p>
                       <p
                         className="mt-0.5 overflow-hidden"
                         style={{
@@ -308,7 +308,7 @@ export function FormatConfigForm({ configs }: Props) {
                           WebkitBoxOrient: 'vertical',
                         }}
                       >
-                        Glutinous Fragrant Tea (500ml), Less sugar, Normal ice
+                        {t('previewItemText')}
                       </p>
                     </div>
                   </div>

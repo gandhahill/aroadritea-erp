@@ -3697,7 +3697,18 @@
       "keyHint": "仅限小写字母/数字/下划线。之后无法更改。",
       "enumHint": "逗号分隔的值。",
       "actions": {
-        "delete": "删除"
+        "delete": "\u5220\u9664",
+        "label": "\u64cd\u4f5c",
+        "edit": "\u7f16\u8f91"
+      },
+      "placeholders": {
+        "key": "\u4f8b\u5982: color_code",
+        "enumOptions": "option1, option2, option3",
+        "validationRegex": "\u4f8b\u5982: ^[A-Z0-9]{5}$"
+      },
+      "errors": {
+        "createFailed": "\u521b\u5efa\u81ea\u5b9a\u4e49\u5b57\u6bb5\u5931\u8d25",
+        "updateFailed": "\u66f4\u65b0\u81ea\u5b9a\u4e49\u5b57\u6bb5\u5931\u8d25"
       }
     },
     "permissions": {
@@ -3736,7 +3747,14 @@
         "title": "按页面查找权限",
         "hint": "左侧：页面。右侧：为角色授予其中任意一个权限即可解锁该页面（总监的完整访问权限 *.* 同样适用）。",
         "systemOnly": "仅完整访问 (*.*)"
-      }
+      },
+      "placeholders": {
+        "roleCode": "store_supervisor",
+        "nameId": "Supervisor Outlet",
+        "nameEn": "Store Supervisor",
+        "nameZh": "\u95e8\u5e97\u4e3b\u7ba1"
+      },
+      "togglePermissionLabel": "\u5207\u6362 {role} \u7684 {permission}"
     },
     "notifications": {
       "section": "设置",
@@ -3778,6 +3796,9 @@
           "outage": "系统中断",
           "stockAlert": "库存预警",
           "partyLedger": "应付/应收账款提醒"
+        },
+        "placeholders": {
+          "target": "ops@aroadritea.com"
         }
       }
     },
@@ -3823,7 +3844,8 @@
       "invalidRate": "每积分对应的卢比金额必须大于 0。",
       "invalidTiers": "至少需要一个有效等级。",
       "firstTierMustBeZero": "首个（入门）等级必须从 0 积分开始。",
-      "pointEqual": "= 1 积分"
+      "pointEqual": "= 1 积分",
+      "tierCodePlaceholder": "bronze"
     },
     "locations": {
       "title": "地点",
@@ -3850,7 +3872,13 @@
       "gpsLat": "GPS 纬度",
       "gpsLng": "GPS 经度",
       "gpsRadius": "半径 (m)",
-      "pickFromBrowser": "从浏览器获取"
+      "pickFromBrowser": "从浏览器获取",
+      "actions": "\u64cd\u4f5c",
+      "placeholders": {
+        "gpsLat": "-7.797068",
+        "gpsLng": "110.370529",
+        "gpsRadius": "100"
+      }
     },
     "pos": {
       "title": "POS 设置",
@@ -3982,7 +4010,25 @@
       "noModifierMappings": "目前没有修饰符代码映射。在下面添加一个。",
       "selectModifierOption": "— 选择修饰符选项 —",
       "addProductMapping": "添加产品映射",
-      "addModifierMapping": "添加修饰符映射"
+      "addModifierMapping": "添加修饰符映射",
+      "errors": {
+        "createFailed": "\u521b\u5efa\u6620\u5c04\u5931\u8d25\u3002",
+        "updateFailed": "\u66f4\u65b0\u6620\u5c04\u5931\u8d25\u3002",
+        "deleteFailed": "\u5220\u9664\u6620\u5c04\u5931\u8d25\u3002"
+      },
+      "aria": {
+        "labelWidthMm": "\u6807\u7b7e\u5bbd\u5ea6\uff08\u6beb\u7c73\uff09",
+        "labelHeightMm": "\u6807\u7b7e\u9ad8\u5ea6\uff08\u6beb\u7c73\uff09"
+      },
+      "placeholders": {
+        "parameterOrder": "\u4f8b\u5982: product, modifiers",
+        "productCode": "\u4f8b\u5982: T003",
+        "modifierCode": "\u4f8b\u5982: C01"
+      },
+      "qrPreviewAlt": "QR \u9884\u89c8",
+      "previewPickup": "Pickup #{number}",
+      "previewTime": "10:42",
+      "previewItemText": "Glutinous Fragrant Tea (500ml), Less sugar, Normal ice"
     },
     "company": {
       "title": "公司设置",
@@ -3996,7 +4042,11 @@
       "companyPhone": "电话号码",
       "saved": "公司信息已成功保存。",
       "saveAction": "保存更改",
-      "saving": "保存中..."
+      "saving": "保存中...",
+      "placeholders": {
+        "npwp": "00.000.000.0-000.000",
+        "phone": "(0274) 000-0000"
+      }
     },
     "accounting": {
       "title": "科目映射设置",
@@ -4066,7 +4116,67 @@
     "empty": "暂无工作流。",
     "howItWorks": "工作原理",
     "howItWorksDesc": "当新数据创建时，活动工作流会自动触发。条件根据数据评估；优先级最高的匹配工作流将运行。",
-    "confirmDelete": "删除此工作流？运行中的实例将继续存在。"
+    "confirmDelete": "删除此工作流？运行中的实例将继续存在。",
+    "nameId": "\u540d\u79f0 (ID)",
+    "nameEn": "\u540d\u79f0 (EN)",
+    "nameZh": "\u540d\u79f0 (ZH)",
+    "selectField": "\u9009\u62e9\u5b57\u6bb5",
+    "fieldPlaceholder": "\u5b57\u6bb5 (\u4f8b\u5982: grandTotal)",
+    "valuePlaceholder": "\u503c",
+    "approverRole": "\u5ba1\u6279\u89d2\u8272:",
+    "noConditionsForEntity": "\u65e0\u6761\u4ef6 - \u5de5\u4f5c\u6d41\u9002\u7528\u4e8e\u6240\u6709 {entity} \u8bb0\u5f55",
+    "actions": {
+      "edit": "\u7f16\u8f91",
+      "delete": "\u5220\u9664",
+      "close": "\u5173\u95ed\u5bf9\u8bdd\u6846",
+      "removeCondition": "\u79fb\u9664\u6761\u4ef6",
+      "removeStep": "\u79fb\u9664\u6b65\u9aa4"
+    },
+    "errors": {
+      "createFailed": "\u521b\u5efa\u5de5\u4f5c\u6d41\u5931\u8d25",
+      "updateFailed": "\u66f4\u65b0\u5de5\u4f5c\u6d41\u5931\u8d25"
+    },
+    "status": {
+      "inactive": "\u505c\u7528"
+    },
+    "summary": {
+      "priority": "\u4f18\u5148\u7ea7: {value}",
+      "steps": "\u6b65\u9aa4: {count}",
+      "conditions": "\u6761\u4ef6: {count}"
+    },
+    "entityTypes": {
+      "purchase_order": "\u91c7\u8d2d\u8ba2\u5355",
+      "leave_request": "\u8bf7\u5047\u7533\u8bf7",
+      "stock_adjustment": "\u5e93\u5b58\u8c03\u6574",
+      "reimbursement_request": "\u62a5\u9500\u7533\u8bf7",
+      "journal_entry": "\u65e5\u8bb0\u8d26"
+    },
+    "operators": {
+      "in": "\u5305\u542b\u4e8e",
+      "contains": "\u5305\u542b"
+    },
+    "conditionFields": {
+      "grandTotal": "\u603b\u8ba1 (Rp)",
+      "subtotal": "\u5c0f\u8ba1 (Rp)",
+      "supplierId": "\u4f9b\u5e94\u5546 ID",
+      "locationId": "\u95e8\u5e97 ID",
+      "dayCount": "\u5929\u6570",
+      "leaveTypeCode": "\u8bf7\u5047\u7c7b\u578b\u4ee3\u7801",
+      "employeeId": "\u5458\u5de5 ID",
+      "reason": "\u539f\u56e0",
+      "lineCount": "\u884c\u6570",
+      "amount": "\u91d1\u989d (Rp)",
+      "categoryCode": "\u7c7b\u522b\u4ee3\u7801",
+      "totalDebit": "\u501f\u65b9\u603b\u989d (Rp)",
+      "postingDate": "\u8fc7\u8d26\u65e5\u671f"
+    },
+    "approverRoles": {
+      "store_manager": "\u95e8\u5e97\u7ecf\u7406",
+      "director": "\u8463\u4e8b",
+      "owner": "\u6240\u6709\u8005",
+      "hr_manager": "\u4eba\u529b\u8d44\u6e90\u7ecf\u7406",
+      "finance": "\u8d22\u52a1"
+    }
   },
   "reporting": {
     "trialBalance": {
@@ -5267,7 +5377,9 @@
       },
       "filter": {
         "all": "全部",
-        "show": "显示"
+        "show": "显示",
+        "userId": "\u7528\u6237 ID",
+        "userIdPlaceholder": "ulid..."
       },
       "entities": {
         "ai_chat_session": "AI 聊天会话",

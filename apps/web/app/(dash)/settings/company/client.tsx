@@ -78,7 +78,7 @@ export function CompanySettingsForm({ defaults }: { defaults: CompanyInfo }) {
           <input
             type="text"
             className="w-full rounded-lg border border-brand-cream-3 px-4 py-2 focus:ring-2 focus:ring-brand-red"
-            placeholder="00.000.000.0-000.000"
+            placeholder={t('placeholders.npwp')}
             value={form.npwp}
             onChange={(e) => setForm({ ...form, npwp: e.target.value })}
           />
@@ -90,7 +90,7 @@ export function CompanySettingsForm({ defaults }: { defaults: CompanyInfo }) {
           <input
             type="text"
             className="w-full rounded-lg border border-brand-cream-3 px-4 py-2 focus:ring-2 focus:ring-brand-red"
-            placeholder="(0274) 000-0000"
+            placeholder={t('placeholders.phone')}
             value={form.phone}
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
           />
