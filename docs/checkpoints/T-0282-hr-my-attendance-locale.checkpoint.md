@@ -2,8 +2,8 @@
 
 - **Owner:** Codex
 - **Started:** 2026-06-09 15:45 WIB
-- **Last updated:** 2026-06-09 15:58 WIB
-- **Status:** IN_PROGRESS
+- **Last updated:** 2026-06-09 16:02 WIB
+- **Status:** DONE
 
 ## Goal
 
@@ -40,8 +40,12 @@ Verify that Dashboard / HR / My Attendance / Riwayat Presensi Saya shows dispens
 - `pnpm --filter @erp/services typecheck`: PASS
 - `node .\node_modules\@biomejs\biome\bin\biome lint --max-diagnostics=100 "apps/web/app/(dash)/hr/my-attendance/page.tsx" "apps/web/messages/id.json" "apps/web/messages/en.json" "apps/web/messages/zh.json"`: PASS
 - `hr.myAttendance` key parity across `id/en/zh`: PASS
-- `rg -n "\?{2,}" apps/web/messages/{id,en,zh}.json`: no matches
+- `rg -n "\?{2,}" "apps/web/messages/id.json" "apps/web/messages/en.json" "apps/web/messages/zh.json"`: no matches
+
+## Commit
+
+- `dabc74f fix(hr): show attendance dispensation reasons`
 
 ## Next step
 
-Commit and push the verified patch, then deploy if requested.
+No remaining local step. Deploy if the change should go live immediately.
