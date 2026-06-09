@@ -59,6 +59,7 @@ import { createJournal } from '../accounting/create-journal';
 import { generateQrPayload } from '../kitchen/generate-qr';
 import { queueOrderItems } from '../kitchen/kds-service';
 import { earnLoyaltyPoints } from '../crm';
+import { convertQty } from '../inventory/uom-service';
 import { requirePermission } from '../iam';
 import { notifyByPermission } from '../notification';
 import { evaluatePromotions, type Cart, listActivePromotionsForSale } from '../promotion';
@@ -451,14 +452,35 @@ export async function deductIngredients(
         return err(missingIngredientStockError(tenantId, locationId, ing.ingredientId));
       }
 
+      // Recipe unit may differ from the tracked stock unit (e.g. BOM in ml,
+      // stock in bottle). Convert via the configured uom_conversions table so
+      // the deduction applies in the stock's own unit. If no conversion is
+      // defined, deductUom stays the recipe unit and the uom_mismatch guard
+      // below rejects the deduction (no silent wrong-unit deduction).
+      let deductQty = ing.qty;
+      let deductUom = ing.uom;
+      if (existing.uom !== ing.uom) {
+        const converted = await convertQty(
+          tenantId,
+          Number.parseFloat(ing.qty),
+          ing.uom,
+          existing.uom,
+          ing.ingredientId,
+        );
+        if (converted.ok) {
+          deductQty = converted.value.toFixed(3);
+          deductUom = existing.uom;
+        }
+      }
+
       const deduction: IngredientDeduction = {
         stockLevelId: existing.id,
         tenantId,
         locationId,
         stockLocationId: existing.stockLocationId,
         ingredientId: ing.ingredientId,
-        qty: ing.qty,
-        uom: ing.uom,
+        qty: deductQty,
+        uom: deductUom,
         referenceId,
         referenceType,
         avgUnitCost: existing.avgUnitCost ?? 0n,
@@ -478,16 +500,16 @@ export async function deductIngredients(
       const updated = await db
         .update(stockLevels)
         .set({
-          qtyOnHand: sql`${stockLevels.qtyOnHand} - ${ing.qty}::numeric`,
-          qtyAvailable: sql`${stockLevels.qtyAvailable} - ${ing.qty}::numeric`,
+          qtyOnHand: sql`${stockLevels.qtyOnHand} - ${deduction.qty}::numeric`,
+          qtyAvailable: sql`${stockLevels.qtyAvailable} - ${deduction.qty}::numeric`,
           updatedBy: ctx.userId,
           lastMovementAt: new Date(),
         })
         .where(
           and(
             eq(stockLevels.id, existing.id),
-            sql`${stockLevels.qtyOnHand} >= ${ing.qty}::numeric`,
-            sql`${stockLevels.qtyAvailable} >= ${ing.qty}::numeric`,
+            sql`${stockLevels.qtyOnHand} >= ${deduction.qty}::numeric`,
+            sql`${stockLevels.qtyAvailable} >= ${deduction.qty}::numeric`,
           ),
         )
         .returning({ id: stockLevels.id });
