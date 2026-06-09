@@ -698,6 +698,15 @@ describe('Ingredient stock deduction guard', () => {
     });
   });
 
+  it('treats units that differ only by case or whitespace as the same unit', () => {
+    const decision = resolveIngredientDeductionDecision(
+      { uom: 'ML', qtyOnHand: '500.000', qtyAvailable: '500.000' },
+      { uom: ' ml ', qty: '150.000' },
+    );
+
+    expect(decision).toEqual({ action: 'deduct' });
+  });
+
   it('rejects tracked matching-unit stock that is insufficient instead of clamping to zero', () => {
     const decision = resolveIngredientDeductionDecision(
       { uom: 'pcs', qtyOnHand: '1.000', qtyAvailable: '1.000' },

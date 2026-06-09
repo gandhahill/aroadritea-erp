@@ -307,11 +307,21 @@ function parseQtyToMilli(value: string | number | null | undefined): bigint | nu
   return sign * (whole + fraction);
 }
 
+/**
+ * Units are free-text on both stock_levels.uom and bom_lines.uom, sourced from
+ * different places (stock from GRN/adjustment, recipe from products.uom). Compare
+ * case- and whitespace-insensitively so visually identical units ("ml" vs "ML"
+ * vs " ml ") are treated as the same and don't trigger a false uom_mismatch.
+ */
+export function normalizeUom(uom: string): string {
+  return uom.trim().toLowerCase();
+}
+
 export function resolveIngredientDeductionDecision(
   stock: Pick<IngredientStockRow, 'uom' | 'qtyOnHand' | 'qtyAvailable'>,
   ingredient: Pick<IngredientDeduction, 'qty' | 'uom'>,
 ): IngredientDeductionDecision {
-  if (stock.uom !== ingredient.uom) {
+  if (normalizeUom(stock.uom) !== normalizeUom(ingredient.uom)) {
     return { action: 'uom_mismatch', stockUom: stock.uom, ingredientUom: ingredient.uom };
   }
 
@@ -459,7 +469,7 @@ export async function deductIngredients(
       // below rejects the deduction (no silent wrong-unit deduction).
       let deductQty = ing.qty;
       let deductUom = ing.uom;
-      if (existing.uom !== ing.uom) {
+      if (normalizeUom(existing.uom) !== normalizeUom(ing.uom)) {
         const converted = await convertQty(
           tenantId,
           Number.parseFloat(ing.qty),
