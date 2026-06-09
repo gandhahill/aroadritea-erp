@@ -2,8 +2,8 @@
 
 - **Owner:** Codex
 - **Started:** 2026-06-09 21:31 WIB
-- **Last updated:** 2026-06-09 21:45 WIB
-- **Status:** IN_PROGRESS
+- **Last updated:** 2026-06-09 21:53 WIB
+- **Status:** DONE
 
 ## Goal
 
@@ -41,8 +41,12 @@ Implement the P0 approval-gate foundation from `docs/audit/erp-feature-completen
 
 - `pnpm --filter @erp/services exec vitest run tests/workflow-approval-gate.test.ts`: PASS, 5 tests
 - `pnpm --filter @erp/services typecheck`: PASS
-- `node .\node_modules\@biomejs\biome\bin\biome lint --max-diagnostics=100 packages/services/src/workflow/index.ts packages/services/src/audit/index.ts packages/services/tests/workflow-approval-gate.test.ts`: PASS with 2 existing style warnings about removable `else` branches in workflow service.
+- `node .\node_modules\@biomejs\biome\bin\biome lint --max-diagnostics=100 packages/services/src/workflow/index.ts packages/services/src/audit/index.ts packages/services/tests/workflow-approval-gate.test.ts`: PASS
+
+## Commit
+
+- `ae4a6db` - `feat(workflow): add approval gate foundation`
 
 ## Next step
 
-Commit and push this foundation. Next P0 step should wire `runApprovalGate()` into one or more sensitive transitions, starting with purchase-order submit/approve, stock adjustment posting, journal posting, payroll approval, and POS refund/discount approval.
+Next P0 step should wire `runApprovalGate()` into one or more sensitive transitions, starting with purchase-order submit/approve, stock adjustment posting, journal posting, payroll approval, and POS refund/discount approval.
