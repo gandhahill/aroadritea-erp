@@ -60,7 +60,7 @@ export function JournalActionsUI({
           </button>
           
           {showReverse && (
-            <div className="absolute right-0 top-full mt-2 w-64 rounded-md border border-brand-cream-2 bg-white p-4 shadow-pop z-10">
+            <div className="absolute right-0 top-full z-10 mt-2 w-64 rounded-md border border-brand-cream-2 bg-card p-4 shadow-pop">
               <form action={reverseAction}>
                 <input type="hidden" name="journalId" value={journalId} />
                 <div className="space-y-3">

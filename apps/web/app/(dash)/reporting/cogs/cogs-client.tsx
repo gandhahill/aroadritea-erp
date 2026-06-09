@@ -219,7 +219,7 @@ export function CogsClient(props: Props) {
                         {t('linesTitle')}
                       </div>
                       <Table>
-                        <thead className="bg-white/60 text-left text-[11px] uppercase text-brand-ink-3">
+                        <thead className="bg-card/60 text-left text-[11px] uppercase text-brand-ink-3">
                           <tr>
                             <TableHead className="px-2 py-1">
                               {t('linesHeader.ingredient')}

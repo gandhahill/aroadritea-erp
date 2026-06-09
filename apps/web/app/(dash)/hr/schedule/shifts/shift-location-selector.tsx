@@ -22,7 +22,7 @@ export function ShiftLocationSelector({
         params.set('locationId', e.target.value);
         router.push(`${pathname}?${params.toString()}`);
       }}
-      className="rounded-md border border-brand-cream-3 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-red"
+      className="rounded-md border border-brand-cream-3 bg-card px-3 py-1.5 text-sm outline-none focus:border-brand-red"
     >
       {locations.map((loc) => (
         <option key={loc.id} value={loc.id}>

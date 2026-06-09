@@ -139,7 +139,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               this.setState({ hasError: false, error: null });
               window.location.reload();
             }}
-            className="rounded-lg border border-rose-300 bg-white px-4 py-2 text-sm font-medium text-rose-700 transition-colors hover:bg-rose-50"
+            className="rounded-lg border border-rose-300 bg-card px-4 py-2 text-sm font-medium text-rose-700 transition-colors hover:bg-rose-50"
           >
             {labels.reload}
           </button>

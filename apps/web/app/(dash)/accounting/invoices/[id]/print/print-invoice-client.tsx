@@ -56,8 +56,8 @@ export function PrintInvoiceClient({ data, printType, labels }: PrintInvoiceClie
   const terbilang = amountToWords(totalNum);
 
   return (
-    <div className="min-h-screen bg-brand-cream font-sans text-brand-ink selection:bg-brand-red/20 print:bg-white print:p-0">
-      <div className="mx-auto max-w-4xl bg-white p-8 shadow-sm print:max-w-none print:shadow-none sm:p-12">
+    <div className="min-h-screen bg-brand-cream font-sans text-brand-ink selection:bg-brand-red/20 print:bg-card print:p-0">
+      <div className="mx-auto max-w-4xl bg-card p-8 shadow-sm print:max-w-none print:shadow-none sm:p-12">
         {/* Header Section */}
         <div className="flex items-start justify-between border-b border-brand-cream-2 pb-8">
           <div className="flex flex-col">

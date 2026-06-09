@@ -108,7 +108,7 @@ export function MfaSetup() {
             <p className="text-xs text-brand-ink-3 mb-4">
               {t('scanSubtitle') || 'Add this URI to your authenticator app.'}
             </p>
-            <div className="text-xs break-all bg-white p-2 rounded border border-gray-200">
+            <div className="break-all rounded border border-brand-cream-3 bg-card p-2 text-xs">
               {totpUri}
             </div>
             {secret && <p className="text-xs text-brand-ink-3 mt-4">Secret: {secret}</p>}

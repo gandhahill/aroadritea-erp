@@ -96,7 +96,7 @@ export function ConfirmActionCard(props: Props) {
         ) : null}
       </div>
 
-      <pre className="mb-3 whitespace-pre-wrap rounded-lg bg-white/60 px-3 py-2 text-xs leading-relaxed text-brand-ink">
+      <pre className="mb-3 whitespace-pre-wrap rounded-lg bg-card/70 px-3 py-2 text-xs leading-relaxed text-brand-ink">
         {props.summary}
       </pre>
 

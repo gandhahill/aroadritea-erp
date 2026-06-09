@@ -282,7 +282,7 @@ export function DetailClient({ statement, lines, labels }: Props) {
                           </button>
 
                           {activeLineId === line.id && (
-                            <div className="absolute right-0 top-6 z-10 w-80 rounded-lg border border-brand-cream-3 bg-white p-3 shadow-lg">
+                            <div className="absolute right-0 top-6 z-10 w-80 rounded-lg border border-brand-cream-3 bg-card p-3 shadow-lg">
                               <div className="mb-2 text-left text-xs font-bold text-brand-ink">
                                 {labels.suggestMatches}
                               </div>

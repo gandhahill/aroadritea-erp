@@ -159,7 +159,7 @@ function TierBadge({ tier }: { tier: string }) {
     tier === 'gold'
       ? 'bg-amber-50 text-amber-700'
       : tier === 'silver'
-        ? 'bg-slate-100 text-slate-700'
+        ? 'bg-brand-cream-2 text-brand-ink-2'
         : 'bg-orange-50 text-orange-700';
   return (
     <span

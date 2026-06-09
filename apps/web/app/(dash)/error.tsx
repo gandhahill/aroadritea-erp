@@ -47,7 +47,7 @@ export default function DashError({
         <button
           type="button"
           onClick={reset}
-          className="mt-4 rounded-lg border border-rose-300 bg-white px-6 py-2 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-50"
+          className="mt-4 rounded-lg border border-rose-300 bg-card px-6 py-2 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-50"
         >
           {t('boundaryRetry')}
         </button>

@@ -68,7 +68,7 @@ export default async function SchedulePage({
           canManage ? (
             <Link
               href="/hr/schedule/shifts"
-              className="rounded-lg border border-brand-cream-3 bg-white px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
+              className="rounded-lg border border-brand-cream-3 bg-card px-4 py-2 text-sm font-semibold text-brand-ink transition-colors hover:bg-brand-cream-1"
             >
               {t('shifts.manage')}
             </Link>

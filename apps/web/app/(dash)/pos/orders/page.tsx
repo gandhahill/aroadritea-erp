@@ -88,7 +88,7 @@ function DatePicker({ initialDate, t }: { initialDate?: string; t: any }) {
         type="date"
         name="date"
         defaultValue={initialDate ?? today}
-        className="h-9 rounded-md border border-brand-cream-3 bg-white px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20"
+        className="h-9 rounded-md border border-brand-cream-3 bg-card px-3 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-2 focus:ring-brand-red/20"
       />
       <button
         type="submit"

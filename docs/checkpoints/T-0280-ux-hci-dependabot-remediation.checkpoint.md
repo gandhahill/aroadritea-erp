@@ -53,6 +53,7 @@ Relevant specs:
   - Replaced raw placeholders/examples in Company, Loyalty, Locations, Notifications, Permissions, Custom Fields, Workflow Editor, AI audit log, and Naixer settings.
   - Fixed corrupted Mandarin translations introduced during the first pass by storing new values with JSON Unicode escapes and verifying parsed codepoints.
   - Confirmed Settings production source has no `bg-white`, `text-zinc-*`, `border-slate-*`, `bg-slate-*`, `border-zinc-*`, or `text-slate-*` matches.
+- App-wide design-token sweep addressed remaining production `apps/web` generic color tokens by replacing `bg-white`, `bg-white/60`, `bg-slate-*`, and `text-slate-*` with brand tokens. The only remaining match is the rule comment in `apps/web/app/globals.css`.
 - TASK.md moved T-0280 to Done This Sprint.
 
 ## Decisions
@@ -84,6 +85,7 @@ None. Task is complete.
 - **i18n parity**: PASS, 4682 keys across `en`, `id`, `zh`.
 - **Diff whitespace**: PASS, `git diff --check`.
 - **Settings scans**: PASS for raw `placeholder="`, raw `aria-label="`, raw `title="`, and generic Tailwind tokens in production Settings source; remaining hits are i18n expressions, page header props, or non-UI comments/actions.
+- **App-wide design-token scan**: PASS for production source; only remaining `bg-white`/`text-zinc-*`/`border-slate-*` match is the guardrail comment in `apps/web/app/globals.css`.
 
 ## Files Touched
 
@@ -102,4 +104,5 @@ None. Task is complete.
 | SHA | Message | Date |
 |-----|---------|------|
 | `5db1dea` | `fix(settings): improve settings UX and patch dependabot alerts` | 2026-06-09 |
-| `this commit` | `docs(tasks): record dependabot verification` | 2026-06-09 |
+| `301df93` | `docs(tasks): record dependabot verification` | 2026-06-09 |
+| `this commit` | `fix(ui): replace generic app color tokens` | 2026-06-09 |

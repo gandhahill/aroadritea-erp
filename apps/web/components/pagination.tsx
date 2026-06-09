@@ -47,7 +47,7 @@ export function Pagination({
           <select
             value={pageSize}
             onChange={handlePageSizeChange}
-            className="rounded border border-brand-cream-3 bg-white px-2 py-1 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red/20"
+            className="rounded border border-brand-cream-3 bg-card px-2 py-1 text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red/20"
           >
             {pageSizeOptions.map((size) => (
               <option key={size} value={size}>
@@ -82,7 +82,7 @@ export function Pagination({
                 e.target.value = String(currentPage);
               }
             }}
-            className="w-14 rounded border border-brand-cream-3 bg-white px-1 py-0.5 text-center text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red/20"
+            className="w-14 rounded border border-brand-cream-3 bg-card px-1 py-0.5 text-center text-sm text-brand-ink focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red/20"
           />
           {t('of')} {totalPages} ({totalItems} {t('total')})
         </span>

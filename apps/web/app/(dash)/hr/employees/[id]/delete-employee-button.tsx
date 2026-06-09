@@ -48,7 +48,7 @@ export function DeleteEmployeeButton({ employeeId }: DeleteEmployeeButtonProps) 
         type="button"
         onClick={() => setOpenDialogType('soft')}
         disabled={isPending}
-        className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-rose-600 shadow-sm ring-1 ring-inset ring-rose-300 hover:bg-rose-50 disabled:opacity-50"
+        className="rounded-md bg-card px-3 py-2 text-sm font-semibold text-rose-600 shadow-sm ring-1 ring-inset ring-rose-300 hover:bg-rose-50 disabled:opacity-50"
       >
         {isPending && openDialogType === 'soft' ? '...' : t('deleteAccount')}
       </button>
@@ -81,4 +81,3 @@ export function DeleteEmployeeButton({ employeeId }: DeleteEmployeeButtonProps) 
     </div>
   );
 }
-
