@@ -2,8 +2,8 @@
 
 - **Owner:** Codex
 - **Started:** 2026-06-09 22:01 WIB
-- **Last updated:** 2026-06-09 22:19 WIB
-- **Status:** IN_PROGRESS
+- **Last updated:** 2026-06-09 22:22 WIB
+- **Status:** DONE
 
 ## Goal
 
@@ -42,6 +42,10 @@ Wire the reusable approval gate into manual journal posting so configurable work
 - `rg -n "\?\?\?" apps/web/messages/zh.json`: no matches
 - `pnpm --filter @erp/web typecheck`: stopped after 120 seconds with no result to avoid a long-running silent command.
 
+## Commit
+
+- `fc232b4` - `feat(accounting): gate manual journal posting`
+
 ## Next step
 
-Commit and push this implementation. Next ERP-wide P0 step should add approval inbox/outbox UX and MCP workflow tools so pending approvals are easy to act on outside the source module.
+Next ERP-wide P0 step should add approval inbox/outbox UX and MCP workflow tools so pending approvals are easy to act on outside the source module.
