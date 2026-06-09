@@ -15,11 +15,54 @@ import type { AuditContext } from '@erp/shared/types';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { roles, userRoles } from '@erp/db/schema/auth';
 import { requirePermission } from '../iam';
+import { auditRecord } from '../audit';
 
 // ─── Condition evaluation ────────────────────────────────────────────────────
 
 type Condition = { field: string; op: string; value: string | number | boolean };
-type StepsJson = Array<{ stepOrder: number; approverRole: string }>;
+export type StepsJson = Array<{ stepOrder: number; approverRole: string }>;
+
+export interface ApprovalGateInput {
+  entityType: string;
+  entityId: string;
+  transition: string;
+  entityData?: Record<string, unknown>;
+  entitySummary?: string;
+  workflowEntityType?: string;
+}
+
+export type ApprovalGateDecision =
+  | {
+      status: 'approved';
+      approvalRequired: false;
+      workflowEntityType: string;
+      transition: string;
+    }
+  | {
+      status: 'pending_approval';
+      approvalRequired: true;
+      workflowEntityType: string;
+      transition: string;
+      workflowInstanceId: string;
+      definitionId: string;
+      reusedExisting: boolean;
+      steps?: StepsJson;
+    };
+
+export interface PendingWorkflowInstance {
+  id: string;
+  definitionId: string;
+  currentStepIndex: number;
+}
+
+export interface ApprovalGateDependencies {
+  evaluateWorkflow?: typeof evaluate;
+  createWorkflowInstance?: typeof createInstance;
+  findPendingWorkflowInstance?: (
+    input: { entityType: string; entityId: string },
+    ctx: AuditContext,
+  ) => Promise<Result<PendingWorkflowInstance | null>>;
+}
 
 function evaluateConditions(
   conditions: Condition[] | null,
@@ -108,6 +151,104 @@ export async function evaluate(
   }
 }
 
+async function findPendingWorkflowInstance(
+  input: { entityType: string; entityId: string },
+  ctx: AuditContext,
+): Promise<Result<PendingWorkflowInstance | null>> {
+  try {
+    const existing = await db
+      .select({
+        id: workflowInstances.id,
+        definitionId: workflowInstances.definitionId,
+        currentStepIndex: workflowInstances.currentStepIndex,
+      })
+      .from(workflowInstances)
+      .where(
+        and(
+          eq(workflowInstances.tenantId, ctx.tenantId),
+          eq(workflowInstances.entityType, input.entityType),
+          eq(workflowInstances.entityId, input.entityId),
+          eq(workflowInstances.status, 'pending'),
+        ),
+      )
+      .limit(1)
+      .then((rows) => rows[0] ?? null);
+
+    return ok(existing);
+  } catch (e) {
+    return err(AppError.internal('workflow.findPending.failed', e));
+  }
+}
+
+export async function runApprovalGate(
+  input: ApprovalGateInput,
+  ctx: AuditContext,
+  deps: ApprovalGateDependencies = {},
+): Promise<Result<ApprovalGateDecision>> {
+  if (!input.entityType.trim() || !input.entityId.trim() || !input.transition.trim()) {
+    return err(AppError.validation('workflow.approvalGate.invalidInput'));
+  }
+
+  const workflowEntityType = input.workflowEntityType ?? input.entityType;
+  const findPending = deps.findPendingWorkflowInstance ?? findPendingWorkflowInstance;
+  const pending = await findPending({ entityType: workflowEntityType, entityId: input.entityId }, ctx);
+  if (!pending.ok) return pending;
+
+  if (pending.value) {
+    return ok({
+      status: 'pending_approval',
+      approvalRequired: true,
+      workflowEntityType,
+      transition: input.transition,
+      workflowInstanceId: pending.value.id,
+      definitionId: pending.value.definitionId,
+      reusedExisting: true,
+    });
+  }
+
+  const evaluateWorkflow = deps.evaluateWorkflow ?? evaluate;
+  const gateData = {
+    ...(input.entityData ?? {}),
+    entityType: input.entityType,
+    entityId: input.entityId,
+    transition: input.transition,
+  };
+  const workflow = await evaluateWorkflow(workflowEntityType, gateData, ctx);
+  if (!workflow.ok) return workflow;
+
+  if (!workflow.value) {
+    return ok({
+      status: 'approved',
+      approvalRequired: false,
+      workflowEntityType,
+      transition: input.transition,
+    });
+  }
+
+  const createWorkflowInstance = deps.createWorkflowInstance ?? createInstance;
+  const created = await createWorkflowInstance(
+    {
+      definitionId: workflow.value.definitionId,
+      entityType: workflowEntityType,
+      entityId: input.entityId,
+      entitySummary: input.entitySummary,
+    },
+    ctx,
+  );
+  if (!created.ok) return created;
+
+  return ok({
+    status: 'pending_approval',
+    approvalRequired: true,
+    workflowEntityType,
+    transition: input.transition,
+    workflowInstanceId: created.value.instanceId,
+    definitionId: workflow.value.definitionId,
+    reusedExisting: false,
+    steps: workflow.value.steps,
+  });
+}
+
 // ─── Create Instance ────────────────────────────────────────────────────────
 
 /**
@@ -174,6 +315,22 @@ export async function createInstance(
         updatedBy: ctx.userId,
       });
     }
+
+    await auditRecord({
+      action: 'submit',
+      entityType: 'workflow_instance',
+      entityId: instanceId,
+      before: null,
+      after: {
+        definitionId: input.definitionId,
+        entityType: input.entityType,
+        entityId: input.entityId,
+        entitySummary: input.entitySummary ?? null,
+        status: 'pending',
+      },
+      metadata: { stepCount: steps.length },
+      ctx,
+    });
 
     return ok({ instanceId });
   } catch (e) {
@@ -314,53 +471,94 @@ async function resolveStep(
           })
           .where(eq(workflowInstances.id, input.instanceId));
 
-        return ok({ nextStepIndex: nextIdx, instanceStatus: 'pending' });
-      } else {
-        // All steps approved — mark instance approved
-        await db
-          .update(workflowInstances)
-          .set({
-            status: 'approved',
-            resolvedBy: ctx.userId,
-            resolvedAt: new Date(),
-            updatedBy: ctx.userId,
-          })
-          .where(eq(workflowInstances.id, input.instanceId));
+        await auditRecord({
+          action: 'approve',
+          entityType: 'workflow_instance',
+          entityId: input.instanceId,
+          before: { currentStepIndex: instance.currentStepIndex, status: instance.status },
+          after: { currentStepIndex: nextIdx, status: 'pending' },
+          metadata: {
+            stepOrder,
+            approverRole: currentStep.approverRole,
+            notes: input.notes ?? null,
+          },
+          ctx,
+        });
 
-        return ok({ nextStepIndex: null, instanceStatus: 'approved' });
       }
-    } else {
-      // Reject — mark current step rejected + all remaining steps skipped
-      await db
-        .update(workflowSteps)
-        .set({
-          status: 'rejected',
-          decidedBy: ctx.userId,
-          decidedAt: new Date(),
-          notes: input.notes ?? null,
-          updatedBy: ctx.userId,
-        })
-        .where(eq(workflowSteps.id, currentStep.id));
 
-      await db
-        .update(workflowSteps)
-        .set({ status: 'skipped', updatedBy: ctx.userId })
-        .where(
-          and(eq(workflowSteps.instanceId, input.instanceId), eq(workflowSteps.status, 'pending')),
-        );
-
+      // All steps approved - mark instance approved
       await db
         .update(workflowInstances)
         .set({
-          status: 'rejected',
+          status: 'approved',
           resolvedBy: ctx.userId,
           resolvedAt: new Date(),
           updatedBy: ctx.userId,
         })
         .where(eq(workflowInstances.id, input.instanceId));
 
-      return ok({ nextStepIndex: null, instanceStatus: 'rejected' });
+      await auditRecord({
+        action: 'approve',
+        entityType: 'workflow_instance',
+        entityId: input.instanceId,
+        before: { currentStepIndex: instance.currentStepIndex, status: instance.status },
+        after: { currentStepIndex: instance.currentStepIndex, status: 'approved' },
+        metadata: {
+          stepOrder,
+          approverRole: currentStep.approverRole,
+          notes: input.notes ?? null,
+        },
+        ctx,
+      });
+
+      return ok({ nextStepIndex: null, instanceStatus: 'approved' });
     }
+
+    // Reject - mark current step rejected and all remaining steps skipped
+    await db
+      .update(workflowSteps)
+      .set({
+        status: 'rejected',
+        decidedBy: ctx.userId,
+        decidedAt: new Date(),
+        notes: input.notes ?? null,
+        updatedBy: ctx.userId,
+      })
+      .where(eq(workflowSteps.id, currentStep.id));
+
+    await db
+      .update(workflowSteps)
+      .set({ status: 'skipped', updatedBy: ctx.userId })
+      .where(
+        and(eq(workflowSteps.instanceId, input.instanceId), eq(workflowSteps.status, 'pending')),
+      );
+
+    await db
+      .update(workflowInstances)
+      .set({
+        status: 'rejected',
+        resolvedBy: ctx.userId,
+        resolvedAt: new Date(),
+        updatedBy: ctx.userId,
+      })
+      .where(eq(workflowInstances.id, input.instanceId));
+
+    await auditRecord({
+      action: 'reject',
+      entityType: 'workflow_instance',
+      entityId: input.instanceId,
+      before: { currentStepIndex: instance.currentStepIndex, status: instance.status },
+      after: { currentStepIndex: instance.currentStepIndex, status: 'rejected' },
+      metadata: {
+        stepOrder,
+        approverRole: currentStep.approverRole,
+        notes: input.notes ?? null,
+      },
+      ctx,
+    });
+
+    return ok({ nextStepIndex: null, instanceStatus: 'rejected' });
   } catch (e) {
     return err(AppError.internal('workflow.resolveStep.failed', e));
   }
@@ -394,6 +592,19 @@ export async function cancelInstance(instanceId: string, ctx: AuditContext): Pro
         updatedBy: ctx.userId,
       })
       .where(eq(workflowInstances.id, instanceId));
+
+    await auditRecord({
+      action: 'cancel',
+      entityType: 'workflow_instance',
+      entityId: instanceId,
+      before: { currentStepIndex: instance.currentStepIndex, status: instance.status },
+      after: { currentStepIndex: instance.currentStepIndex, status: 'cancelled' },
+      metadata: {
+        entityType: instance.entityType,
+        entityId: instance.entityId,
+      },
+      ctx,
+    });
 
     return ok(undefined);
   } catch (e) {
