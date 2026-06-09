@@ -1213,6 +1213,7 @@ export interface MyAttendanceItem {
   lateMinutes: number;
   workedMinutes: number | null;
   lateForgiven: boolean;
+  lateForgivenReason: string | null;
 }
 
 export async function listMyAttendance(
@@ -1247,6 +1248,7 @@ export async function listMyAttendance(
           workedMinutes: attendance.workedMinutes,
           shiftCode: attendance.shiftDefinitionCode,
           lateForgiven: attendance.lateForgiven,
+          lateForgivenReason: attendance.lateForgivenReason,
         })
         .from(attendance)
         .where(and(...conditions))
@@ -1263,6 +1265,7 @@ export async function listMyAttendance(
         workedMinutes: r.workedMinutes ? Number(r.workedMinutes) : null,
         shiftCode: r.shiftCode,
         lateForgiven: r.lateForgiven,
+        lateForgivenReason: r.lateForgivenReason,
       }));
     },
     (e) => {

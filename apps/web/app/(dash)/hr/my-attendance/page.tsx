@@ -16,10 +16,13 @@ import type { AuditContext } from '@erp/shared/types';
 import { db, and, eq, sql } from '@erp/db';
 import { shiftAssignments } from '@erp/db/schema/hr';
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = { title: 'My Attendance' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('hr.myAttendance');
+  return { title: t('title') };
+}
 
 function firstOfMonth(): string {
   const wib = new Date(Date.now() + 7 * 60 * 60 * 1000);
@@ -48,6 +51,20 @@ function fmtDate(d: Date, locale: string): string {
   }).format(d);
 }
 
+function toIntlLocale(locale: string): string {
+  if (locale.startsWith('en')) return 'en-US';
+  if (locale.startsWith('zh')) return 'zh-CN';
+  return 'id-ID';
+}
+
+function toWibDateString(d: Date): string {
+  return new Date(d.getTime() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+function fromIsoDate(value: string): Date {
+  return new Date(`${value}T00:00:00+07:00`);
+}
+
 function fmtMinutes(n: number | null): string {
   if (n == null) return '—';
   const h = Math.floor(n / 60);
@@ -71,10 +88,11 @@ export default async function MyAttendancePage({
   const params = await searchParams;
   const from = params.from ?? firstOfMonth();
   const to = params.to ?? today();
-  const t = await getTranslations('hr.myAttendance');
-  const locale = (await getTranslations('hr.myAttendance')) as unknown as { _locale?: string };
-  // getTranslations doesn't expose the locale directly; fall back to id-ID.
-  const localeStr = 'id-ID';
+  const [t, rawLocale] = await Promise.all([
+    getTranslations('hr.myAttendance'),
+    getLocale().catch(() => 'id'),
+  ]);
+  const localeStr = toIntlLocale(rawLocale);
 
   const result = await listMyAttendance({ dateFrom: from, dateTo: to }, ctx);
   const items = result.ok ? result.value : [];
@@ -155,7 +173,6 @@ export default async function MyAttendancePage({
             ? t('workedNote', {
                 checked: checkedOutItems.length,
                 total: totalDays,
-                defaultValue: `${checkedOutItems.length}/${totalDays} sudah checkout`,
               })
             : undefined}
         />
@@ -211,8 +228,13 @@ export default async function MyAttendancePage({
                         {t('onTime')}
                       </span>
                     )}
+                    {r.lateForgivenReason && (
+                      <span className="mt-0.5 block text-[10px] text-amber-600">
+                        {t('lateDispensationReason')}: {r.lateForgivenReason}
+                      </span>
+                    )}
                     {(() => {
-                      const dateStr = new Date(r.checkInAt).toISOString().slice(0, 10);
+                      const dateStr = toWibDateString(new Date(r.checkInAt));
                       const disp = dispensations.find((d) => d.workDate === dateStr);
                       if (!disp) return null;
                       return (
@@ -245,7 +267,9 @@ export default async function MyAttendancePage({
             <tbody>
               {dispensations.map((d) => (
                 <tr key={d.workDate} className="border-t border-brand-cream-3">
-                  <td className="px-3 py-2 text-brand-ink-2">{d.workDate}</td>
+                  <td className="px-3 py-2 text-brand-ink-2">
+                    {fmtDate(fromIsoDate(d.workDate), localeStr)}
+                  </td>
                   <td className="px-3 py-2 text-brand-ink">{d.reason}</td>
                   <td className="px-3 py-2 text-brand-ink-3">{d.givenBy ?? '—'}</td>
                 </tr>
