@@ -1,15 +1,16 @@
 import { db } from '@erp/db';
 import { nsfpBlocks, taxInvoices } from '@erp/db/schema/accounting';
 import { invoiceLines, invoices } from '@erp/db/schema/accounting';
-import { partners } from '@erp/db/schema/accounting';
 import { AppError } from '@erp/shared/errors';
 import { generateId } from '@erp/shared/id';
-import { type Result, err, ok, tryCatch } from '@erp/shared/result';
+import { type Result, err, tryCatch } from '@erp/shared/result';
 import type { AuditContext } from '@erp/shared/types';
-import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { auditRecord } from '../audit';
 import { requirePermission } from '../iam';
+
+type InvoiceLineExportRow = typeof invoiceLines.$inferSelect;
 
 // ─── Register NSFP Block ─────────────────────────────────────────────────────
 
@@ -21,11 +22,8 @@ export const RegisterNsfpBlockSchema = z.object({
 
 export type RegisterNsfpBlockInput = z.infer<typeof RegisterNsfpBlockSchema>;
 
-/**
- * Validates if string is numeric
- */
-function isNumericString(str: string) {
-  return /^\d+$/.test(str);
+function escapeCsvField(value: unknown): string {
+  return String(value ?? '').replace(/"/g, '""');
 }
 
 export async function registerNsfpBlock(
@@ -172,13 +170,13 @@ export async function generateTaxInvoice(
           selectedNsfp = nextNsfpInt.toString().padStart(block.startNsfp.length, '0');
           selectedBlockId = block.id;
           break;
-        } else {
-          // Block exhausted
-          await db
-            .update(nsfpBlocks)
-            .set({ isActive: false, updatedBy: ctx.userId })
-            .where(eq(nsfpBlocks.id, block.id));
         }
+
+        // Block exhausted
+        await db
+          .update(nsfpBlocks)
+          .set({ isActive: false, updatedBy: ctx.userId })
+          .where(eq(nsfpBlocks.id, block.id));
       }
 
       if (!selectedNsfp || !selectedBlockId) {
@@ -264,6 +262,7 @@ export async function exportEFakturCsv(
           nsfp: taxInvoices.nsfp,
           customerName: taxInvoices.customerName,
           customerNpwp: taxInvoices.customerNpwp,
+          customerAddress: invoices.partnerAddress,
           dpp: taxInvoices.dpp,
           ppn: taxInvoices.ppn,
           issueDate: taxInvoices.issueDate,
@@ -271,19 +270,21 @@ export async function exportEFakturCsv(
           status: taxInvoices.status,
         })
         .from(taxInvoices)
+        .innerJoin(invoices, eq(taxInvoices.invoiceId, invoices.id))
         .where(
           and(
             eq(taxInvoices.tenantId, ctx.tenantId),
+            eq(invoices.tenantId, ctx.tenantId),
             eq(taxInvoices.taxPeriod, period),
             // Only export posted invoices, cancelled might need separate treatment
-            // but for standard e-Faktur CSV, usually all are included and marked.
+            // but production Coretax treatment must follow the active DJP template.
           ),
         )
         .orderBy(asc(taxInvoices.nsfp));
 
       // 2. Fetch lines
       const invoiceIds = rows.map((r) => r.invoiceId);
-      const linesMap: Record<string, any[]> = {};
+      const linesMap: Record<string, InvoiceLineExportRow[]> = {};
 
       if (invoiceIds.length > 0) {
         const lines = await db
@@ -298,7 +299,8 @@ export async function exportEFakturCsv(
         }
       }
 
-      // 3. Format CSV (Standard e-Faktur Pajak Keluaran format)
+      // 3. Format CSV scaffold for e-Faktur/Coretax Pajak Keluaran.
+      // Production filing must be verified against the active Coretax template.
       // Format:
       // FK,KD_JENIS_TRANSAKSI,FG_PENGGANTI,NOMOR_FAKTUR,MASA_PAJAK,TAHUN_PAJAK,TANGGAL_FAKTUR,NPWP,NAMA,ALAMAT_LENGKAP,JUMLAH_DPP,JUMLAH_PPN,JUMLAH_PPNBM,ID_KETERANGAN_TAMBAHAN,FG_UANG_MUKA,UANG_MUKA_DPP,UANG_MUKA_PPN,UANG_MUKA_PPNBM,REFERENSI
       // OF,KODE_OBJEK,NAMA,HARGA_SATUAN,JUMLAH_BARANG,HARGA_TOTAL,DISKON,DPP,PPN,TARIF_PPNBM,PPNBM
@@ -314,20 +316,22 @@ export async function exportEFakturCsv(
         const masa = period.substring(5, 7);
         const tahun = period.substring(0, 4);
 
-        // Format Date to DD/MM/YYYY
-        const dateObj = new Date(row.issueDate);
-        const dateStr = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
+        // Format YYYY-MM-DD to DD/MM/YYYY without timezone conversion.
+        const [tahunFaktur, bulanFaktur, tanggalFaktur] = row.issueDate.split('-');
+        const dateStr = `${tanggalFaktur}/${bulanFaktur}/${tahunFaktur}`;
 
         // Clean NPWP
         const npwp = row.customerNpwp ? row.customerNpwp.replace(/\D/g, '') : '000000000000000';
+        const customerName = escapeCsvField(row.customerName);
+        const customerAddress = escapeCsvField(row.customerAddress);
 
         // Output FK row
-        csv += `"FK","01","0","${row.nsfp}","${masa}","${tahun}","${dateStr}","${npwp}","${row.customerName}","Alamat","${row.dpp.toString()}","${row.ppn.toString()}","0","","0","0","0","0",""\n`;
+        csv += `"FK","01","0","${row.nsfp}","${masa}","${tahun}","${dateStr}","${npwp}","${customerName}","${customerAddress}","${row.dpp.toString()}","${row.ppn.toString()}","0","","0","0","0","0",""\n`;
 
         // Output OF rows (lines)
         const lines = linesMap[row.invoiceId] ?? [];
         for (const line of lines) {
-          csv += `"OF","0000","${line.description.replace(/"/g, '""')}","${line.unitPrice.toString()}","${line.quantity}","${line.subtotal.toString()}","0","${line.subtotal.toString()}","${line.taxAmount.toString()}","0","0"\n`;
+          csv += `"OF","0000","${escapeCsvField(line.description)}","${line.unitPrice.toString()}","${line.quantity}","${line.subtotal.toString()}","0","${line.subtotal.toString()}","${line.taxAmount.toString()}","0","0"\n`;
         }
       }
 

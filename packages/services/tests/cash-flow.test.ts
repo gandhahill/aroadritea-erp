@@ -59,7 +59,10 @@ describe('cashFlow', () => {
   it('computes operating, investing, financing, beginning cash, and ending cash', async () => {
     queryResults = [
       [{ id: 'acc-cash', code: '1-1020' }],
+      [], // reversal subquery for opening balance
       [{ debit: 100000n, credit: 0n }],
+      [], // reversal subquery for movement rows
+      [], // cash-account journal subquery for movement rows
       [
         {
           journalEntryId: 'je-sale',

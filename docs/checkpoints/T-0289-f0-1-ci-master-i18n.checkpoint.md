@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-06-10 19:51 WIB
-- **Last updated**: 2026-06-10 20:54 WIB
+- **Last updated**: 2026-06-10 21:01 WIB
 - **Status**: IN_PROGRESS
 - **Phase**: F0
 - **Branch**: master
@@ -46,6 +46,7 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 8. [ ] Commit and push Biome lint-gate cleanup.
 9. [ ] Check latest GitHub Actions run when access is available.
 10. [ ] Patch CI typecheck failure caused by partially committed T-0290 reporting reference.
+11. [ ] Patch remaining likely typecheck/test drift from partially committed T-0290 tax/reporting files.
 
 ## Done so far
 
@@ -68,6 +69,8 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 - Pushed `9ad8418` and confirmed GitHub Actions lint is now green.
 - The same run failed at `Typecheck` before tests/i18n. Step-level API could not provide logs, but repo inspection found that `9ad8418` accidentally included tracked references to `reporting.financialStatementNotes` while the implementation file remained untracked from T-0290.
 - Added the missing direct dependency files for that already-committed reference: `packages/services/src/reporting/financial-statement-notes.ts` and `packages/services/tests/reporting-financial-statement-notes.test.ts`.
+- Pushed `dfd2785`; GitHub Actions lint remained green but `Typecheck` still failed quickly.
+- Found additional partially committed T-0290 drift: `packages/services/src/tax/efaktur.ts` had unstaged import/type cleanup likely needed by strict TS, and `packages/services/tests/cash-flow.test.ts` had a fixture update matching already-committed cash-flow query shape.
 - Made `scripts/check-i18n.mjs` resolve `apps/web` from `import.meta.url`, so it works from repo root and from `scripts/`.
 - Made missing i18n references and locale parity gaps set non-zero exit code.
 - Added missing `purchasing.grn.workflowTitle`, `workflowHint`, `submitPo`, and `approvePo` keys in EN/ID/ZH, because the strengthened checker exposed pre-existing unresolved references.
@@ -88,7 +91,7 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 
 ## Next step
 
-Commit and push the missing `financial-statement-notes` service/test files that satisfy the already-pushed references, then poll the latest `master` GitHub Actions run. If CI is green, update T-0289 to DONE; if CI fails at test/build, record the exact failing step and fix only that blocker.
+Commit and push `efaktur.ts` plus the cash-flow test fixture update, then poll the latest `master` GitHub Actions run. If CI is green, update T-0289 to DONE; if CI fails at test/build, record the exact failing step and fix only that blocker.
 
 ## Test status
 
@@ -106,10 +109,15 @@ Commit and push the missing `financial-statement-notes` service/test files that 
   - `pnpm --filter @erp/services test -- reporting-financial-statement-notes.test.ts`: 1 file, 3 tests passed.
 - **Scoped financial notes Biome**: PASS
   - `node .\node_modules\@biomejs\biome\bin\biome check packages\services\src\reporting\financial-statement-notes.ts packages\services\tests\reporting-financial-statement-notes.test.ts --diagnostic-level=error --max-diagnostics=100`
+- **Scoped e-Faktur Biome**: PASS
+  - `node .\node_modules\@biomejs\biome\bin\biome check packages\services\src\tax\efaktur.ts --diagnostic-level=error --max-diagnostics=100`
+- **Scoped cash-flow test**: PASS
+  - `pnpm --filter @erp/services test -- cash-flow.test.ts`: 1 file, 3 tests passed.
 - **CI**: triggered, first run failed before checks
   - Run `27278419354`: triggered on `master`, failed at `Setup pnpm`; build job skipped.
   - Run `27278815492`: triggered on `master`, failed at `Lint (Biome)` after install; typecheck/test/i18n/build skipped.
   - Run `27280572477`: triggered on `master`, lint passed, failed at `Typecheck`; test/i18n/build skipped. Likely cause: already-committed references to untracked `financial-statement-notes` implementation.
+  - Run `27281389612`: triggered on `master`, lint passed, failed at `Typecheck`; test/i18n/build skipped. Additional likely cause: strict TS drift in `efaktur.ts`.
   - Job logs cannot be downloaded through unauthenticated API: GitHub returned 403 requiring admin rights.
 
 ## Files Touched
@@ -133,6 +141,8 @@ Commit and push the missing `financial-statement-notes` service/test files that 
 | `packages/services/src/iam/notification-service.ts` | edit | Optional-chain cleanup for Biome error |
 | `packages/services/src/reporting/financial-statement-notes.ts` | add | Missing service implementation required by already-committed reporting exports |
 | `packages/services/tests/reporting-financial-statement-notes.test.ts` | add | Scoped coverage for the missing service implementation |
+| `packages/services/src/tax/efaktur.ts` | edit | T-0290 cleanup needed by strict TS and Coretax/e-Faktur export correctness |
+| `packages/services/tests/cash-flow.test.ts` | edit | Test fixture update matching already-committed cash-flow query shape |
 | Many tracked TS/TSX/JSON files | edit | Safe Biome formatter/import-sorter cleanup, no unsafe fixes |
 
 ## Commits So Far
@@ -142,3 +152,4 @@ Commit and push the missing `financial-statement-notes` service/test files that 
 | `2fc4fbb` | `ci: enable master branch i18n guard` | 2026-06-10 |
 | `90cb758` | `ci: pin pnpm setup version` | 2026-06-10 |
 | `9ad8418` | `chore: restore biome lint gate for master CI` | 2026-06-10 |
+| `dfd2785` | `fix: include financial statement notes service` | 2026-06-10 |
