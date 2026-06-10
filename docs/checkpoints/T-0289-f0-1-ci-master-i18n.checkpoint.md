@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-06-10 19:51 WIB
-- **Last updated**: 2026-06-10 22:26 WIB
+- **Last updated**: 2026-06-10 22:40 WIB
 - **Status**: IN_PROGRESS
 - **Phase**: F0
 - **Branch**: master
@@ -59,8 +59,11 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 21. [x] Patch Docker builder pnpm workspace symlink issue exposed after guardrail passed.
 22. [x] Commit and push Docker builder patch.
 23. [x] Patch MCP/worker Docker runtime mismatch with no-emit package build scripts.
-24. [ ] Commit and push MCP/worker Docker runtime patch.
-25. [ ] Poll latest `master` GitHub Actions run until full workflow is green or a new blocker is identified.
+24. [x] Commit and push MCP/worker Docker runtime patch.
+25. [x] Debug web Docker build via authenticated GitHub job log.
+26. [x] Patch invalid Next server action directives blocking web production build.
+27. [ ] Commit and push web build directive patch.
+28. [ ] Poll latest `master` GitHub Actions run until full workflow is green or a new blocker is identified.
 
 ## Done so far
 
@@ -107,6 +110,9 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 - Patched all four Docker builder stages to copy `/app/packages` plus `/app/apps/<app>/node_modules` from `deps` before `COPY . .`, preserving pnpm workspace symlinks for `pnpm build`.
 - Pushed `5bd7f16`; CI run `27286341386` passed the full check job again but Docker `Build worker` failed because `apps/worker/package.json` has `build: tsc --noEmit` while the Dockerfile expected `/app/apps/worker/dist`.
 - MCP has the same no-emit build script and dist-based runtime shape. Since current package runtime scripts use `tsx` and compiled ESM output is not yet bundled for Node-only runtime, patched MCP/worker runtime images to run source with `node --import tsx`, copying app source, package source, root node_modules, and app node_modules into the image instead of copying nonexistent `dist`.
+- Pushed `a0c0235`; CI run `27287102483` passed the full check job again but Docker `Build web` failed.
+- Authenticated GitHub job log showed the web build failed on invalid server action directive syntax in `apps/web/app/(dash)/accounting/bank-recon/actions.ts` and `apps/web/app/(dash)/accounting/party-ledger-actions.ts`: `('use server');` is not a valid directive and caused `revalidatePath` to be treated as imported from a client graph.
+- Patched both files so `'use server';` is the first statement and moved the `PermissionCode` type import below normal imports.
 - Made `scripts/check-i18n.mjs` resolve `apps/web` from `import.meta.url`, so it works from repo root and from `scripts/`.
 - Made missing i18n references and locale parity gaps set non-zero exit code.
 - Added missing `purchasing.grn.workflowTitle`, `workflowHint`, `submitPo`, and `approvePo` keys in EN/ID/ZH, because the strengthened checker exposed pre-existing unresolved references.
@@ -127,7 +133,7 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 
 ## Next step
 
-Commit and push the MCP/worker Docker runtime patch, then poll the latest `master` GitHub Actions run. If Docker still fails, use GitHub check annotations first; local Docker is unavailable on this machine.
+Commit and push the web build directive patch, then poll the latest `master` GitHub Actions run. If Docker still fails, use GitHub check annotations first; authenticated job logs are available through the stored Git credential.
 
 ## Test status
 
@@ -171,6 +177,11 @@ Commit and push the MCP/worker Docker runtime patch, then poll the latest `maste
   - `git diff --check -- docker/Dockerfile.web docker/Dockerfile.site docker/Dockerfile.mcp docker/Dockerfile.worker`
 - **Local Docker**: unavailable
   - `docker --version`: command not found, so Dockerfile verification must run in GitHub Actions.
+- **Scoped Next directive scan**: PASS
+  - `rg -n -F "('use server')" apps/web/app`: no matches.
+  - `rg -n -F '("use server")' apps/web/app`: no matches.
+- **Scoped Biome for Next directive fix**: PASS
+  - `node .\node_modules\@biomejs\biome\bin\biome check "apps\web\app\(dash)\accounting\bank-recon\actions.ts" "apps\web\app\(dash)\accounting\party-ledger-actions.ts" --diagnostic-level=error --max-diagnostics=100`
 - **Local Next builds**: stopped by timeout
   - `pnpm --filter @erp/web build`: stopped after 180s with no actionable output before timeout.
   - `pnpm --filter @erp/site build`: stopped after 90s with no actionable output before timeout.
@@ -188,6 +199,7 @@ Commit and push the MCP/worker Docker runtime patch, then poll the latest `maste
   - Run `27285143982`: triggered on `master`, check job fully passed including i18n parity; Docker `Build site` failed from Docker Hub registry timeout.
   - Run `27285500030`: triggered on `master`, check job fully passed including i18n parity; Docker `Build web` failed at `RUN pnpm build`, causing other Docker matrix jobs to cancel.
   - Run `27286341386`: triggered on `master`, check job fully passed including i18n parity; Docker `Build worker` failed because `/app/apps/worker/dist` was not found after no-emit build script.
+  - Run `27287102483`: triggered on `master`, check job fully passed including i18n parity; Docker `Build web` failed on invalid `('use server')` directives in two accounting action files.
   - Job logs cannot be downloaded through unauthenticated API: GitHub returned 403 requiring admin rights.
 
 ## Files Touched
@@ -230,6 +242,8 @@ Commit and push the MCP/worker Docker runtime patch, then poll the latest `maste
 | `docker/Dockerfile.site` | edit | Preserve pnpm workspace/app symlinks in builder stage |
 | `docker/Dockerfile.mcp` | edit | Preserve pnpm workspace/app symlinks in builder stage |
 | `docker/Dockerfile.worker` | edit | Preserve pnpm workspace/app symlinks in builder stage |
+| `apps/web/app/(dash)/accounting/bank-recon/actions.ts` | edit | Fix Next server action directive placement/syntax |
+| `apps/web/app/(dash)/accounting/party-ledger-actions.ts` | edit | Fix Next server action directive placement/syntax |
 | Many tracked TS/TSX/JSON files | edit | Safe Biome formatter/import-sorter cleanup, no unsafe fixes |
 
 ## Commits So Far
@@ -246,3 +260,5 @@ Commit and push the MCP/worker Docker runtime patch, then poll the latest `maste
 | `d6dc5c1` | `fix: add node types to shared package` | 2026-06-10 |
 | `70e15f8` | `fix: align services test baselines` | 2026-06-10 |
 | `31a45d3` | `chore: retry ci after docker registry timeout` | 2026-06-10 |
+| `5bd7f16` | `fix: preserve pnpm links in docker builds` | 2026-06-10 |
+| `a0c0235` | `fix: align worker mcp docker runtime` | 2026-06-10 |

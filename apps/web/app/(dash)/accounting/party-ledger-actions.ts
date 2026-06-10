@@ -1,11 +1,11 @@
-import type { PermissionCode } from '@erp/shared/types';
-('use server');
+'use server';
 
 import { getSession } from '@/lib/auth';
 import { and, asc, auditLog, cmsSettings, db, desc, eq, inArray, isNull } from '@erp/db';
 import { accounts, journalEntries, journalLines, partners } from '@erp/db/schema/accounting';
 import { requirePermission } from '@erp/services/iam';
 import { generateId } from '@erp/shared/id';
+import type { PermissionCode } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
 
 export type PartyLedgerKind = 'payables' | 'receivables';

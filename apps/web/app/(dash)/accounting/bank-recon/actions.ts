@@ -1,5 +1,4 @@
-import type { PermissionCode } from '@erp/shared/types';
-('use server');
+'use server';
 
 import { getSession } from '@/lib/auth';
 import { authorizedLocationIdsForTenant, requirePermissionAtLocation } from '@/lib/authz';
@@ -14,6 +13,7 @@ import {
   locations,
 } from '@erp/db';
 import { generateId } from '@erp/shared/id';
+import type { PermissionCode } from '@erp/shared/types';
 import { revalidatePath } from 'next/cache';
 
 async function getContext() {
