@@ -80,7 +80,7 @@ jobs:
         run: pnpm --filter @erp/web typecheck
 
       - name: Test
-        run: pnpm test -- --run
+        run: pnpm test
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
 
