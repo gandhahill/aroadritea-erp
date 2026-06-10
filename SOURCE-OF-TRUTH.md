@@ -320,11 +320,11 @@ Mengacu jawaban Q22 + tampilan KDS Naixer:
 ### 10.1 Standar & Konfigurasi
 | Item | Nilai |
 |---|---|
-| Standar akuntansi | **SAK ETAP** |
+| Standar akuntansi | **SAK Indonesia untuk Entitas Privat (SAK EP)** |
 | Multi-currency | Tidak (Rupiah saja) |
 | Frekuensi laporan | **Bulanan** |
 | Bahasa laporan | **Tiga bahasa**: Indonesia, Inggris, Mandarin |
-| COA | **Sudah ada** (SAK ETAP) — lampiran A |
+| COA | **Sudah ada** (diselaraskan untuk SAK EP) — lampiran A |
 
 ### 10.2 Bank & Kas
 - **Rekening bank**: BCA `7600551986`, IDR, fungsi **Operasional**
@@ -353,9 +353,10 @@ Mengacu jawaban Q22 + tampilan KDS Naixer:
 
 ### 10.5 Jenis Laporan Wajib
 - ✅ Neraca / Laporan Posisi Keuangan
-- ✅ Laporan Laba Rugi
+- ✅ Laporan Laba Rugi dan Penghasilan Komprehensif (atau Laba Rugi bila tidak ada OCI)
 - ✅ Laporan Perubahan Ekuitas
 - ✅ Laporan Arus Kas
+- ✅ Catatan atas Laporan Keuangan (CALK)
 - ✅ Buku Besar
 - ✅ Neraca Saldo
 - ✅ Jurnal Umum
@@ -397,7 +398,7 @@ Output halaman:
 | **PPh Pasal 21** (karyawan) | ✅ Iya |
 | **PPh Pasal 23** (jasa) | ✅ Iya |
 | **PPh Pasal 25/29** (badan) | ✅ Iya |
-| **PPh Final UMKM 0,5%** | ✅ Iya (peraturan PP 5/2022, omzet ≤ Rp 500 juta/tahun) |
+| **PPh Final UMKM 0,5%** | ✅ Iya, bila memenuhi PP 55/2022 + PMK 164/2023 (peredaran bruto ≤ Rp 4,8 miliar/tahun; pengecualian Rp500 juta hanya WP orang pribadi) |
 | **PB1 / PBJT** (pajak restoran 10%) | ✅ Iya, inclusive |
 
 ### 11.2 Tools & Integrasi
@@ -408,20 +409,22 @@ Output halaman:
 
 > **Implikasi**: ERP wajib export **rekap PPN keluaran/masukan** dan **PB1/PBJT** dalam format yang mudah re-input ke Coretax (CSV/Excel sesuai struktur Coretax). Tidak perlu API DJP saat ini.
 
-### 11.2b PPh Final UMKM 0,5% (PP 5/2022)
+### 11.2b PPh Final UMKM 0,5% (PP 55/2022 + PMK 164/2023)
 
-Peraturan terbaru:WP final hanya untuk omzet ≤ Rp 500 juta per tahun. Dasar hukum: PP 5/2022 (perubahan PP 23/2018) + PMK 6/2024.
+Peraturan terbaru: PPh Final UMKM 0,5% berlaku untuk wajib pajak orang pribadi dan badan dengan peredaran bruto tertentu, yaitu tidak melebihi Rp 4,8 miliar per tahun. Pengecualian peredaran bruto sampai Rp 500 juta per tahun hanya berlaku untuk wajib pajak orang pribadi, bukan PT/badan.
 
 | Aturan | Detail |
 |---|---|
-| **Omset threshold** | ≤ Rp 500.000.000 per tahun |
+| **Omzet threshold** | ≤ Rp 4.800.000.000 per tahun |
+| **Pengecualian Rp 500 juta** | Hanya WP orang pribadi; tidak berlaku untuk PT Gandha Hill / badan |
+| **Jangka waktu badan PT** | Maksimal 3 tahun sejak terdaftar/memenuhi ketentuan, lalu beralih ke ketentuan umum |
 | **Tarif** | 0,5% dari omzet (final, tidak dapat dikreditkan) |
-| **Sudah termasuk PPh Pasal 21, 22, 23, 25, 26** | WP tidak perlu hitung PPh lain untuk transaksi ini |
-| **Penghitungan** | Per masa pajak (bulanan), berdasarkan brutto omzet |
+| **Relasi dengan PPh lain** | PPh Final UMKM hanya untuk penghasilan usaha yang memenuhi kriteria; PPh 21/23 dan withholding lain tetap mengikuti objek masing-masing bila ada |
+| **Penghitungan** | Per masa pajak (bulanan), berdasarkan peredaran bruto yang memenuhi kriteria |
 | **Pembayaran** | Disetor sendiri oleh WP setiap bulan |
 | **Laporan** | Masuk ke SPT Masa PPh Final UMKM |
 
-> **Status saat ini** (2026-05-10): Aroadri Tea baru beroperasi sejak 2024, omzet aktualbelum diketahui apakah sudah melebihi Rp 500 juta/tahun. Sistem **wajib** menyediakan engine PPh Final 0,5% (tax rules + calculation + export) agar siap ketika omzet sudah tercatat dan memenuhi threshold. Toggle via `tax_rules` seperti PPN opt-in. Konfirmasi akuntan/tax consultant diperlukan untuk status kepatuhan aktual.
+> **Status saat ini** (2026-06-10): Aroadri Tea baru beroperasi sejak 2024/2026 secara aktif, omzet aktual belum dipastikan terhadap batas Rp 4,8 miliar/tahun dan status jangka waktu badan perlu dikonfirmasi akuntan/tax consultant. Sistem **wajib** menyediakan engine PPh Final 0,5% sebagai `PPH_FINAL_UMKM` terpisah dari `PPH25`, dengan toggle via `tax_rules` seperti PPN opt-in.
 
 ### 11.3 PPN Penjualan — Opt-In (Decided 2026-05-05)
 
@@ -431,7 +434,7 @@ Peraturan terbaru:WP final hanya untuk omzet ≤ Rp 500 juta per tahun. Dasar hu
 - **Penjualan retail F&B** (channel `walk_in`, `gofood`, `grabfood`, `shopeefood`) **tidak dikenakan PPN** — sudah dipungut PB1 10% inclusive (lihat §6.5).
 - **PPN Masukan (Vat In) dari pembelian** supplier PKP **tetap aktif** — dicatat untuk klaim restitusi / kredit pajak.
 - **PPN Keluaran (Vat Out)** untuk transaksi retail **DEFAULT OFF**, namun engine pajak **siap mengakomodasi** aktivasi kelak (mis. saat ekspansi B2B / catering / wholesale).
-- Tarif PPN tetap di-seed di tabel `tax_rates`, hanya `applies_to_default=false` untuk channel retail.
+- Tarif PPN di `tax_rates` menggunakan tarif efektif 11% untuk non-mewah biasa. Mulai 2025, ini merepresentasikan tarif UU 12% × DPP nilai lain 11/12; untuk channel retail tetap `applies_to_default=false`.
 - Konfigurasi tarif berlaku via tabel `tax_rules` (per channel / per customer segment / per product category).
 
 **Risiko Pajak Ganda**:
@@ -899,7 +902,7 @@ User mensyaratkan **keamanan setingkat militer** (non-2FA) dengan komponen berik
 ### 20.3 Phasing yang Disarankan (draft, perlu konfirmasi user)
 | Phase | Modul Inti | Outcome |
 |---|---|---|
-| **Phase 1** | Accounting + Reporting + Tax + Multi-lokasi + i18n + IAM/Permission engine | Pembukuan & laporan SAK ETAP siap, ekspor pajak siap |
+| **Phase 1** | Accounting + Reporting + Tax + Multi-lokasi + i18n + IAM/Permission engine | Pembukuan & laporan SAK EP siap, ekspor pajak siap |
 | **Phase 2** | POS + Inventory + BOM + Purchasing | Auto-deduct stok dari sales, GRN, supplier ledger |
 | **Phase 3** | Kitchen / KDS + Customer-facing display + (opt) integrasi Naixer | Operasional toko full-loop |
 | **Phase 4** | HR & Payroll + Absensi + Slip gaji digital + Surat Peringatan | Operasional SDM full |
@@ -1055,7 +1058,7 @@ Setiap akhir shift/hari, kasir dan kepala toko memerlukan **laporan ringkasan pe
 > Fitur ini diminta user pada 2026-05-12. Dipicu oleh kebutuhan pelaporan pajak harian ke Coretax (DJPh online) yang memerlukan **omzet neto setelah PB1 10% dipisahkan**, dengan kemungkinan **penyesuaian manual** jika ada perbedaan antara omzet akuntansi dan omzet fiskal (mis. koreksi harga, retur yang belum dicatat, transaksi batal, dll.).
 
 **Tujuan:**
-- Menyediakan file Excel yang langsung bisa digunakan untuk **isian SPT Masa PPh Final UMKM (PP 5/2022)** atau **rekon Coretax**.
+- Menyediakan file Excel yang langsung bisa digunakan untuk **rekon SPT Masa PPh Final UMKM (PP 55/2022 + PMK 164/2023, bila memenuhi kriteria)** atau **rekon Coretax**.
 - Kolom omzet di-export **sudah dikurangi PB1 10%** (karena PB1 bersifat *inclusive*, omzet fiskal harus di-backward dari gross).
 - User bisa **edit penyesuaian manual** langsung di file Excel sebelum submit.
 
@@ -1115,7 +1118,7 @@ Tool ini membaca data dari `getDailySummary` + penyesuaian dari `daily_revenue_a
 
 **Catatan Penting (UU Perpajakan):**
 - PB1/PBJT 10% bersifat *inclusive* — harga yang dibayar pelanggan SUDAH termasuk PB1.
-- Untuk pelaporan pajak, omzet yang menjadi dasar pengenaan PPh Final 0,5% (PP 5/2022) adalah omzet **setelah dikurangi PB1**.
+- Untuk pelaporan pajak, omzet yang menjadi dasar rekonsiliasi PPh Final 0,5% (PP 55/2022 + PMK 164/2023, bila memenuhi kriteria) adalah omzet **setelah dikurangi PB1/PBJT**.
 - Koreksi fiskal (penyesuaian) harus didukung bukti dokumen yang benar.
 - Konsultasi dengan akuntan/tax consultant diperlukan untuk kasus-kasus khusus.
 
@@ -1536,7 +1539,7 @@ POS dianggap **resilient-ready** bila lulus tes berikut:
 |---|---|
 | **PB1 / PBJT** | Pajak Barang dan Jasa Tertentu (pajak restoran daerah, 10%, inclusive harga jual) |
 | **PKP** | Pengusaha Kena Pajak (status PT Gandha Hill: PKP) |
-| **SAK ETAP** | Standar Akuntansi Keuangan untuk Entitas Tanpa Akuntabilitas Publik |
+| **SAK EP** | SAK Indonesia untuk Entitas Privat; berlaku efektif 1 Januari 2025 dan menggantikan SAK ETAP untuk entitas privat |
 | **COA** | Chart of Accounts — bagan akun (lihat Lampiran A) |
 | **BOM** | Bill of Materials — komposisi resep produk |
 | **KDS** | Kitchen Display System — layar dapur untuk antrean produksi |
@@ -1569,7 +1572,7 @@ POS dianggap **resilient-ready** bila lulus tes berikut:
 
 ## Lampiran A — Chart of Accounts (COA) Lengkap
 
-> Sumber: jawaban Q59 kuesioner. Standar: **SAK ETAP**. Mata uang: **IDR**. Sistem **wajib seed** akun-akun ini saat go-live, dengan kode akun dan klasifikasi (Aktiva/Pasiva/Modal/Pendapatan/Beban) yang akan ditentukan saat setup.
+> Sumber: jawaban Q59 kuesioner. Standar: **SAK EP**. Mata uang: **IDR**. Sistem **wajib seed** akun-akun ini saat go-live, dengan kode akun dan klasifikasi (Aktiva/Pasiva/Modal/Pendapatan/Beban) yang akan ditentukan saat setup.
 
 ### Aktiva Lancar
 - Petty Cash

@@ -26,7 +26,7 @@ Saat go-live Phase 1, tabel `tax_rates` tetap di-seed dengan:
 - `PB1` — `is_active=true`, `applies_to_default=true` untuk channel `walk_in`, `gofood`, `grabfood`, `shopeefood`.
 - `PPN_OUT` (PPN Keluaran) — `is_active=true` (untuk B2B kelak), `applies_to_default=false` untuk channel retail.
 - `PPN_IN` (PPN Masukan) — `is_active=true`, dipakai untuk **pembelian** dari supplier PKP saat menerima Faktur Pajak.
-- `PPH21`, `PPH23`, `PPH25` — sesuai SoT §11.1.
+- `PPH21`, `PPH23`, `PPH25`, `PPH_FINAL_UMKM` — sesuai SoT §11.1. `PPH_FINAL_UMKM` terpisah dari `PPH25` karena PPh 25 adalah angsuran badan, bukan tarif final 0,5%.
 
 ### 2. Field Konfigurasi di Channel / Customer / Product
 
@@ -71,8 +71,8 @@ Tabel `tax_rates.calculation` menentukan:
 
 Default seed:
 - PB1: `inclusive`
-- PPN_OUT: `exclusive` (kalau diaktifkan untuk B2B, biasanya ditambahkan di atas — sesuai praktik industri B2B Indonesia)
-- PPN_IN: `exclusive`
+- PPN_OUT: `exclusive` dengan tarif efektif 11% untuk non-mewah biasa (mulai 2025: 12% × DPP nilai lain 11/12)
+- PPN_IN: `exclusive` dengan tarif efektif 11% untuk non-mewah biasa
 
 ### 7. Posting Akun
 - PB1 → akun `PB1 / PBJT Payable` (di SoT Lampiran A).

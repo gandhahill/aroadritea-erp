@@ -103,7 +103,7 @@ SAP S/4HANA adalah produk puluhan tahun dengan ribuan modul. Menjiplaknya mentah
 
 Eksekutor yang menemukan task menjurus ke daftar ini wajib BLOCKED dan bertanya:
 
-- Multi-GAAP / ledger paralel, konsolidasi multi-entitas, intercompany. Entitas hukum cuma satu (SAK ETAP).
+- Multi-GAAP / ledger paralel, konsolidasi multi-entitas, intercompany. Entitas hukum cuma satu (SAK EP).
 - Mesin MRP penuh, production scheduling pabrik. Dapur bukan pabrik; cukup BOM + reorder rules yang sudah ada.
 - In-memory column store, OLAP terpisah, data warehouse. RAM 2 GB.
 - Platform scripting tertanam (ala ABAP) yang mengeksekusi kode user. Fleksibilitas lewat konfigurasi DB, bukan kode dinamis.

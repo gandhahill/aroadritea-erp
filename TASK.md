@@ -104,6 +104,7 @@
 
 | ID | Title | Owner | Completed | Commit | Note |
 |----|-------|-------|-----------|--------|------|
+| T-0290 | SAK EP + tax compliance audit for accounting, tax, and reporting | Codex | 2026-06-10 | `this commit` | Aligned SoT/SD/ADR baseline from SAK ETAP to SAK EP, corrected PPh Final UMKM vs PPh 25 rules, documented 2025 effective PPN treatment, added compliance matrix, and verified services/MCP typecheck plus targeted reporting/tax tests. Checkpoint: `docs/checkpoints/T-0290-sak-ep-tax-compliance.checkpoint.md`. |
 | T-0280 | UX/HCI audit and Dependabot warning remediation | Codex | 2026-06-09 | `5db1dea` + `301df93` + `this commit` | Resolved current npm audit/Dependabot advisories by bumping `better-auth` and `hono`; swept Settings UX/HCI for hardcoded UI text, i18n parity, aria labels, placeholders, and brand-token compliance; removed remaining generic color tokens from production `apps/web` source. Verified GitHub Dependabot API `open_dependabot_alerts=0`, audit, web/services/MCP typecheck, web build, i18n parity, and diff check. |
 | T-0270 | Production backup cron repair for local PostgreSQL + rclone | Codex | 2026-06-03 | `this commit` | Cron fired as `aroadritea` but could not write root-owned logs/backups and had no rclone config. Moved job to root crontab, removed failing user cron, verified manual backup upload, and updated restore runbook. |
 | T-0269 | Dependabot security updates for Vitest and tmp advisories | Codex | 2026-06-03 | `41c8102` | Resolved current dependency advisories by upgrading Vitest to 4.1.x and overriding transitive `tmp` to patched 0.2.x. Verified audit, typecheck, shared tests, and targeted services tests. |
@@ -121,7 +122,7 @@
 | T-0006 | Service `auth` (better-auth integration) + login UI | Antigravity | 2026-05-07 | verified | tests pass, typecheck clean |
 | T-0007 | Service `iam.can()` permission engine + cache + tests | Antigravity | 2026-05-07 | verified | 17 tests pass |
 | T-0008 | Accounting schema (periods, COA, journal, partners, tax_rates) | Antigravity | 2026-05-06 | wip(T-0008) | |
-| T-0009 | COA seed (90+ accounts, trilingual, SAK ETAP) | Antigravity | 2026-05-06 | wip(T-0009) | |
+| T-0009 | COA seed (90+ accounts, trilingual, SAK EP) | Antigravity | 2026-05-06 | wip(T-0009) | |
 | T-0010 | Result pattern + AppError (factories, combinators, 16 tests) | Antigravity | 2026-05-07 | wip(T-0010) | |
 | T-0010b | Seed permissions modules `accounting`, `iam`, `tax` | Antigravity | 2026-05-07 | verified | permissions seeded in iam.ts |
 | T-0011 | Schema journal_entries + journal_lines | Antigravity | 2026-05-07 | verified | accounting schema lines 81+ |
@@ -304,7 +305,7 @@
 | T-0223 | Jurnal penutup akhir tahun (Income Summary â†’ Laba Ditahan) | M | P1 | ðŸŸ© DONE |
 | T-0224 | Disposal aset tetap (workflow + jurnal) | S | P2 | ðŸŸ© DONE |
 | T-0225 | Pembayaran invoice parsial/cicilan + payment allocation | M | P1 | ðŸŸ© DONE |
-| T-0226 | Laporan Perubahan Ekuitas (SAK ETAP) | S | P2 | ðŸŸ© DONE |
+| T-0226 | Laporan Perubahan Ekuitas (SAK EP) | S | P2 | ðŸŸ© DONE |
 | T-0227 | Buku Besar drill-down per akun + comparative period | M | P2 | ðŸŸ© DONE |
 
 ### Tier 2 â€” Purchasing
@@ -426,7 +427,7 @@
 - **Bukti**: `packages/services/src/purchasing/workflow.ts:310-339`, `packages/services/src/purchasing/grn-service.ts:429-456`.
 - **Sudah ada**: GRNI account, optimistic locking, audit. **Verifikasi dengan akuntan sebelum ubah.**
 - **Scope**: pindahkan pengakuan AP dari PO-approve ke purchase invoice (lihat T-0228); PO-approve hanya komitmen (tanpa JE persediaan); GRNâ†’GRNI; hindari double-DR.
-- **Wajib**: audit; review SAK ETAP.
+- **Wajib**: audit; review SAK EP.
 
 #### T-0217 â€” Logistik: outgoing shipment harus tulis `stockMovements` Â· `P0` Â· `M`
 - **Masalah**: `outgoing-shipment.ts` tidak membuat `stockMovements` sama sekali â†’ barang keluar tidak mengurangi stok. Tidak ada penerimaan antar-lokasi.
@@ -488,8 +489,8 @@
 - **Scope**: dukung pembayaran parsial + alokasi ke beberapa invoice; status partially_paid; jejak sisa tagihan; mekanisme void/koreksi invoice posted (jurnal pembalik).
 - **Wajib**: audit; period guard.
 
-#### T-0226 â€” Laporan Perubahan Ekuitas (SAK ETAP) Â· `P2` Â· `S`
-- **Masalah**: tidak ada halaman/service Laporan Perubahan Ekuitas (wajib SAK ETAP).
+#### T-0226 â€” Laporan Perubahan Ekuitas (SAK EP) Â· `P2` Â· `S`
+- **Masalah**: tidak ada halaman/service Laporan Perubahan Ekuitas (wajib SAK EP).
 - **Bukti**: `apps/web/app/(dash)/reporting/` (tidak ada page); service reporting tak punya fungsi ini.
 - **Scope**: service + UI Laporan Perubahan Ekuitas (modal awal, laba bersih, prive/dividen, modal akhir) + export.
 - **Wajib**: i18n; export XLSX (ikuti pola reporting lain).

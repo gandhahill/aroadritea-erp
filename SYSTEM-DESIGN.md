@@ -139,7 +139,7 @@ Setiap kali AI hendak menambah dependency baru, fitur baru, atau optimisasi yang
 | Internet di toko | tidak stabil | POS offline-first. Idempotent sync. **Layanan tetap berjalan saat server down** (lihat §35). |
 | Bahasa | ID / EN / ZH | i18n sejak hari pertama. |
 | Browser target | Chromium-based modern + Safari iOS 14+ | Mesin kasir Imin Swan 2 (Android). PWA harus jalan di Android Chrome WebView. |
-| Pajak | SAK ETAP, PB1 10% inclusive | Engine pajak fleksibel di tabel. |
+| Pajak | SAK EP, PB1/PBJT 10% inclusive | Engine pajak fleksibel di tabel. |
 | Recovery | RTO ≤ 2 menit, RPO = 0 utk POS | Auto-restart PM2, outbox client, idempotent sync. |
 | Naixer KDS | QR-only (tanpa API) | Generator QR pluggable. Lihat §33. |
 | Demo POS | Wajib | Client-side IndexedDB only. Lihat §34. |
@@ -776,7 +776,7 @@ partners
 | Field | Tipe | Catatan |
 |-------|------|---------|
 | 🔑 `id` | text | |
-| `*code` | text UNIQUE | `'PB1', 'PPN_OUT', 'PPN_IN', 'PPH21', 'PPH23'` |
+| `*code` | text UNIQUE | `'PB1', 'PPN_OUT', 'PPN_IN', 'PPH21', 'PPH23', 'PPH25', 'PPH_FINAL_UMKM'` |
 | `*name` | jsonb | |
 | `*rate_bps` | int | basis poin (PB1 10% = 1000) |
 | `*calculation` | text CHECK | `'inclusive' \| 'exclusive'` |
@@ -1483,13 +1483,14 @@ export const tool = defineTool({
 | Code | Name | Rate (bps) | Calc | Posting Account |
 |------|------|------------|------|-----------------|
 | `PB1` | PBJT (pajak restoran) | 1000 (10%) | inclusive | `PB1 / PBJT Payable` |
-| `PPN_OUT` | PPN Keluaran | 1100 (11%) | exclusive | `PPN Outcome (Vat Out)` |
-| `PPN_IN` | PPN Masukan | 1100 (11%) | exclusive | `Vat In (PPN Income)` |
+| `PPN_OUT` | PPN Keluaran | 1100 (11% efektif) | exclusive | `PPN Outcome (Vat Out)` |
+| `PPN_IN` | PPN Masukan | 1100 (11% efektif) | exclusive | `Vat In (PPN Income)` |
 | `PPH21` | PPh 21 Karyawan | progresif | (dihitung di payroll engine) | `Income Tax Payable` / `Final Income Tax Payable` |
 | `PPH23` | PPh 23 Jasa | 200 (2%) | exclusive (gross-up?) | `Final Income Tax 23 Payable` |
-| `PPH25` | PPh 25 Badan | sesuai estimasi | exclusive | `Income Tax Expenses` |
+| `PPH25` | PPh 25 Badan | 0 (nominal angsuran dari estimasi/SPT tahunan) | exclusive | `Prepaid Final Tax` sementara sampai akun prepaid PPh 25 dibuat |
+| `PPH_FINAL_UMKM` | PPh Final UMKM | 50 (0,5%) | exclusive | `Final Income Tax Payable` |
 
-> Tarif diubah hanya via UI Settings + change log, tidak di kode.
+> Tarif diubah hanya via UI Settings + change log, tidak di kode. Untuk PPN non-mewah biasa mulai 2025, `rate_bps=1100` adalah tarif efektif dari 12% × DPP nilai lain 11/12 (PMK 131/2024 / PMK 11/2025). Bila nanti ada objek dengan DPP khusus, tambahkan metadata rule sebelum memakai rate generik.
 
 ### 19.2 Perhitungan PB1 Inclusive (Aturan Wajib)
 Karena PB1 inclusive (lihat SoT §6.5), harga jual yang ditampilkan **sudah termasuk** PB1.
@@ -1507,7 +1508,7 @@ Untuk laporan penjualan **net of PB1** (revenue): gunakan `tax_base`. Untuk lapo
 #### 19.3.1 Aturan Default
 - **Penjualan retail F&B** (`walk_in`, `gofood`, `grabfood`, `shopeefood`): **PB1 only**, **tidak ada PPN keluaran**.
 - **Pembelian dari supplier PKP**: PPN Masukan (Vat In) **wajib tercatat** → akun `Vat In (PPN Income)` (DR).
-- **PPN Keluaran**: tetap di-seed di `tax_rates` dengan `is_active=true`, namun **tidak diterapkan default** untuk channel retail (lihat resolusi `tax_rules` di §19.3.3).
+- **PPN Keluaran**: tetap di-seed di `tax_rates` dengan `is_active=true` dan tarif efektif 11%, namun **tidak diterapkan default** untuk channel retail (lihat resolusi `tax_rules` di §19.3.3).
 
 #### 19.3.2 Skema `tax_rules`
 | Field | Tipe | Catatan |
@@ -1569,10 +1570,19 @@ Saat user ingin aktifkan untuk B2B:
 ### 19.4 Export Coretax
 - `tax.export_coretax(period_code, type='ppn-out'|'ppn-in'|'pph23'|'pb1')` → menghasilkan file CSV/XLSX layout Coretax.
 - Layout di `packages/services/tax/coretax-templates/*.ts`. Update bila layout Coretax berubah.
+- Untuk tahun pajak 2025+, file ekspor wajib diverifikasi terhadap ketentuan Coretax/PMK 81/2024 dan template PER-11/PJ/2025 yang berlaku pada masa pajak terkait sebelum filing final.
 
 ### 19.5 PPh 21
 - Engine progresif PPh 21 (TER bulanan & TKP) di `packages/services/payroll/pph21.ts`.
 - Tabel PTKP dan TER di-config di DB (`pph21_ter_brackets`, `pph21_ptkp`), dapat di-update tanpa deploy.
+
+### 19.6 PPh Final UMKM dan PPh 25
+
+- `PPH_FINAL_UMKM` adalah pajak final 0,5% untuk wajib pajak yang memenuhi PP 55/2022 + PMK 164/2023.
+- Threshold peredaran bruto: tidak melebihi Rp 4,8 miliar per tahun. Pengecualian Rp500 juta hanya untuk wajib pajak orang pribadi, bukan PT/badan.
+- Untuk badan berbentuk PT, penggunaan PPh Final UMKM memiliki batas waktu; status aktual Aroadri harus dikonfirmasi dengan akuntan/tax consultant sebelum rule diaktifkan.
+- `PPH25` adalah angsuran PPh badan berdasarkan estimasi/SPT tahunan, bukan tarif 0,5%. Jangan memakai `PPH25` untuk omzet final UMKM.
+- PPh 21/23/withholding tetap dihitung sesuai objek masing-masing; PPh Final UMKM tidak menghapus kewajiban withholding yang memang berlaku atas transaksi lain.
 
 ---
 
@@ -1667,9 +1677,11 @@ Setiap CRUD JE & period → `audit_log`.
 ### 21.2 Reporting (Phase 1)
 
 #### Output
-- Neraca / Balance Sheet (per as-of-date, per location & konsolidasi)
-- Laba Rugi / P&L (per range, per location & konsolidasi)
+- Laporan Posisi Keuangan / Statement of Financial Position (per as-of-date, per location & konsolidasi)
+- Laba Rugi dan Penghasilan Komprehensif / Profit or Loss and Comprehensive Income (per range, per location & konsolidasi; bila tidak ada OCI, tampil sebagai P&L)
+- Laporan Perubahan Ekuitas / Statement of Changes in Equity (per range)
 - Arus Kas / Cash Flow (per range)
+- Catatan atas Laporan Keuangan / CALK (basis penyusunan, kebijakan akuntansi signifikan, pajak, persediaan, aset tetap, dan warning kepatuhan)
 - Buku Besar / General Ledger (per akun, per range)
 - Neraca Saldo / Trial Balance (per as-of-date)
 - Jurnal Umum / Journal Listing (per range)
@@ -1679,6 +1691,7 @@ Setiap CRUD JE & period → `audit_log`.
 
 #### Pattern
 - Service: `reporting.balanceSheet({ asOf, locationId? })` → mengembalikan JSON struktural.
+- Service: `reporting.financialStatementNotes({ periodStart, periodEnd, reportingDate, locationId? })` → mengembalikan scaffold CALK SAK EP, required statement checklist, dan compliance warnings.
 - Renderer terpisah: HTML, PDF, Excel — terima JSON, render sesuai locale.
 - **Cache**: laporan akuntansi yang melibatkan period closed dapat di-cache di `report_cache` table (key: hash dari params + max(updated_at) jurnal). Invalidate saat reversal.
 
@@ -1688,6 +1701,7 @@ Setiap laporan dapat di-render dalam id/en/zh.
 #### Edge Cases
 - Asof-date di period belum exist → kosongkan (tampilkan saldo awal saja).
 - Laporan saat period dalam status `closing` → tampilkan banner "preliminary".
+- Jangan render pernyataan eksplisit "patuh SAK EP" sebelum paket laporan lengkap, angka komparatif, klasifikasi current/non-current, dan pengungkapan final direview.
 
 ---
 
@@ -1709,7 +1723,7 @@ Setiap laporan dapat di-render dalam id/en/zh.
 
 #### Edge Cases
 - Period belum ditutup → export "preliminary".
-- Saat tarif PPN berubah (mis. 11% → 12%) → tarif baru efektif `effective_from`. Tidak edit tarif lama (audit).
+- Saat tarif PPN efektif berubah → tarif baru efektif `effective_from`. Tidak edit tarif lama (audit). Jangan mengganti `rate_bps=1100` menjadi 1200 untuk non-mewah biasa tanpa DPP rule 11/12, karena 2025 memakai tarif UU 12% dengan DPP nilai lain 11/12.
 
 ---
 
@@ -2646,7 +2660,7 @@ export const reportingGetDailySummary = {
 
 #### 25.5b Omzet Harian Export — PB1 Exclusive + Koreksi Fiskal (SoT §21.3b)
 
-> User-requested 2026-05-12: file Excel untuk pelaporan pajak Coretax / SPT PPh Final UMKM, dengan omzet yang sudah dikurangi PB1 10% dan kolom koreksi manual untuk beda omzet akuntansi vs fiskal.
+> User-requested 2026-05-12: file Excel untuk rekonsiliasi pajak Coretax / SPT PPh Final UMKM (bila memenuhi PP 55/2022 + PMK 164/2023), dengan omzet yang sudah dikurangi PB1/PBJT 10% dan kolom koreksi manual untuk beda omzet akuntansi vs fiskal.
 
 #### 25.5b.1 Schema
 
@@ -2798,7 +2812,7 @@ export const reportingGetOmzetHarian = {
 #### 25.5b.8 Tax Compliance Notes (for developer and user reference)
 
 - PB1/PBJT 10% is **inclusive** — `gross_price = net_price + PB1`.
-- For SPT PPh Final UMKM (PP 5/2022), omzet base = **omzet neto (E)** = gross ÷ 1.10.
+- For SPT PPh Final UMKM (PP 55/2022 + PMK 164/2023, when eligible), omzet base = **omzet neto (E)** = gross ÷ 1.10.
 - Fiscal adjustment (F) must be supported by supporting documents (receipts, correction memos).
 - For Coretax input: use **Omzet Fiskal (G)** as the gross revenue figure.
 - Consult tax consultant for cases involving: partial exemptions, mix-use sales, B2B transactions with PPN.
@@ -3335,8 +3349,8 @@ Bila kebutuhan ambigu, AI **wajib** berhenti dan tanyakan ke user (Lintang) di k
 | 7 | Email transactional provider (slip gaji + OTP member) | ✅ SMTP mailbox bawaan HestiaCP (`SMTP_*` env), lihat ADR-0011 |
 | 8 | File storage: R2 vs S3 vs Backblaze B2 | ⏳ R2 (default) — pilih saat Phase 5 (CMS images, kartu member) |
 | 9 | PPN penjualan retail dipungut atau hanya PB1? | ✅ **PB1 saja, PPN engine opt-in untuk akomodasi B2B kelak** (decided 2026-05-05, lihat ADR-0010) |
-| 10 | Layout final laporan keuangan (template SAK ETAP) | ⏳ Template Aroadri di-design saat Phase 1 (T-0021) |
-| 11 | Format export Coretax versi mana | ⏳ Versi terkini saat implementasi Phase 1 |
+| 10 | Layout final laporan keuangan (template SAK EP) | ✅ Baseline SAK EP + CALK diputuskan di ADR-0016; template visual Aroadri tetap di-design saat Phase 1 (T-0021) |
+| 11 | Format export Coretax versi mana | ⏳ Gunakan template Coretax aktif pada masa pajak; baseline PER-11/PJ/2025 untuk SPT Masa PPN 2025+, lihat ADR-0016 |
 | 12 | Jam zona laporan keuangan (cut-off harian) | ⏳ Default 23:59 WIB (per `location.timezone`) |
 | 13 | Skema versi BOM saat resep di-update di tengah period | ✅ New version, old tetap dipakai untuk transaksi historis |
 | 14 | Strategi promo "Buy X Get Y" untuk POS offline | ⏳ Engine local di IndexedDB (replicate rule) — detail di Phase 2 |

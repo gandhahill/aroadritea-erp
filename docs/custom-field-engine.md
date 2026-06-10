@@ -84,7 +84,7 @@ Every column added "just in case" makes:
 The custom-field engine is the **escape hatch** for the genuine long tail
 of per-tenant variations. Anything that's a real product decision should
 be a real column. Anything that's bookkeeping or tax-related must be a
-real column (SAK ETAP compliance + Coretax exports won't accept JSONB
+real column (SAK EP compliance + Coretax exports won't accept JSONB
 attributes).
 
 ---
