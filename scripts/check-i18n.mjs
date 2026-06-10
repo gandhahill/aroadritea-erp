@@ -1,7 +1,10 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const webRoot = path.resolve('../apps/web');
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(scriptDir, '..');
+const webRoot = path.join(repoRoot, 'apps', 'web');
 const msgDir = path.join(webRoot, 'messages');
 
 function flatten(obj, prefix = '', out = {}) {
@@ -98,6 +101,11 @@ if (uniqMissing.length === 0) {
 const allKeys = new Set([...Object.keys(en), ...Object.keys(id), ...Object.keys(zh)]);
 const parityGaps = [];
 for (const k of allKeys) if (!en[k] || !id[k] || !zh[k]) parityGaps.push(k);
+
+if (uniqMissing.length > 0 || parityGaps.length > 0) {
+  process.exitCode = 1;
+}
+
 if (parityGaps.length === 0) {
   console.log('✅ Locale parity OK — en, id, zh have identical key sets.');
 } else {

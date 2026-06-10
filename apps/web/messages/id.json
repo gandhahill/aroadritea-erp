@@ -1099,6 +1099,10 @@
       "receiving": "Memproses...",
       "successReceived": "Barang berhasil diterima.",
       "fullyReceived": "Semua barang untuk PO ini telah diterima sepenuhnya.",
+      "workflowTitle": "Alur persetujuan PO",
+      "workflowHint": "Ubah status PO di sini. Nomor resi tidak diperlukan untuk mengubah status.",
+      "submitPo": "Ajukan PO",
+      "approvePo": "Setujui PO",
       "noItemsToReceive": "Tidak ada barang yang bisa diterima."
     },
     "number": "Nomor",

@@ -1099,6 +1099,10 @@
       "receiving": "Processing...",
       "successReceived": "Goods successfully received.",
       "fullyReceived": "All items for this PO have been fully received.",
+      "workflowTitle": "PO approval workflow",
+      "workflowHint": "Change the PO status here. A tracking number is not required to change status.",
+      "submitPo": "Submit PO",
+      "approvePo": "Approve PO",
       "noItemsToReceive": "No items left to receive."
     },
     "number": "Number",
