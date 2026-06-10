@@ -28,6 +28,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0287 | Pass Perencana penuh: pecah semua kartu F2–F6 master plan | Claude Fable 5 | 2026-06-10 17:25 WIB | 2026-06-10 18:05 WIB | DONE | Semua fase master plan kini punya kartu siap eksekusi di `docs/plans/cards/` (F2 12 kartu, F3 15 kartu, F4 ±22 kartu, F5 10 kartu, F6 5 kartu), berbasis inventaris repo via 5 subagen + spot-check. Temuan kandidat keamanan TERKONFIRMASI: `log-scrub` & `hmac` helper tidak diimpor kode produksi mana pun (klaim T-0176 tidak terpasang penuh → kartu F2.9); rate limit hanya ada di login, tidak di OTP member//api/sync/pos/MCP/AI (→ F2.8); `runApprovalGate` baru dipanggil post-journal (→ F4.4a–k); custom field engine belum dirender di form entitas mana pun (→ F4.2); direct-DB import di apps/web = 88 file (→ F4.3a–g); `journal_lines` belum punya dimensi cost center (→ F5.1). Eksekutor tinggal salin kartu, dilarang memecah sendiri. Checkpoint: `docs/checkpoints/T-0287-planner-pass-all-cards.checkpoint.md`. |
 | T-0286 | Master plan: ERP kelas S/4HANA + pelunasan bug fungsional & keamanan | Claude Fable 5 | 2026-06-10 16:45 WIB | 2026-06-10 17:20 WIB | DONE | Plan eksekusi tunggal di `docs/plans/MASTER-PLAN-S4-CLASS.md`: 7 fase bergerbang (F0 pagar mesin → F1 tutup hutang aktif → F2 sapu keamanan 11 permukaan → F3 sapu fungsional + 12 skenario E2E → F4 fondasi platform → F5 kapabilitas kelas-S/4 → F6 paritas MCP), ±69 kartu, kontrak eksekutor untuk agen lemah. Temuan: CI tidak pernah jalan karena `ci.yml` hanya memantau `main`/`develop` (branch utama `master`) — kartu F0.1. Checkpoint: `docs/checkpoints/T-0286-master-plan-s4-class.checkpoint.md`. **Mulai sekarang semua agen mengambil task dari plan ini sesuai urutan fase.** |
 | T-0285 | Manual journal posting approval-gate integration | Codex | 2026-06-09 22:01 WIB | 2026-06-09 22:22 WIB | DONE | Commit `fc232b4`: manual journal posting now honors configurable `journal_entry_manual` workflow rules before immutable posting; approved workflow instances satisfy the gate; user-facing pending approval copy added in EN/ID/ZH. Verification: services approval/journal tests, services typecheck, scoped Biome, locale JSON parse, no `???` in zh. Checkpoint: `docs/checkpoints/T-0285-manual-journal-posting-approval-gate.checkpoint.md`. |
 | T-0284 | ERP platform approval-gate foundation | Codex | 2026-06-09 21:31 WIB | 2026-06-09 21:53 WIB | DONE | Commit `ae4a6db`: added reusable `runApprovalGate()` so sensitive ERP transitions can be workflow-gated by configuration instead of hardcoded per module; workflow lifecycle actions now write audit entries. Verification: services approval-gate test, services typecheck, scoped Biome. Checkpoint: `docs/checkpoints/T-0284-erp-platform-approval-gate.checkpoint.md`. |
@@ -259,10 +260,10 @@
 
 ### ⛳ Backlog utama 2026-06-10 — Master plan kelas S/4 (WAJIB DIIKUTI)
 
-> **Sumber backlog aktif sekarang adalah `docs/plans/MASTER-PLAN-S4-CLASS.md`** (T-0286).
+> **Sumber backlog aktif sekarang adalah `docs/plans/MASTER-PLAN-S4-CLASS.md`** (T-0286) + kartu siap eksekusi per fase di `docs/plans/cards/` (T-0287).
 > Aturan untuk semua agen:
 > 1. Baca §1 plan (kontrak eksekutor) sebelum mengambil kartu apa pun.
-> 2. Ambil kartu paling atas yang terbuka pada fase yang sedang berjalan; urutan fase F0 → F6 mutlak, dilarang loncat.
+> 2. Ambil kartu paling atas yang terbuka pada fase yang sedang berjalan; urutan fase F0 → F6 mutlak, dilarang loncat. Kartu F0–F1 di master plan §4–§5; kartu F2–F6 di `docs/plans/cards/F*.md`. SEMUA kartu sudah dipecah — jangan memecah/menyusun kartu sendiri.
 > 3. Saat mengambil kartu: cetak `T-NNNN` baru di tabel Active, tulis `(plan Fn.m)` di Note, buat checkpoint.
 > 4. Kartu berikutnya yang harus dikerjakan: **F0.1 — hidupkan CI di `master` + job paritas i18n** (lihat plan §4).
 > 5. Hotfix produksi boleh menyela; setelah selesai kembali ke fase berjalan.

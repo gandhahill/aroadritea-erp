@@ -14,10 +14,12 @@
 
 | Peran | Siapa | Tugas |
 |---|---|---|
-| **Perencana** | Model terkuat yang tersedia, atau Lintang | Membuka gerbang fase: memecah baris task fase berikutnya menjadi kartu lengkap (format §1.4), memutuskan urutan, menutup gerbang fase sebelumnya dengan bukti. |
+| **Perencana** | Model terkuat yang tersedia, atau Lintang | Menutup gerbang fase dengan bukti, menyegarkan kartu fase berikutnya bila kondisi repo berubah, memecah kartu L yang belum terpecah. |
 | **Eksekutor** | Agen AI mana pun | Mengerjakan **tepat satu kartu** per sesi, persis seperti tertulis. Tidak menambah scope, tidak mengurangi scope, tidak berimprovisasi. |
 
 Agen yang tidak yakin dirinya Perencana adalah Eksekutor.
+
+> **Pass Perencana penuh sudah dilakukan 2026-06-10 (T-0287)**: SEMUA fase sudah dipecah menjadi kartu siap eksekusi berdasarkan inventaris repo nyata (5 subagen + spot-check). Kartu F0–F1 ada di dokumen ini (§4–§5); kartu F2–F6 ada di `docs/plans/cards/F2-security-cards.md`, `F3-functional-cards.md`, `F4-platform-cards.md`, `F5-s4-capability-cards.md`, `F6-closure-cards.md`. Bila ringkasan di dokumen ini berbeda dari file kartu, **file kartu menang** (lebih rinci, berbasis bukti). Eksekutor TIDAK perlu dan TIDAK boleh memecah kartu sendiri; cukup salin kartu ke checkpoint dan kerjakan.
 
 ### 1.2 Sepuluh aturan mutlak eksekutor
 
@@ -116,13 +118,13 @@ Fase berjalan berurutan. **Gerbang** = checklist keluar yang harus dibuktikan Pe
 
 | Fase | Nama | Isi | Kartu | Gerbang keluar |
 |---|---|---|---|---|
-| F0 | Pagar mesin | CI hidup di `master`, guardrail otomatis, `pnpm verify` | 6 | CI hijau di push `master`; semua script guardrail jalan di CI; `pnpm verify` lulus |
-| F1 | Tutup hutang aktif | Selesaikan T-0279, T-0264, T-0281 | 3 | Tidak ada task 🟨 IN_PROGRESS di TASK.md selain pekerjaan plan ini |
-| F2 | Sapu keamanan | 11 permukaan serang, loop temukan→perbaiki→verifikasi | 11+ | Nol temuan Critical/High terbuka; `pnpm audit` & Dependabot bersih; sapuan ulang penuh tanpa temuan Critical/High baru |
-| F3 | Sapu fungsional | Matriks lifecycle entitas + 12 skenario E2E + loop perbaikan | 15+ | Semua skenario E2E hijau di CI; matriks tanpa sel P0/P1 kosong; sapuan ulang tanpa P0/P1 baru |
-| F4 | Fondasi platform | Extensibility universal, approval-gate universal, layering, numbering, import, timeline | ±18 | Checklist "ERP lentur" §12.2 poin 1–5 terbukti dengan demo terdokumentasi |
-| F5 | Kapabilitas kelas-S/4 | CO/budget, MDG, workspace peran, drilldown, config versioning, simulasi | ±12 | Checklist §12.2 poin 6–10 terbukti |
-| F6 | Paritas MCP + penutupan | MCP parity ledger, dokumen, ADR, regresi akhir, pentest ulang | 4 | DoD program §12.1 terpenuhi seluruhnya |
+| F0 | Pagar mesin | CI hidup di `master`, guardrail otomatis, `pnpm verify` (kartu: §4 dokumen ini) | 6 | CI hijau di push `master`; semua script guardrail jalan di CI; `pnpm verify` lulus |
+| F1 | Tutup hutang aktif | Selesaikan T-0279, T-0264, T-0281 (kartu: §5 dokumen ini) | 3 | Tidak ada task 🟨 IN_PROGRESS di TASK.md selain pekerjaan plan ini |
+| F2 | Sapu keamanan | 11 permukaan serang, loop temukan→perbaiki→verifikasi (kartu: `cards/F2-security-cards.md`) | 12 | Nol temuan Critical/High terbuka; `pnpm audit` & Dependabot bersih; sapuan ulang penuh tanpa temuan Critical/High baru |
+| F3 | Sapu fungsional | Harness DB nyata + matriks lifecycle + 12 skenario E2E + loop perbaikan (kartu: `cards/F3-functional-cards.md`) | 15+ | Semua skenario E2E hijau di CI; matriks tanpa sel P0/P1 kosong; sapuan ulang tanpa P0/P1 baru |
+| F4 | Fondasi platform | Extensibility universal, approval-gate universal, layering, numbering, import, timeline (kartu: `cards/F4-platform-cards.md`) | ±22 | Checklist "ERP lentur" §12.2 poin 1–5 terbukti dengan demo terdokumentasi |
+| F5 | Kapabilitas kelas-S/4 | CO/budget, MDG, workspace peran, drilldown, config versioning, simulasi (kartu: `cards/F5-s4-capability-cards.md`) | ±12 | Checklist §12.2 poin 6–10 terbukti |
+| F6 | Paritas MCP + penutupan | MCP parity ledger, dokumen, ADR, regresi akhir, pentest ulang (kartu: `cards/F6-closure-cards.md`) | 5 | DoD program §12.1 terpenuhi seluruhnya |
 
 Estimasi total ±69 kartu. Effort: S ≤ 1 sesi, M = 1–2 sesi, L = 3–5 sesi. Kartu L wajib dipecah Perencana sebelum dieksekusi.
 
@@ -222,6 +224,8 @@ Tiga task 🟨 di TASK.md harus tutup sebelum sapuan dimulai, supaya tidak ada d
 
 ## 6. Fase 2 — program sapu keamanan
 
+> **Kartu siap eksekusi**: `docs/plans/cards/F2-security-cards.md` (dipecah T-0287, berbasis inventaris file nyata + temuan kandidat). Bagian ini tinggal prosedur dan ringkasan.
+
 ### 6.1 Prosedur baku tiap sapuan (berlaku untuk semua kartu F2.x)
 
 1. Eksekutor membuka kartu, membaca referensi: `docs/audit/01-attack-surface.md`, `docs/audit/02-static-findings.md`, `docs/audit/security-runtime-inventory.md`, dan checkpoint pentest terakhir.
@@ -260,6 +264,8 @@ Klasifikasi: Critical = bisa baca/ubah data tanpa hak dari luar; High = sama tet
 
 ## 7. Fase 3 — program sapu fungsional
 
+> **Kartu siap eksekusi**: `docs/plans/cards/F3-functional-cards.md` (termasuk kartu tambahan F3.0: harness test integrasi DB nyata, karena test yang ada mayoritas mock DB). Bagian ini tinggal ringkasan.
+
 ### 7.1 Kartu F3.1 — Matriks lifecycle entitas
 
 Buat `docs/audit/lifecycle-matrix.md`: baris = entitas transaksional (journal, invoice, PO, GRN, purchase return, stock adjustment, transfer, opname, sales order, refund, manual sales closing, payroll run, leave, overtime, kasbon, complaint, shipment, helpdesk ticket); kolom = draft, submit, approve, post, cancel/reverse, attachment, audit, print/export, riwayat status, pencarian, paginasi, i18n 3 bahasa, permission, MCP. Isi tiap sel: ✅ / ❌ / ⚠️ dengan bukti file:baris. Sel ❌ pada kolom kritis (approve, post, cancel, audit, permission) = bug P0/P1, daftarkan sebagai kartu perbaikan.
@@ -297,7 +303,7 @@ Temuan dari matriks + skenario yang merah menjadi kartu perbaikan (Perencana mem
 
 ## 8. Fase 4 — fondasi platform (extensibility universal)
 
-Menjalankan backlog P0/P1 audit T-0283. Perencana memecah tiap baris menjadi kartu lengkap saat gerbang F3 ditutup; baris di sini sudah memuat scope + acceptance supaya pemecahan tidak melenceng.
+Menjalankan backlog P0/P1 audit T-0283. **Kartu siap eksekusi: `docs/plans/cards/F4-platform-cards.md`** (sudah dipecah T-0287, termasuk pembagian F4.3a–g per modul dan F4.4a–k per transisi). Tabel di bawah tinggal ringkasan.
 
 | Kode | Task | Scope & acceptance | Effort |
 |---|---|---|---|
@@ -317,6 +323,8 @@ Gerbang F4 = demo terdokumentasi (langkah + tangkapan layar di `docs/audit/`) un
 
 ## 9. Fase 5 — kapabilitas kelas-S/4
 
+> **Kartu siap eksekusi**: `docs/plans/cards/F5-s4-capability-cards.md` (dipecah T-0287; memuat fakta skema `journal_lines` saat ini dan keputusan profit center = location).
+
 | Kode | Task | Scope & acceptance | Effort |
 |---|---|---|---|
 | F5.1 | Dimensi CO di ledger | Tabel `cost_centers`; kolom `cost_center_id` (nullable) + `profit_center` (= location, eksplisit) di `journal_lines`; backfill; semua posting baru mengisi dimensi; laporan P&L per cost/profit center. ADR wajib (sentuh >1 modul + skema). | L |
@@ -335,6 +343,8 @@ Gerbang F5 = checklist §12.2 poin 6–10 terbukti; tidak ada regresi (`pnpm ver
 ---
 
 ## 10. Fase 6 — paritas MCP + penutupan
+
+> **Kartu siap eksekusi**: `docs/plans/cards/F6-closure-cards.md` (dipecah T-0287; baseline 68 tool MCP per modul sudah diinventarisasi).
 
 | Kode | Task | Scope | Effort |
 |---|---|---|---|
