@@ -46,8 +46,38 @@ jobs:
       - name: Lint (Biome)
         run: pnpm lint
 
-      - name: Typecheck
-        run: pnpm typecheck
+      - name: Permission lint
+        run: pnpm lint:permissions
+
+      - name: Typecheck offline
+        run: pnpm --filter @erp/offline typecheck
+
+      - name: Typecheck shared
+        run: pnpm --filter @erp/shared typecheck
+
+      - name: Typecheck db
+        run: pnpm --filter @erp/db typecheck
+
+      - name: Typecheck ui
+        run: pnpm --filter @erp/ui typecheck
+
+      - name: Typecheck ui-public
+        run: pnpm --filter @erp/ui-public typecheck
+
+      - name: Typecheck worker
+        run: pnpm --filter @erp/worker typecheck
+
+      - name: Typecheck services
+        run: pnpm --filter @erp/services typecheck
+
+      - name: Typecheck mcp
+        run: pnpm --filter @erp/mcp typecheck
+
+      - name: Typecheck site
+        run: pnpm --filter @erp/site typecheck
+
+      - name: Typecheck web
+        run: pnpm --filter @erp/web typecheck
 
       - name: Test
         run: pnpm test -- --run

@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-06-10 19:51 WIB
-- **Last updated**: 2026-06-10 21:01 WIB
+- **Last updated**: 2026-06-10 21:16 WIB
 - **Status**: IN_PROGRESS
 - **Phase**: F0
 - **Branch**: master
@@ -47,6 +47,7 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 9. [ ] Check latest GitHub Actions run when access is available.
 10. [ ] Patch CI typecheck failure caused by partially committed T-0290 reporting reference.
 11. [ ] Patch remaining likely typecheck/test drift from partially committed T-0290 tax/reporting files.
+12. [ ] Split CI typecheck steps for package-level observability because GitHub log download is unavailable.
 
 ## Done so far
 
@@ -71,6 +72,8 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 - Added the missing direct dependency files for that already-committed reference: `packages/services/src/reporting/financial-statement-notes.ts` and `packages/services/tests/reporting-financial-statement-notes.test.ts`.
 - Pushed `dfd2785`; GitHub Actions lint remained green but `Typecheck` still failed quickly.
 - Found additional partially committed T-0290 drift: `packages/services/src/tax/efaktur.ts` had unstaged import/type cleanup likely needed by strict TS, and `packages/services/tests/cash-flow.test.ts` had a fixture update matching already-committed cash-flow query shape.
+- Pushed `987fd17`; GitHub Actions lint remained green but the monolithic `Typecheck` step still failed quickly and logs remain inaccessible through the API.
+- Split CI typecheck into `Permission lint` plus one step per workspace package so the GitHub Jobs API can identify the failing package without requiring admin log download.
 - Made `scripts/check-i18n.mjs` resolve `apps/web` from `import.meta.url`, so it works from repo root and from `scripts/`.
 - Made missing i18n references and locale parity gaps set non-zero exit code.
 - Added missing `purchasing.grn.workflowTitle`, `workflowHint`, `submitPo`, and `approvePo` keys in EN/ID/ZH, because the strengthened checker exposed pre-existing unresolved references.
@@ -91,7 +94,7 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 
 ## Next step
 
-Commit and push `efaktur.ts` plus the cash-flow test fixture update, then poll the latest `master` GitHub Actions run. If CI is green, update T-0289 to DONE; if CI fails at test/build, record the exact failing step and fix only that blocker.
+Commit and push the package-level CI typecheck split, then poll the latest `master` GitHub Actions run. Use the failed step name to fix the specific package instead of guessing.
 
 ## Test status
 
@@ -118,6 +121,7 @@ Commit and push `efaktur.ts` plus the cash-flow test fixture update, then poll t
   - Run `27278815492`: triggered on `master`, failed at `Lint (Biome)` after install; typecheck/test/i18n/build skipped.
   - Run `27280572477`: triggered on `master`, lint passed, failed at `Typecheck`; test/i18n/build skipped. Likely cause: already-committed references to untracked `financial-statement-notes` implementation.
   - Run `27281389612`: triggered on `master`, lint passed, failed at `Typecheck`; test/i18n/build skipped. Additional likely cause: strict TS drift in `efaktur.ts`.
+  - Run `27281805583`: triggered on `master`, lint passed, failed at monolithic `Typecheck`; test/i18n/build skipped.
   - Job logs cannot be downloaded through unauthenticated API: GitHub returned 403 requiring admin rights.
 
 ## Files Touched
@@ -143,6 +147,7 @@ Commit and push `efaktur.ts` plus the cash-flow test fixture update, then poll t
 | `packages/services/tests/reporting-financial-statement-notes.test.ts` | add | Scoped coverage for the missing service implementation |
 | `packages/services/src/tax/efaktur.ts` | edit | T-0290 cleanup needed by strict TS and Coretax/e-Faktur export correctness |
 | `packages/services/tests/cash-flow.test.ts` | edit | Test fixture update matching already-committed cash-flow query shape |
+| `.github/workflows/ci.yml` | edit | Split typecheck into package-level steps for observable CI failures |
 | Many tracked TS/TSX/JSON files | edit | Safe Biome formatter/import-sorter cleanup, no unsafe fixes |
 
 ## Commits So Far
@@ -153,3 +158,4 @@ Commit and push `efaktur.ts` plus the cash-flow test fixture update, then poll t
 | `90cb758` | `ci: pin pnpm setup version` | 2026-06-10 |
 | `9ad8418` | `chore: restore biome lint gate for master CI` | 2026-06-10 |
 | `dfd2785` | `fix: include financial statement notes service` | 2026-06-10 |
+| `987fd17` | `fix: align tax export typecheck fixtures` | 2026-06-10 |
