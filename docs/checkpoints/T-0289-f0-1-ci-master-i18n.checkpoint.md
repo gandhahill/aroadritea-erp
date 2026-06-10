@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-06-10 19:51 WIB
-- **Last updated**: 2026-06-10 22:13 WIB
+- **Last updated**: 2026-06-10 22:26 WIB
 - **Status**: IN_PROGRESS
 - **Phase**: F0
 - **Branch**: master
@@ -57,8 +57,10 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 19. [x] Poll latest `master` GitHub Actions run until F0.1 is green or a new blocker is identified.
 20. [x] Retry CI after external Docker Hub registry timeout.
 21. [x] Patch Docker builder pnpm workspace symlink issue exposed after guardrail passed.
-22. [ ] Commit and push Docker builder patch.
-23. [ ] Poll latest `master` GitHub Actions run until full workflow is green or a new blocker is identified.
+22. [x] Commit and push Docker builder patch.
+23. [x] Patch MCP/worker Docker runtime mismatch with no-emit package build scripts.
+24. [ ] Commit and push MCP/worker Docker runtime patch.
+25. [ ] Poll latest `master` GitHub Actions run until full workflow is green or a new blocker is identified.
 
 ## Done so far
 
@@ -103,6 +105,8 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 - Pushed retry `31a45d3`; CI run `27285500030` again passed lint, permission lint, all package typechecks, `Test shared`, `Test services`, and `i18n parity`.
 - Retry then failed in Docker `Build web`/`Build site` at `RUN pnpm build`. Inspection found Docker builder stages copied only root `/app/node_modules` from the pnpm install stage, but not the workspace/app `node_modules` symlinks that pnpm creates under `apps/<app>` and `packages`.
 - Patched all four Docker builder stages to copy `/app/packages` plus `/app/apps/<app>/node_modules` from `deps` before `COPY . .`, preserving pnpm workspace symlinks for `pnpm build`.
+- Pushed `5bd7f16`; CI run `27286341386` passed the full check job again but Docker `Build worker` failed because `apps/worker/package.json` has `build: tsc --noEmit` while the Dockerfile expected `/app/apps/worker/dist`.
+- MCP has the same no-emit build script and dist-based runtime shape. Since current package runtime scripts use `tsx` and compiled ESM output is not yet bundled for Node-only runtime, patched MCP/worker runtime images to run source with `node --import tsx`, copying app source, package source, root node_modules, and app node_modules into the image instead of copying nonexistent `dist`.
 - Made `scripts/check-i18n.mjs` resolve `apps/web` from `import.meta.url`, so it works from repo root and from `scripts/`.
 - Made missing i18n references and locale parity gaps set non-zero exit code.
 - Added missing `purchasing.grn.workflowTitle`, `workflowHint`, `submitPo`, and `approvePo` keys in EN/ID/ZH, because the strengthened checker exposed pre-existing unresolved references.
@@ -123,7 +127,7 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 
 ## Next step
 
-Commit and push the Docker builder patch, then poll the latest `master` GitHub Actions run. If Docker still fails, use GitHub check annotations first; local Docker is unavailable on this machine.
+Commit and push the MCP/worker Docker runtime patch, then poll the latest `master` GitHub Actions run. If Docker still fails, use GitHub check annotations first; local Docker is unavailable on this machine.
 
 ## Test status
 
@@ -183,6 +187,7 @@ Commit and push the Docker builder patch, then poll the latest `master` GitHub A
   - Run `27283999353`: triggered on `master`, lint + permission lint + all typecheck steps + `Test shared` passed, failed at `Test services`.
   - Run `27285143982`: triggered on `master`, check job fully passed including i18n parity; Docker `Build site` failed from Docker Hub registry timeout.
   - Run `27285500030`: triggered on `master`, check job fully passed including i18n parity; Docker `Build web` failed at `RUN pnpm build`, causing other Docker matrix jobs to cancel.
+  - Run `27286341386`: triggered on `master`, check job fully passed including i18n parity; Docker `Build worker` failed because `/app/apps/worker/dist` was not found after no-emit build script.
   - Job logs cannot be downloaded through unauthenticated API: GitHub returned 403 requiring admin rights.
 
 ## Files Touched

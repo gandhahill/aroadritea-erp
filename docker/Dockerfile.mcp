@@ -33,8 +33,13 @@ ENV NODE_OPTIONS="--max-old-space-size=150"
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 mcpuser
 
-COPY --from=builder --chown=mcpuser:nodejs /app/apps/mcp/dist ./dist
-COPY --from=deps --chown=mcpuser:nodejs /app/node_modules ./node_modules
+COPY --from=deps --chown=mcpuser:nodejs /app/node_modules /app/node_modules
+COPY --from=builder --chown=mcpuser:nodejs /app/packages /app/packages
+COPY --from=deps --chown=mcpuser:nodejs /app/apps/mcp/node_modules /app/apps/mcp/node_modules
+COPY --from=builder --chown=mcpuser:nodejs /app/apps/mcp/package.json /app/apps/mcp/package.json
+COPY --from=builder --chown=mcpuser:nodejs /app/apps/mcp/src /app/apps/mcp/src
+
+WORKDIR /app/apps/mcp
 
 USER mcpuser
 EXPOSE 3002
@@ -42,4 +47,4 @@ EXPOSE 3002
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3002/healthz || exit 1
 
-CMD ["node", "dist/server.js"]
+CMD ["node", "--import", "tsx", "src/server.ts"]
