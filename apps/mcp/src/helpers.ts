@@ -20,10 +20,19 @@ export function mcpError(code: string, message: string) {
   };
 }
 
+/**
+ * JSON.stringify replacer that renders native `bigint` as a string.
+ * Several reporting services return raw `bigint` Money totals, which
+ * `JSON.stringify` cannot serialize and would otherwise throw on.
+ */
+function bigintReplacer(_key: string, value: unknown): unknown {
+  return typeof value === 'bigint' ? value.toString() : value;
+}
+
 /** Success response for a tool call */
 export function mcpSuccess(data: unknown) {
   return {
-    content: [textContent(JSON.stringify(data, null, 2))],
+    content: [textContent(JSON.stringify(data, bigintReplacer, 2))],
     isError: false,
   };
 }
