@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-06-10 19:51 WIB
-- **Last updated**: 2026-06-10 21:53 WIB
+- **Last updated**: 2026-06-10 22:13 WIB
 - **Status**: IN_PROGRESS
 - **Phase**: F0
 - **Branch**: master
@@ -53,8 +53,12 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 15. [x] Fix CI Test command argument bug.
 16. [x] Split CI test steps by package for observable failures.
 17. [x] Patch services test failures exposed by package-level `Test services`.
-18. [ ] Commit and push services test baseline fix.
-19. [ ] Poll latest `master` GitHub Actions run until F0.1 is green or a new blocker is identified.
+18. [x] Commit and push services test baseline fix.
+19. [x] Poll latest `master` GitHub Actions run until F0.1 is green or a new blocker is identified.
+20. [x] Retry CI after external Docker Hub registry timeout.
+21. [x] Patch Docker builder pnpm workspace symlink issue exposed after guardrail passed.
+22. [ ] Commit and push Docker builder patch.
+23. [ ] Poll latest `master` GitHub Actions run until full workflow is green or a new blocker is identified.
 
 ## Done so far
 
@@ -94,6 +98,11 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 - Updated accounting create/reverse journal DB mocks to support `insert(sequences).values(...).onConflictDoUpdate(...).returning(...)` and create-journal transaction execution.
 - Local full services test then exposed three additional stale baseline expectations: BPJS cap tests expected the contribution to equal the wage ceiling, PII test expected normal encrypted storage to be deterministic, and AR aging expected a fully settled same-partner invoice/payment pair to remain outstanding.
 - Corrected those test expectations to match the current production behavior: cap the BPJS wage base before applying rates, keep stored PII encryption randomized while deterministic lookup remains stable, and suppress net-zero AR aging rows.
+- Pushed `70e15f8`; CI run `27285143982` passed lint, permission lint, all package typechecks, `Test shared`, `Test services`, and `i18n parity`.
+- The same run failed in Docker `Build site` due Docker Hub registry timeout (`registry-1.docker.io ... context deadline exceeded`), so an empty retry commit was used because `gh` is not installed.
+- Pushed retry `31a45d3`; CI run `27285500030` again passed lint, permission lint, all package typechecks, `Test shared`, `Test services`, and `i18n parity`.
+- Retry then failed in Docker `Build web`/`Build site` at `RUN pnpm build`. Inspection found Docker builder stages copied only root `/app/node_modules` from the pnpm install stage, but not the workspace/app `node_modules` symlinks that pnpm creates under `apps/<app>` and `packages`.
+- Patched all four Docker builder stages to copy `/app/packages` plus `/app/apps/<app>/node_modules` from `deps` before `COPY . .`, preserving pnpm workspace symlinks for `pnpm build`.
 - Made `scripts/check-i18n.mjs` resolve `apps/web` from `import.meta.url`, so it works from repo root and from `scripts/`.
 - Made missing i18n references and locale parity gaps set non-zero exit code.
 - Added missing `purchasing.grn.workflowTitle`, `workflowHint`, `submitPo`, and `approvePo` keys in EN/ID/ZH, because the strengthened checker exposed pre-existing unresolved references.
@@ -114,7 +123,7 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 
 ## Next step
 
-Commit and push the services test baseline fix, then poll the latest `master` GitHub Actions run. If CI fails again, use the package-level step name and GitHub check annotations to identify the next exact blocker.
+Commit and push the Docker builder patch, then poll the latest `master` GitHub Actions run. If Docker still fails, use GitHub check annotations first; local Docker is unavailable on this machine.
 
 ## Test status
 
@@ -154,6 +163,13 @@ Commit and push the services test baseline fix, then poll the latest `master` Gi
   - `node .\node_modules\@biomejs\biome\bin\biome check packages\services\tests\accounting-create-journal.test.ts packages\services\tests\accounting-reverse-journal.test.ts packages\services\tests\payroll-engine.test.ts packages\services\tests\pii.test.ts packages\services\tests\reporting-aging.test.ts --diagnostic-level=error --max-diagnostics=100`
 - **Scoped whitespace for services test fixes**: PASS
   - `git diff --check -- packages/services/tests/accounting-create-journal.test.ts packages/services/tests/accounting-reverse-journal.test.ts packages/services/tests/payroll-engine.test.ts packages/services/tests/pii.test.ts packages/services/tests/reporting-aging.test.ts`
+- **Scoped Dockerfile whitespace**: PASS
+  - `git diff --check -- docker/Dockerfile.web docker/Dockerfile.site docker/Dockerfile.mcp docker/Dockerfile.worker`
+- **Local Docker**: unavailable
+  - `docker --version`: command not found, so Dockerfile verification must run in GitHub Actions.
+- **Local Next builds**: stopped by timeout
+  - `pnpm --filter @erp/web build`: stopped after 180s with no actionable output before timeout.
+  - `pnpm --filter @erp/site build`: stopped after 90s with no actionable output before timeout.
 - **CI**: triggered, first run failed before checks
   - Run `27278419354`: triggered on `master`, failed at `Setup pnpm`; build job skipped.
   - Run `27278815492`: triggered on `master`, failed at `Lint (Biome)` after install; typecheck/test/i18n/build skipped.
@@ -165,6 +181,8 @@ Commit and push the services test baseline fix, then poll the latest `master` Gi
   - Run `27283368123`: triggered on `master`, lint + permission lint + all typecheck steps passed, failed at `Test` because command used invalid `-- --run` argument.
   - Run `27283673142`: triggered on `master`, lint + permission lint + all typecheck steps passed, failed at generic `Test`.
   - Run `27283999353`: triggered on `master`, lint + permission lint + all typecheck steps + `Test shared` passed, failed at `Test services`.
+  - Run `27285143982`: triggered on `master`, check job fully passed including i18n parity; Docker `Build site` failed from Docker Hub registry timeout.
+  - Run `27285500030`: triggered on `master`, check job fully passed including i18n parity; Docker `Build web` failed at `RUN pnpm build`, causing other Docker matrix jobs to cancel.
   - Job logs cannot be downloaded through unauthenticated API: GitHub returned 403 requiring admin rights.
 
 ## Files Touched
@@ -203,6 +221,10 @@ Commit and push the services test baseline fix, then poll the latest `master` Gi
 | `packages/services/tests/payroll-engine.test.ts` | edit | Correct BPJS cap expectations to cap wage base before contribution rate |
 | `packages/services/tests/pii.test.ts` | edit | Preserve randomized storage encryption and deterministic lookup expectation separately |
 | `packages/services/tests/reporting-aging.test.ts` | edit | Expect fully settled same-partner AR invoice/payment pair to be net-zero |
+| `docker/Dockerfile.web` | edit | Preserve pnpm workspace/app symlinks in builder stage |
+| `docker/Dockerfile.site` | edit | Preserve pnpm workspace/app symlinks in builder stage |
+| `docker/Dockerfile.mcp` | edit | Preserve pnpm workspace/app symlinks in builder stage |
+| `docker/Dockerfile.worker` | edit | Preserve pnpm workspace/app symlinks in builder stage |
 | Many tracked TS/TSX/JSON files | edit | Safe Biome formatter/import-sorter cleanup, no unsafe fixes |
 
 ## Commits So Far
@@ -217,3 +239,5 @@ Commit and push the services test baseline fix, then poll the latest `master` Gi
 | `1985b60` | `ci: split typecheck steps by package` | 2026-06-10 |
 | `913d98f` | `ci: run permission lint without tsx` | 2026-06-10 |
 | `d6dc5c1` | `fix: add node types to shared package` | 2026-06-10 |
+| `70e15f8` | `fix: align services test baselines` | 2026-06-10 |
+| `31a45d3` | `chore: retry ci after docker registry timeout` | 2026-06-10 |
