@@ -95,10 +95,10 @@ describe('BPJS Kesehatan caps', () => {
     expect(result.bpjsKesEmployee).toBe(50_000n); // 5M × 1%
   });
 
-  it('caps at Rp 12,000,000 ceiling', () => {
-    // 1% × 1.2B = 12M exactly → at cap (base must be ≥ 1,200,000,000)
+  it('caps base at Rp 12,000,000 ceiling', () => {
+    // 1% x capped base Rp 12,000,000 = Rp 120,000 employee contribution.
     const result = payroll({ baseSalary: 1_200_000_000n });
-    expect(result.bpjsKesEmployee).toBe(12_000_000n);
+    expect(result.bpjsKesEmployee).toBe(120_000n);
   });
 
   it('skips when isBpjsBase = false', () => {
@@ -113,10 +113,10 @@ describe('BPJS TK caps', () => {
     expect(result.bpjsTkEmployee).toBe(100_000n); // 5M × 2%
   });
 
-  it('caps at Rp 10,000,000 ceiling', () => {
-    // 2% × 500M = 10M exactly → at cap (base must be ≥ 500,000,000)
+  it('caps base at Rp 10,000,000 ceiling', () => {
+    // 2% x capped base Rp 10,000,000 = Rp 200,000 employee contribution.
     const result = payroll({ baseSalary: 500_000_000n });
-    expect(result.bpjsTkEmployee).toBe(10_000_000n);
+    expect(result.bpjsTkEmployee).toBe(200_000n);
   });
 });
 

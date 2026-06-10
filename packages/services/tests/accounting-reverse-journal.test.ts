@@ -12,15 +12,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // 1. select().from(journalEntries).where() -> original JE lookup
 // 2. select().from(accountingPeriods).where() -> reversal period lookup
 // 3. select().from(journalLines).where() -> original lines fetch
-// 4. select().from(journalEntries).where() -> JE count for number gen
-// 5. insert(journalEntries).values() -> reversal JE
-// 6. insert(journalLines).values() -> reversal lines
-// 7. db.update(journalEntries).set().where() -> mark original reversed
+// 4. insert(sequences).values().onConflictDoUpdate().returning() -> JE number
+// 5. db.update(journalEntries).set().where() -> mark original reversed
+// 6. insert(journalEntries).values() -> reversal JE
+// 7. insert(journalLines).values() -> reversal lines
 // 8. insert(auditLog).values() -> audit reversal creation
 // 9. insert(auditLog).values() -> audit original status change
 
 let selectCallIndex = 0;
 let selectResults: unknown[][] = [];
+let nextSequenceValue = 1;
 const insertCalls: unknown[][] = [];
 
 vi.mock('@erp/db', () => ({
@@ -52,8 +53,25 @@ vi.mock('@erp/db', () => ({
     }),
     insert: (..._args: unknown[]) => ({
       values: (...vArgs: unknown[]) => {
-        insertCalls.push(vArgs);
-        return Promise.resolve();
+        const sequenceValues = vArgs[0] as Record<string, unknown> | undefined;
+        const isSequenceInsert =
+          vArgs.length === 1 &&
+          typeof sequenceValues === 'object' &&
+          sequenceValues !== null &&
+          'name' in sequenceValues &&
+          'currentVal' in sequenceValues;
+
+        if (!isSequenceInsert) {
+          insertCalls.push(vArgs);
+        }
+
+        return {
+          onConflictDoUpdate: () => ({
+            returning: () => Promise.resolve([{ currentVal: nextSequenceValue++ }]),
+          }),
+          returning: () => Promise.resolve([{ currentVal: nextSequenceValue++ }]),
+          then: (resolve: (value: undefined) => unknown) => resolve(undefined),
+        };
       },
     }),
   },
@@ -171,6 +189,7 @@ function setupDbMocks(config: {
 }) {
   selectCallIndex = 0;
   insertCalls.length = 0;
+  nextSequenceValue = (config.jeCount ?? 0) + 1;
   selectResults = [];
 
   // Call 1: original JE lookup
@@ -190,13 +209,7 @@ function setupDbMocks(config: {
   // Call 3: original lines fetch
   selectResults.push(config.lines ?? makeOriginalLines());
 
-  // Call 4: JE count for number generation
-  if (config.jeCount === undefined || config.jeCount === 0) {
-    selectResults.push([]);
-  } else {
-    const pad = config.jeCount.toString().padStart(4, '0');
-    selectResults.push([{ number: `JE-2026-06-${pad}` }]);
-  }
+  // JE numbering uses the sequences table mock through nextSequenceValue.
 }
 
 // --- Tests ---
@@ -235,6 +248,7 @@ describe('reverseJournal service', () => {
     mockPermissionResult = true;
     selectCallIndex = 0;
     insertCalls.length = 0;
+    nextSequenceValue = 1;
     selectResults = [];
   });
 

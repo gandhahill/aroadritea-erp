@@ -13,18 +13,20 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // The createJournal function makes these DB calls in order:
 // 1. select().from(accountingPeriods).where() -> period lookup
 // 2. select().from(accounts).where() -> account validation
-// 3. select().from(journalEntries).where() -> JE count for numbering
-// 4. insert(journalEntries).values() -> create JE
-// 5. insert(journalLines).values() -> create lines
-// 6. insert(auditLog).values() -> audit
+// 3. insert(sequences).values().onConflictDoUpdate().returning() -> JE number
+// 4. db.transaction()
+// 5. insert(journalEntries).values() -> create JE
+// 6. insert(journalLines).values() -> create lines
+// 7. insert(auditLog).values() -> audit
 
 let selectCallIndex = 0;
 let selectResults: unknown[][] = [];
+let nextSequenceValue = 1;
 const insertCalls: unknown[][] = [];
 
-vi.mock('@erp/db', () => ({
-  db: {
-    select: (...args: unknown[]) => ({
+vi.mock('@erp/db', () => {
+  const dbMock = {
+    select: (..._args: unknown[]) => ({
       from: (..._fArgs: unknown[]) => ({
         where: (..._wArgs: unknown[]) => {
           const idx = selectCallIndex++;
@@ -43,14 +45,38 @@ vi.mock('@erp/db', () => ({
         }),
       }),
     }),
-    insert: (...args: unknown[]) => ({
+    insert: (..._args: unknown[]) => ({
       values: (...vArgs: unknown[]) => {
-        insertCalls.push(vArgs);
-        return Promise.resolve();
+        const sequenceValues = vArgs[0] as Record<string, unknown> | undefined;
+        const isSequenceInsert =
+          vArgs.length === 1 &&
+          typeof sequenceValues === 'object' &&
+          sequenceValues !== null &&
+          'name' in sequenceValues &&
+          'currentVal' in sequenceValues;
+
+        if (!isSequenceInsert) {
+          insertCalls.push(vArgs);
+        }
+
+        return {
+          onConflictDoUpdate: () => ({
+            returning: () => Promise.resolve([{ currentVal: nextSequenceValue++ }]),
+          }),
+          returning: () => Promise.resolve([{ currentVal: nextSequenceValue++ }]),
+          then: (resolve: (value: undefined) => unknown) => resolve(undefined),
+        };
       },
     }),
-  },
-}));
+  };
+
+  return {
+    db: {
+      ...dbMock,
+      transaction: (callback: (tx: typeof dbMock) => unknown) => callback(dbMock),
+    },
+  };
+});
 
 // --- Mock IAM ---
 let mockPermissionResult = true;
@@ -98,6 +124,7 @@ function setupDbMocks(config: {
 }) {
   selectCallIndex = 0;
   insertCalls.length = 0;
+  nextSequenceValue = (config.jeCount ?? 0) + 1;
   selectResults = [];
 
   // Call 1: period lookup
@@ -119,14 +146,7 @@ function setupDbMocks(config: {
     ]);
   }
 
-  // Call 3: JE count for number generation
-  if (config.jeCount === undefined || config.jeCount === 0) {
-    selectResults.push([]);
-  } else {
-    const pad = config.jeCount.toString().padStart(4, '0');
-    // We assume the test is using 2026-05
-    selectResults.push([{ number: `JE-2026-05-${pad}` }]);
-  }
+  // JE numbering uses the sequences table mock through nextSequenceValue.
 }
 
 // --- Tests ---
@@ -195,6 +215,7 @@ describe('createJournal service', () => {
     mockPermissionResult = true;
     selectCallIndex = 0;
     insertCalls.length = 0;
+    nextSequenceValue = 1;
     selectResults = [];
   });
 
@@ -427,28 +448,26 @@ describe('createJournal service', () => {
 describe('JE Number Generator', () => {
   beforeEach(() => {
     selectCallIndex = 0;
+    nextSequenceValue = 1;
     selectResults = [];
   });
 
   it('should format number as JE-YYYY-MM-NNNN', async () => {
     const { generateJournalNumber } = await import('../src/shared/number-generator');
-    selectResults = [[]];
     const num = await generateJournalNumber('default', '2026-05-15');
     expect(num).toBe('JE-2026-05-0001');
   });
 
   it('should pad sequence to 4 digits', async () => {
     const { generateJournalNumber } = await import('../src/shared/number-generator');
-    selectResults = [[{ number: 'JE-2026-12-0009' }]];
-    selectCallIndex = 0;
+    nextSequenceValue = 10;
     const num = await generateJournalNumber('default', '2026-12-01');
     expect(num).toBe('JE-2026-12-0010');
   });
 
   it('should handle large sequence numbers', async () => {
     const { generateJournalNumber } = await import('../src/shared/number-generator');
-    selectResults = [[{ number: 'JE-2026-01-9999' }]];
-    selectCallIndex = 0;
+    nextSequenceValue = 10_000;
     const num = await generateJournalNumber('default', '2026-01-01');
     expect(num).toBe('JE-2026-01-10000');
   });

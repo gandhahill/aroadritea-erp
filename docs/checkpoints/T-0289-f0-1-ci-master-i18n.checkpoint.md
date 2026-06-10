@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-06-10 19:51 WIB
-- **Last updated**: 2026-06-10 21:42 WIB
+- **Last updated**: 2026-06-10 21:53 WIB
 - **Status**: IN_PROGRESS
 - **Phase**: F0
 - **Branch**: master
@@ -43,15 +43,18 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 5. [x] Run local i18n check.
 6. [x] Commit and push initial F0.1 changes.
 7. [x] Diagnose CI failures after push.
-8. [ ] Commit and push Biome lint-gate cleanup.
-9. [ ] Check latest GitHub Actions run when access is available.
-10. [ ] Patch CI typecheck failure caused by partially committed T-0290 reporting reference.
-11. [ ] Patch remaining likely typecheck/test drift from partially committed T-0290 tax/reporting files.
-12. [ ] Split CI typecheck steps for package-level observability because GitHub log download is unavailable.
-13. [ ] Remove `tsx` dependency from permission lint script.
-14. [ ] Add missing Node type declarations for `@erp/shared`.
-15. [ ] Fix CI Test command argument bug.
-16. [ ] Split CI test steps by package for observable failures.
+8. [x] Commit and push Biome lint-gate cleanup.
+9. [x] Check latest GitHub Actions run when access is available.
+10. [x] Patch CI typecheck failure caused by partially committed T-0290 reporting reference.
+11. [x] Patch remaining likely typecheck/test drift from partially committed T-0290 tax/reporting files.
+12. [x] Split CI typecheck steps for package-level observability because GitHub log download is unavailable.
+13. [x] Remove `tsx` dependency from permission lint script.
+14. [x] Add missing Node type declarations for `@erp/shared`.
+15. [x] Fix CI Test command argument bug.
+16. [x] Split CI test steps by package for observable failures.
+17. [x] Patch services test failures exposed by package-level `Test services`.
+18. [ ] Commit and push services test baseline fix.
+19. [ ] Poll latest `master` GitHub Actions run until F0.1 is green or a new blocker is identified.
 
 ## Done so far
 
@@ -86,6 +89,11 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 - Reproduced the test failure locally: `pnpm test -- --run` exits immediately with `Unknown option: 'run'` because the root `test` script already delegates to `pnpm -r test`. The CI Test step must run `pnpm test`.
 - Run `27283673142` passed lint, permission lint, and all package-level typecheck steps. Test ran for real and failed, but annotations still did not expose the package/log details.
 - Split tests into explicit `Test shared` and `Test services` steps using `vitest run`.
+- Run `27283999353` passed lint, permission lint, all package typechecks, and `Test shared`; it failed at `Test services`.
+- GitHub check annotations showed accounting journal tests still mocked the old select-based JE number generator while production now uses atomic `sequences` insert/upsert.
+- Updated accounting create/reverse journal DB mocks to support `insert(sequences).values(...).onConflictDoUpdate(...).returning(...)` and create-journal transaction execution.
+- Local full services test then exposed three additional stale baseline expectations: BPJS cap tests expected the contribution to equal the wage ceiling, PII test expected normal encrypted storage to be deterministic, and AR aging expected a fully settled same-partner invoice/payment pair to remain outstanding.
+- Corrected those test expectations to match the current production behavior: cap the BPJS wage base before applying rates, keep stored PII encryption randomized while deterministic lookup remains stable, and suppress net-zero AR aging rows.
 - Made `scripts/check-i18n.mjs` resolve `apps/web` from `import.meta.url`, so it works from repo root and from `scripts/`.
 - Made missing i18n references and locale parity gaps set non-zero exit code.
 - Added missing `purchasing.grn.workflowTitle`, `workflowHint`, `submitPo`, and `approvePo` keys in EN/ID/ZH, because the strengthened checker exposed pre-existing unresolved references.
@@ -106,7 +114,7 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 
 ## Next step
 
-Commit and push the package-level CI test split, then poll the latest `master` GitHub Actions run. If one package test fails, use that step name and annotations to fix it.
+Commit and push the services test baseline fix, then poll the latest `master` GitHub Actions run. If CI fails again, use the package-level step name and GitHub check annotations to identify the next exact blocker.
 
 ## Test status
 
@@ -136,6 +144,16 @@ Commit and push the package-level CI test split, then poll the latest `master` G
   - `pnpm --filter @erp/shared typecheck`
 - **CI test command reproduction**: FAIL as expected before fix
   - `pnpm test -- --run`: `Unknown option: 'run'`
+- **Scoped accounting journal tests**: PASS
+  - `pnpm --filter @erp/services test -- accounting-create-journal.test.ts accounting-reverse-journal.test.ts`: 2 files, 45 tests passed.
+- **Scoped stale-baseline service tests**: PASS
+  - `pnpm --filter @erp/services test -- payroll-engine.test.ts pii.test.ts reporting-aging.test.ts`: 3 files, 46 tests passed.
+- **Services test suite**: PASS
+  - `pnpm --filter @erp/services exec vitest run`: 45 files, 652 tests passed.
+- **Scoped Biome for services test fixes**: PASS
+  - `node .\node_modules\@biomejs\biome\bin\biome check packages\services\tests\accounting-create-journal.test.ts packages\services\tests\accounting-reverse-journal.test.ts packages\services\tests\payroll-engine.test.ts packages\services\tests\pii.test.ts packages\services\tests\reporting-aging.test.ts --diagnostic-level=error --max-diagnostics=100`
+- **Scoped whitespace for services test fixes**: PASS
+  - `git diff --check -- packages/services/tests/accounting-create-journal.test.ts packages/services/tests/accounting-reverse-journal.test.ts packages/services/tests/payroll-engine.test.ts packages/services/tests/pii.test.ts packages/services/tests/reporting-aging.test.ts`
 - **CI**: triggered, first run failed before checks
   - Run `27278419354`: triggered on `master`, failed at `Setup pnpm`; build job skipped.
   - Run `27278815492`: triggered on `master`, failed at `Lint (Biome)` after install; typecheck/test/i18n/build skipped.
@@ -146,6 +164,7 @@ Commit and push the package-level CI test split, then poll the latest `master` G
   - Run `27282936886`: triggered on `master`, lint and permission lint passed, failed at `Typecheck shared`.
   - Run `27283368123`: triggered on `master`, lint + permission lint + all typecheck steps passed, failed at `Test` because command used invalid `-- --run` argument.
   - Run `27283673142`: triggered on `master`, lint + permission lint + all typecheck steps passed, failed at generic `Test`.
+  - Run `27283999353`: triggered on `master`, lint + permission lint + all typecheck steps + `Test shared` passed, failed at `Test services`.
   - Job logs cannot be downloaded through unauthenticated API: GitHub returned 403 requiring admin rights.
 
 ## Files Touched
@@ -179,6 +198,11 @@ Commit and push the package-level CI test split, then poll the latest `master` G
 | `pnpm-lock.yaml` | edit | Lockfile update for shared `@types/node` devDependency |
 | `.github/workflows/ci.yml` | edit | Test step now runs root `pnpm test` without invalid `-- --run` |
 | `.github/workflows/ci.yml` | edit | Test stage split into `Test shared` and `Test services` for observable failures |
+| `packages/services/tests/accounting-create-journal.test.ts` | edit | Mock atomic sequence upsert and transaction path used by current JE number generator |
+| `packages/services/tests/accounting-reverse-journal.test.ts` | edit | Mock atomic sequence upsert used by current JE number generator |
+| `packages/services/tests/payroll-engine.test.ts` | edit | Correct BPJS cap expectations to cap wage base before contribution rate |
+| `packages/services/tests/pii.test.ts` | edit | Preserve randomized storage encryption and deterministic lookup expectation separately |
+| `packages/services/tests/reporting-aging.test.ts` | edit | Expect fully settled same-partner AR invoice/payment pair to be net-zero |
 | Many tracked TS/TSX/JSON files | edit | Safe Biome formatter/import-sorter cleanup, no unsafe fixes |
 
 ## Commits So Far

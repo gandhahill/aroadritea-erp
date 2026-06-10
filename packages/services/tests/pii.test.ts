@@ -6,15 +6,20 @@ describe('PII encryption helpers', () => {
     vi.unstubAllEnvs();
   });
 
-  it('encrypts and decrypts field-level values deterministically for lookup', () => {
+  it('encrypts stored PII with random IV and deterministic lookup separately', () => {
     vi.stubEnv('PII_ENCRYPTION_KEY', 'test-secret-key');
 
     const first = encryptPii('3271010101010001', 'employees.nik');
-    const second = encryptPiiForLookup('3271010101010001', 'employees.nik');
+    const second = encryptPii('3271010101010001', 'employees.nik');
+    const lookupA = encryptPiiForLookup('3271010101010001', 'employees.nik');
+    const lookupB = encryptPiiForLookup('3271010101010001', 'employees.nik');
 
     expect(first).toMatch(/^enc:v1:/);
-    expect(second).toBe(first);
+    expect(second).toMatch(/^enc:v1:/);
+    expect(second).not.toBe(first);
+    expect(lookupA).toBe(lookupB);
     expect(decryptPii(first, 'employees.nik')).toBe('3271010101010001');
+    expect(decryptPii(lookupA, 'employees.nik')).toBe('3271010101010001');
   });
 
   it('keeps legacy plaintext readable during migration', () => {

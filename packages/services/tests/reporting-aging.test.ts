@@ -128,11 +128,11 @@ describe('reporting.aging', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const r = result.value;
-    // The first row is a positive open balance (still outstanding), the
-    // second is a credit-only line which we treat as "not outstanding"
-    // for this partner. The aging report keeps the first.
-    expect(BigInt(r.totals.total)).toBe(500_000n);
-    expect(r.partners.length).toBe(1);
+    // The invoice and same-partner payment fully settle each other, so
+    // the aging report should not show an outstanding debtor row.
+    expect(BigInt(r.totals.total)).toBe(0n);
+    expect(r.partners.length).toBe(0);
+    expect(r.details.length).toBe(0);
   });
 
   it('AP: flips sign so credit-heavy lines surface as outstanding', async () => {
