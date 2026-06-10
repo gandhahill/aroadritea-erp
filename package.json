@@ -23,7 +23,7 @@
     "build": "pnpm -r --workspace-concurrency=1 build",
     "typecheck": "pnpm lint:permissions && pnpm -r typecheck",
     "lint": "biome check . --diagnostic-level=error --max-diagnostics=1000",
-    "lint:permissions": "tsx scripts/check-permissions.ts",
+    "lint:permissions": "node scripts/check-permissions.mjs",
     "lint:fix": "biome check --write . --max-diagnostics=1000",
     "test": "pnpm -r test",
     "pm2:start": "pm2 start ecosystem.config.cjs --env production",
