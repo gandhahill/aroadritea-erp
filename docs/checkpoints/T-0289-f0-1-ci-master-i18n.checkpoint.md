@@ -2,8 +2,8 @@
 
 - **Owner**: Codex
 - **Started**: 2026-06-10 19:51 WIB
-- **Last updated**: 2026-06-10 22:40 WIB
-- **Status**: IN_PROGRESS
+- **Last updated**: 2026-06-10 23:02 WIB
+- **Status**: DONE
 - **Phase**: F0
 - **Branch**: master
 
@@ -62,8 +62,8 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 24. [x] Commit and push MCP/worker Docker runtime patch.
 25. [x] Debug web Docker build via authenticated GitHub job log.
 26. [x] Patch invalid Next server action directives blocking web production build.
-27. [ ] Commit and push web build directive patch.
-28. [ ] Poll latest `master` GitHub Actions run until full workflow is green or a new blocker is identified.
+27. [x] Commit and push web build directive patch.
+28. [x] Poll latest `master` GitHub Actions run until full workflow is green or a new blocker is identified.
 
 ## Done so far
 
@@ -113,6 +113,7 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 - Pushed `a0c0235`; CI run `27287102483` passed the full check job again but Docker `Build web` failed.
 - Authenticated GitHub job log showed the web build failed on invalid server action directive syntax in `apps/web/app/(dash)/accounting/bank-recon/actions.ts` and `apps/web/app/(dash)/accounting/party-ledger-actions.ts`: `('use server');` is not a valid directive and caused `revalidatePath` to be treated as imported from a client graph.
 - Patched both files so `'use server';` is the first statement and moved the `PermissionCode` type import below normal imports.
+- Pushed `a14bb95`. A newer parallel commit `2c04473` (T-0292) landed after it and canceled the `a14bb95` run through CI concurrency, but the latest `master` run `27288426676` for `2c04473` completed success: check job, Docker web, Docker site, Docker MCP, and Docker worker all green.
 - Made `scripts/check-i18n.mjs` resolve `apps/web` from `import.meta.url`, so it works from repo root and from `scripts/`.
 - Made missing i18n references and locale parity gaps set non-zero exit code.
 - Added missing `purchasing.grn.workflowTitle`, `workflowHint`, `submitPo`, and `approvePo` keys in EN/ID/ZH, because the strengthened checker exposed pre-existing unresolved references.
@@ -133,7 +134,7 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 
 ## Next step
 
-Commit and push the web build directive patch, then poll the latest `master` GitHub Actions run. If Docker still fails, use GitHub check annotations first; authenticated job logs are available through the stored Git credential.
+No next step for T-0289. The card is complete; next work should proceed to the next F0/F1 master-plan task from `TASK.md` / `docs/plans/MASTER-PLAN-S4-CLASS.md`.
 
 ## Test status
 
@@ -200,6 +201,7 @@ Commit and push the web build directive patch, then poll the latest `master` Git
   - Run `27285500030`: triggered on `master`, check job fully passed including i18n parity; Docker `Build web` failed at `RUN pnpm build`, causing other Docker matrix jobs to cancel.
   - Run `27286341386`: triggered on `master`, check job fully passed including i18n parity; Docker `Build worker` failed because `/app/apps/worker/dist` was not found after no-emit build script.
   - Run `27287102483`: triggered on `master`, check job fully passed including i18n parity; Docker `Build web` failed on invalid `('use server')` directives in two accounting action files.
+  - Run `27288426676`: triggered on latest `master`, completed success. Jobs green: `Lint, Typecheck & Test`, `Build worker`, `Build mcp`, `Build site`, `Build web`.
   - Job logs cannot be downloaded through unauthenticated API: GitHub returned 403 requiring admin rights.
 
 ## Files Touched
@@ -262,3 +264,4 @@ Commit and push the web build directive patch, then poll the latest `master` Git
 | `31a45d3` | `chore: retry ci after docker registry timeout` | 2026-06-10 |
 | `5bd7f16` | `fix: preserve pnpm links in docker builds` | 2026-06-10 |
 | `a0c0235` | `fix: align worker mcp docker runtime` | 2026-06-10 |
+| `a14bb95` | `fix: correct web server action directives` | 2026-06-10 |
