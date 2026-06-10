@@ -28,6 +28,7 @@
 
 | ID | Title | Owner | Started | Last Updated | Status | Note |
 |----|-------|-------|---------|-------------|--------|------|
+| T-0286 | Master plan: ERP kelas S/4HANA + pelunasan bug fungsional & keamanan | Claude Fable 5 | 2026-06-10 16:45 WIB | 2026-06-10 17:20 WIB | DONE | Plan eksekusi tunggal di `docs/plans/MASTER-PLAN-S4-CLASS.md`: 7 fase bergerbang (F0 pagar mesin → F1 tutup hutang aktif → F2 sapu keamanan 11 permukaan → F3 sapu fungsional + 12 skenario E2E → F4 fondasi platform → F5 kapabilitas kelas-S/4 → F6 paritas MCP), ±69 kartu, kontrak eksekutor untuk agen lemah. Temuan: CI tidak pernah jalan karena `ci.yml` hanya memantau `main`/`develop` (branch utama `master`) — kartu F0.1. Checkpoint: `docs/checkpoints/T-0286-master-plan-s4-class.checkpoint.md`. **Mulai sekarang semua agen mengambil task dari plan ini sesuai urutan fase.** |
 | T-0285 | Manual journal posting approval-gate integration | Codex | 2026-06-09 22:01 WIB | 2026-06-09 22:22 WIB | DONE | Commit `fc232b4`: manual journal posting now honors configurable `journal_entry_manual` workflow rules before immutable posting; approved workflow instances satisfy the gate; user-facing pending approval copy added in EN/ID/ZH. Verification: services approval/journal tests, services typecheck, scoped Biome, locale JSON parse, no `???` in zh. Checkpoint: `docs/checkpoints/T-0285-manual-journal-posting-approval-gate.checkpoint.md`. |
 | T-0284 | ERP platform approval-gate foundation | Codex | 2026-06-09 21:31 WIB | 2026-06-09 21:53 WIB | DONE | Commit `ae4a6db`: added reusable `runApprovalGate()` so sensitive ERP transitions can be workflow-gated by configuration instead of hardcoded per module; workflow lifecycle actions now write audit entries. Verification: services approval-gate test, services typecheck, scoped Biome. Checkpoint: `docs/checkpoints/T-0284-erp-platform-approval-gate.checkpoint.md`. |
 | T-0283 | ERP-wide feature completeness and flexibility audit | Codex | 2026-06-09 16:13 WIB | 2026-06-09 16:27 WIB | DONE | Commit `015cc60`: defined Odoo-like but FnB-specific ERP roadmap, module completeness matrix, P0/P1/P2 adaptability backlog, and shared entity extension registry. Verification: shared typecheck/test, scoped Biome. Checkpoint: `docs/checkpoints/T-0283-erp-wide-feature-completeness-audit.checkpoint.md`. |
@@ -255,6 +256,18 @@
 
 > Filled during initial scoping. AI picks from here when no Active Task can be continued.
 > Completed tasks are moved to Done This Sprint and **removed from here**.
+
+### ⛳ Backlog utama 2026-06-10 — Master plan kelas S/4 (WAJIB DIIKUTI)
+
+> **Sumber backlog aktif sekarang adalah `docs/plans/MASTER-PLAN-S4-CLASS.md`** (T-0286).
+> Aturan untuk semua agen:
+> 1. Baca §1 plan (kontrak eksekutor) sebelum mengambil kartu apa pun.
+> 2. Ambil kartu paling atas yang terbuka pada fase yang sedang berjalan; urutan fase F0 → F6 mutlak, dilarang loncat.
+> 3. Saat mengambil kartu: cetak `T-NNNN` baru di tabel Active, tulis `(plan Fn.m)` di Note, buat checkpoint.
+> 4. Kartu berikutnya yang harus dikerjakan: **F0.1 — hidupkan CI di `master` + job paritas i18n** (lihat plan §4).
+> 5. Hotfix produksi boleh menyela; setelah selesai kembali ke fase berjalan.
+>
+> Tabel tier di bawah ini adalah backlog historis audit 2026-05-29 (sudah selesai semua) — jangan dipakai sebagai sumber task baru.
 
 > **Audit kelengkapan fitur 2026-05-29** â€” 8 subagen memindai 137 halaman ERP + situs publik vs best-practice ERP F&B Indonesia. Detail implementasi tiap task (file:baris, backend yang sudah ada, scope, kewajiban i18n/audit) ada di section **"Backlog Detail â€” Audit 2026-05-29"** di bawah.
 >
