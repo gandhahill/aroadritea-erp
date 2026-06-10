@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-06-10 19:51 WIB
-- **Last updated**: 2026-06-10 20:04 WIB
+- **Last updated**: 2026-06-10 20:12 WIB
 - **Status**: IN_PROGRESS
 - **Phase**: F0
 - **Branch**: master
@@ -51,6 +51,9 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 - Registered `T-0289` in `TASK.md`.
 - Added `master` to CI push/PR branch filters while preserving `main` and `develop`.
 - Added CI step `node scripts/check-i18n.mjs` after the existing test step.
+- First pushed run was triggered on `master`: run `27278419354`, head `2fc4fbb`, status `completed`, conclusion `failure`.
+- Step-level API showed failure in `Setup pnpm`; later steps, including i18n parity, were skipped.
+- Aligned CI `PNPM_VERSION` with root `packageManager` (`9.15.4`) to avoid pnpm/action-setup version mismatch.
 - Made `scripts/check-i18n.mjs` resolve `apps/web` from `import.meta.url`, so it works from repo root and from `scripts/`.
 - Made missing i18n references and locale parity gaps set non-zero exit code.
 - Added missing `purchasing.grn.workflowTitle`, `workflowHint`, `submitPo`, and `approvePo` keys in EN/ID/ZH, because the strengthened checker exposed pre-existing unresolved references.
@@ -59,6 +62,7 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 
 - Keep `main` and `develop` in CI branch filters while adding `master`, matching the card's allowance to preserve existing behavior.
 - `node scripts/check-i18n.mjs` now fails on 4 pre-existing missing references under `purchasing.grn.*`. Although card F0.1 only listed CI and script files, locale files must be touched to satisfy the card's required local exit 0 without weakening the checker.
+- CI setup should use the exact pnpm version from root `packageManager` (`pnpm@9.15.4`) instead of the major-only value `9`.
 
 ## Open issues / Questions
 
@@ -77,7 +81,9 @@ Edit `.github/workflows/ci.yml` to add `master` to push/PR branch filters and ad
 - **Locale JSON parse**: PASS (`en.json`, `id.json`, `zh.json`)
 - **Scoped Biome**: PASS exit 0 for `scripts/check-i18n.mjs` and locale JSON. Existing warnings remain in `scripts/check-i18n.mjs` for `console.log` and assignment-in-expression patterns.
 - **Whitespace**: `git diff --check` PASS
-- **CI**: not checked yet
+- **CI**: triggered, first run failed before checks
+  - Run `27278419354`: triggered on `master`, failed at `Setup pnpm`; build job skipped.
+  - Job logs cannot be downloaded through unauthenticated API: GitHub returned 403 requiring admin rights.
 
 ## Files Touched
 
