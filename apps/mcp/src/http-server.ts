@@ -16,6 +16,8 @@
 
 import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
+import { SCALAR_CSP, renderScalarDocs } from './api/docs';
+import { apiV1, buildOpenApiDocument } from './api/v1';
 
 const APP_VERSION = process.env.npm_package_version ?? '0.1.0';
 const HOST = process.env.MCP_HTTP_HOST ?? '127.0.0.1';
@@ -99,6 +101,24 @@ app.get('/healthz', (c) => {
 app.get('/', (c) => {
   return c.json({ status: 'ok' });
 });
+
+// ─── Public REST API (v1) + Scalar docs ──────────────────────────────────────
+// The OpenAPI spec and the Scalar docs page are public (no auth); the actual
+// API routes under /api/v1 enforce Bearer auth + permissions. When fronted by a
+// reverse proxy, set MCP_SERVER_URL (and MCP_HTTP_ALLOWED_HOSTS) to the public
+// API host so the spec advertises the right server and the Host guard allows it.
+const PUBLIC_API_BASE = process.env.MCP_SERVER_URL ?? `http://${HOST}:${PORT}`;
+
+// Registered before the /api/v1 mount so this exact path stays unauthenticated.
+app.get('/api/v1/openapi.json', (c) => c.json(buildOpenApiDocument(PUBLIC_API_BASE)));
+
+app.get('/docs', (c) => {
+  c.header('Content-Security-Policy', SCALAR_CSP);
+  c.header('Cache-Control', 'no-store');
+  return c.html(renderScalarDocs('/api/v1/openapi.json'));
+});
+
+app.route('/api/v1', apiV1);
 
 const server = serve({
   fetch: app.fetch,
