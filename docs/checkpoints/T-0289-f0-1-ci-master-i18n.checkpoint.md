@@ -2,7 +2,7 @@
 
 - **Owner**: Codex
 - **Started**: 2026-06-10 19:51 WIB
-- **Last updated**: 2026-06-10 21:37 WIB
+- **Last updated**: 2026-06-10 21:42 WIB
 - **Status**: IN_PROGRESS
 - **Phase**: F0
 - **Branch**: master
@@ -51,6 +51,7 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 13. [ ] Remove `tsx` dependency from permission lint script.
 14. [ ] Add missing Node type declarations for `@erp/shared`.
 15. [ ] Fix CI Test command argument bug.
+16. [ ] Split CI test steps by package for observable failures.
 
 ## Done so far
 
@@ -83,6 +84,8 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 - GitHub check annotations showed `@erp/shared` could not resolve Node globals/modules (`Buffer`, `process`, `node:crypto`), so `@types/node` must be declared in `packages/shared/package.json` instead of relying on root/dev hoisting.
 - Run `27283368123` passed all lint and package-level typecheck steps, then failed at `Test`.
 - Reproduced the test failure locally: `pnpm test -- --run` exits immediately with `Unknown option: 'run'` because the root `test` script already delegates to `pnpm -r test`. The CI Test step must run `pnpm test`.
+- Run `27283673142` passed lint, permission lint, and all package-level typecheck steps. Test ran for real and failed, but annotations still did not expose the package/log details.
+- Split tests into explicit `Test shared` and `Test services` steps using `vitest run`.
 - Made `scripts/check-i18n.mjs` resolve `apps/web` from `import.meta.url`, so it works from repo root and from `scripts/`.
 - Made missing i18n references and locale parity gaps set non-zero exit code.
 - Added missing `purchasing.grn.workflowTitle`, `workflowHint`, `submitPo`, and `approvePo` keys in EN/ID/ZH, because the strengthened checker exposed pre-existing unresolved references.
@@ -103,7 +106,7 @@ Execute master plan card F0.1: CI must run on every push/PR to `master`, and i18
 
 ## Next step
 
-Commit and push the CI Test command fix, then poll the latest `master` GitHub Actions run. If test proceeds and fails inside a package, use annotations/step details to fix the specific package.
+Commit and push the package-level CI test split, then poll the latest `master` GitHub Actions run. If one package test fails, use that step name and annotations to fix it.
 
 ## Test status
 
@@ -142,6 +145,7 @@ Commit and push the CI Test command fix, then poll the latest `master` GitHub Ac
   - Run `27282549593`: triggered on `master`, lint passed, failed at `Permission lint`; all package typecheck steps skipped.
   - Run `27282936886`: triggered on `master`, lint and permission lint passed, failed at `Typecheck shared`.
   - Run `27283368123`: triggered on `master`, lint + permission lint + all typecheck steps passed, failed at `Test` because command used invalid `-- --run` argument.
+  - Run `27283673142`: triggered on `master`, lint + permission lint + all typecheck steps passed, failed at generic `Test`.
   - Job logs cannot be downloaded through unauthenticated API: GitHub returned 403 requiring admin rights.
 
 ## Files Touched
@@ -174,6 +178,7 @@ Commit and push the CI Test command fix, then poll the latest `master` GitHub Ac
 | `packages/shared/package.json` | edit | Add direct `@types/node` devDependency for Node APIs used by shared package |
 | `pnpm-lock.yaml` | edit | Lockfile update for shared `@types/node` devDependency |
 | `.github/workflows/ci.yml` | edit | Test step now runs root `pnpm test` without invalid `-- --run` |
+| `.github/workflows/ci.yml` | edit | Test stage split into `Test shared` and `Test services` for observable failures |
 | Many tracked TS/TSX/JSON files | edit | Safe Biome formatter/import-sorter cleanup, no unsafe fixes |
 
 ## Commits So Far

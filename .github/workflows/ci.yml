@@ -79,8 +79,11 @@ jobs:
       - name: Typecheck web
         run: pnpm --filter @erp/web typecheck
 
-      - name: Test
-        run: pnpm test
+      - name: Test shared
+        run: pnpm --filter @erp/shared exec vitest run
+
+      - name: Test services
+        run: pnpm --filter @erp/services exec vitest run
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
 
