@@ -19,7 +19,7 @@
 
 Agen yang tidak yakin dirinya Perencana adalah Eksekutor.
 
-> **Pass Perencana penuh sudah dilakukan 2026-06-10 (T-0287)**: SEMUA fase sudah dipecah menjadi kartu siap eksekusi berdasarkan inventaris repo nyata (5 subagen + spot-check). Kartu F0–F1 ada di dokumen ini (§4–§5); kartu F2–F6 ada di `docs/plans/cards/F2-security-cards.md`, `F3-functional-cards.md`, `F4-platform-cards.md`, `F5-s4-capability-cards.md`, `F6-closure-cards.md`. Bila ringkasan di dokumen ini berbeda dari file kartu, **file kartu menang** (lebih rinci, berbasis bukti). Eksekutor TIDAK perlu dan TIDAK boleh memecah kartu sendiri; cukup salin kartu ke checkpoint dan kerjakan.
+> **Pass Perencana penuh sudah dilakukan 2026-06-10 (T-0287, ditambah F7/F8 di T-0288)**: SEMUA fase sudah dipecah menjadi kartu siap eksekusi berdasarkan inventaris repo nyata (5 subagen + spot-check). Kartu F0–F1 ada di dokumen ini (§4–§5); kartu fase lain di `docs/plans/cards/`: `F2-security-cards.md`, `F3-functional-cards.md`, `F4-platform-cards.md`, `F5-s4-capability-cards.md`, `F6-closure-cards.md`, `F7-native-print-cards.md`, `F8-public-api-cards.md`. Bila ringkasan di dokumen ini berbeda dari file kartu, **file kartu menang** (lebih rinci, berbasis bukti). Eksekutor TIDAK perlu dan TIDAK boleh memecah kartu sendiri; cukup salin kartu ke checkpoint dan kerjakan. Urutan fase = §3.
 
 ### 1.2 Sepuluh aturan mutlak eksekutor
 
@@ -109,24 +109,30 @@ Eksekutor yang menemukan task menjurus ke daftar ini wajib BLOCKED dan bertanya:
 - Platform scripting tertanam (ala ABAP) yang mengeksekusi kode user. Fleksibilitas lewat konfigurasi DB, bukan kode dinamis.
 - Library bundel besar (>5 MB) atau service runtime baru (Redis, Elasticsearch, dsb.) tanpa ADR + persetujuan Lintang.
 - Mengganti stack (ADR-0001 final: Next.js 15 + Drizzle + Postgres + Hono).
+- Bahasa/runtime server baru (JVM/Scala, Python, dsb.) — termasuk untuk dokumentasi API: dokumentasi memakai **Scalar** (OpenAPI di Hono), lihat F8 dan catatan interpretasi di `cards/F8-public-api-cards.md`.
+- App native untuk seluruh ERP atau untuk iOS. Native = shell Tauri 2 untuk **surface POS saja**, Android + Windows (ADR-0015). Toolchain Rust diizinkan KHUSUS `apps/pos-shell` (sisi klien) dan tidak boleh menjadi prasyarat CI utama maupun runtime server.
 
 ---
 
 ## 3. Struktur fase dan gerbang
 
-Fase berjalan berurutan. **Gerbang** = checklist keluar yang harus dibuktikan Perencana sebelum fase berikutnya dibuka. Logika urutannya: pagar mesin dulu (karena eksekutor tidak bisa diandalkan menaati prosa), lalu lunasi hutang berjalan, lalu basmi bug (keamanan dulu, baru fungsional), baru bangun fitur di atas fondasi yang bersih.
+Fase berjalan berurutan. **Gerbang** = checklist keluar yang harus dibuktikan Perencana sebelum fase berikutnya dibuka. Logika urutannya: pagar mesin dulu (karena eksekutor tidak bisa diandalkan menaati prosa), lalu lunasi hutang berjalan, lalu basmi bug (keamanan dulu, baru fungsional), lalu fitur operasional yang paling menyakitkan kasir (cetak silent), baru fondasi platform dan kapabilitas besar, dan API publik menjelang penutupan supaya ikut ter-pentest.
 
-| Fase | Nama | Isi | Kartu | Gerbang keluar |
-|---|---|---|---|---|
-| F0 | Pagar mesin | CI hidup di `master`, guardrail otomatis, `pnpm verify` (kartu: §4 dokumen ini) | 6 | CI hijau di push `master`; semua script guardrail jalan di CI; `pnpm verify` lulus |
-| F1 | Tutup hutang aktif | Selesaikan T-0279, T-0264, T-0281 (kartu: §5 dokumen ini) | 3 | Tidak ada task 🟨 IN_PROGRESS di TASK.md selain pekerjaan plan ini |
-| F2 | Sapu keamanan | 11 permukaan serang, loop temukan→perbaiki→verifikasi (kartu: `cards/F2-security-cards.md`) | 12 | Nol temuan Critical/High terbuka; `pnpm audit` & Dependabot bersih; sapuan ulang penuh tanpa temuan Critical/High baru |
-| F3 | Sapu fungsional | Harness DB nyata + matriks lifecycle + 12 skenario E2E + loop perbaikan (kartu: `cards/F3-functional-cards.md`) | 15+ | Semua skenario E2E hijau di CI; matriks tanpa sel P0/P1 kosong; sapuan ulang tanpa P0/P1 baru |
-| F4 | Fondasi platform | Extensibility universal, approval-gate universal, layering, numbering, import, timeline (kartu: `cards/F4-platform-cards.md`) | ±22 | Checklist "ERP lentur" §12.2 poin 1–5 terbukti dengan demo terdokumentasi |
-| F5 | Kapabilitas kelas-S/4 | CO/budget, MDG, workspace peran, drilldown, config versioning, simulasi (kartu: `cards/F5-s4-capability-cards.md`) | ±12 | Checklist §12.2 poin 6–10 terbukti |
-| F6 | Paritas MCP + penutupan | MCP parity ledger, dokumen, ADR, regresi akhir, pentest ulang (kartu: `cards/F6-closure-cards.md`) | 5 | DoD program §12.1 terpenuhi seluruhnya |
+> **Urutan eksekusi = urutan BARIS tabel ini**, bukan urutan kode fase. Kode fase tidak diurutkan ulang supaya referensi lama (checkpoint, TASK.md) tetap sah. F7 dan F8 ditambahkan 2026-06-10 atas permintaan user (T-0288).
 
-Estimasi total ±69 kartu. Effort: S ≤ 1 sesi, M = 1–2 sesi, L = 3–5 sesi. Kartu L wajib dipecah Perencana sebelum dieksekusi.
+| Urutan | Fase | Nama | Isi | Kartu | Gerbang keluar |
+|---|---|---|---|---|---|
+| 1 | F0 | Pagar mesin | CI hidup di `master`, guardrail otomatis, `pnpm verify` (kartu: §4 dokumen ini) | 6 | CI hijau di push `master`; semua script guardrail jalan di CI; `pnpm verify` lulus |
+| 2 | F1 | Tutup hutang aktif | Selesaikan T-0279, T-0264, T-0281 (kartu: §5 dokumen ini) | 3 | Tidak ada task 🟨 IN_PROGRESS di TASK.md selain pekerjaan plan ini |
+| 3 | F2 | Sapu keamanan | 11 permukaan serang, loop temukan→perbaiki→verifikasi (kartu: `cards/F2-security-cards.md`) | 12 | Nol temuan Critical/High terbuka; `pnpm audit` & Dependabot bersih; sapuan ulang penuh tanpa temuan Critical/High baru |
+| 4 | F3 | Sapu fungsional | Harness DB nyata + matriks lifecycle + 12 skenario E2E + loop perbaikan (kartu: `cards/F3-functional-cards.md`) | 15+ | Semua skenario E2E hijau di CI; matriks tanpa sel P0/P1 kosong; sapuan ulang tanpa P0/P1 baru |
+| 5 | F7 | App native POS + silent printing | Implementasi ADR-0015: shell Tauri 2 Android+Windows, builder ESC/POS, adapter USB/Bluetooth, config printer di DB, fallback browser (kartu: `cards/F7-native-print-cards.md`) | 9 | Silent print terverifikasi di fleet nyata (min. Android+BT, Windows+USB); fallback tanpa regresi; CI utama tetap tanpa Rust |
+| 6 | F4 | Fondasi platform | Extensibility universal, approval-gate universal, layering, numbering, import, timeline (kartu: `cards/F4-platform-cards.md`) | ±22 | Checklist "ERP lentur" §12.2 poin 1–5 terbukti dengan demo terdokumentasi |
+| 7 | F5 | Kapabilitas kelas-S/4 | CO/budget, MDG, workspace peran, drilldown, config versioning, simulasi (kartu: `cards/F5-s4-capability-cards.md`) | ±12 | Checklist §12.2 poin 6–10 terbukti |
+| 8 | F8 | API publik + dokumentasi Scalar | REST `/api/v1` di `apps/mcp` (Hono + zod-openapi), auth `api_tokens` + permission engine, idempoten, rate limit, Scalar docs `/docs`, onboarding pihak ketiga (kartu: `cards/F8-public-api-cards.md`) | 6 | Onboarding pihak ketiga sukses hanya bermodal docs; sapuan keamanan API bersih; spec valid |
+| 9 | F6 | Paritas MCP + penutupan | MCP parity ledger, dokumen, ADR, regresi akhir, pentest ulang — scope pentest mencakup API publik (F8) dan shell native (F7) (kartu: `cards/F6-closure-cards.md`) | 5 | DoD program §12.1 terpenuhi seluruhnya |
+
+Estimasi total ±84 kartu. Effort: S ≤ 1 sesi, M = 1–2 sesi, L = 3–5 sesi. Kartu L wajib dipecah Perencana sebelum dieksekusi.
 
 ---
 
@@ -368,12 +374,14 @@ Gerbang F5 = checklist §12.2 poin 6–10 terbukti; tidak ada regresi (`pnpm ver
 
 ### 12.1 DoD keseluruhan
 
-1. Gerbang F0–F6 semua tertutup dengan bukti di checkpoint gerbang masing-masing.
-2. Nol temuan keamanan Critical/High terbuka; pentest ulang (F6.4) bersih.
+1. Gerbang semua fase (F0–F8, urutan §3) tertutup dengan bukti di checkpoint gerbang masing-masing.
+2. Nol temuan keamanan Critical/High terbuka; pentest ulang (F6.4, mencakup API publik dan shell native) bersih.
 3. Matriks lifecycle penuh tanpa ❌ kolom kritis; 12 skenario E2E hijau permanen di CI.
 4. Baseline ratchet (F0.2, F0.3) = 0 entri.
-5. SYSTEM-DESIGN.md, SOURCE-OF-TRUTH.md, ADR, dan CLAUDE.md §3.1 mutakhir.
-6. Lintang menyatakan sign-off tertulis di TASK.md.
+5. Silent print berjalan di fleet kasir nyata (min. Android+Bluetooth dan Windows+USB) dengan audit cetak; fallback browser tanpa regresi (gerbang F7).
+6. API publik v1 + dokumentasi Scalar live; simulasi onboarding pihak ketiga sukses hanya bermodal docs (gerbang F8).
+7. SYSTEM-DESIGN.md, SOURCE-OF-TRUTH.md, ADR (termasuk 0015 dan 0016), dan CLAUDE.md §3.1 mutakhir.
+8. Lintang menyatakan sign-off tertulis di TASK.md.
 
 ### 12.2 Checklist "ERP lentur kelas S/4" (uji konfigurasi-tanpa-kode)
 
@@ -398,6 +406,9 @@ Gerbang F5 = checklist §12.2 poin 6–10 terbukti; tidak ada regresi (`pnpm ver
 | Sapuan tidak pernah selesai ("semua bug") | Kriteria berhenti eksplisit: dua sapuan beruntun bersih (F2/F3) |
 | Konflik dengan hotfix produksi | Hotfix boleh menyela; wajib kembali ke fase berjalan; gerbang tidak bisa ditutup saat ada 🟨 lain |
 | Secret/akses CI tidak tersedia | Aturan BLOCKED §1.3; jangan menonaktifkan step |
+| Tauri-Android belum sematang Capacitor | Adapter transport diisolasi di balik `PrinterPort` (ADR-0015): bila bermasalah, hanya adapter Android yang dipindah ke Capacitor, builder ESC/POS + UI tidak berubah |
+| Signing key (keystore Android, sertifikat Windows) & perangkat uji belum ada | Kartu F7.6/F7.8 BLOCKED dengan instruksi pembuatan untuk Lintang; verifikasi lapangan dijadwalkan di toko |
+| API publik disalahgunakan (scraping, brute force, abuse mutasi) | Rate limit per token, idempotency wajib, scope = permission engine, audit penanda `public_api`, sapuan keamanan khusus (F8.6) + masuk scope pentest F6.4 |
 
 ---
 

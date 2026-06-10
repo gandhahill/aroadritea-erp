@@ -67,6 +67,7 @@ Opsi lain yang dievaluasi + alasan ditolak.
 | [0011](0011-hestiacp-smtp-transactional-email.md) | HestiaCP SMTP Untuk Email Transaksional | Accepted | 2026-05-13 | Email otomatis via mailbox HestiaCP SMTP; bukan Resend/SES sebagai default |
 | [0012](0012-pm2-hestiacp-production-runtime.md) | PM2 + HestiaCP Untuk Runtime Production VPS | Accepted | 2026-05-14 | Runtime production VPS memakai PM2, bukan Docker Compose |
 | [0013](0013-attendance-face-verification.md) | Attendance Face Verification | Accepted | 2026-06-02 | Inline enrollment di halaman check-in, template wajah terenkripsi, tanpa foto mentah rutin |
+| [0015](0015-native-packaging-silent-printing.md) | Native Packaging (Tauri 2) + Silent Printing ESC/POS | Proposed | 2026-06-10 | Shell Tauri 2 (Android+Windows) bungkus POS; builder ESC/POS + adapter transport BT/USB; konfig printer di DB |
 
 > Tabel di atas wajib diperbarui setiap kali ADR baru dibuat atau status berubah. Index ini di-render di `CLAUDE.md` sebagai daftar pengingat.
 
