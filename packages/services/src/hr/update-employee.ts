@@ -77,7 +77,9 @@ export async function updateEmployee(
         version: version + 1,
       };
 
-      if (data.nik !== undefined) setCols.nik = data.nik;
+      // NIK (KTP) is PII — encrypt at rest, matching createEmployee. Storing it
+      // plaintext here violated UU PDP / CLAUDE.md §5.5.
+      if (data.nik !== undefined) setCols.nik = encryptPii(data.nik, 'employees.nik');
       if (data.name !== undefined) setCols.name = data.name;
       if (data.email !== undefined) {
         const encryptedEmail = encryptPiiForLookup(data.email, 'employees.email');

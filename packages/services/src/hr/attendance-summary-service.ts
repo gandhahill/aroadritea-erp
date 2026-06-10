@@ -113,7 +113,9 @@ export async function listAttendanceSummary(
       employeeId: attendance.employeeId,
       presentDays: sql<number>`cast(count(distinct date(${attendance.checkInAt} at time zone 'Asia/Jakarta')) as int)`,
       lateCount: sql<number>`cast(count(case when ${attendance.isLate} and not ${attendance.lateForgiven} then 1 end) as int)`,
-      totalLateMinutes: sql<number>`coalesce(sum(case when not ${attendance.lateForgiven} then ${attendance.lateMinutes} else 0 end), 0)`,
+      // Cast to int: postgres-js returns an un-cast SUM() as a string, which
+      // then string-concatenates in the client total (e.g. "005300000310160m").
+      totalLateMinutes: sql<number>`cast(coalesce(sum(case when not ${attendance.lateForgiven} then ${attendance.lateMinutes} else 0 end), 0) as int)`,
     })
     .from(attendance)
     .where(and(...attConds))

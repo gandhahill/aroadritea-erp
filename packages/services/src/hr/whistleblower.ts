@@ -60,6 +60,21 @@ export async function submitWhistleblowerReport(
   // the only persistent trace of a submission and it intentionally has no
   // createdByUserId column.
 
+  // Notify report handlers (anyone with hr.whistleblower.read) that a new
+  // report needs review. The notification carries ONLY the category and a
+  // link to the secure list — never the reporter's identity (which is not
+  // stored) nor the free-text content. Best-effort: notifyByPermission
+  // swallows its own errors and must not affect the submission result.
+  const { notifyByPermission } = await import('../notification');
+  await notifyByPermission({
+    tenantId,
+    kind: 'whistleblower',
+    title: 'Laporan whistleblowing baru',
+    body: `Kategori: ${category}. Menunggu peninjauan.`,
+    link: '/hr/whistleblower',
+    permission: 'hr.whistleblower.read',
+  });
+
   return ok({ id });
 }
 
