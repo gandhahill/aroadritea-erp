@@ -170,10 +170,7 @@ apiV1.get('/products', async (c) => {
     { userId: user.userId, tenantId: user.tenantId, locationId: '' },
   );
   if (!result.ok) return apiError('INTERNAL', 'Failed to list products.');
-  return jsonResponse(
-    { data: result.value.items, page, pageSize, total: result.value.total },
-    200,
-  );
+  return jsonResponse({ data: result.value.items, page, pageSize, total: result.value.total }, 200);
 });
 
 apiV1.get('/stock', async (c) => {
@@ -197,10 +194,7 @@ apiV1.get('/stock', async (c) => {
     db.select({ n: sql<number>`cast(count(*) as int)` }).from(stockLevels).where(where),
   ]);
 
-  return jsonResponse(
-    { data: rows, page, pageSize, total: countRows[0]?.n ?? 0 },
-    200,
-  );
+  return jsonResponse({ data: rows, page, pageSize, total: countRows[0]?.n ?? 0 }, 200);
 });
 
 apiV1.get('/reports/daily-summary', async (c) => {

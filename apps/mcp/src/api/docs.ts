@@ -40,7 +40,7 @@ export const SCALAR_CSP = [
   "default-src 'none'",
   "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
   "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com",
-  "font-src https://fonts.gstatic.com data:",
+  'font-src https://fonts.gstatic.com data:',
   "img-src 'self' data: https:",
   "connect-src 'self'",
   "frame-ancestors 'none'",

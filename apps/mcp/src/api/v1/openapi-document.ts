@@ -138,8 +138,7 @@ export function buildOpenApiDocument(serverUrl: string): Record<string, unknown>
         get: {
           tags: ['Reports'],
           summary: 'Daily sales summary',
-          description:
-            'Sales summary for a single day at a location. Requires `reporting.view`.',
+          description: 'Sales summary for a single day at a location. Requires `reporting.view`.',
           operationId: 'getDailySummary',
           parameters: [
             {
