@@ -37,7 +37,13 @@ export interface BalanceSheetResult {
   asOf: string;
   locationId: string | null;
   assets: BalanceSheetSection;
+  /** SAK EP Bab 4: current vs non-current asset split (subset of `assets`). */
+  currentAssets: BalanceSheetSection;
+  nonCurrentAssets: BalanceSheetSection;
   liabilities: BalanceSheetSection;
+  /** SAK EP Bab 4: current vs non-current liability split (subset of `liabilities`). */
+  currentLiabilities: BalanceSheetSection;
+  nonCurrentLiabilities: BalanceSheetSection;
   equity: BalanceSheetSection;
   /** Retained earnings from income - cogs - expense (current period P&L). */
   retainedEarnings: bigint;
@@ -78,6 +84,41 @@ export async function balanceSheet(
       const liabilities = filterSection(tb.lines, ['liability'], 'Liabilities', 'credit');
       const equity = filterSection(tb.lines, ['equity'], 'Equity', 'credit');
 
+      // SAK EP Bab 4: present current vs non-current. Only `current_asset` /
+      // `current_liability` subtypes are current; everything else (fixed_asset,
+      // contra_asset, long_term_liability, …) is non-current. Note: a
+      // contra-asset allowance for doubtful debts is technically a current
+      // contra-account, but accumulated depreciation dominates this F&B COA, so
+      // contra_asset defaults to non-current here.
+      const currentAssets = filterSection(
+        tb.lines,
+        ['asset'],
+        'Current Assets',
+        'debit',
+        (l) => l.accountSubtype === 'current_asset',
+      );
+      const nonCurrentAssets = filterSection(
+        tb.lines,
+        ['asset'],
+        'Non-Current Assets',
+        'debit',
+        (l) => l.accountSubtype !== 'current_asset',
+      );
+      const currentLiabilities = filterSection(
+        tb.lines,
+        ['liability'],
+        'Current Liabilities',
+        'credit',
+        (l) => l.accountSubtype === 'current_liability',
+      );
+      const nonCurrentLiabilities = filterSection(
+        tb.lines,
+        ['liability'],
+        'Non-Current Liabilities',
+        'credit',
+        (l) => l.accountSubtype !== 'current_liability',
+      );
+
       // Calculate retained earnings = income - cogs - expense
       const incomeTotal = sumBalances(tb.lines, ['income']);
       const cogsTotal = sumBalances(tb.lines, ['cogs']);
@@ -91,7 +132,11 @@ export async function balanceSheet(
         asOf: input.asOf,
         locationId: input.locationId ?? null,
         assets,
+        currentAssets,
+        nonCurrentAssets,
         liabilities,
+        currentLiabilities,
+        nonCurrentLiabilities,
         equity,
         retainedEarnings,
         totalEquityWithRetained,
@@ -122,8 +167,11 @@ function filterSection(
   types: string[],
   label: string,
   sectionNormal: 'debit' | 'credit' = 'debit',
+  predicate?: (line: TrialBalanceLine) => boolean,
 ): BalanceSheetSection {
-  const filtered = lines.filter((l) => types.includes(l.accountType));
+  const filtered = lines.filter(
+    (l) => types.includes(l.accountType) && (predicate ? predicate(l) : true),
+  );
   const accounts = filtered.map((l) => {
     // If the account's normal balance direction differs from the section's,
     // negate it (e.g. contra-asset in the asset section).

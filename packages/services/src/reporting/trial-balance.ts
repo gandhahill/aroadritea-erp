@@ -34,6 +34,8 @@ export interface TrialBalanceLine {
   accountCode: string;
   accountName: Record<string, string>;
   accountType: string;
+  /** Fine-grained classification (current_asset, fixed_asset, contra_asset, …). */
+  accountSubtype: string;
   normalBalance: string;
   totalDebit: bigint;
   totalCredit: bigint;
@@ -97,6 +99,7 @@ export async function trialBalance(
           code: accounts.code,
           name: accounts.name,
           type: accounts.type,
+          subtype: accounts.subtype,
           normalBalance: accounts.normalBalance,
         })
         .from(accounts)
@@ -126,6 +129,7 @@ export async function trialBalance(
           accountCode: acct.code,
           accountName: acct.name as Record<string, string>,
           accountType: acct.type,
+          accountSubtype: acct.subtype ?? '',
           normalBalance: acct.normalBalance,
           totalDebit,
           totalCredit,

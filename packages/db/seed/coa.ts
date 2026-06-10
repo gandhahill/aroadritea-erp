@@ -836,7 +836,7 @@ export const COA_SEED: AccountSeed[] = [
     'Income Tax Expenses',
     '所得税费用',
     'expense',
-    'non_operating',
+    'income_tax',
     'debit',
   ),
 ];

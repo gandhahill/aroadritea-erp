@@ -30,6 +30,7 @@ export interface ProfitLossLine {
   accountCode: string;
   accountName: Record<string, string>;
   accountType: string;
+  accountSubtype: string;
   balance: bigint;
 }
 
@@ -46,7 +47,18 @@ export interface ProfitLossResult {
   revenue: ProfitLossSection;
   cogs: ProfitLossSection;
   grossProfit: bigint;
+  /** Operating expenses only (excludes finance costs and income tax). */
   expenses: ProfitLossSection;
+  /** Operating profit = grossProfit - operating expenses (SAK EP Bab 5). */
+  operatingProfit: bigint;
+  /** Other income (account subtype `other_income`, e.g. interest income). */
+  otherIncome: ProfitLossSection;
+  /** Finance costs (account subtype `non_operating`, e.g. interest/bank fees). */
+  financeCosts: ProfitLossSection;
+  /** Income tax expense (account subtype `income_tax`). */
+  incomeTaxExpense: ProfitLossSection;
+  /** Profit before income tax. */
+  profitBeforeTax: bigint;
   netIncome: bigint;
   isPreliminary: boolean;
 }
@@ -98,6 +110,7 @@ export async function profitLoss(
           code: accounts.code,
           name: accounts.name,
           type: accounts.type,
+          subtype: accounts.subtype,
           normalBalance: accounts.normalBalance,
         })
         .from(accounts)
@@ -126,6 +139,7 @@ export async function profitLoss(
           accountCode: acct.code,
           accountName: acct.name as Record<string, string>,
           accountType: acct.type,
+          accountSubtype: acct.subtype ?? '',
           balance,
         });
       }
@@ -133,13 +147,44 @@ export async function profitLoss(
       // Sort by account code
       allLines.sort((a, b) => a.accountCode.localeCompare(b.accountCode));
 
-      // Group into sections
-      const revenue = buildSection('Revenue', allLines, 'income');
-      const cogs = buildSection('Cost of Goods Sold', allLines, 'cogs');
-      const expenses = buildSection('Operating Expenses', allLines, 'expense');
+      // Group into sections per SAK EP Bab 5 (function-of-expense layout).
+      // Operating revenue excludes `other_income` (e.g. interest income).
+      const revenue = buildSection(
+        'Revenue',
+        allLines,
+        (l) => l.accountType === 'income' && l.accountSubtype !== 'other_income',
+      );
+      const cogs = buildSection('Cost of Goods Sold', allLines, (l) => l.accountType === 'cogs');
+      // Operating expenses = expense accounts that are NOT finance costs or income
+      // tax. Unknown/empty subtypes default to operating so nothing is dropped.
+      const expenses = buildSection(
+        'Operating Expenses',
+        allLines,
+        (l) =>
+          l.accountType === 'expense' &&
+          l.accountSubtype !== 'non_operating' &&
+          l.accountSubtype !== 'income_tax',
+      );
+      const otherIncome = buildSection(
+        'Other Income',
+        allLines,
+        (l) => l.accountType === 'income' && l.accountSubtype === 'other_income',
+      );
+      const financeCosts = buildSection(
+        'Finance Costs',
+        allLines,
+        (l) => l.accountType === 'expense' && l.accountSubtype === 'non_operating',
+      );
+      const incomeTaxExpense = buildSection(
+        'Income Tax Expense',
+        allLines,
+        (l) => l.accountType === 'expense' && l.accountSubtype === 'income_tax',
+      );
 
       const grossProfit = revenue.total - cogs.total;
-      const netIncome = grossProfit - expenses.total;
+      const operatingProfit = grossProfit - expenses.total;
+      const profitBeforeTax = operatingProfit + otherIncome.total - financeCosts.total;
+      const netIncome = profitBeforeTax - incomeTaxExpense.total;
 
       return {
         from: input.from,
@@ -149,6 +194,11 @@ export async function profitLoss(
         cogs,
         grossProfit,
         expenses,
+        operatingProfit,
+        otherIncome,
+        financeCosts,
+        incomeTaxExpense,
+        profitBeforeTax,
         netIncome,
         isPreliminary: false,
       };
@@ -162,9 +212,9 @@ export async function profitLoss(
 function buildSection(
   label: string,
   allLines: ProfitLossLine[],
-  accountType: string,
+  predicate: (line: ProfitLossLine) => boolean,
 ): ProfitLossSection {
-  const lines = allLines.filter((l) => l.accountType === accountType);
+  const lines = allLines.filter(predicate);
   const total = lines.reduce((sum, l) => sum + l.balance, 0n);
   return { label, lines, total };
 }

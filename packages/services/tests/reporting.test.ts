@@ -61,6 +61,7 @@ const ACCOUNTS = [
     code: '1-1010',
     name: { id: 'Kas', en: 'Cash', zh: '现金' },
     type: 'asset',
+    subtype: 'current_asset',
     normalBalance: 'debit',
   },
   {
@@ -68,6 +69,15 @@ const ACCOUNTS = [
     code: '1-1020',
     name: { id: 'Piutang', en: 'AR', zh: '应收账款' },
     type: 'asset',
+    subtype: 'current_asset',
+    normalBalance: 'debit',
+  },
+  {
+    id: 'acc-equipment',
+    code: '1-4400',
+    name: { id: 'Peralatan', en: 'Equipment', zh: '设备' },
+    type: 'asset',
+    subtype: 'fixed_asset',
     normalBalance: 'debit',
   },
   {
@@ -75,6 +85,15 @@ const ACCOUNTS = [
     code: '2-1010',
     name: { id: 'Utang', en: 'AP', zh: '应付账款' },
     type: 'liability',
+    subtype: 'current_liability',
+    normalBalance: 'credit',
+  },
+  {
+    id: 'acc-loan',
+    code: '2-2200',
+    name: { id: 'Pinjaman Bank', en: 'Bank Loan', zh: '银行贷款' },
+    type: 'liability',
+    subtype: 'long_term_liability',
     normalBalance: 'credit',
   },
   {
@@ -82,6 +101,7 @@ const ACCOUNTS = [
     code: '3-1010',
     name: { id: 'Modal', en: 'Equity', zh: '权益' },
     type: 'equity',
+    subtype: 'equity',
     normalBalance: 'credit',
   },
   {
@@ -89,6 +109,15 @@ const ACCOUNTS = [
     code: '4-1000',
     name: { id: 'Penjualan', en: 'Sales', zh: '销售' },
     type: 'income',
+    subtype: 'revenue',
+    normalBalance: 'credit',
+  },
+  {
+    id: 'acc-interest-income',
+    code: '7-1100',
+    name: { id: 'Pendapatan Bunga', en: 'Interest Income', zh: '利息收入' },
+    type: 'income',
+    subtype: 'other_income',
     normalBalance: 'credit',
   },
   {
@@ -96,6 +125,7 @@ const ACCOUNTS = [
     code: '5-1000',
     name: { id: 'HPP', en: 'COGS', zh: '销售成本' },
     type: 'cogs',
+    subtype: 'cogs',
     normalBalance: 'debit',
   },
   {
@@ -103,6 +133,7 @@ const ACCOUNTS = [
     code: '6-1010',
     name: { id: 'Sewa', en: 'Rent', zh: '租金' },
     type: 'expense',
+    subtype: 'operating',
     normalBalance: 'debit',
   },
   {
@@ -110,6 +141,23 @@ const ACCOUNTS = [
     code: '6-1020',
     name: { id: 'Gaji', en: 'Salary', zh: '工资' },
     type: 'expense',
+    subtype: 'operating',
+    normalBalance: 'debit',
+  },
+  {
+    id: 'acc-interest-exp',
+    code: '7-2100',
+    name: { id: 'Beban Bunga', en: 'Interest Expense', zh: '利息费用' },
+    type: 'expense',
+    subtype: 'non_operating',
+    normalBalance: 'debit',
+  },
+  {
+    id: 'acc-income-tax',
+    code: '7-4100',
+    name: { id: 'Beban PPh', en: 'Income Tax Expense', zh: '所得税费用' },
+    type: 'expense',
+    subtype: 'income_tax',
     normalBalance: 'debit',
   },
 ];
@@ -341,6 +389,32 @@ describe('balanceSheet', () => {
     }
   });
 
+  it('should split assets and liabilities into current vs non-current (SAK EP Bab 4)', async () => {
+    queryResults = [
+      [
+        { accountId: 'acc-cash', totalDebit: '100000', totalCredit: '0' }, // current asset
+        { accountId: 'acc-equipment', totalDebit: '60000', totalCredit: '0' }, // non-current asset
+        { accountId: 'acc-ap', totalDebit: '0', totalCredit: '40000' }, // current liability
+        { accountId: 'acc-loan', totalDebit: '0', totalCredit: '50000' }, // non-current liability
+        { accountId: 'acc-equity', totalDebit: '0', totalCredit: '70000' },
+      ],
+      ACCOUNTS,
+    ];
+
+    const result = await balanceSheet({ asOf: '2026-05-31' }, makeCtx());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.assets.total).toBe(160000n);
+      expect(result.value.currentAssets.total).toBe(100000n);
+      expect(result.value.nonCurrentAssets.total).toBe(60000n);
+
+      expect(result.value.liabilities.total).toBe(90000n);
+      expect(result.value.currentLiabilities.total).toBe(40000n);
+      expect(result.value.nonCurrentLiabilities.total).toBe(50000n);
+    }
+  });
+
   it('should reject without permission', async () => {
     mockPermissionResult = false;
     const result = await balanceSheet({ asOf: '2026-05-31' }, makeCtx());
@@ -466,6 +540,39 @@ describe('profitLoss', () => {
     if (result.ok) {
       const codes = result.value.expenses.lines.map((l) => l.accountCode);
       expect(codes).toEqual(['6-1010', '6-1020']);
+    }
+  });
+
+  it('should separate other income, finance costs, and income tax (SAK EP Bab 5)', async () => {
+    queryResults = [
+      [
+        { accountId: 'acc-sales', totalDebit: '0', totalCredit: '500000' },
+        { accountId: 'acc-cogs', totalDebit: '200000', totalCredit: '0' },
+        { accountId: 'acc-rent', totalDebit: '50000', totalCredit: '0' },
+        { accountId: 'acc-salary', totalDebit: '30000', totalCredit: '0' },
+        { accountId: 'acc-interest-income', totalDebit: '0', totalCredit: '10000' },
+        { accountId: 'acc-interest-exp', totalDebit: '5000', totalCredit: '0' },
+        { accountId: 'acc-income-tax', totalDebit: '15000', totalCredit: '0' },
+      ],
+      ACCOUNTS,
+    ];
+
+    const result = await profitLoss({ from: '2026-05-01', to: '2026-05-31' }, makeCtx());
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      // Operating revenue excludes interest income
+      expect(result.value.revenue.total).toBe(500000n);
+      expect(result.value.otherIncome.total).toBe(10000n);
+      // Operating expenses exclude finance costs and income tax
+      expect(result.value.expenses.total).toBe(80000n); // rent 50k + salary 30k
+      expect(result.value.financeCosts.total).toBe(5000n);
+      expect(result.value.incomeTaxExpense.total).toBe(15000n);
+
+      expect(result.value.grossProfit).toBe(300000n);
+      expect(result.value.operatingProfit).toBe(220000n); // 300k - 80k
+      expect(result.value.profitBeforeTax).toBe(225000n); // 220k + 10k - 5k
+      expect(result.value.netIncome).toBe(210000n); // 225k - 15k
     }
   });
 

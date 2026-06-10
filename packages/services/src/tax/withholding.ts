@@ -23,11 +23,19 @@ export const GenerateBupotInputSchema = z.object({
 
 export type GenerateBupotInput = z.infer<typeof GenerateBupotInputSchema>;
 
+/**
+ * Withholding tax codes that incur the statutory 100%-higher rate when the
+ * income recipient has no NPWP (UU PPh Pasal 23 ayat 1a). Final-tax codes
+ * (PPh 4(2), PPh Final UMKM) are excluded — they carry no NPWP surcharge.
+ */
+const NO_NPWP_SURCHARGE_CODES = new Set(['PPH23']);
+
 export async function calculateWithholding(
   dpp: bigint,
   taxCode: string,
   tenantId: string,
-): Promise<Result<{ taxAmount: bigint; rateBps: number }>> {
+  opts: { hasNpwp?: boolean } = {},
+): Promise<Result<{ taxAmount: bigint; rateBps: number; surchargeApplied: boolean }>> {
   return tryCatch(
     async () => {
       const [rate] = await db
@@ -46,8 +54,14 @@ export async function calculateWithholding(
         throw AppError.notFound('tax.withholding.taxCodeNotFound', { taxCode });
       }
 
-      const taxAmount = (dpp * BigInt(rate.rateBps)) / 10000n;
-      return { taxAmount, rateBps: rate.rateBps };
+      // No-NPWP surcharge: double the rate for applicable codes when the
+      // recipient has no NPWP. `hasNpwp` defaults to true (no surcharge).
+      const surchargeApplied =
+        opts.hasNpwp === false && NO_NPWP_SURCHARGE_CODES.has(taxCode.toUpperCase());
+      const effectiveRateBps = surchargeApplied ? rate.rateBps * 2 : rate.rateBps;
+
+      const taxAmount = (dpp * BigInt(effectiveRateBps)) / 10000n;
+      return { taxAmount, rateBps: effectiveRateBps, surchargeApplied };
     },
     (e) => {
       if (e instanceof AppError) return e;
@@ -73,7 +87,15 @@ export async function generateBuktiPotong(
       const perm = await requirePermission(ctx.userId, 'tax.manage_rates');
       if (!perm.ok) throw perm.error;
 
-      const calcRes = await calculateWithholding(data.dpp, data.taxCode, ctx.tenantId);
+      // Resolve vendor NPWP for the no-NPWP withholding surcharge (UU PPh 23(1a)).
+      const [vendor] = await db
+        .select({ npwp: partners.npwp })
+        .from(partners)
+        .where(and(eq(partners.tenantId, ctx.tenantId), eq(partners.id, data.vendorId)))
+        .limit(1);
+      const hasNpwp = !!vendor?.npwp && vendor.npwp.replace(/\D/g, '').length > 0;
+
+      const calcRes = await calculateWithholding(data.dpp, data.taxCode, ctx.tenantId, { hasNpwp });
       if (!calcRes.ok) throw calcRes.error;
 
       // Generate bupot number: BPT-YYYY-MM-0001

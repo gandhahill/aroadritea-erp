@@ -31,7 +31,8 @@
 | Basis akrual kecuali arus kas | Journal engine accrual; `financialStatementNotes.accountingBasis` | OK | Renderer harus menampilkan basis ini di CALK. |
 | Laporan lengkap: posisi keuangan, laba rugi/komprehensif, perubahan ekuitas, arus kas, CALK | Services reporting + new CALK service | OK baseline | UI/PDF formal perlu memasukkan CALK dan angka komparatif. |
 | Tidak klaim patuh SAK EP tanpa laporan lengkap | `financialStatementNotes.complianceWarnings`, SD §21.2 | OK | Renderer final wajib memakai warning ini. |
-| Klasifikasi current/non-current | COA subtype (`current_asset`, `fixed_asset`, `current_liability`, dst.) | Partial | Balance sheet renderer perlu expose current/non-current grouping formal. |
+| Klasifikasi current/non-current | `reporting.balanceSheet` kini emit `currentAssets`/`nonCurrentAssets`/`currentLiabilities`/`nonCurrentLiabilities` dari subtype COA (T-0291) | OK baseline | Renderer PDF/UI tinggal menampilkan grup ini; contra-asset allowance piutang default ke non-current (limitasi minor terdokumentasi). |
+| Klasifikasi laba rugi SAK EP Bab 5 | `reporting.profitLoss` kini pisahkan `otherIncome`, `financeCosts`, `incomeTaxExpense`, plus `operatingProfit`/`profitBeforeTax` (T-0291); akun `7-4100` direklasifikasi subtype `income_tax` | OK baseline | PPh final sewa (`6-3500`) masih operating; reklasifikasi bila ingin tampil sebagai beban pajak. |
 | Inventory policy | COA inventory + reporting notes | Partial | Inventory valuation/NRV disclosure perlu direview saat modul inventory final. |
 | Fixed asset depreciation | Fixed asset service supports depreciation; SoT says straight-line | OK baseline | Useful life/residual value import dari daftar aset final. |
 | Income tax disclosure | CALK tax section + tax services | Partial | Rekonsiliasi pajak komersial-fiskal belum otomatis. |
@@ -49,6 +50,7 @@
 | Threshold PPh Final UMKM benar | SoT §11.2b, ADR-0016 | OK | Monitor omzet tahunan dan durasi PT. |
 | PPh 21 payroll | Existing payroll PPh21 TER engine | OK baseline | Pastikan TER/PTKP update via DB saat regulasi berubah. |
 | PPh 23/Bupot | Existing withholding service + Coretax BPU XML | OK baseline | UAT dengan contoh bukti potong nyata. |
+| PPh 23 surcharge tanpa NPWP (UU PPh Ps.23 ayat 1a) | `calculateWithholding` menggandakan tarif (mis. 2%→4%) saat vendor tanpa NPWP; `generateBuktiPotong` resolve `partners.npwp` (T-0291) | OK | Set hanya untuk kode `PPH23`; tambah kode lain ke `NO_NPWP_SURCHARGE_CODES` bila perlu. |
 | Coretax SPT Masa PPN | SPT Masa service + export scaffold | Partial | Template PER-11/PJ/2025/Coretax aktif harus dimodelkan sebelum filing. |
 | Document retention | CALK record retention note | OK baseline | Implement storage retention policy jika dokumen pajak diupload. |
 
@@ -61,8 +63,18 @@
 - Split PPh Final UMKM treatment from PPh 25 in design/seed.
 - Removed dummy `"Alamat"` from e-Faktur CSV export; invoice address is now used when present.
 
+## T-0291 Code Gap Closure (2026-06-10, follow-up)
+
+- `reporting/trial-balance.ts`: expose `accountSubtype` on each line.
+- `reporting/balance-sheet.ts`: add current vs non-current asset & liability sections (SAK EP Bab 4).
+- `reporting/profit-loss.ts`: add `otherIncome`, `financeCosts`, `incomeTaxExpense`, `operatingProfit`, `profitBeforeTax` (SAK EP Bab 5); operating buckets default-safe (no line dropped).
+- `db/seed/coa.ts`: reclassify `7-4100 Beban Pajak Penghasilan` subtype `non_operating` → `income_tax` (applied via seed `onConflictDoUpdate`).
+- `tax/withholding.ts`: `calculateWithholding` doubles the rate for no-NPWP recipients (UU PPh Ps.23 ayat 1a) for codes in `NO_NPWP_SURCHARGE_CODES`; `generateBuktiPotong` resolves vendor NPWP.
+- Tests: `tests/reporting.test.ts` extended (current/non-current BS + SAK EP P&L classification). Services/db/mcp/web typecheck PASS; reporting + tax suites PASS (63).
+
 ## Residual Risks
 
 - This audit is an engineering compliance baseline, not a formal accountant/tax consultant sign-off.
+- **MCP serialization (pre-existing, latent)**: `apps/mcp/src/helpers.ts:mcpSuccess` does `JSON.stringify` directly; reporting results carry native `bigint` fields and there is no `BigInt.prototype.toJSON` polyfill, so `reporting.balance_sheet`/`reporting.profit_loss` MCP tools likely throw on serialization. Not introduced by T-0291 (response already had bigint fields). Recommend a dedicated task to add a bigint-aware serializer.
 - Coretax layouts can change; export files must be validated for the filing period before submission.
 - Formal SAK EP financial statements still need final renderer work for comparative columns, current/non-current grouping, and complete CALK presentation.
